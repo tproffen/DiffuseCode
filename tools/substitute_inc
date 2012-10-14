@@ -1,0 +1,79 @@
+#!/bin/sh
+#
+for i in *.inc
+  do
+    sed "s/c------	/\!     /g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/C------	/\!-----/g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/c	/\!     /g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/C	/\!     /g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/&	/&     /g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/	/      /g" $i > dummy
+    mv dummy $i
+  done
+for i in *.inc
+  do
+    sed "s/c-/\!-/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/c+/\!+/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/real/REAL/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/integer/INTEGER/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/parameter/PARAMETER/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/logical/LOGICAL/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/character/CHARACTER/g" $i > dummy
+    mv dummy $i
+  done
+#
+for i in *.inc
+  do
+    sed "s/common/COMMON/g" $i > dummy
+    mv dummy $i
+  done

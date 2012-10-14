@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+for i in *.f90
+  do
+    sed "s/else/ELSE/g" $i > dummy
+    mv dummy $i
+  done
+rm -f dummy

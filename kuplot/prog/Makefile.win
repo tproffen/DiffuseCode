@@ -1,0 +1,145 @@
+# ================================================================
+#
+#	$Id: Makefile.win,v 1.1.1.1 2012/06/09 16:19:02 rbneder Exp $
+#
+# KUPLOT - Universal plot program                            V 4.1
+# ================================================================
+#
+# This is the Makefile for KUPLOT for WINDOWS using cross compiler
+#
+# (c) Th. Proffen    (tproffen@ornl.gov )
+#     R.B. Neder     (reinhard.neder@krist.uni-erlangen.de)
+#
+# ================================================================
+# Where to install the binary and help file and a backup location
+# ================================================================
+
+BINDIR  = $(PWD)/../../../binary/win32/Diffuse/bin
+BACKDIR = $(HOME)/linux/backup/
+
+# ================================================================
+# Uncomment this if you want NeXus support
+# ================================================================
+
+#NXROOT     = /usr/local
+#NXSOBJ     = nexus.o
+#NX_FFLAGS  = -I$(NXROOT)/include -DNEXUS
+#NX_LDFLAGS = -L$(NXROOT)/lib -lNeXus -lmfhdf -ldf -lhdf5 -lz
+
+# ================================================================
+# General settings
+# ================================================================
+
+PGLIB   = ../../../binary/win32/GrWin/
+PGLIB   = /usr/local/pgplot
+
+CC      = gcc
+F90     = gfortran
+CFLAGS  = -w -DREADLINE
+FFLAGS  = -w -funderscoring -fsecond-underscore -fbounds-check \
+          $(NX_FFLAGS)
+LDFLAGS = -lreadline -L$(PGLIB) -lpgplot -lpng \
+          -lGrWin -mwindows -Wl,--subsystem,console $(NX_LDFLAGS)
+SYSOBJ  = appl_win.o sys_gfortran.o
+NXSOBJ  = nonexus.o
+
+# ================================================================
+# Permission for installed binaries and aux files
+# ================================================================
+
+BMOD    = 755
+FMOD    = 644
+
+# ================================================================
+# There should be no need to change anything below this line
+# ================================================================
+
+OBJ =   kuplot.o dkdo.o macro.o errlist.o random.o upd_par.o \
+	sup.o kdo.o blk_appl.o err_appl.o learn.o exit.o help.o \
+	plot.o para.o math.o load.o save.o fit.o gsas.o \
+	show.o color.o frame.o calc.o draw.o blockdat.o \
+	edit.o csocket.o csup.o init_win.o $(SYSOBJ) $(NXSOBJ)
+
+kuplot.exe: date.inc $(OBJ)
+	$(F90) $(FFLAGS) -o kuplot.exe $(OBJ) $(LDFLAGS)
+	rm date.inc
+
+remote.exe: remote.o csocket.o
+	$(F90) $(FFLAGS) -o remote.exe remote.o csocket.o $(SYSOBJ)
+
+.c.o:
+	$(CC) -c $(CFLAGS) $<
+
+%.o:    %.f90
+	$(F90) -c $(FFLAGS) $<
+
+date.inc:
+	./makedate
+
+clean: 
+	rm -f *~ kuplot.exe $(OBJ) remote.exe remote.o
+
+install: kuplot.exe appl_kup.hlp lib_f90.hlp
+	rm -f kuplot.hlp
+	cat appl_kup.hlp lib_f90.hlp > kuplot.hlp
+	cp kuplot.exe $(BINDIR)/
+	cp kuplot.hlp $(BINDIR)/
+	chmod $(BMOD) $(BINDIR)/kuplot.exe
+	chmod $(FMOD) $(BINDIR)/kuplot.hlp
+	if [ ! -d "$(BINDIR)/mac/" ] ; then \
+	  mkdir $(BINDIR)/mac/; chmod $(BMOD) $(BINDIR)/mac/; \
+	fi
+	if [ ! -d "$(BINDIR)/mac/kuplot" ] ; then \
+	  mkdir -m $(BMOD) $(BINDIR)/mac/kuplot; \
+	  chmod $(BMOD) $(BINDIR)/mac/kuplot;\
+	fi
+	cd sysmac; for i in *.mac ; do \
+	  (cp $$i $(BINDIR)/mac/kuplot/; \
+	  chmod $(FMOD) $(BINDIR)/mac/kuplot/$$i;) \
+	done
+
+backup: 
+	tar -cvf kuplot.tar *.f sys_*.c *.inc *.hlp  \
+			*ake* CHANGES.* sysmac/*.mac
+	gzip kuplot.tar
+	mv kuplot.tar.gz $(BACKDIR)
+
+# ================================================================
+# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+# ================================================================
+
+appl_unix.o: envir.inc prompt.inc
+appl_win.o: envir.inc prompt.inc
+blk_appl.o: config.inc kuplot.inc envir.inc errlist.inc prompt.inc learn.inc
+blockdat.o: charact.inc debug.inc doloop.inc learn.inc macro.inc param.inc prompt.inc variable.inc
+calc.o: config.inc kuplot.inc errlist.inc prompt.inc param.inc
+color.o: config.inc kuplot.inc errlist.inc prompt.inc
+dkdo.o: doact.inc doloop.inc doexec.inc errlist.inc learn.inc macro.inc prompt.inc param.inc charact.inc random.inc times.inc wink.inc
+draw.o: config.inc kuplot.inc errlist.inc prompt.inc learn.inc doact.inc macro.inc param.inc wink.inc
+err_appl.o: errlist.inc
+errlist.o: errlist.inc param.inc prompt.inc
+exit.o: config.inc prompt.inc kuplot.inc errlist.inc
+fit.o: config.inc kuplot.inc doact.inc macro.inc errlist.inc learn.inc prompt.inc param.inc debug.inc wink.inc
+frame.o: config.inc prompt.inc kuplot.inc errlist.inc
+help.o: prompt.inc envir.inc doact.inc macro.inc errlist.inc
+init_win.o: config.inc kuplot.inc
+init_x11.o: config.inc kuplot.inc
+kdo.o: config.inc kuplot.inc learn.inc prompt.inc errlist.inc
+kuplot.o: errlist.inc doact.inc learn.inc prompt.inc macro.inc pname.inc config.inc kuplot.inc wink.inc date.inc
+learn.o: errlist.inc prompt.inc learn.inc
+load.o: config.inc kuplot.inc errlist.inc param.inc prompt.inc times.inc debug.inc wink.inc
+macro.o: errlist.inc envir.inc macro.inc prompt.inc charact.inc doact.inc
+math.o: config.inc prompt.inc kuplot.inc errlist.inc wink.inc param.inc
+nexus.o: napif.inc nexus.inc prompt.inc debug.inc errlist.inc config.inc kuplot.inc
+nonexus.o: errlist.inc
+para.o: config.inc kuplot.inc errlist.inc prompt.inc
+plot.o: config.inc kuplot.inc errlist.inc prompt.inc wink.inc debug.inc
+random.o: random.inc
+save.o: config.inc errlist.inc kuplot.inc prompt.inc debug.inc macro.inc doact.inc param.inc learn.inc
+show.o: config.inc prompt.inc kuplot.inc errlist.inc
+sup.o: prompt.inc debug.inc errlist.inc envir.inc learn.inc random.inc times.inc macro.inc charact.inc doact.inc param.inc variable.inc
+sys_gfortran.o: wink.inc times.inc errlist.inc param.inc prompt.inc envir.inc
+sys_intel.o: wink.inc times.inc errlist.inc param.inc prompt.inc envir.inc \
+	 ifport.mod
+sys_pgi.o: wink.inc times.inc errlist.inc param.inc prompt.inc envir.inc
+upd_par.o: config.inc kuplot.inc errlist.inc param.inc prompt.inc

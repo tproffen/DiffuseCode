@@ -1,0 +1,10 @@
+#!/bin/sh
+echo
+echo $1
+echo
+cp $1.inc dummy.f
+/usr/local/bin/f2f90 << EOF
+dummy
+3  10 T F
+EOF
+cp dummy.f90 $1.inc

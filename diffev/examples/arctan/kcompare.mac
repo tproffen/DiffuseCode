@@ -1,0 +1,43 @@
+set prompt,redirect
+#
+# kcompare.mac
+#
+# This macro calculates the function and the corresponding R-value
+#
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+fclose all
+#
+rese
+#
+fopen 1,GENERATION
+
+fget  1,generation,member,children,parameters
+fclose 1
+#
+do i[0]=1,children
+  fopen 1,"DIFFEV/Resultate.%4D",i[0]
+  fopen 2,"DIFFEV/Versuche.%4D",i[0]
+  fget  2,generation,member,children,parameters
+  fget  2,i[1]
+  fget  2,r[11]
+  fget  2,r[12]
+  fget  2,r[13]
+#
+  rese
+  load xy,DATA/data.noisy
+  func  r[11]*(atan((abs(r[0 ]-r[12] ))/r[13])),xmin[1],xmax[1],0.1
+#  ccal add,wy,1,-101
+#  ccal add,wy,2,-101
+  rval 1,2,one
+  echo "         R-value %12.8f",res[1]
+  echo "weighted R-value %12.8f",res[2]
+  fformat 1,i4
+  fformat 2,f12.8
+  fput 1,i[0],res[2]
+  fclose all
+enddo
+exit

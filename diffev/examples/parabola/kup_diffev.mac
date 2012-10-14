@@ -1,0 +1,62 @@
+set prompt,redirect
+set error,exit
+
+# main macro for optimisation of a polynomial
+# Reads the current parameter set, calculates the polynomials
+# writes the calculated function and the R-value
+#
+###############################################################################
+#
+variable integer, generation
+variable integer, member
+variable integer, children
+variable integer, parameters
+variable integer, kid
+#
+variable real, par_a
+variable real, par_b
+variable real, par_c
+variable real, par_d
+variable real, par_e
+#
+fopen 1,GENERATION
+fget  1,generation,member, children,parameters
+fclose 1
+#
+sys rm -f DIFFEV/Results
+#
+do kid=1,children
+  do i[0]=1,10
+    r[200+i[0]] = 0.0
+  enddo
+#
+  fopen 2, "DIFFEV/Trials.%4D",kid
+  fget  2
+  fget  2
+  fget  2
+  fget  2
+  fget  2
+  do i[0]=1,parameters
+    fget 2, r[200+i[0]]
+  enddo
+  fclose 2
+  par_a = r[201]
+  par_b = r[202]
+  par_c = r[203]
+  par_d = r[204]
+  par_e = r[205]
+#
+  rese
+  load xy,DATA/function.data
+#
+  func par_a + par_b*r[0] + par_c*r[0]**2 +par_d*r[0]**3 + par_e*r[0]*+4,-3,3,0.01
+#
+  rval 1,2,one
+  fopen   1,"DIFFEV/Results.%4D",kid
+  fformat 1,i6
+  fformat 2,f12.8
+  fput   1,i[2],res[2]
+  fclose 1
+enddo
+fclose all
+exit

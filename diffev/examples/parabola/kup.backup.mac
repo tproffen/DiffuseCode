@@ -1,0 +1,126 @@
+#set prompt,redirect
+#set error,exit
+#
+rese
+#
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+variable integer,old_member
+#
+#
+#
+fclose all
+#
+fopen 1,GENERATION
+fget  1,generation,member,children,parameters
+fclose 1
+#
+# Make sure generation 0000 is kept
+#
+if('$1'.eq.'compare') then
+  if(generation.eq. 0) then
+    do kid=1,member
+      sys "cp TEMP/calc.%4D FINAL/initial.%4D",kid ,kid 
+      sys "cp TEMP/calc.%4D   FINAL/final.%4D",kid ,kid 
+    enddo
+  endif
+endif
+#
+if(generation.gt.0) then
+  load st,DIFFEV/Parameter,generation-1, 1,2
+  fopen 1, DIFFEV/old_member
+  fget  1
+  fget  1, old_member
+  fclose 1
+  if(old_member .lt. member) then
+    alloc parameter,member
+    do i[1]=1,old_member
+      x[2,i[1]] = x[1,i[1]]
+      y[2,i[1]] = y[1,i[1]]
+    enddo
+    fopen 1, DIFFEV/Eltern.temp, append
+    do i[1]=old_member+1,member
+      system "cp FINAL/final.%4D FINAL/final.%4D",old_member,i[1]
+      fput 1, -1.0*i[1], 1e10, 0.0, 0.0
+      x[2,i[1]] = -1.*i[1]
+      y[2,i[1]] = 2.e10
+    enddo
+    fclose 1
+    ksav 2
+      outf DIFFEV/temp.temp
+      form xy
+      run
+    rese
+    load xy, DIFFEV/temp.temp
+  endif
+else
+  alloc parameter,member
+  do i[1]=1,member
+    x[1,i[1]] = -i[1]
+    y[1,i[1]] = 1.e10
+  enddo
+endif
+#
+  if('$1'.eq.'best') then
+    do i[1]=1,member
+      x[1,i[1]] = -i[1]
+    enddo
+#
+    do i[5]=1,children
+#
+      fopen 1, "DIFFEV/Results.%4D",i[5]
+      fget 1,r[0],r[2]
+      fclose all
+      i[2] = member + 1
+      do i[1]=1,member
+        if(r[2].lt.y[1,i[1]]) then
+          i[2] = i[1]
+          break 2
+        endif
+      enddo
+      if(i[2].le.member) then
+        do i[3]=member,i[2]+1,-1
+          x[1,i[3]] = x[1,i[3]-1]
+          y[1,i[3]] = y[1,i[3]-1]
+        enddo
+        x[1,i[2]] = i[5]
+        y[1,i[2]] = r[2]
+      endif
+    enddo
+    skal
+    ksav 1
+      form xy
+      outfile DIFFEV/Eltern.temp
+    run
+#
+    do i[5]=member,1,-1
+      if(x[1,i[5]].gt.0) then
+        i[4] = nint(x[1,i[5]])
+        sys "cp TEMP/calc.%4D FINAL/final.%4D",i[4],i[5]
+      elseif(x[1,i[5]].lt.0) then
+        i[4] = nint(-1.*x[1,i[5]])
+	if(i[4].ne.i[5]) then
+          sys "cp FINAL/final.%4D FINAL/final.%4D",i[4],i[5]
+        endif
+      endif
+    enddo
+  elseif('$1'.eq.'compare') then
+    do i[5]=1,member
+      fopen 1, "DIFFEV/Results.%4D",i[5]
+      fget 1,r[0],r[2]
+      fclose all
+      if(r[2].lt.y[1,i[5]]) then
+        sys "cp TEMP/calc.%4D FINAL/final.%4D",i[5],i[5]
+      endif
+    enddo
+  endif
+  fopen 1, DIFFEV/old_member
+  fput  1, 'Number of members in previous generation:'
+  fput  1, member
+  fclose 1
+#endif
+#sys rm -f INDI/indi*.*

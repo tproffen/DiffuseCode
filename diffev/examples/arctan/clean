@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+rm -f DIFFEV/*.*
+rm -f arctan
+rm -f GENERATION

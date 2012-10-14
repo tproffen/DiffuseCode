@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+mkdir -p DEPENDENCIES
+rm -f DEPENDENCIES/*.use
+rm -f DEPENDENCIES/00.DEP
+
+#
+for i in *.f90
+  do
+    rm -f DEPENDENCIES/$i.use
+    fgrep include $i >> DEPENDENCIES/$i.use
+    fgrep USE     $i >> DEPENDENCIES/$i.use
+  done
+cd DEPENDENCIES
+ls  *.use > 00.DEP
+cp ../../../tools/make_dep.f90 .
+gfortran -o make_dep make_dep.f90
+./make_dep
+cd ..
+rm -f DEPENDENCIES/*.use
+rm -f DEPENDENCIES/00.DEP
+rm -f DEPENDENCIES/make_dep*

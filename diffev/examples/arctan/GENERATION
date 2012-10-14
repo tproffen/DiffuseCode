@@ -1,0 +1,10 @@
+# generation members children parameters
+     100        40        40         3
+# trial file
+DIFFEV/Trials
+# result file
+DIFFEV/Result
+# log file
+DIFFEV/Parameter
+# summary file
+DIFFEV/Summary

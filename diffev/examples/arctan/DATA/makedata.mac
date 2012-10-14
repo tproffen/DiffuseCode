@@ -1,0 +1,5 @@
+rese
+func 100.*(atan((abs(r[0]-100.23))/0.1)), -50,150,0.10
+skal
+mark 50
+plot

@@ -1,0 +1,41 @@
+set prompt,off
+#
+#  fit.mac
+#
+################################################################################
+#
+#  Attempt to refine the function by least squares fit
+#
+# @fit height,position,width,slow
+#      height    estimate for the parameter "height"
+#      position  estimate for the parameter "position"
+#      width     estimate for the parameter "width "
+#      slow      control parameter, small values force a fast fit, large
+#                values force the fit to creep more slowly to the minimum.
+#
+rese
+load xy,DATA/data.noisy
+skal -50,150,0,210
+mark
+achx x
+achy Value
+fnam off
+tit1 Experimental data
+tit2 comparativly noisy data
+plot
+wait return
+fit 1
+p[1] = $1
+p[2] = $2
+p[3] = $3
+func fx,3,p[1]*(atan((abs(r[0]-p[2]))/p[3]))
+cycle 10
+urf $3
+show
+wait return
+run
+exit
+skal
+mark
+plot
+set prompt,on

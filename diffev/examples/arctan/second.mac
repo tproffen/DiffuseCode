@@ -1,0 +1,4 @@
+@diffev_setup.mac
+fopen 1,GENERATION
+fget 1,pop_gen[1],pop_n[1],pop_c[1],pop_dimx[1]
+fclose 1

@@ -1,0 +1,25 @@
+read
+  cell cef3.cll,1,1,1
+
+pdf
+  isel all
+  jsel all
+
+  set therm,gauss
+  set bound,period
+  set range,20.0,0.01
+  set part,internal
+  set dens,0.0
+  set delt,0.0
+
+  set rad,neutron
+  show
+  calc
+  save pdf,CeF3_fake_N.gr
+
+  set rad,xray
+  show
+  calc
+  save pdf,CeF3_fake_X.gr
+
+exit

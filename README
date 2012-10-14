@@ -1,0 +1,30 @@
+----------------------------------------------------------------
+Diffuse program collection
+----------------------------------------------------------------
+
+Welcome to the 'diffuse program' collection. Depending on the
+package you have downloaded you will find one or all of the
+following program directories after unpacking the archive.
+
+DISCUS  : Diffuse Scattering & Defect Structure Simulation
+AUTHORS : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+          Th. Proffen (tproffen@ornl.gov)
+
+DIFFEV  : Generic refinement program using evolutionary algoritm
+AUTHOR  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+
+KUPLOT  : General plotting program (well suited for DISCUS outp)
+AUTHOR  : Th. Proffen (tproffen@ornl.gov)
+          R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+
+MIXSCAT : Program to generate differential PDFs from n/X data
+AUTHOR  : C. Wurden K. Page A. Llobet
+          Th. Proffen (tproffen@ornl.gov)
+----------------------------------------------------------------
+
+INSTALLATION
+----------------------------------------------------------------
+
+To build from the source code, you need gfortran (> 4.3.x) as
+well as cmake installed. 
+

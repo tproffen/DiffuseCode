@@ -1,0 +1,116 @@
+#
+#  diffev_setup.mac
+#
+################################################################################
+#
+#  Setup for diffev.
+#  The number of population members, the number of trial children, and all
+#  parameters as well as selection type and files are defined.
+#
+################################################################################
+#
+#  pop_gen[1]  = 0    The generation number is reset to zero 
+#
+#  pop_n[1]    = 15   We will use a population with 15 members
+#  pop_c[1]    = 30   30 children are generated and their R-values calculated.
+#                     Only 15 will survive into the next generation
+#  pop_dimx[1] = 3    We want to refine 3 parameters
+#
+#  For each of the parameters we need:
+#
+#  pop_name    1,height  A name which will be printed into the logfile
+#  pop_xmin[1] =  0.0    Lower and upper boundary. No parameter will be
+#  pop_xmax[1] =200.0      outside this window.
+#  pop_smin[1] =  0.0    Lower and upper start values. The initial parameters
+#  pop_smax[1] =200.0      in generation zero will be within this window.
+#  pop_sig [1] =  1.0    Global sigma, used is a trial parameter is outside
+#                          the boundaries
+#  pop_lsig[1] =  0.1    Local sigma, parameters will usually be modified by
+#                          differential evolution. Alternatively you can 
+#                          modify parameters locally with Gaussian distribution.
+#  type real,1           A parameter may be real or integer
+#  adapt sigma , 1,0.2   The global and local sigma can be adjusted while
+#  adapt lsigma, 1,0.01    refining. They are set to 
+#                          (largest - smallest Parameter value)*width.
+#                          width is the last value on the adapt command line.
+#
+#  constrain p[3].ne.0.0 Logical expressions may constrain parameter values.
+#
+#  diff_cr[1]  = 0.8     The cross over probability is set to 0.8
+#  diff_f[1]   = 0.81    The parameter difference vector is multiplied by 0.81
+#  diff_k[1]   = 1.0     The donor vector is chosen along a straight line
+#                          between the parent vector (diff_k[1]=0.0) and
+#                          the donor base vector (diff_k[1]=1.0).
+#  diff_lo[1]  = 0.0     The probability for local modification of a member
+#
+#  donor      random     The donor base vector is chosen randomly among the
+#                          population.
+#  refine     all        All parameters will be refined
+#
+#  selection  best,all   Selection rule, here only the pop_n[1] best members
+#                        of the combined parent members and trial children 
+#                        survive.
+#
+#  trialfile  DIFFEV/Trials     Base name for trial value files
+#  restrial   DIFFEV/Result     Base name for trial result files
+#  logfile    DIFFEV/Parameter  The logfile, it has SPEC format
+#  summary    DIFFEV/Summary    The Summary file, also in SPEC format
+#
+################################################################################
+pop_gen[1]  = 0
+#
+pop_n[1]    = 40
+pop_c[1]    = 40
+pop_dimx[1] = 3
+#
+pop_name    1,height
+pop_xmin[1] =  0.0
+pop_xmax[1] =200.0
+pop_smin[1] =  0.0
+pop_smax[1] =200.0
+pop_sig [1] =  1.0
+pop_lsig[1] =  0.1
+type real,1
+adapt sigma , 1,0.2
+adapt lsigma, 1,no
+#
+pop_name    2,position
+pop_xmin[2] = -50.0
+pop_xmax[2] = 150.0
+pop_smin[2] = -50.0
+pop_smax[2] = 150.0
+pop_sig [2] =  1.0
+pop_lsig[2] =  0.1
+type real,2
+adapt sigma , 2,0.2
+adapt lsigma, 2,no
+#
+pop_name    3,width
+pop_xmin[3] = -1.0
+pop_xmax[3] =  1.0
+pop_smin[3] = -1.0
+pop_smax[3] =  1.0
+pop_sig [3] =  0.02
+pop_lsig[3] =  0.002
+type real,3
+adapt sigma , 3,0.2
+adapt lsigma, 3,no
+#
+#
+constrain p[3].ne.0.0
+#
+diff_cr[1]  = 0.8
+diff_f[1]   = 0.81
+diff_k[1]   = 1.0
+diff_lo[1]  = 0.0
+#
+donor      random
+refine     all
+#
+selection  best,all
+#
+trialfile  DIFFEV/Trials
+restrial   DIFFEV/Result
+logfile    DIFFEV/Parameter
+summary    DIFFEV/Summary
+#

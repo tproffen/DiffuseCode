@@ -1,0 +1,198 @@
+#set prompt,redirect
+variable integer, ipar
+#
+# This example determines the parameters of a polynomial, that is given in
+# File DATA/funktion.data
+# KUPLOT calculates the parabola as 
+#   par_a + par_b*r[0] + par_c*r[0]**2 + par_d*r[0]**3 + par_e*r[0]**4
+#
+# The parameters for the polynomial were:
+# par_a:  100.0
+# par_b:  -30.0
+# par_c:  -15.0
+# par_d:    8.0
+# par_e:   -0.1
+#
+# This examples demonstrates how to increase the number of 
+# refinement parameters and how to change the population size.
+#
+# The macro starts out with just three parameters, i.e. a 2nd order
+# polynomial and a (extremely) small population of 10 members.
+# After a few cycles, the order of the polynomial is increased to 
+# third order and the population size is increased. 
+# With this parameter set a refinement is carried out over many 
+# generations, until essentially all parameters have converged. 
+# Just as a demonstration, the addition of the fourth order 
+# parameter is performed. You will notice that the population 
+# does not really refine into a better solution. As the spread
+# of the parameters is too small, the algorithm will take very
+# long to refine into the global minimum. 
+# Here it helps to reinitialize one or several parameters to 
+# a wider spread around the current population.
+# Thereafter the algorithm will quickly refine into the global
+# minimum.
+# 
+#
+# For this example, all three parameters are restricted to the range
+# pop_xmin = -10000 to 10000 = pop_xmax. 
+# The starting range is set to this range as well, pop_smin and pop_smax.
+#
+# Sometimes, (not for this example) an optimisation may shift all parameters
+# to one of the boundaries. In this case all parameters are identical, and
+# thus all differences are zero, which makes the differential evolution dead.
+# To avoid this DIFFEV allows you to define a sigma for each parameter. If
+# the length of the cross over vector is zero, or if a parameter would be
+# shifted outside the allowed range, the shift is replaced by a Gaussian
+# distributed random shift.
+#
+@cleanup
+#
+@diffev_setup.mac
+#
+init
+#
+###############################################################################
+#
+# Polynomial: const + x + x**2
+# Population: 10
+# Dimension :  3
+# cycles    :  0 - 1
+#
+do i[0]=1,150
+#  sys kuplot < kup_diffev.mac   ! use this line with Windows
+   system ./function
+   system kuplot < kup.select.mac
+  compare
+enddo
+#
+###############################################################################
+#
+# Polynomial: const + x + x**2 + x**3
+# Population: 10
+# Dimension :  3
+#
+pop_dimx[1] =   pop_dimx[1] + 1
+#
+# Parameter D, third order term     
+#
+ipar        = ipar + 1
+pop_name      ipar, thrd
+pop_xmin[ipar] = -10000.0
+pop_xmax[ipar] =  10000.0
+pop_smin[ipar] = -10.0
+pop_smax[ipar] =  10.0
+pop_sig [ipar] =   0.2
+type real,ipar
+refine all
+init ipar
+#
+do i[0]=1,150
+#  sys kuplot < kup_diffev.mac   ! use this line with Windows
+   system ./function
+   system kuplot < kup.select.mac
+  compare
+enddo
+#
+#
+###############################################################################
+#
+# Polynomial: const + x + x**3 + x**3
+# Population: 10
+#Dimension :  3
+# Cycles    :  2 - 201
+#
+pop_smin[2] = pop_v[2,1] - 100.
+pop_smax[2] = pop_v[2,1] + 100.
+#
+pop_smin[3] = pop_v[3,1] -  10.
+pop_smax[3] = pop_v[3,1] +  10.
+#
+pop_smin[4] = pop_v[4,1] -   5.
+pop_smax[4] = pop_v[4,1] +   5.
+init 2
+init 3
+init 4
+#
+do i[0]=1,150
+#  sys kuplot < kup_diffev.mac   ! use this line with Windows
+   system ./function
+   system kuplot < kup.select.mac
+  compare
+enddo
+#
+#
+###############################################################################
+#
+# Polynomial: const + x + x**2 + x**3 + x**4
+# Population: 10
+# Dimension :  4
+# Cycles    :  2 - 201
+#
+pop_dimx[1] =   pop_dimx[1] + 1
+#
+# Parameter E, cube term     
+#
+ipar        = ipar + 1
+pop_name      ipar, cube
+pop_xmin[ipar] = -100.0
+pop_xmax[ipar] =  100.0
+pop_smin[ipar] = -1.0
+pop_smax[ipar] =  1.0
+pop_sig [ipar] =   0.2
+type real,ipar
+refine all
+init ipar
+pop_smin[2] = pop_v[2,1] - 100.
+pop_smax[2] = pop_v[2,1] + 100.
+#
+pop_smin[3] = pop_v[3,1] -  10.
+pop_smax[3] = pop_v[3,1] +  10.
+#
+pop_smin[4] = pop_v[4,1] -   5.
+pop_smax[4] = pop_v[4,1] +   5.
+init 2
+init 3
+init 4
+
+#
+do i[0]=1, 50
+#  sys kuplot < kup_diffev.mac   ! use this line with Windows
+   system ./function
+   system kuplot < kup.select.mac
+  compare
+enddo
+#
+#
+###############################################################################
+#
+# Polynomial: const + x + x**2 + x**3 + x**4
+# Population: 100
+# Dimension :  4
+# Cycles    :  2 - 201
+#
+pop_n[1]    =   100
+pop_c[1]    =   100
+pop_smin[2] = pop_v[2,1] - 100.
+pop_smax[2] = pop_v[2,1] + 100.
+#
+pop_smin[3] = pop_v[3,1] -  10.
+pop_smax[3] = pop_v[3,1] +  10.
+#
+pop_smin[4] = pop_v[4,1] -   5.
+pop_smax[4] = pop_v[4,1] +   5.
+#
+pop_smin[4] = pop_v[4,1] -   2.
+pop_smax[4] = pop_v[4,1] +   2.
+init 2
+init 3
+init 4
+init 5
+
+#
+do i[0]=1,200
+#  sys kuplot < kup_diffev.mac   ! use this line with Windows
+   system ./function
+   system kuplot < kup.select.mac
+  compare
+enddo
+#

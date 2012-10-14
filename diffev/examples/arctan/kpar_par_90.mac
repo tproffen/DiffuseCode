@@ -1,0 +1,167 @@
+#
+################################################################################
+#
+# kpar_par_90.mac
+#
+################################################################################
+#
+# Displays the correlation between two parameter values. The member with the
+# lowest R-value is plotted in blue, all other ones in red.
+# at the bottom of the plot the current trial values are plotted.
+#
+# @kpar_par generation, parameter, parameter
+#       generation may be any generation number or -1 for the current one
+#       parameter: -1 == member number
+#       parameter:  0 == R-value
+#       parameter: >0 == parameter nuumber
+#
+################################################################################
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+variable character,axis_x
+variable character,axis_y
+variable character,string
+fclose all
+#
+rese
+#
+# Get generation numbers, number of members, children and parameters
+#
+fopen 1,GENERATION
+#
+fget  1,generation,member,children,parameters
+fclose 1
+#
+if($1.eq.-1) then
+  i[0] = generation - 1
+else
+  i[0] = $1
+endif
+#
+# Find member with lowest R-value
+#
+rese
+load st, DIFFEV/Parameter.0000, i[0],  1,   2
+r[0] =y[1,1]
+i[10]=1
+do i[1]=2,np[1]
+  if(y[1,i[1]].lt.r[0]) then
+    r[0] = y[1,i[1]]
+    i[10] = i[1]
+  endif
+enddo
+#
+#  load actual parameter sets
+#
+rese
+if($3.eq.-1) then
+  load st, "DIFFEV/Parameter.%4D", 0, i[0], 1, 2
+else
+  load st, "DIFFEV/Parameter.%4D",$3, i[0], 3, 2
+endif
+if($2.eq.-1) then
+  load st, "DIFFEV/Parameter.%4D", 0, i[0], 1, 2
+else
+  load st, "DIFFEV/Parameter.%4D",$2, i[0], 3, 2
+endif
+alloc points, np[1]
+do i[0]=1,np[1]
+  x[3,i[0]] = x[2,i[0]]
+  y[3,i[0]] = x[1,i[0]]
+enddo
+alloc minimum,1
+x[4,1] = x[3,i[10]]
+y[4,1] = y[3,i[10]]
+#
+fopen 1, DIFFEV/Parameter.name
+do i[0]=-1,parameters
+  fget 1, string
+  if($2.eq.i[0]) then
+    axis_x = "%c",string
+  endif
+  if($3.eq.i[0]) then
+    axis_y = "%c",string
+  endif
+enddo
+fclose 1
+#
+tit1 Correlation between parameters
+if($1.eq.-1) then
+  i[0] = generation - 1
+else
+  i[0] = $1
+endif
+#
+# create pretty plot
+#
+tit2 "Generation %4d; Parameter Nr. %d / %d",i[0],$2,$3
+#
+ltyp 3,0
+mtyp 3,3
+lcol 3,1
+mcol 3,1
+#
+r[0] = (ymax[3]-ymin[3])*0.05
+r[1] = ymin[3]-r[0]
+#
+#
+ltyp 3,0
+mtyp 3,3
+lcol 3,1
+mcol 3,1
+#
+ltyp 4,0
+mtyp 4,3
+lcol 4,3
+mcol 4,3
+#
+if($2.gt.0) then
+#
+  alloc trials,children
+  do i[0]=1,children
+    fopen 1, "DIFFEV/Trials.%4D",i[0]
+    fget  1
+    fget  1
+    fget  1
+    fget  1
+    fget  1
+    do i[1] = 1, $2-1
+      fget 1
+    enddo
+    fget 1, x[n[1],i[0]]
+    y[n[1],i[0]] = ymin[3] - r[0]
+    fclose 1
+  enddo
+  r[10] = min(xmin[1],xmin[3])
+  r[11] = max(xmax[1],xmax[3])
+  if(r[10].eq.r[11]) then
+    r[10] = r[10]-0.01
+    r[11] = r[11]+0.01
+  endif
+#
+  ltyp 5,0
+  mtyp 5,3
+  lcol 5,3
+  mcol 5,6
+  skal min(xmin[3],xmin[5]),max(xmax[3],xmax[5]),ymin[3]-r[0],ymax[3]+r[0]
+#
+  kfra 1,3,4,5
+else
+  r[10] = xmin[3]
+  r[11] = xmax[3]
+  skal     xmin[3]         ,    xmax[3]         ,ymin[3]-r[0],ymax[3]+r[0]
+  kfra 1,3,4
+endif
+#
+mark
+fnam off
+achx "%c    ",axis_x
+achy "%c    ",axis_y
+#
+plot
+show data,4
+set prompt,on

@@ -1,0 +1,40 @@
+read
+  cell cef3.cll,1,1,1
+
+pdf
+  set therm,cryst
+  set bound,period
+  set part,internal
+  set density,0.0
+  set range,20.0,0.01
+
+  isel all
+  jsel all
+  show
+  calc
+  save mark,tot.ma
+
+  ides all
+  jdes all
+  isel ce
+  jsel ce
+  show
+  calc
+  save mark,cece.ma
+
+  ides all
+  jdes all
+  isel ce
+  jsel f
+  show
+  calc
+  save mark,cef.ma
+
+  ides all
+  jdes all
+  isel f
+  jsel f
+  show
+  calc
+  save mark,ff.ma
+exit

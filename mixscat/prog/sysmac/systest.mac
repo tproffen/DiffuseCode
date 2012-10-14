@@ -1,0 +1,3 @@
+set prompt,off,off,save
+echo "MIXSCAT system macros seem to work ..."
+set prompt,old

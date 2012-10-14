@@ -1,0 +1,4 @@
+system rm -rf DIFFEV/*
+system rm -rf TEMP/*
+system rm -rf FINAL/*
+system rm -rf GENERATION

@@ -1,0 +1,34 @@
+reset
+read dat,x,CeF3_bulk_binned.gr
+read dat,n,CeF3_Bulk_npdf_03902.gr
+#
+# From PDFgui
+#scal 1,1.0/0.86
+#scal 2,1.0/13.5
+#
+match 0.5,2.0,24./320.864
+elem Ce,1,F,3
+#
+remove Ce,Ce
+show
+calc
+save pdf,CeCe_new_diff.gr
+save wei,w_CeCe.mac
+save res,CeCe.res
+#
+remove Ce,F
+show
+calc
+save pdf,CeF_new_diff.gr
+save wei,w_CeF.mac
+save res,CeF.res
+#
+remove F,F
+show
+calc
+save pdf,FF_new_diff.gr
+save wei,w_FF.mac
+save res,FF.res
+#
+system discus pdf > /dev/null
+system kuplot p > /dev/null

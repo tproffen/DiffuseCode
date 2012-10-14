@@ -1,0 +1,6519 @@
+!*****7*****************************************************************
+!                                                                       
+      SUBROUTINE chem 
+!-                                                                      
+!     This sublevel contains all routines to analyse a structure        
+!     line calculation of bondlength distributions, the average         
+!     structure and correlations.                                       
+!                                                                       
+!     Note: Some variables are used in the MC section as well           
+!           and settings might be overwritten.                          
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE modify_mod
+!
+      IMPLICIT none 
+!                                                                       
+       
+      include'doact.inc' 
+      include'macro.inc' 
+      include'errlist.inc' 
+      include'learn.inc' 
+      include'param.inc' 
+      include'prompt.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 20) 
+!                                                                       
+      CHARACTER(5) befehl 
+      CHARACTER(50) prom 
+      CHARACTER(1024) line, zeile, cpara (maxw) 
+      REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
+      REAL uwerte (maxw) 
+      INTEGER lbeg (3) 
+      INTEGER lpara (maxw), lp, length 
+      INTEGER indxg, ianz, lbef, i, ia, is, ic (3), iianz, jjanz 
+      INTEGER kkanz 
+      LOGICAL lout 
+!                                                                       
+      INTEGER len_str 
+      LOGICAL str_comp 
+!                                                                       
+      CALL no_error 
+!                                                                       
+   10 CONTINUE 
+!                                                                       
+      prom = prompt (1:len_str (prompt) ) //'/chem' 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      IF (ier_num.eq.0) then 
+         IF (line.eq.' '.or.line (1:1) .eq.'#') goto 10 
+!                                                                       
+!------ search for "="                                                  
+!                                                                       
+         indxg = index (line, '=') 
+      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
+     &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
+     &2, lbef, 4) ) ) then                                              
+            CALL do_math (line, indxg, length) 
+!                                                                       
+!------ execute a macro file                                            
+!                                                                       
+         ELSEIF (befehl (1:1) .eq.'@') then 
+            CALL file_kdo (line (2:length), length - 1) 
+!                                                                       
+!------ Calculate average structure and sigmas 'aver'                   
+!                                                                       
+         ELSEIF (str_comp (befehl, 'aver', 2, lbef, 4) ) then 
+            IF (.not.chem_sel_atom) then 
+               ier_num = - 22 
+               ier_typ = ER_CHEM 
+            ELSE 
+               CALL chem_aver (.true.) 
+            ENDIF 
+!                                                                       
+!------ Calculate bond-angle distribution 'bang'                        
+!                                                                       
+         ELSEIF (str_comp (befehl, 'bang', 2, lbef, 4) ) then 
+            IF (.not.chem_sel_atom) then 
+               ier_num = - 22 
+               ier_typ = ER_CHEM 
+               RETURN 
+            ENDIF 
+!                                                                       
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               IF (ianz.ge.3) then 
+                  iianz = 1 
+                  jjanz = 1 
+                  kkanz = 1 
+                  CALL get_iscat (iianz, cpara, lpara, werte, maxw,     &
+                  .false.)                                              
+                  CALL del_params (1, ianz, cpara, lpara, maxw) 
+                  IF (ier_num.eq.0) then 
+                     CALL get_iscat (jjanz, cpara, lpara, wwerte, maxw, &
+                     .false.)                                           
+                     IF (ier_num.eq.0) then 
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                        CALL get_iscat (kkanz, cpara, lpara, uwerte,    &
+                        maxw, .false.)                                  
+                        IF (ier_num.eq.0) then 
+                           CALL del_params (1, ianz, cpara, lpara, maxw) 
+                           CALL do_build_name (ianz, cpara, lpara,      &
+                           wwwerte, maxw, 1)                            
+                           chem_fname = cpara (1) 
+                           IF (ier_num.eq.0) then 
+                              CALL chem_bang (iianz, jjanz, kkanz,      &
+                              werte, wwerte, uwerte, maxw)              
+                           ENDIF 
+                        ENDIF 
+                     ENDIF 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ENDIF 
+!                                                                       
+!------ Calculate bond-length distribution 'blen'                       
+!                                                                       
+         ELSEIF (str_comp (befehl, 'blen', 2, lbef, 4) ) then 
+            IF (.not.chem_sel_atom) then 
+               ier_num = - 22 
+               ier_typ = ER_CHEM 
+               RETURN 
+            ENDIF 
+!                                                                       
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               IF (ianz.ge.2) then 
+                  iianz = 1 
+                  jjanz = 1 
+                  CALL get_iscat (iianz, cpara, lpara, werte, maxw,     &
+                  .false.)                                              
+                  CALL del_params (1, ianz, cpara, lpara, maxw) 
+                  IF (ier_num.eq.0) then 
+                     CALL get_iscat (jjanz, cpara, lpara, wwerte, maxw, &
+                     .false.)                                           
+                     IF (ier_num.eq.0) then 
+                        IF (ianz.gt.1) then 
+                           CALL del_params (1, ianz, cpara, lpara, maxw) 
+                           CALL do_build_name (ianz, cpara, lpara,      &
+                           wwwerte, maxw, 1)                            
+                           chem_fname = cpara (1) 
+                        ELSE 
+                           chem_fname = 'discus.blen' 
+                        ENDIF 
+                        IF (ier_num.eq.0) then 
+                           IF (chem_cluster) then 
+                              CALL chem_blen_cluster (iianz, jjanz,     &
+                              werte, wwerte, maxw)                      
+                           ELSE 
+                              CALL chem_blen (iianz, jjanz, werte,      &
+                              wwerte, maxw)                             
+                           ENDIF 
+                        ENDIF 
+                     ENDIF 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ENDIF 
+!                                                                       
+!------ 'bval' calculates the bond valence sum for a given atom         
+!                                                                       
+         ELSEIF (str_comp (befehl, 'bval', 2, lbef, 4) ) then 
+            CALL chem_bval (zeile, lp) 
+!                                                                       
+!     continues a macro 'continue'                                      
+!                                                                       
+         ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
+            CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ Echo a string, just for interactive check in a macro 'echo'     
+!                                                                       
+         ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+            CALL echo (zeile, lp) 
+!                                                                       
+!------ Show relative amounts of elements 'elem'                        
+!                                                                       
+         ELSEIF (str_comp (befehl, 'elem', 2, lbef, 4) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ianz.eq.1) then 
+               CALL do_cap (cpara (1) ) 
+               lout = (cpara (1) (1:2) .eq.'ON') 
+            ELSE 
+               lout = .true. 
+            ENDIF 
+!                                                                       
+            IF (chem_sel_atom) then 
+               CALL chem_elem (lout) 
+            ELSE 
+               CALL chem_mole (lout) 
+            ENDIF 
+!                                                                       
+!------ 'env' finds neighbours around given atom, site or position      
+!                                                                       
+         ELSEIF (str_comp (befehl, 'env', 2, lbef, 3) ) then 
+            CALL chem_env (zeile, lp) 
+!                                                                       
+!------ 'mode' toggles between working with molecules and atoms         
+!                                                                       
+         ELSEIF (str_comp (befehl, 'mode', 2, lbef, 4) ) then 
+            CALL chem_mode (zeile, lp) 
+!                                                                       
+!------ 'neig' finds neighbours according to given neighbour definition 
+!                                                                       
+         ELSEIF (str_comp (befehl, 'neig', 2, lbef, 4) ) then 
+            CALL chem_nei (zeile, lp) 
+!                                                                       
+!------ Evaluate an expression 'eval'                                   
+!                                                                       
+         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+            CALL do_eval (zeile, lp) 
+!                                                                       
+!     exit 'exit'                                                       
+!                                                                       
+         ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+            GOTO 9999 
+!                                                                       
+!------ calculate correlation field                                     
+!                                                                       
+         ELSEIF (str_comp (befehl, 'field', 2, lbef, 5) ) then 
+            CALL chem_corr_field (zeile, lp) 
+!                                                                       
+!------ calculate neighbour probabilities 'corr'                        
+!                                                                       
+         ELSEIF (str_comp (befehl, 'corr', 3, lbef, 4) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.ne.0) return 
+            IF (ianz.eq.3) then 
+               IF (chem_ctyp (1) .eq.CHEM_NONE) then 
+                  ier_num = - 11 
+                  ier_typ = ER_CHEM 
+               ELSE 
+                  IF (str_comp (cpara (1) , 'occ', 1, lpara (1) , 3) )  &
+                  then                                                  
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     lbeg (1) = - 1 
+                     lbeg (2) = 0 
+                     lbeg (3) = 0 
+!                                                                       
+                     IF (chem_sel_atom) then 
+                        CALL chem_corr_occ (ianz, cpara, lpara, maxw,   &
+                        .true., lbeg)                                   
+                     ELSE 
+                        CALL chem_corr_occ_mol (ianz, cpara, lpara,     &
+                        maxw, .true., lbeg)                             
+                     ENDIF 
+                  ELSEIF (str_comp (cpara (1) , 'disp', 1, lpara (1) ,  &
+                  4) ) then                                             
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     IF (chem_sel_atom) then 
+                        CALL chem_corr_dis (ianz, cpara, lpara, maxw,   &
+                        .true., lbeg)                                   
+                     ELSE 
+                        CALL chem_corr_dis_mol (ianz, cpara, lpara,     &
+                        maxw, .true., lbeg)                             
+                     ENDIF 
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!------ calculate angles for given neighbours                           
+!                                                                       
+         ELSEIF (str_comp (befehl, 'angle', 3, lbef, 4) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.ne.0) return 
+            IF (ianz.ge.2) then 
+               IF (chem_ctyp (1) .eq.CHEM_NONE) then 
+                  ier_num = - 11 
+                  ier_typ = ER_CHEM 
+               ELSE 
+                  IF (ianz.gt.2) then 
+                     CALL do_build_name (ianz, cpara, lpara, werte,     &
+                     maxw, 3)                                           
+                  ENDIF 
+                  IF (chem_sel_atom) then 
+                     CALL chem_angle (ianz, cpara, lpara, werte, wwerte,&
+                     wwwerte, maxw, .true.)                             
+                  ENDIF 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!------ calculate distortions for given neighbours                      
+!                                                                       
+         ELSEIF (str_comp (befehl, 'disp', 3, lbef, 4) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.ne.0) return 
+            IF (ianz.ge.2) then 
+               IF (chem_ctyp (1) .eq.CHEM_NONE) then 
+                  ier_num = - 11 
+                  ier_typ = ER_CHEM 
+               ELSE 
+                  IF (ianz.gt.2) then 
+                     CALL do_build_name (ianz, cpara, lpara, werte,     &
+                     maxw, 3)                                           
+                  ENDIF 
+                  IF (chem_sel_atom) then 
+                     CALL chem_disp (ianz, cpara, lpara, werte, maxw,   &
+                     .true.)                                            
+                  ELSE 
+                     CALL chem_disp_mol (ianz, cpara, lpara, werte,     &
+                     maxw, .true.)                                      
+                  ENDIF 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!------ 'homo' checks how homogeneous the crystal is                    
+!                                                                       
+         ELSEIF (str_comp (befehl, 'homo', 2, lbef, 4) ) then 
+            CALL chem_homo (zeile, lp) 
+!                                                                       
+!     help 'help','?'                                                   
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) then                                      
+            IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+               lp = lp + 7 
+               CALL do_hel ('discus '//zeile, lp) 
+            ELSE 
+               lp = lp + 12 
+               CALL do_hel ('discus chem '//zeile, lp) 
+            ENDIF 
+!                                                                       
+!------ set most parameters for 'chem' section: 'set'                   
+!                                                                       
+         ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+            CALL chem_set (zeile, lp) 
+!                                                                       
+!------ show parameters 'show'                                          
+!                                                                       
+         ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
+            zeile = 'all' 
+            CALL chem_show (zeile) 
+!                                                                       
+!-------Operating System Kommandos 'syst'                               
+!                                                                       
+         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+            IF (zeile.ne.' ') then 
+               CALL do_operating (zeile (1:lp), lp) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!------ calc cell-atomindex and atomindex-cell                          
+!                                                                       
+         ELSEIF (str_comp (befehl, 'trans', 2, lbef, 5) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.eq.0.and.cr_natoms.ne.0) then 
+               IF (ianz.eq.1) then 
+                  ia = nint (werte (1) ) 
+                  IF (ia.gt.0.and.ia.le.cr_natoms) then 
+                     CALL indextocell (ia, ic, is) 
+                     WRITE (output_io, 3000) ia, ic, is 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ELSEIF (ianz.eq.4) then 
+                  is = nint (werte (4) ) 
+                  DO i = 1, 3 
+                  ic (i) = nint (werte (i) ) 
+                  ENDDO 
+                  IF (ic (1) .gt.0.and.ic (1) .le.cr_icc (1) .and.ic (2)&
+                  .gt.0.and.ic (2) .le.cr_icc (2) .and.ic (3)           &
+                  .gt.0.and.ic (3) .le.cr_icc (3)                       &
+                  .and.is.gt.0.and.is.le.cr_ncatoms) then               
+                     CALL celltoindex (ic, is, ia) 
+                     WRITE (output_io, 3000) ia, ic, is 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!------ Waiting for user input                                          
+!                                                                       
+         ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+            CALL do_input (zeile, lp) 
+!                                                                       
+!------ no command found                                                
+!                                                                       
+         ELSE 
+            ier_num = - 8 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ any errors ?                                                    
+!                                                                       
+      IF (ier_num.ne.0) then 
+         CALL errlist 
+         IF (ier_sta.ne.ER_S_LIVE) then 
+            IF (lmakro) then 
+               CALL macro_close 
+               prompt_status = PROMPT_ON 
+            ENDIF 
+            IF (lblock) then 
+               ier_num = - 11 
+               ier_typ = ER_COMM 
+               RETURN 
+            ENDIF 
+            CALL no_error 
+         ENDIF 
+      ENDIF 
+      GOTO 10 
+!                                                                       
+ 9999 CONTINUE 
+!                                                                       
+ 3000 FORMAT    (' Atomindex ',I6,' : Unitcell ',3(I4,1X),              &
+     &                  ' / site ',I2)                                  
+      END SUBROUTINE chem                           
+!*****7*****************************************************************
+      SUBROUTINE chem_show (cmd) 
+!+                                                                      
+!     show current parameters                                           
+!-                                                                      
+      USE config_mod 
+      USE chem_mod 
+      USE diffuse_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+      include'errlist.inc' 
+!                                                                       
+      CHARACTER ( * ) cmd 
+      INTEGER i, j, ic 
+      LOGICAL lnone 
+!                                                                       
+      CALL do_cap (cmd) 
+!                                                                       
+!------ General settings                                                
+!                                                                       
+      IF (cmd (1:2) .eq.'AL'.or.cmd (1:2) .eq.'GE') then 
+         WRITE (output_io, 1000) chem_quick, chem_period 
+         IF (chem_sel_atom) then 
+            WRITE (output_io, 1050) 'atoms' 
+         ELSE 
+            WRITE (output_io, 1050) 'molecules' 
+         ENDIF 
+         IF (ilots.eq.LOT_OFF) then 
+            WRITE (output_io, 1100) 
+         ELSEIF (ilots.eq.LOT_BOX) then 
+            WRITE (output_io, 1110) nlots 
+            WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
+         ELSEIF (ilots.eq.LOT_ELI) then 
+            WRITE (output_io, 1120) nlots 
+            WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
+         ENDIF 
+      ENDIF 
+!                                                                       
+!------ Bond length distribution settings                               
+!                                                                       
+      IF (cmd (1:2) .eq.'AL'.or.cmd (1:2) .eq.'BO') then 
+         WRITE (output_io, 2000) chem_blen_cut 
+         WRITE (output_io, 2100) chem_bin 
+      ENDIF 
+!                                                                       
+!------ Correlation determination settings                              
+!                                                                       
+      IF (cmd (1:2) .eq.'AL'.or.cmd (1:2) .eq.'CO') then 
+         WRITE (output_io, 3000) 
+         WRITE (output_io, 3010) 
+!                                                                       
+         DO ic = 1, chem_ncor 
+!                                                                       
+         IF (chem_ctyp (ic) .eq.CHEM_NONE) then 
+            WRITE (output_io, 3050) 
+!                                                                       
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_DIST) then 
+            WRITE (output_io, 3100) ic, (chem_neig (i, 1, ic), i = 1, 3)&
+            , chem_freq_sigma (ic), chem_wink_sigma (ic), chem_rmin (ic)&
+            , chem_rmax (ic), chem_cang (ic), chem_nnei (ic)            
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_VEC) then 
+            WRITE (output_io, 3200) ic, (chem_use_vec (i, ic), i = 1,   &
+            chem_nvec (ic) )                                            
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
+            WRITE (output_io, 3300) ic, (chem_use_win (i, ic), i = 1,   &
+            chem_nwin (ic) )                                            
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
+            WRITE (output_io, 3400) ic, (chem_use_env (i, ic), i = 1,   &
+            chem_nenv (ic) )                                            
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_RANGE) then 
+            WRITE (output_io, 3500) ic, (chem_use_ran (i, ic), i = 1,   &
+            chem_nran (ic) )                                            
+         ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
+            WRITE (output_io, 3600) ic, (chem_use_con (i, ic), i = 1,   &
+            chem_ncon (ic) )                                            
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ - Show defined interaction vectors                              
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 4000) 
+         DO i = 1, CHEM_MAX_VEC 
+         IF (chem_cvec (1, i) .ne. - 9999) then 
+            WRITE (output_io, 4010) i, (chem_cvec (j, i), j = 1, 5) 
+            lnone = .false. 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+!                                                                       
+!------ - Show defined interaction angles                               
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 4500) 
+         DO i = 1, CHEM_MAX_ANG 
+         IF (chem_cwin (1, i) .ne. - 9999) then 
+            WRITE (output_io, 4510) i, (chem_cwin (j, i), j = 1, 9) 
+            lnone = .false. 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+!                                                                       
+!------ - Show defined interaction environments                         
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 4600) 
+         DO i = 1, CHEM_MAX_ENV 
+         IF (chem_cenv (0, i) .ne. - 9999) then 
+            WRITE (output_io, 4610) i, chem_cenv (0, i), chem_rmin_env (&
+            i), chem_rmax_env (i)                                       
+            WRITE (output_io, 4620) (chem_cenv (j, i), j = 1,           &
+            chem_env_neig (i) )                                         
+            lnone = .false. 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+!                                                                       
+!------ - Show defined interaction ranges                               
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 4700) 
+         DO i = 1, CHEM_MAX_RAN 
+         IF (chem_cran_uvw (1, 1, i) .ne. - 9999) then 
+            WRITE (output_io, 4710) i, (chem_cran_uvw (j, 1, i),        &
+            j = 1, 3), chem_cran_sig (i), chem_cran_wsig (i)            
+            IF (chem_cran_cent (0, i) .eq. - 1) then 
+               WRITE (output_io, 4720) 
+            ELSE 
+               WRITE (output_io, 4730) (chem_cran_cent (j, i), j = 1,   &
+               chem_cran_cent (0, i) )                                  
+            ENDIF 
+            IF (chem_cran_neig (0, i) .eq. - 1) then 
+               WRITE (output_io, 4740) 
+            ELSE 
+               WRITE (output_io, 4750) (chem_cran_neig (j, i), j = 1,   &
+               chem_cran_neig (0, i) )                                  
+            ENDIF 
+            IF (chem_cran_short (i) ) then 
+               WRITE (output_io, 4760) chem_cran_nshort (i) 
+            ENDIF 
+            lnone = .false. 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+!                                                                       
+!------ - Show defined displacement directions                          
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 5000) 
+         DO i = 1, chem_ncor 
+         IF (chem_ldall (i) ) then 
+            WRITE (output_io, 5005) i 
+            lnone = .false. 
+         ELSE 
+            IF (chem_dir (1, 1, i) .ne. - 9999) then 
+               WRITE (output_io, 5010) i, (chem_dir (j, 1, i), j = 1, 3)&
+               , (chem_dir (j, 2, i), j = 1, 3)                         
+               lnone = .false. 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+!                                                                       
+!------ - Show defined interaction connectivities                              
+!                                                                       
+         lnone = .true. 
+         WRITE (output_io, 6000) 
+         DO i = 1, CHEM_MAX_CON 
+         IF (chem_ccon (1, i) .ne. - 9999) then 
+            WRITE (output_io, 6010) i, (chem_ccon (j, i), j = 1, 2) 
+            lnone = .false. 
+         ENDIF 
+         ENDDO 
+         IF (lnone) write (output_io, 3050) 
+      ENDIF 
+!                                                                       
+ 1000 FORMAT ('    Neighbour determination mode   : quick = ',L1,/      &
+     &        '    Periodic boundaries (x,y,z)    : ',3(L1,1x))         
+ 1050 FORMAT ('    Current operation mode         : ',A) 
+ 1100 FORMAT ('    Sample volume for homo-check   : complete crystal') 
+ 1110 FORMAT ('    Sample volume for homo-check   : ',I4,               &
+     &        ' box shaped lots')                                       
+ 1120 FORMAT ('    Sample volume for homo-check   : ',I4,               &
+     &        ' ellipsoid shaped lots')                                 
+ 1130 FORMAT ('    Lot size                       : ',I3,' x ',I3,      &
+     &        ' x ',I3,' unit cells ',/,                                &
+     &        '    Periodic boundaries            : ',L1)               
+ 2000 FORMAT ('    Allowed bond length range      : ',                  &
+     &        F6.3,' A to ',F6.3,' A')                                  
+ 2100 FORMAT ('    # points for histogramms       : ',I6,/) 
+ 3000 FORMAT ('    Neighbour definitions          : ',/) 
+ 3010 FORMAT ('        #  Mode  Neighbour (or vec.)  fsig  wsig',       &
+     &        '   rmin[A] rmax[A] ang sym',/,7x,67('-'))                
+ 3050 FORMAT (7x,'** none defined **') 
+ 3100 FORMAT (7x,i2,'  neig',2x,3(f5.2,1x),2x,2(f5.2,1x),               &
+     &                   1x,2(f7.3,1x),2x,l1,2x,i2)                     
+ 3200 FORMAT (7x,i2,'  vec ',2x,50i4) 
+ 3300 FORMAT (7x,i2,'  ang ',2x,50i4) 
+ 3400 FORMAT (7x,i2,'  env ',2x,50i4) 
+ 3500 FORMAT (7x,i2,'  ran ',2x,50i4) 
+ 3600 FORMAT (7x,i2,'  con ',2x,50i4) 
+ 4000 FORMAT (/,'    Defined correlation vectors    : ',/) 
+ 4010 FORMAT ('       Correlation vector ',I3,'      : ',               &
+     &        'Site',I3,' -> site',I3,', neig =',3I3)                   
+ 4500 FORMAT (/,'    Defined correlation angles     : ',/) 
+ 4510 FORMAT ('       Correlation angle  ',I3,'      : ',               &
+     &        'Site',I3,' -> site',I3,', neig =',3I3,/,                 &
+     &        44x,' -> site',I3,', neig =',3I3)                         
+ 4600 FORMAT (/,'    Defined correlation environments: ',/) 
+ 4610 FORMAT ('       Correlation envir  ',I3,'      : ',               &
+     &        'Zentral Atom ',I4,/                                      &
+     &        37x,'r min, r max : ',f8.3,2x,f8.3)                       
+ 4620 FORMAT (   37x,'neighbours   : ',15I4,/) 
+ 4700 FORMAT (/,'    Defined correlation ranges: ',/) 
+ 4710 FORMAT ('       Correlation range ',i3,': ',                      &
+     &        3(F7.3,2x),'+-',F7.3,' A  +-',F7.3,'ø')                   
+ 4720 FORMAT ('            central atom    ',' ALL') 
+ 4730 FORMAT ('            central atom    ',50I4) 
+ 4740 FORMAT ('            neigh.  atom    ',' ALL') 
+ 4750 FORMAT ('            neigh.  atom    ',50I4) 
+ 4760 FORMAT ('            Only the nearest',  I4,                      &
+     &        ' atoms are considered neighbours')                       
+ 5000 FORMAT (/,'    Defined displacement direc.    : ',/) 
+ 5005 FORMAT ('       Displacement corr. #',I3,'     : ',               &
+     &        'all directions')                                         
+ 5010 FORMAT ('       Displacement corr. #',I3,'     : ',               &
+     &        'A:',3(f5.2,1x),' B:',3(f5.2,1x))                         
+ 6000 FORMAT (/,'    Defined correlation connectiv. : ',/) 
+ 6010 FORMAT ('       Correlation connec ',I3,'      : ',               &
+     &        'Type',I3,' -> def.',I3)
+      END SUBROUTINE chem_show                      
+!*****7*****************************************************************
+      SUBROUTINE chem_set (zeile, lp) 
+!+                                                                      
+!     sets most parameters for 'chem' section                           
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE diffuse_mod 
+      IMPLICIT none 
+!                                                                       
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 200) 
+!                                                                       
+      CHARACTER ( * ) zeile 
+      INTEGER lp 
+!                                                                       
+      CHARACTER(1024) cpara (maxw) 
+      REAL werte (maxw) 
+      INTEGER lpara (maxw) 
+      INTEGER ianz 
+      INTEGER indxx, indxy, indxz 
+!                                                                       
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.ge.2) then 
+            CALL do_cap (cpara (1) ) 
+!                                                                       
+!------ --- 'set neig': setting correlation determination method        
+!                                                                       
+            IF (cpara (1) (1:2) .eq.'NE') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL chem_set_neig (ianz, cpara, lpara, werte, maxw) 
+!                                                                       
+!------ --- 'set cryst': setting crystal dimensions                     
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'CR') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.eq.0) then 
+                  IF (ianz.eq.4) then 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     cr_icc (1) = nint (werte (1) ) 
+                     cr_icc (2) = nint (werte (2) ) 
+                     cr_icc (3) = nint (werte (3) ) 
+                     cr_ncatoms = nint (werte (4) ) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF 
+!                                                                       
+!     --- 'set lots': sample volume (lots)                              
+!                                                                       
+            ELSEIF (cpara (1) (1:3) .eq.'LOT') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.ne.0) return 
+               IF (ianz.eq.1) then 
+                  CALL do_cap (cpara (1) ) 
+                  IF (cpara (1) (1:1) .eq.'O') then 
+                     ilots = LOT_OFF 
+                     nlots = 1 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ELSEIF (ianz.eq.6) then 
+                  CALL do_cap (cpara (1) ) 
+                  IF (cpara (1) (1:1) .eq.'B') then 
+                     ilots = LOT_BOX 
+                  ELSEIF (cpara (1) (1:1) .eq.'E') then 
+                     ilots = LOT_ELI 
+                  ELSE 
+                     ier_num = - 2 
+                     ier_typ = ER_FOUR 
+                  ENDIF 
+                  IF (ier_num.eq.0) then 
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     CALL ber_params (ianz - 1, cpara, lpara, werte,    &
+                     maxw)                                              
+                     IF (ier_num.eq.0) then 
+                        ls_xyz (1) = nint (werte (1) ) 
+                        ls_xyz (2) = nint (werte (2) ) 
+                        ls_xyz (3) = nint (werte (3) ) 
+                        nlots = nint (werte (4) ) 
+                        CALL do_cap (cpara (5) ) 
+                        lperiod = (cpara (5) (1:1) .eq.'Y') 
+                     ENDIF 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+!                                                                       
+!------ --- set mode: set calculation mode to quick/exact               
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'MO') then 
+               CALL do_cap (cpara (2) ) 
+               chem_quick = (cpara (2) (1:3) .eq.'QUI') 
+               chem_cluster = (cpara (2) (1:3) .eq.'CLU') 
+               IF (ianz.ge.3) then 
+                  CALL do_cap (cpara (3) ) 
+                  IF (cpara (3) (1:3) .eq.'PER') then 
+                     IF (ianz.eq.4) then 
+                        CALL do_cap (cpara (4) ) 
+                        indxx = index (cpara (4) , 'X') 
+                        indxy = index (cpara (4) , 'Y') 
+                        indxz = index (cpara (4) , 'Z') 
+                        chem_period (1) = indxx.gt.0 
+                        chem_period (2) = indxy.gt.0 
+                        chem_period (3) = indxz.gt.0 
+                     ELSE 
+                        chem_period (1) = .true. 
+                        chem_period (2) = .true. 
+                        chem_period (3) = .true. 
+                     ENDIF 
+                  ELSE 
+                     chem_period (1) = .false. 
+                     chem_period (2) = .false. 
+                     chem_period (3) = .false. 
+                  ENDIF 
+               ENDIF 
+!                                                                       
+!------ --- set bin: set number of points for histogramm binning        
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'BI') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               IF (ianz.eq.1) then 
+                  IF (nint (werte (1) ) .lt.chem_max_bin) then 
+                     chem_bin = nint (werte (1) ) 
+                  ELSE 
+                     ier_num = - 1 
+                     ier_typ = ER_CHEM 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+!                                                                       
+!------ --- set blen: set allowed range for bond-length histogramm      
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'BL') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               IF (ianz.eq.2) then 
+                  IF (werte (1) .gt.0.01.and.werte (2) .gt.werte (1) )  &
+                  then                                                  
+                     chem_blen_cut (1) = werte (1) 
+                     chem_blen_cut (2) = werte (2) 
+                  ELSE 
+                     ier_num = - 3 
+                     ier_typ = ER_CHEM 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+!                                                                       
+!------ --- set bang: set allowed range for bond-angle histogramm       
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'BA') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               IF (ianz.eq.2) then 
+                  IF (werte (1) .gt.0.00.and.werte (2) .gt.werte (1) )  &
+                  then                                                  
+                     chem_bang_cut (1) = werte (1) 
+                     chem_bang_cut (2) = werte (2) 
+                  ELSE 
+                     ier_num = - 25 
+                     ier_typ = ER_CHEM 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+!                                                                       
+!------ --- set ang: sets correlation angles                            
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'AN') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL chem_set_angle (ianz, cpara, lpara, werte, maxw) 
+!                                                                       
+!------ --- set vec: sets correlation vectors                           
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'VE') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL chem_set_vec (ianz, cpara, lpara, werte, maxw) 
+!                                                                       
+!------ --- set env: sets correlation environment                       
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'EN') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL chem_set_envir (ianz, cpara, lpara, werte, maxw) 
+!                                                                       
+!------ --- unknown subcommand entered                                  
+!                                                                       
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_set                       
+!*****7*****************************************************************
+SUBROUTINE chem_set_vec (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     'set vec' is processed here                                       
+!-                                                                      
+USE allocate_appl_mod 
+USE config_mod 
+USE crystal_mod 
+USE chem_mod 
+IMPLICIT none 
+!                                                                       
+       
+include'errlist.inc' 
+!                                                                       
+INTEGER                           , INTENT(IN)    :: ianz 
+INTEGER                           , INTENT(IN)    :: maxw 
+CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
+REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!                                                                       
+INTEGER     :: is1, is2, iv, i, j 
+INTEGER     :: n_vec  ! Dummy for allocations
+INTEGER     :: n_cor  ! Dummy for allocations
+!                                                                       
+LOGICAL, EXTERNAL   :: str_comp 
+!                                                                       
+IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+   chem_cvec           =     0 ! all elements (i,j)
+   chem_cvec    (1, :) = -9999 ! column (1,*)
+   chem_use_vec        =     1 ! all elements (i,j)
+!        DO i = 1, CHEM_MAX_VEC 
+!        chem_cvec (1, i) = - 9999 
+!        DO j = 2, 5 
+!        chem_cvec (j, i) = 0 
+!        ENDDO 
+!        DO j = 1, CHEM_MAX_COR 
+!        chem_use_vec (i, j) = 1 
+!        ENDDO 
+!        ENDDO 
+   RETURN 
+ENDIF 
+!                                                                       
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) return 
+IF (ianz.eq.6) then 
+   iv  = nint (werte (1) ) 
+   is1 = nint (werte (2) ) 
+   is2 = nint (werte (3) ) 
+!
+!  allocate vectors
+!
+   IF (iv > 0 ) THEN
+      IF (iv > CHEM_MAX_VEC) THEN
+         n_vec = CHEM_MAX_VEC + 10   ! Increment size by 10
+         n_cor = CHEM_MAX_COR
+         CALL alloc_chem_vec ( n_vec , n_cor )
+         IF (ier_num /= 0) RETURN
+      ENDIF
+   ENDIF
+   IF (iv.le.0.or.iv.gt.CHEM_MAX_VEC) then 
+      ier_num = - 9 
+      ier_typ = ER_CHEM 
+   ELSE 
+      IF (is1.le.0.or.is1.gt.cr_ncatoms.or.       &
+         is2.le.0.or.is2.gt.cr_ncatoms    ) then                                                            
+         ier_num = - 10 
+         ier_typ = ER_CHEM 
+      ELSE 
+         chem_cvec (1, iv) = werte (2) 
+         chem_cvec (2, iv) = werte (3) 
+         chem_cvec (3, iv) = werte (4) 
+         chem_cvec (4, iv) = werte (5) 
+         chem_cvec (5, iv) = werte (6) 
+      ENDIF 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!                                                                       
+END SUBROUTINE chem_set_vec                   
+!*****7*****************************************************************
+SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw) 
+!+
+!     'set con' is processed here                                       
+!-
+   USE allocate_appl_mod 
+   USE config_mod 
+   USE crystal_mod 
+   USE chem_mod 
+   IMPLICIT none 
+!
+   include'errlist.inc' 
+!
+   INTEGER                           , INTENT(IN)    :: ianz 
+   INTEGER                           , INTENT(IN)    :: maxw 
+   CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
+   REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+   INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!                                                                       
+   INTEGER     :: is1, ino, iv, i, j 
+   INTEGER     :: n_con  ! Dummy for allocations
+   INTEGER     :: n_cor  ! Dummy for allocations
+!                                                                       
+   LOGICAL, EXTERNAL   :: str_comp 
+!                                                                       
+   IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+      chem_ccon           =     0 ! all elements (i,j)
+      chem_ccon    (1, :) = -9999 ! column (1,*)
+      chem_use_con        =     1 ! all elements (i,j)
+      RETURN 
+   ENDIF 
+!                                                                       
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.ne.0) return 
+   nparams: IF (ianz.eq.3) then 
+      iv  = nint (werte (1) ) 
+      is1 = nint (werte (2) ) 
+      ino = nint (werte (3) ) 
+!
+!     allocate vectors
+!
+      IF (iv > 0 ) THEN
+         IF (iv > CHEM_MAX_CON) THEN
+            n_con = CHEM_MAX_CON + 10   ! Increment size by 10
+            n_cor = CHEM_MAX_COR
+            CALL alloc_chem_con ( n_con , n_cor )
+            IF (ier_num /= 0) RETURN
+         ENDIF
+      ENDIF
+      IF (iv.le.0.or.iv.gt.CHEM_MAX_CON) then 
+         ier_num = - 9 
+         ier_typ = ER_CHEM 
+      ELSE 
+         IF (is1.lt.0.or.is1.gt.cr_nscat) THEN
+            ier_num = - 10 
+            ier_typ = ER_CHEM 
+         ELSE 
+            chem_ccon (1, iv) = is1
+            chem_ccon (2, iv) = ino
+         ENDIF 
+      ENDIF 
+   ELSE nparams
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF nparams
+!                                                                       
+END SUBROUTINE chem_set_con                   
+!*****7*****************************************************************
+SUBROUTINE chem_set_ranges (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     'set range' is processed here                                     
+!-                                                                      
+USE allocate_appl_mod 
+USE config_mod 
+USE crystal_mod 
+USE chem_mod 
+USE modify_mod
+IMPLICIT none 
+!                                                                       
+include'errlist.inc' 
+!                                                                       
+INTEGER                           , INTENT(INOUT) :: ianz 
+INTEGER                           , INTENT(IN)    :: maxw 
+CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
+REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!                                                                       
+INTEGER, PARAMETER  :: max_uvw = 48 
+!                                                                       
+INTEGER             :: is1, is2, iv, i, j, k 
+INTEGER             :: janz 
+INTEGER             :: n_ran  ! Dummy for allocations
+INTEGER             :: n_cor  ! Dummy for allocations
+LOGICAL,PARAMETER   :: lold = .true.
+LOGICAL             :: lacentric 
+!                                                                       
+REAL u (3), v (3) 
+REAL uvw (4, max_uvw) 
+REAL uvw_mat (4, 4, max_uvw) 
+!                                                                       
+LOGICAL, EXTERNAL   :: str_comp 
+REAL   , EXTERNAL   :: do_blen 
+!                                                                       
+main: IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+         chem_cran_uvw           = 0      ! (i,j,k)
+         chem_cran_uvw (1, 1, :) = - 9999 
+         chem_cran_sig           = 0.00   ! (i)
+         chem_cran_wsig          = 0.00   ! (i)
+         chem_use_ran            = 1      ! (i,j)
+         chem_cran_cent (0, :)   = 0      ! (0,i)
+         chem_cran_neig (0, :)   = 0      ! (0,i)
+         RETURN 
+ELSE main
+!
+   second: IF (str_comp (cpara (1) , 'direc', 2, lpara (1) , 5) ) then 
+!                                                                       
+!---- ---Define the direction, sigma of direction and sigma of angle    
+!                                                                       
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      IF (ianz.gt.3) THEN 
+         iv = nint (werte (1) ) 
+!
+!  allocate ranges
+!
+            IF (iv > 0 ) THEN
+               IF (iv > CHEM_MAX_RAN) THEN
+                  n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
+                  n_cor = CHEM_MAX_COR
+                  CALL alloc_chem_vec ( n_ran , n_cor )
+                  IF (ier_num /= 0) RETURN
+               ENDIF
+            ENDIF
+!                                                                       
+            chem_cran_cang (iv) = .false. 
+            chem_cran_lsym (iv) = .false. 
+!                                                                       
+!     ----Is last parameter "sym" or "nosym" ??                         
+!                                                                       
+            IF (str_comp(cpara(ianz),'sym',3,lpara(ianz),3) ) THEN
+               chem_cran_lsym (iv) = .true. 
+               ianz = ianz - 1 
+            ELSEIF (str_comp (cpara (ianz) , 'nosym', 3, lpara (ianz) , &
+            5) ) THEN
+               chem_cran_lsym (iv) = .false. 
+               ianz = ianz - 1 
+            ENDIF 
+!                                                                       
+            chem_cran_uvw (1, 1, iv) = werte (2) 
+            chem_cran_uvw (2, 1, iv) = werte (3) 
+            chem_cran_uvw (3, 1, iv) = werte (4) 
+            chem_cran_sig (iv) = werte (5) 
+            IF (ianz.eq.6) THEN 
+               chem_cran_wsig (iv) = werte (6) 
+               chem_cran_cang (iv) = .true. 
+            ENDIF 
+!                                                                       
+            DO i = 1, 3 
+            u (i) = 0.0 
+            v (i) = chem_cran_uvw (i, 1, iv) 
+            ENDDO 
+            chem_cran_rmax (iv) = do_blen (.true., u, v) 
+            chem_cran_rmin (iv) = chem_cran_rmax (iv) - chem_cran_sig ( &
+            iv) / 2.0                                                   
+            chem_cran_rmax (iv) = chem_cran_rmax (iv) + chem_cran_sig ( &
+            iv) / 2.0                                                   
+!                                                                       
+!------ - get symmetrically equivalent directions if needed             
+!                                                                       
+            IF (chem_cran_lsym (iv) ) then 
+               DO i = 1, 3 
+               uvw (i, 1) = chem_cran_uvw (i, 1, iv) 
+               ENDDO 
+               uvw (4, 1) = 0.0 
+               DO i = 1, 4 
+               DO j = 1, 4 
+               uvw_mat (i, j, 1) = 0.0 
+               ENDDO 
+               uvw_mat (i, i, 1) = 1.0 
+               ENDDO 
+!                                                                       
+               CALL rmc_symmetry (chem_cran_nuvw (iv), uvw, uvw_mat,    &
+               max_uvw, .true., lacentric)                              
+!                                                                       
+               DO i = 1, chem_cran_nuvw (iv) 
+               DO j = 1, 3 
+               chem_cran_uvw (j, i, iv) = uvw (j, i) 
+               ENDDO 
+               ENDDO 
+!                                                                       
+            ELSE 
+               chem_cran_nuvw (iv) = 1 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'central', 2, lpara (1) , 7) ) then 
+!                                                                       
+!     --Define the central atom(s)                                      
+!                                                                       
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         janz = 1 
+         CALL ber_params (janz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         IF (ianz.ge.2) then 
+            iv = nint (werte (1) ) 
+!
+!  allocate ranges
+!
+            IF (iv > 0 ) THEN
+               IF (iv > CHEM_MAX_RAN) THEN
+                  n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
+                  n_cor = CHEM_MAX_COR
+                  CALL alloc_chem_vec ( n_ran , n_cor )
+                  IF (ier_num /= 0) RETURN
+               ENDIF
+            ENDIF
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+            IF (ier_num.ne.0) return 
+            IF (werte (1) .eq. - 1) then 
+               chem_cran_cent (0, iv) = - 1 
+            ELSE 
+               chem_cran_cent (0, iv) = ianz 
+               DO i = 1, ianz 
+               chem_cran_cent (i, iv) = nint (werte (i) ) 
+               ENDDO 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'neig', 2, lpara (1) , 4) ) then 
+!                                                                       
+!     --Define the neighboring atom(s)                                  
+!                                                                       
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         janz = 1 
+         CALL ber_params (janz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         IF (ianz.ge.2) then 
+            iv = nint (werte (1) ) 
+!
+!  allocate ranges
+!
+            IF (iv > 0 ) THEN
+               IF (iv > CHEM_MAX_RAN) THEN
+                  n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
+                  n_cor = CHEM_MAX_COR
+                  CALL alloc_chem_vec ( n_ran , n_cor )
+                  IF (ier_num /= 0) RETURN
+               ENDIF
+            ENDIF
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+            IF (ier_num.ne.0) return 
+            IF (werte (1) .eq. - 1) then 
+               chem_cran_neig (0, iv) = - 1 
+            ELSE 
+               chem_cran_neig (0, iv) = ianz 
+               DO i = 1, ianz 
+               chem_cran_neig (i, iv) = nint (werte (i) ) 
+               ENDDO 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+   ELSEIF (str_comp (cpara (1) , 'short', 2, lpara (1) , 5) ) then 
+!                                                                       
+!     --Define the number of the closest atoms to be considered         
+!                                                                       
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         janz = 1 
+         CALL ber_params (janz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         IF (ianz.eq.2) then 
+            iv = nint (werte (1) ) 
+!
+!  allocate ranges
+!
+            IF (iv > 0 ) THEN
+               IF (iv > CHEM_MAX_RAN) THEN
+                  n_ran = CHEM_MAX_RAN + 10   ! Increment size by 10
+                  n_cor = CHEM_MAX_COR
+                  CALL alloc_chem_vec ( n_ran , n_cor )
+                  IF (ier_num /= 0) RETURN
+               ENDIF
+            ENDIF
+            IF (str_comp (cpara (2) , 'none', 2, lpara (1) , 4) ) then 
+               chem_cran_short (iv) = .false. 
+               chem_cran_nshort (iv) = - 1 
+            ELSE 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               chem_cran_short (iv) = .true. 
+               chem_cran_nshort (iv) = nint (werte (ianz) ) 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+   ELSE second
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         ier_msg (1) = cpara (1) 
+   ENDIF second
+ENDIF  main
+!                                                                       
+      END SUBROUTINE chem_set_ranges                
+!*****7*****************************************************************
+SUBROUTINE chem_set_angle (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     'set angle' is processed here                                     
+!-                                                                      
+USE allocate_appl_mod 
+USE config_mod 
+USE crystal_mod 
+USE chem_mod 
+IMPLICIT none 
+!                                                                       
+include'errlist.inc' 
+!                                                                       
+INTEGER                           , INTENT(IN)    :: ianz 
+INTEGER                           , INTENT(IN)    :: maxw 
+CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
+REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!                                                                       
+INTEGER            :: is1, is2, is3, iv, i, j 
+!
+INTEGER     :: n_ang  ! Dummy for allocations
+INTEGER     :: n_cor  ! Dummy for allocations
+!                                                                       
+LOGICAL, EXTERNAL  ::  str_comp 
+!                                                                       
+IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+   chem_cwin        =     0 ! All elements (i,j)
+   chem_cwin (1, :) = -9999 ! Row (1,*)
+   chem_use_win     =     1 ! All elements  (i,j)
+!        DO i = 1, CHEM_MAX_ANG 
+!        chem_cwin (1, i) = - 9999 
+!        DO j = 2, 5 
+!        chem_cwin (j, i) = 0 
+!        ENDDO 
+!        DO j = 1, CHEM_MAX_COR 
+!        chem_use_win (i, j) = 1 
+!        ENDDO 
+!        ENDDO 
+   RETURN 
+ENDIF 
+!                                                                       
+!                                                                       
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) return 
+IF (ianz.eq.10) then 
+   iv = nint (werte (1) ) 
+   is1 = nint (werte (2) ) 
+   is2 = nint (werte (3) ) 
+   is3 = nint (werte (7) ) 
+!
+!  allocate angles
+!
+   IF (iv > 0 ) THEN
+      IF (iv > CHEM_MAX_ANG) THEN
+         n_ang = CHEM_MAX_ANG + 10   ! Increment size by 10
+         n_cor = CHEM_MAX_COR
+         call alloc_chem_ang ( n_ang , n_cor )
+         IF (ier_num /= 0) RETURN
+      ENDIF
+   ENDIF
+   IF (iv.le.0.or.iv.gt.CHEM_MAX_ANG) then 
+      ier_num = - 24 
+      ier_typ = ER_CHEM 
+   ELSE 
+      IF (is1.le.0.or.is1.gt.cr_ncatoms.or.  &
+          is2.le.0.or.is2.gt.cr_ncatoms.or.  &
+          is3.le.0.or.is3.gt.cr_ncatoms) then                           
+         ier_num = - 10 
+         ier_typ = ER_CHEM 
+      ELSE 
+         chem_cwin (1, iv) = werte (2) 
+         chem_cwin (2, iv) = werte (3) 
+         chem_cwin (3, iv) = werte (4) 
+         chem_cwin (4, iv) = werte (5) 
+         chem_cwin (5, iv) = werte (6) 
+         chem_cwin (6, iv) = werte (7) 
+         chem_cwin (7, iv) = werte (8) 
+         chem_cwin (8, iv) = werte (9) 
+         chem_cwin (9, iv) = werte (10) 
+      ENDIF 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+ENDIF 
+!                                                                       
+      END SUBROUTINE chem_set_angle                 
+!*****7*****************************************************************
+      SUBROUTINE chem_set_envir (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     'set environment' is processed here                               
+!-                                                                      
+      USE allocate_appl_mod 
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE modify_mod
+      IMPLICIT none 
+!                                                                       
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+!                                                                       
+      CHARACTER ( * ) cpara (maxw) 
+      REAL werte (maxw) 
+      INTEGER lpara (maxw) 
+      INTEGER ianz, janz, iv, i, j, k 
+      INTEGER            :: n_atom
+      INTEGER            :: n_env
+      INTEGER            :: n_cor
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
+        chem_cenv           =     0 ! all elements (i,j)
+        chem_cvec    (1, :) = -9999 ! column (1,*)
+        chem_use_env        =     1 ! all elements (i,j)
+        chem_env_neig       =     0 ! all elements (i)
+!        DO i = 1, CHEM_MAX_ENV 
+!        chem_cenv (0, i) = - 9999 
+!        DO j = 1, MAX_ATOM_ENV 
+!        chem_cenv (j, i) = 0 
+!        ENDDO 
+!        DO j = 1, CHEM_MAX_COR 
+!        chem_use_env (i, j) = 1 
+!        chem_env_neig (j) = 0 
+!        ENDDO 
+!        ENDDO 
+         RETURN 
+      ENDIF 
+!                                                                       
+!                                                                       
+      janz = 3 
+      CALL ber_params (janz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+      iv = nint (werte (1) ) 
+!
+!  allocate vectors
+!
+      IF (iv > 0 ) THEN
+         IF (iv > CHEM_MAX_ENV) THEN
+            n_atom= MAX(n_atom,MAX_ATOM_ENV)
+            n_env = CHEM_MAX_ENV + 10   ! Increment size by 10
+            n_cor = CHEM_MAX_COR
+            CALL alloc_chem_env ( n_atom , n_env, n_cor )
+            IF (ier_num /= 0) RETURN
+         ENDIF
+      ENDIF
+!
+      IF (iv.le.0.or.iv.gt.CHEM_MAX_ENV) then 
+         ier_num = - 26 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      chem_rmin_env (iv) = werte (2) 
+      chem_rmax_env (iv) = werte (3) 
+      CALL del_params (3, ianz, cpara, lpara, maxw) 
+      chem_env_neig (iv) = ianz - 1 
+      janz = ianz 
+      DO i = 1, janz 
+      j = 1 
+      CALL get_iscat (j, cpara, lpara, werte, maxw, .false.) 
+      chem_cenv (i - 1, iv) = nint (werte (1) ) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      ENDDO 
+!                                                                       
+      END SUBROUTINE chem_set_envir                 
+!*****7*****************************************************************
+      SUBROUTINE chem_set_neig (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     Command 'set neig' processed here                                 
+!-                                                                      
+      USE config_mod 
+      USE chem_mod 
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER max_uvw 
+      PARAMETER (max_uvw = 48) 
+!                                                                       
+      INTEGER maxw 
+!                                                                       
+      CHARACTER ( * ) cpara (maxw) 
+      REAL werte (maxw) 
+      INTEGER lpara (maxw) 
+      INTEGER ianz 
+!                                                                       
+      INTEGER i, j, iv 
+      REAL u (3), v (3) 
+      REAL uvw (4, max_uvw) 
+      REAL uvw_mat (4, 4, max_uvw) 
+      LOGICAL lacentric, csym 
+      LOGICAL lrange 
+!                                                                       
+      REAL do_blen 
+!                                                                       
+      CALL do_cap (cpara (1) ) 
+!                                                                       
+!------ set neig,add : Add neighbour definition to list                 
+!                                                                       
+      IF (cpara (1) (1:2) .eq.'AD'.and.ianz.eq.1) then 
+         IF (chem_ncor.lt.CHEM_MAX_COR) then 
+            chem_ncor = chem_ncor + 1 
+         ELSE 
+            ier_num = - 12 
+            ier_typ = ER_CHEM 
+         ENDIF 
+!                                                                       
+!------ set neig,rese : Reset neighbour list                            
+!                                                                       
+      ELSEIF (cpara (1) (1:2) .eq.'RE') then 
+         chem_ncor = 1 
+         chem_nvec (1) = 0 
+         chem_ncon (1) = 0 
+         chem_nwin (1) = 0 
+         chem_nran (1) = 0 
+!                                                                       
+!------ set neig,vec : Define neighbour via vectors                     
+!                                                                       
+      ELSEIF (cpara (1) (1:2) .eq.'VE'.and.ianz.gt.1) then 
+         CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         DO i = 1, ianz 
+         iv = nint (werte (i) ) 
+         IF (iv.gt.0.and.iv.le.CHEM_MAX_VEC) then 
+            IF (chem_cvec (1, iv) .ne. - 9999) then 
+               chem_use_vec (i, chem_ncor) = iv 
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+         chem_nvec (chem_ncor) = ianz 
+         chem_ctyp (chem_ncor) = CHEM_VEC 
+!                                                                       
+!------ set neig,con : Define neighbour via connectivity                     
+!                                                                       
+      ELSEIF (cpara (1) (1:2) .eq.'CO'.and.ianz.gt.1) then 
+         CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         DO i = 1, ianz 
+         iv = nint (werte (i) ) 
+         IF (iv.ge.1.and.iv.le.CHEM_MAX_CON) then 
+            IF (chem_ccon (1, iv) .ne. - 9999) then 
+               chem_use_con (i, chem_ncor) = iv 
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+         chem_ncon (chem_ncor) = ianz 
+         chem_ctyp (chem_ncor) = CHEM_CON 
+!                                                                       
+!------ set neig,ran : Define neighbour via ranges                      
+!                                                                       
+      ELSEIF (cpara (1) (1:2) .eq.'RA'.and.ianz.gt.1) then 
+         CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         DO i = 1, ianz 
+         iv = nint (werte (i) ) 
+         IF (iv.gt.0.and.iv.le.CHEM_MAX_RAN) then 
+            IF (chem_cran_uvw (1, 1, iv) .ne. - 9999) then 
+               chem_use_ran (i, chem_ncor) = iv 
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+         chem_nran (chem_ncor) = ianz 
+         chem_ctyp (chem_ncor) = CHEM_RANGE 
+!                                                                       
+!------ set neig,ang : Define neighbour via angles                      
+!                                                                       
+      ELSEIF (cpara (1) (1:2) .eq.'AN'.and.ianz.gt.1) then 
+         CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         DO i = 1, ianz 
+         iv = nint (werte (i) ) 
+         IF (iv.gt.0.and.iv.le.CHEM_MAX_ANG) then 
+            IF (chem_cwin (1, iv) .ne. - 9999) then 
+               chem_use_win (i, chem_ncor) = iv 
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+         chem_nwin (chem_ncor) = ianz 
+         chem_ctyp (chem_ncor) = CHEM_ANG 
+!                                                                       
+!------ set neig,env : Define neighbour via environment                 
+!     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         
+      ELSEIF (cpara (1) (1:3) .eq.'ENV'.and.ianz.gt.1) then 
+         CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         DO i = 1, ianz 
+         iv = nint (werte (i) ) 
+         IF (iv.gt.0.and.iv.le.CHEM_MAX_ENV) then 
+            IF (chem_cenv (0, iv) .ne. - 9999) then 
+               chem_use_env (i, chem_ncor) = iv 
+            ELSE 
+               ier_num = - 9 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 9 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+         chem_nenv (chem_ncor) = ianz 
+         chem_ctyp (chem_ncor) = CHEM_ENVIR 
+!                                                                       
+!------ set neig,dis : Define neighbour via distance                    
+!                                                                       
+      ELSEIF (cpara (1) (1:3) .eq.'DIS'.and.ianz.ge.5) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (ier_num.ne.0) return 
+!                                                                       
+         chem_cang (chem_ncor) = .false. 
+         chem_ctyp (chem_ncor) = CHEM_DIST 
+!                                                                       
+         csym = .false. 
+         IF (ianz.eq.5.or.ianz.eq.6) then 
+            CALL do_cap (cpara (ianz) ) 
+            csym = (cpara (ianz) (1:1) .eq.'S') 
+            ianz = ianz - 1 
+         ENDIF 
+!                                                                       
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!                                                                       
+         chem_neig (1, 1, chem_ncor) = werte (1) 
+         chem_neig (2, 1, chem_ncor) = werte (2) 
+         chem_neig (3, 1, chem_ncor) = werte (3) 
+         chem_freq_sigma (chem_ncor) = werte (4) 
+!                                                                       
+         IF (ianz.eq.5) then 
+            chem_cang (chem_ncor) = .true. 
+            chem_wink_sigma (chem_ncor) = werte (5) 
+         ENDIF 
+!                                                                       
+         DO i = 1, 3 
+         u (i) = 0.0 
+         v (i) = chem_neig (i, 1, chem_ncor) 
+         ENDDO 
+         chem_rmax (chem_ncor) = do_blen (.true., u, v) 
+         chem_rmin (chem_ncor) = chem_rmax (chem_ncor) -                &
+         chem_freq_sigma (chem_ncor) / 2.0                              
+         chem_rmax (chem_ncor) = chem_rmax (chem_ncor) +                &
+         chem_freq_sigma (chem_ncor) / 2.0                              
+!                                                                       
+!------ - get symmetrically equivalent directions if needed             
+!                                                                       
+         IF (csym) then 
+            DO i = 1, 3 
+            uvw (i, 1) = chem_neig (i, 1, chem_ncor) 
+            ENDDO 
+            uvw (4, 1) = 0.0 
+            DO i = 1, 4 
+            DO j = 1, 4 
+            uvw_mat (i, j, 1) = 0.0 
+            ENDDO 
+            uvw_mat (i, i, 1) = 1.0 
+            ENDDO 
+!                                                                       
+            CALL rmc_symmetry (chem_nnei (chem_ncor), uvw, uvw_mat,     &
+            max_uvw, .true., lacentric)                                 
+!                                                                       
+            DO i = 1, chem_nnei (chem_ncor) 
+            DO j = 1, 3 
+            chem_neig (j, i, chem_ncor) = uvw (j, i) 
+            ENDDO 
+            ENDDO 
+!                                                                       
+         ELSE 
+            chem_nnei (chem_ncor) = 1 
+         ENDIF 
+!                                                                       
+!------ set neig,dir: sets directions for disp. correlations            
+!                                                                       
+      ELSEIF (cpara (1) (1:3) .eq.'DIR') then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         IF (cpara (1) (1:3) .eq.'all') then 
+            chem_ldall (chem_ncor) = .true. 
+         ELSE 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.ne.0) return 
+!                                                                       
+            IF (ianz.eq.3) then 
+               chem_ldall (chem_ncor) = .false. 
+               chem_dir (1, 1, chem_ncor) = werte (1) 
+               chem_dir (2, 1, chem_ncor) = werte (2) 
+               chem_dir (3, 1, chem_ncor) = werte (3) 
+               chem_dir (1, 2, chem_ncor) = werte (1) 
+               chem_dir (2, 2, chem_ncor) = werte (2) 
+               chem_dir (3, 2, chem_ncor) = werte (3) 
+            ELSEIF (ianz.eq.6) then 
+               chem_ldall (chem_ncor) = .false. 
+               chem_dir (1, 1, chem_ncor) = werte (1) 
+               chem_dir (2, 1, chem_ncor) = werte (2) 
+               chem_dir (3, 1, chem_ncor) = werte (3) 
+               chem_dir (1, 2, chem_ncor) = werte (4) 
+               chem_dir (2, 2, chem_ncor) = werte (5) 
+               chem_dir (3, 2, chem_ncor) = werte (6) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
+!                                                                       
+!------ unknown subcommand                                              
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_set_neig                  
+!*****7*****************************************************************
+      SUBROUTINE chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
+!+                                                                      
+!     Parameters for command 'set neig' processed here                  
+!-                                                                      
+      USE config_mod 
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+!                                                                       
+      CHARACTER ( * ) cpara (maxw) 
+      REAL werte (maxw) 
+      INTEGER lpara (maxw) 
+      INTEGER ianz 
+!                                                                       
+      INTEGER i 
+      INTEGER istart, iend 
+      LOGICAL lrange 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      IF (ianz.lt.2) return 
+!                                                                       
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      lrange = str_comp (cpara (ianz) , 'range', 2, lpara (ianz) , 5) 
+      IF (lrange) then 
+         ianz = ianz - 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+         istart = nint (werte (1) ) 
+         iend = nint (werte (2) ) 
+         DO i = 1, iend-istart + 1 
+         werte (i) = istart + i - 1 
+         ENDDO 
+         ianz = iend-istart + 1 
+      ELSE 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_set_nei_range             
+!*****7*****************************************************************
+      SUBROUTINE chem_env (line, laenge) 
+!-                                                                      
+!     Finds the environment around an atom, site or position            
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE modify_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 6) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(9) at_name, at_name_i 
+      INTEGER lpara (maxw) 
+      INTEGER i, ianz, laenge 
+      INTEGER iatom, isite, icell (3) 
+      REAL werte (maxw), dummy(1)
+      REAL radius, pos (3) 
+      LOGICAL latom 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      latom = .false. 
+      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ Given atom index                                                
+!                                                                       
+      IF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) then 
+         IF (ianz.eq.3) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            iatom = nint (werte (1) ) 
+            IF (iatom.gt.0.and.iatom.le.cr_natoms) then 
+               radius = werte (2) 
+               CALL indextocell (iatom, icell, isite) 
+               DO i = 1, 3 
+               pos (i) = cr_pos (i, iatom) 
+               ENDDO 
+               latom = .true. 
+            ELSE 
+               ier_num = - 10 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!------ Given unit cell and site                                        
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'site', 1, lpara (1) , 4) ) then 
+         IF (ianz.eq.6) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            DO i = 1, 3 
+            icell (i) = nint (werte (i) ) 
+            ENDDO 
+            isite = nint (werte (4) ) 
+            CALL celltoindex (icell, isite, iatom) 
+            IF (iatom.gt.0.and.iatom.le.cr_natoms) then 
+               radius = werte (5) 
+               DO i = 1, 3 
+               pos (i) = cr_pos (i, iatom) 
+               ENDDO 
+               latom = .true. 
+            ELSE 
+               ier_num = - 10 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!------ Given position                                                  
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'pos', 1, lpara (1) , 3) ) then 
+         IF (ianz.eq.5) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            DO i = 1, 3 
+            pos (i) = werte (i) 
+            ENDDO 
+            radius = werte (4) 
+            latom = .false. 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!------ No valid subcommand                                             
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!---------------------------------------------------------------------  
+!------ Find neighbours                                                 
+!---------------------------------------------------------------------  
+!                                                                       
+      IF (ier_num.ne.0) return 
+!                                                                       
+      dummy = - 1 
+      CALL do_find_env (1, dummy, 1, pos, 0.01, radius, chem_quick,     &
+      chem_period)                                                      
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (atom_env (0) .gt.0) then 
+         WRITE (output_io, 1000) chem_quick, chem_period 
+         WRITE (output_io, 1100) (pos (i), i = 1, 3), radius 
+         IF (latom) then 
+            at_name_i = at_name (cr_iscat (iatom) ) 
+            WRITE (output_io, 1200) (icell (i), i = 1, 3), isite, iatom,&
+            at_name_i                                                   
+         ENDIF 
+         WRITE (output_io, 1300) 
+         DO ianz = 1, atom_env (0) 
+         at_name_i = at_name (cr_iscat (atom_env (ianz) ) ) 
+         CALL indextocell (atom_env (ianz), icell, isite) 
+         WRITE (output_io, 1400) ianz, atom_env (ianz), at_name_i,      &
+         res_para (ianz), (cr_pos (i, atom_env (ianz) ), i = 1, 3),     &
+         icell, isite                                                   
+         res_para (ianz) = float (atom_env (ianz) ) 
+         ENDDO 
+         res_para (0) = atom_env (0) 
+      ENDIF 
+!                                                                       
+ 1000 FORMAT (  ' Found neighbours (quick more = ',L1,                  &
+     &          ' periodic boundaries (x,y,z) = ',3(L1,1x),') ')        
+ 1100 FORMAT (  '   Position of search center   : ',3(F9.3,2X),/        &
+     &          '   Search radius [A]           : ',F9.3)               
+ 1200 FORMAT (  '   Unit cell and site          : ',3(I4,1X),'/',I4,/   &
+     &          '   Atom index                  : ',I9,' (',A9,')')     
+ 1300 FORMAT (/,4X,'#',3X,'atom',4X,'name',5X,'dist [A]',12x,'pos',     &
+     &        16x,'cell',5X,'site',/,3X,74('-'))                        
+ 1400 FORMAT (3X,I3,1X,I6,3X,A9,1X,F7.2,1X,3(F7.2,1X),                  &
+     &        1X,3(I3,1X),1X,I3)                                        
+!                                                                       
+      END SUBROUTINE chem_env                       
+!*****7*****************************************************************
+      SUBROUTINE chem_bval (line, laenge) 
+!-                                                                      
+!     Calculates the bond valence sum for specified site/atom           
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod  
+      USE modify_mod
+      USE element_data_mod
+      USE bv_data_mod
+!
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 6) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(9) at_name, at_name_i 
+      CHARACTER (LEN=4)  :: el_name
+      INTEGER lpara (maxw) 
+      INTEGER i, iii, ianz, laenge 
+      INTEGER iatom, isite, icell (3) 
+      INTEGER      :: ie_1, ie_2 
+      INTEGER      :: ilook  ! Lookup entry in bv_index_table
+      INTEGER      :: itry   ! Encoded Lookup entry in bv_index_table
+      REAL werte (maxw), dummy (1)
+      REAL radius, bval, pos (3) 
+      LOGICAL latom 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ Given atom index                                                
+!                                                                       
+      IF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) then 
+         IF (ianz.eq.3) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            iatom = nint (werte (1) ) 
+            IF (iatom.gt.0.and.iatom.le.cr_natoms) then 
+               radius = werte (2) 
+               CALL indextocell (iatom, icell, isite) 
+               DO i = 1, 3 
+               pos (i) = cr_pos (i, iatom) 
+               ENDDO 
+               latom = .true. 
+            ELSE 
+               ier_typ = - 10 
+               ier_num = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!------ Given unit cell and site                                        
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'site', 1, lpara (1) , 4) ) then 
+         IF (ianz.eq.6) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            DO i = 1, 3 
+            icell (i) = nint (werte (i) ) 
+            ENDDO 
+            isite = nint (werte (4) ) 
+            CALL celltoindex (icell, isite, iatom) 
+            IF (iatom.gt.0.and.iatom.le.cr_natoms) then 
+               radius = werte (5) 
+               DO i = 1, 3 
+               pos (i) = cr_pos (i, iatom) 
+               ENDDO 
+               latom = .true. 
+            ELSE 
+               ier_typ = - 10 
+               ier_num = ER_CHEM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!------ No valid subcommand                                             
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!---------------------------------------------------------------------  
+!------ Find neighbours and calculate BV sum                            
+!---------------------------------------------------------------------  
+!                                                                       
+      ier_num = - 75 
+      ier_typ = ER_APPL 
+      ie_1    = 0
+      el_name = cr_at_lis (cr_iscat (iatom))
+      CALL symbf ( el_name, ie_1)
+      IF (ier_num.ne.0) return 
+!                                                                       
+      dummy = - 1 
+      CALL do_find_env (1, dummy, 1, pos, 0.01, radius, chem_quick,     &
+      chem_period)                                                      
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (atom_env (0) .gt.0) then 
+         bval = 0.0 
+         DO ianz = 1, atom_env (0) 
+            ier_num = - 75 
+            ier_typ = ER_APPL 
+            ie_2    = 0
+            el_name = cr_at_lis (cr_iscat (iatom))
+            CALL symbf ( el_name, ie_2)
+            CALL bv_lookup ( ie_1, ie_2, ilook )
+            IF (ie_2 == 0 .or. ilook == 0 ) THEN
+               ier_num = - 75 
+               ier_typ = ER_APPL 
+               RETURN 
+            ELSE 
+               iii  = bv_target(ilook)
+               bval = bval + exp ( (bv_r0 (iii) - res_para (ianz) )        &
+               / bv_b (iii) )
+            ENDIF 
+         ENDDO 
+         res_para (0) = 1 
+         res_para (1) = bval 
+         at_name_i = at_name (cr_iscat (iatom) ) 
+         WRITE (output_io, 1000) at_name_i, bval 
+      ELSE 
+         ier_num = - 8 
+         ier_typ = ER_CHEM 
+      ENDIF 
+!                                                                       
+ 1000 FORMAT    (' Bond valence sum for ',a9,' : ',f7.4) 
+ 2000 FORMAT    (a4) 
+!                                                                       
+      END SUBROUTINE chem_bval                      
+!*****7*****************************************************************
+      SUBROUTINE chem_mode (line, laenge) 
+!-                                                                      
+!     Sets molecule/atom mode                                           
+!+                                                                      
+      USE config_mod 
+      USE chem_mod 
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 2) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      INTEGER ianz, laenge 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (str_comp (cpara (1) , 'mol', 1, lpara (1) , 3) ) then 
+         IF (mole_num_mole.gt.0) then 
+            chem_sel_atom = .false. 
+            WRITE (output_io, 1000) 'molecules' 
+         ELSE 
+            ier_num = - 20 
+            ier_typ = ER_CHEM 
+         ENDIF 
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) then 
+         chem_sel_atom = .true. 
+         WRITE (output_io, 1000) 'atoms' 
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+ 1000 FORMAT     ( ' New operation mode : ',a,' ...') 
+      END SUBROUTINE chem_mode                      
+!*****7*****************************************************************
+      SUBROUTINE chem_nei (line, laenge) 
+!-                                                                      
+!     Finds the environment for given neighbour definition              
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw, maxatom 
+      PARAMETER (maxw = 3) 
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(9) at_name, at_name_i 
+      REAL werte (maxw) 
+      REAL pos (3, 0:maxatom) 
+      INTEGER lpara (maxw) 
+      INTEGER ind (0:maxatom), iatom, imol 
+      INTEGER i, j, n, ic, ianz, laenge 
+!                                                                       
+      CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (ianz.eq.2) then 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.ne.0) return 
+!                                                                       
+!------ - Atoms                                                         
+!                                                                       
+         IF (chem_sel_atom) then 
+            iatom = nint (werte (1) ) 
+            IF (iatom.le.0.or.iatom.gt.cr_natoms) then 
+               ier_num = - 10 
+               ier_typ = ER_CHEM 
+            ENDIF 
+!                                                                       
+            ic = nint (werte (2) ) 
+            IF (ic.le.0.or.ic.gt.chem_ncor) then 
+               ier_num = - 14 
+               ier_typ = ER_CHEM 
+            ENDIF 
+!                                                                       
+            IF (chem_ctyp (1) .eq.CHEM_NONE) then 
+               ier_num = - 11 
+               ier_typ = ER_CHEM 
+            ENDIF 
+            IF (ier_num.ne.0) return 
+!                                                                       
+            CALL chem_neighbour (iatom, ic, ind, pos, n, maxatom) 
+!                                                                       
+            IF (n.gt.0) then 
+               at_name_i = at_name (cr_iscat (iatom) ) 
+               WRITE (output_io, 1000) at_name_i, (cr_pos (i, iatom),   &
+               i = 1, 3), iatom, ic                                     
+               WRITE (output_io, 1100) 
+               DO i = 1, n 
+               at_name_i = at_name (cr_iscat (ind (i) ) ) 
+               WRITE (output_io, 1200) i, at_name_i, ind (i), (cr_pos ( &
+               j, ind (i) ), j = 1, 3)                                  
+               ENDDO 
+!                                                                       
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_CHEM 
+            ENDIF 
+!                                                                       
+!------ - Molecules                                                     
+!                                                                       
+         ELSE 
+            imol = nint (werte (1) ) 
+            IF (imol.le.0.or.imol.gt.mole_num_mole) then 
+               ier_num = - 63 
+               ier_typ = ER_APPL 
+            ENDIF 
+!                                                                       
+            ic = nint (werte (2) ) 
+            IF (ic.le.0.or.ic.gt.chem_ncor) then 
+               ier_num = - 14 
+               ier_typ = ER_CHEM 
+            ENDIF 
+!                                                                       
+            IF (chem_ctyp (1) .eq.CHEM_NONE) then 
+               ier_num = - 11 
+               ier_typ = ER_CHEM 
+            ENDIF 
+            IF (ier_num.ne.0) return 
+!                                                                       
+            CALL chem_neighbour_mol (imol, ic, ind, n, maxatom) 
+!                                                                       
+            IF (n.gt.0) then 
+               WRITE (output_io, 2000) (cr_pos (i, mole_cont (mole_off (&
+               imol) + 1) ), i = 1, 3), imol, mole_cont (mole_off (imol)&
+               + 1), ic                                                 
+               WRITE (output_io, 2100) 
+               DO i = 1, n 
+               WRITE (output_io, 2200) i, mole_type (ind (i) ), ind (i),&
+               cr_pos (1, mole_cont (mole_off (ind (i) ) + 1) ),        &
+               cr_pos (2, mole_cont (mole_off (ind (i) ) + 1) ),        &
+               cr_pos (3, mole_cont (mole_off (ind (i) ) + 1) )         
+               ENDDO 
+            ELSE 
+               ier_num = - 19 
+               ier_typ = ER_CHEM 
+            ENDIF 
+         ENDIF 
+!                                                                       
+!------ Wrong number of parameters                                      
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+!------ store results in res_para                                       
+!                                                                       
+      IF (n.gt.maxpar_res) then 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ELSE 
+         res_para (0) = n 
+         DO i = 1, n 
+         res_para (i) = float (ind (i) ) 
+         ENDDO 
+      ENDIF 
+!                                                                       
+ 1000 FORMAT (  ' Neighbours found in defined direction ',/             &
+     &          '   Center atom name            : ',a9,/                &
+     &          '   Position of center atom     : ',3(f8.3,2x),/        &
+     &          '   Center atom index           : ',i7,/                &
+     &          '   Neighbour definition no.    : ',i7,/)               
+ 1100 FORMAT (  4x,'#',6x,'name',7x,'index',16x,'position',/            &
+     &          3x,(58('-')))                                           
+ 1200 FORMAT (  2x,i3,3x,a9,3x,i9,4x,3(f8.3,2x)) 
+!                                                                       
+ 2000 FORMAT (  ' Neighbours found in defined direction ',/             &
+     &          '   Origin of center molecule   : ',3(f8.3,2x),/        &
+     &          '   Center molecule index       : ',i7,/                &
+     &          '   Atom index on origin of mol.: ',i7,/                &
+     &          '   Neighbour definition no.    : ',i7,/)               
+ 2100 FORMAT (  4x,'#',6x,'type',7x,'index',17x,'origin',/              &
+     &          3x,(58('-')))                                           
+ 2200 FORMAT (  2x,i3,3x,i9,3x,i9,4x,3(f8.3,2x)) 
+      END SUBROUTINE chem_nei                       
+!*****7*****************************************************************
+SUBROUTINE chem_aver (lout) 
+!+                                                                      
+!     Calculate average structure and standard deviation                
+!-                                                                      
+USE config_mod 
+USE allocate_appl_mod 
+USE crystal_mod 
+USE chem_mod 
+IMPLICIT none 
+!                                                                       
+include'errlist.inc' 
+include'prompt.inc' 
+       
+include'param.inc' 
+!                                                                       
+REAL, DIMENSION(3) ::  p , ez 
+INTEGER            :: i, j, k, ii, jj, kk, ia, is 
+LOGICAL            :: flag, lout 
+!                                                                       
+CHARACTER(LEN=9)   :: at_name_i 
+CHARACTER(LEN=9)   :: at_name 
+!
+INTEGER            :: n_atom_cell  ! Dummy for allocation
+INTEGER            :: n_max_atom   ! Dummy for allocation
+!
+IF ( CHEM_MAXAT_CELL < MAXAT_CELL .or. &
+     CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT)) THEN
+   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
+   n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
+   call alloc_chem_aver ( n_atom_cell, n_max_atom)
+ENDIF
+!                                                                       
+!------ reset counters                                                  
+!                                                                       
+IF (cr_ncatoms.gt.MAXAT_CELL) then 
+   ier_num = - 103 
+   ier_typ = ER_APPL 
+   ier_msg (1) = 'Adjust the value of the variable' 
+   ier_msg (2)  = 'MAXAT_CELL in config_mod.f90 and  ' 
+   ier_msg (3)  = 'compile the program             ' 
+   RETURN 
+ENDIF 
+chem_ave_n    = 0    ! (i)   , i=1,cr_ncatoms
+chem_ave_bese = 0.0  ! (i, k), i=1,cr_ncatoms, k = 1,chem_max_ave_atom
+chem_ave_pos  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
+chem_ave_sig  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
+!     DO i = 1, cr_ncatoms 
+!     chem_ave_n (i) = 0 
+!     DO k = 1, chem_max_atom 
+!     chem_ave_bese (i, k) = 0.0 
+!     ENDDO 
+!     DO j = 1, 3 
+!     chem_ave_pos (j, i) = 0.0 
+!     chem_ave_sig (j, i) = 0.0 
+!     ENDDO 
+!     ENDDO 
+!                                                                       
+!------ loop over all unit cells ans atoms within unit cell             
+!                                                                       
+loopk: DO k = 1, cr_icc (3) 
+   loopj: DO j = 1, cr_icc (2) 
+      loopi: DO i = 1, cr_icc (1) 
+         ez (1) = cr_dim0 (1, 1) + float (i - 1) 
+         ez (2) = cr_dim0 (2, 1) + float (j - 1) 
+         ez (3) = cr_dim0 (3, 1) + float (k - 1) 
+         loopii: DO ii = 1, cr_ncatoms 
+            ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
+                   (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     
+            DO jj = 1, 3 
+               p (jj) = cr_pos (jj, ia) - ez (jj) 
+               chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii) + p (jj) 
+               chem_ave_sig (jj, ii) = chem_ave_sig (jj, ii) + p (jj)**2 
+            ENDDO 
+!                                                                       
+!------ --- Calculate occupancies ..                                    
+!                                                                       
+            occup: IF (chem_ave_n (ii) .eq.0) then 
+               chem_ave_n (ii) = 1 
+               chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia) 
+               is = 1 
+            ELSE  occup
+               flag = .true. 
+               DO kk = 1, chem_ave_n (ii) 
+                  IF (cr_iscat (ia) .eq.chem_ave_iscat (ii, kk) ) then 
+                     is = kk 
+                     flag = .false. 
+                  ENDIF 
+               ENDDO 
+               IF (flag) then 
+                  chem_ave_n (ii) = chem_ave_n (ii) + 1 
+                  is = chem_ave_n (ii) 
+                  IF (chem_ave_n (ii) .gt.chem_max_atom) then 
+                     ier_typ = ER_CHEM 
+                     ier_num = - 5 
+                     RETURN 
+                  ENDIF 
+                  chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia) 
+               ENDIF 
+            ENDIF occup
+            chem_ave_bese (ii, is) = chem_ave_bese (ii, is) + 1 
+         ENDDO loopii
+      ENDDO  loopi
+   ENDDO  loopj
+ENDDO  loopk
+!                                                                       
+!------ output of average and sigma                                     
+!                                                                       
+IF (lout) write (output_io, 1000) 
+ia = cr_icc (1) * cr_icc (2) * cr_icc (3) 
+DO i = 1, cr_ncatoms 
+   DO j = 1, 3 
+      chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
+      chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) -          &
+      chem_ave_pos (j, i) **2                                           
+      IF (chem_ave_sig (j, i) .gt.0.0) then 
+         chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
+      ELSE 
+         chem_ave_sig (j, i) = 0.0 
+      ENDIF 
+   ENDDO 
+   IF (lout) then 
+      DO k = 1, chem_ave_n (i) 
+         at_name_i = at_name (chem_ave_iscat (i, k) ) 
+         WRITE (output_io, 1100) i, at_name_i, (chem_ave_pos (ii, i),   &
+         ii = 1, 3), (chem_ave_sig (ii, i), ii = 1, 3), chem_ave_bese ( &
+         i, k) / ia                                                     
+      ENDDO 
+   ENDIF 
+ENDDO 
+!                                                                       
+!------ store results in res_para                                       
+!                                                                       
+IF ( (6 * cr_ncatoms) .gt.maxpar_res) then 
+   ier_typ = ER_CHEM 
+   ier_num = - 2 
+ELSE 
+   res_para (0) = 6 * cr_ncatoms 
+   DO i = 1, cr_ncatoms 
+      DO j = 1, 3 
+         res_para ( (i - 1) * 3 + j) = chem_ave_pos (j, i) 
+      ENDDO 
+      DO j = 1, 3 
+         res_para ( (i - 1) * 3 + j + 3) = chem_ave_sig (j, i) 
+      ENDDO 
+   ENDDO 
+ENDIF 
+!                                                                       
+ 1000 FORMAT (' Average structure : ',//,                               &
+     &        3x,'Site',2x,'atom',11x,'average position',8x,            &
+     &        'standard deviation',3x,'occupancy',/,3x,75('-'))         
+ 1100 FORMAT (3x,i3,2x,a9,2x,3(f7.4,1x),1x,3(f7.4,1x),1x,f7.4) 
+      END SUBROUTINE chem_aver                      
+!*****7*****************************************************************
+      SUBROUTINE chem_homo (line, lp) 
+!-                                                                      
+!     Check homogeniety of crstal                                       
+!+                                                                      
+      USE config_mod 
+      USE chem_mod 
+      USE modify_mod
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 15) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw), catom (2) 
+      REAL werte (maxw), wwerte (maxw) 
+      INTEGER lpara (maxw), latom (2) 
+      INTEGER lp, ianz, iianz 
+      LOGICAL locc 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (ianz.lt.3) then 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ Check concentration                                             
+!                                                                       
+      IF (str_comp (cpara (1) , 'occ', 1, lpara (1) , 3) ) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         iianz = 1 
+         IF (chem_sel_atom) then 
+            CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+         ELSE 
+            iianz = 1 
+            CALL ber_params (1, cpara, lpara, werte, maxw) 
+         ENDIF 
+         IF (ier_num.ne.0) return 
+         IF (werte (1) .ge.0.) then 
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            CALL do_build_name (ianz, cpara, lpara, wwerte, maxw, 1) 
+            CALL chem_homo_occ (cpara (1), iianz, werte, maxw) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_CHEM 
+         ENDIF 
+!                                                                       
+!------ Check correlations                                              
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'cor', 1, lpara (1) , 3) ) then 
+         IF (ianz.ge.5) then 
+            CALL do_cap (cpara (2) ) 
+            locc = (cpara (2) (1:3) .eq.'OCC') 
+            catom (1) = cpara (3) 
+            latom (1) = lpara (3) 
+            catom (2) = cpara (4) 
+            latom (2) = lpara (4) 
+            CALL del_params (4, ianz, cpara, lpara, maxw) 
+            CALL do_build_name (ianz, cpara, lpara, wwerte, maxw, 1) 
+            CALL chem_homo_corr (cpara (1), catom, latom, locc) 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_homo                      
+!*****7*****************************************************************
+      SUBROUTINE chem_homo_occ (fname, ianz, werte, maxw) 
+!-                                                                      
+!     Calculates concentration distribution for given atom typ          
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE diffuse_mod 
+      USE molecule_mod 
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      CHARACTER ( * ) fname 
+      INTEGER ianz, maxw 
+      REAL werte (maxw) 
+!                                                                       
+      INTEGER itot, ico 
+      INTEGER csize (3), lbeg (3) 
+      INTEGER i, imol, ibin, il, ia, iup 
+      REAL c, sc, scc, ave_c, sig_c 
+!                                                                       
+      INTEGER len_str 
+!     LOGICAL atom_allowed, chem_inlot 
+      LOGICAL chem_inlot 
+!                                                                       
+!------ Some setup                                                      
+!                                                                       
+      WRITE (output_io, 500) 
+      IF (ilots.eq.LOT_OFF) then 
+         WRITE (output_io, 600) 
+      ELSEIF (ilots.eq.LOT_BOX) then 
+         WRITE (output_io, 610) nlots 
+         WRITE (output_io, 630) (ls_xyz (i), i = 1, 3), lperiod 
+      ELSEIF (ilots.eq.LOT_ELI) then 
+         WRITE (output_io, 620) nlots 
+         WRITE (output_io, 630) (ls_xyz (i), i = 1, 3), lperiod 
+      ENDIF 
+!                                                                       
+      CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
+!                                                                       
+      DO i = 1, chem_max_bin 
+      chem_hist (i) = 0 
+      ENDDO 
+!                                                                       
+      c = 0.0 
+      sc = 0.0 
+      scc = 0.0 
+!                                                                       
+      iup = nlots / 10 
+!                                                                       
+!------ Loop over all lots                                              
+!                                                                       
+      DO il = 1, nlots 
+      CALL four_ranloc (csize, lbeg) 
+!                                                                       
+!------ - Get concentration in selected lot                             
+!                                                                       
+      itot = 0 
+      ico = 0 
+!                                                                       
+!------ - Atom mode                                                     
+!                                                                       
+      IF (chem_sel_atom) then 
+         DO ia = 1, cr_natoms 
+         IF (chem_inlot (ia, lbeg) ) then 
+            itot = itot + 1 
+            IF (atom_allowed (ia, werte, ianz, maxw) ) ico = ico + 1 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ - Molecule mode                                                 
+!                                                                       
+      ELSE 
+         DO ia = 1, mole_num_mole 
+         imol = mole_cont (mole_off (ia) + 1) 
+         IF (chem_inlot (imol, lbeg) ) then 
+            itot = itot + 1 
+            IF (mole_type (ia) .eq.nint (werte (1) ) ) ico = ico + 1 
+         ENDIF 
+         ENDDO 
+      ENDIF 
+!                                                                       
+      IF (itot.ne.0) then 
+         c = float (ico) / float (itot) 
+         sc = sc + c 
+         scc = scc + c * c 
+      ENDIF 
+!                                                                       
+      ibin = int ( (chem_bin - 1) * c) + 1 
+      chem_hist (ibin) = chem_hist (ibin) + 1 
+!                                                                       
+      IF (nlots.gt.20) then 
+         IF (mod (il, iup) .eq.0) write (output_io, 900) il 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ Write histogram file                                            
+!                                                                       
+      WRITE (output_io, 1000) fname (1:len_str (fname) ) 
+!                                                                       
+      CALL oeffne (37, fname, 'unknown', .false.) 
+      IF (ier_num.ne.0) return 
+      DO i = 1, chem_bin 
+      WRITE (37, 2000) float (i - 1) / float (chem_bin - 1), chem_hist (&
+      i)                                                                
+      ENDDO 
+      CLOSE (37) 
+!                                                                       
+!------ Output average concentration and sigma                          
+!                                                                       
+      ave_c = sc / float (nlots) 
+      sig_c = scc / float (nlots) - ave_c * ave_c 
+!                                                                       
+      WRITE (output_io, 1200) ave_c, sig_c 
+!                                                                       
+  500 FORMAT    (  ' Computing concentration distribution ...') 
+  600 FORMAT     ( '   Sample volume            : complete crystal') 
+  610 FORMAT     ( '   Sample volume            : ',I4,                 &
+     &                      ' box shaped lots')                         
+  620 FORMAT     ( '   Sample volume            : ',I4,                 &
+     &                      ' ellipsoid shaped lots')                   
+  630 FORMAT     ( '   Lot size                 : ',I3,' x ',I3,        &
+     &                    ' x ',I3,' unit cells ',/,                    &
+     &                    '   Periodic boundaries      : ',L1,/)        
+  900 FORMAT    (  '   Finished lot #',i5,' ...') 
+ 1000 FORMAT    (/,'   Saving histogram to file : ',a,/) 
+ 1200 FORMAT    (  '   Average concentration    : ',f6.4,' +- ',f6.4) 
+ 2000 FORMAT    (f8.3,1x,i12) 
+!                                                                       
+      END SUBROUTINE chem_homo_occ                  
+!*****7*****************************************************************
+      SUBROUTINE chem_homo_corr (fname, catom, latom, locc) 
+!-                                                                      
+!     Calculates correlation distribution                               
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE diffuse_mod 
+      USE mc_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      CHARACTER ( * ) fname, catom (2) 
+      INTEGER latom (2) 
+      LOGICAL locc 
+!                                                                       
+      INTEGER csize (3), lbeg (3) 
+      INTEGER i, ibin, il, iup, ic, l 
+      REAL sc (chem_max_cor), scc (chem_max_cor) 
+      REAL ave_c, sig_c 
+!                                                                       
+      INTEGER len_str 
+!                                                                       
+!------ Some setup                                                      
+!                                                                       
+      WRITE (output_io, 500) 
+      IF (ilots.eq.LOT_OFF) then 
+         WRITE (output_io, 600) 
+      ELSEIF (ilots.eq.LOT_BOX) then 
+         WRITE (output_io, 610) nlots 
+         WRITE (output_io, 630) (ls_xyz (i), i = 1, 3), lperiod 
+      ELSEIF (ilots.eq.LOT_ELI) then 
+         WRITE (output_io, 620) nlots 
+         WRITE (output_io, 630) (ls_xyz (i), i = 1, 3), lperiod 
+      ENDIF 
+!                                                                       
+      CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
+!                                                                       
+      DO i = 1, chem_max_bin 
+      chem_hist (i) = 0 
+      ENDDO 
+!                                                                       
+      DO i = 1, chem_max_cor 
+      sc (i) = 0.0 
+      scc (i) = 0.0 
+      ENDDO 
+!                                                                       
+      iup = nlots / 10 
+!                                                                       
+!------ Loop over all lots                                              
+!                                                                       
+      DO il = 1, nlots 
+      CALL four_ranloc (csize, lbeg) 
+!                                                                       
+!------ - Get correlation in selected lot                               
+!                                                                       
+      IF (locc) then 
+         l = 2 
+         IF (chem_sel_atom) then 
+            CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+         ELSE 
+            CALL chem_corr_occ_mol (l, catom, latom, 2, .false., lbeg) 
+         ENDIF 
+      ELSE 
+         l = 2 
+         IF (chem_sel_atom) then 
+            CALL chem_corr_dis (l, catom, latom, 2, .false., lbeg) 
+         ELSE 
+            CALL chem_corr_dis_mol (l, catom, latom, 2, .false., lbeg) 
+         ENDIF 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      DO ic = 1, chem_ncor 
+      sc (ic) = sc (ic) + mo_ach_corr (ic) 
+      scc (ic) = scc (ic) + mo_ach_corr (ic) **2 
+!                                                                       
+      ibin = int ( (mo_ach_corr (ic) + 1) * chem_bin / 2.0) + 1 
+      chem_hist (ibin) = chem_hist (ibin) + 1 
+      ENDDO 
+!                                                                       
+      IF (nlots.gt.20) then 
+         IF (mod (il, iup) .eq.0) write (output_io, 900) il 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ Write histogram file                                            
+!                                                                       
+      WRITE (output_io, 1000) fname (1:len_str (fname) ) 
+!                                                                       
+      CALL oeffne (37, fname, 'unknown', .false.) 
+      IF (ier_num.ne.0) return 
+      DO i = 1, chem_bin 
+      WRITE (37, 2000) (2. * float (i - 1) / float (chem_bin - 1) )     &
+      - 1., chem_hist (i)                                               
+      ENDDO 
+      CLOSE (37) 
+!                                                                       
+!------ Output average correlations and sigma                           
+!                                                                       
+      DO ic = 1, chem_ncor 
+      ave_c = sc (ic) / float (nlots) 
+      sig_c = scc (ic) / float (nlots) - ave_c * ave_c 
+      WRITE (output_io, 1200) ic, ave_c, sig_c 
+      ENDDO 
+!                                                                       
+  500 FORMAT    (  ' Computing correlation distribution ...') 
+  600 FORMAT     ( '   Sample volume            : complete crystal') 
+  610 FORMAT     ( '   Sample volume            : ',I4,                 &
+     &                      ' box shaped lots')                         
+  620 FORMAT     ( '   Sample volume            : ',I4,                 &
+     &                      ' ellipsoid shaped lots')                   
+  630 FORMAT     ( '   Lot size                 : ',I3,' x ',I3,        &
+     &                    ' x ',I3,' unit cells ',/,                    &
+     &                    '   Periodic boundaries      : ',L1,/)        
+  900 FORMAT    (  '   Finished lot #',i5,' ...') 
+ 1000 FORMAT    (/,'   Saving histogram to file : ',a,/) 
+ 1200 FORMAT    (  '   Average correlation #',i3,' : ',f6.4,' +- ',f6.4) 
+ 2000 FORMAT    (f8.3,1x,i12) 
+!                                                                       
+      END SUBROUTINE chem_homo_corr                 
+!*****7*****************************************************************
+      LOGICAL function chem_inlot (ia, lbeg) 
+!+                                                                      
+!     Checks if given atom 'ia' is in given lot 'lbeg'                  
+!                                                                       
+      USE config_mod 
+      USE crystal_mod 
+      USE diffuse_mod 
+      USE modify_mod
+      IMPLICIT none 
+!                                                                       
+       
+!                                                                       
+      REAL xtest (3), x0 
+      INTEGER cr_end 
+      INTEGER lbeg (3), iz (3), izmin, izmax 
+      INTEGER ia, is, i 
+!                                                                       
+      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3)        &
+      + 1                                                               
+!                                                                       
+!------ We are not using lots                                           
+!                                                                       
+      IF (ilots.eq.LOT_OFF) then 
+         chem_inlot = .true. 
+!                                                                       
+!------ Box shaped lot                                                  
+!                                                                       
+      ELSEIF (ilots.eq.LOT_BOX) then 
+         IF (ia.lt.cr_end) then 
+            CALL indextocell (ia, iz, is) 
+         ELSE 
+            DO i = 1, 3 
+            iz (i) = int (cr_pos (i, ia) - cr_dim0 (i, 1) ) + 1 
+            ENDDO 
+         ENDIF 
+!                                                                       
+         chem_inlot = .true. 
+!                                                                       
+         DO i = 1, 3 
+         izmin = lbeg (i) 
+         izmax = lbeg (i) + ls_xyz (i) - 1 
+         chem_inlot = chem_inlot.and. (iz (i) .ge.izmin) .and. (iz (i)  &
+         .le.izmax)                                                     
+!                                                                       
+         IF (.not.chem_inlot.and. (izmax.gt.cr_icc (i) ) ) then 
+            izmin = 1 
+            izmax = izmax - cr_icc (i) 
+            chem_inlot = chem_inlot.and. (iz (i) .ge.izmin) .and. (iz ( &
+            i) .le.izmax)                                               
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ Ellipsoid shaped lot                                            
+!                                                                       
+      ELSEIF (ilots.eq.LOT_ELI) then 
+         IF (ia.lt.cr_end) then 
+            CALL indextocell (ia, iz, is) 
+         ELSE 
+            DO i = 1, 3 
+            iz (i) = int (cr_pos (i, ia) + cr_dim0 (i, 1) ) - 1 
+            ENDDO 
+         ENDIF 
+!                                                                       
+         chem_inlot = .true. 
+!                                                                       
+         DO i = 1, 3 
+         x0 = float (ls_xyz (i) ) / 2.0 
+         izmin = lbeg (i) 
+         izmax = lbeg (i) + ls_xyz (i) - 1 
+         xtest (i) = (iz (i) - izmin - x0 + 0.5) **2 / x0**2 
+         chem_inlot = chem_inlot.and. (iz (i) .ge.izmin) .and. (iz (i)  &
+         .le.izmax)                                                     
+!                                                                       
+         IF (.not.chem_inlot.and. (izmax.gt.cr_icc (i) ) ) then 
+            izmin = 1 
+            izmax = izmax - cr_icc (i) 
+            chem_inlot = chem_inlot.and. (iz (i) .ge.izmin) .and. (iz ( &
+            i) .le.izmax)                                               
+         ENDIF 
+         ENDDO 
+!                                                                       
+         chem_inlot = chem_inlot.and. ( (xtest (1) + xtest (2) + xtest (&
+         3) ) .le.1.0)                                                  
+!                                                                       
+      ENDIF 
+      END FUNCTION chem_inlot                       
+!*****7*****************************************************************
+      SUBROUTINE chem_corr_field (line, lp) 
+!-                                                                      
+!     Calculates correlation field                                      
+!+                                                                      
+      USE config_mod 
+      USE chem_mod 
+      USE mc_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+      PARAMETER (maxw = 15) 
+      INTEGER maxval 
+      PARAMETER (maxval = 1000) 
+!                                                                       
+      CHARACTER ( * ) line 
+      CHARACTER(1024) cpara (maxw) 
+      CHARACTER(1024) fname, catom (2) 
+      INTEGER back_cvec (5, chem_max_vec) 
+      INTEGER lpara (maxw) 
+      INTEGER latom (2), lbeg (3), lname 
+      INTEGER xmin, xmax, ymin, ymax 
+      INTEGER l, i, ix, iy, ianz, lp 
+      REAL werte (maxw), nv (3) 
+      REAL cval (maxval) 
+      REAL back_neig (3, 48, chem_max_cor) 
+      REAL back_rmin (chem_max_cor) 
+      REAL back_rmax (chem_max_cor) 
+      LOGICAL locc 
+!                                                                       
+      LOGICAL str_comp 
+!                                                                       
+      CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      IF (ianz.lt.6) then 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ Get correlation mode                                            
+!                                                                       
+      IF (str_comp (cpara (1) , 'occ', 1, lpara (1) , 3) ) then 
+         locc = .true. 
+      ELSEIF (str_comp (cpara (1) , 'dis', 1, lpara (1) , 3) ) then 
+         locc = .false. 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ Save atom names                                                 
+!                                                                       
+      catom (1) = cpara (2) (1:lpara (2) ) 
+      catom (2) = cpara (3) (1:lpara (3) ) 
+      latom (1) = lpara (2) 
+      latom (2) = lpara (3) 
+!                                                                       
+!------ Build filename                                                  
+!                                                                       
+      CALL del_params (3, ianz, cpara, lpara, maxw) 
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      fname = cpara (1) 
+      lname = lpara (1) 
+!                                                                       
+!------ Get calculation range                                           
+!                                                                       
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ianz.eq.2) then 
+         xmin = nint (werte (1) ) 
+         xmax = nint (werte (2) ) 
+         ymin = 0 
+         ymax = 0 
+      ELSEIF (ianz.eq.4) then 
+         xmin = nint (werte (1) ) 
+         xmax = nint (werte (2) ) 
+         ymin = nint (werte (3) ) 
+         ymax = nint (werte (4) ) 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+      IF (ier_num.ne.0) return 
+!                                                                       
+!-------------------------------------------------------------------    
+!------ Here starts the calculation of the correlation field            
+!-------------------------------------------------------------------    
+!                                                                       
+      CALL oeffne (37, fname, 'unknown', .false.) 
+      IF (ier_num.ne.0) return 
+      WRITE (output_io, 1000) fname (1:lname), catom (1) (1:latom (1) ),&
+      catom (2) (1:latom (2) )                                          
+!                                                                       
+!------ Save current 'neig' settings                                    
+!                                                                       
+      CALL chem_save_neig (back_cvec, back_neig, back_rmin, back_rmax,  &
+      chem_cvec, chem_neig, chem_rmin, chem_rmax, CHEM_MAX_VEC)
+!                                                                       
+!------ We have a 1D file                                               
+!                                                                       
+      IF (ymin.eq.0.and.ymax.eq.0) then 
+         CALL chem_inc_check (1) 
+         IF (ier_num.ne.0) goto 9999 
+         lbeg (1) = - 1 
+         lbeg (2) = 0 
+         lbeg (3) = 0 
+!                                                                       
+         DO ix = xmin, xmax 
+         CALL chem_inc_neig (ix, 0, back_cvec, back_neig, nv) 
+         IF (locc) then 
+            l = 2 
+            IF (chem_sel_atom) then 
+               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+            ELSE 
+               CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
+               lbeg)                                                    
+            ENDIF 
+         ELSE 
+            l = 2 
+            IF (chem_sel_atom) then 
+               CALL chem_corr_dis (l, catom, latom, 2, .false., lbeg) 
+            ELSE 
+               CALL chem_corr_dis_mol (l, catom, latom, 2, .false.,     &
+               lbeg)                                                    
+            ENDIF 
+         ENDIF 
+         IF (ier_num.ne.0) goto 9999 
+         WRITE (output_io, 1100) ix, 0, nv, mo_ach_corr (1) 
+         WRITE (37, * ) ix, mo_ach_corr (1) 
+         ENDDO 
+!                                                                       
+!------ 2D (NIPL) file                                                  
+!                                                                       
+      ELSE 
+         CALL chem_inc_check (2) 
+         IF (ier_num.ne.0) goto 9999 
+         lbeg (1) = - 1 
+         lbeg (2) = 0 
+         lbeg (3) = 0 
+!                                                                       
+         WRITE (37, * ) (xmax - xmin + 1), (ymax - ymin + 1) 
+         WRITE (37, * ) float (xmin), float (xmax), float (ymin),       &
+         float (ymax)                                                   
+         DO iy = ymin, ymax 
+         DO ix = xmin, xmax 
+         CALL chem_inc_neig (ix, iy, back_cvec, back_neig, nv) 
+         IF (locc) then 
+            l = 2 
+            IF (chem_sel_atom) then 
+               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+            ELSE 
+               CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
+               lbeg)                                                    
+            ENDIF 
+         ELSE 
+            l = 2 
+            IF (chem_sel_atom) then 
+               CALL chem_corr_dis (l, catom, latom, 2, .false., lbeg) 
+            ELSE 
+               CALL chem_corr_dis_mol (l, catom, latom, 2, .false.,     &
+               lbeg)                                                    
+            ENDIF 
+         ENDIF 
+         IF (ier_num.ne.0) goto 9999 
+         WRITE (output_io, 1100) ix, iy, nv, mo_ach_corr (1) 
+         cval (ix - xmin + 1) = mo_ach_corr (1) 
+         ENDDO 
+         WRITE (37, * ) (cval (i), i = 1, xmax - xmin + 1) 
+         ENDDO 
+      ENDIF 
+!                                                                       
+ 9999 CONTINUE 
+!                                                                       
+!------ Restore 'neig' settings                                         
+!                                                                       
+      CALL chem_save_neig (chem_cvec, chem_neig, chem_rmin, chem_rmax,  &
+      back_cvec, back_neig, back_rmin, back_rmax, CHEM_MAX_VEC)
+!                                                                       
+      CLOSE (37) 
+!                                                                       
+ 1000 FORMAT (' Calculating correlation field ... ',/                   &
+     &        '   Outputfile           : ',a,/,                         &
+     &        '   Atoms/Molecules used : ',a4,' - ',a4,//,              &
+     &        6x,'x',7x,'y',16x,'Neighbours',12x,'Correlation',/,       &
+     &        3x,64('-'))                                               
+ 1100 FORMAT (3x,i5,3x,i5,4x,3(f8.2,2x),3x,f8.4) 
+      END SUBROUTINE chem_corr_field                
+!*****7*****************************************************************
+      SUBROUTINE chem_save_neig (a_cvec, a_neig, a_rmin, a_rmax, b_cvec,&
+      b_neig, b_rmin, b_rmax, CHEM_MAX_VEC)
+!-                                                                      
+!     Saves/restores current CHEM neighbour settings                    
+!+                                                                      
+      USE config_mod 
+      IMPLICIT none 
+!                                                                       
+INTEGER, INTENT(IN) :: CHEM_MAX_VEC
+!                                                                       
+      INTEGER a_cvec (5, chem_max_vec) 
+      INTEGER b_cvec (5, chem_max_vec) 
+      REAL a_neig (3, 48, chem_max_cor) 
+      REAL b_neig (3, 48, chem_max_cor) 
+      REAL a_rmin (chem_max_cor), a_rmax (chem_max_cor) 
+      REAL b_rmin (chem_max_cor), b_rmax (chem_max_cor) 
+!                                                                       
+      INTEGER i, j, k 
+!                                                                       
+      DO i = 1, chem_max_vec 
+      DO j = 1, 5 
+      a_cvec (j, i) = b_cvec (j, i) 
+      ENDDO 
+      ENDDO 
+!                                                                       
+      DO i = 1, chem_max_cor 
+      a_rmin (i) = b_rmin (i) 
+      a_rmax (i) = b_rmax (i) 
+!                                                                       
+      DO j = 1, 3 
+      DO k = 1, 48 
+      a_neig (j, k, i) = b_neig (j, k, i) 
+      ENDDO 
+      ENDDO 
+      ENDDO 
+!                                                                       
+      END SUBROUTINE chem_save_neig                 
+!*****7*****************************************************************
+      SUBROUTINE chem_inc_neig (ix, iy, cvec, neig, nv) 
+!-                                                                      
+!     Updates neigbouring distances for correlation field               
+!     calculations.                                                     
+!+                                                                      
+      USE config_mod 
+      USE chem_mod 
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER i, j, ix, iy, iv 
+      INTEGER cvec (5, chem_max_vec) 
+      REAL neig (3, 48, chem_max_cor) 
+      REAL nv (3), u (3), v (3) 
+!                                                                       
+      REAL do_blen 
+!                                                                       
+!------ Mode VECTOR                                                     
+!                                                                       
+      IF (chem_ctyp (1) .eq.CHEM_VEC) then 
+         DO i = 1, 3 
+         DO iv = 1, chem_nvec (1) 
+         chem_cvec (i + 2, chem_use_vec (iv, 1) ) = ix * cvec (i + 2,   &
+         chem_use_vec (iv, 1) ) + iy * cvec (i + 2, chem_use_vec (iv, 2)&
+         )                                                              
+         ENDDO 
+         nv (i) = chem_cvec (i + 2, chem_use_vec (1, 1) ) 
+         ENDDO 
+!                                                                       
+!------ Mode DISTANCE                                                   
+!                                                                       
+      ELSEIF (chem_ctyp (1) .eq.CHEM_DIST) then 
+         DO i = 1, 3 
+         DO j = 1, chem_nnei (1) 
+         chem_neig (i, j, 1) = float (ix) * neig (i, j, 1) + float (iy) &
+         * neig (i, j, 2)                                               
+         ENDDO 
+         ENDDO 
+         DO i = 1, 3 
+         u (i) = 0.0 
+         v (i) = chem_neig (i, 1, 1) 
+         nv (i) = chem_neig (i, 1, 1) 
+         ENDDO 
+         chem_rmax (1) = do_blen (.true., u, v) 
+         chem_rmin (1) = chem_rmax (1) - chem_freq_sigma (1) / 2.0 
+         chem_rmax (1) = chem_rmax (1) + chem_freq_sigma (1) / 2.0 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_inc_neig                  
+!*****7*****************************************************************
+      SUBROUTINE chem_inc_check (ic) 
+!-                                                                      
+!     Checks input for correlation field                                
+!+                                                                      
+      USE config_mod 
+      USE chem_mod 
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER i, ic 
+!                                                                       
+      DO i = 1, ic 
+      IF (chem_ctyp (i) .eq.CHEM_NONE) then 
+         ier_num = - 11 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+      ENDDO 
+!                                                                       
+      IF (ic.eq.2.and.chem_ctyp (1) .ne.chem_ctyp (2) ) then 
+         ier_num = - 17 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      IF (ic.eq.2.and.chem_nvec (1) .ne.chem_nvec (2) ) then 
+         ier_num = - 18 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_inc_check                 
+!*****7*****************************************************************
+      SUBROUTINE chem_disp (ianz, cpara, lpara, werte, maxw, lout) 
+!+                                                                      
+!     Calculates distortions within the crystal                         
+!-                                                                      
+      USE allocate_appl_mod
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      REAL werte (maxw) 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(1024) fname 
+      CHARACTER(9) at_name_i, at_name_j 
+      INTEGER atom (0:maxatom), natom 
+      INTEGER iianz, jjanz, i, j, k, is, js, ic 
+      INTEGER bl_anz (0:maxscat, 0:maxscat) 
+      REAL bl_sum (0:maxscat, 0:maxscat) 
+      REAL bl_s2 (0:maxscat, 0:maxscat) 
+      REAL patom (3, 0:maxatom) 
+      REAL u (3), v (3), d (3), di 
+      REAL wwerte (maxw) 
+      LOGICAL lfile 
+!                                                                       
+      CHARACTER(9) at_name 
+      REAL do_blen 
+!     LOGICAL atom_allowed 
+!                                                                       
+!     allocate displacement arrays
+!
+      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
+!
+      fname = cpara (3) (1:lpara (3) ) 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
+         (1:lpara (2) )                                                 
+         IF (ianz.gt.2) then 
+            CALL oeffne (37, fname, 'unknown', .false.) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      lfile = lout.and. (ianz.gt.2) 
+!                                                                       
+      iianz = 1 
+      jjanz = 1 
+      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL get_iscat (jjanz, cpara, lpara, wwerte, maxw, .false.) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = 0, cr_nscat 
+      bl_sum (i, j) = 0.0 
+      bl_s2 (i, j) = 0.0 
+      bl_anz (i, j) = 0 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ - calculate distortions                                         
+!                                                                       
+      DO i = 1, cr_natoms 
+      IF (atom_allowed (i, werte, ianz, maxw) ) then 
+         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         IF (natom.gt.0) then 
+            DO j = 1, natom 
+            IF (atom_allowed (atom (j), wwerte, ianz, maxw) ) then 
+               DO k = 1, 3 
+               u (k) = cr_pos (k, i) 
+               v (k) = patom (k, j) 
+               d (k) = v (k) - u (k) 
+               ENDDO 
+               di = do_blen (.true., u, v) 
+               is = cr_iscat (i) 
+               js = cr_iscat (atom (j) ) 
+               IF (lfile) write (37, 3000) d, is, js 
+               bl_sum (is, js) = bl_sum (is, js) + di 
+               bl_s2 (is, js) = bl_s2 (is, js) + di**2 
+               bl_anz (is, js) = bl_anz (is, js) + 1 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = i, cr_nscat 
+      IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
+         chem_disp_ave (ic, i, j) = (bl_sum (i, j) + bl_sum (j, i) )    &
+         / (bl_anz (i, j) + bl_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (bl_s2 (i, j) + bl_s2 (j, i) )      &
+         / (bl_anz (i, j) + bl_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j) - (       &
+         chem_disp_ave (ic, i, j) **2) )                                
+         IF (chem_disp_sig (ic, i, j) .gt.0) then 
+            chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j) ) 
+         ELSE 
+            chem_disp_sig (ic, i, j) = 0.0 
+         ENDIF 
+         IF (lout.and.bl_anz (i, j) .ne.0) then 
+            at_name_i = at_name (i) 
+            at_name_j = at_name (j) 
+            WRITE (output_io, 2000) ic, at_name_i, at_name_j,           &
+            chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j), bl_anz (&
+            i, j) + bl_anz (j, i)                                       
+         ENDIF 
+      ENDIF 
+      ENDDO 
+      ENDDO 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+      IF (lfile) close (37) 
+!                                                                       
+ 1000 FORMAT (  ' Calculating distortions ',/,                          &
+     &          '    Atom types : A = ',A4,' and B = ',A4,' ',//,       &
+     &          '    Neig.  Atom A      Atom B       distance',         &
+     &          '   sigma     # pairs',/,4x,60('-'))                    
+ 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
+ 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
+!                                                                       
+      END SUBROUTINE chem_disp                      
+!*****7*****************************************************************
+      SUBROUTINE chem_disp_multi (ianz, cpara, lpara, werte, maxw, lout) 
+!+                                                                      
+!     Calculates distortions within the crystal                         
+!-                                                                      
+      USE allocate_appl_mod
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod 
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      REAL werte (maxw) 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(9) at_name_i, at_name_j 
+      INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
+      INTEGER natom (CHEM_MAX_CENT) 
+      INTEGER iianz, i, j, k, is, js, ic 
+      INTEGER ja, je 
+      INTEGER icent, ncent 
+      INTEGER bl_anz (0:maxscat, 0:maxscat) 
+      REAL bl_sum (0:maxscat, 0:maxscat) 
+      REAL bl_s2 (0:maxscat, 0:maxscat) 
+      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
+      REAL u (3), v (3), d (3), di 
+      LOGICAL lfile 
+!                                                                       
+      CHARACTER(9) at_name 
+      REAL do_blen 
+!     LOGICAL atom_allowed 
+!                                                                       
+!     allocate displacement arrays
+!
+      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
+!                                                                       
+      iianz = 2 
+      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
+         (1:lpara (2) )                                                 
+         IF (ianz.gt.2) then 
+            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      lfile = lout.and. (ianz.gt.2) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!     --reset the average and sigma values. Necessary when the          
+!         correlations or                                               
+!       periodicity has been changed                                    
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = i, cr_nscat 
+      chem_disp_ave (ic, i, j) = 0.0 
+      chem_disp_sig (ic, i, j) = 0.0 
+      ENDDO 
+      ENDDO 
+      IF (chem_ctyp (ic) .eq.CHEM_VEC.or.chem_ctyp (ic)                 &
+      .eq.CHEM_ENVIR.or.chem_ctyp (ic) .eq.CHEM_RANGE.or.chem_ctyp (ic) &
+      .eq.CHEM_DIST) then                                               
+!                                                                       
+!------ --- reset counters, vectors, ..                                 
+!                                                                       
+         DO i = 0, cr_nscat 
+         DO j = 0, cr_nscat 
+         bl_sum (i, j) = 0.0 
+         bl_s2 (i, j) = 0.0 
+         bl_anz (i, j) = 0 
+         ENDDO 
+         ENDDO 
+!                                                                       
+!------ --- calculate distortions                                       
+!                                                                       
+         DO i = 1, cr_natoms 
+         IF (atom_allowed (i, werte, ianz, maxw) ) then 
+            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
+            maxatom)                                                    
+            DO icent = 1, ncent 
+            IF (natom (icent) .gt.0) then 
+               IF (i.eq.atom (0, icent) ) then 
+!                                                                       
+!     --------- The selected atom is the central atom, check all atoms  
+!                                                                       
+                  ja = 1 
+                  je = natom (icent) 
+                  DO k = 1, 3 
+                  u (k) = patom (k, 0, icent) 
+                  ENDDO 
+                  is = cr_iscat (i) 
+               ELSE 
+!                                                                       
+!     --------- The selected atom is a neighbour, check central         
+!                 atom only                                             
+!                                                                       
+                  ja = 0 
+                  je = 0 
+                  DO k = 1, 3 
+                  u (k) = cr_pos (k, i) 
+                  ENDDO 
+                  is = cr_iscat (i) 
+               ENDIF 
+               DO j = ja, je 
+               IF (atom_allowed (atom (j, icent), werte, ianz, maxw) )  &
+               then                                                     
+                  DO k = 1, 3 
+                  v (k) = patom (k, j, icent) 
+                  d (k) = v (k) - u (k) 
+                  ENDDO 
+                  di = do_blen (.true., u, v) 
+                  js = cr_iscat (atom (j, icent) ) 
+                  IF (lfile) write (37, 3000) d, is, js 
+                  bl_sum (is, js) = bl_sum (is, js) + di 
+                  bl_s2 (is, js) = bl_s2 (is, js) + di**2 
+                  bl_anz (is, js) = bl_anz (is, js) + 1 
+               ENDIF 
+               ENDDO 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+         DO i = 0, cr_nscat 
+         DO j = i, cr_nscat 
+         IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
+            chem_disp_ave (ic, i, j) = (bl_sum (i, j) + bl_sum (j, i) ) &
+            / (bl_anz (i, j) + bl_anz (j, i) )                          
+            chem_disp_sig (ic, i, j) = (bl_s2 (i, j) + bl_s2 (j, i) )   &
+            / (bl_anz (i, j) + bl_anz (j, i) )                          
+            chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j)        &
+            - (chem_disp_ave (ic, i, j) **2) )                          
+            IF (chem_disp_sig (ic, i, j) .gt.0) then 
+               chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j)&
+               )                                                        
+            ELSE 
+               chem_disp_sig (ic, i, j) = 0.0 
+            ENDIF 
+            IF (lout) then 
+               at_name_i = at_name (i) 
+               at_name_j = at_name (j) 
+               WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
+               chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j),      &
+               bl_anz (i, j) + bl_anz (j, i)                            
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+      ENDIF 
+      ENDDO 
+!                                                                       
+      IF (lfile) close (37) 
+!                                                                       
+ 1000 FORMAT (  ' Calculating distortions ',/,                          &
+     &          '    Atom types : A = ',A4,' and B = ',A4,' ',//,       &
+     &          '    Neig.  Atom A      Atom B       distance',         &
+     &          '   sigma     # pairs',/,4x,60('-'))                    
+ 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
+ 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
+!                                                                       
+      END SUBROUTINE chem_disp_multi                
+!*****7*****************************************************************
+!     SUBROUTINE chem_vector_multi (ianz, cpara, lpara, werte, maxw,    &
+!     lout)                                                             
+!+                                                                      
+!     Calculates vector distortions within the crystal                  
+!-                                                                      
+!     USE config_mod 
+!     USE crystal_mod 
+!     USE chem_mod 
+!     USE mc_mod 
+!     USE mmc_mod   
+!     USE modify_mod
+!     USE modify_func_mod
+!     IMPLICIT none 
+!                                                                       
+!     include'prompt.inc' 
+!      
+!     include'errlist.inc' 
+!     include'param.inc' 
+!                                                                       
+!     INTEGER maxatom 
+!                                                                       
+!     PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+!     INTEGER ianz, maxw 
+!     CHARACTER ( * ) cpara (maxw) 
+!     INTEGER lpara (maxw) 
+!     REAL werte (maxw) 
+!     LOGICAL lout 
+!                                                                       
+!     CHARACTER(9) at_name_i, at_name_j 
+!     INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
+!     INTEGER natom (CHEM_MAX_CENT) 
+!     INTEGER iianz, i, j, k, is, js, ic 
+!     INTEGER ja, je, nv 
+!     INTEGER icent, ncent 
+!     INTEGER ia 
+!     INTEGER isel (CHEM_MAX_ATOM) 
+!     INTEGER bl_anz (12, 0:maxscat, 0:maxscat) 
+!     REAL bl_sum (3, 12, 0:maxscat, 0:maxscat) 
+!     REAL bl_s2 (3, 12, 0:maxscat, 0:maxscat) 
+!     REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
+!     REAL u (3), v (3), w (3), null (3) 
+!     REAL an 
+!     REAL e_tot, e_alt 
+!     LOGICAL lfile 
+!                                                                       
+!     CHARACTER(9) at_name 
+!     REAL mmc_energy_vec 
+!     LOGICAL atom_allowed 
+!     REAL do_bang 
+!                                                                       
+!     DATA null / 0.0, 0.0, 0.0 / 
+!                                                                       
+!                                                                       
+!     e_tot = 0. 
+!     e_alt = 0. 
+!     iianz = 2 
+!     CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+!     IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+!     IF (lout) then 
+!        WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
+!        (1:lpara (2) )                                                 
+!        IF (ianz.gt.2) then 
+!           CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+!        ENDIF 
+!     ENDIF 
+!                                                                       
+!     lfile = lout.and. (ianz.gt.2) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+!     DO ic = 1, chem_ncor 
+!     IF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
+!                                                                       
+!------ --- reset counters, vectors, ..                                 
+!                                                                       
+!        DO i = 0, cr_nscat 
+!        DO j = 0, cr_nscat 
+!        DO nv = 1, 12 
+!        DO k = 1, 3 
+!        bl_sum (k, nv, i, j) = 0.0 
+!        bl_s2 (k, nv, i, j) = 0.0 
+!        ENDDO 
+!        bl_anz (nv, i, j) = 0 
+!        ENDDO 
+!        ENDDO 
+!        ENDDO 
+!                                                                       
+!------ --- calculate distortions                                       
+!                                                                       
+!        DO i = 1, cr_natoms 
+!        IF (atom_allowed (i, werte, ianz, maxw) ) then 
+!           CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
+!           maxatom)                                                    
+!           DO icent = 1, ncent 
+!           IF (natom (icent) .gt.0) then 
+!              IF (i.eq.atom (0, icent) ) then 
+!                                                                       
+!     --------- The selected atom is the central atom, check all atoms  
+!                                                                       
+!                 ja = 1 
+!                 je = natom (icent) 
+!                 DO k = 1, 3 
+!                 u (k) = patom (k, 0, icent) 
+!                 ENDDO 
+!                 is = cr_iscat (i) 
+!              ELSE 
+!                                                                       
+!     --------- The selected atom is a neighbour, check central         
+!                 atom only                                             
+!                                                                       
+!                 ja = 0 
+!                 je = 0 
+!                 DO k = 1, 3 
+!                 u (k) = cr_pos (k, i) 
+!                 ENDDO 
+!                 is = cr_iscat (i) 
+!              ENDIF 
+!              DO j = ja, je 
+!              IF (atom_allowed (atom (j, icent), werte, ianz, maxw) )  &
+!              then                                                     
+!                 js = cr_iscat (atom (j, icent) ) 
+!                 DO nv = 1, mmc_nvec (ic, is, js) 
+!                 DO k = 1, 3 
+!                 v (k) = patom (k, j, icent) - u (k) 
+!                 w (k) = mmc_vec (k, nv, ic, is, js) 
+!                 ENDDO 
+!                 an = do_bang (.true., v, null, w) 
+!                 IF (lfile) write (37, 3000) w, is, js 
+!                 IF (an.lt.mmc_vec (4, nv, ic, is, js) ) then 
+!                    DO k = 1, 3 
+!                    bl_sum (k, nv, is, js) = bl_sum (k, nv, is, js)    &
+!                    + v (k)                                            
+!                    bl_s2 (k, nv, is, js) = bl_s2 (k, nv, is, js)      &
+!                    + v (k) **2                                        
+!                    ENDDO 
+!                    bl_anz (nv, is, js) = bl_anz (nv, is, js) + 1 
+!                 ENDIF 
+!                 ENDDO 
+!              ENDIF 
+!              ENDDO 
+!                                                                       
+!     --------- Calculate grand Energy                                  
+!                                                                       
+!              isel (1) = i 
+!              ia = 1 
+!              e_tot = e_tot + mmc_energy_vec (isel, ia, ic, atom,      &
+!              patom, icent, natom)                                     
+!           ENDIF 
+!           ENDDO 
+!        ENDIF 
+!        ENDDO 
+!                                                                       
+!                                                                       
+!                                                                       
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+!        DO i = 0, cr_nscat 
+!        DO j = i, cr_nscat 
+!        DO nv = 1, mmc_nvec (ic, i, j) 
+!        IF (bl_anz (nv, i, j) .ne.0.or.bl_anz (nv, j, i) .ne.0) then 
+!           DO k = 1, 3 
+!           chem_vect_ave (k, nv, ic, i, j) = (bl_sum (k, nv, i, j)     &
+!           + bl_sum (k, nv, j, i) ) / (bl_anz (nv, i, j) + bl_anz (nv, &
+!           j, i) )                                                     
+!           chem_vect_sig (k, nv, ic, i, j) = (bl_s2 (k, nv, i, j)      &
+!           + bl_s2 (k, nv, j, i) ) / (bl_anz (nv, i, j) + bl_anz (nv,  &
+!           j, i) )                                                     
+!           chem_vect_sig (k, nv, ic, i, j) = (chem_vect_sig (k, nv, ic,&
+!           i, j) - (chem_vect_ave (k, nv, ic, i, j) **2) )             
+!           IF (chem_vect_sig (k, nv, ic, i, j) .gt.0) then 
+!              chem_vect_sig (k, nv, ic, i, j) = sqrt (chem_vect_sig (k,&
+!              nv, ic, i, j) )                                          
+!           ELSE 
+!              chem_vect_sig (k, nv, ic, i, j) = 0.0 
+!           ENDIF 
+!           ENDDO 
+!           IF (lout) then 
+!              at_name_i = at_name (i) 
+!              at_name_j = at_name (j) 
+!              WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
+!              chem_vect_ave (1, nv, ic, i, j), chem_vect_sig (1, nv,   &
+!              ic, i, j), bl_anz (nv, i, j) + bl_anz (nv, j, i)         
+!              WRITE (output_io, 2010) chem_vect_ave (2, nv, ic, i, j), &
+!              chem_vect_sig (2, nv, ic, i, j)                          
+!              WRITE (output_io, 2010) chem_vect_ave (3, nv, ic, i, j), &
+!              chem_vect_sig (3, nv, ic, i, j)                          
+!           ENDIF 
+!        ENDIF 
+!        ENDDO 
+!        ENDDO 
+!        ENDDO 
+!        IF (ier_num.ne.0) return 
+!     ENDIF 
+!     ENDDO 
+!                                                                       
+!     IF (lfile) close (37) 
+!                                                                       
+!1000 FORMAT (' Calculating distortions ',/,                            &
+!    &        '    Atom types : A = ',A4,' and B = ',A4,' ',//,         &
+!    &        '    Neig.  Atom A      Atom B       vector  ',           &
+!    &        '   sigma     # pairs',/,4x,60('-'))                      
+!2000 FORMAT (4x,i3,3x,a9,3x,a9,4x,'(',f7.3,') (',f7.3,')',2x,i8) 
+!2010 FORMAT (35x                 ,'(',f7.3,') (',f7.3,')',2x,i8) 
+!3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
+!                                                                       
+!     END SUBROUTINE chem_vector_multi              
+!*****7*****************************************************************
+      SUBROUTINE chem_disp_mol (ianz, cpara, lpara, werte, maxw, lout) 
+!+                                                                      
+!     Calculates distortions within the crystal                         
+!     Molecules version ..                                              
+!-                                                                      
+      USE allocate_appl_mod
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxmol 
+!                                                                       
+      PARAMETER (maxmol = 48) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      REAL werte (maxw) 
+      LOGICAL lout 
+!                                                                       
+      INTEGER imol, jmol, i, j, k, it1, it2, is, js, ic 
+      INTEGER mol (0:maxmol), nmol 
+      INTEGER bl_anz (mole_max_type, mole_max_type) 
+      REAL bl_sum (mole_max_type, mole_max_type) 
+      REAL bl_s2 (mole_max_type, mole_max_type) 
+      REAL u (3), v (3), d (3), di 
+      LOGICAL lfile 
+!                                                                       
+      REAL do_blen 
+!                                                                       
+!     allocate displacement arrays
+!
+      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
+!                                                                       
+!                                                                       
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ check input                                                     
+!                                                                       
+      it1 = nint (werte (1) ) 
+      it2 = nint (werte (2) ) 
+!                                                                       
+      IF (it1.le.0.or.it1.gt.mole_num_type.or.it2.le.0.or.it2.gt.mole_nu&
+     &m_type) then                                                      
+         ier_num = - 64 
+         ier_typ = ER_APPL 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) it1, it2 
+         IF (ianz.gt.2) then 
+            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      lfile = lout.and. (ianz.gt.2) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+      DO i = 1, mole_num_type 
+      DO j = 1, mole_num_type 
+      bl_sum (i, j) = 0.0 
+      bl_s2 (i, j) = 0.0 
+      bl_anz (i, j) = 0 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ - calculate distortions                                         
+!                                                                       
+      DO i = 1, mole_num_mole 
+      imol = mole_cont (mole_off (i) + 1) 
+      IF (it1.eq.mole_type (i) .or.it2.eq.mole_type (i) ) then 
+         CALL chem_neighbour_mol (i, ic, mol, nmol, maxmol) 
+         IF (nmol.gt.0) then 
+            DO j = 1, nmol 
+            jmol = mole_cont (mole_off (mol (j) ) + 1) 
+            IF (it1.eq.mole_type (mol (j) ) .or.it2.eq.mole_type (mol ( &
+            j) ) ) then                                                 
+               DO k = 1, 3 
+               u (k) = cr_pos (k, imol) 
+               v (k) = cr_pos (k, jmol) 
+               d (k) = u (k) - v (k) 
+               ENDDO 
+               IF (lfile) write (37, 3000) d 
+               di = do_blen (.true., u, v) 
+               is = mole_type (i) 
+               js = mole_type (mol (j) ) 
+               bl_sum (is, js) = bl_sum (is, js) + di 
+               bl_s2 (is, js) = bl_s2 (is, js) + di**2 
+               bl_anz (is, js) = bl_anz (is, js) + 1 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      DO i = 1, mole_num_type 
+      DO j = i, mole_num_type 
+      IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
+         chem_disp_ave (ic, i, j) = (bl_sum (i, j) + bl_sum (j, i) )    &
+         / (bl_anz (i, j) + bl_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (bl_s2 (i, j) + bl_s2 (j, i) )      &
+         / (bl_anz (i, j) + bl_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j) - (       &
+         chem_disp_ave (ic, i, j) **2) )                                
+         IF (chem_disp_sig (ic, i, j) .gt.0) then 
+            chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j) ) 
+         ELSE 
+            chem_disp_sig (ic, i, j) = 0.0 
+         ENDIF 
+         IF (lout) then 
+            WRITE (output_io, 2000) ic, i, j, chem_disp_ave (ic, i, j), &
+            chem_disp_sig (ic, i, j), bl_anz (i, j) + bl_anz (j, i)     
+         ENDIF 
+      ENDIF 
+      ENDDO 
+      ENDDO 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+      IF (lfile) close (37) 
+!                                                                       
+ 1000 FORMAT ( ' Calculating distortions ',/,                           &
+     &         '    Molecule types : A = ',I4,' and B = ',I4,' ',//,    &
+     &         '    Neig.  mole A      mole B       distance',          &
+     &         '   sigma     # pairs',/,4x,60('-'))                     
+ 2000 FORMAT (4x,i3,3x,i9,3x,i9,5x,f7.3,3x,f7.3,3x,i8) 
+ 3000 FORMAT (3(f12.5,1x)) 
+!                                                                       
+      END SUBROUTINE chem_disp_mol                  
+!*****7*****************************************************************
+      SUBROUTINE chem_angle (ianz, cpara, lpara, werte, uerte, verte,   &
+      maxw, lout)                                                       
+!+                                                                      
+!     Calculates angular distortions within the crystal                 
+!-                                                                      
+      USE allocate_appl_mod
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod  
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      REAL werte (maxw) 
+      REAL uerte (maxw) 
+      REAL verte (maxw) 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(9) at_name_i, at_name_j 
+      CHARACTER(9) name_1, name_2, name_3 
+      INTEGER atom (0:maxatom), natom 
+      INTEGER iianz, i, j, k, l, is, js, ic 
+      INTEGER jjanz, kkanz 
+      INTEGER lname_1, lname_2, lname_3 
+      INTEGER ba_anz (0:maxscat, 0:maxscat) 
+      REAL ba_sum (0:maxscat, 0:maxscat) 
+      REAL ba_s2 (0:maxscat, 0:maxscat) 
+      REAL patom (3, 0:maxatom) 
+      REAL u (3), v (3), w (3), wi 
+      LOGICAL lfile 
+!                                                                       
+      CHARACTER(9) at_name 
+      REAL do_bang 
+!     LOGICAL atom_allowed 
+!                                                                       
+!     allocate displacement arrays
+!
+      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
+!                                                                       
+      res_para (0) = 0.0 
+!                                                                       
+      iianz = 1 
+      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+      name_1 = cpara (1) 
+      lname_1 = lpara (1) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      jjanz = 1 
+      CALL get_iscat (jjanz, cpara, lpara, uerte, maxw, .false.) 
+      name_2 = cpara (1) 
+      lname_2 = lpara (1) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      kkanz = 1 
+      CALL get_iscat (kkanz, cpara, lpara, verte, maxw, .false.) 
+      name_3 = cpara (1) 
+      lname_3 = lpara (1) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
+         name_3 (1:lname_3)                                             
+         IF (ianz.gt.1) then 
+            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      lfile = lout.and. (ianz.gt.1) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = 0, cr_nscat 
+      ba_sum (i, j) = 0.0 
+      ba_s2 (i, j) = 0.0 
+      ba_anz (i, j) = 0 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ - calculate angles                                              
+!                                                                       
+      DO i = 1, cr_natoms 
+      IF (atom_allowed (i, werte, iianz, maxw) ) then 
+         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         IF (natom.gt.1) then 
+            DO k = 1, 3 
+            u (k) = patom (k, 1) 
+            ENDDO 
+            DO j = 2, natom - 1, 2 
+            IF (atom (j) .ne.i) then 
+               IF (atom_allowed (atom (j), uerte, jjanz, maxw) ) then 
+                  DO k = 1, 3 
+                  v (k) = patom (k, j) 
+                  ENDDO 
+                  IF (atom (j + 1) .ne.atom (j) ) then 
+                     IF (atom_allowed (atom (j + 1), verte, kkanz, maxw)&
+                     ) then                                             
+                        DO k = 1, 3 
+                        w (k) = patom (k, j + 1) 
+                        ENDDO 
+                        wi = do_bang (.true., v, u, w) 
+                        is = cr_iscat (atom (j) ) 
+                        js = cr_iscat (atom (j + 1) ) 
+                        IF (lfile) write (37, 3000) u, is, js 
+                        ba_sum (is, js) = ba_sum (is, js) + wi 
+                        ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
+                        ba_anz (is, js) = ba_anz (is, js) + 1 
+                     ENDIF 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = i, cr_nscat 
+      IF (ba_anz (i, j) .ne.0.or.ba_anz (j, i) .ne.0) then 
+         chem_disp_ave (ic, i, j) = (ba_sum (i, j) + ba_sum (j, i) )    &
+         / (ba_anz (i, j) + ba_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (ba_s2 (i, j) + ba_s2 (j, i) )      &
+         / (ba_anz (i, j) + ba_anz (j, i) )                             
+         chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j) - (       &
+         chem_disp_ave (ic, i, j) **2) )                                
+         IF (chem_disp_sig (ic, i, j) .gt.0) then 
+            chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j) ) 
+         ELSE 
+            chem_disp_sig (ic, i, j) = 0.0 
+         ENDIF 
+         IF (lout) then 
+            at_name_i = at_name (i) 
+            at_name_j = at_name (j) 
+            WRITE (output_io, 2000) ic, at_name_i, at_name_j,           &
+            chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j), ba_anz (&
+            i, j) + ba_anz (j, i)                                       
+         ENDIF 
+!                                                                       
+!------ ------- Save results to res[i]                                  
+!                                                                       
+         res_para (0) = res_para (0) + 2 
+         IF (res_para (0) .lt.maxpar_res) then 
+            res_para (res_para (0) - 1) = chem_disp_ave (ic, i, j) 
+            res_para (res_para (0) ) = chem_disp_sig (ic, i, j) 
+         ELSE 
+            ier_typ = ER_CHEM 
+            ier_num = - 2 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+      ENDDO 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+      IF (lfile) close (37) 
+!                                                                       
+ 1000 FORMAT ( ' Calculating angles ',/,                                &
+     &         '    Zentral atom   = ',A4,/,                            &
+     &         '    Atom types : A = ',A4,' and B = ',A4,' ',//,        &
+     &         '    Neig.  Atom A      Atom B       angle   ',          &
+     &         '   sigma     # pairs',/,4x,60('-'))                     
+ 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
+ 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
+!                                                                       
+      END SUBROUTINE chem_angle                     
+!*****7*****************************************************************
+      SUBROUTINE chem_angle_multi (ianz, cpara, lpara, werte, uerte,    &
+      verte, maxw, lout)                                                
+!+                                                                      
+!     Calculates angular distortions within the crystal                 
+!-                                                                      
+      USE allocate_appl_mod
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod 
+      USE modify_mod   
+      USE modify_func_mod   
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw) 
+      REAL werte (maxw) 
+      REAL uerte (maxw) 
+      REAL verte (maxw) 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(9) at_name_i, at_name_j 
+      CHARACTER(9) name_1, name_2, name_3 
+      INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
+      INTEGER natom (CHEM_MAX_CENT) 
+      INTEGER iianz, i, j, k, l, is, js, ic 
+      INTEGER jj 
+      INTEGER jjanz, kkanz 
+      INTEGER icent, ncent 
+      INTEGER lname_1, lname_2, lname_3 
+      INTEGER ba_anz (0:maxscat, 0:maxscat) 
+      REAL ba_sum (0:maxscat, 0:maxscat) 
+      REAL ba_s2 (0:maxscat, 0:maxscat) 
+      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
+      REAL u (3), v (3), w (3), wi, wis 
+      LOGICAL lfile 
+!                                                                       
+      CHARACTER(9) at_name 
+      REAL do_bang 
+!     LOGICAL atom_allowed 
+!                                                                       
+!     allocate displacement arrays
+!
+      CALL alloc_chem_disp(CHEM_MAX_COR, MAXSCAT)
+!                                                                       
+      iianz = 1 
+      CALL get_iscat (iianz, cpara, lpara, werte, maxw, .false.) 
+      name_1 = cpara (1) 
+      lname_1 = lpara (1) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      jjanz = 1 
+      CALL get_iscat (jjanz, cpara, lpara, uerte, maxw, .false.) 
+      name_2 = cpara (1) 
+      lname_2 = lpara (1) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      kkanz = 1 
+      CALL get_iscat (kkanz, cpara, lpara, verte, maxw, .false.) 
+      name_3 = cpara (1) 
+      lname_3 = lpara (1) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
+         name_3 (1:lname_3)                                             
+         IF (ianz.gt.1) then 
+            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+         ENDIF 
+      ENDIF 
+!                                                                       
+      lfile = lout.and. (ianz.gt.1) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+      IF (chem_ctyp (ic) .eq.CHEM_ANG.or.chem_ctyp (ic) .eq.CHEM_ENVIR) &
+      then                                                              
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+         DO i = 0, cr_nscat 
+         DO j = 0, cr_nscat 
+         ba_sum (i, j) = 0.0 
+         ba_s2 (i, j) = 0.0 
+         ba_anz (i, j) = 0 
+         ENDDO 
+         ENDDO 
+!                                                                       
+!------ - calculate angles                                              
+!                                                                       
+         DO i = 1, cr_natoms 
+         IF (atom_allowed (i, werte, iianz, maxw) ) then 
+            CALL chem_neighbour_multi (i, ic, atom, patom, natom, ncent,&
+            maxatom)                                                    
+            DO icent = 1, ncent 
+            IF (natom (icent) .gt.1) then 
+               DO k = 1, 3 
+               u (k) = patom (k, 0, icent) 
+               ENDDO 
+               DO j = 1, natom (icent) - 1 
+               DO jj = j + 1, natom (icent) 
+               IF (atom_allowed (atom (j, icent), uerte, jjanz, maxw)   &
+               .and.atom_allowed (atom (jj, icent), verte, kkanz, maxw) &
+               .or.atom_allowed (atom (jj, icent), uerte, jjanz, maxw)  &
+               .and.atom_allowed (atom (j, icent), verte, kkanz, maxw) )&
+               then                                                     
+                  DO k = 1, 3 
+                  v (k) = patom (k, j, icent) 
+                  ENDDO 
+                  DO k = 1, 3 
+                  w (k) = patom (k, jj, icent) 
+                  ENDDO 
+                  wi = do_bang (.true., v, u, w) 
+                  is = cr_iscat (atom (j, icent) ) 
+                  js = cr_iscat (atom (jj, icent) ) 
+                  wis = mmc_target_corr (ic, MC_ANGLE, is, js) 
+!DBG                                                                    
+!DBG      if(cr_iscat(i).eq.11 .or.                                     
+!DBG     &              (is.eq.12 .and. js.eq.28) ) then                
+!DBG        write(*,*) '==============================================' 
+!DBG        write(*,*) 'Selected   , Type',i,cr_iscat(i)                
+!DBG        write(*,*) 'Position zentral ',u                            
+!DBG        write(*,*) 'Zentral Atom     ',atom(0 ,icent)               
+!DBG        write(*,*) 'Correlation      ',ic                           
+!DBG        write(*,*) 'Nachbarn         ',natom(icent)                 
+!DBG        write(*,*) 'Erster           ',atom(j ,icent)               
+!DBG        write(*,*) 'Position         ',v                            
+!DBG        write(*,*) 'Zweiter          ',atom(jj,icent)               
+!DBG        write(*,*) 'Position         ',w                            
+!DBG        write(*,*) 'Winkel           ',wi                           
+!DBG        write(*,*) 'Sollwinkel       ',wis                          
+!DBG        write(*,*) 'is,js            ',is,js                        
+!DBG      endif                                                         
+                  IF (wis.le.90.) then 
+                     IF (wi.gt.1.5 * wis) then 
+                        wi = mod (wi + wis / 2., wis) + wis / 2. 
+                     ENDIF 
+                  ENDIF 
+                  IF (lfile) write (37, 3000) u, is, js 
+                  ba_sum (is, js) = ba_sum (is, js) + wi 
+                  ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
+                  ba_anz (is, js) = ba_anz (is, js) + 1 
+!DBG      if(cr_iscat(i).eq.11 .or.                                     
+!DBG     &              (is.eq.12 .and. js.eq.28) ) then                
+!DBG        write(*,*) 'i,cr_iscat(i),is,js,ba_anz(is,js)   ',          
+!DBG      i,cr_iscat(i),is,js,ba_anz(is,js)                             
+!DBG        write(*,*) 'ba_sum(is,js),wi   ',ba_sum(is,js),wi           
+!DBG      endif                                                         
+               ENDIF 
+               ENDDO 
+               ENDDO 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+         DO i = 0, cr_nscat 
+         DO j = i, cr_nscat 
+         IF (ba_anz (i, j) .ne.0.or.ba_anz (j, i) .ne.0) then 
+            chem_disp_ave (ic, i, j) = (ba_sum (i, j) + ba_sum (j, i) ) &
+            / (ba_anz (i, j) + ba_anz (j, i) )                          
+            chem_disp_sig (ic, i, j) = (ba_s2 (i, j) + ba_s2 (j, i) )   &
+            / (ba_anz (i, j) + ba_anz (j, i) )                          
+            chem_disp_sig (ic, i, j) = (chem_disp_sig (ic, i, j)        &
+            - (chem_disp_ave (ic, i, j) **2) )                          
+            IF (chem_disp_sig (ic, i, j) .gt.0) then 
+               chem_disp_sig (ic, i, j) = sqrt (chem_disp_sig (ic, i, j)&
+               )                                                        
+            ELSE 
+               chem_disp_sig (ic, i, j) = 0.0 
+            ENDIF 
+            IF (lout) then 
+               at_name_i = at_name (i) 
+               at_name_j = at_name (j) 
+               WRITE (output_io, 2000) ic, at_name_i, at_name_j,        &
+               chem_disp_ave (ic, i, j), chem_disp_sig (ic, i, j),      &
+               ba_anz (i, j) + ba_anz (j, i)                            
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         ENDDO 
+         IF (ier_num.ne.0) return 
+      ENDIF 
+      ENDDO 
+!                                                                       
+      IF (lfile) close (37) 
+!                                                                       
+ 1000 FORMAT ( ' Calculating angles ',/,                                &
+     &         '    Zentral atom   = ',A4,/,                            &
+     &         '    Atom types : A = ',A4,' and B = ',A4,' ',//,        &
+     &         '    Neig.  Atom A      Atom B       angle   ',          &
+     &         '   sigma     # pairs',/,4x,60('-'))                     
+ 2000 FORMAT (4x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
+ 3000 FORMAT (3(f12.5,1x),3x,2(i3,1x)) 
+!                                                                       
+      END SUBROUTINE chem_angle_multi               
+!*****7*****************************************************************
+      SUBROUTINE chem_corr_dis (ianz, cpara, lpara, maxw, lout, lbeg) 
+!+                                                                      
+!     Calculates displacement correlations within the crystal           
+!       according to: cij = <x(i)x(j)>/sqrt(<x(i)**2><x(j)**2>)         
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod   
+      USE modify_mod   
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxww, maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw), lbeg (3) 
+      LOGICAL lout 
+!                                                                       
+      INTEGER atom (0:maxatom), natom 
+      INTEGER icc (3), jcc (3) 
+      INTEGER i, j, ii, is, js, ic, iianz, jjanz, nn 
+      REAL patom (3, 0:maxatom) 
+      REAL werte (MAXSCAT), wwerte (MAXSCAT) 
+      REAL idir (3), jdir (3), di (3), dj (3) 
+      REAL rdi, rdj, dpi, dpj 
+      REAL xij, xi2, xj2 
+      LOGICAL lvalid 
+!                                                                       
+      REAL skalpro 
+!     LOGICAL atom_allowed, chem_inlot 
+      LOGICAL chem_inlot 
+!                                                                       
+!------ writing output line                                             
+!                                                                       
+      maxww = MAXSCAT
+      IF (lout) then 
+         WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
+         (1:lpara (2) )                                                 
+      ENDIF 
+!                                                                       
+      iianz = 1 
+      jjanz = 1 
+      CALL get_iscat (iianz, cpara, lpara, werte, maxww, .false.) 
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL get_iscat (jjanz, cpara, lpara, wwerte, maxww, .false.) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+      CALL chem_aver (.false.) 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+      IF (chem_dir (1, 1, ic) .eq. - 9999..and..not.chem_ldall (ic) )   &
+      then                                                              
+         ier_num = - 15 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      nn = 0 
+      xij = 0.0 
+      xi2 = 0.0 
+      xj2 = 0.0 
+      DO i = 1, 3 
+      idir (i) = chem_dir (i, 1, ic) 
+      jdir (i) = chem_dir (i, 2, ic) 
+      ENDDO 
+!                                                                       
+!------ - calculate correlations                                        
+!                                                                       
+      rdi = skalpro (idir, idir, cr_gten) 
+      rdj = skalpro (jdir, jdir, cr_gten) 
+      IF (rdi.gt.0.0) rdi = sqrt (rdi) 
+      IF (rdj.gt.0.0) rdj = sqrt (rdj) 
+!                                                                       
+      DO i = 1, cr_natoms 
+!                                                                       
+!------ --- Check if selected atom is valid                             
+!                                                                       
+      lvalid = atom_allowed (i, werte, iianz, maxww) 
+      IF (lbeg (1) .gt.0) then 
+         lvalid = lvalid.and.chem_inlot (i, lbeg) 
+      ENDIF 
+!                                                                       
+      IF (lvalid) then 
+         CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+         IF (natom.gt.0) then 
+            CALL indextocell (i, icc, is) 
+            DO j = 1, 3 
+            di (j) = cr_pos (j, i) - chem_ave_pos (j, is) - float (icc (&
+            j) - 1) - cr_dim0 (j, 1)                                    
+            ENDDO 
+!                                                                       
+            IF (chem_ldall (ic) ) then 
+               DO j = 1, 3 
+               jdir (j) = di (j) 
+               ENDDO 
+               rdj = skalpro (jdir, jdir, cr_gten) 
+               IF (rdj.gt.0.0) then 
+                  rdj = sqrt (rdj) 
+               ELSE 
+                  rdj = 1.0 
+               ENDIF 
+               dpi = 1.0 
+            ELSE 
+               dpi = skalpro (di, idir, cr_gten) / rdi 
+            ENDIF 
+!                                                                       
+            DO j = 1, natom 
+            IF (atom_allowed (atom (j), wwerte, jjanz, maxww) ) then 
+               CALL indextocell (atom (j), jcc, js) 
+               DO ii = 1, 3 
+               dj (ii) = cr_pos (ii, atom (j) ) - chem_ave_pos (ii, js) &
+               - float (jcc (ii) - 1) - cr_dim0 (ii, 1)                 
+               ENDDO 
+               dpj = skalpro (dj, jdir, cr_gten) / rdj 
+               xij = xij + dpi * dpj 
+               xi2 = xi2 + dpi**2 
+               xj2 = xj2 + dpj**2 
+               nn = nn + 1 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      IF (nn.ne.0) then 
+         xij = xij / float (nn) 
+         xi2 = xi2 / float (nn) 
+         xj2 = xj2 / float (nn) 
+!                                                                       
+         IF (xi2.ne.0.and.xj2.ne.0.0) then 
+            mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
+         ELSE 
+            mo_ach_corr (ic) = 0.0 
+         ENDIF 
+!                                                                       
+         IF (lout) then 
+            IF (chem_ldall (ic) ) then 
+               WRITE (output_io, 1100) ic, nn, mo_ach_corr (ic) 
+            ELSE 
+               WRITE (output_io, 1110) ic, idir, jdir, nn, mo_ach_corr (&
+               ic)                                                      
+            ENDIF 
+         ENDIF 
+!                                                                       
+      ELSE 
+         ier_num = - 8 
+         ier_typ = ER_CHEM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+!------ Save results to res[i]                                          
+!                                                                       
+      res_para (0) = chem_ncor 
+      DO ic = 1, chem_ncor 
+      IF (res_para (0) .lt.maxpar_res) then 
+         res_para (ic) = mo_ach_corr (ic) 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT     (  ' Calculating correlations ',/,                     &
+     &          '    Atom type: A = ',A4,' B = ',A4,                    &
+     &        //,4x,'Neig.',5x,'Displacement A',6x,'Displacement B',    &
+     &           6x,'# pairs',5x,'correlation',/,4x,73('-'))            
+ 1100 FORMAT     (5x,i3,16x,'all directions',15x,i8,5x,f7.4) 
+ 1110 FORMAT     (5x,i3,4x,3(f5.2,1x),2x,3(f5.2,1x),3x,i8,5x,f7.4) 
+!                                                                       
+      END SUBROUTINE chem_corr_dis                  
+!*****7*****************************************************************
+      SUBROUTINE chem_corr_dis_mol (ianz, cpara, lpara, maxw, lout,     &
+      lbeg)                                                             
+!+                                                                      
+!     Calculates displacement correlations within the crystal           
+!       according to: cij = <x(i)x(j)>/sqrt(<x(i)**2><x(j)**2>)         
+!     Molecule version ...                                              
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod   
+      USE modify_mod   
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxww, maxmol 
+!                                                                       
+      PARAMETER (maxww = 3) 
+      PARAMETER (maxmol = 48) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw), lbeg (3) 
+      LOGICAL lout 
+!                                                                       
+      INTEGER mol (0:maxmol), nmol 
+      INTEGER icc (3), jcc (3) 
+      INTEGER i, j, ii, is, js, ic, nn 
+      INTEGER it1, it2, imol, jmol 
+      REAL werte (maxww) 
+      REAL idir (3), jdir (3), di (3), dj (3) 
+      REAL rdi, rdj, dpi, dpj 
+      REAL xij, xi2, xj2 
+      LOGICAL lvalid 
+!                                                                       
+      REAL skalpro 
+      LOGICAL chem_inlot 
+!                                                                       
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ check input                                                     
+!                                                                       
+      it1 = nint (werte (1) ) 
+      it2 = nint (werte (2) ) 
+!                                                                       
+      IF (it1.le.0.or.it1.gt.mole_num_type.or.it2.le.0.or.it2.gt.mole_nu&
+     &m_type) then                                                      
+         ier_num = - 64 
+         ier_typ = ER_APPL 
+      ENDIF 
+!                                                                       
+      CALL chem_aver (.false.) 
+!                                                                       
+!------ writing output line                                             
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) it1, it2 
+      ENDIF 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+      IF (chem_dir (1, 1, ic) .eq. - 9999..and..not.chem_ldall (ic) )   &
+      then                                                              
+         ier_num = - 15 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      nn = 0 
+      xij = 0.0 
+      xi2 = 0.0 
+      xj2 = 0.0 
+      DO i = 1, 3 
+      idir (i) = chem_dir (i, 1, ic) 
+      jdir (i) = chem_dir (i, 2, ic) 
+      ENDDO 
+!                                                                       
+!------ - calculate correlations                                        
+!                                                                       
+      rdi = skalpro (idir, idir, cr_gten) 
+      rdj = skalpro (jdir, jdir, cr_gten) 
+      IF (rdi.gt.0.0) rdi = sqrt (rdi) 
+      IF (rdj.gt.0.0) rdj = sqrt (rdj) 
+!                                                                       
+      DO i = 1, mole_num_mole 
+      imol = mole_cont (mole_off (i) + 1) 
+!                                                                       
+!------ --- Check if selected atom is valid                             
+!                                                                       
+      lvalid = mole_type (i) .eq.it1.or.mole_type (i) .eq.it2 
+      IF (lbeg (1) .gt.0) then 
+         lvalid = lvalid.and.chem_inlot (imol, lbeg) 
+      ENDIF 
+!                                                                       
+      IF (lvalid) then 
+         CALL chem_neighbour_mol (i, ic, mol, nmol, maxmol) 
+         IF (nmol.gt.0) then 
+            CALL indextocell (imol, icc, is) 
+            DO j = 1, 3 
+            di (j) = cr_pos (j, imol) - chem_ave_pos (j, is) - float (  &
+            icc (j) - 1) - cr_dim0 (j, 1)                               
+            ENDDO 
+!                                                                       
+            IF (chem_ldall (ic) ) then 
+               DO j = 1, 3 
+               jdir (j) = di (j) 
+               ENDDO 
+               rdj = skalpro (jdir, jdir, cr_gten) 
+               IF (rdj.gt.0.0) then 
+                  rdj = sqrt (rdj) 
+               ELSE 
+                  rdj = 1.0 
+               ENDIF 
+               dpi = 1.0 
+            ELSE 
+               dpi = skalpro (di, idir, cr_gten) / rdi 
+            ENDIF 
+!                                                                       
+            DO j = 1, nmol 
+            IF (mole_type (mol (j) ) .eq.it1.or.mole_type (mol (j) )    &
+            .eq.it2) then                                               
+               jmol = mole_cont (mole_off (mol (j) ) + 1) 
+               CALL indextocell (jmol, jcc, js) 
+               DO ii = 1, 3 
+               dj (ii) = cr_pos (ii, jmol) - chem_ave_pos (ii, js)      &
+               - float (jcc (ii) - 1) - cr_dim0 (ii, 1)                 
+               ENDDO 
+               dpj = skalpro (dj, jdir, cr_gten) / rdj 
+               xij = xij + dpi * dpj 
+               xi2 = xi2 + dpi**2 
+               xj2 = xj2 + dpj**2 
+               nn = nn + 1 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      IF (nn.ne.0) then 
+         xij = xij / float (nn) 
+         xi2 = xi2 / float (nn) 
+         xj2 = xj2 / float (nn) 
+!                                                                       
+         IF (xi2.ne.0.and.xj2.ne.0.0) then 
+            mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
+         ELSE 
+            mo_ach_corr (ic) = 0.0 
+         ENDIF 
+!                                                                       
+         IF (lout) then 
+            IF (chem_ldall (ic) ) then 
+               WRITE (output_io, 1100) ic, nn, mo_ach_corr (ic) 
+            ELSE 
+               WRITE (output_io, 1110) ic, idir, jdir, nn, mo_ach_corr (&
+               ic)                                                      
+            ENDIF 
+         ENDIF 
+!                                                                       
+      ELSE 
+         ier_num = - 8 
+         ier_typ = ER_CHEM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+!------ Save results to res[i]                                          
+!                                                                       
+      res_para (0) = chem_ncor 
+      DO ic = 1, chem_ncor 
+      IF (res_para (0) .lt.maxpar_res) then 
+         res_para (ic) = mo_ach_corr (ic) 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT     (  ' Calculating correlations ',/,                     &
+     &          '    Molecule type: A = ',I4,' B = ',I4,                &
+     &        //,4x,'Neig.',5x,'Displacement A',6x,'Displacement B',    &
+     &           6x,'# pairs',5x,'correlation',/,4x,73('-'))            
+ 1100 FORMAT     (5x,i3,16x,'all directions',15x,i8,5x,f7.4) 
+ 1110 FORMAT     (5x,i3,4x,3(f5.2,1x),2x,3(f5.2,1x),3x,i8,5x,f7.4) 
+!                                                                       
+      END SUBROUTINE chem_corr_dis_mol              
+!*****7*****************************************************************
+      SUBROUTINE chem_corr_occ (ianz, cpara, lpara, maxw, lout, lbeg) 
+!+                                                                      
+!     Calculates occupational correlations within the crystal           
+!       according to: cij = (Pij-T**2)/T(1-T).                          
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod   
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxww, maxatom 
+!                                                                       
+      PARAMETER (maxatom = chem_max_neig) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw), lbeg (3) 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(1024) ccpara (MAXSCAT) 
+      INTEGER llpara (maxw) 
+!                                                                       
+      INTEGER atom (0:maxatom), natom 
+      INTEGER i, j, is, js, ic, iianz, jjanz 
+      INTEGER nneig 
+      REAL patom (3, 0:maxatom) 
+      REAL werte (MAXSCAT), wwerte (MAXSCAT) 
+      REAL pneig (2, 2) 
+      REAL pro00, pro01, pro11 
+      REAL thet 
+      LOGICAL lvalid 
+!                                                                       
+!     LOGICAL atom_allowed, chem_inlot 
+      LOGICAL chem_inlot 
+!                                                                       
+      maxww = MAXSCAT
+      iianz = 1 
+      ccpara (1) = cpara (1) 
+      llpara (1) = lpara (1) 
+      CALL get_iscat (iianz, ccpara, llpara, werte, maxww, .false.) 
+!                                                                       
+      jjanz = 1 
+      ccpara (1) = cpara (2) 
+      llpara (1) = lpara (2) 
+      CALL get_iscat (jjanz, ccpara, llpara, wwerte, maxww, .false.) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ check input                                                     
+!                                                                       
+      IF (int (werte (1) ) .eq. - 1.or.int (wwerte (1) ) .eq. - 1) then 
+         ier_num = - 6 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+      IF (int (werte (1) ) .eq.int (wwerte (1) ) ) then 
+         ier_num = - 7 
+         ier_typ = ER_CHEM 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      is = int (werte (1) ) 
+      js = int (wwerte (1) ) 
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) cr_at_lis (is), cr_at_lis (js) 
+      ENDIF 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+      DO i = 1, 2 
+      DO j = 1, 2 
+      pneig (i, j) = 0.0 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ - calculate correlations                                        
+!                                                                       
+      DO i = 1, cr_natoms 
+!                                                                       
+!------ --- Check if selected atom is valid                             
+!                                                                       
+      lvalid = .true. 
+      IF (lbeg (1) .gt.0) then 
+         lvalid = lvalid.and.chem_inlot (i, lbeg) 
+      ENDIF 
+!                                                                       
+      IF (lvalid) then 
+         is = - 1 
+         IF (atom_allowed (i, werte, iianz, maxww) ) is = 1 
+         IF (atom_allowed (i, wwerte, jjanz, maxww) ) is = 2 
+         IF (is.gt.0) then 
+            CALL chem_neighbour (i, ic, atom, patom, natom, maxatom) 
+            IF (natom.gt.0) then 
+               DO j = 1, natom 
+               js = - 1 
+               IF (atom_allowed (atom (j), werte, iianz, maxww) ) js =  &
+               1                                                        
+               IF (atom_allowed (atom (j), wwerte, jjanz, maxww) ) js = &
+               2                                                        
+               IF (js.gt.0) then 
+                  pneig (is, js) = pneig (is, js) + 1.0 
+               ENDIF 
+               ENDDO 
+            ENDIF 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      nneig = nint (pneig (1, 1) + pneig (2, 2) + pneig (1, 2) + pneig (&
+      2, 1) )                                                           
+      IF (nneig.ne.0) then 
+         pro00 = pneig (1, 1) / float (nneig) 
+         pro01 = (pneig (1, 2) + pneig (2, 1) ) / float (nneig) 
+         pro11 = pneig (2, 2) / float (nneig) 
+         thet = 0.5 * (2.0 * pneig (1, 1) + pneig (1, 2) + pneig (2, 1) &
+         ) / float (nneig)                                              
+         IF (thet.ne.0.and.thet.ne.1.0) then 
+            mo_ach_corr (ic) = (pro00 - thet**2) / (thet * (1 - thet) ) 
+         ELSE 
+            mo_ach_corr (ic) = 0.0 
+         ENDIF 
+!                                                                       
+         IF (lout) write (output_io, 1100) ic, 100. * pro00, 100. *     &
+         pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
+!                                                                       
+      ELSE 
+         ier_num = - 8 
+         ier_typ = ER_CHEM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+!------ Save results to res[i]                                          
+!                                                                       
+      res_para (0) = chem_ncor 
+      DO ic = 1, chem_ncor 
+      IF (res_para (0) .lt.maxpar_res) then 
+         res_para (ic) = mo_ach_corr (ic) 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT ( ' Calculating correlations ',/,                          &
+     &         '    Atom types : A = ',A4,' and B = ',A4,' ',//,        &
+     &         4x,'Neig.',5x,'AA',9x,'AB',9x,'BB',9x,                   &
+     &         '# pairs    correlation',/,4x,65('-'))                   
+ 1100 FORMAT (5x,i3,3x,3(f6.2,' % ',2x),1x,i8,6x,f7.4) 
+!                                                                       
+      END SUBROUTINE chem_corr_occ                  
+!*****7*****************************************************************
+      SUBROUTINE chem_corr_occ_mol (ianz, cpara, lpara, maxw, lout,     &
+      lbeg)                                                             
+!+                                                                      
+!     Calculates occupational correlations within the crystal           
+!       according to: cij = (Pij-T**2)/T(1-T).                          
+!     Molecules version ...                                             
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE mc_mod 
+      USE mmc_mod   
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxmol, maxww 
+      PARAMETER (maxmol = 48) 
+      PARAMETER (maxww = 3) 
+!                                                                       
+      INTEGER ianz, maxw 
+      CHARACTER ( * ) cpara (maxw) 
+      INTEGER lpara (maxw), lbeg (3) 
+      LOGICAL lout 
+!                                                                       
+      INTEGER mol (0:maxmol), nmol 
+      INTEGER i, j, is, js, ic 
+      INTEGER imol, it1, it2 
+      INTEGER nneig 
+      REAL werte (maxww) 
+      REAL pneig (2, 2) 
+      REAL pro00, pro01, pro11 
+      REAL thet 
+      LOGICAL lvalid 
+!                                                                       
+      LOGICAL chem_inlot 
+!                                                                       
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ check input                                                     
+!                                                                       
+      IF (ianz.eq.2) then 
+         it1 = nint (werte (1) ) 
+         it2 = nint (werte (2) ) 
+!                                                                       
+      IF (it1.le.0.or.it1.gt.mole_num_type.or.it2.le.0.or.it2.gt.mole_nu&
+     &m_type) then                                                      
+            ier_num = - 64 
+            ier_typ = ER_APPL 
+         ENDIF 
+!                                                                       
+         IF (it1.eq.it2) then 
+            ier_num = - 21 
+            ier_typ = ER_CHEM 
+         ENDIF 
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) it1, it2 
+      ENDIF 
+!                                                                       
+!------ loop over all defined correlations                              
+!                                                                       
+      DO ic = 1, chem_ncor 
+!                                                                       
+!------ - reset counters, vectors, ..                                   
+!                                                                       
+      DO i = 1, 2 
+      DO j = 1, 2 
+      pneig (i, j) = 0.0 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ - calculate correlations                                        
+!                                                                       
+      DO i = 1, mole_num_mole 
+      imol = mole_cont (mole_off (i) + 1) 
+!                                                                       
+!------ --- Check if selected atom is valid                             
+!                                                                       
+      lvalid = .true. 
+      IF (lbeg (1) .gt.0) then 
+         lvalid = lvalid.and.chem_inlot (imol, lbeg) 
+      ENDIF 
+!                                                                       
+      IF (lvalid) then 
+         is = - 1 
+         IF (mole_type (i) .eq.it1) is = 1 
+         IF (mole_type (i) .eq.it2) is = 2 
+         IF (is.gt.0) then 
+            CALL chem_neighbour_mol (i, ic, mol, nmol, maxmol) 
+            IF (nmol.gt.0) then 
+               DO j = 1, nmol 
+               js = - 1 
+               IF (mole_type (mol (j) ) .eq.it1) js = 1 
+               IF (mole_type (mol (j) ) .eq.it2) js = 2 
+               IF (js.gt.0) then 
+                  pneig (is, js) = pneig (is, js) + 1.0 
+               ENDIF 
+               ENDDO 
+            ENDIF 
+         ENDIF 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ - write results and save to res_para block                      
+!                                                                       
+      nneig = nint (pneig (1, 1) + pneig (2, 2) + pneig (1, 2) + pneig (&
+      2, 1) )                                                           
+      IF (nneig.ne.0) then 
+         pro00 = pneig (1, 1) / float (nneig) 
+         pro01 = (pneig (1, 2) + pneig (2, 1) ) / float (nneig) 
+         pro11 = pneig (2, 2) / float (nneig) 
+         thet = 0.5 * (2.0 * pneig (1, 1) + pneig (1, 2) + pneig (2, 1) &
+         ) / float (nneig)                                              
+         IF (thet.ne.0.and.thet.ne.1.0) then 
+            mo_ach_corr (ic) = (pro00 - thet**2) / (thet * (1 - thet) ) 
+         ELSE 
+            mo_ach_corr (ic) = 0.0 
+         ENDIF 
+!                                                                       
+         IF (lout) write (output_io, 1100) ic, 100. * pro00, 100. *     &
+         pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
+!                                                                       
+      ELSE 
+         ier_num = - 19 
+         ier_typ = ER_CHEM 
+      ENDIF 
+      IF (ier_num.ne.0) return 
+      ENDDO 
+!                                                                       
+!------ Save results to res[i]                                          
+!                                                                       
+      res_para (0) = chem_ncor 
+      DO ic = 1, chem_ncor 
+      IF (res_para (0) .lt.maxpar_res) then 
+         res_para (ic) = mo_ach_corr (ic) 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT (  ' Calculating correlations ',/,                         &
+     &      '    Molecule types : A = ',I4,' and B = ',I4,' ',//,       &
+     &      4x,'Neig.',5x,'AA',9x,'AB',9x,'BB',9x,                      &
+     &      '# pairs    correlation',/,4x,65('-'))                      
+ 1100 FORMAT (5x,i3,3x,3(f6.2,' % ',2x),1x,i8,6x,f7.4) 
+!                                                                       
+      END SUBROUTINE chem_corr_occ_mol              
+!*****7*****************************************************************
+      SUBROUTINE chem_neighbour (jatom, ic, iatom, patom, natom, maxw) 
+!+                                                                      
+!     Determine neighbours from given atom index 'jatom'.               
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE modify_mod
+      IMPLICIT none 
+!                                                                       
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw 
+!                                                                       
+      INTEGER iatom (0:maxw), jatom, natom, ic 
+      REAL patom (3, 0:maxw) 
+!                                                                       
+      REAL u (3), v (3), w (3), uu (3) 
+      REAL offset (3), dummy(1) 
+      INTEGER jcell (3), icell (3), isite, jsite 
+      INTEGER i, j, k, ii, iv, katom 
+      LOGICAL lok 
+!                                                                       
+      REAL do_bang 
+!                                                                       
+      natom = 0 
+      dummy = - 1 
+                                                                        
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode distance                                                   
+!------ ------------------------------------------------------          
+!                                                                       
+      IF (chem_ctyp (ic) .eq.CHEM_DIST) then 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, jatom) 
+         w (j) = 0.0 
+         ENDDO 
+         CALL do_find_env (1, dummy, 1, u, chem_rmin (ic), chem_rmax (  &
+         ic), chem_quick, chem_period)                                  
+         IF (atom_env (0) .ne.0) then 
+            DO j = 1, atom_env (0) 
+            IF (chem_cang (ic) ) then 
+!                                                                       
+!------ ------- Check neighbouring angle and symmetry                   
+!                                                                       
+               DO k = 1, chem_nnei (ic) 
+               DO ii = 1, 3 
+               v (ii) = atom_pos (ii, j) - cr_pos (ii, jatom) 
+               uu (ii) = chem_neig (ii, k, ic) 
+               ENDDO 
+               IF (abs (do_bang (.true., v, w, uu) )                    &
+               .lt.chem_wink_sigma (ic) ) then                          
+                  natom = natom + 1 
+                  IF (natom.le.maxw) then 
+                     iatom (natom) = atom_env (j) 
+                     patom (1, natom) = atom_pos (1, j) 
+                     patom (2, natom) = atom_pos (2, j) 
+                     patom (3, natom) = atom_pos (3, j) 
+                  ELSE 
+                     ier_num = - 23 
+                     ier_typ = ER_CHEM 
+                     RETURN 
+                  ENDIF 
+               ENDIF 
+               ENDDO 
+!                                                                       
+!------ ------- Check just distance                                     
+!                                                                       
+            ELSE 
+               natom = natom + 1 
+               IF (natom.le.maxw) then 
+                  iatom (natom) = atom_env (j) 
+                  patom (1, natom) = atom_pos (1, j) 
+                  patom (2, natom) = atom_pos (2, j) 
+                  patom (3, natom) = atom_pos (3, j) 
+               ELSE 
+                  ier_num = - 23 
+                  ier_typ = ER_CHEM 
+                  RETURN 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode vector                                                     
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_VEC) then 
+         CALL indextocell (jatom, jcell, jsite) 
+         DO i = 1, chem_nvec (ic) 
+         iv = chem_use_vec (i, ic) 
+         IF (jsite.eq.chem_cvec (1, iv) ) then 
+            icell (1) = jcell (1) + chem_cvec (3, iv) 
+            icell (2) = jcell (2) + chem_cvec (4, iv) 
+            icell (3) = jcell (3) + chem_cvec (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cvec (2, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cvec (2, iv) ) then 
+            icell (1) = jcell (1) - chem_cvec (3, iv) 
+            icell (2) = jcell (2) - chem_cvec (4, iv) 
+            icell (3) = jcell (3) - chem_cvec (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cvec (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode angular neighbours                                         
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
+         CALL indextocell (jatom, jcell, jsite) 
+         DO i = 1, chem_nwin (ic) 
+         iv = chem_use_win (i, ic) 
+         IF (jsite.eq.chem_cwin (1, iv) ) then 
+            natom = natom + 1 
+            iatom (natom) = jatom 
+            patom (1, natom) = cr_pos (1, jatom) 
+            patom (2, natom) = cr_pos (2, jatom) 
+            patom (3, natom) = cr_pos (3, jatom) 
+            icell (1) = jcell (1) + chem_cwin (3, iv) 
+            icell (2) = jcell (2) + chem_cwin (4, iv) 
+            icell (3) = jcell (3) + chem_cwin (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (2, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+            icell (1) = jcell (1) + chem_cwin (7, iv) 
+            icell (2) = jcell (2) + chem_cwin (8, iv) 
+            icell (3) = jcell (3) + chem_cwin (9, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (6, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cwin (2, iv) ) then 
+            icell (1) = jcell (1) - chem_cwin (3, iv) 
+            icell (2) = jcell (2) - chem_cwin (4, iv) 
+            icell (3) = jcell (3) - chem_cwin (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+            natom = natom + 1 
+            iatom (natom) = jatom 
+            patom (1, natom) = cr_pos (1, jatom) 
+            patom (2, natom) = cr_pos (2, jatom) 
+            patom (3, natom) = cr_pos (3, jatom) 
+            icell (1) = jcell (1) - chem_cwin (3, iv) + chem_cwin (7,   &
+            iv)                                                         
+            icell (2) = jcell (2) - chem_cwin (4, iv) + chem_cwin (8,   &
+            iv)                                                         
+            icell (3) = jcell (3) - chem_cwin (5, iv) + chem_cwin (9,   &
+            iv)                                                         
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (6, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cwin (6, iv) ) then 
+            icell (1) = jcell (1) - chem_cwin (7, iv) 
+            icell (2) = jcell (2) - chem_cwin (8, iv) 
+            icell (3) = jcell (3) - chem_cwin (9, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+            icell (1) = jcell (1) - chem_cwin (7, iv) + chem_cwin (3,   &
+            iv)                                                         
+            icell (2) = jcell (2) - chem_cwin (8, iv) + chem_cwin (4,   &
+            iv)                                                         
+            icell (3) = jcell (3) - chem_cwin (9, iv) + chem_cwin (5,   &
+            iv)                                                         
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (2, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom = natom + 1 
+               iatom (natom) = katom 
+               patom (1, natom) = cr_pos (1, katom) + offset (1) 
+               patom (2, natom) = cr_pos (2, katom) + offset (2) 
+               patom (3, natom) = cr_pos (3, katom) + offset (3) 
+            ENDIF 
+            natom = natom + 1 
+            iatom (natom) = jatom 
+            patom (1, natom) = cr_pos (1, jatom) 
+            patom (2, natom) = cr_pos (2, jatom) 
+            patom (3, natom) = cr_pos (3, jatom) 
+         ENDIF 
+         ENDDO 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_neighbour                 
+!*****7*****************************************************************
+      SUBROUTINE chem_neighbour_multi (jatom, ic, iatom, patom, natom,  &
+      ncent, maxw)                                                      
+!+                                                                      
+!     Determine neighbours from given atom index 'jatom'.               
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE conn_mod
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'param.inc' 
+      include'errlist.inc' 
+      include'debug.inc' 
+!                                                                       
+      INTEGER, INTENT(IN)      ::  maxw    ! Maximum array size
+!                                                                       
+      INTEGER, INTENT(IN)      ::  jatom   ! Central atom no, get neighbours around jatom
+      INTEGER, INTENT(IN)      ::  ic      ! Use correlation definition no. ic
+      INTEGER, DIMENSION(0:maxw, CHEM_MAX_CENT), INTENT(OUT) :: iatom ! indices of neighbs
+      INTEGER, DIMENSION(CHEM_MAX_CENT)        , INTENT(OUT) :: natom ! no of neigh
+      INTEGER                                  , INTENT(OUT) :: ncent ! no of central atoms
+      REAL   , DIMENSION(3, 0:maxw, CHEM_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
+!
+      REAL dist (CHEM_MAX_CENT) 
+      REAL werte (MAX_ATOM_ENV) 
+!                                                                       
+      REAL u (3), v (3), w (3), uu (3) 
+      REAL offset (3), dummy(1) 
+      INTEGER jcell (3), icell (3), isite, jsite 
+      INTEGER i, j, k, l, ii, iv, katom, ianz 
+      INTEGER                    :: is1    ! central atom type
+      INTEGER                    :: ino    ! number of connectivity list 
+      INTEGER                    :: natoms ! number of atoms in connectivity list 
+      INTEGER, DIMENSION(1:maxw) :: c_list ! Result of connectivity search
+      INTEGER icent, nnew 
+      LOGICAL laccept 
+      LOGICAL lok 
+      LOGICAL lis_neig 
+      LOGICAL ldbg 
+!                                                                       
+!     LOGICAL atom_allowed 
+      REAL do_bang 
+      REAL do_blen 
+!                                                                       
+      DO i = 1, CHEM_MAX_CENT 
+      natom (i) = 0 
+      ENDDO 
+      dummy = - 1 
+      ncent = 1 
+!                                                                       
+      ldbg = .false. 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode distance                                                   
+!------ ------------------------------------------------------          
+!                                                                       
+      IF (chem_ctyp (ic) .eq.CHEM_DIST) then 
+         ncent = 1 
+         natom (ncent) = 0 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, jatom) 
+         w (j) = 0.0 
+         ENDDO 
+         CALL do_find_env (1, dummy, 1, u, chem_rmin (ic), chem_rmax (  &
+         ic), chem_quick, chem_period)                                  
+         IF (atom_env (0) .ne.0) then 
+            DO j = 1, atom_env (0) 
+            IF (chem_cang (ic) ) then 
+!                                                                       
+!------ ------- Check neighbouring angle and symmetry                   
+!                                                                       
+               DO k = 1, chem_nnei (ic) 
+               DO ii = 1, 3 
+               v (ii) = atom_pos (ii, j) - cr_pos (ii, jatom) 
+               uu (ii) = chem_neig (ii, k, ic) 
+               ENDDO 
+               IF (abs (do_bang (.true., v, w, uu) )                    &
+               .lt.chem_wink_sigma (ic) ) then                          
+                  natom (ncent) = natom (ncent) + 1 
+                  IF (natom (ncent) .le.maxw) then 
+                     iatom (natom (ncent), ncent) = atom_env (j) 
+                     patom (1, natom (ncent), ncent) = atom_pos (1, j) 
+                     patom (2, natom (ncent), ncent) = atom_pos (2, j) 
+                     patom (3, natom (ncent), ncent) = atom_pos (3, j) 
+                  ELSE 
+                     ier_num = - 23 
+                     ier_typ = ER_CHEM 
+                     RETURN 
+                  ENDIF 
+               ENDIF 
+               ENDDO 
+!                                                                       
+!------ ------- Check just distance                                     
+!                                                                       
+            ELSE 
+               natom (ncent) = natom (ncent) + 1 
+               IF (natom (ncent) .le.maxw) then 
+                  iatom (natom (ncent), ncent) = atom_env (j) 
+                  patom (1, natom (ncent), ncent) = atom_pos (1, j) 
+                  patom (2, natom (ncent), ncent) = atom_pos (2, j) 
+                  patom (3, natom (ncent), ncent) = atom_pos (3, j) 
+               ELSE 
+                  ier_num = - 23 
+                  ier_typ = ER_CHEM 
+                  RETURN 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+         IF (natom (ncent) .gt.0) then 
+            iatom (0, ncent) = jatom 
+            patom (1, 0, ncent) = cr_pos (1, jatom) 
+            patom (2, 0, ncent) = cr_pos (2, jatom) 
+            patom (3, 0, ncent) = cr_pos (3, jatom) 
+         ENDIF 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode distance-range (New mode for mmc)                          
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_RANGE) then 
+         i = 1 
+         iv = chem_use_ran (i, ic) 
+!                                                                       
+!     --Check whether central atom is allowed                           
+!                                                                       
+         IF (chem_cran_cent (0, iv) .eq. - 1) then 
+            laccept = .true. 
+         ELSE 
+            ianz = chem_cran_cent (0, iv) 
+            DO j = 1, chem_cran_cent (0, iv) 
+            werte (j) = chem_cran_cent (j, iv) 
+!write(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
+            ENDDO 
+            laccept = atom_allowed (jatom, werte, ianz, maxw) 
+         ENDIF 
+         IF (.not.laccept) return 
+!                                                                       
+         ncent = 1 
+         natom (ncent) = 0 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, jatom) 
+         w (j) = 0.0 
+         ENDDO 
+         dist (1) = 0.0 
+!                                                                       
+!     --Check whether neighbour atom is allowed                         
+!                                                                       
+         IF (chem_cran_neig (0, iv) .eq. - 1) then 
+            werte (1) = - 1 
+            ianz = 1 
+         ELSE 
+            ianz = chem_cran_neig (0, iv) 
+            DO j = 1, chem_cran_neig (0, iv) 
+            werte (j) = chem_cran_neig (j, iv) 
+            ENDDO 
+         ENDIF 
+      CALL do_find_env (1, dummy, 1, u, chem_cran_rmin (iv),  chem_cran_&
+     &rmax (iv),  chem_quick, chem_period)                              
+         IF (atom_env (0) .ne.0) then 
+            DO j = 1, atom_env (0) 
+            k = atom_env (j) 
+            laccept = atom_allowed (k, werte, ianz, maxw) 
+            IF (laccept) then 
+!                                                                       
+               IF (chem_cran_cang (iv) ) then 
+!                                                                       
+!------ ------- Check neighbouring angle and symmetry                   
+!                                                                       
+                  DO k = 1, chem_cran_nuvw (iv) 
+                  DO ii = 1, 3 
+                  v (ii) = atom_pos (ii, j) - cr_pos (ii, jatom) 
+                  uu (ii) = chem_cran_uvw (ii, k, iv) 
+                  ENDDO 
+                  dummy = do_blen (.true., w, v) 
+                  IF (abs (do_bang (.true., v, w, uu) )                 &
+                  .lt.chem_cran_wsig (iv) ) then                        
+                     natom (ncent) = natom (ncent) + 1 
+                     IF (natom (ncent) .le.maxw) then 
+                        ii = 1 
+                        DO while (dummy(1).gt.dist (ii) .and.ii.lt.natom ( &
+                        ncent) )                                        
+                        ii = ii + 1 
+                        ENDDO 
+                        DO l = natom (ncent) - 1, ii, - 1 
+                        iatom (l + 1, ncent) = iatom (l, ncent) 
+                        patom (1, l + 1, ncent) = patom (1, l, ncent) 
+                        patom (2, l + 1, ncent) = patom (2, l, ncent) 
+                        patom (3, l + 1, ncent) = patom (3, l, ncent) 
+                        dist (l + 1) = dist (l) 
+                        ENDDO 
+                        iatom (ii, ncent) = atom_env (j) 
+                        patom (1, ii, ncent) = atom_pos (1, j) 
+                        patom (2, ii, ncent) = atom_pos (2, j) 
+                        patom (3, ii, ncent) = atom_pos (3, j) 
+                        dist (ii) = dummy (1)
+                     ELSE 
+                        ier_num = - 23 
+                        ier_typ = ER_CHEM 
+                        RETURN 
+                     ENDIF 
+                  ENDIF 
+                  ENDDO 
+!                                                                       
+!------ ------- Check just distance                                     
+!                                                                       
+               ELSE 
+                  natom (ncent) = natom (ncent) + 1 
+                  IF (natom (ncent) .le.maxw) then 
+                     ii = 1 
+                     DO while (dummy(1).gt.dist (ii) .and.ii.lt.natom (    &
+                     ncent) )                                           
+                     ii = ii + 1 
+                     ENDDO 
+                     DO l = natom (ncent) - 1, ii, - 1 
+                     iatom (l + 1, ncent) = iatom (l, ncent) 
+                     patom (1, l + 1, ncent) = patom (1, l, ncent) 
+                     patom (2, l + 1, ncent) = patom (2, l, ncent) 
+                     patom (3, l + 1, ncent) = patom (3, l, ncent) 
+                     dist (l + 1) = dist (l) 
+                     ENDDO 
+                     iatom (ii, ncent) = atom_env (j) 
+                     patom (1, ii, ncent) = atom_pos (1, j) 
+                     patom (2, ii, ncent) = atom_pos (2, j) 
+                     patom (3, ii, ncent) = atom_pos (3, j) 
+                     dist (ii) = dummy(1) 
+                  ELSE 
+                     ier_num = - 23 
+                     ier_typ = ER_CHEM 
+                     RETURN 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+         IF (natom (ncent) .gt.0) then 
+            iatom (0, ncent) = jatom 
+            patom (1, 0, ncent) = cr_pos (1, jatom) 
+            patom (2, 0, ncent) = cr_pos (2, jatom) 
+            patom (3, 0, ncent) = cr_pos (3, jatom) 
+         ENDIF 
+!                                                                       
+!     --Only the shortest vectors are to be considered                  
+!                                                                       
+         IF (chem_cran_short (iv) ) then 
+            IF (ldbg) then 
+               WRITE ( * , * ) ' natom(ncent) ', natom (ncent) 
+!      WRITE ( * ,  * ) ' nshort       ', chem_cran_nshort (iv) 
+            ENDIF 
+            DO l = chem_cran_nshort (iv) + 1, natom (ncent) 
+            iatom (l, ncent) = 0 
+            patom (1, l, ncent) = 0.0 
+            patom (2, l, ncent) = 0.0 
+            patom (3, l, ncent) = 0.0 
+            ENDDO 
+            natom (ncent) = min (natom (ncent), chem_cran_nshort (iv) ) 
+         ENDIF 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode vector                                                     
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_VEC) then 
+         ncent = 1 
+         CALL indextocell (jatom, jcell, jsite) 
+         DO i = 1, chem_nvec (ic) 
+         iatom (0, ncent) = jatom 
+         patom (1, 0, ncent) = cr_pos (1, jatom) 
+         patom (2, 0, ncent) = cr_pos (2, jatom) 
+         patom (3, 0, ncent) = cr_pos (3, jatom) 
+         iv = chem_use_vec (i, ic) 
+         IF (jsite.eq.chem_cvec (1, iv) ) then 
+            icell (1) = jcell (1) + chem_cvec (3, iv) 
+            icell (2) = jcell (2) + chem_cvec (4, iv) 
+            icell (3) = jcell (3) + chem_cvec (5, iv) 
+            lok = .false. 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cvec (2, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = katom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
+               + offset (1)                                             
+               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
+               + offset (2)                                             
+               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
+               + offset (3)                                             
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cvec (2, iv) ) then 
+            icell (1) = jcell (1) - chem_cvec (3, iv) 
+            icell (2) = jcell (2) - chem_cvec (4, iv) 
+            icell (3) = jcell (3) - chem_cvec (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cvec (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = katom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
+               + offset (1)                                             
+               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
+               + offset (2)                                             
+               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
+               + offset (3)                                             
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         IF (natom (ncent) .eq.0) then 
+            ncent = ncent - 1 
+            ncent = 0 
+         ENDIF 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode connectivity                                                     
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
+         ncent = 1 
+         CALL indextocell (jatom, jcell, jsite) 
+         DO i = 1, chem_ncon (ic) 
+            iatom (0, ncent)    = jatom             ! Store central atom at entry 0
+            patom (1, 0, ncent) = cr_pos (1, jatom) ! Store coord. of central atom
+            patom (2, 0, ncent) = cr_pos (2, jatom) 
+            patom (3, 0, ncent) = cr_pos (3, jatom) 
+            iv = chem_use_con (i, ic)               ! Use connectivity no iv
+            IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
+               is1 = chem_ccon (1, iv)              ! central atom type
+               ino = chem_ccon (2, iv)              ! connectivity number
+               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, natoms )
+!if(natoms==0) then
+!write(*,*) ' No conn for atom ',jatom, i, iv,ic
+!endif
+               k = natom(ncent)
+               DO j=1,natoms
+                  iatom(  k+j,ncent) = c_list(j)
+                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + offset(1)
+                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + offset(1)
+                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + offset(1)
+               ENDDO 
+               natom(ncent) = natom(ncent) + natoms
+            ENDIF
+         ENDDO 
+         IF (natom (ncent) .eq.0) then 
+            ncent = ncent - 1 
+            ncent = 0 
+         ENDIF 
+         if((ncent) > 0 ) then
+!write(*,*) ' Number of neighbours ', jatom,natom(ncent)
+!write(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
+!write(*,*) ' types      are       ', (cr_iscat(iatom(j,ncent)),j=1,natom(ncent))
+!         else
+!write(*,*) ' Atom                 ', jatom, ncent, cr_iscat(jatom), cr_pos(:,jatom)
+!write(*,*) ' no of def.           ',chem_ncon(ic), ic
+         endif
+
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode angular neighbours                                         
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
+         ncent = 0 
+         CALL indextocell (jatom, jcell, jsite) 
+         DO i = 1, chem_nwin (ic) 
+         ncent = ncent + 1 
+         ncent = 1 
+         iv = chem_use_win (i, ic) 
+         IF (jsite.eq.chem_cwin (1, iv) ) then 
+!                                                                       
+!     ------Selected atom is center of the angle                        
+!                                                                       
+            iatom (0, ncent) = jatom 
+            patom (1, 0, ncent) = cr_pos (1, jatom) 
+            patom (2, 0, ncent) = cr_pos (2, jatom) 
+            patom (3, 0, ncent) = cr_pos (3, jatom) 
+            icell (1) = jcell (1) + chem_cwin (3, iv) 
+            icell (2) = jcell (2) + chem_cwin (4, iv) 
+            icell (3) = jcell (3) + chem_cwin (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (2, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = katom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
+               + offset (1)                                             
+               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
+               + offset (2)                                             
+               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
+               + offset (3)                                             
+            ENDIF 
+            icell (1) = jcell (1) + chem_cwin (7, iv) 
+            icell (2) = jcell (2) + chem_cwin (8, iv) 
+            icell (3) = jcell (3) + chem_cwin (9, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (6, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = katom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, katom)      &
+               + offset (1)                                             
+               patom (2, natom (ncent), ncent) = cr_pos (2, katom)      &
+               + offset (2)                                             
+               patom (3, natom (ncent), ncent) = cr_pos (3, katom)      &
+               + offset (3)                                             
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cwin (2, iv) ) then 
+!                                                                       
+!     ------Selected atom is first neighbour of the central atom        
+!                                                                       
+            icell (1) = jcell (1) - chem_cwin (3, iv) 
+            icell (2) = jcell (2) - chem_cwin (4, iv) 
+            icell (3) = jcell (3) - chem_cwin (5, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+!     --------The central atom is within the boundary condition         
+               isite = chem_cwin (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               iatom (0, ncent) = katom 
+               patom (1, 0, ncent) = cr_pos (1, katom) + offset (1) 
+               patom (2, 0, ncent) = cr_pos (2, katom) + offset (2) 
+               patom (3, 0, ncent) = cr_pos (3, katom) + offset (3) 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = jatom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
+               patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
+               patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
+               icell (1) = jcell (1) - chem_cwin (3, iv) + chem_cwin (7,&
+               iv)                                                      
+               icell (2) = jcell (2) - chem_cwin (4, iv) + chem_cwin (8,&
+               iv)                                                      
+               icell (3) = jcell (3) - chem_cwin (5, iv) + chem_cwin (9,&
+               iv)                                                      
+               CALL check_bound (icell, offset, chem_period, lok) 
+               IF (lok) then 
+                  isite = chem_cwin (6, iv) 
+                  CALL celltoindex (icell, isite, katom) 
+                  natom (ncent) = natom (ncent) + 1 
+                  iatom (natom (ncent), ncent) = katom 
+                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
+                  + offset (1)                                          
+                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
+                  + offset (2)                                          
+                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
+                  + offset (3)                                          
+               ENDIF 
+            ELSE 
+!     --------The central atom is outside the (periodic) boundary       
+               natom (ncent) = 0 
+            ENDIF 
+         ELSEIF (jsite.eq.chem_cwin (6, iv) ) then 
+!                                                                       
+!     ------Selected atom is second neighbour of the central atom       
+!                                                                       
+            icell (1) = jcell (1) - chem_cwin (7, iv) 
+            icell (2) = jcell (2) - chem_cwin (8, iv) 
+            icell (3) = jcell (3) - chem_cwin (9, iv) 
+            CALL check_bound (icell, offset, chem_period, lok) 
+            IF (lok) then 
+               isite = chem_cwin (1, iv) 
+               CALL celltoindex (icell, isite, katom) 
+               iatom (0, ncent) = katom 
+               patom (1, 0, ncent) = cr_pos (1, katom) + offset (1) 
+               patom (2, 0, ncent) = cr_pos (2, katom) + offset (2) 
+               patom (3, 0, ncent) = cr_pos (3, katom) + offset (3) 
+               icell (1) = jcell (1) - chem_cwin (7, iv) + chem_cwin (3,&
+               iv)                                                      
+               icell (2) = jcell (2) - chem_cwin (8, iv) + chem_cwin (4,&
+               iv)                                                      
+               icell (3) = jcell (3) - chem_cwin (9, iv) + chem_cwin (5,&
+               iv)                                                      
+               CALL check_bound (icell, offset, chem_period, lok) 
+               IF (lok) then 
+                  isite = chem_cwin (2, iv) 
+                  CALL celltoindex (icell, isite, katom) 
+                  natom (ncent) = natom (ncent) + 1 
+                  iatom (natom (ncent), ncent) = katom 
+                  patom (1, natom (ncent), ncent) = cr_pos (1, katom)   &
+                  + offset (1)                                          
+                  patom (2, natom (ncent), ncent) = cr_pos (2, katom)   &
+                  + offset (2)                                          
+                  patom (3, natom (ncent), ncent) = cr_pos (3, katom)   &
+                  + offset (3)                                          
+               ENDIF 
+               natom (ncent) = natom (ncent) + 1 
+               iatom (natom (ncent), ncent) = jatom 
+               patom (1, natom (ncent), ncent) = cr_pos (1, jatom) 
+               patom (2, natom (ncent), ncent) = cr_pos (2, jatom) 
+               patom (3, natom (ncent), ncent) = cr_pos (3, jatom) 
+            ELSE 
+!     --------The central atom is outside the (periodic) boundary       
+               natom (ncent) = 0 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         IF (natom (ncent) .eq.0) then 
+            ncent = ncent - 1 
+            ncent = 0 
+         ENDIF 
+!                                                                       
+!------ ------------------------------------------------------          
+!------ Mode environment                                                
+!------ ------------------------------------------------------          
+!                                                                       
+      ELSEIF (chem_ctyp (ic) .eq.CHEM_ENVIR) then 
+         ncent = 0 
+         natom (1) = 0 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, jatom) 
+         w (j) = 0.0 
+         ENDDO 
+!                                                                       
+!--------Loop over all environment definitions used by current          
+!        neighbor definition                                            
+!                                                                       
+         DO i = 1, chem_nenv (ic) 
+!                                                                       
+!----------The selected atom is the central atom of environment         
+!          definition                                                   
+!                                                                       
+         IF (cr_iscat (jatom) .eq.chem_cenv (0, chem_use_env (i, ic) )  &
+         .or. - 1.eq.chem_cenv (0, chem_use_env (i, ic) ) ) then        
+            DO j = 1, chem_env_neig (chem_use_env (i, ic) ) 
+            werte (j) = chem_cenv (j, chem_use_env (i, ic) ) 
+            ENDDO 
+            ianz = chem_env_neig (chem_use_env (i, ic) ) 
+            CALL do_find_env (ianz, werte, maxw, u, chem_rmin_env (ic), &
+            chem_rmax_env (ic), chem_quick, chem_period)                
+            IF (atom_env (0) .ne.0) then 
+!                                                                       
+!     --------Neighbours were found, add to list of atoms               
+!                                                                       
+               ncent = ncent + 1 
+               ncent = 1 
+               DO j = 1, atom_env (0) 
+               IF (natom (ncent) .lt.maxw) then 
+                  natom (ncent) = natom (ncent) + 1 
+                  iatom (natom (ncent), ncent) = atom_env (j) 
+                  patom (1, natom (ncent), ncent) = atom_pos (1, j) 
+                  patom (2, natom (ncent), ncent) = atom_pos (2, j) 
+                  patom (3, natom (ncent), ncent) = atom_pos (3, j) 
+               ELSE 
+                  natom (ncent) = 0 
+                  ncent = ncent - 1 
+                  ier_num = - 23 
+                  ier_typ = ER_CHEM 
+                  RETURN 
+               ENDIF 
+               ENDDO 
+               iatom (0, ncent) = jatom 
+               patom (1, 0, ncent) = cr_pos (1, jatom) 
+               patom (2, 0, ncent) = cr_pos (2, jatom) 
+               patom (3, 0, ncent) = cr_pos (3, jatom) 
+            ENDIF 
+         ELSE 
+!                                                                       
+!     ----The selected atom is a neighbour atom of environment          
+!           definition                                                  
+!                                                                       
+!c           lis_neig = .false.                                         
+!c           do j=1,chem_env_neig(chem_use_env(i,ic))                   
+!c             if(cr_iscat(jatom).eq.                                   
+!C     &                      chem_cenv(j,chem_use_env(i,ic))) then     
+!c               lis_neig = .true.                                      
+!c             endif                                                    
+!c           ENDDO                                                      
+!c           if(lis_neig) then                                          
+!c             werte(1) = chem_cenv(0,chem_use_env(i,ic))               
+!c             ianz     = 1                                             
+!c             call do_find_env(ianz,werte,maxw,u,chem_rmin_env(ic),    
+!C     &                                  chem_rmax_env(ic),            
+!C     &                                  chem_quick,chem_period)       
+!                                                                       
+!-----      ------- Store the true central atoms in patom               
+!                                                                       
+!c             do j=1,atom_env(0)                                       
+!c               iatom(0,ncent+j)   = atom_env(j)                       
+!c               patom(1,0,ncent+j) = atom_pos(1,j)                     
+!c               patom(2,0,ncent+j) = atom_pos(2,j)                     
+!c               patom(3,0,ncent+j) = atom_pos(3,j)                     
+!c             ENDDO                                                    
+!c             nnew = atom_env(0)                                       
+!c             do k=1,nnew                                              
+!c               do j=1,chem_env_neig(chem_use_env(i,ic))               
+!c                 werte(j) = chem_cenv(j,chem_use_env(i,ic))           
+!c               ENDDO                                                  
+!c               do j=1,3                                               
+!c                 u(j) = patom(j,0,ncent+1)                            
+!c               ENDDO                                                  
+!c               ianz = chem_env_neig(chem_use_env(i,ic))               
+!c               call do_find_env(ianz,werte,maxw,u,chem_rmin_env(ic),  
+!C     &                                    chem_rmax_env(ic),          
+!C     &                                    chem_quick,chem_period)     
+!c               if (atom_env(0).ne.0) then                             
+!c                 ncent = ncent + 1                                    
+!c                 ncent =         1                                    
+!c                 do j=1,atom_env(0)                                   
+!c                   if (natom(ncent).lt.maxw) then                     
+!c                     natom(ncent)          = natom(ncent) + 1         
+!c                     iatom(natom(ncent),ncent)   = atom_env(j)        
+!c                     patom(1,natom(ncent),ncent) = atom_pos(1,j)      
+!c                     patom(2,natom(ncent),ncent) = atom_pos(2,j)      
+!c                     patom(3,natom(ncent),ncent) = atom_pos(3,j)      
+!c                   ELSE                                               
+!DBG_SPHERES                                                            
+!C  write(*,*) ' NEIGHBOUR, NUMBER OF NEIGHBOURS ',natom(ncent),        
+!C  atom_env(0),nnew                                                    
+!c                     natom(ncent) = 0                                 
+!c                     ncent = ncent - 1                                
+!c                     ncent =         0                                
+!c                     ier_num = -23                                    
+!c                     ier_typ = ER_CHEM                                
+!c                     return                                           
+!c                   endif                                              
+!c                 ENDDO                                                
+!c               endif                                                  
+!c             ENDDO                                                    
+!c           endif                                                      
+         ENDIF 
+         ENDDO 
+      ENDIF 
+      ldbg = .false. 
+!                                                                       
+      END SUBROUTINE chem_neighbour_multi           
+!*****7*****************************************************************
+      SUBROUTINE chem_neighbour_mol (jmol, ic, imol, nmol, maxww) 
+!+                                                                      
+!     Determine neighbours from given molecule index 'jmol'.            
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE molecule_mod 
+      USE rmc_mod 
+      IMPLICIT none 
+!                                                                       
+       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxww, maxw 
+      PARAMETER (maxw = chem_max_neig) 
+!                                                                       
+      REAL patom (3, 0:maxw) 
+      INTEGER imol (0:maxww), jmol, nmol, ic 
+      INTEGER iatom (0:maxw), jatom, natom 
+      INTEGER i, im 
+      LOGICAL no 
+!                                                                       
+      nmol = 0 
+!                                                                       
+!------ Get origin of selected molecule and find neighbours             
+!                                                                       
+      jatom = mole_cont (mole_off (jmol) + 1) 
+      CALL chem_neighbour (jatom, ic, iatom, patom, natom, maxw) 
+!                                                                       
+!------ Convert found atoms to molecules                                
+!                                                                       
+      IF (natom.gt.0) then 
+         DO i = 1, natom 
+         no = .true. 
+         im = 0 
+         DO while (no.and.im.lt.mole_num_mole) 
+         im = im + 1 
+         no = (iatom (i) .ne.mole_cont (mole_off (im) + 1) ) 
+         ENDDO 
+!                                                                       
+         IF (.not.no) then 
+            nmol = nmol + 1 
+            IF (nmol.le.chem_max_neig) then 
+               imol (nmol) = im 
+            ELSE 
+               ier_num = - 23 
+               ier_typ = ER_CHEM 
+               RETURN 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE chem_neighbour_mol             
+!*****7*****************************************************************
+      SUBROUTINE chem_blen (iianz, jjanz, werte, wwerte, maxw) 
+!+                                                                      
+!     Calculate bond length distribution within crystal                 
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw, iianz, jjanz 
+      REAL werte (maxw), wwerte (maxw) 
+!                                                                       
+      INTEGER i, j, k, l, is, js, ibin 
+      INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
+      REAL u (3) 
+      REAL bl_min (0:maxscat, 0:maxscat) 
+      REAL bl_max (0:maxscat, 0:maxscat) 
+      REAL bl_sum (0:maxscat, 0:maxscat) 
+      REAL bl_s2 (0:maxscat, 0:maxscat) 
+      REAL bl_ave, bl_sig 
+!                                                                       
+      CHARACTER(9) at_name_i 
+      CHARACTER(9) at_name_j 
+      CHARACTER(9) at_name 
+!     LOGICAL atom_allowed 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin 
+!                                                                       
+!------ Reset arrays                                                    
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = 0, cr_nscat 
+      bl_sum (i, j) = 0.0 
+      bl_s2 (i, j) = 0.0 
+      bl_anz (i, j) = 0 
+      bl_min (i, j) = 999.0 
+      bl_max (i, j) = 0.0 
+      ENDDO 
+      ENDDO 
+      DO i = 1, chem_max_bin 
+      chem_hist (i) = 0 
+      ENDDO 
+!                                                                       
+!------ Start the calculation                                           
+!                                                                       
+      DO i = 1, cr_natoms 
+      IF (atom_allowed (i, werte, iianz, maxw) ) then 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, i) 
+         ENDDO 
+         CALL do_find_env (jjanz, wwerte, maxw, u, chem_blen_cut (1),   &
+         chem_blen_cut (2), chem_quick, chem_period)                    
+         IF (ier_num.ne.0) return 
+         DO k = 1, atom_env (0) 
+         is = cr_iscat (i) 
+         js = cr_iscat (atom_env (k) ) 
+         bl_sum (is, js) = bl_sum (is, js) + res_para (k) 
+         bl_s2 (is, js) = bl_s2 (is, js) + res_para (k) **2 
+         bl_anz (is, js) = bl_anz (is, js) + 1 
+         bl_min (is, js) = min (bl_min (is, js), res_para (k) ) 
+         bl_max (is, js) = max (bl_max (is, js), res_para (k) ) 
+                                                                        
+         ibin = int ( (res_para (k) - chem_blen_cut (1) ) * chem_bin /  &
+         (chem_blen_cut (2) - chem_blen_cut (1) ) ) + 1                 
+         chem_hist (ibin) = chem_hist (ibin) + 1 
+         ENDDO 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      l = 0 
+      btottot = 0 
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = i, cr_nscat 
+      IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
+         bl_ave = (bl_sum (i, j) + bl_sum (j, i) ) / (bl_anz (i, j)     &
+         + bl_anz (j, i) )                                              
+         bl_sig = (bl_s2 (i, j) + bl_s2 (j, i) ) / (bl_anz (i, j)       &
+         + bl_anz (j, i) )                                              
+         bl_sig = bl_sig - (bl_ave**2) 
+         IF (bl_sig.gt.0.0) then 
+            bl_sig = sqrt (bl_sig) 
+         ELSE 
+            bl_sig = 0.0 
+         ENDIF 
+      ELSE 
+         bl_ave = 0.0 
+         bl_sig = 0.0 
+      ENDIF 
+      at_name_i = at_name (i) 
+      at_name_j = at_name (j) 
+!                                                                       
+      IF (i.ne.j) then 
+         btot = bl_anz (i, j) + bl_anz (j, i) 
+      ELSE 
+         btot = bl_anz (i, i) 
+      ENDIF 
+      btottot = btottot + btot 
+!                                                                       
+      WRITE (output_io, 1000) at_name_i, at_name_j, bl_ave, bl_sig, min &
+      (bl_min (i, j), bl_min (j, i) ), max (bl_max (i, j), bl_max (j, i)&
+      ), btot                                                           
+!                                                                       
+      IF ( (l + 3) .lt.maxpar_res) then 
+         res_para (l + 1) = bl_ave 
+         res_para (l + 2) = bl_sig 
+         res_para (l + 3) = float (btot) 
+         l = l + 3 
+      ELSE 
+         ier_num = - 2 
+         ier_typ = ER_CHEM 
+      ENDIF 
+      ENDDO 
+      ENDDO 
+!                                                                       
+      res_para (0) = l 
+      WRITE (output_io, 1100) btottot 
+!                                                                       
+!------ write histogramm                                                
+!                                                                       
+      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      DO i = 1, chem_bin 
+      WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
+      chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+      ENDDO 
+      CLOSE (43) 
+!                                                                       
+  400 FORMAT (/,' Calculating bond-length distibution (Mode: QUICK)') 
+  410 FORMAT (/,' Calculating bond-length distibution (Mode: EXACT)') 
+  500 FORMAT (' Calculating bond-length distibution',/,                 &
+     &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
+     &        '  A / File : ',A12,' (',I4,' pts)',/)                    
+ 1000 FORMAT ('    ',A9,'- ',A9,': d =',F7.3,' +- ',F6.3,' A ',         &
+     &        '(Min =',F7.3,', Max =',F7.3,')',/,                       &
+     &        49x,'(Pairs = ',i18,')')                                  
+ 1100 FORMAT (49x,'(Total = ',i18,')') 
+ 5000 FORMAT (F8.3,I12) 
+      END SUBROUTINE chem_blen                      
+!*****7*****************************************************************
+      SUBROUTINE chem_blen_cluster (iianz, jjanz, werte, wwerte, maxw) 
+!+                                                                      
+!     Calculate bond length distribution within crystal                 
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw, iianz, jjanz 
+      REAL werte (maxw), wwerte (maxw) 
+!                                                                       
+      INTEGER i, j, k, l, is, js, ibin 
+      INTEGER bl_anz (0:maxscat, 0:maxscat) 
+      REAL u (3), v (3), dist 
+      REAL bl_min (0:maxscat, 0:maxscat) 
+      REAL bl_max (0:maxscat, 0:maxscat) 
+      REAL bl_sum (0:maxscat, 0:maxscat) 
+      REAL bl_s2 (0:maxscat, 0:maxscat) 
+      REAL bl_ave, bl_sig 
+!                                                                       
+!     LOGICAL atom_allowed 
+      REAL do_blen 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      WRITE (output_io, 400) 
+      WRITE (output_io, 500) chem_blen_cut, chem_fname, chem_bin 
+!                                                                       
+!------ Reset arrays                                                    
+!                                                                       
+      DO i = 1, chem_max_bin 
+      chem_hist (i) = 0 
+      ENDDO 
+!                                                                       
+!------ Start the calculation                                           
+!                                                                       
+      DO i = 1, cr_natoms - 1 
+      IF (atom_allowed (i, werte, iianz, maxw) ) then 
+         DO k = 1, 3 
+         u (k) = cr_pos (k, i) 
+         ENDDO 
+         DO j = i + 1, cr_natoms 
+         IF (atom_allowed (j, wwerte, jjanz, maxw) ) then 
+            DO k = 1, 3 
+            v (k) = cr_pos (k, j) 
+            ENDDO 
+            dist = do_blen (.true., u, v) 
+!                                                                       
+            ibin = int ( (dist - chem_blen_cut (1) ) * chem_bin /       &
+            (chem_blen_cut (2) - chem_blen_cut (1) ) ) + 1              
+            IF (0.lt.ibin.and.ibin.le.chem_max_bin) then 
+               chem_hist (ibin) = chem_hist (ibin) + 1 
+            ENDIF 
+         ENDIF 
+         ENDDO 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ write histogramm                                                
+!                                                                       
+      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      DO i = 1, chem_bin 
+      WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
+      chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+      ENDDO 
+      CLOSE (43) 
+!                                                                       
+  400 FORMAT (/,' Calculating bond-length distibution (Mode: CLUSTER)') 
+  500 FORMAT (' Calculating bond-length distibution',/,                 &
+     &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
+     &        '  A / File : ',A12,' (',I4,' pts)',/)                    
+ 1000 FORMAT ('    ',A9,'- ',A9,': d =',F7.3,' +- ',F6.3,' A ',         &
+     &        '(Min =',F7.3,', Max =',F7.3,')',/,                       &
+     &        49x,'(Pairs = ',i18,')')                                  
+ 5000 FORMAT (F8.3,I12) 
+      END SUBROUTINE chem_blen_cluster              
+!*****7*****************************************************************
+      SUBROUTINE chem_bang (iianz, jjanz, kkanz, werte, wwerte, uwerte, &
+      maxw)                                                             
+!+                                                                      
+!     Calculate bond angle distribution within crystal                  
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE atom_env_mod 
+      USE chem_mod 
+      USE modify_mod
+      USE modify_func_mod
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'param.inc' 
+      include'errlist.inc' 
+!                                                                       
+      INTEGER maxw, iianz, jjanz, kkanz 
+      REAL werte (maxw), wwerte (maxw), uwerte (maxw) 
+!                                                                       
+      INTEGER i, j, k, l, is, js, ibin 
+      INTEGER ba_anz (0:maxscat, 0:maxscat) 
+      INTEGER ba_env (0:MAX_ATOM_ENV) 
+      LOGICAL lspace 
+!                                                                       
+!     von der relativen Reihenfolge der beiden Statements haengt es ab, 
+!     ob der zweite Nachbar gefunden wird oder nicht !?!?               
+!                                                                       
+      REAL u (3), v (3), w (3), angle 
+      REAL ba_pos (3, MAX_ATOM_ENV) 
+                                                                        
+      REAL ba_min (0:maxscat, 0:maxscat) 
+      REAL ba_max (0:maxscat, 0:maxscat) 
+      REAL ba_sum (0:maxscat, 0:maxscat) 
+      REAL ba_s2 (0:maxscat, 0:maxscat) 
+      REAL ba_ave, ba_sig 
+!                                                                       
+      CHARACTER(9) at_name_i 
+      CHARACTER(9) at_name_j 
+      CHARACTER(9) at_name 
+!     LOGICAL atom_allowed 
+      REAL do_bang 
+!                                                                       
+      lspace = .true. 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      WRITE (output_io, 500) chem_bang_cut, chem_blen_cut, chem_fname,  &
+      chem_bin                                                          
+!                                                                       
+!------ Reset arrays                                                    
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = 0, cr_nscat 
+      ba_sum (i, j) = 0.0 
+      ba_s2 (i, j) = 0.0 
+      ba_anz (i, j) = 0 
+      ba_min (i, j) = 1000.0 
+      ba_max (i, j) = - 1000.0 
+      ENDDO 
+      ENDDO 
+      DO i = 1, chem_max_bin 
+      chem_hist (i) = 0 
+      ENDDO 
+!                                                                       
+!------ Start the calculation                                           
+!                                                                       
+      DO i = 1, cr_natoms 
+      IF (atom_allowed (i, werte, iianz, maxw) ) then 
+         DO j = 1, 3 
+         u (j) = cr_pos (j, i) 
+         ENDDO 
+         CALL do_find_env (jjanz, wwerte, maxw, u, chem_blen_cut (1),   &
+         chem_blen_cut (2), chem_quick, chem_period)                    
+         IF (ier_num.ne.0) return 
+!                                                                       
+!     ----copy environment of first atom type                           
+!                                                                       
+         ba_env (0) = atom_env (0) 
+         DO k = 1, atom_env (0) 
+         ba_env (k) = atom_env (k) 
+         DO j = 1, 3 
+         ba_pos (j, k) = atom_pos (j, k) 
+         ENDDO 
+         ENDDO 
+         CALL do_find_env (kkanz, uwerte, maxw, u, chem_blen_cut (1),   &
+         chem_blen_cut (2), chem_quick, chem_period)                    
+         IF (ier_num.ne.0) return 
+!                                                                       
+!     ----For all atoms in the environment, except atom i itself        
+!                                                                       
+         DO k = 1, ba_env (0) 
+         IF (ba_env (k) .ne.i) then 
+            is = cr_iscat (ba_env (k) ) 
+            DO j = 1, 3 
+            v (j) = ba_pos (j, k) 
+            ENDDO 
+!                                                                       
+!     --------For all second neighbor atoms in the environment,         
+!             except atom i and first neighbor atom                     
+!                                                                       
+            DO l = 1, atom_env (0) 
+            IF (atom_env (l) .ne.i.and.atom_env (l) .ne.ba_env (k) )    &
+            then                                                        
+               js = cr_iscat (atom_env (l) ) 
+               DO j = 1, 3 
+               w (j) = atom_pos (j, l) 
+               ENDDO 
+               angle = do_bang (lspace, v, u, w) 
+               ba_sum (is, js) = ba_sum (is, js) + angle 
+               ba_s2 (is, js) = ba_s2 (is, js) + angle**2 
+               ba_anz (is, js) = ba_anz (is, js) + 1 
+               ba_min (is, js) = min (ba_min (is, js), angle) 
+               ba_max (is, js) = max (ba_max (is, js), angle) 
+                                                                        
+               ibin = int ( (angle-chem_bang_cut (1) ) * chem_bin /     &
+               (chem_bang_cut (2) - chem_bang_cut (1) ) ) + 1           
+               IF (0.lt.ibin.and.ibin.le.CHEM_MAX_BIN) then 
+                  chem_hist (ibin) = chem_hist (ibin) + 1 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
+         ENDDO 
+      ENDIF 
+      ENDDO 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      DO i = 0, cr_nscat 
+      DO j = i, cr_nscat 
+      IF (ba_anz (i, j) .ne.0.or.ba_anz (j, i) .ne.0) then 
+         ba_ave = (ba_sum (i, j) + ba_sum (j, i) ) / (ba_anz (i, j)     &
+         + ba_anz (j, i) )                                              
+         ba_sig = (ba_s2 (i, j) + ba_s2 (j, i) ) / (ba_anz (i, j)       &
+         + ba_anz (j, i) )                                              
+         ba_sig = ba_sig - (ba_ave**2) 
+         IF (ba_sig.gt.0.0) then 
+            ba_sig = sqrt (ba_sig) 
+         ELSE 
+            ba_sig = 0.0 
+         ENDIF 
+         at_name_i = at_name (i) 
+         at_name_j = at_name (j) 
+         WRITE (output_io, 1000) at_name_i, at_name_j, ba_ave, ba_sig,  &
+         min (ba_min (i, j), ba_min (j, i) ), max (ba_max (i, j),       &
+         ba_max (j, i) )                                                
+      ENDIF 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ write histogramm                                                
+!                                                                       
+      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      DO i = 1, chem_bin 
+      WRITE (43, 5000) chem_bang_cut (1) + (chem_bang_cut (2) -         &
+      chem_bang_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+      ENDDO 
+      CLOSE (43) 
+!                                                                       
+  400 FORMAT     (/,' Calculating bond-angle distibution (Mode: QUICK)') 
+  410 FORMAT     (/,' Calculating bond-angle distibution (Mode: EXACT)') 
+  500 FORMAT     (' Calculating bond-angle distibution',/,              &
+     &        '    Allowed range : ',F6.2,'   to ',F6.2,' Degrees',/,   &
+     &        '    Allowed length: ',F6.2,' A to ',F6.2,                &
+     &        '  A / File : ',A12,' (',I4,' pts)',/)                    
+ 1000 FORMAT     ('    ',A9,'- ',A9,': a = ',F7.3,' +- ',F7.3,' Deg ',  &
+     &                   '(Min = ',F7.3,', Max = ',F7.3,')')            
+ 5000 FORMAT     (F8.3,I12) 
+      END SUBROUTINE chem_bang                      
+!*****7*****************************************************************
+      SUBROUTINE chem_elem (lout) 
+!+                                                                      
+!     Show information about elements/rel. amounts within crystal       
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+      include'param.inc' 
+!                                                                       
+      REAL proz 
+      INTEGER natom (0:MAXSCAT) 
+      INTEGER i 
+      LOGICAL lout 
+!                                                                       
+      CHARACTER(9) at_name_i 
+      CHARACTER(9) at_name 
+!                                                                       
+!     Error condition                                                   
+!                                                                       
+      IF (cr_natoms.eq.0) then 
+         ier_typ = ER_CHEM 
+         ier_num = - 27 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ reset counters, ...                                             
+!                                                                       
+      DO i = 0, cr_nscat 
+      natom (i) = 0 
+      ENDDO 
+!                                                                       
+!------ get size of model crystal, rel. amount of elements              
+!                                                                       
+      DO i = 1, cr_natoms 
+      natom (cr_iscat (i) ) = natom (cr_iscat (i) ) + 1 
+      ENDDO 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
+      IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
+      res_para (0) = float (cr_nscat) + 1 
+      DO i = 0, cr_nscat 
+      proz = float (natom (i) ) / cr_natoms 
+      IF (lout) then 
+         at_name_i = at_name (i) 
+         WRITE (output_io, 1200) at_name_i, proz, natom (i) 
+      ENDIF 
+      IF (i.le.maxpar_res) then 
+         res_para (i + 1) = proz 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT     (' Size of the crystal (unit cells) : ',2(I4,' x '),I4) 
+ 1100 FORMAT     (' Total number of atoms            : ',I6,/           &
+     &                   ' Number of atoms per unit cell    : ',I6,/    &
+     &                   ' Number of different atoms        : ',I6,/)   
+ 1200 FORMAT     ('    Element : ',A9,' rel. abundance : ',F5.3,        &
+     &                   '  (',I6,' atoms)')                            
+      END SUBROUTINE chem_elem                      
+!*****7*****************************************************************
+      SUBROUTINE chem_mole (lout) 
+!+                                                                      
+!     Show information about molecules/rel. amounts within crystal      
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE molecule_mod 
+      IMPLICIT none 
+!                                                                       
+      include'prompt.inc' 
+       
+      include'errlist.inc' 
+      include'param.inc' 
+!                                                                       
+      REAL proz 
+      INTEGER nmole (0:MOLE_MAX_TYPE) 
+      INTEGER i 
+      LOGICAL lout 
+!                                                                       
+!     Error condition                                                   
+!                                                                       
+      IF (mole_num_mole.eq.0) then 
+         ier_typ = ER_CHEM 
+         ier_num = - 20 
+         RETURN 
+      ENDIF 
+!                                                                       
+!------ reset counters, ...                                             
+!                                                                       
+      DO i = 1, mole_num_type 
+      nmole (i) = 0 
+      ENDDO 
+!                                                                       
+!------ get relative amounts of molecule types                          
+!                                                                       
+      DO i = 1, mole_num_mole 
+      nmole (mole_type (i) ) = nmole (mole_type (i) ) + 1 
+      ENDDO 
+!                                                                       
+!------ write output                                                    
+!                                                                       
+      IF (lout) then 
+         WRITE (output_io, 1000) (cr_icc (i), i = 1, 3) 
+         WRITE (output_io, 1100) mole_num_mole, mole_num_unit,          &
+         mole_num_type                                                  
+      ENDIF 
+!                                                                       
+      res_para (0) = float (mole_num_type) 
+      DO i = 1, mole_num_type 
+      proz = float (nmole (i) ) / mole_num_mole 
+      IF (lout) then 
+         WRITE (output_io, 1200) i, proz, nmole (i) 
+      ENDIF 
+      IF (i.le.maxpar_res) then 
+         res_para (i + 1) = proz 
+      ELSE 
+         ier_typ = ER_CHEM 
+         ier_num = - 2 
+      ENDIF 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT (' Size of the crystal (unit cells)  : ',2(I4,' x '),I4) 
+ 1100 FORMAT (' Total number of molecules         : ',I6,/              &
+     &                   ' Number of molecules per unit cell : ',I6,/   &
+     &                   ' Number of different molecules     : ',I6,/)  
+ 1200 FORMAT     ('    Mol. type : ',I4,5X,' rel. abundance : ',F5.3,   &
+     &                   '  (',I6,' molecules)')                        
+      END SUBROUTINE chem_mole                      
+!*****7***************************************************************  
+      CHARACTER(9) function at_name (iscat) 
+!+                                                                      
+!     This function builds the atom name as XX(iscat) to be             
+!     able to distinguish between different atom types with             
+!     the same name.                                                    
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      IMPLICIT none 
+!                                                                       
+       
+!                                                                       
+      CHARACTER(5) istr 
+      INTEGER iscat, il, is 
+!                                                                       
+      INTEGER len_str 
+!                                                                       
+      IF (iscat.ge.100) then 
+         WRITE (istr, 1000) iscat 
+      ELSEIF (iscat.ge.10) then 
+         WRITE (istr, 1100) iscat 
+      ELSE 
+         WRITE (istr, 1200) iscat 
+      ENDIF 
+!                                                                       
+      il = len_str (cr_at_lis (iscat) ) 
+      is = len_str (istr) 
+!                                                                       
+      at_name = cr_at_lis (iscat) (1:il) //istr (1:is) 
+!                                                                       
+ 1000 FORMAT     ('(',I3,')') 
+ 1100 FORMAT     ('(',I2,')') 
+ 1200 FORMAT     ('(',I1,')') 
+      END FUNCTION at_name                          
+!*****7***************************************************************  
+      SUBROUTINE errlist_chem 
+!-                                                                      
+!     Displays error messages for the error type CHEM                   
+!+                                                                      
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (IU = - 29, IO = 0) 
+!                                                                       
+      CHARACTER(41) ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR ( IU:-21) /                             &
+      'Atom type outside valid range              ',     & !-29
+      'Invalid correlation conn   index given     ',     & !-28
+      'No atoms present in crystal                ',     & !-27
+      'Invalid correlation environment index given',     & !-26
+      'Invalid range for bond-angle histogramm    ',     & !-25
+      'Invalid correlation angle index given      ',     & !-24
+      'Too many neighbouring atoms/molecules      ',     & !-23
+      'Command not available in molecule mode     ',     & !-22
+      'Molecule types need to be different        '      & !-21
+      /                                 
+      DATA ERROR (-20: -1) /                             &
+      'No molecules present in crystal            ',     & !-20
+      'No neighbouring molecules found            ',     & !-19
+      'Correlation fields require same # vectors  ',     & !-18
+      'Correlation fields require same mode       ',     & !-17
+      'Failed to apply periodic boundaries        ',     & !-16
+      'No displacement directions selected        ',     & !-15
+      'Invalid neighbour definition selected      ',     & !-14
+      'Correlation direction invalid              ',     & !-13
+      'Too many neighbour definitions             ',     & !-12
+      'No neighbours defined                      ',     & !-11
+      'Invalid crystal site or atom index given   ',     & !-10
+      'Invalid correlation vector index given     ',     & !- 9
+      'No neighbouring atoms found                ',     & !- 8
+      'Atoms need to be different                 ',     & !- 7
+      'Atom name ALL not allowed for this command ',     & !- 6
+      'Too many different atoms found             ',     & !- 5
+      'Invalid SIGMA entered                      ',     & !- 4
+      'Invalid range for bond-length histogramm   ',     & !- 3
+      'Not enough space for all results in res[]  ',     & !- 2
+      'Too many points for histogramm             '      & !- 1
+      /                                 
+      DATA ERROR (  0:  0) /                             &
+      ' '                                                & !  0
+      /                                 
+!                                                                       
+      CALL disp_error ('CHEM', error, iu, io) 
+      END SUBROUTINE errlist_chem                   

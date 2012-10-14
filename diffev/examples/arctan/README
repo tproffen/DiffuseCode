@@ -1,0 +1,22 @@
+This is an example for the refinement of a difficult function.
+
+LINUX / MAC
+Compile the program "arctan.f" which calculates the function
+and then start diffev and execute the macro diffev.mac.
+
+WINDOWS
+Start diffev and execute the macro wdiffev.mac
+#
+#################################################################################
+#
+
+While this runs, you can use the kuplot macros to observe the progress of
+the refinement:
+
+kpara.mac      Shows how the r-value or a parameter changes through the 
+               generations
+kdraw.mac      Plots the observed and calculated data
+kpar_par.mac   Shows the correlations between two parameter values or
+               the R-values and parameter values
+
+The header of each file contains a short description.

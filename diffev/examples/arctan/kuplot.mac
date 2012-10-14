@@ -1,0 +1,79 @@
+set prompt,redirect
+################################################################################
+#
+#  kuplot.mac
+#
+################################################################################
+#
+#  Displays the development of the R-value or a of a parameter versus the
+#  generations.
+#  The average value with error bars and the maximum and minimum value at
+#  each generation are plotted.
+#
+################################################################################
+#
+#  @kuplot generation,parameter number
+#          generation may be any generation number or -1 for the current one
+#          parameter number is zero for R-value
+#
+################################################################################
+#
+rese
+#
+#  Load from Summary file: sigma, minimum, maximum, and average value
+#
+load st, DIFFEV/Summary ,1, 1,2+($1)*4 + 3
+load st, DIFFEV/Summary ,1, 1,2+($1)*4 + 2
+load st, DIFFEV/Summary ,1, 1,2+($1)*4 + 1
+load st, DIFFEV/Summary ,1, 1,2+($1)*4
+do i[0]=1,np[1]
+  dy[4,i[0]] = y[1,i[0]]
+enddo
+#
+#  make pretty plot
+#
+ltyp 4,1
+ltyp 3,1
+ltyp 2,1
+mtyp 4,3
+mtyp 3,3
+mtyp 2,3
+etyp 4,2
+ltyp 1,0
+mtyp 1,0
+lcol 4,3
+lcol 3,6
+lcol 2,6
+mcol 4,3
+mcol 3,6
+mcol 2,6
+ecol 4,3
+kfra 1,4,3,2
+tit1 Development of fit versus generation
+achx Generation
+skal
+r[0] = (ymax[2]-ymin[3])*0.05
+if($1.eq.0) then
+  skal 0,xmax[4],0,ymax[2]*1.05
+  tit2 R-Value
+  achy R-Value
+else
+  skal 0,xmax[4],ymin[3]-r[0],ymax[2]+r[0]
+  tit2 "Parameter Nr. %d",$1
+  achy "Parameter Nr. %d",$1
+endif
+mark
+plot
+eval y[4,np[4]]
+wait return
+#
+#  plot the last 30 generation in detail
+#
+r[1]=max(0,xmax[4]-30)
+if($1.eq.0) then
+  skal r[1],xmax[4]+1
+else
+  skal r[1],xmax[4]+1
+endif
+plot
+set prompt,on

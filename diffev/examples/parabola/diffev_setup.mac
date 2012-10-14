@@ -1,0 +1,66 @@
+#
+# this is the initial generation, start as zero
+#
+pop_gen[1]  =   0
+#
+pop_n[1]    = 10 
+pop_c[1]    = 10 
+pop_dimx[1] =   3
+ipar        =   0
+#
+# Parameter A, constant term     
+#
+ipar        = ipar + 1
+pop_name      ipar, constant
+pop_xmin[ipar] = -20000.0
+pop_xmax[ipar] =  20000.0
+pop_smin[ipar] = -200.0
+pop_smax[ipar] =  200.0
+pop_sig [ipar] =   0.2
+type real,ipar
+#
+# Parameter B, linear term
+#
+ipar        = ipar + 1
+pop_name    ipar, linear
+pop_xmin[ipar] = -10000.0
+pop_xmax[ipar] =  10000.0
+pop_smin[ipar] = -50.0
+pop_smax[ipar] =  50.0
+pop_sig [ipar] =   0.2
+type real,ipar
+#
+# Parameter C, quadratic term
+#
+ipar        = ipar + 1
+pop_name    ipar, square
+pop_xmin[ipar] =  -10000.0
+pop_xmax[ipar] =   10000.0
+pop_smin[ipar] =  -10.0
+pop_smax[ipar] =   10.0
+pop_sig [ipar] =   0.2
+type real,ipar
+#
+#constr abs(p[1]).lt.0.8000
+#constr p[2]**2+p[3]**2.lt.6.2500
+#
+# diff_cr is the cross over probability
+#
+diff_cr[1]  = 0.7
+#
+# the difference vector between two parameters is multiplied by diff_f
+# Good values for this multiplier seem to be in this range.
+#
+diff_f[1]   = 0.8
+#
+diff_k[1]   = 1.0
+diff_lo[1]  = 0.0
+refine      all
+#
+donor random
+selection best,all
+#
+trialfile  DIFFEV/Trials
+restrial   DIFFEV/Results
+logfile    DIFFEV/Parameter
+summary    DIFFEV/Summary

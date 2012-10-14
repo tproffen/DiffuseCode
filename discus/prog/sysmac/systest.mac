@@ -1,0 +1,6 @@
+set prompt,off,off,save
+#
+#	$Id: systest.mac,v 1.1.1.1 2012/06/09 16:18:24 rbneder Exp $
+#
+echo "DISCUS system macros seem to work ..."
+set prompt,old

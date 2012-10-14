@@ -1,0 +1,88 @@
+reset
+load xy, CeCe_new_diff.gr
+load xy, cece.gr
+load xy, CeF_new_diff.gr
+load xy, cef.gr
+load xy, FF_new_diff.gr
+load xy, ff.gr
+
+r[1]=100./ymax[1]
+r[2]=100./ymax[3]
+r[3]=100./ymax[5]
+
+ccal mul,wy,1,r[1]
+ccal mul,wy,2,r[1]
+ccal mul,wy,3,r[2]
+ccal mul,wy,4,r[2]
+ccal mul,wy,5,r[3]
+ccal mul,wy,6,r[3]
+
+load ma, cece.ma
+load ma, cef.ma
+load ma, ff.ma
+
+fset 2
+grid off
+achx r(\A)
+achy \gD G(r) (\A\u-2\d)
+lcol 1,3
+lcol 2,1
+lcol 3,3
+lcol 4,1
+lcol 5,3
+lcol 6,1
+etyp 1,2
+etyp 3,2
+etyp 5,2
+ecol 1,3
+ecol 3,3
+ecol 5,3
+
+lwid 2,0.6
+lwid 4,0.6
+lwid 6,0.6
+mtyp 7,9
+mtyp 8,9
+mtyp 9,9
+msiz 7,0.3
+msiz 8,0.3
+msiz 9,0.3
+ccal add,wy,7,-60
+ccal add,wy,8,-65
+ccal add,wy,9,-70
+
+skal 0.5,9.9,-79.9,125
+mark 2,20
+
+fnam off
+sleg 2,DISCUS
+sleg 1,MIXSCA
+sleg 4,DISCUS
+sleg 3,MIXSCA
+sleg 6,DISCUS
+sleg 5,MIXSCA
+sleg 7,CeCe
+sleg 8,CeF
+sleg 9,FF
+
+nfra 3
+kfra 1,1,2,7,8,9
+kfra 2,3,4,7,8,9
+kfra 3,5,6,7,8,9
+
+afra 1
+buff 0.06,0.00,0.08,0.04
+tit2 Ce-Ce
+
+afra 2
+buff 0.03,0.03,0.08,0.04
+tit2 Ce-F
+achy OFF
+
+afra 3
+buff 0.00,0.06,0.08,0.04
+tit2 F-F
+achy OFF
+
+plot
+exit

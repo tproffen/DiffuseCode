@@ -1,0 +1,7 @@
+@diffev_setup.mac
+init
+system ./arctan
+compare
+system ./arctan
+compare
+eval pop_gen[1]

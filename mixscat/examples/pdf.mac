@@ -1,0 +1,33 @@
+read
+  cell cef3.cll,1,1,1
+
+pdf
+  isel all
+  jsel all
+
+  set therm,gauss
+  set bound,period
+  set range,20.0,0.01
+  set part,internal
+  set dens,0.0
+  set delt,0.0
+  show
+  calc
+  save pdf,tot.gr
+
+  @wn_CeCe
+  show
+  calc
+  save pdf,cece.gr
+
+  @wn_CeF
+  show
+  calc
+  save pdf,cef.gr
+
+  @wn_FF
+  show
+  calc
+  save pdf,ff.gr
+exit
+exit

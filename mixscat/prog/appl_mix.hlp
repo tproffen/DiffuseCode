@@ -1,0 +1,144 @@
+1  mixscat
+
+   MIXSCAT is a program to extract differential PDFs from x-ray
+   and neutron scattering data.
+
+   Further help topics are:
+2  Summary
+   Here is a short summary of the MIXSCAT specific commands currently
+   available:
+
+!p calc    : Starts the calculation of the differential function
+!p elem    : Sets sample composition
+!p match   : Scales data by fitting low r slope
+!p read    : Reads data and model files
+!p remo    : Sets the partial to be removed
+!p save    : Save commands
+!p scal    : Sets scale factor for dataset
+!p scat    : Overwrite internal scattering powers
+!p show    : Display various settings
+!p xray    : Specifies Q-value for calculating X-ray form factors
+!p var     : Shows the available variables
+2  calc
+!b calc
+
+   This command starts the actual calculation of the differential
+   function.
+2  elem
+!b elem <a1>,<c1>,<a2>,<c2>,..
+
+   This command sets the composition of the sample. For each element,
+   the name <a1> and concentration <c1> is given. For example, CeF3
+   would be given as elem Ce,1.0,F,3.0.
+2  match
+!b match <rmin>,<rmax>,<rho0>
+
+   This command fits the low r region of each data set between <rmin>
+   and <rmax>. The respective scale factors for the data sets are 
+   then determined by scaling the refined slope to the specified
+   number density <rho0>. It is important to use a good guess of the
+   value of <rho0>, e.g. derived from the average structure.
+
+   The resulting slope and corresponding sigma are stored in the
+   variables res[i]. As usual res[0] contains the number of parameters
+   available. The slope of data set 1 is in res[1], the error in res[2].
+   The next set is in res[3] and res[4] and so on.
+2  read
+   This command reads various information from a specified file.
+   The following formats are currently supported:
+3  data
+!b read "data",{"n"|"x"},<file>
+
+   The command 'read data' reads the observed PDF. The file
+   format is ASCII and contains 'r G(r) dummy dG(r)' in each line.
+   The value of 'r' is in A, G(r) is the reduced PDF. The
+   third column is ignored (needed for KUPLOT) and the last
+   value 'dG' is the error of the PDF used to calculate the
+   weight (w=1/dg**2) for this point to be used for the
+   refinement. Alternative formats are 'r G(r) dG(r)' in each
+   line or simple 'r G(r)'. In the later case, the weights are
+   set to unity. This is also done in case the value of dG(r)
+   is found as zero. Additional to the filename <file> the commands
+   needs the following parameters: First the type of radiation
+   is specified, "n" stands for neutrons and "x" for X-rays.
+   To read multiple data sets just repeat the 'read' command.
+
+   If the data file contains a history part created by PDFgetN,
+   some of the information is returned in the res[n] variables.
+   Currently the following information is available after the
+   'read data' command:
+
+!p res[1]   : Temperature where the data were collected (in K)
+!p res[2]   : Qmax (only AFTER the data were read !)
+2  remove
+!b remove <a1>,<a2>
+
+   This commands sets the partial to be removed to <a1>-<a2>. For
+   example in the case of CeF3, the command remove Ce,Ce would 
+   generate a differential function containing only Ce-F and F-F 
+   contributions.
+2  save
+   This command allows one to save various data or settings.
+   The following formats are currently supported:
+3  pdf
+!b save "pdf",<name>
+
+   This commands allows one to save the differential PDF, G(r), to
+   the file called <name>.
+3  results
+!b save "results",<name>
+
+   This command save information about the setup and error analysis
+   of the last calculation to the file named <name>.
+3  weights
+!b save "weights",<name>
+
+   In order to calculate the corresponding differential PDF from a
+   structural mode, the modified weights for each remaining partial
+   g_ij(r) is needed. This command saves the weights to a DISCUS 
+   macro file called <name>.
+2  scat
+!b scat {<name>|<number>},<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
+!b scat {<name>|<number>|"all"}, "internal"
+
+   The first command form defines for the element <name> or the scattering
+   curve number <number> a new scattering factor in the exponential form.
+   For neutron scattering lengths, set a(i) and b(i) to zero.
+2  scal
+!b scal <is>,<factor>
+
+   This command sets the scale factor <factor> for data set <is>. 
+   This is used in cases where the data need scaling due to systematic
+   errors.
+2  show
+!b show
+!b show "config"
+!b show "error"
+!b show "scat",<is>,{<a>|"all">
+
+   This command displays all current settings. The command show "config"
+   will show current limits such as maximum number of data points. The 
+   command show "error" will display results of an error analysis on
+   the screen. The subcommand "scat" shows the current scattering lengths 
+   to be used for data set <is> for atom <a> or "all" atoms.
+2  variables
+
+   The program MIXSCAT recognizes various variables. The contents of a
+   variable can be displayed using the 'eval' command. Some variables
+   are READONLY (RO) and can not be changed. 
+
+!p i[<n>]      : Integer variables
+!p r[<n>]      : Real variables
+!p res[<n>]    : Results of MIXSCAT commands (RO)
+
+!p n[1]        : Number of loaded data sets (RO)
+2  xray
+!b xray [<xq>]
+
+   This command sets the Q-value used to calculate the scattering
+   length used in the PDF calculation. The default value is xq=0
+   which results in a weight corresponding to the number of electrons
+   of the contributing atoms. Other settings could be the Q value
+   of the first Bragg peak or the average Q value of the data set.
+   Calling the command without parameters prints the current setting
+   on the screen.

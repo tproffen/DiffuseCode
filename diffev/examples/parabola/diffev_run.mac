@@ -1,0 +1,6 @@
+do i[0]=1,500
+#  sys kuplot < kup_diffev.mac  
+  system ./function
+  sys kuplot < kup.select.mac  
+  compare
+enddo

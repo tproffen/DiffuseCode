@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+for i in *.inc
+  do
+    sed "s/      END/ /" $i > dummy
+    mv dummy $i
+  done
+

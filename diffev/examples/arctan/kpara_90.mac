@@ -1,0 +1,58 @@
+# kpara.mac
+#
+############################################################
+#
+# Shows the evolution of R-value or parameters as function
+# of the generations
+#
+############################################################
+#
+if($0.ne.1) then
+  echo
+  echo "Usage:"
+  echo "@kpara <parameter>"
+  echo
+  echo For the R-value parameter should be zero
+  echo
+  wait return
+  continue kuplot
+endif
+#
+rese
+i[0]=$1
+i[0]= 0
+load sc, "DIFFEV/Summary.%4D",$1, 1, 1,(i[0]-1)*4 + 6
+load sc, "DIFFEV/Summary.%4D",$1, 1, 1,(i[0]-1)*4 + 7
+load sc, "DIFFEV/Summary.%4D",$1, 1, 1,(i[0]-1)*4 + 8
+load sc, "DIFFEV/Summary.%4D",$1, 1, 1,(i[0]-1)*4 + 9
+do i[0]=1,np[1]
+  dy[1,i[0]] = y[4,i[0]]
+enddo
+mtyp 1,3
+mtyp 2,3
+mtyp 3,3
+mcol 1,3
+mcol 2,1
+mcol 3,1
+lcol 1,3
+lcol 2,1
+lcol 3,1
+ltyp 1,1
+ltyp 2,1
+ltyp 3,1
+etyp 1,2
+#
+kfra 1, 1,2,3
+skal
+mark
+tit1 Refinement of VS 080 K Data
+if($1.eq.0)then
+  tit2 "R-value; current Generation %d",xmax[1]
+  achy R-value
+else
+  tit2 "Parameter No. %d; current Generation %d",$1,xmax[1]
+  achy "Parameter No. %d",$1
+endif
+achx Generation
+fnam off
+plot

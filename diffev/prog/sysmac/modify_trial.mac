@@ -1,0 +1,54 @@
+#
+#  modify_trial.mac
+#
+################################################################################
+#
+#  Changes a parameter in the Trial file
+#
+#  IN this template parameters 4 and 5 are changed, each to a 
+#  random number in the interval 0.08 to 0.18. 
+#  Adjust as needed.
+#
+###############################################################################
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+#
+fopen 1,GENERATION
+fget  1,generation,member,children,parameters
+fclose 1
+#
+do kid=2,member
+  fopen 2,"DIFFEV/Trials.%4D",kid
+  fget  2,i[31],i[32],i[33],i[34]
+  fget  2,i[1]
+  fget 2
+  do i[3] = 1,parameters
+    fget 2,r[200+i[3]]
+  enddo
+  fclose 2
+#
+  r[204] = 0.080 + 0.1*ran(0)
+  r[205] = 0.080 + 0.1*ran(0)
+#
+  fopen 1, "DIFFEV/Trials.%4D",kid
+  fput 1,'# generation members children parameters'
+  fformat 1,i8
+  fformat 2,i10
+  fformat 3,i10
+  fformat 4,i10
+  fput 1,generation,member,children,parameters
+  fput 1,'# current member'
+  fformat 1,i5
+  fput 1,kid
+  fput 1,'# parameter list'
+  fformat 1,e20.10
+  fformat 2,i6
+  do i[0]=1,parameters
+    echo " wrote Parameter %3d ; %20.10f",i[0],r[200+i[0]]
+    fput 1,r[200+i[0]],i[0]
+  enddo
+  fclose 1
+enddo

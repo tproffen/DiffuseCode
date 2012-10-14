@@ -1,0 +1,14 @@
+pop_dimx[1] =   pop_dimx[1] + 1
+#
+# Parameter E, cube term     
+#
+ipar        = ipar + 1
+pop_name      ipar, cube
+pop_xmin[ipar] = -100.0
+pop_xmax[ipar] =  100.0
+pop_smin[ipar] = -10.0
+pop_smax[ipar] =  10.0
+pop_sig [ipar] =   0.2
+type real,ipar
+refine all
+init ipar

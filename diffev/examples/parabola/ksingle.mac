@@ -1,0 +1,60 @@
+#
+rese
+#
+#
+variable integer,generation
+variable integer,member
+variable integer,children
+variable integer,parameters
+variable integer,kid
+#
+kid = $1
+#
+#
+fclose all
+#
+fopen 1,GENERATION
+fget  1,generation,member,children,parameters
+fclose 1
+#
+#  Read parameter values
+#
+fopen 1,"DIFFEV/Trials.%4D",kid
+fget 1
+fget 1
+fget 1
+fget 1
+fget 1
+do i[0]=1,parameters
+  fget 1,r[100+i[0]]
+enddo
+fclose 1
+#
+# calculate all R-values;
+#
+#
+  load xy,DATA/function.data
+  load xy,"FINAL/final.%4D",kid
+#
+#  match scal,1,2
+  skal
+#
+  kcal sub,1,2
+#
+mtyp 1,0
+mtyp 2,0
+mtyp 3,0
+ltyp 1,1
+ltyp 2,1
+ltyp 3,1
+lcol 1,3
+lcol 2,1
+lcol 3,6
+skal
+mark
+tit1 Refinement of  a parabola
+tit2 "Member no. %d in Generation %d",$1,generation
+achx 2\gH
+achy Intensity
+plot
+  rval 1,2,one

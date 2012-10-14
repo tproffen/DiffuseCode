@@ -1,0 +1,30 @@
+#
+# make_func.mac
+################################################################################
+#
+variable real, const
+variable real, lin
+variable real, squ
+variable real, trd
+variable real, cub
+#
+const = 100
+lin   = -30
+squ   = -15
+trd   =   8
+cub   =  -0.1
+#
+r[100] = const
+r[101] = lin
+r[102] = squ
+r[103] = trd
+r[104] = cub
+#
+rese
+func const + lin*r[0] + squ*r[0]**2 + trd*r[0]**3 + cub*r[0]**4,-10,10,0.01
+ksav 1
+  outf DATA/function.data
+  run
+skal
+mark
+plot
