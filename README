@@ -26,5 +26,9 @@ INSTALLATION
 ----------------------------------------------------------------
 
 To build from the source code, you need gfortran (> 4.3.x) as
-well as cmake installed. 
+well as cmake installed. Binary distributions as well as the 
+source code can be found at http://discus.sourceforge.net.
+
+If you like to participate in code development, join us at
+
 

@@ -5,4 +5,4 @@ set (FSOURCES allocate_generic.f90 appl_unix.f90 blockdat.f90 dkdo.f90
               random.f90 sup.f90 sys_gfortran.f90)
 
 add_library (lib_f90  ${FSOURCES})
-add_library (lib_f90c FCreadline.c csocket.c)
+add_library (lib_f90c FCreadline.c csocket.c csup.c)

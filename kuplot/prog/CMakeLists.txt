@@ -1,0 +1,46 @@
+# KUPLOT Build
+
+option(KUPLOT_NEXUS "KUPLOT_NEXUS" ON)
+
+find_package(PGPLOT)
+include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
+include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+
+link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
+link_directories(${PGPLOT_LIBRARIES})
+
+set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90 err_appl.f90
+	exit.f90 fit.f90 frame.f90 gsas.f90 init_x11.f90
+	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 plot.f90
+	save.f90 show.f90 upd_par.f90)
+
+set (LIBS lib_f90 lib_f90c readline ${PGPLOT_PGPLOT_LIBRARY})
+
+if (NEXUS_FOUND AND KUPLOT_NEXUS)
+  set (SOURCES ${SOURCES} nexus.f90)
+  set (LIBS ${LIBS} ${NEXUS_LIBRARIES})
+  include_directories(${NEXUS_INCLUDE_PATH})
+  link_directories(${NEXUS_LIBARY_PATH})
+
+else (NEXUS_FOUND AND KUPLOT_NEXUS)
+  set (SOURCES ${SOURCES} nonexus.f90)
+
+endif (NEXUS_FOUND AND KUPLOT_NEXUS)
+
+add_executable(kuplot ${SOURCES})
+target_link_libraries (kuplot ${LIBS})
+
+add_custom_command (
+  OUTPUT kuplot.hlp
+  COMMAND cat  ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp 
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
+               ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp
+  )
+
+add_custom_target(kuplothlp DEPENDS kuplot.hlp)
+add_dependencies(kuplot kuplothlp)
+
+install (TARGETS kuplot DESTINATION bin)
+install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION bin)
+FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
+install (FILES ${files} DESTINATION bin/mac/kuplot)
