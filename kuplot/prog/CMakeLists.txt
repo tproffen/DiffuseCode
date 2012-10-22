@@ -9,12 +9,27 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${PGPLOT_LIBRARIES})
 
-set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90 err_appl.f90
-	exit.f90 fit.f90 frame.f90 gsas.f90 init_x11.f90
-	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 plot.f90
-	save.f90 show.f90 upd_par.f90)
+set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90 
+        err_appl.f90 exit.f90 fit.f90 frame.f90 gsas.f90 
+	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 
+        plot.f90 save.f90 show.f90 upd_par.f90)
 
-set (LIBS lib_f90 lib_f90c readline ${PGPLOT_PGPLOT_LIBRARY})
+set (LIBS lib_f90 lib_f90c readline)
+
+# Get the correct PGPLOT libraries
+
+if (WIN32 OR CYGWIN) 
+  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
+                    ${PNG_LIBRARIES} -mwindows -Wl,--subsystem,console)
+  set (SOURCES ${SOURCES} init_win.f90)
+
+else (WIN32 OR CYGWIN) 
+  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} 
+                    ${PNG_LIBRARIES} X11)
+  set (SOURCES ${SOURCES} init_x11.f90)
+endif (WIN32 OR CYGWIN) 
+
+# NEXUS support ?
 
 if (NEXUS_FOUND AND KUPLOT_NEXUS)
   set (SOURCES ${SOURCES} nexus.f90)

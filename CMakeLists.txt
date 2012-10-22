@@ -29,6 +29,7 @@ add_dependencies(diffev dateinc)
 add_dependencies(kuplot dateinc)
 
 # Packaging
+
 set (CPACK_RESOURCE_FILE_LICENSE  
      "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "DISCUS Program Package")

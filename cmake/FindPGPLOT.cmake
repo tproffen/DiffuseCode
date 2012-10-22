@@ -27,6 +27,7 @@
 INCLUDE( DefaultSearchPaths )
 INCLUDE( FindPackageHandleStandardArgs )
 
+FIND_PACKAGE( PNG REQUIRED )
 MESSAGE( STATUS "Looking for PGPLOT: " )
 
 ####################################################################################################
@@ -51,7 +52,7 @@ MESSAGE( STATUS "Looking for PGPLOT: tcl library" TCL_LIBRARY )
 #
 # Find platform-dependend graphic libs
 #
-IF( WIN32 )
+IF( WIN32 OR CYGWIN )
 	MESSAGE( STATUS "Looking for PGPLOT: GrWin library" )
 	FIND_LIBRARY( GRWIN_LIBRARY
 		NAMES GrWin
@@ -88,7 +89,8 @@ IF( WIN32 )
 		SET( GRAPHIC_LIBRARIES ${GRWIN_LIBRARY} ${GDI32_LIBRARY} ${TH32_LIBRARY} ${IMAGEHLP_LIBRARY} )
 		SET( GRAPHICS_LIBS_FOUND TRUE )
 	ENDIF()
-ELSE( WIN32 )
+
+ELSE( WIN32 OR CYGWIN )
 	FIND_PACKAGE( X11 REQUIRED )
 	SET( GRAPHIC_LIBRARIES ${X11_LIBRARIES} )
 	SET( GRAPHICS_LIBS_FOUND TRUE )
@@ -104,7 +106,7 @@ FIND_PATH( PGPLOT_INCLUDE_DIR cpgplot.h
 		${PGPLOT_DIR}
 		${DEFAULT_PACKAGE_DIRS}
 		${DEFAULT_INCLUDE_DIRS}
-	PATH_SUFFIXES include INCLUDe
+	PATH_SUFFIXES include INCLUDE
 )
 	MESSAGE( STATUS "Looking for PGPLOT: include directory (${PGPLOT_INCLUDE_DIR})" )
 
