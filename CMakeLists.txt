@@ -10,6 +10,19 @@ set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 0)
 set (DIFFUSE_VERSION_PATCH 0)
 
+# Readline required for all programs
+
+find_package(Readline REQUIRED)
+
+# Set common libraries
+
+set (DIFFUSE_LIBS readline)
+
+if (WIN32 OR CYGWIN)
+  set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
+endif (WIN32 OR CYGWIN)
+
+
 # Go into directories
 
 add_subdirectory(lib_f90)

@@ -27,7 +27,7 @@
 INCLUDE( DefaultSearchPaths )
 INCLUDE( FindPackageHandleStandardArgs )
 
-FIND_PACKAGE( PNG REQUIRED )
+#FIND_PACKAGE( PNG REQUIRED )
 MESSAGE( STATUS "Looking for PGPLOT: " )
 
 ####################################################################################################
@@ -41,13 +41,13 @@ SET( PGPLOT_LIBRARY_SEARCH_DIRS
 	${DEFAULT_LIBRARY_DIRS}
 )
 
-MESSAGE( STATUS "Looking for PGPLOT: tcl library" )
-FIND_LIBRARY( TCL_LIBRARY
-	NAMES tcl tcl85 tcl8.5 tcl84 tcl8.4 tcl83 tcl8.3 tcl82 tcl80
-	PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
-	PATH_SUFFIXES lib  lib64 LIB
-)
-MESSAGE( STATUS "Looking for PGPLOT: tcl library" TCL_LIBRARY )
+#MESSAGE( STATUS "Looking for PGPLOT: tcl library" )
+#FIND_LIBRARY( TCL_LIBRARY
+#	NAMES tcl tcl85 tcl8.5 tcl84 tcl8.4 tcl83 tcl8.3 tcl82 tcl80
+#	PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
+#	PATH_SUFFIXES lib  lib64 LIB
+#)
+#MESSAGE( STATUS "Looking for PGPLOT: tcl library" TCL_LIBRARY )
 
 #
 # Find platform-dependend graphic libs
@@ -61,32 +61,32 @@ IF( WIN32 OR CYGWIN )
 	)
 	MESSAGE( STATUS "Looking for PGPLOT: GrWin library" GRWIN_LIBRARY )
 
-	MESSAGE( STATUS "Looking for PGPLOT: gdi32 library" )
-	FIND_LIBRARY( GDI32_LIBRARY
-		NAMES gdi32
-		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
-		PATH_SUFFIXES lib  lib64 LIB
-	)
-	MESSAGE( STATUS "Looking for PGPLOT: gdi32 library" GDI32_LIBRARY )
-
-	MESSAGE( STATUS "Looking for PGPLOT: th32 library" )
-	FIND_LIBRARY( TH32_LIBRARY
-		NAMES th32
-		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
-		PATH_SUFFIXES lib  lib64 LIB
-	)
-	MESSAGE( STATUS "Looking for PGPLOT: th32 library" TH32_LIBRARY )
-
-	MESSAGE( STATUS "Looking for PGPLOT: imagehlp library" )
-	FIND_LIBRARY( IMAGEHLP_LIBRARY
-		NAMES imagehlp
-		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
-		PATH_SUFFIXES lib  lib64 LIB
-	)
+#	MESSAGE( STATUS "Looking for PGPLOT: gdi32 library" )
+#	FIND_LIBRARY( GDI32_LIBRARY
+#		NAMES gdi32
+#		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
+#		PATH_SUFFIXES lib  lib64 LIB
+#	)
+#	MESSAGE( STATUS "Looking for PGPLOT: gdi32 library" GDI32_LIBRARY )
+#
+#	MESSAGE( STATUS "Looking for PGPLOT: th32 library" )
+#	FIND_LIBRARY( TH32_LIBRARY
+#		NAMES th32
+#		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
+#		PATH_SUFFIXES lib  lib64 LIB
+#	)
+#	MESSAGE( STATUS "Looking for PGPLOT: th32 library" TH32_LIBRARY )
+#
+#	MESSAGE( STATUS "Looking for PGPLOT: imagehlp library" )
+#	FIND_LIBRARY( IMAGEHLP_LIBRARY
+#		NAMES imagehlp
+#		PATHS	${PGPLOT_LIBRARY_SEARCH_DIRS}
+#		PATH_SUFFIXES lib  lib64 LIB
+#	)
 	MESSAGE( STATUS "Looking for PGPLOT: imagehlp library" IMAGEHLP_LIBRARY )
 
-	IF( GRWIN_LIBRARY AND GDI32_LIBRARY AND TH32_LIBRARY AND IMAGEHLP_LIBRARY )
-		SET( GRAPHIC_LIBRARIES ${GRWIN_LIBRARY} ${GDI32_LIBRARY} ${TH32_LIBRARY} ${IMAGEHLP_LIBRARY} )
+	IF( GRWIN_LIBRARY )
+		SET( GRAPHIC_LIBRARIES ${GRWIN_LIBRARY} )
 		SET( GRAPHICS_LIBS_FOUND TRUE )
 	ENDIF()
 

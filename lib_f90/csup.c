@@ -4,7 +4,12 @@
 /*                                                                 */
 /*******************************************************************/
 
+#ifdef WIN32
+#include "win32-glob.h"
+#else
 #include <glob.h>
+#endif
+
 #include <stdio.h>
 
 glob_t globbuf;
@@ -24,8 +29,7 @@ int ifiles_ (unsigned char *mask, int *l)
 	strncpy(cmask,(char *)mask,(int)*l);
 	cmask[*l]='\0';
 
-	globbuf.gl_offs = 1;
-	glob(cmask, GLOB_DOOFFS, NULL, &globbuf);
+	glob(cmask, 0, NULL, &globbuf);
 	return globbuf.gl_pathc; 
 }
 

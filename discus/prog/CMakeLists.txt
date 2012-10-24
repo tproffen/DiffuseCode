@@ -23,7 +23,7 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
   )
 
 add_executable (discus ${SOURCES})
-target_link_libraries (discus lib_f90 lib_f90c readline) 
+target_link_libraries (discus lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
 
 add_custom_command (
   OUTPUT discus.hlp

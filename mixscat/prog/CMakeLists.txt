@@ -11,7 +11,7 @@ set (SOURCES blk_appl.f90 err_appl.f90 exit.f90
              upd_par.f90 weights.f90)
 
 add_executable(mixscat ${SOURCES})
-target_link_libraries (mixscat lib_f90 lib_f90c readline) 
+target_link_libraries (mixscat lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
 
 add_custom_command (
   OUTPUT mixscat.hlp

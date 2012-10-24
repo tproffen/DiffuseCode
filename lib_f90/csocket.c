@@ -8,14 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <string.h>
 
-#ifdef __MINGW32__
+#ifdef WIN32
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #endif
 
 /********************************************************************/
@@ -63,13 +63,14 @@ int socket_accept_ (int *sock, int *cid, unsigned char *host,
 	char	 iall[16];
 	char	 ireq[16];
 	int	 addrlen, test;
-	struct   sockaddr_in pin;
+	struct   sockaddr_in pin,pout;
 	struct   hostent *hp;
 
 	memcpy(hostname,host,(size_t)*lhost);
 	hostname[*lhost]='\0';
 	if ((hp = gethostbyname(hostname)) == 0) {perror("gethostbyname");}
-        memcpy(iall,inet_ntoa(((struct in_addr *)(hp->h_addr))->s_addr),16);
+	pout.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+        memcpy(iall,inet_ntoa(pout.sin_addr),16);
         printf(" Allowing connections from %s ..\n",iall);
 
 	/* wait for a client to talk to us */

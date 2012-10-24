@@ -2,7 +2,8 @@
 
 option(KUPLOT_NEXUS "KUPLOT_NEXUS" ON)
 
-find_package(PGPLOT)
+find_package(PGPLOT REQUIRED)
+
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -14,18 +15,18 @@ set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90
 	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 
         plot.f90 save.f90 show.f90 upd_par.f90)
 
-set (LIBS lib_f90 lib_f90c readline)
+set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 # Get the correct PGPLOT libraries
 
 if (WIN32 OR CYGWIN) 
   set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
-                    ${PNG_LIBRARIES} -mwindows -Wl,--subsystem,console)
+                     -mwindows -Wl,--subsystem,console)
   set (SOURCES ${SOURCES} init_win.f90)
 
 else (WIN32 OR CYGWIN) 
   set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} 
-                    ${PNG_LIBRARIES} X11)
+                    X11)
   set (SOURCES ${SOURCES} init_x11.f90)
 endif (WIN32 OR CYGWIN) 
 
