@@ -16,7 +16,7 @@ find_package(Readline REQUIRED)
 
 # Set common libraries
 
-set (DIFFUSE_LIBS readline)
+set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 
 if (WIN32 OR CYGWIN)
   set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)

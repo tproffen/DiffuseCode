@@ -25,8 +25,7 @@ if (WIN32 OR CYGWIN)
   set (SOURCES ${SOURCES} init_win.f90)
 
 else (WIN32 OR CYGWIN) 
-  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} 
-                    X11)
+  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY})
   set (SOURCES ${SOURCES} init_x11.f90)
 endif (WIN32 OR CYGWIN) 
 
