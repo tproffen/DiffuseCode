@@ -13,7 +13,7 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
 	interpret.f90 inverse_mod.f90 kdo.f90 mc.f90 mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
-	molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 pdf.f90 pdf_mod.f90
+	molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 place_molecule.f90 pdf.f90 pdf_mod.f90
 	plot.f90 plot_mod.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 prop_para_mod.f90
 	recipro_mod.f90 rmc.f90 rmc_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
 	show.f90 spcgr_mod.f90 spcgr_setup.f90 stack.f90 stack_cr_mod.f90 stack_mod.f90

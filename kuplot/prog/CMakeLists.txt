@@ -15,7 +15,7 @@ set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90
 	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 
         plot.f90 save.f90 show.f90 upd_par.f90)
 
-set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
+set (LIBS png X11 lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 # Get the correct PGPLOT libraries
 
