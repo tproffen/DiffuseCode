@@ -9,6 +9,7 @@
       USE conn_mod
       USE inverse_mod 
       USE modify_mod
+      USE mole_surf_mod
       IMPLICIT none 
 !                                                                       
       include'learn.inc' 
@@ -137,6 +138,11 @@
 !                                                                       
          ELSEIF (str_comp (befehl, 'define', 3, lbef, 6) ) then 
             CALL do_define (zeile, lcomm) 
+!                                                                       
+!-------Decorate a surface by molecules 'decorate'                      
+!                                                                       
+         ELSEIF (str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
+             CALL do_place_molecule
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
