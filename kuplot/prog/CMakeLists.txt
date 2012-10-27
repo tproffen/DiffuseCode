@@ -15,7 +15,7 @@ set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90
 	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 
         plot.f90 save.f90 show.f90 upd_par.f90)
 
-set (LIBS png X11 lib_f90 lib_f90c ${DIFFUSE_LIBS})
+set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
 # Get the correct PGPLOT libraries
 
@@ -25,7 +25,7 @@ if (WIN32 OR CYGWIN)
   set (SOURCES ${SOURCES} init_win.f90)
 
 else (WIN32 OR CYGWIN) 
-  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY})
+  set (LIBS ${LIBS} ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
   set (SOURCES ${SOURCES} init_x11.f90)
 endif (WIN32 OR CYGWIN) 
 
