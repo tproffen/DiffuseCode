@@ -41,3 +41,14 @@ install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION bin)
 install (FILES ${DIFFUSE_SOURCE_DIR}/discus/prog/color.map DESTINATION bin)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/discus/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION bin/mac/discus)
+
+# Install libraries needed
+
+get_target_property(MY_BINARY_LOCATION discus LOCATION)
+configure_file(
+   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
+   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
+   @ONLY
+   )
+install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
+

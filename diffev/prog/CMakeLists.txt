@@ -44,3 +44,14 @@ install (TARGETS diffev DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION bin)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/diffev/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION bin/mac/diffev)
+
+# Install libraries needed
+
+get_target_property(MY_BINARY_LOCATION diffev LOCATION)
+configure_file(
+   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
+   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
+   @ONLY
+   )
+install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
+

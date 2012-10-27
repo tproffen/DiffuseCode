@@ -10,7 +10,7 @@ set (SOURCES blk_appl.f90 err_appl.f90 exit.f90
              mixscat.f90 save.f90 set.f90 show.f90 
              upd_par.f90 weights.f90)
 
-add_executable(mixscat MACOSX_BUNDLE WIN32 ${SOURCES})
+add_executable(mixscat ${SOURCES})
 target_link_libraries (mixscat lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
 
 add_custom_command (
@@ -23,23 +23,18 @@ add_custom_command (
 add_custom_target(mixscathlp DEPENDS mixscat.hlp)
 add_dependencies(mixscat mixscathlp)
 
-install (TARGETS mixscat 
-                 BUNDLE DESTINATION . COMPONENT Runtime
-                 RUNTIME DESTINATION bin COMPONENT Runtime
-        )
+install (TARGETS mixscat DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/mixscat/prog/mixscat.hlp DESTINATION bin)
-FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/mixscat/prog/sysmac/*.mac")
+file(GLOB files "${DIFFUSE_SOURCE_DIR}/mixscat/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION bin/mac/mixscat)
 
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/mixscat")
-IF(APPLE)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/mixscat.app")
-ENDIF(APPLE)
-IF(WIN32)
-  SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/mixscat.exe")
-ENDIF(WIN32)
+# Install libraries needed
 
-install (CODE "
-         include(BundleUtilities)
-         fixup_bundle(${APPS} \"\" \"\")
-         ")
+get_target_property(MY_BINARY_LOCATION mixscat LOCATION)
+configure_file(
+   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
+   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
+   @ONLY
+   )
+install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
+

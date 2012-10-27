@@ -59,3 +59,14 @@ install (TARGETS kuplot DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION bin)
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION bin/mac/kuplot)
+
+# Install libraries needed
+
+get_target_property(MY_BINARY_LOCATION kuplot LOCATION)
+configure_file(
+   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
+   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
+   @ONLY
+   )
+install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
+
