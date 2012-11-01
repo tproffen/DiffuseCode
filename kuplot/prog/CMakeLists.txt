@@ -23,10 +23,12 @@ if (WIN32 OR CYGWIN)
   set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
                      -mwindows -Wl,--subsystem,console)
   set (SOURCES ${SOURCES} init_win.f90)
+  set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
 
 else (WIN32 OR CYGWIN) 
   set (LIBS ${LIBS} ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
   set (SOURCES ${SOURCES} init_x11.f90)
+  set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 endif (WIN32 OR CYGWIN) 
 
 # NEXUS support ?
@@ -57,6 +59,9 @@ add_dependencies(kuplot kuplothlp)
 
 install (TARGETS kuplot DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION bin)
+install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION bin)
+install (PROGRAMS ${PGSERVER} DESTINATION bin)
+
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION bin/mac/kuplot)
 
