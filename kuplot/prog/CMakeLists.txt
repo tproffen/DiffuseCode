@@ -58,12 +58,12 @@ add_custom_target(kuplothlp DEPENDS kuplot.hlp)
 add_dependencies(kuplot kuplothlp)
 
 install (TARGETS kuplot DESTINATION bin)
-install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION bin)
-install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION bin)
+install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION share)
+install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
 install (PROGRAMS ${PGSERVER} DESTINATION bin)
 
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
-install (FILES ${files} DESTINATION bin/mac/kuplot)
+install (FILES ${files} DESTINATION share/kuplot)
 
 # Install libraries needed
 

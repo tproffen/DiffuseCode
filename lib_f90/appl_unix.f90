@@ -57,7 +57,7 @@
 !                                                                       
       mac_dir = ' ' 
       mac_dir (1:appl_dir_l) = appl_dir 
-      mac_dir (appl_dir_l + 1:appl_dir_l + pname_l + 6) = '/mac/'//     &
+      mac_dir (appl_dir_l + 1:appl_dir_l + pname_l + 10) = '../share/'//     &
       pname (1:pname_l) //'/'                                           
       mac_dir_l = len_str (mac_dir) 
 !                                                                       
@@ -68,13 +68,13 @@
 !                                                                       
       hlpfile = ' ' 
       hlpfile (1:appl_dir_l) = appl_dir 
-      hlpfile (appl_dir_l + 1:appl_dir_l + 1 + pname_l + 4) = '/'//     &
+      hlpfile (appl_dir_l + 1:appl_dir_l + 1 + pname_l + 13) = '../share/'//     &
       pname (1:pname_l) //'.hlp'                                        
       hlpfile_l = len_str (hlpfile) 
 !                                                                       
       colorfile = ' ' 
       colorfile (1:appl_dir_l) = appl_dir 
-      colorfile (appl_dir_l + 1:appl_dir_l + 10) = '/color.map' 
+      colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
       colorfile_l = len_str (colorfile) 
 !                                                                       
       CALL do_cwd (start_dir, start_dir_l) 

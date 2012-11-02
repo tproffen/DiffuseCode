@@ -41,6 +41,8 @@ add_dependencies(discus dateinc)
 add_dependencies(diffev dateinc)
 add_dependencies(kuplot dateinc)
 
+install (PROGRAMS ${DIFFUSE_SOURCE_DIR}/scripts/setup.sh DESTINATION share)
+
 # Packaging
 
 set (CPACK_RESOURCE_FILE_LICENSE "${DIFFUSE_SOURCE_DIR}/License.txt")
@@ -50,7 +52,7 @@ set (CPACK_PACKAGE_CONTACT "Thomas Proffen, Reinhard Neder")
 set (CPACK_PACKAGE_VERSION_MAJOR "${DIFFUSE_VERSION_MAJOR}")
 set (CPACK_PACKAGE_VERSION_MINOR "${DIFFUSE_VERSION_MINOR}")
 set (CPACK_PACKAGE_VERSION_PATCH "${DIFFUSE_VERSION_PATCH}")
-set (CPACK_PACKAGING_INSTALL_PREFIX  "/usr/local")
+set (CPACK_PACKAGING_INSTALL_PREFIX  "/usr/local/discus")
 set (CPACK_POSTFLIGHT_SCRIPT  "${DIFFUSE_SOURCE_DIR}/scripts/MACconfig.sh")
 
 include (CPack)
