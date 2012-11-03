@@ -453,6 +453,7 @@
       USE atom_env_mod 
       USE molecule_mod 
       USE prop_para_mod 
+      USE structur, ONLY: setup_lattice
       IMPLICIT none 
 !                                                                       
        

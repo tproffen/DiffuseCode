@@ -644,6 +644,7 @@
       USE allocate_appl_mod 
       USE crystal_mod 
       USE symm_mod 
+      USE structur, ONLY: update_cr_dim
       USE waves_mod 
       IMPLICIT none 
 !                                                                       

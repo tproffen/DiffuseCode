@@ -10,6 +10,7 @@
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 

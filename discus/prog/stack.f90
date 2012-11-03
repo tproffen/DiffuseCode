@@ -12,6 +12,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE stack_mod 
+      USE structur
       IMPLICIT none 
 !                                                                       
        
@@ -939,7 +940,7 @@
       USE crystal_mod 
       USE stack_mod 
       USE stack_cr_mod 
-      USE allocate_appl_mod
+      USE structur
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -1351,7 +1352,8 @@
       USE gen_add_mod 
       USE sym_add_mod 
       USE save_mod 
-      USE stack_mod 
+      USE stack_mod  
+      USE structur
       IMPLICIT none 
 !                                                                       
       INTEGER ist 
@@ -1650,6 +1652,7 @@
       USE diffuse_mod 
       USE save_mod 
       USE stack_mod 
+      USE structur
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -1878,6 +1881,7 @@
       USE diffuse_mod 
       USE save_mod 
       USE stack_mod 
+      USE structur
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -2122,6 +2126,7 @@
       USE config_mod 
       USE stack_mod 
       USE stack_cr_mod
+      USE structur
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 

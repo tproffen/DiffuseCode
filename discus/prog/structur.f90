@@ -1,3 +1,9 @@
+MODULE structur
+
+IMPLICIT NONE
+!
+PUBLIC
+CONTAINS
 !+                                                                      
 !     These routines create a new structure. The different options      
 !     are (or will be soon) :                                           
@@ -19,6 +25,7 @@
       USE crystal_mod 
       USE molecule_mod 
       USE save_mod 
+!      USE interface_def
       IMPLICIT none 
 !                                                                       
        
@@ -323,6 +330,16 @@
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
+write(*,*) ' BEFORE READSTRU ', nmax, maxscat, strucfile
+write(*,*) 'START of READSTRU'
+write(*,*) 'CR_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
+write(*,*) 'AS_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'AS_AT_LIS ',as_at_lis(i)
+ENDDO
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
                cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
                cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms, &
@@ -1084,7 +1101,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER cr_nscat 
       INTEGER as_natoms 
       INTEGER as_prop (MAXSCAT) 
-      LOGICAL as_iscat (MAXSCAT) 
+      INTEGER as_iscat (MAXSCAT) 
 !                                                                       
       INTEGER spcgr_ianz 
       INTEGER spcgr_para 
@@ -1099,6 +1116,16 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER i 
       LOGICAL lread 
 !                                                                       
+write(*,*) ' READSTRU ', nmax, maxscat, strucfile
+write(*,*) 'START of READSTRU'
+write(*,*) 'CR_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
+write(*,*) 'AS_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'AS_AT_LIS ',as_at_lis(i)
+ENDDO
       cr_natoms = 0 
       lread = .true. 
       lcell = .false. 
@@ -1122,6 +1149,30 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)     
          ENDIF 
       ENDIF 
+write(*,*) ' NMAX, MAXSCAT', nmax, maxscat
+write(*,*) ' cr_name     ', cr_name
+write(*,*) ' cr_spcgr    ', cr_spcgr
+write(*,*) ' cr_a0       ', cr_a0   
+write(*,*) ' cr_win      ', cr_win  
+write(*,*) ' cr_natoms   ', cr_natoms
+write(*,*) ' cr_nscat    ', cr_nscat 
+write(*,*) ' cr_dw       ', cr_dw
+write(*,*) ' cr_at_lis   ', cr_at_lis
+write(*,*) ' cr_dim      ', cr_dim   
+write(*,*) ' as_natoms   ', as_natoms
+write(*,*) ' as_at_lis   ', as_at_lis
+write(*,*) ' as_dw       ', as_dw
+write(*,*) ' sav_ncell   ', sav_ncell
+write(*,*) ' sav_r_ncell ', sav_r_ncell
+write(*,*) ' sav_ncatoms ', sav_ncatoms
+write(*,*) ' spcgr_ianz   ',spcgr_ianz
+write(*,*) ' spcgr_para   ',spcgr_para
+do i=1,cr_natoms
+write(*,*) ' ATOM',i, cr_at_lis(cr_iscat(i)), cr_iscat(i), cr_pos(:,i), cr_prop(i)
+enddo
+do i=1,as_natoms
+write(*,*) ' AS  ',i, as_at_lis(cr_iscat(i)), as_iscat(i), as_pos(:,i), as_prop(i)
+enddo
 !                                                                       
   999 CONTINUE 
       CLOSE (ist) 
@@ -1185,6 +1236,11 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
+write(*,*) 'START of STRUC_READ_HEADER'
+write(*,*) 'CR_AT_LIS '
+do i=0,HD_MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
       xx_nscat = 0 
       xx_nadp = 0 
 !                                                                       
@@ -1523,6 +1579,12 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       ENDIF 
 !                                                                       
   999 CONTINUE 
+!
+write(*,*) 'ENDE  of STRUC_READ_HEADER'
+write(*,*) 'CR_AT_LIS '
+do i=0,HD_MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
 !                                                                       
  2000 FORMAT    (a) 
  2010 FORMAT    (a16) 
@@ -1579,6 +1641,15 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
+write(*,*) 'START of STRUC_READ_ATOMS'
+write(*,*) 'CR_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
+write(*,*) 'AS_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'AS_AT_LIS ',as_at_lis(i)
+ENDDO
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -1690,6 +1761,15 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       IF (ier_num.eq. - 49) then 
          CALL no_error 
       ENDIF 
+!
+write(*,*) 'CR_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'CR_AT_LIS ',cr_at_lis(i)
+ENDDO
+write(*,*) 'AS_AT_LIS '
+do i=0,MAXSCAT
+write(*,*) 'AS_AT_LIS ',as_at_lis(i)
+ENDDO
 !                                                                       
   999 CONTINUE 
       CLOSE (ist) 
@@ -2130,8 +2210,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       spc_char (spc_n) = ' ' 
       spc_xyz (spc_n) = ' ' 
 !                                                                       
-      spc_char (spc_n) = typ (spc_spur (spc_n), spc_det (spc_n) ) 
-      power = pwr (spc_spur (spc_n), spc_det (spc_n) ) 
+      spc_char (spc_n) = typ (NINT(spc_spur (spc_n)), NINT(spc_det (spc_n)) ) 
+      power = pwr (NINT(spc_spur (spc_n)), NINT(spc_det (spc_n)) ) 
 !                                                                       
       DO i = 1, 3 
          ii = (i - 1) * 29 
@@ -4501,3 +4581,4 @@ types:     DO i=1,ntypes
 1000  FORMAT(a)
 !
       END SUBROUTINE test_file
+END MODULE structur

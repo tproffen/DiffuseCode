@@ -10,6 +10,7 @@
       USE crystal_mod 
       USE insert_mod 
       USE molecule_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
        

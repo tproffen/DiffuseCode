@@ -15,6 +15,7 @@ CONTAINS
       USE modify_func_mod
       USE molecule_mod 
       USE prop_para_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
        
@@ -1227,6 +1228,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
        

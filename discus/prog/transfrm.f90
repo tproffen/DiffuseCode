@@ -925,6 +925,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE structur, ONLY: setup_lattice, update_cr_dim
       USE transfrm_mod 
       IMPLICIT none 
 !                                                                       

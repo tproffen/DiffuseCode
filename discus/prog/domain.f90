@@ -479,6 +479,7 @@
       USE domaindis_mod 
       USE micro_mod 
       USE save_mod 
+      USE structur, ONLY: stru_readheader
       IMPLICIT none 
 !                                                                       
        
@@ -778,6 +779,7 @@
       USE crystal_mod 
       USE micro_mod 
       USE save_mod 
+      USE structur, ONLY: stru_readheader
       IMPLICIT none 
 !                                                                       
        
@@ -932,6 +934,7 @@
       USE micro_mod 
       USE molecule_mod 
       USE prop_para_mod 
+      USE structur, ONLY: struc_mole_header, mole_insert_current
       USE surface_mod 
       IMPLICIT none 
 !                                                                       

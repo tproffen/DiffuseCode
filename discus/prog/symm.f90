@@ -15,6 +15,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE structur, ONLY: update_cr_dim
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1079,6 +1080,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE structur, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1220,6 +1222,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE structur, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1351,6 +1354,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE structur, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1562,6 +1566,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE structur, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       

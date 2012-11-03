@@ -613,6 +613,7 @@
 !-                                                                      
       USE config_mod 
       USE mc_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
       include'errlist.inc' 

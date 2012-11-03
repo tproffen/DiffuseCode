@@ -16,6 +16,7 @@
       USE modify_mod
       USE molecule_mod 
       USE shear_mod 
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
        

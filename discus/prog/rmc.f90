@@ -1747,7 +1747,8 @@
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
-      USE rmc_mod 
+      USE rmc_mod
+      USE structur, ONLY: update_cr_dim
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 

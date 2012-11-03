@@ -10,6 +10,7 @@
       USE inverse_mod 
       USE modify_mod
       USE mole_surf_mod
+      USE structur
       IMPLICIT none 
 !                                                                       
       include'learn.inc' 
@@ -142,7 +143,7 @@
 !-------Decorate a surface by molecules 'decorate'                      
 !                                                                       
          ELSEIF (str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
-             CALL do_place_molecule
+            CALL do_place_molecule
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
