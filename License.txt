@@ -1,14 +1,5 @@
-The DISCUS software is provided without warranty of any kind.  No liability 
-is taken for any loss or damages, direct or indirect, that may result through 
-the use of the DISCUS package.  No warranty is made with respect to this 
-manual, or the program and functions therein.  There are no warranties that 
-the programs are free of error, or that they are consistent with any standard, 
-or that they will meet the requirement for a particular application.  
+The DISCUS software is provided without warranty of any kind.  No liability is taken for any loss or damages, direct or indirect, that may result through the use of the DISCUS package.  No warranty is made with respect to this manual, or the program and functions therein.  There are no warranties that the programs are free of error, or that they are consistent with any standard, or that they will meet the requirement for a particular application.  
 
-The programs and the manual have been thoroughly checked.  Nevertheless, it 
-can not be guaranteed that the manual is correct and up-to-date in every detail. 
-The manuals and programs may be changed without notice.
+The programs and the manual have been thoroughly checked.  Nevertheless, it can not be guaranteed that the manual is correct and up-to-date in every detail.  The manuals and programs may be changed without notice.
 
-The DISCUS package is intended as a public domain program.  It may be used 
-free of charge.  Any commercial use is, however, not allowed without the explicit 
-written permission of the authors.
+The DISCUS package is intended as a public domain program.  It may be used free of charge.  Any commercial use is, however, not allowed without the explicit written permission of the authors.

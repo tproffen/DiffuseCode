@@ -15,7 +15,7 @@ set (SOURCES blk_appl.f90 calc.f90 color.f90 draw.f90
 	kdo.f90 kuplot.f90 load.f90 math.f90 para.f90 
         plot.f90 save.f90 show.f90 upd_par.f90)
 
-set (LIBS png X11 lib_f90 lib_f90c ${DIFFUSE_LIBS})
+set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
 # Get the correct PGPLOT libraries
 
@@ -23,10 +23,12 @@ if (WIN32 OR CYGWIN)
   set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
                      -mwindows -Wl,--subsystem,console)
   set (SOURCES ${SOURCES} init_win.f90)
+  set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
 
 else (WIN32 OR CYGWIN) 
-  set (LIBS ${LIBS} ${PGPLOT_PGPLOT_LIBRARY})
+  set (LIBS ${LIBS} ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
   set (SOURCES ${SOURCES} init_x11.f90)
+  set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 endif (WIN32 OR CYGWIN) 
 
 # NEXUS support ?
@@ -56,6 +58,20 @@ add_custom_target(kuplothlp DEPENDS kuplot.hlp)
 add_dependencies(kuplot kuplothlp)
 
 install (TARGETS kuplot DESTINATION bin)
-install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION bin)
+install (FILES ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp DESTINATION share)
+install (FILES ${PGPLOT_DIR}/grfont.dat DESTINATION share)
+install (PROGRAMS ${PGSERVER} DESTINATION bin)
+
 FILE(GLOB files "${DIFFUSE_SOURCE_DIR}/kuplot/prog/sysmac/*.mac")
-install (FILES ${files} DESTINATION bin/mac/kuplot)
+install (FILES ${files} DESTINATION share/kuplot)
+
+# Install libraries needed
+
+get_target_property(MY_BINARY_LOCATION kuplot LOCATION)
+configure_file(
+   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
+   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
+   @ONLY
+   )
+install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
+
