@@ -1140,8 +1140,8 @@
 !                                                                       
                   DO i = 1, ia 
                   DO j = 1, ib 
-                  pdf_weight (wa (i), wb (j) ) = werte (1) 
-                  pdf_weight (wb (j), wa (i) ) = werte (1) 
+                  pdf_weight (NINT(wa (i)), NINT(wb (j)) ) = werte (1) 
+                  pdf_weight (NINT(wb (j)), NINT(wa (i)) ) = werte (1) 
                   ENDDO 
                   ENDDO 
 !                                                                       
