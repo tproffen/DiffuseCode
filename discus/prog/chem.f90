@@ -4002,8 +4002,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
          res_para (0) = res_para (0) + 2 
          IF (res_para (0) .lt.maxpar_res) then 
-            res_para (res_para (0) - 1) = chem_disp_ave (ic, i, j) 
-            res_para (res_para (0) ) = chem_disp_sig (ic, i, j) 
+            res_para (NINT(res_para (0)) - 1) = chem_disp_ave (ic, i, j)
+            res_para (NINT(res_para (0)) ) = chem_disp_sig (ic, i, j) 
          ELSE 
             ier_typ = ER_CHEM 
             ier_num = - 2 
@@ -6479,37 +6479,37 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       CHARACTER(41) ERROR (IU:IO) 
 !                                                                       
       DATA ERROR ( IU:-21) /                             &
-      'Atom type outside valid range              ',     & !-29
-      'Invalid correlation conn   index given     ',     & !-28
-      'No atoms present in crystal                ',     & !-27
-      'Invalid correlation environment index given',     & !-26
-      'Invalid range for bond-angle histogramm    ',     & !-25
-      'Invalid correlation angle index given      ',     & !-24
-      'Too many neighbouring atoms/molecules      ',     & !-23
-      'Command not available in molecule mode     ',     & !-22
-      'Molecule types need to be different        '      & !-21
+      'Atom type outside valid range           ',     & !-29
+      'Invalid correlation conn   index given  ',     & !-28
+      'No atoms present in crystal             ',     & !-27
+      'Invalid correlation environment index   ',     & !-26
+      'Invalid range for bond-angle histogramm ',     & !-25
+      'Invalid correlation angle index given   ',     & !-24
+      'Too many neighbouring atoms/molecules   ',     & !-23
+      'Command not available in molecule mode  ',     & !-22
+      'Molecule types need to be different     '      & !-21
       /                                 
       DATA ERROR (-20: -1) /                             &
-      'No molecules present in crystal            ',     & !-20
-      'No neighbouring molecules found            ',     & !-19
-      'Correlation fields require same # vectors  ',     & !-18
-      'Correlation fields require same mode       ',     & !-17
-      'Failed to apply periodic boundaries        ',     & !-16
-      'No displacement directions selected        ',     & !-15
-      'Invalid neighbour definition selected      ',     & !-14
-      'Correlation direction invalid              ',     & !-13
-      'Too many neighbour definitions             ',     & !-12
-      'No neighbours defined                      ',     & !-11
-      'Invalid crystal site or atom index given   ',     & !-10
-      'Invalid correlation vector index given     ',     & !- 9
-      'No neighbouring atoms found                ',     & !- 8
-      'Atoms need to be different                 ',     & !- 7
-      'Atom name ALL not allowed for this command ',     & !- 6
-      'Too many different atoms found             ',     & !- 5
-      'Invalid SIGMA entered                      ',     & !- 4
-      'Invalid range for bond-length histogramm   ',     & !- 3
-      'Not enough space for all results in res[]  ',     & !- 2
-      'Too many points for histogramm             '      & !- 1
+      'No molecules present in crystal         ',     & !-20
+      'No neighbouring molecules found         ',     & !-19
+      'Correlation fields require same # vector',     & !-18
+      'Correlation fields require same mode    ',     & !-17
+      'Failed to apply periodic boundaries     ',     & !-16
+      'No displacement directions selected     ',     & !-15
+      'Invalid neighbour definition selected   ',     & !-14
+      'Correlation direction invalid           ',     & !-13
+      'Too many neighbour definitions          ',     & !-12
+      'No neighbours defined                   ',     & !-11
+      'Invalid crystal site or atom index given',     & !-10
+      'Invalid correlation vector index given  ',     & !- 9
+      'No neighbouring atoms found             ',     & !- 8
+      'Atoms need to be different              ',     & !- 7
+      'Atom name ALL not allowed for command   ',     & !- 6
+      'Too many different atoms found          ',     & !- 5
+      'Invalid SIGMA entered                   ',     & !- 4
+      'Invalid range for bond-length histogramm',     & !- 3
+      'Not enough space for all result in res[]',     & !- 2
+      'Too many points for histogramm          '      & !- 1
       /                                 
       DATA ERROR (  0:  0) /                             &
       ' '                                                & !  0
