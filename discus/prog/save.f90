@@ -302,7 +302,11 @@
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
                   IF (sav_keyword) then 
-                     CALL save_keyword (sav_file) 
+                     IF (str_comp (sav_file(1:8),'internal',8,8,8)) THEN
+                        CALL save_internal (sav_file) 
+                     ELSE 
+                        CALL save_keyword (sav_file) 
+                     ENDIF 
                   ELSE 
                      CALL save_nokeyword (sav_file) 
                   ENDIF 
@@ -819,3 +823,40 @@
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
       END SUBROUTINE save_keyword                   
+!********************************************************************** 
+      SUBROUTINE save_internal (strucfile) 
+!+                                                                      
+!     This subroutine saves the structure and/or the unit cell          
+!     onto a file. The format uses keyword description.                 
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE gen_add_mod 
+      USE class_internal
+      USE molecule_mod 
+      USE sym_add_mod 
+      USE save_mod 
+      IMPLICIT none 
+!                                                                       
+      CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
+!
+      INTEGER                         :: i_start, i_end 
+      INTEGER                         :: istatus
+!
+      ALLOCATE(store_temp, STAT = istatus)        ! Allocate a temporary storage
+      store_temp%strucfile = strucfile            ! Copy filename
+!
+      CALL store_add_node(store_root, store_temp) ! add this node to storage tree
+      ALLOCATE(store_temp%crystal, STAT=istatus)  ! Allocate the crystal at this node
+      CALL store_temp%crystal%alloc_arrays(cr_natoms,cr_nscat) ! Allocate the crystal arrays
+      CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+!
+!     An internal crystal has ALL headers saved, logical flags are used to indicate
+!     whether they were supposed to be saved or not.
+      CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
+           sav_w_adp, sav_w_gene, sav_w_symm,                     &
+           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole)
+
+write(*,*) ' SAVED the crystal'
+!
+      END SUBROUTINE save_internal
