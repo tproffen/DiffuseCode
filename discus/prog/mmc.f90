@@ -2578,7 +2578,7 @@ CHARACTER(LEN=1) :: dummy
       REAL d, u (3), v (3) 
 !                                                                       
       REAL jdir (3) 
-      REAL rdj 
+      REAL rdj (CHEM_MAX_COR)
       REAL delta 
       REAL dx 
 !                                                                       
@@ -3040,12 +3040,12 @@ CHARACTER(LEN=1) :: dummy
 !                      mmc_rep_b (ic, is,js)/ d**mmc_rep_m (ic, is, js)
                   IF(d.gt.mmc_rep_c (ic, is,js)) THEN
                   mmc_energy_rep = mmc_energy_rep +                     &
-                      -1.*ABS(mmc_rep_a (ic, is,js)) +                  &
+                      (-1.)*(ABS(mmc_rep_a (ic, is,js))) +              &
                       mmc_rep_b (ic, is,js)/                            &
                       (d-mmc_rep_c (ic, is,js))**mmc_rep_m (ic, is, js)
                   ELSE
                   mmc_energy_rep = mmc_energy_rep +                     &
-                      -1.*ABS(mmc_rep_a (ic, is,js)) +                  &
+                      (-1.)*(ABS(mmc_rep_a (ic, is,js))) +              &
                       mmc_rep_b (ic, is,js)/                            &
                       (0.001                  )**mmc_rep_m (ic, is, js)
                   ENDIF
@@ -4285,16 +4285,13 @@ CHARACTER(LEN=1) :: dummy
 !                                                                       
       CHARACTER(41) ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR / 'Number of feedback intervalls is zero      ', 'Numbe&
-     &r of MC cycles is zero                ', 'Invalid mode selected fo&
-     &r COCC MC run      ', 'No valid move after 1000 cycles            &
-     &', 'Invalid or no energy type selected         ', ' ' /           
-                                                            ! -5        
-                                                            ! -4        
-                                                            ! -3        
-                                                            ! -2        
-                                                            ! -1        
-                  !  0                                                  
+      DATA ERROR /                                 &
+      'Number of feedback intervalls is zero    ', & !  -5
+      'Number of MC cycles is zero              ', & !  -4
+      'Invalid mode selected for COCC MC run    ', & !  -3
+      'No valid move after 1000 cycles          ', & !  -2
+      'Invalid or no energy type selected       ', & !  -1
+      ' ' /                                          !   0
 !                                                                       
       CALL disp_error ('MMC ', error, iu, io) 
       END SUBROUTINE errlist_mmc                    
