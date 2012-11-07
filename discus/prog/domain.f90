@@ -379,7 +379,7 @@
       include'prompt.inc' 
       include'errlist.inc' 
 !                                                                       
-      CHARACTER(8) char_type ( - 4:0) 
+      CHARACTER(9) char_type ( - 4:0) 
       CHARACTER(12) char_mode (0:1) 
       INTEGER i, ii, j 
       INTEGER              :: new_nscat ! DUMMY for allocation
@@ -460,7 +460,7 @@
  3250 FORMAT(' Inputfile name         : ','undefined') 
  4000 FORMAT(' Pseudoatom definitions : ',a) 
  4100 FORMAT(/,'     Pseudoatom name    : ',a4) 
- 4200 FORMAT('     domain type        : ',a8) 
+ 4200 FORMAT('     domain type        : ',a9) 
  4300 FORMAT('     content in file    : ',a) 
  4350 FORMAT('     content in file    : ','undefined') 
  4400 FORMAT('     fuzzy separation   : ',f15.7,' A') 
