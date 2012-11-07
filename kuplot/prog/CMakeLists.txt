@@ -3,6 +3,7 @@
 option(KUPLOT_NEXUS "KUPLOT_NEXUS" ON)
 
 find_package(PGPLOT REQUIRED)
+find_package(PNG REQUIRED)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
