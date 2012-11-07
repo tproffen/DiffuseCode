@@ -383,7 +383,7 @@ write(*,*) 'CLEANING UP'
       strufile = dc_input(i)
 write(*,*) ' STRUCFILE ',strufile
       CALL test_file(strufile, natoms, ntypes, init, lcell)
-      CALL dc_molecules(i)%alloc_atoms(natoms, ntypes)
+      CALL dc_molecules(i)%alloc_arrays(natoms, ntypes)
       CALL dc_molecules(i)%read_crystal ( strufile )
       m_length(i) = natoms
       m_ntypes(i) = ntypes
