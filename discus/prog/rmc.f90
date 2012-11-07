@@ -3394,44 +3394,29 @@
 !                                                                       
       CHARACTER(41) ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR / 'Number of LOTS exceeds maximum              ', 'No v&
-     &alid move after 1000 disp. intervalls   ', 'Invalid constrain ente&
-     &red                   ', 'Data file is not an ASCII PGM file      &
-     &    ', 'Data and weight file have different sizes   ', 'Invalid we&
-     &ighting scheme or weighting file  ', 'Invalid data type selected  &
-     &                ', 'No experimental data within given q limits  ',&
-     & 'Too many symmetrically equivalent planes    ', 'Displacements to&
-     &o small for SWDISP mode     ', 'Only ONE atom type present in SWCH&
-     &EM mode   ', 'No atom types selected for RMC run          ', 'Inva&
-     &lid RMC/MC mode selected                ', 'Invalid symmetry numbe&
-     &r selected            ', 'Invalid plane selected                  &
-     &    ', 'Too many atoms per molecule for RMC         ', 'Invalid me&
-     &thod (x,n) selected               ', 'No experimental data present&
-     &                ', 'No atoms present in model crystal           ',&
-     & 'Too many experimental data points           ', 'Too many experim&
-     &ental data planes           ', ' ' /                              
-                                                             !-21       
-                                                             !-20       
-                                                             !-19       
-                                                             !-18       
-                                                             !-17       
-                                                             !-16       
-                                                             !-15       
-                                                             !-14       
-                                                             !-13       
-                                                             !-12       
-                                                             !-11       
-                                                             !-10       
-                                                             ! -9       
-                                                             ! -8       
-                                                             ! -7       
-                                                             ! -6       
-                                                             ! -5       
-                                                             ! -4       
-                                                             ! -3       
-                                                             ! -2       
-                                                             ! -1       
-                  !  0                                                  
+      DATA ERROR / &
+      'Number of LOTS exceeds maximum           ', &  ! -21
+      'No valid move after 1000 disp. intervalls', &  ! -20
+      'Invalid constrain entered                ', &  ! -19
+      'Data file is not an ASCII PGM file       ', &  ! -18
+      'Data and weight file have different sizes', &  ! -17
+      'Invalid weighting scheme / weighting file', &  ! -16
+      'Invalid data type selected               ', &  ! -15
+      'No experimental data within given q limit', &  ! -14
+      'Too many symmetrically equivalent planes ', &  ! -13
+      'Displacements too small for SWDISP mode  ', &  ! -12
+      'Only ONE atom type present in SWCHEM mode', &  ! -11
+      'No atom types selected for RMC run       ', &  ! -10
+      'Invalid RMC/MC mode selected             ', &  !  -9
+      'Invalid symmetry number selected         ', &  !  -8
+      'Invalid plane selected                   ', &  !  -7
+      'Too many atoms per molecule for RMC      ', &  !  -6
+      'Invalid method (x,n) selected            ', &  !  -5
+      'No experimental data present             ', &  !  -4
+      'No atoms present in model crystal        ', &  !  -3
+      'Too many experimental data points        ', &  !  -2
+      'Too many experimental data planes        ', &  !   1
+      ' ' /                                            !   0
 !                                                                       
       CALL disp_error ('RMC ', error, iu, io) 
       END SUBROUTINE errlist_rmc                    
