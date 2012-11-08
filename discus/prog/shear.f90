@@ -1,3 +1,10 @@
+MODULE shear
+!
+IMPLICIT NONE
+!
+PUBLIC
+!
+CONTAINS
 !+                                                                      
 !     Generalized shear operations:                                     
 !                                                                       
@@ -6,7 +13,7 @@
 !     been switched off. This would need further developping            
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE shear 
+      SUBROUTINE shear_menue
 !-                                                                      
 !     Main menu for generalized shear operations                        
 !+                                                                      
@@ -640,7 +647,7 @@
 !                                                                       
  9999 CONTINUE 
 !                                                                       
-      END SUBROUTINE shear                          
+      END SUBROUTINE shear_menue                          
 !*****7*****************************************************************
       SUBROUTINE shear_show 
 !-                                                                      
@@ -1642,3 +1649,4 @@
 !                                                                       
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE shear_ca_single                
+END MODULE shear

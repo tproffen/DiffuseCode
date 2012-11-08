@@ -10,6 +10,8 @@
       USE inverse_mod 
       USE modify_mod
       USE mole_surf_mod
+      USE powder
+      USE shear
       USE structur
       IMPLICIT none 
 !                                                                       
@@ -298,7 +300,7 @@
 !     generalized shear operation 'shear'                               
 !                                                                       
          ELSEIF (str_comp (befehl, 'shear', 3, lbef, 4) ) then 
-            CALL shear 
+            CALL shear_menue
 !                                                                       
 !     Show something                                 'show'             
 !                                                                       
@@ -343,7 +345,7 @@
 !------   Waves traveling through the crystal 'wave'                    
 !                                                                       
          ELSEIF (str_comp (befehl, 'wave', 3, lbef, 4) ) then 
-            CALL waves 
+            CALL waves_menu
 !                                                                       
 !       Determine Wyckoff symmetry                                      
 !                                                                       

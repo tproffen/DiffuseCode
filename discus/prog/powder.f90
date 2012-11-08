@@ -1,3 +1,10 @@
+MODULE powder
+!
+IMPLICIT NONE
+!
+PUBLIC
+!
+CONTAINS
 !+                                                                      
 !     Calculation of powder diffraction pattern.                        
 !                                                                       
@@ -1129,7 +1136,7 @@
       REAL llendmini 
       REAL ss 
 !                                                                       
-      REAL calc_preferred 
+!      REAL calc_preferred 
       REAL skalpro 
       REAL asind 
       REAL seknds 
@@ -1609,8 +1616,8 @@
       REAL value 
       REAL xmin, xmax, xdel 
 !                                                                       
-      REAL lorentz 
-      REAL polarisation 
+!      REAL lorentz 
+!      REAL polarisation 
       REAL cosd, sind, asind 
 !                                                                       
       IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) then 
@@ -1895,7 +1902,7 @@ REAL tth, ysum
 INTEGER imax, i, j, ii 
 INTEGER max_ps 
 !                                                                       
-REAL pseudovoigt 
+!REAL pseudovoigt 
 !                                                                       
 !------ Setup Pseudo-Voigt                                              
 !                                                                       
@@ -1974,8 +1981,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
-      REAL pseudovoigt 
-      REAL profile_asymmetry 
+!      REAL pseudovoigt 
+!      REAL profile_asymmetry 
       REAL tand, sind, asind 
 !                                                                       
 !------ Now convolute                                                   
@@ -2062,8 +2069,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
-      REAL pseudovoigt 
-      REAL profile_asymmetry 
+!      REAL pseudovoigt 
+!      REAL profile_asymmetry 
       REAL tand, sind, asind 
 !                                                                       
 !------ Now convolute                                                   
@@ -3126,3 +3133,4 @@ read (*,*) i
       ENDDO 
 !                                                                       
       END SUBROUTINE powder_trans_atoms_fromcart    
+END MODULE powder

@@ -8,6 +8,7 @@
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE powder, ONLY: powder_out
       IMPLICIT none 
 !                                                                       
       include'doact.inc' 
