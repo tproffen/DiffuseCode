@@ -1,6 +1,6 @@
-!*****7*****************************************************************
+
 !                                                                       
-      SUBROUTINE waves 
+      SUBROUTINE waves_menu
 !-                                                                      
 !     calculates the displacement of the atoms due to a plane wave      
 !     travelling through the crystal                                    
@@ -490,7 +490,7 @@
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE waves                          
+      END SUBROUTINE waves_menu
 !*****7*********************************************************        
       SUBROUTINE wave_show 
 !-                                                                      
