@@ -10,6 +10,8 @@ MODULE atom_class
 !
 IMPLICIT none
 !
+PUBLIC cl_atom
+!
 TYPE :: cl_atom                        ! the basic type definition
    PRIVATE
    INTEGER                :: iscat     ! the scattering type
