@@ -50,6 +50,13 @@ CONTAINS
       LOGICAL lout 
       REAL hkl (3), u (3), xc (3), yc (3), zc (3), dist 
       REAL werte (maxw) 
+      INTEGER          :: ncells
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER          :: n_mole
+      INTEGER          :: n_type
+      INTEGER          :: n_atom
+      LOGICAL          :: need_alloc = .false.
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -212,10 +219,28 @@ CONTAINS
 !     ----------Update crystal dimensions                               
 !                                                                       
                         CALL update_cr_dim 
+                        ncells = cr_icc (1) * cr_icc (2)* cr_icc (3)
 !                                                                       
 !     ----------If molecules were read                                  
 !                                                                       
                         IF (mole_num_mole.gt.0) then 
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (mole_num_mole* ncells                              >= MOLE_MAX_MOLE ) THEN
+         n_mole = mole_num_mole* ncells + 20
+         need_alloc = .true.
+      ENDIF
+      IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells >= MOLE_MAX_ATOM ) THEN
+         n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells + 200
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
                            IF (mole_num_mole * cr_icc (1) * cr_icc (2)  &
                            * cr_icc (3) .le.MOLE_MAX_MOLE) then         
                               mole_num_atom = mole_off (mole_num_mole)  &
@@ -319,7 +344,8 @@ CONTAINS
                CALL rese_cr 
                sav_r_ncell = .false. 
                strucfile = cpara (1)
-               CALL test_file ( strucfile, natoms, nscats, -1 , .false.)
+               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+                             n_atom, -1 , .false.)
                IF (ier_num /= 0) THEN
                   RETURN
                ENDIF
@@ -327,6 +353,14 @@ CONTAINS
                   nscats = MAX(INT(nscats * 1.1), nscats + 2)
                   natoms = MAX(INT(natoms * 1.1), natoms + 10)
                   CALL alloc_crystal (nscats, natoms)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
@@ -443,6 +477,12 @@ CONTAINS
       INTEGER     :: new_nmax
       INTEGER     :: new_nscat
       INTEGER     :: io_line
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER                          :: n_mole 
+      INTEGER                          :: n_type 
+      INTEGER                          :: n_atom 
+      LOGICAL          :: need_alloc = .false.
       LOGICAL lread, lcell, lout 
       REAL werte (maxw), dw1 
 !                                                                       
@@ -454,7 +494,8 @@ CONTAINS
       lread     = .true. 
       lcell     = .true. 
       lout      = .false. 
-      CALL test_file ( strucfile, new_nmax, new_nscat, -1 , .not.cr_newtype)
+      CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
+                             n_atom, -1 , .not.cr_newtype)
       IF (ier_num /= 0) THEN
          CLOSE (ist)
          RETURN
@@ -503,6 +544,27 @@ CONTAINS
             RETURN
          ENDIF
       ENDIF
+      need_alloc = .false.
+      IF ( n_mole*spc_n > MOLE_MAX_MOLE ) THEN
+         n_mole = n_mole*spc_n
+         need_alloc = .true.
+      ENDIF
+      IF ( n_type > MOLE_MAX_TYPE ) THEN
+         need_alloc = .true.
+      ENDIF
+      IF ( n_atom*spc_n > MOLE_MAX_ATOM ) THEN
+         n_atom = n_atom*spc_n
+         need_alloc = .true.
+      ENDIF
+      IF( need_alloc )  THEN         ! Allocate sufficient molecules
+         CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
+        IF ( ier_num /= 0) THEN
+            CLOSE (IST)
+            RETURN
+         ENDIF
+      ENDIF
+
+
 main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          ier_num = -49 
          ier_typ = ER_APPL 
@@ -780,6 +842,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !     interprets the 'molecule' lines of a structure file               
 !+                                                                      
                                                                         
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
@@ -797,6 +860,12 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER lpara (maxw), lp 
       REAL werte (maxw) 
       LOGICAL lcell 
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER          :: n_mole
+      INTEGER          :: n_type
+      INTEGER          :: n_atom
+      LOGICAL          :: need_alloc = .false.
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -807,6 +876,19 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
 !     --No parameters, start a new Molekule                             
 !                                                                       
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (mole_num_mole >= MOLE_MAX_MOLE ) THEN
+         n_mole = mole_num_mole + 20
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
             IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
                IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
                   mole_l_on = .true. 
@@ -1543,6 +1625,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
 !+                                                                      
+      USE allocate_appl_mod , ONLY: alloc_molecule
       USE molecule_mod 
       IMPLICIT none 
 !                                                                       
@@ -1582,6 +1665,12 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER ianz 
       INTEGER i, j, ibl, lbef 
       INTEGER lline 
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER          :: n_mole
+      INTEGER          :: n_type
+      INTEGER          :: n_atom
+      LOGICAL          :: need_alloc = .false.
       REAL werte (maxw), dw1 
 !                                                                       
       INTEGER len_str 
@@ -1621,6 +1710,22 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             CALL struc_mole_header (zeile, i, .false.) 
             IF (ier_num.ne.0) return 
          ELSE 
+!                                                                       
+!        --Make sure we have enough space for molecule atoms
+!                                                                       
+            need_alloc = .false.
+            n_gene = MAX( 1, MOLE_MAX_GENE)
+            n_symm = MAX( 1, MOLE_MAX_SYMM)
+            n_mole =         MOLE_MAX_MOLE
+            n_type =         MOLE_MAX_TYPE
+            n_atom =         MOLE_MAX_ATOM
+            IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole)) >= MOLE_MAX_ATOM ) THEN
+               n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole)) + 200
+               need_alloc = .true.
+            ENDIF
+            IF ( need_alloc ) THEN
+               call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+            ENDIF
             CALL read_atom_line (line, ibl, lline, as_natoms, maxw,     &
             werte)                                                      
             IF (ier_num.ne.0.and.ier_num.ne. - 49) then 
@@ -3464,13 +3569,20 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !     Inserts the last atom into the molecule list as last atom of      
 !     the specified molecule.                                           
 !+                                                                      
+      USE allocate_appl_mod
       USE molecule_mod 
       IMPLICIT none 
 !                                                                       
       include'errlist.inc' 
 !                                                                       
-      INTEGER iatom 
-      INTEGER imole 
+      INTEGER, INTENT(IN) :: iatom 
+      INTEGER, INTENT(IN) :: imole 
+      INTEGER :: n_gene
+      INTEGER :: n_symm
+      INTEGER :: n_mole
+      INTEGER :: n_type
+      INTEGER :: n_atom
+      LOGICAL :: need_alloc = .false.
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -3483,6 +3595,23 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
 !     If necessary, create new molecule                                 
 !                                                                       
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (imole > MOLE_MAX_MOLE ) THEN
+         n_mole = MOLE_MAX_MOLE + 20
+         need_alloc = .true.
+      ENDIF
+      IF (iatom > MOLE_MAX_ATOM ) THEN
+         n_atom = MOLE_MAX_ATOM + 200
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
       IF (imole.gt.mole_num_mole) then 
          IF (imole.le.MOLE_MAX_MOLE) then 
             mole_num_mole = mole_num_mole+1 
@@ -4362,18 +4491,23 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
       END SUBROUTINE ins2discus                     
 !
-      SUBROUTINE test_file ( strucfile, natoms, ntypes, init, lcell)
+      SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
+                             n_atom, init, lcell)
 !
 !     Determines the number of atoms and atom types in strucfile
 !
       IMPLICIT NONE
 !
       include'errlist.inc'
+      include'charact.inc'
 
 !
       CHARACTER (LEN=*), INTENT(IN)    :: strucfile
       INTEGER          , INTENT(INOUT) :: natoms
       INTEGER          , INTENT(INOUT) :: ntypes
+      INTEGER          , INTENT(INOUT) :: n_mole 
+      INTEGER          , INTENT(INOUT) :: n_type 
+      INTEGER          , INTENT(INOUT) :: n_atom 
       INTEGER          , INTENT(IN)    :: init
       LOGICAL          , INTENT(IN)    :: lcell
 !
@@ -4385,6 +4519,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       REAL, PARAMETER                       :: eps = 1e-4
       CHARACTER (LEN=1024)                  :: line
       CHARACTER (LEN=1024)                  :: zeile
+      CHARACTER (LEN=  20)                  :: bef
       CHARACTER (LEN=   4), DIMENSION(1024), SAVE :: names
       REAL                , DIMENSION(1024), SAVE :: bvals
       INTEGER                               :: ios
@@ -4394,10 +4529,16 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER                               :: lp     ! length of parameter string
       INTEGER                               :: nscattypes ! no of SCAT arguments 
       INTEGER                               :: nadptypes  ! no of ADP  arguments 
+      INTEGER                               :: indxt      ! Pos of a TAB in input
+      INTEGER                               :: indxb      ! Pos of a BLANK in input
+      INTEGER                               :: lbef       ! Length of command string
+      LOGICAL                               :: in_mole    ! Currently within a molecule
+      LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
-      REAL                                  :: x,y,z,bval
+      REAL                                  :: xc,yc,zc,bval
 !
       INTEGER, EXTERNAL :: len_str
+      LOGICAL, EXTERNAL :: str_comp
       LOGICAL           :: IS_IOSTAT_END
 !
       natoms     = 0
@@ -4407,7 +4548,11 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
         names  = ' '
         bvals  = 0.0
         ntypes = 0
+        n_mole     = 0
+        n_type     = 0
+        n_atom     = 0
       ENDIF
+      in_mole = .false.
 !
       CALL oeffne ( 99, strucfile, 'old', .true. )
       IF ( ier_num /= 0) THEN
@@ -4482,30 +4627,76 @@ main: DO
         READ (99,1000, IOSTAT=ios) line
         IF ( IS_IOSTAT_END(ios) ) EXIT main
         CALL do_cap (line)
-        READ (line(5:len_str(line)), *, IOSTAT = ios) x,y,z,bval
-isatom: IF ( ios == 0 ) THEN
-           natoms = natoms + 1
-           new = .true.
-types:     DO i=1,ntypes
-              IF ( LINE(1:4) == names(i) ) THEN
-                 IF ( lcell ) THEN
-                    new = .false.
-                    EXIT types
-                 ELSEIF ( abs(abs(bval)-abs(bvals(i))) < eps ) THEN
-                    new = .false.
-                    EXIT types
-                 ENDIF
+        laenge = len_str(line)
+!
+        bef   = '    '
+        indxt = INDEX (line, tab)       ! find a tabulator
+        IF(indxt==0) indxt = laenge + 1
+        indxb = index (line, ' ')       ! find a blank
+        IF(indxb==0) indxb = laenge + 1
+        indxb = MIN(indxb,indxt)
+        lbef = min (indxb - 1, 5)
+        bef  = line (1:lbef)
+!
+ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
+             str_comp(line, 'DOMAIN'  , 3, lbef, 6) .or. &
+             str_comp(line, 'OBJECT'  , 3, lbef, 6)     ) THEN
+           IF ( indxb+1 >= laenge) THEN   ! No parameter => start
+              IF ( .not. in_mole) THEN
+                 in_mole = .true.
+                 n_mole  = n_mole + 1
+                 l_type  = .false.
               ENDIF
-           ENDDO types
-           IF ( new ) THEN
-              ntypes = ntypes + 1
-              names(ntypes) = line(1:4)
-              bvals(ntypes) = bval
+           ELSEIF ( str_comp(line(indxb+1: laenge), 'END',3, laenge-indxb,3)) THEN
+              IF ( in_mole) THEN
+                 in_mole = .false.
+                 IF(.not.l_type) THEN
+                    n_type = n_type + 1
+                 ENDIF
+                 l_type  = .false.
+              ENDIF
+           ELSEIF ( str_comp(line(indxb+1: laenge), 'TYPE',3, laenge-indxb,4)) THEN
+              zeile  = line(indxb+1: laenge)
+              laenge = laenge-indxb
+              CALL get_params (zeile, ianz, cpara, lpara, maxw, laenge)
+              cpara(1) = '0' 
+              lpara(1) = 1
+              CALL ber_params (ianz, cpara, lpara, werte, maxw)
+              n_type = MAX(n_type, NINT(werte(2)))
+              l_type = .true.
+           ELSE
+write(*,*) ' string ' , line(indxb+1: laenge)
            ENDIF
-        ENDIF isatom
+        ELSE ismole
+           READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
+isatom:    IF ( ios == 0 ) THEN
+              natoms = natoms + 1
+              IF ( in_mole ) THEN
+                 n_atom = n_atom + 1
+              ENDIF
+              new = .true.
+types:        DO i=1,ntypes
+                 IF ( LINE(1:4) == names(i) ) THEN
+                    IF ( lcell ) THEN
+                       new = .false.
+                       EXIT types
+                    ELSEIF ( abs(abs(bval)-abs(bvals(i))) < eps ) THEN
+                       new = .false.
+                       EXIT types
+                    ENDIF
+                 ENDIF
+              ENDDO types
+              IF ( new ) THEN
+                 ntypes = ntypes + 1
+                 names(ntypes) = line(1:4)
+                 bvals(ntypes) = bval
+              ENDIF
+           ENDIF isatom
+        ENDIF ismole
       ENDDO main
 !
       CLOSE (99)
+!
 !
 1000  FORMAT(a)
 !

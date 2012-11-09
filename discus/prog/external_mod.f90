@@ -10,11 +10,11 @@ SAVE
 !
 INTEGER, PARAMETER  ::  EXTE_HLINES  =  10
 !
-CHARACTER(LEN=200), DIMENSION(MOLE_MAX_TYPE)  ::  exte_names ! (MOLE_MAX_TYPE)
-CHARACTER(LEN=200)                            ::  exte_filename
-INTEGER, DIMENSION(MOLE_MAX_TYPE) ::  exte_length! (MOLE_MAX_TYPE)
+CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE  ::  exte_names ! (MOLE_MAX_TYPE)
+CHARACTER(LEN=200)                             ::  exte_filename
+INTEGER, DIMENSION(:), ALLOCATABLE ::  exte_length! (MOLE_MAX_TYPE)
 !
-INTEGER, DIMENSION(MOLE_MAX_TYPE) ::  exte_type ! (MOLE_MAX_TYPE)
+INTEGER, DIMENSION(:), ALLOCATABLE ::  exte_type ! (MOLE_MAX_TYPE)
 !
 INTEGER                 ::  exte_version
 INTEGER                 ::  exte_hdrblks

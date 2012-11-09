@@ -938,6 +938,7 @@
       USE config_mod 
       USE allocate_appl_mod
       USE crystal_mod 
+      USE molecule_mod 
       USE stack_mod 
       USE stack_cr_mod 
       USE structur
@@ -952,6 +953,9 @@
 !                                                                       
       INTEGER i, j, k 
       INTEGER         :: nlayers
+      INTEGER         :: n_mole  ! number of molecules in input file
+      INTEGER         :: n_type  ! number of molecule types in input file
+      INTEGER         :: n_atom  ! number of molecule atoms in input file
       LOGICAL lprev 
       REAL prob (ST_MAXTYPE) 
       REAL prob_n (ST_MAXTYPE) 
@@ -998,7 +1002,8 @@
 !                                                                       
 !     --Stacking fault origins are read from file                       
 !                                                                       
-         CALL test_file ( st_infile, st_natoms, st_nscat, -1, .true. )
+         CALL test_file ( st_infile, st_natoms, st_nscat, n_mole,  &
+                          n_type, n_atom, -1, .true. )
          IF(st_natoms > ST_MMAX .or. st_nscat > ST_MAX_SCAT) THEN
             CALL alloc_stack_crystal (st_nscat, st_natoms)
             IF ( ier_num /= 0 ) RETURN
@@ -1011,6 +1016,18 @@
             nlayers = MAX ( st_nlayer, st_natoms )
             CALL alloc_stack (ST_MAXTYPE, nlayers, MAXQXY, st_rot_status )
          ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
          CALL stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim)
          IF ( ier_num /= 0 ) THEN
             RETURN
@@ -1351,6 +1368,7 @@
       USE crystal_mod 
       USE gen_add_mod 
       USE sym_add_mod 
+      USE molecule_mod 
       USE save_mod 
       USE stack_mod  
       USE structur
@@ -1366,6 +1384,9 @@
       INTEGER          :: nscats, max_nscats
       INTEGER i, j, k ,l
       INTEGER iatom 
+      INTEGER         :: n_mole  ! number of molecules in input file
+      INTEGER         :: n_type  ! number of molecule types in input file
+      INTEGER         :: n_atom  ! number of molecule atoms in input file
       LOGICAL lread, lout 
       LOGICAL lcell 
       INTEGER, EXTERNAL :: len_str
@@ -1387,7 +1408,8 @@
          max_natoms = 0
          max_nscats = 0
          DO i = 1, st_ntypes
-            CALL test_file ( st_layer (i ), natoms, nscats, -1*i, .true.)
+            CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
+                             n_type, n_atom, -1*i, .true.)
             max_natoms = MAX(max_natoms, natoms)
             max_nscats = MAX(max_nscats, nscats)
          ENDDO
@@ -1399,6 +1421,18 @@
                CALL alloc_crystal (nscats, natoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
 !                                                                       
 !     --The first layer is read by the full readstru routine to         
 !        ensure correct lattice parameters                              
@@ -1650,6 +1684,7 @@
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE molecule_mod 
       USE save_mod 
       USE stack_mod 
       USE structur
@@ -1666,6 +1701,9 @@
       INTEGER         :: n_qxy    ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  ! Number of different atom types
       INTEGER         :: n_atoms  ! Number of atoms
+      INTEGER         :: n_mole  ! number of molecules in input file
+      INTEGER         :: n_type  ! number of molecule types in input file
+      INTEGER         :: n_atom  ! number of molecule atoms in input file
 !
       LOGICAL lout 
 !                                                                       
@@ -1717,11 +1755,24 @@
 !     --read first layer to ensure that the metric tensors are set      
 !                                                                       
          CALL rese_cr 
-         CALL test_file ( st_layer(1), n_atoms, n_nscat, -1, .true. )
+         CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
+                          n_atom,-1, .true. )
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
             CALL alloc_crystal (n_nscat, n_atoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
          CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name, cr_spcgr, &
          cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,  &
          cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,&
@@ -1770,11 +1821,24 @@
 !     ----read corresponding layer                                      
 !                                                                       
             CALL rese_cr 
-            CALL test_file ( st_layer_c(l), n_atoms, n_nscat, -1, .true. )
+            CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
+                             n_type, n_atom, -1, .true. )
             IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
                CALL alloc_crystal (n_nscat, n_atoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
             CALL readstru (NMAX, MAXSCAT, st_layer_c (l), cr_name,      &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms,    &
@@ -1879,6 +1943,7 @@
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE molecule_mod 
       USE save_mod 
       USE stack_mod 
       USE structur
@@ -1896,6 +1961,9 @@
       INTEGER         :: n_qxy    ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  ! Number of different atom types
       INTEGER         :: n_natoms ! Number of atoms 
+      INTEGER         :: n_mole  ! number of molecules in input file
+      INTEGER         :: n_type  ! number of molecule types in input file
+      INTEGER         :: n_atom  ! number of molecule atoms in input file
 !
       REAL u (3) 
 !
@@ -1935,11 +2003,24 @@
 !     ----read first layer to ensure that the metric tensors are set    
 !                                                                       
             CALL rese_cr 
-         CALL test_file ( st_layer(1), n_natoms, n_nscat, -1, .true. )
+         CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
+                          n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             CALL alloc_crystal (n_nscat, n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
             CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name,        &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms,    &
@@ -2030,11 +2111,24 @@
 !     ------read corresponding layer                                    
 !                                                                       
             CALL rese_cr 
-         CALL test_file ( st_layer(l), n_natoms, n_nscat, -1, .true. )
+         CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
+                          n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             CALL alloc_crystal (n_nscat, n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
+!
+!        IF more molecules have been read than were allocated
+!
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 ) RETURN
+               ENDIF
+!
             CALL readstru (NMAX, MAXSCAT, st_layer (l), cr_name,        &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms,    &

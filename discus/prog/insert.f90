@@ -647,6 +647,12 @@
       INTEGER          :: i, j, ii, k, kk 
       INTEGER          :: new_nmax
       INTEGER          :: new_nscat
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER          :: n_mole
+      INTEGER          :: n_type
+      INTEGER          :: n_atom
+      LOGICAL          :: need_alloc = .false.
 !                                                                       
       DATA cname / '    ', 'XAXI', 'YAXI', 'ZAXI' / 
       DATA oname / 'atom', 'cube', 'cyli', 'sphe' / 
@@ -656,6 +662,27 @@
 !     2) Check maximum number of molecule types                         
 !     3) Check maximum number of atoms                                  
 !                                                                       
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (mole_num_mole == MOLE_MAX_MOLE ) THEN
+         n_mole = MOLE_MAX_MOLE + 50
+         need_alloc = .true.
+      ENDIF
+      IF (mole_num_atom == MOLE_MAX_ATOM ) THEN
+         n_atom = MOLE_MAX_ATOM + 50*8
+         need_alloc = .true.
+      ENDIF
+      IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type == MOLE_MAX_MOLE) THEN
+         n_mole = MOLE_MAX_MOLE + 50
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
       IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
       IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type.lt.MOLE_MAX_MOLE.or.&
      &ins_type.lt.MOLE_MAX_MOLE) then                                   
@@ -813,6 +840,12 @@
       INTEGER i, j, ii, k, kk 
       INTEGER     :: new_nmax
       INTEGER          :: new_nscat
+      INTEGER          :: n_gene
+      INTEGER          :: n_symm
+      INTEGER          :: n_mole
+      INTEGER          :: n_type
+      INTEGER          :: n_atom
+      LOGICAL          :: need_alloc = .false.
 !                                                                       
       DATA cname / '    ', 'XAXI', 'YAXI', 'ZAXI', 'CENT', 'XDIM', 'YDIM&
      &', 'ZDIM' /                                                       
@@ -823,6 +856,27 @@
 !     2) Check maximum number of molecule types                         
 !     3) Check maximum number of atoms                                  
 !                                                                       
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (mole_num_mole == MOLE_MAX_MOLE ) THEN
+         n_mole = MOLE_MAX_MOLE + 50
+         need_alloc = .true.
+      ENDIF
+      IF (mole_num_atom == MOLE_MAX_ATOM ) THEN
+         n_atom = MOLE_MAX_ATOM + 50*8
+         need_alloc = .true.
+      ENDIF
+      IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type == MOLE_MAX_MOLE) THEN
+         n_mole = MOLE_MAX_MOLE + 50
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
       IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
       IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type.lt.MOLE_MAX_MOLE.or.&
      &ins_type.lt.MOLE_MAX_MOLE) then                                   

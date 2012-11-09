@@ -4,11 +4,11 @@ MODULE molecule_mod
 !+
 INTEGER, PRIVATE    ::  ik
 INTEGER, PRIVATE    ::  il
-INTEGER, PARAMETER  ::  MOLE_MAX_MOLE  =   64000
-INTEGER, PARAMETER  ::  MOLE_MAX_TYPE  =     500
-INTEGER, PARAMETER  ::  MOLE_MAX_GENE  =      10
-INTEGER, PARAMETER  ::  MOLE_MAX_SYMM  =      48
-INTEGER, PARAMETER  ::  MOLE_MAX_ATOM  =  512000
+INTEGER             ::  MOLE_MAX_MOLE  =   64000
+INTEGER             ::  MOLE_MAX_TYPE  =     500
+INTEGER             ::  MOLE_MAX_GENE  =      10
+INTEGER             ::  MOLE_MAX_SYMM  =      48
+INTEGER             ::  MOLE_MAX_ATOM  =  512000
 !
 INTEGER, PARAMETER  ::  MOLE_ATOM          =   0
 INTEGER, PARAMETER  ::  MOLE_CUBE          =   1
@@ -30,25 +30,27 @@ INTEGER                                 ::  mole_num_type = 0
 INTEGER                                 ::  mole_num_unit = 0
 INTEGER                                 ::  mole_gene_n   = 0
 INTEGER                                 ::  mole_symm_n   = 0
-INTEGER, DIMENSION(MOLE_MAX_GENE)       ::  mole_gene_power = 1
-INTEGER, DIMENSION(MOLE_MAX_SYMM)       ::  mole_symm_power = 1
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_gene_power           ! (1:MOLE_MAX_GENE)
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_symm_power           ! (1:MOLE_MAX_SYMM)
 !
 INTEGER                                 ::  mole_num_atom = 0
 INTEGER                                 ::  mole_num_acur = 0
 !
-INTEGER  , DIMENSION(  0:MOLE_MAX_MOLE) ::  mole_len      = 0
-INTEGER  , DIMENSION(  0:MOLE_MAX_MOLE) ::  mole_off      = 0
-INTEGER*1, DIMENSION(  0:MOLE_MAX_MOLE) ::  mole_type     = 0
-INTEGER*1, DIMENSION(  0:MOLE_MAX_MOLE) ::  mole_char     = MOLE_ATOM
-CHARACTER(LEN=200), DIMENSION(0:MOLE_MAX_MOLE)  ::  mole_file = ' '
-INTEGER, DIMENSION(    0:MOLE_MAX_ATOM) ::  mole_cont     = 0
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_len                  ! (  0:MOLE_MAX_MOLE)
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_off                  ! (  0:MOLE_MAX_MOLE)
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_type                 ! (  0:MOLE_MAX_MOLE)
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_char                 ! (  0:MOLE_MAX_MOLE)
+CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: mole_file            ! (  0:MOLE_MAX_MOLE)
+INTEGER, DIMENSION(:), ALLOCATABLE      ::  mole_cont                 ! (  0:MOLE_MAX_ATOM)
 !
-REAL   , DIMENSION(4,4,0:MOLE_MAX_GENE) ::  mole_gene     = &
-         RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_GENE)/),SHAPE(mole_gene ))
-REAL   , DIMENSION(4,4,0:MOLE_MAX_SYMM) ::  mole_symm     = &
-         RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_SYMM)/),SHAPE(mole_symm ))
-REAL   , DIMENSION(    0:MOLE_MAX_MOLE) ::  mole_dens     = 0.0
-REAL   , DIMENSION(    0:MOLE_MAX_MOLE) ::  mole_fuzzy    = 0.0
+REAL   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_gene                 ! (4,4,1:MOLE_MAX_GENE)
+!        RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_GENE)/),SHAPE(mole_gene ))
+REAL   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_symm                 ! (4,4,1:MOLE_MAX_SYMM)
+!        RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_SYMM)/),SHAPE(mole_symm ))
+REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_dens                 ! (  0:MOLE_MAX_MOLE)
+REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOLE_MAX_MOLE)
+!
+INTEGER                                 :: mol_size_of = 0
 !
 !     COMMON /molecule/ mole_num_mole,mole_num_curr,mole_num_act,       &
 !    &                  mole_num_type,mole_num_unit,mole_l_on,          &

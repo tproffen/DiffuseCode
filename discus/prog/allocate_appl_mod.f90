@@ -99,6 +99,8 @@ MODULE allocate_appl_mod
                CALL dealloc_debye
             ELSE IF (str_comp (cpara (1) , 'diffuse'   , 3, lpara (1) , 7) )  THEN
                CALL dealloc_diffuse
+            ELSE IF (str_comp (cpara (1) , 'molecule'  , 3, lpara (1) , 8) )  THEN
+               CALL dealloc_molecule
             ELSE IF (str_comp (cpara (1) , 'pdf'       , 3, lpara (1) , 3) )  THEN
                CALL dealloc_pdf
             ELSE IF (str_comp (cpara (1) , 'plot'      , 3, lpara (1) , 4) )  THEN
@@ -278,6 +280,7 @@ MODULE allocate_appl_mod
       CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_lenn ( CHEM_MAX_COR,  1        )
+      CALL alloc_molecule ( 1,  1,  1,  1,  1)
       CALL alloc_pdf      ( 1,  1,  1    )
       CALL alloc_plot     ( 1            )
       CALL alloc_powder   ( 1            )
@@ -1495,6 +1498,126 @@ MODULE allocate_appl_mod
     END SUBROUTINE alloc_mmc_rep
 !
 !
+    SUBROUTINE alloc_molecule ( n_gene, n_symm, n_mole, n_type, n_atom )
+!-
+!     Allocate the arrays needed by molecules
+!+
+      USE molecule_mod
+      USE external_mod
+!
+      IMPLICIT NONE
+!
+      include 'errlist.inc'
+!      
+      INTEGER, INTENT(IN)  :: n_gene
+      INTEGER, INTENT(IN)  :: n_symm
+      INTEGER, INTENT(IN)  :: n_mole
+      INTEGER, INTENT(IN)  :: n_type
+      INTEGER, INTENT(IN)  :: n_atom
+!
+      INTEGER              :: i
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      lstat       = .TRUE.
+      mol_size_of = 0
+!
+      CALL alloc_arr ( mole_gene_power,1,n_gene,  all_status, 1  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_gene,1,4, 1,4,1,n_gene,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_symm_power,1,n_symm,  all_status, 1  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_symm,1,4, 1,4,1,n_symm,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_len       ,0,n_mole,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_off       ,0,n_mole,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_type      ,0,n_mole,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_char      ,0,n_mole,  all_status, MOLE_ATOM  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_file      ,0,n_mole,  all_status, ' '  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_dens      ,0,n_mole,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_fuzzy     ,0,n_mole,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_cont      ,0,n_atom,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( exte_names     ,1,n_type,  all_status, ' '  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( exte_length    ,1,n_type,  all_status, 0    , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( exte_type      ,1,n_type,  all_status, 0    , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+!
+      FORALL (i=1:4)
+         mole_gene(i,i,:) = 1.0
+         mole_symm(i,i,:) = 1.0
+      END FORALL
+!
+      IF( lstat ) THEN                        ! Success
+         MOLE_MAX_GENE    = n_gene
+         MOLE_MAX_SYMM    = n_symm
+         MOLE_MAX_MOLE    = n_mole
+         MOLE_MAX_TYPE    = n_type
+         MOLE_MAX_ATOM    = n_atom
+         ier_typ          = 0
+         ier_num          = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'MOLECULE'
+         ENDIF
+      ELSE                                    ! Failure
+         MOLE_MAX_GENE    = n_gene
+         MOLE_MAX_SYMM    = n_symm
+         MOLE_MAX_MOLE    = n_mole
+         MOLE_MAX_TYPE    = n_type
+         MOLE_MAX_ATOM    = n_atom
+         mol_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'MOLECULE'
+
+         RETURN
+      END IF
+    END SUBROUTINE alloc_molecule
+!
+!
     SUBROUTINE alloc_pdf ( n_scat, n_dat, n_bnd )
 !-
 !     Allocate the arrays needed by PDF
@@ -2384,6 +2507,18 @@ MODULE allocate_appl_mod
 !
     END SUBROUTINE dealloc_mmc
 !
+    SUBROUTINE dealloc_molecule
+!-
+!     Deallocate the arrays for PDF
+!     To avoid possible pitfals with old code, the arrays are simply
+!     reallocated to a size of 1.
+!+
+      IMPLICIT NONE
+!
+      CALL alloc_molecule ( 1, 1, 1, 1, 1 )
+!
+    END SUBROUTINE dealloc_molecule
+!
     SUBROUTINE dealloc_pdf
 !-
 !     Deallocate the arrays for PDF
@@ -2392,7 +2527,7 @@ MODULE allocate_appl_mod
 !+
       IMPLICIT NONE
 !
-!     CALL alloc_pdf ( 1, 1, 1 )
+      CALL alloc_pdf ( 1, 1, 1 )
 !
     END SUBROUTINE dealloc_pdf
 !

@@ -369,8 +369,11 @@ write(*,*) 'CLEANING UP'
 !
    INTEGER  :: i                ! dummy index
    INTEGER  :: istatus          ! status
-   INTEGER  :: natoms           ! number of atoms in molecule
-   INTEGER  :: ntypes           ! number of atom types in molecule
+   INTEGER  :: natoms           ! number of atoms in file
+   INTEGER  :: ntypes           ! number of atom types in file
+   INTEGER  :: n_mole           ! number of molecules
+   INTEGER  :: n_type           ! number of molecule types
+   INTEGER  :: n_atom           ! number of atoms in molecules
    INTEGER  :: init   = -1      ! Initialize atom names/types
    LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
 !
@@ -382,7 +385,8 @@ write(*,*) 'CLEANING UP'
    DO i=1,dc_n_molecules        ! load all molecules
       strufile = dc_input(i)
 write(*,*) ' STRUCFILE ',strufile
-      CALL test_file(strufile, natoms, ntypes, init, lcell)
+      CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
+                     n_atom, init, lcell)
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes)
       CALL dc_molecules(i)%read_crystal ( strufile )
       m_length(i) = natoms
