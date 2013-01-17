@@ -4,11 +4,11 @@ MODULE molecule_mod
 !+
 INTEGER, PRIVATE    ::  ik
 INTEGER, PRIVATE    ::  il
-INTEGER             ::  MOLE_MAX_MOLE  =   64000
-INTEGER             ::  MOLE_MAX_TYPE  =     500
-INTEGER             ::  MOLE_MAX_GENE  =      10
-INTEGER             ::  MOLE_MAX_SYMM  =      48
-INTEGER             ::  MOLE_MAX_ATOM  =  512000
+INTEGER             ::  MOLE_MAX_MOLE  =       1
+INTEGER             ::  MOLE_MAX_TYPE  =       1
+INTEGER             ::  MOLE_MAX_GENE  =       1
+INTEGER             ::  MOLE_MAX_SYMM  =       1
+INTEGER             ::  MOLE_MAX_ATOM  =       1
 !
 INTEGER, PARAMETER  ::  MOLE_ATOM          =   0
 INTEGER, PARAMETER  ::  MOLE_CUBE          =   1
