@@ -116,10 +116,10 @@ SAVE
 !     MMAX         : Maximum number of atoms within a microdomain
 !     MK_MAX_SCAT  : Maximum number of atom types within a microdomain
 !
-      INTEGER            MMAX,MK_MAX_SCAT
+!      INTEGER            MMAX,MK_MAX_SCAT
 !
-      PARAMETER      (MMAX         = 250   )
-      PARAMETER      (MK_MAX_SCAT  = DEF_MAXSCAT)
+!      PARAMETER      (MMAX         = 250   )
+!      PARAMETER      (MK_MAX_SCAT  = DEF_MAXSCAT)
 !
 !#######################################################################
 ! (6) Stacking faults
