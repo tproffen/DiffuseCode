@@ -9,11 +9,13 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      PARAMETER    (IU=-112,IO=4)
+      PARAMETER    (IU=-114,IO=4)
 !
       CHARACTER*41  ERROR(IU:IO)
 !
-      DATA ERROR (-112: -101) /                     &
+      DATA ERROR (-114: -101) /                     &
+     &  'Error allocating              ',           & !-114 ! discus
+     &  'Could not find internal storage',          & !-113 ! discus
      &  'Error reading ADP  instruction',           & !-112 ! discus
      &  'Error reading SCAT instruction',           & !-111 ! discus
      &  'Connectivity definition does not exist',   & !-110 ! discus
