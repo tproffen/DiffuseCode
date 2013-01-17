@@ -40,6 +40,7 @@ REAL               , DIMENSION(:,:,:), ALLOCATABLE :: st_sigma        ! (  ST_MA
 REAL               , DIMENSION(:,:,:), ALLOCATABLE :: st_trans        ! (  ST_MAXTYPE, ST_MAXTYPE,3)
 !
 INTEGER            , DIMENSION(:)    , ALLOCATABLE :: st_type         ! (  ST_MAXLAYER)
+LOGICAL            , DIMENSION(:)    , ALLOCATABLE :: st_internal     ! (  ST_MAXTYPE )
 REAL               , DIMENSION(:,:)  , ALLOCATABLE :: st_origin       ! (3,ST_MAXLAYER)
 REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_no   ! (  ST_MAXLAYER)
 REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m1   ! (  ST_MAXLAYER)
