@@ -29,7 +29,12 @@ int ifiles_ (unsigned char *mask, int *l)
 	strncpy(cmask,(char *)mask,(int)*l);
 	cmask[*l]='\0';
 
-	glob(cmask, 0, NULL, &globbuf);
+#ifdef WIN32
+glob(cmask, 0, NULL, &globbuf);
+#else
+globbuf.gl_offs = 1;
+glob(cmask, GLOB_DOOFFS, NULL, &globbuf);
+#endif
 	return globbuf.gl_pathc; 
 }
 
