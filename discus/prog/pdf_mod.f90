@@ -50,6 +50,7 @@ REAL                ::  pdf_qalp   =  0.00
 REAL                ::  pdf_dnorm  =  1.00
 REAL                ::  pdf_rho0   =  0.00
 REAL                ::  pdf_sphere =  0.00
+REAL                ::  pdf_diam_poly =  0.00
 REAL                ::  pdf_diam   =  0.00
 REAL                ::  pdf_shape  =  0.00
 REAL                ::  pdf_scale  =  1.00
