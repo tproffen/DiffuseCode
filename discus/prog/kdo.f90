@@ -13,6 +13,7 @@
       USE powder
       USE shear
       USE structur
+      USE spcgr_apply, ONLY: wyckoff_main
       IMPLICIT none 
 !                                                                       
       include'learn.inc' 
