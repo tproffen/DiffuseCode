@@ -24,7 +24,7 @@
 !
       PARAMETER      (MAXARRAY   = 1500000)
       PARAMETER      (MAXKURVTOT = 100)
-      PARAMETER      (MAXPARA    = 50)
+      PARAMETER      (MAXPARA    = 150)
       PARAMETER      (MAXHL      = 5)
       PARAMETER      (MAXZ       = 501)
       PARAMETER      (MAXFRAME   = 16)
