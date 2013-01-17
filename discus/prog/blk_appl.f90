@@ -191,7 +191,7 @@
       mmc_move_prob (i) = 0.0 
       mmc_move_cprob (i) = 0.0 
       ENDDO 
-      DO i = 1, CHEM_MAX_COR 
+      DO i = 0, CHEM_MAX_COR 
       DO j = 0, MC_N_ENERGY 
       mmc_cor_energy (i, j) = .false. 
 !     mmc_const (i, j) = 1.0 
