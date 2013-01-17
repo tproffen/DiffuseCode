@@ -69,9 +69,9 @@
 
    Here you find a list of recent changes, additions, bug corrections
 
-3  2012jun
+3  2012dec
 
-   Finally this is it! DISCUS is now a fortran2003 program. Most of the
+   Finally this is it! DISCUS is now a fortran2008 program. Most of the
    substantial changes should not affect the user (or so we hope).
    Most of the large arrays are now allocated automatically, as needed,
    thus the need to compile DISCUS with different size versions should
@@ -79,8 +79,15 @@
 
 4  Command_line_options
 
-   The command line may now take the option:
+   The command line may now take the additional option:
    program -macro <macro_name> [<par1> [ <par2> ...]]
+4  internal_storage
+
+   DISCUS now offers an internal storage of crystal structures.
+   Simply start the file name with the string "internal" and
+   DISCUS will write the crystal structure into a dynymically
+   allocated internal data structure, instead of onto the hard disk.
+   
 4  mmc
 
    The mmc menu can now offer a new "repulsive" energy, and may use
@@ -2447,7 +2454,7 @@
 
    In some cases, you might have defined a target simply as
    "set target, 1,repulsive,void,void, ..."
-   Here the purpose is to define a repulsive interavtion bewteen
+   Here the purpose is to define a repulsive interaction between
    voids, while all other atoms do not play a role. 
    MMC needs to know, however, whether it may shift/switch chemistry
    of voids with other atoms through the "set mode" definitions.
@@ -2492,16 +2499,20 @@
    ==> 'set target' command to find out which atoms are involved.
 
    Sometimes, you might want to fix an atom to a place within the 
-   crystal structure. And the same time, though you might want the
+   crystal structure. At the same time, though you might want the
    correlations between this atom and other atoms to be taken into
    account. This is needed, for example if you want to sort atoms 
-   of type A into the center of a spher , while keeping atoms of type
-   B on the outside. In this cas a dummy atom of type C should be 
+   of type A into the center of a sphere, while keeping atoms of type
+   B on the outside. In this case a dummy atom of type C should be 
    fixed at the center, and negative chemical short range order
-   be realized between this atom and atoms of type A.
+   be realized between this C atom and atoms of type A.
 
-   To exclude an atom type from the moves defined by ==> set move,
-   use the set disallowed command. 
+   To allow an atom type to participate in the moves defined 
+   by ==> set move, use the set allowed command. 
+
+   As the ==> 'set target' command allows all atoms that it finds
+   to participate in a move, the 'set disallowed' command must be
+   place after the last 'set target' instruction.
 4  environment
 !b set "env", 
 
@@ -2608,7 +2619,7 @@
 !b                               <a>, <rho>, <b>
 !b set "target",<ic>,"repulsive",{<number> | <name> | "all"},
 !b                               {<number> | <name> | "all"}, 
-!b                               <energy>,    <slope> [, <rmin> [, <pa>] ]
+!b                               <energy>,    <scale> [, <rmin> [, <pa>] ]
 !b
 
    The target command sets the desired correlation values for each of
@@ -2616,10 +2627,30 @@
 
    Depending on the neighbourhood type you must specify exactly one
    or several target energy types for each <ic>. The neighbourhoods 
-   "vector" and "angle" require one energy type, while the neighbourhood
-   "environment" may take several different energies.
+   "vector", <cor>, and "angle" require one energy type, while the
+   neighbourhood "environment" may take several different energies.
    For each interaction <ic> you may specify several targets for different 
    atom combinations.
+
+   set "target",<ic>,"corr",     {<number> | <name> | "all"},
+                                 {<number> | <name> | "all"},
+                                 <correlation>, <energy>, {"CORR" | "ENER"}
+
+   A chemical correlation is defined between the two atom type. 
+   The last keyword defines how the target shall be achieved. 
+   With "CORR", you want to achieve the target <correlation>.
+   DISCUS uses the feedback loop to adjust the value of the
+   Ising Energy in order to achive the desired correlation.
+   With "ENER", you fix the value of the Ising energy to the 
+   value of <energy>. For negative <energy> values like atoms 
+   will tend to be neighbors, while a positive <energy> favors
+   opposite atoms next to each other.
+   If you use several targets at the same time, it is necessary to 
+   use the "Ener" keyword. Otherwise, the feedback mechanism will
+   increase the absolute value of the Ising energy at each feedback 
+   until the target <correlation> is achieved. This target will
+   therefor overrule the other targets that all have fixed energy
+   values.
 
    set "target",<ic>,"lennard",  {<number> | <name> | "all"},
                                  {<number> | <name> | "all"}, 
@@ -2636,18 +2667,31 @@
 
    set "target",<ic>,"repulsive",{<number> | <name> | "all"},
                                  {<number> | <name> | "all"}, 
-                                 <energy>,    <slope> [, <rmin> [, <pr>] ]
+                                 [<energy>[,<scale> [, <rmin> [, <pr>] ]]]
 
    A purely repulsive energy is calculated between the two atom types.
    The energy is calculated as:
-   -1.*|<energy>| + <slope>/(<distance> - <rmin>)^<pr>
+   -1.*|<energy>| + ((<distance> - <rmin>)/<scale>)^<pr>
    Thus <energy> is the energy between the two atoms at infinite distance.
-   For interatomic distances shorter than <distance> the program calculates:
-   <energy> + <slope>/(0.001              )^<pr>
+   As mmc compares the energy differences between two atom configurations,
+   the value of this energy is not really relevant.
 
-   For a steep descent, choose a high value of the power <pr>.
-   <rmin> defaults to zero
-   <pr>   defaults to 1.0
+   For interatomic distances shorter than <rmin> the program calculates:
+   -1.*|<energy>| + ((0.000001                    )^<pr>
+
+   For a steep descent, choose a high value of the power <pr>. With a 
+   high value of <pr>, the potential levels off at shorter distances 
+   and energy differences become less relevant. Thus the atoms will be
+   pushed apart more strongly at shorter distances, yet at longer 
+   distances the influence of this potential is less critical.
+
+   To push atoms far apart over the whole range of distances, shoose a 
+   large value of <scale>.
+
+   <energy> defaults to zero
+   <scale>  defaults to 1.0
+   <rmin>   defaults to zero
+   <pr>     defaults to 1.0
 4  temp
 !b set "temp",<kt>
 
@@ -3375,7 +3419,7 @@
    diameter that is used in combination with the finite size
    treatment ==>"set finite,tanh"
 4  finite
-!b set "finite", {"periodic"| "poly" | "sphere",<diameter> | "tanh"}
+!b set "finite", {"periodic"| "poly",<diameter> | "sphere",<diameter> | "tanh"}
 
    This commands defines how to deal with finite particles.
    Since their PDF does not contain distances beyond the diameter,
@@ -3388,6 +3432,8 @@
    "poly"
    A polynomial function of order N is used to correct the -4Pi Rho0 r
    line. See ==> "set poly" for the corresponding parameters.
+   The -4Pi Rho0 r line is set to zero for distances longer than the 
+   diameter.
 
    "sphere",<diameter>
 
@@ -3437,11 +3483,14 @@
 
    This command allows to set the parameters of a polynomial
    function that is used in combination with the finite size
-   treatment ==>"set finite,tanh".  The background line
+   treatment ==>"set finite,poly".  The background line
    -4 pi rho r is modified by subtracting this polynomial:
-   -4 pi rho r - p1 - p2*r**2 - p3*r**3 - p4*r**4 - p5*r**5
+   -4 pi rho r - p1*r**1 - p2*r**2 - p3*r**3 - p4*r**4 - p5*r**5
    The order of the polynomial is defined by the number of parameters
    given, which can be at most equal to five.
+
+   Notice that the polynomial starts with the linear term and does
+   not contain a term p0*r**0 !
 4  qalp
 !b set "qalp",<alp>
 
