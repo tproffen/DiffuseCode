@@ -837,26 +837,45 @@
       USE sym_add_mod 
       USE save_mod 
       IMPLICIT none 
+      include'errlist.inc'
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
-      INTEGER                         :: i_start, i_end 
       INTEGER                         :: istatus
 !
       ALLOCATE(store_temp, STAT = istatus)        ! Allocate a temporary storage
+      NULLIFY(store_temp%before)
+      NULLIFY(store_temp%after )
+      IF ( istatus /= 0) THEN
+         ier_num = -114
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Temporary storage failed'
+         RETURN
+      ENDIF
       store_temp%strucfile = strucfile            ! Copy filename
 !
       CALL store_add_node(store_root, store_temp) ! add this node to storage tree
       ALLOCATE(store_temp%crystal, STAT=istatus)  ! Allocate the crystal at this node
-      CALL store_temp%crystal%alloc_arrays(cr_natoms,cr_nscat) ! Allocate the crystal arrays
-      CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+      IF ( istatus /= 0) THEN
+         ier_num = -114
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Could not allocate storage crystal'
+         RETURN
+      ENDIF
+!
+!     Allocate sufficient space, even for all headers, and atom type, if they are omitted
+!
+      CALL store_temp%crystal%alloc_arrays(cr_natoms,cr_nscat, &
+           mole_max_mole, mole_max_type, mole_max_atom           ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.
-      CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
+      CALL store_temp%crystal%set_crystal_save_flags (MAXSCAT,sav_w_scat, & 
            sav_w_adp, sav_w_gene, sav_w_symm,                     &
-           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole)
-
-write(*,*) ' SAVED the crystal'
+           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole,sav_latom)
+!
+      CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+!
+!     CALL store_write_node(store_root)
 !
       END SUBROUTINE save_internal
