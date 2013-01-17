@@ -5519,7 +5519,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
          ncent = 1 
-         CALL indextocell (jatom, jcell, jsite) 
+!        CALL indextocell (jatom, jcell, jsite) 
          DO i = 1, chem_ncon (ic) 
             iatom (0, ncent)    = jatom             ! Store central atom at entry 0
             patom (1, 0, ncent) = cr_pos (1, jatom) ! Store coord. of central atom
@@ -5530,15 +5530,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
                CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, natoms )
-!if(natoms==0) then
-!write(*,*) ' No conn for atom ',jatom, i, iv,ic
-!endif
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)
-                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + offset(1)
-                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + offset(1)
-                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + offset(1)
+                  patom(1,k+j,ncent) = cr_pos(1,c_list(j))
+                  patom(2,k+j,ncent) = cr_pos(2,c_list(j))
+                  patom(3,k+j,ncent) = cr_pos(3,c_list(j))
                ENDDO 
                natom(ncent) = natom(ncent) + natoms
             ENDIF
@@ -5547,15 +5544,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             ncent = ncent - 1 
             ncent = 0 
          ENDIF 
-         if((ncent) > 0 ) then
-!write(*,*) ' Number of neighbours ', jatom,natom(ncent)
-!write(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
-!write(*,*) ' types      are       ', (cr_iscat(iatom(j,ncent)),j=1,natom(ncent))
-!         else
-!write(*,*) ' Atom                 ', jatom, ncent, cr_iscat(jatom), cr_pos(:,jatom)
-!write(*,*) ' no of def.           ',chem_ncon(ic), ic
-         endif
-
 !                                                                       
 !------ ------------------------------------------------------          
 !------ Mode angular neighbours                                         
