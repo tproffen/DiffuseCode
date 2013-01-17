@@ -1080,7 +1080,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
-      USE structur, ONLY: mole_insert_current
+      USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1222,7 +1222,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
-      USE structur, ONLY: mole_insert_current
+      USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1354,7 +1354,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
-      USE structur, ONLY: mole_insert_current
+      USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
@@ -1566,7 +1566,7 @@
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
-      USE structur, ONLY: mole_insert_current
+      USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       IMPLICIT none 
 !                                                                       
