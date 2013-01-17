@@ -1,4 +1,4 @@
-      SUBROUTINE stack 
+SUBROUTINE stack 
 !                                                                       
 !+                                                                      
 !     This subroutines contain the generator for stacking faults.       
@@ -12,7 +12,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE stack_mod 
-      USE structur
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
        
@@ -293,6 +293,7 @@
                            ENDIF
                            IF (st_ntypes.lt.ST_MAXTYPE) then 
                               st_ntypes = st_ntypes + 1 
+                              st_internal(st_ntypes) = cpara(1)(1:8)=='internal'
                               st_layer (st_ntypes) = cpara (1) 
                               st_llayer (st_ntypes) = lpara (1) 
                               DO i = 1, st_nchem 
@@ -942,6 +943,7 @@
       USE stack_mod 
       USE stack_cr_mod 
       USE structur
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -1369,9 +1371,11 @@
       USE gen_add_mod 
       USE sym_add_mod 
       USE molecule_mod 
+      USE read_internal_mod
       USE save_mod 
       USE stack_mod  
-      USE structur
+      USE structur  
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
       INTEGER ist 
@@ -1382,6 +1386,9 @@
 !                                                                       
       INTEGER          :: natoms, max_natoms
       INTEGER          :: nscats, max_nscats
+      INTEGER          ::         max_n_mole
+      INTEGER          ::         max_n_type
+      INTEGER          ::         max_n_atom
       INTEGER i, j, k ,l
       INTEGER iatom 
       INTEGER         :: n_mole  ! number of molecules in input file
@@ -1403,15 +1410,28 @@
          RETURN
       ENDIF
 !
-      IF (st_nlayer.ge.1) then 
+more1: IF (st_nlayer.ge.1) then 
 !
          max_natoms = 0
          max_nscats = 0
+         max_n_mole = 0
+         max_n_type = 0
+         max_n_atom = 0
          DO i = 1, st_ntypes
-            CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
-                             n_type, n_atom, -1*i, .true.)
+         enddo
+         DO i = 1, st_ntypes
+            IF(st_internal(i) ) THEN
+               CALL testfile_internal ( st_layer (i ), natoms, nscats, n_mole, &
+                                n_type, n_atom)
+            ELSE
+               CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
+                                n_type, n_atom, -1*i, .true.)
+            ENDIF
             max_natoms = MAX(max_natoms, natoms)
             max_nscats = MAX(max_nscats, nscats)
+            max_n_mole = MAX(max_n_mole, n_mole)
+            max_n_type = MAX(max_n_type, n_type)
+            max_n_atom = MAX(max_n_atom, n_atom)
          ENDDO
          natoms = st_nlayer * max_natoms
          nscats = max_nscats
@@ -1424,11 +1444,11 @@
 !
 !        IF more molecules have been read than were allocated
 !
-               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
-                  n_atom>MOLE_MAX_ATOM                          ) THEN
-                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
-                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
-                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+               IF(max_n_mole>MOLE_MAX_MOLE .or. max_n_type>MOLE_MAX_TYPE .or.   &
+                  max_n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(max_n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(max_n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(max_n_atom +200,MOLE_MAX_ATOM)
                   CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
@@ -1444,13 +1464,22 @@
 !                                                                       
          CALL rese_cr 
 !
-         CALL readstru (NMAX, MAXSCAT, st_layer (st_type (i) ), cr_name,&
-         cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis,&
-         cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw,&
-         as_pos, as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,&
-         spcgr_ianz, spcgr_para)                                        
-         IF (ier_num.ne.0) then 
-            RETURN 
+         IF(st_internal(st_type(i)) ) THEN
+            CALL readstru_internal (st_layer (st_type (i) ))!, &
+!                 NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+!                 MOLE_MAX_TYPE, MOLE_MAX_ATOM )
+            IF (ier_num.ne.0) then 
+               RETURN 
+            ENDIF 
+         ELSE 
+            CALL readstru (NMAX, MAXSCAT, st_layer (st_type (i) ), cr_name,&
+            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis,&
+            cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw,&
+            as_pos, as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,&
+            spcgr_ianz, spcgr_para)                                        
+            IF (ier_num.ne.0) then 
+               RETURN 
+            ENDIF 
          ENDIF 
 !                                                                       
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
@@ -1498,14 +1527,46 @@
 !                                                                       
 !     --Loop over all layers in crystal                                 
 !                                                                       
-         DO i = 2, st_nlayer 
+layers:  DO i = 2, st_nlayer 
          iatom = cr_natoms + 1 
          lread = .true. 
+internal: IF(st_internal(st_type(i)) ) THEN
+!                                                                       
+!     ------Read header of internal structure file                               
+!                                                                       
+            gen_add_n = 0 
+            sym_add_n = 0 
+            CALL stru_readheader_internal (st_layer(st_type(i)), NMAX, MAXSCAT, lcell, cr_name,   &
+            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win,        &
+            sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+            cr_spcgrno, &
+            GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                 &
+            SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add )
+!
+!                                                                       
+            IF (ier_num.ne.0) then 
+               RETURN 
+            ENDIF 
+!                                                                       
+!     ------Now only the atoms are read from an internal file
+!                                                                       
+            ier_num = 0 
+            ier_typ = ER_NONE 
+!                                                                       
+            CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX, MAXSCAT,&
+                  cr_natoms, cr_pos, cr_iscat, cr_prop)
+            CLOSE (ist) 
+            IF (ier_num.ne.0) then 
+               RETURN 
+            ENDIF 
+         ELSE internal
 !                                                                       
 !     --Open file, read header                                          
 !                                                                       
          CALL oeffne (ist, st_layer (st_type (i) ) , 'old', lread) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num /= 0) then 
+            RETURN
+         ENDIF
 !                                                                       
 !     ------Read header of structure file                               
 !                                                                       
@@ -1531,6 +1592,7 @@
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
+         ENDIF internal
 !                                                                       
 !     ------Add origin of layer                                         
 !                                                                       
@@ -1568,11 +1630,8 @@
                   CALL symm_op_single 
                ENDIF 
             ENDIF 
-         ELSE 
-            RETURN 
-         ENDIF 
-         ENDDO 
-      ENDIF 
+         ENDDO layers
+      ENDIF more1
 !                                                                       
   999 CONTINUE 
       CLOSE (ist) 
@@ -1688,6 +1747,7 @@
       USE save_mod 
       USE stack_mod 
       USE structur
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -1947,6 +2007,7 @@
       USE save_mod 
       USE stack_mod 
       USE structur
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
@@ -2221,6 +2282,7 @@
       USE stack_mod 
       USE stack_cr_mod
       USE structur
+      USE spcgr_apply
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
