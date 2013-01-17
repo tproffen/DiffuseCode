@@ -44,7 +44,7 @@
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
-      IF( cr_nscat > PDF_MAXSCAT) THEN
+      IF( cr_nscat > PDF_MAXSCAT .or. MAXSCAT > PDF_MAXSCAT) THEN
                  pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
                  pdf_ndat  = MAX(pdf_ndat ,           PDF_MAXDAT)
                  pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
@@ -478,7 +478,7 @@
             ELSEIF (pdf_finite.eq.PDF_BACK_SPHERE) then 
                WRITE (output_io, 2360) pdf_sphere 
             ELSEIF (pdf_finite.eq.PDF_BACK_POLY) then 
-               WRITE (output_io, 2370) 
+               WRITE (output_io, 2370) pdf_diam_poly
                DO i = 1, pdf_poly_n 
                WRITE (output_io, 2371) cpoly (i), pdf_poly (i) 
                ENDDO 
@@ -576,10 +576,11 @@
  2320 FORMAT ('     Particle size is sphere  : ',F8.4,' A diameter') 
  2330 FORMAT ('     Particle size is         : treated by polynomial'   &
      &                   '              parameters      : ',5(F8.4,2x)) 
- 2350 FORMAT     ('     4 Pi Rho r correction    : none') 
- 2360 FORMAT     ('     4 Pi Rho r correction    : ',F8.4,              &
+ 2350 FORMAT ('     4 Pi Rho r correction    : none') 
+ 2360 FORMAT ('     4 Pi Rho r correction    : ',F8.4,              &
      &                                         ' A diameter sphere')    
- 2370 FORMAT ('     4 Pi Rho r correction    : treated by polynomial') 
+ 2370 FORMAT ('     4 Pi Rho r correction    : ',F8.4,              &
+     &                                         ' A diameter polynomial')
  2371 FORMAT     ('              ',a9,   '       : ',F12.8) 
  2380 FORMAT     ('     4 Pi Rho r correction    : treated by tanh',/,  &
      &                   '        Particle diameter     : ',F8.4,/,     &
@@ -986,6 +987,15 @@
                   ENDIF 
                ELSEIF (str_comp (cpara (2),'poly',3,lpara(2),4)) then
                   pdf_finite = PDF_BACK_POLY 
+                  CALL del_params (2, ianz, cpara, lpara, maxw) 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF (ier_num.ne.0) return 
+                  IF (ianz.eq.1) then 
+                     pdf_diam_poly = werte (1) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
                ELSEIF (str_comp (cpara (2),'tanh',3,lpara (2),4)) then
                   pdf_finite = PDF_BACK_TANH 
                ELSE 
@@ -1762,10 +1772,14 @@
          rr = 2.0 * zpi * r * r0 * pdf_dnorm 
       ELSEIF (pdf_finite.eq.PDF_BACK_POLY) then 
          rr = 2.0 * zpi * r * r0 * pdf_dnorm 
-         DO k = 1, pdf_poly_n 
-         rr = rr - pdf_poly (k) * r**k 
-         ENDDO 
-         rr = max (0.0, rr) 
+         IF (r.lt.pdf_diam_poly) then 
+            DO k = 1, pdf_poly_n 
+               rr = rr - pdf_poly (k) * r**k 
+            ENDDO 
+            rr = max (0.0, rr) 
+         ELSE 
+            rr = 0.0 
+         ENDIF 
       ELSEIF (pdf_finite.eq.PDF_BACK_SPHERE) then 
          rr = 2.0 * zpi * r * r0 * pdf_dnorm 
          IF (r.lt.pdf_sphere) then 
