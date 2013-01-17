@@ -6,7 +6,7 @@ IMPLICIT NONE
 !
 PRIVATE
 PUBLIC  :: internal_storage
-PUBLIC  :: store_root, store_temp
+PUBLIC  :: store_root, store_temp, read_temp
 PUBLIC  :: store_add_node, store_find_node, store_write_node
 !
 TYPE :: internal_storage
@@ -19,8 +19,10 @@ END TYPE internal_storage
 !
 TYPE(internal_storage), POINTER      :: store_root  ! The main root of the internal storage tree
 TYPE(internal_storage), POINTER      :: store_temp  ! a temporary pointer to migrate the tree
+TYPE(internal_storage), POINTER      ::  read_temp  ! a temporary pointer to migrate the tree
 !
 CONTAINS
+!*******************************************************************************
    RECURSIVE SUBROUTINE store_add_node ( ptr, new_node )
 !
    IMPLICIT NONE
@@ -37,10 +39,6 @@ CONTAINS
          ptr%before  => new_node                         ! Add new node here
       ENDIF                                              ! 
    ELSEIF ( new_node%strucfile  ==   ptr%strucfile) THEN ! New "strucfile" is = old
-!      DEALLOCATE ( new_node, STAT = istatus )           ! Remove new node
-!      ALLOCATE (new_node, STAT = istatus )              ! Make new node
-!      NULLIFY ( new_node%before )                       ! Nullify before
-!      NULLIFY ( new_node%after  )                       !   and   after
       new_node => ptr                                    ! new node points to old
    ELSEIF ( LGT(new_node%strucfile, ptr%strucfile)) THEN ! New "strucfile" is > old
       IF ( ASSOCIATED(ptr%after) ) THEN                  ! after node exists
@@ -85,13 +83,18 @@ CONTAINS
    CHARACTER (LEN=200)             :: strucfile = ' '
    INTEGER                         :: number    = 0
 !
-   IF ( ASSOCIATED(ptr%before)) THEN
-      CALL store_write_node ( ptr%before )
+   IF ( ASSOCIATED(ptr) ) THEN
+      IF ( ASSOCIATED(ptr%before)) THEN
+         CALL store_write_node ( ptr%before )
+      ENDIF
+      WRITE(*,1000) ptr%number, ptr%strucfile
+      IF ( ASSOCIATED(ptr%after)) THEN
+         CALL store_write_node ( ptr%after )
+      ENDIF
+   ELSE
+      WRITE(*,*) 'Pointer is not associated '
+      WRITE(*,*) ' Error in write_node'
    ENDIF
-   WRITE(*,1000) ptr%number, ptr%strucfile
-   IF ( ASSOCIATED(ptr%after)) THEN
-      CALL store_write_node ( ptr%after )
-   ENDIF
-1000 FORMAT(i4,1x, a20)
+1000 FORMAT(i4,1x, a40)
    END SUBROUTINE store_write_node
 END MODULE class_internal
