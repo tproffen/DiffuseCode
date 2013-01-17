@@ -137,6 +137,7 @@ MODULE allocate_appl_mod
        USE debye_mod
        USE diffuse_mod
        USE domain_mod
+       USE micro_mod
        USE pdf_mod
        USE plot_mod
        USE powder_mod
@@ -171,7 +172,7 @@ MODULE allocate_appl_mod
        WRITE (output_io, 1110) CHEM_MAX_ATOM
        WRITE (output_io, 1120) CHEM_MAX_NEIG
 !
-       WRITE (output_io, 1130) MMAX
+       WRITE (output_io, 1130) MK_MAX_ATOM
        WRITE (output_io, 1140) MK_MAX_SCAT
 !
        WRITE (output_io, 1160) ST_MAXQXY
@@ -276,6 +277,7 @@ MODULE allocate_appl_mod
       CALL alloc_debye    ( 1,  1,  1, 1 )
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
+      CALL alloc_micro    ( 1,  1        )
       CALL alloc_mmc      ( CHEM_MAX_COR,  8,  1    )
       CALL alloc_mmc_angle( CHEM_MAX_COR,  1        )
       CALL alloc_mmc_buck ( CHEM_MAX_COR,  1        )
@@ -816,13 +818,13 @@ MODULE allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ', size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ', size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cr_at_lis(0) = 'VOID'
-      cry_size_of = cry_size_of + size_of
-!
-      CALL alloc_arr ( cr_at_equ,      0,n_scat,  all_status, ' ', size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
       CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ', size_of)
@@ -1086,6 +1088,58 @@ MODULE allocate_appl_mod
          RETURN
       END IF
     END SUBROUTINE alloc_domain
+!
+!
+    SUBROUTINE alloc_micro ( n_scat, n_atoms )
+!-
+!     Allocate the arrays needed by micro
+!+
+      USE crystal_mod
+      USE micro_mod
+!
+      IMPLICIT NONE
+!
+      include 'errlist.inc'
+!      
+      INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_atoms
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      lstat     = .TRUE.
+      mic_size_of = 0
+!
+       CALL alloc_arr ( mk_at_lis    ,0,n_scat,  all_status, ' ', size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       mic_size_of =   mic_size_of + size_of
+!
+       CALL alloc_arr ( mk_dw         ,0,n_scat,  all_status, 0.0, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       mic_size_of =   mic_size_of + size_of
+!
+!
+      IF( lstat ) THEN                        ! Success
+         MK_MAX_SCAT   = n_scat
+         MK_MAX_ATOM   = n_atoms
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'micro'
+         ENDIF
+      ELSE                                    ! Failure
+         MK_MAX_SCAT   = n_scat
+         MK_MAX_ATOM   = n_atoms
+         mic_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'micro'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_micro
 !
 !
     SUBROUTINE alloc_mmc ( n_corr, n_ener, n_scat )
@@ -2102,6 +2156,10 @@ MODULE allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_size_of = size_of
 !
+      CALL alloc_arr (  st_internal ,0,n_types ,  all_status, .false.  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_size_of = size_of
+!
       CALL alloc_arr (  st_origin   ,1,3      ,                                          &
                                      0,n_layers,  all_status, 0.0      , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -2491,6 +2549,18 @@ MODULE allocate_appl_mod
       CALL alloc_domain   ( 1            )
 !
     END SUBROUTINE dealloc_domain
+!
+    SUBROUTINE dealloc_micro
+!-
+!     Deallocate the arrays for DIFFUSE (FOURIER; PATTERSON ETC)
+!     To avoid possible pitfals with old code, the arrays are simply
+!     reallocated to a size of 1.
+!+
+      IMPLICIT NONE
+!
+      CALL alloc_micro   ( 1, 1         )
+!
+    END SUBROUTINE dealloc_micro
 !
     SUBROUTINE dealloc_mmc
 !-
