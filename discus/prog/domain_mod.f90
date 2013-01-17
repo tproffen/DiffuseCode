@@ -27,6 +27,8 @@ INTEGER                               ::  clu_mode
 INTEGER                               ::  clu_number
 !
 LOGICAL                               ::  clu_surface
+LOGICAL                               ::  clu_infile_internal = .false. ! Is infile an internal file ?
+INTEGER                               ::  clu_iatom = 0
 !
 INTEGER                               ::  clu_size_of! Bytes allocated for DOMAIN
 !
