@@ -172,7 +172,7 @@ CONTAINS
                      ENDIF 
                   ENDIF 
                   IF (ier_num.eq.0) then 
-internalcell:        IF ( str_comp(strucfile,'internal',8,8,8)) THEN
+internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         CALL readcell_internal(strucfile)
                      ELSE internalcell
                         CALL readcell (strucfile) 
@@ -352,7 +352,7 @@ internalcell:        IF ( str_comp(strucfile,'internal',8,8,8)) THEN
                CALL rese_cr 
                sav_r_ncell = .false. 
                strucfile = cpara (1)
-internal:      IF ( str_comp(strucfile,'internal',8,8,8)) THEN
+internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
                ELSE internal
@@ -2751,7 +2751,7 @@ header: DO
       ENDDO header
 !
       IF (nscattypes /= nadptypes) THEN
-         ier_num = -113
+         ier_num = -115
          ier_typ = ER_APPL
          CLOSE(99)
          RETURN

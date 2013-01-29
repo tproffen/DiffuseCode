@@ -9,11 +9,12 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      PARAMETER    (IU=-114,IO=4)
+      PARAMETER    (IU=-115,IO=4)
 !
       CHARACTER*41  ERROR(IU:IO)
 !
-      DATA ERROR (-114: -101) /                     &
+      DATA ERROR (-115: -101) /                     &
+     &  'Different atom no on SCAT and ADP',        & !-115 ! discus
      &  'Error allocating              ',           & !-114 ! discus
      &  'Could not find internal storage',          & !-113 ! discus
      &  'Error reading ADP  instruction',           & !-112 ! discus
