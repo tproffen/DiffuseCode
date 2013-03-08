@@ -383,6 +383,9 @@
    adp's is identical. Atom names and adps's are matched pairwise using 
    the sequence with which they were read from the 'scat' and ==> 'adp'
    lines.
+   Starting with DISCUS 4.0, the number of atom names on the 'scat' and 
+   'adp' command lines must be identical. Thus, both commands must be
+   present.
 4  adp
 !b adp <B-value> [,<B-value>...]
 
@@ -411,6 +414,9 @@
    adp's is identical. Atom names and adps's are matched pairwise using 
    the sequence with which they were read from the ==> 'scat' and 'adp'
    lines.
+   Starting with DISCUS 4.0, the number of atom names on the 'scat' and 
+   'adp' command lines must be identical. Thus, both commands must be
+   present.
 4  generator
 !b generator g11,g12,g13,g14, g21,g22,g23,g24, g31,g32,g33,g34 [, power]
 
