@@ -299,17 +299,20 @@ scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new 
          cr_dw    (cr_nscat) = dw1
          itype               = cr_nscat
       ELSE scat_dw                                ! check for previous atom types
-         DO k = 1,cr_nscat
-           IF ( at_name == cr_at_lis(k) .and.  &
-                dw1     == cr_dw    (k)      ) THEN
-              itype = k
-              EXIT scat_dw
-           ENDIF
-         ENDDO
-         cr_nscat = cr_nscat + 1                  ! Atom type does not exist, create a new one
-         cr_at_lis(cr_nscat) = at_name
-         cr_dw    (cr_nscat) = dw1
-         itype               = cr_nscat
+         itype = -1
+do_scat_dw: DO k = 1,cr_nscat
+            IF ( at_name == cr_at_lis(k) .and.  &
+                 dw1     == cr_dw    (k)      ) THEN
+               itype = k
+               EXIT do_scat_dw
+            ENDIF
+         ENDDO do_scat_dw
+         IF ( itype == -1 ) THEN
+            cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
+            cr_at_lis(cr_nscat) = at_name
+            cr_dw    (cr_nscat) = dw1
+            itype               = cr_nscat
+         ENDIF
       ENDIF scat_dw                               ! End check for atom type
 !
       werte(1)  = posit(1)                        ! Just to be compatible to firstcell...
