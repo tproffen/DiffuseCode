@@ -387,8 +387,9 @@ write(*,*) 'CLEANING UP'
 write(*,*) ' STRUCFILE ',strufile
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
-      CALL dc_molecules(i)%alloc_arrays(natoms, ntypes)
-      CALL dc_molecules(i)%read_crystal ( strufile )
+      CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, &
+                     n_type, n_atom)
+!      CALL read_crystal ( dc_molecules(i), strufile )
       m_length(i) = natoms
       m_ntypes(i) = ntypes
    ENDDO
@@ -403,4 +404,98 @@ write(*,*) ' STRUCFILE ',strufile
 !
    END SUBROUTINE deco_show
 !
+!******************************************************************************
+!   SUBROUTINE read_crystal ( this, infile)
+!!
+!!  Read a crystal structure from file
+!!  This procedure interfaces to the old "reastru" in "structur.f90"
+!
+!   USE inter_readstru
+!   USE structur, ONLY: readstru
+!!
+!   IMPLICIT none
+!!
+!   TYPE (cl_cryst)                  :: this   ! The current crystal
+!   CHARACTER (LEN=*   ), INTENT(IN)  :: infile ! Disk file
+!   INTEGER                           :: inum   ! dummy index
+!   REAL   , DIMENSION(3)             :: posit  ! dummy position vector
+!   INTEGER                           :: istat  ! status variable
+!!
+!   rd_strucfile = infile
+!   rd_NMAX      = this%cr_natoms
+!   rd_MAXSCAT   = this%cr_nscat
+!!
+!!  Allocate temporary arrays
+!!
+!write(*,*) ALLOCATED(rd_cr_dw    )
+!write(*,*) ALLOCATED(rd_cr_at_lis)
+!   ALLOCATE ( rd_cr_dw    (0:rd_MAXSCAT)    , STAT = istat )
+!   ALLOCATE ( rd_cr_at_lis(0:rd_MAXSCAT)    , STAT = istat )
+!   ALLOCATE ( rd_cr_pos   (1:3,1:rd_NMAX)   , STAT = istat )
+!   ALLOCATE ( rd_cr_iscat (1:rd_NMAX)       , STAT = istat )
+!   ALLOCATE ( rd_cr_prop  (1:rd_NMAX)       , STAT = istat )
+!   ALLOCATE ( rd_as_at_lis(0:rd_MAXSCAT)    , STAT = istat )
+!   ALLOCATE ( rd_as_dw    (0:rd_MAXSCAT)    , STAT = istat )
+!   ALLOCATE ( rd_as_pos   (1:3,1:rd_MAXSCAT), STAT = istat )
+!   ALLOCATE ( rd_as_iscat (1:rd_MAXSCAT)    , STAT = istat )
+!   ALLOCATE ( rd_as_prop  (1:rd_MAXSCAT)    , STAT = istat )
+!write(*,*) 'STATUS ',istat
+!!
+!   rd_cr_dw   = 0.0
+!   rd_cr_at_lis = ' '
+!   rd_cr_pos    = 0.0
+!   rd_cr_iscat  = 0
+!   rd_cr_prop   = 0
+!   rd_as_at_lis = ' '
+!   rd_as_dw     = 0.0
+!   rd_as_pos    = 0.0
+!   rd_as_iscat  = 0
+!   rd_as_prop   = 0
+!!
+!!WRITE(*,*) ' 0   ', rd_cr_iscat(1)
+!!WRITE(*,*) ' 0   ', rd_cr_iscat(1), rd_cr_pos(1,1)
+!!WRITE(*,*) ' 0   ', rd_cr_iscat(1), rd_cr_pos(1,1),rd_cr_pos(2,1)
+!!WRITE(*,*) ' 0   ', rd_cr_iscat(1), rd_cr_pos(1,1),rd_cr_pos(2,1), rd_cr_pos(3,1)
+!!WRITE(*,*) ' 0   ', rd_cr_iscat(1), rd_cr_pos(1,1),rd_cr_pos(2,1), rd_cr_pos(3,1), rd_cr_prop(1)
+!!write(*,*) ' IN read_crystal ', rd_NMAX, rd_MAXSCAT
+!   CALL readstru (rd_NMAX, rd_MAXSCAT, rd_strucfile, rd_cr_name,        &
+!               rd_cr_spcgr, rd_cr_a0, rd_cr_win, rd_cr_natoms, rd_cr_nscat, rd_cr_dw,     &
+!               rd_cr_at_lis, rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_dim, rd_as_natoms, &
+!               rd_as_at_lis, rd_as_dw, rd_as_pos, rd_as_iscat, rd_as_prop, rd_sav_ncell,  &
+!               rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para)
+!write(*,*) ' BACK '
+!WRITE(*,*) ' nmax', rd_NMAX, rd_MAXSCAT
+!write(*,*) ' rd_cr_name  ', rd_cr_name
+!write(*,*) ' rd_cr_spcgr ', rd_cr_spcgr
+!write(*,*) ' rd_cr_a0    ', rd_cr_a0   
+!write(*,*) ' rd_cr_win   ', rd_cr_win  
+!
+!write(*,*) ' spcgr_ianz   ',rd_spcgr_ianz
+!write(*,*) ' spcgr_para   ',rd_spcgr_para
+!
+!write(*,*) ' cr_at_lis ', rd_cr_at_lis
+!WRITE(*,*) ' 1   ', rd_cr_iscat(1)
+!WRITE(*,*) ' 1   ', rd_cr_pos(1,1)
+!WRITE(*,*) ' 1   ', rd_cr_pos(2,1)
+!WRITE(*,*) ' 1   ', rd_cr_pos(3,1)
+!WRITE(*,*) ' 1   ', rd_cr_prop(1)
+!write(*,*)
+!   DO inum=1, rd_NMAX
+!     posit = rd_cr_pos(:,inum)
+!write(*,*) rd_cr_iscat(inum), posit, rd_cr_prop(inum)
+!     CALL this%atoms(inum)%set_atom ( rd_cr_iscat(inum), posit, rd_cr_prop(inum) )
+!   ENDDO
+!!
+!   DEALLOCATE ( rd_cr_dw    , STAT = istat )
+!   DEALLOCATE ( rd_cr_at_lis, STAT = istat )
+!   DEALLOCATE ( rd_cr_pos   , STAT = istat )
+!   DEALLOCATE ( rd_cr_iscat , STAT = istat )
+!   DEALLOCATE ( rd_cr_prop  , STAT = istat )
+!   DEALLOCATE ( rd_as_at_lis, STAT = istat )
+!   DEALLOCATE ( rd_as_dw    , STAT = istat )
+!   DEALLOCATE ( rd_as_pos   , STAT = istat )
+!   DEALLOCATE ( rd_as_iscat , STAT = istat )
+!   DEALLOCATE ( rd_as_prop  , STAT = istat )
+!!
+!   END SUBROUTINE read_crystal
 END MODULE mole_surf_mod
