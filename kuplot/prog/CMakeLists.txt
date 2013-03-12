@@ -3,7 +3,6 @@
 option(KUPLOT_NEXUS "KUPLOT_NEXUS" ON)
 
 find_package(PGPLOT REQUIRED)
-find_package(PNG REQUIRED)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -31,6 +30,8 @@ else (WIN32 OR CYGWIN)
   set (SOURCES ${SOURCES} init_x11.f90)
   set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 endif (WIN32 OR CYGWIN) 
+
+set (LIBS ${LIBS} ${PNG_LIBRARY})
 
 # NEXUS support ?
 

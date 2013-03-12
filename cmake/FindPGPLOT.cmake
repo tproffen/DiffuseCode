@@ -27,7 +27,7 @@
 INCLUDE( DefaultSearchPaths )
 INCLUDE( FindPackageHandleStandardArgs )
 
-#FIND_PACKAGE( PNG REQUIRED )
+FIND_PACKAGE( PNG REQUIRED )
 MESSAGE( STATUS "Looking for PGPLOT: " )
 
 ####################################################################################################
