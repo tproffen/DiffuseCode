@@ -3,7 +3,6 @@
 # This script creates 'date.inc' to include the compiling date
 # in the program startup logo.
 #
-
 echo "!     date.inc"
 echo "!     Created by makedate .."
 echo "! "

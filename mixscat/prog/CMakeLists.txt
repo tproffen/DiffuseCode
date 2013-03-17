@@ -28,13 +28,3 @@ install (FILES ${DIFFUSE_BINARY_DIR}/mixscat/prog/mixscat.hlp DESTINATION share)
 file(GLOB files "${DIFFUSE_SOURCE_DIR}/mixscat/prog/sysmac/*.mac")
 install (FILES ${files} DESTINATION share/mixscat)
 
-# Install libraries needed
-
-get_target_property(MY_BINARY_LOCATION mixscat LOCATION)
-configure_file(
-   "${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake.in"
-   "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake"
-   @ONLY
-   )
-install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/dependencies.cmake")
-
