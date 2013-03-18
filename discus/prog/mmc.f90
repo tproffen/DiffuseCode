@@ -1744,8 +1744,9 @@ CHARACTER(LEN=1) :: dummy
             CALL indextocell (isel (1), iz1, is (1) ) 
          ELSE 
             DO i = 1, 3 
-            iz1 (i) = 1 
+               iz1 (i) = 1 
             ENDDO 
+            is(1) = 1
          ENDIF 
          DO i = 1, 3 
          iz (1, i) = iz1 (i) 
@@ -1923,7 +1924,6 @@ CHARACTER(LEN=1) :: dummy
          ENDDO 
          ENDDO 
          ENDDO 
-!write(*,*) ' TOTAL old energy',e_old(MC_REPULSIVE)
 !                                                                       
 !     ----If a proper energy was found, modify the atom                 
 !                                                                       
@@ -1938,6 +1938,7 @@ CHARACTER(LEN=1) :: dummy
 !                                                                       
 !     ------Modify the central atom                                     
 !                                                                       
+!               CALL indextocell (isel (1), iz1, is (1) ) 
                DO i = 1, 3 
                disp (i, 0, 1) = gasdev (mo_maxmove (i, cr_iscat (iselz) &
                ) )                                                      
@@ -2113,7 +2114,6 @@ CHARACTER(LEN=1) :: dummy
 !     ------- Repulsive     Potential                                   
 !
                IF (mmc_cor_energy (ic, MC_REPULSIVE) ) then 
-!write(*,*) ' calculating new energy'
                   e_new (MC_REPULSIVE) = e_new (MC_REPULSIVE) +         &
                      mmc_energy_rep (isel, ia, ic, iatom, patom, icent, &
                                      natom, valid_e, 'new')
@@ -2141,7 +2141,6 @@ CHARACTER(LEN=1) :: dummy
 !           rejected. This might happen, if an atom has moved outside   
 !           the allowed sphere of influence.                            
 !                                                                       
-!write(*,*) ' TOTAL new energy',e_new(MC_REPULSIVE)
             IF (valid_all) then 
 !                                                                       
 !------ --- Test and accept/reject move                                 
@@ -2151,7 +2150,6 @@ CHARACTER(LEN=1) :: dummy
             ELSE 
                laccept = .false. 
             ENDIF 
-!write(*,*) ' Move was accepted/rejected',laccept
 !                                                                       
 !     ----The move was not accepted, move atoms back to old places      
 !                                                                       
