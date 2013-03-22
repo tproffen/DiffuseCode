@@ -6,6 +6,27 @@ set (FSOURCES allocate_generic.f90 appl_unix.f90 blockdat.f90 dkdo.f90
 
 set (CSOURCES FCreadline.c csocket.c csup.c)
 
+
+# This macro modified from http://www.cmake.org/pipermail/cmake/2010-November/041034.html
+# The date is returned in ISO8601 format
+MACRO (TODAY RESULT)
+    IF(UNIX OR CYGWIN OR LINUX)
+        EXECUTE_PROCESS(COMMAND "date" "+%d/%m/%Y" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3-\\2-\\1" ${RESULT} ${${RESULT}})
+    ELSEIF (WIN32)
+        EXECUTE_PROCESS(COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE ${RESULT})
+        string(REGEX REPLACE "(..)/(..)/(....).*" "\\3-\\2-\\1" ${RESULT} ${${RESULT}})
+    ELSE (UNIX OR CYGWIN OR LINUX)
+        MESSAGE(SEND_ERROR "date not implemented")
+        SET(${RESULT} "0000-00-00")
+    ENDIF (UNIX OR CYGWIN OR LINUX)
+ENDMACRO (TODAY)
+
+TODAY(BUILD_DATE)
+message (status " BUILD_DATE=${BUILD_DATE}")
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/date.inc.template
+                 ${CMAKE_CURRENT_BINARY_DIR}/date.inc )
+
 IF (WIN32 OR CYGWIN )
   set (CSOURCES ${CSOURCES} win32-glob.c)
 ENDIF (WIN32 OR CYGWIN)
