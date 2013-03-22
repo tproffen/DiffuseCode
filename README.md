@@ -1,4 +1,3 @@
-----------------------------------------------------------------
 Diffuse program collection
 ----------------------------------------------------------------
 
@@ -20,7 +19,6 @@ AUTHOR  : Th. Proffen (tproffen@ornl.gov)
 MIXSCAT : Program to generate differential PDFs from n/X data
 AUTHOR  : C. Wurden K. Page A. Llobet
           Th. Proffen (tproffen@ornl.gov)
-----------------------------------------------------------------
 
 INSTALLATION
 ----------------------------------------------------------------
@@ -34,24 +32,24 @@ our repository from GitHub https://github.com/tproffen/DiffuseCode
 
  Goto working directory and unpack
 
-  cd your-working-directory
-  tar -xvzf Diffuse-source-xxxxxx.tar.gz
+>  cd your-working-directory
+>  tar -xvzf Diffuse-source-xxxxxx.tar.gz
 
 Create build directory
 
-  mkdir DiffuseBuild
-  cd DiffuseBuild
+>  mkdir DiffuseBuild
+>  cd DiffuseBuild
 
 Invloke cmake and change entries as needed. Then press 'c'
 to configure and 'g' to create the Makefiles. If you use the GUI
 version of cmake use the correpoding buttons.
   
-  ccmake ../DiffuseCode
+>  cmake ../DiffuseCode
 
 Now build and install
 
-  make
-  make install
+>  make
+>  sudo make install
 
 
 Binary distributions as well as the source code can be found 
