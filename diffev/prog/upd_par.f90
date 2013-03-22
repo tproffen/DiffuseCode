@@ -536,7 +536,7 @@ ELSEIF (ctype.eq.'pop_c') then
          IF ( pop_gen == 0) THEN    ! We are still in generation zero
             pop_c = nint (wert) 
             IF(NINT(wert) > MAXPOP) THEN
-               CALL alloc_appl( pop_n, MAXDIMX )
+               CALL alloc_appl( pop_c, MAXDIMX )
                IF(ier_num < 0) THEN
                   RETURN
                ENDIF
@@ -546,7 +546,7 @@ ELSEIF (ctype.eq.'pop_c') then
                pop_c = nint (wert) 
                CALL create_trial                 ! Make a new set
                CALL write_genfile
-            ELSEIF ( pop_c > nint (wert) ) THEN  ! New population has increased, needs initialization
+            ELSEIF ( pop_c < nint (wert) ) THEN  ! New population has increased, needs initialization
                IF(NINT(wert) > MAXPOP) THEN
                   CALL alloc_appl( NINT(wert), MAXDIMX )
                   IF(ier_num < 0) THEN
