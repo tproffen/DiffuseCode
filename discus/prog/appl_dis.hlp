@@ -827,8 +827,8 @@
    This command allows you to change the character of an extended
    object. The character of the object Number <number> will be changed
    to one of {"atom"|"cube"|"cylinder"|"sphere"}.
-2  chem
-!b chem
+2  chemistry
+!b chemistry
 
    Enters the 'chem' sublevel. Here all kind of statistics about the
    model crystal can be obtained like relative amount of elements,
@@ -1408,8 +1408,8 @@
 
    Finds all oxygen and nitrogen atoms that are between 2.0
    and 2.9 Angstrom from position 1.25,-5.25,3.34
-2  four
-!b four
+2  fourier
+!b fourier
 
    This sublevel of DISCUS calculates the Fourier transform of the given 
    crystal structure. The algorithm to speed up the explicit Fourier is 
@@ -6079,8 +6079,8 @@
    If 'mol' is given as a third parameter, molecules <mole1> and <mole2>
    are interchanged. The origin of the two molecules (position of atom 1)
    are unchanged.
-2  symm
-!b symm
+2  symmetry
+!b symmetry
 
    Switches to the symmetry submenu of DISCUS. You can define a general 
    symmetry operation in triclinic space such as a rotation around a 
@@ -8509,7 +8509,7 @@
 
    The number of 'lots' (crystal volumes to be averaged) exceeds the 
    maximum number RMC_MAX_LOTS defined in 'config.inc'.
-2  space groups
+2  space_groups
 !b List of allowed Space groups
 
    a) Standard space groups settings
@@ -8681,7 +8681,7 @@
 !p CUA1   1.54056     CUA2   1.54439      CUB    1.39217      CU     1.5418
 !p MOA1   0.709309    MOA2   0.71335      MOB    0.63225      MO     0.7107
 !p AGA1   0.55941     AGA2   0.56380      AGB    0.49701      AG     0.5608
-2  atom names
+2  atom_names
 !b List of allowed atom names
 
 !p H    H.   H1-  D.   HE   LI   LI1  BE   BE2+ B    C    N    O    O1-  
