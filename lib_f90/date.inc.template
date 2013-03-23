@@ -1,0 +1,7 @@
+!     date.inc
+!     Created by cmake ..
+! 
+      character(35)  cdate
+      parameter      (cdate='@BUILD_DATE@')
+      character(10)  aktuell
+      parameter      (aktuell='@DIFFUSE_VERSION_MAJOR@.@DIFFUSE_VERSION_MINOR@.@DIFFUSE_VERSION_PATCH@')
