@@ -25,19 +25,8 @@ endif (WIN32 OR CYGWIN)
 
 # Go into directories
 
-add_subdirectory(lib_f90)
+add_subdirectory(lib_f90) # this must be first for date.inc
 add_subdirectory(mixscat/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
-
-add_custom_command (
-  OUTPUT date.inc
-  COMMAND ${DIFFUSE_SOURCE_DIR}/lib_f90/makedate "${DIFFUSE_VERSION_MAJOR}.${DIFFUSE_VERSION_MINOR}.${DIFFUSE_VERSION_PATCH}" > ${DIFFUSE_BINARY_DIR}/lib_f90/date.inc
-  )
-add_custom_target(dateinc DEPENDS date.inc)
-add_dependencies(mixscat dateinc)
-add_dependencies(discus dateinc)
-add_dependencies(diffev dateinc)
-add_dependencies(kuplot dateinc)
-
