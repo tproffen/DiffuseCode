@@ -456,7 +456,7 @@
       cdummy = '' 
       ll = 200 
       CALL getfile (cdummy, ll, ii) 
-      fname (iz) = cdummy (1:ll) 
+      fname (iz) = cdummy (1:ll)
       WRITE (output_io, 2000) fname (iz) (1:len_str (fname (iz) ) ) 
 !                                                                       
       IF (unter.ne.'MP') then 

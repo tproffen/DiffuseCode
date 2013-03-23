@@ -175,6 +175,11 @@ CONTAINS
 internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         CALL readcell_internal(strucfile)
                      ELSE internalcell
+                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+                                         n_atom, -1 , .false.)
+                        IF (ier_num /= 0) THEN
+                           RETURN
+                        ENDIF
                         CALL readcell (strucfile) 
                      ENDIF internalcell
 !
@@ -514,6 +519,29 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
          CLOSE (ist)
          RETURN
       ENDIF
+      IF( NMAX    < new_nmax .or. &          ! Allocate sufficient atom numbers
+          MAXSCAT < new_nscat     ) THEN     ! Allocate sufficient atom types
+         new_nmax = MAX(new_nmax ,NMAX)
+         new_nscat= MAX(new_nscat,MAXSCAT)
+         CALL alloc_crystal(new_nscat, new_nmax)
+         IF ( ier_num /= 0) THEN
+            CLOSE (IST)
+            RETURN
+         ENDIF
+      ENDIF
+      need_alloc = .false.
+      IF ( n_mole > MOLE_MAX_MOLE  .or.  &
+           n_type > MOLE_MAX_TYPE  .or.  &
+           n_atom > MOLE_MAX_ATOM      ) THEN
+         n_mole = MAX(n_mole,MOLE_MAX_MOLE)
+         n_type = MAX(n_type,MOLE_MAX_TYPE)
+         n_atom = MAX(n_atom,MOLE_MAX_ATOM)
+         CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
+         IF ( ier_num /= 0) THEN
+            CLOSE (IST)
+            RETURN
+         ENDIF
+      ENDIF
       CALL oeffne (ist, strucfile, 'old', lread) 
       IF (ier_num /= 0) THEN
          CLOSE (ist)
@@ -531,6 +559,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
       IF (ier_num.ne.0) THEN 
+         CLOSE (ist)
          RETURN 
       ENDIF 
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
@@ -840,7 +869,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
 !-----      Basic error checks TO FOLLOW                                
 !                                                                       
-      IF (nint (werte (5) ) < 1              .or.  &
+      IF (nint (werte (5) ) < 0              .or.  &
           2**(MAXPROP+1)-1  < nint (werte (5)    )  )THEN
          ier_num = - 102 
          ier_typ = ER_APPL 
@@ -1288,7 +1317,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
-!                                                                       
+!
       xx_nscat = 0 
       xx_nadp = 0 
 !                                                                       

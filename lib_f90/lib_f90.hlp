@@ -1,4 +1,4 @@
-2  Command language
+2  Command_language
 
    All commands consist of a command verb, optionally followed by one
    or more parameters. All parameters must be separated from one
