@@ -869,7 +869,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
 !-----      Basic error checks TO FOLLOW                                
 !                                                                       
-      IF (nint (werte (5) ) < 1              .or.  &
+      IF (nint (werte (5) ) < 0              .or.  &
           2**(MAXPROP+1)-1  < nint (werte (5)    )  )THEN
          ier_num = - 102 
          ier_typ = ER_APPL 
