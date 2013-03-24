@@ -22,7 +22,9 @@ FCreadline(int *len, char *myline, char prompt[]){
 
    using_history();  
    line=readline(prompt);                 /* use readline(3c) to read a line of input in edit mode */
-   add_history(line);
+   if(strlen(line) >0) {                  /* save non-zero strings only */
+      add_history(line);
+   }
 
    strncpy(myline,line,(int)len);         /* copy line returned by readline(3c) to MYLINE up to length of MYLINE */
 
