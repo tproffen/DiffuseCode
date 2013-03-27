@@ -1187,7 +1187,12 @@
          ey (iwin, iframe, 2) = - 1.0e19 
          DO i = 1, iz - 1 
          IF (k_in_f (i) ) then 
-            CALL get_extrema_xy_local (i, ymi, yma) 
+            IF ( lni(i) ) THEN
+               ymi = ymin(i)
+               yma = ymax(i)
+            ELSE
+              CALL get_extrema_xy_local (i, ymi, yma) 
+            ENDIF
             ey (iwin, iframe, 1) = min (ey (iwin, iframe, 1), ymi) 
             ey (iwin, iframe, 2) = max (ey (iwin, iframe, 2), yma) 
          ENDIF 
