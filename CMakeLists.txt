@@ -4,6 +4,14 @@ cmake_minimum_required(VERSION 2.8.4)
 project(DIFFUSE)
 enable_language(Fortran)
 
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+  # gfortran 2008 doesn't exist until gcc 4.6
+  exec_program(${CMAKE_C_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gcc_version_info)
+  if ( _gcc_version_info VERSION_LESS 4.6)
+    message (SEND_ERROR "Too old of a version GNU  ${_gcc_version_info} (Need >=4.6).")
+  endif( _gcc_version_info VERSION_LESS 4.6)
+endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
