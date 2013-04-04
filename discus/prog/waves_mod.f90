@@ -42,6 +42,7 @@ REAL                ::  wv_phigh         = 0.0
 REAL                ::  wv_asym          = 0.5
 LOGICAL             ::  wv_sel_atom      = .true.
 LOGICAL             ::  wv_lacoust       = .true.
+LOGICAL             ::  wv_viceversa     = .false.
 !
 INTEGER             ::  wv_size_of  = 0 ! Bytes allocated for waves      
 !

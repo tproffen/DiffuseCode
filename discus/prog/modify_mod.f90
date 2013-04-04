@@ -356,6 +356,7 @@ CONTAINS
       ityp = mole_type (idest) 
       mole_type (idest) = mole_type (isource) 
       IF (lswap) mole_type (isource) = ityp 
+!
 !                                                                       
       END SUBROUTINE do_swap_mole                   
 !*****7*****************************************************************

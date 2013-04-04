@@ -105,6 +105,11 @@
    first all symmetry generators, followed by the centering generators.
    See also the ==> 'define' command to adjust the sequence to your
    personal taste.
+4  waves
+
+   The 'mrepl' and 'repl' commands were augmented by a "viceversa"
+   option that will cause atoms/molecules to be replaced by each other 
+   rather than only in one way.
 3  2010sep
 4  property
 
@@ -7023,13 +7028,24 @@
    corresponding <number>. In order to use atoms again, use the 'sele'
    command.
 3  mrep
-!b mrep <typ1>,<typ2>
+!b mrep <typ1>,<typ2> [,"viceversa"]
 
    This command selects the molecules that will be replaced by a density 
    function. The parameter <typ1> specifies the molecule type to 
    eventually be replaced by type <typ2>. Repeat the command to select
    more than one molecule type. To deselect use 'mdes'. To remove the
    molecules rather than replacing them, set <typ2> to zero.
+
+   If the third optional parameter "viceversa" is given, the molecules 
+   of type <typ2> are replaced by molecules of type <typ1> with the 
+   opposite probability. 
+   This is useful, if you have a random arrangement of molecule types
+   <typ1> and <typ2> and would like to obtain a density wave that 
+   fluctuates between these two types. If the optional parameter is
+   omitted, only molecules of type <typ1> are replaced and all 
+   molecules of type <typ2> are not changed. 
+   Keep in mind that you should select only those molecules that you 
+   want to exchange, and do not use the ==> msel all construction.
 3  rot
 !b rot <u>,<v>,<w> [,<x>,<y>,<z>]
 
@@ -7067,7 +7083,7 @@
    Sets the lower probability limit, with which an atom is retained by a
    density wave. The minimum occupancy of the atom reaches <value>.
 3  repl
-!b repl { "all" | <name> | <number> } , { <name> | <number> }
+!b repl { "all" | <name> | <number> } , { <name> | <number> } [,"viceversa"]
 
    This command selects those atoms that will be replaced by a density 
    function. Possible values for the first mandatory parameter are mutually 
@@ -7086,6 +7102,17 @@
    A new scattering type is automatically added to the table. If a number
    is given, to which no corresponding atom exists, an error message is
    displayed.
+
+   If the third optional parameter "viceversa" is given, the atoms 
+   of the first type are replaced by atoms of the second type with the 
+   opposite probability. 
+   This is useful, if you have a random arrangement of atoms types
+   and would like to obtain a density wave that 
+   fluctuates between these two types. If the optional parameter is
+   omitted, only atoms of the first type are replaced and all 
+   atoms of the second type are not changed. 
+   Keep in mind that you should select only those atoms that you 
+   want to exchange, and do not use the ==> sel all construction.
 
 3  run
 !b run

@@ -1,6 +1,5 @@
-
 !                                                                       
-      SUBROUTINE waves_menu
+SUBROUTINE waves_menu
 !-                                                                      
 !     calculates the displacement of the atoms due to a plane wave      
 !     travelling through the crystal                                    
@@ -323,13 +322,21 @@
                ELSEIF (str_comp (befehl, 'mrepl', 2, lbef, 5) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
+                     IF(ianz==3) THEN
+                        wv_viceversa=str_comp (cpara(3),'viceversa',2,lpara(3),9)
+                        cpara(3) = ' '
+                        lpara(3) = 1
+                        ianz     = 2
+                     ELSE
+                        wv_viceversa=.false.
+                     ENDIF
                      IF (ianz.eq.2) then 
                         cdummy = cpara (1) 
                         ldummy = lpara (1) 
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        IF (is.gt.0.and.is.le.mole_num_type) then 
+                        CALL ber_params (ianz, cpara, lpara, werte,maxw)
+                        is = nint(werte(1))
+                        IF (is.ge.0.and.is.le.mole_num_type) then 
                            is = nint (werte (1) ) 
                            CALL mole_select (cdummy, ldummy, 0, WV_MAXSCAT,&
                                 wv_latom, wv_sel_atom, lold, .true.,    &
@@ -349,6 +356,14 @@
                ELSEIF (str_comp (befehl, 'repl', 2, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
+                     IF(ianz==3) THEN
+                        wv_viceversa=str_comp (cpara(3),'viceversa',2,lpara(3),9)
+                        cpara(3) = ' '
+                        lpara(3) = 1
+                        ianz     = 2
+                     ELSE
+                        wv_viceversa=.false.
+                     ENDIF
                      IF (ianz.eq.2) then 
                         cdummy = cpara (1) (1:lpara (1) ) 
                         ldummy = lpara (1) 
@@ -830,6 +845,7 @@
       REAL uc (3), up (3), disp (3), disc (3) 
       REAL wavep (3), swingp (3), arg, dis 
       INTEGER i, j 
+      INTEGER  :: is_target   ! dummy for target atom type
 !                                                                       
       REAL ran1 
 !                                                                       
@@ -840,6 +856,53 @@
          wv_phase = ran1 (idum) * 360.0 
       ENDIF 
 !                                                                       
+is_density: IF (wv_iwave.eq.WV_DENS) then 
+   DO i = 1, cr_natoms 
+!                                                                       
+!------ - Check if atom is a valid selection                            
+!                                                                       
+      IF (wv_latom (cr_iscat (i) ) ) then 
+!                                                                       
+         DO j = 1, 3 
+            uc (j) = cr_pos (j, i) 
+         ENDDO 
+!                                                                       
+         CALL trans (uc, cr_fmat, up, 3) 
+         arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)
+         arg = arg + wv_phase * wv_rlam / 360. 
+         arg = amod (arg, wv_rlam) / wv_rlam 
+         dis = wave_func (wv_amp, arg, wv_amp0) 
+!                                                                       
+         IF (ran1 (idum) .gt.dis) then 
+            cr_iscat (i) = wv_repl (cr_iscat (i) ) 
+         ENDIF 
+      ELSEIF(wv_viceversa) THEN       ! Is atom the target of repl command ?
+         is_target = -1       
+         find_target: DO j=0,cr_nscat
+            IF( cr_iscat(i) == wv_repl(j)) THEN
+               is_target = j
+               EXIT find_target
+            ENDIF
+         ENDDO find_target
+         IF( is_target >= 0 ) THEN     ! Atom is target, replace by source
+            DO j = 1, 3 
+               uc (j) = cr_pos (j, i) 
+            ENDDO 
+!                                                                       
+            CALL trans (uc, cr_fmat, up, 3) 
+            arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)
+            arg = arg + wv_phase * wv_rlam / 360. 
+            arg = amod (arg, wv_rlam) / wv_rlam 
+            dis = 1.0 - wave_func (wv_amp, arg, wv_amp0) 
+!                                                                       
+            IF (ran1 (idum) .gt.dis) then 
+               cr_iscat (i) = is_target
+            ENDIF 
+         ENDIF
+      ENDIF
+   ENDDO
+ELSE is_density
+!                                                                       
       DO i = 1, cr_natoms 
 !                                                                       
 !------ - Check if atom is a valid selection                            
@@ -847,7 +910,7 @@
       IF (wv_latom (cr_iscat (i) ) ) then 
 !                                                                       
          DO j = 1, 3 
-         uc (j) = cr_pos (j, i) 
+            uc (j) = cr_pos (j, i) 
          ENDDO 
 !                                                                       
          CALL trans (uc, cr_fmat, up, 3) 
@@ -857,27 +920,21 @@
          arg = amod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
-         IF (wv_iwave.eq.WV_DENS) then 
-            IF (ran1 (idum) .gt.dis) then 
-               cr_iscat (i) = wv_repl (cr_iscat (i) ) 
-            ENDIF 
-!                                                                       
-         ELSE 
-            IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i) ) ,&
+         IF (.not.wv_lacoust.and. (index (cr_at_lis (cr_iscat (i) ) ,&
             '-') .gt.0) ) then                                          
                dis = - dis 
-            ENDIF 
-!                                                                       
-            DO j = 1, 3 
-            disp (j) = dis * swingp (j) 
-            ENDDO 
-            CALL trans (disp, cr_gmat, disc, 3) 
-            DO j = 1, 3 
-            cr_pos (j, i) = cr_pos (j, i) + disc (j) 
-            ENDDO 
          ENDIF 
+!                                                                       
+         DO j = 1, 3 
+            disp (j) = dis * swingp (j) 
+         ENDDO 
+         CALL trans (disp, cr_gmat, disc, 3) 
+         DO j = 1, 3 
+            cr_pos (j, i) = cr_pos (j, i) + disc (j) 
+         ENDDO 
       ENDIF 
-      ENDDO 
+   ENDDO 
+ENDIF is_density
 !                                                                       
       END SUBROUTINE wave_run_all                   
 !*****7*********************************************************        
@@ -902,6 +959,8 @@
       REAL uc (3), up (3), disp (3), disc (3) 
       REAL wavep (3), swingp (3), arg, dis 
       INTEGER i, j, ia, ityp, im, il 
+      INTEGER  :: is_repl  ! no of a target molecule for density waves
+      INTEGER  :: is_src   ! no of a source molecule for density waves
 !                                                                       
       REAL ran1 
 !                                                                       
@@ -912,15 +971,97 @@
          wv_phase = ran1 (idum) * 360.0 
       ENDIF 
 !                                                                       
+!                                                                       
+!------- ---- Density wave                                              
+!                                                                       
+wave_type: IF (wv_iwave.eq.WV_DENS) then 
+   dens_loop:   DO i = 1, mole_num_mole 
+      ia   = mole_cont (mole_off (i) + 1) 
+      ityp = mole_type (i) 
+!                                                                       
+!------ - Check if molecule is a valid selection                        
+!                                                                       
+      is_source: IF (wv_latom (mole_type (i) ) ) then  ! Selected molecule to be replaced
+!                                                                       
+         DO j = 1, 3 
+            uc (j) = cr_pos (j, ia) 
+         ENDDO 
+!                                                                       
+         CALL trans (uc, cr_fmat, up, 3) 
+         arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)                                                            
+         arg = arg + wv_phase * wv_rlam / 360. 
+         arg = amod (arg, wv_rlam) / wv_rlam 
+         dis = wave_func (wv_amp, arg, wv_amp0) 
+         IF (ran1 (idum) .gt.dis) then 
+            IF (wv_repl (ityp) .ne.0) then 
+               is_repl = i                       ! Replace by itself if no target found
+find_source:   DO is_repl=1,mole_num_mole
+                  IF(mole_type(is_repl) == wv_repl(ityp)) THEN
+                     EXIT find_source
+                  ENDIF
+               ENDDO find_source
+               CALL do_swap_mole (i, is_repl, .false.) 
+!!!                  CALL do_swap_mole (ityp, wv_repl (ityp), .false.) 
+            ELSE 
+               mole_type (i) = 0 
+               DO j = 1, mole_len (i) 
+                  cr_iscat (mole_cont (mole_off (i) + j) ) = 0 
+                  cr_prop (mole_cont (mole_off (i) + j) ) = ibclr (     &
+                  cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL) 
+               ENDDO 
+            ENDIF 
+         ENDIF
+      ELSEIF(wv_viceversa) THEN is_source ! Selected molecule is target?
+         is_src = 0
+         find_target: DO is_repl = 1, mole_num_type
+            IF(ityp == wv_repl(is_repl)) THEN
+               is_src = is_repl
+               EXIT find_target
+            ENDIF
+         ENDDO find_target
+         is_target: IF ( is_src /=0) THEN
+!
+         DO j = 1, 3 
+            uc (j) = cr_pos (j, ia) 
+         ENDDO 
+!                                                                       
+         CALL trans (uc, cr_fmat, up, 3) 
+         arg = up(1) * wavep(1) + up(2) * wavep(2) + up(3) * wavep(3)                                                            
+         arg = arg + wv_phase * wv_rlam / 360. 
+         arg = amod (arg, wv_rlam) / wv_rlam 
+         dis = 1.0 - wave_func (wv_amp, arg, wv_amp0)  ! Replace by opposite probability
+         IF (ran1 (idum) .gt.dis) then 
+            ityp = mole_type (i) 
+            IF (is_src .ne.0) then 
+find_src:   DO is_repl=1,mole_num_mole
+                  IF(mole_type(is_repl) == is_src) THEN
+                     EXIT find_src
+                  ENDIF
+               ENDDO find_src
+               CALL do_swap_mole (i, is_repl, .false.) 
+!!!                  CALL do_swap_mole (ityp, wv_repl (ityp), .false.) 
+            ELSE 
+               mole_type (i) = 0 
+               DO j = 1, mole_len (i) 
+                  cr_iscat (mole_cont (mole_off (i) + j) ) = 0 
+                  cr_prop (mole_cont (mole_off (i) + j) ) = ibclr (     &
+                  cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL) 
+               ENDDO 
+            ENDIF 
+         ENDIF
+         ENDIF is_target
+      ENDIF is_source
+   ENDDO dens_loop
+ELSE wave_type
       DO i = 1, mole_num_mole 
-      ia = mole_cont (mole_off (i) + 1) 
+         ia = mole_cont (mole_off (i) + 1) 
 !                                                                       
 !------ - Check if molecule is a valid selection                        
 !                                                                       
       IF (wv_latom (mole_type (i) ) ) then 
 !                                                                       
          DO j = 1, 3 
-         uc (j) = cr_pos (j, ia) 
+            uc (j) = cr_pos (j, ia) 
          ENDDO 
 !                                                                       
          CALL trans (uc, cr_fmat, up, 3) 
@@ -930,26 +1071,9 @@
          arg = amod (arg, wv_rlam) / wv_rlam 
          dis = wave_func (wv_amp, arg, wv_amp0) 
 !                                                                       
-!------- ---- Density wave                                              
-!                                                                       
-         IF (wv_iwave.eq.WV_DENS) then 
-            IF (ran1 (idum) .gt.dis) then 
-               ityp = mole_type (i) 
-               IF (wv_repl (ityp) .ne.0) then 
-                  CALL do_swap_mole (ityp, wv_repl (ityp), .false.) 
-               ELSE 
-                  mole_type (i) = 0 
-                  DO j = 1, mole_len (i) 
-                  cr_iscat (mole_cont (mole_off (i) + j) ) = 0 
-                  cr_prop (mole_cont (mole_off (i) + j) ) = ibclr (     &
-                  cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL) 
-                  ENDDO 
-               ENDIF 
-            ENDIF 
-!                                                                       
 !------- ---- Rotational wave                                           
 !                                                                       
-         ELSEIF (wv_iwave.eq.WV_ROT) then 
+         IF (wv_iwave.eq.WV_ROT) then 
             sym_latom (mole_type (i) ) = .true. 
             sym_angle = dis 
             sym_start = i 
@@ -976,8 +1100,9 @@
             ENDDO 
             ENDDO 
          ENDIF 
-      ENDIF 
+         ENDIF 
       ENDDO 
+      ENDIF  wave_type
 !                                                                       
       END SUBROUTINE wave_run_all_mol               
 !*****7*********************************************************        
