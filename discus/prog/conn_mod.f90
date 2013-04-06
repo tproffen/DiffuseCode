@@ -6,9 +6,16 @@ USE crystal_mod
 IMPLICIT none
 !
 PRIVATE
-PUBLIC  conn_menu
-PUBLIC  get_connectivity_list
-PUBLIC  do_show_connectivity 
+PUBLIC  conn_menu              !  Main menu to interact with user
+PUBLIC  get_connectivity_list  !  Read out the actual list of atoms around a central atom
+PUBLIC  get_connectivity_identity ! Identify a connectivity definition
+PUBLIC  do_show_connectivity   !  Show the current definitions
+PRIVATE allocate_conn_list     !  Allocate memory for the connectivity
+PRIVATE deallocate_conn        !  Free memory
+PRIVATE create_connectivity    !  Create the actual list of neighbors around each atom
+PRIVATE conn_do_set            !  Set parameters for the connectivity definitions
+PRIVATE conn_show              !  Main show routine
+PRIVATE conn_test              !  While developing, a routine to test functionality
 !
 INTEGER, PARAMETER              :: MAX_ATOM=10
 !
@@ -26,6 +33,8 @@ TYPE :: NEIGHBORHOOD
    INTEGER                      :: central_number     ! absolute number of central atom
    INTEGER                      :: central_type       ! central atom is of this type
    INTEGER                      :: neigh_type         ! this neighbors belongs to this definition
+   CHARACTER (LEN=256)          :: conn_name          ! Connectivity name
+   INTEGER                      :: conn_name_l        ! Connectivity name length
    REAL                         :: distance_min       ! minimum distance to neighbors
    REAL                         :: distance_max       ! maximum distance to neighbors
    TYPE (NEIGHBORS), POINTER    :: nachbar            ! The actual list of neighboring atoms
@@ -199,7 +208,9 @@ CONTAINS
                NULLIFY (hood_temp%next_neighborhood)        ! No further NEIGHBORHOODs
                hood_temp%central_number = i                 ! Just set central atom no.
                hood_temp%central_type   = cr_iscat(i)
-               hood_temp%neigh_type     = def_temp%valid_id
+               hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
+               hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
+               hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
                NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
 !
                ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
@@ -263,6 +274,8 @@ CONTAINS
       INTEGER             :: is2          ! second atom type
       INTEGER             :: temp_id      ! temporary definition ID
       INTEGER             :: work_id      ! ID of the definition to change/delete
+      CHARACTER(LEN=256)  :: work_name    ! Name of the definition to change/delete
+      INTEGER             :: work_name_l  ! Length of name for the definition to change/delete
       LOGICAL             :: lnew         ! require atom type to exist
       INTEGER             :: all_status   ! Allocation status
       REAL                :: rmin         ! minimum bond distance
@@ -330,7 +343,11 @@ CONTAINS
 !
 !     All other codes
 !
-      IF ((code==code_del .AND. ianz/=2) .OR. (code/=code_del .AND.ianz < 4)) return      ! At least four parameters
+      IF ((code==code_del .AND. ianz/=2) .OR. (code/=code_del .AND.ianz < 4)) THEN
+         ier_num = -6         ! Wrong number of input parameters
+         ier_typ = ER_COMM
+         return      ! At least four parameters
+      ENDIF
 !                                                                       
       iianz = 1
       lnew  = .false.
@@ -344,10 +361,22 @@ CONTAINS
       IF ( code /= code_add ) then
          iianz = 1
          CALL ber_params (iianz, cpara, lpara, werte, maxw)
-         work_id = NINT(werte(1))
+         IF(ier_num == 0) THEN
+            work_id     = NINT(werte(1))
+            work_name   = ' '
+            work_name_l = 1
+         ELSE
+            work_id     = -2
+            work_name   = cpara(iianz)(1:lpara(iianz))
+            work_name_l = lpara(iianz)
+            call no_error
+         ENDIF
          CALL del_params (1, ianz, cpara, lpara, maxw) 
       ELSE
-         work_id = -1
+         work_id     = -1
+         work_name   = cpara(ianz)(1:lpara(ianz))
+         work_name_l = lpara(ianz)
+         ianz        = ianz - 1
       ENDIF
 !
       IF ( code /= code_del ) THEN
@@ -370,7 +399,7 @@ CONTAINS
       ENDIF
 !
       is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
-         is_work: IF ( work_id > 0 ) THEN                        ! Work on an existing definition
+         is_work: IF ( work_id /= -1 ) THEN                      ! Work on an existing definition
             IF ( work_id > def_main(is1)%def_number ) THEN       ! Definition does not exist
                ier_num = -109
                ier_typ = ER_APPL
@@ -384,7 +413,10 @@ CONTAINS
                   ier_typ = ER_APPL
                   RETURN
                ENDIF
-               IF ( work_id == def_temp%valid_id ) THEN          ! Found working definition
+               IF ( work_id   == def_temp%valid_id  .OR. &
+                    work_name == def_temp%def_name       ) THEN  ! Found working definition
+                  work_id   = def_temp%valid_id                  ! Make sure ID matches
+                  work_name = def_temp%def_name                  ! Make sure name matches
                   EXIT search
                ENDIF
                def_head => def_temp
@@ -475,10 +507,12 @@ CONTAINS
             DO is2 = 1, ianz                                  ! Set all neighbor types
                def_temp%valid_types(is2) = NINT(werte(is2))
             ENDDO
-            def_temp%valid_id = temp_id + 1                   ! Set number of neighb or types
-            def_temp%valid_no = ianz                          ! Set number of neighb or types
-            def_temp%def_rmin = rmin                          ! Set bond length limits
-            def_temp%def_rmax = rmax                          ! Set bond length limits
+            def_temp%valid_id   = temp_id + 1                 ! Set number of neighb or types
+            def_temp%def_name   = work_name                   ! Set definition name
+            def_temp%def_name_l = work_name_l                 ! Set definition name length
+            def_temp%valid_no   = ianz                        ! Set number of neighb or types
+            def_temp%def_rmin   = rmin                        ! Set bond length limits
+            def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF is_work
@@ -506,10 +540,12 @@ CONTAINS
             DO is2 = 1, ianz                                  ! Set all neighbor types
                def_temp%valid_types(is2) = NINT(werte(is2))
             ENDDO
-            def_temp%valid_id = 1                             ! Set number of neighb or types
-            def_temp%valid_no = ianz                          ! Set number of neighb or types
-            def_temp%def_rmin = rmin                          ! Set bond length limits
-            def_temp%def_rmax = rmax                          ! Set bond length limits
+            def_temp%valid_id   = 1                           ! Set number of neighb or types
+            def_temp%def_name   = work_name                   ! Set definition name
+            def_temp%def_name_l = work_name_l                 ! Set definition name length
+            def_temp%valid_no   = ianz                        ! Set number of neighb or types
+            def_temp%def_rmin   = rmin                        ! Set bond length limits
+            def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF
@@ -732,7 +768,8 @@ CONTAINS
               IF ( .NOT. ASSOCIATED(def_temp)) THEN  ! This type has no more def.s
                  CYCLE scats
               ENDIF
-              WRITE(output_io, 2000) def_temp%valid_id, def_temp%valid_no,            &
+              WRITE(output_io, 2000) def_temp%valid_id, &
+                  def_temp%def_name(1:def_temp%def_name_l), def_temp%valid_no,   &
                   (at_name  (def_temp%valid_types(i)),i=1,def_temp%valid_no)
 !                 (cr_at_lis(def_temp%valid_types(i)),                                &
 !                            def_temp%valid_types(i) ,i=1,def_temp%valid_no)
@@ -745,7 +782,7 @@ CONTAINS
       ENDIF exist_def
 !
 1000  FORMAT(' Central atom type       : ',a9)
-2000  FORMAT('     Def.no; No.of.neigh; Types : ',i4,1x, i4,1x, &
+2000  FORMAT('     Def.no; Name; No.of.neigh; Types : ',i4,1x, a,1x,i4,1x, &
              ': ',20(a9:,',',2x))
 !            20(a4,'(',i4,')',2x))
 2300  FORMAT('     Bond length range',23x     ,f8.4, 2x, f8.4)
@@ -798,6 +835,8 @@ CONTAINS
       INTEGER, INTENT(IN)  :: jatom   ! central atom number
       INTEGER, INTENT(IN)  :: is1     ! central atom type
       INTEGER, INTENT(IN)  :: ino     ! Connectivity def. no.
+      CHARACTER(LEN=256)   :: c_name  ! Connectivity name
+      INTEGER              :: c_name_l! Connectivity name length
       INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
       INTEGER, DIMENSION(1:maxw), INTENT(OUT) :: c_list    ! Size of array c_list 
       INTEGER, INTENT(OUT) :: natoms  ! number of atoms in connectivity list
@@ -815,7 +854,8 @@ CONTAINS
 !         hood_head => at_conn(i)%liste
           DO WHILE ( ASSOCIATED(hood_temp) )          ! While there are further neighborhood
              temp => hood_temp%nachbar                    ! point to the first neighbor within current neigborhood
-             IF ( hood_temp%neigh_type == ino ) THEN     ! This is the right neighborhood
+             IF ( hood_temp%neigh_type == ino  .OR. &
+                  hood_temp%conn_name  == c_name   ) THEN   ! This is the right neighborhood
                 DO WHILE ( ASSOCIATED(temp) )               ! While there are further neighbors
                     natoms         = natoms + 1
                     c_list(natoms) = temp%atom_number
@@ -829,6 +869,56 @@ CONTAINS
       ENDIF
 !
    END SUBROUTINE get_connectivity_list
+!
+!
+   SUBROUTINE get_connectivity_identity (is1, work_id, work_name, work_name_l)
+!-                                                                      
+!     Get the identity of a connectivity from central atom and number or name
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      IMPLICIT none 
+!
+      include'errlist.inc'
+!
+      INTEGER,            INTENT(IN)      :: is1        ! central atom type
+      INTEGER,            INTENT(INOUT)   :: work_id    ! Connectivity def. no.
+      CHARACTER(LEN=256), INTENT(INOUT)   :: work_name  ! Connectivity name
+      INTEGER           , INTENT(INOUT)   :: work_name_l! Connectivity name length
+!
+      INTEGER    :: i
+!
+!
+      IF ( ALLOCATED(def_main) ) THEN
+         is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
+            def_head => def_main(is1)%def_liste
+            def_temp => def_main(is1)%def_liste
+            search: DO                                           ! search for working definition
+               IF ( .NOT. ASSOCIATED(def_temp)) THEN             ! target is not associated ERROR
+                  ier_num = -109
+                  ier_typ = ER_APPL
+                  RETURN
+               ENDIF
+               IF ( work_id   == def_temp%valid_id  .OR. &
+                    work_name == def_temp%def_name       ) THEN  ! Found working definition
+                  work_id     = def_temp%valid_id                ! Make sure ID matches
+                  work_name   = def_temp%def_name                ! Make sure name matches
+                  work_name_l = def_temp%def_name_l              ! Make sure name matches
+                  EXIT search
+               ENDIF
+               def_head => def_temp
+               def_temp => def_temp%def_next
+            ENDDO search
+         ELSE
+            ier_num = -109
+            ier_typ = ER_APPL
+         ENDIF is_there
+      ELSE
+         ier_num = -110
+         ier_typ = ER_APPL
+      ENDIF
+!
+   END SUBROUTINE get_connectivity_identity
 !
 !
    SUBROUTINE do_show_connectivity ( iatom, idef )
@@ -870,5 +960,4 @@ CONTAINS
 1200  FORMAT( '      Atom has no neighbours')
 !
       END SUBROUTINE do_show_connectivity 
-!
 END MODULE conn_mod

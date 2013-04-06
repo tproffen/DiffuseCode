@@ -735,6 +735,16 @@ MODULE allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       chem_con_size_of = chem_con_size_of + size_of
 !
+      CALL alloc_arr ( chem_cname    ,         1,n_con,      &
+                       all_status, ' '  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_con_size_of = chem_con_size_of + size_of
+!
+      CALL alloc_arr ( chem_cname_l  ,         1,n_con,      &
+                       all_status,     1, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      chem_con_size_of = chem_con_size_of + size_of
+!
       CALL alloc_arr ( chem_use_con  ,1,n_con, 1,n_cor,      &
                        all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out

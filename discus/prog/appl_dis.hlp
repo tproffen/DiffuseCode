@@ -1260,11 +1260,19 @@
 !p set     ! Sets an individual definition
 !p show    ! Shows the current definitions
 3  add
-!b set <central_atom_type>, <neigh types>, <rmin>, <rmax> 
+!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> , <def_name>
+
+   Add a new connectivity definition. 
+   For the atom type <central_atom_type> a new definition is added. Atoms
+   of types <neigh types> that are in a distance shell from <rmin> to <rmax> 
+   are entered into this definition. The last parameter is a name for
+   this definition. 
+   This command just definef the settings of this connectivity. The 
+   actual list is created via ==> 'create'.
 3  create
 
    Creates the actual connectivity list. 
-   The program perfoems a loop over all atoms and searches for neighbors
+   The program performs a loop over all atoms and searches for neighbors
    that are valid under any of the connectivity definitions. The valid
    neighbors are recorded into the connectivity list
 
@@ -1276,10 +1284,10 @@
 
    Deletes the current connectivity list.
 3  remove
-!b remove <central_atom_type>, <def.no.>
+!b remove <central_atom_type>, {<def.no.>| <def_name>}
 
-   Removes the definition no. <def.no.> for central atom type
-   <central_atom_type>.
+   Removes the definition number <def.no.> or name <def_name> for 
+   central atom type <central_atom_type>.
    If further definitions exist for this atom type, they are shifted
    forward, and their definition no. is decremented.
 3  reset
@@ -1287,10 +1295,11 @@
    Resets the connectivity to program start conditions.
    All definitions are removed and the connectivity list is deleted.
 3  set
-!b set <central_atom_type>, <def.no.>, <neigh types>, <rmin>, <rmax> 
+!b set <central_atom_type>, {<def.no.>| <def_name>}, <neigh types>, <rmin>, <rmax> 
 
    This command allows you to replace the settings for the definition 
-   no <def.no.> for the central atom type <central_atom_type>.
+   number <def.no.> or name <def_name> for the central atom type 
+   <central_atom_type>.
    The definition must have been created by a previous 'add' command.
 3  show
 !b show
@@ -2482,17 +2491,23 @@
    complete description is given in the CHEM section of the online
    help (-> set ang).
 4  con
-!b set "con",<iv>, <is1>, <def.no>
+!b set "con",<iv>, {<is1>| <at_name>}, {<def.no>| <def.name>}
 
    This commands is used to define correlations between atoms through
    their connectivity list. See main menu 'connectivity' for further
-   details.
+   details. The second and third parameter allow alternative input.
    <iv>  is simply the number of the connectivity definition within mmc.
          One or several connectivity definitions can be grouped 
          to a neighborhood.
+
    <is1> is the atom type of the central atom around which neighbors 
          shall be searched via the connectivity list.
+   <at_name> is the name of the central atom type around which
+         neighbors hall be searched via the connectivity list.
+
    <def.no.> is the number of the definition that has been added/set
+         within the connectivity menu.
+   <def.name> is the name of the definition that has been added/set
          within the connectivity menu.
 4  cyc
 !b set "cyc",<number>

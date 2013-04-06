@@ -605,7 +605,8 @@
          WRITE (output_io, 6000) 
          DO i = 1, CHEM_MAX_CON 
          IF (chem_ccon (1, i) .ne. - 9999) then 
-            WRITE (output_io, 6010) i, (chem_ccon (j, i), j = 1, 2) 
+            WRITE (output_io, 6010) i, (chem_ccon (j, i), j = 1, 2), &
+            chem_cname(i)(1:chem_cname_l(i))
             lnone = .false. 
          ENDIF 
          ENDDO 
@@ -665,7 +666,7 @@
      &        'A:',3(f5.2,1x),' B:',3(f5.2,1x))                         
  6000 FORMAT (/,'    Defined correlation connectiv. : ',/) 
  6010 FORMAT ('       Correlation connec ',I3,'      : ',               &
-     &        'Type',I3,' -> def.',I3)
+     &        'Type',I3,' -> def.',I3,1X, A)
       END SUBROUTINE chem_show                      
 !*****7*****************************************************************
       SUBROUTINE chem_set (zeile, lp) 
@@ -971,6 +972,8 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE config_mod 
    USE crystal_mod 
    USE chem_mod 
+   USE conn_mod
+   USE modify_mod
    IMPLICIT none 
 !
    include'errlist.inc' 
@@ -981,12 +984,16 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
    INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
-   INTEGER     :: is1, ino, iv, i, j 
+   CHARACTER (LEN=256)  :: c_name   ! Connectivity name
+   INTEGER              :: c_name_l ! connectivity name length
+   INTEGER     :: is1, ino, iv, i, j , iianz
    INTEGER     :: n_con  ! Dummy for allocations
    INTEGER     :: n_cor  ! Dummy for allocations
+   LOGICAL     :: lold   ! Atom types have to be present
 !                                                                       
    LOGICAL, EXTERNAL   :: str_comp 
 !                                                                       
+   lold = .true.
    IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
       chem_ccon           =     0 ! all elements (i,j)
       chem_ccon    (1, :) = -9999 ! column (1,*)
@@ -994,14 +1001,35 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
       RETURN 
    ENDIF 
 !                                                                       
-   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   iianz = 1
+   CALL ber_params (iianz, cpara, lpara, werte, maxw) 
    IF (ier_num.ne.0) return 
    nparams: IF (ianz.eq.3) then 
-      iv  = nint (werte (1) ) 
-      is1 = nint (werte (2) ) 
-      ino = nint (werte (3) ) 
+      iv  = nint (werte (1) )                            ! Set mmc connectivity number
+      CALL del_params (1, ianz, cpara, lpara, maxw)      ! Remove Para 1
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) ! try to calc atom type
+      IF (ier_num.ne.0) THEN                             ! Error must be atom name
+         CALL get_iscat (iianz, cpara, lpara, werte, maxw, lold) 
+         is1 = nint (werte (1) ) 
+         CALL no_error
+      ELSE                                               ! Success set to value
+         is1 = nint (werte (1) )
+      ENDIF 
+      CALL del_params (1, ianz, cpara, lpara, maxw)      ! Remove Atom type
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) ! try to calc connect number
+      IF (ier_num.ne.0) THEN                             ! Error must be a name
+         c_name   = cpara(1)
+         c_name_l = lpara(1)
+         ino      = 0
+         CALL no_error
+      ELSE                                               ! Success set to value
+         ino = nint (werte (1) ) 
+         c_name   = ' '
+         c_name_l = 1
+      ENDIF
+      CALL get_connectivity_identity( is1, ino, c_name, c_name_l)
 !
-!     allocate vectors
+!     allocate list of mmc connectivities
 !
       IF (iv > 0 ) THEN
          IF (iv > CHEM_MAX_CON) THEN
@@ -1021,12 +1049,15 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
          ELSE 
             chem_ccon (1, iv) = is1
             chem_ccon (2, iv) = ino
+            chem_cname  (iv)  = c_name
+            chem_cname_l(iv)  = c_name_l
          ENDIF 
       ENDIF 
    ELSE nparams
       ier_num = - 6 
       ier_typ = ER_COMM 
    ENDIF nparams
+!
 !                                                                       
 END SUBROUTINE chem_set_con                   
 !*****7*****************************************************************
