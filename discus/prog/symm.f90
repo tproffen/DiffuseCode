@@ -1076,6 +1076,7 @@
 !     Performs the actual symmetry operation, multiple copy version     
 !     Operates on molecules                                             
 !+                                                                      
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -1092,6 +1093,11 @@
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
       INTEGER imole, imole_s, imole_t 
+      INTEGER  :: n_gene   ! Number of molecule generators
+      INTEGER  :: n_symm   ! Number of molecule symmetry operators
+      INTEGER  :: n_mole   ! Number of molecules
+      INTEGER  :: n_type   ! Number of molecule types
+      INTEGER  :: n_atom   ! Number of atoms in molecules
 !                                                                       
       REAL usym (4), ures (4), use_orig (3) 
       REAL werte (5) 
@@ -1107,6 +1113,15 @@
       imole_s = mole_num_mole 
 !                                                                       
       IF (sym_new) then 
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole =         MOLE_MAX_MOLE
+         n_type =         MOLE_MAX_TYPE
+         n_atom =         MOLE_MAX_ATOM
+         IF (mole_num_type+sym_power > MOLE_MAX_TYPE ) THEN
+            n_type = MAX(mole_num_type + sym_power+5,MOLE_MAX_TYPE)
+            call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+         ENDIF
          imole_t = mole_num_type 
          IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
             mole_num_type = mole_num_type+sym_power 
@@ -1218,6 +1233,7 @@
 !     Performs the actual symmetry operation, single result version     
 !     Operates on molecules                                             
 !+                                                                      
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -1233,6 +1249,11 @@
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
       INTEGER imole, imole_s, imole_t 
+      INTEGER  :: n_gene   ! Number of molecule generators
+      INTEGER  :: n_symm   ! Number of molecule symmetry operators
+      INTEGER  :: n_mole   ! Number of molecules
+      INTEGER  :: n_type   ! Number of molecule types
+      INTEGER  :: n_atom   ! Number of atoms in molecules
       REAL usym (4), ures (4) 
       REAL werte (5), use_orig (3) 
 !                                                                       
@@ -1247,6 +1268,15 @@
       imole_s = mole_num_mole 
 !                                                                       
       IF (sym_new) then 
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole =         MOLE_MAX_MOLE
+         n_type =         MOLE_MAX_TYPE
+         n_atom =         MOLE_MAX_ATOM
+         IF (mole_num_type+sym_power > MOLE_MAX_TYPE ) THEN
+            n_type = MAX(mole_num_type + sym_power+5,MOLE_MAX_TYPE)
+            call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+         ENDIF
          IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
             mole_num_type = mole_num_type+1 
          ELSE 
@@ -1350,6 +1380,7 @@
 !     Performs the actual symmetry operation, multiple copy version     
 !     Operates on molecules                                             
 !+                                                                      
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -1366,6 +1397,11 @@
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
       INTEGER imole, imole_s, imole_t 
+      INTEGER  :: n_gene   ! Number of molecule generators
+      INTEGER  :: n_symm   ! Number of molecule symmetry operators
+      INTEGER  :: n_mole   ! Number of molecules
+      INTEGER  :: n_type   ! Number of molecule types
+      INTEGER  :: n_atom   ! Number of atoms in molecules
 !                                                                       
       REAL mat_atom (4, 4) 
       REAL mat_dime (4, 4) 
@@ -1386,6 +1422,15 @@
       imole_s = mole_num_mole 
 !                                                                       
       IF (sym_new) then 
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole =         MOLE_MAX_MOLE
+         n_type =         MOLE_MAX_TYPE
+         n_atom =         MOLE_MAX_ATOM
+         IF (mole_num_type+sym_power > MOLE_MAX_TYPE ) THEN
+            n_type = MAX(mole_num_type + sym_power+5,MOLE_MAX_TYPE)
+            call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+         ENDIF
          imole_t = mole_num_type 
          IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
             mole_num_type = mole_num_type+sym_power 
@@ -1562,6 +1607,7 @@
 !     Performs the actual symmetry operation, single result version     
 !     Operates on microdomain represenatation                           
 !+                                                                      
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -1578,6 +1624,11 @@
       INTEGER i_start, i_end 
       INTEGER a_start, a_end 
       INTEGER imole, imole_s, imole_t 
+      INTEGER  :: n_gene   ! Number of molecule generators
+      INTEGER  :: n_symm   ! Number of molecule symmetry operators
+      INTEGER  :: n_mole   ! Number of molecules
+      INTEGER  :: n_type   ! Number of molecule types
+      INTEGER  :: n_atom   ! Number of atoms in molecules
       REAL mat_atom (4, 4) 
       REAL mat_dime (4, 4) 
       REAL new_atom (4, 4) 
@@ -1597,6 +1648,15 @@
       imole_s = mole_num_mole 
 !                                                                       
       IF (sym_new) then 
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole =         MOLE_MAX_MOLE
+         n_type =         MOLE_MAX_TYPE
+         n_atom =         MOLE_MAX_ATOM
+         IF (mole_num_type+sym_power > MOLE_MAX_TYPE ) THEN
+            n_type = MAX(mole_num_type + sym_power+5,MOLE_MAX_TYPE)
+            call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+         ENDIF
          IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
             mole_num_type = mole_num_type+1 
          ELSE 
