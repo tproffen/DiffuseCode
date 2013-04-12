@@ -803,15 +803,13 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       INTEGER j 
       INTEGER ianz 
 !                                                                       
-!DBG      write(*,*) 'length ',length                                   
-!DBG      write(*,*) '>',line(1:length),'<'                             
-!DBG      write(*,*) 'ibl    ',ibl                                      
-!DBG      write(*,*) 'maxw   ',maxw                                     
       werte (5) = 1.0 
+      CALL get_params (line (ibl:length), ianz, cpara, lpara, maxw,     &
+      length - ibl + 1)                                                 
+params: IF(IANZ.eq.1) THEN
 !                                                                       
 !-----      Deal with old four respectively old five column style       
 !                                                                       
-!     IF (index (line (ibl:length) , ',') .eq.0) then 
          READ (line (ibl:length), *, end = 999, err = 850) (werte (j),  &
          j = 1, 4)                                                      
 !                                                                       
@@ -822,18 +820,15 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
   800    CONTINUE 
          CALL no_error 
          GOTO 900 
-!     ENDIF 
+  850    CONTINUE
+      ELSE params
 !                                                                       
-  850 CONTINUE
-      IF (index (line (ibl:length) , ',') /=  0) then 
-      CALL get_params (line (ibl:length), ianz, cpara, lpara, maxw,     &
-      length - ibl + 1)                                                 
-      IF (ier_num.eq.0) then 
+got_params: IF (ier_num.eq.0) THEN 
          IF (ianz.eq.4.or.ianz.eq.5) then 
             DO j = 1, ianz 
-            string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
-            cpara (j) = string 
-            lpara (j) = lpara (j) + 6 
+               string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
+               cpara (j) = string 
+               lpara (j) = lpara (j) + 6 
             ENDDO 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) then 
@@ -851,18 +846,13 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             ier_msg (3) = ' ' 
             RETURN 
          ENDIF 
-      ELSE 
+      ELSE  got_params
          ier_msg (1) = 'Error reading parameters for' 
          ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
          WRITE (ier_msg (3), 2000) cr_natoms + 1 
          RETURN 
-      ENDIF 
-      ELSE 
-         ier_msg (1) = 'Error reading parameters for' 
-         ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
-         WRITE (ier_msg (3), 2000) cr_natoms + 1 
-         RETURN 
-      ENDIF 
+         ENDIF  got_params
+      ENDIF params
       RETURN 
 !                                                                       
   900 CONTINUE 
