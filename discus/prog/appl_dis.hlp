@@ -3421,6 +3421,24 @@
    DISCUS. If periodic boundary conditions are not used, the background 
    line -4 pi rho r should be corrected by parameters defined by
    ==> "set finite".
+4  corrlinear
+!b set "corrlinear",<g>
+
+   If the Gaussian convolution mode (-> set therm) is used, the PDF
+   peak width will be modified by the term - g/r. This linear
+   dynamic correlation factor <g> is specified with this command. A
+   value of 0.0 will turn off this correction.
+
+   Identical to "gamma"
+4  corrquadratic
+!b set "corrquadratic",<d>
+
+   If the Gaussian convolution mode (-> set therm) is used, the PDF
+   peak width will be modified by the term - d/r**2. The quadratic
+   dynamic correlation factor <d> is specified with this command. A
+   value of 0.0 will turn off this correction.
+
+   Identical to "delta"
 4  delta
 !b set "delta",<d>
 
@@ -3428,6 +3446,8 @@
    peak width will be modified by the term - d/r**2. The quadratic
    dynamic correlation factor <d> is specified with this command. A
    value of 0.0 will turn off this correction.
+
+   Identical to "corrquadratic"
 4  density
 !b set "density", [<rho0> | "auto"]
 !b set "rdensity", [<rho0> | "auto"]
@@ -3495,6 +3515,8 @@
    peak width will be modified by the term - g/r. This linear
    dynamic correlation factor <g> is specified with this command. A
    value of 0.0 will turn off this correction.
+
+   Identical to "corrlinear"
 4  partial
 !b set "partial","internal"
 !b set "partial",<a1>,<a2>,<w>
@@ -3518,12 +3540,21 @@
    Notice that the polynomial starts with the linear term and does
    not contain a term p0*r**0 !
 4  qalp
-!b set "qalp",<alp>
+!b set "qalpha",<alpha>
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
    <alp> controlling tthe broadening which has the functional form
    <alp>**2 * r**2.
+   Identical to "qbroad"
+4  qbroad
+!b set "qbroad",<qbroad>
+
+   PDF peaks are broadened at large values of r due to the instrument
+   resolution of the measurement. This command sets the parameter
+   <qbroad> controlling tthe broadening which has the functional form
+   <qbroad>**2 * r**2.
+   Identical to "qalpha"
 4  qmax
 !b set "qmax",<qmax>
 
@@ -3533,13 +3564,22 @@
    computed PDF. In order to do this the actual maximum Q value 
    <qmax> in A**-1 must be entered. If the value is zero NO termination
    correction will be applied.
-4  qsig
-!b set "qsig",<qsig>
+4  qdamp
+!b set "qdamp",<qdamp>
+
+   This allows to enter a value <qdamp> for the correction of the
+   limited resolution of the experiment. This results in a dampening
+   of the G(r) function with increasing values of r. Again if the
+   entered value is zero, no correction will be applied.
+   Identical to "qsigma"
+4  qsigma
+!b set "qsigma",<qsig>
 
    This allows to enter a value <qsig> for the correction of the
    limited resolution of the experiment. This results in a dampening
    of the G(r) function with increasing values of r. Again if the
    entered value is zero, no correction will be applied.
+   Identical to "qdamp"
 4  rad
 !b set "rad","neutron"
 !b set "rad","xray" [,<qx>]

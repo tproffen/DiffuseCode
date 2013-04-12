@@ -1,5 +1,5 @@
 !*****7*****************************************************************
-      SUBROUTINE pdf 
+SUBROUTINE pdf 
 !-                                                                      
 !     This sublevel contains all routines dealing with the              
 !     PDF anlysis part of DISCUS. This segment uses variables           
@@ -66,10 +66,11 @@
 !------ search for "="                                                  
 !                                                                       
          indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
-     &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+      IF (indxg.ne.0.and.                                      &
+          .not. (str_comp (befehl, 'echo', 2, lbef, 4) ) .and. &
+          .not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and. &
+          .not. (str_comp (befehl, 'help', 2, lbef, 4)   .or.  &
+                 str_comp (befehl, '?   ', 2, lbef, 4) ) ) then                                              
             CALL do_math (line, indxg, length) 
 !                                                                       
 !------ execute a macro file                                            
@@ -927,10 +928,10 @@
 !                                                                       
 !------ - set boundary: toggle periodic boundaries                      
 !                                                                       
-         IF (cpara (1) (1:3) .eq.'BOU') then 
+         IF (str_comp(cpara (1),'BOUNDARY',3,lpara(1),8)) THEN
             IF (ianz.eq.2.or.ianz.eq.3) then 
-               chem_period (1) = str_comp (cpara (2) , 'period', 3,     &
-               lpara (2) , 6)                                           
+               chem_period (1) = str_comp (cpara (2) , 'periodic', 3,     &
+               lpara (2) , 8)                                           
                chem_period (2) = chem_period (1) 
                chem_period (3) = chem_period (1) 
                IF (chem_period (1) ) then 
@@ -960,7 +961,7 @@
 !                                                                       
 !------ - set mode: toggle calculation mode                             
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'CAL') then 
+         ELSEIF (str_comp(cpara (1),'CALC',3,lpara(1),4)) THEN
             IF (ianz.eq.2) then 
                pdf_lexact = str_comp (cpara (2) , 'exact', 2, lpara (2),5)
             ELSE 
@@ -970,11 +971,11 @@
 !                                                                       
 !------ - set finite: finite size correction model                      
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'FIN') then 
+         ELSEIF (str_comp(cpara (1),'FINITE',3,lpara(1),6)) THEN
             IF (ianz.ge.2) then 
-               IF (str_comp (cpara (2) , 'peri', 3, lpara (2) , 4) ) then
+               IF (str_comp (cpara (2) , 'periodic', 3, lpara (2) , 8) ) then
                   pdf_finite = PDF_BACK_PERIOD 
-               ELSEIF (str_comp (cpara (2) ,'sphe',3,lpara(2),4)) then
+               ELSEIF (str_comp (cpara (2) ,'sphere',3,lpara(2),6)) then
                   pdf_finite = PDF_BACK_SPHERE 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -985,7 +986,7 @@
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
-               ELSEIF (str_comp (cpara (2),'poly',3,lpara(2),4)) then
+               ELSEIF (str_comp (cpara (2),'polygon',3,lpara(2),7)) then
                   pdf_finite = PDF_BACK_POLY 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -1009,7 +1010,8 @@
 !                                                                       
 !------ - set qalpha: sets peak broadening factor                       
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'QAL') then 
+         ELSEIF (str_comp(cpara (1),'QALPHA',3,lpara(1),6) .OR. &
+                 str_comp(cpara (1),'QBROAD',3,lpara(1),6)) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1022,7 +1024,8 @@
 !                                                                       
 !------ - set gamma: sets linear correlation factor                     
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'GAM') then 
+         ELSEIF (str_comp(cpara (1),'CORRLINEAR',5,lpara(1),10) .OR. &
+                 str_comp(cpara (1),'GAMMA',3,lpara(1),5)) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1035,7 +1038,8 @@
 !                                                                       
 !------ - set delta: sets quadratic correlation factor                  
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'DEL') then 
+         ELSEIF (str_comp(cpara (1),'CORRQUADRATIC',5,lpara(1),13) .OR. &
+                 str_comp(cpara (1),'DELTA',3,lpara(1),5)) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1068,7 +1072,7 @@
 !                                                                       
 !------ - set diam: sets diameter for finite particles                  
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'DIA') then 
+         ELSEIF (str_comp(cpara (1),'DIAMETER',3,lpara(1),8)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1081,7 +1085,7 @@
 !                                                                       
 !------ - set frange: sets range in r to be used for fit                
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'FRA') then 
+         ELSEIF (str_comp(cpara (1),'FRANGE',3,lpara(1),6)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1095,7 +1099,7 @@
 !                                                                       
 !------ - set qmax: sets Qmax for termination correction                
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'QMA') then 
+         ELSEIF (str_comp(cpara (1),'QMAX',3,lpara(1),4)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1108,7 +1112,8 @@
 !                                                                       
 !------ - set qsig: sets SIGMA Q for resolution correction              
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'QSI') then 
+         ELSEIF (str_comp(cpara (1),'QSIGMA',3,lpara(1),6) .OR. &
+                 str_comp(cpara (1),'QDAMP' ,3,lpara(1),5)) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1121,7 +1126,7 @@
 !                                                                       
 !------ - set partial: weights for PDF partials                         
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'PAR') then 
+         ELSEIF (str_comp(cpara (1),'PARTIAL',3,lpara(1),7)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             IF (str_comp (cpara(1),'internal',3,lpara(1),8)) then
                pdf_lweights = .false. 
@@ -1164,7 +1169,7 @@
 !                                                                       
 !------ - set poly: background polynomial                               
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'POL') then 
+         ELSEIF (str_comp(cpara (1),'POLYGON',3,lpara(1),7)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1180,7 +1185,7 @@
 !                                                                       
 !------ - set radiation: sets radiation uses                            
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'RAD') then 
+         ELSEIF (str_comp(cpara (1),'RADIATION',3,lpara(1),9)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             IF (ier_num.ne.0) return 
             IF (ianz.eq.1.or.ianz.eq.2) then 
@@ -1208,7 +1213,7 @@
 !                                                                       
 !------ - set range: set range in r for PDF calculation                 
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'RAN') then 
+         ELSEIF (str_comp(cpara (1),'RANGE',3,lpara(1),5)) THEN
             IF (pdf_ldata) then 
                ier_num = - 6 
                ier_typ = ER_PDF 
@@ -1242,7 +1247,7 @@
 !                                                                       
 !------ - set weight: sets scale parameter to correct the weighting     
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'WEI') then 
+         ELSEIF (str_comp(cpara (1),'WEIGHT',3,lpara(1),6)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1255,7 +1260,7 @@
 !                                                                       
 !------ - set shap: sets shape parameter for finite particles           
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'SHA') then 
+         ELSEIF (str_comp(cpara (1),'SHAPE',3,lpara(1),5)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1268,7 +1273,7 @@
 !                                                                       
 !------ - set srat: sets peak sharpening SRAT                           
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'SRA') then 
+         ELSEIF (str_comp(cpara (1),'SRATIO',3,lpara(1),6)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
@@ -1282,7 +1287,7 @@
 !                                                                       
 !------ - set therm: toggle convolution with thermal Gaussian           
 !                                                                       
-         ELSEIF (cpara (1) (1:3) .eq.'THE') then 
+         ELSEIF (str_comp(cpara (1),'THERMAL',3,lpara(1),7)) THEN
             IF (ianz.eq.2) then 
                pdf_gauss = str_comp (cpara(2),'gaus',3,lpara(2), 4)                                                       
             ELSE 
