@@ -60,6 +60,8 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE     :: chem_use_win     !  (CHEM_MAX_ANG,CH
 !
 ! Connectivity definitions
 INTEGER, DIMENSION(:,:), ALLOCATABLE     :: chem_ccon        !  (2,CHEM_MAX_ANG)
+CHARACTER (LEN=256), DIMENSION(:), ALLOCATABLE :: chem_cname !  MMC Correlation name
+INTEGER, DIMENSION(:  ), ALLOCATABLE     :: chem_cname_l     !  (2,CHEM_MAX_ANG)
 INTEGER, DIMENSION(:,:), ALLOCATABLE     :: chem_use_con     !  (CHEM_MAX_CON,CHEM_MAX_COR)
 !
 ! Environment definitions
