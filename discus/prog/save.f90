@@ -147,7 +147,7 @@
 !                                                                       
                ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) then 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
-                   sav_sel_atom, .true., .false.)              
+                   sav_sel_atom, .false., .false.)              
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -315,7 +315,7 @@
 !                                                                       
                ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4) ) then 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
-                   sav_sel_atom, .true., .true.)               
+                   sav_sel_atom, .false., .true.)               
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
