@@ -16,6 +16,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 #endif
 
 /********************************************************************/
@@ -65,6 +66,7 @@ int socket_accept_ (int *sock, int *cid, unsigned char *host,
 	int	 addrlen, test;
 	struct   sockaddr_in pin,pout;
 	struct   hostent *hp;
+        char     *some_addr;
 
 	memcpy(hostname,host,(size_t)*lhost);
 	hostname[*lhost]='\0';
