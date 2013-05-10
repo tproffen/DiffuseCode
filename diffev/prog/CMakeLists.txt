@@ -18,8 +18,8 @@ set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 if (MPI_FOUND AND DIFFEV_MPI)
   set (SOURCES ${SOURCES} with_mpi.f90)
-  set (LIBS ${LIBS} ${MPI_LIBRARIES})
-  include_directories(${MPI_INCLUDE_PATH})
+  set (LIBS ${LIBS} ${MPI_Fortran_LIBRARIES})
+  include_directories(${MPI_Fortran_INCLUDE_PATH})
   link_directories(${MPI_LIBARY_PATH})
 
 else (MPI_FOUND AND DIFFEV_MPI)
