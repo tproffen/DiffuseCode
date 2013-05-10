@@ -31,13 +31,13 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    INTEGER               :: prog_l   !  7
    INTEGER               :: mac_l    !  8
    INTEGER               :: out_l    !  9
-   CHARACTER (LEN=80)    :: prog
-   CHARACTER (LEN=80)    :: mac
-   CHARACTER (LEN=80)    :: out
-   CHARACTER (LEN=80)    :: direc
+   CHARACTER (LEN=240)   :: direc    ! 10 : 249
+   CHARACTER (LEN=100)   :: prog     !250 : 349
+   CHARACTER (LEN=100)   :: mac      !350 : 449
+   CHARACTER (LEN=100)   :: out      !450 : 549
 END TYPE run_mpi_type
 !
 TYPE ( run_mpi_type)   :: run_mpi_senddata
-INTEGER, DIMENSION(1:329) :: run_mpi_send_data
+INTEGER, DIMENSION(1:549) :: run_mpi_send_data
 !
 END MODULE run_mpi_mod

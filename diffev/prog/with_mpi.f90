@@ -117,13 +117,13 @@ DO i = 1,run_mpi_senddata%direc_l
    run_mpi_send_data(  9+i) = IACHAR(run_mpi_senddata%direc(i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%prog_l
-   run_mpi_send_data( 89+i) = IACHAR(run_mpi_senddata%prog (i:i))
+   run_mpi_send_data(249+i) = IACHAR(run_mpi_senddata%prog (i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%mac_l
-   run_mpi_send_data(169+i) = IACHAR(run_mpi_senddata%mac  (i:i))
+   run_mpi_send_data(349+i) = IACHAR(run_mpi_senddata%mac  (i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%out_l
-   run_mpi_send_data(249+i) = IACHAR(run_mpi_senddata%out  (i:i))
+   run_mpi_send_data(449+i) = IACHAR(run_mpi_senddata%out  (i:i))
 ENDDO
 !
 !  Start initial jobs
@@ -139,7 +139,7 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
    run_mpi_send_data( 4) = run_mpi_senddata%kid
 !
 !write(*,*) ' M sending Job ',i, run_mpi_senddata%member, run_mpi_senddata%kid
-   CALL MPI_SEND ( run_mpi_send_data, 329, MPI_INTEGER, i,i, MPI_COMM_WORLD, ierr)
+   CALL MPI_SEND ( run_mpi_send_data, 549, MPI_INTEGER, i,i, MPI_COMM_WORLD, ierr)
 !====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
 !====                   MPI_COMM_WORLD, ier_num )
 !
@@ -149,7 +149,7 @@ ENDDO
 !------       --Receive results and hand out new jobs
 !
 DO i = 1, pop_c * run_mpi_senddata%nindiv
-   CALL MPI_RECV ( run_mpi_send_data, 329, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
+   CALL MPI_RECV ( run_mpi_send_data, 549, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
                MPI_COMM_WORLD, run_mpi_status, ierr)
 !====   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
 !====                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
@@ -164,7 +164,7 @@ DO i = 1, pop_c * run_mpi_senddata%nindiv
       run_mpi_send_data( 3) = run_mpi_senddata%member
       run_mpi_send_data( 4) = run_mpi_senddata%kid
 !
-      CALL MPI_SEND ( run_mpi_send_data, 329, MPI_INTEGER, sender,i, MPI_COMM_WORLD, ierr)
+      CALL MPI_SEND ( run_mpi_send_data, 549, MPI_INTEGER, sender,i, MPI_COMM_WORLD, ierr)
 !====      CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, sender, i, &
 !====                      MPI_COMM_WORLD, ier_num )
       run_mpi_numsent = run_mpi_numsent + 1
@@ -206,7 +206,7 @@ ierr = 0
 ! Infinite loop, as long as new jobs come in, terminated my TAG=0
 !
 slave: DO
-   CALL MPI_RECV ( run_mpi_send_data, 329, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
+   CALL MPI_RECV ( run_mpi_send_data, 549, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
                MPI_COMM_WORLD, run_mpi_status, ierr)
 !write(*,*) ' S received task ', run_mpi_send_data(1),run_mpi_send_data(2)
 !====   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
@@ -226,13 +226,13 @@ DO i = 1,run_mpi_senddata%direc_l
    run_mpi_senddata%direc(i:i) = ACHAR(run_mpi_send_data(  9+i))
 ENDDO
 DO i = 1,run_mpi_senddata%prog_l
-   run_mpi_senddata%prog (i:i) = ACHAR(run_mpi_send_data( 89+i))
+   run_mpi_senddata%prog (i:i) = ACHAR(run_mpi_send_data(249+i))
 ENDDO
 DO i = 1,run_mpi_senddata%mac_l
-   run_mpi_senddata%mac  (i:i) = ACHAR(run_mpi_send_data(169+i))
+   run_mpi_senddata%mac  (i:i) = ACHAR(run_mpi_send_data(349+i))
 ENDDO
 DO i = 1,run_mpi_senddata%out_l
-   run_mpi_senddata%out  (i:i) = ACHAR(run_mpi_send_data(249+i))
+   run_mpi_senddata%out  (i:i) = ACHAR(run_mpi_send_data(449+i))
 ENDDO
 !write(*,*) ' S run_mpi_senddata%repeat',run_mpi_senddata%repeat, run_mpi_senddata%nindiv
 !
@@ -282,7 +282,7 @@ ENDDO
 !
    run_mpi_senddata%ierr = ierr
 !
-   CALL MPI_SEND ( run_mpi_send_data, 329, MPI_INTEGER, 0,0, MPI_COMM_WORLD, ierr)
+   CALL MPI_SEND ( run_mpi_send_data, 549, MPI_INTEGER, 0,0, MPI_COMM_WORLD, ierr)
 !====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
 !====                   MPI_COMM_WORLD, ier_num )
 ENDDO slave
@@ -311,7 +311,7 @@ IF ( run_mpi_myid == 0 ) THEN
    run_mpi_send_data = 0
    DO i = 1, run_mpi_numprocs - 1
       ier_num = 0
-      CALL MPI_SEND ( run_mpi_send_data, 329, MPI_INTEGER, i,0, MPI_COMM_WORLD, ier_num)
+      CALL MPI_SEND ( run_mpi_send_data, 549, MPI_INTEGER, i,0, MPI_COMM_WORLD, ier_num)
 !====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
 !====                   MPI_COMM_WORLD, ier_num )
    ENDDO
