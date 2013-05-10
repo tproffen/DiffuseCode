@@ -140,6 +140,10 @@ CALL appl_env
 !                                                                       
 CALL autodef 
 !                                                                       
+!     Check for command line parameters                                 
+!                                                                       
+CALL cmdline_args
+!                                                                       
 1000 FORMAT (/,                                                              &
      10x,59('*'),/,                                                          &
      10x,'*',15x,'D I F F E V   Version ',a6,14x,'*',/,                      &
