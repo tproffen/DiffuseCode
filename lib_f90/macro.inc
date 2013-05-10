@@ -14,7 +14,7 @@
       PARAMETER         (MAC_MAX_FORM = 50)
 !
       CHARACTER*1024     mac_name(MAC_MAX_LEVEL)
-      CHARACTER*80       mac_para(0:MAC_MAX_PARA,MAC_MAX_LEVEL)
+      CHARACTER*256      mac_para(0:MAC_MAX_PARA,MAC_MAX_LEVEL)
       INTEGER            mac_leng(0:MAC_MAX_PARA,MAC_MAX_LEVEL)
       INTEGER            mac_level
       INTEGER            mac_line(MAC_MAX_LEVEL)
