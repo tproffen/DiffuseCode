@@ -4294,17 +4294,17 @@ buck_pair: DO is = 0, cr_nscat
       include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = - 5, IO = 0) 
+      PARAMETER (IU = -5, IO = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(LEN=45) ::ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR /                                 &
-      'Number of feedback intervalls is zero    ', & !  -5
-      'Number of MC cycles is zero              ', & !  -4
-      'Invalid mode selected for COCC MC run    ', & !  -3
-      'No valid move after 1000 cycles          ', & !  -2
-      'Invalid or no energy type selected       ', & !  -1
-      ' ' /                                          !   0
+      DATA ERROR /                                    &
+      'Number of feedback intervalls is zero    ',    & !  -5
+      'Number of MC cycles is zero              ',    & !  -4
+      'Invalid mode selected for COCC MC run    ',    & !  -3
+      'No valid move after 1000 cycles          ',    & !  -2
+      'Invalid or no energy type selected       ',    & !  -1
+      ' ' /                                             !   0
 !                                                                       
       CALL disp_error ('MMC ', error, iu, io) 
       END SUBROUTINE errlist_mmc                    
