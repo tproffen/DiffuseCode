@@ -2804,7 +2804,7 @@
       INTEGER iu, io 
       PARAMETER (IU = - 5, IO = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(45) ERROR (IU:IO) 
 !                                                                       
       DATA ERROR / 'Number of feedback intervalls is zero      ', 'Numbe&
      &r of MC cycles is zero                ', 'Invalid mode selected fo&
