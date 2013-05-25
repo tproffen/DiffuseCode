@@ -2774,7 +2774,8 @@
          ier_msg (3) = ' been defined' 
          RETURN 
       ENDIF 
-      CALL dlink (lxray, ano, lambda, rlambda) 
+      CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                  diff_power) 
       DO i = 1, MAXW 
       w_aver (i) = 0.0 
       w_num (i) = 0.0 
@@ -2895,7 +2896,7 @@
 !                                                                       
       fj2 = 0.0 
       DO j = 1, cr_ncatoms 
-      fj2 = fj2 + (form (cr_iscat (j), cr_scat, lxray, dstar2) ) **2 
+      fj2 = fj2 + (form (cr_iscat (j), cr_scat, lxray, dstar2, diff_power) ) **2 
       ENDDO 
 !                                                                       
       END FUNCTION fj2                              
