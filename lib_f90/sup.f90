@@ -4,7 +4,7 @@
 !     handling and other common support routines.                       
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE cmdline_args 
+SUBROUTINE cmdline_args 
 !                                                                       
 !     This routine checks for command line arguments and                
 !     executes given macros ..                                          
@@ -86,12 +86,14 @@
 !                                                                       
       INTEGER len_str 
       LOGICAL llocal 
+      INTEGER socket_init
 !                                                                       
       llocal = (s_ipallowed.eq.'localhost') 
       llocal = llocal.or. (s_ipallowed.eq.'127.0.0.1') 
 !                                                                       
       WRITE (output_io, 2000) 
-      CALL socket_init (s_sock, s_port, llocal) 
+      ier_num = socket_init (s_sock, s_port, llocal) 
+!     CALL socket_init (s_sock, s_port, llocal) 
       lconn = .false. 
 !                                                                       
  2000 FORMAT     (' ------ > Running in SERVER mode') 
@@ -129,6 +131,9 @@
       LOGICAL str_comp 
       INTEGER len_str 
       REAL berechne 
+      INTEGER socket_connect
+      INTEGER socket_get
+      INTEGER socket_send
 !                                                                       
 !     Get parameters                                                    
 !                                                                       
@@ -150,10 +155,25 @@
          IF (ianz.eq.3) then 
             port = nint (berechne (cpara (3), lpara (3) ) ) 
             CALL rem_bl (cpara (2), lpara (2) ) 
-            CALL socket_connect (s_remote, cpara (2), lpara (2),        &
-            port)                                                       
-            CALL socket_get (s_remote, line, il) 
-            WRITE (output_io, 3000) line (1:il) 
+            ier_num = socket_connect (s_remote, cpara (2), lpara (2), port)
+            IF(ier_num /=  0 ) THEN
+               ier_typ = ER_IO
+               lremote = .false. 
+               RETURN
+            ENDIF
+!           CALL socket_connect (s_remote, cpara (2), lpara (2),        &
+!           port)                                                       
+            ier_num = socket_get (s_remote, line, il) 
+            IF(socket_status == PROMPT_ON) THEN
+            IF(line/='ready') THEN
+              WRITE (output_io, 3000) line (1:il)
+            ENDIF 
+            ENDIF 
+            IF(ier_num /=  0 ) THEN
+               ier_typ = ER_IO
+               lremote = .false. 
+               RETURN
+            ENDIF
             lremote = .true. 
             WRITE (output_io, 2100) 
          ELSE 
@@ -164,7 +184,13 @@
 !       Close the socket connection. The server keeps running           
 !                                                                       
       ELSEIF (str_comp (cpara (1) , 'close', 2, lpara (1) , 5) ) then 
-         CALL socket_send (s_remote, 'bye', 3) 
+         ier_num = socket_send (s_remote, 'bye', 3) 
+         IF(ier_num < 0) THEN
+            ier_num = -19
+            RETURN
+         ELSE
+            ier_num = 0
+         ENDIF
          CALL socket_close (s_remote) 
          lremote = .false. 
          WRITE (output_io, 2120) 
@@ -172,7 +198,13 @@
 !       Shut down the server                                            
 !                                                                       
       ELSEIF (str_comp (cpara (1) , 'exit', 2, lpara (1) , 4) ) then 
-         CALL socket_send (s_remote, cpara (1), lpara (1) ) 
+         ier_num = socket_send (s_remote, cpara (1), lpara (1) ) 
+         IF(ier_num < 0) THEN
+            ier_num = -19
+            RETURN
+         ELSE
+            ier_num = 0
+         ENDIF
          CALL socket_close (s_remote) 
          lremote = .false. 
          WRITE (output_io, 2110) 
@@ -193,9 +225,24 @@
                zeile (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
                WRITE (zeile (lpara (2) + 1:lpara (2) + 16), 4000) wert 
                lcomm = lpara (2) + 16 
-               CALL socket_send (s_remote, zeile, lcomm) 
-               CALL socket_get (s_remote, line, il) 
-               WRITE (output_io, 3000) line (1:il) 
+               ier_num = socket_send (s_remote, zeile, lcomm) 
+               IF(ier_num < 0) THEN
+                  ier_num = -19
+                  RETURN
+               ELSE
+                  ier_num = 0
+               ENDIF
+               ier_num = socket_get (s_remote, line, il) 
+               IF(socket_status == PROMPT_ON  ) THEN
+               IF(line/='ready') THEN
+                 WRITE (output_io, 3000) line (1:il)
+               ENDIF 
+               ENDIF 
+               IF(ier_num /=  0 ) THEN
+                  ier_typ = ER_IO
+                  lremote = .false. 
+                  RETURN
+               ENDIF
             ENDIF 
 !                                                                       
          ELSEIF (ianz.gt.3) then 
@@ -212,9 +259,24 @@
                string = cpara (2) (1:lpara (2) ) //'='//cpara (3)       &
                (1:lpara (3) ) //", "//zeile (1:i)                       
                lcomm = lpara (2) + 1 + lpara (3) + 1 + i 
-               CALL socket_send (s_remote, string, lcomm) 
-               CALL socket_get (s_remote, line, il) 
-               WRITE (output_io, 3000) line (1:il) 
+               ier_num = socket_send (s_remote, string, lcomm) 
+               IF(ier_num < 0) THEN
+                  ier_num = -19
+                  RETURN
+               ELSE
+                  ier_num = 0
+               ENDIF
+               ier_num = socket_get (s_remote, line, il) 
+               IF(socket_status == PROMPT_ON) THEN
+               IF(line/='ready') THEN
+                 WRITE (output_io, 3000) line (1:il)
+               ENDIF 
+               ENDIF 
+               IF(ier_num /=  0 ) THEN
+                  ier_typ = ER_IO
+                  lremote = .false. 
+                  RETURN
+               ENDIF
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -229,14 +291,37 @@
 !     socket send subcommand, send the rest of the line as is           
 !                                                                       
       ELSEIF (str_comp (cpara (1) , 'send', 2, lpara (1) , 4) ) then 
-         CALL socket_send (s_remote, cpara (2), lpara (2) ) 
+         ier_num = socket_send (s_remote, cpara (2), lpara (2) ) 
+         IF(ier_num < 0) THEN
+            ier_num = -19
+            lremote = .false. 
+            RETURN
+         ELSE
+            ier_num = 0
+         ENDIF
          CALL socket_wait 
+         IF(ier_num < 0 ) THEN
+            lremote = .false.
+            RETURN
+         ENDIF
 !                                                                       
 !     No socket command so send the line as is                          
 !                                                                       
       ELSE 
-         CALL socket_send (s_remote, zeile, lcomm) 
+         ier_num = socket_send (s_remote, zeile, lcomm) 
+         IF(ier_num < 0) THEN
+            ier_num = -19
+            ier_typ = ER_IO
+            lremote = .false. 
+            RETURN
+         ELSE
+            ier_num = 0
+         ENDIF
          CALL socket_wait 
+         IF(ier_num < 0 ) THEN
+            lremote = .false.
+            RETURN
+         ENDIF
       ENDIF 
 !                                                                       
  2100 FORMAT    (1x,'Connected ..') 
@@ -260,24 +345,37 @@
 !                                                                       
       LOGICAL str_comp 
       INTEGER len_str 
+      INTEGER socket_get 
 !                                                                       
       line = '' 
       il = 0 
       icr = 0 
 !                                                                       
       DO while (.not.str_comp (line, 'ready', 5, il, 5) ) 
-      CALL socket_get (s_remote, line, il) 
+      ier_num = socket_get (s_remote, line, il) 
+      IF( ier_num /= 0 ) THEN
+         ier_typ = ER_IO
+         RETURN
+      ENDIF
       DO i = 1, il 
       IF (iachar (line (i:i) ) .eq.10.or.iachar (line (i:i) ) .eq.13) icr=i
       ENDDO 
       IF (icr.ne.0) then 
-         WRITE (output_io, 3000) line (1:icr - 1) 
+         IF(socket_status == PROMPT_ON) THEN
+         IF(line/='ready') THEN
+           WRITE (output_io, 3000) line (1:icr - 1)
+         ENDIF 
+         ENDIF 
          cstr = line (icr + 1:il) 
          line = '' 
          il = len_str (cstr) 
          line = cstr (1:il) 
       ELSE 
-         WRITE (output_io, 3000) line (1:il) 
+         IF(socket_status == PROMPT_ON) THEN
+         IF(line/='ready') THEN
+           WRITE (output_io, 3000) line (1:il)
+         ENDIF 
+         ENDIF 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -292,6 +390,8 @@
 !                                                                       
       include'errlist.inc' 
       include'prompt.inc' 
+!
+      INTEGER socket_send
 !                                                                       
       IF (ier_num.ne.0) then 
          CALL errlist 
@@ -306,13 +406,13 @@
 !------ Close sockets                                                   
 !                                                                       
       IF (lremote) then 
-         CALL socket_send (s_remote, 'bye', 3) 
+         ier_num =  socket_send (s_remote, 'bye', 3) 
          CALL socket_close (s_remote) 
       ENDIF 
 !                                                                       
       IF (lsocket) then 
-         CALL socket_close (s_sock) 
          CALL socket_close (s_conid) 
+         CALL socket_close (s_sock) 
       ENDIF 
 !                                                                       
       END SUBROUTINE exit_all                       
@@ -537,6 +637,9 @@
       LOGICAL str_comp 
 !                                                                       
       INTEGER len_str 
+      INTEGER socket_accept 
+      INTEGER socket_get 
+      INTEGER socket_send 
 !                                                                       
       input  = ' ' 
       line   = ' ' 
@@ -565,15 +668,35 @@
 !                                                                       
          IF (.not.lconn) then 
             il = len_str (s_ipallowed) 
-            CALL socket_accept (s_sock, s_conid, s_ipallowed, il,       &
+            ier_num = socket_accept (s_sock, s_conid, s_ipallowed, il,       &
             s_port)                                                     
+            IF(ier_num < 0) THEN
+               ier_typ = ER_IO
+               STOP
+            ENDIF 
             lconn = .true. 
          ENDIF 
          cready = 'ready' 
          lcready = len_str (cready) 
-         CALL socket_send (s_conid, cready, lcready) 
+         ier_num = socket_send (s_conid, cready, lcready) 
+         IF(ier_num < 0) THEN
+            ier_num = -19
+            RETURN
+         ELSE
+            ier_num = 0
+         ENDIF
          first_input = .false. 
-         CALL socket_get (s_conid, input, ll) 
+         ier_num = socket_get (s_conid, input, ll) 
+         IF(ier_num == -21 ) THEN
+            input = 'exit'
+            ll    = 4
+            ier_num = 0
+            ier_typ = ER_NONE 
+         ELSEIF(ier_num /=  0 ) THEN
+            ier_typ = ER_IO
+            lremote = .false. 
+            RETURN
+         ENDIF
       ELSE 
 !                                                                       
 !     --Normal mode, if status is PROMPT_OFF or PROMPT_REDIRECT         
@@ -586,7 +709,7 @@
 !     ----call the c-routine that enables command history & line editing
 !                                                                       
             CALL iso_readline (input,bprom) 
-	    ll=len_str(input)
+            ll=len_str(input)
 !                                                                       
 !------ --otherwise use normal READ                                     
 !                                                                       
@@ -1402,7 +1525,7 @@
             ENDDO 
          ENDIF 
          WRITE (io_unit (ii), 9999, err = 999) line (1:ie) 
-         IF (dbg) write ( *, 1000) line (1:ie) 
+         IF (dbg) WRITE ( *, 1000) line (1:ie) 
       ELSE 
          WRITE (io_unit (ii), *, err = 999) 
       ENDIF 
@@ -1648,14 +1771,17 @@
                   IF (str_comp (cpara (2) , 'on', 2, lpara (2) , 2) )   &
                   then                                                  
                      prompt_status = PROMPT_ON 
+                     socket_status = PROMPT_ON 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'off', 2, lpara (2) , 2)&
                   ) then                                                
                      prompt_status = PROMPT_OFF 
+                     socket_status = PROMPT_OFF 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'redirect', 1, lpara (2)&
                   , 8) ) then                                           
                      prompt_status = PROMPT_REDIRECT 
+                     socket_status = PROMPT_REDIRECT 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'old', 1, lpara (2) , 3)&
                   ) then                                                
@@ -1664,6 +1790,7 @@
                      ENDIF 
                      output_status = output_status_old 
                      prompt_status = prompt_status_old 
+                     socket_status = socket_status_old 
                      IF (output_status.eq.OUTPUT_SCREEN) then 
                         output_io = 6 
                      ELSEIF (output_status.eq.OUTPUT_NONE) then 
@@ -1797,6 +1924,7 @@
       REAL werte (maxp) 
 !                                                                       
       INTEGER len_str 
+      INTEGER socket_send 
 !                                                                       
 !     Find any "" which would mean that we need parameter substitution  
 !                                                                       
@@ -1809,7 +1937,13 @@
          WRITE (cstr, 2010) zeile (1:lp) 
          IF (lconn.and.lsocket) then 
             il = len_str (cstr) 
-            CALL socket_send (s_conid, cstr, il) 
+            ier_num = socket_send (s_conid, cstr, il) 
+            IF(ier_num < 0) THEN
+               ier_num = -19
+               RETURN
+            ELSE
+               ier_num = 0
+            ENDIF
          ENDIF 
 !                                                                       
          IF (output_status.eq.OUTPUT_FILE) then 
@@ -1889,7 +2023,13 @@
                ENDIF 
                IF (lconn.and.lsocket) then 
                   il = len_str (cstr) 
-                  CALL socket_send (s_conid, cstr, il) 
+                  ier_num = socket_send (s_conid, cstr, il) 
+                  IF(ier_num < 0) THEN
+                     ier_num = -19
+                     RETURN
+                  ELSE
+                     ier_num = 0
+                  ENDIF
                ENDIF 
             ENDIF 
          ENDIF 
@@ -2324,7 +2464,7 @@
       INTEGER ianz 
       INTEGER maxw 
       CHARACTER ( * ) cpara (maxw) 
-      REAL lpara (maxw) 
+      INTEGER lpara (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
