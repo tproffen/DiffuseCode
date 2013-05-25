@@ -11,6 +11,8 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 glob_t globbuf;
 
