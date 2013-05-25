@@ -3277,7 +3277,7 @@ CONTAINS
          ier_num = - 27 
          ier_typ = ER_APPL 
          DO i = 0, cr_nscat 
-         IF (cpara (j) .eq.cr_at_lis (i) ) then 
+         IF (cpara (j)(1:lpara(j)) .eq.cr_at_lis (i) ) then 
             werte (jj) = i 
             jj = jj + 1 
             jp = jp + 1 
