@@ -1,6 +1,6 @@
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE chem 
+SUBROUTINE chem 
 !-                                                                      
 !     This sublevel contains all routines to analyse a structure        
 !     line calculation of bondlength distributions, the average         
@@ -4203,7 +4203,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !DBG      endif                                                         
                   IF (wis.le.90.) then 
                      IF (wi.gt.1.5 * wis) then 
-                        wi = mod (wi + wis / 2., wis) + wis / 2. 
+                        wi = mod (wi + wis / 2., wis) - wis / 2. 
                      ENDIF 
                   ENDIF 
                   IF (lfile) write (37, 3000) u, is, js 
@@ -6495,7 +6495,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER iu, io 
       PARAMETER (IU = - 29, IO = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
       DATA ERROR ( IU:-21) /                             &
       'Atom type outside valid range           ',     & !-29
