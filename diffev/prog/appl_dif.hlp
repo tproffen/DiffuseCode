@@ -324,7 +324,13 @@
    This depends too much on the problem at hand, parameter correlation,
    the initial choice of parameters etc.
 2  News
-3. 2011_June
+3  2013_May
+
+   The run_mpi command has been augmented by a "socket" qualifyer, which 
+   will cause DIFFEV to run the application program controlled via a
+   socket. This should speed up the process on a multi-core/multi-cpu
+   system.
+3  2011_June
 
    The program is now a fully functional fortran2003 program.
    There are no changes that must be followed by the user, but important
@@ -584,7 +590,7 @@
    the R-value obtained for the corresponding set of parameters in 
    file ==> 'trialfile'.
 2  run_mpi
-!b run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base>
+!b run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
 
    This command starts parallel processing of program <program_name>.
    The program will be executed <pop_c>*<no_repetitions> times.
@@ -596,6 +602,12 @@
    The standard output of the program will be directed into a file
    <output_base>. The current child number ( and the current repeat
    number, if present) will be appended as four digit wide field.
+   On a UNIX system you can redirect the output to /dev/null.
+
+   If the last optional parameter is "socket", the program will be
+   started via a socket connection, else via a single "system" call.
+
+   system == non-socket option:
 
    The actual line that starts the program has syntax:
    "program_name" -macro <macro.name> <cwd> <child> <indiv> > <output>
@@ -620,6 +632,28 @@
            Same, except that no repetions are requested. Only one
            calculation is performed per child and the output is
            written to "LOGFILES/d.xxxx". 
+
+   socket option:
+
+   The program is startet via socket at the beginning of a refinement. It
+   remains active until diffev is terminated. A second, third program may
+   be started as well, such as a discus run followed by kuplot.
+
+   The socket option starts the program via the line:
+   
+   "program_name" -remote -access=127.0.0.0 -port=<port> > <output>
+
+   Thereafter the vatiables generation, member, children, parameters,
+   kid, indiv, nindiv are defined and placed at their proper values.
+   The corresponding lines are 
+   variable integer,generation
+   generation = <value>
+   And so on for the other variables.
+   For each calculation i.e. combination of kid, indiv the current 
+   values are sent for "kid" and "indiv". All corresponding trial 
+   values are placed into the array "r[*]", into entries 201 to
+   201 + <parameters>. Then the calculation macro is started, which
+   does of course not have to read the GENERATION and the trial file.
 2  selection
 !b selection {"compare" | "best","all"}
 
