@@ -394,6 +394,14 @@ ELSE
          ENDIF 
       ENDIF 
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) then 
+      IF ( .not. run_mpi_active ) THEN
+         ier_num =  -24
+         ier_typ = ER_APPL
+         ier_msg(1) = 'To run an MPI distributed application requires'
+         ier_msg(2) = 'that diffev has been compiled with MPI'
+         ier_msg(3) = 'and been started with mpiexec -option diffev'
+         RETURN
+      ENDIF
       IF ( pop_c < 4 .or. pop_n < 4 ) THEN
          ier_num = -3
          ier_typ = ER_APPL
@@ -404,7 +412,17 @@ ELSE
       ENDIF
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) then 
+         IF ( ianz == 5 ) THEN
+            run_mpi_senddata%use_socket = str_comp(cpara(5), 'socket', 6, lpara(5), 6)
+            ianz = 4
+         ELSE
+            run_mpi_senddata%use_socket = .false.
+         ENDIF
          IF ( ianz >= 2 .and. ianz <= 4 ) THEN
+            run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
+            run_mpi_senddata%member     = pop_n      ! Number of members
+            run_mpi_senddata%children   = pop_c      ! Number of children
+            run_mpi_senddata%parameters = pop_dimx   ! Number of parameters
             run_mpi_senddata%prog   = cpara(1)        ! Program to run
             run_mpi_senddata%prog_l = lpara(1)
             run_mpi_senddata%mac    = cpara(2)        ! Macro to run

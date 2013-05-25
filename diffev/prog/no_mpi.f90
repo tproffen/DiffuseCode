@@ -11,6 +11,7 @@ INCLUDE 'errlist.inc'
 !
 run_mpi_myid     = 0
 run_mpi_numprocs = 1
+run_mpi_active   = .false.
 ier_num  = 0
 ier_typ  = ER_NONE
 !
