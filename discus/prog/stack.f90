@@ -1927,7 +1927,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  RETURN
                ENDIF
             ENDIF
-            CALL dlink (lxray, ano, lambda, rlambda) 
+            CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                        diff_power) 
                                                                         
             IF (ier_num.ne.0) then 
                RETURN 
@@ -2209,7 +2210,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
             ier_num = 0 
             ier_typ = ER_NONE 
-            CALL dlink (lxray, ano, lambda, rlambda) 
+            CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                        diff_power) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 

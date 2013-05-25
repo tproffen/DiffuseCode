@@ -31,7 +31,7 @@ USE config_mod
    REAL   , DIMENSION(3,3)          ::  cr_rten     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_rten))
    REAL   , DIMENSION(3,3,3)        ::  cr_reps
    REAL   , DIMENSION(3,3)          ::  cr_fmat     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_fmat))
-   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_scat   ! (9,0:MAXSCAT)
+   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_scat   ! (11,0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfr  ! (  0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfi  ! (  0:MAXSCAT)
    REAL   , DIMENSION(3,2)          ::  cr_dim0     =RESHAPE((/0,0,0, 1,1,1/),SHAPE(cr_dim0))

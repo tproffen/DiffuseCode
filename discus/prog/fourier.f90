@@ -128,14 +128,16 @@
                             RETURN
                           ENDIF
                         ENDIF
-                        CALL dlink (lxray, ano, lambda, rlambda) 
+                        CALL dlink (lxray, ano, lambda, rlambda, &
+                                    diff_radiation, diff_power) 
                         CALL calc_000 (rhkl) 
                      ENDIF 
                   ELSEIF (ianz.eq.0) then 
                      rhkl (1) = 0.0 
                      rhkl (2) = 0.0 
                      rhkl (3) = 0.0 
-                     CALL dlink (lxray, ano, lambda, rlambda) 
+                     CALL dlink (lxray, ano, lambda, rlambda,    &
+                                    diff_radiation, diff_power) 
                      CALL calc_000 (rhkl) 
                   ELSE 
                      ier_num = - 6 
@@ -236,6 +238,12 @@
 !                                                                       
             ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
                GOTO 9999 
+!                                                                       
+!     switch to electron diffraction 'electron'                                
+!                                                                       
+            ELSEIF (str_comp (befehl, 'electron', 2, lbef, 8) ) then 
+               lxray = .true. 
+               diff_radiation = RAD_ELEC
 !                                                                       
 !     help 'help' , '?'                                                 
 !                                                                       
@@ -393,6 +401,7 @@
 !                                                                       
             ELSEIF (str_comp (befehl, 'neut', 2, lbef, 4) ) then 
                lxray = .false. 
+               diff_radiation = RAD_NEUT
 !                                                                       
 !     define the number of points along the ordinate 'no'               
 !                                                                       
@@ -454,7 +463,8 @@
                  ENDIF
                ENDIF
                IF (inc (1) * inc (2) .le.MAXQXY) then 
-                  CALL dlink (lxray, ano, lambda, rlambda) 
+                  CALL dlink (lxray, ano, lambda, rlambda, &
+                              diff_radiation, diff_power) 
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
                         four_log = .true. 
@@ -473,7 +483,7 @@
 !                                                                       
             ELSEIF (str_comp (befehl, 'scat', 2, lbef, 4) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-               IF (ianz.eq.10) then 
+               IF (ianz.eq.10. .or. ianz==12) then 
                   i = 1 
                   CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
                   IF (ier_num.eq.0) then 
@@ -487,10 +497,10 @@
                         maxw)                                           
                         IF (ier_num.eq.0) then 
                            DO k = 1, i 
-                           DO i = 2, 9 
+                           DO i = 2, ianz-1 
                            cr_scat (i, jj (k) ) = werte (i) 
                            ENDDO 
-                           cr_scat (1, jj (k) ) = werte (10) 
+                           cr_scat (1, jj (k) ) = werte (ianz) 
                            cr_scat_int (jj (k) ) = .false. 
                            ENDDO 
                         ENDIF 
@@ -582,7 +592,8 @@
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
             ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-               CALL dlink (lxray, ano, lambda, rlambda) 
+               CALL dlink (lxray, ano, lambda, rlambda, &
+                           diff_radiation, diff_power) 
                CALL four_show 
 !                                                                       
 !     Switch usage of temperature coefficients on/off 'temp'            
@@ -640,6 +651,7 @@
 !                                                                       
             ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) then 
                lxray = .true. 
+               diff_radiation = RAD_XRAY
             ELSE 
                ier_num = - 8 
                ier_typ = ER_COMM 
@@ -1326,7 +1338,7 @@
       DO iscat = 1, cr_nscat 
       DO iq = 0, CFPKT 
       q2 = (float (iq) * CFINC) **2 
-      sf = form (iscat, cr_scat, lxray, q2) 
+      sf = form (iscat, cr_scat, lxray, q2, diff_power) 
 !                                                                       
       IF (ano) then 
          sfp = cr_delfr ( (iscat) ) 
@@ -1431,7 +1443,9 @@
       include'prompt.inc' 
       include'errlist.inc' 
 !                                                                       
-      CHARACTER(7) radiation 
+      CHARACTER(8) radiation 
+      CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
+         'X-ray   ', 'neutron ', 'electron' /)
       CHARACTER(1) extr_achs (0:3) 
       REAL u (3), v (3), w (3) 
       REAL dvi1, dvi2, dvi3, dvi4, dvi5 
@@ -1465,6 +1479,7 @@
 !                                                                       
       radiation = 'neutron' 
       IF (lxray) radiation = 'x-ray' 
+      radiation = c_rad(diff_radiation)
       IF (lambda.eq.' ') then 
          WRITE (output_io, 1200) radiation, rlambda 
       ELSE 
@@ -1546,22 +1561,25 @@
      &          '   Ratio/Aver  v/h    : ',2(2x,f9.4))                  
       END SUBROUTINE four_show                      
 !*****7*****************************************************************
-      REAL function form (ll, scat, lxray, h2) 
+      REAL FUNCTION form (ll, scat, lxray, h2, power) 
 !+                                                                      
 !       calculates the form factor                                      
 !-                                                                      
+      USE config_mod
+      USE element_data_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim, maxscat 
-      PARAMETER (idim = 3, maxscat = 150) 
-!                                                                       
-      LOGICAL lxray 
-      INTEGER ll, i 
-      REAL h2, scat (9, 0:maxscat) 
+      INTEGER, INTENT(IN) :: ll
+      LOGICAL, INTENT(IN) :: lxray 
+      REAL   , DIMENSION(11,0:MAXSCAT), INTENT(INOUT) :: scat ! (11, 0:maxscat) 
+      REAL                            , INTENT(IN)    :: h2
+      INTEGER, INTENT(IN) :: power
+!
+      INTEGER   :: i 
 !                                                                       
       form = scat (1, ll) 
       IF (lxray) then 
-         DO i = 1, 4 
+         DO i = 1, power 
          form = form + scat (2 * i, ll) * exp ( - scat (2 * i + 1, ll)  &
          * h2)                                                          
          ENDDO 
@@ -1589,7 +1607,8 @@
       ENDDO 
       END FUNCTION quad                             
 !*****7*****************************************************************
-      SUBROUTINE dlink (lxray, ano, lambda, rlambda) 
+      SUBROUTINE dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                        diff_power) 
 !-                                                                      
 !     This routine reads wavelength symbols, wavelength values 
 !     and atomic form factors from module "element_data_mod"
@@ -1607,11 +1626,17 @@
       LOGICAL             , INTENT(IN)   :: lxray 
       CHARACTER (LEN = * ), INTENT(IN)   :: lambda 
       REAL                , INTENT(OUT)  :: rlambda
+      INTEGER             , INTENT(IN)   :: diff_radiation
+      INTEGER             , INTENT(OUT)  :: diff_power
+!
+      INTEGER , PARAMETER  :: RAD_XRAY = 1
+      INTEGER , PARAMETER  :: RAD_NEUT = 2
+      INTEGER , PARAMETER  :: RAD_ELEC = 3
 !
       CHARACTER (LEN = 4 ) :: element 
       INTEGER    :: i
       INTEGER    :: j
-      REAL   , DIMENSION(1:9)   :: temp_scat  ! a1,b1,---a4,b4,c
+      REAL   , DIMENSION(1:11)  :: temp_scat  ! a1,b1,---a4,b4,c
       REAL   , DIMENSION(1:2)   :: temp_delf  ! delfr, delfi
       REAL                      :: temp_bcoh  ! b_choherent
 !
@@ -1634,7 +1659,8 @@
          IF (cr_at_lis (i) /= 'XAXI' .AND. cr_at_lis (i) /= 'YAXI' .and. & 
              cr_at_lis (i) /= 'ZAXI') THEN                  
             IF (cr_scat_int (i) ) then 
-               IF (.not.lxray) then     !  neutron scattering
+               SELECTCASE(diff_radiation)
+                  CASE(RAD_NEUT)        !  neutron scattering
                   IF (cr_scat_equ (i) ) then 
                      element =         cr_at_equ (i) 
                   ELSE 
@@ -1643,18 +1669,19 @@
 !                                                                       
                   CALL symbf ( element, j)
                   IF ( j /= 0 ) THEN 
-                     CALL get_scat ( j, temp_scat, temp_delf, temp_bcoh )
+                     CALL get_scat_neut ( j, temp_bcoh )
                      cr_scat(:,i) = 0.0
                      cr_scat(1,i) = temp_bcoh
                      cr_delfr (i) = 0.0 
                      cr_delfi (i) = 0.0 
+                     diff_power   = PER_RAD_POWER(diff_radiation)
                      ier_num = 0
                      ier_typ = ER_NONE 
                   ELSE
                      ier_num = -20 
                      ier_typ = ER_APPL 
                   ENDIF
-               ELSE                    ! Xray diffraction
+                  CASE(RAD_XRAY)        !  Xray diffraction
                   IF (cr_scat_equ (i) ) then 
                      element =         cr_at_equ (i) 
                   ELSE 
@@ -1666,22 +1693,47 @@
 !                                                                       
                   CALL symbf ( element, j)
                   IF ( j /= 0 ) THEN 
-                     CALL get_scat ( j, temp_scat, temp_delf, temp_bcoh )
+                     CALL get_scat_xray ( j, temp_scat )
                      cr_scat(:,i) = 0.0
                      cr_scat(:,i) = temp_scat(:)   ! copy temp array into 1st column
                      cr_delfr (i) = 0.0   ! DEVELOPMENT !
                      cr_delfi (i) = 0.0   ! DEVELOPMENT !
-!                       IF (ano.and.cr_delf_int (i) ) then 
-!                          CALL anoma (symwl, element, kodlp) 
-!                          cr_delfr (i) = delfr 
-!                          cr_delfi (i) = delfi 
-!                       ENDIF 
+                     IF (ano.and.cr_delf_int (i) ) then 
+                        CALL get_scat_ano ( j, lambda, temp_delf )
+                        cr_delfr (i) = temp_delf(1)
+                        cr_delfi (i) = temp_delf(2)
+                     ENDIF 
+                     diff_power   = PER_RAD_POWER(diff_radiation)
                      ier_num = 0
                   ELSE
                      ier_typ = ER_NONE 
                      ier_typ = ER_APPL 
                   ENDIF
-               ENDIF 
+!
+                  CASE(RAD_ELEC)        !  Electron diffraction
+                  IF (cr_scat_equ (i) ) then 
+                     element =         cr_at_equ (i) 
+                  ELSE 
+                     element =         cr_at_lis (i) 
+                  ENDIF 
+!
+                  ier_num = -20 
+                  ier_typ = ER_APPL 
+!                                                                       
+                  CALL symbf ( element, j)
+                  IF ( j /= 0 ) THEN 
+                     CALL get_scat_elec ( j, temp_scat)
+                     cr_scat(:,i) = 0.0
+                     cr_scat(:,i) = temp_scat(:)   ! copy temp array into 1st column
+                     cr_delfr (i) = 0.0
+                     cr_delfi (i) = 0.0
+                     diff_power   = PER_RAD_POWER(diff_radiation)
+                     ier_num = 0
+                  ELSE
+                     ier_typ = ER_NONE 
+                     ier_typ = ER_APPL 
+                  ENDIF
+               END SELECT
 !                                                                       
             ENDIF 
          ENDIF 
@@ -1875,37 +1927,34 @@
 !*****7*****************************************************************
       SUBROUTINE errlist_four 
 !-                                                                      
-!     Displays error Messages for the error type RMC                    
+!     Displays error Messages for the error type FOUR                    
 !+                                                                      
       IMPLICIT none 
 !                                                                       
       include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = - 15, IO = 0) 
+      PARAMETER (IU = -15, IO = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR / ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '&
-     &, 'Component of increment vector is zero    ', 'SIN(THETA)/LAMBDA &
-     &> lookup table limits  ', 'Invalid lot shape selected             &
-     &  ', 'Invalid Fourier mode selected            ', ' ' /           
-                  !-15                                                  
-                  !-14                                                  
-                  !-13                                                  
-                  !-12                                                  
-                  !-11                                                  
-                  !-10                                                  
-                  !-9                                                   
-                  !-8                                                   
-                  !-7                                                   
-                  !-6                                                   
-                  !-5                                                   
-                                                          !-4           
-                                                          !-3           
-                                                          !-2           
-                                                          !-1           
-                  !  0                                                  
+      DATA ERROR( IU: 0) /                             &
+        ' ',                                           &   ! -15  ! FOUR
+        ' ',                                           &   ! -14  ! FOUR
+        ' ',                                           &   ! -13  ! FOUR
+        ' ',                                           &   ! -12  ! FOUR
+        ' ',                                           &   ! -11  ! FOUR
+        ' ',                                           &   ! -10  ! FOUR
+        ' ',                                           &   ! -9   ! FOUR
+        ' ',                                           &   ! -8   ! FOUR
+        ' ',                                           &   ! -7   ! FOUR
+        ' ',                                           &   ! -6   ! FOUR
+        ' ',                                           &   ! -5   ! FOUR
+        'Component of increment vector is zero    ',   &   ! -4   ! FOUR
+        'SIN(THETA)/LAMBDA > lookup table limits  ',   &   ! -3   ! FOUR
+        'Invalid lot shape selected               ',   &   ! -2   ! FOUR
+        'Invalid Fourier mode selected            ',   &   ! -1   ! FOUR
+        ' ' /                                              !  0   ! FOUR
 !                                                                       
       CALL disp_error ('FOUR', error, iu, io) 
       END SUBROUTINE errlist_four                   

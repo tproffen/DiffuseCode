@@ -328,14 +328,15 @@ SUBROUTINE pdf
 !                                                                       
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
-      CALL dlink (pdf_lxray, ano, lambda, rlambda) 
+      CALL dlink (pdf_lxray, ano, lambda, rlambda,  pdf_radiation, &
+                  pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 
 !                                                                       
       cr_n_real_atoms = 0 
       DO ia = 1, cr_natoms 
       IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
-         bave = bave+form (cr_iscat (ia), cr_scat, pdf_lxray, hh) 
+         bave = bave+form (cr_iscat (ia), cr_scat, pdf_lxray, hh,  pdf_power) 
          cr_n_real_atoms = cr_n_real_atoms + 1 
       ENDIF 
       ENDDO 
@@ -344,8 +345,8 @@ SUBROUTINE pdf
       IF (.not.pdf_lweights) then 
          DO is = 0, cr_nscat 
          DO js = 0, cr_nscat 
-         pdf_weight (is, js) = form (is, cr_scat, pdf_lxray, hh)        &
-         * form (js, cr_scat, pdf_lxray, hh) / bave**2                  
+         pdf_weight (is, js) = form (is, cr_scat, pdf_lxray, hh, pdf_power)        &
+         * form (js, cr_scat, pdf_lxray, hh, pdf_power) / bave**2                  
          ENDDO 
          ENDDO 
       ENDIF 
@@ -441,11 +442,19 @@ SUBROUTINE pdf
          WRITE (output_io, 1000) 
          WRITE (output_io, 2000) pdf_rmax, pdf_deltar, pdf_bin 
 !                                                                       
-         IF (pdf_lxray) then 
-            WRITE (output_io, 2010) 'X-Rays', pdf_xq 
-         ELSE 
-            WRITE (output_io, 2015) 'Neutrons' 
-         ENDIF 
+         SELECTCASE(pdf_radiation)
+            CASE(PDF_RAD_XRAY)
+               WRITE (output_io, 2010) 'X-Rays', pdf_xq 
+            CASE(PDF_RAD_NEUT)
+               WRITE (output_io, 2015) 'Neutrons' 
+            CASE(PDF_RAD_ELEC)
+               WRITE (output_io, 2010) 'Electrons', pdf_xq 
+         END SELECT
+!        IF (pdf_lxray) then 
+!           WRITE (output_io, 2010) 'X-Rays', pdf_xq 
+!        ELSE 
+!           WRITE (output_io, 2015) 'Neutrons' 
+!        ENDIF 
 !                                                                       
          WRITE (output_io, 2100) 
          IF (pdf_qmax.eq.0.0) then 
@@ -1192,8 +1201,21 @@ SUBROUTINE pdf
                CALL do_cap (cpara (1) ) 
                IF (cpara (1) (1:1) .eq.'N') then 
                   pdf_lxray = .false. 
+                  pdf_radiation = PDF_RAD_NEUT
                ELSEIF (cpara (1) (1:1) .eq.'X') then 
                   pdf_lxray = .true. 
+                  pdf_radiation = PDF_RAD_XRAY
+                  IF (ianz.eq.2) then 
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     IF (ier_num.ne.0) return 
+                     pdf_xq = werte (1) 
+                  ELSE 
+                     pdf_xq = 0.0 
+                  ENDIF 
+               ELSEIF (cpara (1) (1:1) .eq.'E') then 
+                  pdf_lxray = .true. 
+                  pdf_radiation = PDF_RAD_ELEC
                   IF (ianz.eq.2) then 
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -2232,9 +2254,9 @@ SUBROUTINE pdf
       include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = - 9, IO = 0) 
+      PARAMETER (IU = -9, IO = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(LEN=45) ERROR (IU:IO) 
 !                                                                       
       DATA ERROR ( -9:  0) /                              &
           'No atoms in asymmetric unit',                  & !  -r98

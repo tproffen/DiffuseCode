@@ -30,6 +30,10 @@ INTEGER, PARAMETER      :: rmc_local_loc     = 2
 INTEGER, PARAMETER      :: rmc_local_locsite = 3
 INTEGER, PARAMETER      :: rmc_local_site    = 4
 !
+INTEGER , PARAMETER     :: RMC_RAD_XRAY = 1
+INTEGER , PARAMETER     :: RMC_RAD_NEUT = 2
+INTEGER , PARAMETER     :: RMC_RAD_ELEC = 3
+!
 CHARACTER (LEN=80), DIMENSION(RMC_MAX_PLANES)      :: rmc_fname
 CHARACTER (LEN=80)                                 :: rmc_lname
 CHARACTER (LEN= 4), DIMENSION(RMC_MAX_PLANES)      :: rmc_lambda
@@ -73,6 +77,8 @@ INTEGER                                            :: rmc_mode,rmc_local
 INTEGER, DIMENSION(0:1)                            :: rmc_sel_prop
 !
 LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_lxray
+INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_radiation
+INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_power
 LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_ano 
 LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_ldbw 
 LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed  ! (0:RMC_MAXSCAT)

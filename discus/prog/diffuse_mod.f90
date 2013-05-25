@@ -19,6 +19,10 @@ INTEGER , PARAMETER  :: INTERNAL = 1
 INTEGER , PARAMETER  :: I2PI     = 2**16
 INTEGER , PARAMETER  :: MASK     = I2PI-1
 !
+INTEGER , PARAMETER  :: RAD_XRAY = 1
+INTEGER , PARAMETER  :: RAD_NEUT = 2
+INTEGER , PARAMETER  :: RAD_ELEC = 3
+!
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
 !COMPLEX , DIMENSION(0:CFPKT, 1:MAXSCAT) ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
@@ -67,6 +71,8 @@ INTEGER , DIMENSION(1:2)                ::  inc      = 121
 LOGICAL                                 ::  ano      = .false.
 LOGICAL                                 ::  ldbw     = .false.
 LOGICAL                                 ::  lxray    = .true.
+INTEGER                                 ::  diff_radiation = RAD_XRAY
+INTEGER                                 ::  diff_power     = 4
 REAL    , DIMENSION(1:3, 1:3)           ::  eck      = reshape((/-0.5,-0.5,0.0, &
                                                                   5.5,-0.5,0.0, &
                                                                   -0.5,5.5,0.0/),shape(eck))

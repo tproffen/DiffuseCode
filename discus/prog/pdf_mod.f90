@@ -11,6 +11,10 @@ INTEGER, PARAMETER  ::  PDF_BACK_POLY    = 1
 INTEGER, PARAMETER  ::  PDF_BACK_SPHERE  = 2
 INTEGER, PARAMETER  ::  PDF_BACK_TANH    = 3
 !
+INTEGER , PARAMETER  :: PDF_RAD_XRAY = 1
+INTEGER , PARAMETER  :: PDF_RAD_NEUT = 2
+INTEGER , PARAMETER  :: PDF_RAD_ELEC = 3
+!
 INTEGER             ::  PDF_MAXSCAT      = 1
 INTEGER             ::  PDF_MAXDAT       = 1
 INTEGER             ::  PDF_MAXBND       = 1
@@ -62,7 +66,9 @@ INTEGER             ::  pdf_bin    = 1
 INTEGER             ::  pdf_finite = PDF_BACK_PERIOD
 INTEGER             ::  pdf_poly_n = 0
 INTEGER             ::  pdf_sel_prop(0:1) = 0
-!
+!                                                
+INTEGER             ::  pdf_radiation = PDF_RAD_XRAY
+INTEGER             ::  pdf_power     = 4
 LOGICAL             ::  pdf_lxray  = .false.
 LOGICAL             ::  pdf_gauss  = .false.
 LOGICAL             ::  pdf_2d     = .false.

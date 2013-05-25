@@ -89,9 +89,12 @@ IMPLICIT none
       include'prompt.inc' 
       include'date.inc' 
 !                                                                       
-fpi = 16.00 * atan (1.00) 
-zpi = 8.00 * atan (1.00) 
-pi  = 4.00 * atan (1.00) 
+!fpi = 16.00 * atan (1.00) 
+!zpi = 8.00 * atan (1.00) 
+!pi  = 4.00 * atan (1.00) 
+pi  = 3.141592653589793238462643383279
+zpi = 3.141592653589793238462643383279 * 2.00
+fpi = 3.141592653589793238462643383279 * 4.00
 rad = zpi / 360.00 
 CALL ini_ran (0) 
 !                                                                       

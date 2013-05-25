@@ -631,7 +631,8 @@
       ENDDO 
       ianz = ianz - 1 
 !                                                                       
-      CALL dlink (lxray, ano, lambda, rlambda) 
+      CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                  diff_power) 
 !                                                                       
       DO i = 0, cr_nscat 
       latom (i) = .false. 
@@ -648,11 +649,19 @@
             ENDDO 
          ENDIF 
       ENDIF 
-      IF (lxray) then 
-         WRITE (output_io, 3000) 'Xray', lambda, rlambda 
-      ELSE 
-         WRITE (output_io, 3000) 'Neutronen', lambda, rlambda 
-      ENDIF 
+!     IF (lxray) then 
+!        WRITE (output_io, 3000) 'Xray', lambda, rlambda 
+!     ELSE 
+!        WRITE (output_io, 3000) 'Neutronen', lambda, rlambda 
+!     ENDIF 
+      SELECTCASE(diff_radiation)
+         CASE(RAD_XRAY)
+            WRITE (output_io, 3000) 'Xray', lambda, rlambda 
+         CASE(RAD_NEUT)
+            WRITE (output_io, 3000) 'Neutron', lambda, rlambda 
+         CASE(RAD_ELEC)
+            WRITE (output_io, 3000) 'Electron', lambda, rlambda 
+      END SELECT
       IF (ano) then 
          WRITE (output_io, 3005) 'calculated' 
       ELSE 
@@ -661,9 +670,21 @@
       DO i = 0, cr_nscat 
       IF (latom (i) ) then 
          at_name_d = at_name ( (i) ) 
-         WRITE (output_io, 3010) at_name_d, (cr_scat (2 * j, i),        &
-         j = 1, 4), (cr_scat (2 * j + 1, i), j = 1, 4), cr_scat (1, i), &
-         cr_delfr (i), cr_delfi (i)                                     
+         SELECTCASE(diff_power)
+           CASE(0)
+             WRITE (output_io, 3030) at_name_d,  &
+             cr_scat (1, i)
+           CASE(4)
+             WRITE (output_io, 3010) at_name_d,  &
+             (cr_scat (2 * j    , i),j = 1, diff_power),      &
+             (cr_scat (2 * j + 1, i),j = 1, diff_power),      &
+             cr_scat (1, i), cr_delfr (i), cr_delfi (i)
+           CASE(5)
+             WRITE (output_io, 3020) at_name_d,  &
+             (cr_scat (2 * j    , i),j = 1, diff_power),      &
+             (cr_scat (2 * j + 1, i),j = 1, diff_power),      &
+             cr_scat (1, i), cr_delfr (i), cr_delfi (i)
+         END SELECT
       ENDIF 
       ENDDO 
 !
@@ -673,8 +694,13 @@
      &                  ' Wave length symbol   : ',a/                   &
      &                  ' Wave length          : ',f7.5)                
  3005 FORMAT    (' Anomalous scat.      : ',a/) 
+ 3030 FORMAT    (1x,a9,    'bcoh        : ', f12.7)
  3010 FORMAT    (1x,a9,    'a(i)        : ',4(f12.7,2x)/                &
      &                  '          b(i)        : ',4(f12.7,2x)/         &
+     &                  '          c           : ',  f12.7/             &
+     &               '          f'',f''''      : ',2(f12.7,2x)/)        
+ 3020 FORMAT    (1x,a9,    'a(i)        : ',5(f12.7,2x)/                &
+     &                  '          b(i)        : ',5(f12.7,2x)/         &
      &                  '          c           : ',  f12.7/             &
      &               '          f'',f''''      : ',2(f12.7,2x)/)        
 !                                                                       

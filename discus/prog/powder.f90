@@ -114,15 +114,23 @@ CONTAINS
                      CALL do_hel ('discus powd '//zeile, lp) 
                   ENDIF 
 !                                                                       
+!     switch to electrons diffraction 'electron'                                
+!                                                                       
+               ELSEIF (str_comp (befehl, 'electron', 1, lbef, 8) ) then 
+                  lxray = .true. 
+                  diff_radiation = RAD_ELEC
+!                                                                       
 !     switch to neutron diffraction 'neut'                              
 !                                                                       
                ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) then 
                   lxray = .false. 
+                  diff_radiation = RAD_NEUT
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
-                  CALL dlink (lxray, ano, lambda, rlambda) 
+                  CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                              diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
                   ENDIF 
@@ -130,7 +138,8 @@ CONTAINS
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL dlink (lxray, ano, lambda, rlambda) 
+                  CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                              diff_power) 
                   CALL pow_show 
 !                                                                       
 !------- -Set values 'set'                                              
@@ -157,6 +166,7 @@ CONTAINS
 !                                                                       
                ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) then 
                   lxray = .true. 
+                  diff_radiation = RAD_XRAY
 !                                                                       
 !     ------unknown command                                             
 !                                                                       
@@ -203,7 +213,9 @@ CONTAINS
       include'errlist.inc' 
       include'wink.inc' 
 !                                                                       
-      CHARACTER(7) radiation 
+      CHARACTER(8) radiation 
+      CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
+         'X-ray   ', 'neutron ', 'electron' /)
       CHARACTER(14) cfour (0:1) 
       CHARACTER(28) ccalc (0:5) 
       CHARACTER(21) cpref (1:2) 
@@ -229,8 +241,9 @@ CONTAINS
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
-      radiation = 'neutron' 
-      IF (lxray) radiation = 'x-ray' 
+!     radiation = 'neutron' 
+!     IF (lxray) radiation = 'x-ray' 
+      radiation = c_rad(diff_radiation)
       IF (lambda.eq.' ') then 
          WRITE (output_io, 1200) radiation, rlambda 
       ELSE 

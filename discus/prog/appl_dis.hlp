@@ -81,6 +81,14 @@
 
    The command line may now take the additional option:
    program -macro <macro_name> [<par1> [ <par2> ...]]
+4  Electron
+
+   DISCUS now offers electron diffraction in the kinematical limit as well.
+   Atom form factors are taken from Table 4.3.2.3 Int. table Vol C (2006)
+   respectively. from Peng, Ren, Dudarev, Whelan Acta Cryst A52 (1996), 257
+
+   Electron diffraction works in all menues where you could switsch between
+   X-ray and neutrons i.e.: fourier, powder, rmc, pdf
 4  internal_storage
 
    DISCUS now offers an internal storage of crystal structures.
@@ -322,7 +330,7 @@
 3  keywords
 
    The keywords "title", "spcgr", "cell", and "atoms" are required, see 
-   the help one level up. These furthert optional keyword allow you to
+   the help one level up. These further optional keyword allow you to
    fine tune the unit cell file.
 
    You may include commentaries or empty lines anywhere between the 
@@ -789,6 +797,9 @@
 !b boundary "hkl",h,k,l [,distance] [,{"inside"}|{"outside"}]
 !b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
 !b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
+
+   You are encouraged to use this command from within the new 
+   ==> 'surface' menu.
 
    This commands removes all atoms that are outside a boundary surrounding
    the crystal. 
@@ -1448,6 +1459,7 @@
 !p calc    ! calculates at a single point in reciprocal space
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! echo a string (see main help level)
+!p electron! switches to electron calculation
 !p eval    ! Evaluates an expression for interactive check
 !p exit    ! terminates Fourier level
 !p help    ! help to Fourier commands (see main help level)
@@ -1511,6 +1523,10 @@
    switches anomalous dispersion on /off. If <switch> is "anom" anomalous
    dispersion will be calculated, if the switch is omitted, no anomalous 
    dispersion is calculated.
+3  electron
+!b electron
+
+   switches to electron calculation
 3  layer
 !b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
@@ -3583,12 +3599,14 @@
 4  rad
 !b set "rad","neutron"
 !b set "rad","xray" [,<qx>]
+!b set "rad","electron" [,<qx>]
 
    This command selects the radiation used to calculate the PDF.
    The weighting factor for each atom pair is B(i)*B(j)/<B**2>.
    In case of neutrons ("neutron"), the values B(i) are simply
    the scattering length of the individual elements. For Xrays
-   ("xray") the situation is more complicated since the scattering
+   ("xray"), or electrons ("electron") the situation is more 
+   complicated since the scattering
    power varies as a function of Q. As an approximation the 
    scattering power at a give Q value <qx> in A**-1 is used. The
    value <qx> can be taken as zero (default) in which case the
@@ -4077,13 +4095,20 @@
 !p echo    ! Echos a string, just for interactive check (see main help)
 !p exit    ! Terminates the plot sub level, returns to the main DISCUS level.
 !p help    ! Gives on-line help for 'plot' (see main help)
+!p electron! switches to electron calculation
+!p neut    ! switches to neutron calculation
 !p run     ! Starts writing of the structure
 !p set     ! Sets Theta limits, grid in reciprocal space, ...
 !p show    ! Shows settings for the plotting parameters
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
+!p xray    ! switches to electron calculation
 
+3  electron
+!b electron
+
+   switches to electron calculation
 3  neut
 !b neut
 
@@ -7495,7 +7520,7 @@
 !p APPL   Errors specific to DISCUS usage
 !p CHEM   Errors at the chemistry sublevel
 !p FOUR   Errors related to Fourier Transform
-!p MC     Errors at the Monte Carlo level
+!p MMC    Errors at the Monte Carlo level
 !p PDF    Errors at the PDF level
 !p RMC    Errors at the Reverse Monte Carlo level
 
@@ -8410,7 +8435,7 @@
 
    The corners of the plane in reciprocal space to be calculated are
    invalid since two or more corners are the same. Adjust your input. 
-3  mc
+3  mmc
    These are the error messages of the MC section of DISCUS
 
 4  -1 
@@ -8758,11 +8783,16 @@
 2  wavelength
 !b List of allowed wavelength symbols 
 
+!p TIA1   2.748410    TIA2   2.752070     TIB    2.513810     TI     2.740000
 !p CRA1   2.28970     CRA2   2.29361      CRB    2.0848       CR     2.2909
 !p FEA1   1.193604    FEA2   1.93998      FEB    1.75653      FE     1.9373
+!p COA1   1.788920    COA1   1.792780     COB    1.620750     CO     1.780000
 !p CUA1   1.54056     CUA2   1.54439      CUB    1.39217      CU     1.5418
 !p MOA1   0.709309    MOA2   0.71335      MOB    0.63225      MO     0.7107
 !p AGA1   0.55941     AGA2   0.56380      AGB    0.49701      AG     0.5608
+!p TAA1   0.215484    TAA2   0.220290     TAB    0.190076     TA     0.560800
+!p WA1    0.208992    WA2    0.213813     WB     0.184363,    W      0.560800
+!p AUA1   0.180185    AUA2   0.185064     AUB    0.158971,    AU     0.560800
 2  atom_names
 !b List of allowed atom names
 

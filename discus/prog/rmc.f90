@@ -989,8 +989,16 @@
          DO i = 1, rmc_nplane 
          WRITE (output_io, 1800) i, rmc_num (1, i), rmc_num (2, i),     &
          rmc_fname (i) (1:len_str (rmc_fname (i) ) )                    
-         ra = 'Neutrons' 
-         IF (rmc_lxray (i) ) ra = 'X-rays' 
+!        ra = 'Neutrons' 
+!        IF (rmc_lxray (i) ) ra = 'X-rays' 
+         SELECTCASE(rmc_radiation (i))
+            CASE(RMC_RAD_XRAY)
+               ra = 'X-rays'
+            CASE(RMC_RAD_NEUT)
+               ra = 'Neutrons'
+            CASE(RMC_RAD_ELEC)
+               ra = 'Electrons'
+         END SELECT
       IF (rmc_lambda (i) .eq.'    ') then 
             WRITE (output_io, 1850) rmc_rlambda (i), ra, rmc_ldbw (i),  &
             rmc_ano (i)                                                 
@@ -1365,8 +1373,10 @@
          CALL do_cap (cpara (1) ) 
          IF (cpara (1) (1:1) .eq.'N') then 
             rmc_lxray (ip) = .false. 
+            rmc_radiation (ip) = RMC_RAD_NEUT
          ELSEIF (cpara (1) (1:1) .eq.'X') then 
             rmc_lxray (ip) = .true. 
+            rmc_radiation (ip) = RMC_RAD_XRAY
          ELSE 
             ier_num = - 5 
             ier_typ = ER_RMC 
@@ -1922,8 +1932,9 @@
             rmc_c    = 0.0 
             rmc_cc   = 0.0 
             rmc_ce   = 0.0 
-            call dlink(rmc_lxray(ip),rmc_ano(ip),                       &
-     &                     rmc_lambda(ip),rmc_rlambda(ip))              
+            call dlink(rmc_lxray(ip),rmc_ano(ip),           &
+     &                     rmc_lambda(ip),rmc_rlambda(ip),  & 
+                           rmc_radiation(ip), rmc_power(ip))
             DO is=1,isym(ip) 
               call rmc_fcalc (ip,is,natoms,i_new,p_new,isel) 
               call rmc_inten (ip,is,.true.) 
@@ -2130,7 +2141,7 @@
 !                                                                       
       DO ip = 1, rmc_nplane 
       CALL dlink (rmc_lxray (ip), rmc_ano (ip), rmc_lambda (ip),        &
-      rmc_rlambda (ip) )                                                
+      rmc_rlambda (ip),  rmc_radiation(ip), rmc_power(ip) )
       CALL rmc_formtab (ip, .true.) 
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
@@ -3390,33 +3401,33 @@
       include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (iu = - 21, io = 0) 
+      PARAMETER (iu = -21, io = 0) 
 !                                                                       
-      CHARACTER(41) ERROR (IU:IO) 
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
       DATA ERROR / &
-      'Number of LOTS exceeds maximum           ', &  ! -21
-      'No valid move after 1000 disp. intervalls', &  ! -20
-      'Invalid constrain entered                ', &  ! -19
-      'Data file is not an ASCII PGM file       ', &  ! -18
-      'Data and weight file have different sizes', &  ! -17
-      'Invalid weighting scheme / weighting file', &  ! -16
-      'Invalid data type selected               ', &  ! -15
-      'No experimental data within given q limit', &  ! -14
-      'Too many symmetrically equivalent planes ', &  ! -13
-      'Displacements too small for SWDISP mode  ', &  ! -12
-      'Only ONE atom type present in SWCHEM mode', &  ! -11
-      'No atom types selected for RMC run       ', &  ! -10
-      'Invalid RMC/MC mode selected             ', &  !  -9
-      'Invalid symmetry number selected         ', &  !  -8
-      'Invalid plane selected                   ', &  !  -7
-      'Too many atoms per molecule for RMC      ', &  !  -6
-      'Invalid method (x,n) selected            ', &  !  -5
-      'No experimental data present             ', &  !  -4
-      'No atoms present in model crystal        ', &  !  -3
-      'Too many experimental data points        ', &  !  -2
-      'Too many experimental data planes        ', &  !   1
-      ' ' /                                            !   0
+      'Number of LOTS exceeds maximum           ',    &  ! -21
+      'No valid move after 1000 disp. intervalls',    &  ! -20
+      'Invalid constrain entered                ',    &  ! -19
+      'Data file is not an ASCII PGM file       ',    &  ! -18
+      'Data and weight file have different sizes',    &  ! -17
+      'Invalid weighting scheme / weighting file',    &  ! -16
+      'Invalid data type selected               ',    &  ! -15
+      'No experimental data within given q limit',    &  ! -14
+      'Too many symmetrically equivalent planes ',    &  ! -13
+      'Displacements too small for SWDISP mode  ',    &  ! -12
+      'Only ONE atom type present in SWCHEM mode',    &  ! -11
+      'No atom types selected for RMC run       ',    &  ! -10
+      'Invalid RMC/MC mode selected             ',    &  !  -9
+      'Invalid symmetry number selected         ',    &  !  -8
+      'Invalid plane selected                   ',    &  !  -7
+      'Too many atoms per molecule for RMC      ',    &  !  -6
+      'Invalid method (x,n) selected            ',    &  !  -5
+      'No experimental data present             ',    &  !  -4
+      'No atoms present in model crystal        ',    &  !  -3
+      'Too many experimental data points        ',    &  !  -2
+      'Too many experimental data planes        ',    &  !   1
+      ' ' /                                              !   0
 !                                                                       
       CALL disp_error ('RMC ', error, iu, io) 
       END SUBROUTINE errlist_rmc                    

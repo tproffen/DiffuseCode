@@ -167,9 +167,9 @@ CONTAINS
       DEALLOCATE ( this%cr_mole_dens , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_fuzzy, STAT=istatus ) ! Always deallocate molecules
    ENDIF
-   ALLOCATE ( this%cr_gen_add (4,4,0:14 ), STAT=istatus ) ! Allocate equivalent atom names
-   ALLOCATE ( this%cr_sym_add (4,4,0:14 ), STAT=istatus ) ! Allocate equivalent atom names
-   ALLOCATE ( this%cr_scat    (9,0:nscat), STAT=istatus ) ! Allocate equivalent atom names
+   ALLOCATE ( this%cr_gen_add (4,4,0:14 ), STAT=istatus )  ! Allocate equivalent atom names
+   ALLOCATE ( this%cr_sym_add (4,4,0:14 ), STAT=istatus )  ! Allocate equivalent atom names
+   ALLOCATE ( this%cr_scat    (11,0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_delfr   (  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_delfi   (  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_scat_int(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
@@ -422,13 +422,13 @@ CONTAINS
 !
    ALLOCATE(iscat_table(0:MAXSCAT), STAT = istatus)
    iscat_table = 0
-   ia = -1
    IF(this%cr_sav_scat) THEN
+      ia = -1
       DO i=0,cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
-            DO j=1,9
+            DO j=1,11
                this%cr_scat(j,ia)     = cr_scat(j,ia)
             ENDDO
 !
@@ -451,8 +451,10 @@ CONTAINS
       this%cr_scat_equ     = .false.
       this%cr_delf_int     = .true.
       this%cr_at_equ       = ' '
+      this%cr_at_lis(0)    = cr_at_lis(0)   ! always save void name
 !     Always save atom names
-      DO i=0,cr_nscat
+      ia = 0
+      DO i=1,cr_nscat
          IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
@@ -462,9 +464,10 @@ CONTAINS
    ENDIF
 !  Always save ADP values 
 !
-   ia = -1
+   ia =  0
+   this%cr_dw(0)       = cr_dw(0)           ! always save void ADP
    IF(this%cr_sav_adp) THEN
-      DO i=0,cr_nscat
+      DO i=1,cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
@@ -472,7 +475,7 @@ CONTAINS
 !        ENDIF
       ENDDO
    ELSE
-      DO i=0,cr_nscat
+      DO i=1,cr_nscat
          IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
@@ -621,6 +624,8 @@ CONTAINS
    cr_reps         = this%cr_reps
    cr_fmat         = this%cr_fmat
 !
+   cr_natoms       = this%cr_natoms
+!
    IF ( sav_w_ncell ) THEN
       cr_ncatoms   = this%cr_ncatoms
       cr_icc       = this%cr_icc
@@ -657,7 +662,7 @@ CONTAINS
       sym_add      = 0.0
    ENDIF
 !
-   FORALL (j=1:9,i=0:this%cr_nscat)
+   FORALL (j=1:11,i=0:this%cr_nscat)
       cr_scat(j,i)     = this%cr_scat(j,i)
    END FORALL
 !
@@ -676,7 +681,6 @@ CONTAINS
    cr_newtype      = this%cr_newtype
    cr_cartesian    = this%cr_cartesian
 !
-   cr_natoms       = this%cr_natoms
    cr_nscat        = this%cr_nscat
    cr_n_REAL_atoms = this%cr_n_REAL_atoms
 !
