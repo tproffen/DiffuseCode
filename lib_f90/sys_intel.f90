@@ -109,11 +109,12 @@
 !*****7**************************************************************** 
       SUBROUTINE holecwd (cwd, dummy) 
 !
+      USE IFPORT
       IMPLICIT none 
 !                                                                       
       CHARACTER(1024) cwd 
       INTEGER dummy 
-      INTEGER  :: getcwd
+!      INTEGER  :: getcwd
 !                                                                       
       dummy = getcwd (cwd )
 !                                                                       
@@ -210,6 +211,7 @@
 !+                                                                      
 !     Changes working directory ..                                      
 !-                                                                      
+      USE IFPORT
       IMPLICIT none 
 !                                                                       
       include'errlist.inc' 
@@ -227,7 +229,7 @@
       REAL werte (MAXW) 
 !                                                                       
       INTEGER len_str 
-      INTEGER  :: getcwd
+!      INTEGER  :: getcwd
 !                                                                       
       IF (dir.eq.' ') then 
          dummy = getcwd (cwd )
@@ -241,7 +243,7 @@
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          dir = cpara (1) (1:lpara (1) ) 
          ld = lpara (1) 
-         CALL chdir (dir (1:ld), ier_num) 
+         ier_num =  chdir (dir (1:ld) ) 
          IF (ier_num.eq.0) then 
             ier_typ = ER_NONE 
             dummy = getcwd (cwd )
@@ -263,7 +265,7 @@
 !     Gets the current working directory and stores the result in       
 !     dir                                                               
 !-
-      USE IFPORT                                                                      
+      USE IFPORT
 !
       IMPLICIT none 
 !                                                                       
@@ -274,7 +276,7 @@
       INTEGER ld, dummy 
 !                                                                       
       INTEGER len_str 
-      INTEGER  :: getcwd
+!      INTEGER  :: getcwd
 !                                                                       
       dummy = getcwd (cwd )
       ld = len_str (cwd)
