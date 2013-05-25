@@ -26,6 +26,8 @@
       INTEGER         output_status
       INTEGER         output_status_old
       INTEGER         output_io
+      INTEGER      :: socket_status = OUTPUT_SCREEN
+      INTEGER      :: socket_status_old = OUTPUT_SCREEN
       LOGICAL            first_input
       LOGICAL            lsocket,lconn,lremote
 !
