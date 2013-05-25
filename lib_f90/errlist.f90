@@ -73,7 +73,7 @@
 !
        integer       i,iu,io
        CHARACTER*80  estr
-       CHARACTER*41  error(iu:io)
+       CHARACTER*45  error(iu:io)
        CHARACTER*4   typ
        integer             le
 !
@@ -100,8 +100,8 @@
          call socket_send(s_conid,estr,le)
        endif
 !
-1000  format(' ****',a,'**** ',a41,' ****',i4,' ****',a1)
-1500  format(' ****',a,'**** ',a41,' ****',i4,' ****')
+1000  format(' ***',a,'*** ',a45,' ***',i4,' ***',a1)
+1500  format(' ***',a,'*** ',a45,' ***',i4,' ***')
 2000  format(' !!!! No error message for error no.:',I8,' !!!!'/        &
      &       '      Error type:    ',a,'            '/                  &
      &       '      Please document and report to the author',a1)
@@ -118,7 +118,7 @@
        integer       iu,io
        parameter    (iu=0,io=3)
 !
-       CHARACTER*41  error(iu:io)
+       CHARACTER*45  error(iu:io)
 !
        DATA ERROR (  0:  3) /                         &
      &  'No error',                                 & !  0  ! command
@@ -142,23 +142,23 @@
        integer       iu,io
        parameter    (IU=-17,IO=0)
 !
-       CHARACTER*41  error(IU:IO)
+       CHARACTER*45  error(IU:IO)
 !
        DATA ERROR (-17:-01) /                         &
      &  'Too many parameters',                      & !-17  ! command
-     &  ' ',                                        & !-16  ! fortran
-     &  ' ',                                        & !-15  ! fortran
-     &  ' ',                                        & !-14  ! discus
-     &  ' ',                                        & !-13  ! macro
-     &  ' ',                                        & !-12  ! macro
+     &  ' ',                                        & !-16  ! command
+     &  ' ',                                        & !-15  ! command
+     &  ' ',                                        & !-14  ! command
+     &  ' ',                                        & !-13  ! command
+     &  ' ',                                        & !-12  ! command
      &  'Error in subroutine',                      & !-11  ! command
-     &  ' ',                                        & !-10  ! discus
-     &  ' ',                                        & ! -9  ! io
+     &  ' ',                                        & !-10  ! command
+     &  ' ',                                        & ! -9  ! command
      &  'Unknown command',                          & ! -8  ! command
-     &  ' ',                                        & ! -7  ! discus
+     &  ' ',                                        & ! -7  ! command
      &  'Missing or wrong parameters for command',  & ! -6  ! command,fortran
      &  'Error in operating system command',        & ! -5  ! command
-     &  ' ',                                        & ! -4  ! io
+     &  ' ',                                        & ! -4  ! command
      &  'Could not allocate arrays',                & ! -3  ! command
      &  'Command parameter has zero length ',       & ! -2  ! io
      &  '       directory not defined '             & ! -1  ! io
@@ -183,7 +183,7 @@
        integer       iu,io
        parameter    (IU=-34,IO=1)
 !
-       CHARACTER*41  ERROR(IU:IO)
+       CHARACTER*45  ERROR(IU:IO)
 !
        DATA ERROR (-34:-21) /                       &
      &  'String has length zero',                   & !-34  ! fortran
@@ -240,11 +240,23 @@
        include      'errlist.inc'
 !
        integer       iu,io
-       parameter    (IU= -15,IO=0)
+       parameter    (IU= -25,IO=0)
 !
-       CHARACTER*41  ERROR(IU:IO)
+       CHARACTER*45  ERROR(IU:IO)
 !
-       DATA ERROR (-15:-01) /                       &
+       DATA ERROR (-25:-21) /                       &
+     &  'Socket listen problem ',                   & ! -25 ! command
+     &  'Socket bind problem ',                     & ! -24 ! command
+     &  'Scocket: Rejected connection  ',           & ! -23 ! command
+     &  'Socket accept problem ',                   & ! -22 ! command
+     &  'Received null string from socket receive'  & ! -21 ! io
+     &   /
+       DATA ERROR (-20:-01) /                       &
+     &  'Problem receiving from socket',            & ! -20 ! io
+     &  'Problem sending to socket',                & ! -19 ! io
+     &  'Could not open socket connection',         & ! -18 ! io
+     &  'Could not grab socket',                    & ! -17 ! io
+     &  'Could not resolve hostname for socket',    & ! -16 ! io
      &  'No socket connected',                      & ! -15 ! io
      &  'Filename has zero length',                 & ! -14 ! io
      &  'Second parameter must be >= first Param.', & ! -13 ! io
@@ -279,7 +291,7 @@
        integer       iu,io
        parameter    (IU=-41,IO=3)
 !
-       CHARACTER*41  ERROR(IU:IO)
+       CHARACTER*45  ERROR(IU:IO)
 !
        DATA ERROR (-41:-21) /                       &
      &  'Not enough macro parameters given ',       & !-41  ! macro
@@ -347,7 +359,7 @@
        integer       iu,io
        parameter    (IU= -1,IO=0)
 !
-       CHARACTER*41  ERROR(IU:IO)
+       CHARACTER*45  ERROR(IU:IO)
 !
        DATA ERROR/                                  &
      &  'Singular Matrix',                          & !- 1  ! math

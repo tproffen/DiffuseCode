@@ -9,13 +9,15 @@
       INCLUDE      'errlist.inc'
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-22,IO=0)
+      PARAMETER    (IU=-24,IO=0)
 !
-      CHARACTER(LEN=41) ERROR(IU:IO)
+      CHARACTER(LEN=45) ERROR(IU:IO)
 !
-      DATA ERROR (-22:-21) /                                            &
+      DATA ERROR ( IU:-21) /                                            &
+     &  'Diffev not compiled/started with MPI',                         & !-24  ! diffev
+     &  'MPI returned slave number, MPI is not active',                 & !-23  ! diffev
      &  'Error initializing MPI system',                                & !-22  ! diffev
-     &  'No MPI included, run standalon macro via system command'       & !-21  ! diffev
+     &  'No MPI run standalone macro via system '                       & !-21  ! diffev
      &     /
 !
       DATA ERROR (-20:  0) /                                            &
@@ -23,7 +25,7 @@
      &  'Error reading GENERATION file',                                & !-19  ! diffev
      &  'Parameter value outside hard limits',                          & !-18  ! diffev
      &  'Conflicting parameter size in GENERATION file',                & !-17  ! diffev
-     &  'Conflicting population size in GENERATION file',               & !-16  ! diffev
+     &  'Conflicting population size in GENERATION',                    & !-16  ! diffev
      &  'Adjust size of NSTACK in compare.f90',                         & !-15  ! diffev
      &  'Refinement parameter number outside limits',                   & !-14  ! diffev
      &  'Error reading parameters from logfile',                        & !-13  ! diffev

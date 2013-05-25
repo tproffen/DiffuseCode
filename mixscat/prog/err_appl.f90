@@ -12,8 +12,8 @@
       parameter    (iud=-54,iod=0)
       parameter    (iup=-18,iop=0)
 !
-      character*41  error_discus(iud:iod)
-      character*41  error_pdffit(iup:iop)
+      character(LEN=45) ::  error_discus(iud:iod)
+      character(LEN=45) ::  error_pdffit(iup:iop)
 !
       data error_pdffit (-18: -1) /                 &
      &  'Gaussian too broad for computation       ',&!-18  ! pdffit

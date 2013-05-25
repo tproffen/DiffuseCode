@@ -10,7 +10,7 @@
       integer       iu,io
       parameter    (iu=-59,io=0)
 !
-      character*41  error(iu:io)
+      character(LEN=45) ::  error(iu:io)
 !
       data error (-59: -41) /                      &
      &  'Invalid column number specified         ',&! -59  ! kupl

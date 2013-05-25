@@ -11,7 +11,7 @@
       integer       iu,io
       PARAMETER    (IU=-115,IO=4)
 !
-      CHARACTER*41  ERROR(IU:IO)
+      CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR (-115: -101) /                     &
      &  'Different atom no on SCAT and ADP',        & !-115 ! discus
@@ -19,7 +19,7 @@
      &  'Could not find internal storage',          & !-113 ! discus
      &  'Error reading ADP  instruction',           & !-112 ! discus
      &  'Error reading SCAT instruction',           & !-111 ! discus
-     &  'Connectivity definition does not exist',   & !-110 ! discus
+     &  'No connectivity definitions exist at all', & !-110 ! discus
      &  'Connectivity definition does not exist',   & !-109 ! discus
      &  'Q limits or step width are illegal',       & !-108 ! discus
      &  '2Theta limits or step width are illegal',  & !-107 ! discus
