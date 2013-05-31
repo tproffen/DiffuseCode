@@ -24,12 +24,13 @@ CONTAINS
       include'wink.inc' 
 !                                                                       
       INTEGER ii, j 
+      INTEGER   :: npkt   ! number of points in powder pattern
       LOGICAL lread 
       REAL ttheta, lp 
       REAL ss, st 
       REAL dst, q, stl, dstar 
       REAL value 
-      REAL xmin, xmax, xdel 
+      REAL xmin, xmax, xdel , xpos
 !                                                                       
 !      REAL lorentz 
 !      REAL polarisation 
@@ -52,6 +53,7 @@ CONTAINS
             ier_msg (3) = ' ' 
             RETURN 
          ENDIF 
+         npkt = NINT((xmax-xmin)/xdel) + 1
       ELSEIF (pow_four_type.eq.POW_HIST.or.pow_four_type.eq.POW_FAST.or.&
      &pow_four_type.eq.POW_DEBYE) then                                  
          IF (pow_axis.eq.POW_AXIS_Q) then 
@@ -70,6 +72,7 @@ CONTAINS
             ier_msg (3) = ' ' 
             RETURN 
          ENDIF 
+         npkt = num(1)
       ENDIF 
       lread = .false. 
       CALL oeffne (iff, outfile, 'unknown', lread) 
@@ -121,15 +124,22 @@ CONTAINS
 !                                                                       
 !------ write the powder pattern                                        
 !                                                                       
-         IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW)    &
-         then                                                           
-            j = (pow_tthmax - pow_tthmin) / pow_deltatth 
-            DO ii = 0, j 
-            ttheta = ii * pow_deltatth + pow_tthmin 
-            stl = sind (ttheta * 0.5) / rlambda 
-            dstar = 2. * sind (ttheta * 0.5) / rlambda 
-            q = 2. * zpi * sind (ttheta * 0.5) / rlambda 
-            lp = lorentz (ttheta) * polarisation (ttheta) 
+         IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN                                                           
+            DO ii = 0, npkt - 1
+               xpos = ii * xdel + xmin 
+               IF (pow_axis.eq.POW_AXIS_Q) then 
+                  q      = xpos
+                  dstar  = q / zpi
+                  stl    = q / zpi / 2.
+                  ttheta = 2.*asind ( q / 2. /zpi *rlambda )
+                  lp     = lorentz (ttheta) * polarisation (ttheta) 
+               ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+                  ttheta = xpos
+                  stl    =            sind (ttheta * 0.5) / rlambda 
+                  dstar  = 2. *       sind (ttheta * 0.5) / rlambda 
+                  q      = 2. * zpi * sind (ttheta * 0.5) / rlambda 
+                  lp     = lorentz (ttheta) * polarisation (ttheta) 
+               ENDIF 
 !DBG_RBN          if(pow_lp_apply) then                                 
 !DBG_RBN            if(ttheta.eq.0) then                                
 !DBG_RBN              lp = 0.0                                          
@@ -140,40 +150,55 @@ CONTAINS
 !DBG_RBN          ELSE                                                  
 !DBG_RBN            lp = 1                                              
 !DBG_RBN          endif                                                 
-            IF (cpow_form.eq.'tth') then 
-               WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'stl') then 
-               WRITE (iff, * ) stl, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'q  ') then 
-               WRITE (iff, * ) q, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'dst') then 
-               WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'lop') then 
-               WRITE (iff, * ) ttheta, lp 
-            ENDIF 
+               IF (cpow_form.eq.'tth') then 
+                  WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'stl') then 
+                  WRITE (iff, * ) stl,    pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'q  ') then 
+                  WRITE (iff, * ) q,      pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'dst') then 
+                  WRITE (iff, * ) dstar,  pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'lop') then 
+                  WRITE (iff, * ) ttheta, lp 
+               ENDIF 
             ENDDO 
          ELSEIF (pow_four_type.eq.POW_DEBYE) then 
-            xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-            ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
-            st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) /        &
-            rlambda                                                     
-            uin (1) = (ss - st) / 2. 
-            DO ii = 1, num (1) 
-            dstar = (xm (1) + (ii - 1) * uin (1) ) 
-            stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
-            q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
-            ttheta = 2. * asind (dstar * rlambda / 2.) 
+!           xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
+!           ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
+!           st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) /        &
+!           rlambda                                                     
+!           uin (1) = (ss - st) / 2. 
+!           DO ii = 1, num (1) 
+!           dstar = (xm (1) + (ii - 1) * uin (1) ) 
+!           stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
+!           q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
+!           ttheta = 2. * asind (dstar * rlambda / 2.) 
+            DO ii = 0, npkt - 1
+               xpos = ii * xdel + xmin 
+               IF (pow_axis.eq.POW_AXIS_Q) then 
+                  q      = xpos
+                  dstar  = q / zpi
+                  stl    = q / zpi / 2.
+                  ttheta = 2.*asind ( q / 2. /zpi *rlambda )
+                  lp     = lorentz (ttheta) * polarisation (ttheta) 
+               ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+                  ttheta = xpos
+                  stl    =            sind (ttheta * 0.5) / rlambda 
+                  dstar  = 2. *       sind (ttheta * 0.5) / rlambda 
+                  q      = 2. * zpi * sind (ttheta * 0.5) / rlambda 
+                  lp     = lorentz (ttheta) * polarisation (ttheta) 
+               ENDIF 
 !DBG          lp     = lorentz(ttheta)*polarisation(ttheta)             
-            lp = polarisation (ttheta) 
-            IF (cpow_form.eq.'tth') then 
-               WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'stl') then 
-               WRITE (iff, * ) stl, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'q  ') then 
-               WRITE (iff, * ) q, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'dst') then 
-               WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
-            ENDIF 
+               lp = polarisation (ttheta) 
+               IF (cpow_form.eq.'tth') then 
+                  WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'stl') then 
+                  WRITE (iff, * ) stl, pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'q  ') then 
+                  WRITE (iff, * ) q, pow_qsp (ii) * lp 
+               ELSEIF (cpow_form.eq.'dst') then 
+                  WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
+               ENDIF 
             ENDDO 
          ELSEIF (pow_four_type.eq.POW_FAST) then 
             xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 

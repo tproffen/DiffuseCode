@@ -1117,6 +1117,7 @@ CONTAINS
        
       include'errlist.inc' 
       include'param.inc' 
+      include'wink.inc' 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER laenge 
@@ -1140,7 +1141,7 @@ CONTAINS
       REAL hh, kk, dk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
-      REAL ttheta, dstar 
+      REAL ttheta, dstar , q
       REAL inten 
       REAL u (3), v (3), w_min (3), w_max (3) 
       REAL u2, vv, ww 
@@ -1171,7 +1172,11 @@ CONTAINS
       vi (3, 1) = pow_hkl_del (3) 
       four_log = .false. 
 !
-      n_pkt = INT((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
+      IF(pow_axis == POW_AXIS_Q ) THEN
+         n_pkt = INT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
+      ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
+         n_pkt = INT((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
+      ENDIF
       IF(n_pkt .gt. POW_MAXPKT) THEN
          CALL alloc_powder ( n_pkt )
       ENDIF
@@ -1479,6 +1484,7 @@ CONTAINS
             l_hh_real.or.l_kk_real.or.l_ll_real) ) then                 
                dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
 !DBG_RBN                                                                
+                  IF(pow_axis==POW_AXIS_TTH) THEN
                IF (rlambda * 0.5 * dstar.le.1.0) then 
                   ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                   IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax)    &
@@ -1495,6 +1501,19 @@ CONTAINS
 !DBG                write(16,'(2f12.4)') hkl(2),hkl(3)                  
                   ENDIF 
                ENDIF 
+                  ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+                     q = zpi * dstar
+                     IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
+                        itth = (q - pow_qmin) / pow_deltaq 
+                        inten = real (csf (i) * conjg (csf (i) ) ) 
+                        IF (pow_pref) then 
+                           inten = inten * calc_preferred (hkl,         &
+                           pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
+                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)  
+                        ENDIF 
+                        pow_qsp (itth) = pow_qsp (itth) + inten 
+                     ENDIF 
+                  ENDIF 
             ENDIF 
 !DBG_RBN      write(13,4444) hkl,dstar,ttheta,csf(i),                   
 !DBG_RBN     &                 real(csf(i)*conjg(csf(i))),              
@@ -1557,6 +1576,7 @@ CONTAINS
                IF (pow_l_all.or..not.pow_l_all.and. (                   &
                l_hh_real.or.l_kk_real.or.l_ll_real) ) then              
                   dstar = sqrt (skalpro (hkl, hkl, cr_rten) ) 
+                  IF(pow_axis==POW_AXIS_TTH) THEN
                   IF (rlambda * 0.5 * dstar.le.1.0) then 
                      ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                      IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax) &
@@ -1570,6 +1590,19 @@ CONTAINS
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
 !DBG      write(18,'(2f12.4)') hkl(2),hkl(3)                            
+                     ENDIF 
+                  ENDIF 
+                  ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
+                     q = zpi * dstar
+                     IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
+                        itth = (q - pow_qmin) / pow_deltaq 
+                        inten = real (csf (i) * conjg (csf (i) ) ) 
+                        IF (pow_pref) then 
+                           inten = inten * calc_preferred (hkl,         &
+                           pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
+                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)  
+                        ENDIF 
+                        pow_qsp (itth) = pow_qsp (itth) + inten 
                      ENDIF 
                   ENDIF 
                ENDIF 
@@ -1692,7 +1725,7 @@ CONTAINS
 !
       n_qxy    = num (1) * num (2)
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
-      n_hist   = int(distance/pow_del_hist) + 2
+      n_hist   = nint(distance/pow_del_hist) + 2
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
           num (1) * num (2) .gt. MAXDQXY .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
@@ -1701,6 +1734,11 @@ CONTAINS
         CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
       ENDIF
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
+!     IF(pow_axis == POW_AXIS_Q ) THEN
+!        n_qxy = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
+!     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
+!        n_qxy = NINT((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
+!     ENDIF
       CALL alloc_powder (n_qxy                   )
 !                                                                       
 !     prepare loopuptable                                               
@@ -1777,14 +1815,12 @@ CONTAINS
                WRITE ( * , * ) ' Numbers: ', j, l 
                WRITE ( * , * ) ' Distance ', pow_del_hist * ibin
                WRITE(*,*) ' ibin, MAXHIST ', ibin, MAXHIST, v
-WRITE(*,*) ' GIVE i'
-read (*,*) i
+               RETURN
             ELSEIF (look (jscat, iscat) .gt.MAXLOOK) then 
                WRITE ( * , * ) ' LOOK too big ', look (jscat, iscat) 
                WRITE ( * , * ) ' Numbers: ', j, l 
             ELSEIF (look (jscat, iscat) .lt.1) then 
                WRITE ( * , * ) ' LOOK too small ', look (jscat, iscat) 
-      WRITE ( * ,  * ) ' js,is  : ', jscat, iscat 
                WRITE ( * , * ) ' Numbers: ', j, l 
                RETURN 
             ELSE 
