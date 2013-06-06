@@ -144,7 +144,7 @@
                            IF (sym_power_mult) then 
                               CALL symm_ca_mult (hkl, lspace) 
                            ELSE 
-                              CALL symm_ca_single (hkl, lspace) 
+                              CALL symm_ca_single (hkl, lspace, .true.) 
                            ENDIF 
                         ENDIF 
                      ELSE 
@@ -489,6 +489,7 @@
                ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4)            &
                .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
 !                                                                       
+write(*,*) ' SYMM ',SYM_MAXSCAT
                   CALL atom_select (zeile, lp, 0, SYM_MAXSCAT, sym_latom, &
                   sym_sel_atom, lold,     &
                   str_comp (befehl, 'sele', 2, lbef, 4) )               
@@ -1897,7 +1898,7 @@
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE symm_ca_mult                   
 !*****7*****************************************************************
-      SUBROUTINE symm_ca_single (uvw, lspace) 
+      SUBROUTINE symm_ca_single (uvw, lspace, loutput) 
 !-                                                                      
 !     Performs the actual symmetry operation, multiple copy version     
 !     Only the input vector uvw is used in direct or reciprocal space   
@@ -1910,10 +1911,12 @@
       include'errlist.inc' 
       include'param.inc' 
 !                                                                       
-      INTEGER j 
-      LOGICAL lspace 
+      REAL   ,DIMENSION(1:3), INTENT(IN) :: uvw
+      LOGICAL,                INTENT(IN) :: lspace 
+      LOGICAL,                INTENT(IN) :: loutput 
 !                                                                       
-      REAL uvw (3) 
+      INTEGER j 
+!
       REAL usym (4), ures (4) 
       REAL werte (5) 
 !                                                                       
@@ -1972,8 +1975,10 @@
          ENDDO 
       ENDIF 
 !                                                                       
-      res_para (0) = 3 
-      WRITE (output_io, 3000) (res_para (j), j = 1, 3) 
+      IF( loutput) THEN
+         res_para (0) = 3 
+         WRITE (output_io, 3000) (res_para (j), j = 1, 3) 
+      ENDIF
 !                                                                       
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE symm_ca_single                 

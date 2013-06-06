@@ -1167,9 +1167,9 @@ SUBROUTINE stack
 !                                                                       
       IF (st_rot_status) then 
 !DBG                                                                    
-         IF (i.eq.2) then 
-            WRITE (output_io, * ) ' im rotation mode' 
-         ENDIF 
+!         IF (i.eq.2) then 
+!            WRITE (output_io, * ) ' im rotation mode' 
+!         ENDIF 
 !                                                                       
 !     ----Set new rotation angles for all layers or                     
 !         only if the last layer was different than the current         
@@ -1195,7 +1195,7 @@ SUBROUTINE stack
          IF (st_rot_si_no.gt.0.0) then 
             CALL stack_rot_setup ('normal', 6, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true.) 
+            CALL symm_ca_single (st_trans_cur, .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1206,7 +1206,7 @@ SUBROUTINE stack
          IF (st_rot_si_m1.gt.0.0) then 
             CALL stack_rot_setup ('mod1', 4, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true.) 
+            CALL symm_ca_single (st_trans_cur, .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1217,7 +1217,7 @@ SUBROUTINE stack
          IF (st_rot_si_m2.gt.0.0) then 
             CALL stack_rot_setup ('mod2', 4, 1, i - 1, .false.) 
             CALL symm_setup 
-            CALL symm_ca_single (st_trans_cur, .true.) 
+            CALL symm_ca_single (st_trans_cur, .true., .false.) 
             DO j = 1, 3 
             st_trans_cur (j) = res_para (j) 
             ENDDO 
@@ -1231,9 +1231,9 @@ SUBROUTINE stack
       st_origin (3, i) = st_origin (3, i - 1) + st_trans_cur (3) 
       IF (.not.lprev) then 
 !DBG                                                                    
-         IF (i.eq.2) then 
-            WRITE (output_io, * ) ' im random mode' 
-         ENDIF 
+!         IF (i.eq.2) then 
+!            WRITE (output_io, * ) ' im random mode' 
+!         ENDIF 
 !                                                                       
 !     ----This is a random stacking fault, add random position          
 !                                                                       
@@ -1665,6 +1665,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       LOGICAL str_comp 
 !
       IF ( SYM_MAXSCAT < MAXSCAT ) THEN
+         new_nscat = MAXSCAT
          CALL alloc_symmetry(new_nscat)
       ENDIF
 !                                                                       
