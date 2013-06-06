@@ -23,18 +23,31 @@ CONTAINS
       include'errlist.inc' 
       include'wink.inc' 
 !                                                                       
-      INTEGER ii, j 
-      INTEGER   :: npkt   ! number of points in powder pattern
+      INTEGER ii, j , iii
+      INTEGER   :: all_status  ! Allocation status
+      INTEGER   :: npkt        ! number of points in powder pattern
+      INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
       LOGICAL lread 
+      REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
+      REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
+      REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
       REAL ttheta, lp 
       REAL ss, st 
       REAL dst, q, stl, dstar 
-      REAL value 
       REAL xmin, xmax, xdel , xpos
+      REAL      :: xequ    ! x-position of equdistant curve
+      REAL      :: yequ    ! y-value    of equdistant curve
+      REAL      :: tthmin  ! minimum for equdistant curve
+      REAL      :: tthmax  ! minimum for equdistant curve
+      REAL      ::   qmin  ! minimum for equdistant curve
+      REAL      ::   qmax  ! minimum for equdistant curve
 !                                                                       
 !      REAL lorentz 
 !      REAL polarisation 
       REAL cosd, sind, asind 
+!
+      ALLOCATE(xpl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+      ALLOCATE(ypl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
 !                                                                       
       IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) then 
          IF (pow_axis.eq.POW_AXIS_Q) then 
@@ -54,8 +67,7 @@ CONTAINS
             RETURN 
          ENDIF 
          npkt = NINT((xmax-xmin)/xdel) + 1
-      ELSEIF (pow_four_type.eq.POW_HIST.or.pow_four_type.eq.POW_FAST.or.&
-     &pow_four_type.eq.POW_DEBYE) then                                  
+      ELSEIF (pow_four_type.eq.POW_HIST ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) then 
             xmin = pow_qmin 
             xmax = pow_qmax 
@@ -75,7 +87,6 @@ CONTAINS
          npkt = num(1)
       ENDIF 
       lread = .false. 
-      CALL oeffne (iff, outfile, 'unknown', lread) 
       IF (ier_num.eq.0) then 
          IF (pow_four_type.ne.POW_COMPL) then 
 !                                                                       
@@ -122,10 +133,12 @@ CONTAINS
             ENDIF 
          ENDIF 
 !                                                                       
-!------ write the powder pattern                                        
+!------ copy the powder pattern into output array, if necessary this will be put on
+!       equidistant scale
 !                                                                       
          IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN                                                           
             DO ii = 0, npkt - 1
+               iii = ii + 1
                xpos = ii * xdel + xmin 
                IF (pow_axis.eq.POW_AXIS_Q) then 
                   q      = xpos
@@ -140,102 +153,32 @@ CONTAINS
                   q      = 2. * zpi * sind (ttheta * 0.5) / rlambda 
                   lp     = lorentz (ttheta) * polarisation (ttheta) 
                ENDIF 
-!DBG_RBN          if(pow_lp_apply) then                                 
-!DBG_RBN            if(ttheta.eq.0) then                                
-!DBG_RBN              lp = 0.0                                          
-!DBG_RBN            ELSE                                                
-! ALT FALSCH        lp     = (1+(cosd(ttheta))**2)/(sind(0.5*ttheta))**2
-!DBG_RBN              lp = 0.5/sind(0.5*ttheta)/sind(ttheta)            
-!DBG_RBN            endif                                               
-!DBG_RBN          ELSE                                                  
-!DBG_RBN            lp = 1                                              
-!DBG_RBN          endif                                                 
                IF (cpow_form.eq.'tth') then 
-                  WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
+                  xpl(iii) = ttheta
                ELSEIF (cpow_form.eq.'stl') then 
-                  WRITE (iff, * ) stl,    pow_qsp (ii) * lp 
+                  xpl(iii) = stl
                ELSEIF (cpow_form.eq.'q  ') then 
-                  WRITE (iff, * ) q,      pow_qsp (ii) * lp 
+                  xpl(iii) = q
                ELSEIF (cpow_form.eq.'dst') then 
-                  WRITE (iff, * ) dstar,  pow_qsp (ii) * lp 
+                  xpl(iii) = dstar
                ELSEIF (cpow_form.eq.'lop') then 
-                  WRITE (iff, * ) ttheta, lp 
+                  xpl(iii) = ttheta
                ENDIF 
-            ENDDO 
-         ELSEIF (pow_four_type.eq.POW_DEBYE) then 
-!           xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-!           ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
-!           st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) /        &
-!           rlambda                                                     
-!           uin (1) = (ss - st) / 2. 
-!           DO ii = 1, num (1) 
-!           dstar = (xm (1) + (ii - 1) * uin (1) ) 
-!           stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
-!           q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
-!           ttheta = 2. * asind (dstar * rlambda / 2.) 
-            DO ii = 0, npkt - 1
-               xpos = ii * xdel + xmin 
-               IF (pow_axis.eq.POW_AXIS_Q) then 
-                  q      = xpos
-                  dstar  = q / zpi
-                  stl    = q / zpi / 2.
-                  ttheta = 2.*asind ( q / 2. /zpi *rlambda )
-                  lp     = lorentz (ttheta) * polarisation (ttheta) 
-               ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
-                  ttheta = xpos
-                  stl    =            sind (ttheta * 0.5) / rlambda 
-                  dstar  = 2. *       sind (ttheta * 0.5) / rlambda 
-                  q      = 2. * zpi * sind (ttheta * 0.5) / rlambda 
-                  lp     = lorentz (ttheta) * polarisation (ttheta) 
-               ENDIF 
-!DBG          lp     = lorentz(ttheta)*polarisation(ttheta)             
-               lp = polarisation (ttheta) 
-               IF (cpow_form.eq.'tth') then 
-                  WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
-               ELSEIF (cpow_form.eq.'stl') then 
-                  WRITE (iff, * ) stl, pow_qsp (ii) * lp 
-               ELSEIF (cpow_form.eq.'q  ') then 
-                  WRITE (iff, * ) q, pow_qsp (ii) * lp 
-               ELSEIF (cpow_form.eq.'dst') then 
-                  WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
-               ENDIF 
-            ENDDO 
-         ELSEIF (pow_four_type.eq.POW_FAST) then 
-            xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-            ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
-            st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) /        &
-            rlambda                                                     
-            uin (1) = (ss - st) / 2. 
-            DO ii = 1, num (1) 
-            dstar = (xm (1) + (ii - 1) * uin (1) ) 
-            stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
-            q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
-            ttheta = 2. * asind (dstar * rlambda / 2.) 
-!DBG          lp     = lorentz(ttheta)*polarisation(ttheta)             
-            lp = polarisation (ttheta) 
-            IF (cpow_form.eq.'tth') then 
-               WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'stl') then 
-               WRITE (iff, * ) stl, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'q  ') then 
-               WRITE (iff, * ) q, pow_qsp (ii) * lp 
-            ELSEIF (cpow_form.eq.'dst') then 
-               WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
-            ENDIF 
+               ypl(iii) = pow_qsp(ii) * lp
+               write(iff,*), xpl(ii),ypl(ii)
             ENDDO 
          ELSEIF (pow_four_type.eq.POW_HIST) then 
             IF (pow_axis.eq.POW_AXIS_DSTAR) then 
             ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
-               xm (1) = pow_qmin / zpi 
-               ss = pow_qmax / zpi 
-               st = (pow_qmax - pow_deltaq) / zpi 
-               uin (1) = pow_deltaq / zpi 
+               xm(1)  = pow_qmin / zpi 
+               ss     = pow_qmax / zpi 
+               st     = (pow_qmax - pow_deltaq) / zpi 
+               uin(1) = pow_deltaq / zpi 
             ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
-               xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-               ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
-               st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) )       &
-               / rlambda                                                
-               uin (1) = (ss - st) / 2. 
+               xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
+               ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
+               st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
+               uin(1) = (ss - st) / 2. 
             ENDIF 
             DO ii = 1, num (1) 
             dstar = (xm (1) + (ii - 1) * uin (1) ) 
@@ -244,20 +187,85 @@ CONTAINS
             ttheta = 2. * asind (dstar * rlambda / 2.) 
 !DBG          lp     = lorentz(ttheta)*polarisation(ttheta)             
             lp = polarisation (ttheta) 
-            value = rsf (ii) 
             IF (cpow_form.eq.'tth') then 
-               WRITE (iff, * ) ttheta, pow_qsp (ii) * lp 
+               xpl(ii) = ttheta
             ELSEIF (cpow_form.eq.'stl') then 
-               WRITE (iff, * ) stl, pow_qsp (ii) * lp 
+               xpl(ii) = stl
             ELSEIF (cpow_form.eq.'q  ') then 
-               WRITE (iff, * ) q, pow_qsp (ii) * lp 
+               xpl(ii) = q
             ELSEIF (cpow_form.eq.'dst') then 
-               WRITE (iff, * ) dstar, pow_qsp (ii) * lp 
+               xpl(ii) = dstar
             ENDIF 
+               ypl(ii) = pow_qsp(ii) * lp
             ENDDO 
          ENDIF 
-         CLOSE (iff) 
       ENDIF 
+!
+      CALL oeffne (iff, outfile, 'unknown', lread) 
+      IF( cpow_form == 'tth' ) THEN
+         IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
+              pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
+            IF(pow_tthmin < xpl(1) ) THEN                 ! User lower limit too low!
+               tthmin = pow_tthmin + (INT( (xpl(1)-pow_tthmin   )/pow_deltatth) + 1)*pow_deltatth
+            ELSE
+               tthmin = pow_tthmin
+            ENDIF
+            IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
+               tthmax = pow_tthmax - (INT( (pow_tthmax-xpl(npkt))/pow_deltatth) + 1)*pow_deltatth
+            ELSE
+               tthmax = pow_tthmax
+            ENDIF
+            ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+            CALL spline (npkt, xpl, ypl, 1e30, 1e30, y2a)
+            npkt_equi = INT((tthmax-tthmin)/pow_deltatth) + 1
+            DO ii = 1, npkt_equi
+               xequ = tthmin + (ii-1)*pow_deltatth
+               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               WRITE( iff, *) xequ, yequ
+            ENDDO
+            DEALLOCATE(y2a, stat = all_status)
+         ELSE
+            DO ii = 1,npkt
+               WRITE( iff, *) xpl(ii),ypl(ii)
+            ENDDO
+         ENDIF
+      ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
+         IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
+              pow_four_type == POW_HIST              ) THEN ! DEBYE, always spline
+            IF(pow_qmin < xpl(1) ) THEN                     ! User lower limit too low!
+               qmin = pow_qmin + (INT( (xpl(1)-pow_qmin   )/pow_deltaq) + 1)*pow_deltaq
+            ELSE
+               qmin = pow_qmin
+            ENDIF
+            IF(pow_qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
+               qmax = pow_qmax - (INT( (pow_qmax-xpl(npkt))/pow_deltaq) + 1)*pow_deltaq
+            ELSE
+               qmax = pow_qmax
+            ENDIF
+            ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+            CALL spline (npkt, xpl, ypl, 1e30, 1e30, y2a)
+            npkt_equi = NINT((qmax-qmin)/pow_deltaq) + 1
+            DO ii = 1, npkt_equi
+               xequ = qmin + (ii-1)*pow_deltaq
+               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               WRITE( iff, *) xequ, yequ
+            ENDDO
+            DEALLOCATE(y2a, stat = all_status)
+         ELSE
+            DO ii = 1,npkt
+               WRITE( iff, *) xpl(ii),ypl(ii)
+            ENDDO
+         ENDIF
+      ELSE
+         DO ii = 1,npkt
+            WRITE( iff, *) xpl(ii),ypl(ii)
+         ENDDO
+      ENDIF
+!
+      CLOSE(iff)
+!
+      DEALLOCATE( xpl, stat = all_status)
+      DEALLOCATE( ypl, stat = all_status)
 !                                                                       
       END SUBROUTINE powder_out                     
 !*****7*****************************************************************
@@ -680,4 +688,85 @@ END SUBROUTINE powder_conv_psvgt_fix
       + (p3 * fa + p4 * fb) / tand (tth)                                
 !                                                                       
       END FUNCTION profile_asymmetry                
+!*****7*****************************************************************
+!                                                                       
+      SUBROUTINE spline (n, x, y, yp1, ypn, y2) 
+!
+!      PARAMETER (nmax = maxarray) 
+!
+      INTEGER,              INTENT(IN)  :: n
+      REAL, DIMENSION(1:n), INTENT(IN)  :: x
+      REAL, DIMENSION(1:n), INTENT(IN)  :: y
+      REAL                , INTENT(IN)  :: yp1
+      REAL                , INTENT(IN)  :: ypn
+      REAL, DIMENSION(1:n), INTENT(OUT) :: y2
+!
+      INTEGER               :: i,k
+      REAL, DIMENSION(1:n)  :: u
+      REAL                  :: p, qn, sig, un
+!
+!     INTEGER  :: klo, khi, k
+!     REAL     :: a,b
+!     DIMENSION x (n), y (n), y2 (n), u (n) 
+      IF (yp1.gt..99e30) then 
+         y2 (1) = 0. 
+         u (1) = 0. 
+      ELSE 
+         y2 (1) = - 0.5 
+         u (1) = (3. / (x (2) - x (1) ) ) * ( (y (2) - y (1) ) /        &
+         (x (2) - x (1) ) - yp1)                                        
+      ENDIF 
+      DO 11 i = 2, n - 1 
+         sig = (x (i) - x (i - 1) ) / (x (i + 1) - x (i - 1) ) 
+         p = sig * y2 (i - 1) + 2. 
+         y2 (i) = (sig - 1.) / p 
+         u (i) = (6. * ( (y (i + 1) - y (i) ) / (x (i + 1) - x (i) )    &
+         - (y (i) - y (i - 1) ) / (x (i) - x (i - 1) ) ) / (x (i + 1)   &
+         - x (i - 1) ) - sig * u (i - 1) ) / p                          
+   11 END DO 
+      IF (ypn.gt..99e30) then 
+         qn = 0. 
+         un = 0. 
+      ELSE 
+         qn = 0.5 
+         un = (3. / (x (n) - x (n - 1) ) ) * (ypn - (y (n) - y (n - 1) )&
+         / (x (n) - x (n - 1) ) )                                       
+      ENDIF 
+      y2 (n) = (un - qn * u (n - 1) ) / (qn * y2 (n - 1) + 1.) 
+      DO 12 k = n - 1, 1, - 1 
+         y2 (k) = y2 (k) * y2 (k + 1) + u (k) 
+   12 END DO 
+      RETURN 
+      END SUBROUTINE spline                         
+!                                                                       
+      SUBROUTINE splint (n, xa, ya, y2a, x, y) 
+!
+      INTEGER,              INTENT(IN)  :: n
+      REAL, DIMENSION(1:n), INTENT(IN)  :: xa
+      REAL, DIMENSION(1:n), INTENT(IN)  :: ya
+      REAL, DIMENSION(1:n), INTENT(IN)  :: y2a
+      REAL                , INTENT(OUT) :: x
+      REAL                , INTENT(OUT) :: y
+      INTEGER  :: klo, khi, k
+      REAL     :: a,b,h
+!
+      klo = 1 
+      khi = n 
+    1 IF (khi - klo.gt.1) then 
+         k = (khi + klo) / 2 
+         IF (xa (k) .gt.x) then 
+            khi = k 
+         ELSE 
+            klo = k 
+         ENDIF 
+         GOTO 1 
+      ENDIF 
+      h = xa (khi) - xa (klo) 
+!!!      IF (h.eq.0.) pause 'bad xa input.' 
+      a = (xa (khi) - x) / h 
+      b = (x - xa (klo) ) / h 
+      y = a * ya (klo) + b * ya (khi) + ( (a**3 - a) * y2a (klo)        &
+      + (b**3 - b) * y2a (khi) ) * (h**2) / 6.                          
+      RETURN 
+      END SUBROUTINE splint                         
 END MODULE powder_write_mod

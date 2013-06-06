@@ -823,22 +823,8 @@ CONTAINS
 !DBG_RBN            ELSEIF(str_comp(cpara(2),'new',1,lpara(2),3)) then  
 !DBG_RBN              pow_four_type = POW_COMPL                         
 !DBG_RBN              pow_four_vers = POW_NEW                           
-               ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) &
-               ) then                                                   
+               ELSEIF (str_comp (cpara (2) , 'debye', 1, lpara (2) , 5) ) THEN                                                   
                      pow_four_type = POW_HIST 
-!                 IF (ianz.eq.2.or.str_comp (cpara (3) , 'hist', 1,     &
-!                 lpara (3) , 4) ) then                                 
-!                    pow_four_type = POW_HIST 
-!                 ELSEIF (str_comp (cpara (3) , 'debye', 1, lpara (3) , &
-!                 5) ) then                                             
-!                    pow_four_type = POW_DEBYE 
-!                 ELSEIF (str_comp (cpara (3) , 'fast', 1, lpara (3) ,  &
-!                 4) ) then                                             
-!                    pow_four_type = POW_FAST 
-!                 ELSEIF (str_comp (cpara (3) , 'long', 1, lpara (3) ,  &
-!                 4) ) then                                             
-!                    pow_four_type = POW_LONG 
-!                 ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -848,7 +834,7 @@ CONTAINS
 !------ Switch Fourier mode between normal Fourier and Stacking         
 !       Fault 'four'                                                    
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'four', 1, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'four', 1, lpara (1) , 4) ) THEN 
             IF (ianz.eq.2) then 
                IF (str_comp (cpara (2) , 'four', 1, lpara (2) , 4) )    &
                then                                                     
@@ -864,8 +850,7 @@ CONTAINS
 !                                                                       
 !     Switch application of LP correction to proper instrument 'lpcor'  
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'lpcor', 1, lpara (1) , 5) )     &
-         then                                                           
+         ELSEIF (str_comp (cpara (1) , 'lpcor', 1, lpara (1) , 5) ) THEN                                                           
             IF (ianz.ge.2) then 
                IF (str_comp (cpara (2) , 'bragg', 4, lpara (2) , 5) )   &
                then                                                     
@@ -1073,10 +1058,6 @@ CONTAINS
             CALL powder_complete 
          ELSEIF (pow_four_type.eq.POW_NEW) THEN 
             CALL powder_complete 
-!        ELSEIF (pow_four_type.eq.POW_DEBYE) then 
-!           CALL powder_debye 
-!        ELSEIF (pow_four_type.eq.POW_FAST) then 
-!           CALL powder_debye_fast 
          ELSEIF (pow_four_type.eq.POW_HIST) then 
             CALL plot_ini_trans (1.0) 
             CALL powder_trans_atoms_tocart (u)
@@ -1087,13 +1068,6 @@ CONTAINS
             CALL powder_debye_hist_cart (u, cr_nscat)
 !           CALL alloc_debye (       1,      1,   MAXDQXY, MASK )
             CALL powder_trans_atoms_fromcart 
-!DBG          if(cr_cartesian) then                                     
-!DBG            call powder_debye_hist_cart                             
-!DBG          ELSE                                                      
-!DBG            call powder_debye_hist                                  
-!DBG          endif                                                     
-!        ELSEIF (pow_four_type.eq.POW_LONG) then 
-!           CALL powder_debye_long 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -1710,7 +1684,7 @@ CONTAINS
       ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
          u (1) = 1.00 
          xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-         ss = 2 * sind (0.5 * pow_tthmax) / rlambda 
+         ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
          st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
          uin (1) = (ss - st) / 2. 
          num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 

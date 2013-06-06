@@ -69,7 +69,7 @@
 
    Here you find a list of recent changes, additions, bug corrections
 
-3  2012dec
+3  2013June
 
    Finally this is it! DISCUS is now a fortran2008 program. Most of the
    substantial changes should not affect the user (or so we hope).
@@ -100,6 +100,20 @@
 
    The mmc menu can now offer a new "repulsive" energy, and may use
    the connectivity list to find interacting neighbors
+4  powder
+
+   In previous versions, DISCUS would write an unevenly spaced powder 
+   pattern if you used a Q-axis and a 2Theta output or a 2Theta axis
+   and a Q output. This has now been replaced by an evenly spaced 
+   output. 
+   If you use a Q-axis with proper Q-range, you also need to 
+   specify the 2Theta limits on which you want to write the data.
+   Likewise for a 2Theta axis, you need to specify a Q-range for the
+   output. 
+   This change mostly affects the DEBYE equation. Internally, 
+   DISCUS always uses an evenly space q-grid, as the calculation is
+   faster. With this bug fix, the output will be evenly spaced, for
+   all combinations of axis and output.
 4  connectivity
 
    This new menu allows you to define settings for the connectivity
@@ -2833,6 +2847,11 @@
    "stl" : sin(theta)/lambda
    "q"   : Q = 2*pi* dstar = 4*pi*sin(theta)/lambda
 
+   For the two types of axes in the ==> 'powder' menu, "Q" and "TTH",
+   you need to remember to specify limits for the axis. If you
+   intend to write the output in the other format, you need to 
+   specify the limits on this axis as well.
+
 !b "post"
    Sets the type of the output to color postscript. A bitmap of the
    intensity is written in color postscript. The color scheme is read
@@ -4127,7 +4146,7 @@
    Sets various parameters for powder diffraction. 
 
 4  axis
-!b set axis,{"q"|"dstar"}
+!b set axis,{"q"|"tth"}
 
    Defines the units of the x-axis you intend to use. 
    "q"    The units are in q=2PI h = 2pi dstar = 2pi 2 sin(theta)/lambda
@@ -4350,20 +4369,32 @@
 !b set qmin,<value>
 
    Sets the lower limit for q.
+   This must be set, if you intend to use the "Q" axis. 
+   You also need to set a 2Theta-range if you want to write the output
+   on a 2Theta scale.
 4  qmax
 !b set qmax,<value>
 
    Sets the upper limit for q. The powder pattern is calculated
    up to this q value.
+   This must be set, if you intend to use the "Q" axis. 
+   You also need to set a 2Theta-range if you want to write the output
+   on a 2Theta scale.
 4  tthmin
 !b set tthmin,<value>
 
    Sets the lower limit for 2-Theta.
+   This must be set, if you intend to use the "2Theta" axis. 
+   You also need to set a Q-range if you want to write the output
+   on a 2Theta scale.
 4  tthmax
 !b set tthmax,<value>
 
    Sets the upper limit for 2-Theta. The powder pattern is calculated
    up to this 2-Theta value.
+   This must be set, if you intend to use the "2Theta" axis. 
+   You also need to set a Q-range if you want to write the output
+   on a 2Theta scale.
 4  temp
 !b set temp,<switch>
 
