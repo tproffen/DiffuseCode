@@ -1436,8 +1436,8 @@ more1: IF (st_nlayer.ge.1) then
          natoms = st_nlayer * max_natoms
          nscats = max_nscats
             IF(natoms >= NMAX .or. nscats >= MAXSCAT) THEN
-               natoms = MAX(MAX(NINT(natoms*1.05),natoms+10),NMAX)
-               nscats = MAX(MAX(NINT(nscats*1.05),nscats+ 5),MAXSCAT)
+               natoms = MAX(NINT(natoms*1.05),natoms+10,NMAX)
+               nscats = MAX(NINT(nscats*1.05),nscats+ 5,MAXSCAT)
                CALL alloc_crystal (nscats, natoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF
@@ -1819,6 +1819,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
          CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
                           n_atom,-1, .true. )
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
+            n_atoms = MAX( n_atoms, NMAX )
+            n_nscat = MAX( n_nscat, MAXSCAT)
             CALL alloc_crystal (n_nscat, n_atoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
@@ -1885,6 +1887,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
             CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
                              n_type, n_atom, -1, .true. )
             IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
+               n_atoms = MAX( n_atoms, NMAX)
+               n_nscat = MAX( n_nscat, MAXSCAT)
                CALL alloc_crystal (n_nscat, n_atoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF
@@ -2069,6 +2073,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
          CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
                           n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
+            n_natoms = MAX( n_natoms, NMAX)
+            n_nscat  = MAX( n_nscat, MAXSCAT)
             CALL alloc_crystal (n_nscat, n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF
@@ -2177,6 +2183,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
          CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
                           n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
+            n_natoms = MAX( n_natoms, NMAX )
+            n_nscat  = MAX( n_nscat,  MAXSCAT)
             CALL alloc_crystal (n_nscat, n_natoms)
             IF ( ier_num /= 0 ) RETURN
          ENDIF

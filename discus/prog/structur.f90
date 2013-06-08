@@ -367,8 +367,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   RETURN
                ENDIF
                IF(natoms > NMAX .or. nscats > MAXSCAT) THEN
-                  nscats = MAX(INT(nscats * 1.1), nscats + 2)
-                  natoms = MAX(INT(natoms * 1.1), natoms + 10)
+                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
                   CALL alloc_crystal (nscats, natoms)
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
@@ -572,16 +572,11 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       ENDIF
 !                                                                       
       CALL get_symmetry_matrices 
-      IF( NMAX < spc_n*new_nmax) THEN         ! Allocate sufficient atom numbers
-         new_nmax = spc_n*new_nmax + 1
-         CALL alloc_crystal(MAXSCAT, new_nmax)
-        IF ( ier_num /= 0) THEN
-            CLOSE (IST)
-            RETURN
-         ENDIF
-      ENDIF
-      IF( MAXSCAT < new_nscat) THEN         ! Allocate sufficient atom numbers
-         CALL alloc_crystal(new_nscat, NMAX)
+      IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
+          MAXSCAT < new_nscat       ) THEN   ! Allocate sufficient scattering types
+         new_nmax  = MAX(spc_n*new_nmax + 1, NMAX)
+         new_nscat = MAX(new_nscat         , MAXSCAT)
+         CALL alloc_crystal(new_nscat, new_nmax)
         IF ( ier_num /= 0) THEN
             CLOSE (IST)
             RETURN
@@ -622,19 +617,11 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          lline = len_str (line) 
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13)) THEN
-            IF ( NMAX < cr_natoms + spc_n ) THEN ! Allocate sufficient atom numbers
-               new_nmax = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
-               CALL alloc_crystal(MAXSCAT, new_nmax)
-               IF ( ier_num /= 0) THEN
-                  CLOSE (IST)
-                  RETURN
-               ENDIF
-               ier_num = -49 
-               ier_typ = ER_APPL 
-            ENDIF
-            IF ( MAXSCAT < cr_nscat + 1 ) THEN ! Allocate sufficient atom types
-               new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ))
-               CALL alloc_crystal(new_nscat, NMAX)
+            IF ( NMAX < cr_natoms + spc_n .or. &     ! Allocate sufficient atom numbers
+                 MAXSCAT < cr_nscat + 1       ) THEN ! Allocate sufficient atom types
+               new_nmax  = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
+               new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ) )
+               CALL alloc_crystal(new_nscat, new_nmax)
                IF ( ier_num /= 0) THEN
                   CLOSE (IST)
                   RETURN
