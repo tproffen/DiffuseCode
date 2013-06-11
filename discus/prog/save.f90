@@ -7,7 +7,7 @@
 !     In this case, the format is taken from the current settings.      
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE save_struc (zeile, lcomm) 
+SUBROUTINE save_struc (zeile, lcomm) 
 !-                                                                      
 !     Main menu for generalized transformation operations               
 !+                                                                      
@@ -41,6 +41,7 @@
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i 
       INTEGER lcomm, sav_flen 
+      INTEGER                      :: n_nscat
       LOGICAL lend 
       REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
@@ -50,8 +51,9 @@
       DATA sav_flen / 1 / 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
-      IF( cr_nscat > SAV_MAXSCAT) THEN
-         CALL alloc_save ( cr_nscat )
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+         CALL alloc_save (  n_nscat )
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
@@ -60,18 +62,18 @@
 !     Interpret parameters used by 'save' command                       
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.gt.0) then 
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.gt.0) THEN 
 !                                                                       
 !     ----Parameters were found, write file immedeatly, and return      
 !         to calling routine                                            
 !                                                                       
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                sav_file = cpara (1) 
                sav_flen = lpara (1) 
 !                                                                       
-               IF (sav_keyword) then 
+               IF (sav_keyword) THEN 
 !                                                                       
 !-----      ------Write new type of structur file                       
 !                                                                       
@@ -102,8 +104,8 @@
       DO while (.not.lend) 
       prom = prompt (1:len_str (prompt) ) //'/save' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
-      IF (ier_num.eq.0) then 
-         IF (line.ne.' '.and.line (1:1) .ne.'#') then 
+      IF (ier_num.eq.0) THEN 
+         IF (line.ne.' '.and.line (1:1) .ne.'#') THEN 
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
@@ -111,7 +113,7 @@
       IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
      &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
      &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+     &2, lbef, 4) ) ) THEN                                              
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
 !                                                                       
@@ -120,8 +122,8 @@
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
-                  IF (length.ge.2) then 
+               IF (befehl (1:1) .eq.'@') THEN 
+                  IF (length.ge.2) THEN 
                      CALL file_kdo (line (2:length), length - 1) 
                   ELSE 
                      ier_num = - 13 
@@ -130,32 +132,32 @@
 !                                                                       
 !     ----list asymmetric unit 'asym'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
                   CALL show_asym 
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
                   CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
                   CALL show_chem 
 !                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
                    sav_sel_atom, .false., .false.)              
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-!                 IF (ier_num.eq.0) then 
+!                 IF (ier_num.eq.0) THEN 
 !                    CALL get_iscat (ianz, cpara, lpara, werte, maxw,   &
 !                    lold)                                              
-!                    IF (ier_num.eq.0) then 
-!                       IF (werte (1) .eq. - 1) then 
+!                    IF (ier_num.eq.0) THEN 
+!                       IF (werte (1) .eq. - 1) THEN 
 !                          DO i = 0, cr_nscat 
 !                          sav_latom (i) = .false. 
 !                          ENDDO 
@@ -169,29 +171,29 @@
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
                   CALL echo (zeile, lp) 
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
                   CALL do_eval (zeile, lp) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
                   lend = .true. 
 !                                                                       
 !     define format of output file 'format'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) then 
+               ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      IF (str_comp (cpara (1) , 'keyword', 1, lpara (1) ,&
-                     7) ) then                                          
+                     7) ) THEN                                          
                         sav_keyword = .true. 
                      ELSEIF (str_comp (cpara (1) , 'nokeywo', 1, lpara (&
-                     1) , 7) ) then                                     
+                     1) , 7) ) THEN                                     
                         sav_keyword = .false. 
                      ELSE 
                         ier_num = - 6 
@@ -202,9 +204,9 @@
 !     ----help 'help','?'                                               
 !                                                                       
       ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
+     &, '?   ', 1, lbef, 4) ) THEN                                      
                   line = zeile 
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                      lp = lp + 7 
                      CALL do_hel ('discus '//line, lp) 
                   ELSE 
@@ -214,21 +216,21 @@
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.2) then 
+                  IF (ier_num.eq.0) THEN 
+                     IF (ianz.eq.2) THEN 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            sav_start = nint (werte (1) ) 
                            sav_end = nint (werte (2) ) 
                         ENDIF 
-                     ELSEIF (ianz.eq.1) then 
+                     ELSEIF (ianz.eq.1) THEN 
                         IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
-                        3) ) then                                       
+                        3) ) THEN                                       
                            sav_start = 1 
                            sav_end = - 1 
                         ELSE 
@@ -243,11 +245,11 @@
 !                                                                       
 !     ----omit parameters from the keyword list  'omit'                 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'omit', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'omit', 1, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) &
-                     ) then                                             
+                     ) THEN                                             
                         sav_w_gene = .false. 
                         sav_w_ncell = .false. 
                         sav_w_symm = .false. 
@@ -256,28 +258,28 @@
                         sav_w_obje = .false. 
                         sav_w_doma = .false. 
                      ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_gene = .false. 
                      ELSEIF (str_comp (cpara (1) , 'mole', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_mole = .false. 
                      ELSEIF (str_comp (cpara (1) , 'obje', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_obje = .false. 
                      ELSEIF (str_comp (cpara (1) , 'doma', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_doma = .false. 
                      ELSEIF (str_comp (cpara (1) , 'ncell', 1, lpara (1)&
-                     , 5) ) then                                        
+                     , 5) ) THEN                                        
                         sav_w_ncell = .false. 
                      ELSEIF (str_comp (cpara (1) , 'symm', 2, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_symm = .false. 
                      ELSEIF (str_comp (cpara (1) , 'scat', 2, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_scat = .false. 
                      ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
-                     3) ) then                                          
+                     3) ) THEN                                          
                         sav_w_adp = .false. 
                      ELSE 
                         ier_num = - 6 
@@ -287,12 +289,12 @@
 !                                                                       
 !     define name of output file 'outfile'                              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'outfile', 1, lbef, 7) ) then 
+               ELSEIF (str_comp (befehl, 'outfile', 1, lbef, 7) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         sav_file = cpara (1) 
                         sav_flen = lpara (1) 
                      ENDIF 
@@ -300,8 +302,8 @@
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
-                  IF (sav_keyword) then 
+               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) THEN 
+                  IF (sav_keyword) THEN 
                      IF (str_comp (sav_file(1:8),'internal',8,8,8)) THEN
                         CALL save_internal (sav_file) 
                      ELSE 
@@ -313,17 +315,17 @@
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
-               ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
                    sav_sel_atom, .false., .true.)               
 !                 ier_num = - 6 
 !                 ier_typ = ER_COMM 
 !                 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-!                 IF (ier_num.eq.0) then 
+!                 IF (ier_num.eq.0) THEN 
 !                    CALL get_iscat (ianz, cpara, lpara, werte, maxw,   &
 !                    lold)                                              
-!                    IF (ier_num.eq.0) then 
-!                       IF (werte (1) .eq. - 1) then 
+!                    IF (ier_num.eq.0) THEN 
+!                       IF (werte (1) .eq. - 1) THEN 
 !                          DO i = 0, cr_nscat 
 !                          sav_latom (i) = .true. 
 !                          ENDDO 
@@ -337,50 +339,50 @@
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  IF (sav_flen.gt.0) then 
+               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+                  IF (sav_flen.gt.0) THEN 
                      WRITE (output_io, 3000) sav_file (1:sav_flen) 
                   ELSE 
                      WRITE (output_io, 3000) ' ' 
                   ENDIF 
-                  IF (sav_keyword) then 
+                  IF (sav_keyword) THEN 
                      WRITE (output_io, 3005) 
-                     IF (sav_w_scat) then 
+                     IF (sav_w_scat) THEN 
                         WRITE (output_io, 3008) 'written' 
                      ELSE 
                         WRITE (output_io, 3008) 'omitted' 
                      ENDIF 
-                     IF (sav_w_adp) then 
+                     IF (sav_w_adp) THEN 
                         WRITE (output_io, 3009) 'written' 
                      ELSE 
                         WRITE (output_io, 3009) 'omitted' 
                      ENDIF 
-                     IF (sav_w_gene) then 
+                     IF (sav_w_gene) THEN 
                         WRITE (output_io, 3010) 'written' 
                      ELSE 
                         WRITE (output_io, 3010) 'omitted' 
                      ENDIF 
-                     IF (sav_w_symm) then 
+                     IF (sav_w_symm) THEN 
                         WRITE (output_io, 3020) 'written' 
                      ELSE 
                         WRITE (output_io, 3020) 'omitted' 
                      ENDIF 
-                     IF (sav_w_ncell) then 
+                     IF (sav_w_ncell) THEN 
                         WRITE (output_io, 3030) 'written' 
                      ELSE 
                         WRITE (output_io, 3030) 'omitted' 
                      ENDIF 
-                     IF (sav_w_mole) then 
+                     IF (sav_w_mole) THEN 
                         WRITE (output_io, 3040) 'written' 
                      ELSE 
                         WRITE (output_io, 3040) 'omitted' 
                      ENDIF 
-                     IF (sav_w_obje) then 
+                     IF (sav_w_obje) THEN 
                         WRITE (output_io, 3050) 'written' 
                      ELSE 
                         WRITE (output_io, 3050) 'omitted' 
                      ENDIF 
-                     IF (sav_w_doma) then 
+                     IF (sav_w_doma) THEN 
                         WRITE (output_io, 3060) 'written' 
                      ELSE 
                         WRITE (output_io, 3060) 'omitted' 
@@ -389,11 +391,11 @@
                      WRITE (output_io, 3090) 
                      WRITE (output_io, 3091) 
                      DO i = 0, cr_nscat 
-                     IF (sav_latom (i) ) then 
+                     IF (sav_latom (i) ) THEN 
                         WRITE (output_io, 3092) i, cr_at_lis (i) 
                      ENDIF 
                      ENDDO 
-                     IF (sav_end.eq. - 1) then 
+                     IF (sav_end.eq. - 1) THEN 
                         WRITE (output_io, 3080) 
                      ELSE 
                         WRITE (output_io, 3081) sav_start, sav_end 
@@ -404,8 +406,8 @@
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile.ne.' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
                      ier_num = - 6 
@@ -414,16 +416,16 @@
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
 !                                                                       
 !     ----write parameters from the keyword list  'write'               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'write', 2, lbef, 5) ) then 
+               ELSEIF (str_comp (befehl, 'write', 2, lbef, 5) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) &
-                     ) then                                             
+                     ) THEN                                             
                         sav_w_gene = .true. 
                         sav_w_ncell = .true. 
                         sav_w_symm = .true. 
@@ -432,28 +434,28 @@
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
                      ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_gene = .true. 
                      ELSEIF (str_comp (cpara (1) , 'mole', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_mole = .true. 
                      ELSEIF (str_comp (cpara (1) , 'obje', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_obje = .true. 
                      ELSEIF (str_comp (cpara (1) , 'doma', 1, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_doma = .true. 
                      ELSEIF (str_comp (cpara (1) , 'ncell', 1, lpara (1)&
-                     , 5) ) then                                        
+                     , 5) ) THEN                                        
                         sav_w_ncell = .true. 
                      ELSEIF (str_comp (cpara (1) , 'symm', 2, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_symm = .true. 
                      ELSEIF (str_comp (cpara (1) , 'scat', 2, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sav_w_scat = .true. 
                      ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
-                     3) ) then                                          
+                     3) ) THEN                                          
                         sav_w_adp = .true. 
                      ELSE 
                         ier_num = - 6 
@@ -467,14 +469,14 @@
             ENDIF 
          ENDIF 
       ENDIF 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro) then 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
+            IF (lmakro) THEN 
                CALL macro_close 
                prompt_status = PROMPT_ON 
             ENDIF 
-            IF (lblock) then 
+            IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
                RETURN 
@@ -539,7 +541,7 @@
 !                                                                       
       lread = .false. 
       CALL oeffne (ist, strucfile, 'unknown', lread) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
 !                                                                       
 !-----      --Write old type of structur file                           
 !                                                                       
@@ -601,74 +603,74 @@
 !                                                                       
       lread = .false. 
       CALL oeffne (ist, strucfile, 'unknown', lread) 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 
 !                                                                       
 !-----      --Write new type of structur file                           
 !                                                                       
       j = len_str (cr_name) 
-      IF (j.eq.0) then 
+      IF (j.eq.0) THEN 
          cr_name = ' ' 
          j = 1 
       ENDIF 
       WRITE (ist, 3000) cr_name (1:j) 
-      IF (spcgr_ianz.eq.0) then 
+      IF (spcgr_ianz.eq.0) THEN 
          WRITE (ist, 3010) cr_spcgr 
-      ELSEIF (spcgr_ianz.eq.1) then 
+      ELSEIF (spcgr_ianz.eq.1) THEN 
          WRITE (ist, 3011) cr_spcgr, spcgr_para 
       ENDIF 
       WRITE (ist, 3020) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
-      IF (sav_w_scat) then 
+      IF (sav_w_scat) THEN 
          j = (cr_nscat - 1) / 7 
          DO i = 1, j 
          is = (i - 1) * 7 + 1 
          ie = is + 6 
          WRITE (ist, 3110) (cr_at_lis (k), k = is, ie) 
          ENDDO 
-         IF (cr_nscat - j * 7.eq.1) then 
+         IF (cr_nscat - j * 7.eq.1) THEN 
             WRITE (ist, 3111) cr_at_lis (cr_nscat) 
-         ELSEIF (cr_nscat - j * 7.gt.1) then 
+         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
             WRITE (fform, 7010) cr_nscat - j * 7 - 1 
             WRITE (ist, fform) (cr_at_lis (i), i = j * 7 + 1, cr_nscat) 
          ENDIF 
       ENDIF 
-      IF (sav_w_adp) then 
+      IF (sav_w_adp) THEN 
          j = (cr_nscat - 1) / 7 
          DO i = 1, j 
          is = (i - 1) * 7 + 1 
          ie = is + 6 
          WRITE (ist, 3120) (cr_dw (k), k = is, ie) 
          ENDDO 
-         IF (cr_nscat - j * 7.eq.1) then 
+         IF (cr_nscat - j * 7.eq.1) THEN 
             WRITE (ist, 3121) cr_dw (cr_nscat) 
-         ELSEIF (cr_nscat - j * 7.gt.1) then 
+         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
             WRITE (fform, 7020) cr_nscat - j * 7 - 1 
             WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
          ENDIF 
       ENDIF 
-      IF (sav_w_gene) then 
+      IF (sav_w_gene) THEN 
          DO k = 1, gen_add_n 
          WRITE (ist, 3021) ( (gen_add (i, j, k), j = 1, 4), i = 1, 3),  &
          gen_add_power (k)                                              
          ENDDO 
       ENDIF 
-      IF (sav_w_symm) then 
+      IF (sav_w_symm) THEN 
          DO k = 1, sym_add_n 
          WRITE (ist, 3022) ( (sym_add (i, j, k), j = 1, 4), i = 1, 3),  &
          sym_add_power (k)                                              
          ENDDO 
       ENDIF 
-      IF (sav_w_ncell) then 
+      IF (sav_w_ncell) THEN 
          WRITE (ist, 3030) cr_icc, cr_ncatoms 
       ENDIF 
       WRITE (ist, 3900) 
 !                                                                       
 !     Write content of objects                                          
 !                                                                       
-      IF (sav_w_obje) then 
+      IF (sav_w_obje) THEN 
          DO i = 1, mole_num_mole 
-         IF (mole_char (i) .gt.MOLE_ATOM) then 
+         IF (mole_char (i) .gt.MOLE_ATOM) THEN 
             WRITE (ist, 4000) 'object' 
             WRITE (ist, 4002) 'object', mole_type (i) 
             WRITE (ist, 4100) 'object', c_mole (mole_char (i) ) 
@@ -685,14 +687,14 @@
 !                                                                       
 !     Write content of micro domains                                    
 !                                                                       
-      IF (sav_w_doma) then 
+      IF (sav_w_doma) THEN 
          DO i = 1, mole_num_mole 
-         IF (mole_char (i) .lt.MOLE_ATOM) then 
+         IF (mole_char (i) .lt.MOLE_ATOM) THEN 
             WRITE (ist, 4000) 'domain' 
             WRITE (ist, 4002) 'domain', mole_type (i) 
             WRITE (ist, 4100) 'domain', c_mole (mole_char (i) ) 
             k = len_str (mole_file (i) ) 
-            IF (k.gt.0) then 
+            IF (k.gt.0) THEN 
                WRITE (ist, 4300) 'domain', mole_file (i) (1:k) 
             ELSE 
                WRITE (ist, 4300) 'domain' 
@@ -710,9 +712,9 @@
 !                                                                       
 !     Write content of molecules                                        
 !                                                                       
-      IF (sav_w_mole) then 
+      IF (sav_w_mole) THEN 
          DO i = 1, mole_num_mole 
-         IF (mole_char (i) .eq.MOLE_ATOM) then 
+         IF (mole_char (i) .eq.MOLE_ATOM) THEN 
             WRITE (ist, 4000) 'molecule' 
             WRITE (ist, 4002) 'molecule', mole_type (i) 
             WRITE (ist, 4100) 'molecule', c_mole (mole_char (i) ) 
@@ -733,11 +735,11 @@
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (sav_latom (cr_iscat (i) ) ) then 
+      IF (sav_latom (cr_iscat (i) ) ) THEN 
          lwritten = .false. 
-         IF (sav_w_obje) then 
+         IF (sav_w_obje) THEN 
             DO j = 1, mole_num_mole 
-            IF (mole_char (j) .gt.MOLE_ATOM) then 
+            IF (mole_char (j) .gt.MOLE_ATOM) THEN 
                DO k = 1, mole_len (j) 
                l = mole_cont (mole_off (j) + k) 
                lwritten = lwritten.or.l.eq.i 
@@ -745,9 +747,9 @@
             ENDIF 
             ENDDO 
          ENDIF 
-         IF (sav_w_doma) then 
+         IF (sav_w_doma) THEN 
             DO j = 1, mole_num_mole 
-            IF (mole_char (j) .lt.MOLE_ATOM) then 
+            IF (mole_char (j) .lt.MOLE_ATOM) THEN 
                DO k = 1, mole_len (j) 
                l = mole_cont (mole_off (j) + k) 
                lwritten = lwritten.or.l.eq.i 
@@ -755,9 +757,9 @@
             ENDIF 
             ENDDO 
          ENDIF 
-         IF (sav_w_mole) then 
+         IF (sav_w_mole) THEN 
             DO j = 1, mole_num_mole 
-            IF (mole_char (j) .eq.MOLE_ATOM) then 
+            IF (mole_char (j) .eq.MOLE_ATOM) THEN 
                DO k = 1, mole_len (j) 
                l = mole_cont (mole_off (j) + k) 
                lwritten = lwritten.or.l.eq.i 
@@ -765,7 +767,7 @@
             ENDIF 
             ENDDO 
          ENDIF 
-         IF (.not.lwritten) then 
+         IF (.not.lwritten) THEN 
             WRITE (ist, 4) cr_at_lis (cr_iscat (i) ), (cr_pos (j, i),   &
             j = 1, 3), cr_dw (cr_iscat (i) ), cr_prop (i)               
          ENDIF 
@@ -775,9 +777,9 @@
 !     Write content of molecules ; OBSOLETE ! RBN                       
 !           Molecules are now written just like domains                 
 !                                                                       
-!DBG      if(sav_w_mole) then                                           
+!DBG      if(sav_w_mole) THEN                                           
 !DBG        do i=1,mole_num_mole                                        
-!DBG          if(mole_char(i).eq.MOLE_ATOM) then                        
+!DBG          if(mole_char(i).eq.MOLE_ATOM) THEN                        
 !DBG            write(ist,4005) 'molecule',mole_type(i),i               
 !DBG            write(ist,4100) 'molecule',c_mole(mole_char(i))         
 !DBG            j_end = int(mole_len(i)/7.)                             
@@ -786,7 +788,7 @@
 !DBG              l2 = l1 + 7 - 1                                       
 !DBG              write(ist,4010) 'molecule',(',',mole_cont(k),k=l1,l2) 
 !DBG            ENDDO                                                   
-!DBG            if(j_end*7.lt.mole_len(i)) then                         
+!DBG            if(j_end*7.lt.mole_len(i)) THEN                         
 !DBG              l1= mole_off(i) + int((mole_len(i)-1)/7.)*7 + 1       
 !DBG              l2= mole_off(i) + mole_len(i)                         
 !DBG              write(ist,4010) 'molecule',(',',mole_cont(k),k=l1,l2) 
@@ -841,6 +843,7 @@
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
+      INTEGER                         :: n_latom
       INTEGER                         :: istatus
 !
       ALLOCATE(store_temp, STAT = istatus)        ! Allocate a temporary storage
@@ -870,9 +873,10 @@
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.
-      CALL store_temp%crystal%set_crystal_save_flags (MAXSCAT,sav_w_scat, & 
+      n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
+      CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
            sav_w_adp, sav_w_gene, sav_w_symm,                     &
-           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole,sav_latom)
+           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole,n_latom,sav_latom)
 !
       CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !

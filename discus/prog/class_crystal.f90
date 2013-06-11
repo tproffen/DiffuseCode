@@ -299,7 +299,7 @@ CONTAINS
    IMPLICIT none
 !
    CLASS (cl_cryst)                  :: this
-   INTEGER,              INTENT(OUT) :: inum
+   INTEGER,              INTENT(IN ) :: inum
    INTEGER,              INTENT(OUT) :: itype
    REAL   , DIMENSION(3),INTENT(OUT) :: posit
    INTEGER,              INTENT(OUT) :: iprop
@@ -545,16 +545,16 @@ CONTAINS
 !
    END SUBROUTINE set_crystal_from_standard
 !******************************************************************************
-   SUBROUTINE set_crystal_save_flags ( this, SAV_MAXSCAT,sav_scat, sav_adp, sav_gene, sav_symm, &
+   SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_gene, sav_symm, &
                                        sav_ncell, sav_obje, sav_doma, sav_mole, &
-                                       sav_latom)
+                                       n_latom,sav_latom)
 !
    USE crystal_mod
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
-   INTEGER, INTENT(IN)              ::  SAV_MAXSCAT
+!   INTEGER, INTENT(IN)              ::   n_nscat
    LOGICAL, INTENT(IN)              ::  sav_scat
    LOGICAL, INTENT(IN)              ::  sav_adp
    LOGICAL, INTENT(IN)              ::  sav_gene
@@ -563,7 +563,8 @@ CONTAINS
    LOGICAL, INTENT(IN)              ::  sav_obje
    LOGICAL, INTENT(IN)              ::  sav_doma
    LOGICAL, INTENT(IN)              ::  sav_mole
-   LOGICAL, DIMENSION(0:SAV_MAXSCAT),INTENT(IN) ::  sav_latom
+   INTEGER, INTENT(IN)              ::  n_latom
+   LOGICAL, DIMENSION(0:n_latom),INTENT(IN) ::  sav_latom
 !
    INTEGER                          :: i
 !
@@ -575,7 +576,7 @@ CONTAINS
    this%cr_sav_obje  = sav_obje
    this%cr_sav_doma  = sav_doma
    this%cr_sav_mole  = sav_mole
-   DO i = 0, SAV_MAXSCAT
+   DO i = 0, cr_nscat
       this%cr_sav_atom(i) = sav_latom(i)
    ENDDO
 !
