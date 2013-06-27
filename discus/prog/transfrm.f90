@@ -773,8 +773,8 @@
      &           ' ( k(old) ) = ( ',2(F9.5,','),f9.5,' ) * ( k(new) )'/ &
      &           ' ( l(old) ) = ( ',2(F9.5,','),f9.5,' )   ( l(new) )'/)
  3100 FORMAT    (                                                       &
-     &           '   V(new)   = ',F9.5,' * V(old)'/                     &
-     &           '   V(old)   = ',F9.5,' * V(new)'/)                    
+     &           '   V(new)   = ',G12.5E3,' * V(old)'/                     &
+     &           '   V(old)   = ',G12.5E3,' * V(new)'/)                    
  3200 FORMAT    (                                                       &
      &           '   Determinant of transformation is zero'/)           
  3070 FORMAT    (/' select status           : ',a) 
@@ -783,7 +783,7 @@
  3081 FORMAT    (' Range of atoms from to    : ',2(2x,i9)) 
  3090 FORMAT    (' selected atoms    :') 
  3091 FORMAT    ('                      type name') 
- 3092 FORMAT    (20x,2(4x,i2,1x,a4)) 
+ 3092 FORMAT    (16x,2x,i8,1x,a4) 
 !                                                                       
       END SUBROUTINE transform                      
 !*****7*****************************************************************
