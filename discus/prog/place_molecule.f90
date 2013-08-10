@@ -143,6 +143,9 @@ CONTAINS
 !                                                                       
                   CALL property_select (zeile, lp, dc_sel_prop)
 !
+              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
+                  CALL deco_reset
+!
               ELSEIF (str_comp (befehl, 'run', 3, lbef, 3)) THEN
                   CALL deco_run
 !
@@ -151,6 +154,9 @@ CONTAINS
                   CALL atom_select (zeile, lp, 0,  DC_MAXSCAT,  dc_latom, &
                   dc_sel_atom , lold  ,   &
                   str_comp (befehl, 'sel', 2, lbef, 3) )
+!
+              ELSEIF (str_comp (befehl, 'set', 3, lbef, 3)) THEN
+                  CALL deco_set (zeile, lp)
 !
 !
               ELSEIF (str_comp (befehl, 'show', 3, lbef, 4)) THEN
@@ -167,9 +173,74 @@ CONTAINS
         ENDIF no_com       ! END IF BLOCK no comment
       ENDIF no_err         ! END IF BLOCK no error reading input
 !
-   ENDDO main_loop     ! END DO main loop of menu
+   ENDDO main_loop     ! END DO main loop of menu 
 !
    END SUBROUTINE do_place_molecule
+!
+!######################################################################
+!
+   SUBROUTINE deco_set (zeile,lp)
+!
+!  Set the definitions for the molecule decorator
+!
+   USE crystal_mod
+   USE atom_env_mod
+   USE chem_mod
+   USE modify_mod
+!
+   IMPLICIT NONE
+!
+   include'errlist.inc'
+!
+   CHARACTER (LEN=*), INTENT(INOUT) :: zeile
+   INTEGER          , INTENT(INOUT) :: lp
+!
+   INTEGER, PARAMETER   :: MAXW = 20
+   CHARACTER (LEN=1024) :: cpara(1:MAXW)
+   INTEGER              :: lpara(1:MAXW)
+   INTEGER              :: ianz
+   LOGICAL              :: lnew
+!
+   LOGICAL str_comp
+!
+   CALL get_params(zeile, ianz, cpara, lpara, maxw, lp)
+   IF ( ier_num /= 0 ) RETURN              ! Error reading parameters
+!
+   IF ( str_comp(cpara(1),'content',4,lpara(1),7) ) THEN
+      IF ( ianz == 3 ) THEN
+         dc_temp_name  = cpara(2)
+         dc_temp_lname = lpara(2)
+         dc_temp_file  = cpara(3)
+         dc_temp_lfile = lpara(3)
+         dc_temp_id    = 0
+         dc_def_temp => dc_def_head
+         lnew          = .true.
+!
+         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,ier_typ)
+         CALL dc_set_file(dc_def_temp, dc_temp_lfile, dc_temp_file)
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+      ENDIF
+   ELSEIF ( str_comp(cpara(1),'connection',4,lpara(1),10) ) THEN
+      IF ( ianz == 6 ) THEN
+         dc_temp_name  = cpara(2)
+         dc_temp_lname = lpara(2)
+         dc_temp_id    = 0
+         dc_def_temp => dc_def_head
+         lnew          = .true.
+         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,ier_typ)
+!         CALL dc_set_connection(dc_def_temp, ianz, cpara, lpara)
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+      ENDIF
+   ELSE
+      ier_num = -6
+      ier_typ = ER_COMM
+   ENDIF
+!
+   END SUBROUTINE deco_set
 !
 !######################################################################
 !
@@ -401,8 +472,27 @@ write(*,*) ' STRUCFILE ',strufile
    SUBROUTINE deco_show
 !
    IMPLICIT none
+   include'errlist.inc'
+!
+   dc_def_temp => dc_def_head
+   CALL dc_show_def(dc_def_temp, ier_num)
 !
    END SUBROUTINE deco_show
+!
+!######################################################################
+!
+   SUBROUTINE deco_reset
+!
+!  Set all definitions back to system default
+!
+   IMPLICIT none
+   include'errlist.inc'
+!
+   dc_init        = .true.    ! We need to initialize
+   dc_n_molecules = 0         ! There are no molecules
+   CALL dc_reset_def ( dc_def_head ,ier_num)
+!
+   END SUBROUTINE deco_reset
 !
 !******************************************************************************
 !   SUBROUTINE read_crystal ( this, infile)
