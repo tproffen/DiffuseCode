@@ -502,7 +502,12 @@ SUBROUTINE do_domain (line, lp)
       REAL mc_dimen (4, 4) 
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
+integer natoms_old
+real    shortest
+real    vv(3)
 integer i
+!
+      clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 !                                                                       
       lcell = .false. 
       lread = .true. 
@@ -565,6 +570,23 @@ integer i
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
          IF (ier_num.ne.0) return 
          ENDDO 
+!
+!        if the user trusts that no domains overlap among each other, then
+!        old atoms are removed only here at the end
+!
+         IF ( clu_remove_mode == CLU_REMOVE_TRUST ) THEN
+            mk_dim       = 0.
+            natoms_old   = clu_remove_end
+            mk_natoms    = cr_natoms - natoms_old 
+            md_sep_fuz   = clu_remove_dist
+            vv           = 0.0
+            shortest     = 0.0
+            mc_type      = MD_DOMAIN_FUZZY
+            IF(md_sep_fuz > 0.0 ) THEN
+               CALL micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms, md_sep_fuz,  &
+               vv, shortest, mc_type, MD_DOMAIN_FUZZY)                                                     
+            ENDIF
+         ENDIF
 !                                                                       
       ELSE 
          CALL micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, &
@@ -939,6 +961,7 @@ integer i
       USE config_mod 
       USE allocate_appl_mod 
       USE crystal_mod 
+      USE domain_mod 
       USE domaindis_mod 
       USE micro_mod 
       USE molecule_mod 
@@ -1030,7 +1053,16 @@ integer i
          mk_dim (i, 1) = mc_matrix (i, 4) 
          mk_dim (i, 2) = mc_matrix (i, 4) 
       ENDDO 
-      natoms_old = cr_natoms 
+!
+!     Does the user want to remove existing atoms at insertion of each domain
+!     which includes atoms inserted by other domains in this run or
+!     only the atoms that existed previous to the 'run' command
+!
+      IF (     clu_remove_mode ==  CLU_REMOVE_STRICT  ) THEN
+         natoms_old = cr_natoms 
+      ELSE
+         natoms_old = clu_remove_end
+      ENDIF 
 !                                                                       
       IF(mk_infile_internal) THEN
          mk_iatom = 0
@@ -1284,28 +1316,31 @@ mole_int: IF(mk_infile_internal) THEN
 !     -- Removal is only performed, if md_sep_fuz is > 0
 !                                                                       
 !DBG      if(mc_type.eq.MD_DOMAIN_FUZZY) then                   
-!DBG_RBN      if(mc_type.eq.-400           ) then               
-      IF ( md_sep_fuz > 0.00 ) THEN   ! Separation is > 0, remove atoms
-         DO i = 1, 3 
-            mk_dim (i, 1) = mk_dim (i, 1) - mc_matrix (i, 4) 
-            mk_dim (i, 2) = mk_dim (i, 2) - mc_matrix (i, 4) 
-         ENDDO 
+      remove_strict: IF ( clu_remove_mode /= CLU_REMOVE_TRUST ) THEN
+         IF ( md_sep_fuz > 0.00 ) THEN   ! Separation is > 0, remove atoms
+            DO i = 1, 3 
+               mk_dim (i, 1) = mk_dim (i, 1) - mc_matrix (i, 4) 
+               mk_dim (i, 2) = mk_dim (i, 2) - mc_matrix (i, 4) 
+            ENDDO 
 !                                                                       
-         mk_natoms = cr_natoms - natoms_old 
-         vv (1) = mc_matrix (1, 4) 
-         vv (2) = mc_matrix (2, 4) 
-         vv (3) = mc_matrix (3, 4) 
-         CALL micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms, md_sep_fuz,  &
-         vv, shortest)                                                     
-         IF (shortest.gt.1.5 * md_sep_fuz) then 
-            ier_num = + 1 
-            ier_typ = ER_APPL 
-            WRITE (ier_msg (2), 3100) shortest 
-            WRITE (ier_msg (3), 3200) md_sep_fuz 
-            CALL errlist 
+            mk_natoms = cr_natoms - natoms_old 
+            vv (1) = mc_matrix (1, 4) 
+            vv (2) = mc_matrix (2, 4) 
+            vv (3) = mc_matrix (3, 4) 
+            CALL micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms, md_sep_fuz,  &
+            vv, shortest, mc_type, MD_DOMAIN_FUZZY)                                                     
+            IF (shortest.gt.1.5 * md_sep_fuz) then 
+               ier_num = + 1 
+               ier_typ = ER_APPL 
+               WRITE (ier_msg (2), 3100) shortest 
+               WRITE (ier_msg (3), 3200) md_sep_fuz 
+               CALL errlist 
+            ENDIF 
          ENDIF 
-!DBG_RBN      endif                                                     
-      ENDIF 
+      ELSE  remove_strict
+         clu_remove_dist = MAX(clu_remove_dist, md_sep_fuz)
+      ENDIF remove_strict
+!
       IF (ier_num.eq. - 49) then 
          CALL no_error 
       ENDIF 
@@ -1441,7 +1476,7 @@ mole_int: IF(mk_infile_internal) THEN
       END SUBROUTINE micro_read_simple              
 !*****7*****************************************************************
       SUBROUTINE micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms,        &
-      md_sep_fuz, w, shortest)                                          
+      md_sep_fuz, w, shortest, mc_type, MD_DOMAIN_FUZZY)                                          
 !-                                                                      
 !     Removes all atoms up to number natoms_old that are inside         
 !     the microdomain of fuzzy boundary type                            
@@ -1453,16 +1488,20 @@ mole_int: IF(mk_infile_internal) THEN
       USE surface_mod 
       IMPLICIT none 
 !                                                                       
+      REAL, DIMENSION(3,2), INTENT(IN) ::  mk_dim
+      INTEGER             , INTENT(in) ::  natoms_old
+      INTEGER             , INTENT(IN) ::  mk_natoms 
+      REAL                , INTENT(IN) ::  md_sep_fuz 
+      REAL, DIMENSION(3)  , INTENT(IN) ::  w
+      REAL                , INTENT(OUT)::  shortest 
+      INTEGER             , INTENT(IN) ::  mc_type
+      INTEGER             , INTENT(IN) ::  MD_DOMAIN_FUZZY
        
 !                                                                       
-      INTEGER natoms_old, i, j, k 
-      INTEGER mk_natoms 
+      INTEGER i, j, k 
       LOGICAL lspace 
-      REAL md_sep_fuz 
-      REAL mk_dim (3, 2) 
-      REAL u (3), v (3), w (3) 
+      REAL u (3), v (3)
       REAL a, b, c 
-      REAL shortest 
       REAL distance 
       REAL separation 
 !                                                                       
@@ -1470,6 +1509,40 @@ mole_int: IF(mk_infile_internal) THEN
 !                                                                       
       shortest = 1.0e03 
       lspace = .true. 
+!
+      type_fuzzy: IF(mc_type.eq.MD_DOMAIN_FUZZY) THEN  !This is a fuzzy domain do fast loop
+         fuzzy_main: DO i = 1, natoms_old 
+            separation = 1.0e03 
+            fuzzy_is_void: IF (cr_iscat (i) .ne.0) then 
+               DO k = 1, 3 
+                  u (k) = cr_pos (k, i) 
+               ENDDO 
+               fuzzy_inner: DO j = cr_natoms - mk_natoms + 1, cr_natoms 
+            DO k = 1, 3 
+            v (k) = cr_pos (k, j) 
+            ENDDO 
+            distance = do_blen (lspace, u, v) 
+            IF (distance.le.md_sep_fuz) then 
+!                                                                       
+!     ----------Atom is too close to microdomain atom, remove.          
+!                                                                       
+               cr_iscat (i) = 0 
+               cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
+               cr_prop (i) = IBSET (cr_prop (i), PROP_DOMAIN) 
+               shortest = distance 
+            ELSE 
+               shortest = min (shortest, distance) 
+               separation = min (separation, distance) 
+            ENDIF 
+               ENDDO fuzzy_inner
+            ENDIF fuzzy_is_void
+         ENDDO fuzzy_main
+         IF (separation.lt.surf_in_dist (cr_iscat (i) ) ) then 
+            IF (BTEST (cr_prop (i), PROP_NORMAL) ) then 
+               cr_prop (i) = IBSET (cr_prop (i), PROP_SURFACE_INT) 
+            ENDIF 
+         ENDIF 
+      ELSE type_fuzzy ! Other domain types (Should probalbly changed as well...)
 !                                                                       
 !     Set up extra space around microdomain to allow for outside        
 !     influence of separation                                           
@@ -1531,6 +1604,8 @@ mole_int: IF(mk_infile_internal) THEN
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      ENDIF type_fuzzy
 !                                                                       
 !     DO j = cr_natoms - mk_natoms + 1, cr_natoms 
 !     DO k = 1, 3 
@@ -1567,6 +1642,7 @@ mole_int: IF(mk_infile_internal) THEN
 !     This subroutine sets various parameters                           
 !-                                                                      
       USE config_mod 
+      USE domain_mod
       USE modify_mod
       IMPLICIT none 
 !                                                                       
@@ -1597,9 +1673,20 @@ mole_int: IF(mk_infile_internal) THEN
       IF (ier_num.ne.0) return 
       IF (ianz.le.0) return 
 !                                                                       
-      IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 2) ) then 
+      IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 8) ) then 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          CALL surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, 1) 
+      ELSEIF(str_comp (cpara (1) , 'remove', 2, lpara (1) , 2) ) then
+         IF    (str_comp (cpara (2) , 'initial', 2, lpara (2) , 6) ) then
+            clu_remove_mode = CLU_REMOVE_INITIAL
+         ELSEIF(str_comp (cpara (2) , 'strict', 2, lpara (2) , 6) ) then
+            clu_remove_mode = CLU_REMOVE_STRICT
+         ELSEIF(str_comp (cpara (2) , 'trust', 2, lpara (2) , 5) ) then
+            clu_remove_mode = CLU_REMOVE_TRUST
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
