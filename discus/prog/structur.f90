@@ -1693,6 +1693,7 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER          :: n_type
       INTEGER          :: n_atom
       LOGICAL          :: need_alloc = .false.
+      REAL, PARAMETER  :: eps = 1e-6
       REAL werte (maxw), dw1 
 !                                                                       
       INTEGER len_str 
@@ -1774,11 +1775,11 @@ got_params: IF (ier_num.eq.0) THEN
                ibl = ibl - 1 
                CALL do_cap (line (1:ibl) ) 
                DO j = 0, cr_nscat 
-               IF (line (1:ibl) .eq.cr_at_lis (j) .and.dw1.eq.cr_dw (j) &
-               ) then                                                   
-                  cr_iscat (i) = j 
-                  GOTO 11 
-               ENDIF 
+                  IF (line (1:ibl) .eq.cr_at_lis (j) .and. &
+                      ABS(dw1-cr_dw(j)).lt.eps               ) THEN
+                     cr_iscat (i) = j 
+                     GOTO 11 
+                  ENDIF 
                ENDDO 
                IF (cr_nscat.eq.MAXSCAT) then 
 !                                                                       
@@ -2275,8 +2276,8 @@ got_params: IF (ier_num.eq.0) THEN
             ENDDO 
          ENDIF 
          ENDDO 
-         WRITE (iwr, 2500) (c_atom (i) , ',', i = 1, ntyp - 1) , c_atom &
-         (ntyp)                                                         
+!        WRITE (iwr, 2500) (c_atom (i) , ',', i = 1, ntyp - 1) , c_atom &
+!        (ntyp)                                                         
       ELSEIF (command.eq.'SYMM') then 
          lp = length - 5 
          CALL get_params (line (6:length), ianz, cpara, lpara, maxw, lp) 
@@ -2658,7 +2659,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
       REAL               , DIMENSION(MAXW)  :: werte (MAXW) 
 !
-      REAL, PARAMETER                       :: eps = 1e-4
+      REAL, PARAMETER                       :: eps = 1e-6
       CHARACTER (LEN=1024)                  :: line
       CHARACTER (LEN=1024)                  :: zeile
       CHARACTER (LEN=  20)                  :: bef
