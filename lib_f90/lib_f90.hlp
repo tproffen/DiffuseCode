@@ -921,6 +921,17 @@
 
    The environment variable DISCUS_DIR was not defined. Check the chapter 
    on installation for your platform for the appropriate definition. 
+5  -2
+   Command parameter has zero length
+
+   On the command line you probably have a typing error like two 
+   comma following each other without significant values in between, 
+   or the first non blank character after the command is a comma.
+5  -3
+   Could not allocate arrays
+
+   The program has to allocate arrays, but received a error message.
+   Does your computer have enough available memory space?
 5  -5
    Error in operating system command
 
@@ -1145,6 +1156,47 @@
    signals how many block structure levels are to be exited. Check the 
    value of this parameter with regard to the nesting of do-loops and 
    if-blocks. 
+5  -29
+   Character substring out of bounds',        & !-29  ! fortran
+
+   In a statement like 
+   variable character, line
+   line = 'abcde'
+   echo "%c",line(1,5)
+   The first index is  less than one, or the second index is larger than
+   the number of characters in the strin, or the second index is less
+   than the first.
+5  -30
+   Right quotation mark missing in format'
+
+   A statement like 
+   echo " text " 
+   is missing the right quotation mark.
+5  -31
+   Incomplete (do,if) statement
+
+   Some part of a ==> 'do' or ==> 'if' statement is missing.
+   Check the line for missing part or typing errors. 
+5  -32
+   Variable name is already defined
+
+   The variable that you want to define is already in use as another
+   data type. 
+5  -33
+   Variable in use; cannot initialize value
+
+   A variable name can be redifined as identical data type, in order 
+   to be able to use a macro with a variable definition inside a loop.
+   You may, however, not provide an initialisation value, as this would
+   override the current value.
+5  -34
+   String has length zero',                   & !-34  ! fortran
+
+   A statement like
+   echo ""   or
+   line = ''
+   occured in which the single or doluble quotation marks enclose a 
+   zero length string.
 4  i/o
 
    Errors related to input / output
@@ -1215,6 +1267,79 @@
    An error occurred when reading a file with 'fget'. Check the file
    for nonnumerical values and check that the number of columns is
    equal or larger than the number of arguments of 'fget'.  
+
+5  -13
+   I/O stream number outside valid range
+
+   The I/O stream number must be larger than 0 and less than the value
+   defined in macro.inc, which usually is 10.
+
+5  -14
+   Filename has zero length
+
+   You tried to open a file with ==> 'fopen', whose file name is of
+   length zero.
+   Check the statement for the missing filename, or an additional comma.
+5  -15
+   No socket connected
+
+   Apparently you tried to use a ==> 'socket' command prior to opening
+   a connection to the remote computer. 
+   Use a 'socket open' command first.
+5  -16
+   Could not resolve hostname for socket
+
+   The hostname to which you want to connect could not be resolved into
+   an IP address. 
+   Check the host name for typing errors and the Internet access of your
+   computer.
+5  -17
+   Could not grab socket
+
+   Internal socket debug message.
+5  -18
+   Could not open socket connection
+
+   Internal socket debug message.
+5  -19
+   Problem sending to socket
+
+   Internal socket debug message.
+5  -20
+   Problem receiving from socket
+
+   Internal socket debug message.
+5  -21
+   Received null string from socket receive
+
+   The remote computer send back an answer of zero length. Apparently 
+   the connection was terminated prematurely.
+
+   Try to connect again.
+5  -22
+   Socket accept problem
+
+   Internal socket debug message.
+5  -23
+   Scocket: Rejected connection
+
+   Internal socket debug message.
+5  -24
+   Socket bind problem
+
+   Internal socket debug message.
+5  -25
+   Socket listen problem
+
+   Internal socket debug message.
+5  -26
+   Second parameter must be >= first Param.
+
+   You tried to read a substring with a line like
+   echo "%c",line(1:5)
+   but the second parameter , here a "5" was less than the first, here a "1".
+   The second parameter must be equal to or larger than the first in order 
+   to specify a valid substring.
 4  macro
 
    Errors related to macro
