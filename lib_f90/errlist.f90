@@ -240,11 +240,12 @@
        include      'errlist.inc'
 !
        integer       iu,io
-       parameter    (IU= -25,IO=0)
+       parameter    (IU= -26,IO=0)
 !
        CHARACTER*45  ERROR(IU:IO)
 !
-       DATA ERROR (-25:-21) /                       &
+       DATA ERROR (-26:-21) /                       &
+     &  'Second parameter must be >= first Param.', & ! -26 ! io
      &  'Socket listen problem ',                   & ! -25 ! command
      &  'Socket bind problem ',                     & ! -24 ! command
      &  'Scocket: Rejected connection  ',           & ! -23 ! command
@@ -259,7 +260,7 @@
      &  'Could not resolve hostname for socket',    & ! -16 ! io
      &  'No socket connected',                      & ! -15 ! io
      &  'Filename has zero length',                 & ! -14 ! io
-     &  'Second parameter must be >= first Param.', & ! -13 ! io
+     &  'I/O stream number outside valid range',    & ! -13 ! io
      &  'Error writing to file',                    & ! -12 ! io
      &  'No IO stream open to close',               & ! -11 ! io
      &  'IO stream already open',                   & ! -10 ! io
