@@ -87,7 +87,7 @@
    Atom form factors are taken from Table 4.3.2.3 Int. table Vol C (2006)
    respectively. from Peng, Ren, Dudarev, Whelan Acta Cryst A52 (1996), 257
 
-   Electron diffraction works in all menues where you could switsch between
+   Electron diffraction works in all menues where you could switch between
    X-ray and neutrons i.e.: fourier, powder, rmc, pdf
 4  internal_storage
 
@@ -95,6 +95,8 @@
    Simply start the file name with the string "internal" and
    DISCUS will write the crystal structure into a dynymically
    allocated internal data structure, instead of onto the hard disk.
+   If a structure was written into an "internal" file, it can be read
+   as well with ==> 'read'.
    
 4  mmc
 
@@ -4226,7 +4228,7 @@
 !b set lpcor, "none"
 !b set lpcor, "bragg" [,<theta_mono>]
 !b set lpcor, "neutron"
-!b set lpcor, "synchrotron" [,<polarisation_fraction> [,<theta_mono>]]
+!b set lpcor, "synchrotron" ,<polarisation_fraction> [,<theta_mono>]
 
    This command defines how the powder menu of DISCUS calculates the 
    Lorentz-Polarisation correction.
@@ -4241,10 +4243,10 @@
    "neutron"
    A neutron powder diffractometer in Debye-Scherrer geometry is used.
 
-   "synchrotron" [,<polarisation_fraction> [,<theta_mono>]]
+   "synchrotron" ,<polarisation_fraction> [,<theta_mono>]
    A Debye-Scherrer geometry at a synchrotron source is defined.
-   Optionally you can specify the polarisation fraction and the 
-   monochromator angle.
+   The polarisation fraction is required. 
+   Optionally you can specify the monochromator angle.
 4  preferred
 !b set preferred, "off"
 !b set preferred, {"rietveld"|"march"}
@@ -7334,8 +7336,9 @@
 !p assign     ! Assigns size, character etc to the pseudoatoms
 !p inputfile  ! Defines the input file name
 !p mode       ! Defines the interpretation of the input file 
-!p run        ! Sets the wave type to acoustic
-!p show       ! Sets the wave type to acoustic
+!p run        ! Perform the actual replacement
+!p set        ! Sets various definitions
+!p show       ! Show current settings
 
 3  Instructions on usage
 
@@ -7531,6 +7534,58 @@
    crystal. The positions, characters etc. for each domain are read
    from file <inputfile>. The corresponding domain structure is used to
    replace part of the host structure.
+3  set
+!b set
+
+   Set various definitions
+
+4  distance
+!b set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
+
+   Set the distances at wich an atom from the atom list shall be 
+   considered to be close to a surface.
+4  remove
+!b set remove {"strict" | "initial" | "trust"}
+
+   When DISCUS replaces (parts of) an old structure with the 
+   content of domains. it needs to remove the old atoms. You have 
+   three choices how this shall be done:
+
+   strict
+   Old atoms are removed EVERYTIME an individual domain is inserted
+   into the crystal. Old atoms are considered to be all atoms that 
+   were in the crystal just before this domain was inserted. This
+   includes domains that were inserted by the very same 'run' 
+   command. 
+   You need to do this, if you suspect or know that domains do
+   overlap. You must use this for example to simulate overgrowth of
+   domains on top of each other.
+
+   initial
+   This time only those atoms are removed that were in the crystal 
+   prior to the current 'run' command. The atoms that are inserted
+   during the current 'run' command are not tested. They may overlap
+   if you are not cereful. 
+
+   trust
+   OK, you trust that no domains overlap with each other and that you
+   know exactly which host atoms have to be removed. The removal is
+   performed after all domains have been inserted. DISCUS collects 
+   all fuzzy distances from the ==> assign commands and uses the 
+   maximum value of any assign command. This is necessary, since at this 
+   point the information from which domain type a new atom was taken
+   has been lost.
+   This removal is MUCH faster than  the previous two.
+
+   none
+   The ultimate trust! No host atoms are removed at all. You can do this,
+   if you read a crystal that consisted only of dummy atoms and each of 
+   these represents a domain. 
+   You should remove these dummy atoms after you leave the 'domain'
+   menu via a ==> replace dummy, void, all,1.0 command.
+   This combination is the fastest but be advised that you really need to
+   know where the dummy atoms and the inserted atoms are. Otherwise you
+   might end up with lots of strange overlapping atoms.
 3  show
 !b show
 
@@ -7571,6 +7626,11 @@
    if an error is detected. This option is useful to terminate a faulty
    sequence of commands when running DISCUS in the batch mode of your
    operating system.
+   If you are a bit more daring, you can use the "live" error setting.
+   With this setting, DISCUS will continue to run a macro after an 
+   error has occured. This is helpful if you attempt to read a file
+   of unknown length with ==> 'fget' and need to catch the EOF signal.
+   Oter than that be careful!
 
 3  appl
 
@@ -8283,6 +8343,138 @@
    The atom type number is less than zero, or larger than the current
    number of different atom types present in the crystal. 
    Check the value, compare its value to n[2].
+4  -98
+   No atom types exist at present
+
+   Wilson statistics requires that DISCUS knows which atom types were
+   present in the sample, as a plot of 
+   ln(average(formfactor**2)/average(intensity)) versus sin(theta)/lambda
+   is evaluated. 
+   Insert the atom types into a (dummy) structure and make sure that their
+   relative amount is close to the actual sample composition.
+4  -99
+   No wavelength has been set
+
+   Wilson statistics requires that DISCUS knows which wave length was used
+   in the experiment, as a plot of 
+   ln(average(formfactor**2)/average(intensity)) versus sin(theta)/lambda
+   is evaluated. 
+   Set the wave length through the ==> 'wvle' command in the 
+   ==> 'fourier' menu.
+4  -100
+   Space group symbol missing in cell file
+
+   The required "spcgr" <symbol> line in the input file does not contain
+   a space group symbol. Check the input file and provide a proper 
+   space group symbol.
+4  -101
+   Dimension of lots < 0 or > than crystal
+
+   You are trying to use lots in the single crystal Fourier mode. At 
+   least one of the lots dimension is less than zero or larger than 
+   the crystal along that dimension. Check the line and inquire the
+   crystal size with the ==> 'show cdim' command from the main menu.
+4  -102
+   Property value outside defined range
+
+   While reading a cell file or structure, DISCUS encountered a property
+   flag that is either zero or lareger than currently defined. 
+   May be the input file was edited manually? Set the property flag to
+   1 to define the questionable atom as a standard atom type.
+4  -103
+   Too many atoms per unit cell
+
+   The ==> 'aver' command in the ==> 'chem' menu experiences a situation 
+   in which there seem too many atom per unit cell. 
+   This error should never occur. 
+   Please document and report to the author.
+4  -104
+   Powder output not defined as TTH or Q
+
+   You did a ==> 'powder' calculation without defining the axis as either
+   ==> 'set axis,tth' or ==> 'set axis,q'. The output menu does not know
+   which axis you intended. Please rerun the powder calculation with the
+   correct axis set.
+4  -105
+   Atom number outside limits
+
+   While reading an internally stored structure, the actual atom number is
+   found to be larger that the maximum atom number stored in the header.
+
+   This error should never occur. 
+   Please document and report to the author.
+4  -106
+   HKL steps for complete powder must be >0
+
+   All three step sizes for the HKL increment ==> 'set dh', 'set dk',
+   'set dl' are equal to zero!
+   Make sure that at least one of these is set to a value larger than zero.
+4  -107
+   2Theta limits or step width are illegal
+
+   You are using the ==> 'set axis,tth' option and either:
+   The upper limit of 2Theta is lesser than the lower limit, 
+      ==> 'set tthmin',    ==> 'set tthmax'
+   The 2Theta step size is zero or negative
+      ==> 'set dtth'
+
+   Check the values and provide correct values.
+4  -108
+   Q limits or step width are illegal
+
+   You are using the ==> 'set axis,q' option and either:
+   The upper limit of Q is lesser than the lower limit, 
+      ==> 'set   qmin',    ==> 'set   qmax'
+   The Q step size is zero or negative
+      ==> 'set dq'
+
+   Check the values and provide correct values.
+4  -109
+   Connectivity definition does not exist
+
+   You are referencing a connectivity definition by name or number,
+   that DISCUS cannot find. 
+   Was this connectivity never defined, or are you using a definition
+   with a different atom type?
+4  -110
+   No connectivity definitions exist at all
+
+   You are referencing a connectivity definition by name or number,
+   but no definitions exist. 
+
+   Did you forget to define connectivity definitions or did you read
+   a new unit cell/structure after the connectivity was defined?
+4  -111
+   Error reading SCAT instruction
+4  -112
+
+   DISCUS encountered an error while reading the "scat" line in the current
+   input file. Check if there are non printable characters in this line
+   or if the line is empty.
+   Error reading ADP  instruction
+
+   DISCUS encountered an error while reading the "apd" line in the current
+   input file. Check if there are non printable characters in this line
+   or if the line is empty.
+4  -113
+   Could not find internal storage
+
+   DISCUS cannot find the internally saved structure. 
+   Check for typing differences between the save and read lines.
+4  -114
+   Error allocating
+
+   DISCUS could not allocate the memory space for internal storage.
+   
+   Does your computer offer enough memory space, have you written huge files
+   into the internal storage?
+4  -115
+   Different atom no on SCAT and ADP
+
+   DISCUS uses the names and values on the "scat" and "adp" lines in the 
+   cell/structure input file to assign atom types. As there is a one to one
+   correspondence between the parameters on these two lines, the number of
+   parameters on both lines must be identical.
 3  chem
    Errors at the chemistry level of DISCUS
 
@@ -8444,6 +8636,13 @@
    A number of commands can only be used if the crystal contains 
    any atoms.
    Check the number of atoms "n[1] present in your crystal.
+4  -28
+   Invalid correlation conn   index given
+
+   The given correlation conn index was invalid. Check your input.
+   The index must be larger than 0.
+4  -29
+   Atom type outside valid range
 3  four
    These are the possible error messages related to the calculation
    of the Fourier Transform
@@ -8525,12 +8724,38 @@
    recompile DISCUS.
 4  -4
    No structure defined yet (>= 1 atoms)
+
+   You do not have a crystal structure with at least one atom.
+   Create a structure first.
 4  -5
    PDF data must start with r=Dr
+
+   The data in the input file must be evenly spaced with step size
+   ==> 'set range'. 
+   The first data point must be at a distance value r equal to this
+   set size.
+
+   Check the values on the ==> 'set range' command and check the 
+   data file. If necessary repeat the determination of the experimental
+   PDF or extrapolate the data from the current minimum r-value down
+   to r(min) = Dr.
 4  -6
    PDF range fixed with data loaded
 4  -7
    Disable Gaussian mode and recalculate
+4  -8
+   Atom type ALL not allowed
+
+   The ==> 'set partial' command must receive individual atom names, not
+   the atom name "ALL".
+4  -9
+   No atoms in asymmetric unit
+
+   The crystal does not contain any atoms in the asymmetric unit. It may
+   have been read with the 'structure' command or generated via stacking
+   faults. 
+   Under these circumstances you must use the exact mode in connection 
+   with the ==> 'set bound' 
 3  rmc
    Errors at the Reverse Monte Carlo Level
 
