@@ -1,5 +1,5 @@
 !*****7*****************************************************************
-      SUBROUTINE do_niplps (linverse) 
+SUBROUTINE do_niplps (linverse) 
 !-                                                                      
 !     This sublevel contains all routines used to write the output      
 !     of the Fourier transform/Patterson to an output file in           
@@ -792,6 +792,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE output_mod 
       IMPLICIT none 
 !                                                                       
@@ -802,10 +803,11 @@
       INTEGER iff 
       PARAMETER (iff = 2) 
 !                                                                       
+      CHARACTER(LEN=2024) dummy_file
       INTEGER HKLF4, LIST5, LIST9 
       PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8) 
 !                                                                       
-      INTEGER extr_ima, i, j, k, value 
+      INTEGER extr_ima, i, j, k, l, value 
       LOGICAL lread, laver 
       REAL h (3) 
       REAL sq, qq, out_fac 
@@ -822,18 +824,19 @@
       REAL factor 
 !                                                                       
       REAL qval 
+      INTEGER  len_str
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
       IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) then 
-         DO i = 1, 2 
+         DO i = 1, 3 
          shel_inc (i) = inc (i) 
          ENDDO 
          DO i = 1, 3 
-         DO j = 1, 3 
+         DO j = 1, 4 
          shel_eck (i, j) = eck (i, j) 
          ENDDO 
-         DO j = 1, 2 
+         DO j = 1, 4 
          shel_vi (i, j) = vi (i, j) 
          ENDDO 
          ENDDO 
@@ -842,11 +845,12 @@
          shel_dsi = dsi (1) 
          inc (1) = 1 
          inc (2) = 1 
+         inc (3) = 1 
          DO i = 1, 3 
-         DO j = 1, 3 
+         DO j = 1, 4 
          eck (i, j) = 0.0 
          ENDDO 
-         DO j = 1, 2 
+         DO j = 1, 3 
          vi (i, j) = 0.0 
          ENDDO 
          ENDDO 
@@ -869,14 +873,14 @@
          csf (1) = shel_tcsf 
          acsf (1) = shel_acsf 
          dsi (1) = shel_dsi 
-         DO i = 1, 2 
+         DO i = 1, 3 
          inc (i) = shel_inc (i) 
          ENDDO 
          DO i = 1, 3 
-         DO j = 1, 3 
+         DO j = 1, 4 
          eck (i, j) = shel_eck (i, j) 
          ENDDO 
-         DO j = 1, 2 
+         DO j = 1, 3 
          vi (i, j) = shel_vi (i, j) 
          ENDDO 
          ENDDO 
@@ -885,67 +889,84 @@
       extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
       lread = .false. 
-      CALL oeffne (iff, outfile, 'unknown', lread) 
+      IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
+         CALL oeffne (iff, outfile, 'unknown', lread) 
+      ENDIF
       IF (ier_num.eq.0) then 
          IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then 
             IF (ityp.eq.0) then 
-               WRITE (iff, * ) out_inc 
-               WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (     &
-               out_extr_abs, 2), out_eck (out_extr_ord, 1), out_eck (   &
-               out_extr_ord, 3)                                         
+               DO l=1, out_inc(3)
+                  IF(out_inc(3) > 1) THEN
+                     WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
+7777 FORMAT(a,'.PART_',i4.4)
+                     CALL oeffne (iff, dummy_file, 'unknown', lread) 
+                  ENDIF
+               WRITE (iff, * ) out_inc (1), out_inc(2)
+               WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
+                               out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3)
                DO j = 1, out_inc (2) 
-               WRITE (iff, 4) (qval ( (i - 1) * out_inc (2) + j, value, &
-               i, j, laver), i = 1, out_inc (1) )                       
+               WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+                                      (j - 1) * out_inc(3)             + l,     &
+                                      value,  i, j, laver), i = 1, out_inc (1) )
                WRITE (iff, 100) 
                ENDDO 
+                  IF(out_inc(3) > 1) THEN
+                     CLOSE(iff)
+                  ENDIF
+               ENDDO 
             ELSEIF (ityp.eq.HKLF4) then 
+               DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
                h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-               + out_vi (k, 2) * float (j - 1)                          
+                                      + out_vi (k, 2) * float (j - 1)   &
+                                      + out_vi (k, 3) * float (l - 1)
                ENDDO 
-               k = (i - 1) * out_inc (2) + j 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3) * out_fac                                
+!              k  = (i - 1) * out_inc (2) + j 
+               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
+               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac
                sq = sqrt (qq) 
-               WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
-               qq, sq                                                   
+               WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), qq, sq
+               ENDDO 
                ENDDO 
                ENDDO 
             ELSEIF (ityp.eq.LIST5) then 
                shel_value = 3 
+               DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
                h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-               + out_vi (k, 2) * float (j - 1)                          
+                                      + out_vi (k, 2) * float (j - 1)   &
+                                      + out_vi (k, 3) * float (l - 1)
                ENDDO 
-               k = (i - 1) * out_inc (2) + j 
+               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3) * out_fac                                
+               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac
                shel_value = 3 
                sq = qval (k, shel_value, i, j, laver) 
-               WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
-               qq, qq, sq                                               
+               WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), qq, qq, sq
+               ENDDO 
                ENDDO 
                ENDDO 
             ELSEIF (ityp.eq.LIST9) then 
                shel_value = 3 
+               DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
                h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-               + out_vi (k, 2) * float (j - 1)                          
+                                      + out_vi (k, 2) * float (j - 1)   &
+                                      + out_vi (k, 3) * float (l - 1)
                ENDDO 
-               k = (i - 1) * out_inc (2) + j 
+               k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
                shel_value = 2 
-               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
-               2) / cr_icc (3)                                          
+               qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
                shel_value = 3 
                sq = qval (k, shel_value, i, j, laver) 
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
+               ENDDO 
                ENDDO 
                ENDDO 
             ELSE 
@@ -1056,7 +1077,7 @@
 !                                                                       
       END SUBROUTINE do_output                      
 !*****7*****************************************************************
-      REAL function qval (i, value, ix, iy, laver) 
+      REAL FUNCTION qval (i, value, ix, iy, laver) 
 !-                                                                      
 !     transforms the real and imaginary part of the Fourier transform   
 !     into the desired output format                                    
@@ -1185,12 +1206,12 @@
          out_extr_ord = extr_ord 
 !                                                                       
          DO i = 1, 3 
-         DO j = 1, 3 
+         DO j = 1, 4 
          out_eck (i, j) = eck (i, j) 
          ENDDO 
          ENDDO 
 !                                                                       
-         DO i = 1, 2 
+         DO i = 1, 3 
          DO j = 1, 3 
          out_vi (j, i) = vi (j, i) 
          ENDDO 
