@@ -19,7 +19,7 @@ SUBROUTINE cmdline_args
       PARAMETER (marg = 20) 
 !                                                                       
       CHARACTER(1024) arg (marg) 
-      CHARACTER(LEN=2048)  :: line
+      CHARACTER(LEN=2048)  :: line = ' '
       CHARACTER(40) str 
       INTEGER iarg, i, ilen , ilena
       INTEGER len_str 
@@ -29,8 +29,13 @@ SUBROUTINE cmdline_args
          IF (index (arg (1) , '-macro') .ne. 0) THEN ! execute a macro with optional parameters
             IF (iarg.gt.1) then 
                ilena = len_str(arg(2)) ! arg2 is the actual macro name
-               line  = arg(2)(1:ilena) // ' '
-               ilen  = ilena + 1
+               IF(iarg > 2) THEN       ! There are macro parameter(s)
+                  line  = arg(2)(1:ilena) // ' '
+                  ilen  = ilena + 1
+               ELSE                    ! No macro parameters follow
+                  line  = arg(2)(1:ilena)
+                  ilen  = ilena
+               ENDIF
                DO i = 3, iarg          ! all further args are macro parameters
                  ilena = len_str(arg(i))
                  line  = line(1:ilen) // arg(i)(1:ilena)
@@ -40,7 +45,7 @@ SUBROUTINE cmdline_args
                      ilen = ilen + 1
                   ENDIF
                ENDDO
-               WRITE ( *, 1000) line (1:ilen) 
+               WRITE ( *, 1000) line (1:ilen)
                CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
             ENDIF
          ELSE ! all other command line arguments
@@ -1425,7 +1430,7 @@ SUBROUTINE cmdline_args
          io_get_sub (ii, 2) = nint (werte (2) ) 
          IF (io_get_sub (ii, 2) .ne. - 1.and.io_get_sub (ii, 1)         &
          .gt.io_get_sub (ii, 2) ) then                                  
-            ier_num = - 13 
+            ier_num = - 26 
             ier_typ = ER_IO 
          ENDIF 
       ELSE 
