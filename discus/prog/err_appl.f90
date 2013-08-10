@@ -9,11 +9,13 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      PARAMETER    (IU=-115,IO=4)
+      PARAMETER    (IU=-117,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-115: -101) /                     &
+      DATA ERROR (-117: -101) /                     &
+     &  '                            ',             & !-117 ! discus
+     &  'Could not find definition',                & !-116 ! discus
      &  'Different atom no on SCAT and ADP',        & !-115 ! discus
      &  'Error allocating              ',           & !-114 ! discus
      &  'Could not find internal storage',          & !-113 ! discus
@@ -162,4 +164,37 @@
         call disp_error ('APPL',error,iu,io)
       endif
       end
-!*****7****************************************************************
+!*****7*****************************************************************
+      SUBROUTINE errlist_four 
+!-                                                                      
+!     Displays error Messages for the error type FOUR                    
+!+                                                                      
+      IMPLICIT none 
+!                                                                       
+      include'errlist.inc' 
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (IU = -15, IO = 0) 
+!                                                                       
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR( IU: 0) /                             &
+        ' ',                                           &   ! -15  ! FOUR
+        ' ',                                           &   ! -14  ! FOUR
+        ' ',                                           &   ! -13  ! FOUR
+        ' ',                                           &   ! -12  ! FOUR
+        ' ',                                           &   ! -11  ! FOUR
+        ' ',                                           &   ! -10  ! FOUR
+        ' ',                                           &   ! -9   ! FOUR
+        ' ',                                           &   ! -8   ! FOUR
+        ' ',                                           &   ! -7   ! FOUR
+        ' ',                                           &   ! -6   ! FOUR
+        ' ',                                           &   ! -5   ! FOUR
+        'Component of increment vector is zero    ',   &   ! -4   ! FOUR
+        'SIN(THETA)/LAMBDA > lookup table limits  ',   &   ! -3   ! FOUR
+        'Invalid lot shape selected               ',   &   ! -2   ! FOUR
+        'Invalid Fourier mode selected            ',   &   ! -1   ! FOUR
+        ' ' /                                              !  0   ! FOUR
+!                                                                       
+      CALL disp_error ('FOUR', error, iu, io) 
+      END SUBROUTINE errlist_four                   

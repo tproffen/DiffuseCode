@@ -1744,6 +1744,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup 
       USE molecule_mod 
       USE save_mod 
       USE stack_mod 
@@ -2009,6 +2010,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup 
       USE molecule_mod 
       USE save_mod 
       USE stack_mod 

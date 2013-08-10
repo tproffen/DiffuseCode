@@ -7,6 +7,7 @@
 !-                                                                      
       USE allocate_appl_mod
       USE conn_mod
+      USE fourier_menu
       USE inverse_mod 
       USE modify_mod
       USE mole_surf_mod

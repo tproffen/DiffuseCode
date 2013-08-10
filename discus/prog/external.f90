@@ -6,6 +6,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE external_mod 
       USE molecule_mod 
       IMPLICIT none 

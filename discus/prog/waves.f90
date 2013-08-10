@@ -658,6 +658,7 @@ SUBROUTINE waves_menu
       USE config_mod 
       USE allocate_appl_mod 
       USE crystal_mod 
+      USE fourier_sup, ONLY: quad
       USE symm_mod 
       USE structur, ONLY: update_cr_dim
       USE waves_mod 
@@ -676,7 +677,7 @@ SUBROUTINE waves_menu
       INTEGER start, end, power 
       LOGICAL pmult, mode, new, orig_mol, typ, sel_atom 
 !                                                                       
-      REAL quad 
+!     REAL quad 
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       

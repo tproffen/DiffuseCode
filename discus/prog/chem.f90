@@ -1040,7 +1040,7 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
          ENDIF
       ENDIF
       IF (iv.le.0.or.iv.gt.CHEM_MAX_CON) then 
-         ier_num = - 9 
+         ier_num = -28 
          ier_typ = ER_CHEM 
       ELSE 
          IF (is1.lt.0.or.is1.gt.cr_nscat) THEN
@@ -2523,6 +2523,7 @@ ENDIF
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE fourier_sup, ONLY: four_csize, four_ranloc
       USE molecule_mod 
       USE modify_func_mod
       IMPLICIT none 
@@ -2658,6 +2659,7 @@ ENDIF
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE fourier_sup, ONLY: four_csize, four_ranloc
       USE mc_mod 
       IMPLICIT none 
 !                                                                       
@@ -5495,6 +5497,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       ELSEIF (chem_ctyp (ic) .eq.CHEM_VEC) then 
          ncent = 1 
+         natom (  ncent) = 0 
+         iatom (:,ncent) = 0 
          CALL indextocell (jatom, jcell, jsite) 
          DO i = 1, chem_nvec (ic) 
          iatom (0, ncent) = jatom 
@@ -5550,6 +5554,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       ELSEIF (chem_ctyp (ic) .eq.CHEM_CON) then 
          ncent = 1 
+         natom (ncent) = 0 
 !        CALL indextocell (jatom, jcell, jsite) 
          DO i = 1, chem_ncon (ic) 
             iatom (0, ncent)    = jatom             ! Store central atom at entry 0
@@ -5582,6 +5587,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       ELSEIF (chem_ctyp (ic) .eq.CHEM_ANG) then 
          ncent = 0 
+         natom (ncent) = 0 
          CALL indextocell (jatom, jcell, jsite) 
          DO i = 1, chem_nwin (ic) 
          ncent = ncent + 1 

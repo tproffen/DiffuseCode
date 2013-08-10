@@ -8,12 +8,14 @@
 !     calculates the distance of the plotting section from the origin   
 !     of the crystal.                                                   
 !-                                                                      
+      USE fourier_sup, ONLY: quad
       IMPLICIT none 
 !                                                                       
       INTEGER inull2 (2), i, j, k, l, m, inull 
       REAL eps (3, 3, 3), fmat (3, 3), gmat (3, 3), gten (3, 3) 
       REAL rten (3, 3), u (3), xc (3), yc (3), zc (3), dist 
-      REAL reps (3, 3, 3), hkl (3), zcc, xcc, quad 
+      REAL reps (3, 3, 3), hkl (3), zcc, xcc
+!, quad 
 !                                                                       
 !     Determine achses for transformation                               
 !     Transform reciprocal vector HKL to real space vector ZC           

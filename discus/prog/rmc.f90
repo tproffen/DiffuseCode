@@ -226,6 +226,7 @@
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE modify_mod
       USE rmc_mod 
       IMPLICIT none 
@@ -243,7 +244,8 @@
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
-      REAL mmdis, hklmin (3), hklmax (3), quad 
+      REAL mmdis, hklmin (3), hklmax (3)
+!, quad 
       INTEGER ianz, iianz, jjanz, is, js, i, j, ii, ie1, ie2, ip 
       LOGICAL flag 
 !                                                                       
@@ -1757,6 +1759,7 @@
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE rmc_mod
       USE structur, ONLY: update_cr_dim
       IMPLICIT none 
@@ -2103,6 +2106,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
@@ -2430,6 +2434,7 @@
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
@@ -2463,6 +2468,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
@@ -2665,6 +2671,7 @@
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
@@ -2906,6 +2913,9 @@
    20 CONTINUE 
       isel (2) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (2) .gt.cr_natoms.or.isel (2) .lt.1) goto 20 
+!RBNSITE
+isel(1) = 64
+isel(2) = 49
 !                                                                       
       CALL indextocell (isel (1), iz1, is1) 
       CALL indextocell (isel (2), iz2, is2) 

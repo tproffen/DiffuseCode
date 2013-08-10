@@ -258,6 +258,7 @@ SUBROUTINE pdf
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE pdf_mod 
       IMPLICIT none 
 !                                                                       
@@ -272,7 +273,7 @@ SUBROUTINE pdf
       INTEGER i, j, ia, is, js, nn, nnn 
       LOGICAL ltot 
 !                                                                       
-      REAL form, quad 
+!     REAL form, quad 
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
@@ -670,8 +671,8 @@ SUBROUTINE pdf
             cdummy = cpara (1) (1:lpara (1) ) 
             CALL oeffne (57, cdummy, 'unknown', .false.) 
             IF (ier_num.eq.0) then 
-               nmi = int (pdf_rfmin / pdf_deltar) 
-               nma = int (pdf_rfmax / pdf_deltar) 
+               nmi = nint (pdf_rfmin / pdf_deltar) 
+               nma = nint (pdf_rfmax / pdf_deltar) 
                DO i = nmi, nma 
                r = float (i) * pdf_deltar 
                WRITE (57, 5000) r, pdf_skal * pdf_calc (i), 0.0, 1.0 
@@ -1398,8 +1399,8 @@ SUBROUTINE pdf
       pmax = 0.0 
       pn = 0.0 
 !                                                                       
-      nmi = int (pdf_rfmin / pdf_deltar) 
-      nma = int (pdf_rfmax / pdf_deltar) 
+      nmi = nint (pdf_rfmin / pdf_deltar) 
+      nma = nint (pdf_rfmax / pdf_deltar) 
 !                                                                       
       CALL chem_aver (.false.) 
 !                                                                       

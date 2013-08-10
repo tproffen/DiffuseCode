@@ -1169,6 +1169,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE intens_mod 
       USE inverse_mod 
       USE output_mod 
@@ -1210,7 +1211,7 @@
 !                                                                       
       INTEGER e_hist 
       REAL fj2 
-      REAL quad 
+!     REAL quad 
 !                                                                       
       zz1 = 0.0 
       zz2 = 0.0 
@@ -1584,6 +1585,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE patters_mod 
       IMPLICIT none 
 !                                                                       
@@ -2719,6 +2721,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE patters_mod 
       IMPLICIT none 
 !                                                                       
@@ -2751,7 +2754,7 @@
       INTEGER len_str 
       INTEGER e_hist 
       REAL fj2 
-      REAL quad 
+!     REAL quad 
       INTEGER iimax 
       iimax = 0 
 !                                                                       
@@ -2884,6 +2887,7 @@
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup, ONLY: form
       IMPLICIT none 
 !                                                                       
        
@@ -2892,7 +2896,7 @@
       REAL dstar2 
       INTEGER j 
 !                                                                       
-      REAL form 
+!     REAL form 
 !                                                                       
       fj2 = 0.0 
       DO j = 1, cr_ncatoms 

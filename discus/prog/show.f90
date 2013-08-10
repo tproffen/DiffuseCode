@@ -594,6 +594,7 @@
       USE allocate_generic
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE modify_mod
       USE molecule_mod 
       IMPLICIT none 

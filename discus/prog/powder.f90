@@ -16,6 +16,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -1081,6 +1082,7 @@ CONTAINS
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -1622,6 +1624,7 @@ CONTAINS
       USE crystal_mod 
       USE debye_mod 
       USE diffuse_mod 
+      USE fourier_sup
       USE output_mod 
       USE powder_mod 
       IMPLICIT none 
@@ -2169,6 +2172,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_sup
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
