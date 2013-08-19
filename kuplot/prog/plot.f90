@@ -605,6 +605,7 @@
             IF (pex (iwin, iframe, 1) .lt.0.0) then 
                ninterv = IABS(NINT((pex (iwin, iframe, 1) - 0.0 )/pt (iwin, iframe, 1)))
                DO i = 0, ninterv !xt = 0.0, pex (iwin, iframe, 1), - pt (iwin, iframe, 1)
+                  xt = 0.0 - i*pt (iwin, iframe, 1)
                IF (xt.lt.pex (iwin, iframe, 2) ) then 
                   xt = 0.0 - i* pt (iwin, iframe, 1)
                   xpl (1) = xt 
@@ -619,6 +620,7 @@
             IF (pex (iwin, iframe, 2) .gt.0.0) then 
                ninterv = IABS(NINT((pex (iwin, iframe, 2) - 0.0 )/pt (iwin, iframe, 1)))
                DO i = 0, ninterv !xt = 0.0, pex (iwin, iframe, 2), pt (iwin, iframe, 1) 
+                  xt = 0.0 + i*pt (iwin, iframe, 1)
                IF (xt.gt.pex (iwin, iframe, 1) ) then 
                   xt = 0.0 + i* pt (iwin, iframe, 1)
                   xpl (1) = xt 
