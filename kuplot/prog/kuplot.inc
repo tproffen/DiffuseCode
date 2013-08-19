@@ -176,6 +176,7 @@
       CHARACTER*1024      fit_func
       CHARACTER*4      ftyp
       CHARACTER*3      wtyp
+      CHARACTER*1      dummy_spacer
       REAL w(maxarray)
       REAL p(maxpara),pinc(maxpara),dp(maxpara)
       REAL p_merk(maxpara),pinc_merk(maxpara)
@@ -198,7 +199,7 @@
      &              zalt,zwert,zdif,fend,r4,re,fstart,p_merk,           &
      &              pinc_merk,ikfit,ikfit2,ikcal,ikdif,ikfirst,         &
      &       fit_ifen,fit_ikcal,fit_ikdif,fit_lfunc,                    &
-     &       ftyp,fit_func,tmp,wval,wtyp,frall,n_backgrd,               &
+     &       ftyp,fit_func,tmp,wval,wtyp,dummy_spacer,frall,n_backgrd,  &
      &       p_origin
 !
 !------ Bonds

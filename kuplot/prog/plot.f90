@@ -371,6 +371,7 @@
 !     This routine sets the viewport and window for the current         
 !     frame (-> iframe)                                                 
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 
@@ -545,6 +546,7 @@
 !+                                                                      
 !     This routine draws the labeled frame around the plot.             
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 
@@ -556,6 +558,8 @@
       REAL rj, xt, yt, ltx, lty 
       REAL xpl (2), ypl (2) 
       REAL xh (5), yh (5) 
+      INTEGER  :: ninterv
+      INTEGER  :: i
 !                                                                       
       ax1 = pex (iwin, iframe, 2) 
       ay1 = pey (iwin, iframe, 2) 
@@ -599,9 +603,10 @@
             CALL PGSLS (4) 
 !                                                                       
             IF (pex (iwin, iframe, 1) .lt.0.0) then 
-               DO xt = 0.0, pex (iwin, iframe, 1), - pt (iwin, iframe,  &
-               1)                                                       
+               ninterv = IABS(NINT((pex (iwin, iframe, 1) - 0.0 )/pt (iwin, iframe, 1)))
+               DO i = 0, ninterv !xt = 0.0, pex (iwin, iframe, 1), - pt (iwin, iframe, 1)
                IF (xt.lt.pex (iwin, iframe, 2) ) then 
+                  xt = 0.0 - i* pt (iwin, iframe, 1)
                   xpl (1) = xt 
                   ypl (1) = pey (iwin, iframe, 1) 
                   xpl (2) = xt 
@@ -612,8 +617,10 @@
                ENDDO 
             ENDIF 
             IF (pex (iwin, iframe, 2) .gt.0.0) then 
-               DO xt = 0.0, pex (iwin, iframe, 2), pt (iwin, iframe, 1) 
+               ninterv = IABS(NINT((pex (iwin, iframe, 2) - 0.0 )/pt (iwin, iframe, 1)))
+               DO i = 0, ninterv !xt = 0.0, pex (iwin, iframe, 2), pt (iwin, iframe, 1) 
                IF (xt.gt.pex (iwin, iframe, 1) ) then 
+                  xt = 0.0 + i* pt (iwin, iframe, 1)
                   xpl (1) = xt 
                   ypl (1) = pey (iwin, iframe, 1) 
                   xpl (2) = xt 
@@ -625,8 +632,9 @@
             ENDIF 
 !                                                                       
             IF (pey (iwin, iframe, 1) .lt.0.0) then 
-               DO yt = 0.0, pey (iwin, iframe, 1), - pt (iwin, iframe,  &
-               2)                                                       
+               ninterv = IABS(NINT((pey (iwin, iframe, 1) - 0.0 )/pt (iwin, iframe, 2)))
+               DO i = 0, ninterv !yt = 0.0, pey (iwin, iframe, 1), - pt (iwin, iframe, 2)
+                  yt = 0.0 - i* pt (iwin, iframe, 2)
                xpl (1) = pex (iwin, iframe, 1) 
                ypl (1) = yt 
                xpl (2) = pex (iwin, iframe, 2) 
@@ -636,7 +644,9 @@
                ENDDO 
             ENDIF 
             IF (pey (iwin, iframe, 2) .gt.0.0) then 
-               DO yt = 0.0, pey (iwin, iframe, 2), pt (iwin, iframe, 2) 
+               ninterv = IABS(NINT((pey (iwin, iframe, 2) - 0.0 )/pt (iwin, iframe, 2)))
+               DO i  = 0,  ninterv !yt = 0.0, pey (iwin, iframe, 2), pt (iwin, iframe, 2) 
+                  yt = 0.0 + i* pt (iwin, iframe, 2)
                xpl (1) = pex (iwin, iframe, 1) 
                ypl (1) = yt 
                xpl (2) = pex (iwin, iframe, 2) 
@@ -809,6 +819,7 @@
 !+                                                                      
 !     This routine plots the datasets ...                               
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
@@ -1058,6 +1069,7 @@
 !+                                                                      
 !     The drawing and filling itself                                    
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 
@@ -1178,6 +1190,8 @@
       REAL eex (2), eey (2) 
       REAL y2a (maxarray), xhe (maxsp), yhe (maxsp) 
       REAL xxx, yyy, xst, xen, dxx 
+      INTEGER :: i
+      INTEGER :: ninterv
 !                                                                       
       eex (1) = pex (iwin, iframe, 1) 
       eex (2) = pex (iwin, iframe, 2) 
@@ -1232,9 +1246,16 @@
             xst = max (xmin (ikurv), pex (iwin, iframe, 1) ) 
             xen = min (xmax (ikurv), pex (iwin, iframe, 2) ) 
             dxx = (xen - xst) / maxsp 
-            is = 1 
-            DO xxx = xst + dxx, xen - dxx, dxx 
-            CALL splint (xpl, ypl, y2a, npkt, xxx, yyy) 
+            is = 1
+            ninterv = IABS( NINT( ((xen-dxx)-(xst+dxx))/dxx )) 
+!           DO xxx = xst + dxx, xen - dxx, dxx 
+            DO i = 0, ninterv
+               xxx = (xst+dxx) + i * dxx
+            CALL splint (xpl, ypl, y2a, npkt, xxx, yyy, ier_num)
+            IF(ier_num /= 0) THEN
+               ier_typ =ER_APPL
+               RETURN 
+            ENDIF
             xhe (is) = xxx 
             yhe (is) = yyy 
             is = is + 1 
@@ -1252,6 +1273,7 @@
 !+                                                                      
 !     Draws marker of typ ityp and color icol at px,py                  
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 
@@ -1386,6 +1408,7 @@
 !+                                                                      
 !     Draws bonds                                                       
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 
@@ -1881,68 +1904,3 @@
          ys = y3 + lam * y43 
       ENDIF 
       END SUBROUTINE cross                          
-!***********************************************************************
-      SUBROUTINE koor_shear (npkt, xa, ya) 
-!+                                                                      
-!     transformation beim shearen                                       
-!-                                                                      
-      IMPLICIT none 
-!                                                                       
-      INTEGER npkt, i 
-      REAL xa (npkt), ya (npkt) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-!                                                                       
-      IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
-         DO i = 1, npkt 
-         IF (ya (i) .gt.pey (iwin, iframe, 1) ) then 
-            xa (i) = xa (i) + (ya (i) - pey (iwin, iframe, 1) ) * yskal &
-            (iwin, iframe) / tan (rad * shear (iwin, iframe) )          
-         ELSE 
-            xa (i) = xa (i) 
-         ENDIF 
-         ya (i) = ya (i) 
-         ENDDO 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE koor_shear                     
-!***********************************************************************
-      SUBROUTINE koor_log (npkt, xa, ya) 
-!+                                                                      
-!     transformation for LOG axes                                       
-!-                                                                      
-      IMPLICIT none 
-!                                                                       
-      INTEGER npkt, i 
-      REAL xa (npkt), ya (npkt) 
-      REAL log10 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-!                                                                       
-      log10 = log (10.0) 
-!                                                                       
-      IF (lachse (iwin, iframe, 1) ) then 
-         DO i = 1, npkt 
-         IF (xa (i) .ne.0.0) then 
-            xa (i) = log (abs (xa (i) ) ) / log10 
-         ELSE 
-            xa (i) = - 9999. 
-         ENDIF 
-         ENDDO 
-      ENDIF 
-!                                                                       
-      IF (lachse (iwin, iframe, 2) ) then 
-         DO i = 1, npkt 
-         IF (ya (i) .ne.0.0) then 
-            ya (i) = log (abs (ya (i) ) ) / log10 
-         ELSE 
-            ya (i) = - 9999. 
-         ENDIF 
-         ENDDO 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE koor_log                       

@@ -1329,22 +1329,27 @@
 !                                                                       
       END SUBROUTINE extract_subarray               
 !********************************************************************   
-      SUBROUTINE polin2 (x1a, x2a, ya, m, n, x1, x2, y, dy) 
+      SUBROUTINE polin2 (x1a, x2a, ya, m, n, x1, x2, y, dy,ier) 
       PARAMETER (nmax = 50, mmax = 50) 
       DIMENSION x1a (m), x2a (n), ya (m, n), yntmp (nmax), ymtmp (mmax) 
+      INTEGER :: ier
+      ier = 0
       DO 12 j = 1, m 
          DO 11 k = 1, n 
             yntmp (k) = ya (j, k) 
    11    END DO 
-         CALL polint (x2a, yntmp, n, x2, ymtmp (j), dy) 
+         CALL polint (x2a, yntmp, n, x2, ymtmp (j), dy, ier) 
+         IF(ier/=0) RETURN
    12 END DO 
-      CALL polint (x1a, ymtmp, m, x1, y, dy) 
+      CALL polint (x1a, ymtmp, m, x1, y, dy, ier) 
       RETURN 
       END SUBROUTINE polin2                         
 !                                                                       
-      SUBROUTINE polint (xa, ya, n, x, y, dy) 
+      SUBROUTINE polint (xa, ya, n, x, y, dy, ier) 
       PARAMETER (nmax = 50) 
       DIMENSION xa (n), ya (n), c (nmax), d (nmax) 
+      INTEGER :: ier
+      ier = 0
       ns = 1 
       dif = abs (x - xa (1) ) 
       DO 11 i = 1, n 
@@ -1364,7 +1369,10 @@
             hp = xa (i + m) - x 
             w = c (i + 1) - d (i) 
             den = ho - hp 
-            IF (den.eq.0.) pause 
+            IF (den.eq.0.) THEN
+               ier = -60
+               RETURN
+            ENDIF
             den = w / den 
             d (i) = hp * den 
             c (i) = ho * den 
@@ -1415,8 +1423,9 @@
       RETURN 
       END SUBROUTINE spline                         
 !                                                                       
-      SUBROUTINE splint (xa, ya, y2a, n, x, y) 
+      SUBROUTINE splint (xa, ya, y2a, n, x, y, ier) 
       DIMENSION xa (n), ya (n), y2a (n) 
+      INTEGER :: ier
       klo = 1 
       khi = n 
     1 IF (khi - klo.gt.1) then 
@@ -1429,7 +1438,10 @@
          GOTO 1 
       ENDIF 
       h = xa (khi) - xa (klo) 
-      IF (h.eq.0.) pause 'bad xa input.' 
+      IF (h.eq.0.) THEN
+         ier = -60
+         RETURN
+      ENDIF
       a = (xa (khi) - x) / h 
       b = (x - xa (klo) ) / h 
       y = a * ya (klo) + b * ya (khi) + ( (a**3 - a) * y2a (klo)        &
@@ -1466,7 +1478,11 @@
       a (1 + (ipj + imj) / 2, 1 + (ipj - imj) / 2) = sum 
       ENDDO 
       ENDDO 
-      CALL ludcmp (a, m + 1, MMAX + 1, indx, d) 
+      CALL ludcmp (a, m + 1, MMAX + 1, indx, d, ier_num)
+      IF(ier_num /= 0) THEN
+         ier_typ = ER_NONE
+         RETURN
+      ENDIF 
       DO j = 1, m + 1 
       b (j) = 0. 
       ENDDO 
@@ -1515,16 +1531,20 @@
    14 END DO 
       RETURN 
       END SUBROUTINE LUBKSB                         
-      SUBROUTINE LUDCMP (A, N, NP, INDX, D) 
+      SUBROUTINE LUDCMP (A, N, NP, INDX, D, ier) 
       PARAMETER (NMAX = 100, TINY = 1.0E-20) 
       DIMENSION A (NP, NP), INDX (N), VV (NMAX) 
+      INTEGER  , INTENT(OUT) :: ier
       D = 1. 
       DO 12 I = 1, N 
          AAMAX = 0. 
          DO 11 J = 1, N 
             IF (ABS (A (I, J) ) .GT.AAMAX) AAMAX = ABS (A (I, J) ) 
    11    END DO 
-         IF (AAMAX.EQ.0.) PAUSE 'Singular matrix.' 
+         IF (AAMAX.EQ.0.) THEN !! PAUSE 'Singular matrix.' 
+            ier = -61
+            RETURN
+         ENDIF
          VV (I) = 1. / AAMAX 
    12 END DO 
       DO 19 J = 1, N 

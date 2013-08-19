@@ -8,11 +8,12 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      parameter    (iu=-59,io=0)
+      parameter    (iu=-60,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
-      data error (-59: -41) /                      &
+      data error (-60: -41) /                      &
+     &  'Multiple point with same x no spline    ',&! -60  ! kupl
      &  'Invalid column number specified         ',&! -59  ! kupl
      &  'SDS section value out of range          ',&! -58  ! kupl
      &  'Invalid SDS name specified (try nxdir)  ',&! -57  ! kupl

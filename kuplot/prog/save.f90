@@ -789,6 +789,7 @@
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ipg (maxarray) 
       INTEGER ianz, ik, i, ix, iy, ie, k 
+      INTEGER :: ninterv  ! number of (points-1)==no of intervals writen to file
       INTEGER ispk, ixxx, ikk, ima, nma 
       INTEGER nx_min, nx_max, ny_min, ny_max, nx_s, ny_s 
       LOGICAL l_m999 
@@ -855,11 +856,18 @@
          xanf = ex (iwin, iframe, 1) 
          xend = ex (iwin, iframe, 2) 
          xdel = (werte (3) - werte (1) ) / werte (5) 
-         DO xxx = xanf, xend, xdel 
+         ninterv = NINT((xend-xanf)/xdel)
+!         DO xxx = xanf, xend, xdel
+         DO i = 0, ninterv
+            xxx = xanf + i* xdel
          yyy = xsteig * xxx + xabsch 
          CALL extract_subarray (xf, yf, zf, xxx, yyy, maxf, ik, ie) 
          IF (ie.eq.0) then 
-            CALL polin2 (xf, yf, zf, maxf, maxf, xxx, yyy, zzz, dzzz) 
+            CALL polin2 (xf, yf, zf, maxf, maxf, xxx, yyy, zzz, dzzz, ier_num)
+            IF(ier_num /= 0) THEN
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF 
             WRITE (isa, 4000) xxx, zzz, 0.0, abs (dzzz), yyy 
          ENDIF 
          ENDDO 
@@ -873,7 +881,11 @@
          yyy = y (offxy (ispk - 1) + ixxx) 
          CALL extract_subarray (xf, yf, zf, xxx, yyy, maxf, ik, ie) 
          IF (ie.eq.0) then 
-            CALL polin2 (xf, yf, zf, maxf, maxf, xxx, yyy, zzz, dzzz) 
+            CALL polin2 (xf, yf, zf, maxf, maxf, xxx, yyy, zzz, dzzz,ier_num) 
+            IF(ier_num /= 0) THEN
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF 
             WRITE (isa, 4100) float (ixxx), zzz, 0.0, abs (dzzz),       &
             xxx, yyy                                                    
          ENDIF 

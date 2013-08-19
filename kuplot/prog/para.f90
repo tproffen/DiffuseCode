@@ -1153,6 +1153,7 @@
 !+                                                                      
 !       setting up plotting window                                      
 !-                                                                      
+      USE koordinate_mod
       IMPLICIT none 
 !                                                                       
       include'config.inc' 

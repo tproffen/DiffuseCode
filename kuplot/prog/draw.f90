@@ -891,7 +891,7 @@
       WRITE (zeile, 2200) dist 
       IF (res_para (0) - 1.le.maxpar_res) then 
          res_para (0) = res_para (0) + 1 
-         res_para (res_para (0) - 1) = dist 
+         res_para (NINT(res_para (0)) - 1) = dist 
       ENDIF 
       GOTO 10 
 !                                                                       
@@ -944,8 +944,8 @@
          WRITE (zeile, 2200) wx, wy 
          IF (res_para (0) - 2.le.maxpar_res) then 
             res_para (0) = res_para (0) + 2 
-            res_para (res_para (0) - 1) = wx 
-            res_para (res_para (0) ) = wy 
+            res_para (NINT(res_para (0)) - 1) = wx 
+            res_para (NINT(res_para (0)) ) = wy 
          ENDIF 
 !                                                                       
       ELSE 
@@ -957,9 +957,9 @@
          WRITE (zeile, 2210) wx, wy, wz 
          IF (res_para (0) - 3.le.maxpar_res) then 
             res_para (0) = res_para (0) + 3 
-            res_para (res_para (0) - 2) = wx 
-            res_para (res_para (0) - 1) = wy 
-            res_para (res_para (0) ) = wz 
+            res_para (NINT(res_para (0)) - 2) = wx 
+            res_para (NINT(res_para (0)) - 1) = wy 
+            res_para (NINT(res_para (0)) ) = wz 
          ENDIF 
       ENDIF 
       GOTO 10 

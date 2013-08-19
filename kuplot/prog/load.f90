@@ -664,7 +664,7 @@
          ie = index (line (is:ll) , ' ') 
          IF (ie.eq.0) ie = ll 
          res_para (0) = res_para (0) + 1 
-         READ (line (is:is + ie), * ) res_para (res_para (0) ) 
+         READ (line (is:is + ie), * ) res_para (NINT(res_para (0)) ) 
       ENDIF 
 !                                                                       
       END SUBROUTINE extract_key                    
@@ -2712,7 +2712,7 @@
          IF (dbg) write ( * , 1300) 'STD' 
 !                                                                       
       ELSEIF (index (bank_line, 'ESD') .ne.0) then 
-         read (ifil, '(10f8.0))') (yval (i) , dyval (i) , i = 1, nc) 
+         read (ifil, '(10f8.0)') (yval (i) , dyval (i) , i = 1, nc)
          DO i = 1, nc 
          yval (i) = scal * yval (i) 
          dyval (i) = scal * dyval (i) 

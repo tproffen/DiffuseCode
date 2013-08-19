@@ -3120,7 +3120,7 @@
       INTEGER i, j 
       REAL errt, fac, hh, a (ntab, ntab) 
 !                                                                       
-      IF (h.eq.0.) pause 'h must be nonzero in dfridr' 
+!     IF (h.eq.0.) pause 'h must be nonzero in dfridr'   ! h is checked before
       hh = h 
       a (1, 1) = (func (x + hh) - func (x - hh) ) / (2.0 * hh) 
       err = big 

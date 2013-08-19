@@ -958,7 +958,11 @@
       DO i = 1, ntot 
       ibin = offxy (iz - 1) + i 
       igg = offxy (ig - 1) + i 
-      CALL splint (xpl, ypl, y2a, len (ik), x (igg), yyy) 
+      CALL splint (xpl, ypl, y2a, len (ik), x (igg), yyy,ier_num)
+      IF(ier_num /= 0) THEN
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF 
 !                                                                       
       x (ibin) = x (igg) 
       y (ibin) = yyy 
