@@ -1462,6 +1462,9 @@
    also allows to subtract the structure factor of the average structure
    from the calculated diffraction pattern. 
 
+   You may calculate a single line through reciprocal space, a layer
+   or a three dimensional volume.
+
    Further help topics are:
 
 3  commands
@@ -1483,9 +1486,10 @@
 !p ll      ! defines the lower left corner in reciprocal space
 !p lots    ! defines the crystal volume to be used for the Fourier transform
 !p lr      ! defines the lower right corner in reciprocal space
-!p na      ! defines the number of points along the abscissa
+!p nabs    ! defines the number of points along the abscissa
 !p neut    ! switches to neutron diffraction
-!p no      ! defines the number of points along the ordinate
+!p nord    ! defines the number of points along the ordinate
+!p ntop    ! defines the number of points along the top axis
 !p ord     ! defines the coordinate of the ordinate
 !p run     ! starts the calculation
 !p scat    ! defines the scattering factor for an element
@@ -1494,6 +1498,8 @@
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p temp    ! defines whether temperature coefficients are to be used
+!p tl      ! defines the top   left corner in reciprocal space
+!p top     ! defines the coordinate of the top axis
 !p ul      ! defines the upper left corner in reciprocal space
 !p wait    ! Waits for user input (see main help level)
 !p wvle    ! Defines the wave length to be used
@@ -1586,8 +1592,8 @@
 !b lr <e21> , <e22> , <e23>
 
    Sets the lower right corner of the Fourier plane to be calculated.
-3  na
-!b na <inc1>
+3  nabs
+!b nabs <inc1>
 
    Sets the number of data points that will be calculated along the
    abscissa.
@@ -1595,11 +1601,16 @@
 !b neut
 
    Switches to neutron diffraction
-3  no
-!b no <inc2>
+3  nord
+!b nord <inc2>
 
    Sets the number of data points that will be calculated along the
    ordinate.
+3  ntop
+!b ntop <inc2>
+
+   Sets the number of data points that will be calculated along the
+   top axis.
 3  ord
 !b ord <switch>
 
@@ -1676,6 +1687,16 @@
    sets whether temperature coefficients are to be used or not.
    Valid values for <switch> are "use" and "ignore". The first
    two letters of the switch are sufficient.
+3  tl
+!b tl <e41> , <e42> , <e43>
+
+   Sets the top   left corner of the Fourier volume to be calculated.
+3  wvle
+3  top
+!b top <switch>
+
+   Defines which the component of the vector parallel to the top axis
+   is written to the output file.
 3  ul
 !b ul <e31> , <e32> , <e33>
 

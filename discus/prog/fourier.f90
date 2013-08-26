@@ -841,45 +841,46 @@ CONTAINS
          WRITE (output_io, 1310) 'ignored' 
       ENDIF 
 !                                                                       
-      DO i = 1, 3 
-      u (i) = vi (i, 1) 
-      v (i) = 0.0 
-      w (i) = vi (i, 2) 
-      ENDDO 
-      lspace = .false. 
-      dvi1 = do_blen (lspace, u, zero) 
-      dvi2 = do_blen (lspace, w, zero) 
-      IF (inc (1) .gt.1.and.inc (2) .gt.1) then 
-         dvi3 = do_bang (lspace, u, zero, w) 
-      ELSE 
-         dvi3 = 0.0 
-      ENDIF 
-      IF (dvi3.gt.0) then 
-         dvi4 = dvi2 / dvi1 
-         IF (abs (u (extr_abs) ) .gt.0.0.and.abs (w (extr_ord) )        &
-         .gt.0.0) then                                                  
-            dvi5 = (dvi2 / w (extr_ord) ) / (dvi1 / u (extr_abs) ) 
-         ELSE 
-            ier_num = - 4 
-            ier_typ = ER_FOUR 
-         ENDIF 
-      ELSE 
-         dvi4 = 0.0 
-         dvi5 = 0.0 
-      ENDIF 
+!    !DO i = 1, 3 
+!    !u (i) = vi (i, 1) 
+!     v (i) = 0.0 
+!     w (i) = vi (i, 2) 
+!     ENDDO 
+!     lspace = .false. 
+!     dvi1 = do_blen (lspace, u, zero) 
+!     dvi2 = do_blen (lspace, w, zero) 
+!     IF (inc (1) .gt.1.and.inc (2) .gt.1) then 
+!        dvi3 = do_bang (lspace, u, zero, w) 
+!     ELSE 
+!        dvi3 = 0.0 
+!     ENDIF 
+!     IF (dvi3.gt.0) then 
+!        dvi4 = dvi2 / dvi1 
+!        IF (abs (u (extr_abs) ) .gt.0.0.and.abs (w (extr_ord) )        &
+!        .gt.0.0) then                                                  
+!           dvi5 = (dvi2 / w (extr_ord) ) / (dvi1 / u (extr_abs) ) 
+!        ELSE 
+!           ier_num = - 4 
+!           ier_typ = ER_FOUR 
+!        ENDIF 
+!     ELSE 
+!        dvi4 = 0.0 
+!        dvi5 = 0.0 
+!     ENDIF 
 !
 !     Calculate lengths in Ang-1
 !
       hor(:) = vi(:,1)
       ver(:) = vi(:,2)
       top(:) = vi(:,3)
-      length(1) = do_blen(lspace,hor,zero)
-      length(2) = do_blen(lspace,ver,zero)
-      length(3) = do_blen(lspace,top,zero)
+      length = 0.0
+      IF(inc(1)>1) length(1) = do_blen(lspace,hor,zero)
+      IF(inc(2)>1) length(2) = do_blen(lspace,ver,zero)
+      IF(inc(3)>1) length(3) = do_blen(lspace,top,zero)
       CALL angle(angle_vh, inc(2), inc(1), ver, hor,        &
                  length(2), length(1), extr_ord, extr_abs,  &
                  ratio_vh, aver_vh)
-      IF(ltop) THEN
+      IF(ltop .AND. inc(3)>1) THEN
          CALL angle(angle_ht, inc(3), inc(1), hor, top,        &
                     length(1), length(3), extr_abs, extr_top,  &
                     ratio_ht, aver_ht)
@@ -895,7 +896,7 @@ CONTAINS
       WRITE (output_io, 1420) (inc (i), i = 1, 3), extr_achs (extr_abs),&
       extr_achs (extr_ord), extr_achs(extr_top)                          
       WRITE (output_io, 1430) 'v/h',angle_vh, ratio_vh, aver_vh
-      IF(ltop) THEN
+      IF(ltop .AND. inc(3)>1) THEN
          WRITE (output_io, 1430) 'h/t',angle_ht, ratio_ht, aver_ht
          WRITE (output_io, 1430) 't/v',angle_tv, ratio_tv, aver_tv
       ENDIF

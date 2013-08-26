@@ -1,5 +1,9 @@
 # DISCUS Build
 
+option(DISCUS_NEXUS "DISCUS_NEXUS" OFF)
+
+find_package(NEXUS)
+
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -32,8 +36,24 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	waves.f90 waves_mod.f90 wyckoff_mod.f90 
   )
 
+set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
+
+# NEXUS support ?
+
+if (NEXUS_FOUND AND DISCUS_NEXUS)
+  set (SOURCES ${SOURCES} nexus.f90)
+  set (LIBS ${LIBS} ${NEXUS_LIBRARIES})
+  include_directories(${NEXUS_INCLUDE_PATH})
+  link_directories(${NEXUS_LIBARY_PATH})
+
+else (NEXUS_FOUND AND DISCUS_NEXUS)
+  set (SOURCES ${SOURCES} nexus_no.f90)
+
+endif (NEXUS_FOUND AND DISCUS_NEXUS)
+
 add_executable (discus ${SOURCES})
-target_link_libraries (discus lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
+#target_link_libraries (discus lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
+target_link_libraries (discus ${LIBS}) 
 
 add_custom_command (
   OUTPUT discus.hlp

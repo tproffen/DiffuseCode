@@ -126,7 +126,6 @@ FIND_LIBRARY( PGPLOT_CPGPLOT_LIBRARY
 )
 MESSAGE( STATUS "Looking for PGPLOT: cpgplot library (${PGPLOT_CPGPLOT_LIBRARY})" )
 
-
 ####################################################################################################
 #### EVALUATE SEARCH RESULTS
 ####################################################################################################

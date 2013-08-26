@@ -14,7 +14,7 @@
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR (-117: -101) /                     &
-     &  '                            ',             & !-117 ! discus
+     &  'This DISCUS has NeXus suppport disabled  ',& !-117 ! discus
      &  'Could not find definition',                & !-116 ! discus
      &  'Different atom no on SCAT and ADP',        & !-115 ! discus
      &  'Error allocating              ',           & !-114 ! discus

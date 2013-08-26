@@ -7,6 +7,7 @@ SUBROUTINE do_niplps (linverse)
 !+                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE nexus_discus
       USE output_mod 
       USE powder_write_mod
       IMPLICIT none 
@@ -107,9 +108,15 @@ SUBROUTINE do_niplps (linverse)
                IF (ier_num.eq.0) then 
                   IF (ianz.eq.1.or.ianz.eq.2) then 
 !                                                                       
+!     ------Switch output type to ASCII 3D  '3d'                      
+!                                                                       
+                     IF (str_comp (cpara (1) , '3d', 2, lpara (1) &
+                     , 2) ) then                                        
+                        ityp = 9 
+!                                                                       
 !     ------Switch output type to GNUPLOT 'gnup'                        
 !                                                                       
-                     IF (str_comp (cpara (1) , 'gnup', 1, lpara (1) , 4)&
+                     ELSEIF (str_comp (cpara (1) , 'gnup', 1, lpara (1) , 4)&
                      ) then                                             
                         ityp = 3 
 !                                                                       
@@ -184,6 +191,12 @@ SUBROUTINE do_niplps (linverse)
                      ELSEIF (str_comp (cpara (1) , 'list9', 2, lpara (1)&
                      , 5) ) then                                        
                         ityp = 8 
+!                                                                       
+!     ------Switch output type to NeXus format   'nexus'                
+!                                                                       
+                     ELSEIF (str_comp (cpara (1) , 'nexus', 2, lpara (1)&
+                     , 5) ) then                                        
+                        ityp = 10 
                      ELSE 
                         ier_num = - 9 
                         ier_typ = ER_APPL 
@@ -272,6 +285,10 @@ SUBROUTINE do_niplps (linverse)
                   CALL do_output (value, laver) 
                ELSEIF (ityp.eq.8) then 
                   CALL do_output (value, laver) 
+               ELSEIF (ityp.eq.9) then 
+                  CALL do_output (value, laver) 
+               ELSEIF (ityp.eq.10) then 
+                  CALL nexus_write (value, laver) 
                ELSE 
                   ier_num = - 9 
                   ier_typ = ER_APPL 
@@ -804,8 +821,9 @@ SUBROUTINE do_niplps (linverse)
       PARAMETER (iff = 2) 
 !                                                                       
       CHARACTER(LEN=2024) dummy_file
-      INTEGER HKLF4, LIST5, LIST9 
-      PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8) 
+      INTEGER HKLF4, LIST5, LIST9 , ASCII3D
+      PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
+      INTEGER, PARAMETER :: NEXUS = 10
 !                                                                       
       INTEGER extr_ima, i, j, k, l, value 
       LOGICAL lread, laver 
@@ -814,8 +832,8 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       INTEGER shel_inc (2) 
       INTEGER shel_value 
-      REAL shel_eck (3, 3) 
-      REAL shel_vi (3, 2) 
+      REAL shel_eck (3, 4) 
+      REAL shel_vi (3, 3) 
       REAL shel_000 
       COMPLEX shel_csf 
       COMPLEX shel_acsf 
@@ -910,6 +928,22 @@ SUBROUTINE do_niplps (linverse)
                                       value,  i, j, laver), i = 1, out_inc (1) )
                WRITE (iff, 100) 
                ENDDO 
+                  IF(out_inc(3) > 1) THEN
+                     CLOSE(iff)
+                  ENDIF
+               ENDDO 
+            ELSEIF (ityp.eq.ASCII3D) then 
+               WRITE (iff, * ) out_inc (1), out_inc(2), out_inc(3)
+               WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
+                               out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3), &
+                               out_eck (out_extr_top, 1), out_eck (out_extr_top, 4)
+               DO l=1, out_inc(3)
+                  DO j = 1, out_inc (2) 
+                  WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+                                         (j - 1) * out_inc(3)             + l,     &
+                                         value,  i, j, laver), i = 1, out_inc (1) )
+                  WRITE (iff, 100) 
+                  ENDDO 
                   IF(out_inc(3) > 1) THEN
                      CLOSE(iff)
                   ENDIF
@@ -1204,6 +1238,7 @@ SUBROUTINE do_niplps (linverse)
       ELSE 
          out_extr_abs = extr_abs 
          out_extr_ord = extr_ord 
+         out_extr_top = extr_top 
 !                                                                       
          DO i = 1, 3 
          DO j = 1, 4 
