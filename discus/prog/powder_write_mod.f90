@@ -28,6 +28,7 @@ CONTAINS
       INTEGER   :: npkt        ! number of points in powder pattern
       INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
       LOGICAL lread 
+      REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
@@ -46,6 +47,7 @@ CONTAINS
 !      REAL polarisation 
       REAL cosd, sind, asind 
 !
+      ALLOCATE(pow_tmp(1:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
       ALLOCATE(xpl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
       ALLOCATE(ypl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
 !                                                                       
@@ -90,12 +92,12 @@ CONTAINS
       IF (ier_num.eq.0) then 
          IF (pow_four_type.ne.POW_COMPL) then 
 !                                                                       
-!     This is a Debye calculation, copy rsf or csf into pow_qsp         
+!     This is a Debye calculation, copy rsf or csf into pow_tmp         
 !                                                                       
             IF (pow_four_type.eq.POW_DEBYE) then 
                IF (num (1) .lt.POW_MAXPKT) then 
                   DO j = 1, num (1) 
-                  pow_qsp (j) = real (csf (j) ) 
+                  pow_tmp (j) = real (csf (j) ) 
                   ENDDO 
                ENDIF 
             ELSEIF (                                                    &
@@ -103,17 +105,19 @@ CONTAINS
             then                                                        
                IF (num (1) .le.POW_MAXPKT) then 
                   DO j = 1, num (1) 
-                  pow_qsp (j) = rsf (j) 
+                  pow_tmp (j) = rsf (j) 
                   ENDDO 
                ENDIF 
             ENDIF 
+         ELSE
+            pow_tmp(:) = pow_qsp(:)
          ENDIF 
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                                       
          IF (pow_profile.eq.POW_PROFILE_GAUSS) then 
             IF (pow_delta.gt.0.0) then 
-               CALL powder_conv_res (pow_qsp, xmin, xmax, xdel,         &
+               CALL powder_conv_res (pow_tmp, xmin, xmax, xdel,         &
                pow_delta, pow_width, POW_MAXPKT)                                    
             ENDIF 
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
@@ -122,12 +126,12 @@ CONTAINS
                pow_p4.ne.0.0                                      ) THEN       
 !DBG                                          .or.                      
 !DBG     &                pow_axis.eq.POW_AXIS_Q                 ) then 
-               CALL powder_conv_psvgt_uvw (pow_qsp, xmin, xmax, xdel,   &
+               CALL powder_conv_psvgt_uvw (pow_tmp, xmin, xmax, xdel,   &
                pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
                pow_p3, pow_p4, pow_width, rlambda, pow_axis, POW_AXIS_Q,&
                POW_MAXPKT)
             ELSE 
-               CALL powder_conv_psvgt_fix (pow_qsp, xmin, xmax, xdel,   &
+               CALL powder_conv_psvgt_fix (pow_tmp, xmin, xmax, xdel,   &
                pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
                pow_p3, pow_p4, pow_width, POW_MAXPKT)                               
             ENDIF 
@@ -164,8 +168,8 @@ CONTAINS
                ELSEIF (cpow_form.eq.'lop') then 
                   xpl(iii) = ttheta
                ENDIF 
-               ypl(iii) = pow_qsp(ii) * lp
-               write(iff,*), xpl(ii),ypl(ii)
+               ypl(iii) = pow_tmp(ii) * lp
+!              write(iff,*), xpl(iii),ypl(iii)
             ENDDO 
          ELSEIF (pow_four_type.eq.POW_HIST) then 
             IF (pow_axis.eq.POW_AXIS_DSTAR) then 
@@ -196,7 +200,7 @@ CONTAINS
             ELSEIF (cpow_form.eq.'dst') then 
                xpl(ii) = dstar
             ENDIF 
-               ypl(ii) = pow_qsp(ii) * lp
+               ypl(ii) = pow_tmp(ii) * lp
             ENDDO 
          ENDIF 
       ENDIF 
@@ -264,6 +268,7 @@ CONTAINS
 !
       CLOSE(iff)
 !
+      DEALLOCATE( pow_tmp, stat = all_status)
       DEALLOCATE( xpl, stat = all_status)
       DEALLOCATE( ypl, stat = all_status)
 !                                                                       
