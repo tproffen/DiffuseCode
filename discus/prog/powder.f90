@@ -134,6 +134,7 @@ CONTAINS
                               diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
+                     four_was_run = .true.
                   ENDIF 
 !                                                                       
 !     ----show current parameters 'show'                                

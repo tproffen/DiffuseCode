@@ -261,6 +261,7 @@ SUBROUTINE stack
                ELSEIF (str_comp (befehl, 'four', 1, lbef, 4) ) then 
                   four_log = .true. 
                   CALL st_fourier 
+                  four_was_run = .true.
 !                                                                       
 !     ----help 'help','?'                                               
 !                                                                       

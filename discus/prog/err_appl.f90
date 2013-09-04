@@ -9,11 +9,12 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      PARAMETER    (IU=-117,IO=4)
+      PARAMETER    (IU=-118,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-117: -101) /                     &
+      DATA ERROR (-118: -101) /                     &
+     &  'No Fourier calculated yet, no output',     & !-118 ! discus
      &  'This DISCUS has NeXus suppport disabled  ',& !-117 ! discus
      &  'Could not find definition',                & !-116 ! discus
      &  'Different atom no on SCAT and ADP',        & !-115 ! discus

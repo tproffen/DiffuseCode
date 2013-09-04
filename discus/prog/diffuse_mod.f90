@@ -47,6 +47,7 @@ INTEGER                                 ::  four_mode = INTERNAL
 LOGICAL                                 ::  ffour     = .false.
 LOGICAL                                 ::  lperiod   = .true.
 LOGICAL                                 ::  four_log  = .false.
+LOGICAL                                 ::  four_was_run  = .false. ! TRUE if a fourier has been calculated
 !
 REAL                                    ::  braggmax
 REAL                                    ::  braggmin

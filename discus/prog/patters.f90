@@ -706,6 +706,7 @@
                      IF (ier_num.eq.0) then 
                         CALL do_patters (inverse_type, ltwo_files,      &
                         cr_vr, cr_acentric)                             
+                        four_was_run = .true.
                      ENDIF 
                   ELSE 
                      ier_num = - 71 

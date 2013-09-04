@@ -26,15 +26,15 @@ CONTAINS
       include'prompt.inc' 
       include'errlist.inc' 
 !                                                                       
-      INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at leaset these no of parameters
+      INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
       INTEGER maxw 
       LOGICAL lold 
       PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER (LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: cpara ! (MIN(10,MAXSCAT)) 
-      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT))   :: lpara ! (MIN(10,MAXSCAT))
-      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT))   :: jj    ! (MAXSCAT) 
-      REAL                , DIMENSION(MAX(MIN_PARA,MAXSCAT))   :: werte ! (MAXSCAT)
+      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: lpara ! (MIN(10,MAXSCAT))
+      INTEGER             , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: jj    ! (MAXSCAT) 
+      REAL                , DIMENSION(MAX(MIN_PARA,MAXSCAT+1))   :: werte ! (MAXSCAT)
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
       CHARACTER(1024) zeile
@@ -522,6 +522,7 @@ CONTAINS
                      four_log = .true. 
                      CALL four_external 
                   ENDIF 
+                  four_was_run = .true.
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_APPL 

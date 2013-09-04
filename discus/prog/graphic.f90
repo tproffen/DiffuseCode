@@ -266,32 +266,40 @@ SUBROUTINE do_niplps (linverse)
 !     write output file 'run'                                           
 !                                                                       
             ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
-               CALL set_output (linverse) 
-               IF (ityp.eq.0) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.1) then 
-                  CALL do_post (value, laver) 
-               ELSEIF (ityp.eq.2) then 
-                  CALL do_pgm (value, laver) 
-               ELSEIF (ityp.eq.3) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.4) then 
-                  CALL do_ppm (value, laver) 
-               ELSEIF (ityp.eq.5) then 
-                  CALL powder_out 
-               ELSEIF (ityp.eq.6) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.7) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.8) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.9) then 
-                  CALL do_output (value, laver) 
-               ELSEIF (ityp.eq.10) then 
-                  CALL nexus_write (value, laver) 
+               IF(four_was_run) THEN    ! A fourier has been calculated do output
+                  CALL set_output (linverse) 
+                  IF (ityp.eq.0) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.1) then 
+                     CALL do_post (value, laver) 
+                  ELSEIF (ityp.eq.2) then 
+                     CALL do_pgm (value, laver) 
+                  ELSEIF (ityp.eq.3) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.4) then 
+                     CALL do_ppm (value, laver) 
+                  ELSEIF (ityp.eq.5) then 
+                     CALL powder_out 
+                  ELSEIF (ityp.eq.6) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.7) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.8) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.9) then 
+                     CALL do_output (value, laver) 
+                  ELSEIF (ityp.eq.10) then 
+                     CALL nexus_write (value, laver) 
+                  ELSE 
+                     ier_num = - 9 
+                     ier_typ = ER_APPL 
+                  ENDIF 
                ELSE 
-                  ier_num = - 9 
+                  ier_num = -118
                   ier_typ = ER_APPL 
+                  ier_msg(1) = 'You need to calculate a Fourier / Patterson /'
+                  ier_msg(2) = 'Inverse Fourier / Powder / Fourier via Stack'
+                  ier_msg(3) = 'first, before an output can be written'
                ENDIF 
 !                                                                       
 !     Show current settings for output 'show'                           

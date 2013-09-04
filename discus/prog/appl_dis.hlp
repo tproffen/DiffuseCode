@@ -8496,6 +8496,30 @@
    cell/structure input file to assign atom types. As there is a one to one
    correspondence between the parameters on these two lines, the number of
    parameters on both lines must be identical.
+4  -116
+   Could not find definition
+
+   You referenced a connectivity definition which does not exist. 
+   Check that the connectivity definition was added and that the 
+   connectivities were run.
+   Check for spelling errors on all respective commands
+4  -117
+   This DISCUS has NeXus support disabled
+
+   In order for DISCUS to be able to write NeXus files, it must be compiled
+   and linked with the NeXus library. 
+   Get the NeXus development library, with all dependencies and build a
+   new DISCUS with NeXus.
+4  -118
+   No Fourier calculated yet, no output
+   
+   Before DISCUS can write an output file you need to calculated a diffraction
+   pattern. This could be a:
+   single crystal pattern via ==> 'fourier'
+   powder pattern via ==> 'powder'
+   single crystal pattern vis stacking faults ==> 'stack'
+   Patternson ==> 'patterson'
+   inverse Fourier vie ==> 'inverse'
 3  chem
    Errors at the chemistry level of DISCUS
 
