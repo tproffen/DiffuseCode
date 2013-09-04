@@ -13,7 +13,7 @@
       character(LEN=45) ::  error(iu:io)
 !
       data error (-61: -61) /                      &
-     &  'Singular matrix in Savitzky calculation ',&! -61  ! kupl
+     &  'Singular matrix in Savitzky calculation ' &! -61  ! kupl
      &  /
       data error (-60: -41) /                      &
      &  'Multiple point with same x, no spline   ',&! -60  ! kupl
