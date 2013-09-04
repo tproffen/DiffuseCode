@@ -17,7 +17,7 @@ CONTAINS
        
       include'errlist.inc' 
 !                                                                       
-      REAL ss, seknds, dnorm 
+      REAL ss, seknds, dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
 !                                                                       
@@ -135,7 +135,7 @@ CONTAINS
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
       DO k = 1, nxat 
-         xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm (3)  * xat(k, 3)
+         xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm  (3) * xat(k, 3)
          xincu = uin(1) * xat(k, 1) + uin(2) * xat(k, 2) + uin (3) * xat(k, 3)
          xincv = vin(1) * xat(k, 1) + vin(2) * xat(k, 2) + vin (3) * xat(k, 3)
          xincw = win(1) * xat(k, 1) + win(2) * xat(k, 2) + win (3) * xat(k, 3)
@@ -150,40 +150,33 @@ CONTAINS
 !------ - complex exponent table. 'IADD' divides out the 64 and         
 !------ - ISHFT acts as MOD so that the argument stays in the table     
 !------ - boundaries.                                                   
+!                 iadd      = ISHFT (iarg, - 6) 
+!                 iadd      = IAND  (iadd, MASK) 
+!                 tcsf (ii) = tcsf (ii) + cex (iadd, MASK) )
+!                 iarg      = iarg + iincw
 !                                                                       
          ii = 0 
-         h  = 1
-!write(*,*) ' iarg0 ', iarg0, xarg0
-!write(*,*) ' iincu ', iincu, xincu
-!write(*,*) ' iincv ', iincv, xincv
-!write(*,*) ' iincw ', iincw, xincw
-!iarg = iarg0 + iincu*(j-1) + iincv*(i-1) + iincw*(h-1)
 !                                                                       
-!        DO j = 1, num (1) 
-!           DO i = 1, num (2) 
-!               iarg = iarg0 + iincu*(j-1) + iincv*(i-1) 
-         DO j = 0, num (1) - 1
-            DO i = 0, num (2) - 1
-               iarg = iarg0 + iincu*j + iincv*i 
-            DO h = 1, num (3) 
-               iadd = ISHFT (iarg, - 6) 
-               iadd = IAND (iadd, MASK) 
-               ii = ii + 1 
-               tcsf (ii) = tcsf (ii) + cex (iadd) 
-!write(*, 2000) j,i,h, iarg, iadd, ii
-2000 format(' ji: iarg, iadd, ii',3i4, 2i16, i6)
-               iarg = iarg + iincw
-            ENDDO 
-            ENDDO 
-         ENDDO 
+          DO j = 0, num (1) - 1
+             DO i = 0, num (2) - 1
+                iarg = iarg0 + iincu*j + iincv*i 
+                DO h = 1, num (3) 
+                   ii        = ii + 1 
+                   tcsf (ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg,-6), MASK) )
+                   iarg      = iarg + iincw
+                ENDDO 
+             ENDDO 
+          ENDDO 
       ENDDO 
 !                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
       IF (lform) then 
-         DO i = 1, num (1) * num (2) * num(3)
+         DO  i = 1, num (1) * num (2) * num(3)
+!        FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
             tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
-         ENDDO 
+!        END FORALL
+         END DO
       ENDIF 
 !                                                                       
       END SUBROUTINE four_strucf                    
