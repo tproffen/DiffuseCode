@@ -8,12 +8,15 @@
       include      'errlist.inc'
 !
       integer       iu,io
-      parameter    (iu=-60,io=0)
+      parameter    (iu=-61,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
+      data error (-61: -61) /                      &
+     &  'Singular matrix in Savitzky calculation ',&! -61  ! kupl
+     &  /
       data error (-60: -41) /                      &
-     &  'Multiple point with same x no spline    ',&! -60  ! kupl
+     &  'Multiple point with same x, no spline   ',&! -60  ! kupl
      &  'Invalid column number specified         ',&! -59  ! kupl
      &  'SDS section value out of range          ',&! -58  ! kupl
      &  'Invalid SDS name specified (try nxdir)  ',&! -57  ! kupl
