@@ -20,33 +20,35 @@
       include'macro.inc' 
       include'prompt.inc' 
 !                                                                       
-      INTEGER, PARAMETER :: maxw =  3
-      LOGICAL lnew, lold 
+      INTEGER, INTENT(IN) :: itype 
 !                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
+      INTEGER, PARAMETER  :: maxw =  30
+      LOGICAL, PARAMETER  :: lnew = .true.
+      LOGICAL, PARAMETER  :: lold = .false.
 !                                                                       
-      CHARACTER(5) befehl 
-      CHARACTER(8) ctype ( - 1:1) 
-      CHARACTER(50) prom 
-      CHARACTER(1024) line, zeile, cpara (MAXW) 
-      INTEGER itype 
-      INTEGER lpara (MAXW), lp, length, lbef 
-      INTEGER indxg, ianz, i, j, k 
-      LOGICAL lend, lspace 
-      REAL hkl (3) 
-      REAL werte (MAXW) 
+      CHARACTER(LEN=5)                  :: befehl 
+      CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype
+      CHARACTER(LEN=50)                 :: prom 
+      CHARACTER(LEN=1024)               :: line
+      CHARACTER(LEN=1024)               :: zeile
+      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara (MAXW) 
+      INTEGER,             DIMENSION(1:MAXW) :: lpara
+      INTEGER                                :: lp, length, lbef 
+      INTEGER                                :: indxg, ianz, i, j, k 
+      LOGICAL                                :: lend, lspace 
+      REAL   ,             DIMENSION(1:3)    :: hkl (3) 
+      REAL   ,             DIMENSION(1:MAXW) :: werte (MAXW) 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
+      INTEGER :: len_str 
+      LOGICAL :: str_comp 
 !                                                                       
       DATA ctype / 'domain  ', 'molecule', 'object  ' / 
 !                                                                       
       lend = .false. 
       CALL no_error 
 !                                                                       
+      prom = prompt (1:len_str (prompt) ) //'/insert'//'/'//ctype (itype)
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/insert'//'/'//ctype (     &
-      itype)                                                            
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) then 
          IF (line.ne.' '.and.line (1:1) .ne.'#') then 
@@ -54,10 +56,10 @@
 !     ----search for "="                                                
 !                                                                       
             indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
-     &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) )  &
+                    .and..not. (str_comp (befehl, 'syst', 2, lbef, 4) )  &
+                    .and..not. (str_comp (befehl, 'help', 2, lbef, 4)    &
+                            .or.str_comp (befehl, '?   ', 2, lbef, 4) ) ) then
 !                                                                       
 !     ------evaluatean expression and assign the value to a variabble   
 !                                                                       
@@ -119,6 +121,7 @@
                               ier_num = - 6 
                               ier_typ = ER_COMM 
                            ENDIF 
+                           ins_obj_atom = 'POSI' 
                         ELSEIF (itype.eq.0) then 
                            IF (str_comp (cpara (1) , 'atom', 3, lpara ( &
                            1) , 4) ) then                               
@@ -144,16 +147,16 @@
                               ier_num = - 6 
                               ier_typ = ER_COMM 
                            ENDIF 
+                           IF (ianz.eq.1) then 
+                              ins_obj_atom = 'E1- ' 
+                           ELSE 
+                              ins_obj_atom = cpara (2) (1:4) 
+                              CALL do_cap (ins_obj_atom) 
+                           ENDIF 
                         ENDIF 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
-                     ENDIF 
-                     IF (ianz.eq.1) then 
-                        ins_obj_atom = 'E1- ' 
-                     ELSE 
-                        ins_obj_atom = cpara (2) (1:4) 
-                        CALL do_cap (ins_obj_atom) 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
@@ -441,7 +444,7 @@
 !                                                                       
 !     ----run shear 'run'                                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run', 1, lbef, 3) ) then 
                   IF (ins_character.eq.MOLE_ATOM) then 
 !                                                                       
 !-----      --------Insert a molecule into the structure                
@@ -689,10 +692,16 @@
 !
 !     While developing, increment crystal if neede, but keep the check
 !
-
-            IF ( NMAX <= cr_natoms + 4 .or. MAXSCAT <= cr_nscat+4) then 
-              new_nscat = MAX ( MAXSCAT + 1, INT (MAXSCAT * 1.25) )
-              new_nmax  = MAX ( NMAX    + 1, INT (NMAX    * 1.25) )
+            need_alloc = .false.
+            IF ( NMAX <= cr_natoms + 4 ) THEN 
+               new_nmax  = MAX ( NMAX    + 1, INT (NMAX    * 1.25) )
+               need_alloc = .true.
+            ENDIF
+            IF ( MAXSCAT <= cr_nscat+4 ) THEN 
+               new_nscat = MAX ( MAXSCAT + 1, INT (MAXSCAT * 1.25) )
+               need_alloc = .true.
+            ENDIF
+            IF( need_alloc ) THEN
               call alloc_crystal(new_nscat, new_nmax)
               IF ( ier_num /= 0) RETURN
             ENDIF
@@ -835,10 +844,10 @@
        
       include'errlist.inc' 
 !                                                                       
-      CHARACTER(4) cname (8) 
-      CHARACTER(4) oname (0:3) 
-      INTEGER i, j, ii, k, kk 
-      INTEGER     :: new_nmax
+      CHARACTER(LEN=4), DIMENSION(8)   :: cname
+      CHARACTER(LEN=4), DIMENSION(0:3) :: oname
+      INTEGER          :: i, j, ii, k, kk 
+      INTEGER          :: new_nmax
       INTEGER          :: new_nscat
       INTEGER          :: n_gene
       INTEGER          :: n_symm
@@ -847,8 +856,8 @@
       INTEGER          :: n_atom
       LOGICAL          :: need_alloc = .false.
 !                                                                       
-      DATA cname / '    ', 'XAXI', 'YAXI', 'ZAXI', 'CENT', 'XDIM', 'YDIM&
-     &', 'ZDIM' /                                                       
+      DATA cname / '    ', 'XAXI', 'YAXI', 'ZAXI', &
+                   'CENT', 'XDIM', 'YDIM', 'ZDIM' /
       DATA oname / 'atom', 'cube', 'cyli', 'sphe' / 
 !                                                                       
 !     Make sure there is enough space left in the crystal               
@@ -862,35 +871,44 @@
       n_mole =         MOLE_MAX_MOLE
       n_type =         MOLE_MAX_TYPE
       n_atom =         MOLE_MAX_ATOM
+!
       IF (mole_num_mole == MOLE_MAX_MOLE ) THEN
          n_mole = MOLE_MAX_MOLE + 50
          need_alloc = .true.
       ENDIF
-      IF (mole_num_atom == MOLE_MAX_ATOM ) THEN
+      IF (mole_num_atom >  MOLE_MAX_ATOM-8) THEN
          n_atom = MOLE_MAX_ATOM + 50*8
          need_alloc = .true.
       ENDIF
-      IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type == MOLE_MAX_MOLE) THEN
+      IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type == MOLE_MAX_TYPE) THEN
          n_mole = MOLE_MAX_MOLE + 50
+         n_type = MOLE_MAX_TYPE + 50
          need_alloc = .true.
       ENDIF
       IF ( need_alloc ) THEN
          call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
       ENDIF
-      IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
-      IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type.lt.MOLE_MAX_MOLE.or.&
-     &ins_type.lt.MOLE_MAX_MOLE) then                                   
+      enough_mole: IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
+         enough_type: IF (ins_type.eq.INS_NEWTYPE.and.mole_num_type.lt.MOLE_MAX_MOLE.or.&
+             ins_type.lt.MOLE_MAX_MOLE) then
 !
 !     While developing, increment crystal if needed, but keep the check
 !
 
-            IF ( NMAX <= cr_natoms + 4 .or. MAXSCAT <= cr_nscat+4) then 
-              new_nscat = MAX ( MAXSCAT + 1, INT (MAXSCAT * 1.25) )
-              new_nmax  = MAX ( NMAX    + 1, INT (NMAX    * 1.25) )
+            need_alloc = .false.
+            IF ( NMAX <= cr_natoms + 8 ) THEN 
+               new_nmax  = MAX ( NMAX    + 8, INT (NMAX    * 1.25) )
+               need_alloc = .true.
+            ENDIF
+            IF ( MAXSCAT <= cr_nscat+8 ) THEN 
+               new_nscat = MAX ( MAXSCAT + 8, INT (MAXSCAT * 1.25) )
+               need_alloc = .true.
+            ENDIF
+            IF( need_alloc ) THEN
               call alloc_crystal(new_nscat, new_nmax)
               IF ( ier_num /= 0) RETURN
             ENDIF
-            IF (cr_natoms + 8.le.NMAX) then 
+            enough_atom: IF (cr_natoms + 8.le.NMAX) then 
 !                                                                       
 !     ------ Increment the molecule number                              
 !                                                                       
@@ -903,20 +921,18 @@
 !     ------ Set the domain type, if existing type find first           
 !            molecule of this type                                      
 !                                                                       
-               IF (ins_type.eq.INS_NEWTYPE) then 
-                  mole_num_type = mole_num_type+1 
-                  ii = mole_off (mole_num_mole) + mole_len (            &
-                  mole_num_mole) + 1                                    
-                  mole_type (i) = mole_num_type 
-                  mole_dens (i) = 1.0 
-                  mole_file (i) = ins_file 
+               IF (ins_type == INS_NEWTYPE) then 
+                  mole_num_type  = mole_num_type+1 
+                  ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) + 1
+                  mole_type (i)  = mole_num_type 
+                  mole_dens (i)  = 1.0 
+                  mole_file (i)  = ins_file 
                   mole_fuzzy (i) = ins_fuzzy 
                ELSE 
                   mole_type (i) = ins_type 
                   kk = 1 
-                  DO while (kk.le.mole_num_type.and.mole_type (kk)      &
-                  .ne.ins_type)                                         
-                  kk = kk + 1 
+                  DO while (kk.le.mole_num_type.and.mole_type (kk).ne.ins_type)
+                      kk = kk + 1 
                   ENDDO 
                                                                         
                   IF (kk.gt.mole_num_type) then 
@@ -931,102 +947,96 @@
 !     ------ Set the domain origin                                      
 !                                                                       
                DO j = 1, 3 
-               cr_pos (j, cr_natoms + 1) = ins_origin (j) 
+                  cr_pos (j, cr_natoms + 1) = ins_origin (j) 
                ENDDO 
 !                                                                       
 !------ ------ Set the rotation components, add origin                  
 !                                                                       
                DO j = 1, 3 
-               cr_pos (j, cr_natoms + 2) = ins_xaxis (j) + ins_origin ( &
-               j)                                                       
-               cr_pos (j, cr_natoms + 3) = ins_yaxis (j) + ins_origin ( &
-               j)                                                       
-               cr_pos (j, cr_natoms + 4) = ins_zaxis (j) + ins_origin ( &
-               j)                                                       
+                  cr_pos (j, cr_natoms + 2) = ins_xaxis (j) + ins_origin(j)
+                  cr_pos (j, cr_natoms + 3) = ins_yaxis (j) + ins_origin(j)
+                  cr_pos (j, cr_natoms + 4) = ins_zaxis (j) + ins_origin(j)
                ENDDO 
 !                                                                       
 !     ------ Set the domain shape center                                
 !                                                                       
                DO j = 1, 3 
-               cr_pos (j, cr_natoms + 5) = ins_cent (j) 
+                  cr_pos (j, cr_natoms + 5) = ins_cent (j) 
                ENDDO 
 !                                                                       
 !------ ------ Set the rotation components, add origin                  
 !                                                                       
                DO j = 1, 3 
-               cr_pos (j, cr_natoms + 6) = ins_xdim (j) + ins_origin (j) 
-               cr_pos (j, cr_natoms + 7) = ins_ydim (j) + ins_origin (j) 
-               cr_pos (j, cr_natoms + 8) = ins_zdim (j) + ins_origin (j) 
+                  cr_pos (j, cr_natoms + 6) = ins_xdim (j) + ins_origin (j) 
+                  cr_pos (j, cr_natoms + 7) = ins_ydim (j) + ins_origin (j) 
+                  cr_pos (j, cr_natoms + 8) = ins_zdim (j) + ins_origin (j) 
                ENDDO 
                DO k = 1, 8 
-               cr_prop (cr_natoms + k) = 0 
-               cr_prop (cr_natoms + k) = ibset (cr_prop (cr_natoms + k),&
-               PROP_NORMAL)                                             
+                  cr_prop (cr_natoms + k) = 0 
+                  cr_prop (cr_natoms + k) = ibset (cr_prop (cr_natoms + k),PROP_NORMAL)
                ENDDO 
-                                                                        
-                                                                        
 !                                                                       
 !     ------ Set the atom types and names                               
 !                                                                       
-               IF (ins_type.eq.INS_NEWTYPE) then 
+               set_atom: IF (ins_type.eq.INS_NEWTYPE) then 
 !                                                                       
 !     -------- New object type                                          
 !                                                                       
                   cname (1) = ins_obj_atom 
                   DO k = 1, 8 
-                  j = 1 
-                  IF (k.eq.1) then 
-                     DO while (j.le.cr_nscat.and. (cname (k)            &
-                     .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )     
-                     j = j + 1 
-                     ENDDO 
-                  ELSE 
-                     DO while (j.le.cr_nscat.and.cname (k)              &
-                     .ne.cr_at_lis (j) )                                
-                     j = j + 1 
-                     ENDDO 
-                  ENDIF 
-                  IF (j.gt.cr_nscat) then 
-                     cr_iscat (cr_natoms + k) = cr_nscat + 1 
+                     j = 1 
                      IF (k.eq.1) then 
-                        cr_dw (cr_nscat + 1) = ins_adp 
+                        DO while (j.le.cr_nscat.and.                  &
+                                  (cname (k) .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )
+                           j = j + 1 
+                        ENDDO 
                      ELSE 
-                        cr_dw (cr_nscat + 1) = 0.0 
+                        DO while (j.le.cr_nscat.and.cname (k) .ne.cr_at_lis (j) )
+                           j = j + 1 
+                        ENDDO 
                      ENDIF 
-                     cr_at_lis (cr_nscat + 1) = cname (k) 
-                     cr_nscat = cr_nscat + 1 
-                  ELSE 
-                     cr_iscat (cr_natoms + k) = j 
-                  ENDIF 
+                     IF (j.gt.cr_nscat) then 
+                        cr_iscat (cr_natoms + k) = cr_nscat + 1 
+                        IF (k.eq.1) then 
+                           cr_dw (cr_nscat + 1) = ins_adp 
+                        ELSE 
+                           cr_dw (cr_nscat + 1) = 0.0 
+                        ENDIF 
+                        cr_at_lis (cr_nscat + 1) = cname (k) 
+                        cr_nscat = cr_nscat + 1 
+                     ELSE 
+                        cr_iscat (cr_natoms + k) = j 
+                     ENDIF 
                   ENDDO 
-               ELSE 
+               ELSE set_atom
 !                                                                       
 !     -------- Old object type                                          
 !                                                                       
                   DO j = 1, 8 
-                  ii = mole_cont (mole_off (kk) + j) 
-                  cr_iscat (cr_natoms + j) = cr_iscat (ii) 
+                     ii = mole_cont (mole_off (kk) + j) 
+                     cr_iscat (cr_natoms + j) = cr_iscat (ii) 
                   ENDDO 
-               ENDIF 
+               ENDIF set_atom
                ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) 
                DO j = 1, 8 
-               mole_cont (ii + j) = cr_natoms + j 
+                  mole_cont (ii + j) = cr_natoms + j 
                ENDDO 
                mole_off (i) = ii 
                mole_len (i) = 8 
                cr_natoms = cr_natoms + 8 
                mole_num_mole = mole_num_mole+1 
-            ELSE 
+               mole_num_atom = mole_off (mole_num_mole) + mole_len (mole_num_mole) 
+            ELSE enough_atom
                ier_num = - 10 
                ier_typ = ER_APPL 
-            ENDIF 
-         ELSE 
+            ENDIF enough_atom
+         ELSE enough_type
             ier_num = - 66 
             ier_typ = ER_APPL 
-         ENDIF 
-      ELSE 
+         ENDIF enough_type
+      ELSE enough_mole  
          ier_num = - 65 
          ier_typ = ER_APPL 
-      ENDIF 
+      ENDIF enough_mole  
 !                                                                       
       END SUBROUTINE insert_domain                  
