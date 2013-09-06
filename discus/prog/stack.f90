@@ -1397,6 +1397,7 @@ SUBROUTINE stack
       INTEGER         :: n_atom  ! number of molecule atoms in input file
       LOGICAL lread, lout 
       LOGICAL lcell 
+      LOGICAL           :: need_alloc = .false. 
       INTEGER, EXTERNAL :: len_str
 !                                                                       
       lcell = .false. 
@@ -1436,9 +1437,16 @@ more1: IF (st_nlayer.ge.1) then
          ENDDO
          natoms = st_nlayer * max_natoms
          nscats = max_nscats
-            IF(natoms >= NMAX .or. nscats >= MAXSCAT) THEN
+         need_alloc = .false.
+            IF(natoms >= NMAX ) THEN
                natoms = MAX(NINT(natoms*1.05),natoms+10,NMAX)
+               need_alloc = .true.
+            ENDIF
+            IF(nscats >= MAXSCAT) THEN
                nscats = MAX(NINT(nscats*1.05),nscats+ 5,MAXSCAT)
+               need_alloc = .true.
+            ENDIF
+            IF( need_alloc) THEN
                CALL alloc_crystal (nscats, natoms)
                IF ( ier_num /= 0 ) RETURN
             ENDIF

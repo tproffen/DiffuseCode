@@ -390,15 +390,22 @@ CONTAINS
       INTEGER i, j, ianz, lp 
       INTEGER                              :: new_nmax
       INTEGER                              :: new_nscat
+      LOGICAL                              :: need_alloc
       REAL werte (maxw) 
       REAL berechne 
 !
 !     While developing, increment crystal if neede, but keep the check
 !
-
-      IF ( NMAX <= cr_natoms .or. MAXSCAT <= cr_nscat ) then 
+      need_alloc = .false.
+      IF ( NMAX <= cr_natoms ) THEN
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF ( MAXSCAT <= cr_nscat ) THEN 
          new_nscat = max(MAXSCAT+1, INT(MAXSCAT * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF( need_alloc ) THEN
          call alloc_crystal(new_nscat, new_nmax)
          IF ( ier_num /= 0) RETURN
       ENDIF
@@ -471,6 +478,7 @@ CONTAINS
       INTEGER i, j, k, ianz, laenge, lp 
       INTEGER                              :: new_nmax
       INTEGER                              :: new_nscat
+      LOGICAL                              :: need_alloc = .false.
       LOGICAL lkick, lspace 
       REAL werte (maxw) 
       REAL w (3), v (3) 
@@ -482,10 +490,16 @@ CONTAINS
 !
 !     While developing, increment crystal if neede, but keep the check
 !
-
-      IF ( NMAX <= cr_natoms .or. MAXSCAT <= cr_nscat ) then 
+      need_alloc = .false.
+      IF ( NMAX <= cr_natoms ) then 
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF ( MAXSCAT <= cr_nscat ) then 
          new_nscat = max(MAXSCAT+1, INT(MAXSCAT * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
          call alloc_crystal(new_nscat, new_nmax)
          IF ( ier_num /= 0) RETURN
       ENDIF
@@ -668,14 +682,22 @@ CONTAINS
       INTEGER                :: i, l
       INTEGER                :: new_nmax
       INTEGER                :: new_nscat
+      LOGICAL                :: need_alloc = .false.
       LOGICAL                :: lda 
 !                                                                       
 !
 !     While developing, increment crystal if needed, but keep the check
 !
-      IF ( NMAX <= cr_natoms .or. MAXSCAT <= cr_nscat ) then 
+      need_alloc = .false.
+      IF ( NMAX <= cr_natoms ) then 
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF ( MAXSCAT <= cr_nscat ) then 
          new_nscat = max(MAXSCAT+1, INT(MAXSCAT * 1.25))
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
          call alloc_crystal(new_nscat, new_nmax)
          IF ( ier_num /= 0) RETURN
       ENDIF

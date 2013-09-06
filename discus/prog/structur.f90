@@ -366,9 +366,16 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                IF (ier_num /= 0) THEN
                   RETURN
                ENDIF
-               IF(natoms > NMAX .or. nscats > MAXSCAT) THEN
-                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+               need_alloc = .false.
+               IF(natoms > NMAX) THEN
                   natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
+                  need_alloc = .true.
+               ENDIF
+               IF(nscats > MAXSCAT) THEN
+                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+                  need_alloc = .true.
+               ENDIF
+               IF ( need_alloc ) THEN
                   CALL alloc_crystal (nscats, natoms)
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
@@ -617,10 +624,16 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          lline = len_str (line) 
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13)) THEN
-            IF ( NMAX < cr_natoms + spc_n .or. &     ! Allocate sufficient atom numbers
-                 MAXSCAT < cr_nscat + 1       ) THEN ! Allocate sufficient atom types
+            need_alloc = .false.
+            IF ( NMAX < cr_natoms + spc_n ) THEN     ! Allocate sufficient atom numbers
                new_nmax  = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
+               need_alloc = .true.
+            ENDIF
+            IF ( MAXSCAT < cr_nscat + 1       ) THEN ! Allocate sufficient atom types
                new_nscat = MAX(MAXSCAT + 5, INT ( MAXSCAT * 1.025 ) )
+               need_alloc = .true.
+            ENDIF
+            IF( need_alloc ) THEN
                CALL alloc_crystal(new_nscat, new_nmax)
                IF ( ier_num /= 0) THEN
                   CLOSE (IST)
