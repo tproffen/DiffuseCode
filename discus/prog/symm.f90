@@ -489,7 +489,6 @@
                ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4)            &
                .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
 !                                                                       
-write(*,*) ' SYMM ',SYM_MAXSCAT
                   CALL atom_select (zeile, lp, 0, SYM_MAXSCAT, sym_latom, &
                   sym_sel_atom, lold,     &
                   str_comp (befehl, 'sele', 2, lbef, 4) )               
