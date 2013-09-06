@@ -1327,6 +1327,10 @@ mole_int: IF(mk_infile_internal) THEN
             vv (1) = mc_matrix (1, 4) 
             vv (2) = mc_matrix (2, 4) 
             vv (3) = mc_matrix (3, 4) 
+            IF (MAXSCAT  > ubound(surf_in_dist,1)) THEN
+               new_nscat = MAXSCAT
+               CALL alloc_surf   (new_nscat)
+            ENDIF 
             CALL micro_fuzzy_rem (mk_dim, natoms_old, mk_natoms, md_sep_fuz,  &
             vv, shortest, mc_type, MD_DOMAIN_FUZZY)                                                     
             IF (shortest.gt.1.5 * md_sep_fuz) then 
