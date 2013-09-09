@@ -388,15 +388,17 @@ CONTAINS
       CHARACTER(LEN=1024)                  :: zeile 
       INTEGER            , DIMENSION(maxw) :: lpara
       INTEGER i, j, ianz, lp 
-      INTEGER                              :: new_nmax
-      INTEGER                              :: new_nscat
-      LOGICAL                              :: need_alloc
+      INTEGER                              :: new_nmax   = 0
+      INTEGER                              :: new_nscat  = 0
+      LOGICAL                              :: need_alloc = .false.
       REAL werte (maxw) 
       REAL berechne 
 !
 !     While developing, increment crystal if neede, but keep the check
 !
       need_alloc = .false.
+      new_nmax   = NMAX
+      new_nscat  = MAXSCAT
       IF ( NMAX <= cr_natoms ) THEN
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
          need_alloc = .true.
@@ -491,6 +493,8 @@ CONTAINS
 !     While developing, increment crystal if neede, but keep the check
 !
       need_alloc = .false.
+      new_nmax   = NMAX
+      new_nscat  = MAXSCAT
       IF ( NMAX <= cr_natoms ) then 
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
          need_alloc = .true.
@@ -680,8 +684,8 @@ CONTAINS
       INTEGER               , INTENT(IN) :: ianz 
 !
       INTEGER                :: i, l
-      INTEGER                :: new_nmax
-      INTEGER                :: new_nscat
+      INTEGER                :: new_nmax   = 1
+      INTEGER                :: new_nscat  = 1
       LOGICAL                :: need_alloc = .false.
       LOGICAL                :: lda 
 !                                                                       
@@ -689,6 +693,8 @@ CONTAINS
 !     While developing, increment crystal if needed, but keep the check
 !
       need_alloc = .false.
+      new_nmax   = NMAX
+      new_nscat  = MAXSCAT
       IF ( NMAX <= cr_natoms ) then 
          new_nmax  = max(NMAX+1   , INT(NMAX    * 1.25))
          need_alloc = .true.

@@ -367,6 +367,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   RETURN
                ENDIF
                need_alloc = .false.
+               natoms     = NMAX
+               nscats     = MAXSCAT
                IF(natoms > NMAX) THEN
                   natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
                   need_alloc = .true.
@@ -625,6 +627,8 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13)) THEN
             need_alloc = .false.
+            new_nmax   = NMAX
+            new_nscat  = MAXSCAT
             IF ( NMAX < cr_natoms + spc_n ) THEN     ! Allocate sufficient atom numbers
                new_nmax  = MAX(NMAX + spc_n + 1, cr_natoms + spc_n+1)
                need_alloc = .true.

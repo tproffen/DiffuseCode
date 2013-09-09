@@ -693,6 +693,8 @@
 !     While developing, increment crystal if neede, but keep the check
 !
             need_alloc = .false.
+            new_nmax   = NMAX
+            new_nscat  = MAXSCAT
             IF ( NMAX <= cr_natoms + 4 ) THEN 
                new_nmax  = MAX ( NMAX    + 1, INT (NMAX    * 1.25) )
                need_alloc = .true.
@@ -896,6 +898,8 @@
 !
 
             need_alloc = .false.
+            new_nmax   = NMAX
+            new_nscat  = MAXSCAT
             IF ( NMAX <= cr_natoms + 8 ) THEN 
                new_nmax  = MAX ( NMAX    + 8, INT (NMAX    * 1.25) )
                need_alloc = .true.
