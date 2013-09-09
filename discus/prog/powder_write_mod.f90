@@ -47,9 +47,9 @@ CONTAINS
 !      REAL polarisation 
       REAL cosd, sind, asind 
 !
-      ALLOCATE(pow_tmp(1:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
-      ALLOCATE(xpl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-      ALLOCATE(ypl(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+      ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
+      ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+      ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
 !                                                                       
       IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) then 
          IF (pow_axis.eq.POW_AXIS_Q) then 
