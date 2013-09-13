@@ -1179,6 +1179,10 @@ MODULE allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        mmc_size_of = mmc_size_of + size_of
 !
+      CALL alloc_arr ( mmc_allowed   ,0,n_scat  ,  all_status, .false.  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
       CALL alloc_arr ( mmc_nvec    ,1,n_corr ,  &
                                     0,n_scat ,  &
                                     0,n_scat ,  &
@@ -1231,6 +1235,20 @@ MODULE allocate_appl_mod
       CALL alloc_arr ( mmc_cfac        ,0,n_corr ,  &
                                         0,n_ener ,  &
                                       all_status, 0.0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_cor_energy  ,0,n_corr ,  &
+                                        0,n_ener ,  &
+                                      all_status,.false., size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mmc_size_of = mmc_size_of + size_of
+!
+      CALL alloc_arr ( mmc_pair        ,1,n_corr , &
+                                        0,n_ener , &
+                                        0,n_scat , &
+                                        0,n_scat , &
+                                      all_status, 0    , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mmc_size_of = mmc_size_of + size_of
 !

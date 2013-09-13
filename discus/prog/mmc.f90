@@ -624,15 +624,26 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER maxw 
       PARAMETER (maxw = 200) 
 !                                                                       
-      CHARACTER ( LEN=* )    :: zeile 
-      INTEGER lp 
+      CHARACTER ( LEN=* ), INTENT(INOUT)    :: zeile 
+      INTEGER            , INTENT(INOUT)    :: lp 
+!
+      CHARACTER ( LEN=1024)                 :: line
+      INTEGER                               :: length
+      INTEGER                               :: ianz1
+      INTEGER                               :: ianz2
 !                                                                       
       CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara !(maxw) 
+      CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara1 !(maxw) 
+      CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara2 !(maxw) 
       REAL uerte (maxw) 
       REAL verte (maxw) 
       REAL werte (maxw) 
+      REAL   , DIMENSION(MAXW) :: werte1 (maxw) 
+      REAL   , DIMENSION(MAXW) :: werte2 (maxw) 
       REAL a, b 
       INTEGER lpara (maxw) 
+      INTEGER, DIMENSION(MAXW) :: lpara1 ! (maxw) 
+      INTEGER, DIMENSION(MAXW) :: lpara2 ! (maxw) 
       INTEGER ianz, iianz, jjanz, kkanz, is, js, ls, ic, i, j 
       INTEGER is_start, is_end 
       INTEGER js_start, ks_end 
@@ -777,6 +788,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   is = - 2 
                   js = - 2 
                   ls = - 2 
+                  werte  = 0.0
+                  uerte  = 0.0
+                  verte  = 0.0
+                  werte1 = 0.0
+                  werte2 = 0.0
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (1, cpara, lpara, werte, maxw) 
                   ic = nint (werte (1) ) 
@@ -790,16 +806,40 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                      call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   ENDIF
                   IF (ic.gt.0.and.ic.le.chem_ncor) then 
-                     IF (str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)&
-                     ) then                                             
+                     IF (str_comp (cpara (2) , 'corr', 2, lpara (2) , 4)) then                                             
                         CALL del_params (2, ianz, cpara, lpara, maxw) 
-                        iianz = 1 
-                        jjanz = 1 
-                        CALL get_iscat (iianz, cpara, lpara, uerte,     &
-                        maxw, .false.)                                  
+!                       Get atom types in the two allowed groups
+!                       Allowed parameters are: Au, Cu            ! OLd style 
+!                                               (Au), (Cu)        ! New style  :binary correlation
+!                                               (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
+                        IF ( cpara(1)(1:1)=='(' .and. cpara(1)(lpara(1):lpara(1))==')') THEN
+                           line   = cpara(1)(2:lpara(1)-1)
+                           length = lpara(1)-2
+                           CALL get_params (line, ianz1, cpara1, lpara1, maxw, length) 
+                           CALL get_iscat (ianz1, cpara1, lpara1, werte1, maxw, .false.)                                  
+                        ELSEIF ( cpara(1)(1:1)/='(' .and. cpara(1)(lpara(1):lpara(1))/=')') THEN
+                           ianz1 = 1 
+                           CALL get_iscat (ianz1, cpara, lpara, werte1, maxw, .false.)                                  
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN
+                        ENDIF
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        CALL get_iscat (jjanz, cpara, lpara, verte,     &
-                        maxw, .false.)                                  
+                        IF ( cpara(1)(1:1)=='(' .and. cpara(1)(lpara(1):lpara(1))==')') THEN
+                           line   = cpara(1)(2:lpara(1)-1)
+                           length = lpara(1)-2
+                           CALL get_params (line, ianz2, cpara2, lpara2, maxw, length) 
+                           CALL get_iscat (ianz2, cpara2, lpara2, werte2, maxw, .false.)                                  
+                        ELSEIF ( cpara(1)(1:1)/='(' .and. cpara(1)(lpara(1):lpara(1))/=')') THEN
+                           ianz2 = 1 
+                           CALL get_iscat (ianz2, cpara, lpara, werte2, maxw, .false.)                                  
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN
+                        ENDIF
+!
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
                         IF (cpara (ianz) (1:2) .eq.'CO') then 
                            mmc_cfac (ic, MC_OCC) = 1.0 
@@ -808,16 +848,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            mmc_cfac (ic, MC_OCC) = 0.0 
                            ianz = ianz - 1 
                         ENDIF 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        DO i = 1, iianz 
-                        DO j = 1, jjanz 
-                        is = nint (uerte (i) ) 
-                        js = nint (verte (j) ) 
-                        CALL mmc_set_disp (ic, MC_OCC, is, js, werte (1)&
-                        , werte (2) )                                   
-                        ENDDO 
-                        ENDDO 
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw)                                           
+                        CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+                             MAXW, werte1, werte2, werte(1) , werte(2) )                                   
                         mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
                         mmc_cor_energy (ic, MC_OCC) = .true. 
                         mmc_cor_energy (0, MC_OCC) = .true. 
@@ -837,6 +870,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_DISP, is, js, werte ( &
                         1), werte (2) )                                 
                         ENDDO 
@@ -891,6 +926,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_SPRING, is, js, werte &
                         (1), werte (2) )                                
                         ENDDO 
@@ -919,9 +956,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            IF (uerte (1) .eq. - 1) then 
                               is_start = 0 
                               is_end = cr_nscat 
+                              mmc_allowed = .true.           ! all atoms are allowed in mmc moves
                            ELSE 
                               is_start = uerte (1) 
                               is_end = uerte (1) 
+                              mmc_allowed(is_start) = .true. ! this atom is allowed in mmc moves
                            ENDIF 
                            is = uerte (1) 
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
@@ -932,6 +971,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            maxw, .false.)                               
                            js = min (uerte (1), verte (1) ) 
                            ls = max (uerte (1), verte (1) ) 
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(ls) = .true. ! this atom is allowed in mmc moves
                            i = angles2index (ic, mmc_n_angles, is, js,  &
                            ls, MMC_MAX_ANGLES, MAXSCAT)                 
                            mmc_angles (mmc_n_angles) = i 
@@ -1005,6 +1046,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_LENNARD, is, js,      &
                         ABS(werte (1)), werte (2) )                          
                         a = - ABS(werte(2)) * werte(4) / (werte(4)       &
@@ -1062,6 +1105,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_REPULSIVE, is, js,    &
                         100.0    , ABS(werte (1)) )                          
                         CALL mmc_set_rep  (ic, MC_REPULSIVE, is, js,    &
@@ -1098,6 +1143,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+                           mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         mmc_buck_a (ic, is, js) = werte (2) 
                         mmc_buck_rho (ic, is, js) = werte (3) 
                         mmc_buck_b (ic, is, js) = werte (4) 
@@ -1120,19 +1167,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         ier_typ = ER_COMM 
                      ENDIF 
 !                                                                       
-!     ---------- Collect allowed atom numbers                           
-!                                                                       
-                     DO i = 1, cr_nscat 
-                     IF (is.ge.0) then 
-                        mmc_allowed (is) = .true. 
-                     ENDIF 
-                     IF (js.ge.0) then 
-                        mmc_allowed (js) = .true. 
-                     ENDIF 
-                     IF (ls.ge.0) then 
-                        mmc_allowed (ls) = .true. 
-                     ENDIF 
-                     ENDDO 
                   ELSE 
                      ier_num = - 14 
                      ier_typ = ER_CHEM 
@@ -1228,16 +1262,16 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          mmc_target_corr (ic, ie, js, is) = dist 
          mmc_depth (ic, ie, is, js) = depth 
          mmc_depth (ic, ie, js, is) = depth 
-         mmc_pair (ic, ie, is, js) = .true. 
-         mmc_pair (ic, ie, js, is) = .true. 
+         mmc_pair (ic, ie, is, js) = -1     
+         mmc_pair (ic, ie, js, is) = -1     
       ELSEIF (is.eq. - 1.and.js.ne. - 1) then 
          DO ii = 0, cr_nscat 
          mmc_target_corr (ic, ie, ii, js) = dist 
          mmc_target_corr (ic, ie, js, ii) = dist 
          mmc_depth (ic, ie, ii, js) = depth 
          mmc_depth (ic, ie, js, ii) = depth 
-         mmc_pair (ic, ie, ii, js) = .true. 
-         mmc_pair (ic, ie, js, ii) = .true. 
+         mmc_pair (ic, ie, ii, js) = -1     
+         mmc_pair (ic, ie, js, ii) = -1     
          ENDDO 
       ELSEIF (is.ne. - 1.and.js.eq. - 1) then 
          DO ii = 0, cr_nscat 
@@ -1245,8 +1279,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          mmc_target_corr (ic, ie, is, ii) = dist 
          mmc_depth (ic, ie, ii, is) = depth 
          mmc_depth (ic, ie, is, ii) = depth 
-         mmc_pair (ic, ie, ii, is) = .true. 
-         mmc_pair (ic, ie, is, ii) = .true. 
+         mmc_pair (ic, ie, ii, is) = -1     
+         mmc_pair (ic, ie, is, ii) = -1     
          ENDDO 
       ELSE 
          DO ii = 0, cr_nscat 
@@ -1255,13 +1289,69 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          mmc_target_corr (ic, ie, jj, ii) = dist 
          mmc_depth (ic, ie, ii, jj) = depth 
          mmc_depth (ic, ie, jj, ii) = depth 
-         mmc_pair (ic, ie, ii, jj) = .true. 
-         mmc_pair (ic, ie, jj, ii) = .true. 
+         mmc_pair (ic, ie, ii, jj) = -1     
+         mmc_pair (ic, ie, jj, ii) = -1     
          ENDDO 
          ENDDO 
       ENDIF 
 !                                                                       
       END SUBROUTINE mmc_set_disp                   
+!*****7*****************************************************************
+      SUBROUTINE mmc_set_disp_occ (ic, ie, ianz1, ianz2, &
+                             MAXW, werte1, werte2, corr, depth )
+!
+      USE config_mod 
+      USE crystal_mod 
+      USE mmc_mod 
+      IMPLICIT NONE
+!
+      INTEGER                 , INTENT(IN) :: ic     ! Correlation number
+      INTEGER                 , INTENT(IN) :: ie     ! Energy number == MC_OCC
+      INTEGER                 , INTENT(IN) :: ianz1  ! No of atom types in first group
+      INTEGER                 , INTENT(IN) :: ianz2  ! No of atom types in second group
+      INTEGER                 , INTENT(IN) :: MAXW   ! Array Dimension 
+      REAL   , DIMENSION(MAXW), INTENT(IN) :: werte1 ! Actual atom types group1
+      REAL   , DIMENSION(MAXW), INTENT(IN) :: werte2 ! Actual atom types group1
+      REAL   ,                  INTENT(IN) :: corr   ! Desired correlation
+      REAL   ,                  INTENT(IN) :: depth  ! Energy Depth
+! 
+      INTEGER                              :: is, js ! Dummy atom types
+      INTEGER                              :: i, j   ! Loop indices
+!
+      DO i=1,ianz1              ! Set "equal" pairs first group
+         is = NINT(werte1(i))
+         mmc_allowed(is) = .true.
+         DO j=1,ianz1
+            js = NINT(werte1(j))
+         mmc_target_corr (ic, ie, is, js) = corr 
+         mmc_depth       (ic, ie, is, js) = depth 
+         mmc_pair        (ic, ie, is, js) = +1     ! These pairs contribute positively to energy
+         END DO
+      END DO
+      DO i=1,ianz2              ! Set "equal" pairs second group
+         is = NINT(werte2(i))
+         mmc_allowed(is) = .true.
+         DO j=1,ianz1
+            js = NINT(werte2(j))
+         mmc_target_corr (ic, ie, is, js) = corr 
+         mmc_depth       (ic, ie, is, js) = depth 
+         mmc_pair        (ic, ie, is, js) = +2     ! These pairs contribute positively to energy
+         END DO
+      END DO
+      DO i=1,ianz1              ! Set "opposite" pairs
+         is = NINT(werte1(i))
+         DO j=1,ianz2
+            js = NINT(werte2(j))
+            mmc_target_corr (ic, ie, is, js) = corr 
+            mmc_target_corr (ic, ie, js, is) = corr 
+            mmc_depth       (ic, ie, is, js) = depth 
+            mmc_depth       (ic, ie, js, is) = depth 
+            mmc_pair        (ic, ie, is, js) = -1     ! These pairs contribute negatively to energy
+            mmc_pair        (ic, ie, js, is) = -2     ! Second ==> first group
+         END DO
+      END DO
+!
+      END SUBROUTINE mmc_set_disp_occ
 !*****7*****************************************************************
       SUBROUTINE mmc_set_lenn (ic, ie, is, js, a, b, m, n) 
 !+                                                                      
@@ -1587,8 +1677,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER maxatom 
       PARAMETER (maxatom = CHEM_MAX_NEIG) 
 !                                                                       
-!RBN_REP
-CHARACTER(LEN=1) :: dummy
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(9) at_name_i, at_name_j, at_name 
       CHARACTER(24) c_energy (0:MC_N_ENERGY) 
@@ -1770,8 +1858,10 @@ CHARACTER(LEN=1) :: dummy
          CALL rmc_select (mo_local, natoms, isel, iz1, iz2, is (1),     &
          is (2) )                                                       
 !RBN_REP
-!isel(1) =  8
-!isel(2) = 10
+!isel(1) = 34
+!isel(2) = 37
+! call indextocell (isel(1), iz1,is(1))
+! call indextocell (isel(2), iz1,is(1))
 !iz1(1)  =  2
 !iz1(2)  =  2
 !iz1(3)  =  1
@@ -1786,11 +1876,11 @@ CHARACTER(LEN=1) :: dummy
          iz (1, i) = iz1 (i) 
          iz (2, i) = iz2 (i) 
          ENDDO 
-         laccept = cr_iscat (isel (1) ) .ne.cr_iscat (isel (2) ) .and. (&
-         mmc_allowed (cr_iscat (isel (1) ) ) .and.mmc_allowed (cr_iscat &
-         (isel (2) ) ) ) .and.check_select_status (.true., cr_prop (    &
-         isel (1) ), cr_sel_prop) .and.check_select_status (.true.,     &
-         cr_prop (isel (2) ), cr_sel_prop)                              
+         laccept = cr_iscat (isel (1) ) .ne.cr_iscat (isel (2) ) .and.                  &
+                 ( mmc_allowed (cr_iscat (isel (1) ) ) .and.                            &
+                   mmc_allowed (cr_iscat (isel (2) ) )      )    .and.                  &
+                   check_select_status (.true., cr_prop (isel (1) ), cr_sel_prop) .and. &
+                   check_select_status (.true., cr_prop (isel (2) ), cr_sel_prop)                              
       ENDIF 
 !                                                                       
 !-----      ----Check whether geometrical constrains apply              
@@ -1815,8 +1905,6 @@ CHARACTER(LEN=1) :: dummy
 !                                                                       
 !     ----Loop over all modified atoms                                  
 !                                                                       
-!write(*,*)
-!write(*,*)
          DO ia = 1, natoms 
 !                                                                       
 !     ------Set the assumption of at least one propper energy to FALSE  
@@ -1828,13 +1916,8 @@ CHARACTER(LEN=1) :: dummy
 !     ------Loop over all defined neighbour interactions                
 !                                                                       
          DO ic = 1, chem_ncor 
-!RBN_REP
-!write(*,*) ' Atom nr. ia', ia, ' is isel(ia) ',isel(ia),'type ', cr_iscat(isel(ia))
-!write(*,*) ' chem_ncor  ',chem_ncor
          CALL chem_neighbour_multi (isel (ia), ic, iatom, patom, natom, &
          ncent, maxatom)                                                
-!read(*,'(a)') dummy
-!loop = .false.
          DO icent = 1, ncent 
          IF (natom (icent) .gt.0) then 
 !                                                                       
@@ -1905,7 +1988,6 @@ CHARACTER(LEN=1) :: dummy
 !     ------- Repulsive     Potential                                   
 !
             IF (mmc_cor_energy (ic, MC_REPULSIVE) ) then 
-!write(*,*) ' calculating old energy'
                e_old (MC_REPULSIVE) = e_old (MC_REPULSIVE) +            &
                      mmc_energy_rep (isel, ia, ic, iatom, patom, icent, &
                                      natom, valid_e, 'old')
@@ -2440,52 +2522,75 @@ CHARACTER(LEN=1) :: dummy
                in_a = 1 
                in_e = natom (icent) 
                is = cr_iscat (iatom (0, icent) ) 
-               DO jjs = 0, cr_nscat 
-               IF (mmc_pair (ic, MC_OCC, is, jjs) ) then 
-                  DO in = in_a, in_e 
+               DO in = in_a, in_e 
                   IF (check_select_status (.true., cr_prop (iatom (in,  &
-                  icent) ), cr_sel_prop) ) then                         
+                                           icent) ), cr_sel_prop) ) then                         
                      ival1 = 0 
                      js = cr_iscat (iatom (in, icent) ) 
-                     IF (is.eq.js) then 
-                        ival1 = 1 
-!DBG      ELSE                                                          
-                     ELSEIF (mmc_pair (ic, MC_OCC, is, js) ) then 
-                        ival1 = - 1 
-                     ENDIF 
-                     mmc_energy_occ = mmc_energy_occ + mmc_depth (ic,   &
-                     MC_OCC, 0, 0) * ival1                              
+                     ival1 = sign(1,mmc_pair(ic, MC_OCC,is,js))
+                     mmc_energy_occ = mmc_energy_occ +                  &
+                                      mmc_depth (ic,MC_OCC, 0, 0) * ival1
                   ENDIF 
-                  ENDDO 
-               ENDIF 
                ENDDO 
+!              DO jjs = 0, cr_nscat 
+!              IF (mmc_pair (ic, MC_OCC, is, jjs) == -1 ) then 
+!                 DO in = in_a, in_e 
+!                 IF (check_select_status (.true., cr_prop (iatom (in,  &
+!                 icent) ), cr_sel_prop) ) then                         
+!                    ival1 = 0 
+!                    js = cr_iscat (iatom (in, icent) ) 
+!                    IF (is.eq.js) then 
+!                       ival1 = 1 
+!DBG      ELSE                                                          
+!                    ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
+!                       ival1 = - 1 
+!                    ENDIF 
+!write(*,*) ' Neigbour     : ', iatom(in,icent), cr_iscat(iatom(in,icent)), mmc_pair (ic, MC_OCC, is, js), ival1, &
+!                     mmc_depth (ic,   MC_OCC, 0, 0) * ival1                              
+!                    mmc_energy_occ = mmc_energy_occ + mmc_depth (ic,   &
+!                    MC_OCC, 0, 0) * ival1                              
+!                 ENDIF 
+!                 ENDDO 
+!              ENDIF 
+!              ENDDO 
             ELSE 
 !                                                                       
 !     The selected atom is a neighbour, use this atom only              
 !                                                                       
+write(*,*) ' WARNING NEIGHBOR'
                in_a = 0 
                in_e = 0 
                is = cr_iscat (isel (ia) ) 
-               DO jjs = 0, cr_nscat 
-               IF (mmc_pair (ic, MC_OCC, is, jjs) ) then 
-                  in = 0 
+               in = 0
                   IF (check_select_status (.true., cr_prop (iatom (in,  &
-                  icent) ), cr_sel_prop) ) then                         
-                     js = cr_iscat (iatom (in, icent) ) 
+                                           icent) ), cr_sel_prop) ) then                         
                      ival1 = 0 
-                     IF (is.eq.js) then 
-                        ival1 = 1 
-                     ELSEIF (mmc_pair (ic, MC_OCC, is, js) ) then 
-                        ival1 = - 1 
-                     ENDIF 
-                     mmc_energy_occ = mmc_energy_occ + mmc_depth (ic,   &
-                     MC_OCC, 0, 0) * ival1                              
-!                                                                       
-                     ncalc = ncalc + 1 
-!                                                                       
+                     js = cr_iscat (iatom (in, icent) ) 
+                     ival1 = mmc_pair(ic, MC_OCC,is,js)
+                     mmc_energy_occ = mmc_energy_occ +                  &
+                                      mmc_depth (ic,MC_OCC, 0, 0) * ival1
                   ENDIF 
-               ENDIF 
-               ENDDO 
+!              
+!              DO jjs = 0, cr_nscat 
+!              IF (mmc_pair (ic, MC_OCC, is, jjs) == -1 ) then 
+!                 in = 0 
+!                 IF (check_select_status (.true., cr_prop (iatom (in,  &
+!                 icent) ), cr_sel_prop) ) then                         
+!                    js = cr_iscat (iatom (in, icent) ) 
+!                    ival1 = 0 
+!                    IF (is.eq.js) then 
+!                       ival1 = 1 
+!                    ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
+!                       ival1 = - 1 
+!                    ENDIF 
+!                    mmc_energy_occ = mmc_energy_occ + mmc_depth (ic,   &
+!                    MC_OCC, 0, 0) * ival1                              
+!                                                                       
+!                    ncalc = ncalc + 1 
+!                                                                       
+!                 ENDIF 
+!              ENDIF 
+!              ENDDO 
             ENDIF 
          ENDIF 
       ENDIF 
@@ -2612,10 +2717,10 @@ CHARACTER(LEN=1) :: dummy
                in_e = natom (icent) 
                is = cr_iscat (iatom (0, icent) ) 
                DO jjs = 0, cr_nscat 
-               IF (mmc_pair (ic, MC_DISP, is, jjs) ) then 
+               IF (mmc_pair (ic, MC_DISP, is, jjs) == -1 ) then 
                   DO in = in_a, in_e 
                   js = cr_iscat (iatom (in, icent) ) 
-                  IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) ) then 
+                  IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
                      IF (check_select_status (.true., cr_prop (iatom (  &
                      in, icent) ), cr_sel_prop) ) then                  
                         CALL indextocell (iatom (in, icent), cell, site) 
@@ -2642,10 +2747,10 @@ CHARACTER(LEN=1) :: dummy
                in_e = 0 
                is = cr_iscat (isel (ia) ) 
                DO jjs = 0, cr_nscat 
-               IF (mmc_pair (ic, MC_DISP, is, jjs) ) then 
+               IF (mmc_pair (ic, MC_DISP, is, jjs) == -1 ) then 
                   in = 0 
                   js = cr_iscat (iatom (in, icent) ) 
-                  IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) ) then 
+                  IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
                      IF (check_select_status (.true., cr_prop (iatom (  &
                      in, icent) ), cr_sel_prop) ) then                  
                         CALL indextocell (iatom (in, icent), cell, site) 
@@ -3033,7 +3138,6 @@ CHARACTER(LEN=1) :: dummy
                in_e = 0 
                is = cr_iscat (isel (ia) ) 
             ENDIF 
-!write(*,*) ' Central atom ', isel(ia),'ia',ia,' type', cr_iscat(isel(ia)),' Grenzen', in_a, in_e, mode
             DO in = in_a, in_e 
             js = cr_iscat (iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_REPULSIVE, is, js) .ne.0.0) then 
@@ -3044,9 +3148,6 @@ CHARACTER(LEN=1) :: dummy
                   ENDDO 
                   d = do_blen (.true., u, v) 
 !                                                                       
-!write(*,*) ' Neighbor ',in, iatom(in,icent), ' type ', js, 'distance ',d
-!write(*,*) 'Energy    ',mmc_rep_a (ic, is,js) +                           &
-!                      mmc_rep_b (ic, is,js)/ d**mmc_rep_m (ic, is, js)
                   IF(d.gt.mmc_rep_c (ic, is,js)) THEN
                   mmc_energy_rep = mmc_energy_rep +                     &
                      (-1.)*(ABS(mmc_rep_a (ic, is,js))) +               &
@@ -3505,6 +3606,7 @@ CHARACTER(LEN=1) :: dummy
       INTEGER icent 
 !                                                                       
       LOGICAL searching 
+      LOGICAL   :: lfirst = .true.  ! Flag to write output only at first instance
 !                                                                       
       INTEGER ncent 
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
@@ -3776,59 +3878,81 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
 !                                                                       
 !------ -- Summ up all energies, write output                           
 !                                                                       
-!     -- Loop over all atom pairs to do chemical correlation            
-!                                                                       
-corr_pair:      DO is = 0, cr_nscat 
-         DO js = is, cr_nscat 
-!                                                                       
 !     ----- Chemical correlation                                        
 !                                                                       
-         IF (mmc_pair (ic, MC_OCC, is, js) ) then 
+         pair11 = 0
+         pair12 = 0
+         pair21 = 0
+         pair22 = 0
+         DO is = 0, cr_nscat 
+            DO js = is, cr_nscat 
+!if(ic==1) then
+!   write(*,*) ' Neighbors ', is,js,pneig(is,js), mmc_pair(ic,MC_OCC,is,js)
+!ENDIF
+               IF     (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
+                  pair12 = pair12 + pneig (is,js)
+               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -2 ) then 
+                  pair21 = pair21 + pneig (is,js)
+               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +1 ) then 
+                  pair11 = pair11 + pneig (is,js)
+               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +2 ) then 
+                  pair22 = pair22 + pneig (is,js)
+               ENDIF
+            ENDDO
+         ENDDO
          je = MC_OCC 
 !                                                                       
 !                                                                       
-         pair11 = pneig (is, is) 
-         pair12 = pneig (is, js) 
-         pair21 = pneig (js, is) 
-         pair22 = pneig (js, js) 
+!        pair11 = pneig (is, is) 
+!        pair12 = pneig (is, js) 
+!        pair21 = pneig (js, is) 
+!        pair22 = pneig (js, js) 
          nneigh = pair11 + pair12 + pair21 + pair22 
          IF (nneigh.gt.0.) then 
-            prob11 = pair11 / float (nneigh) 
+            prob11 =  pair11           / float (nneigh) 
             prob12 = (pair12 + pair21) / float (nneigh) 
-            prob22 = pair22 / float (nneigh) 
-            thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / float (     &
-            nneigh)                                                     
+            prob22 =  pair22           / float (nneigh) 
+            thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / float(nneigh)                                                     
          ENDIF 
-         IF (thet.ne.0.0.and.thet.ne.1.0) then 
-            mmc_ach_corr (ic, je, is, js) = (prob11 - thet**2) /        &
-            (thet * (1 - thet) )                                        
-            mmc_ach_corr (ic, je, js, is) = (prob11 - thet**2) /        &
-            (thet * (1 - thet) )                                        
+!if(ic==4) then
+!   write(*,*) ' 11, 12, 21, 22 ', pair11, pair12,pair21, pair22, nneigh
+!endif
+         lfirst = .true.
+corr_pair: DO is = 0, cr_nscat 
+            DO js = is, cr_nscat 
+               IF     (mmc_pair (ic, MC_OCC, is, js) /=  0 ) then 
+                 IF (thet.ne.0.0.and.thet.ne.1.0) then 
+                    mmc_ach_corr (ic, je, is, js) = (prob11 - thet**2) /&
+                                                    (thet * (1 - thet) )
+                    mmc_ach_corr (ic, je, js, is) = (prob11 - thet**2) /&
+                                                    (thet * (1 - thet) )
 !               Feedback mechanism                                      
-            mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) &
-            - mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is, &
-            js) - mmc_ach_corr (ic, MC_OCC, is, js) ) / 2.              
-         ELSE 
-            mmc_ach_corr (ic, je, is, js) = 0.0 
-            mmc_ach_corr (ic, je, js, is) = 0.0 
-         ENDIF 
+                    mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) - &
+                    mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is,js)- &
+                                             mmc_ach_corr (ic, MC_OCC, is, js) ) / 2.              
+                 ELSE 
+                    mmc_ach_corr (ic, je, is, js) = 0.0 
+                    mmc_ach_corr (ic, je, js, is) = 0.0 
+                 ENDIF 
 !                                                                       
-         IF (lout) then 
-            WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js), &
-            mmc_target_corr (ic, je, is, js), mmc_ach_corr (ic, je, is, &
-            js), mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,   &
-            je, is, js), nneigh                                         
-         ENDIF 
+                 IF (lout .and. mmc_pair(ic,MC_OCC,is,js) < 0 .and. lfirst) THEN
+                    lfirst = .false.
+                    WRITE (output_io, 3100) ic, cr_at_lis (is), cr_at_lis (js),         &
+                        mmc_target_corr (ic, je, is, js),                               &
+                        mmc_ach_corr (ic, je, is, js),                                  &
+                        mmc_target_corr (ic, je, is, js) - mmc_ach_corr (ic,je, is, js),&
+                        nneigh
+                 ENDIF 
 !                                                                       
-         ENDIF 
-         ENDDO 
+               ENDIF 
+            ENDDO 
          ENDDO corr_pair
 !                                                                       
 !     ----- correlation of displacements                                
 !                                                                       
 disp_pair: DO is = 0, cr_nscat 
          DO js = is, cr_nscat 
-         IF (mmc_pair (ic, MC_DISP, is, js) ) then 
+         IF (mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
          je = MC_DISP 
          xnn (is, js) = xnn (is, js) + xnn (js, is) 
          xij (is, js) = xij (is, js) + xij (js, is) 
@@ -3873,7 +3997,7 @@ disp_pair: DO is = 0, cr_nscat
 !                                                                       
 spri_pair: DO is = 0, cr_nscat 
          DO js = is, cr_nscat 
-         IF (mmc_pair (ic, MC_SPRING, is, js) ) then 
+         IF (mmc_pair (ic, MC_SPRING, is, js) == -1 ) then 
          je = MC_SPRING 
 !                                                                       
 !     ----- Spring                                                      
@@ -3953,7 +4077,7 @@ angl_pair: IF (mmc_cor_energy (ic, MC_ANGLE) ) then
 !                                                                       
 lenn_pair: DO is = 0, cr_nscat 
       DO js = is, cr_nscat 
-      IF (mmc_pair (ic, MC_LENNARD, is, js) ) then 
+      IF (mmc_pair (ic, MC_LENNARD, is, js) == -1 ) then 
          je = MC_LENNARD 
 !                                                                       
 !     ----- Lennard                                                     
@@ -3986,7 +4110,7 @@ lenn_pair: DO is = 0, cr_nscat
 !                                                                       
 repu_pair: DO is = 0, cr_nscat 
       DO js = is, cr_nscat 
-      IF (mmc_pair (ic, MC_REPULSIVE, is, js) ) then 
+      IF (mmc_pair (ic, MC_REPULSIVE, is, js) == -1 ) then 
          je = MC_REPULSIVE 
 !                                                                       
 !     ----- REPULSIVE                                                     
@@ -4019,7 +4143,7 @@ repu_pair: DO is = 0, cr_nscat
 !                                                                       
 buck_pair: DO is = 0, cr_nscat 
             DO js = is, cr_nscat 
-               IF (mmc_pair (ic, MC_BUCKING, is, js) ) then 
+               IF (mmc_pair (ic, MC_BUCKING, is, js) == -1 ) then 
                   je = MC_BUCKING 
 !                                                                       
 !     ----- Buckingham                                                  

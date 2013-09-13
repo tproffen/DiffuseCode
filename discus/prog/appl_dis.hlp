@@ -69,6 +69,11 @@
 
    Here you find a list of recent changes, additions, bug corrections
 
+3  2013September
+
+   The chemical short range order in mmc can now sort groups of 
+   atom types. 
+
 3  2013June
 
    Finally this is it! DISCUS is now a fortran2008 program. Most of the
@@ -2678,6 +2683,9 @@
 !b set "target",<ic>,"corr",     {<number> | <name> | "all"},
 !b                               {<number> | <name> | "all"},
 !b                               <correlation>, <energy>, {"CORR" | "ENER"}
+!b set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!b                              ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+!b                               <correlation>, <energy>, {"CORR" | "ENER"}
 !b set "target",<ic>,"cd",       {<number> | <name> | "all"},
 !b                               {<number> | <name> | "all"},
 !b                               <correlation>, <energy>, {"CORR" | "ENER"}
@@ -2714,8 +2722,11 @@
    set "target",<ic>,"corr",     {<number> | <name> | "all"},
                                  {<number> | <name> | "all"},
                                  <correlation>, <energy>, {"CORR" | "ENER"}
+   set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+                                ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
 
-   A chemical correlation is defined between the two atom type. 
+   A chemical short range order correlation is defined 
+   between the two atom types. 
    The last keyword defines how the target shall be achieved. 
    With "CORR", you want to achieve the target <correlation>.
    DISCUS uses the feedback loop to adjust the value of the
@@ -2730,6 +2741,19 @@
    until the target <correlation> is achieved. This target will
    therefor overrule the other targets that all have fixed energy
    values.
+   If you specify a positive correlation, like tom types will tend to
+   cluster together, while for a negative correlation you will get 
+   mostly opposite atom types as first neighbors.
+ 
+   The second command form allows you to define correlations between 
+   groups of atom types. Place each of the two sets of atom types
+   in round brackets. In this case a positive correlation will 
+   lead to clusters that consist of any atom of the first group to be
+   neighbor to another atom of the first group and likewise at a 
+   different place in teh crystal for the second group. A negative 
+   correlation will give you a crystal in wich an atom of the first 
+   group has an atom of the second group as neighbor.
+
 
    set "target",<ic>,"lennard",  {<number> | <name> | "all"},
                                  {<number> | <name> | "all"}, 

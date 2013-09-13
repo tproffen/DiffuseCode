@@ -186,66 +186,66 @@
 !     common  /mmcbl/                                                   
 !                                                                       
       mmc_move = 0 
-      DO i = 1, MC_N_MOVE 
-      mmc_local (i) = rmc_local_all 
-      mmc_move_prob (i) = 0.0 
-      mmc_move_cprob (i) = 0.0 
-      ENDDO 
-      DO i = 0, CHEM_MAX_COR 
-      DO j = 0, MC_N_ENERGY 
-      mmc_cor_energy (i, j) = .false. 
-!     mmc_const (i, j) = 1.0 
-!     mmc_cfac (i, j) = 1.0 
-      ENDDO 
-      ENDDO 
+!     DO i = 1, MC_N_MOVE 
+      mmc_local       = rmc_local_all 
+      mmc_move_prob   = 0.0 
+      mmc_move_cprob  = 0.0 
+!     ENDDO 
+!     DO i = 0, CHEM_MAX_COR 
+!     DO j = 0, MC_N_ENERGY 
+      mmc_cor_energy        = .false. 
+      mmc_const             = 1.0 
+      mmc_cfac              = 1.0 
+!     ENDDO 
+!     ENDDO 
 !     DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
 !     mmc_angles (i) = 0 
 !     mmc_target_angl (i) = 0.0 
 !     mmc_ang_sigm (i) = 0.0 
 !     ENDDO 
       mmc_n_angles = 0 
-      DO m = 0, MAXSCAT 
+!     DO m = 0, MAXSCAT 
       mmc_allowed (m) = .false. 
-      DO l = 0, MAXSCAT 
-      DO k = 1, CHEM_MAX_COR 
+!     DO l = 0, MAXSCAT 
+!     DO k = 1, CHEM_MAX_COR 
 !     DO j = 1, 12 
 !     DO i = 1, 4 
 !     mmc_vec (i, j, k, l, m) = 0.0 
 !     ENDDO 
 !     ENDDO 
 !     mmc_nvec (k, l, m) = 0 
-      DO j = 0, MC_N_ENERGY 
-!     mmc_target_corr (k, j, l, m) = 0.0 
-!     mmc_ach_corr (k, j, l, m) = 0.0 
-      mmc_pair (k, j, l, m) = .false. 
-      ENDDO 
-      ENDDO 
-      ENDDO 
-      ENDDO 
-      DO i = 1, MC_N_MOVE 
-      mmc_local (i) = rmc_local_all 
-      mmc_move_prob (i) = 0.0 
-      mmc_move_cprob (i) = 0.0 
-      ENDDO 
+!     DO j = 0, MC_N_ENERGY 
+      mmc_target_corr = 0.0 
+      mmc_ach_corr    = 0.0 
+      mmc_pair        = 0
+!     ENDDO 
+!     ENDDO 
+!     ENDDO 
+!     ENDDO 
+!     DO i = 1, MC_N_MOVE 
+      mmc_local      = rmc_local_all 
+      mmc_move_prob  = 0.0 
+      mmc_move_cprob = 0.0 
+!     ENDDO 
 !                                                                       
       mmc_l_constrains = .false. 
-      DO i = 1, 3 
-      mmc_c_min (i) = - 1.e10 
-      mmc_c_max (i) = 1.e10 
-      ENDDO 
+!     DO i = 1, 3 
+      mmc_c_min  = -1.e10 
+      mmc_c_max  =  1.e10 
+!     ENDDO 
 !                                                                       
 !     common  /mmcav/                                                   
 !                                                                       
-      DO i = 0, MC_N_ENERGY 
-      n_e_av_p (i) = 0 
-      n_e_av_m (i) = 0 
-      n_e_av_z (i) = 0 
-      e_aver_p (i) = 0.0 
-      e_aver_m (i) = 0.0 
-      ENDDO 
+!     DO i = 0, MC_N_ENERGY 
+      n_e_av_p     = 0 
+      n_e_av_m     = 0 
+      n_e_av_z     = 0 
+      e_aver_p     = 0.0 
+      e_aver_m     = 0.0 
+!     ENDDO 
 !                                                                       
-      mmc_sel_prop (0) = 0 
-      mmc_sel_prop (1) = 0 
+      mmc_sel_prop = 0 
+!     mmc_sel_prop = 0 
 !                                                                       
       END SUBROUTINE mmc_init                       
 !*****7*****************************************************************
