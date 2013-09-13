@@ -367,8 +367,6 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   RETURN
                ENDIF
                need_alloc = .false.
-               natoms     = NMAX
-               nscats     = MAXSCAT
                IF(natoms > NMAX) THEN
                   natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
                   need_alloc = .true.
