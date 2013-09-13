@@ -38,26 +38,26 @@ INTEGER             ::  MMC_BUCK_SCAT      =  0
 INTEGER             ::  MMC_REP_CORR       =  0
 INTEGER             ::  MMC_REP_SCAT       =  0
 !
-INTEGER ::  mmc_move
+INTEGER             ::  mmc_move           =  0
 INTEGER ::  mmc_select_mode
 !
-INTEGER, DIMENSION(MC_N_MOVE)          ::  mmc_local     ! (MC_N_MOVE)
-REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_prob ! (MC_N_MOVE)
-REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_cprob! (MC_N_MOVE)
+INTEGER, DIMENSION(MC_N_MOVE)          ::  mmc_local      = 1   !=rmc_local_all  (MC_N_MOVE)
+REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_prob  = 0.0 ! (MC_N_MOVE)
+REAL   , DIMENSION(MC_N_MOVE)          ::  mmc_move_cprob = 0.0 ! (MC_N_MOVE)
 !
-INTEGER, DIMENSION(0:MC_N_ENERGY)      ::  n_e_av_p      ! (0:MC_N_ENERGY)
-INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_m      ! (0:MC_N_ENERGY)
-INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_z      ! (0:MC_N_ENERGY)
-REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_p      ! (0:MC_N_ENERGY)
-REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_m      ! (0:MC_N_ENERGY)
+INTEGER, DIMENSION(0:MC_N_ENERGY)      ::  n_e_av_p       = 0   ! (0:MC_N_ENERGY)
+INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_m       = 0   ! (0:MC_N_ENERGY)
+INTEGER, DIMEnSION(0:MC_N_ENERGY)      ::  n_e_av_z       = 0   ! (0:MC_N_ENERGY)
+REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_p       = 0.0 ! (0:MC_N_ENERGY)
+REAL   , DIMEnSION(0:MC_N_ENERGY)      ::  e_aver_m       = 0.0 ! (0:MC_N_ENERGY)
 !
-INTEGER ::  mmc_n_angles
-LOGICAL ::  mmc_l_constrains
-LOGICAL ::  mmc_sel_atom
-INTEGER ::  mmc_sel_prop(0:1)
+INTEGER ::  mmc_n_angles        =  0
+LOGICAL ::  mmc_l_constrains    = .false.
+LOGICAL ::  mmc_sel_atom        = .true.
+INTEGER ::  mmc_sel_prop(0:1)   =  0
 INTEGER ::  mmc_constrain_type
-REAL    ::  mmc_c_min(3)
-REAL    ::  mmc_c_max(3)
+REAL    ::  mmc_c_min(3)        = -1.E10
+REAL    ::  mmc_c_max(3)        =  1.E10
 REAL    ::  mmc_c_rad
 !
 INTEGER, DIMENSION(:,:,:), ALLOCATABLE ::  mmc_nvec        ! (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
@@ -70,10 +70,10 @@ REAL , DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_ach_sigm    ! (CHEM_MAX_COR,0:MC_
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_const       ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 REAL , DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cfac        ! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
 !
-LOGICAL ::  mmc_cor_energy(0:CHEM_MAX_COR,0:MC_N_ENERGY)
-LOGICAL ::  mmc_pair(CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-LOGICAL, DIMENSION(:), ALLOCATABLE     ::  mmc_latom       ! (0:DEF_MAXSCAT)
-LOGICAL ::  mmc_allowed(0:DEF_MAXSCAT)
+LOGICAL, DIMENSION(:,:)    , ALLOCATABLE ::  mmc_cor_energy! (0:CHEM_MAX_COR,0:MC_N_ENERGY)
+INTEGER, DIMENSION(:,:,:,:), ALLOCATABLE ::  mmc_pair      ! (CHEM_MAX_COR,0:MC_N_ENERGY,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_latom     ! (0:DEF_MAXSCAT)
+LOGICAL, DIMENSION(:),       ALLOCATABLE ::  mmc_allowed   ! (0:DEF_MAXSCAT)
 !
 !
 INTEGER, DIMENSION(:), ALLOCATABLE     ::  mmc_angles     ! (CHEM_MAX_COR*MMC_MAX_ANGLES)
