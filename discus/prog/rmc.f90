@@ -2913,9 +2913,6 @@
    20 CONTINUE 
       isel (2) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (2) .gt.cr_natoms.or.isel (2) .lt.1) goto 20 
-!RBNSITE
-isel(1) = 64
-isel(2) = 49
 !                                                                       
       CALL indextocell (isel (1), iz1, is1) 
       CALL indextocell (isel (2), iz2, is2) 
