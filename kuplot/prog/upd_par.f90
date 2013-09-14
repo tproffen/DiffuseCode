@@ -2,15 +2,15 @@
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter. Modified version for KUPLOT.             
 !+                                                                      
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER mmaxw, maxw 
       PARAMETER (mmaxw = 3) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
@@ -572,13 +572,13 @@
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) ctype 
       INTEGER maxw 
@@ -828,9 +828,9 @@
 !     intrinsic function that references KUPLOT specific values         
 !     is found in this subroutine.                                      
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) string, line 
       INTEGER ikl, iklz, laenge, lp, il 
@@ -858,10 +858,10 @@
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)    
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) zeile 
 !                                                                       

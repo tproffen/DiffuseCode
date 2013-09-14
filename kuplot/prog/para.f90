@@ -6,11 +6,11 @@
 !+                                                                      
 !     Sets option value in integer arrays(nia:nie)                      
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -62,11 +62,11 @@
 !+                                                                      
 !     Sets option value in integer arrays(nia,nib)                      
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -121,11 +121,11 @@
 !+                                                                      
 !     Sets option value in integer arrays                               
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -156,11 +156,11 @@
 !+                                                                      
 !     Sets strings for title                                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -189,11 +189,11 @@
 !+                                                                      
 !     Sets strings for axes                                             
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -227,12 +227,12 @@
 !+                                                                      
 !     Sets options for filling                                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 
@@ -299,12 +299,12 @@
 !+                                                                      
 !     Sets options for bond drawings                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -365,11 +365,11 @@
 !+                                                                      
 !     Sets linewidth for given data set                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -410,11 +410,11 @@
 !+                                                                      
 !     Sets type of box & axis for active frame                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -455,11 +455,11 @@
 !+                                                                      
 !     Sets size of markers                                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -494,11 +494,11 @@
 !+                                                                      
 !     Sets possible caption for given data set                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -560,11 +560,11 @@
 !+                                                                      
 !     Sets possible annotations                                         
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -658,11 +658,11 @@
 !+                                                                      
 !     Command buff ..                                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -701,11 +701,11 @@
 !+                                                                      
 !     Command skal ..                                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -760,11 +760,11 @@
 !+                                                                      
 !     Command mark ..                                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -813,11 +813,11 @@
 !+                                                                      
 !     Setting of contour line intervalls                                
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -862,11 +862,11 @@
 !+                                                                      
 !     Setting of contour line intervalls                                
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -941,11 +941,11 @@
 !+                                                                      
 !     Setting of font size, type and color                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -1073,12 +1073,12 @@
 !+                                                                      
 !     Reset KUPLOT                                                      
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -1153,12 +1153,12 @@
 !+                                                                      
 !       setting up plotting window                                      
 !-                                                                      
+      USE errlist_mod 
       USE koordinate_mod
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(8) ct 
       INTEGER i 
@@ -1270,11 +1270,11 @@
 !+                                                                      
 !       write parameter file 'kupl.par'                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil 
       PARAMETER (ifil = 21) 

@@ -3,9 +3,9 @@
 !-
 !     Displays error Messages for the error type APPLication
 !+
+      USE errlist_mod 
       implicit      none
 !
-      include      'errlist.inc'
 !
       integer       iu,io
       parameter    (iu=-61,io=0)

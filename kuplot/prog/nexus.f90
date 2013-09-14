@@ -1,11 +1,37 @@
+MODULE nexus_kuplot
 !*****7**************************************************************** 
 !     Routines for NeXus support ..                                     
 !*****7**************************************************************** 
+USE nxumodule
+!
+PRIVATE
+PUBLIC do_nxinit, do_nxopen, do_nxdir, do_nxclose, do_nxload
+!+
+!     Variables for NeXus file handling
+!-
+      CHARACTER*200   run_title,run_stime,run_etime
+      CHARACTER*200   nxs_fname
+!     INTEGER*4       run_iexp,run_irun
+INTEGER (KIND=NXi4), DIMENSION(1) :: run_iexp  ! Currently as array to fake NXgetdata
+INTEGER (KIND=NXi4), DIMENSION(1) :: run_irun  ! Currently as array to fake NXgetdata
+!      INTEGER*4       nxs_id(NXHANDLESIZE)
+TYPE(NXhandle)    :: nxs_id
+      LOGICAL         nxs_open
+!
+!     COMMON /nxsi/   run_title,run_stime,run_etime,                    &
+!    &       run_iexp,run_irun
+!     COMMON /nxs/    nxs_fname,nxs_id,nxs_open
+
+!
+CONTAINS
       SUBROUTINE do_nxinit 
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'prompt.inc' 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE prompt_mod 
+!
+      IMPLICIT NONE
+!
 !                                                                       
       nxs_open = .false. 
       WRITE ( * , * ) 'NeXus support enabled ..' 
@@ -13,11 +39,14 @@
 !*****7**************************************************************** 
       SUBROUTINE do_nxopen (line, ll) 
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      USE debug_mod 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE prompt_mod 
+!
+      USE errlist_mod 
+      IMPLICIT NONE
+!
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -61,23 +90,28 @@
       ent_class (1:len_str (ent_class) )                                
 !                                                                       
       stat = NXopendata (nxs_id, 'title') 
-      stat = NXgetchardata (nxs_id, run_title) 
+!     stat = NXgetchardata (nxs_id, run_title) 
+      stat = NXgetdata     (nxs_id, run_title) 
       stat = NXclosedata (nxs_id) 
       stat = NXopendata (nxs_id, 'start_time') 
-      stat = NXgetchardata (nxs_id, run_stime) 
+!     stat = NXgetchardata (nxs_id, run_stime) 
+      stat = NXgetdata     (nxs_id, run_stime) 
       stat = NXclosedata (nxs_id) 
       stat = NXopendata (nxs_id, 'end_time') 
-      stat = NXgetchardata (nxs_id, run_etime) 
+!     stat = NXgetchardata (nxs_id, run_etime) 
+      stat = NXgetdata     (nxs_id, run_etime) 
       stat = NXclosedata (nxs_id) 
       stat = NXopendata (nxs_id, 'experiment_number') 
-      stat = NXgetdata (nxs_id, run_iexp, NX_UINT32) 
+!     stat = NXgetdata (nxs_id, run_iexp, NX_UINT32) 
+      stat = NXgetdata (nxs_id, run_iexp) 
       stat = NXclosedata (nxs_id) 
       stat = NXopendata (nxs_id, 'run_number') 
-      stat = NXgetdata (nxs_id, run_irun, NX_UINT32) 
+!     stat = NXgetdata (nxs_id, run_irun, NX_UINT32) 
+      stat = NXgetdata (nxs_id, run_irun ) 
       stat = NXclosedata (nxs_id) 
 !                                                                       
-      WRITE (output_io, 2000) cpara (1) (1:lpara (1) ), run_iexp,       &
-      run_irun, run_title (1:len_str (run_title) ), run_stime (1:       &
+      WRITE (output_io, 2000) cpara (1) (1:lpara (1) ), run_iexp(1),    &
+      run_irun(1), run_title (1:len_str (run_title) ), run_stime (1:    &
       len_str (run_stime) ), run_etime (1:len_str (run_etime) )         
 !                                                                       
  1000 FORMAT    (' debug > NXentry ',a,'(',a,')') 
@@ -91,10 +125,13 @@
 !*****7**************************************************************** 
       SUBROUTINE do_nxdir 
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+!
+      IMPLICIT NONE
+!
 !                                                                       
       INTEGER nmax 
       PARAMETER (nmax = 3) 
@@ -144,9 +181,11 @@
 !*****7**************************************************************** 
       SUBROUTINE do_nxclose 
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'errlist.inc' 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE errlist_mod 
+!
+      IMPLICIT NONE
 !                                                                       
       INTEGER stat 
 !                                                                       
@@ -163,9 +202,11 @@
 !*****7**************************************************************** 
       SUBROUTINE do_nxload (line, ll) 
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'errlist.inc' 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE errlist_mod 
+!
+      IMPLICIT NONE
 !                                                                       
       INTEGER nmax, maxw 
       PARAMETER (nmax = 3) 
@@ -183,6 +224,8 @@
       INTEGER istart (3), isize (3) 
       INTEGER inx, iny 
       INTEGER llabel, irank, stat, icol, irow, ioth, i 
+!
+      INTEGER :: len_str
 !                                                                       
       IF (.not.nxs_open) then 
          ier_num = - 55 
@@ -282,7 +325,7 @@
 !                                                                       
 !------ - 2D sections (x or y)                                          
 !                                                                       
-         ELSEIF (ianz.eq.3.and. (werte (2) .eq.0.0.xor.werte (3)        &
+         ELSEIF (ianz.eq.3.and. (werte (2) .eq.0.0.neqv.werte (3)       &
          .eq.0.0) ) then                                                
             IF (werte (2) .eq.0.0) then 
                icol = 2 
@@ -317,8 +360,8 @@
 !                                                                       
 !------ - 3D sections (x, y or z)                                       
 !                                                                       
-         IF (ianz.eq.4.and. (werte (2) .eq.0.0.xor.werte (3)            &
-         .eq.0.0.xor.werte (4) .eq.0.0) ) then                          
+         IF (ianz.eq.4.and. (werte (2) .eq.0.0.neqv.werte (3)           &
+         .eq.0.0.neqv.werte (4) .eq.0.0) ) then                          
             IF (werte (2) .eq.0.0) then 
                icol = 3 
                irow = 2 
@@ -378,19 +421,23 @@
       SUBROUTINE nxs_read2d (dname, xname, yname, label, istart, isize, &
       dimx, dimy, inx, iny, icol, irow, irank)                          
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      USE errlist_mod 
+      USE debug_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!
+      IMPLICIT NONE
+!     include'napif.inc' 
+!     include'nexus.inc' 
 !                                                                       
       CHARACTER ( * ) dname, xname, yname, label 
       INTEGER istart (3), isize (3) 
+      INTEGER, DIMENSION(1) :: nxistart  ! Dummy arrays to fake the generic NXgetslab routine
+      INTEGER, DIMENSION(1) :: nxisize
       INTEGER iistart (3), iisize (3) 
       INTEGER irank, irow, inx, iny, icol, dimx, dimy 
 !                                                                       
-      REAL rval (maxarray) 
+      REAL (KIND=NXr4) :: rval (maxarray) 
       INTEGER ival (maxarray) 
       INTEGER stat, i, j, k, l, m, ii, jj, kk, itype, nr 
       INTEGER maxpkt, maxzz 
@@ -470,7 +517,10 @@
 !                                                                       
       stat = NXopendata (nxs_id, xname) 
       IF (stat.ne.NX_OK) goto 55 
-      stat = NXgetslab (nxs_id, rval, istart (icol), isize (icol) ) 
+      nxistart(1) = istart(icol)
+      nxisize (1) = isize (icol)
+      stat = NXgetslab (nxs_id, rval, nxistart, nxisize ) 
+!     stat = NXgetslab (nxs_id, rval, istart (icol), isize (icol) ) 
       IF (stat.ne.NX_OK) goto 55 
       DO l = 1, isize (icol), inx 
       DO m = 2, inx 
@@ -487,7 +537,10 @@
 !                                                                       
       stat = NXopendata (nxs_id, yname) 
       IF (stat.ne.NX_OK) goto 55 
-      stat = NXgetslab (nxs_id, rval, istart (irow), isize (irow) ) 
+      nxistart(1) = istart(irow)
+      nxisize (1) = isize (irow)
+      stat = NXgetslab (nxs_id, rval, nxistart, nxisize ) 
+!     stat = NXgetslab (nxs_id, rval, istart (irow), isize (irow) ) 
       IF (stat.ne.NX_OK) goto 55 
       DO l = 1, isize (irow), iny 
       DO m = 2, iny 
@@ -533,12 +586,14 @@
       SUBROUTINE nxs_read1d (dname, aname, label, istart, isize, irow,  &
       irank)                                                            
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      USE debug_mod 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!
+      IMPLICIT NONE
+!     include'napif.inc' 
+!     include'nexus.inc' 
 !                                                                       
       CHARACTER ( * ) dname, aname, label 
       INTEGER istart (3), isize (3) 
@@ -617,9 +672,11 @@
       SUBROUTINE nxs_datainfo (nxs_dname, nxs_aname, nxs_dim, irank,    &
       nmax)                                                             
 !                                                                       
-      include'napif.inc' 
-      include'nexus.inc' 
-      include'errlist.inc' 
+!     include'napif.inc' 
+!     include'nexus.inc' 
+      USE errlist_mod 
+!
+      IMPLICIT NONE
 !                                                                       
       INTEGER nmax 
 !                                                                       
@@ -688,3 +745,4 @@
       ENDIF 
 !                                                                       
       END SUBROUTINE nxs_datainfo                   
+END MODULE nexus_kuplot

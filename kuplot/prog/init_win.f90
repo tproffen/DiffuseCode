@@ -4,10 +4,10 @@
 !       Platform specific defaults                                      
 !       WINDOWS version ..                                              
 !+                                                                      
+      USE config_mod 
+      USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
 !                                                                       
       CHARACTER(80) prn_name 
       INTEGER id, irtn, len_str 

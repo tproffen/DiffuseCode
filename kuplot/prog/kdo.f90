@@ -6,13 +6,16 @@
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
-      IMPLICIT none 
+      USE nexus_kuplot
+!
+      USE errlist_mod 
+      USE learn_mod 
+      USE prompt_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'learn.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      USE config_mod 
+      USE kuplot_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 

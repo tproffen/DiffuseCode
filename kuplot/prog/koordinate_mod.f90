@@ -1,5 +1,8 @@
 MODULE koordinate_mod
 !
+USE config_mod 
+USE kuplot_mod 
+!                                                                       
 PRIVATE
 PUBLIC koor_shear, koor_log
 !
@@ -17,14 +20,11 @@ CONTAINS
 !+                                                                      
 !     transformation beim shearen Scalar Version
 !-                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER npkt, i 
       REAL xa       , ya
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
 !        DO i = 1, npkt 
@@ -44,14 +44,11 @@ CONTAINS
 !+                                                                      
 !     transformation beim shearen                                       
 !-                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER npkt, i 
       REAL xa (npkt), ya (npkt) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
          DO i = 1, npkt 
@@ -71,15 +68,12 @@ CONTAINS
 !+                                                                      
 !     transformation for LOG axes , scalar version
 !-                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER npkt, i 
       REAL xa       , ya
       REAL log10 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
 !                                                                       
       log10 = log (10.0) 
 !                                                                       
@@ -109,15 +103,12 @@ CONTAINS
 !+                                                                      
 !     transformation for LOG axes , 1D version
 !-                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER npkt, i 
       REAL xa (npkt), ya (npkt) 
       REAL log10 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
 !                                                                       
       log10 = log (10.0) 
 !                                                                       

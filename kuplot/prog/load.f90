@@ -6,12 +6,12 @@
 !                                                                       
 !     Create new data set from given function                           
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 
@@ -239,11 +239,11 @@
 !                                                                       
 !     Allocate space for new data set                                   
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -347,13 +347,13 @@
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE times_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'times.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, ifil, iwgb 
       PARAMETER (maxw = 100) 
@@ -587,13 +587,13 @@
 !                                                                       
 !     Extract history information if present                            
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil 
 !                                                                       
@@ -642,10 +642,10 @@
 !+                                                                      
 !     Gets numbers from history part of data file                       
 !-                                                                      
-      IMPLICIT none 
+      USE param_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) line, key 
       INTEGER is, ie, ll, lk 
@@ -673,11 +673,11 @@
 !+                                                                      
 !     Load MPAUS extract files ..                                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -829,11 +829,11 @@
 !+                                                                      
 !     Load xyz files ..                                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -984,12 +984,12 @@
 !+                                                                      
 !     Load cut from xyzv (4D) files                                     
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1101,6 +1101,10 @@
 !     neutron diffractometers at FRM II. For more information           
 !     contact the authors of KUPLOT.                                    
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
@@ -1110,10 +1114,6 @@
       CHARACTER(1024) line 
       REAL werte (maxw) 
       INTEGER ix, iy, ifil, nr, ianz, i, maxpp 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
 !------ initial setup                                                   
 !                                                                       
@@ -1165,11 +1165,11 @@
 !+                                                                      
 !     Read NIPL (KUPLOT own 2D format) and PGM (ASCII) files            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER mrect, maxw 
       PARAMETER (maxw = 20) 
@@ -1328,13 +1328,13 @@
 !+                                                                      
 !     Load SPEC scan files                                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, colm 
       INTEGER READ_TYPE_SC 
@@ -1734,12 +1734,12 @@
 !+                                                                      
 !     Read scan information from SPEC scan files                        
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, maxr, maxc 
 !                                                                       
@@ -1995,12 +1995,12 @@
 !+                                                                      
 !     Load GSAS files                                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       INTEGER nbank 
@@ -2181,13 +2181,14 @@
 !+                                                                      
 !     Normalizes by incident spectrum                                   
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE wink_mod
+!
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nbank 
 !                                                                       
@@ -2312,13 +2313,13 @@
 !     Convert units from TOF to D,L,Q                                   
 !     For X we convert T to degrees                                     
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE wink_mod
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1) units, cunits 
       REAL(8) difc, difa, tzero 
@@ -2491,9 +2492,9 @@
 !+                                                                      
 !     Reverse given array                                               
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL dat (maxarray) 
       REAL dummy (maxarray) 
@@ -2513,13 +2514,13 @@
 !+                                                                      
 !     Read GSAS data                                                    
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) iname 
       INTEGER ifil 
@@ -2560,14 +2561,14 @@
 !+                                                                      
 !     Read GSAS data                                                    
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nbank 
 !                                                                       
@@ -2867,12 +2868,12 @@
 !+                                                                      
 !     Read GSAS instrument parameter file                               
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nbank 
 !                                                                       
@@ -2971,12 +2972,12 @@
 !+                                                                      
 !     Determined number of banks in GSAS file                           
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil, nbank 
       INTEGER bid (nbank) 
@@ -3017,12 +3018,12 @@
 !+                                                                      
 !     Load x,y or x,y,dx,dy files                                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER mm 
       PARAMETER (mm = 50) 
@@ -3137,11 +3138,11 @@
 !+                                                                      
 !     Load single MCA spectrum                                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER maxw 
@@ -3221,11 +3222,11 @@
 !+                                                                      
 !     Load files point no versus value                                  
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -3263,11 +3264,11 @@
 !     Reads special crystal file format exported from DISCUS.           
 !     Line per atom  : x,y,z, mtyp,mcol,msiz                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL rmsiz, zdummy 
       INTEGER ifil, imcol, imtyp, nr, iii, maxpp 
@@ -3307,11 +3308,11 @@
 !+                                                                      
 !     Read marker file (only x-values)                                  
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER ifil, nr, maxpp 
@@ -3356,11 +3357,11 @@
 !+                                                                      
 !     Read powder scan files MAN1 program ..                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL dummy 
       INTEGER ifil, izaehl, nr, maxpp 
@@ -3409,10 +3410,10 @@
 !+                                                                      
 !     get max/min values of files                                       
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ik 
 !                                                                       
@@ -3473,11 +3474,11 @@
 !+                                                                      
 !     Load *.plt file from SIMREF                                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 

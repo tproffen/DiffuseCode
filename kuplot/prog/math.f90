@@ -5,12 +5,12 @@
 !+                                                                      
 !     sort xy file after increasing x values                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 
@@ -100,11 +100,11 @@
 !     given data set. Range in Fourier space is determined              
 !     by sample width in real space.                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -176,13 +176,13 @@
 !                                                                       
 !     This routine perfoms the Fourier Transform for 2D data            
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(10) oname (4) 
       INTEGER ianz, maxw, i, j, ipkt, inew, ik, k, kk 
@@ -299,13 +299,13 @@
 !                                                                       
 !     This routine perfoms the Fourier Transform for 3D data            
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(12) oname (4) 
       INTEGER i, jx, jy, ipkt, jpkt, inew, ik, kkx, kky 
@@ -428,12 +428,12 @@
 !+                                                                      
 !     Smooth data set                                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, maxsm 
       PARAMETER (maxw = 4) 
@@ -537,13 +537,13 @@
 !+                                                                      
 !     Compute integral for 2d/3d data sets                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -678,13 +678,13 @@
 !+                                                                      
 !     calculates mean and standard deviation                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -849,17 +849,17 @@
 !+                                                                      
 !     Search for maxima in data set                                     
 !-                                                                      
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax, maxw 
       PARAMETER (maxmax = 50) 
       PARAMETER (maxw = 10) 
-!                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -963,10 +963,10 @@
 !+                                                                      
 !     glaetten des nipl-2d-arrays                                       
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER mc 
 !                                                                       
@@ -1055,10 +1055,10 @@
 !+                                                                      
 !     glaetten der kurve ik ueber ip punkte                             
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER mc 
 !                                                                       
@@ -1111,10 +1111,10 @@
 !+                                                                      
 !     extrema der kurve ik local bestimmen                              
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL a (maxarray) 
       REAL ymi, yma 
@@ -1136,10 +1136,10 @@
 !+                                                                      
 !     extrema der kurve ik bestimmen                                    
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL a (maxarray) 
       REAL amax (maxkurvtot), amin (maxkurvtot) 
@@ -1158,10 +1158,10 @@
 !+                                                                      
 !     extrema der kurve ik bestimmen                                    
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL a (maxarray) 
       REAL amax (maxkurvtot), amin (maxkurvtot) 
@@ -1184,11 +1184,11 @@
 !+                                                                      
 !     maxima bestimmen fuer xy-files                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       REAL wmax (maxmax) 
@@ -1236,11 +1236,11 @@
 !+                                                                      
 !     maxima bestimmen aus xyz files                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       REAL wmax (maxmax) 
@@ -1293,10 +1293,10 @@
 !+                                                                      
 !     schneiden eines subarrays fuer interpolationsroutinen             
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nsize 
       REAL xf (nsize), yf (nsize), zf (nsize, nsize) 
@@ -1389,7 +1389,7 @@
       END SUBROUTINE polint                         
 !                                                                       
       SUBROUTINE spline (x, y, n, yp1, ypn, y2) 
-      include'config.inc' 
+      USE config_mod 
       PARAMETER (nmax = maxarray) 
       DIMENSION x (n), y (n), y2 (n), u (nmax) 
       IF (yp1.gt..99e30) then 
@@ -1450,7 +1450,7 @@
       END SUBROUTINE splint                         
                                                                         
       SUBROUTINE SAVGOL (c, np, nl, nr, ld, m) 
-      include'errlist.inc' 
+      USE errlist_mod 
       INTEGER ld, m, nl, np, nr, MMAX 
       REAL c (np) 
       PARAMETER (MMAX = 6) 

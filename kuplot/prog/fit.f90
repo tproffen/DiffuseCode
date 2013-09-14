@@ -6,18 +6,18 @@
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER ( * ) zei 
       CHARACTER(1024) cpara (maxw) 
@@ -391,14 +391,14 @@
 !+                                                                      
 !     Set theory function                                               
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 8) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -522,15 +522,15 @@
 !+                                                                      
 !     fitparameter und einstellungen als macro speichern                
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
-!                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -565,10 +565,10 @@
 !+                                                                      
 !     speichern der fitparameter                                        
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -582,10 +582,10 @@
 !+                                                                      
 !     speichern der fitparameter                                        
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -600,12 +600,12 @@
 !+                                                                      
 !     speichern der fitergebnisse                                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -651,14 +651,14 @@
 !+                                                                      
 !     aendern der wichtung                                              
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -707,15 +707,15 @@
 !+                                                                      
 !     aendern der fit-parameter                                         
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
-!                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -766,10 +766,10 @@
 !+                                                                      
 !     anzeigen der fit-parameter                                        
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(30) fitfkt, wictyp 
       INTEGER idout, lt1, lt2, lf, lfn, lw, ipkt 
@@ -852,10 +852,10 @@
 !+                                                                      
 !     anzeigen der fit-ergebnisse                                       
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i, j 
       LOGICAL kor 
@@ -889,11 +889,11 @@
 !+                                                                      
 !     kupl.fit schreiben fuer textframe                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j 
       LOGICAL kor 
@@ -944,10 +944,10 @@
 !+                                                                      
 !     ausgabe von fitinformationen                                      
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout 
       LOGICAL f_se, f_er, f_pa 
@@ -985,11 +985,11 @@
 !+                                                                      
 !     der eigentliche fit fuer xy-files                                 
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(60) filname 
       REAL xx, f, df (maxpara) 
@@ -1032,11 +1032,11 @@
 !+                                                                      
 !     der eigentliche fit fuer xyz-files                                
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(60) filname 
       REAL xx, f, df (maxpara) 
@@ -1089,10 +1089,10 @@
 !     Calculation of weights. Values outside plotting range are         
 !     set to zero if frall is .false.                                   
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL a (maxarray) 
       INTEGER i, ii 
@@ -1127,10 +1127,10 @@
 !+                                                                      
 !     Calculation of weights.                                           
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL val, aval, sig, wic 
 !                                                                       
@@ -1162,10 +1162,10 @@
 !*****7*****************************************************************
       SUBROUTINE kupl_theory (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       INTEGER iwert 
@@ -1198,11 +1198,11 @@
 !*****7*****************************************************************
       SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1237,10 +1237,10 @@
 !*****7*****************************************************************
       SUBROUTINE show_user (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i 
 !                                                                       
@@ -1257,11 +1257,11 @@
 !***********************************************************************
       SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
-      IMPLICIT none 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) cdummy 
       REAL xx, f, df (maxpara) 
@@ -1307,11 +1307,11 @@
 !*****7*****************************************************************
       REAL function func (xx) 
 !                                                                       
-      IMPLICIT none 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) cdummy 
       REAL xx, berechne 
@@ -1326,10 +1326,10 @@
 !*****7*****************************************************************
       SUBROUTINE show_gsas (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(40) cout (maxpara) 
       INTEGER idout, i, j, k 
@@ -1366,10 +1366,10 @@
 !*****7*****************************************************************
       SUBROUTINE setup_gsas (ianz, werte, maxw, iname) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, maxmax 
       PARAMETER (maxmax = 50) 
@@ -1442,12 +1442,12 @@
       SUBROUTINE read_prof (iname, ibank, itype, pcoff, ncoff, stheta,  &
       dspace, tof)                                                      
 !                                                                       
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER nbank 
 !                                                                       
@@ -1528,10 +1528,10 @@
 !*****7*****************************************************************
       SUBROUTINE theory_gsas (xx, f, df, i) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(4) htype 
       REAL deriv (maxpara) 
@@ -1593,11 +1593,11 @@
 !*****7*****************************************************************
       SUBROUTINE show_lor (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i, iii 
       REAL zz, sint, ds0, ds2, ds3, dsint 
@@ -1649,14 +1649,14 @@
 !*****7*****************************************************************
       SUBROUTINE setup_lor (ianz, werte, maxw) 
 !                                                                       
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       PARAMETER (maxmax = 50) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -1730,10 +1730,10 @@
 !***********************************************************************
       SUBROUTINE theory_lor (xx, f, df, i) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       REAL o1, fwf, fw, xw, rn 
@@ -1792,11 +1792,11 @@
 !*****7*****************************************************************
       SUBROUTINE show_gauss (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL o, sqpio, zz, sint, ds0, ds2, ds3, dsint 
       INTEGER idout, i, iii 
@@ -1851,14 +1851,14 @@
 !***7*******************************************************************
       SUBROUTINE setup_gauss (ianz, werte, maxw) 
 !                                                                       
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       PARAMETER (maxmax = 50) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -1932,10 +1932,10 @@
 !*********************************************************************  
       SUBROUTINE theory_gauss (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       REAL o1, fw, fwf, exx 
@@ -1993,11 +1993,11 @@
 !***7*******************************************************************
       SUBROUTINE show_psvgt (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i, iii 
       REAL zz, sint, ds0, ds2, ds3, dsint 
@@ -2051,14 +2051,14 @@
 !***7*******************************************************************
       SUBROUTINE setup_psvgt (ianz, werte, maxw) 
 !                                                                       
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       PARAMETER (maxmax = 50) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER nu 
       INTEGER maxw 
@@ -2151,10 +2151,10 @@
 !*********************************************************************  
       SUBROUTINE theory_psvgt (xx, f, df, i) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       INTEGER i 
@@ -2255,11 +2255,11 @@
 !***7*******************************************************************
       SUBROUTINE show_gauss_2d (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL o, sqpio, sqpio2 
       REAL zz_x, zz_y, sint, ds0, ds3, ds4, ds6, ds7, dsint 
@@ -2334,14 +2334,14 @@
 !***7*******************************************************************
       SUBROUTINE setup_gauss_2d (ianz, werte, maxw) 
 !                                                                       
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       PARAMETER (maxmax = 20) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -2431,11 +2431,11 @@
 !*********************************************************************  
       SUBROUTINE theory_gauss_2d (xx, f, df, i) 
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, o1, df (maxpara) 
       REAL rx, ry, rxs, rys, fwfx, fwx, fwfy, fwy, cosp, sinp 
@@ -2529,10 +2529,10 @@
 !***7*******************************************************************
       SUBROUTINE show_poly_cheb (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i 
 !                                                                       
@@ -2550,11 +2550,11 @@
 !***7*******************************************************************
       SUBROUTINE setup_poly_cheb (ianz, werte, maxw) 
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -2600,10 +2600,10 @@
 !***7*******************************************************************
       SUBROUTINE theory_poly_cheb (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       REAL xnew 
@@ -2642,10 +2642,10 @@
 !***7*******************************************************************
       SUBROUTINE show_poly (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i 
 !                                                                       
@@ -2663,11 +2663,11 @@
 !***7*******************************************************************
       SUBROUTINE setup_poly (ianz, werte, maxw) 
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -2712,10 +2712,10 @@
 !***7*******************************************************************
       SUBROUTINE theory_poly (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       INTEGER iwert, ind 
@@ -2745,10 +2745,10 @@
 !***7*******************************************************************
       SUBROUTINE show_backpoly (idout) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER idout, i 
 !                                                                       
@@ -2771,11 +2771,11 @@
 !***7*******************************************************************
       SUBROUTINE setup_backpoly (ianz, werte, maxw) 
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       REAL werte (maxw) 
@@ -2831,10 +2831,10 @@
 !***7*******************************************************************
       SUBROUTINE theory_backpoly (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       INTEGER iwert, ind 
@@ -2883,11 +2883,28 @@
 !+                                                                      
 !     eigentliche fit-routine speziell fuer kupl ..                     
 !-                                                                      
-      include'config.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'kuplot.inc' 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
+!
+      IMPLICIT NONE
+!
+      INTEGER :: i, j, k,l, ll, l1, nl   ! Loop indices
+      INTEGER :: m, n, nf
+      INTEGER :: iiw, iix
+      REAL :: f
+      REAL :: g
+      REAL :: h
+      REAL :: s
+      REAL :: sqsum
+      REAL :: sum3
+      REAL :: sum4
+      REAL :: syi
+      REAL :: ttt
+      REAL :: xx
+      REAL :: zl
       REAL ww (maxarray) 
       REAL df (maxpara), dl (maxpara), dz (maxpara), pl (maxpara) 
       REAL pinc_old (maxpara) 

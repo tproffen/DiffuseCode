@@ -7,14 +7,14 @@
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -87,11 +87,11 @@
 !+                                                                      
 !     berechnungen fuer x und y feld                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) op 
       INTEGER ilen, ik, ianz, maxw, i 
@@ -158,11 +158,11 @@
 !+                                                                      
 !     berechnungen fuer z feld                                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) op 
       INTEGER nxx, nyy, ik, maxw, ianz, i, j, ikk 
@@ -248,14 +248,14 @@
 !     This routine allows the user to exclude data regions              
 !     and replace by linear interpolation of end points.                
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -338,10 +338,10 @@
 !+                                                                      
 !     Find the point closest to xvalue;                                 
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, ik, ipkt, iclose 
       REAL xdist_old, xdist_new 
@@ -366,17 +366,17 @@
 !+                                                                      
 !     Arithmetic between complete data sets                             
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
       INTEGER EXCL, NEUT, IGNO 
       PARAMETER (EXCL = 0, NEUT = 1, IGNO = 2) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -599,14 +599,14 @@
 !+                                                                      
 !     Merge different data sets                                         
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 45) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -743,14 +743,14 @@
 !+                                                                      
 !     Rebin data to given grid (only 2D - otherwise save/read GNU)      
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 25) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -886,14 +886,14 @@
 !+                                                                      
 !     Interpolate data set <ik> on grid of <ig> using spline            
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -985,14 +985,14 @@
 !+                                                                      
 !     Convoluting two data sets                                         
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -1088,16 +1088,16 @@
 !+                                                                      
 !     Calculate n-th derivative of given data set.                      
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw, maxsm 
 !                                                                       
       PARAMETER (maxw = 2) 
       PARAMETER (maxsm = 51) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -1223,16 +1223,16 @@
 !     Calculates scaling and offset to give best match between          
 !     two data sets.                                                    
 !-                                                                      
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 25) 
-!                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -1429,12 +1429,12 @@
 !     Calculates fraction to match x*data_1 + (1-x)*data_2              
 !     to given data set.                                                
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1552,16 +1552,16 @@
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -1682,11 +1682,11 @@
 !+                                                                      
 !     berechnungen fuer z feld                                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nxx, nyy, ik, il, i, j, ikk, ikl 
       INTEGER iweight 
@@ -1727,11 +1727,11 @@
 !+                                                                      
 !     berechnungen fuer y feld                                          
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER klen, llen, ik, il, i, j, ikk, ikl 
       INTEGER iweight 

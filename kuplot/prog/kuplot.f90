@@ -1,23 +1,24 @@
       PROGRAM kuplot 
 !                                                                       
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !*****7*****************************************************************
 !       This is the universal plot program KUPLOT. It sets up most      
 !     variables and calls the loop interpreting the commands.           
 !*****7*****************************************************************
 !                                                                       
-      include'errlist.inc' 
-      include'doact.inc' 
-      include'learn.inc' 
-      include'prompt.inc' 
-      include'macro.inc' 
 !                                                                       
       CHARACTER(1024) line, zeile 
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER lbef, lp, ll 
 !                                                                       
-      include'pname.inc' 
+      pname     = 'kuplot'
+      pname_cap = 'KUPLOT'
 !                                                                       
       prompt = pname 
       lend = .false. 
@@ -71,17 +72,13 @@
 !                                                                       
 !     This routine makes inital setup of KUPLOT                         
 !                                                                       
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-      include'prompt.inc' 
       include'date.inc' 
 !                                                                       
-      pi = 4.00 * atan (1.00) 
-      zpi = 8.00 * atan (1.00) 
-      rad = zpi / 360.00 
 !                                                                       
       CALL ini_ran (0) 
 !                                                                       

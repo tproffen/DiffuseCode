@@ -6,14 +6,16 @@
 !     of KUPLOT. In the first section there are a few definitions       
 !     that might need adjustment.                                       
 !+                                                                      
-      IMPLICIT none 
+      USE nexus_kuplot
+!
+      USE envir_mod 
+      USE errlist_mod 
+      USE learn_mod
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'envir.inc' 
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'learn.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, iw 
       INTEGER stift (0:14) 
@@ -319,10 +321,10 @@
 !+                                                                      
 !     Reading defaults                                                  
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, idef 
       PARAMETER (maxw = 5) 
@@ -361,10 +363,10 @@
 !+                                                                      
 !     Writing defaults                                                  
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, idef 
       PARAMETER (maxw = 5) 
@@ -403,10 +405,10 @@
 !+                                                                      
 !       This routine saves the current settings to a file               
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1) q 
       INTEGER idef, i, j, k 
@@ -542,11 +544,11 @@
 !+                                                                      
 !       This routine reads defaults from a file                         
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) cdummy 
       INTEGER idef, i1, i2, i3, i4, i5 
@@ -690,13 +692,13 @@
 !+                                                                      
 !     If the default setup file is there load it ..                     
 !-                                                                      
+      USE envir_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idef 
 !                                                                       
-      include'prompt.inc' 
-      include'envir.inc' 
-      include'errlist.inc' 
 !                                                                       
       idef = 33 
       ier_num = 0 

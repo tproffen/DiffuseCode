@@ -4,10 +4,10 @@
 !       Platform specific defaults                                      
 !       X11 version ..                                                  
 !+                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) prn_name 
       INTEGER ll 

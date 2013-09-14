@@ -7,11 +7,11 @@
 !                                                                       
 !     Main plotting routine                                             
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL x1, x2, y1, y2, width, ratio, dev_sf_old 
       INTEGER ii, ik, idev, irtn 
@@ -98,12 +98,12 @@
 !+                                                                      
 !     This is the plotting routine for hardcopies                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -270,10 +270,10 @@
 !+                                                                      
 !     This sets the default KUPLOT colours ...                          
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ic 
 !                                                                       
@@ -288,10 +288,10 @@
 !+                                                                      
 !     This routine sets background and border for frame ii              
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL x1, x2, y1, y2 
       INTEGER ic, ii 
@@ -334,10 +334,10 @@
 !+                                                                      
 !     This routine draws border around frame ii                         
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL x1, x2, y1, y2, delta, deltay 
       INTEGER ii, icol 
@@ -372,11 +372,11 @@
 !     frame (-> iframe)                                                 
 !-                                                                      
       USE koordinate_mod
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL wxmi, wxma, wymi, wyma 
       REAL xx, yy, x1, x2, y1, y2, vl, vr, vb, vt, yf, off 
@@ -445,11 +445,11 @@
 !+                                                                      
 !     Here we actually do the plotting ...                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -487,12 +487,12 @@
 !+                                                                      
 !       plot text frame                                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile, filname 
       REAL xh, yh, xt, yt 
@@ -547,10 +547,10 @@
 !     This routine draws the labeled frame around the plot.             
 !-                                                                      
       USE koordinate_mod
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(2) cal, car, cax 
       CHARACTER(1) clx, cly 
@@ -822,13 +822,13 @@
 !     This routine plots the datasets ...                               
 !-                                                                      
       USE koordinate_mod
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxmax 
       PARAMETER (maxmax = 50) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
 !                                                                       
       CHARACTER(80) text 
       REAL xpl (maxarray), ypl (maxarray) 
@@ -1072,12 +1072,13 @@
 !     The drawing and filling itself                                    
 !-                                                                      
       USE koordinate_mod
-      IMPLICIT none 
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
-      include'debug.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER npkt, ikurv 
       REAL xpl (npkt), ypl (npkt) 
@@ -1181,11 +1182,11 @@
 !+                                                                      
 !     Draws line as simple line, step or spline                         
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER nnpkt, npkt, ikurv, is, ipkt 
       REAL xpl (nnpkt), ypl (nnpkt) 
@@ -1276,10 +1277,10 @@
 !     Draws marker of typ ityp and color icol at px,py                  
 !-                                                                      
       USE koordinate_mod
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(40) xstr, ystr 
       REAL px, py, size 
@@ -1410,12 +1411,12 @@
 !+                                                                      
 !     Draws bonds                                                       
 !-                                                                      
+      USE errlist_mod 
       USE koordinate_mod
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ikurv 
       INTEGER ib, iii, jjj, ipkt, jpkt 
@@ -1475,14 +1476,14 @@
 !+                                                                      
 !     This routine draws the bitmaps                                    
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL zpl (maxz, maxz), tr (6) 
       REAL rc, rdx, rdy, yf 
@@ -1588,14 +1589,14 @@
 !+                                                                      
 !     This routine draws the contour lines                              
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(25) label 
       REAL zpl (maxz, maxz), tr (6) 
@@ -1727,10 +1728,10 @@
 !+                                                                      
 !     Check if data set ik should be plotted in actual frame            
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ik, i 
 !                                                                       

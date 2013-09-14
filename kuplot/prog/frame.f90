@@ -6,12 +6,12 @@
 !+                                                                      
 !     Sets active window for plotting                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -54,12 +54,12 @@
 !+                                                                      
 !     Sets active frame for input parameters                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -99,11 +99,11 @@
 !+                                                                      
 !     Set backgound color for frames                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -151,11 +151,11 @@
 !+                                                                      
 !     Copy plot parameters of one frame to other frame(s)               
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = maxframe+2) 
@@ -197,11 +197,11 @@
 !+                                                                      
 !     Sets frame sizes and locations                                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -251,11 +251,11 @@
 !     Set datasets to be displayed in each frame                        
 !     or give textfile for text frames.                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = maxkurvtot + 2) 
@@ -315,12 +315,12 @@
 !+                                                                      
 !     Set mumber of frames to be used                                   
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -455,10 +455,10 @@
 !+                                                                      
 !     Copy parameters associated with frame if1 to frame if2            
 !-                                                                      
+      USE config_mod 
+      USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
 !                                                                       
       INTEGER if1, if2 
       INTEGER i, j, ihl 
@@ -568,10 +568,10 @@
 !+                                                                      
 !     Copy parameters associated with window iw1 to frame iw2           
 !-                                                                      
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER iw1, iw2 
       INTEGER i, j, k 

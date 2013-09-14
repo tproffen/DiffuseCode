@@ -3,12 +3,12 @@
 !                                                                       
 !       Things to do when KUPLOT exits                                  
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
 !------ close PGPLOT devices                                            
 !                                                                       

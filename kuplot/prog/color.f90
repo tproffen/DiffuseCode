@@ -6,11 +6,11 @@
 !+                                                                      
 !     Set colours for background & pens                                 
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -58,11 +58,11 @@
 !                                                                       
 !     Set colour map                                                    
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -109,11 +109,11 @@
 !                                                                       
 !     Setting colormap to gray                                          
 !                                                                       
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL dummy (maxcol, 3) 
       INTEGER i 
@@ -141,11 +141,11 @@
 !                                                                       
 !     Setting colormap to gray                                          
 !                                                                       
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i 
       LOGICAL lout 
@@ -165,11 +165,11 @@
 !                                                                       
 !     Setting colormap to original KUPL map                             
 !                                                                       
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL rh, rf, rq, rp, rt 
       INTEGER i, ifarb 
@@ -224,11 +224,11 @@
 !                                                                       
 !     Setting colormap to fire                                          
 !                                                                       
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, ii, m 
       LOGICAL lout 
@@ -266,12 +266,12 @@
 !                                                                       
 !     Reading colormap from file ..                                     
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) filname 
       INTEGER i, ir, ig, ib 
@@ -309,12 +309,12 @@
 !                                                                       
 !     Writing colormap to file ..                                       
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) filname 
       INTEGER i, ir, ig, ib 

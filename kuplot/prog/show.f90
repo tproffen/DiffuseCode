@@ -7,15 +7,15 @@
 !                                                                       
 !     Main show menu                                                    
 !                                                                       
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
-!                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
@@ -117,11 +117,11 @@
 !+                                                                      
 !     Show KUPLOT configuration                                         
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       WRITE (output_io, 1000) 
       WRITE (output_io, 2000) MAXARRAY 
@@ -152,12 +152,12 @@
 !+                                                                      
 !     Show contour line information                                     
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER j 
 !                                                                       
@@ -180,12 +180,12 @@
 !+                                                                      
 !     Print information about loaded data                               
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER iku, ia, ie, ik 
 !                                                                       
@@ -242,12 +242,12 @@
 !+                                                                      
 !     Show information about plot settings                              
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       WRITE (output_io, 1000) iwin, iframe, yskal_u (iwin, iframe),     &
       shear (iwin, iframe), ilinecol (iwin, iframe, 0), linewid (iwin,  &
@@ -309,11 +309,11 @@
 !+                                                                      
 !     Show current frame settings                                       
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -348,11 +348,11 @@
 !+                                                                      
 !     Show current font settings                                        
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(20) fon_name (4) 
 !                                                                       
@@ -390,11 +390,11 @@
 !+                                                                      
 !     Show annotations                                                  
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1) just 
       INTEGER i, il, len_str 
@@ -436,11 +436,11 @@
 !+                                                                      
 !     Show current color map                                            
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -456,11 +456,11 @@
 !+                                                                      
 !     Show current colour settings                                      
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -482,12 +482,12 @@
 !+                                                                      
 !     Show information about plot styles (color, ..)                    
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(40) cdummy 
       INTEGER i, j, ik 

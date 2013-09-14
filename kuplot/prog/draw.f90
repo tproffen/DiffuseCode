@@ -5,11 +5,11 @@
 !+                                                                      
 !     Mouse command ..                                                  
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -55,13 +55,13 @@
 !                                                                       
 !     Activate KUPLOT menu                                              
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE learn_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'learn.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1) ch 
       REAL xb, xt, yt, mx, my 
@@ -190,10 +190,10 @@
 !                                                                       
 !     This sets the menu viewport and draws borders ...                 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xpl (2), ypl (2) 
 !                                                                       
@@ -210,12 +210,12 @@
 !                                                                       
 !     Draw the different menu parts                                     
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(40) text 
       REAL xh, yh, xt, yt 
@@ -285,10 +285,10 @@
 !                                                                       
 !     This routine writes the strings tt1-tt3 below plot                
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) tt1, tt2, tt3 
       CHARACTER(80) t1, t2, t3 
@@ -334,10 +334,10 @@
 !                                                                       
 !     Get command from GUI area ..                                      
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) cmd, befehl 
       INTEGER ic, ib 
@@ -377,10 +377,10 @@
 !                                                                       
 !     Extract 'befehl' string                                           
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) cmd, befehl 
       INTEGER ic, ib, il, ir, len_str 
@@ -402,10 +402,10 @@
 !                                                                       
 !     Checks if button was pressed                                      
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL mx, my, w2, h2 
       INTEGER ib 
@@ -422,10 +422,10 @@
 !                                                                       
 !     Checks for 2D files in current frame                              
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, ini 
       LOGICAL k_in_f 
@@ -442,10 +442,10 @@
 !                                                                       
 !     Defines a button for the menu                                     
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) text 
       REAL xb, yb, wb, hb 
@@ -463,10 +463,10 @@
 !                                                                       
 !     This routine draws a button on menu panel                         
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xh, yh, w2, h2 
       INTEGER i, ib, it 
@@ -503,13 +503,13 @@
 !                                                                       
 !     Allows the user to enter KUPLOT command                           
 !                                                                       
-      IMPLICIT none 
+      USE doact_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) command, befehl 
       INTEGER ic, ib, mac_level_old 
@@ -573,11 +573,11 @@
 !     Set zmin,zmax via mouse                                           
 !     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile 
       CHARACTER(1) key 
@@ -638,11 +638,11 @@
 !     Select active frame via mouse                                     
 !     LEFT : select frame                                               
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile 
       CHARACTER(1) key 
@@ -698,11 +698,11 @@
 !     Set plotting region via mouse                                     
 !     LEFT : select region / RIGHT : back to showing ALL data           
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile (2) 
       CHARACTER(1) key 
@@ -780,12 +780,12 @@
 !                                                                       
 !     Zoom in/out of picture                                            
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE learn_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'learn.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile (2), thelp 
       CHARACTER(1) key 
@@ -858,12 +858,12 @@
 !                                                                       
 !     Shows distance between two points ..                              
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile 
       CHARACTER(1) key 
@@ -907,12 +907,12 @@
 !                                                                       
 !     Show coordinates of mouse pointer position                        
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile 
       CHARACTER(1) key 
@@ -980,13 +980,13 @@
 !                                                                       
 !     Get coordinates of mouse pointer position outside GUI window      
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1) key 
       REAL wx, wy, wz 
@@ -1041,13 +1041,13 @@
 !                                                                       
 !     Set region via mouse - without menu                               
 !                                                                       
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'kuplot.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(80) zeile (2) 
       CHARACTER(1) key 
@@ -1096,11 +1096,11 @@
 !     Convert screen coordinates to world coordinates for ANGL not 90.  
 !     and for log. axis ..                                              
 !                                                                       
-      IMPLICIT none 
+      USE wink_mod
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'wink.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL wx, wy 
 !                                                                       

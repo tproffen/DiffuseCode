@@ -5,10 +5,10 @@
 !-                                                                      
 !       Main menu for save command.                                     
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -72,13 +72,13 @@
 !-                                                                      
 !       Saves all current data sets as 'x dataset y' file               
 !+                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil 
       PARAMETER (ifil = 33) 
@@ -108,13 +108,13 @@
 !-                                                                      
 !       Saves all current data sets as PlotML file                      
 !+                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil 
       PARAMETER (ifil = 33) 
@@ -191,13 +191,13 @@
 !-                                                                      
 !       Saves all current data sets as GSAS file                        
 !+                                                                      
-      IMPLICIT none 
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ifil 
       PARAMETER (ifil = 33) 
@@ -347,12 +347,12 @@
 !     Creates timemap for GSAS file                                     
 !     NOTE: We need to go back from musec to 100ns for this !!!         
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER tof (MAXGSAS) 
       INTEGER tmap (MAXGSAS) 
@@ -407,19 +407,19 @@
 !                                                                       
 !     Main save menu                                                    
 !                                                                       
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'prompt.inc' 
-      include'macro.inc' 
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
-      include'learn.inc' 
 !                                                                       
       CHARACTER ( * ) zei 
       CHARACTER(1024) cpara (maxw) 
@@ -678,11 +678,11 @@
 !     This routine checks if file format and parameters                 
 !     are valid.                                                        
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
 !                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) form 
       INTEGER ik, ianz, maxw 
@@ -770,14 +770,14 @@
 !+                                                                      
 !     Here is the main save routine                                     
 !-                                                                      
+      USE errlist_mod 
+      USE config_mod 
+      USE kuplot_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER isa, maxw, maxmax, maxf 
       PARAMETER (isa = 66, maxmax = 50, maxf = 3) 
-!                                                                       
-      include'config.inc' 
-      include'kuplot.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) filname, form 
       REAL xf (maxf), yf (maxf), zf (maxf, maxf) 
