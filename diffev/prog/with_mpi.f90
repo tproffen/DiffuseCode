@@ -22,11 +22,12 @@ SUBROUTINE RUN_MPI_INIT
 USE mpi
 USE run_mpi_mod
 USE population
+USE times_mod
+!
+USE errlist_mod
+USE prompt_mod
 !
 IMPLICIT none
-INCLUDE 'errlist.inc'
-INCLUDE 'times.inc'
-INCLUDE 'prompt.inc'
 !
 INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
 !
@@ -108,9 +109,9 @@ USE allocate_appl
 USE mpi
 USE population
 USE run_mpi_mod
+USE errlist_mod
 !
 IMPLICIT none
-INCLUDE 'errlist.inc'
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 !
@@ -266,6 +267,7 @@ ENDDO
 !------       --Receive results and hand out new jobs
 !
 DO i = 1, pop_c * run_mpi_senddata%nindiv
+!   write(*,*) ' WAITING FOR ANSWER IN LOOP ',i,pop_c * run_mpi_senddata%nindiv
    CALL MPI_RECV ( run_mpi_send_data, sdl_length, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
                MPI_COMM_WORLD, run_mpi_status, ierr)
 !====   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
@@ -317,9 +319,10 @@ SUBROUTINE RUN_MPI_SLAVE
 USE mpi
 USE run_mpi_mod
 !
+USE errlist_mod
+USE prompt_mod
+!
 IMPLICIT none
-INCLUDE 'errlist.inc'
-INCLUDE 'prompt.inc'
 !
 CHARACTER (LEN=2048)   :: line
 CHARACTER (LEN=2048)   :: output
@@ -529,14 +532,17 @@ slave: DO
          CALL   socket_wait
          DO j=1,run_mpi_senddata%parameters                         ! Current trial values
             WRITE(line, 4040) 200+j,run_mpi_senddata%trial_values(j)
-            ierr = socket_send    (s_remote, line, 21)
+            ierr = socket_send    (s_remote, line, 29)
             CALL   socket_wait
          ENDDO
 !        Now send the macro
          WRITE(line, 4030) run_mpi_senddata%mac  (1:run_mpi_senddata%mac_l  )
          job_l = len_str(line)
+!write(*,*) ' SLAVE ', run_mpi_myid, line(1:job_l)
          ierr = socket_send    (s_remote, line, job_l)     ! Send macro
-         CALL   socket_wait                                ! wait for macro to finish
+!write(*,*) ' SLAVE BACK FROM MACRO', run_mpi_myid,ierr
+         CALL   socket_wait
+!write(*,*) ' SLAVE BACK FROM wait ', run_mpi_myid,ierr
       ELSE use_socket                                      ! explicitely start DISCUS/KUPLOT
          repeat: IF ( run_mpi_senddata%repeat ) THEN       ! NINDIV calculations needed
             WRITE(line,2000) run_mpi_senddata%prog (1:run_mpi_senddata%prog_l ), &
@@ -565,6 +571,7 @@ slave: DO
    run_mpi_send_data(18)     = run_mpi_senddata%port       ! Send back port ID
 !
    CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, 0,0, MPI_COMM_WORLD, ierr)
+!write(*,*) ' SLAVE ',run_mpi_myid,' SEND ANSWER BACK'
 !====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
 !====                   MPI_COMM_WORLD, ier_num )
    ENDIF tag_exit
@@ -589,8 +596,8 @@ SUBROUTINE RUN_MPI_FINALIZE
 USE mpi
 USE run_mpi_mod
 USE population
+USE errlist_mod
 IMPLICIT none
-INCLUDE 'errlist.inc'
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 INTEGER :: ierr

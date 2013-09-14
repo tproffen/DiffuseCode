@@ -4,9 +4,9 @@ SUBROUTINE RUN_MPI_INIT
 ! NO MPI Version for standalone
 !
 USE run_mpi_mod
+USE errlist_mod
 !
 IMPLICIT none
-INCLUDE 'errlist.inc'
 !
 !
 run_mpi_myid     = 0
@@ -21,9 +21,9 @@ END SUBROUTINE RUN_MPI_INIT
 SUBROUTINE RUN_MPI_MASTER 
 !
 USE run_mpi_mod
+USE errlist_mod
 !
 IMPLICIT none
-INCLUDE 'errlist.inc'
 !
 ier_num = -21
 ier_typ = ER_APPL
@@ -35,9 +35,9 @@ END SUBROUTINE RUN_MPI_MASTER
 SUBROUTINE RUN_MPI_SLAVE
 !
 USE run_mpi_mod
+USE errlist_mod
 !
 IMPLICIT none
-INCLUDE 'errlist.inc'
 !
 !
 ier_num = -21

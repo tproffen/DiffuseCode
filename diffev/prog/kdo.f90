@@ -7,6 +7,7 @@ SUBROUTINE mache_kdo (line, lend, length)
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
 USE constraint
+USE charact_mod 
 USE diff_evol
 USE population
 USE allocate_appl
@@ -14,11 +15,10 @@ USE compare
 USE initialise
 USE run_mpi_mod
 !
+USE errlist_mod 
+USE learn_mod 
 IMPLICIT none 
 !                                                                       
-      include'learn.inc' 
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
 INTEGER, PARAMETER   :: maxw = 20
 !                                                                       

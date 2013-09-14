@@ -7,11 +7,11 @@ SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !+                                                                      
 USE diff_evol
 USE population
+USE errlist_mod 
+USE param_mod 
 !
 IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
 CHARACTER (LEN= * )  , INTENT(INOUT) :: string 
 INTEGER              , INTENT(IN   ) :: ikl
@@ -440,11 +440,11 @@ SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
 USE allocate_appl
 USE diff_evol
 USE population
+USE errlist_mod 
+USE param_mod 
 !
 IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
 CHARACTER (LEN=* ), INTENT(IN   )    :: ctype 
 INTEGER           , INTENT(IN   )    :: maxw
@@ -784,10 +784,10 @@ SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !     Currently empty, needed for formal reasons.
 !+                                                                      
 !
+USE errlist_mod 
+USE param_mod 
 IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
 INTEGER, PARAMETER   :: maxw = 9
 !                                                                       
@@ -843,9 +843,9 @@ SUBROUTINE validate_var_spec (zeile, lp)
 !       Author  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)    
 !+                                                                      
 !
+USE errlist_mod 
 IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
 CHARACTER (LEN= * ), INTENT(IN   ) :: zeile 
 INTEGER            , INTENT(IN   ) :: lp 

@@ -24,10 +24,10 @@
 !                                                                       
       USE population
       USE diff_evol
+      USE random_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
 !                                                                       
       INTEGER j, jt 
 !                                                                       
@@ -84,10 +84,10 @@ USE constraint
 USE diff_evol
 USE population
 USE triple_perm
+USE random_mod
+USE errlist_mod 
 !                                                                       
 IMPLICIT none 
-      include'errlist.inc' 
-      include'random.inc' 
 !                                                                       
 INTEGER, PARAMETER             :: maxw = 2
 !                                                                       
@@ -367,10 +367,10 @@ END SUBROUTINE write_genfile
 SUBROUTINE read_genfile 
 !                                                                       
 USE population
+USE errlist_mod
 !                                                                       
 IMPLICIT none 
 !
-include 'errlist.inc'
 !                                                                       
 INTEGER, PARAMETER  :: iwr = 7
 !                                                                       

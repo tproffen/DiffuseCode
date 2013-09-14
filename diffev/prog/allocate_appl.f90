@@ -14,6 +14,7 @@ MODULE allocate_appl
 !+
 USE allocate_generic
 USE config
+USE errlist_mod 
 !
 PRIVATE
 PUBLIC  :: alloc_appl          ! Generic interface for all allocations
@@ -31,7 +32,6 @@ CONTAINS
 !
     IMPLICIT NONE
 !
-    include 'errlist.inc'
 !
     CHARACTER (LEN=*), INTENT(IN)            :: zeile
     INTEGER          , INTENT(IN)            :: lcomm
@@ -92,7 +92,6 @@ CONTAINS
 !
        IMPLICIT NONE
 !
-       include 'errlist.inc'
 !
        CHARACTER (LEN=*), INTENT(IN)            :: zeile     ! input command line
        INTEGER          , INTENT(IN)            :: lcomm     ! command line length
@@ -131,9 +130,10 @@ CONTAINS
        USE constraint
        USE population
 !
+       USE prompt_mod
+!
        IMPLICIT NONE
 !
-       include 'prompt.inc'
 !
 !      POPULATION
 !
@@ -185,7 +185,6 @@ CONTAINS
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_constr
 !
@@ -236,7 +235,6 @@ CONTAINS
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_pop
       INTEGER, INTENT(IN)  :: n_dimx
@@ -381,7 +379,6 @@ CONTAINS
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: nprog
       INTEGER, INTENT(IN)  :: nproc

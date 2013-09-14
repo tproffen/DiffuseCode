@@ -11,12 +11,13 @@ SUBROUTINE do_show (line, lp)
 !                                                                       
 USE allocate_appl
 !
+USE errlist_mod 
+USE prompt_mod 
+!
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER   :: maxw = 2
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
 INTEGER             , INTENT(INOUT) :: lp 

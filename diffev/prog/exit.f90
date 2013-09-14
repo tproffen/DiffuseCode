@@ -1,12 +1,12 @@
 SUBROUTINE do_exit 
 !                                                                       
 USE allocate_appl
+USE prompt_mod 
 !+                                                                      
 !           Clean exit from the program DIFFEV ;-)                      
 !-                                                                      
 IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
 IF (output_io.ne.OUTPUT_SCREEN) then 
    CLOSE (output_io) 

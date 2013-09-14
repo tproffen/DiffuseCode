@@ -1,6 +1,11 @@
 PROGRAM diffev 
 !                                                                       
 USE run_mpi_mod
+USE doact_mod
+USE errlist_mod 
+USE learn_mod 
+USE macro_mod 
+USE prompt_mod 
 !                                                                       
 IMPLICIT none 
 !
@@ -14,11 +19,7 @@ IMPLICIT none
 !     Authors : R.B. Neder  (reinhard.neder@mail.uni-erlangen.de)      
 !                                                                       
 !*****7*****************************************************************
-      include'errlist.inc' 
-      include'doact.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
+!
 !                                                                       
 CHARACTER (LEN=1024)           :: line, zeile 
 CHARACTER (LEN=4)              :: befehl 
@@ -106,16 +107,12 @@ USE blk_appl
 USE constraint
 USE population
 !
+USE prompt_mod 
+!
 IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
-      include'prompt.inc' 
       include'date.inc' 
 !                                                                       
-fpi = 16.00 * atan (1.00) 
-zpi = 8.00 * atan (1.00) 
-pi  = 4.00 * atan (1.00) 
-rad = zpi / 360.00 
 CALL ini_ran (0) 
 !                                                                       
 !------ Write starting screen                                           

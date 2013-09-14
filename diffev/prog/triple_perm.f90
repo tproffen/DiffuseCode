@@ -9,9 +9,9 @@ CONTAINS
 !
    SUBROUTINE do_triple_perm (j, j1, j2, j3, n) 
 !                                                                       
+   USE random_mod
    IMPLICIT none 
 !                                                                       
-      include'random.inc' 
 !                                                                       
    INTEGER, INTENT(IN   ) :: j
    INTEGER, INTENT(INOUT) :: j1

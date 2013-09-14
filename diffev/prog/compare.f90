@@ -2,6 +2,8 @@
 !                                                                       
 MODULE compare
 !
+USE errlist_mod
+!
 PRIVATE
 PUBLIC  :: do_compare
 PUBLIC  :: do_dismiss
@@ -37,7 +39,6 @@ CONTAINS
 !                                                                       
    IMPLICIT none 
 !
-      include'errlist.inc'
 !                                                                       
    INTEGER, PARAMETER             :: maxw = 2 
 !                                                                       
@@ -101,11 +102,10 @@ CONTAINS
 !
    USE diff_evol
    USE population
+   USE random_mod
 !
    IMPLICIT none 
 !                                                                       
-      include'errlist.inc'
-      include'random.inc' 
 !                                                                       
    INTEGER                        :: list_number 
    INTEGER                        :: list_index (2 * MAXPOP) 
@@ -195,7 +195,6 @@ CONTAINS
 !                                                                       
    IMPLICIT none 
 !
-      include'errlist.inc'
 !                                                                       
    INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
@@ -234,7 +233,6 @@ CONTAINS
 !                                                                       
    IMPLICIT none 
 !
-      include'errlist.inc'
 !                                                                       
    INTEGER, PARAMETER             :: iwr = 7 
 !                                                                       
@@ -364,7 +362,6 @@ CONTAINS
 !
    IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
    INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
@@ -567,7 +564,6 @@ CONTAINS
 !
    IMPLICIT none
 !
-      include'errlist.inc'
 !
    INTEGER, PARAMETER    :: ird = 8
    INTEGER, PARAMETER    :: iwr = 7
@@ -696,7 +692,6 @@ CONTAINS
 !
    IMPLICIT none 
 !
-   include 'errlist.inc'
 !
    INTEGER, INTENT(IN) :: lb
    INTEGER, INTENT(IN) :: ub
@@ -730,7 +725,6 @@ CONTAINS
 !
    IMPLICIT none 
 !
-   include 'errlist.inc'
 !                                                                       
 !  init: IF (pop_gen.gt.0) THEN 
       CALL read_genfile 
@@ -760,7 +754,6 @@ CONTAINS
 !                                                                       
    IMPLICIT none 
 !
-!  include 'errlist.inc'
 !                                                                       
    INTEGER, INTENT(IN   ) :: n
    INTEGER, INTENT(INOUT) :: indx (n)

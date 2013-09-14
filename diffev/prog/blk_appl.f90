@@ -15,9 +15,9 @@ CONTAINS
 !
 !       Startvalues for all important arrays.                           
 !                                                                       
-   IMPLICIT NONE
+   USE prompt_mod 
 !
-   include'prompt.inc' 
+   IMPLICIT NONE
 !                                                                 
 !------ Sockt defaults                                            
 !                                                                 
@@ -111,9 +111,12 @@ CONTAINS
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
-      include'envir.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      USE envir_mod 
+      USE errlist_mod 
+      USE param_mod 
+!
+   IMPLICIT NONE
+!
 !                                                                       
    INTEGER              :: idef  = 34
 !                                                                       

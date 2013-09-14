@@ -3,10 +3,13 @@
 !
 MODULE initialise
 !
+USE errlist_mod 
+!
 PRIVATE
 PUBLIC  :: do_initialise
 PUBLIC  :: init_x
 PUBLIC  :: do_fix
+!
 !
 CONTAINS
 !
@@ -25,11 +28,10 @@ CONTAINS
    USE allocate_appl
    USE constraint
    USE population
+   USE random_mod
 !
    IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'random.inc' 
 !                                                                       
    INTEGER, PARAMETER   :: maxw = 2
 !                                                                       
@@ -156,13 +158,12 @@ CONTAINS
    USE config
    USE population
    USE constraint
+   USE random_mod
 !
    IMPLICIT none
 !
    INTEGER, INTENT(IN) :: lb,ub
 !                                                                       
-      include'errlist.inc' 
-      include'random.inc' 
 !
    INTEGER, PARAMETER   :: iwr = 7
 !
@@ -260,7 +261,6 @@ CONTAINS
 !
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    INTEGER, INTENT(IN)  :: lb
    REAL   , INTENT(IN)  :: value
