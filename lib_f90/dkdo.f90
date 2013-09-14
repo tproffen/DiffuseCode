@@ -12,15 +12,15 @@
 !     error flag is returned and the block structure is not executed    
 !     at all.                                                           
 !-                                                                      
+      USE doact_mod 
+      USE doexec_mod 
+      USE doloop_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'doact.inc' 
-      include'doloop.inc' 
-      include'doexec.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -263,11 +263,11 @@
 !     Block structure commands are executed in this subroutine,         
 !     regular commands are returned to the calling subroutine.          
 !+                                                                      
+      USE doexec_mod 
+      USE doloop_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'doloop.inc' 
-      include'doexec.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -412,13 +412,13 @@
 !-                                                                      
 !     reads the 'do' command and evaluates the corresponding counter    
 !+                                                                      
+      USE doloop_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      include'doloop.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) zeile, cpara (maxw) 
@@ -564,10 +564,10 @@
 !     reads the 'enddo'. If the 'until' is found, the expression is     
 !     evaluated                                                         
 !+                                                                      
+      USE doloop_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'doloop.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) zeile 
@@ -589,9 +589,9 @@
 !-                                                                      
 !     Tests the logical condition given in 'string'                     
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
@@ -1144,9 +1144,9 @@
 !     Calculates the value of an expression and stores the result       
 !     in the proper variable                                            
 !                                                                       
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1247,10 +1247,10 @@
 !     Evaluates the parameters and stores the result                    
 !     in the proper string variable                                     
 !                                                                       
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1350,10 +1350,10 @@
 !-                                                                      
 !     evaluates the expression stored in line                           
 !                                                                       
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1407,10 +1407,10 @@
 !-                                                                      
 !     Calculates the value of the expression stored in string           
 !+                                                                      
+      USE charact_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'charact.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1568,10 +1568,10 @@
 !-                                                                      
 !     Calculates the value of the character expression stored in string 
 !+                                                                      
+      USE charact_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'charact.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1774,9 +1774,9 @@
 !-                                                                      
 !       evaluates a line that has only the basic arithmetics            
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER ipot, iz1, iz2, ll, imal, idiv, iverk 
@@ -1950,12 +1950,12 @@
 !                                                                       
 !     Evaluate all intrinsic functions                                  
 !                                                                       
+      USE errlist_mod 
+      USE random_mod
+      USE wink_mod
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'random.inc' 
-      include'times.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 9) 
@@ -2347,9 +2347,9 @@
 !                                                                       
 !     Get the two numbers in front and after an operator                
 !                                                                       
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) zeile 
@@ -2537,8 +2537,8 @@
 !                                                                       
 !     Removes all leading blanks from a string                                  
 !                                                                       
+      USE charact_mod
       IMPLICIT none 
-      INCLUDE'charact.inc'
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(INOUT) :: line 
       INTEGER            , INTENT(INOUT) :: ll
@@ -2594,9 +2594,9 @@ END FUNCTION len_str
 !     Deletes the first <ndel> parameters from the list and             
 !     moves the rest to the beginning of the arrays.                    
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER nwerte 
       CHARACTER(1024) cpara (nwerte) 
@@ -2620,9 +2620,9 @@ END FUNCTION len_str
 !       the parameter. If the routine is called with a negative         
 !     length, leading SPACE will NOT be removed !                       
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER nwerte 
       CHARACTER ( * ) string 
@@ -2792,9 +2792,9 @@ END FUNCTION len_str
 !-                                                                      
 !     Calculated the value of all expressions stored in cpara           
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxpara 
       CHARACTER(1024) cpara (maxpara) 
@@ -2825,9 +2825,9 @@ END FUNCTION len_str
 !     by searching backwards from the bracket to the first non          
 !     character and non '_' character.                                  
 !+                                                                      
+      USE charact_mod
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
 !                                                                       
       CHARACTER ( * ) string 
 !                                                                       
@@ -2861,10 +2861,10 @@ END FUNCTION len_str
 !     The VMS version properly detects an error for the (more sensible) 
 !     length equal to the actual length of the parameter                
 !+                                                                      
+      USE errlist_mod 
+      USE charact_mod
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) string 
       INTEGER laenge 
@@ -2897,9 +2897,9 @@ END FUNCTION len_str
 !     Creates a filename from several parameters. the first parameter   
 !     is interpreted as format.                                         
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER FORM_INTEGER 
       INTEGER FORM_INT_ZEROS 
@@ -3392,7 +3392,9 @@ END FUNCTION len_str
 !+                                                                      
 !     This subroutine counts the number of columns of string 'zeile'    
 !-                                                                      
-      include'prompt.inc' 
+      USE prompt_mod 
+!
+      IMPLICIT NONE
 !                                                                       
       CHARACTER ( * ) zeile 
       INTEGER ianz, i 

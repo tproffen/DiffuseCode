@@ -5,11 +5,11 @@
 !     within a learning sequence or not ..                              
 !                                                                       
 !-                                                                      
+      USE errlist_mod 
+      USE learn_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'learn.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 12) 
@@ -62,10 +62,10 @@
 !+                                                                      
 !     End of learning sequenze                                          
 !-                                                                      
+      USE errlist_mod 
+      USE learn_mod 
       IMPLICIT none 
 !                                                                       
-      include'learn.inc' 
-      include'errlist.inc' 
 !                                                                       
       IF (.not.llearn) then 
          ier_num = - 8 

@@ -6,10 +6,10 @@
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
 !+                                                                      
+      USE envir_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(255) cdummy
       INTEGER ico, ice, iii

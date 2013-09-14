@@ -5,9 +5,9 @@
 !     calculates a random number for gaussian distribution of           
 !     sigma.                                                            
 !+                                                                      
+      USE random_mod
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
 !                                                                       
       REAL sig, v1, v2, r, fac, gset 
       REAL ran1 

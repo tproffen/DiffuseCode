@@ -5,10 +5,10 @@
 !       Contains other error handling routines.
 !
 !*****7****************************************************************
+       USE errlist_mod
+       USE param_mod 
        IMPLICIT      none
 !
-       include      'errlist.inc'
-       include      'param.inc'
 !
        if    (ier_typ.eq.ER_NONE) then
          call errlist_none
@@ -49,9 +49,9 @@
 !+
 !       Resets error variables
 !-
+       USE errlist_mod 
        IMPLICIT       none
 !
-       include              'errlist.inc'
 !
        ier_num = 0
        ier_typ = ER_NONE
@@ -66,10 +66,10 @@
 !-
 !       Displays the error messages 
 !+
+       USE errlist_mod 
+       USE prompt_mod
        IMPLICIT      none
 !
-       include      'errlist.inc'
-       include      'prompt.inc'
 !
        integer       i,iu,io
        CHARACTER*80  estr
@@ -111,9 +111,9 @@
 !-
 !       Displays error Messages for the error type NONE
 !+
+       USE errlist_mod 
        IMPLICIT      none
 !
-       include      'errlist.inc'
 !
        integer       iu,io
        parameter    (iu=0,io=3)
@@ -134,10 +134,10 @@
 !-
 !       Displays error Messages for the error type COMMands
 !+
+       USE errlist_mod 
+       USE prompt_mod
        IMPLICIT      none
 !
-       include      'errlist.inc'
-       include      'prompt.inc'
 !
        integer       iu,io
        parameter    (IU=-17,IO=0)
@@ -176,9 +176,9 @@
 !-
 !       Displays error Messages for the error type FORTran
 !+
+       USE errlist_mod 
        IMPLICIT      none
 !
-       include      'errlist.inc'
 !
        integer       iu,io
        parameter    (IU=-34,IO=1)
@@ -235,9 +235,9 @@
 !-
 !       Displays error Messages for the error type IO
 !+
+       USE errlist_mod
        IMPLICIT      none
 !
-       include      'errlist.inc'
 !
        integer       iu,io
        parameter    (IU= -26,IO=0)
@@ -285,9 +285,9 @@
 !-
 !       Displays error Messages for the error type MACros
 !+
+       USE errlist_mod
        IMPLICIT      none
 !
-       include      'errlist.inc'
 !
        integer       iu,io
        parameter    (IU=-41,IO=3)
@@ -353,9 +353,9 @@
 !-
 !       Displays error Messages for the error type MATHematical errors
 !+
+       USE errlist_mod
        IMPLICIT      none
 !
-       include      'errlist.inc'
 !
        integer       iu,io
        parameter    (IU= -1,IO=0)

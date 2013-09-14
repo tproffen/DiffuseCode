@@ -12,13 +12,13 @@
 !               Th. Proffen (proffen@pa.msu.edu)                        
 !                                                                       
 !-                                                                      
+      USE doact_mod 
+      USE envir_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'envir.inc' 
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER nviele, ihl, maxw 
       PARAMETER (nviele = 101, ihl = 77, maxw = 10) 
@@ -138,9 +138,9 @@
 !-                                                                      
 !     Prints out status line in online help                             
 !-                                                                      
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
       INTEGER iwhere, ibef, maxw 
       INTEGER il (maxw) 
@@ -176,11 +176,11 @@
 !-                                                                      
 !     This routine emulates the VMS help function itself                
 !-                                                                      
+      USE envir_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER nviele 
       PARAMETER (nviele = 101) 
@@ -337,10 +337,10 @@
 !*****7*****************************************************************
       SUBROUTINE lese_text (ihl) 
 !                                                                       
+      USE envir_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(80) line 
       CHARACTER(1) cdummy 
@@ -421,9 +421,9 @@
 !*****7*****************************************************************
       SUBROUTINE schreib_viele (viele, nviele, nbef) 
 !                                                                       
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
       INTEGER nviele 
       CHARACTER ( * ) viele (nviele) 

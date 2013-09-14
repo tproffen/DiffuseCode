@@ -9,11 +9,11 @@ SUBROUTINE cmdline_args
 !     This routine checks for command line arguments and                
 !     executes given macros ..                                          
 !                                                                       
+      USE prompt_mod 
+      USE debug_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER marg 
       PARAMETER (marg = 20) 
@@ -82,12 +82,12 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     This initializes the remote communication via SOCKETS             
 !                                                                       
+      USE debug_mod 
+      USE envir_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER len_str 
       LOGICAL llocal 
@@ -108,13 +108,13 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     This part contains all the program independent commands.          
 !                                                                       
+      USE debug_mod 
+      USE envir_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'debug.inc' 
-      include'envir.inc' 
-      include'learn.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
       INTEGER lcomm 
@@ -340,10 +340,10 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     Waits for 'ready' from server                                     
 !                                                                       
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(256) line, cstr 
       INTEGER i, il, icr 
@@ -391,10 +391,10 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     This part contains all the program independent commands.          
 !                                                                       
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !
       INTEGER socket_send
 !                                                                       
@@ -426,11 +426,11 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     This part contains all the program independent commands.          
 !                                                                       
+      USE errlist_mod 
+      USE learn_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'learn.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxpar 
       PARAMETER (maxpar = 2) 
@@ -597,10 +597,10 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE ini_ran (iflag) 
 !                                                                       
+      USE random_mod
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
-      include'times.inc' 
 !                                                                       
       INTEGER iflag 
       REAL seknds 
@@ -621,16 +621,16 @@ SUBROUTINE cmdline_args
 !     READLINE defined, you will have basic line editing                
 !     functions.                                                        
 !-                                                                      
+      USE charact_mod
+      USE debug_mod 
+      USE doact_mod 
+      USE errlist_mod 
       USE jsu_readline
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'macro.inc' 
-      include'charact.inc' 
-      include'doact.inc' 
-      include'learn.inc' 
-      include'errlist.inc' 
-      include'debug.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER ( * ) line, befehl, zeile, prom 
       CHARACTER(1024) input, string 
@@ -815,9 +815,9 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     removes trailing in line comments                                 
 !                                                                       
+      USE charact_mod
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       INTEGER ll 
@@ -852,10 +852,10 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     writes an echo to the screen                                      
 !+                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxp 
       PARAMETER (maxp = 12) 
@@ -945,11 +945,11 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fopen (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'macro.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1047,11 +1047,11 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fexist (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1089,10 +1089,10 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fclose (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
+      USE macro_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'macro.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 25) 
@@ -1142,11 +1142,11 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fend (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'macro.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1206,12 +1206,12 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fget (zeile, lp) 
 !                                                                       
+      USE charact_mod
+      USE errlist_mod 
+      USE macro_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'charact.inc' 
-      include'macro.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 25) 
@@ -1334,12 +1334,12 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fformat (zeile, lp) 
 !                                                                       
+      USE debug_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'macro.inc' 
-      include'debug.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -1386,11 +1386,11 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fgetsub (zeile, lp) 
 !                                                                       
+      USE debug_mod 
+      USE errlist_mod 
+      USE macro_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'macro.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1446,11 +1446,11 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_fput (zeile, lp) 
 !                                                                       
+      USE debug_mod 
+      USE errlist_mod 
+      USE macro_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'macro.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = MAC_MAX_FORM) 
@@ -1546,10 +1546,10 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_input (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 12) 
@@ -1623,9 +1623,9 @@ SUBROUTINE cmdline_args
 !*****7***********************************************************      
       SUBROUTINE do_seed (zeile, lp) 
 !                                                                       
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 
@@ -1659,9 +1659,9 @@ SUBROUTINE cmdline_args
 !*                                                                      
 !     This routine prints the prompt on the screen                      
 !-                                                                      
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
       CHARACTER ( * ) prom 
       INTEGER len_str 
@@ -1711,12 +1711,12 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     Sets the value of status variables                                
 !+                                                                      
+      USE debug_mod 
+      USE envir_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'debug.inc' 
-      include'envir.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -1911,10 +1911,10 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     writes an echo to the screen                                      
 !+                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxp 
       PARAMETER (maxp = 12) 
@@ -2056,10 +2056,10 @@ SUBROUTINE cmdline_args
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE errlist_mod 
+      USE variable_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'variable.inc' 
 !                                                                       
       CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
@@ -2140,10 +2140,10 @@ SUBROUTINE cmdline_args
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE errlist_mod 
+      USE variable_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'variable.inc' 
 !                                                                       
       CHARACTER ( * ) string 
       CHARACTER ( * ) dummy 
@@ -2184,11 +2184,11 @@ SUBROUTINE cmdline_args
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
+      USE variable_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'variable.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -2350,10 +2350,10 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     shows the variable definitions                                    
 !+                                                                      
+      USE prompt_mod 
+      USE variable_mod
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'variable.inc' 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -2401,10 +2401,10 @@ SUBROUTINE cmdline_args
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE charact_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
 !                                                                       
@@ -2462,9 +2462,9 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     shows something related to the general command language           
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER ianz 
       INTEGER maxw 
@@ -2497,11 +2497,11 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     Shows the result array                                            
 !+                                                                      
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
@@ -2528,10 +2528,10 @@ SUBROUTINE cmdline_args
 !-                                                                      
 !     Shows the result array                                            
 !+                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
 !------ - Error status setting                                          
 !                                                                       

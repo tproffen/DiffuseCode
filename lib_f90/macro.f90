@@ -4,12 +4,12 @@
 !-                                                                      
 !     Opens a new macro file.                                           
 !+                                                                      
+      USE envir_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'envir.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = MAC_MAX_PARA + 1) 
@@ -210,13 +210,13 @@
 !-                                                                      
 !     Reads a single line from the current macro file                   
 !+                                                                      
+      USE charact_mod
+      USE doact_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER ( * ) line 
 !                                                                       
@@ -436,10 +436,10 @@
 !     Closes the macro file, switches macro status off and sets the     
 !     macro level back to zero.                                         
 !+                                                                      
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -460,12 +460,12 @@
 !     Continues the macro file, that had been interupted for            
 !     debugging purposes                                                
 !+                                                                      
+      USE doact_mod 
+      USE errlist_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 

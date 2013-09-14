@@ -5,58 +5,58 @@
 !*****7**************************************************************** 
       FUNCTION sind (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       sind = sin (arg * rad) 
       END FUNCTION sind                             
 !*****7**************************************************************** 
       FUNCTION cosd (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       cosd = cos (arg * rad) 
       END FUNCTION cosd                             
 !*****7**************************************************************** 
       FUNCTION tand (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       tand = tan (arg * rad) 
       END FUNCTION tand                             
 !*****7**************************************************************** 
       FUNCTION asind (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       asind = asin (arg) / rad 
       END FUNCTION asind                            
 !*****7**************************************************************** 
       FUNCTION acosd (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       acosd = acos (arg) / rad 
       END FUNCTION acosd                            
 !*****7**************************************************************** 
       FUNCTION atand (arg) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       atand = atan (arg) / rad 
       END FUNCTION atand                            
 !*****7**************************************************************** 
       FUNCTION atan2d (arg1, arg2) 
 !                                                                       
-      include'wink.inc' 
+      USE wink_mod
 !                                                                       
       atan2d = atan2 (arg1, arg2) / rad 
       END FUNCTION atan2d                           
 !*****7**************************************************************** 
       SUBROUTINE datum () 
 !                                                                       
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'times.inc' 
 !                                                                       
       CHARACTER(8) date 
       CHARACTER(10) time 
@@ -80,9 +80,9 @@
 !*****7**************************************************************** 
       SUBROUTINE datum_intrinsic () 
 !                                                                       
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'times.inc' 
 !                                                                       
       CHARACTER(8) date 
       CHARACTER(10) time 
@@ -138,10 +138,10 @@
 !+                                                                      
 !     Gets and stored sile modification time                            
 !-                                                                      
+      USE errlist_mod 
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'times.inc' 
 !                                                                       
       INTEGER ifile 
       INTEGER buff (13) 
@@ -176,10 +176,10 @@
 !+                                                                      
 !     Executes operating system command                                 
 !-                                                                      
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       CHARACTER ( * ) command 
 !
@@ -206,10 +206,10 @@
 !+                                                                      
 !     Changes working directory ..                                      
 !-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
@@ -259,9 +259,9 @@
 !     Gets the current working directory and stores the result in       
 !     dir                                                               
 !-                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) dir 
       CHARACTER(1024) cwd 
@@ -280,9 +280,9 @@
 !+                                                                      
 !     Deletes a file                                                    
 !-                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) name 
       CHARACTER(1024) command 
@@ -313,9 +313,9 @@
 !+                                                                      
 !     Renames the file <nameold> to <namenew>                           
 !-                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) nameold, namenew 
       CHARACTER(80) command 
@@ -363,10 +363,10 @@
 !*****7*****************************************************************
       SUBROUTINE open_def (idef) 
 !                                                                       
+      USE envir_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(80) dffile 
       INTEGER idef, l1, l2 
@@ -411,11 +411,11 @@
 !     The readonly parameter is VMS specific, not implemented           
 !     on SUN FORTRAN                                                    
 !+                                                                      
+      USE envir_mod 
+      USE errlist_mod 
+      USE times_mod
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'errlist.inc' 
-      include'times.inc' 
 !                                                                       
       CHARACTER (LEN=* )    :: datei, stat 
       CHARACTER (LEN=1024)  :: line 
@@ -485,10 +485,10 @@
 !     The readonly parameter is VMS specific, not implemented           
 !     on SUN FORTRAN                                                    
 !+                                                                      
+      USE envir_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) datei, stat 
       CHARACTER(1024) line 
