@@ -13,6 +13,4 @@ INTEGER             ,DIMENSION(:), ALLOCATABLE ::  constr_length
 INTEGER                                        ::  constr_number
 INTEGER                                        ::  constr_size_of  ! Bytes allocated for constraint
 !
-!      common /constr/    constr_line,constr_length,constr_number
-!
 END MODULE constraint

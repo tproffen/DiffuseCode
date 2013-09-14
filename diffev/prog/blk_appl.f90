@@ -35,7 +35,7 @@ CONTAINS
 !
    IMPLICIT none 
 !                                                                 
-!     common /diffev/                                             
+!     /diffev/                                             
 !                                                                 
    diff_cr         = 0.9 
    diff_f          = 0.81 

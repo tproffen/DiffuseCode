@@ -20,7 +20,4 @@ REAL               :: diff_f
 REAL               :: diff_k 
 REAL               :: diff_local
 !
-!     common /diffev/ diff_sel_mode,diff_donor_mode,                    &
-!    &                diff_cr,diff_f,diff_k,diff_local
-!
 END MODULE diff_evol

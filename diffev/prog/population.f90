@@ -68,23 +68,4 @@ REAL    ,DIMENSION(:)  , ALLOCATABLE :: parent_val     !  (MAXPOP)
 !
 INTEGER                 :: pop_size_of  ! Bytes allocated for population
 !
-!      common /pop/      pop_n,pop_c,pop_dimx,pop_gen,pop_best,          &
-!     &                      pop_worst,                                  &
-!     &                      pop_lgenfile,pop_genfile,                   &
-!     &                      pop_ltrialfile,pop_trialfile,               &
-!     &                  pop_x,pop_t,pop_para,pop_xmin,pop_xmax,         &
-!     &                  pop_smin,pop_smax,pop_sigma,pop_lsig,           &
-!     &                      pop_sig_ad,pop_lsig_ad,                     &
-!     &                      pop_ad_sigma,pop_ad_lsigma,                 &
-!     &                  pop_type,pop_refine,pop_current,                &
-!     &                  pop_name,pop_lname
-!RBN     &                      pop_lparfile,pop_parfile,
-
-!      common /values/ ltrial_results,trial_results,                     &
-!     &                  lparent_results,parent_results,                 &
-!     &                  lparent_summary,parent_summary,                 &
-!     &                  child_val,trial_val,parent_val
-
-!      common /kinder/ child,trial
-!
 END MODULE population
