@@ -48,11 +48,4 @@ INTEGER                              :: st_spcgr_ianz
 INTEGER                              :: st_spcgr_para
 INTEGER                              :: st_cr_size_of
 !
-!       COMMON /stack_cr/ st_name,st_spcgr,st_a0,st_win,st_v,
-!    &                st_gten,st_eps,
-!    &       st_ar,st_wrez,st_vr,st_rten,st_reps,st_natoms,
-!    &       st_nscat,st_dw,st_scat,st_delfr,st_delfi,
-!    &       st_at_lis,st_atom,st_pos,st_iscat,st_ndel,st_dim
-!    &                st_spcgr_ianz,st_spcgr_para
-!
 END MODULE stack_cr_mod

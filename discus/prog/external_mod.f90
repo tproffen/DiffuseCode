@@ -34,21 +34,4 @@ REAL   , DIMENSION(4,4) ::  exte_rmat ! (4,4)
 REAL   , DIMENSION(4,4) ::  exte_rot  ! (4,4)
 REAL   , DIMENSION(4,4) ::  exte_rrot ! (4,4)
 !
-!     COMMON /external_files/ exte_names,exte_length,exte_filename
-!
-!     COMMON /external_head/ exte_version,                              &
-!    &        exte_hdrblks,                                             &
-!    &        exte_title,                                               &
-!    &        exte_nrows,                                               &
-!    &        exte_ncols,                                               &
-!    &        exte_layer,                                               &
-!    &        exte_npixelb,                                             &
-!    &        exte_wordord,                                             &
-!    &        exte_longord,                                             &
-!    &        exte_orig,                                                &
-!    &        exte_scale
-!
-!     COMMON /external_var/ exte_iii,exte_mat,exte_rmat,exte_rot,       &
-!    &                                 exte_rrot
-!
 END MODULE external_mod

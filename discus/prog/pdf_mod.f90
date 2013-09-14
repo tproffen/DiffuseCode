@@ -1,6 +1,6 @@
 MODULE pdf_mod
 !+
-!     This file contains COMMON variables for pdf routines
+!     This file contains variables for pdf routines
 !-
 USE config_mod
 !
@@ -82,19 +82,5 @@ LOGICAL             ::  pdf_lrho0     = .true.
 LOGICAL             ::  pdf_lexact    = .false.
 LOGICAL             ::  pdf_lrho0_rel = .false.
 INTEGER             ::  pdf_size_of   = 0
-!
-!     COMMON /pdfbl/ pdf_calc,pdf_rmax,pdf_lxray,pdf_qmax,              &
-!    &               pdf_deltar,pdf_bin,pdf_sinc,pdf_obs,               &
-!    &               pdf_wic,pdf_skal,pdf_sigmaq,pdf_rfmin,             &
-!    &               pdf_rfmax,pdf_weight,pdf_xq,pdf_bnd,               &
-!    &               pdf_allowed_i,pdf_allowed_j,pdf_gauss,             &
-!    &               pdf_delta,pdf_rcut,pdf_srat,pdf_dnorm,             &
-!    &               pdf_sphere,                                        &
-!    &               pdf_corr,pdf_2d,pdf_rho0,pdf_gamma,                &
-!    &               pdf_diam,pdf_shape,pdf_ldata,pdf_qalp,             &
-!    &               pdf_scale,pdf_finite,pdf_poly,pdf_poly_n,          &
-!    &               pdf_lweights,pdf_lrho0_rel,pdf_temp,               &
-!    &               pdf_lrho0,pdf_lexact,                              &
-!    &               pdf_sel_prop
 !
 END MODULE pdf_mod

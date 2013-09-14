@@ -107,26 +107,4 @@ INTEGER ::  mmc_l_lower
 INTEGER ::  mmc_l_upper
 INTEGER ::  mmc_size_of = 0
 !
-!     COMMON /mmcbl/ mmc_angles,mmc_move,mmc_local,mmc_cor_energy,      &
-!    &               mmc_const,mmc_allowed,                             &
-!    &               mmc_latom,mmc_sel_prop,                            &
-!    &               mmc_md_s,mmc_md_nr,                                &
-!    &               mmc_cfac,mmc_ach_corr,mmc_ach_sigm,                &
-!    &               mmc_target_corr,                                   &
-!    &               mmc_pair,mmc_depth,mmc_depth_angl,                 &
-!    &               mmc_n_angles,mmc_target_angl,mmc_ach_angl,         &
-!    &               mmc_ang_sigm,                                      &
-!    &               mmc_nvec,mmc_vec,mmc_move_prob,                    &
-!    &               mmc_move_cprob,mmc_l_constrains,                   &
-!    &               mmc_constrain_type,                                &
-!    &               mmc_c_min,mmc_c_max,mmc_c_rad,                     &
-!    &               mmc_l_limited,                                     &
-!    &               mmc_l_type,mmc_l_center,mmc_l_extend,              &
-!    &               mmc_l_lower,mmc_l_upper,                           &
-!    &               mmc_len_a,mmc_len_b,mmc_len_m,mmc_len_n,           &
-!    &               mmc_buck_a,mmc_buck_rho,mmc_buck_b,                &
-!    &               mmc_buck_rmin,mmc_buck_atmin
-!
-!     COMMON  /mmcav/ n_e_av_p,n_e_av_m,n_e_av_z,e_aver_p,e_aver_m
-!
 END MODULE mmc_mod

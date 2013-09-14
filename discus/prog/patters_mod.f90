@@ -1,7 +1,7 @@
 MODULE patters_mod
 !+
 !
-!     This file contains COMMON block for inverse Fourier and
+!     This file contains variables for inverse Fourier and
 !     Patterson input
 !-
 SAVE
@@ -30,12 +30,5 @@ REAL                    ::  patt_excl_val = -9999.0
 REAL   , DIMENSION(20)  ::  e_aver_f2     = 0.0
 REAL                    ::  wilson_scale  = 1.0
 REAL                    ::  wilson_b      = 0.0
-!
-!     COMMON /patters/ rho_inc,rho_eck,rho_vi,rho_type,rho_file,        &
-!    &                 patt_scale,patt_accu,patt_sign,patt_mode,        &
-!    &                 patt_origin,ftyp,                                &
-!    &                 patt_excl9999,patt_rsym,patt_excl_val,           &
-!    &                 e_aver_f2
-!     COMMON /wilson/  wilson_scale,wilson_b
 !
 END MODULE patters_mod

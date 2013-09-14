@@ -7,8 +7,8 @@
 !                                                                       
 !  All parameters passed to the subroutine are output values, i.e.      
 !  must be set by the subroutine. All information about crystal,        
-!  RMC settings, etc. are supplied via COMMON blocks through the        
-!  include statements. Do not change any of those values !!             
+!  RMC settings, etc. are supplied via MODULES through the        
+!  USE statements. Do not change any of those values !!             
 !                                                                       
 !********************************************************************** 
 !  1. Output parameters of 'rmc_genmove_ext'                            

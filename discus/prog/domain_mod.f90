@@ -1,7 +1,7 @@
 MODULE domain_mod
 !
 !
-!     Common block for the cluster distributions
+!     Variables for the cluster distributions
 !
 INTEGER             ::  clu_increment     = 200
 INTEGER             ::  CLU_MAX_TYPE      =   1
@@ -39,9 +39,5 @@ INTEGER                               ::  clu_remove_end       ! Initial last at
 REAL                                  ::  clu_remove_dist = 0.0! Initial removal distance
 !
 INTEGER                               ::  clu_size_of! Bytes allocated for DOMAIN
-!
-!     COMMON /cluster/ clu_infile,clu_content,clu_name,clu_mode,        &
-!    &                 clu_index,clu_number,clu_CHARACTER,              &
-!    &                 clu_fuzzy,clu_orient,clu_shape
 !
 END MODULE domain_mod

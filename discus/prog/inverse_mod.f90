@@ -1,4 +1,4 @@
-      MODULE inverse_mod
+MODULE inverse_mod
 !+
 !
 !     This file contains PARAMETER definitions forr inverse Fourier
@@ -9,4 +9,4 @@
       INTEGER, PARAMETER  ::  INV_PATT   =  2
       INTEGER, PARAMETER  ::  INV_FCALC  =  3
 !
-      END MODULE inverse_mod
+END MODULE inverse_mod

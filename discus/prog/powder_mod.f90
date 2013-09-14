@@ -91,18 +91,4 @@ REAL   , DIMENSION(:), ALLOCATABLE :: pow_qsp !  (0:POW_MAXPKT)
 !
 INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
 !
-!     COMMON /powdervars/ pow_four_mode,pow_four_type,pow_lp,           &
-!    &                    pow_l_all,pow_axis,                           &
-!    &                    pow_tthmin,pow_tthmax,                        &
-!    &                    pow_qmin,pow_qmax,pow_deltaq,pow_delta,       &
-!    &                    pow_lp_fac,pow_lp_ang,pow_lp_cos,             &
-!    &                    pow_deltatth,pow_ds_min,pow_ds_max,           &
-!    &                    pow_hkl_max,pow_hkl_del,pow_qsp,              &
-!    &                    pow_hkl_shift,pow_scale,pow_back,             &
-!    &                    pow_four_vers,pow_pref,pow_pref_type,         &
-!    &                    pow_pref_g1,pow_pref_g2,pow_pref_hkl,         &
-!    &                    pow_profile,pow_eta,pow_etax,pow_fwhm,pow_u,  &
-!    &                    pow_v,pow_w,pow_p1,pow_p2,pow_p3,pow_p4,      &
-!    &                    pow_width,pow_pr_par
-!
 END MODULE powder_mod

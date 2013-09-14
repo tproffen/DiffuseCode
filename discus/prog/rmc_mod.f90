@@ -88,18 +88,4 @@ LOGICAL                                            :: rmc_ranloc,rmc_sel_atom
 !
 INTEGER                                            :: rmc_size_of  ! Bytes allocates for rmc
 !     
-!     COMMON /rmbl/ rmc_fname,rmc_lname,rmc_lambda,                     &
-!    &              rmc_wic_typ,rmc_maxmove,                            &
-!    &              rmc_maxcyc,rmc_nplane,rmc_int,rmc_wic,rmc_csf,      &
-!    &              rmc_csf_new,rmc_sigma,rmc_calc_f,rmc_mindist,       &
-!    &              rmc_display,rmc_mode,rmc_allowed,rmc_mindist_max,   &
-!    &              rmc_lxray,rmc_ano,rmc_ldbw,rmc_skal,rmc_back,       &
-!    &              rmc_wtot,rmc_chi2,rmc_doskal,rmc_ave,rmc_constrain, &
-!    &              rmc_doback,rmc_rlambda,rmc_log,rmc_nsym,rmc_dosym,  &
-!    &              rmc_qmin,rmc_qmax,rmc_llim,rmc_ulim,rmc_eck,rmc_vi, &
-!    &              rmc_num,rmc_data,rmc_xy,ristl,rcfact,rmc_local,     &
-!    &              rmc_lots_orig,rmc_nlots,rmc_ilots,rmc_csize,        &
-!    &              rmc_nosym,rmc_ranloc,rmc_sel_atom,offq,offsq,       &
-!    &              rmc_sel_prop
-!
 END MODULE rmc_mod

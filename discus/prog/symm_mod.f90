@@ -39,13 +39,4 @@ REAL, DIMENSION(4,4)     :: sym_rmat      = 0.0
 !
 INTEGER                  :: sym_size_of  ! Bytes allocated for symmetry
 !
-!     COMMON /symm_par/ sym_sel_prop,                                   &
-!    &                  sym_start,sym_end,                              &
-!    &                  sym_power,sym_sel_mode,                         &
-!    &                  sym_latom,sym_new,sym_orig_mol,                 &
-!    &                  sym_mode,sym_power_mult,sym_type,sym_sel_atom,  &
-!    &                  sym_angle,sym_hkl,sym_orig,sym_or_tr,           &
-!    &                  sym_trans,sym_uvw,                              &
-!    &                  sym_mat,sym_rmat,sym_incl,                      &
-!    &                  sym_dom_mode_atom,sym_dom_mode_shape
 END MODULE symm_mod

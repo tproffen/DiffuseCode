@@ -11,6 +11,4 @@ INTEGER          , DIMENSION(SPCGR_MAX,2)   ::  spcgr_num
 INTEGER          , DIMENSION(SPCGR_MAX)     ::  spcgr_syst
 !
 !
-!     COMMON /space_group/ spcgr_name,spcgr_num,spcgr_syst
-!
 END MODULE spcgr_mod

@@ -46,20 +46,18 @@
       s_port = 3330 
       s_ipallowed = "localhost" 
 !                                                                       
-!     common /errors/                                                   
+!     /errors/                                                   
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
       ier_sta = ER_S_CONT 
-      DO i = 1, 3 
-      ier_msg (i) = ' ' 
-      ENDDO 
+      ier_msg (:) = ' ' 
 !
-!     common /space_group/
+!     /space_group/
 !
       CALL spcgr_setup 
 !                                                                       
-!     common      /chem/                                                
+!     /chem/                                                
 !                                                                       
       DO i = 1, CHEM_MAX_COR 
       chem_ldall (i) = .false. 
@@ -71,7 +69,7 @@
       chem_dir (1, 1, i) = - 9999 
       ENDDO 
 !                                                                       
-!     common      /mcbl/                                                
+!     /mcbl/                                                
 !                                                                       
       mo_energy = MC_NONE 
       mo_mode = RMC_MODE_SWCHEM 
@@ -107,11 +105,11 @@
       ENDDO 
       mo_const (0) = 1.0 
 !                                                                       
-!     common  /mmcbl/                                                   
+!     /mmcbl/                                                   
 !                                                                       
       CALL mmc_init 
 !                                                                       
-!     common      /rmbl/                                                
+!     /rmbl/                                                
 !                                                                       
       rmc_display = 500 
       rmc_maxcyc = 5000 
@@ -183,7 +181,7 @@
 !                                                                       
       INTEGER i, j, k, l, m 
 !                                                                       
-!     common  /mmcbl/                                                   
+!     /mmcbl/                                                   
 !                                                                       
       mmc_move = 0 
 !     DO i = 1, MC_N_MOVE 
@@ -234,7 +232,7 @@
       mmc_c_max  =  1.e10 
 !     ENDDO 
 !                                                                       
-!     common  /mmcav/                                                   
+!     /mmcav/                                                   
 !                                                                       
 !     DO i = 0, MC_N_ENERGY 
       n_e_av_p     = 0 

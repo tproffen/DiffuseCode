@@ -15,6 +15,4 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE  :: pow_iatom ! (MAXSCAT,NMAX)
 !
 INTEGER                               :: pown_size_of
 !
-!     COMMON      /powder_scat/      pow_nscat,pow_iatom
-!
 END MODULE powder_scat_mod

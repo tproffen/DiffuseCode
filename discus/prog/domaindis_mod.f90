@@ -18,11 +18,4 @@ INTEGER                              ::  mv_orient  = 0
 INTEGER                              ::  mc_num     = 0
 INTEGER                              ::  mc_type    = 1
 !
-!
-!     COMMON /microdis/ md_sep_fuz,md_ori_n
-!
-!     COMMON /microdef/ mv_orient
-!
-!     COMMON /microlis/ mc_num,mc_type,mc_orig
-!
 END MODULE domaindis_mod

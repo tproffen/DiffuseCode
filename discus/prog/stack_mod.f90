@@ -78,19 +78,4 @@ REAL                                       :: st_rot_si_m2     = 0.0
 !
 INTEGER                                    :: st_size_of       = 0
 !
-!     COMMON /stack_fault/ st_infile,st_layer,st_llayer,st_ntypes,      &
-!    &                     st_number,st_distr,st_type,st_nlayer,        &
-!    &                     st_infile_l,st_ndisp,                        &
-!    &                     st_disp,st_corr,st_mod,st_aver,              &
-!    &                     st_origin,st_sigma,st_trans,st_csf,          &
-!    &                     st_mod_sta,st_tra_aver,st_inv,st_t_aver,     &
-!    &                     st_nchem,st_layer_c,st_chem,                 &
-!    &                     st_prob,st_off,st_sigma_off,                 &
-!    &                     st_rot_mode,st_rot_status,                   &
-!    &                     st_rot_no_lspace,st_rot_m1_lspace,           &
-!    &                     st_rot_m2_lspace,                            &
-!    &                     st_rot_no,st_rot_m1,st_rot_m2,               &
-!    &                     st_rot_si_no,st_rot_si_m1,st_rot_si_m2,      &
-!    &                     st_rot_ang_no,st_rot_ang_m1,st_rot_ang_m2
-!
 END MODULE stack_mod

@@ -18,6 +18,4 @@ REAL, DIMENSION(:), ALLOCATABLE  ::  surf_in_dist   !(0:MAXSCAT)
 !
 INTEGER             ::  surf_size_of
 !
-!     COMMON /surface/ SURF_DIST_DEF,surf_ex_dist,surf_in_dist
-!
 END MODULE surface_mod

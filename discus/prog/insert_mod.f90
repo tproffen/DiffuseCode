@@ -23,9 +23,4 @@ REAL   , DIMENSION(3) ::  ins_xdim    ! (3)
 REAL   , DIMENSION(3) ::  ins_ydim    ! (3)
 REAL   , DIMENSION(3) ::  ins_zdim    ! (3)
 !
-!     COMMON /insertion/ ins_obj_atom,ins_file,ins_CHARACTER,           &
-!    &                   ins_origin,ins_cent,ins_density,ins_fuzzy,     &
-!    &                   ins_adp,ins_xaxis,ins_yaxis,ins_zaxis,         &
-!    &                   ins_xdim,ins_ydim,ins_zdim,ins_type
-!
 END MODULE insert_mod

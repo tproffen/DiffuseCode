@@ -15,6 +15,4 @@ INTEGER, PARAMETER  ::     GEN_SYMM    =  1
 !
 INTEGER             ::  gen_sta = GEN_SYMM
 !
-!     COMMON /unit_cell/ gen_sta
-!
 END MODULE unitcell_mod

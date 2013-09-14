@@ -2,7 +2,7 @@ MODULE chem_mod
 !+
 !
 !
-!     This file contains COMMON variables for chem routines
+!     This file contains variables for chem routines
 !-
 USE config_mod
 !
@@ -112,31 +112,5 @@ INTEGER :: chem_env_size_of  = 0
 INTEGER :: chem_vec_size_of  = 0
 INTEGER :: chem_con_size_of  = 0
 INTEGER :: chem_ran_size_of  = 0
-
-!
-!     COMMON      /chbl/ chem_fname,chem_hist,                          &
-!    &                   chem_blen_cut,chem_bang_cut,chem_bin,          &
-!    &                   chem_quick,chem_freq_sigma,chem_wink_sigma,    &
-!    &                   chem_ave_pos,chem_ave_sig,chem_ave_n,          &
-!    &                   chem_ave_iscat,chem_ave_bese,chem_cang,        &
-!    &                   chem_cvec,chem_nvec,chem_neig,                 &
-!    &                   chem_cran_uvw,chem_cran_sig,chem_cran_wsig,    &
-!    &                   chem_cran_cent,chem_cran_neig,chem_cran_cang,  &
-!    &                   chem_cran_lsym,chem_cran_short,                &
-!    &                   chem_cran_nshort,                              &
-!    &                   chem_nran,chem_use_ran,chem_cran_nuvw,         &
-!    &                   chem_ctyp,chem_use_vec,chem_ncor,chem_dir,     &
-!    &                   chem_nnei,chem_rmax,chem_rmin,                 &
-!    &                   chem_cran_rmax,chem_cran_rmin,                 &
-!    &                   chem_disp_ave,chem_disp_sig,                   &
-!    &                   chem_vect_ave,chem_vect_sig,                   &
-!    &                   chem_period,                                   &
-!    &                   chem_sel_atom,chem_ldall,                      &
-!    &                   chem_cwin,chem_nwin,chem_use_win,              &
-!    &                   chem_nenv,chem_use_env,chem_cenv,              &
-!    &                   chem_env_neig,chem_rmin_env,chem_rmax_env,     &
-!    &                   chem_cluster
-!
-!     COMMON      /bv/      bv_index,bv_r0,bv_b
 !
 END MODULE chem_mod

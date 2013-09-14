@@ -55,15 +55,4 @@ LOGICAL                                   :: pl_append    = .false.
 LOGICAL, DIMENSION(3)                     :: pl_ext_all   = .true.
 INTEGER                                   :: pl_size_of   = 0      ! Bytes allocates for plot
 !
-!     COMMON /plotting/ pl_vrml,pl_col,pl_prog,pl_out,                  &
-!    &                  pl_latom,pl_ext_all,pl_sel_prop,                &
-!    &                          pl_dim,pl_hkl,pl_uvw,pl_vec,pl_abs,     &
-!    &                  pl_ord,pl_mat,pl_inv,pl_width,                  &
-!    &                  pl_color,pl_typ,pl_siz,pl_dens,pl_sel_atom,     &
-!    &                  pl_mol_all,pl_vrml_scaling,                     &
-!    &                  pl_rgb,pl_bond,pl_bond_len,                     &
-!    &                  pl_bond_rad,pl_bond_col,pl_batom_a,pl_batom_e,  &
-!    &                  pl_tran_g,pl_tran_gi,pl_tran_f,pl_tran_fi,      &
-!    &                  pl_scale,pl_append,pl_title
-!
 END MODULE plot_mod

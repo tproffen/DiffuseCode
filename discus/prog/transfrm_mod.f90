@@ -35,10 +35,4 @@ REAL                ::  tran_deltahkl  = 0.001
 !
 INTEGER             ::  tran_size_of   = 0 ! Bytes alloacted for transformation
 !
-!     COMMON /tran/ tran_md_nr,tran_md_s,tran_start,tran_end,           &
-!    &              tran_latom,tran_inp,tran_oold,                      &
-!    &              tran_orig,tran_det,                                 &
-!    &              tran_g,tran_f,tran_gi,tran_fi,                      &
-!    &              tran_deltahkl
-!
 END MODULE transfrm_mod

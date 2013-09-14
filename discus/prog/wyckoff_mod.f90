@@ -1,4 +1,4 @@
-      MODULE wyckoff_mod
+MODULE wyckoff_mod
 !
 !
 !     This file contains definitions for the symmetry operations
@@ -20,7 +20,4 @@
       INTEGER             ::   wyc_n
       INTEGER             ::   wyc_list(48)
 !
-!     COMMON /wyckoff/ spc_n,spc_mat,spc_det,spc_spur,                  &
-!    &                 spc_char,spc_xyz,wyc_n,wyc_list
-!
-      END MODULE wyckoff_mod
+END MODULE wyckoff_mod

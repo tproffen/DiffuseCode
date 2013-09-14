@@ -52,14 +52,4 @@ REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOL
 !
 INTEGER                                 :: mol_size_of = 0
 !
-!     COMMON /molecule/ mole_num_mole,mole_num_curr,mole_num_act,       &
-!    &                  mole_num_type,mole_num_unit,mole_l_on,          &
-!    &                  mole_l_first,mole_gene_n,mole_symm_n,           &
-!    &                  mole_gene_power,mole_symm_power,                &
-!    &                  mole_num_atom,mole_num_acur,                    &
-!    &                  mole_gene,mole_symm,                            &
-!    &                  mole_len,mole_off,mole_cont,                    &
-!    &                  mole_dens,mole_fuzzy,mole_file,                 &
-!    &                  mole_type,mole_char
-!
 END MODULE molecule_mod

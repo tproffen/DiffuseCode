@@ -34,9 +34,4 @@ MODULE mc_mod
       REAL                ::  mo_kt
       LOGICAL             ::  mo_sel_atom
 !
-!     COMMON /mcbl/ mo_atom,mo_target_corr,mo_energy,                   &
-!    &              mo_disp,mo_const,mo_ach_corr,                       &
-!    &              mo_mode,mo_local,mo_cyc,mo_feed,                    &
-!    &              mo_maxmove,mo_kt,mo_cfac,mo_sel_atom
-!
 END MODULE mc_mod

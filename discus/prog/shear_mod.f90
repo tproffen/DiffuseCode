@@ -51,15 +51,4 @@ REAL   , DIMENSION(3)   :: shear_eigenw = 1.0
 !
 INTEGER                 :: shear_size_of  = 0 ! Bytes allocated for shear
 !
-!     COMMON /shearm_par/ shear_sel_prop,shear_md_nr,shear_md_s,        &
-!    &                    shear_start,                                  &
-!    &                    shear_end,shear_latom,shear_new,              &
-!    &                    shear_orig_mol,shear_mode,                    &
-!    &                    shear_sel_atom,shear_input,                   &
-!    &                    shear_hkl,shear_orig,                         &
-!    &                    shear_vector,shear_uvw,shear_length,          &
-!    &                    shear_mat,shear_rmat,shear_incl,              &
-!    &                    shear_eigenv,shear_eigent,shear_eigenw,       &
-!    &                    shear_dom_mode_atom,shear_dom_mode_shape
-!
 END MODULE shear_mod

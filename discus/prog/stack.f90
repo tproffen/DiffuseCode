@@ -952,7 +952,6 @@ SUBROUTINE stack
       include'errlist.inc' 
       include'param.inc' 
       include'random.inc' 
-!     include'stack_cr.inc'
 !                                                                       
       INTEGER i, j, k 
       INTEGER         :: nlayers
@@ -2308,7 +2307,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
       IMPLICIT none 
 !                                                                       
       include'prompt.inc' 
-!     include'stack_cr.inc'
       include'errlist.inc' 
 !                                                                       
       INTEGER, DIMENSION(3)   :: sav_ncell (3) 

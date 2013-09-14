@@ -34,13 +34,4 @@ INTEGER, DIMENSION(3) ::  sav_ncell(3) =  1
 INTEGER               ::  sav_ncatoms  =  1
 INTEGER               ::  sav_size_of  =  0 ! Bytes allocated for save
 !
-!
-!     COMMON /save/ sav_file,sav_keyword,                               &
-!    &              sav_r_ncell,sav_w_scat,sav_w_adp,                   &
-!    &              sav_w_ncell,sav_w_gene,sav_w_symm,                  &
-!    &              sav_w_doma,                                         &
-!    &              sav_ncell,sav_w_mole,sav_ncatoms,                   &
-!    &              sav_md_nr,sav_md_s,sav_start,sav_end,               &
-!    &              sav_latom
-!
 END MODULE save_mod

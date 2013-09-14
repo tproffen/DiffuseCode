@@ -20,6 +20,4 @@ INTEGER, DIMENSION(SYM_ADD_MAX)       ::  sym_add_power = 1
 REAL   , DIMENSION(4,4,0:SYM_ADD_MAX) ::  sym_add       = &
          RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,SYM_ADD_MAX)/),SHAPE(sym_add ))
 !
-!     COMMON /sym_add/ sym_add_n,sym_add,sym_add_power
-!
 END MODULE sym_add_mod

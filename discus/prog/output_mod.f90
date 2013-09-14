@@ -19,9 +19,4 @@ REAL   , DIMENSION(3,4) ::  out_eck ! (3,4)
 REAL   , DIMENSION(3,3) ::  out_vi  ! (3,3)
 CHARACTER(LEN=  3)      ::  cpow_form    = 'tth'
 !
-!     COMMON /output/ outfile,ityp,extr_abs,extr_ord,                   &
-!    &                rho_extr_abs,rho_extr_ord,                        &
-!    &                out_extr_abs,out_extr_ord,                        &
-!    &                out_eck,out_vi,out_inc,cpow_form
-!
 END MODULE output_mod

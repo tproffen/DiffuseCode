@@ -1,6 +1,6 @@
 MODULE waves_mod
 !+
-!     This file contains COMMON block for wave input
+!     This file contains variables for wave input
 !-
 !
 SAVE
@@ -45,12 +45,5 @@ LOGICAL             ::  wv_lacoust       = .true.
 LOGICAL             ::  wv_viceversa     = .false.
 !
 INTEGER             ::  wv_size_of  = 0 ! Bytes allocated for waves      
-!
-!     COMMON /waves_cmm/ wv_wave,wv_swing,wv_rlam,wv_amp,wv_amp0,       &
-!    &                   wv_iwave,wv_lacoust,wv_phase,wv_plow,          &
-!    &                   wv_phigh,wv_phase_typ,wv_latom,wv_repl,        &
-!    &                   wv_sel_prop,                                   &
-!    &                   wv_md_s,wv_md_nr,wv_func,wv_sel_atom,          &
-!    &                   wv_ifunc,wv_rot_uvw,wv_rot_orig,wv_asym
 !
 END MODULE waves_mod
