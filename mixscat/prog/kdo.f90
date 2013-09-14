@@ -4,13 +4,14 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !-                                                                      
-      IMPLICIT none 
+      USE charact_mod
+      USE errlist_mod 
+      USE learn_mod 
 !                                                                       
-      include'config.inc' 
-      include'charact.inc' 
-      include'learn.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      USE config_mod 
+      USE mixscat_mod 
+!                                                                       
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) line, zei 
       CHARACTER(70) command 

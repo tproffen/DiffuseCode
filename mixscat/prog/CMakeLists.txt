@@ -8,7 +8,8 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 set (SOURCES blk_appl.f90 err_appl.f90 exit.f90 
              fit.f90 kdo.f90 lazy.f load.f90 
              mixscat.f90 save.f90 set.f90 show.f90 
-             upd_par.f90 weights.f90)
+             upd_par.f90 weights.f90
+             config_mod.f90 mixscat_mod.f90)
 
 add_executable(mixscat ${SOURCES})
 target_link_libraries (mixscat lib_f90 lib_f90c ${DIFFUSE_LIBS}) 

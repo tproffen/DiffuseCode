@@ -5,14 +5,14 @@
 !-                                                                      
 !     Main menu for save command.                                       
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE times_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'prompt.inc' 
+      USE config_mod 
+      USE mixscat_mod 
+      IMPLICIT none 
       include'date.inc' 
-      include'times.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 

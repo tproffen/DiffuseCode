@@ -4,9 +4,9 @@
 !-
 !     Displays error Messages for the error type APPLication
 !+
+      USE errlist_mod 
       implicit      none
 !
-      include      'errlist.inc'
 !
       integer       iud,iod,iup,iop
       parameter    (iud=-54,iod=0)

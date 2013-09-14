@@ -5,11 +5,11 @@
 !     that generate the atomic form factors. These routines have been   
 !     adapted from the program LAZY.                                    
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       COMMON / anomal / delfr, delfi 
       COMMON / neu / fneu 
@@ -98,10 +98,10 @@
 !+                                                                      
 !       calculates the form factor                                      
 !-                                                                      
+      USE config_mod 
+      USE mixscat_mod 
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
 !                                                                       
       INTEGER ll, i, is 
       REAL h2 

@@ -3,12 +3,12 @@
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter.                                          
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
@@ -142,11 +142,11 @@
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw, ianz 
       CHARACTER ( * ) ctype 
@@ -200,11 +200,11 @@
 !     intrinsic function that references crystallographic values        
 !     is found in this subroutine.                                      
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) string, line 
       INTEGER lp, ikl, iklz, laenge 
@@ -218,10 +218,10 @@
 !       checks whether the variable name is legal, MIXSCAT specific     
 !                                                                       
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(1024) zeile 
 !                                                                       

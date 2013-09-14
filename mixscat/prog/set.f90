@@ -3,11 +3,12 @@
 !-                                                                      
 !       Set scattering factors                                          
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      USE config_mod 
+      USE mixscat_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 11) 
@@ -89,11 +90,11 @@
 !-                                                                      
 !       Set scale factor                                                
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -131,13 +132,13 @@
 !-                                                                      
 !       Get scales from fitting rho0 slopes                             
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -195,11 +196,11 @@
 !-                                                                      
 !       Gets slope of rho0 part                                         
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL rmin, rmax, r, sl, dsl 
       INTEGER i, id 
@@ -235,11 +236,11 @@
 !-                                                                      
 !       Sets pair to be removed                                         
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -276,11 +277,11 @@
 !-                                                                      
 !       Sets sample composition                                         
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2 * MAXELEM) 
@@ -330,12 +331,12 @@
 !-                                                                      
 !       Calculates the differential PDF                                 
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER i 
       LOGICAL lgrid 
@@ -404,11 +405,11 @@
 !-                                                                      
 !       Calculated weights                                              
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL hh, form, bave 
       INTEGER is, ie, ia, ib 
@@ -443,15 +444,15 @@
 !-                                                                      
 !     Determines the scattering type of the parameter                   
 !+                                                                      
+      USE charact_mod
+      USE errlist_mod 
+      USE config_mod 
+      USE mixscat_mod 
+!                                                                       
       IMPLICIT none 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
-!                                                                       
       CHARACTER ( * ) cpara (maxw) 
       CHARACTER(1024) zeile 
       INTEGER lpara (maxw) 

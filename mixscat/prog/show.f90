@@ -5,10 +5,10 @@
 !-                                                                      
 !     Main menu for show command.                                       
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -58,11 +58,11 @@
 !-                                                                      
 !     Shows information about PDFFIT configuration                      
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       WRITE (output_io, 1000) 
       WRITE (output_io, 2030) MAXDSET 
@@ -81,12 +81,12 @@
 !+                                                                      
 !     Show information about errors                                     
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL sum_d (MAXDSET), err_d (MAXDSET) 
       REAL sum_diff, err_diff 
@@ -149,12 +149,12 @@
 !+                                                                      
 !     Show information                                                  
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CALL output_pdf 
       CALL output_elem 
@@ -166,12 +166,12 @@
 !+                                                                      
 !     Show information about sample settings                            
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ie, id, i 
       INTEGER len_str 
@@ -205,12 +205,12 @@
 !+                                                                      
 !     Show information about weights in resulting differential PDF      
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER ia, ib, i 
       INTEGER len_str 
@@ -250,12 +250,12 @@
 !+                                                                      
 !     Show information about data                                       
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER(25) rad (2) 
       INTEGER i, j, k, lc, ll, id, iset 
@@ -298,12 +298,12 @@
 !-                                                                      
 !     Shows the scattering curve of an atom type.                       
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       

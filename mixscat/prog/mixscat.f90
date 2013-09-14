@@ -1,23 +1,24 @@
       PROGRAM mixsca 
 !                                                                       
+      USE doact_mod
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !*****7*****************************************************************
 !                                                                       
 !     Main program for MIXSCAT                                          
 !                                                                       
 !*****7*****************************************************************
-      include'errlist.inc' 
-      include'doact.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(1024) line, zeile 
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER laenge, lp, lbef 
 !                                                                       
-      include'pname.inc' 
+      pname             = 'mixscat'
+      pname_cap         = 'MIXSCAT'
 !                                                                       
       lend = .false. 
       blank = ' ' 
@@ -75,16 +76,11 @@
 !                                                                       
 !     This routine makes inital setup                                   
 !                                                                       
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
-      include'prompt.inc' 
       include'date.inc' 
 !                                                                       
-      fpi = 16.00 * atan (1.00) 
-      zpi = 8.00 * atan (1.00) 
-      pi = 4.00 * atan (1.00) 
-      rad = zpi / 360.00 
       CALL ini_ran (0) 
 !                                                                       
 !------ Write starting screen                                           

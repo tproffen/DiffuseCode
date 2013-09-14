@@ -1,10 +1,10 @@
 !*****7*****************************************************************
       SUBROUTINE theory (xx, f, df, iwert) 
 !                                                                       
-      IMPLICIT none 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
+      IMPLICIT none 
 !                                                                       
       REAL xx, f, df (maxpara) 
       INTEGER iwert, ind 
@@ -36,11 +36,31 @@
 !+                                                                      
 !     LS routine (FITTE)                                                
 !-                                                                      
-      include'config.inc' 
-      include'prompt.inc' 
-      include'param.inc' 
-      include'mixscat.inc' 
+      USE param_mod 
+      USE prompt_mod 
+!
+      USE config_mod 
+      USE mixscat_mod 
+!
+      IMPLICIT NONE
 !                                                                       
+      INTEGER :: i, j, k,l, ll, l1, nl   ! Loop indices
+      INTEGER :: m, n, nf
+      REAL :: f
+      REAL :: fend
+      REAL :: g
+      REAL :: h
+      REAL :: s
+      REAL :: sqsum
+      REAL :: sum3
+      REAL :: sum4
+      REAL :: syi
+      REAL :: ttt
+      REAL :: xx
+      REAL :: zalt
+      REAL :: zdif
+      REAL :: zl
+      REAL :: zwert
       REAL df (maxpara), dl (maxpara), dz (maxpara), pl (maxpara) 
 !                                                                       
       n = npara 

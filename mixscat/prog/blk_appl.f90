@@ -2,12 +2,13 @@
 !+                                                                      
 !       Startvalues for all important arrays.                           
 !-                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
 !                                                                       
-      include'config.inc' 
-      include'mixscat.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
+      USE config_mod 
+      USE mixscat_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j, k 
 !                                                                       
@@ -16,7 +17,6 @@
       s_port = 3334 
       s_ipallowed = "localhost" 
 !                                                                       
-!     common                                                            
 !                                                                       
       exp_nd = 0 
       elem_n = 0 
@@ -37,7 +37,7 @@
       ENDDO 
       ENDDO 
 !                                                                       
-!     common /errors/                                                   
+!     /errors/                                                   
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
@@ -52,10 +52,13 @@
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
-      include'envir.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
+      USE envir_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+!
+      IMPLICIT NONE
+!
 !                                                                       
       INTEGER idef 
 !                                                                       

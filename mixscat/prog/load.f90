@@ -3,10 +3,11 @@
 !-                                                                      
 !       Main menu for read command.                                     
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
 !                                                                       
-      include'config.inc' 
-      include'errlist.inc' 
+      USE config_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 11) 
@@ -48,14 +49,15 @@
 !+                                                                      
 !     Reads observed PDF as xy ASCII file.                              
 !-                                                                      
-      IMPLICIT none 
+      USE debug_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'param.inc' 
-      include'errlist.inc' 
-      include'debug.inc' 
+      USE config_mod 
+      USE mixscat_mod 
+!                                                                       
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -219,10 +221,10 @@
 !+                                                                      
 !     Gets numbers from history part of data file                       
 !-                                                                      
-      IMPLICIT none 
+      USE param_mod 
+      USE config_mod 
 !                                                                       
-      include'config.inc' 
-      include'param.inc' 
+      IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) line, key 
       INTEGER is, ie, ll, lk 
@@ -250,12 +252,12 @@
 !-                                                                      
 !     Setting Q to calculate f(xray) ..                                 
 !+                                                                      
-      IMPLICIT none 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE config_mod 
+      USE mixscat_mod 
 !                                                                       
-      include'config.inc' 
-      include'prompt.inc' 
-      include'mixscat.inc' 
-      include'errlist.inc' 
+      IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
