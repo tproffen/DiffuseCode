@@ -1,6 +1,12 @@
 PROGRAM discus 
 !                                                                       
-IMPLICIT none 
+   USE doact_mod 
+   USE errlist_mod 
+   USE learn_mod 
+   USE macro_mod 
+   USE prompt_mod 
+
+   IMPLICIT none 
 !
 !*****7*****************************************************************
 !                                                                       
@@ -13,18 +19,14 @@ IMPLICIT none
 !               Th. Proffen (tproffen@ornl.gov)                         
 !                                                                       
 !*****7*****************************************************************
-      include'errlist.inc' 
-      include'doact.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
 CHARACTER (LEN=1024) :: line, zeile 
 CHARACTER (LEN=4)    :: befehl 
 LOGICAL              :: lend 
 INTEGER              :: laenge, lp, lbef 
 !                                                                       
-      include'pname.inc' 
+pname      = 'discus'
+pname_cap  = 'DISCUS'
 !                                                                       
 lend    = .false. 
 blank   = ' ' 
@@ -83,19 +85,12 @@ SUBROUTINE setup
 !                                                                       
       USE allocate_appl_mod
 !
+      USE prompt_mod 
+!
 IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
-      include'prompt.inc' 
       include'date.inc' 
 !                                                                       
-!fpi = 16.00 * atan (1.00) 
-!zpi = 8.00 * atan (1.00) 
-!pi  = 4.00 * atan (1.00) 
-pi  = 3.141592653589793238462643383279
-zpi = 3.141592653589793238462643383279 * 2.00
-fpi = 3.141592653589793238462643383279 * 4.00
-rad = zpi / 360.00 
 CALL ini_ran (0) 
 !                                                                       
 !------ Write starting screen                                           

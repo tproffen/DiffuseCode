@@ -9,11 +9,11 @@
       USE fourier_sup
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
@@ -128,11 +128,11 @@
       USE diffuse_mod 
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
@@ -194,11 +194,11 @@
       USE diffuse_mod 
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
@@ -278,11 +278,11 @@
       USE diffuse_mod 
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
@@ -349,11 +349,11 @@
       USE diffuse_mod 
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
@@ -453,9 +453,9 @@
       USE config_mod 
       USE external_mod 
       USE molecule_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER ext_number 
 !                                                                       
@@ -551,9 +551,9 @@
 !-                                                                      
 !     Opens the external file for input/output                          
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER irw, irecl 
       CHARACTER ( * ) outfile 

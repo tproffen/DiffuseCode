@@ -12,15 +12,16 @@ USE chem_mod
 USE mc_mod 
 USE mmc_mod 
 USE modify_mod
+!
+USE doact_mod 
+USE errlist_mod 
+USE learn_mod 
+USE macro_mod 
+USE param_mod 
+USE prompt_mod 
 IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
 INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
 INTEGER            :: maxw           ! Array size for cpara, lpara, werte
@@ -211,11 +212,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mmc_mod 
       USE molecule_mod 
       USE rmc_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) zeile 
       CHARACTER(LEN=24), DIMENSION(0:MC_N_ENERGY) :: c_energy = & !(0:MC_N_ENERGY) 
@@ -616,9 +617,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
        
 !                                                                       
       INTEGER maxw 
@@ -1247,10 +1248,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE config_mod 
       USE crystal_mod 
       USE mmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER ic, ie, is, js, ii, jj 
       REAL dist 
@@ -1361,10 +1362,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE config_mod 
       USE crystal_mod 
       USE mmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER ic, ie, is, js, ii, jj 
       REAL a, b, m, n 
@@ -1426,10 +1427,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE config_mod 
       USE crystal_mod 
       USE mmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER ic, ie, is, js, ii, jj 
       REAL a,  b, c, m
@@ -1494,10 +1495,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     USE config_mod 
 !     USE crystal_mod 
 !     USE mmc_mod 
+!     USE errlist_mod 
 !     IMPLICIT none 
 !                                                                       
 !      
-!     include'errlist.inc' 
 !                                                                       
 !     INTEGER maxw 
 !                                                                       
@@ -1559,10 +1560,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE rmc_mod 
       USE mmc_mod 
       USE modify_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1662,14 +1663,14 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mmc_mod 
       USE modify_mod
       USE modify_func_mod
+      USE random_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
-      include'debug.inc' 
-      include'random.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = DEF_MAXSCAT) 
@@ -2410,9 +2411,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE config_mod 
       USE mc_mod 
       USE mmc_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
 !                                                                       
       INTEGER iacc_good, iacc_bad 
       INTEGER i 
@@ -2478,10 +2479,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mmc_mod 
       USE modify_mod
       USE modify_func_mod
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'param.inc' 
 !                                                                       
       INTEGER maxatom 
       PARAMETER (maxatom = chem_max_neig) 
@@ -3404,7 +3405,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !     IMPLICIT none 
 !                                                                       
        
-!     include'debug.inc' 
+!     USE debug_mod 
 !                                                                       
 !     INTEGER maxatom 
 !     PARAMETER (maxatom = chem_max_neig) 
@@ -3584,12 +3585,13 @@ write(*,*) ' WARNING NEIGHBOR'
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+       
       IMPLICIT none 
 !                                                                       
-       
-      include'debug.inc' 
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       LOGICAL , INTENT(IN) :: lout   ! Flag for output yes/no
 ! 
@@ -4218,11 +4220,12 @@ buck_pair: DO is = 0, cr_nscat
       USE chem_mod 
       USE mc_mod 
       USE mmc_mod 
+!
+      USE debug_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'debug.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER isel (CHEM_MAX_ATOM) 
       INTEGER natoms 
@@ -4279,11 +4282,11 @@ buck_pair: DO is = 0, cr_nscat
       USE crystal_mod 
       USE mmc_mod 
       USE modify_mod
+      USE errlist_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'random.inc' 
 !                                                                       
       INTEGER isel (CHEM_MAX_ATOM) 
       INTEGER natoms 
@@ -4321,10 +4324,10 @@ buck_pair: DO is = 0, cr_nscat
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER iatom, isite, icell (3), icc (3) 
       INTEGER ia 
@@ -4413,9 +4416,9 @@ buck_pair: DO is = 0, cr_nscat
 !-                                                                      
 !     Displays error Messages for the error type MC                     
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
       PARAMETER (IU = -5, IO = 0) 

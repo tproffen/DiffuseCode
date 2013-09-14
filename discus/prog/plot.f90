@@ -12,14 +12,15 @@
       USE molecule_mod
       USE plot_mod 
       USE structur, ONLY: update_cr_dim
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
       INTEGER maxw 
@@ -644,11 +645,12 @@
       USE molecule_mod 
       USE plot_mod 
       USE prop_para_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(9) at_name, at_name_i 
       CHARACTER(32) c_property 
@@ -838,13 +840,13 @@
       USE config_mod 
       USE crystal_mod 
       USE plot_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER iff 
       PARAMETER (iff = 2) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       LOGICAL lread 
       LOGICAL lexist 
@@ -977,14 +979,14 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'wink.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1087,14 +1089,14 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'wink.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1212,14 +1214,14 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER   :: idim = 3 
       REAL   , PARAMETER   :: eightpisq = 8.*3.14159265
 !                                                                       
        
-      include'wink.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL d, dist 
       REAL v (3) 
@@ -1331,13 +1333,13 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       REAL d, dist, ps 
       REAL v (3), u (3) 
@@ -1454,13 +1456,13 @@
       USE crystal_mod 
       USE molecule_mod 
       USE plot_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       REAL d, dist, ps 
       REAL v (3), u (3) 
@@ -1628,14 +1630,14 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 
@@ -1833,14 +1835,14 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 
@@ -1927,13 +1929,13 @@
       USE crystal_mod 
       USE modify_func_mod
       USE plot_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 
@@ -2013,13 +2015,13 @@
       USE config_mod 
       USE crystal_mod 
       USE plot_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j 
       LOGICAL lspace 

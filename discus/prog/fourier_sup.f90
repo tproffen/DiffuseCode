@@ -1,5 +1,7 @@
 MODULE fourier_sup
 !
+USE errlist_mod 
+!
 CONTAINS
 !*****7*****************************************************************
    SUBROUTINE four_run 
@@ -11,11 +13,10 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       REAL ss, seknds, dnorm
       INTEGER lbeg (3), csize (3) 
@@ -189,11 +190,11 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE modify_mod
-      IMPLICIT none 
+      USE random_mod
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'random.inc' 
 !
       INTEGER, INTENT(IN) :: lots
       REAL   , INTENT(IN) :: ave 
@@ -512,9 +513,9 @@ CONTAINS
 !     Returns a random cell from within the simulated crystal           
 !     which is limited by 'csize'.                                      
 !-                                                                      
+      USE random_mod
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
 !                                                                       
       INTEGER, DIMENSION(3), INTENT(IN)  :: csize
       INTEGER, DIMENSION(3), INTENT(OUT) :: lbeg
@@ -553,7 +554,7 @@ CONTAINS
       SUBROUTINE four_layer 
 !+                                                                      
 !     This routine writes the corners of the plane to be calculated     
-!     in the 'diffuse.inc' variables.                                   
+!     in the 'diffuse_mod.f90' variables.                                   
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
@@ -582,9 +583,9 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
       REAL(8) twopi, xmult, xarg 
       INTEGER i 
@@ -613,11 +614,10 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       REAL q2, h (3) 
       INTEGER i, j, k, l 
@@ -659,14 +659,14 @@ CONTAINS
 !     This routine sets up the complex formfactor lookup table          
 !     for all atom types. The range in sin(theta)/lambda is             
 !     0 -> 2 in steps of 0.001. These values can be changed             
-!     in the 'diffuse.inc' file.                                        
+!     in the 'diffuse_mod.f90' file.                                        
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
 !                                                                       
       REAL q2, sb, sf, sfp, sfpp 
@@ -711,9 +711,9 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
+!                                                                     
+      USE prompt_mod 
       IMPLICIT none 
-!                                                                       
-      include'prompt.inc' 
 !                                                                       
       INTEGER i, j, k, l, nd 
       REAL h (3), dsum, dsum2 
@@ -834,12 +834,11 @@ CONTAINS
 !     It replaces the old dlink and LAZY_PULVERIX
 !+                                                                      
       USE config_mod 
+      USE charact_mod
       USE crystal_mod 
       USE element_data_mod
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       LOGICAL             , INTENT(IN)   :: ano
       LOGICAL             , INTENT(IN)   :: lxray 
@@ -971,12 +970,11 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+!
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-!     include       'output.inc'                                        
-      include'param.inc' 
 !                                                                       
       REAL, DIMENSION(3), INTENT(IN) :: rhkl
 !

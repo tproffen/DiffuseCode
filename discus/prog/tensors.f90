@@ -61,9 +61,10 @@
 !                                                                       
 !     calculates the inverse matrix "imat" to input matrix "a"          
 !                                                                       
+      USE errlist_mod 
+!
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       REAL imat (3, 3), a (3, 3), det 
 !                                                                       
@@ -107,9 +108,9 @@
 !-                                                                      
 !     inverts a 4*4 Symmetry operation                                  
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       REAL matrix (4, 4) 
       INTEGER i, j 
@@ -144,11 +145,12 @@
 !     It's done quite some old fashioned way, rather than calculating   
 !     the direct metric tensor and its inverse.                         
 !-                                                                      
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      USE wink_mod
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER i, i1, i2, j 
       LOGICAL lout 

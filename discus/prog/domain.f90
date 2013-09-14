@@ -12,14 +12,15 @@ SUBROUTINE do_domain (line, lp)
       USE domain_mod 
       USE micro_mod 
       USE domaindis_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 9) 
@@ -378,11 +379,11 @@ SUBROUTINE do_domain (line, lp)
       USE crystal_mod 
       USE domain_mod 
       USE surface_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(9) char_type ( - 4:0) 
       CHARACTER(12) char_mode (0:1) 
@@ -486,10 +487,10 @@ SUBROUTINE do_domain (line, lp)
       USE read_internal_mod
       USE save_mod 
       USE structur, ONLY: stru_readheader
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER imd 
       PARAMETER (imd = 45) 
@@ -615,9 +616,9 @@ integer i
 !                                                                       
       USE config_mod 
       USE domaindis_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -822,10 +823,10 @@ integer i
       USE read_internal_mod 
       USE save_mod 
       USE structur, ONLY: stru_readheader
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) infile 
       REAL mc_dimen (4, 4) 
@@ -878,9 +879,9 @@ integer i
       USE domaindis_mod 
       USE micro_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
        
 !                                                                       
       REAL mc_idimen (4, 4) 
@@ -970,9 +971,9 @@ integer i
       USE structur, ONLY: struc_mole_header
       USE spcgr_apply, ONLY: mole_insert_current
       USE surface_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
        
 !                                                                       
       INTEGER ist 
@@ -1368,9 +1369,9 @@ mole_int: IF(mk_infile_internal) THEN
       USE domain_mod 
       USE domaindis_mod 
       USE read_internal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 4) 
@@ -1648,9 +1649,9 @@ mole_int: IF(mk_infile_internal) THEN
       USE config_mod 
       USE domain_mod
       USE modify_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 20) 

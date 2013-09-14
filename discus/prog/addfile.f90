@@ -8,10 +8,10 @@
 !+                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, if1, if2, if3 
       PARAMETER (maxw = 15, if1 = 1, if2 = 2, if3 = 3) 

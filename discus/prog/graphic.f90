@@ -10,13 +10,14 @@ SUBROUTINE do_niplps (linverse)
       USE nexus_discus
       USE output_mod 
       USE powder_write_mod
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxp, maxw, iff 
       PARAMETER (maxp = 11, maxw = 1, iff = 2) 
@@ -515,10 +516,10 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE envir_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxcol 
       PARAMETER (maxcol = 256) 
@@ -603,9 +604,9 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxcol 
       PARAMETER (maxcol = 255) 
@@ -663,10 +664,10 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE envir_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'envir.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxcol 
       PARAMETER (maxcol = 255) 
@@ -819,11 +820,11 @@ SUBROUTINE do_niplps (linverse)
       USE diffuse_mod 
       USE fourier_sup
       USE output_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER iff 
       PARAMETER (iff = 2) 
@@ -1127,12 +1128,12 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
       REAL DELTA 
       PARAMETER (DELTA = 0.000001) 
 !                                                                       
-      include'random.inc' 
 !                                                                       
       INTEGER i, value, ix, iy 
       INTEGER k 

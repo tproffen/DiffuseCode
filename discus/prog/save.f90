@@ -16,14 +16,15 @@ SUBROUTINE save_struc (zeile, lcomm)
       USE crystal_mod 
       USE modify_mod
       USE save_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
       INTEGER maxw 
@@ -526,10 +527,10 @@ SUBROUTINE save_struc (zeile, lcomm)
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) strucfile 
       INTEGER ist, i, j 
@@ -573,10 +574,10 @@ SUBROUTINE save_struc (zeile, lcomm)
       USE molecule_mod 
       USE sym_add_mod 
       USE save_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( LEN=* ) strucfile 
       CHARACTER(31) fform 
@@ -838,8 +839,8 @@ SUBROUTINE save_struc (zeile, lcomm)
       USE molecule_mod 
       USE sym_add_mod 
       USE save_mod 
+      USE errlist_mod
       IMPLICIT none 
-      include'errlist.inc'
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !

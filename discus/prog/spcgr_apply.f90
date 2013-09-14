@@ -1,5 +1,7 @@
 MODULE spcgr_apply
 !
+USE errlist_mod 
+!
 IMPLICIT NONE
 !
 CONTAINS
@@ -18,7 +20,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
 !                                                                       
       INTEGER igs 
@@ -125,7 +126,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER SPC_MAX 
       CHARACTER(65) spc_char (1:SPC_MAX) 
@@ -1078,7 +1078,6 @@ CONTAINS
 !+                                                                      
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER FULL, SYMBOL, XYZ, MATRIX 
       PARAMETER (FULL = 0) 
@@ -1142,10 +1141,10 @@ CONTAINS
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
-      IMPLICIT none 
 !                                                                       
-       
-      include'prompt.inc' 
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       REAL vec (3) 
       LOGICAL loutput 
@@ -1285,7 +1284,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       REAL eps 
       INTEGER i, j, ii, iii, igs, igg 
@@ -1383,8 +1381,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
       INTEGER NMAX 
-!     include'crystal3.inc' 
-      include'errlist.inc' 
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
@@ -1513,7 +1509,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER ii 
 !                                                                       
@@ -1641,7 +1636,6 @@ CONTAINS
       USE molecule_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER, INTENT(IN) :: iatom 
       INTEGER, INTENT(IN) :: imole 
@@ -1746,11 +1740,12 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+!
+      USE prompt_mod 
+!
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       LOGICAL lspace 
       PARAMETER (lspace = .true.) 

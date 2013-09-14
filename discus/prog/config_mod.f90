@@ -28,7 +28,7 @@ SAVE
 ! (1b) Molecules
 !
 !     Currently the array sizes for molecules are set in the
-!     file 'molecule.inc'.
+!     file 'molecule_mod.f90'.
 !
 !#######################################################################
 ! (2) Fourier transform
@@ -103,7 +103,7 @@ SAVE
         PARAMETER       (CHEM_MAX_COR  = 200 )
         PARAMETER       (CHEM_MAX_BIN  = 2001)
         PARAMETER       (CHEM_MAX_ATOM = 20  )
-!     Warning!      MAXPAR_RES  in "param.inc" must always be of 
+!     Warning!      MAXPAR_RES  in "param_mod.f90" must always be of 
 !                                 identical size to
 !                 CHEM_MAX_NEIG in "config_mod.f90"
         PARAMETER       (CHEM_MAX_NEIG = 3000 )

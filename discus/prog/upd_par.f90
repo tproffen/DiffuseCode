@@ -10,11 +10,11 @@
       USE atom_env_mod 
       USE molecule_mod 
       USE mole_env_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
@@ -454,11 +454,11 @@
       USE molecule_mod 
       USE prop_para_mod 
       USE spcgr_apply, ONLY: setup_lattice
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw, ianz 
       CHARACTER ( * ) ctype 
@@ -684,11 +684,11 @@
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 9) 
@@ -1106,9 +1106,9 @@
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
       USE config_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) zeile 
 !                                                                       

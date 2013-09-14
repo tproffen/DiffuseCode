@@ -6,9 +6,6 @@ MODULE crystal_mod
 !     Definition of all variables for the crystal
 !+
 !
-! Development note: crystal3.inc has been phased out in the 
-! source code, thus it can be typed right here.
-! Same holds for crystal2.inc
 !
 USE config_mod
 !
@@ -42,7 +39,6 @@ USE config_mod
    LOGICAL, DIMENSION(  :), ALLOCATABLE  ::  cr_delf_int  ! (  0:MAXSCAT)
    LOGICAL                          ::  cr_newtype = .true.
 !
-!     include     'crystal2.inc'
 !
    CHARACTER (LEN=80)                          ::  cr_name  = 'crystal'
    CHARACTER (LEN=16)                          ::  cr_spcgr = 'P1'
@@ -64,7 +60,6 @@ USE config_mod
    REAL   , DIMENSION(:,:), ALLOCATABLE  ::  as_pos ! (3,1:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
 !
-!     include     'crystal3.inc'
 !
    INTEGER                              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0

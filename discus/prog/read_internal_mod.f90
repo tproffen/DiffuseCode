@@ -1,6 +1,8 @@
 MODULE read_internal_mod
 !
 USE class_internal
+USE errlist_mod
+!
 IMPLICIT NONE
 !
 !  readstru_size_int  ! Read header, get sizes
@@ -22,7 +24,6 @@ CONTAINS
    USE allocate_appl_mod
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
@@ -60,7 +61,6 @@ CONTAINS
 !   USE class_internal
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !  INTEGER          , INTENT(IN) :: NMAX
@@ -141,7 +141,6 @@ CONTAINS
    USE wyckoff_mod
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
@@ -355,7 +354,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !  Copies the header info from the internal crystal 'rd_strucfile' into local variables
 !
    IMPLICIT NONE
-   include'errlist.inc'
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: rd_strucfile 
    INTEGER                                      , INTENT(INOUT) :: rd_NMAX 
@@ -424,7 +422,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !
    USE allocate_appl_mod
    IMPLICIT NONE
-   include'errlist.inc'
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: strucfile 
    INTEGER                                      , INTENT(IN   ) :: rd_NMAX 
@@ -484,7 +481,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !  The atom is copied into internal storage
 !
    IMPLICIT NONE
-   include'errlist.inc'
 !
    CHARACTER (LEN=  * )               , INTENT(IN   ) :: strucfile 
    INTEGER                            , INTENT(INOUT) :: iatom
@@ -543,7 +539,6 @@ do_scat_dw: DO k = 1,cr_nscat
    USE allocate_appl_mod
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
    INTEGER,                                       INTENT(IN ) :: mole_max_mole
@@ -598,7 +593,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !

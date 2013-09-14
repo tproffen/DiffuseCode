@@ -6,6 +6,7 @@
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
       USE allocate_appl_mod
+      USE charact_mod 
       USE conn_mod
       USE fourier_menu
       USE inverse_mod 
@@ -15,11 +16,11 @@
       USE shear
       USE structur
       USE spcgr_apply, ONLY: wyckoff_main
+!
+      USE errlist_mod 
+      USE learn_mod 
       IMPLICIT none 
 !                                                                       
-      include'learn.inc' 
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 
@@ -289,8 +290,8 @@
 !                                                                       
          ELSEIF (str_comp (befehl, 'rmc', 2, lbef, 3) ) then 
             CALL rmc 
-         ELSEIF (str_comp (befehl, 'mc', 2, lbef, 2) ) then 
-            CALL mc 
+!        ELSEIF (str_comp (befehl, 'mc', 2, lbef, 2) ) then 
+!           CALL mc 
          ELSEIF (str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
             CALL mmc 
 !                                                                       
@@ -368,9 +369,9 @@
 !     Sets the value of status variables, DISCUS specific routine       
 !+                                                                      
       USE unitcell_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 

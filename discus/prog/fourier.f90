@@ -1,5 +1,7 @@
 MODULE fourier_menu
 !
+USE errlist_mod 
+!
 CONTAINS
       SUBROUTINE fourier 
 !+                                                                      
@@ -17,14 +19,14 @@ CONTAINS
       USE fourier_sup
       USE modify_mod
       USE output_mod 
+!
+      USE doact_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
       INTEGER maxw 
@@ -764,10 +766,9 @@ CONTAINS
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !
       LOGICAL, INTENT(IN) :: ltop
 !                                                                       
@@ -940,7 +941,6 @@ CONTAINS
                  ratio_vh, aver_vh)
 !
       IMPLICIT NONE
-      include'errlist.inc'
 !
       REAL              , INTENT(OUT):: angle_vh
       INTEGER           , INTENT(IN) :: inc1

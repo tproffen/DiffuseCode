@@ -2,9 +2,9 @@
 !+                                                                      
 !           Clean exit from the program DISCUS ;-)                      
 !-                                                                      
-      IMPLICIT none 
+      USE prompt_mod 
 !                                                                       
-      include'prompt.inc' 
+      IMPLICIT none 
 !                                                                       
       CALL exit_all 
       END SUBROUTINE do_exit                        

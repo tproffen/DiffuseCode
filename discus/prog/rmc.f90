@@ -11,16 +11,17 @@
       USE modify_mod
       USE molecule_mod 
       USE rmc_mod 
+      USE random_mod
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'random.inc' 
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -229,9 +230,9 @@
       USE fourier_sup
       USE modify_mod
       USE rmc_mod 
+      USE errlist_mod
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc'
 !
       INTEGER, PARAMETER :: MIN_PARA = 23  ! A command requires at leaset these no of parameters
       INTEGER maxw 
@@ -650,10 +651,10 @@
       USE modify_mod
       USE molecule_mod 
       USE rmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, maxww 
       PARAMETER (maxww = 4) 
@@ -739,9 +740,9 @@
 !-                                                                      
       USE config_mod 
       USE rmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -796,10 +797,10 @@
       USE config_mod 
       USE crystal_mod 
       USE rmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER is, js, ii, jj 
       REAL dist 
@@ -836,10 +837,10 @@
       USE config_mod 
       USE diffuse_mod 
       USE rmc_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       REAL sumd, sumo, tsumd, tsumo 
       REAL cint, dint, oo, dd, r4 
@@ -898,11 +899,11 @@
       USE diffuse_mod 
       USE molecule_mod 
       USE rmc_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) cmd 
       CHARACTER(25) wic (8) 
@@ -1128,11 +1129,11 @@
       USE config_mod 
       USE crystal_mod 
       USE rmc_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1254,10 +1255,10 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE rmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) fname 
       INTEGER pgmmax, ip, is, i, j 
@@ -1322,12 +1323,13 @@
       USE config_mod 
       USE crystal_mod 
       USE rmc_mod 
-      IMPLICIT none 
+!
+      USE debug_mod 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 13) 
@@ -1675,9 +1677,9 @@
 !+                                                                      
 !     Reading PGM Header incl. possible comments                        
 !-                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) zeile 
       CHARACTER(2) cmagic 
@@ -1762,13 +1764,13 @@
       USE fourier_sup
       USE rmc_mod
       USE structur, ONLY: update_cr_dim
-      IMPLICIT none 
+      USE random_mod
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'random.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       REAL(8) rmc_cc, rmc_c, rmc_ce 
       REAL(8) rmc_e (rmc_max_planes) 
@@ -2108,11 +2110,11 @@
       USE diffuse_mod 
       USE fourier_sup
       USE rmc_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER isym (rmc_max_planes) 
       INTEGER lbeg (3), ncell 
@@ -2274,11 +2276,11 @@
       USE chem_mod 
       USE molecule_mod 
       USE rmc_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, ia 
       LOGICAL laccept 
@@ -2855,10 +2857,10 @@
       USE chem_mod 
       USE modify_mod
       USE rmc_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'param.inc' 
 !                                                                       
       REAL p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom), iatom 
@@ -2895,10 +2897,10 @@
       USE crystal_mod 
       USE modify_mod
       USE rmc_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
        
-      include'random.inc' 
 !                                                                       
       INTEGER imode, natoms 
       INTEGER isel (rmc_max_atom) 
@@ -2969,12 +2971,13 @@
       USE chem_mod 
       USE diffuse_mod 
       USE rmc_mod 
-      IMPLICIT none 
+      USE random_mod
+!
+      USE debug_mod 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'random.inc' 
-      include'debug.inc' 
 !                                                                       
       REAL p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
@@ -3099,13 +3102,14 @@
       USE modify_mod
       USE molecule_mod 
       USE rmc_mod 
-      IMPLICIT none 
+      USE random_mod
+!
+      USE debug_mod 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'random.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL p_new (3, rmc_max_atom) 
       INTEGER i_new (rmc_max_atom) 
@@ -3265,10 +3269,10 @@
       USE config_mod 
       USE crystal_mod 
       USE generate_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER max_hkl, n_hkl 
       REAL hkl (4, max_hkl), mat_hkl (4, 4, max_hkl) 
@@ -3403,9 +3407,9 @@
 !-                                                                      
 !     Displays error Messages for the error type RMC                    
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
       PARAMETER (iu = -21, io = 0) 

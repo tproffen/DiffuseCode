@@ -1,4 +1,7 @@
 MODULE modify_func_mod
+!
+USE errlist_mod 
+!
 CONTAINS
 
 !*****7*****************************************************************
@@ -12,7 +15,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, ianz, maxw 
       REAL werte (maxw) 

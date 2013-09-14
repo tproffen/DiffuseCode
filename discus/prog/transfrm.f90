@@ -16,14 +16,15 @@
       USE crystal_mod 
       USE modify_mod
       USE transfrm_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
       INTEGER maxw 
@@ -794,9 +795,9 @@
 !+                                                                      
       USE config_mod 
       USE transfrm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j 
       REAL a (3, 3) 
@@ -928,10 +929,10 @@
       USE spcgr_apply, ONLY: setup_lattice
       USE structur, ONLY: update_cr_dim
       USE transfrm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j 
       INTEGER i1, i2, i3 
@@ -1025,11 +1026,13 @@
 !     atom or reciprocal vector.                                        
 !+                                                                      
       USE config_mod 
+!
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+!
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER j 
 !                                                                       
@@ -1068,11 +1071,11 @@
       USE sym_add_mod 
       USE transfrm_mod 
       USE unitcell_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
-      include'errlist.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, n, nn, jp, l 
       LOGICAL lequal 
@@ -1260,11 +1263,12 @@
 !+                                                                      
       USE config_mod 
       USE transfrm_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER ird, iwr, irs 
       INTEGER i, j 

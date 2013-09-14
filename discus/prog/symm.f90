@@ -17,14 +17,15 @@
       USE molecule_mod 
       USE structur, ONLY: update_cr_dim
       USE symm_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 20
       INTEGER            :: maxw 
@@ -613,10 +614,10 @@
       USE crystal_mod 
       USE molecule_mod 
       USE symm_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       CHARACTER(9) at_lis (maxscat+1), at_name 
       INTEGER mol_lis (maxscat+1)
@@ -760,10 +761,10 @@
       USE config_mod 
       USE crystal_mod 
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, k, l 
       REAL length 
@@ -913,10 +914,10 @@
       USE atom_env_mod 
       USE modify_mod
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -1000,10 +1001,10 @@
       USE atom_env_mod 
       USE modify_mod
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, l 
@@ -1083,10 +1084,10 @@
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -1240,10 +1241,10 @@
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
@@ -1387,10 +1388,10 @@
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -1614,10 +1615,10 @@
       USE molecule_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
@@ -1818,11 +1819,12 @@
 !+                                                                      
       USE config_mod 
       USE symm_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       INTEGER j, k 
       LOGICAL lspace 
@@ -1904,11 +1906,12 @@
 !+                                                                      
       USE config_mod 
       USE symm_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       REAL   ,DIMENSION(1:3), INTENT(IN) :: uvw
       LOGICAL,                INTENT(IN) :: lspace 

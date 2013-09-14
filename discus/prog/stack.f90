@@ -13,14 +13,15 @@ SUBROUTINE stack
       USE diffuse_mod 
       USE stack_mod 
       USE spcgr_apply
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 99  ! A command requires at least these no of parameters
                                            ! Needs work as it should also be >= ST_MAXTYPE
@@ -945,13 +946,13 @@ SUBROUTINE stack
       USE stack_cr_mod 
       USE structur
       USE spcgr_apply
+      USE errlist_mod 
+      USE random_mod
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'random.inc' 
 !                                                                       
       INTEGER i, j, k 
       INTEGER         :: nlayers
@@ -1333,10 +1334,10 @@ SUBROUTINE stack
 !+                                                                      
       USE config_mod 
       USE stack_mod 
+      USE random_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'random.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL prob (ST_MAXTYPE) 
 !                                                                       
@@ -1376,13 +1377,13 @@ SUBROUTINE stack
       USE stack_mod  
       USE structur  
       USE spcgr_apply
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER ist 
       PARAMETER (ist = 7) 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER          :: natoms, max_natoms
       INTEGER          :: nscats, max_nscats
@@ -1758,11 +1759,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE stack_mod 
       USE structur
       USE spcgr_apply
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
@@ -2024,11 +2025,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE stack_mod 
       USE structur
       USE spcgr_apply
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
@@ -2304,10 +2305,10 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE stack_cr_mod
       USE structur
       USE spcgr_apply
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER, DIMENSION(3)   :: sav_ncell (3) 
       INTEGER                 :: sav_ncatoms 

@@ -16,11 +16,11 @@ CONTAINS
       USE molecule_mod 
       USE prop_para_mod 
       USE structur, ONLY: update_cr_dim
+      USE errlist_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
        
-      include'random.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 200) 
@@ -293,10 +293,10 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER idest, isource, ityp, i, k, ii, jj, is, js, i0, j0 
       INTEGER ip, jp 
@@ -369,13 +369,13 @@ CONTAINS
 !     type, ELSE the temperature factor will be 0.                      
 !+                                                                      
       USE config_mod 
+      USE charact_mod 
       USE allocate_appl_mod
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 15) 
@@ -461,14 +461,14 @@ CONTAINS
 !     Appends a new atom                                                
 !+                                                                      
       USE config_mod 
+      USE charact_mod 
       USE allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -673,9 +673,9 @@ CONTAINS
       USE allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER, PARAMETER     :: maxw  = 5
 !                                                                       
@@ -771,10 +771,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -965,9 +965,9 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE molecule_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       IF (mole_num_mole.eq.0) then 
          CALL do_purge_atoms 
@@ -984,10 +984,10 @@ CONTAINS
       USE config_mod 
       USE crystal_mod
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER i, ii, idel, ndel 
       LOGICAL lout 
@@ -1028,10 +1028,11 @@ CONTAINS
       USE config_mod 
       USE chem_mod 
       USE pdf_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       LOGICAL lpurge 
 !                                                                       
@@ -1068,11 +1069,11 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER i, ii, idel, ndel, mdel 
       INTEGER j, k, l, m 
@@ -1188,10 +1189,10 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -1258,10 +1259,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE structur, ONLY: update_cr_dim
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1329,13 +1330,14 @@ CONTAINS
 !     Finds the environment around an atom                              
 !+                                                                      
       USE config_mod 
+      USE charact_mod 
+      USE charact_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'charact.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 200) 
@@ -1475,11 +1477,11 @@ CONTAINS
       USE crystal_mod 
       USE atom_env_mod 
       USE modify_func_mod
+      USE param_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER ianz, maxw 
       REAL werte (maxw) 
@@ -1579,10 +1581,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER cell (3) 
       REAL offset (3) 
@@ -1642,11 +1644,11 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE param_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL x (3), offset (3), rmin, rmax 
       INTEGER iatom 
@@ -1689,10 +1691,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER is, ianz, maxw 
       REAL werte (maxw) 
@@ -1717,10 +1719,10 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER iatom, isite, icell (3) 
 !                                                                       
@@ -1736,10 +1738,10 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER iatom, isite, icell (3) 
       INTEGER ia 
@@ -1763,10 +1765,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
       INTEGER,                   INTENT(IN)    :: lp 
@@ -1833,9 +1835,9 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE molecule_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
       INTEGER,                   INTENT(IN)    :: lp 
@@ -1898,9 +1900,9 @@ CONTAINS
 !     Sets the property bits for a select/deselect/mselecet/mdeselect   
 !                                                                       
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) line 
       INTEGER length 
@@ -1945,9 +1947,9 @@ CONTAINS
 !                                                                       
       USE prop_para_mod 
       USE modify_func_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       INTEGER ianz 
@@ -2013,10 +2015,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE mole_env_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER ianz, maxw 
       REAL werte (maxw) 
@@ -2068,11 +2070,11 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE mole_env_mod 
+       
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-       
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       REAL x (3), offset (3), rmin, rmax 
       INTEGER imole 
@@ -2110,10 +2112,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -2334,10 +2336,10 @@ CONTAINS
       USE crystal_mod 
       USE prop_para_mod 
       USE surface_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       REAL distance 
       INTEGER iatom 
@@ -2378,12 +2380,12 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE param_mod 
+      USE prompt_mod 
+      USE errlist_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 
@@ -2435,11 +2437,11 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -2596,9 +2598,9 @@ CONTAINS
 !                                                                       
       USE config_mod 
       USE molecule_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER idest 
       INTEGER isource 
@@ -2621,14 +2623,15 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       LOGICAL lnew, lold 
@@ -2775,9 +2778,9 @@ CONTAINS
 !     This subroutine sets various parameters                           
 !-                                                                      
       USE config_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 20) 
@@ -2822,10 +2825,10 @@ CONTAINS
       USE allocate_appl_mod
       USE crystal_mod 
       USE surface_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       INTEGER ianz 
@@ -2976,11 +2979,11 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE surface_mod 
+      USE prompt_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -3021,14 +3024,15 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       LOGICAL lnew, lold 
@@ -3171,11 +3175,12 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE prop_para_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(32) c_property 
       INTEGER length 
@@ -3266,12 +3271,12 @@ CONTAINS
 !     Determines the scattering type of the parameter                   
 !+                                                                      
       USE config_mod 
+      USE charact_mod
       USE crystal_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'charact.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       

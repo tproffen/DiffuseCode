@@ -3,6 +3,8 @@ MODULE conn_mod
 USE conn_def_mod
 USE crystal_mod
 !
+USE errlist_mod
+!
 IMPLICIT none
 !
 PRIVATE
@@ -248,7 +250,6 @@ CONTAINS
       USE modify_mod
       IMPLICIT none
 !
-      include'errlist.inc'
 !
       INTEGER          , INTENT(IN   )  :: code 
       CHARACTER (LEN=*), INTENT(INOUT)  :: zeile
@@ -560,13 +561,13 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+!
+      USE doact_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       LOGICAL lnew, lold 
@@ -749,8 +750,8 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE prompt_mod
       IMPLICIT none 
-      include'prompt.inc'
 !
       INTEGER   :: is
       INTEGER   :: i
@@ -879,7 +880,6 @@ CONTAINS
       USE crystal_mod 
       IMPLICIT none 
 !
-      include'errlist.inc'
 !
       INTEGER,            INTENT(IN)      :: is1        ! central atom type
       INTEGER,            INTENT(INOUT)   :: work_id    ! Connectivity def. no.
@@ -925,11 +925,10 @@ CONTAINS
 !-                                                                      
 !     Shows the connectivity no. idef around atom no iatom
 !+                                                                      
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'param.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !
       INTEGER, INTENT(in)        :: iatom
       INTEGER, INTENT(in)        :: idef

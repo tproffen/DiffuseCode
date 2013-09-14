@@ -1,6 +1,8 @@
 MODULE nexus_discus
 !
 USE NXUmodule
+USE errlist_mod
+!
 IMPLICIT NONE
 !
 PRIVATE
@@ -30,7 +32,6 @@ CONTAINS
    USE output_mod 
 !
    IMPLICIT NONE
-   include'errlist.inc'
 !
    INTEGER, INTENT(IN) :: value
    LOGICAL, INTENT(IN) :: laver
@@ -194,8 +195,8 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
    USE diffuse_mod 
    USE fourier_sup
    USE output_mod 
+   USE random_mod
    IMPLICIT NONE
-   include'random.inc'
 !
    INTEGER, INTENT(IN)              :: value
    LOGICAL, INTENT(IN)              :: laver

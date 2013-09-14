@@ -11,11 +11,12 @@
       USE crystal_mod 
       USE molecule_mod 
       USE structur, ONLY: update_cr_dim
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+!
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 

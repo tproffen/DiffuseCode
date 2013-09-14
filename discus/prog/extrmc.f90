@@ -28,7 +28,7 @@
 !  2.   List of variables defining crystal and RMC settings             
 !  --------------------------------------------------------             
 !                                                                       
-!  2.1. crystal.inc                                                     
+!  2.1. crystal_mod.f90                                                 
 !  ----------------                                                     
 !                                                                       
 !  i   cr_natoms          : Number of atoms in crystal                  
@@ -49,7 +49,7 @@
 !  c4  cr_at_lis(ityp)    : CHARACTER containing atom name for atom     
 !                           type 'ityp'.                                
 !                                                                       
-!  2.2. rmc.inc                                                         
+!  2.2. rmc_mod.f90                                                     
 !  ------------                                                         
 !                                                                       
 !  r   rmc_maxmove(3,ityp)   : Value sx,sy,sz for atom type 'ityp' set  
@@ -59,7 +59,7 @@
 !  l   rmc_allowed(ityp)     : TRUE is atom type 'ityp' is selected for 
 !                              RMC refinement ('sele' command)          
 !                                                                       
-!  2.3. chem.inc                                                        
+!  2.3. chem_mod.f90                                                    
 !  -------------                                                        
 !                                                                       
 !  r   chem_ave_pos(3,isite) : Average position x,y,z of site 'isite'   
@@ -72,7 +72,7 @@
 !  real function ran1(idum):                                            
 !  -------------------------                                            
 !    Gives random number [0,1]. The parameter 'idum' is defined in      
-!    'random.inc'. The random generator is initialised before RMC level 
+!    MODULE random_mod. The random generator is initialised before RMC level 
 !    is entered.                                                        
 !                                                                       
 !  real function gasdev(sigma):                                         
@@ -115,14 +115,14 @@
       USE crystal_mod 
       USE chem_mod 
       USE rmc_mod 
+      USE errlist_mod 
+      USE random_mod
       IMPLICIT none 
 !                                                                       
 !------ Include files containing array sizes, crystal definitions,      
 !------ error and RMC variables                                         
 !                                                                       
        
-      include'errlist.inc' 
-      include'random.inc' 
 !                                                                       
 !------ Declaration of the variables passed down from DISCUS.           
 !------ All information must be passed on via these variables, do       
@@ -151,7 +151,7 @@
       natoms = 1 
 !                                                                       
 !------ we select one atom at random,                                   
-!------ 'idum' is defined in 'random.inc'                               
+!------ 'idum' is defined in random_mod
 !                                                                       
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
 !                                                                       

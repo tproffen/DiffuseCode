@@ -10,14 +10,15 @@ SUBROUTINE waves_menu
       USE modify_mod
       USE molecule_mod 
       USE waves_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 26  ! A command requires at least these no of parameters
       INTEGER maxw 
@@ -515,11 +516,11 @@ SUBROUTINE waves_menu
       USE crystal_mod 
       USE molecule_mod 
       USE waves_mod 
+      USE wink_mod
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'wink.inc' 
 !                                                                       
       CHARACTER(15) cwave (3) 
       CHARACTER(9) at_lis (maxscat), at_name 
@@ -662,11 +663,11 @@ SUBROUTINE waves_menu
       USE symm_mod 
       USE structur, ONLY: update_cr_dim
       USE waves_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       REAL wavec (3), swingc (3) 
       REAL wavep (3), swingp (3) 
@@ -837,11 +838,11 @@ SUBROUTINE waves_menu
       USE config_mod 
       USE crystal_mod 
       USE waves_mod 
+      USE wink_mod
+      USE random_mod
       IMPLICIT none 
 !                                                                       
        
-      include'random.inc' 
-      include'wink.inc' 
 !                                                                       
       REAL uc (3), up (3), disp (3), disc (3) 
       REAL wavep (3), swingp (3), arg, dis 
@@ -951,11 +952,9 @@ ENDIF is_density
       USE molecule_mod 
       USE symm_mod 
       USE waves_mod 
+      USE wink_mod
+      USE random_mod
       IMPLICIT none 
-!                                                                       
-       
-      include'random.inc' 
-      include'wink.inc' 
 !                                                                       
       REAL uc (3), up (3), disp (3), disc (3) 
       REAL wavep (3), swingp (3), arg, dis 
@@ -1111,9 +1110,9 @@ ELSE wave_type
 !-                                                                      
 !     Sinusoidal wave function                                          
 !+                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !                                                                       
       REAL amp, arg, amp0 
 !                                                                       
@@ -1128,9 +1127,9 @@ ELSE wave_type
 !+                                                                      
       USE config_mod 
       USE waves_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !                                                                       
       REAL amp, arg, amp0 
 !                                                                       
@@ -1162,9 +1161,9 @@ ELSE wave_type
 !-                                                                      
 !     triangular shaped wave function                                   
 !+                                                                      
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !                                                                       
       REAL amp, arg, amp0 
 !                                                                       

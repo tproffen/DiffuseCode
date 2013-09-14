@@ -9,12 +9,12 @@
       USE allocate_appl_mod
       USE crystal_mod 
       USE conn_mod
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 
@@ -174,12 +174,11 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+!
+      USE envir_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
-!                                                                       
-      include'prompt.inc' 
-       
-      include'macro.inc' 
-      include'envir.inc' 
 !                                                                       
       CHARACTER(1) cdummy 
       INTEGER i, j, k, l 
@@ -218,12 +217,12 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+!
+      USE envir_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
-!                                                                       
-      include'prompt.inc' 
        
-      include'macro.inc' 
-      include'envir.inc' 
 !                                                                       
       CHARACTER(1) cdummy 
       INTEGER i, j, k 
@@ -265,10 +264,11 @@
 !+                                                                      
       USE config_mod 
       USE atom_env_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
@@ -297,10 +297,10 @@
 !+                                                                      
       USE config_mod 
       USE mole_env_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
@@ -331,12 +331,11 @@
       USE crystal_mod 
       USE atom_env_mod 
       USE modify_mod
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
-!     include       'prop_para.inc'                                     
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -422,11 +421,11 @@
       USE chem_mod 
       USE bv_data_mod
       USE element_data_mod
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -477,11 +476,11 @@
       USE crystal_mod 
       USE molecule_mod 
       USE mole_env_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -597,11 +596,11 @@
       USE fourier_sup
       USE modify_mod
       USE molecule_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -713,10 +712,9 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -749,10 +747,9 @@
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       INTEGER mode 
 !                                                                       

@@ -1,5 +1,7 @@
 MODULE powder_write_mod
 !
+USE errlist_mod 
+!
 IMPLICIT NONE
 !
 PUBLIC
@@ -15,13 +17,12 @@ CONTAINS
       USE diffuse_mod 
       USE output_mod 
       USE powder_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
       INTEGER iff 
       PARAMETER (iff = 2) 
 !                                                                       
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER ii, j , iii
       INTEGER   :: all_status  ! Allocation status
@@ -281,7 +282,6 @@ CONTAINS
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       REAL ttheta 
       REAL r 
@@ -311,7 +311,6 @@ CONTAINS
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       REAL ttheta 
       REAL r 
@@ -338,9 +337,9 @@ CONTAINS
 !     Convolute powder pattern with resolution function (Gaussian)      
 !+                                                                      
       USE config_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
@@ -395,9 +394,9 @@ SUBROUTINE powder_conv_psvgt_fix (dat, tthmin, tthmax, dtth, eta, &
 !     Constant FWHM, Constant eta                                       
 !+                                                                      
 USE config_mod 
+USE wink_mod
 IMPLICIT none 
 !                                                                       
-include'wink.inc' 
 !
 INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
@@ -463,9 +462,9 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
       USE config_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
@@ -551,9 +550,9 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
       USE config_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
-      include'wink.inc' 
 !
       INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       

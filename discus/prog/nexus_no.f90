@@ -1,6 +1,7 @@
 MODULE nexus_discus
 !
-
+USE errlist_mod
+!
 PRIVATE
 PUBLIC  nexus_write
 !
@@ -11,7 +12,6 @@ CONTAINS
    SUBROUTINE nexus_write ( value, laver)
 !
    IMPLICIT NONE
-   include'errlist.inc'
    INTEGER, INTENT(IN) :: value
    LOGICAL, INTENT(IN) :: laver
 !

@@ -13,14 +13,15 @@
       USE inverse_mod 
       USE output_mod 
       USE patters_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
 !
@@ -1176,11 +1177,11 @@
       USE output_mod 
       USE patters_mod 
       USE recipro_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
-      include'errlist.inc' 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
 !
@@ -1772,10 +1773,11 @@
       USE config_mod 
       USE crystal_mod 
       USE patters_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
@@ -2652,9 +2654,9 @@
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(6) zeile 
       CHARACTER ( * ) e_name 
@@ -2724,12 +2726,13 @@
       USE diffuse_mod 
       USE fourier_sup
       USE patters_mod 
+      USE wink_mod
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER w_io 
 !                                                                       
@@ -2889,10 +2892,10 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup, ONLY: form
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       REAL dstar2 
       INTEGER j 

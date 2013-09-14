@@ -30,11 +30,11 @@
       USE unitcell_mod 
       USE waves_mod 
 !
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER i, j, k, l, m 
       INTEGER stift (0:4) 
@@ -251,10 +251,12 @@
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
-      include'envir.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
+      USE envir_mod 
+      USE param_mod 
+      USE errlist_mod 
+      USE prompt_mod 
+!
+      IMPLICIT NONE
 !                                                                       
       INTEGER idef 
 !                                                                       

@@ -9,6 +9,7 @@ MODULE allocate_appl_mod
 !+
   USE allocate_generic
   USE config_mod
+  USE errlist_mod 
 !
   CONTAINS
 !
@@ -16,7 +17,6 @@ MODULE allocate_appl_mod
 !
     IMPLICIT NONE
 !
-    include 'errlist.inc'
 !
     CHARACTER (LEN=*), INTENT(IN)            :: zeile
     INTEGER          , INTENT(IN)            :: lcomm
@@ -63,7 +63,6 @@ MODULE allocate_appl_mod
 !
        IMPLICIT NONE
 !
-       include 'errlist.inc'
 !
        CHARACTER (LEN=*), INTENT(IN)            :: zeile
        INTEGER          , INTENT(IN)            :: lcomm
@@ -150,9 +149,9 @@ MODULE allocate_appl_mod
        USE transfrm_mod
        USE waves_mod
 !
+       USE prompt_mod
        IMPLICIT NONE
 !
-       include 'prompt.inc'
 !
        WRITE (output_io, 1000)
 !
@@ -309,7 +308,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_atom_cell
       INTEGER, INTENT(IN)  :: n_max_atom
@@ -379,7 +377,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_ang
       INTEGER, INTENT(IN)  :: n_cor
@@ -432,7 +429,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_cor
       INTEGER, INTENT(IN)  :: n_scat
@@ -484,7 +480,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_atom
       INTEGER, INTENT(IN)  :: n_env
@@ -551,7 +546,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_ran
       INTEGER, INTENT(IN)  :: n_cor
@@ -663,7 +657,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_vec
       INTEGER, INTENT(IN)  :: n_cor
@@ -717,7 +710,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_con
       INTEGER, INTENT(IN)  :: n_cor
@@ -780,7 +772,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_max
@@ -893,7 +884,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_hist
@@ -967,7 +957,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_qxy
       INTEGER, INTENT(IN)  :: n_scat
@@ -1045,7 +1034,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_clu
 !
@@ -1109,7 +1097,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_atoms
@@ -1161,7 +1148,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_ener
@@ -1284,7 +1270,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_angle
@@ -1354,7 +1339,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_scat
@@ -1439,7 +1423,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_scat
@@ -1515,7 +1498,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_corr
       INTEGER, INTENT(IN)  :: n_scat
@@ -1589,7 +1571,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_gene
       INTEGER, INTENT(IN)  :: n_symm
@@ -1708,7 +1689,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_dat
@@ -1804,7 +1784,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -1895,7 +1874,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_qxy
 !
@@ -1938,7 +1916,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_max
@@ -1990,7 +1967,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2032,7 +2008,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2075,7 +2050,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2118,7 +2092,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_types
       INTEGER, INTENT(IN)  :: n_layers
@@ -2245,7 +2218,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_max
@@ -2340,7 +2312,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2388,7 +2359,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2430,7 +2400,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !
@@ -2473,7 +2442,6 @@ MODULE allocate_appl_mod
 !
       IMPLICIT NONE
 !
-      include 'errlist.inc'
 !      
       INTEGER, INTENT(IN)  :: n_scat
 !

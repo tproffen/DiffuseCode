@@ -14,15 +14,15 @@ SUBROUTINE chem
       USE chem_mod 
       USE modify_mod
 !
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 20) 
@@ -443,10 +443,10 @@ SUBROUTINE chem
       USE config_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) cmd 
       INTEGER i, j, ic 
@@ -677,10 +677,10 @@ SUBROUTINE chem
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 200) 
@@ -891,10 +891,10 @@ USE allocate_appl_mod
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE errlist_mod 
 IMPLICIT none 
 !                                                                       
        
-include'errlist.inc' 
 !                                                                       
 INTEGER                           , INTENT(IN)    :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
@@ -974,9 +974,9 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE chem_mod 
    USE conn_mod
    USE modify_mod
+   USE errlist_mod 
    IMPLICIT none 
 !
-   include'errlist.inc' 
 !
    INTEGER                           , INTENT(IN)    :: ianz 
    INTEGER                           , INTENT(IN)    :: maxw 
@@ -1070,9 +1070,9 @@ USE config_mod
 USE crystal_mod 
 USE chem_mod 
 USE modify_mod
+USE errlist_mod 
 IMPLICIT none 
 !                                                                       
-include'errlist.inc' 
 !                                                                       
 INTEGER                           , INTENT(INOUT) :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
@@ -1314,9 +1314,9 @@ USE allocate_appl_mod
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE errlist_mod 
 IMPLICIT none 
 !                                                                       
-include'errlist.inc' 
 !                                                                       
 INTEGER                           , INTENT(IN)    :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
@@ -1403,10 +1403,10 @@ ENDIF
       USE crystal_mod 
       USE chem_mod 
       USE modify_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1482,9 +1482,9 @@ ENDIF
 !-                                                                      
       USE config_mod 
       USE chem_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER max_uvw 
       PARAMETER (max_uvw = 48) 
@@ -1752,9 +1752,9 @@ ENDIF
 !     Parameters for command 'set neig' processed here                  
 !-                                                                      
       USE config_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -1798,12 +1798,12 @@ ENDIF
       USE atom_env_mod 
       USE chem_mod 
       USE modify_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -1952,12 +1952,12 @@ ENDIF
       USE element_data_mod
       USE bv_data_mod
 !
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 6) 
@@ -2093,10 +2093,10 @@ ENDIF
       USE config_mod 
       USE chem_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 2) 
@@ -2140,12 +2140,12 @@ ENDIF
       USE crystal_mod 
       USE chem_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, maxatom 
       PARAMETER (maxw = 3) 
@@ -2292,12 +2292,12 @@ USE config_mod
 USE allocate_appl_mod 
 USE crystal_mod 
 USE chem_mod 
+USE errlist_mod 
+USE param_mod 
+USE prompt_mod 
 IMPLICIT none 
 !                                                                       
-include'errlist.inc' 
-include'prompt.inc' 
        
-include'param.inc' 
 !                                                                       
 REAL, DIMENSION(3) ::  p , ez 
 INTEGER            :: i, j, k, ii, jj, kk, ia, is 
@@ -2444,9 +2444,9 @@ ENDIF
       USE config_mod 
       USE chem_mod 
       USE modify_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 15) 
@@ -2526,11 +2526,11 @@ ENDIF
       USE fourier_sup, ONLY: four_csize, four_ranloc
       USE molecule_mod 
       USE modify_func_mod
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) fname 
       INTEGER ianz, maxw 
@@ -2661,11 +2661,11 @@ ENDIF
       USE diffuse_mod 
       USE fourier_sup, ONLY: four_csize, four_ranloc
       USE mc_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER ( * ) fname, catom (2) 
       INTEGER latom (2) 
@@ -2871,10 +2871,10 @@ ENDIF
       USE config_mod 
       USE chem_mod 
       USE mc_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 15) 
@@ -3103,9 +3103,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
       USE config_mod 
       USE chem_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, ix, iy, iv 
       INTEGER cvec (5, chem_max_vec) 
@@ -3153,9 +3153,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
       USE config_mod 
       USE chem_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, ic 
 !                                                                       
@@ -3192,11 +3192,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mc_mod 
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxatom 
 !                                                                       
@@ -3341,11 +3341,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod 
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxatom 
 !                                                                       
@@ -3526,12 +3526,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     USE mmc_mod   
 !     USE modify_mod
 !     USE modify_func_mod
+!     USE errlist_mod 
+!     USE param_mod 
+!     USE prompt_mod 
 !     IMPLICIT none 
 !                                                                       
-!     include'prompt.inc' 
 !      
-!     include'errlist.inc' 
-!     include'param.inc' 
 !                                                                       
 !     INTEGER maxatom 
 !                                                                       
@@ -3737,11 +3737,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE mc_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxmol 
 !                                                                       
@@ -3886,12 +3886,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mc_mod  
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxatom 
 !                                                                       
@@ -4072,11 +4072,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod 
       USE modify_mod   
       USE modify_func_mod   
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxatom 
 !                                                                       
@@ -4281,12 +4281,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod   
       USE modify_mod   
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxww, maxatom 
 !                                                                       
@@ -4470,12 +4470,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod   
       USE modify_mod   
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxww, maxmol 
 !                                                                       
@@ -4665,12 +4665,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod   
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxww, maxatom 
 !                                                                       
@@ -4836,12 +4836,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mc_mod 
       USE mmc_mod   
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxmol, maxww 
       PARAMETER (maxmol = 48) 
@@ -4995,11 +4995,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE atom_env_mod 
       USE chem_mod 
       USE modify_mod
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
 !                                                                       
@@ -5241,11 +5241,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE conn_mod
       USE modify_mod
       USE modify_func_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'param.inc' 
-      include'errlist.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER, INTENT(IN)      ::  maxw    ! Maximum array size
 !                                                                       
@@ -5861,10 +5862,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE molecule_mod 
       USE rmc_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxww, maxw 
       PARAMETER (maxw = chem_max_neig) 
@@ -5918,12 +5919,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
@@ -6068,12 +6069,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE atom_env_mod 
       USE chem_mod 
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
@@ -6155,12 +6156,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE modify_mod
       USE modify_func_mod
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'param.inc' 
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw, iianz, jjanz, kkanz 
       REAL werte (maxw), wwerte (maxw), uwerte (maxw) 
@@ -6323,12 +6324,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       REAL proz 
       INTEGER natom (0:MAXSCAT) 
@@ -6393,12 +6394,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE chem_mod 
       USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       REAL proz 
       INTEGER nmole (0:MOLE_MAX_TYPE) 
@@ -6494,9 +6495,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !-                                                                      
 !     Displays error messages for the error type CHEM                   
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
       PARAMETER (IU = - 29, IO = 0) 

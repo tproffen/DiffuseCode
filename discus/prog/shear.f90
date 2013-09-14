@@ -24,14 +24,15 @@ CONTAINS
       USE molecule_mod 
       USE shear_mod 
       USE structur, ONLY: update_cr_dim
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 29  ! A command requires at leaset these no of parameters
       INTEGER maxw 
@@ -657,10 +658,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
+      USE prompt_mod 
+!
+      IMPLICIT none 
 !                                                                       
       CHARACTER(9) at_lis (maxscat+1), at_name 
       INTEGER mol_lis (maxscat+1) 
@@ -811,12 +812,13 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE shear_mod 
+!
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER i, j, k, l 
@@ -995,10 +997,10 @@ CONTAINS
       USE crystal_mod 
       USE atom_env_mod 
       USE shear_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, l 
@@ -1070,10 +1072,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
@@ -1239,10 +1241,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l, i0 
@@ -1403,10 +1405,10 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l, i0, m 
@@ -1575,11 +1577,11 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE shear_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
+      USE param_mod 
+      USE prompt_mod 
+      USE errlist_mod 
+      IMPLICIT none 
 !                                                                       
       INTEGER j 
       LOGICAL lspace 

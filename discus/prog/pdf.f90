@@ -12,15 +12,16 @@ SUBROUTINE pdf
       USE modify_mod
       USE pdf_mod 
       USE rmc_mod 
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'macro.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 24  ! A command requires at least these no of parameters
       INTEGER maxw 
@@ -260,13 +261,14 @@ SUBROUTINE pdf
       USE diffuse_mod 
       USE fourier_sup
       USE pdf_mod 
+      USE wink_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'debug.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       REAL sincut, rcut, z, bave, hh, fac, rtot, ract 
       INTEGER :: max_bnd
@@ -420,11 +422,11 @@ SUBROUTINE pdf
       USE chem_mod 
       USE pdf_mod 
       USE rmc_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(9) at_name, at_lis (MAXSCAT+1) 
       CHARACTER ( * ) cmd 
@@ -629,12 +631,13 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'debug.inc' 
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -730,12 +733,13 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
-      include'debug.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
@@ -816,10 +820,11 @@ SUBROUTINE pdf
 !                                                                       
       USE config_mod 
       USE pdf_mod 
+!
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'param.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER ifil 
 !                                                                       
@@ -874,9 +879,9 @@ SUBROUTINE pdf
 !     Gets numbers from history part of data file                       
 !-                                                                      
       USE config_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'param.inc' 
 !                                                                       
       CHARACTER ( * ) line, key 
       INTEGER is, ie, ll, lk 
@@ -911,11 +916,12 @@ SUBROUTINE pdf
       USE diffuse_mod 
       USE modify_mod
       USE pdf_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 20) 
@@ -1354,13 +1360,13 @@ SUBROUTINE pdf
       USE pdf_mod 
       USE rmc_mod 
       USE structur, ONLY: update_cr_dim
-      IMPLICIT none 
+      USE random_mod
 !                                                                       
-      include'prompt.inc' 
+      USE errlist_mod 
+      USE param_mod 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'random.inc' 
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       REAL(8) cc, c, ce, e, ee, wtot 
 !     REAL pdf_old (MAXDAT) 
@@ -1666,11 +1672,12 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
-      include'debug.inc' 
-      include'errlist.inc' 
        
 !                                                                       
       INTEGER i, ia, id 
@@ -1764,13 +1771,14 @@ SUBROUTINE pdf
       USE chem_mod 
       USE atom_env_mod 
       USE pdf_mod 
+      USE wink_mod
+!
+      USE debug_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
-      include'debug.inc' 
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER i, k, ia, ncc 
 !     REAL ppp (MAXDAT) 
@@ -1879,12 +1887,12 @@ SUBROUTINE pdf
       USE atom_env_mod 
       USE modify_mod
       USE pdf_mod 
+      USE param_mod 
+      USE wink_mod
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER ig, igaus, ib, ie 
       INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin, nn, ncc 
@@ -2029,10 +2037,10 @@ SUBROUTINE pdf
       USE chem_mod 
       USE modify_mod
       USE pdf_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER i, j, k, ii, jj, is, js, ks, ia, iatom, ibin 
       INTEGER istart (3), iend (3), iii (3), cell (3) 
@@ -2119,10 +2127,10 @@ SUBROUTINE pdf
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER is, js, ia, jj, iatom, ibin 
       REAL dist, dist2 
@@ -2167,11 +2175,11 @@ SUBROUTINE pdf
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER ig, igaus, ib, ie 
       INTEGER ii, kk, is, js, ibin 
@@ -2250,9 +2258,9 @@ SUBROUTINE pdf
 !-                                                                      
 !     Displays error Messages for the error type PDF                    
 !+                                                                      
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER iu, io 
       PARAMETER (IU = -9, IO = 0) 

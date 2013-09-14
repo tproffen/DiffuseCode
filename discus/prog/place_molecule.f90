@@ -3,6 +3,7 @@ MODULE mole_surf_mod
 USE crystal_mod
 USE deco_mod
 USE prop_para_mod
+USE errlist_mod
 !
 PRIVATE
 PUBLIC do_place_molecule
@@ -15,13 +16,12 @@ CONTAINS
    USE modify_mod
    USE modify_func_mod
 !
+   USE doact_mod
+   USE learn_mod
+   USE macro_mod
+   USE prompt_mod
    IMPLICIT none
 !
-   include'doact.inc'
-   include'errlist.inc'
-   include'learn.inc'
-   include'macro.inc'
-   include'prompt.inc'
 !
    INTEGER, PARAMETER   :: MAXW = 9
 !
@@ -190,7 +190,6 @@ CONTAINS
 !
    IMPLICIT NONE
 !
-   include'errlist.inc'
 !
    CHARACTER (LEN=*), INTENT(INOUT) :: zeile
    INTEGER          , INTENT(INOUT) :: lp
@@ -472,7 +471,6 @@ write(*,*) ' STRUCFILE ',strufile
    SUBROUTINE deco_show
 !
    IMPLICIT none
-   include'errlist.inc'
 !
    dc_def_temp => dc_def_head
    CALL dc_show_def(dc_def_temp, ier_num)
@@ -486,7 +484,6 @@ write(*,*) ' STRUCFILE ',strufile
 !  Set all definitions back to system default
 !
    IMPLICIT none
-   include'errlist.inc'
 !
    dc_init        = .true.    ! We need to initialize
    dc_n_molecules = 0         ! There are no molecules

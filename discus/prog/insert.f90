@@ -11,14 +11,15 @@
       USE insert_mod 
       USE molecule_mod 
       USE structur, ONLY: update_cr_dim
+!
+      USE doact_mod 
+      USE errlist_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER, INTENT(IN) :: itype 
 !                                                                       
@@ -550,10 +551,9 @@
       USE crystal_mod 
       USE insert_mod 
       USE molecule_mod 
+!
+      USE prompt_mod 
       IMPLICIT none 
-!                                                                       
-      include'prompt.inc' 
-       
 !                                                                       
       CHARACTER(8) c_char (0:4) 
       CHARACTER(8) ctype ( - 1:1) 
@@ -619,11 +619,11 @@
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
+!
+      USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
-      include'errlist.inc' 
-      include'prompt.inc' 
 !                                                                       
       WRITE (output_io, * ) ' Not yet implemented' 
 !                                                                       
@@ -640,10 +640,10 @@
       USE modify_mod
       USE molecule_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(LEN=4), DIMENSION(4)   :: cname 
       CHARACTER(LEN=4), DIMENSION(0:3) :: oname
@@ -841,10 +841,10 @@
       USE modify_mod
       USE molecule_mod 
       USE prop_para_mod 
+      USE errlist_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(LEN=4), DIMENSION(8)   :: cname
       CHARACTER(LEN=4), DIMENSION(0:3) :: oname

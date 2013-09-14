@@ -13,6 +13,7 @@ MODULE cryst_class
 !  A working class will need the full suite of methods....
 !
 USE atom_class          ! this way we know all interfaces to the "cl_atom" class
+USE errlist_mod
 !
 IMPLICIT none 
 !
@@ -694,7 +695,6 @@ CONTAINS
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
    IMPLICIT NONE
-   include'errlist.inc'
 !
    INTEGER                                      , INTENT(INOUT) :: rd_NMAX 
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 

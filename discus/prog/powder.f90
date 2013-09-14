@@ -1,5 +1,7 @@
 MODULE powder
 !
+USE errlist_mod 
+!
 IMPLICIT NONE
 !
 PUBLIC
@@ -18,14 +20,14 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE powder_mod 
+!
+      USE doact_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       LOGICAL lnew, lold 
       PARAMETER (lnew = .true., lold = .false.) 
@@ -208,12 +210,12 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE powder_mod 
+      USE wink_mod
+!
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'prompt.inc' 
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       CHARACTER(8) radiation 
       CHARACTER (LEN=8), DIMENSION(3), PARAMETER :: c_rad = (/ &
@@ -459,7 +461,6 @@ CONTAINS
       INTEGER MAXW 
       PARAMETER (MAXW = 7) 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) cpara (MAXW) 
       CHARACTER ( * ) zeile 
@@ -1014,7 +1015,6 @@ CONTAINS
       PARAMETER (MAXW = 2) 
 !                                                                       
        
-      include'errlist.inc' 
 !
       REAL   , DIMENSION(1:3) :: u
 !                                                                       
@@ -1085,16 +1085,15 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE powder_mod 
+      USE wink_mod
+!                                                                       
+      USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 2) 
-!                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'wink.inc' 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER laenge 
@@ -1628,6 +1627,9 @@ CONTAINS
       USE fourier_sup
       USE output_mod 
       USE powder_mod 
+      USE wink_mod
+!                                                                       
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
@@ -1635,11 +1637,7 @@ CONTAINS
 
       INTEGER iff 
       PARAMETER (iff = 2) 
-!                                                                       
-      include'prompt.inc' 
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
       INTEGER ibin 
@@ -1953,9 +1951,9 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       REAL(8) twopi, xmult, xarg, xt 
       INTEGER i 
@@ -2049,9 +2047,9 @@ CONTAINS
       USE config_mod 
       USE debye_mod 
       USE diffuse_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
 !                                                                       
       REAL(8) twopi, xmult, xarg, xt 
       INTEGER i 
@@ -2117,11 +2115,10 @@ CONTAINS
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       REAL q2 
       INTEGER i
@@ -2174,11 +2171,10 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
-      IMPLICIT none 
 !                                                                       
-      include'prompt.inc' 
+      USE prompt_mod 
+      IMPLICIT none 
        
-      include'errlist.inc' 
 !                                                                       
       REAL dnorm 
       INTEGER lbeg (3), csize (3) 
@@ -2386,11 +2382,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       REAL w (3) 
       REAL pow_pref_hkl (3) 

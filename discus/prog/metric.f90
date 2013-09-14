@@ -37,11 +37,11 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'wink.inc' 
 !                                                                       
       LOGICAL lspace 
       REAL u (3), v (3), w (3) 
@@ -136,11 +136,12 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+!
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -212,11 +213,11 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 
@@ -310,12 +311,12 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE errlist_mod 
+      USE wink_mod
+      USE param_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
-      include'param.inc' 
-      include'wink.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 7) 

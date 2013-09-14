@@ -1,5 +1,7 @@
 MODULE structur
 
+USE errlist_mod 
+!
 IMPLICIT NONE
 !
 PUBLIC
@@ -28,14 +30,14 @@ CONTAINS
       USE save_mod 
       USE spcgr_apply
 !      USE interface_def
+!
+      USE doact_mod 
+      USE learn_mod 
+      USE macro_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
        
-      include'doact.inc' 
-      include'errlist.inc' 
-      include'learn.inc' 
-      include'macro.inc' 
-      include'prompt.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 11) 
@@ -486,7 +488,6 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER ist, maxw 
       PARAMETER (ist = 7, maxw = 5) 
@@ -789,7 +790,6 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       USE prop_para_mod 
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
                                                                         
 !                                                                       
       CHARACTER ( * ) line 
@@ -885,7 +885,6 @@ got_params: IF (ier_num.eq.0) THEN
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 21) 
@@ -1184,8 +1183,6 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER NMAX 
       INTEGER MAXSCAT 
 !                                                                       
-!     include'crystal3.inc' 
-      include'errlist.inc' 
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
@@ -1272,7 +1269,6 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER HD_NMAX 
       INTEGER HD_MAXSCAT 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(80) cr_name 
       CHARACTER(16) cr_spcgr 
@@ -1669,8 +1665,6 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER NMAX 
       INTEGER MAXSCAT 
 !                                                                       
-!     include'crystal3.inc' 
-      include'errlist.inc' 
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
@@ -1860,7 +1854,6 @@ got_params: IF (ier_num.eq.0) THEN
       IMPLICIT none 
 !                                                                       
        
-      include'errlist.inc' 
 !                                                                       
       CHARACTER(1024) cpara 
       INTEGER lpara 
@@ -2077,7 +2070,6 @@ got_params: IF (ier_num.eq.0) THEN
 !+                                                                      
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER maxw 
       PARAMETER (MAXW = 5) 
@@ -2132,7 +2124,6 @@ got_params: IF (ier_num.eq.0) THEN
 !+                                                                      
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER ianz 
       INTEGER MAXW 
@@ -2508,7 +2499,6 @@ got_params: IF (ier_num.eq.0) THEN
 !+                                                                      
       IMPLICIT none 
 !                                                                       
-      include'errlist.inc' 
 !                                                                       
       INTEGER          , INTENT(IN)                    :: ianz 
       INTEGER          , INTENT(IN)                    :: MAXW 
@@ -2654,10 +2644,9 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !
 !     Determines the number of atoms and atom types in strucfile
 !
+      USE charact_mod
       IMPLICIT NONE
 !
-      include'errlist.inc'
-      include'charact.inc'
 
 !
       CHARACTER (LEN=*), INTENT(IN)    :: strucfile
