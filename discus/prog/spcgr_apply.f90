@@ -1,12 +1,12 @@
 MODULE spcgr_apply
 !
-USE errlist_mod 
+USE errlist_mod
 !
 IMPLICIT NONE
 !
 CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE get_symmetry_matrices 
+      SUBROUTINE get_symmetry_matrices
 !-                                                                      
 !     Creates all symmetry matrices for the current space group         
 !+                                                                      
@@ -114,7 +114,7 @@ CONTAINS
       ENDDO 
 !-----      End of loop over additional symmetry matices                
 !                                                                       
-      END SUBROUTINE get_symmetry_matrices          
+      END SUBROUTINE get_symmetry_matrices         
 !*****7*****************+***********************************************
       SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
       spc_spur, spc_char, spc_xyz, igg, NG, generators, generpower)     
@@ -143,16 +143,18 @@ CONTAINS
       INTEGER ipg 
       INTEGER imat 
       INTEGER nmat 
+      LOGICAL             :: lexist = .false.
+      REAL, PARAMETER     :: EPS    = 1.e-5
       REAL xmat (4, 4) 
       REAL wmat (4, 4) 
 !                                                                       
 !     For convenience create Identity operator                          
 !                                                                       
       DO i = 1, 4 
-      DO j = 1, 4 
-      xmat (i, j) = 0.0 
-      ENDDO 
-      xmat (i, i) = 1.0 
+         DO j = 1, 4 
+            xmat (i, j) = 0.0 
+         ENDDO 
+         xmat (i, i) = 1.0 
       ENDDO 
 !                                                                       
 !     nmat is the number of symetry operations prior to this generator  
@@ -164,63 +166,77 @@ CONTAINS
 !                                                                       
 !     Loop over all powers of generator igg                             
 !                                                                       
-      DO ipg = 1, generpower (igg) 
+      loop_power: DO ipg = 1, generpower (igg) 
 !                                                                       
 !     --raise power of generator, xmat is a dummy matrix, equal to      
 !     --the previous power of the generator                             
 !                                                                       
-      DO i = 1, 4 
-      DO j = 1, 4 
-      wmat (i, j) = 0.0 
-      DO k = 1, 4 
-      wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
-      ENDDO 
-      ENDDO 
-      ENDDO 
+         DO i = 1, 4 
+            DO j = 1, 4 
+               wmat (i, j) = 0.0 
+               DO k = 1, 4 
+                  wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+               ENDDO 
+            ENDDO 
+         ENDDO 
 !                                                                       
 !     --apply generator to all previous symmetry matrices               
-!                                                                       
-      DO imat = 1, nmat 
-      spc_n = spc_n + 1 
-      spc_det (spc_n) = 0 
-      spc_spur (spc_n) = 0 
-      DO i = 1, 4 
-      DO j = 1, 4 
-      DO k = 1, 4 
-      spc_mat (i, j, spc_n) = spc_mat (i, j, spc_n) + wmat (i, k)       &
-      * spc_mat (k, j, imat)                                            
-      ENDDO 
-      ENDDO 
-      ENDDO 
-      DO i = 1, 3 
-      IF (spc_mat (i, 4, spc_n) .ge.1.0) then 
-         spc_mat (i, 4, spc_n) = spc_mat (i, 4, spc_n) - int (spc_mat ( &
-         i, 4, spc_n) )                                                 
-      ELSEIF (spc_mat (i, 4, spc_n) .lt.0.0) then 
-         spc_mat (i, 4, spc_n) = spc_mat (i, 4, spc_n) + int (spc_mat ( &
-         i, 4, spc_n) ) + 1                                             
-      ENDIF 
-      spc_spur (spc_n) = spc_spur (spc_n) + spc_mat (i, i, spc_n) 
-      ENDDO 
-      spc_det (spc_n) = spc_mat (1, 1, spc_n) * (spc_mat (2, 2, spc_n)  &
-      * spc_mat (3, 3, spc_n) - spc_mat (3, 2, spc_n) * spc_mat (2, 3,  &
-      spc_n) ) - spc_mat (1, 2, spc_n) * (spc_mat (2, 1, spc_n) *       &
-      spc_mat (3, 3, spc_n) - spc_mat (3, 1, spc_n) * spc_mat (2, 3,    &
-      spc_n) ) + spc_mat (1, 3, spc_n) * (spc_mat (2, 1, spc_n) *       &
-      spc_mat (3, 2, spc_n) - spc_mat (3, 1, spc_n) * spc_mat (2, 2,    &
-      spc_n) )                                                          
-      CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-      spc_det, spc_char, spc_xyz, cr_syst)                              
-      ENDDO 
+!
+         generate: DO imat = 1, nmat 
+            spc_n = spc_n + 1 
+            spc_det (spc_n) = 0 
+            spc_spur (spc_n) = 0 
+            spc_mat(:,:,spc_n) = 0
+            DO i = 1, 4 
+               DO j = 1, 4 
+                  DO k = 1, 4 
+                     spc_mat (i, j, spc_n) = spc_mat (i, j, spc_n) +  &
+                               wmat (i, k) * spc_mat (k, j, imat)                                            
+                  ENDDO 
+               ENDDO 
+            ENDDO 
+            DO i = 1, 3 
+               IF (spc_mat (i, 4, spc_n) .ge.1.0) then 
+                  spc_mat (i, 4, spc_n) = spc_mat (i, 4, spc_n) -     &
+                                     int (spc_mat (i, 4, spc_n) )
+               ELSEIF (spc_mat (i, 4, spc_n) .lt.0.0) then 
+                  spc_mat (i, 4, spc_n) = spc_mat (i, 4, spc_n) +     &
+                                     int (spc_mat (i, 4, spc_n) ) + 1
+               ENDIF 
+               spc_spur (spc_n) = spc_spur (spc_n) + spc_mat (i, i, spc_n) 
+            ENDDO 
+            spc_det (spc_n) = spc_mat (1, 1, spc_n) * (spc_mat (2, 2, spc_n) * spc_mat (3, 3, spc_n) -      &
+                                                       spc_mat (3, 2, spc_n) * spc_mat (2, 3, spc_n)   ) -  &
+                              spc_mat (1, 2, spc_n) * (spc_mat (2, 1, spc_n) * spc_mat (3, 3, spc_n) -      &
+                                                       spc_mat (3, 1, spc_n) * spc_mat (2, 3, spc_n)   ) +  &
+                              spc_mat (1, 3, spc_n) * (spc_mat (2, 1, spc_n) * spc_mat (3, 2, spc_n) -      &
+                                                       spc_mat (3, 1, spc_n) * spc_mat (2, 2, spc_n)   )
+
+!        Test if matrix exists already
+            is_exist: DO k = 1, spc_n-1
+               lexist = .true.
+               DO i = 1, 4 
+                  DO j = 1, 4 
+                     lexist = lexist .and. ABS(spc_mat(i,j,k)-spc_mat(i,j,spc_n)) < EPS
+                  ENDDO
+               ENDDO
+               IF(lexist) THEN
+                  spc_n = spc_n -1
+                  EXIT loop_power
+               ENDIF
+            ENDDO is_exist
+            CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
+            spc_det, spc_char, spc_xyz, cr_syst)
+         ENDDO generate
 !                                                                       
 !     --Set power of Generator                                          
 !                                                                       
-      DO i = 1, 4 
-      DO j = 1, 4 
-      xmat (i, j) = wmat (i, j) 
-      ENDDO 
-      ENDDO 
-      ENDDO 
+         DO i = 1, 4 
+            DO j = 1, 4 
+               xmat (i, j) = wmat (i, j) 
+            ENDDO 
+         ENDDO 
+      ENDDO loop_power
 !                                                                       
       END SUBROUTINE make_symmetry_matrix           
 !********************************************************************** 
@@ -1141,10 +1157,10 @@ CONTAINS
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
-!                                                                       
-      USE prompt_mod 
-!
+      USE prompt_mod
       IMPLICIT none 
+!                                                                       
+       
 !                                                                       
       REAL vec (3) 
       LOGICAL loutput 
@@ -1741,8 +1757,7 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
 !
-      USE prompt_mod 
-!
+      USE prompt_mod
       IMPLICIT none 
 !                                                                       
        

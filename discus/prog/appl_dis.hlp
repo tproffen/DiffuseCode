@@ -1782,7 +1782,7 @@
    The space group is always set to P1, since SHELX defines the individual
    symmetry operations. 
    The lattice is written into the DISCUS file as a generator.
-   The SHELX symmetry operations are written as individual symmetry operations
+   The SHELX symmetry operations are written as individual generator operations
    into the DISCUS file.
    The atom names are taken from the SHELX "SFAC" instruction and used for
    the individual atoms.
@@ -1790,8 +1790,8 @@
    variables.
 
    LIMITATIONS
-   Currently the "SFAC" instruction may contain atom names only.
    The "DISP" instruction is ignored.
+   Explicit form factors on the "SCAT" instruction are ignored
    ALL instructions following the "FVAR" instruction up to the "HKLF" 
    instructions are interpreted as atoms, unless they are valid SHELX 
    commands.

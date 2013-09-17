@@ -451,7 +451,10 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
             cr_fmat, cr_cartesian)                                      
+            IF (.not. (str_comp (befehl, 'cell',  1, lbef, 4) .or.      &
+                       str_comp (befehl, 'lcell', 1, lbef, 5)     ) ) then
                CALL get_symmetry_matrices 
+            ENDIF
          ELSE 
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) then 
@@ -2125,10 +2128,10 @@ got_params: IF (ier_num.eq.0) THEN
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER ianz 
-      INTEGER MAXW 
-      CHARACTER ( * ) cpara (MAXW) 
-      INTEGER lpara (MAXW) 
+      INTEGER                             , INTENT(IN)    :: ianz 
+      INTEGER                             , INTENT(IN)    :: MAXW 
+      CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
+      INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
 !                                                                       
       INTEGER NFV 
       PARAMETER (NFV = 50) 
@@ -2148,7 +2151,7 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER ird, iwr 
       INTEGER i, j, ii, jj 
       INTEGER ix, iy, iz, idot 
-      INTEGER ntyp 
+      INTEGER ntyp , ntyp_prev
       INTEGER length, length1, length2, lp 
       INTEGER icont 
       INTEGER centering 
@@ -2164,6 +2167,12 @@ got_params: IF (ier_num.eq.0) THEN
       REAL uiso, uij (6) 
       REAL gen (3, 4) 
       REAL fv (NFV) 
+!
+      INTEGER                               :: iianz      ! Dummy number of parameters
+      INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
+      CHARACTER (LEN=1024), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
+      INTEGER             , DIMENSION(MAXP) :: llpara
+      REAL                , DIMENSION(MAXP) :: wwerte
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -2177,11 +2186,14 @@ got_params: IF (ier_num.eq.0) THEN
       'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
 !                                                                       
       DO i = 1, NFV 
-      fv (i) = 0.0 
+         fv (i) = 0.0 
       ENDDO 
 !                                                                       
-      lmole = .false. 
+      lmole    = .false. 
       lmole_wr = .true. 
+!
+      ntyp      = 0
+      ntyp_prev = 0
 !                                                                       
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
       IF (ier_num.ne.0) then 
@@ -2264,24 +2276,39 @@ got_params: IF (ier_num.eq.0) THEN
             WRITE (iwr, 2400) 
          ENDIF 
       ELSEIF (command.eq.'SFAC') then 
-         ntyp = 0 
          j = 5 
-         DO while (j.lt.length) 
-         j = j + 1 
-         DO while (j.lt.length.and.line (j:j) .eq.' ') 
-         j = j + 1 
-         ENDDO 
-         IF (j.le.length) then 
-            ntyp = ntyp + 1 
-            c_atom (ntyp) = ' ' 
-            i = 0 
-            DO while (j.le.length.and.line (j:j) .ne.' ') 
-            i = i + 1 
-            c_atom (ntyp) (i:i) = line (j:j) 
+         atom_search: DO while (j.lt.length) 
             j = j + 1 
+            DO while (j.lt.length.and.line (j:j) .eq.' ') 
+               j = j + 1 
             ENDDO 
-         ENDIF 
-         ENDDO 
+            IF (j.le.length) then 
+               ntyp = ntyp + 1 
+               c_atom (ntyp) = ' ' 
+               i = 0 
+               DO while (j.le.length.and.line (j:j) .ne.' ') 
+                  i = i + 1 
+                  c_atom (ntyp) (i:i) = line (j:j) 
+                  j = j + 1 
+               ENDDO 
+               IF(ntyp == ntyp_prev + 2) THEN
+!
+!                 This is the second parameter, test if this is a numerical
+!                 value. If so only the first parameter is an atom name rest is
+!                 the numerical form factor, which we ignore
+                  ccpara(1) = c_atom(ntyp)
+                  llpara(1) = i
+                  iianz     = 1
+                  CALL ber_params (iianz, ccpara, llpara, wwerte, MAXP) 
+                  IF(ier_num==0) THEN
+                     ntyp = ntyp - 1
+                     EXIT atom_search
+                  ENDIF
+                  ier_num = 0
+                  ier_typ = ER_NONE
+               ENDIF
+            ENDIF 
+         ENDDO atom_search
 !        WRITE (iwr, 2500) (c_atom (i) , ',', i = 1, ntyp - 1) , c_atom &
 !        (ntyp)                                                         
       ELSEIF (command.eq.'SYMM') then 
@@ -2397,10 +2424,41 @@ got_params: IF (ier_num.eq.0) THEN
             WRITE (iwr, 4000) 'molecule' 
             lmole_wr = .false. 
          ENDIF 
-         READ (line (6:length), *, end = 850) ityp, xyz, sof, (uij (i), &
-         i = 1, 6)                                                      
-  850    CONTINUE 
-         IF (i.lt.6) then 
+!
+!        This is an atom, get the parameters from the input line
+!
+         iianz  = 0
+         j      = 5 
+         ccpara = ' '
+         llpara = 0
+         atom_para: DO while (j.lt.length) 
+            j = j + 1 
+            DO while (j.lt.length.and.line (j:j) .eq.' ') 
+               j = j + 1 
+            ENDDO 
+            IF (j.le.length) then 
+               iianz = iianz + 1 
+               ccpara (iianz) = ' ' 
+               i = 0 
+               DO while (j.le.length.and.line (j:j) .ne.' ') 
+                  i = i + 1 
+                  ccpara (iianz) (i:i) = line (j:j) 
+                  j = j + 1 
+               ENDDO 
+               llpara(iianz) = i
+            ENDIF 
+         ENDDO atom_para
+         READ (ccpara(1)(1:llpara(1)),*) ityp
+         READ (ccpara(2)(1:llpara(2)),*) xyz(1)
+         READ (ccpara(3)(1:llpara(3)),*) xyz(2)
+         READ (ccpara(4)(1:llpara(4)),*) xyz(3)
+         DO i=1,iianz - 5
+            READ (ccpara(5+i)(1:llpara(5+i)),*) uij(i)
+         ENDDO
+!        READ (line (6:length), *, end = 850) ityp, xyz, sof, (uij (i), &
+!        i = 1, 6)                                                      
+! 850    CONTINUE 
+         IF (iianz == 6) then 
             uiso = uij (1) 
          ELSE 
             uiso = (uij (1) + uij (2) + uij (3) ) / 3. 
@@ -2461,7 +2519,7 @@ got_params: IF (ier_num.eq.0) THEN
  2200 FORMAT    ('cell ',5(2x,f9.4,','),2x,f9.4) 
  2320 FORMAT    ('gener  1.0, 0.0, 0.0, 0.5,',                          &
      &                     '    0.0, 1.0, 0.0, 0.5,',                   &
-     &                     '    0.0, 0.0, 1.0, 0.5   1')                
+     &                     '    0.0, 0.0, 1.0, 0.5,  1')                
  2330 FORMAT    ('gener  1.0, 0.0, 0.0, 0.66666667,',                   &
      &                     '    0.0, 1.0, 0.0, 0.33333333,',            &
      &                     '    0.0, 0.0, 1.0, 0.33333333,   2')        
@@ -2484,7 +2542,7 @@ got_params: IF (ier_num.eq.0) THEN
      &                     '    0.0,-1.0, 0.0, 0.0,',                   &
      &                     '    0.0, 0.0,-1.0, 0.0,  1')                
  2500 FORMAT    ('scat ',20(a4,a1)) 
- 2600 FORMAT    ('symm ',3(2X,4(1x,f12.8,',')),' 1.') 
+ 2600 FORMAT    ('gener',3(2X,4(1x,f12.8,',')),' 1.') 
 !                                                                       
  3000 FORMAT    ('atoms') 
  3100 FORMAT    (a2,2x,4(2x,f9.5)) 
