@@ -2109,6 +2109,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE four_strucf_mod
       USE rmc_mod 
 !                                                                       
       USE errlist_mod 
@@ -2674,6 +2675,7 @@
       USE config_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE four_strucf_mod
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       

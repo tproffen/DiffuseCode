@@ -2170,6 +2170,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE four_strucf_mod
       USE fourier_sup
 !                                                                       
       USE prompt_mod 
