@@ -22,13 +22,16 @@ FCreadline(int *len, char *myline, char prompt[]){
 
    using_history();  
    line=readline(prompt);                 /* use readline(3c) to read a line of input in edit mode */
+   if (line == NULL) {
+     line = strdup("exit");
+   }
    if(strlen(line) >0) {                  /* save non-zero strings only */
       add_history(line);
    }
 
-   strncpy(myline,line,(int)len);         /* copy line returned by readline(3c) to MYLINE up to length of MYLINE */
+   strncpy(myline,line,*len);         /* copy line returned by readline(3c) to MYLINE up to length of MYLINE */
 
-   for(i=strlen(line);i<(int)len;i++){    /* starting with null, pad with spaces to end */
+   for(i=strlen(line);i<*len;i++){    /* starting with null, pad with spaces to end */
      myline[i]=' ';
    }
 
