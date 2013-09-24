@@ -357,6 +357,7 @@ CONTAINS
 ! Writes the logfile and summary file
 !
    USE allocate_appl
+   USE create_trial_mod
    USE diff_evol
    USE population
 !
@@ -721,6 +722,7 @@ CONTAINS
 !
 !  Reads the parameter values from the log file
 !                                                                       
+   USE create_trial_mod
    USE population
 !
    IMPLICIT none 
