@@ -27,6 +27,7 @@ CONTAINS
 !-                                                                      
    USE allocate_appl
    USE constraint
+   USE create_trial_mod
    USE population
    USE random_mod
 !
@@ -158,6 +159,7 @@ CONTAINS
    USE config
    USE population
    USE constraint
+   USE create_trial_mod
    USE random_mod
 !
    IMPLICIT none
@@ -257,6 +259,7 @@ CONTAINS
 !  This subroutine fixes the values of parameter <lb> for all children 
 !  and trials to <value>. Refinement of this parameter is switched off.
 !
+   USE create_trial_mod
    USE population
 !
    IMPLICIT NONE

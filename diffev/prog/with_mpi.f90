@@ -1,3 +1,6 @@
+MODULE DIFFEV_MPI_MOD
+!
+CONTAINS
 !*****7***************************************************************
 SUBROUTINE RUN_MPI_INIT 
 !
@@ -650,3 +653,4 @@ CALL MPI_FINALIZE ( ier_num )
 !
 !
 END SUBROUTINE RUN_MPI_FINALIZE
+END MODULE DIFFEV_MPI_MOD

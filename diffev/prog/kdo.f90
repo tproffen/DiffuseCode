@@ -9,11 +9,14 @@ SUBROUTINE mache_kdo (line, lend, length)
 USE constraint
 USE charact_mod 
 USE diff_evol
+USE diffev_mpi_mod
 USE population
 USE allocate_appl
+USE create_trial_mod
 USE compare
 USE initialise
 USE run_mpi_mod
+use show_mod
 !
 USE errlist_mod 
 USE learn_mod 

@@ -1,3 +1,6 @@
+MODULE create_trial_mod
+!
+CONTAINS
 !*****7**************************************************************** 
 !                                                                       
       SUBROUTINE create_trial 
@@ -467,3 +470,4 @@ IF (pop_gen.gt.0) then
 ENDIF 
 !                                                                       
 END SUBROUTINE adapt_sigma                    
+END MODULE create_trial_mod

@@ -1,5 +1,7 @@
 PROGRAM diffev 
 !                                                                       
+USE diffev_mpi_mod
+USE do_exit_mod
 USE run_mpi_mod
 USE doact_mod
 USE errlist_mod 

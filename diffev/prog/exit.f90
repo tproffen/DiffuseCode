@@ -1,3 +1,7 @@
+MODULE do_exit_mod
+!
+CONTAINS
+!
 SUBROUTINE do_exit 
 !                                                                       
 USE allocate_appl
@@ -15,3 +19,4 @@ ENDIF
 CALL alloc_appl ( 'all',3,'deallocate')
 !
 END SUBROUTINE do_exit                        
+END MODULE do_exit_mod

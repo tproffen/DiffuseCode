@@ -438,6 +438,7 @@ SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
 !       new value of wert                                               
 !+                                                                      
 USE allocate_appl
+USE create_trial_mod
 USE diff_evol
 USE population
 USE errlist_mod 

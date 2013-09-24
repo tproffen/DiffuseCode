@@ -1,3 +1,6 @@
+MODULE show_mod
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
 !     This routine shows all settings of DIFFEV parameters. Some        
@@ -46,3 +49,4 @@ ELSE
 ENDIF 
 !                                                                       
 END SUBROUTINE do_show                        
+END MODULE show_mod
