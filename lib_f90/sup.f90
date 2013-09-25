@@ -419,6 +419,10 @@ SUBROUTINE cmdline_args
          CALL socket_close (s_conid) 
          CALL socket_close (s_sock) 
       ENDIF 
+!
+!       For library procedure style set setup_done to false
+!
+      lsetup_done = .false.
 !                                                                       
       END SUBROUTINE exit_all                       
 !*****7*****************************************************************

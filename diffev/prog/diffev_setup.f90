@@ -37,6 +37,7 @@ prompt_status_old = PROMPT_ON
 !                                                                       
 CALL setup
 CALL run_mpi_init
+lsetup_done = .true.
 !                                                                       
 END SUBROUTINE diffev_setup
 !*****7*****************************************************************

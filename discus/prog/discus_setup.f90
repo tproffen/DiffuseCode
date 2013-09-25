@@ -19,6 +19,7 @@ prompt_status_old = PROMPT_ON
 !
 CALL setup
 CALL no_error
+lsetup_done = .true.
 !
 END SUBROUTINE discus_setup
 

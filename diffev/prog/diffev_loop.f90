@@ -86,7 +86,9 @@ ENDIF with_mpi_error
 !
 CALL RUN_MPI_FINALIZE
 !
-CALL do_exit 
+IF ( lstandalone ) THEN
+   CALL do_exit
+ENDIF
 !                                                                       
 END SUBROUTINE diffev_loop
 !*****7*****************************************************************

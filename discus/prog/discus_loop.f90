@@ -38,7 +38,7 @@ lend    = .false.
 !------ This is the main loop: reading commands ..                      
 !                                                                       
 main: DO while (.not.lend) 
-   CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt) 
+   CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
 ok: IF (ier_num.eq.0.and.laenge.gt.0) then 
 !                                                                       
 !     - If not a comment continue                                       
@@ -70,8 +70,9 @@ fehler: IF (ier_num.ne.0) then
    ENDIF fehler
 ENDDO main
 !                                                                       
- 9999 CONTINUE 
-CALL do_exit 
+IF ( lstandalone ) THEN
+   CALL do_exit 
+ENDIF
 !                                                                       
 END SUBROUTINE discus_loop
 !

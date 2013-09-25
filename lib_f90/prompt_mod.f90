@@ -36,5 +36,7 @@ MODULE prompt_mod
    LOGICAL              :: lsocket           = .false.
    LOGICAL              :: lconn             = .false.
    LOGICAL              :: lremote           = .false.
+   LOGICAL              :: lsetup_done       = .false.
+   LOGICAL              :: lstandalone       = .true.
 !
 END MODULE prompt_mod
