@@ -1,8 +1,10 @@
 # DISCUS Build
 
 option(DISCUS_NEXUS "DISCUS_NEXUS" OFF)
+option(DISCUS_OMP   "DISCUS_OMP"   OFF)
 
 find_package(NEXUS)
+find_package(OpenMP)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -10,7 +12,8 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
 ###	
-set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
+set( SOURCE_MAIN discus.f90 )
+set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	blk_appl.f90 bv_data_mod.f90 
 	chem.f90 chem_mod.f90 config_mod.f90
 	conn_def_mod.f90 conn_mod.f90 crystal_mod.f90 
@@ -18,9 +21,8 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	class_dc_def.f90 
 	deco_mod.f90 
 	debye_mod.f90 diffuse_mod.f90
-	discus.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
+	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
 	err_appl.f90 exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
-        four_strucf_mod.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
 	inter_readstru.f90
 	interpret.f90 inverse_mod.f90 kdo.f90        mc_mod.f90 metric.f90 micro_mod.f90
@@ -36,24 +38,39 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	thermal.f90 trafo.f90 transfrm.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
 	waves.f90 waves_mod.f90 wyckoff_mod.f90 
   )
+#set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
 set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 # NEXUS support ?
 
 if (NEXUS_FOUND AND DISCUS_NEXUS)
-  set (SOURCES ${SOURCES} nexus.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} nexus.f90)
   set (LIBS ${LIBS} ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
 
 else (NEXUS_FOUND AND DISCUS_NEXUS)
-  set (SOURCES ${SOURCES} nexus_no.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} nexus_no.f90)
 
 endif (NEXUS_FOUND AND DISCUS_NEXUS)
 
-add_executable (discus ${SOURCES})
-#target_link_libraries (discus lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
+# OpenMP ?
+
+if( DISCUS_OMP)
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+
+else (DISCUS_OMP)
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
+
+endif (DISCUS_OMP)
+
+add_library (discus_all ${SOURCES_ALL} )
+
+set ( LIBS discus_all ${LIBS} discus_all ) 
+
+add_executable (discus ${SOURCE_MAIN} ) 
+
 target_link_libraries (discus ${LIBS}) 
 
 add_custom_command (

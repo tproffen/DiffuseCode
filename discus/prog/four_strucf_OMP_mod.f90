@@ -7,6 +7,7 @@ CONTAINS
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
+      USE omp_lib
       USE config_mod 
       USE diffuse_mod 
       IMPLICIT none 
@@ -17,6 +18,10 @@ CONTAINS
       REAL(KIND=8)        :: xarg0, xincu, xincv , xincw
       INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
 !
+      INTEGER                              :: tid       ! Id of this thread
+      INTEGER                              :: nthreads  ! Number of threadsa available from OMP
+      COMPLEX, DIMENSION(:,:), ALLOCATABLE :: tcsfp     ! Partial structure factor from parallel OMP
+!                                                                       
       INTEGER IAND, ISHFT 
 !
 !------ zero fourier array                                              
@@ -25,7 +30,24 @@ CONTAINS
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
+!     Jump into OpenMP to obtain number of threads
+!$OMP PARALLEL PRIVATE(tid)
+      tid = OMP_GET_THREAD_NUM()
+      IF (tid == 0) THEN
+         nthreads = OMP_GET_NUM_THREADS()
+      END IF
+!$OMP END PARALLEL
+
+!     Allocate, initialize tcsfp
+  PRINT *, 'nthreads=',nthreads,'MAXQXY: ', MAXQXY
+      ALLOCATE (tcsfp (1:MAXQXY,0:nthreads-1))
+      tcsfp = cmplx(0.0d0, 0.0d0)
+
+!$OMP PARALLEL PRIVATE(tid,k,xarg0,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
+!$OMP DO
+
       DO k = 1, nxat 
+         tid = OMP_GET_THREAD_NUM()
          xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm  (3) * xat(k, 3)
          xincu = uin(1) * xat(k, 1) + uin(2) * xat(k, 2) + uin (3) * xat(k, 3)
          xincv = vin(1) * xat(k, 1) + vin(2) * xat(k, 2) + vin (3) * xat(k, 3)
@@ -52,14 +74,19 @@ CONTAINS
              DO i = 0, num (2) - 1
                 iarg = iarg0 + iincu*j + iincv*i 
                 DO h = 1, num (3) 
-                   ii       = ii + 1 
-                   tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg,-6), MASK) )
-                   iarg     = iarg + iincw
+                   ii            = ii + 1 
+                   tcsfp(ii,tid) = tcsfp(ii,tid) + cex (IAND  (ISHFT(iarg,-6), MASK) )
+                   iarg          = iarg + iincw
                 ENDDO 
              ENDDO 
           ENDDO 
       ENDDO 
+!$OMP END DO NOWAIT
+!$OMP END PARALLEL
 !
+      tcsf = SUM(tcsfp, DIM=2)
+      DEALLOCATE(tcsfp)
+!                                                                       
 !------ Now we multiply with formfactor                                 
 !                                                                       
       IF (lform) then 
