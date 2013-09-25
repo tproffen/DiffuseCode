@@ -45,10 +45,10 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    LOGICAL               :: prog_start ! 16
    INTEGER               :: s_remote   ! 17
    INTEGER               :: port       ! 18
-   CHARACTER (LEN=230)   :: direc      ! 21 : 250
-   CHARACTER (LEN=100)   :: prog       !251 : 350
-   CHARACTER (LEN=100)   :: mac        !351 : 450
-   CHARACTER (LEN=100)   :: out        !451 : 550
+   CHARACTER (LEN=240)   :: direc      ! 21 : 260
+   CHARACTER (LEN=100)   :: prog       !261 : 360
+   CHARACTER (LEN=100)   :: mac        !361 : 460
+   CHARACTER (LEN=100)   :: out        !461 : 560
    REAL    ,DIMENSION(:)  , ALLOCATABLE :: trial_values   !  (MAXPOP)
 END TYPE run_mpi_type
 !

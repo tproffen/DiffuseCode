@@ -2,7 +2,7 @@ MODULE DIFFEV_MPI_MOD
 !
 CONTAINS
 !*****7***************************************************************
-SUBROUTINE RUN_MPI_INIT 
+SUBROUTINE run_mpi_init 
 !
 ! MPI Version
 !
@@ -100,7 +100,7 @@ socket_status = PROMPT_OFF  ! Turn off socket responses
 3000 FORMAT('MPI system returned error no. ',i8)
 4000 FORMAT(1x,'MPI initilization successful ..')
 !
-END SUBROUTINE RUN_MPI_INIT
+END SUBROUTINE run_mpi_init
 !
 !*****7***************************************************************
 SUBROUTINE RUN_MPI_MASTER 
@@ -142,7 +142,7 @@ IF( MAXDIMX > ndimx ) THEN  ! Allocate arrays to transmit the trial values to th
       DEALLOCATE(run_mpi_send_data,             STAT = all_status)
    ENDIF
    ALLOCATE(run_mpi_senddata%trial_values(1:MAXDIMX), STAT = all_status)
-   sdl_length = 550 + 20*MAXDIMX
+   sdl_length = 560 + 20*MAXDIMX
    ALLOCATE(run_mpi_send_data            (1:sdl_length), STAT = all_status)
    ndimx = MAXDIMX
 ENDIF
@@ -227,13 +227,13 @@ DO i = 1,run_mpi_senddata%direc_l                    ! Encode directory
    run_mpi_send_data( 20+i) = IACHAR(run_mpi_senddata%direc(i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%prog_l                     ! Encode program
-   run_mpi_send_data(250+i) = IACHAR(run_mpi_senddata%prog (i:i))
+   run_mpi_send_data(260+i) = IACHAR(run_mpi_senddata%prog (i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%mac_l                      ! Encode macro
-   run_mpi_send_data(350+i) = IACHAR(run_mpi_senddata%mac  (i:i))
+   run_mpi_send_data(360+i) = IACHAR(run_mpi_senddata%mac  (i:i))
 ENDDO
 DO i = 1,run_mpi_senddata%out_l                      ! Encode output
-   run_mpi_send_data(450+i) = IACHAR(run_mpi_senddata%out  (i:i))
+   run_mpi_send_data(460+i) = IACHAR(run_mpi_senddata%out  (i:i))
 ENDDO
 !
 !  Start initial jobs
@@ -256,7 +256,7 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
    DO j=1,pop_dimx                          ! Encode current trial values
       WRITE(line,'(E20.10)') pop_t(j,run_mpi_senddata%kid)
       DO k=1,20
-         run_mpi_send_data(550+(j-1)*20 + k) = IACHAR(line(k:k))
+         run_mpi_send_data(560+(j-1)*20 + k) = IACHAR(line(k:k))
       ENDDO
    ENDDO
 !
@@ -295,7 +295,7 @@ DO i = 1, pop_c * run_mpi_senddata%nindiv
       DO j=1,pop_dimx                                  ! Encode trial values
          WRITE(line,'(E20.10)') pop_t(j,run_mpi_senddata%kid)
          DO k=1,20
-            run_mpi_send_data(550+(j-1)*20 + k) = IACHAR(line(k:k))
+            run_mpi_send_data(560+(j-1)*20 + k) = IACHAR(line(k:k))
          ENDDO
       ENDDO
 !
@@ -358,8 +358,8 @@ ierr = 0
 slave: DO
    CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ierr) ! Querry incomming size
    CALL MPI_GET_COUNT(run_mpi_status, MPI_INTEGER, sdl_length, ierr)                  ! Determine size
-   IF( (sdl_length-550)/20 > idimx ) THEN                                             ! Allocate if size increased
-      IDIMX = (sdl_length-550)/20
+   IF( (sdl_length-560)/20 > idimx ) THEN                                             ! Allocate if size increased
+      IDIMX = (sdl_length-560)/20
       IF(ALLOCATED(run_mpi_senddata%trial_values)) THEN
          DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
          DEALLOCATE(run_mpi_send_data,             STAT = all_status)
@@ -398,17 +398,17 @@ slave: DO
       run_mpi_senddata%direc(i:i) = ACHAR(run_mpi_send_data( 20+i))
    ENDDO
    DO i = 1,run_mpi_senddata%prog_l
-      run_mpi_senddata%prog (i:i) = ACHAR(run_mpi_send_data(250+i))
+      run_mpi_senddata%prog (i:i) = ACHAR(run_mpi_send_data(260+i))
    ENDDO
    DO i = 1,run_mpi_senddata%mac_l
-      run_mpi_senddata%mac  (i:i) = ACHAR(run_mpi_send_data(350+i))
+      run_mpi_senddata%mac  (i:i) = ACHAR(run_mpi_send_data(360+i))
    ENDDO
    DO i = 1,run_mpi_senddata%out_l
-      run_mpi_senddata%out  (i:i) = ACHAR(run_mpi_send_data(450+i))
+      run_mpi_senddata%out  (i:i) = ACHAR(run_mpi_send_data(460+i))
    ENDDO
    DO j=1,run_mpi_senddata%parameters
       DO k=1,20
-         zeile(k:k) = ACHAR(run_mpi_send_data(550 + (j-1)*20 + k))
+         zeile(k:k) = ACHAR(run_mpi_send_data(560 + (j-1)*20 + k))
       ENDDO
       READ(zeile,'(E20.10)') run_mpi_senddata%trial_values(j)
    ENDDO
@@ -611,7 +611,7 @@ INTEGER :: all_status
 !  Just in case the arrays were deallocated ...
 IF(.NOT.ALLOCATED(run_mpi_senddata%trial_values)) THEN
    ALLOCATE(run_mpi_senddata%trial_values(1:MAXDIMX), STAT = all_status)
-   sdl_length = 550 + 20*MAXDIMX
+   sdl_length = 560 + 20*MAXDIMX
    ALLOCATE(run_mpi_send_data            (1:sdl_length), STAT = all_status)
 ENDIF
 !
