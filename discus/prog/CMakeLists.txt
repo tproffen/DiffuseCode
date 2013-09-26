@@ -1,10 +1,12 @@
 # DISCUS Build
 
-option(DISCUS_NEXUS "DISCUS_NEXUS" OFF)
-option(DISCUS_OMP   "DISCUS_OMP"   OFF)
+option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
+option(DISCUS_OMP    "DISCUS_OMP"     OFF)
+option(DISCUS_PYTHON "DISCUS_PYTHON"  OFF)
 
 find_package(NEXUS)
 find_package(OpenMP)
+find_package(NumPy)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -46,7 +48,7 @@ set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 if (NEXUS_FOUND AND DISCUS_NEXUS)
   set (SOURCES_ALL ${SOURCES_ALL} nexus.f90)
-  set (LIBS ${LIBS} ${NEXUS_LIBRARIES})
+  set (LIBS_OPT     ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
 
@@ -66,8 +68,9 @@ else (DISCUS_OMP)
 endif (DISCUS_OMP)
 
 add_library (discus_all ${SOURCES_ALL} )
+add_dependencies (discus_all lib_f90)
 
-set ( LIBS discus_all ${LIBS} discus_all ) 
+set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 
 
 add_executable (discus ${SOURCE_MAIN} ) 
 
@@ -78,11 +81,45 @@ add_custom_command (
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
-  COMMAND cat  ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
   )
 
 add_custom_target(discushlp DEPENDS discus.hlp)
-add_dependencies(discus discushlp)
+
+# Numpy ?
+
+if (NUMPY_FOUND AND DISCUS_PYTHON)
+  add_custom_command (
+    OUTPUT lib_discus.so
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
+    COMMAND f2py -c -m lib_discus 
+            ${DIFFUSE_LIBS}
+            ${LIBS_OPT}
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
+            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/macro_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+    )
+  add_custom_target (discus_python DEPENDS lib_discus.so)
+  add_dependencies  (discus_python discus_all lib_f90c  )
+
+  add_dependencies(discus discushlp discus_python)
+
+else  (NUMPY_FOUND AND DISCUS_PYTHON)
+
+  add_dependencies(discus discushlp)
+
+endif (NUMPY_FOUND AND DISCUS_PYTHON)
+
+
 
 install (TARGETS discus DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
