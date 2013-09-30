@@ -143,7 +143,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
 !
    REAL :: qval
 !
-   ALLOCATE ( sq(dimx, dimy), STAT=status_al)
+   ALLOCATE ( sq(dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
    ALLOCATE ( qord_k(dimy), STAT=status_al)
    sq     = 0.0
@@ -158,9 +158,9 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
       qord_k(i) = out_eck(extr_ord,1) + (i-1)*out_vi(extr_ord,2)
    ENDDO
 !
-      DO j = 1, out_inc(2)
-         DO i = 1, out_inc(1)
-            sq(i,j) =  qval ( (i - 1) * out_inc (2) + j,     &
+      DO i = 1, out_inc(1)
+         DO j = 1, out_inc(2)
+            sq(j,i) =  qval ( (i - 1) * out_inc (2) + j,     &
                               value,  i, j, laver)
          ENDDO
       ENDDO
@@ -216,7 +216,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
 !
    REAL :: qval
 !
-   ALLOCATE ( sq(dimx, dimy, dimy), STAT=status_al)
+   ALLOCATE ( sq(dimz, dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
    ALLOCATE ( qord_k(dimy), STAT=status_al)
    ALLOCATE ( qtop_l(dimz), STAT=status_al)
@@ -237,10 +237,10 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
       qtop_l(i) = out_eck(extr_top,1) + (i-1)*out_vi(extr_top,3)
    ENDDO
 !
-   DO l = 1, out_inc(3)
+   DO i = 1, out_inc(1)
       DO j = 1, out_inc(2)
-         DO i = 1, out_inc(1)
-            sq(i,j,l) =  qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+         DO l = 1, out_inc(3)
+            sq(l,j,i) =  qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
                                 (j - 1) * out_inc(3)             + l,     &
                                 value,  i, j, laver)
          ENDDO
