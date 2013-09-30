@@ -59,18 +59,19 @@ if (NUMPY_FOUND AND DIFFEV_PYTHON)
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
     COMMAND f2py -c -m lib_diffev 
             ${DIFFUSE_LIBS}
-            ${LIBS_OPT}
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
             -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
             -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            ${LIBS_OPT}
             ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/macro_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/prompt_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     )
+
   add_custom_target (diffev_python DEPENDS lib_diffev.so )
   add_dependencies  (diffev_python diffev_all lib_f90c)
 

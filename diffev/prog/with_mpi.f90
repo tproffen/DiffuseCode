@@ -1,5 +1,6 @@
 MODULE DIFFEV_MPI_MOD
 !
+PUBLIC :: run_mpi_init, run_mpi_master, run_mpi_slave, run_mpi_finalize
 CONTAINS
 !*****7***************************************************************
 SUBROUTINE run_mpi_init 
@@ -103,7 +104,7 @@ socket_status = PROMPT_OFF  ! Turn off socket responses
 END SUBROUTINE run_mpi_init
 !
 !*****7***************************************************************
-SUBROUTINE RUN_MPI_MASTER 
+SUBROUTINE run_mpi_master 
 !
 !  Main routine of the distribution. packs the relevant parameters and
 !  sends them to run_mpi_numprocs -1 slaves
@@ -308,11 +309,11 @@ ENDDO
 !
 !------       --End of loop over all kids in the population
 !
-END SUBROUTINE RUN_MPI_MASTER
+END SUBROUTINE run_mpi_master
 !
 !*****7***************************************************************
 !
-SUBROUTINE RUN_MPI_SLAVE
+SUBROUTINE run_mpi_slave
 !
 !  The slaves run in an indefinite loop until they are closed
 !
@@ -590,11 +591,11 @@ ENDDO slave
 4030 FORMAT ( '@',a)
 4040 FORMAT ( 'r[',i3.3,'] = ',e20.10)
 !
-END SUBROUTINE RUN_MPI_SLAVE
+END SUBROUTINE run_mpi_slave
 !
 !*****7***************************************************************
 !
-SUBROUTINE RUN_MPI_FINALIZE
+SUBROUTINE run_mpi_finalize
 !
 USE mpi
 USE run_mpi_mod
@@ -652,5 +653,5 @@ DEALLOCATE(port_id          ,             STAT = all_status)
 CALL MPI_FINALIZE ( ier_num )
 !
 !
-END SUBROUTINE RUN_MPI_FINALIZE
+END SUBROUTINE run_mpi_finalize
 END MODULE DIFFEV_MPI_MOD

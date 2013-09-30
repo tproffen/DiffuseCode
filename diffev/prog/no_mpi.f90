@@ -49,9 +49,9 @@ ier_typ = ER_APPL
 END SUBROUTINE RUN_MPI_SLAVE
 !
 !*****7***************************************************************
-SUBROUTINE RUN_MPI_FINALIZE
+SUBROUTINE run_mpi_finalize
 !
 IMPLICIT none
 !
-END SUBROUTINE RUN_MPI_FINALIZE
+END SUBROUTINE run_mpi_finalize
 END MODULE DIFFEV_MPI_MOD

@@ -41,6 +41,8 @@ SUBROUTINE command (incomming, ier_status)
 ! 
 ! 
 USE diffev_setup_mod
+USE run_mpi_mod
+USE diffev_mpi_mod
 USE errlist_mod
 USE macro_mod
 USE prompt_mod
@@ -57,11 +59,14 @@ INTEGER              :: lbef
 INTEGER              :: lp
 LOGICAL              :: lend
 !
+INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
+!
 INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL diffev_setup
 ENDIF
+master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
 lend = .false.
 !
 laenge = len_str(incomming)     ! 
@@ -109,6 +114,19 @@ ELSE
          ier_status = 0
       ENDIF
    ENDDO main
+ENDIF
+ELSEIF ( run_mpi_active ) THEN master_slave
+   CALL run_mpi_slave     ! MPI slave, standalone never
+   CALL run_mpi_finalize  ! Always end MPI, if slave is finished
+ELSE master_slave
+   ier_num = -23          ! MPI returned a slave, BUT MPI is not active ?
+ENDIF master_slave
+!
+IF ( lend ) THEN
+   IF( run_mpi_myid == master .and. run_mpi_active ) THEN
+CONTINUE
+      CALL run_mpi_finalize
+   ENDIF
 ENDIF
 !
 END SUBROUTINE command
