@@ -2193,6 +2193,13 @@ SUBROUTINE cmdline_args
       USE variable_mod
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE validate_variable (zeile, lp)
+         IMPLICIT none 
+         CHARACTER (LEN=*), INTENT(IN) :: zeile 
+         INTEGER,           INTENT(IN) :: lp 
+         END SUBROUTINE validate_variable
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 

@@ -19,7 +19,18 @@
       USE learn_mod 
       USE macro_mod 
       USE prompt_mod 
+!                                                                       
       IMPLICIT none 
+!
+      INTERFACE
+         SUBROUTINE mache_kdo(line, lend, length) 
+!                                                                       
+         IMPLICIT none 
+         CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+         LOGICAL            , INTENT(OUT)   :: lend
+         INTEGER            , INTENT(INOUT) :: length 
+         END SUBROUTINE mache_kdo
+      END INTERFACE
 !                                                                       
 !                                                                       
       INTEGER maxw 
@@ -419,6 +430,16 @@
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
+      INTERFACE
+         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
+         IMPLICIT none 
+         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+         INTEGER,                    INTENT(IN) :: maxw
+         INTEGER,                    INTENT(IN) :: ianz 
+         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+         REAL   ,                    INTENT(IN) :: wert 
+         END SUBROUTINE upd_para
+      END INTERFACE
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) zeile, cpara (maxw) 
@@ -1147,6 +1168,16 @@
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
+         IMPLICIT none 
+         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+         INTEGER,                    INTENT(IN) :: maxw
+         INTEGER,                    INTENT(IN) :: ianz 
+         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+         REAL   ,                    INTENT(IN) :: wert 
+         END SUBROUTINE upd_para
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1251,6 +1282,16 @@
       USE param_mod 
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
+         IMPLICIT none 
+         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+         INTEGER,                    INTENT(IN) :: maxw
+         INTEGER,                    INTENT(IN) :: ianz 
+         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+         REAL   ,                    INTENT(IN) :: wert 
+         END SUBROUTINE upd_para
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1411,6 +1452,18 @@
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+         IMPLICIT NONE
+         INTEGER,                    INTENT(IN   ) :: ikp
+         INTEGER,                    INTENT(IN   ) :: ikpz
+         CHARACTER (LEN=*),          INTENT(OUT  ) :: line 
+         INTEGER,                    INTENT(OUT  ) :: ll
+         INTEGER,                    INTENT(IN   ) :: maxw
+         REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: werte
+         INTEGER,                    INTENT(IN   ) :: ianz
+         END SUBROUTINE ersetz_para
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1572,6 +1625,18 @@
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+         IMPLICIT NONE
+         INTEGER,                    INTENT(IN   ) :: ikp
+         INTEGER,                    INTENT(IN   ) :: ikpz
+         CHARACTER (LEN=*),          INTENT(OUT  ) :: line 
+         INTEGER,                    INTENT(OUT  ) :: ll
+         INTEGER,                    INTENT(IN   ) :: maxw
+         REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: werte
+         INTEGER,                    INTENT(IN   ) :: ianz
+         END SUBROUTINE ersetz_para
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1956,6 +2021,17 @@
       USE times_mod
       IMPLICIT none 
 !                                                                       
+      INTERFACE
+         SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+         CHARACTER (LEN=*), INTENT(IN   ) :: string
+         CHARACTER (LEN=*), INTENT(INOUT) :: line 
+         INTEGER,           INTENT(IN)    :: ikl
+         INTEGER,           INTENT(IN)    :: iklz
+         INTEGER,           INTENT(IN)    :: lll
+         INTEGER,           INTENT(IN)    :: lp
+         REAL   ,           INTENT(OUT)   :: ww
+         END SUBROUTINE calc_intr_spec
+      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 9) 
