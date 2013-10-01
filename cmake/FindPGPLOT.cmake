@@ -39,6 +39,7 @@ SET( PGPLOT_LIBRARY_SEARCH_DIRS
 	${PGPLOT_DIR}
 	${DEFAULT_PACKAGE_DIRS}
 	${DEFAULT_LIBRARY_DIRS}
+        /usr/local/pgplot
 )
 
 #MESSAGE( STATUS "Looking for PGPLOT: tcl library" )
@@ -106,6 +107,7 @@ FIND_PATH( PGPLOT_INCLUDE_DIR cpgplot.h
 		${PGPLOT_DIR}
 		${DEFAULT_PACKAGE_DIRS}
 		${DEFAULT_INCLUDE_DIRS}
+                /usr/local/pgplot
 	PATH_SUFFIXES include INCLUDE
 )
 	MESSAGE( STATUS "Looking for PGPLOT: include directory (${PGPLOT_INCLUDE_DIR})" )
