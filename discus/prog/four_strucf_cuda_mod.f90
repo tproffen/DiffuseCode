@@ -25,7 +25,7 @@ CONTAINS
       cex_r=real(cex)
       cex_i=aimag(cex)
       
-      call cudastrucf(tcsf_r,tcsf_i,cex_r,cex_i,xat)
+      call cudastrucf(tcsf_r,tcsf_i,cex_r,cex_i,xat,nxat,num,xm,win,vin,uin,cr_natoms)
       
       tcsf=cmplx(tcsf_r,tcsf_i)
 

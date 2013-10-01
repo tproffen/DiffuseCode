@@ -7,20 +7,19 @@
 
 __global__ void initarraygpu(float[], float[], int);
 
-__global__ void computestrucf(float, float, float, float[], float[], float[], float[],
-			      int, int, float, float, float,
-			      float, float, float, float, float, float, 
+__global__ void computestrucf(float, float, float,
+			      float*, float*,
+			      float*, float*,
+			      int, int,
+			      float, float, float,
+			      float, float, float,
+			      float, float, float,
 			      float, float, float);
 
-extern "C" int __config_mod_MOD_nmax;
-extern "C" float __diffuse_mod_MOD_xm[3], __diffuse_mod_MOD_win[3], __diffuse_mod_MOD_vin[3], __diffuse_mod_MOD_uin[3];
-extern "C" int  __diffuse_mod_MOD_num[3], __diffuse_mod_MOD_nxat;
-extern "C" int __crystal_mod_MOD_cr_natoms;
-
 extern "C"{
-  void cudastrucf_(float *csf_r, float *csf_i, float *cex_r, float *cex_i, float *xat)
+  void cudastrucf_(float *csf_r, float *csf_i, float *cex_r, float *cex_i, float *xat, int *nxat, int *num, float *xm, float *win, float *vin, float *uin, int *cr_natoms)
   {
-    int nnum = __diffuse_mod_MOD_num[0]*__diffuse_mod_MOD_num[1]*__diffuse_mod_MOD_num[2];
+    int nnum = num[0]*num[1]*num[2];
     
     int threadsPerBlock = 64;
     int threadsPerGrid = (nnum + threadsPerBlock - 1) / threadsPerBlock;
@@ -40,9 +39,19 @@ extern "C"{
     
     initarraygpu<<<threadsPerGrid, threadsPerBlock>>>(d_rtcsf, d_itcsf, nnum);
     
-    for(int l=0; l< __diffuse_mod_MOD_nxat; l++)
+    printf("Starting CUDA!\n");
+    
+    for(int l=0; l< nxat[0]; l++)
       {
-	computestrucf<<<threadsPerGrid, threadsPerBlock>>>(xat[l], xat[l+__crystal_mod_MOD_cr_natoms+1], xat[l+__crystal_mod_MOD_cr_natoms+2], d_rexp, d_iexp, d_rtcsf, d_itcsf, __diffuse_mod_MOD_num[0], __diffuse_mod_MOD_num[1], __diffuse_mod_MOD_xm[0], __diffuse_mod_MOD_xm[1], __diffuse_mod_MOD_xm[2], __diffuse_mod_MOD_uin[0], __diffuse_mod_MOD_uin[1], __diffuse_mod_MOD_uin[2], __diffuse_mod_MOD_vin[0], __diffuse_mod_MOD_vin[1], __diffuse_mod_MOD_vin[2], __diffuse_mod_MOD_win[0], __diffuse_mod_MOD_win[1], __diffuse_mod_MOD_win[2]);
+	computestrucf<<<threadsPerGrid, threadsPerBlock>>>
+	  (xat[l], xat[l+cr_natoms[0]+1], xat[l+cr_natoms[0]+2],
+	   d_rexp, d_iexp,
+	   d_rtcsf, d_itcsf,
+	   num[0],num[1],
+	   xm[0], xm[1], xm[2],
+	   uin[0], uin[1], uin[2],
+	   vin[0], vin[1], vin[2],
+	   win[0], win[1], win[2]);
       }
     
     cudaMemcpy(csf_r, d_rtcsf, nnum*sizeof(float), cudaMemcpyDeviceToHost);
