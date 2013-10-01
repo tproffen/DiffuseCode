@@ -29,6 +29,8 @@ CONTAINS
       USE read_internal_mod
       USE save_mod 
       USE spcgr_apply
+      USE stack_rese_mod
+      USE update_cr_dim_mod
 !      USE interface_def
 !
       USE doact_mod 
@@ -2028,44 +2030,6 @@ got_params: IF (ier_num.eq.0) THEN
       sav_r_ncell = .false. 
 !                                                                       
       END SUBROUTINE rese_cr                        
-!********************************************************************** 
-      SUBROUTINE update_cr_dim 
-!-                                                                      
-!     Updates the crystal dimensions to the current values              
-!+                                                                      
-      USE config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER i, j 
-!                                                                       
-!     Set initial values                                                
-!                                                                       
-      IF (cr_natoms.gt.0) then 
-         DO j = 1, 3 
-         cr_dim (j, 1) = cr_pos (j, 1) 
-         cr_dim (j, 2) = cr_pos (j, 1) 
-         ENDDO 
-      ELSE 
-         DO j = 1, 3 
-         cr_dim (j, 1) = 1.e10 
-         cr_dim (j, 1) = - 1.e10 
-         ENDDO 
-      ENDIF 
-!                                                                       
-!     Update values from all atoms in crystal                           
-!                                                                       
-      DO i = 1, cr_natoms 
-      DO j = 1, 3 
-      cr_dim (j, 1) = amin1 (cr_dim (j, 1), cr_pos (j, i) ) 
-      cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
-      ENDDO 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE update_cr_dim                  
-!*****7**************************************************************** 
 !*****7**************************************************************** 
       SUBROUTINE do_import (zeile, lp) 
 !-                                                                      

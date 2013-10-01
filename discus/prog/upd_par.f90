@@ -14,16 +14,19 @@
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER,                    INTENT(IN   ) :: ikl
+      INTEGER,                    INTENT(IN   ) :: iklz
+      CHARACTER (LEN=*),          INTENT(OUT  ) :: string 
+      INTEGER,                    INTENT(OUT  ) :: ll
+      INTEGER,                    INTENT(IN   ) :: maxw
+      REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+      INTEGER,                    INTENT(IN   ) :: ianz
 !                                                                       
-      CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
 !                                                                       
-      INTEGER ianz 
-      INTEGER laenge, ltyp, kpara, kpara2, ikl, ll, iklz, maxw 
+      INTEGER laenge, ltyp, kpara, kpara2
       INTEGER lcomm 
       INTEGER length_com 
-      REAL ww (maxw) 
 !                                                                       
       laenge = ll 
       ltyp = 1 
@@ -458,12 +461,13 @@
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      INTEGER maxw, ianz 
-      CHARACTER ( * ) ctype 
-      INTEGER ww (maxw), l 
-      REAL wert 
+      CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+      INTEGER,                    INTENT(IN) :: maxw
+      INTEGER,                    INTENT(IN) :: ianz 
+      INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+      REAL   ,                    INTENT(IN) :: wert 
+!
+      INTEGER :: l
 !                                                                       
       IF (ctype.eq.'x') then 
          IF (ianz.eq.1) then 
@@ -683,28 +687,34 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE param_mod 
       IMPLICIT none 
 !                                                                       
+      CHARACTER (LEN=*), INTENT(IN   ) :: string
+      CHARACTER (LEN=*), INTENT(INOUT) :: line 
+      INTEGER,           INTENT(IN)    :: ikl
+      INTEGER,           INTENT(IN)    :: iklz
+      INTEGER,           INTENT(IN)    :: laenge
+      INTEGER,           INTENT(IN)    :: lp
+      REAL   ,           INTENT(OUT)   :: ww
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 9) 
+      INTEGER, PARAMETER :: maxw = 9
 !                                                                       
-      CHARACTER ( * ) string, line 
       CHARACTER(1024) cpara (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ikl, iklz, i, j, k, ianz, lcomm, laenge, l 
+      INTEGER lpara (maxw)
+      INTEGER i, j, k, ianz, lcomm, l 
       LOGICAL lspace, lins 
-      REAL werte (maxw), ww, u (3), v (3), w (3) 
+      REAL werte (maxw), u (3), v (3), w (3) 
       REAL unitmat (3, 3) 
 !                                                                       
       INTEGER length_com 
       LOGICAL str_comp 
-      REAL do_blen, do_bang 
-      REAL skalpro 
+!     REAL do_blen, do_bang 
+!     REAL skalpro 
       REAL do_read_number 
 !                                                                       
       DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
@@ -1110,15 +1120,13 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER lp 
-!                                                                       
-      INTEGER reserved_n 
-      PARAMETER (reserved_n = 33) 
+      INTEGER, PARAMETER :: reserved_n = 33 
                                                                         
-      CHARACTER(12) reserved (reserved_n) 
-      INTEGER i 
+      CHARACTER(LEN=12), DIMENSION(1:reserved_n) :: reserved
+      INTEGER  :: i 
 !                                                                       
       LOGICAL str_comp 
       DATA reserved / 'bang', 'blen', 'dstar', 'md_test', 'mol_test',   &

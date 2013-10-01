@@ -1,3 +1,6 @@
+MODULE pdf_menu
+!
+CONTAINS
 !*****7*****************************************************************
 SUBROUTINE pdf 
 !-                                                                      
@@ -419,16 +422,18 @@ SUBROUTINE pdf
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE chem_mod 
       USE pdf_mod 
       USE rmc_mod 
+      USE rmc_sup_mod
 !
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(9) at_name, at_lis (MAXSCAT+1) 
+      CHARACTER(9) at_lis (MAXSCAT+1) 
       CHARACTER ( * ) cmd 
       CHARACTER(9) cpoly (5) 
       INTEGER i, j, k 
@@ -631,6 +636,7 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 
+      USE save_menu
 !
       USE debug_mod 
       USE errlist_mod 
@@ -916,6 +922,7 @@ SUBROUTINE pdf
       USE diffuse_mod 
       USE modify_mod
       USE pdf_mod 
+      USE rmc_sup_mod
 !
       USE errlist_mod 
       USE prompt_mod 
@@ -1356,10 +1363,12 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_aver_mod
       USE diffuse_mod 
       USE pdf_mod 
       USE rmc_mod 
-      USE structur, ONLY: update_cr_dim
+      USE rmc_sup_mod
+      USE update_cr_dim_mod
       USE random_mod
 !                                                                       
       USE errlist_mod 
@@ -1885,7 +1894,8 @@ SUBROUTINE pdf
       USE crystal_mod 
       USE chem_mod 
       USE atom_env_mod 
-      USE modify_mod
+      USE celltoindex_mod
+!     USE modify_mod
       USE pdf_mod 
       USE param_mod 
       USE wink_mod
@@ -2035,7 +2045,8 @@ SUBROUTINE pdf
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
-      USE modify_mod
+      USE celltoindex_mod
+!     USE modify_mod
       USE pdf_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -2254,31 +2265,4 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf_convtherm                  
 !*****7*****************************************************************
-      SUBROUTINE errlist_pdf 
-!-                                                                      
-!     Displays error Messages for the error type PDF                    
-!+                                                                      
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER iu, io 
-      PARAMETER (IU = -9, IO = 0) 
-!                                                                       
-      CHARACTER(LEN=45) ERROR (IU:IO) 
-!                                                                       
-      DATA ERROR ( -9:  0) /                              &
-          'No atoms in asymmetric unit',                  & !  -r98
-          'Atom type ALL not allowed              ',      & !  -8
-          'Disable Gaussian mode and recalculate  ',      & !  -7
-          'PDF range fixed with data loaded ',            & !  -6
-          'PDF data must start with r=Dr          ',      & !  -5
-          'No structure defined yet (>= 1 atoms)  ',      & !  -4
-          'Crystal too large for peridic bound .   ',     & !  -3
-          'Cannot extend r-range for corr. convol.',      & !  -2
-          'Too many points in PDF                 ',      & !  -1
-          ' '                                             & !   0
-          /                                  
-!                                                                       
-      CALL disp_error ('PDF ', error, iu, io) 
-      END SUBROUTINE errlist_pdf                    
+END MODULE pdf_menu

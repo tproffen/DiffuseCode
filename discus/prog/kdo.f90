@@ -5,35 +5,54 @@
 !     command is identified here and the corresponding subroutine       
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
+      USE addfile_mod
       USE allocate_appl_mod
       USE charact_mod 
+      USE chem_menu
       USE conn_mod
+      USE domain_menu
       USE fourier_menu
+      USE insert_menu
+      USE metric_mod
+      USE mmc_menu
+      USE interpret_menu
       USE inverse_mod 
       USE modify_mod
       USE mole_surf_mod
+      USE output_menu
+      USE patters_menu
+      USE pdf_menu
+      USE plot_menu
       USE powder
+      USE rmc_menu
+      USE save_menu
+      USE show_menu
+      USE stack_menu
+      USE symm_menu
       USE shear
       USE structur
       USE spcgr_apply, ONLY: wyckoff_main
+      USE thermal_mod
+      USE transform_menu
+      USE waves_do_menu
 !
       USE errlist_mod 
       USE learn_mod 
       IMPLICIT none 
 !                                                                       
+      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+      LOGICAL            , INTENT(OUT)   :: lend
+      INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 1) 
+      INTEGER, PARAMETER :: maxw = 1
 !                                                                       
-      CHARACTER ( * ) line 
       CHARACTER(1024) zeile 
       CHARACTER(70) command 
       CHARACTER(5) befehl 
-      INTEGER length 
       INTEGER indxb, indxg, lcomm, lbef 
       INTEGER                  :: indxt ! position of a TAB
       INTEGER                  ::  inverse_type
-      LOGICAL lend, lout_rho, lkick 
+      LOGICAL lout_rho, lkick 
       LOGICAL str_comp 
 !                                                                       
       SAVE command 

@@ -1,3 +1,6 @@
+MODULE thermal_mod
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE ther_displ (line, ll) 
@@ -9,8 +12,10 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE molecule_mod 
-      USE structur, ONLY: update_cr_dim
+      USE update_cr_dim_mod
+      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
@@ -23,7 +28,7 @@
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name, at_name_i 
+      CHARACTER(9) at_name_i 
       INTEGER lpara (maxw) 
       INTEGER ll, i, j, k, is, ii, ianz 
       INTEGER uc_n (0:maxscat) 
@@ -150,3 +155,4 @@
  1050 FORMAT (3x,i5,4x,f5.2,2x,f6.4,6x,3(f6.4,2x),3x,3(f6.4,1x)) 
  1150 FORMAT (3x,a9   ,f5.2,2x,f6.4,6x,3(f6.4,2x),3x,3(f6.4,1x)) 
       END SUBROUTINE ther_displ                     
+END MODULE thermal_mod

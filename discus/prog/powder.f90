@@ -20,6 +20,7 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE powder_mod 
+      USE show_menu
 !
       USE doact_mod 
       USE learn_mod 
@@ -209,6 +210,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE metric_mod
       USE powder_mod 
       USE wink_mod
 !
@@ -229,7 +231,7 @@ CONTAINS
       REAL del_tth_min (3) 
       REAL del_tth_max (3) 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL asind 
       REAL cosd 
       REAL sind 
@@ -1008,6 +1010,7 @@ CONTAINS
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
+      USE plot_init_mod
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -1084,7 +1087,9 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE metric_mod
       USE powder_mod 
+      USE stack_menu
       USE wink_mod
 !                                                                       
       USE param_mod 
@@ -1127,7 +1132,7 @@ CONTAINS
       REAL ss 
 !                                                                       
 !      REAL calc_preferred 
-      REAL skalpro 
+!     REAL skalpro 
       REAL asind 
       REAL seknds 
 !
@@ -1625,6 +1630,7 @@ CONTAINS
       USE debye_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE metric_mod
       USE output_mod 
       USE powder_mod 
       USE wink_mod
@@ -1654,8 +1660,9 @@ CONTAINS
       REAL arg 
 !                                                                       
       INTEGER IAND 
-      REAL skalpro 
-      REAL do_blen, sind 
+!     REAL skalpro 
+!     REAL do_blen, sind 
+      REAL sind 
       REAL seknds 
 !                                                                       
       n_qxy   = 1
@@ -2080,6 +2087,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE metric_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2088,7 +2096,7 @@ CONTAINS
       INTEGER i, j 
       REAL u (3), v (3) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       nxat = 0 
 !                                                                       
@@ -2334,6 +2342,7 @@ CONTAINS
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
+      USE metric_mod
       IMPLICIT none 
 !                                                                       
       REAL w (3) 
@@ -2348,7 +2357,7 @@ CONTAINS
       REAL null (3) 
       REAL alpha 
       REAL alpha2 
-      REAL do_bang 
+!     REAL do_bang 
       REAL sind 
       REAL cosd 
 !                                                                       
@@ -2381,6 +2390,7 @@ CONTAINS
 !+                                                                      
 !                                                                       
 !-                                                                      
+      USE metric_mod
       USE config_mod 
       USE crystal_mod 
       USE param_mod 
@@ -2398,7 +2408,7 @@ CONTAINS
       REAL null (3) 
       REAL uv, uu, vv 
       REAL alpha2 
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       null (1) = 0.0 
       null (2) = 0.0 
@@ -2425,7 +2435,7 @@ CONTAINS
       RETURN 
       END SUBROUTINE proj_preferred                 
 !*****7*****************************************************************
-      SUBROUTINE powder_trans_atoms_tocart (uvw)
+      SUBROUTINE powder_trans_atoms_tocart (uvw_out)
 !-                                                                      
 !     transforms atom coordinates into a cartesian space                
 !     Warning, only the fractional coordinates are transformed,         
@@ -2434,12 +2444,14 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE plot_mod 
+      USE trans_sup_mod
       IMPLICIT none 
 !                                                                       
-      REAL ,DIMENSION(1:3), INTENT(OUT) :: uvw (3)
+      REAL ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
 !
-      INTEGER i ,j
-      LOGICAL lscreen 
+      INTEGER              ::  i ,j
+      LOGICAL, PARAMETER   :: lscreen = .false. 
+      REAL, DIMENSION(1:4) :: uvw
       REAL             :: xmin
       REAL             :: xmax
       REAL             :: ymin
@@ -2447,14 +2459,13 @@ CONTAINS
       REAL             :: zmin
       REAL             :: zmax
 !                                                                       
-      DATA lscreen / .false. / 
-!
       xmin = 0.0
       xmax = 0.0
       ymin = 0.0
       ymax = 0.0
       zmin = 0.0
       zmax = 0.0
+      uvw(4) = 1.0
 !         
       DO i = 1, cr_natoms 
          uvw (1) = cr_pos (1, i) 
@@ -2471,9 +2482,9 @@ CONTAINS
          zmin = MIN(zmin,uvw(3))
          zmax = MAX(zmax,uvw(3))
       ENDDO
-      uvw (1) = ABS(xmax-xmin)
-      uvw (2) = ABS(ymax-ymin)
-      uvw (3) = ABS(zmax-zmin) 
+      uvw_out (1) = ABS(xmax-xmin)
+      uvw_out (2) = ABS(ymax-ymin)
+      uvw_out (3) = ABS(zmax-zmin) 
 !                                                                       
       END SUBROUTINE powder_trans_atoms_tocart      
 !*****7*****************************************************************
@@ -2487,23 +2498,24 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE plot_mod 
+      USE trans_sup_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER i 
-      LOGICAL lscreen 
+      INTEGER              :: i 
+      LOGICAL, PARAMETER   :: lscreen = .false.
 !                                                                       
-      REAL uvw (3) 
+      REAL, DIMENSION(1:4) ::  uvw !(4) 
 !                                                                       
-      DATA lscreen / .false. / 
 !                                                                       
+      uvw(4) = 1.0
       DO i = 1, cr_natoms 
-      uvw (1) = cr_pos (1, i) 
-      uvw (2) = cr_pos (2, i) 
-      uvw (3) = cr_pos (3, i) 
-      CALL tran_ca (uvw, pl_tran_fi, lscreen) 
-      cr_pos (1, i) = uvw (1) 
-      cr_pos (2, i) = uvw (2) 
-      cr_pos (3, i) = uvw (3) 
+         uvw (1) = cr_pos (1, i) 
+         uvw (2) = cr_pos (2, i) 
+         uvw (3) = cr_pos (3, i) 
+         CALL tran_ca (uvw, pl_tran_fi, lscreen) 
+         cr_pos (1, i) = uvw (1) 
+         cr_pos (2, i) = uvw (2) 
+         cr_pos (3, i) = uvw (3) 
       ENDDO 
 !                                                                       
       END SUBROUTINE powder_trans_atoms_fromcart    

@@ -16,6 +16,7 @@ CONTAINS
       USE allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE external_four
       USE fourier_sup
       USE modify_mod
       USE output_mod 
@@ -765,6 +766,7 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE diffuse_mod 
+      USE metric_mod
       USE output_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -797,7 +799,7 @@ CONTAINS
       INTEGER i, j 
       LOGICAL lspace 
 !                                                                       
-      REAL do_blen, do_bang 
+!     REAL do_blen, do_bang 
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
 !                                                                       
@@ -940,6 +942,7 @@ CONTAINS
                  length2, length1, extr_ord, extr_abs,  &
                  ratio_vh, aver_vh)
 !
+      USE metric_mod
       IMPLICIT NONE
 !
       REAL              , INTENT(OUT):: angle_vh
@@ -957,7 +960,7 @@ CONTAINS
       REAL   , DIMENSION(3) :: zero = (/0.0, 0.0, 0.0/)
       LOGICAL, PARAMETER    :: lspace =.true.
 !
-      REAL do_bang 
+!     REAL do_bang 
 !
       angle_vh = 0.0
       ratio_vh = 0.0 

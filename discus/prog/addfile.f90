@@ -1,3 +1,6 @@
+MODULE addfile_mod
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE do_addfile (string, laenge) 
@@ -254,3 +257,4 @@
  3030 FORMAT    (2(1x,e11.5)) 
 !                                                                       
       END SUBROUTINE do_addfile                     
+END MODULE addfile_mod

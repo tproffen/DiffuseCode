@@ -68,6 +68,7 @@ CONTAINS
    USE diffuse_mod 
    USE fourier_sup
    USE output_mod 
+   USE qval_mod
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
@@ -82,7 +83,7 @@ CONTAINS
    REAL, DIMENSION(:)    , ALLOCATABLE :: sq
    REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
 !
-   REAL :: qval
+!  REAL :: qval
 !
    ALLOCATE ( sq(dimx),     STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
@@ -125,6 +126,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
    USE diffuse_mod 
    USE fourier_sup
    USE output_mod 
+   USE qval_mod
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
@@ -141,7 +143,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cvalue(value)
    REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
    REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
 !
-   REAL :: qval
+!  REAL :: qval
 !
    ALLOCATE ( sq(dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)
@@ -196,6 +198,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
    USE fourier_sup
    USE output_mod 
    USE random_mod
+   USE qval_mod 
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
@@ -214,7 +217,7 @@ write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
    REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
    REAL, DIMENSION(:)    , ALLOCATABLE :: qtop_l
 !
-   REAL :: qval
+!  REAL :: qval
 !
    ALLOCATE ( sq(dimz, dimy, dimx), STAT=status_al)
    ALLOCATE ( qabs_h(dimx), STAT=status_al)

@@ -20,10 +20,13 @@ CONTAINS
       USE config_mod 
       USE allocate_appl_mod
       USE crystal_mod 
+      USE metric_mod
       USE modify_mod
       USE molecule_mod 
       USE shear_mod 
-      USE structur, ONLY: update_cr_dim
+      USE show_menu
+      USE update_cr_dim_mod
+      USE trafo_mod
 !
       USE doact_mod 
       USE errlist_mod 
@@ -59,7 +62,7 @@ CONTAINS
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
 !                                                                       
       DATA l_need_setup / .true. / 
@@ -656,6 +659,8 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
+      USE metric_mod
       USE molecule_mod 
       USE shear_mod 
 !                                                                       
@@ -663,7 +668,7 @@ CONTAINS
 !
       IMPLICIT none 
 !                                                                       
-      CHARACTER(9) at_lis (maxscat+1), at_name 
+      CHARACTER(9) at_lis (maxscat+1)! , at_name 
       INTEGER mol_lis (maxscat+1) 
       INTEGER i, j, k 
       LOGICAL lspace 
@@ -671,7 +676,7 @@ CONTAINS
       REAL null (3), u (3), v (3), w (3) 
       REAL w12, w13, w23 
 !                                                                       
-      REAL do_bang 
+!     REAL do_bang 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
       DATA lspace / .true. / 
@@ -811,7 +816,9 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE shear_mod 
+      USE tensors_mod
 !
       USE errlist_mod 
       USE param_mod 
@@ -839,8 +846,8 @@ CONTAINS
       REAL inv_eigent (3, 3) 
 !                                                                       
       REAL cosd, sind 
-      REAL skalpro 
-      REAL do_blen 
+!     REAL skalpro 
+!     REAL do_blen 
 !                                                                       
 !                                                                       
       DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
@@ -997,6 +1004,7 @@ CONTAINS
       USE crystal_mod 
       USE atom_env_mod 
       USE shear_mod 
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1071,7 +1079,8 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
-      USE shear_mod 
+      USE shear_mod
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1241,6 +1250,7 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1405,6 +1415,7 @@ CONTAINS
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1577,6 +1588,7 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE shear_mod 
+      USE trafo_mod
 !                                                                       
       USE param_mod 
       USE prompt_mod 

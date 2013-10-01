@@ -1,3 +1,6 @@
+MODULE show_menu
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE do_show (line, laenge) 
@@ -217,6 +220,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
 !
       USE envir_mod 
       USE macro_mod 
@@ -229,7 +233,7 @@
       INTEGER kvoid 
 !                                                                       
       CHARACTER(9) at_name_d 
-      CHARACTER(9) at_name 
+!     CHARACTER(9) at_name 
 !                                                                       
       kvoid = 0 
 !                                                                       
@@ -330,6 +334,7 @@
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE atom_name
       USE modify_mod
 !                                                                       
       USE errlist_mod 
@@ -349,7 +354,7 @@
       INTEGER length 
 !                                                                       
       CHARACTER(9) at_name_d 
-      CHARACTER(9) at_name 
+!     CHARACTER(9) at_name 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -474,6 +479,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE molecule_mod 
       USE mole_env_mod 
 !                                                                       
@@ -493,7 +499,7 @@
       INTEGER i, istart, iend, j, k 
 !                                                                       
       CHARACTER(9) at_name_d 
-      CHARACTER(9) at_name 
+!     CHARACTER(9) at_name 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -591,6 +597,7 @@
 !+                                                                      
       USE config_mod 
       USE allocate_generic
+      USE atom_name
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -615,7 +622,7 @@
       INTEGER i, j 
 !                                                                       
       CHARACTER(9) at_name_d 
-      CHARACTER(9) at_name 
+!     CHARACTER(9) at_name 
 !                                                                       
       LOGICAL, DIMENSION(:),ALLOCATABLE :: latom ! (0:MAXSCAT) 
       INTEGER                           :: all_status
@@ -833,3 +840,4 @@
 !                                                                       
 !                                                                       
       END SUBROUTINE do_show_symmetry               
+END MODULE show_menu

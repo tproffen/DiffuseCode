@@ -12,10 +12,11 @@ CONTAINS
       USE config_mod 
       USE allocate_appl_mod
       USE crystal_mod 
+      USE celltoindex_mod
       USE modify_func_mod
       USE molecule_mod 
       USE prop_para_mod 
-      USE structur, ONLY: update_cr_dim
+      USE update_cr_dim_mod
       USE errlist_mod 
       USE random_mod
       IMPLICIT none 
@@ -464,6 +465,7 @@ CONTAINS
       USE charact_mod 
       USE allocate_appl_mod
       USE crystal_mod 
+      USE metric_mod
       USE prop_para_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -485,7 +487,7 @@ CONTAINS
       REAL werte (maxw) 
       REAL w (3), v (3) 
       REAL berechne 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA lspace / .true. / 
 !                                                                       
@@ -983,6 +985,7 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod
+      USE chem_aver_mod
       USE molecule_mod 
       USE errlist_mod 
       USE param_mod 
@@ -1068,6 +1071,7 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE chem_aver_mod
       USE molecule_mod 
       USE errlist_mod 
       USE param_mod 
@@ -1258,7 +1262,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
-      USE structur, ONLY: update_cr_dim
+      USE update_cr_dim_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1476,6 +1480,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE celltoindex_mod
       USE modify_func_mod
       USE param_mod 
       USE errlist_mod 
@@ -1644,6 +1649,7 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE metric_mod
       USE param_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1653,7 +1659,7 @@ CONTAINS
       REAL x (3), offset (3), rmin, rmax 
       INTEGER iatom 
 !                                                                       
-      REAL v (3), dist, do_blen 
+      REAL v (3), dist  !, do_blen 
       INTEGER j 
       LOGICAL lspace 
 !                                                                       
@@ -1712,50 +1718,6 @@ CONTAINS
       ENDIF 
       scat_allowed = ltype 
       END FUNCTION scat_allowed                     
-!*****7*****************************************************************
-      SUBROUTINE celltoindex (icell, isite, iatom) 
-!-                                                                      
-!       calculates in which unit cell on which site the atom <ia> is    
-!+                                                                      
-      USE config_mod 
-      USE crystal_mod 
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER iatom, isite, icell (3) 
-!                                                                       
-      iatom = ( (icell (3) - 1) * cr_icc (1) * cr_icc (2) +       &
-                (icell (2) - 1) * cr_icc (1) + (icell (1) - 1) )  &
-              * cr_ncatoms + isite        
-!                                                                       
-      END SUBROUTINE celltoindex                    
-!*****7*****************************************************************
-      SUBROUTINE indextocell (iatom, icell, isite) 
-!-                                                                      
-!       calculates in which unit cell on which site the atom <ia> is    
-!+                                                                      
-      USE config_mod 
-      USE crystal_mod 
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER iatom, isite, icell (3) 
-      INTEGER ia 
-!                                                                       
-      ia = iatom - 1 
-!                                                                       
-      icell (3) = int (ia / cr_icc (1) / cr_icc (2) / cr_ncatoms) + 1
-      ia = ia - (icell (3) - 1) * cr_icc (1) * cr_icc (2) * cr_ncatoms 
-      icell (2) = int (ia / cr_icc (1) / cr_ncatoms) + 1 
-      ia = ia - (icell (2) - 1) * cr_icc (1) * cr_ncatoms 
-      icell (1) = int (ia / cr_ncatoms) + 1 
-      isite = ia - (icell (1) - 1) * cr_ncatoms + 1 
-!                                                                       
-      END SUBROUTINE indextocell                    
 !*****7*****************************************************************
       SUBROUTINE atom_select (zeile, lp, lu, lo, latom, &
                               sel_atom, lold, lselect,  &
@@ -2068,6 +2030,7 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE molecule_mod 
       USE mole_env_mod 
        
@@ -2079,7 +2042,7 @@ CONTAINS
       REAL x (3), offset (3), rmin, rmax 
       INTEGER imole 
 !                                                                       
-      REAL v (3), dist, do_blen 
+      REAL v (3), dist !, do_blen 
       INTEGER i, j 
       LOGICAL lspace 
 !                                                                       
@@ -2110,6 +2073,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine removes all atomes outside a given boundary.      
 !-                                                                      
+      USE metric_mod
       USE config_mod 
       USE crystal_mod 
       USE errlist_mod 
@@ -2137,7 +2101,7 @@ CONTAINS
       REAL werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       

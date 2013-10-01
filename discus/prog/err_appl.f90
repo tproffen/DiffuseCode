@@ -199,3 +199,149 @@
 !                                                                       
       CALL disp_error ('FOUR', error, iu, io) 
       END SUBROUTINE errlist_four                   
+!*****7*****************************************************************
+      SUBROUTINE errlist_pdf 
+!-                                                                      
+!     Displays error Messages for the error type PDF                    
+!+                                                                      
+      USE errlist_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (IU = -9, IO = 0) 
+!                                                                       
+      CHARACTER(LEN=45) ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR ( -9:  0) /                              &
+          'No atoms in asymmetric unit',                  & !  -r98
+          'Atom type ALL not allowed              ',      & !  -8
+          'Disable Gaussian mode and recalculate  ',      & !  -7
+          'PDF range fixed with data loaded ',            & !  -6
+          'PDF data must start with r=Dr          ',      & !  -5
+          'No structure defined yet (>= 1 atoms)  ',      & !  -4
+          'Crystal too large for peridic bound .   ',     & !  -3
+          'Cannot extend r-range for corr. convol.',      & !  -2
+          'Too many points in PDF                 ',      & !  -1
+          ' '                                             & !   0
+          /                                  
+!                                                                       
+      CALL disp_error ('PDF ', error, iu, io) 
+      END SUBROUTINE errlist_pdf                    
+!********************************************************************** 
+      SUBROUTINE errlist_rmc 
+!-                                                                      
+!     Displays error Messages for the error type RMC                    
+!+                                                                      
+      USE errlist_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (iu = -21, io = 0) 
+!                                                                       
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR / &
+      'Number of LOTS exceeds maximum           ',    &  ! -21
+      'No valid move after 1000 disp. intervalls',    &  ! -20
+      'Invalid constrain entered                ',    &  ! -19
+      'Data file is not an ASCII PGM file       ',    &  ! -18
+      'Data and weight file have different sizes',    &  ! -17
+      'Invalid weighting scheme / weighting file',    &  ! -16
+      'Invalid data type selected               ',    &  ! -15
+      'No experimental data within given q limit',    &  ! -14
+      'Too many symmetrically equivalent planes ',    &  ! -13
+      'Displacements too small for SWDISP mode  ',    &  ! -12
+      'Only ONE atom type present in SWCHEM mode',    &  ! -11
+      'No atom types selected for RMC run       ',    &  ! -10
+      'Invalid RMC/MC mode selected             ',    &  !  -9
+      'Invalid symmetry number selected         ',    &  !  -8
+      'Invalid plane selected                   ',    &  !  -7
+      'Too many atoms per molecule for RMC      ',    &  !  -6
+      'Invalid method (x,n) selected            ',    &  !  -5
+      'No experimental data present             ',    &  !  -4
+      'No atoms present in model crystal        ',    &  !  -3
+      'Too many experimental data points        ',    &  !  -2
+      'Too many experimental data planes        ',    &  !   1
+      ' ' /                                              !   0
+!                                                                       
+      CALL disp_error ('RMC ', error, iu, io) 
+      END SUBROUTINE errlist_rmc                    
+!*****7*****************************************************************
+      SUBROUTINE errlist_mmc 
+!-                                                                      
+!     Displays error Messages for the error type MC                     
+!+                                                                      
+      USE errlist_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (IU = -5, IO = 0) 
+!                                                                       
+      CHARACTER(LEN=45) ::ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR /                                    &
+      'Number of feedback intervalls is zero    ',    & !  -5
+      'Number of MC cycles is zero              ',    & !  -4
+      'Invalid mode selected for COCC MC run    ',    & !  -3
+      'No valid move after 1000 cycles          ',    & !  -2
+      'Invalid or no energy type selected       ',    & !  -1
+      ' ' /                                             !   0
+!                                                                       
+      CALL disp_error ('MMC ', error, iu, io) 
+      END SUBROUTINE errlist_mmc                    
+!*****7**************************************************************** 
+      SUBROUTINE errlist_chem 
+!-                                                                      
+!     Displays error messages for the error type CHEM                   
+!+                                                                      
+      USE errlist_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER iu, io 
+      PARAMETER (IU = - 29, IO = 0) 
+!                                                                       
+      CHARACTER(LEN=45) :: ERROR (IU:IO) 
+!                                                                       
+      DATA ERROR ( IU:-21) /                             &
+      'Atom type outside valid range           ',     & !-29
+      'Invalid correlation conn   index given  ',     & !-28
+      'No atoms present in crystal             ',     & !-27
+      'Invalid correlation environment index   ',     & !-26
+      'Invalid range for bond-angle histogramm ',     & !-25
+      'Invalid correlation angle index given   ',     & !-24
+      'Too many neighbouring atoms/molecules   ',     & !-23
+      'Command not available in molecule mode  ',     & !-22
+      'Molecule types need to be different     '      & !-21
+      /                                 
+      DATA ERROR (-20: -1) /                             &
+      'No molecules present in crystal         ',     & !-20
+      'No neighbouring molecules found         ',     & !-19
+      'Correlation fields require same # vector',     & !-18
+      'Correlation fields require same mode    ',     & !-17
+      'Failed to apply periodic boundaries     ',     & !-16
+      'No displacement directions selected     ',     & !-15
+      'Invalid neighbour definition selected   ',     & !-14
+      'Correlation direction invalid           ',     & !-13
+      'Too many neighbour definitions          ',     & !-12
+      'No neighbours defined                   ',     & !-11
+      'Invalid crystal site or atom index given',     & !-10
+      'Invalid correlation vector index given  ',     & !- 9
+      'No neighbouring atoms found             ',     & !- 8
+      'Atoms need to be different              ',     & !- 7
+      'Atom name ALL not allowed for command   ',     & !- 6
+      'Too many different atoms found          ',     & !- 5
+      'Invalid SIGMA entered                   ',     & !- 4
+      'Invalid range for bond-length histogramm',     & !- 3
+      'Not enough space for all result in res[]',     & !- 2
+      'Too many points for histogramm          '      & !- 1
+      /                                 
+      DATA ERROR (  0:  0) /                             &
+      ' '                                                & !  0
+      /                                 
+!                                                                       
+      CALL disp_error ('CHEM', error, iu, io) 
+      END SUBROUTINE errlist_chem                   

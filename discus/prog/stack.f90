@@ -1,3 +1,7 @@
+MODULE stack_menu
+!
+CONTAINS
+!
 SUBROUTINE stack 
 !                                                                       
 !+                                                                      
@@ -12,6 +16,7 @@ SUBROUTINE stack
       USE crystal_mod 
       USE diffuse_mod 
       USE stack_mod 
+      USE stack_rese_mod 
       USE spcgr_apply
 !
       USE doact_mod 
@@ -946,6 +951,9 @@ SUBROUTINE stack
       USE stack_cr_mod 
       USE structur
       USE spcgr_apply
+      USE symm_sup_mod
+      USE tensors_mod
+      USE trafo_mod
       USE errlist_mod 
       USE random_mod
       USE param_mod 
@@ -1376,7 +1384,9 @@ SUBROUTINE stack
       USE save_mod 
       USE stack_mod  
       USE structur  
+      USE symm_sup_mod
       USE spcgr_apply
+      USE update_cr_dim_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1661,6 +1671,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE crystal_mod 
       USE symm_mod 
       USE stack_mod 
+      USE trafo_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2276,21 +2287,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
       END SUBROUTINE st_fourier_aver                
 !*****7*****************************************************************
-      SUBROUTINE do_stack_rese 
-!-                                                                      
-!     Resets the stacking fault setup                                   
-!+                                                                      
-      USE config_mod 
-      USE stack_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      st_nlayer = 0 
-      st_ntypes = 0 
-      st_nchem = 0 
-!                                                                       
-      END SUBROUTINE do_stack_rese                  
-!*****7****************************************************************2
       SUBROUTINE stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim)
 !     SUBROUTINE stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim,      &
 !     st_name, st_spcgr, st_a0, st_win, st_natoms, st_nscat, st_dw,     &
@@ -2352,3 +2348,4 @@ internal: IF(st_internal(st_type(i)) ) THEN
       ENDIF 
 !                                                                       
       END SUBROUTINE stack_dist_file                
+END MODULE stack_menu

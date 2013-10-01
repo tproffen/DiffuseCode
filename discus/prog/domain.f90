@@ -1,3 +1,6 @@
+MODULE domain_menu
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE do_domain (line, lp) 
@@ -12,6 +15,7 @@ SUBROUTINE do_domain (line, lp)
       USE domain_mod 
       USE micro_mod 
       USE domaindis_mod 
+      USE show_menu
 !
       USE doact_mod 
       USE errlist_mod 
@@ -616,6 +620,7 @@ integer i
 !                                                                       
       USE config_mod 
       USE domaindis_mod 
+      USE tensors_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -819,10 +824,12 @@ integer i
 !                                                                       
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE micro_mod 
       USE read_internal_mod 
       USE save_mod 
       USE structur, ONLY: stru_readheader
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -878,7 +885,9 @@ integer i
       USE crystal_mod 
       USE domaindis_mod 
       USE micro_mod 
+      USE metric_mod
       USE prop_para_mod 
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -897,7 +906,7 @@ integer i
       REAL radius (3) 
       REAL NULL (3) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
@@ -964,12 +973,14 @@ integer i
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 
+      USE metric_mod
       USE micro_mod 
       USE molecule_mod 
       USE prop_para_mod 
       USE read_internal_mod
       USE structur, ONLY: struc_mole_header
       USE spcgr_apply, ONLY: mole_insert_current
+      USE trafo_mod
       USE surface_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1033,7 +1044,7 @@ integer i
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
@@ -1369,6 +1380,7 @@ mole_int: IF(mk_infile_internal) THEN
       USE domain_mod 
       USE domaindis_mod 
       USE read_internal_mod 
+      USE tensors_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1488,6 +1500,7 @@ mole_int: IF(mk_infile_internal) THEN
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE molecule_mod 
       USE prop_para_mod 
       USE surface_mod 
@@ -1510,7 +1523,7 @@ mole_int: IF(mk_infile_internal) THEN
       REAL distance 
       REAL separation 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       shortest = 1.0e03 
       lspace = .true. 
@@ -1698,3 +1711,4 @@ mole_int: IF(mk_infile_internal) THEN
       ENDIF 
 !                                                                       
       END SUBROUTINE domain_do_set                  
+END MODULE domain_menu

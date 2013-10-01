@@ -1,3 +1,6 @@
+MODULE trafo_mod
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE trafo (hkl, u, xc, yc, zc, gmat, fmat, dist, eps, gten,&
@@ -8,7 +11,8 @@
 !     calculates the distance of the plotting section from the origin   
 !     of the crystal.                                                   
 !-                                                                      
-      USE fourier_sup, ONLY: quad
+      USE tensors_mod
+      USE quad_mod
       IMPLICIT none 
 !                                                                       
       INTEGER inull2 (2), i, j, k, l, m, inull 
@@ -116,3 +120,5 @@
       ENDDO 
 !                                                                       
       END SUBROUTINE trans                          
+!
+END MODULE trafo_mod

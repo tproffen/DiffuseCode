@@ -1,3 +1,6 @@
+MODULE metric_mod
+!
+CONTAINS
 !*****7*****************************************************************
       REAL function do_blen (lspace, u, v) 
 !-                                                                      
@@ -15,7 +18,7 @@
 !                                                                       
       INTEGER i 
       REAL w (3) 
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       DO i = 1, 3 
       w (i) = v (i) - u (i) 
@@ -49,7 +52,7 @@
       INTEGER i 
       REAL xx, xy, yy, arg 
       REAL x (3), y (3) 
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       do_bang = 0.0 
 !                                                                       
@@ -136,6 +139,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE trafo_mod
 !
       USE errlist_mod 
       USE param_mod 
@@ -155,7 +159,7 @@
       REAL uu, vv 
       REAL u (3), v (3) 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -213,6 +217,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE trafo_mod
       USE errlist_mod 
       USE param_mod 
       IMPLICIT none 
@@ -314,6 +319,7 @@
       USE errlist_mod 
       USE wink_mod
       USE param_mod 
+      USE trafo_mod
       IMPLICIT none 
 !                                                                       
        
@@ -331,7 +337,7 @@
       REAL vv, uv, uh, hh, uu 
       REAL arg 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -497,3 +503,4 @@
       ENDIF 
 !                                                                       
       END SUBROUTINE do_proj                        
+END MODULE metric_mod

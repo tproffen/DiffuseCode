@@ -1,4 +1,6 @@
-!                                                                       
+MODULE waves_do_menu
+!
+CONTAINS
 SUBROUTINE waves_menu
 !-                                                                      
 !     calculates the displacement of the atoms due to a plane wave      
@@ -9,6 +11,7 @@ SUBROUTINE waves_menu
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE show_menu
       USE waves_mod 
 !
       USE doact_mod 
@@ -514,6 +517,7 @@ SUBROUTINE waves_menu
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE molecule_mod 
       USE waves_mod 
       USE wink_mod
@@ -523,7 +527,7 @@ SUBROUTINE waves_menu
        
 !                                                                       
       CHARACTER(15) cwave (3) 
-      CHARACTER(9) at_lis (maxscat), at_name 
+      CHARACTER(9) at_lis (maxscat)!, at_name 
       CHARACTER(6) cphase (2) 
       INTEGER mol_lis (maxscat) 
       INTEGER i, j, k 
@@ -659,9 +663,10 @@ SUBROUTINE waves_menu
       USE config_mod 
       USE allocate_appl_mod 
       USE crystal_mod 
-      USE fourier_sup, ONLY: quad
+      USE quad_mod
       USE symm_mod 
-      USE structur, ONLY: update_cr_dim
+      USE update_cr_dim_mod
+      USE trafo_mod
       USE waves_mod 
       USE errlist_mod 
       USE wink_mod
@@ -682,8 +687,8 @@ SUBROUTINE waves_menu
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
-      REAL sinus, box, triang 
-      EXTERNAL sinus, box, triang 
+!      REAL sinus, box, triang 
+!      EXTERNAL sinus, box, triang 
 !                                                                       
 !------ Setup for rotational mode                                       
 !                                                                       
@@ -837,6 +842,7 @@ SUBROUTINE waves_menu
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE trafo_mod
       USE waves_mod 
       USE wink_mod
       USE random_mod
@@ -951,6 +957,8 @@ ENDIF is_density
       USE modify_mod
       USE molecule_mod 
       USE symm_mod 
+      USE symm_sup_mod
+      USE trafo_mod
       USE waves_mod 
       USE wink_mod
       USE random_mod
@@ -1174,3 +1182,4 @@ ELSE wave_type
       ENDIF 
 !                                                                       
       END FUNCTION triang                           
+END MODULE waves_do_menu

@@ -1,3 +1,7 @@
+MODULE init_mod
+!
+CONTAINS
+!
       SUBROUTINE initarrays 
 !                                                                       
 !+                                                                      
@@ -22,6 +26,7 @@
       USE rmc_mod 
       USE save_mod 
       USE shear_mod 
+      USE spcgr_setup_mod
       USE stack_mod 
       USE surface_mod 
       USE sym_add_mod 
@@ -284,3 +289,4 @@
       WRITE (output_io, * ) 
  1000 FORMAT    (a) 
       END SUBROUTINE autodef                        
+END MODULE init_mod

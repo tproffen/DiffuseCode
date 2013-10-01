@@ -1,3 +1,6 @@
+MODULE patters_menu
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE patterson (inverse_type) 
@@ -11,6 +14,7 @@
       USE diffuse_mod 
       USE intens_mod 
       USE inverse_mod 
+      USE metric_mod
       USE output_mod 
       USE patters_mod 
 !
@@ -55,7 +59,7 @@
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
-      REAL do_blen, do_bang 
+!     REAL do_blen, do_bang 
 !                                                                       
       DATA extr_achs / ' ', 'h', 'k', 'l' / 
       DATA rho_extr_achs / ' ', 'x', 'y', 'z' / 
@@ -1177,6 +1181,7 @@
       USE output_mod 
       USE patters_mod 
       USE recipro_mod 
+      USE quad_mod
 !
       USE errlist_mod 
       USE prompt_mod 
@@ -1211,8 +1216,8 @@
       REAL dstar2 
       COMPLEX a_b 
 !                                                                       
-      INTEGER e_hist 
-      REAL fj2 
+!     INTEGER e_hist 
+!     REAL fj2 
 !     REAL quad 
 !                                                                       
       zz1 = 0.0 
@@ -1772,6 +1777,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE patters_mod 
 !
       USE errlist_mod 
@@ -1874,8 +1880,8 @@
       LOGICAL latt_C, latt_B, latt_A, latt_F, latt_I 
       LOGICAL latt_RO, latt_RR 
 !                                                                       
-      INTEGER e_hist 
-      REAL do_blen 
+!     INTEGER e_hist 
+!     REAL do_blen 
       REAL null (3) 
       REAL dstar 
       LOGICAL lspace 
@@ -2581,6 +2587,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2594,7 +2601,7 @@
       LOGICAL lspace 
       PARAMETER (lspace = .false.) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
       DATA e_hist_limit / 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8,  &
@@ -2727,6 +2734,7 @@
       USE fourier_sup
       USE patters_mod 
       USE wink_mod
+      USE quad_mod
 !
       USE errlist_mod 
       USE prompt_mod 
@@ -2756,8 +2764,8 @@
       PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5, HKLF4ALL = 6) 
 !                                                                       
       INTEGER len_str 
-      INTEGER e_hist 
-      REAL fj2 
+!     INTEGER e_hist 
+!     REAL fj2 
 !     REAL quad 
       INTEGER iimax 
       iimax = 0 
@@ -2908,3 +2916,4 @@
       ENDDO 
 !                                                                       
       END FUNCTION fj2                              
+END MODULE patters_menu

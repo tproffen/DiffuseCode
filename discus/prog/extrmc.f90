@@ -1,3 +1,6 @@
+MODULE extrmc
+!
+CONTAINS
 !********************************************************************** 
 !  EXTERNAL RMC MOVE SUBROUTINE                                         
 !                                                                       
@@ -180,3 +183,4 @@
 !------ together, this is checked in the main RMC routine.              
 !                                                                       
       END SUBROUTINE rmc_genmove_ext                
+END MODULE extrmc

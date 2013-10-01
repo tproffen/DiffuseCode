@@ -1,3 +1,6 @@
+MODULE mmc_menu
+!
+CONTAINS
 !*****7**************************************************************** 
 !                                                                       
 SUBROUTINE mmc 
@@ -9,6 +12,7 @@ USE config_mod
 USE crystal_mod 
 USE allocate_appl_mod
 USE chem_mod
+USE init_mod
 USE mc_mod 
 USE mmc_mod 
 USE modify_mod
@@ -141,13 +145,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !------ command 'save'                                                  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) then 
-               WRITE (output_io, 1500) cpara (1)(1:len_str (cpara (1) ))
-               CALL save_struc (cpara (1), lpara (1) ) 
-            ENDIF 
+!        ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
+!           CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+!           CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+!           IF (ier_num.eq.0) then 
+!              WRITE (output_io, 1500) cpara (1)(1:len_str (cpara (1) ))
+!              CALL save_struc (cpara (1), lpara (1) ) 
+!           ENDIF 
 !                                                                       
 !------ command 'sel' selecting/deselecting atoms                       
 !                                                                       
@@ -207,7 +211,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE chem_mod 
+      USE chem_menu
       USE mc_mod 
       USE mmc_mod 
       USE molecule_mod 
@@ -240,7 +246,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             'local +- 1 unit cell', &
             'local, same site    ', &
             'all,   same site    ' /)
-      CHARACTER(9) at_name, at_name_i, at_name_j 
+      CHARACTER(9) at_name_i, at_name_j 
       INTEGER i, j, k, l, m 
       INTEGER ii, jj 
       INTEGER ie 
@@ -614,9 +620,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
+      USE chem_menu
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod
+      USE rmc_sup_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -653,7 +661,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER                :: n_scat ! Dummy for allocation
       INTEGER                :: n_angles ! Dummy for allocation
 !                                                                       
-      INTEGER angles2index 
+!     INTEGER angles2index 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1658,12 +1666,17 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_menu
+      USE celltoindex_mod
+      USE atom_name
+      USE metric_mod
       USE mc_mod 
+      USE rmc_menu
       USE rmc_mod 
       USE mmc_mod 
-      USE modify_mod
       USE modify_func_mod
       USE random_mod
+      USE rmc_sup_mod
 !
       USE debug_mod 
       USE errlist_mod 
@@ -1679,7 +1692,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       PARAMETER (maxatom = CHEM_MAX_NEIG) 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name_i, at_name_j, at_name 
+      CHARACTER(9) at_name_i, at_name_j
       CHARACTER(24) c_energy (0:MC_N_ENERGY) 
       REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
       REAL verte (maxw), vverte (maxw), vvverte (maxw) 
@@ -1722,20 +1735,20 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL e_old (0:MC_N_ENERGY) 
       REAL e_new (0:MC_N_ENERGY) 
 !                                                                       
-      REAL mmc_energy_angle 
-      REAL mmc_energy_occ 
-      REAL mmc_energy_dis 
-      REAL mmc_energy_spr 
-      REAL mmc_energy_vec 
-      REAL mmc_energy_len 
-      REAL mmc_energy_buck 
-      REAL mmc_energy_rep 
+!      REAL mmc_energy_angle 
+!      REAL mmc_energy_occ 
+!      REAL mmc_energy_dis 
+!      REAL mmc_energy_spr 
+!      REAL mmc_energy_vec 
+!      REAL mmc_energy_len 
+!      REAL mmc_energy_buck 
+!      REAL mmc_energy_rep 
       REAL ran1, gasdev 
       INTEGER len_str 
 !     LOGICAL atom_allowed 
 !     LOGICAL check_select_status 
-      REAL do_blen 
-      REAL skalpro 
+!     REAL do_blen 
+!     REAL skalpro 
 !                                                                       
       DATA c_energy /                    &
            '                        ',   &
@@ -2503,7 +2516,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_blen 
 !                                                                       
       mmc_energy_occ = 0.0 
       ncalc = 0 
@@ -2607,6 +2619,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_menu
       USE mc_mod 
       USE mmc_mod 
       USE molecule_mod 
@@ -2667,9 +2680,11 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE celltoindex_mod
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
-      USE modify_mod
+!     USE modify_mod
       USE modify_func_mod
       IMPLICIT none 
 !                                                                       
@@ -2698,7 +2713,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL dx 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL skalpro 
+!     REAL skalpro 
 !                                                                       
       mmc_energy_dis = 0.0 
       valid_e = .false. 
@@ -2787,6 +2802,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_func_mod
@@ -2811,7 +2827,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       mmc_energy_spr = 0.0 
       ncalc = 0 
@@ -2882,11 +2898,14 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_menu
+      USE celltoindex_mod
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE molecule_mod 
       USE rmc_mod 
-      USE modify_mod
+!     USE modify_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2903,7 +2922,7 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER i, is, js, ic, in, ia 
       REAL d, u (3), v (3) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       mmc_energy_spr_mol = 0.0 
       valid_e = .false. 
@@ -2976,6 +2995,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_func_mod
@@ -3002,7 +3022,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       mmc_energy_len = 0.0 
       ncalc = 0 
@@ -3079,6 +3099,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_func_mod
@@ -3105,7 +3126,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       mmc_energy_rep = 0.0 
       ncalc = 0 
@@ -3194,6 +3215,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_func_mod
@@ -3218,7 +3240,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       mmc_energy_buck = 0.0 
       ncalc = 0 
@@ -3299,6 +3321,7 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_func_mod
@@ -3324,7 +3347,7 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL a, b, u (3), v (3), w (3) 
 !                                                                       
 !     LOGICAL check_select_status 
-      REAL do_bang 
+!     REAL do_bang 
 !                                                                       
       lnoneig = .true. 
       mmc_energy_angle = 0.0 
@@ -3582,9 +3605,12 @@ write(*,*) ' WARNING NEIGHBOR'
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_menu
+      USE chem_aver_mod
+      USE celltoindex_mod
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
-      USE modify_mod
 !
       USE debug_mod 
       USE errlist_mod 
@@ -3641,10 +3667,10 @@ write(*,*) ' WARNING NEIGHBOR'
       REAL xi2 (0:maxscat, 0:maxscat) 
       REAL xj2 (0:maxscat, 0:maxscat) 
 !                                                                       
-      REAL do_blen 
-      REAL do_bang 
-      INTEGER angles2index 
-      REAL skalpro 
+!     REAL do_blen 
+!     REAL do_bang 
+!     INTEGER angles2index 
+!     REAL skalpro 
 !                                                                       
       DATA energy_name / 'none', 'Chemical correlation    ', 'Displaceme&
      &nt correlation', 'Distance correlation (Hooke)', 'Angular      cor&
@@ -4218,6 +4244,7 @@ buck_pair: DO is = 0, cr_nscat
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
 !
@@ -4237,7 +4264,7 @@ buck_pair: DO is = 0, cr_nscat
       REAL d 
       REAL u (3), null (3) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
@@ -4280,8 +4307,9 @@ buck_pair: DO is = 0, cr_nscat
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE celltoindex_mod
       USE mmc_mod 
-      USE modify_mod
+!     USE modify_mod
       USE errlist_mod 
       USE random_mod
       IMPLICIT none 
@@ -4411,30 +4439,6 @@ buck_pair: DO is = 0, cr_nscat
       ls = i - 2 
 !                                                                       
       END SUBROUTINE index2angles                   
-!*****7*****************************************************************
-      SUBROUTINE errlist_mmc 
-!-                                                                      
-!     Displays error Messages for the error type MC                     
-!+                                                                      
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER iu, io 
-      PARAMETER (IU = -5, IO = 0) 
-!                                                                       
-      CHARACTER(LEN=45) ::ERROR (IU:IO) 
-!                                                                       
-      DATA ERROR /                                    &
-      'Number of feedback intervalls is zero    ',    & !  -5
-      'Number of MC cycles is zero              ',    & !  -4
-      'Invalid mode selected for COCC MC run    ',    & !  -3
-      'No valid move after 1000 cycles          ',    & !  -2
-      'Invalid or no energy type selected       ',    & !  -1
-      ' ' /                                             !   0
-!                                                                       
-      CALL disp_error ('MMC ', error, iu, io) 
-      END SUBROUTINE errlist_mmc                    
 !*****7**************************************************************** 
       SUBROUTINE find_bucking (werte, MAXW) 
 !-                                                                      
@@ -4452,7 +4456,7 @@ buck_pair: DO is = 0, cr_nscat
       REAL new 
       REAL minstep 
 !                                                                       
-      REAL buckingham 
+!     REAL buckingham 
 !                                                                       
       minstep = 0.0001 
 !                                                                       
@@ -4512,3 +4516,4 @@ buck_pair: DO is = 0, cr_nscat
 !                                                                       
       RETURN 
       END FUNCTION buckingham                       
+END MODULE mmc_menu

@@ -1,3 +1,6 @@
+MODULE save_menu
+!
+CONTAINS
 !+                                                                      
 !     Menu for the structure saveing part of DISCUS. The user           
 !     can define what structural information is saves to the structure  
@@ -16,6 +19,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       USE crystal_mod 
       USE modify_mod
       USE save_mod 
+      USE show_menu
 !
       USE doact_mod 
       USE errlist_mod 
@@ -884,3 +888,4 @@ SUBROUTINE save_struc (zeile, lcomm)
 !     CALL store_write_node(store_root)
 !
       END SUBROUTINE save_internal
+END MODULE save_menu

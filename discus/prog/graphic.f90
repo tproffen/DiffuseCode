@@ -1,3 +1,6 @@
+MODULE output_menu
+!
+CONTAINS
 !*****7*****************************************************************
 SUBROUTINE do_niplps (linverse) 
 !-                                                                      
@@ -516,6 +519,7 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE qval_mod
       USE envir_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -530,7 +534,7 @@ SUBROUTINE do_niplps (linverse)
       LOGICAL lread, laver 
       REAL qqq 
 !                                                                       
-      REAL qval 
+!     REAL qval 
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
@@ -604,6 +608,7 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE qval_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -615,7 +620,7 @@ SUBROUTINE do_niplps (linverse)
       LOGICAL lread, laver 
       REAL qqq 
 !                                                                       
-      REAL qval 
+!     REAL qval 
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
@@ -664,6 +669,7 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE output_mod 
+      USE qval_mod
       USE envir_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -678,7 +684,7 @@ SUBROUTINE do_niplps (linverse)
       LOGICAL lread, laver 
       REAL qqq 
 !                                                                       
-      REAL qval 
+!     REAL qval 
 !                                                                       
       CHARACTER(6) cfarb (256) 
 !                                                                       
@@ -820,6 +826,8 @@ SUBROUTINE do_niplps (linverse)
       USE diffuse_mod 
       USE fourier_sup
       USE output_mod 
+      USE qval_mod
+      USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -850,7 +858,7 @@ SUBROUTINE do_niplps (linverse)
       COMPLEX shel_tcsf 
       REAL factor 
 !                                                                       
-      REAL qval 
+!     REAL qval 
       INTEGER  len_str
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
@@ -1120,98 +1128,6 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       END SUBROUTINE do_output                      
 !*****7*****************************************************************
-      REAL FUNCTION qval (i, value, ix, iy, laver) 
-!-                                                                      
-!     transforms the real and imaginary part of the Fourier transform   
-!     into the desired output format                                    
-!+                                                                      
-      USE config_mod 
-      USE diffuse_mod 
-      USE output_mod 
-      USE random_mod
-      IMPLICIT none 
-!                                                                       
-      REAL DELTA 
-      PARAMETER (DELTA = 0.000001) 
-!                                                                       
-!                                                                       
-      INTEGER i, value, ix, iy 
-      INTEGER k 
-!                                                                       
-      COMPLEX f 
-      REAL h (3) 
-!                                                                       
-      REAL atan2d 
-      REAL ran1 
-      LOGICAL laver 
-!                                                                       
-!------ Get values of F or <F>                                          
-!                                                                       
-      IF (laver) then 
-         f = acsf (i) 
-      ELSE 
-         f = csf (i) 
-      ENDIF 
-!                                                                       
-!     Calculate intensity 'intensity'                                   
-!                                                                       
-!------ We have to store dsi() here, because if lots are                
-!------ used, csf() will only contain the values for the                
-!------ last lot !!                                                     
-!                                                                       
-      IF (value.eq.1) then 
-         IF (laver) then 
-            qval = real (f * conjg (f) ) 
-         ELSE 
-            qval = dsi (i) 
-         ENDIF 
-!                                                                       
-!     Calculate amplitude 'amplitude'                                   
-!                                                                       
-      ELSEIF (value.eq.2) then 
-         qval = sqrt (real (f * conjg (f) ) ) 
-!                                                                       
-!     Calculate phase 'phase'                                           
-!                                                                       
-      ELSEIF (value.eq.3) then 
-         IF (f.eq. (0, 0) ) then 
-            qval = 0.0 
-         ELSE 
-            qval = atan2d (aimag (f), real (f) ) 
-         ENDIF 
-!                                                                       
-!     Calculate real part 'real'                                        
-!                                                                       
-      ELSEIF (value.eq.4) then 
-         qval = real (f) 
-!                                                                       
-!     Calculate imaginary part 'imaginary'                              
-!                                                                       
-      ELSEIF (value.eq.5) then 
-         qval = aimag (f) 
-!                                                                       
-!     Calculate phase 'phase', random, except for integer hkl           
-!                                                                       
-      ELSEIF (value.eq.6) then 
-         DO k = 1, 3 
-         h (k) = out_eck (k, 1) + out_vi (k, 1) * float (ix - 1)        &
-         + out_vi (k, 2) * float (iy - 1)                               
-         ENDDO 
-         IF (abs (h (1) - nint (h (1) ) ) .lt.DELTA.and.abs (h (2)      &
-         - nint (h (2) ) ) .lt.DELTA.and.abs (h (3) - nint (h (3) ) )   &
-         .lt.DELTA) then                                                
-            IF (f.eq. (0, 0) ) then 
-               qval = 0.0 
-            ELSE 
-               qval = atan2d (aimag (f), real (f) ) 
-            ENDIF 
-         ELSE 
-            qval = (ran1 (idum) - 0.5) * 360. 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      END FUNCTION qval                             
-!*****7*****************************************************************
       SUBROUTINE set_output (linverse) 
 !-                                                                      
 !     Sets the proper output values for either Fourier or               
@@ -1264,3 +1180,4 @@ SUBROUTINE do_niplps (linverse)
       ENDIF 
 !                                                                       
       END SUBROUTINE set_output                     
+END MODULE output_menu

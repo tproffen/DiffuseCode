@@ -1,3 +1,6 @@
+MODULE insert_menu
+!
+CONTAINS
 !+                                                                      
 !     Input of objects (and molecules)                                  
 !                                                                       
@@ -10,7 +13,8 @@
       USE crystal_mod 
       USE insert_mod 
       USE molecule_mod 
-      USE structur, ONLY: update_cr_dim
+      USE show_menu
+      USE update_cr_dim_mod
 !
       USE doact_mod 
       USE errlist_mod 
@@ -1044,3 +1048,4 @@
       ENDIF enough_mole  
 !                                                                       
       END SUBROUTINE insert_domain                  
+END MODULE insert_menu

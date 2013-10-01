@@ -28,6 +28,8 @@ SUBROUTINE setup
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
       USE allocate_appl_mod
+      USE init_mod
+
 !
       USE prompt_mod 
 !

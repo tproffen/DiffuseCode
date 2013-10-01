@@ -1,3 +1,6 @@
+MODULE chem_menu
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE chem 
@@ -12,6 +15,8 @@ SUBROUTINE chem
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_aver_mod
+      USE celltoindex_mod
       USE modify_mod
 !
       USE doact_mod 
@@ -1069,7 +1074,9 @@ USE allocate_appl_mod
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE metric_mod
 USE modify_mod
+USE rmc_symm_mod
 USE errlist_mod 
 IMPLICIT none 
 !                                                                       
@@ -1094,7 +1101,7 @@ REAL uvw (4, max_uvw)
 REAL uvw_mat (4, 4, max_uvw) 
 !                                                                       
 LOGICAL, EXTERNAL   :: str_comp 
-REAL   , EXTERNAL   :: do_blen 
+!REAL   , EXTERNAL   :: do_blen 
 !                                                                       
 main: IF (str_comp (cpara (1) , 'rese', 2, lpara (1) , 4) ) then 
          chem_cran_uvw           = 0      ! (i,j,k)
@@ -1482,6 +1489,9 @@ ENDIF
 !-                                                                      
       USE config_mod 
       USE chem_mod 
+      USE metric_mod
+      USE rmc_sup_mod
+      USE rmc_symm_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1503,7 +1513,7 @@ ENDIF
       LOGICAL lacentric, csym 
       LOGICAL lrange 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
       CALL do_cap (cpara (1) ) 
 !                                                                       
@@ -1796,7 +1806,9 @@ ENDIF
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE atom_name 
       USE chem_mod 
+      USE celltoindex_mod
       USE modify_mod
       USE errlist_mod 
       USE param_mod 
@@ -1810,7 +1822,7 @@ ENDIF
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name, at_name_i 
+      CHARACTER(9) at_name_i 
       INTEGER lpara (maxw) 
       INTEGER i, ianz, laenge 
       INTEGER iatom, isite, icell (3) 
@@ -1947,7 +1959,9 @@ ENDIF
       USE config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE atom_name 
       USE chem_mod  
+      USE celltoindex_mod
       USE modify_mod
       USE element_data_mod
       USE bv_data_mod
@@ -1964,7 +1978,7 @@ ENDIF
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name, at_name_i 
+      CHARACTER(9) at_name_i 
       CHARACTER (LEN=4)  :: el_name
       INTEGER lpara (maxw) 
       INTEGER i, iii, ianz, laenge 
@@ -2138,6 +2152,7 @@ ENDIF
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
@@ -2153,7 +2168,7 @@ ENDIF
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name, at_name_i 
+      CHARACTER(9) at_name_i 
       REAL werte (maxw) 
       REAL pos (3, 0:maxatom) 
       INTEGER lpara (maxw) 
@@ -2284,159 +2299,6 @@ ENDIF
  2200 FORMAT (  2x,i3,3x,i9,3x,i9,4x,3(f8.3,2x)) 
       END SUBROUTINE chem_nei                       
 !*****7*****************************************************************
-SUBROUTINE chem_aver (lout) 
-!+                                                                      
-!     Calculate average structure and standard deviation                
-!-                                                                      
-USE config_mod 
-USE allocate_appl_mod 
-USE crystal_mod 
-USE chem_mod 
-USE errlist_mod 
-USE param_mod 
-USE prompt_mod 
-IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-REAL, DIMENSION(3) ::  p , ez 
-INTEGER            :: i, j, k, ii, jj, kk, ia, is 
-LOGICAL            :: flag, lout 
-!                                                                       
-CHARACTER(LEN=9)   :: at_name_i 
-CHARACTER(LEN=9)   :: at_name 
-!
-INTEGER            :: n_atom_cell  ! Dummy for allocation
-INTEGER            :: n_max_atom   ! Dummy for allocation
-!
-IF ( CHEM_MAXAT_CELL < MAXAT_CELL .or. &
-     CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT)) THEN
-   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
-   n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
-   call alloc_chem_aver ( n_atom_cell, n_max_atom)
-ENDIF
-!                                                                       
-!------ reset counters                                                  
-!                                                                       
-IF (cr_ncatoms.gt.MAXAT_CELL) then 
-   ier_num = - 103 
-   ier_typ = ER_APPL 
-   ier_msg (1) = 'Adjust the value of the variable' 
-   ier_msg (2)  = 'MAXAT_CELL in config_mod.f90 and  ' 
-   ier_msg (3)  = 'compile the program             ' 
-   RETURN 
-ENDIF 
-chem_ave_n    = 0    ! (i)   , i=1,cr_ncatoms
-chem_ave_bese = 0.0  ! (i, k), i=1,cr_ncatoms, k = 1,chem_max_ave_atom
-chem_ave_pos  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
-chem_ave_sig  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
-!     DO i = 1, cr_ncatoms 
-!     chem_ave_n (i) = 0 
-!     DO k = 1, chem_max_atom 
-!     chem_ave_bese (i, k) = 0.0 
-!     ENDDO 
-!     DO j = 1, 3 
-!     chem_ave_pos (j, i) = 0.0 
-!     chem_ave_sig (j, i) = 0.0 
-!     ENDDO 
-!     ENDDO 
-!                                                                       
-!------ loop over all unit cells ans atoms within unit cell             
-!                                                                       
-loopk: DO k = 1, cr_icc (3) 
-   loopj: DO j = 1, cr_icc (2) 
-      loopi: DO i = 1, cr_icc (1) 
-         ez (1) = cr_dim0 (1, 1) + float (i - 1) 
-         ez (2) = cr_dim0 (2, 1) + float (j - 1) 
-         ez (3) = cr_dim0 (3, 1) + float (k - 1) 
-         loopii: DO ii = 1, cr_ncatoms 
-            ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
-                   (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     
-            DO jj = 1, 3 
-               p (jj) = cr_pos (jj, ia) - ez (jj) 
-               chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii) + p (jj) 
-               chem_ave_sig (jj, ii) = chem_ave_sig (jj, ii) + p (jj)**2 
-            ENDDO 
-!                                                                       
-!------ --- Calculate occupancies ..                                    
-!                                                                       
-            occup: IF (chem_ave_n (ii) .eq.0) then 
-               chem_ave_n (ii) = 1 
-               chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia) 
-               is = 1 
-            ELSE  occup
-               flag = .true. 
-               DO kk = 1, chem_ave_n (ii) 
-                  IF (cr_iscat (ia) .eq.chem_ave_iscat (ii, kk) ) then 
-                     is = kk 
-                     flag = .false. 
-                  ENDIF 
-               ENDDO 
-               IF (flag) then 
-                  chem_ave_n (ii) = chem_ave_n (ii) + 1 
-                  is = chem_ave_n (ii) 
-                  IF (chem_ave_n (ii) .gt.chem_max_atom) then 
-                     ier_typ = ER_CHEM 
-                     ier_num = - 5 
-                     RETURN 
-                  ENDIF 
-                  chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia) 
-               ENDIF 
-            ENDIF occup
-            chem_ave_bese (ii, is) = chem_ave_bese (ii, is) + 1 
-         ENDDO loopii
-      ENDDO  loopi
-   ENDDO  loopj
-ENDDO  loopk
-!                                                                       
-!------ output of average and sigma                                     
-!                                                                       
-IF (lout) write (output_io, 1000) 
-ia = cr_icc (1) * cr_icc (2) * cr_icc (3) 
-DO i = 1, cr_ncatoms 
-   DO j = 1, 3 
-      chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
-      chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) -          &
-      chem_ave_pos (j, i) **2                                           
-      IF (chem_ave_sig (j, i) .gt.0.0) then 
-         chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
-      ELSE 
-         chem_ave_sig (j, i) = 0.0 
-      ENDIF 
-   ENDDO 
-   IF (lout) then 
-      DO k = 1, chem_ave_n (i) 
-         at_name_i = at_name (chem_ave_iscat (i, k) ) 
-         WRITE (output_io, 1100) i, at_name_i, (chem_ave_pos (ii, i),   &
-         ii = 1, 3), (chem_ave_sig (ii, i), ii = 1, 3), chem_ave_bese ( &
-         i, k) / ia                                                     
-      ENDDO 
-   ENDIF 
-ENDDO 
-!                                                                       
-!------ store results in res_para                                       
-!                                                                       
-IF ( (6 * cr_ncatoms) .gt.maxpar_res) then 
-   ier_typ = ER_CHEM 
-   ier_num = - 2 
-ELSE 
-   res_para (0) = 6 * cr_ncatoms 
-   DO i = 1, cr_ncatoms 
-      DO j = 1, 3 
-         res_para ( (i - 1) * 3 + j) = chem_ave_pos (j, i) 
-      ENDDO 
-      DO j = 1, 3 
-         res_para ( (i - 1) * 3 + j + 3) = chem_ave_sig (j, i) 
-      ENDDO 
-   ENDDO 
-ENDIF 
-!                                                                       
- 1000 FORMAT (' Average structure : ',//,                               &
-     &        3x,'Site',2x,'atom',11x,'average position',8x,            &
-     &        'standard deviation',3x,'occupancy',/,3x,75('-'))         
- 1100 FORMAT (3x,i3,2x,a9,2x,3(f7.4,1x),1x,3(f7.4,1x),1x,f7.4) 
-      END SUBROUTINE chem_aver                      
-!*****7*****************************************************************
       SUBROUTINE chem_homo (line, lp) 
 !-                                                                      
 !     Check homogeniety of crstal                                       
@@ -2543,7 +2405,7 @@ ENDIF
 !                                                                       
       INTEGER len_str 
 !     LOGICAL atom_allowed, chem_inlot 
-      LOGICAL chem_inlot 
+!     LOGICAL chem_inlot 
 !                                                                       
 !------ Some setup                                                      
 !                                                                       
@@ -2783,8 +2645,9 @@ ENDIF
 !                                                                       
       USE config_mod 
       USE crystal_mod 
+      USE celltoindex_mod
       USE diffuse_mod 
-      USE modify_mod
+!     USE modify_mod
       IMPLICIT none 
 !                                                                       
        
@@ -3103,6 +2966,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
       USE config_mod 
       USE chem_mod 
+      USE metric_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -3112,7 +2976,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL neig (3, 48, chem_max_cor) 
       REAL nv (3), u (3), v (3) 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
 !------ Mode VECTOR                                                     
 !                                                                       
@@ -3188,7 +3052,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE modify_mod
       USE modify_func_mod
@@ -3220,8 +3086,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL wwerte (maxw) 
       LOGICAL lfile 
 !                                                                       
-      CHARACTER(9) at_name 
-      REAL do_blen 
+!     REAL do_blen 
 !     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
@@ -3336,7 +3201,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod
@@ -3370,8 +3237,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL u (3), v (3), d (3), di 
       LOGICAL lfile 
 !                                                                       
-      CHARACTER(9) at_name 
-      REAL do_blen 
+!     REAL do_blen 
 !     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
@@ -3735,6 +3601,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE molecule_mod 
       USE errlist_mod 
@@ -3761,7 +3628,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL u (3), v (3), d (3), di 
       LOGICAL lfile 
 !                                                                       
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
 !     allocate displacement arrays
 !
@@ -3882,7 +3749,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod  
       USE modify_mod
       USE modify_func_mod
@@ -3918,8 +3787,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL u (3), v (3), w (3), wi 
       LOGICAL lfile 
 !                                                                       
-      CHARACTER(9) at_name 
-      REAL do_bang 
+!     REAL do_bang 
 !     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
@@ -4067,7 +3935,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE chem_mod 
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod   
@@ -4106,8 +3976,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL u (3), v (3), w (3), wi, wis 
       LOGICAL lfile 
 !                                                                       
-      CHARACTER(9) at_name 
-      REAL do_bang 
+!     REAL do_bang 
 !     LOGICAL atom_allowed 
 !                                                                       
 !     allocate displacement arrays
@@ -4277,6 +4146,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_aver_mod
+      USE celltoindex_mod
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod   
       USE modify_mod   
@@ -4307,9 +4179,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL xij, xi2, xj2 
       LOGICAL lvalid 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
 !     LOGICAL atom_allowed, chem_inlot 
-      LOGICAL chem_inlot 
+!     LOGICAL chem_inlot 
 !                                                                       
 !------ writing output line                                             
 !                                                                       
@@ -4466,6 +4338,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE chem_aver_mod
+      USE celltoindex_mod
+      USE metric_mod
       USE mc_mod 
       USE mmc_mod   
       USE modify_mod   
@@ -4497,8 +4372,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL xij, xi2, xj2 
       LOGICAL lvalid 
 !                                                                       
-      REAL skalpro 
-      LOGICAL chem_inlot 
+!     REAL skalpro 
+!     LOGICAL chem_inlot 
 !                                                                       
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
       IF (ier_num.ne.0) return 
@@ -4695,7 +4570,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       LOGICAL lvalid 
 !                                                                       
 !     LOGICAL atom_allowed, chem_inlot 
-      LOGICAL chem_inlot 
+!     LOGICAL chem_inlot 
 !                                                                       
       maxww = MAXSCAT
       iianz = 1 
@@ -4862,7 +4737,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL thet 
       LOGICAL lvalid 
 !                                                                       
-      LOGICAL chem_inlot 
+!     LOGICAL chem_inlot 
 !                                                                       
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
       IF (ier_num.ne.0) return 
@@ -4994,6 +4869,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
+      USE celltoindex_mod
+      USE metric_mod
       USE modify_mod
       USE errlist_mod 
       USE param_mod 
@@ -5012,7 +4889,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, k, ii, iv, katom 
       LOGICAL lok 
 !                                                                       
-      REAL do_bang 
+!     REAL do_bang 
 !                                                                       
       natom = 0 
       dummy = - 1 
@@ -5238,7 +5115,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
+      USE celltoindex_mod
       USE conn_mod
+      USE metric_mod
       USE modify_mod
       USE modify_func_mod
 !
@@ -5275,8 +5154,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       LOGICAL ldbg 
 !                                                                       
 !     LOGICAL atom_allowed 
-      REAL do_bang 
-      REAL do_blen 
+!     REAL do_bang 
+!     REAL do_blen 
 !                                                                       
       DO i = 1, CHEM_MAX_CENT 
       natom (i) = 0 
@@ -5915,6 +5794,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE atom_env_mod 
       USE chem_mod 
       USE modify_mod
@@ -5940,7 +5820,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
-      CHARACTER(9) at_name 
 !     LOGICAL atom_allowed 
 !                                                                       
 !------ write output                                                    
@@ -6068,6 +5947,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
+      USE metric_mod
       USE modify_func_mod
       USE errlist_mod 
       USE param_mod 
@@ -6089,7 +5969,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL bl_ave, bl_sig 
 !                                                                       
 !     LOGICAL atom_allowed 
-      REAL do_blen 
+!     REAL do_blen 
 !                                                                       
 !------ write output                                                    
 !                                                                       
@@ -6152,8 +6032,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name 
       USE atom_env_mod 
       USE chem_mod 
+      USE metric_mod
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
@@ -6185,9 +6067,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
-      CHARACTER(9) at_name 
 !     LOGICAL atom_allowed 
-      REAL do_bang 
+!     REAL do_bang 
 !                                                                       
       lspace = .true. 
 !                                                                       
@@ -6317,75 +6198,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
  5000 FORMAT     (F8.3,I12) 
       END SUBROUTINE chem_bang                      
 !*****7*****************************************************************
-      SUBROUTINE chem_elem (lout) 
-!+                                                                      
-!     Show information about elements/rel. amounts within crystal       
-!-                                                                      
-      USE config_mod 
-      USE crystal_mod 
-      USE chem_mod 
-!                                                                       
-      USE errlist_mod 
-      USE param_mod 
-      USE prompt_mod 
-      IMPLICIT none 
-       
-!                                                                       
-      REAL proz 
-      INTEGER natom (0:MAXSCAT) 
-      INTEGER i 
-      LOGICAL lout 
-!                                                                       
-      CHARACTER(9) at_name_i 
-      CHARACTER(9) at_name 
-!                                                                       
-!     Error condition                                                   
-!                                                                       
-      IF (cr_natoms.eq.0) then 
-         ier_typ = ER_CHEM 
-         ier_num = - 27 
-         RETURN 
-      ENDIF 
-!                                                                       
-!------ reset counters, ...                                             
-!                                                                       
-      DO i = 0, cr_nscat 
-      natom (i) = 0 
-      ENDDO 
-!                                                                       
-!------ get size of model crystal, rel. amount of elements              
-!                                                                       
-      DO i = 1, cr_natoms 
-      natom (cr_iscat (i) ) = natom (cr_iscat (i) ) + 1 
-      ENDDO 
-!                                                                       
-!------ write output                                                    
-!                                                                       
-      IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
-      IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
-      res_para (0) = float (cr_nscat) + 1 
-      DO i = 0, cr_nscat 
-      proz = float (natom (i) ) / cr_natoms 
-      IF (lout) then 
-         at_name_i = at_name (i) 
-         WRITE (output_io, 1200) at_name_i, proz, natom (i) 
-      ENDIF 
-      IF (i.le.maxpar_res) then 
-         res_para (i + 1) = proz 
-      ELSE 
-         ier_typ = ER_CHEM 
-         ier_num = - 2 
-      ENDIF 
-      ENDDO 
-!                                                                       
- 1000 FORMAT     (' Size of the crystal (unit cells) : ',2(I4,' x '),I4) 
- 1100 FORMAT     (' Total number of atoms            : ',I6,/           &
-     &                   ' Number of atoms per unit cell    : ',I6,/    &
-     &                   ' Number of different atoms        : ',I6,/)   
- 1200 FORMAT     ('    Element : ',A9,' rel. abundance : ',F5.3,        &
-     &                   '  (',I6,' atoms)')                            
-      END SUBROUTINE chem_elem                      
-!*****7*****************************************************************
       SUBROUTINE chem_mole (lout) 
 !+                                                                      
 !     Show information about molecules/rel. amounts within crystal      
@@ -6456,90 +6268,4 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
      &                   '  (',I6,' molecules)')                        
       END SUBROUTINE chem_mole                      
 !*****7***************************************************************  
-      CHARACTER(9) function at_name (iscat) 
-!+                                                                      
-!     This function builds the atom name as XX(iscat) to be             
-!     able to distinguish between different atom types with             
-!     the same name.                                                    
-!-                                                                      
-      USE config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      CHARACTER(5) istr 
-      INTEGER iscat, il, is 
-!                                                                       
-      INTEGER len_str 
-!                                                                       
-      IF (iscat.ge.100) then 
-         WRITE (istr, 1000) iscat 
-      ELSEIF (iscat.ge.10) then 
-         WRITE (istr, 1100) iscat 
-      ELSE 
-         WRITE (istr, 1200) iscat 
-      ENDIF 
-!                                                                       
-      il = len_str (cr_at_lis (iscat) ) 
-      is = len_str (istr) 
-!                                                                       
-      at_name = cr_at_lis (iscat) (1:il) //istr (1:is) 
-!                                                                       
- 1000 FORMAT     ('(',I3,')') 
- 1100 FORMAT     ('(',I2,')') 
- 1200 FORMAT     ('(',I1,')') 
-      END FUNCTION at_name                          
-!*****7***************************************************************  
-      SUBROUTINE errlist_chem 
-!-                                                                      
-!     Displays error messages for the error type CHEM                   
-!+                                                                      
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER iu, io 
-      PARAMETER (IU = - 29, IO = 0) 
-!                                                                       
-      CHARACTER(LEN=45) :: ERROR (IU:IO) 
-!                                                                       
-      DATA ERROR ( IU:-21) /                             &
-      'Atom type outside valid range           ',     & !-29
-      'Invalid correlation conn   index given  ',     & !-28
-      'No atoms present in crystal             ',     & !-27
-      'Invalid correlation environment index   ',     & !-26
-      'Invalid range for bond-angle histogramm ',     & !-25
-      'Invalid correlation angle index given   ',     & !-24
-      'Too many neighbouring atoms/molecules   ',     & !-23
-      'Command not available in molecule mode  ',     & !-22
-      'Molecule types need to be different     '      & !-21
-      /                                 
-      DATA ERROR (-20: -1) /                             &
-      'No molecules present in crystal         ',     & !-20
-      'No neighbouring molecules found         ',     & !-19
-      'Correlation fields require same # vector',     & !-18
-      'Correlation fields require same mode    ',     & !-17
-      'Failed to apply periodic boundaries     ',     & !-16
-      'No displacement directions selected     ',     & !-15
-      'Invalid neighbour definition selected   ',     & !-14
-      'Correlation direction invalid           ',     & !-13
-      'Too many neighbour definitions          ',     & !-12
-      'No neighbours defined                   ',     & !-11
-      'Invalid crystal site or atom index given',     & !-10
-      'Invalid correlation vector index given  ',     & !- 9
-      'No neighbouring atoms found             ',     & !- 8
-      'Atoms need to be different              ',     & !- 7
-      'Atom name ALL not allowed for command   ',     & !- 6
-      'Too many different atoms found          ',     & !- 5
-      'Invalid SIGMA entered                   ',     & !- 4
-      'Invalid range for bond-length histogramm',     & !- 3
-      'Not enough space for all result in res[]',     & !- 2
-      'Too many points for histogramm          '      & !- 1
-      /                                 
-      DATA ERROR (  0:  0) /                             &
-      ' '                                                & !  0
-      /                                 
-!                                                                       
-      CALL disp_error ('CHEM', error, iu, io) 
-      END SUBROUTINE errlist_chem                   
+END MODULE chem_menu

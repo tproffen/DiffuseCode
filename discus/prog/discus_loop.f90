@@ -4,6 +4,7 @@ CONTAINS
 !
 SUBROUTINE discus_loop
 !                                                                       
+   USE exit_mod
    USE doact_mod 
    USE errlist_mod 
    USE learn_mod 

@@ -1,3 +1,6 @@
+MODULE interpret_menu
+!
+CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE interpret 
@@ -13,3 +16,4 @@
       IMPLICIT none 
 !                                                                       
       END SUBROUTINE interpret                      
+END MODULE interpret_menu

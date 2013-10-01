@@ -1,3 +1,6 @@
+MODULE spcgr_setup_mod
+!
+CONTAINS
 !********************************************************************** 
       SUBROUTINE spcgr_setup 
 !-                                                                      
@@ -611,3 +614,4 @@
       spcgr_syst (309) = ORTHORHOMBIC 
                                                                         
       END SUBROUTINE spcgr_setup                    
+END MODULE spcgr_setup_mod

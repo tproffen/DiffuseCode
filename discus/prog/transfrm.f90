@@ -1,3 +1,7 @@
+MODULE transform_menu
+!
+CONTAINS
+!
 !+                                                                      
 !     Generalized unit cell transformation operations:                  
 !     The user provides the transformation matrix between new and       
@@ -15,7 +19,9 @@
       USE allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
+      USE show_menu
       USE transfrm_mod 
+      USE trans_sup_mod
 !
       USE doact_mod 
       USE errlist_mod 
@@ -794,6 +800,7 @@
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
       USE config_mod 
+      USE tensors_mod
       USE transfrm_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -926,9 +933,11 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE metric_mod
       USE spcgr_apply, ONLY: setup_lattice
-      USE structur, ONLY: update_cr_dim
+      USE update_cr_dim_mod
       USE transfrm_mod 
+      USE trafo_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -943,8 +952,8 @@
       REAL werte (5) 
       REAL u (3), v (3), w (3) 
 !                                                                       
-      REAL do_bang 
-      REAL skalpro 
+!     REAL do_bang 
+!     REAL skalpro 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
@@ -1020,46 +1029,6 @@
 !                                                                       
       END SUBROUTINE tran_op                        
 !*****7*****************************************************************
-      SUBROUTINE tran_ca (usym, matrix, lscreen) 
-!-                                                                      
-!     Performs the transformation symmetry operation for a single       
-!     atom or reciprocal vector.                                        
-!+                                                                      
-      USE config_mod 
-!
-      USE errlist_mod 
-      USE param_mod 
-      USE prompt_mod 
-!
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER j 
-!                                                                       
-      LOGICAL lscreen 
-!                                                                       
-      REAL usym (4), ures (4) 
-      REAL matrix (4, 4) 
-!                                                                       
-!-----      Apply symmetry operation                                    
-!                                                                       
-      CALL trans (usym, matrix, ures, 4) 
-!                                                                       
-!     Replace original vector and store result                          
-!                                                                       
-      DO j = 1, 3 
-      res_para (j) = ures (j) 
-      usym (j) = ures (j) 
-      ENDDO 
-!                                                                       
-      res_para (0) = 3 
-      IF (lscreen) then 
-         WRITE (output_io, 3000) (res_para (j), j = 1, 3) 
-      ENDIF 
-!                                                                       
- 3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
-      END SUBROUTINE tran_ca                        
-!*****7*****************************************************************
       SUBROUTINE tran_sym 
 !-                                                                      
 !     Transforms the symmetry operations                                
@@ -1069,6 +1038,7 @@
       USE generate_mod 
       USE gen_add_mod 
       USE sym_add_mod 
+      USE tensors_mod
       USE transfrm_mod 
       USE unitcell_mod 
 !                                                                       
@@ -1263,6 +1233,7 @@
 !+                                                                      
       USE config_mod 
       USE transfrm_mod 
+      USE trafo_mod
 !                                                                       
       USE errlist_mod 
       USE param_mod 
@@ -1349,3 +1320,4 @@
  2000 FORMAT    (3i4,a20) 
  3000 FORMAT    (3f8.3,1x,a20,1x,3i4) 
       END SUBROUTINE tran_hkl                       
+END MODULE transform_menu

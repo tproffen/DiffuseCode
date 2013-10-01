@@ -117,9 +117,10 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE celltoindex_mod
       USE diffuse_mod 
       USE four_strucf_mod
-      USE modify_mod
+!     USE modify_mod
       USE random_mod
 !                                                                       
       USE prompt_mod 
@@ -215,8 +216,9 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE celltoindex_mod
       USE diffuse_mod 
-      USE modify_mod
+!     USE modify_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN)  :: iscat
@@ -543,7 +545,8 @@ CONTAINS
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
-      USE diffuse_mod 
+      USE diffuse_mod
+      USE quad_mod 
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -732,29 +735,6 @@ CONTAINS
          ENDDO 
       ENDIF 
       END FUNCTION form                             
-!*****7*****************************************************************
-      REAL FUNCTION quad (h, k, rten) 
-!+                                                                      
-!           Calculates the scalar product of h and k.                   
-!           1/d**2 = h(i)*k(j)*rten(i,j)                                
-!-                                                                      
-      IMPLICIT none 
-!                                                                       
-      INTEGER, PARAMETER :: idim = 3
-!
-      REAL, DIMENSION(3)  , INTENT(IN) :: h
-      REAL, DIMENSION(3)  , INTENT(IN) :: k
-      REAL, DIMENSION(3,3), INTENT(IN) :: rten
-!                                                                       
-      INTEGER i, j 
-!                                                                       
-      quad = 0.0 
-      DO i = 1, idim 
-         DO j = 1, idim 
-            quad = quad+h (i) * k (j) * rten (i, j) 
-         ENDDO 
-      ENDDO 
-      END FUNCTION quad                             
 !*****7*****************************************************************
       SUBROUTINE dlink (lxray, ano, lambda, rlambda, diff_radiation, &
                         diff_power) 

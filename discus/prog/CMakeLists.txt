@@ -16,11 +16,11 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 ###	
 set( SOURCE_MAIN discus.f90 )
 set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
-	blk_appl.f90 bv_data_mod.f90 
-	chem.f90 chem_mod.f90 config_mod.f90
+	atom_name.f90 blk_appl.f90 bv_data_mod.f90 
+	chem.f90 chem_mod.f90 chem_aver_mod.f90 config_mod.f90
 	conn_def_mod.f90 conn_mod.f90 crystal_mod.f90 
 	class_atom.f90 class_crystal.f90 class_internal.f90
-	class_dc_def.f90 
+	class_dc_def.f90 celltoindex.f90
 	deco_mod.f90 
 	debye_mod.f90 diffuse_mod.f90
 	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
@@ -32,13 +32,15 @@ set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
 	place_molecule.f90  read_internal_mod.f90
 	pdf.f90 pdf_mod.f90
-	plot.f90 plot_mod.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
+	plot.f90 plot_mod.f90 plot_init.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
 	prop_para_mod.f90
-	recipro_mod.f90 rmc.f90 rmc_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
+	recipro_mod.f90 rmc.f90 rmc_mod.f90 rmc_symm.f90 rmc_sup_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
 	show.f90 spcgr_apply.f90 spcgr_mod.f90 spcgr_setup.f90 stack.f90 stack_cr_mod.f90 stack_mod.f90
-	structur.f90 surface_mod.f90 sym_add_mod.f90 symm.f90 symm_mod.f90 tensors.f90
-	thermal.f90 trafo.f90 transfrm.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
-	waves.f90 waves_mod.f90 wyckoff_mod.f90 
+        stack_rese.f90
+	structur.f90 surface_mod.f90 sym_add_mod.f90 symm.f90 symm_mod.f90 symm_sup.f90 tensors.f90
+	thermal.f90 trafo.f90 transfrm.f90 trans_sup.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
+	update_cr_dim.f90
+	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90
   )
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 

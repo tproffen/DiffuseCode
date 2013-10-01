@@ -1,3 +1,6 @@
+MODULE external_four
+!
+CONTAINS
       SUBROUTINE four_external 
 !-                                                                      
 !     Calculates the Fourier Transformation using externally            
@@ -8,6 +11,7 @@
       USE diffuse_mod 
       USE fourier_sup
       USE external_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
@@ -30,7 +34,7 @@
       REAL phase 
       REAL ds, sf 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL cosd, sind 
 !DBG                                                                    
       exte_orig (1) = 0 
@@ -127,6 +131,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
@@ -146,7 +151,7 @@
       REAL phase 
       REAL sf, sfstart 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL cosd, sind 
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
@@ -193,6 +198,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
@@ -215,7 +221,7 @@
 !                                                                       
       REAL cartesian (3, 3) 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL cosd, sind 
       REAL bessj1 
 !                                                                       
@@ -277,6 +283,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
@@ -299,7 +306,7 @@
 !                                                                       
       REAL cartesian (3, 3) 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL cosd, sind 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
@@ -348,6 +355,7 @@
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
+      USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
       USE wink_mod
@@ -369,7 +377,7 @@
 !DBG_RBN                                                                
       REAL hmin (3) 
 !                                                                       
-      REAL skalpro 
+!     REAL skalpro 
       REAL cosd, sind 
 !DBG_RBN                                                                
       hmin (1) = 0.0 
@@ -575,3 +583,4 @@
  2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
      &                  '****')                                         
       END SUBROUTINE oeffne_external                
+END MODULE external_four

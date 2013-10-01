@@ -750,13 +750,14 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_name
       USE prompt_mod
       IMPLICIT none 
 !
       INTEGER   :: is
       INTEGER   :: i
       CHARACTER(LEN=9)           :: at_name_i
-      CHARACTER(LEN=9), EXTERNAL :: at_name
+!     CHARACTER(LEN=9), EXTERNAL :: at_name
 !
       exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
         scats: DO is=0,maxscat                     ! Loop over all atom types

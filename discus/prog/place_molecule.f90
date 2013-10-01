@@ -249,6 +249,7 @@ CONTAINS
    USE atom_env_mod
    USE chem_mod
    USE modify_mod
+   USE tensors_mod
 !
    IMPLICIT NONE
 !
