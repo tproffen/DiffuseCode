@@ -26,7 +26,7 @@ IMPLICIT none
 INTEGER, PARAMETER   :: maxw = 20
 !                                                                       
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
-LOGICAL             , INTENT(INOUT) :: lend 
+LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
 CHARACTER (LEN=1024)                  :: zeile 
@@ -397,7 +397,7 @@ ELSE
          ENDIF 
       ENDIF 
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) then 
-      IF ( .not. run_mpi_active ) THEN
+      IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
          ier_num =  -24
          ier_typ = ER_APPL
          ier_msg(1) = 'To run an MPI distributed application requires'

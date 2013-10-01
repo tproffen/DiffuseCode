@@ -68,6 +68,17 @@ IF ( ier_num /= 0 ) THEN
    ier_typ = ER_APPL
    RETURN
 ENDIF
+IF ( run_mpi_numprocs < 2 ) THEN
+!  ier_msg(1) = 'MPI SYSTEM returned one CPU   '
+!  ier_msg(2) = 'DIFFEV must be started with   '
+!  ier_msg(3) = 'mpiexec -n X diffev; x >= 2   '
+!  WRITE(ier_msg(2),3000) ier_num
+!
+!  MPI Does not seem to be active, quietly turn off
+   ier_num = 0
+   ier_typ = ER_NONE
+   RETURN
+ENDIF
 !
 ! For future use with MPI_TYPE_...
 !
