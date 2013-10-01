@@ -9,16 +9,22 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER mmaxw, maxw 
+      INTEGER,                    INTENT(IN   ) :: ikl
+      INTEGER,                    INTENT(IN   ) :: iklz
+      CHARACTER (LEN=*),          INTENT(OUT  ) :: string 
+      INTEGER,                    INTENT(OUT  ) :: ll
+      INTEGER,                    INTENT(IN   ) :: maxw
+      REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+      INTEGER,                    INTENT(IN   ) :: ianz
+!
+      INTEGER mmaxw
       PARAMETER (mmaxw = 3) 
 !                                                                       
-      CHARACTER ( * ) string 
       CHARACTER(1024) zeile 
-      INTEGER i, ianz, ikl, iklz, ll 
-      INTEGER lcomm, laenge, ltyp 
+      INTEGER i, laenge
+      INTEGER lcomm, ltyp 
       INTEGER idummy 
       INTEGER kpara (mmaxw) 
-      REAL ww (maxw) 
 !                                                                       
       INTEGER length_com 
 !                                                                       
@@ -580,11 +586,13 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) ctype 
-      INTEGER maxw 
-      INTEGER ianz, idummy 
-      INTEGER ww (maxw) 
-      REAL wert 
+      CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+      INTEGER,                    INTENT(IN) :: maxw
+      INTEGER,                    INTENT(IN) :: ianz 
+      INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+      REAL   ,                    INTENT(IN) :: wert 
+!
+      INTEGER idummy 
 !                                                                       
 !------ integer parameter i[n]                                          
 !                                                                       
@@ -831,10 +839,15 @@
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      CHARACTER (LEN=*), INTENT(IN   ) :: string
+      CHARACTER (LEN=*), INTENT(INOUT) :: line 
+      INTEGER,           INTENT(IN)    :: ikl
+      INTEGER,           INTENT(IN)    :: iklz
+      INTEGER,           INTENT(IN)    :: laenge
+      INTEGER,           INTENT(IN)    :: lp
+      REAL   ,           INTENT(OUT)   :: ww
 !                                                                       
-      CHARACTER ( * ) string, line 
-      INTEGER ikl, iklz, laenge, lp, il 
-      REAL ww 
+      INTEGER il 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -863,9 +876,8 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) zeile 
-!                                                                       
-      INTEGER lp 
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER,           INTENT(IN) :: lp 
 !                                                                       
       INTEGER reserved_n 
       PARAMETER (reserved_n = 22) 

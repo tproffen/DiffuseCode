@@ -10,16 +10,20 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) string 
+      INTEGER,                    INTENT(IN   ) :: ikl
+      INTEGER,                    INTENT(IN   ) :: iklz
+      CHARACTER (LEN=*),          INTENT(OUT  ) :: string 
+      INTEGER,                    INTENT(OUT  ) :: ll
+      INTEGER,                    INTENT(IN   ) :: maxw
+      REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+      INTEGER,                    INTENT(IN   ) :: ianz
+!
       CHARACTER(1024) zeile 
 !                                                                       
-      INTEGER ianz 
       INTEGER laenge, ltyp, kpara, kpara2, kpara3 
-      INTEGER ikl, ll, iklz, maxw 
       INTEGER lcomm 
       INTEGER length_com 
       INTEGER i1, i2 
-      REAL ww (maxw) 
 !                                                                       
       laenge = ll 
       ltyp = 1 
@@ -148,10 +152,11 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw, ianz 
-      CHARACTER ( * ) ctype 
-      INTEGER ww (maxw) 
-      REAL wert 
+      CHARACTER (LEN=*),          INTENT(IN) :: ctype 
+      INTEGER,                    INTENT(IN) :: maxw
+      INTEGER,                    INTENT(IN) :: ianz 
+      INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
+      REAL   ,                    INTENT(IN) :: wert 
 !                                                                       
 !------ Setting i[n]                                                    
 !                                                                       
@@ -206,11 +211,13 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) string, line 
-      INTEGER lp, ikl, iklz, laenge 
-      REAL ww 
-!                                                                       
-      RETURN 
+      CHARACTER (LEN=*), INTENT(IN   ) :: string
+      CHARACTER (LEN=*), INTENT(INOUT) :: line 
+      INTEGER,           INTENT(IN)    :: ikl
+      INTEGER,           INTENT(IN)    :: iklz
+      INTEGER,           INTENT(IN)    :: laenge
+      INTEGER,           INTENT(IN)    :: lp
+      REAL   ,           INTENT(OUT)   :: ww
       END SUBROUTINE calc_intr_spec                 
 !*****7**************************************************************** 
       SUBROUTINE validate_var_spec (zeile, lp) 
@@ -223,12 +230,10 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) zeile 
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER lp 
-!                                                                       
-      INTEGER reserved_n 
-      PARAMETER (reserved_n = 52) 
+      INTEGER, PARAMETER :: reserved_n = 52 
                                                                         
       CHARACTER(12) reserved (reserved_n) 
       INTEGER i 

@@ -13,12 +13,15 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) line, zei 
+      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+      LOGICAL            , INTENT(OUT)   :: lend
+      INTEGER            , INTENT(INOUT) :: length 
+!                                                                       
+      CHARACTER(1024) zei 
       CHARACTER(70) command 
       CHARACTER(4) bef 
-      INTEGER i, lc, lbef, length 
+      INTEGER i, lc, lbef
       INTEGER ianz, indxg, indxb, indxt
-      LOGICAL lend 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       

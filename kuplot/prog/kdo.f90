@@ -17,17 +17,21 @@
 !
       IMPLICIT none 
 !                                                                       
+      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+      LOGICAL            , INTENT(OUT)   :: lend
+      INTEGER            , INTENT(INOUT) :: length 
+!                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 
 !                                                                       
-      CHARACTER(1024) line, zei, command 
+      CHARACTER(1024) zei, command 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(4) bef 
       REAL dummy 
       INTEGER lpara (maxw) 
-      INTEGER lc, lbef, length 
+      INTEGER lc, lbef
       INTEGER ianz, indxg, indxb , indxt
-      LOGICAL lend, ldummy 
+      LOGICAL ldummy 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
