@@ -1,7 +1,16 @@
-MODULE discus_interface
+MODULE discus
 !
-PUBLIC discus
-PUBLIC discus_run
+PRIVATE
+PUBLIC  get, get_r, get_i, send,send_i, send_r
+PUBLIC  interactive
+PUBLIC  command
+!
+INTERFACE get
+   MODULE PROCEDURE get_i, get_r
+END INTERFACE get
+INTERFACE send
+   MODULE PROCEDURE send_i, send_r
+END INTERFACE send
 !
 CONTAINS
 !
@@ -11,14 +20,14 @@ SUBROUTINE interactive ()
 !  from the host system
 !
 USE prompt_mod
-USE discus_setup_mod
+USE setup_mod
 USE discus_loop_mod
 !
 IMPLICIT none 
 !
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL discus_setup
+   CALL setup
 ENDIF
 lstandalone = .false.
 CALL discus_loop
@@ -40,7 +49,7 @@ SUBROUTINE command (incomming, ier_status)
 ! Commands that branch into sub-menus cause an interactive section.
 ! 
 ! 
-USE discus_setup_mod
+USE setup_mod
 USE errlist_mod
 USE macro_mod
 USE prompt_mod
@@ -60,7 +69,7 @@ LOGICAL              :: lend
 INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL discus_setup
+   CALL setup
 ENDIF
 lend = .false.
 !
@@ -113,4 +122,14 @@ ENDIF
 !
 END SUBROUTINE command
 !
-END MODULE discus_interface
+!  INCLUDE the generic send and get routines from lib_f90
+!  These allow to send/get sections of i[] and r[].
+!  As these are identical to all programs, the source 
+!  code is in lib_f90. As I want to have these routines 
+!  to be part of this module, its easiest to include
+!  the source code instead of adding another file to 
+!  the f2py command
+!
+INCLUDE 'send_get.f90'
+!
+END MODULE discus

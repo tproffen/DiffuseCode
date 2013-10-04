@@ -2,11 +2,9 @@
 
 option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
 option(DISCUS_OMP    "DISCUS_OMP"     OFF)
-option(DISCUS_PYTHON "DISCUS_PYTHON"  OFF)
 
 find_package(NEXUS)
 find_package(OpenMP)
-find_package(NumPy)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -56,6 +54,7 @@ if (NEXUS_FOUND AND DISCUS_NEXUS)
 
 else (NEXUS_FOUND AND DISCUS_NEXUS)
   set (SOURCES_ALL ${SOURCES_ALL} nexus_no.f90)
+  set (LIBS_OPT )
 
 endif (NEXUS_FOUND AND DISCUS_NEXUS)
 
@@ -89,12 +88,14 @@ add_custom_target(discushlp DEPENDS discus.hlp)
 
 # Numpy ?
 
-if (NUMPY_FOUND AND DISCUS_PYTHON)
+if (NUMPY_FOUND AND DIFFUSE_PYTHON)
   add_custom_command (
     OUTPUT lib_discus.so
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
     COMMAND f2py -c -m lib_discus 
             ${DIFFUSE_LIBS}
@@ -107,19 +108,21 @@ if (NUMPY_FOUND AND DISCUS_PYTHON)
             ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/macro_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/send_get.f90
     )
   add_custom_target (discus_python DEPENDS lib_discus.so)
   add_dependencies  (discus_python discus_all lib_f90c  )
 
   add_dependencies(discus discushlp discus_python)
 
-else  (NUMPY_FOUND AND DISCUS_PYTHON)
+else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
   add_dependencies(discus discushlp)
 
-endif (NUMPY_FOUND AND DISCUS_PYTHON)
+endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
 
 

@@ -1,29 +1,41 @@
-MODULE setup_mod
+MODULE discus_setup_mod
 !
 CONTAINS
 !
+SUBROUTINE discus_setup
 !
+USE errlist_mod
+USE prompt_mod
+!
+!                                                                       
+pname      = 'discus'
+pname_cap  = 'DISCUS'
+!                                                                       
+blank   = ' '
+prompt  = pname
+prompt_status = PROMPT_ON
+prompt_status_old = PROMPT_ON
+
+!
+CALL setup
+CALL no_error
+lsetup_done = .true.
+!
+END SUBROUTINE discus_setup
+
 SUBROUTINE setup 
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
       USE allocate_appl_mod
       USE init_mod
+
 !
-      USE errlist_mod
       USE prompt_mod 
 !
 IMPLICIT none 
 !                                                                       
       include'date.inc' 
-!
-      pname      = 'discus'
-      pname_cap  = 'DISCUS'
-!                                                                       
-      blank   = ' '
-      prompt  = pname
-      prompt_status = PROMPT_ON
-      prompt_status_old = PROMPT_ON
 !                                                                       
 CALL ini_ran (0) 
 !                                                                       
@@ -53,16 +65,13 @@ CALL autodef
 !                                                                       
 CALL cmdline_args 
 !
-CALL no_error
-lsetup_done = .true.
-!
  1000 FORMAT (/,10x,59('*'),/,                                      &
               10x,'*',15x,'D I S C U S   Version ',a10,10x,'*',/,   &
               10x,'*',57(' '),'*',/                                 &
      &        10x,'*         Created : ',a35,3x,'*',/,              &
               10x,'*',57('-'),'*',/,                                &
      &        10x,'* (c) R.B. Neder  ',                             &
-     &        '(reinhard.neder@fau.der)                *',/,        &
+     &        '(reinhard.neder@krist.uni-erlangen.de)  *',/,        &
      &        10x,'*     Th. Proffen ',                             &
      &        '(tproffen@ornl.gov)                     *',/,        &
      &        10x,59('*'),/,                                        &
@@ -72,4 +81,4 @@ lsetup_done = .true.
      &        10x,'*',57(' '),'*',/,10x,59('*'),/                   &
      &                     )                                            
 END SUBROUTINE setup                          
-END MODULE setup_mod
+END MODULE discus_setup_mod
