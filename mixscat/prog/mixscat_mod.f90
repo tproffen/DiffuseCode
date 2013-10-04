@@ -9,7 +9,7 @@ SAVE
 !*****7****************************************************************
    CHARACTER(LEN=80), DIMENSION(1:MAXDSET) :: exp_name  ! (MAXDSET)
 !
-   CHARACTER(LEN=4 ), DIMENSION(1:MAXELEM) :: elem_name ! (0:MAXELEM)
+   CHARACTER(LEN=4 ), DIMENSION(0:MAXELEM) :: elem_name ! (0:MAXELEM)
 !
    INTEGER, DIMENSION(1:2)                 :: elem_diff ! (2)
    INTEGER                                 :: elem_n
