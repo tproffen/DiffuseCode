@@ -18,9 +18,16 @@ set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 0)
 set (DIFFUSE_VERSION_PATCH 0)
 
+option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" ON)
 # Readline required for all programs
 
 find_package(Readline REQUIRED)
+
+# Option to build a PYTHON interface
+option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" ON)
+if (DIFFUSE_PYTHON)
+  find_package(NumPy)
+endif (DIFFUSE_PYTHON)
 
 # Set common libraries
 
@@ -30,6 +37,11 @@ if (WIN32 OR CYGWIN)
   set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
 endif (WIN32 OR CYGWIN)
 
+# Set Compiler Flags
+
+set (CMAKE_CXX_FLAGS "-fPIC")
+set (CMAKE_C_FLAGS "-fPIC")
+set (CMAKE_Fortran_FLAGS "-fPIC")
 
 # Go into directories
 
