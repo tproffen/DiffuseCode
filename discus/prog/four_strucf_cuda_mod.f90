@@ -19,18 +19,10 @@ CONTAINS
       INTEGER h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
 !                                                                       
       INTEGER IAND, ISHFT 
-      real cex_r(I2PI),cex_i(I2PI)
-      real tcsf_r(MAXQXY),tcsf_i(MAXQXY)
       
-      cex_r=real(cex)
-      cex_i=aimag(cex)
+      call cudastrucf(tcsf,cex,xat,nxat,num,xm,win,vin,uin,cr_natoms)
       
-      call cudastrucf(tcsf_r,tcsf_i,cex_r,cex_i,xat,nxat,num,xm,win,vin,uin,cr_natoms)
       
-      tcsf=cmplx(tcsf_r,tcsf_i)
-
-
-
 !------ Now we multiply with formfactor                                 
 !                                                                       
       IF (lform) then 

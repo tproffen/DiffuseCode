@@ -1,41 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "cuComplex.h"
 
 #define I2PI (1<<16)
 #define MASK (I2PI-1)
 
-__global__ void initarraygpu(float[], float[], int);
+__global__ void initarraygpu(cuFloatComplex[], int);
 
-__global__ void computestrucf(float*, float*,
-			      float*, float*,
+__global__ void computestrucf(cuFloatComplex*, cuFloatComplex*,
 			      int, int,
 			      int, int, int);
 
 extern "C"{
-  void cudastrucf_(float *csf_r, float *csf_i, float *cex_r, float *cex_i, float *xat, int *nxat, int *num, float *xm, float *win, float *vin, float *uin, int *cr_natoms)
+  void cudastrucf_(cuFloatComplex *csf, cuFloatComplex *cex, float *xat, int *nxat, int *num, float *xm, float *win, float *vin, float *uin, int *cr_natoms)
   {
     int nnum = num[0]*num[1]*num[2];
     
     int threadsPerBlock = 64;
     int threadsPerGrid = (nnum + threadsPerBlock - 1) / threadsPerBlock;
     
-    float* d_rtcsf;
-    cudaMalloc((void**) &d_rtcsf, nnum * sizeof(float));
-    float* d_itcsf;
-    cudaMalloc((void**) &d_itcsf, nnum * sizeof(float));
+    cuFloatComplex* d_tcsf;
+    cudaMalloc((void**) &d_tcsf, nnum * sizeof(cuFloatComplex));
     
-    float* d_rexp;
-    cudaMalloc((void**) &d_rexp, I2PI * sizeof(float));
-    float* d_iexp;
-    cudaMalloc((void**) &d_iexp, I2PI * sizeof(float));
+    cuFloatComplex* d_cex;
+    cudaMalloc((void**) &d_cex, I2PI * sizeof(cuFloatComplex));
     
-    cudaMemcpy(d_rexp, cex_r, I2PI * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_iexp, cex_i, I2PI * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_cex, cex, I2PI * sizeof(cuFloatComplex), cudaMemcpyHostToDevice);
     
-    initarraygpu<<<threadsPerGrid, threadsPerBlock>>>(d_rtcsf, d_itcsf, nnum);
+    initarraygpu<<<threadsPerGrid, threadsPerBlock>>>(d_tcsf, nnum);
     
-    printf("Starting CUDA!!\n");
+    printf("Starting CUDA!!!!\n");
     
     float xarg0, xincu, xincv;//, xincw;
     int iarg0, iincu, iincv;//, iincw;
@@ -51,26 +46,21 @@ extern "C"{
       //iincw = (int)rintf(64 * I2PI * (xincw - (int)xincw + 1.));
       
       computestrucf<<<threadsPerGrid, threadsPerBlock>>>
-	(d_rexp, d_iexp,
-	 d_rtcsf, d_itcsf,
+	(d_cex, d_tcsf,
 	 num[0],num[1],
 	 iarg0,iincu,iincv);
     }
     
-    cudaMemcpy(csf_r, d_rtcsf, nnum*sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(csf_i, d_itcsf, nnum*sizeof(float), cudaMemcpyDeviceToHost);
-    
-    
-    cudaFree(d_rtcsf);
-    cudaFree(d_itcsf);
-    cudaFree(d_rexp);
-    cudaFree(d_iexp);
+    cudaMemcpy(csf, d_tcsf, nnum*sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
+    cudaMemcpy(csf, d_tcsf, nnum*sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
+        
+    cudaFree(d_tcsf);
+    cudaFree(d_cex);
     
   }
 }
 
-__global__ void computestrucf(float* exp_r, float* exp_i,
-			      float* tcsf_r, float* tcsf_i,
+__global__ void computestrucf(cuFloatComplex* cex, cuFloatComplex* tcsf,
 			      int num1, int num2,
 			      int iarg0, int iincu, int iincv)
 {
@@ -81,25 +71,21 @@ __global__ void computestrucf(float* exp_r, float* exp_i,
     {
       i = id / num1;
       j = id % num1;
-      iarg = iarg0 + j * iincu + i * iincv;
+      iarg = iarg0 + i * iincu + j * iincv;
       iadd = iarg >> 6;
       iadd = iadd & MASK;
-      //tcsf_r[i*num1+j] += exp_r[iadd];
-      //tcsf_i[i*num1+j] += exp_i[iadd];
-      tcsf_r[id] += exp_r[iadd];
-      tcsf_i[id] += exp_i[iadd];
+      tcsf[id] = cuCaddf(tcsf[id],cex[iadd]);
     };
   __syncthreads();
 }
 
 
-__global__ void initarraygpu(float* array1, float* array2, int nelements)
+__global__ void initarraygpu(cuFloatComplex* array1, int nelements)
 {
   int id = threadIdx.x + blockDim.x * blockIdx.x;
   if(id<nelements)
     {
-      array1[id] = 0.0;
-      array2[id] = 0.0;
+      array1[id] = make_cuFloatComplex(0.0,0.0);
     };
   __syncthreads();
 }
