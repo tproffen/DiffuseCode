@@ -6,7 +6,7 @@
 #include <readline/history.h>
 #
 /* -------------------------------------------------------------------------- */
-FCreadline(int *len, char *myline, char prompt[]){
+FCreadline(int len, char *myline, char prompt[]){
 /*
 @(#)FCreadline.sh  return line from readline(3c) to Fortran. John S. Urban, 20100323
 
@@ -29,9 +29,9 @@ FCreadline(int *len, char *myline, char prompt[]){
       add_history(line);
    }
 
-   strncpy(myline,line,*len);         /* copy line returned by readline(3c) to MYLINE up to length of MYLINE */
+   strncpy(myline,line,len);         /* copy line returned by readline(3c) to MYLINE up to length of MYLINE */
 
-   for(i=strlen(line);i<*len;i++){    /* starting with null, pad with spaces to end */
+   for(i=strlen(line);i<len;i++){    /* starting with null, pad with spaces to end */
      myline[i]=' ';
    }
 
