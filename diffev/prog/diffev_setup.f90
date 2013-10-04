@@ -1,45 +1,7 @@
-MODULE diffev_setup_mod
+MODULE setup_mod
 !
 CONTAINS
 !
-SUBROUTINE diffev_setup
-!                                                                       
-USE diffev_mpi_mod
-USE run_mpi_mod
-USE doact_mod
-USE errlist_mod 
-USE learn_mod 
-USE macro_mod 
-USE prompt_mod 
-!                                                                       
-IMPLICIT none 
-!
-!*****7*****************************************************************
-!                                                                       
-!                                                                       
-CHARACTER (LEN=1024)           :: line, zeile 
-CHARACTER (LEN=4)              :: befehl 
-LOGICAL                        :: lend 
-INTEGER                        :: laenge, lp, lbef 
-!
-INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
-!                                                                       
-run_mpi_myid      = 0
-lend      = .false. 
-blank     = ' ' 
-pname     = 'diffev' 
-pname_cap = 'DIFFEV' 
-prompt            = pname 
-prompt_status     = PROMPT_ON 
-prompt_status_old = PROMPT_ON 
-!
-!------ Setting up variables and print start screen                     
-!                                                                       
-CALL setup
-CALL run_mpi_init
-lsetup_done = .true.
-!                                                                       
-END SUBROUTINE diffev_setup
 !*****7*****************************************************************
 SUBROUTINE setup 
 !                                                                       
@@ -48,13 +10,26 @@ SUBROUTINE setup
 USE allocate_appl
 USE blk_appl
 USE constraint
+USE diffev_mpi_mod
 USE population
+USE run_mpi_mod
 !
 USE prompt_mod 
 !
 IMPLICIT none 
 !                                                                       
       include'date.inc' 
+LOGICAL                        :: lend 
+INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
+!                                                                       
+run_mpi_myid      = 0
+lend              = .false. 
+blank             = ' ' 
+pname             = 'diffev' 
+pname_cap         = 'DIFFEV' 
+prompt            = pname 
+prompt_status     = PROMPT_ON 
+prompt_status_old = PROMPT_ON 
 !                                                                       
 CALL ini_ran (0) 
 !                                                                       
@@ -86,6 +61,9 @@ CALL autodef
 !     Check for command line parameters                                 
 !                                                                       
 CALL cmdline_args
+!
+CALL run_mpi_init
+lsetup_done = .true.
 !                                                                       
 1000 FORMAT (/,                                                              &
      10x,59('*'),/,                                                          &
@@ -96,4 +74,4 @@ CALL cmdline_args
      10x,'* (c) R.B. Neder  ','(reinhard.neder@krist.uni-erlangen.de)  *',/, &
      10x,59('*'),/)                                        
 END SUBROUTINE setup                          
-END MODULE diffev_setup_mod
+END MODULE setup_mod

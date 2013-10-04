@@ -1,8 +1,6 @@
-MODULE diffev_interface
+MODULE diffev
 !
-PUBLIC diffev
-PUBLIC diffev_run
-!
+
 CONTAINS
 !
 SUBROUTINE interactive ()
@@ -11,14 +9,14 @@ SUBROUTINE interactive ()
 !  from the host system
 !
 USE prompt_mod
-USE diffev_setup_mod
+USE setup_mod
 USE diffev_loop_mod
 !
 IMPLICIT none 
 !
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL setup
 ENDIF
 lstandalone = .false.
 CALL diffev_loop
@@ -40,7 +38,7 @@ SUBROUTINE command (incomming, ier_status)
 ! Commands that branch into sub-menus cause an interactive section.
 ! 
 ! 
-USE diffev_setup_mod
+USE setup_mod
 USE run_mpi_mod
 USE diffev_mpi_mod
 USE errlist_mod
@@ -64,7 +62,7 @@ INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL setup
 ENDIF
 master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
 lend = .false.
@@ -131,4 +129,92 @@ ENDIF
 !
 END SUBROUTINE command
 !
-END MODULE diffev_interface
+SUBROUTINE pop ( generation, member, children, parameters )
+!
+!  Returns the current generation , population size and number 
+!  of parameters to calling routine
+!
+USE population
+USE setup_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: generation
+INTEGER, INTENT(OUT) :: member
+INTEGER, INTENT(OUT) :: children
+INTEGER, INTENT(OUT) :: parameters
+!
+IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
+   CALL setup
+ENDIF
+!
+generation = pop_gen
+member     = pop_n
+children   = pop_c
+parameters = pop_dimx
+!
+END SUBROUTINE pop 
+!
+!
+SUBROUTINE trial ( trials, member, parameters )
+!
+!  Returns the current trial parameters
+!  of parameters to calling routine
+!
+USE population
+USE setup_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                             INTENT(IN ) :: member
+INTEGER,                             INTENT(IN ) :: parameters
+REAL, DIMENSION(member, parameters), INTENT(OUT) :: trials
+!
+IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
+   CALL setup
+ENDIF
+!
+IF(member == pop_n .and. parameters == pop_dimx ) THEN
+   trials = TRANSPOSE(pop_t(1:parameters,1:member))
+ELSE
+   trials = 0.0
+ENDIF
+!
+END SUBROUTINE trial
+!
+!
+SUBROUTINE cost ( values, children )
+!
+! Get the current cost function results from the calling routinee
+!
+USE population
+USE setup_mod
+USE prompt_mod
+IMPLICIT NONE
+!
+INTEGER,                   INTENT(IN ) :: children
+REAL, DIMENSION(children), INTENT(IN ) :: values
+!
+IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
+   CALL setup
+ENDIF
+!
+IF(children == pop_c) THEN
+   child_val = values
+ELSE
+   child_val = 0.0
+ENDIF
+!
+END SUBROUTINE cost
+!
+!  INCLUDE the generic send and get routines from lib_f90
+!  These allow to send/get sections of i[] and r[].
+!  As these are identical to all programs, the source 
+!  code is in lib_f90. As I want to have these routines 
+!  to be part of this module, its easiest to include
+!  the source code instead of adding another file to 
+!  the f2py command
+!
+INCLUDE 'send_get.f90'
+!
+END MODULE diffev

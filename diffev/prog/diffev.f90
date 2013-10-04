@@ -1,6 +1,6 @@
 PROGRAM diffev 
 !                                                                       
-USE diffev_setup_mod
+USE setup_mod
 USE diffev_loop_mod
 !                                                                       
 IMPLICIT none 
@@ -16,7 +16,7 @@ IMPLICIT none
 !                                                                       
 !*****7*****************************************************************
 !
-CALL diffev_setup
+CALL setup
 CALL diffev_loop
 !                                                                       
 !                                                                       

@@ -190,6 +190,24 @@ ELSE
 !     -- compare the trial results to the last generation         
 !                                                                 
    ELSEIF (str_comp (befehl, 'comp', 3, lbef, 4) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num.eq.0) then 
+         IF (ianz.eq.0) THEN
+            pop_result_file_rd = .true.
+         ELSEIF (ianz.eq.1) THEN
+            IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
+               pop_result_file_rd = .false.
+            ENDIF
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+            RETURN 
+         ENDIF
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+         RETURN 
+      ENDIF
       CALL do_compare 
 !                                                                 
 !     -- Define a hard constraint 'constraint'                    

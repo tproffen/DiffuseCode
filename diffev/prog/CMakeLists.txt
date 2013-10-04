@@ -1,10 +1,8 @@
 # DIFFEV Build
 
 option(DIFFEV_MPI    "DIFFEV_MPI"    ON)
-option(DIFFEV_PYTHON "DIFFEV_PYTHON" OFF)
 
 find_package(MPI)
-find_package(NumPy)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -50,12 +48,14 @@ add_custom_command (
 add_custom_target(diffevhlp DEPENDS diffev.hlp)
 
 
-if (NUMPY_FOUND AND DIFFEV_PYTHON)
+if (NUMPY_FOUND AND DIFFUSE_PYTHON)
   add_custom_command (
     OUTPUT lib_diffev.so
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
     COMMAND f2py -c -m lib_diffev 
             ${DIFFUSE_LIBS}
@@ -68,8 +68,10 @@ if (NUMPY_FOUND AND DIFFEV_PYTHON)
             ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/macro_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/param_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/prompt_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/send_get.f90
     )
 
   add_custom_target (diffev_python DEPENDS lib_diffev.so )
@@ -77,11 +79,11 @@ if (NUMPY_FOUND AND DIFFEV_PYTHON)
 
   add_dependencies(diffev diffevhlp diffev_python)
 
-else  (NUMPY_FOUND AND DIFFEV_PYTHON)
+else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
   add_dependencies(diffev diffevhlp)
 
-endif (NUMPY_FOUND AND DIFFEV_PYTHON)
+endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
 install (TARGETS diffev DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION share)

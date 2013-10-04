@@ -40,6 +40,7 @@ INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_lname      !  (MAXDIMX)
 !
 LOGICAL                              :: pop_current       = .false.
 LOGICAL                              :: pop_current_trial = .false.
+LOGICAL                              :: pop_result_file_rd= .true.
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_refine     !  (MAXDIMX)
 !
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_sigma   !  (MAXDIMX)
