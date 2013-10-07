@@ -36,9 +36,9 @@ extern "C"{
     int iarg0, iincu, iincv;//, iincw;
     
     for(int l=0; l< nxat[0]; l++){
-      xarg0 = xm[0] * xat[l] + xm[1] * xat[l+cr_natoms[0]+1] + xm[2] * xat[l+cr_natoms[0]+2];
-      xincu = uin[0] * xat[l] + uin[1] * xat[l+cr_natoms[0]+1] + uin[2] * xat[l+cr_natoms[0]+2];
-      xincv = vin[0] * xat[l] + vin[1] * xat[l+cr_natoms[0]+1] + vin[2] * xat[l+cr_natoms[0]+2];
+      xarg0 = xm[0] * xat[l] + xm[1] * xat[l+cr_natoms[0]] + xm[2] * xat[l+cr_natoms[0]*2];
+      xincu = uin[0] * xat[l] + uin[1] * xat[l+cr_natoms[0]] + uin[2] * xat[l+cr_natoms[0]*2];
+      xincv = vin[0] * xat[l] + vin[1] * xat[l+cr_natoms[0]] + vin[2] * xat[l+cr_natoms[0]*2];
       //xincw = win1 * xat1 + win2 * xat2 + win3 * xat3;
       iarg0 = (int)rintf(64 * I2PI * (xarg0 - (int)xarg0 + 1.));
       iincu = (int)rintf(64 * I2PI * (xincu - (int)xincu + 1.));
