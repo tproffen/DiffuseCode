@@ -20,7 +20,7 @@ CONTAINS
 !                                                                       
       INTEGER IAND, ISHFT 
       
-      call cudastrucf(tcsf,cex,xat,nxat,num,xm,win,vin,uin,cr_natoms)
+      call four_strucf_cuda(tcsf,cex,xat,nxat,num,xm,win,vin,uin,cr_natoms)
       
       
 !------ Now we multiply with formfactor                                 
