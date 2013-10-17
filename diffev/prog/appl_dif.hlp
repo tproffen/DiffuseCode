@@ -418,7 +418,7 @@
    diff_lo[1]. This gives the probability, that a given member will be 
    modified by the local change instead of differential evolution.
 2  compare
-!b compare
+!b compare {"silent"}
 
    This is the main part of the differential evolution section.
    This command reads the current results that the slave program stored
@@ -431,6 +431,12 @@
    last generation.  The new children parameters are
    written to the temporary files ==> 'trialfile'. The current 
    generation is increased in file 'GENERATION'.
+
+   If the optional "silent" qualifier is specified, DIFFEV will not read 
+   the result files. Instead, DIFFEV must have received the current results
+   by explicitly setting the valued of child_val[*] for all children. 
+   This option will work best if a binding of DIFFEV, DISCUS, and KUPLOT
+   into a library with interface to a common calling program is used.
 2  constraint
 !b constraint <logical expression>
 

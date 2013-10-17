@@ -702,6 +702,19 @@ ELSEIF (ctype.eq.'pop_smax') then
       ier_typ = ER_FORT 
       RETURN 
    ENDIF 
+ELSEIF (ctype.eq.'child_val') then 
+   IF (ianz.eq.1) then 
+      IF (0.lt.ww (1) .and.ww (1) .le.MAXPOP .and. ww(1)<=pop_c) then 
+         child_val (ww (1) ) = wert 
+      ELSE 
+         ier_num = -14 
+         ier_typ = ER_APPL 
+      ENDIF 
+   ELSE 
+      ier_num = - 13 
+      ier_typ = ER_FORT 
+      RETURN 
+   ENDIF 
 ELSEIF (ctype.eq.'diff_cr') then 
    IF (ianz.eq.1) then 
       IF (0.le.wert.and.wert.le.1.0) then 

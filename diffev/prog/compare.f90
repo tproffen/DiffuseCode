@@ -205,6 +205,7 @@ CONTAINS
    LOGICAL                        :: lread  = .false.
    REAL                           :: r 
 !                                                                       
+   silent: IF(pop_result_file_rd) THEN
    DO j = 1, pop_c 
       len_file = ltrial_results 
       CALL make_file (trial_results, len_file, 4, j) 
@@ -219,6 +220,7 @@ CONTAINS
          RETURN
       ENDIF
    ENDDO 
+   ENDIF silent
 !
    2000 FORMAT ('Child No. ',i4)
 !                                                                       
