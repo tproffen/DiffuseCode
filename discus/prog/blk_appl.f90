@@ -208,7 +208,7 @@ CONTAINS
 !     ENDDO 
       mmc_n_angles = 0 
 !     DO m = 0, MAXSCAT 
-      mmc_allowed (m) = .false. 
+      mmc_allowed = .false. 
 !     DO l = 0, MAXSCAT 
 !     DO k = 1, CHEM_MAX_COR 
 !     DO j = 1, 12 
