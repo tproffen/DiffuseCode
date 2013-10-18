@@ -75,6 +75,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    LOGICAL                                          ::  cr_sav_obje  = .true.
    LOGICAL                                          ::  cr_sav_doma  = .true.
    LOGICAL                                          ::  cr_sav_mole  = .true.
+   LOGICAL                                          ::  cr_sav_prop  = .true.
 !
    INTEGER                                          ::  cr_natoms  !the number of atoms
    INTEGER                                          ::  cr_nscat   !the number of atom types
@@ -500,7 +501,11 @@ CONTAINS
          ia = ia + 1
          itype = iscat_table(cr_iscat(inum))
          posit = cr_pos(:,inum)
-         iprop = cr_prop (inum)
+         IF(this%cr_sav_prop) THEN
+            iprop = cr_prop (inum)
+         ELSE
+            iprop = 1
+         ENDIF
          CALL this%atoms(ia)%set_atom ( itype, posit, iprop )
       ENDIF
    ENDDO
@@ -548,7 +553,7 @@ CONTAINS
 !******************************************************************************
    SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_gene, sav_symm, &
                                        sav_ncell, sav_obje, sav_doma, sav_mole, &
-                                       n_latom,sav_latom)
+                                       sav_prop,n_latom,sav_latom)
 !
    USE crystal_mod
    IMPLICIT none
@@ -564,6 +569,7 @@ CONTAINS
    LOGICAL, INTENT(IN)              ::  sav_obje
    LOGICAL, INTENT(IN)              ::  sav_doma
    LOGICAL, INTENT(IN)              ::  sav_mole
+   LOGICAL, INTENT(IN)              ::  sav_prop
    INTEGER, INTENT(IN)              ::  n_latom
    LOGICAL, DIMENSION(0:n_latom),INTENT(IN) ::  sav_latom
 !
@@ -577,6 +583,7 @@ CONTAINS
    this%cr_sav_obje  = sav_obje
    this%cr_sav_doma  = sav_doma
    this%cr_sav_mole  = sav_mole
+   this%cr_sav_prop  = sav_prop
    DO i = 0, cr_nscat
       this%cr_sav_atom(i) = sav_latom(i)
    ENDDO

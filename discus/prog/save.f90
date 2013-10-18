@@ -262,6 +262,7 @@ SUBROUTINE save_struc (zeile, lcomm)
                         sav_w_adp = .false. 
                         sav_w_obje = .false. 
                         sav_w_doma = .false. 
+                        sav_w_prop = .false. 
                      ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
                      , 4) ) THEN                                        
                         sav_w_gene = .false. 
@@ -286,6 +287,9 @@ SUBROUTINE save_struc (zeile, lcomm)
                      ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
                      3) ) THEN                                          
                         sav_w_adp = .false. 
+                     ELSEIF (str_comp (cpara (1) , 'prop', 1, lpara (1) ,&
+                     4) ) THEN                                          
+                        sav_w_prop = .false. 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -438,6 +442,7 @@ SUBROUTINE save_struc (zeile, lcomm)
                         sav_w_adp = .true. 
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
+                        sav_w_prop = .true. 
                      ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
                      , 4) ) THEN                                        
                         sav_w_gene = .true. 
@@ -462,6 +467,9 @@ SUBROUTINE save_struc (zeile, lcomm)
                      ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
                      3) ) THEN                                          
                         sav_w_adp = .true. 
+                     ELSEIF (str_comp (cpara (1) , 'prop', 1, lpara (1) ,&
+                     4) ) THEN                                          
+                        sav_w_prop = .true. 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -773,8 +781,15 @@ SUBROUTINE save_struc (zeile, lcomm)
             ENDDO 
          ENDIF 
          IF (.not.lwritten) THEN 
-            WRITE (ist, 4) cr_at_lis (cr_iscat (i) ), (cr_pos (j, i),   &
-            j = 1, 3), cr_dw (cr_iscat (i) ), cr_prop (i)               
+            IF(sav_w_prop) THEN
+               WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+                              (cr_pos (j, i),j = 1, 3),          &
+                              cr_dw (cr_iscat (i) ), cr_prop (i)               
+            ELSE
+               WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+                              (cr_pos (j, i),j = 1, 3),          &
+                              cr_dw (cr_iscat (i) ), 1
+            ENDIF 
          ENDIF 
       ENDIF 
       ENDDO 
@@ -881,7 +896,8 @@ SUBROUTINE save_struc (zeile, lcomm)
       n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
       CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
            sav_w_adp, sav_w_gene, sav_w_symm,                     &
-           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole,n_latom,sav_latom)
+           sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
+           n_latom,sav_latom)
 !
       CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !

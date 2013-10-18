@@ -27,6 +27,7 @@ LOGICAL               ::  sav_w_symm   = .true.
 LOGICAL               ::  sav_w_mole   = .true.
 LOGICAL               ::  sav_w_obje   = .true.
 LOGICAL               ::  sav_w_doma   = .true.
+LOGICAL               ::  sav_w_prop   = .true.
 !
 INTEGER               ::  sav_start    =  1
 INTEGER               ::  sav_end      = -1

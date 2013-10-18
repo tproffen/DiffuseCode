@@ -3094,6 +3094,17 @@ CONTAINS
 !                                                                       
                ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
                   CALL do_input (zeile, lp) 
+!
+!     ----Set/clear properties for types or (individual) atoms 'set'         
+!
+               ELSEIF (str_comp (befehl, 'clear', 2, lbef, 5) ) then 
+                  CALL property_set_clr (zeile, lp, .false.) 
+!
+!     ----Set/clear properties for types or (individual) atoms 'set'         
+!
+               ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+                  CALL property_set_clr (zeile, lp, .true.) 
+!                                                                       
 !                                                                       
 !     ----Define which properties have to be present 'property'         
 !                                                                       
@@ -3131,6 +3142,124 @@ CONTAINS
  9999 CONTINUE 
 !                                                                       
       END SUBROUTINE property_menu                  
+!*****7*****************************************************************
+      SUBROUTINE property_set_clr(zeile, lp, set_clr)
+!+                                                                      
+!     This subroutine sets or clears the property flag of an atom or atom type
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE prop_para_mod 
+!
+      USE errlist_mod 
+      IMPLICIT none 
+!
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile
+      INTEGER          , INTENT(INOUT) :: lp
+      LOGICAL          , INTENT(IN   ) :: set_clr
+
+      INTEGER, PARAMETER                   :: TYPES = 0
+      INTEGER, PARAMETER                   :: ATOMS = 1
+      INTEGER, PARAMETER                   :: MAXW = 200 
+      LOGICAL, PARAMETER                   :: LOLD = .true.
+      CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+      INTEGER            , DIMENSION(MAXW) :: lpara
+      REAL               , DIMENSION(MAXW) :: werte
+      INTEGER                              :: ianz
+      INTEGER                              :: i,is
+      INTEGER                              :: ibit_nr
+      INTEGER                              :: sel_mode
+      INTEGER                              :: istart, iend
+      LOGICAL, DIMENSION(:), ALLOCATABLE   :: latom
+!
+      LOGICAL str_comp
+!
+      CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
+      IF (ier_num.ne.0) return 
+      IF(str_comp(cpara(1)(1:lpara(1)),'domain', 3, lpara(1), 7)) THEN
+         ibit_nr = PROP_DOMAIN
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'outside', 3, lpara(1), 8)) THEN
+         ibit_nr = PROP_OUTSIDE
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'external', 3, lpara(1), 8)) THEN
+         ibit_nr = PROP_SURFACE_EXT
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'internal', 3, lpara(1), 8)) THEN
+         ibit_nr = PROP_SURFACE_INT
+      ENDIF
+      IF(str_comp(cpara(2)(1:lpara(2)),'types', 3, lpara(2), 5)) THEN
+         sel_mode = TYPES
+      ELSEIF(str_comp(cpara(2)(1:lpara(2)),'atoms', 3, lpara(2), 5)) THEN
+         sel_mode = ATOMS
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+         RETURN
+      ENDIF
+      CALL del_params (2, ianz, cpara, lpara, MAXW) 
+      IF (ier_num.ne.0) return 
+      ALLOCATE(latom(0:MAXSCAT))
+      typesel: IF(sel_mode == TYPES) THEN
+         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
+         IF (ier_num.ne.0) return 
+         IF(werte(1)==-1) THEN
+            latom = .true.
+         ELSE
+            latom = .false.
+            DO i = 1, ianz 
+               is = nint (werte (i) ) 
+               IF (is.ge.0.and.is.le.cr_nscat) then 
+                  latom (is) = .true. 
+               ELSE 
+                  ier_num = - 27 
+                  ier_typ = ER_APPL 
+               ENDIF 
+            ENDDO 
+         ENDIF
+         IF(set_clr) THEN
+            DO i=1, cr_natoms
+               IF(latom(cr_iscat(i))) THEN
+                  cr_prop(i) = IBSET(cr_prop(i),ibit_nr)
+               ENDIF
+            ENDDO
+         ELSE
+            DO i=1, cr_natoms
+               IF(latom(cr_iscat(i))) THEN
+                  cr_prop(i) = IBCLR(cr_prop(i),ibit_nr)
+               ENDIF
+            ENDDO
+         ENDIF
+      ELSEIF(sel_mode == ATOMS) THEN typesel
+         IF(str_comp(cpara(1)(1:lpara(1)),'all', 3, lpara(1), 3)) THEN
+             istart=1
+             iend  = cr_natoms
+         ELSE
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.ne.0) return 
+            IF(ianz==1) THEN
+               istart=nint(werte(1))
+               iend  =nint(werte(1))
+            ELSEIF(ianz==2) THEN
+               istart=nint(werte(1))
+               iend  =nint(werte(2))
+            ELSE
+               ier_num = -6
+               ier_typ = ER_COMM
+               RETURN
+            ENDIF
+         ENDIF
+         IF(set_clr) THEN
+            DO i=istart, iend
+               cr_prop(i) = IBSET(cr_prop(i),ibit_nr)
+            ENDDO
+         ELSE
+            DO i=istart, iend
+               cr_prop(i) = IBCLR(cr_prop(i),ibit_nr)
+            ENDDO
+         ENDIF
+      ENDIF typesel
+!
+      DEALLOCATE(latom)
+!
+      END SUBROUTINE property_set_clr
 !*****7*****************************************************************
       SUBROUTINE property_show 
 !+                                                                      
