@@ -1,4 +1,5 @@
 MODULE diffuse_mod
+USE iso_c_binding, only: c_int,c_float
 !+
 !     Contains all variables for Fourier transform
 !-
@@ -67,7 +68,7 @@ LOGICAL                                 ::  ano      = .false.
 LOGICAL                                 ::  ldbw     = .false.
 LOGICAL                                 ::  lxray    = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
-INTEGER                                 ::  diff_power     = 4
+INTEGER(c_int), BIND(c)                                 ::  diff_power     = 4
 REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &

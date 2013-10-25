@@ -1,9 +1,10 @@
 MODULE setup_mod
+USE iso_c_binding, only: c_int,c_float
 !
 CONTAINS
 !
 !
-SUBROUTINE setup 
+SUBROUTINE setup() BIND(C, name='setup_c')
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
