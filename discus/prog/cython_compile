@@ -1,0 +1,3 @@
+cython discus_cython.pyx
+gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes -fPIC -I/usr/include/python2.7 -c discus_cython.c -o discus_cython.o
+gcc -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-Bsymbolic-functions -Wl,-z,relro -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes -D_FORTIFY_SOURCE=2 -g -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security discus_cython.o CMakeFiles/discus_all.dir/*.o ../../lib_f90/liblib_f90.a ../../lib_f90/liblib_f90c.a -lgfortran -lreadline -o discuspy.so
