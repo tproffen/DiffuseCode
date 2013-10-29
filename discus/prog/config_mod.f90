@@ -1,4 +1,5 @@
 MODULE config_mod
+USE iso_c_binding, only: c_int,c_float
 !
 SAVE
 !#######################################################################
@@ -18,7 +19,7 @@ SAVE
 !
       INTEGER        MAXAT_CELL
       INTEGER              ::  MAXSCAT               = 1
-      INTEGER              ::  NMAX                  = 1
+      INTEGER(c_int), BIND(C)              ::  NMAX                  = 1
 !
 !     PARAMETER      (NMAX       = 1000000)
 !     PARAMETER      (MAXSCAT    =  25)

@@ -1,4 +1,5 @@
 MODULE crystal_mod
+USE iso_c_binding, only: c_int,c_float
 !
 ! This is the module for the crystal data, atom positions etc.
 !
@@ -61,12 +62,12 @@ USE config_mod
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
 !
 !
-   INTEGER                              ::  cr_natoms       = 0
+   INTEGER(c_int), BIND(C)              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)
 !
-   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)
+   REAL, DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)
 !
 INTEGER                               ::  cry_size_of = 0 ! Bytes allocated fo
 !

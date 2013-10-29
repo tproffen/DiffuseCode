@@ -1,3 +1,8 @@
 #!/usr/bin/env python
-from discus import *
+from discuspy import *
+setup()
+#interactive()
 
+
+def print_structure():
+    
