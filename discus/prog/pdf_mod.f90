@@ -1,4 +1,5 @@
 MODULE pdf_mod
+USE iso_c_binding, only: c_int,c_float
 !+
 !     This file contains variables for pdf routines
 !-
@@ -19,9 +20,9 @@ INTEGER             ::  PDF_MAXSCAT      = 1
 INTEGER             ::  PDF_MAXDAT       = 1
 INTEGER             ::  PDF_MAXBND       = 1
 !
-INTEGER             ::  pdf_nscat = 1
-INTEGER             ::  pdf_ndat  = 1
-INTEGER             ::  pdf_nbnd  = 1
+INTEGER(c_int), BIND(C) ::  pdf_nscat = 1
+INTEGER(c_int), BIND(C) ::  pdf_ndat  = 1
+INTEGER(c_int), BIND(C) ::  pdf_nbnd  = 1
 !
 REAL*8 , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
 REAL*8 , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
@@ -40,12 +41,12 @@ REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAX
 !REAL   , DIMENSION(0:MAXSCAT,0:MAXSCAT) ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
 REAL                ::  pdf_rmax   = 50.00
 REAL                ::  pdf_qmax   = 30.00
-REAL                ::  pdf_deltar =  0.01
-REAL                ::  pdf_skal   =  1.00
+REAL(c_float), BIND(C) ::  pdf_deltar =  0.01
+REAL(c_float), BIND(C) ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
-REAL                ::  pdf_rfmin  =  0.05
-REAL                ::  pdf_rfmax  = 15.00
+REAL(c_float), BIND(C) ::  pdf_rfmin  =  0.05
+REAL(c_float), BIND(C) ::  pdf_rfmax  = 15.00
 REAL                ::  pdf_delta  =  0.00
 REAL                ::  pdf_rcut   =  0.00
 REAL                ::  pdf_srat   =  1.00
