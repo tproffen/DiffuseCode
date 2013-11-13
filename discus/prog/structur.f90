@@ -1972,7 +1972,7 @@ got_params: IF (ier_num.eq.0) THEN
       END SUBROUTINE spcgr_no                       
 !********************************************************************** 
 !********************************************************************** 
-      SUBROUTINE rese_cr 
+      SUBROUTINE rese_cr
 !                                                                       
 !     resets the crystal structure to empty                             
 !                                                                       

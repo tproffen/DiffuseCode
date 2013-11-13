@@ -1,5 +1,5 @@
 MODULE crystal_mod
-USE iso_c_binding, only: c_int,c_float
+USE iso_c_binding, only: c_int,c_float,c_char
 !
 ! This is the module for the crystal data, atom positions etc.
 !
@@ -13,7 +13,7 @@ USE config_mod
    INTEGER                          ::  cr_spcgrno = 1
    INTEGER                          ::  cr_syst    = 1
    INTEGER                          ::  cr_ncatoms = 1
-   INTEGER, DIMENSION(3)            ::  cr_icc     = 1
+   INTEGER(c_int), BIND(C), DIMENSION(3)            ::  cr_icc     = 1
 !
    INTEGER                          ::  spcgr_ianz  = 0
    INTEGER                          ::  spcgr_para  = 0
@@ -41,13 +41,13 @@ USE config_mod
    LOGICAL                          ::  cr_newtype = .true.
 !
 !
-   CHARACTER (LEN=80)                          ::  cr_name  = 'crystal'
-   CHARACTER (LEN=16)                          ::  cr_spcgr = 'P1'
-   CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
+   CHARACTER (LEN=80,KIND=c_char)                          ::  cr_name  = 'crystal'
+   CHARACTER (LEN=16,KIND=c_char)                          ::  cr_spcgr = 'P1'
+   CHARACTER (LEN=4,KIND=c_char ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_equ  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  as_at_lis  ! (  0:MAXSCAT)
 !
-   INTEGER                          ::  cr_nscat  = 0
+   INTEGER(c_int), BIND(C)          ::  cr_nscat  = 0
    INTEGER                          ::  as_natoms = 0
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_iscat  ! (  1:MAXSCAT)
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
@@ -62,7 +62,7 @@ USE config_mod
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
 !
 !
-   INTEGER(c_int), BIND(C)              ::  cr_natoms       = 0
+   INTEGER(C_INT), BIND(C)              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)

@@ -1,4 +1,5 @@
 MODULE chem_mod
+USE iso_c_binding
 !+
 !
 !

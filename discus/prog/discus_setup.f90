@@ -4,7 +4,7 @@ USE iso_c_binding, only: c_int,c_float
 CONTAINS
 !
 !
-SUBROUTINE setup() BIND(C, name='setup_c')
+SUBROUTINE setup() BIND(C)
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       

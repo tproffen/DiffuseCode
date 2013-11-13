@@ -43,7 +43,7 @@ INTEGER , DIMENSION(1:3)                ::  num       = 1
 INTEGER                                 ::  nlots     = 1
 INTEGER                                 ::  ilots     = LOT_OFF
 INTEGER , DIMENSION(1:3)                ::  ls_xyz    = 5
-INTEGER(c_int), BIND(C)                 ::  nxat      = 1
+INTEGER(C_INT), BIND(C)                 ::  nxat      = 1
 INTEGER                                 ::  four_mode = INTERNAL
 LOGICAL                                 ::  ffour     = .false.
 LOGICAL                                 ::  lperiod   = .true.
@@ -68,7 +68,7 @@ LOGICAL                                 ::  ano      = .false.
 LOGICAL                                 ::  ldbw     = .false.
 LOGICAL                                 ::  lxray    = .true.
 INTEGER                                 ::  diff_radiation = RAD_XRAY
-INTEGER(c_int), BIND(c)                                 ::  diff_power     = 4
+INTEGER(C_INT), BIND(C)                                 ::  diff_power     = 4
 REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0, &
                                                                   5.0, 0.0,  0.0, &
                                                                   0.0, 5.0,  0.0, &

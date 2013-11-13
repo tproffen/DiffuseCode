@@ -1,4 +1,5 @@
 MODULE pdf_menu
+USE iso_c_binding, only: c_bool
 !
 CONTAINS
 !*****7*****************************************************************
@@ -141,7 +142,7 @@ SUBROUTINE pdf
             CALL pdf_setup 
             IF (ier_num.eq.0) then 
                pdf_skal = 1.0 / rmc_skal (1) 
-               CALL pdf_determine (.true.) 
+               CALL pdf_determine ( .true._c_bool )
             ENDIF 
 !                                                                       
 !------ Read observed PDF from XY file (ASCII)                          
@@ -254,7 +255,7 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf                            
 !*****7*****************************************************************
-      SUBROUTINE pdf_setup 
+      SUBROUTINE pdf_setup() BIND(C)
 !+                                                                      
 !     Setup for various arrays and functions for PDF calculation.       
 !-                                                                      
@@ -416,7 +417,7 @@ SUBROUTINE pdf
  1100 FORMAT     (' Extending PDF search distance to ',F8.4,' A ...') 
       END SUBROUTINE pdf_setup                      
 !*****7*****************************************************************
-      SUBROUTINE pdf_show (cmd) 
+      SUBROUTINE pdf_show (cmd)
 !+                                                                      
 !     Shows current parameters                                          
 !-                                                                      
@@ -440,7 +441,7 @@ SUBROUTINE pdf
 !                                                                       
       DATA cpoly / 'linear  ', 'square  ', '3. order', '4. order', &
                    '5. order' /                                                           
-!                                                                       
+!     
       IF (cmd.eq.'ALL'.or.cmd.eq.'PDF') then 
          CALL pdf_setup 
          IF (ier_num.ne.0) return 
@@ -1356,7 +1357,7 @@ SUBROUTINE pdf
  1000 FORMAT     (1x,'Setting PDF calculation to ',a,' mode ..') 
       END SUBROUTINE pdf_set                        
 !*****7*****************************************************************
-      SUBROUTINE pdf_run 
+      SUBROUTINE pdf_run
 !+                                                                      
 !     Main PDF fit loop - called by run command                         
 !-                                                                      
@@ -1434,7 +1435,7 @@ SUBROUTINE pdf
 !                                                                       
 !------ calculate sums from exp. data needed and initial chi2           
 !                                                                       
-      CALL pdf_determine (.false.) 
+      CALL pdf_determine (.false._c_bool)
 !                                                                       
       cold = 0.0 
       wtot = 0.0 
@@ -1674,7 +1675,7 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf_makemove                   
 !*****7*****************************************************************
-      SUBROUTINE pdf_determine (lout) 
+      SUBROUTINE pdf_determine (lout) BIND(C)
 !+                                                                      
 !     Calculate PDF of current structure                                
 !-                                                                      
@@ -1694,7 +1695,7 @@ SUBROUTINE pdf
       REAL done, sum 
       INTEGER nmi, nma 
       REAL r 
-      LOGICAL lout 
+      LOGICAL(C_BOOL) :: lout 
       REAL seknds, ss 
 !                                                                       
       ss = seknds (0.0) 

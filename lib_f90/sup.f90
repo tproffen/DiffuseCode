@@ -404,9 +404,9 @@ SUBROUTINE cmdline_args
 !                                                                       
 !------ Close output file                                               
 !                                                                       
-      IF (output_io.ne.OUTPUT_SCREEN) then 
-         CLOSE (output_io) 
-      ENDIF 
+!      IF (output_io.ne.OUTPUT_SCREEN) then 
+!         CLOSE (output_io) 
+!      ENDIF 
 !                                                                       
 !------ Close sockets                                                   
 !                                                                       
@@ -422,7 +422,7 @@ SUBROUTINE cmdline_args
 !
 !       For library procedure style set setup_done to false
 !
-      lsetup_done = .false.
+!      lsetup_done = .false.
 !                                                                       
       END SUBROUTINE exit_all                       
 !*****7*****************************************************************

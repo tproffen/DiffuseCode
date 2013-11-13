@@ -18,8 +18,8 @@ SAVE
       INTEGER,  PARAMETER  ::  DEF_MAXAT_CELL        =     250
 !
       INTEGER        MAXAT_CELL
-      INTEGER              ::  MAXSCAT               = 1
-      INTEGER(c_int), BIND(C)              ::  NMAX                  = 1
+      INTEGER(C_INT), BIND(C)              ::  MAXSCAT               = 1
+      INTEGER(C_INT), BIND(C)              ::  NMAX                  = 1
 !
 !     PARAMETER      (NMAX       = 1000000)
 !     PARAMETER      (MAXSCAT    =  25)

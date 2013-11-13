@@ -559,11 +559,11 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      CHARACTER(8) c_char (0:4) 
+      CHARACTER(8) cchar (0:4) 
       CHARACTER(8) ctype ( - 1:1) 
       INTEGER itype 
 !                                                                       
-      DATA c_char / 'Atom    ', 'Cube    ', 'Cylinder', 'Sphere  ', 'Fuz&
+      DATA cchar / 'Atom    ', 'Cube    ', 'Cylinder', 'Sphere  ', 'Fuz&
      &zy   ' /                                                          
       DATA ctype / 'Domain  ', 'Molecule', 'Object  ' / 
 !                                                                       
@@ -571,7 +571,7 @@ CONTAINS
          WRITE (output_io, 3000) 'Inserting a molecule' 
       ELSEIF (ins_character.gt.0) then 
          WRITE (output_io, 3000) 'Inserting an object' 
-         WRITE (output_io, 3010) c_char ( (ins_character) ) 
+         WRITE (output_io, 3010) cchar ( (ins_character) ) 
          WRITE (output_io, 3012) ins_obj_atom 
          WRITE (output_io, 3013) ins_adp 
          IF (ins_type.eq.INS_NEWTYPE) then 
@@ -586,7 +586,7 @@ CONTAINS
          WRITE (output_io, 3030) 'z', ins_zaxis 
       ELSEIF (ins_character.lt.0) then 
          WRITE (output_io, 3000) 'Inserting a domain' 
-         WRITE (output_io, 3010) c_char (abs (ins_character) ) 
+         WRITE (output_io, 3010) cchar (abs (ins_character) ) 
          WRITE (output_io, 3110) ins_file 
          WRITE (output_io, 3120) ins_fuzzy 
          WRITE (output_io, 3020) ins_origin 
