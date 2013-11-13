@@ -248,6 +248,8 @@ CONTAINS
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
+      USE variable_test
+!
       IMPLICIT none
 !
 !
@@ -278,6 +280,9 @@ CONTAINS
       CHARACTER(LEN=256)  :: work_name    ! Name of the definition to change/delete
       INTEGER             :: work_name_l  ! Length of name for the definition to change/delete
       LOGICAL             :: lnew         ! require atom type to exist
+      LOGICAL             :: l_exist      ! TRUE if conn. name is a variable name
+      LOGICAL             :: l_type       ! Unused DUMMY argument
+      INTEGER             :: is_no        ! Unused DUMMY argument
       INTEGER             :: all_status   ! Allocation status
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
@@ -371,6 +376,18 @@ CONTAINS
             work_name   = cpara(iianz)(1:lpara(iianz))
             work_name_l = lpara(iianz)
             call no_error
+         ENDIF
+         CALL variable_exist (work_name, work_name_l,0, l_exist, l_type, is_no)
+         IF(l_exist) THEN
+            ier_num = -120
+            ier_typ = ER_APPL
+            RETURN
+         ENDIF
+         CALL validate_var_spec(work_name, work_name_l)
+         IF( ier_num == -25 ) THEN
+            ier_num = -120
+            ier_typ = ER_APPL
+            RETURN
          ENDIF
          CALL del_params (1, ianz, cpara, lpara, maxw) 
       ELSE

@@ -2074,6 +2074,15 @@ got_params: IF (ier_num.eq.0) THEN
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
+         ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then 
+            IF (ianz.eq.2) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.ne.0) return 
+               CALL rmcprofile2discus (ianz, cpara, lpara, MAXW) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
          ELSE 
             ier_num = - 86 
             ier_typ = ER_APPL 
@@ -2368,7 +2377,7 @@ got_params: IF (ier_num.eq.0) THEN
 !                                                                       
       WRITE (iwr, 3000) 
 !                                                                       
-      DO while (command.ne.'HKLF') 
+      atoms: DO while (command.ne.'HKLF') 
       IF (lcontinue) then 
          CONTINUE 
       ELSEIF (command.eq.'FVAR') then 
@@ -2383,6 +2392,8 @@ got_params: IF (ier_num.eq.0) THEN
             lmole_wr = .true. 
          ENDIF 
          CONTINUE 
+      ELSEIF (command.eq.'    ') then 
+         CONTINUE
       ELSE 
          IF (lmole.and.lmole_wr) then 
             WRITE (iwr, 4000) 'molecule' 
@@ -2457,16 +2468,17 @@ got_params: IF (ier_num.eq.0) THEN
       ELSE 
          line = line1 
       ENDIF 
-      length = len_str (line) 
-      IF (length.gt.0) then 
-         command = line (1:4) 
-      ELSE 
-      command = '    ' 
-      ENDIF 
-      DO i = 1, shelx_num 
-      lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
-      ENDDO 
-      ENDDO 
+         length = len_str (line) 
+         IF (length.gt.0) then 
+            command = line (1:4) 
+         ELSE 
+            command = '    ' 
+            CYCLE atoms
+         ENDIF 
+         DO i = 1, shelx_num 
+            lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
+         ENDDO 
+      ENDDO  atoms
 !                                                                       
   900 CONTINUE 
 !                                                                       
@@ -2660,6 +2672,151 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !                                                                       
 !                                                                       
       END SUBROUTINE cmaker2discus                     
+!
+!*****7**************************************************************** 
+!
+      SUBROUTINE rmcprofile2discus (ianz, cpara, lpara, MAXW) 
+!-                                                                      
+!     converts a RMCProfile "cssr" file to DISCUS                   
+!+                                                                      
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER          , INTENT(IN)                    :: ianz 
+      INTEGER          , INTENT(IN)                    :: MAXW 
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
+      INTEGER          , DIMENSION(1:MAXW), INTENT(IN) :: lpara
+!                                                                       
+!                                                                       
+      REAL   , DIMENSION(3) :: werte
+!                                                                       
+      CHARACTER(LEN= 4)     :: atom   = ' '
+      CHARACTER(LEN=87)     :: line   = ' '
+      CHARACTER(LEN=80)     :: title  = ' '
+      CHARACTER(LEN=1024)   :: infile = ' '
+      CHARACTER(LEN=1024)   :: ofile  = ' '
+      INTEGER               :: ird, iwr 
+      INTEGER               :: i
+      INTEGER               :: indx1, indx2
+      INTEGER               :: iostatus
+      INTEGER               :: natoms
+      LOGICAL               :: lread
+      LOGICAL               :: lwrite
+      INTEGER               :: nline
+      INTEGER               :: length
+      REAL   , DIMENSION(6) :: latt! (6) 
+      REAL   , DIMENSION(3) :: pos ! (6) 
+!                                                                       
+      INTEGER len_str 
+      LOGICAL str_comp
+!                                                                       
+!     Create input / output file name
+!
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+      infile = cpara (1) 
+      i = index (infile, '.') 
+      IF (i.eq.0) then 
+         infile = cpara (1) (1:lpara (1) ) //'.cssr' 
+         ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+      ELSE 
+         ofile  = cpara (1) (1:i) //'stru' 
+      ENDIF 
+      lread  = .true. 
+      lwrite = .false. 
+      ird = 34 
+      iwr = 35 
+      CALL oeffne (ird, infile, 'old', lread) 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+!                                                                       
+      nline     = 1
+!
+      READ(ird, *    ,IOSTAT=iostatus) latt(1:3)
+      IF(iostatus/=0) THEN
+         ier_num = -48
+         WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+         CLOSE(iwr)
+         CLOSE(ird)
+         RETURN
+      ENDIF
+      nline     = nline + 1
+      READ(ird, *    ,IOSTAT=iostatus) latt(4:5)
+      IF(iostatus/=0) THEN
+         ier_num = -48
+         WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+         CLOSE(iwr)
+         CLOSE(ird)
+         RETURN
+      ENDIF
+      nline     = nline + 1
+      READ(ird, *    ,IOSTAT=iostatus) natoms
+      IF(iostatus/=0) THEN
+         ier_num = -119
+         WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+         CLOSE(iwr)
+         CLOSE(ird)
+         RETURN
+      ENDIF
+      nline     = nline + 1
+      READ(ird, '(a)',IOSTAT=iostatus) line
+      IF(iostatus/=0) THEN
+         ier_num = -46
+         WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+         CLOSE(iwr)
+         CLOSE(ird)
+         RETURN
+      ENDIF
+!
+      i = INDEX(line,';')
+      IF(i > 1) THEN
+         title = line(1:i-1)
+      ELSE
+         title = ' '
+      ENDIF
+!
+      WRITE(iwr, 1000) title
+      WRITE(iwr, 1100)
+      WRITE(iwr, 1200) latt
+      WRITE(iwr, 1300)
+!
+      atoms: DO i=1,natoms
+         nline     = nline + 1
+         READ(ird, '(a)',IOSTAT=iostatus) line
+         IF(iostatus/=0) THEN
+            ier_num = -49
+            WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+            CLOSE(iwr)
+            CLOSE(ird)
+            RETURN
+         ENDIF
+         atom = line(8:9)
+         READ(line(15:49),*,IOSTAT=iostatus) pos
+         IF(iostatus/=0) THEN
+            ier_num = -49
+            WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
+            CLOSE(iwr)
+            CLOSE(ird)
+            RETURN
+         ENDIF
+         WRITE(iwr,2000) atom,pos
+      ENDDO atoms
+!
+1000 FORMAT('title ',a)
+1100 FORMAT('spcgr P1')
+1200 FORMAT('cell ', 6(2x,F12.6:,', '))
+1300 FORMAT('atoms')     
+2000 FORMAT(A4,3(2x, F10.6,','),'   0.1,    1')
+!
+      END SUBROUTINE rmcprofile2discus 
+!
 !
       SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
                              n_atom, init, lcell)

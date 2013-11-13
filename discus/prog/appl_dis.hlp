@@ -1768,6 +1768,7 @@
    The arguments to any of these functions are any arithmetic expression.
 2  import
 !b import "shelx",<file{".ins"]>
+!b import "rmcprofile",<file{".cssr"]>
 
    This command converts other crystal structure formats into a DISCUS 
    unit cell.
@@ -1799,6 +1800,10 @@
    The anisotropic atomic displacement parameters are crudely replaced
    by a very approximate isotropic U.
    Currently DISCUS does not recognize the internal symmetry of a molecule.
+3  rmcprofile
+
+   DISCUS will read a RMCProfile *.cssr file and write a corresponding
+   structure file.
 2  ins
 !b ins <name>, <x>,<y>,<z> [,t>]
 
@@ -8555,6 +8560,20 @@
    single crystal pattern vis stacking faults ==> 'stack'
    Patternson ==> 'patterson'
    inverse Fourier vie ==> 'inverse'
+4  -119
+   Error reading atom number from RMCPROFILE
+
+   DISCUS encountered an error while reading the number of atoms from
+   an RMCPROFILE *.cssr file.
+   Check line 3 of the input file. DISCUS expects an integer number.
+4  -120
+   Conn. Name is equal to variable name
+
+   You used a connectivity name that is already used as a 
+   variable name. This may lead to odd errors, as DISCUS would in most
+   cases use the variable value instead of the connectivity name.
+
+   You must choose a connectivity name that is not used as variable name.
 3  chem
    Errors at the chemistry level of DISCUS
 

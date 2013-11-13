@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-118,IO=4)
+      PARAMETER    (IU=-120,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-118: -101) /                     &
+      DATA ERROR (-120: -101) /                     &
+     &  'Conn. Name is equal to variable name',     & !-120 ! discus
+     &  'Error reading atom number from RMCPROFILE',& !-119 ! discus
      &  'No Fourier calculated yet, no output',     & !-118 ! discus
      &  'This DISCUS has NeXus suppport disabled  ',& !-117 ! discus
      &  'Could not find definition',                & !-116 ! discus
