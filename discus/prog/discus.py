@@ -2,6 +2,7 @@
 from discuspy import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from copy import copy
 import numpy as np
 setup()
 
@@ -82,6 +83,7 @@ class pdf(object):
         self.bin       = 1
         self.finite    = 0
         self.radiation = 1
+        self.lxray     = False
         self.gauss     = False
         self.d2d       = False
         self.lweights  = False
@@ -168,11 +170,11 @@ class pdf(object):
         print
         print '  Refinement settings        :'
         print '    Fit minimum r [a]        : '+str(self.rfmin) \
-            + '(pt.'+str(int(self.rfmin/self.deltar))+')'
+            + ' (pt.'+str(int(self.rfmin/self.deltar))+')'
         print '    Fit maximum r [A]        : '+str(self.rfmax) \
-            +'(pt.'+str(int(self.rfmax/self.deltar))+')'
+            + ' (pt.'+str(int(self.rfmax/self.deltar))+')'
         print '    Current scale factor     : '+str(self.skal) \
-            +'(refined = '+'str(self.doskal)'+')'
+            + ' (refined = '+'str(self.doskal)'+')'
         print
         print 'Selected atoms for PDF calculation :'
         print '  ...'
@@ -192,9 +194,13 @@ class pdf(object):
                 self.qalp,self.dnorm,self.rho0,
                 self.sphere,self.diam_poly,self.diam,
                 self.shape,self.scale,self.poly,
-                self.bin,self.finite,self.radiation,
-                self.gauss,self.d2d,self.lweights,
-                self.lrho0,self.lexact,self.lrho0_rel)
+                self.bin,self.finite,self.radiation)
+        self.set_f_logical()
+    def set_f_logical(self):
+        self.lrho0,self.lexact,self.lrho0_rel
+        set_pdf_logical(self.lxray,self.gauss,self.d2d,
+                        self.lweights,self.lrho0,self.lexact,
+                        self.lrho0_rel)
     def plot(self):
         plt.plot(self.r,self.pdf)
         plt.ylabel('G(r) ($\AA^{-2}$)')
@@ -206,6 +212,27 @@ class pdf(object):
         self.frmin=deltar
         self.rfmax=rmax
         self.bin=int(rmax/deltar)+1
+    def setRad(self,rad,wav=-1):
+        if rad[0]=='N' or rad[0]=='n':
+            self.radiation=2
+            #self.xq=wav
+            self.lxray=False
+        elif rad[0]=='X' or rad[0]=='x':
+            self.radiation=1
+            if wav != -1:
+                self.xq=wav
+            self.lxray=True
+        elif rad[0]=='E' or rad[0]=='e':
+            self.radiation=3
+            if wav != -1:
+                self.xq=wav
+            self.lxray=True
+        else:
+            print "Invalid radiation"
+            exit
+        print "Setting radiation to "+getRadiation(self.radiation),
+        if self.lxray:
+            print "with wavelength "+str(self.xq)+" A"
     def set(self,choice,value):
         menu = {'rmax':self.rmax,
                 'qmax':self.qmax,
@@ -242,12 +269,11 @@ class pdf(object):
         
 
 def getRadiation(r):
-    rad = {1:"X-Rays", 2:"Neutron", 3:"Electrons"}
-    if r in rad: 
+    rad = {1:"X-Rays", 2:"Neutrons", 3:"Electrons"}
+    if rad.has_key(r): 
         return rad[r]
     else:
         return "Invalid"
-
 
 class powder(object):
     """

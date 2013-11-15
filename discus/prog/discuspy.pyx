@@ -1,5 +1,5 @@
 import numpy as np
-#from libcpp cimport bool
+#from libcpp cimport bool as c_bool
 
 ### config_mod ###
 cdef extern int maxscat
@@ -42,6 +42,7 @@ cdef extern float pdf_poly[5]
 cdef extern int pdf_bin
 cdef extern int pdf_finite
 cdef extern int pdf_radiation
+#cdef extern bool pdf_lxray
 #cdef extern bool pdf_gauss
 #cdef extern bool pdf_2d
 #cdef extern bool pdf_lweights
@@ -59,13 +60,14 @@ cdef extern void get_cr_iscat_c "get_cr_iscat" (int*,int)
 cdef extern void get_crystal_name_f "get_crystal_name" (char*)
 cdef extern void get_crystal_spcgr_f "get_crystal_spcgr" (char*)
 cdef extern void get_pdf_c "get_pdf" ( double*,int,int)
-cdef extern void pdf_determine_c "pdf_determine" (_Bool)
+cdef extern void pdf_determine_c (bool)
 cdef extern void pdf_show_c(char*,int)
 cdef extern void pdf_setup_c "pdf_setup" ()
 cdef extern void rese_cr_f "rese_cr" ()
 cdef extern void read_cell_f "read_cell" (char*,int,int,int,int)
 cdef extern void get_atom_type(char*,int)
 cdef extern void alloc_pdf_f ()
+cdef extern void set_pdf_logical_f "set_pdf_logical" (bool,bool,bool,bool,bool,bool,bool)
 
 def setup():
     setup_c()
@@ -117,6 +119,7 @@ def get_pdf():
     return r,pdf
 
 def pdf_determine():
+    #cdef c_bool a = True
     pdf_determine_c(True)
 
 def pdf_show():
@@ -158,10 +161,8 @@ def set_pdf(rmax,qmax,deltar,
     qalp,dnorm,rho0,
     sphere,diam_poly,diam,
     shape,scale,poly,
-    bin,finite,radiation,
-    gauss,d2d,lweights,
-    lrho0,lexact,lrho0_rel):
-    global pdf_nscat,pdf_ndat,pdf_nbnd,pdf_rmax,pdf_qmax,pdf_deltar,pdf_skal,pdf_sigmaq,pdf_xq,pdf_rfmin,pdf_rfmax,pdf_delta,pdf_rcut,pdf_srat,pdf_gamma,pdf_qalp,pdf_dnorm,pdf_rho0,pdf_sphere,pdf_diam_poly,pdf_diam,pdf_shape,pdf_scale,pdf_poly,pdf_bin,pdf_finite,pdf_radiation,pdf_gauss,pdf_2d,pdf_lweights,pdf_lrho0,pdf_lexact,pdf_lrho0_rel
+    bin,finite,radiation):
+    global pdf_nscat,pdf_ndat,pdf_nbnd,pdf_rmax,pdf_qmax,pdf_deltar,pdf_skal,pdf_sigmaq,pdf_xq,pdf_rfmin,pdf_rfmax,pdf_delta,pdf_rcut,pdf_srat,pdf_gamma,pdf_qalp,pdf_dnorm,pdf_rho0,pdf_sphere,pdf_diam_poly,pdf_diam,pdf_shape,pdf_scale,pdf_poly,pdf_bin,pdf_finite,pdf_radiation
     pdf_rmax=rmax
     pdf_qmax=qmax
     pdf_deltar=deltar
@@ -191,3 +192,10 @@ def set_pdf(rmax,qmax,deltar,
         pdf_ndat  = max(pdf_ndat , pdf_bin , pdf_maxdat)
         pdf_nbnd  = max(pdf_nbnd ,           pdf_maxbnd)
         alloc_pdf_f()
+
+def set_pdf_logical(lxray,gauss,d2d,
+                    lweights,lrho0,lexact,
+                    lrho0_rel):
+    set_pdf_logical_f(lxray,gauss,d2d,
+                      lweights,lrho0,lexact,
+                      lrho0_rel)

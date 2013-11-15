@@ -120,4 +120,31 @@ contains
   subroutine alloc_pdf_f() BIND(C)
     CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
   end subroutine alloc_pdf_f
+  
+  subroutine pdf_determine_c(x) BIND(C)
+    logical(c_bool), value :: x
+    logical :: y
+    y = .false.
+    if (x) y = .true.
+    call pdf_determine(y)
+  end subroutine pdf_determine_c
+  
+  subroutine set_pdf_logical(lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel) BIND(C)
+    logical(c_bool), value :: lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel
+    pdf_lxray     = .false.
+    pdf_gauss     = .false.
+    pdf_2d        = .false.
+    pdf_lweights  = .false.
+    pdf_lrho0     = .false.
+    pdf_lexact    = .false.
+    pdf_lrho0_rel = .false.
+    if (lxray)     pdf_lxray     = .true.
+    if (gauss)     pdf_gauss     = .true.
+    if (d2d)       pdf_2d        = .true.
+    if (lweights)  pdf_lweights  = .true.
+    if (lrho0)     pdf_lrho0     = .true.
+    if (lexact)    pdf_lexact    = .true.
+    if (lrho0_rel) pdf_lrho0_rel = .true.
+  end subroutine set_pdf_logical
+  
 end module discus_wrap

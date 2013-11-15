@@ -1,5 +1,5 @@
 MODULE pdf_menu
-USE iso_c_binding, only: c_bool
+USE iso_c_binding
 !
 CONTAINS
 !*****7*****************************************************************
@@ -142,7 +142,7 @@ SUBROUTINE pdf
             CALL pdf_setup 
             IF (ier_num.eq.0) then 
                pdf_skal = 1.0 / rmc_skal (1) 
-               CALL pdf_determine ( .true._c_bool )
+               CALL pdf_determine ( .true. )
             ENDIF 
 !                                                                       
 !------ Read observed PDF from XY file (ASCII)                          
@@ -1435,7 +1435,7 @@ SUBROUTINE pdf
 !                                                                       
 !------ calculate sums from exp. data needed and initial chi2           
 !                                                                       
-      CALL pdf_determine (.false._c_bool)
+      CALL pdf_determine (.false.)
 !                                                                       
       cold = 0.0 
       wtot = 0.0 
@@ -1695,7 +1695,7 @@ SUBROUTINE pdf
       REAL done, sum 
       INTEGER nmi, nma 
       REAL r 
-      LOGICAL(C_BOOL) :: lout 
+      LOGICAL :: lout 
       REAL seknds, ss 
 !                                                                       
       ss = seknds (0.0) 

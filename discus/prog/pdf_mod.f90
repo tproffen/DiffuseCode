@@ -71,17 +71,17 @@ INTEGER             ::  pdf_sel_prop(0:1) = 0
 INTEGER(C_INT), BIND(C) ::  pdf_radiation = PDF_RAD_XRAY
 INTEGER             ::  pdf_power     = 4
 LOGICAL             ::  pdf_lxray  = .false.
-LOGICAL(C_BOOL), BIND(C) ::  pdf_gauss  = .false._c_bool
-LOGICAL(C_BOOL), BIND(C) ::  pdf_2d     = .false._c_bool
+LOGICAL             ::  pdf_gauss  = .false.
+LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
 LOGICAL             ::  pdf_ldata     = .false.
-LOGICAL(C_BOOL), BIND(C) ::  pdf_lweights  = .false.
-LOGICAL(C_BOOL), BIND(C) ::  pdf_lrho0     = .true.
-LOGICAL(C_BOOL), BIND(C) ::  pdf_lexact    = .false._c_bool
-LOGICAL(C_BOOL), BIND(C) ::  pdf_lrho0_rel = .false.
+LOGICAL             ::  pdf_lweights  = .false.
+LOGICAL             ::  pdf_lrho0     = .true.
+LOGICAL             ::  pdf_lexact    = .false.
+LOGICAL             ::  pdf_lrho0_rel = .false.
 INTEGER             ::  pdf_size_of   = 0
 !
 END MODULE pdf_mod
