@@ -367,41 +367,7 @@ SUBROUTINE chem
 !------ calc cell-atomindex and atomindex-cell                          
 !                                                                       
          ELSEIF (str_comp (befehl, 'trans', 2, lbef, 5) ) then 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.eq.0.and.cr_natoms.ne.0) then 
-               IF (ianz.eq.1) then 
-                  ia = nint (werte (1) ) 
-                  IF (ia.gt.0.and.ia.le.cr_natoms) then 
-                     CALL indextocell (ia, ic, is) 
-                     WRITE (output_io, 3000) ia, ic, is 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSEIF (ianz.eq.4) then 
-                  is = nint (werte (4) ) 
-                  DO i = 1, 3 
-                  ic (i) = nint (werte (i) ) 
-                  ENDDO 
-                  IF (ic (1) .gt.0.and.ic (1) .le.cr_icc (1) .and.ic (2)&
-                  .gt.0.and.ic (2) .le.cr_icc (2) .and.ic (3)           &
-                  .gt.0.and.ic (3) .le.cr_icc (3)                       &
-                  .and.is.gt.0.and.is.le.cr_ncatoms) then               
-                     CALL celltoindex (ic, is, ia) 
-                     WRITE (output_io, 3000) ia, ic, is 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
+            CALL chem_trans(zeile,lp)
 !                                                                       
 !------ Waiting for user input                                          
 !                                                                       
@@ -436,9 +402,6 @@ SUBROUTINE chem
       GOTO 10 
 !                                                                       
  9999 CONTINUE 
-!                                                                       
- 3000 FORMAT    (' Atomindex ',I6,' : Unitcell ',3(I4,1X),              &
-     &                  ' / site ',I2)                                  
       END SUBROUTINE chem                           
 !*****7*****************************************************************
       SUBROUTINE chem_show (cmd) 
@@ -6267,5 +6230,75 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
  1200 FORMAT     ('    Mol. type : ',I4,5X,' rel. abundance : ',F5.3,   &
      &                   '  (',I6,' molecules)')                        
       END SUBROUTINE chem_mole                      
+!
+      SUBROUTINE chem_trans(zeile,lp)
+!
+      USE crystal_mod
+      USE celltoindex_mod
+      USE errlist_mod
+      USE param_mod
+      USE prompt_mod
+      IMPLICIT NONE
+      CHARACTER(LEN=*), INTENT(INOUT) :: zeile
+      INTEGER         , INTENT(INOUT) :: lp
+!
+      INTEGER, PARAMETER                  :: MAXW=4
+!
+      CHARACTER(LEN=1024),DIMENSION(MAXW) :: cpara
+      INTEGER            ,DIMENSION(MAXW) :: lpara
+      REAL               ,DIMENSION(MAXW) :: werte
+      INTEGER                             :: ianz    ! loop index
+      INTEGER               :: i    ! loop index
+      INTEGER               :: ia   ! Atom index
+      INTEGER, DIMENSION(3) :: ic   ! Cell number
+      INTEGER               :: is   ! site number
+!
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+      IF (ier_num.eq.0.and.cr_natoms.ne.0) then 
+         IF (ianz.eq.1) then 
+            ia = nint (werte (1) ) 
+            IF (ia.gt.0.and.ia.le.cr_natoms) then 
+               CALL indextocell (ia, ic, is) 
+               WRITE (output_io, 3000) ia, ic, is 
+               res_para(0  ) = 5
+               res_para(1  ) = ia
+               res_para(2:4) = ic
+               res_para(5  ) = is
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+        ELSEIF (ianz.eq.4) then 
+            is = nint (werte (4) ) 
+            DO i = 1, 3 
+               ic (i) = nint (werte (i) ) 
+            ENDDO 
+            IF (ic (1) .gt.0.and.ic (1) .le.cr_icc (1) .and.ic (2)&
+                  .gt.0.and.ic (2) .le.cr_icc (2) .and.ic (3)           &
+                  .gt.0.and.ic (3) .le.cr_icc (3)                       &
+                  .and.is.gt.0.and.is.le.cr_ncatoms) then               
+               CALL celltoindex (ic, is, ia) 
+               WRITE (output_io, 3000) ia, ic, is 
+               res_para(0  ) = 5
+               res_para(1  ) = ia
+               res_para(2:4) = ic
+               res_para(5  ) = is
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+ 3000 FORMAT    (' Atomindex ',I6,' : Unitcell ',3(I4,1X),              &
+     &                  ' / site ',I2)                                  
+      END SUBROUTINE chem_trans
 !*****7***************************************************************  
 END MODULE chem_menu

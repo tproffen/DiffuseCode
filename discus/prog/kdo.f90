@@ -212,6 +212,11 @@
          ELSEIF (str_comp (befehl, 'import', 3, lbef, 6) ) then 
             CALL do_import (zeile, lcomm) 
 !                                                                       
+!-------calculate cell and site <==> atomindex
+!                                                                       
+         ELSEIF (str_comp (befehl, 'index2cell', 3, lbef, 10) ) then 
+            CALL chem_trans (zeile, lcomm) 
+!                                                                       
 !     inserte a new atom 'inse'                                         
 !                                                                       
          ELSEIF (str_comp (befehl, 'inse', 3, lbef, 4) ) then 

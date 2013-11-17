@@ -141,10 +141,10 @@ ELSE
    res_para (0) = 6 * cr_ncatoms 
    DO i = 1, cr_ncatoms 
       DO j = 1, 3 
-         res_para ( (i - 1) * 3 + j) = chem_ave_pos (j, i) 
+         res_para ( (i - 1) * 6 + j) = chem_ave_pos (j, i) 
       ENDDO 
       DO j = 1, 3 
-         res_para ( (i - 1) * 3 + j + 3) = chem_ave_sig (j, i) 
+         res_para ( (i - 1) * 6 + j + 3) = chem_ave_sig (j, i) 
       ENDDO 
    ENDDO 
 ENDIF 

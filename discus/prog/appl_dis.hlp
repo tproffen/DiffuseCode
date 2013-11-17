@@ -1277,6 +1277,16 @@
    This command allows to transform between a given index of the
    storage array <atomindex> and the corresponding unitcell <x>,<y>,<z>
    and site <site>. The parameter not given is calculated ...
+
+   Trans stores the results in the "res[]" variable:
+   res[1] : <atomindex>
+   res[2] : <x>
+   res[3] : <y>
+   res[4] : <z>
+   res[5] : <site>
+
+   The command is identical to the ==> 'index2cell' command in the
+   main menu.
 2  connectivity
 
    Switches to the connectivity menu.
@@ -1804,6 +1814,23 @@
 
    DISCUS will read a RMCProfile *.cssr file and write a corresponding
    structure file.
+2  index2cell
+!b index2cell <atomindex> or
+!b index2cell <x>,<y>,<z>,<site>
+
+   This command allows to switch between a given index of the
+   storage array <atomindex> and the corresponding unitcell <x>,<y>,<z>
+   and site <site>. The parameter not given is calculated ...
+
+   index2cell stores the results in the "res[]" variable:
+   res[1] : <atomindex>
+   res[2] : <x>
+   res[3] : <y>
+   res[4] : <z>
+   res[5] : <site>
+
+   The command is identical to the ==> 'trans' command in the
+   chemistry menu.
 2  ins
 !b ins <name>, <x>,<y>,<z> [,t>]
 
