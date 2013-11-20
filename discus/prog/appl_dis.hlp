@@ -920,12 +920,17 @@
    parameters of the central atom (in lattice units) are written to the
    corresponding file for possible further analysis or plotting.
 3  aver
-!b aver
+!b aver [ "one" | "ind"]
 
    This command allows to calculate the average structure of the current
    model crystal. The average position, the standard deviation and the
    occupancy of every site within the unit cell is given. The average
    positions and sigmas are stored in the variable array 'res'.
+
+   Without parameters or with parameter "one", all atoms on a site are
+   treated as one type and a common average position is calculated.
+   With parameter "ind", the average position is calculated individually
+   for different atom types that may be present on a given site.
 
 !p Warning: This command works only correct, if the structure is given
 !p          in the order created by the 'read cell' command. Appended

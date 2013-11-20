@@ -2122,7 +2122,7 @@ CONTAINS
 !                                                                       
       IF (rmc_mode.eq.rmc_mode_swdisp) then 
          WRITE (output_io, 1050) 
-         CALL chem_aver (.false.) 
+         CALL chem_aver (.false.,.true.) 
          laccept = .false. 
          DO i = 1, cr_nscat 
          laccept = laccept.or. (chem_ave_sig (1, i) .gt.0.000001) .or. (&
@@ -2169,7 +2169,7 @@ CONTAINS
 !                                                                       
       IF (rmc_mode.eq.rmc_mode_external) then 
          WRITE (output_io, 1050) 
-         CALL chem_aver (.false.) 
+         CALL chem_aver (.false.,.true.) 
       ENDIF 
 !                                                                       
  1050 FORMAT     (/,' Calculating average structure ... ') 

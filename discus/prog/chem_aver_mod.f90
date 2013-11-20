@@ -2,7 +2,7 @@ MODULE chem_aver_mod
 !
 CONTAINS
 !*****7*****************************************************************
-SUBROUTINE chem_aver (lout) 
+SUBROUTINE chem_aver (lout, lsite) 
 !+                                                                      
 !     Calculate average structure and standard deviation                
 !-                                                                      
@@ -16,11 +16,15 @@ USE param_mod
 USE prompt_mod 
 IMPLICIT none 
 !                                                                       
-       
+LOGICAL, INTENT(IN) :: lout    ! Print output if true
+LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
 REAL, DIMENSION(3) ::  p , ez 
-INTEGER            :: i, j, k, ii, jj, kk, ia, is 
-LOGICAL            :: flag, lout 
+REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
+REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
+!
+INTEGER            :: i, j, k, ii, jj, kk, ia, is , nvalues
+LOGICAL            :: flag
 !                                                                       
 CHARACTER(LEN=9)   :: at_name_i 
 !
@@ -32,6 +36,13 @@ IF ( CHEM_MAXAT_CELL < MAXAT_CELL .or. &
    n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
    n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
    call alloc_chem_aver ( n_atom_cell, n_max_atom)
+ENDIF
+IF(.not. lsite) THEN
+   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
+   ALLOCATE(chem_ave_posit(3,n_atom_cell, 10))
+   ALLOCATE(chem_ave_sigma(3,n_atom_cell, 10))
+   chem_ave_posit = 0.0
+   chem_ave_sigma = 0.0
 ENDIF
 !                                                                       
 !------ reset counters                                                  
@@ -101,6 +112,12 @@ loopk: DO k = 1, cr_icc (3)
                   chem_ave_iscat (ii, chem_ave_n (ii) ) = cr_iscat (ia) 
                ENDIF 
             ENDIF occup
+            IF(.not. lsite) THEN   ! Accumulate individual positions for different atoms
+               DO jj = 1, 3 
+                  chem_ave_posit(jj,ii,is) = chem_ave_posit(jj,ii,is) + p(jj)
+                  chem_ave_sigma(jj,ii,is) = chem_ave_sigma(jj,ii,is) + p(jj)**2
+               ENDDO 
+            ENDIF
             chem_ave_bese (ii, is) = chem_ave_bese (ii, is) + 1 
          ENDDO loopii
       ENDDO  loopi
@@ -111,43 +128,92 @@ ENDDO  loopk
 !                                                                       
 IF (lout) write (output_io, 1000) 
 ia = cr_icc (1) * cr_icc (2) * cr_icc (3) 
-DO i = 1, cr_ncatoms 
-   DO j = 1, 3 
-      chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
-      chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) -          &
-      chem_ave_pos (j, i) **2                                           
-      IF (chem_ave_sig (j, i) .gt.0.0) then 
-         chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
-      ELSE 
-         chem_ave_sig (j, i) = 0.0 
+IF(lsite) THEN           ! one pos for all types on a single site
+   DO i = 1, cr_ncatoms 
+      DO j = 1, 3 
+         chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
+         chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) -          &
+         chem_ave_pos (j, i) **2                                           
+         IF (chem_ave_sig (j, i) .gt.0.0) then 
+            chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
+         ELSE 
+            chem_ave_sig (j, i) = 0.0 
+         ENDIF 
+      ENDDO 
+      IF (lout) then 
+         DO k = 1, chem_ave_n (i) 
+            at_name_i = at_name (chem_ave_iscat (i, k) ) 
+            WRITE (output_io, 1100) i, at_name_i, (chem_ave_pos (ii, i),   &
+            ii = 1, 3), (chem_ave_sig (ii, i), ii = 1, 3), chem_ave_bese ( &
+            i, k) / ia                                                     
+         ENDDO 
       ENDIF 
    ENDDO 
-   IF (lout) then 
-      DO k = 1, chem_ave_n (i) 
-         at_name_i = at_name (chem_ave_iscat (i, k) ) 
-         WRITE (output_io, 1100) i, at_name_i, (chem_ave_pos (ii, i),   &
-         ii = 1, 3), (chem_ave_sig (ii, i), ii = 1, 3), chem_ave_bese ( &
-         i, k) / ia                                                     
-      ENDDO 
-   ENDIF 
-ENDDO 
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-IF ( (6 * cr_ncatoms) .gt.maxpar_res) then 
-   ier_typ = ER_CHEM 
-   ier_num = - 2 
-ELSE 
-   res_para (0) = 6 * cr_ncatoms 
-   DO i = 1, cr_ncatoms 
-      DO j = 1, 3 
-         res_para ( (i - 1) * 6 + j) = chem_ave_pos (j, i) 
+   IF ( (6 * cr_ncatoms) .gt.maxpar_res) then 
+      ier_typ = ER_CHEM 
+      ier_num = - 2 
+   ELSE 
+      res_para (0) = 6 * cr_ncatoms 
+      DO i = 1, cr_ncatoms 
+         DO j = 1, 3 
+            res_para ( (i - 1) * 6 + j) = chem_ave_pos (j, i) 
+         ENDDO 
+         DO j = 1, 3 
+            res_para ( (i - 1) * 6 + j + 3) = chem_ave_sig (j, i) 
+         ENDDO 
       ENDDO 
-      DO j = 1, 3 
-         res_para ( (i - 1) * 6 + j + 3) = chem_ave_sig (j, i) 
+   ENDIF 
+ELSE
+   nvalues = 0
+   DO i = 1, cr_ncatoms 
+      DO k = 1, chem_ave_n (i) 
+         DO j = 1, 3 
+            chem_ave_posit (j, i, k) = chem_ave_posit (j, i, k) / chem_ave_bese(i,k) 
+            chem_ave_sigma (j, i, k) = chem_ave_sigma (j, i, k) / chem_ave_bese(i,k) - &
+            chem_ave_posit (j, i, k) **2                                           
+            IF (chem_ave_sigma (j, i, k) .gt.0.0) then 
+               chem_ave_sigma (j, i, k) = sqrt (chem_ave_sigma (j, i, k) ) 
+            ELSE 
+               chem_ave_sigma (j, i, k) = 0.0 
+            ENDIF 
+         ENDDO 
+         IF (lout) then 
+           at_name_i = at_name (chem_ave_iscat (i, k) ) 
+           WRITE (output_io, 1100) i, at_name_i, (chem_ave_posit (ii, i, k), ii = 1, 3),&
+                 (chem_ave_sigma (ii, i, k), ii = 1, 3), chem_ave_bese(i, k) / ia
+         ENDIF 
+         nvalues = nvalues + 1
       ENDDO 
    ENDDO 
-ENDIF 
+!                                                                       
+!------ store results in res_para                                       
+!                                                                       
+   IF ( (6 * nvalues) .gt.maxpar_res) then 
+      ier_typ = ER_CHEM 
+      ier_num = - 2 
+   ELSE 
+      res_para (0) = 6 * nvalues 
+      ii = 0
+      DO i = 1, cr_ncatoms 
+         DO k = 1, chem_ave_n (i) 
+         ii = ii + 1
+         DO j = 1, 3 
+            res_para ( (ii - 1) * 6 + j)     = chem_ave_posit (j, i, k) 
+         ENDDO 
+         DO j = 1, 3 
+            res_para ( (ii - 1) * 6 + j + 3) = chem_ave_sigma (j, i, k) 
+         ENDDO 
+         ENDDO 
+      ENDDO 
+   ENDIF 
+ENDIF
+IF(.not. lsite) THEN
+   DEALLOCATE(chem_ave_posit)
+   DEALLOCATE(chem_ave_sigma)
+ENDIF
 !                                                                       
  1000 FORMAT (' Average structure : ',//,                               &
      &        3x,'Site',2x,'atom',11x,'average position',8x,            &

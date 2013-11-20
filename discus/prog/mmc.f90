@@ -3689,7 +3689,7 @@ write(*,*) ' WARNING NEIGHBOR'
       IF (mmc_cor_energy (0, MC_DISP)    .or.mmc_cor_energy (0, MC_SPRING) &
       .or.mmc_cor_energy (0, MC_LENNARD) .or.mmc_cor_energy (0, MC_BUCKING)&
       .or.mmc_cor_energy (0,MC_REPULSIVE) ) then                                                
-         CALL chem_aver (.false.) 
+         CALL chem_aver (.false., .true.) 
       ENDIF 
 !                                                                       
 !     Reset all achieved correlations                                   

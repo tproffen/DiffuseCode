@@ -41,7 +41,7 @@ SUBROUTINE chem
       INTEGER lpara (maxw), lp, length 
       INTEGER indxg, ianz, lbef, i, ia, is, ic (3), iianz, jjanz 
       INTEGER kkanz 
-      LOGICAL lout 
+      LOGICAL lout , lsite
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -76,7 +76,19 @@ SUBROUTINE chem
                ier_num = - 22 
                ier_typ = ER_CHEM 
             ELSE 
-               CALL chem_aver (.true.) 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF(ier_num == 0) THEN
+                  IF(IANZ==0 .or. str_comp (cpara(1), 'one', 2, lpara(1), 3)) THEN
+                     lsite = .true.
+                     CALL chem_aver (.true., lsite ) 
+                  ELSEIF(IANZ== 1 .and. str_comp (cpara(1), 'ind', 2, lpara(1), 3)) THEN
+                     lsite = .false.
+                     CALL chem_aver (.true., lsite ) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF
             ENDIF 
 !                                                                       
 !------ Calculate bond-angle distribution 'bang'                        
@@ -4161,7 +4173,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       CALL get_iscat (jjanz, cpara, lpara, wwerte, maxww, .false.) 
       IF (ier_num.ne.0) return 
 !                                                                       
-      CALL chem_aver (.false.) 
+      CALL chem_aver (.false., .true.) 
 !                                                                       
 !------ loop over all defined correlations                              
 !                                                                       
@@ -4352,7 +4364,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          ier_typ = ER_APPL 
       ENDIF 
 !                                                                       
-      CALL chem_aver (.false.) 
+      CALL chem_aver (.false., .true.) 
 !                                                                       
 !------ writing output line                                             
 !                                                                       

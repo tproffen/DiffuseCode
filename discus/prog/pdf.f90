@@ -1417,7 +1417,7 @@ SUBROUTINE pdf
       nmi = nint (pdf_rfmin / pdf_deltar) 
       nma = nint (pdf_rfmax / pdf_deltar) 
 !                                                                       
-      CALL chem_aver (.false.) 
+      CALL chem_aver (.false., .true.) 
 !                                                                       
 !------ Calculate maximal value in rmc_mindist array                    
 !                                                                       
