@@ -1,6 +1,7 @@
 module discus_wrap
 use iso_c_binding
 use config_mod
+use chem_mod
 use crystal_mod
 use pdf_mod
 use pdf_menu
@@ -18,6 +19,18 @@ contains
     cr_pos_out=cr_pos
   end subroutine get_cr_pos
   
+  subroutine get_cr_dw(cr_dw_out,n) bind(C)
+    real(c_float), intent (out), dimension(n) :: cr_dw_out
+    integer(c_int), intent(in), value :: n
+    cr_dw_out=cr_dw
+  end subroutine get_cr_dw
+  
+  subroutine get_cr_scat(cr_scat_out,n) bind(C)
+    real(c_float), intent (out), dimension(11,n) :: cr_scat_out
+    integer(c_int), intent(in), value :: n
+    cr_scat_out=cr_scat
+  end subroutine get_cr_scat
+  
   subroutine set_cr_pos(cr_pos_in,n) bind(C)
     real(c_float), intent (in), dimension(3,n) :: cr_pos_in
     integer(c_int), intent(in), value :: n
@@ -27,8 +40,6 @@ contains
   subroutine get_cr_iscat(cr_iscat_out,n) bind(C)
     integer(c_int), intent(out), dimension(n) :: cr_iscat_out
     integer(c_int), value :: n
-    !print*,size(cr_iscat),nmax
-    !print*,cr_iscat
     cr_iscat_out = cr_iscat
   end subroutine get_cr_iscat
   
@@ -114,7 +125,7 @@ contains
        cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) )
        cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) )
     enddo
-    call do_stack_rese    
+    call do_stack_rese
   end subroutine read_cell
   
   subroutine alloc_pdf_f() BIND(C)
@@ -129,15 +140,16 @@ contains
     call pdf_determine(y)
   end subroutine pdf_determine_c
   
-  subroutine set_pdf_logical(lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel) BIND(C)
-    logical(c_bool), value :: lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel
-    pdf_lxray     = .false.
-    pdf_gauss     = .false.
-    pdf_2d        = .false.
-    pdf_lweights  = .false.
-    pdf_lrho0     = .false.
-    pdf_lexact    = .false.
-    pdf_lrho0_rel = .false.
+  subroutine set_pdf_logical(lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel,cp1,cp2,cp3) BIND(C)
+    logical(c_bool), value :: lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel,cp1,cp2,cp3
+                   pdf_lxray     = .false.
+                   pdf_gauss     = .false.
+                   pdf_2d        = .false.
+                   pdf_lweights  = .false.
+                   pdf_lrho0     = .false.
+                   pdf_lexact    = .false.
+                   pdf_lrho0_rel = .false.
+                   chem_period   = .false.
     if (lxray)     pdf_lxray     = .true.
     if (gauss)     pdf_gauss     = .true.
     if (d2d)       pdf_2d        = .true.
@@ -145,6 +157,9 @@ contains
     if (lrho0)     pdf_lrho0     = .true.
     if (lexact)    pdf_lexact    = .true.
     if (lrho0_rel) pdf_lrho0_rel = .true.
+    if (cp1)       chem_period(1)= .true.
+    if (cp2)       chem_period(2)= .true.
+    if (cp3)       chem_period(3)= .true.
   end subroutine set_pdf_logical
-  
+
 end module discus_wrap

@@ -65,7 +65,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE  :: pdf_bnd     ! (3,-MAXBND:2*MAXBND)
 !INTEGER, DIMENSION(3,-MAXBND:2*MAXBND):: pdf_bnd     ! (3,-MAXBND:2*MAXBND)
 INTEGER(C_INT), BIND(C) ::  pdf_bin    = 1
 INTEGER(C_INT), BIND(C) ::  pdf_finite = PDF_BACK_PERIOD
-INTEGER             ::  pdf_poly_n = 0
+INTEGER(C_INT), BIND(C) ::  pdf_poly_n = 0
 INTEGER             ::  pdf_sel_prop(0:1) = 0
 !                                                
 INTEGER(C_INT), BIND(C) ::  pdf_radiation = PDF_RAD_XRAY

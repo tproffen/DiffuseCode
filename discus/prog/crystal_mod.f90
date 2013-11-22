@@ -12,15 +12,15 @@ USE config_mod
 !
    INTEGER                          ::  cr_spcgrno = 1
    INTEGER                          ::  cr_syst    = 1
-   INTEGER                          ::  cr_ncatoms = 1
-   INTEGER(c_int), BIND(C), DIMENSION(3)            ::  cr_icc     = 1
+   INTEGER(c_int), BIND(C)          ::  cr_ncatoms = 1
+   INTEGER(c_int), BIND(C), DIMENSION(3) ::  cr_icc     = 1
 !
    INTEGER                          ::  spcgr_ianz  = 0
    INTEGER                          ::  spcgr_para  = 0
    INTEGER, DIMENSION(0:1)          ::  cr_sel_prop = 0
 !
-   REAL                             ::  cr_v        = 1.
-   REAL   , DIMENSION(3,3)          ::  cr_gten     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_gten))
+   REAL(c_float), BIND(C)           ::  cr_v        = 1.
+   REAL(c_float), BIND(C), DIMENSION(3,3) ::  cr_gten     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_gten))
    REAL   , DIMENSION(3,3,3)        ::  cr_eps
    REAL   , DIMENSION(3,3)          ::  cr_gmat     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_gmat))
    REAL   , DIMENSION(3)            ::  cr_ar       = 1.0
@@ -43,7 +43,7 @@ USE config_mod
 !
    CHARACTER (LEN=80,KIND=c_char)                          ::  cr_name  = 'crystal'
    CHARACTER (LEN=16,KIND=c_char)                          ::  cr_spcgr = 'P1'
-   CHARACTER (LEN=4,KIND=c_char ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
+   CHARACTER (LEN=4,KIND=c_char), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_equ  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  as_at_lis  ! (  0:MAXSCAT)
 !
@@ -54,8 +54,8 @@ USE config_mod
 !
    LOGICAL                               :: cr_cartesian = .false.
 !
-   REAL   , DIMENSION(3)                 ::  cr_a0  = 1.0
-   REAL   , DIMENSION(3)                 ::  cr_win = 90.0
+   REAL(C_FLOAT), BIND(C), DIMENSION(3)  ::  cr_a0  = 1.0
+   REAL(C_FLOAT), BIND(C), DIMENSION(3)  ::  cr_win = 90.0
    REAL   , DIMENSION(3,2)               ::  cr_dim = RESHAPE((/0,0,0, 1,1,1/),SHAPE(cr_dim))
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  cr_dw  ! (  0:MAXSCAT)
    REAL   , DIMENSION(:,:), ALLOCATABLE  ::  as_pos ! (3,1:MAXSCAT)
@@ -63,7 +63,7 @@ USE config_mod
 !
 !
    INTEGER(C_INT), BIND(C)              ::  cr_natoms       = 0
-   INTEGER                              ::  cr_n_REAL_atoms = 0
+   INTEGER(C_INT), BIND(C)              ::  cr_n_REAL_atoms = 0
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)
 !

@@ -7,8 +7,15 @@ cdef extern int nmax
 ### end config_mod ###
 
 ### crystal_mod ###
-cdef extern int cr_natoms
+cdef extern int cr_ncatoms
+cdef extern int cr_icc[3]
+cdef extern float cr_v
+cdef extern float cr_gten[3][3]
 cdef extern int cr_nscat
+cdef extern float cr_a0[3]
+cdef extern float cr_win[3]
+cdef extern int cr_natoms
+cdef extern int cr_n_real_atoms
 ### endcrystal_mod ###
 
 ### pdf_mod ###
@@ -42,6 +49,7 @@ cdef extern float pdf_poly[5]
 cdef extern int pdf_bin
 cdef extern int pdf_finite
 cdef extern int pdf_radiation
+cdef extern int pdf_poly_n
 #cdef extern bool pdf_lxray
 #cdef extern bool pdf_gauss
 #cdef extern bool pdf_2d
@@ -55,6 +63,8 @@ cdef extern int pdf_radiation
 cdef extern void setup_c "setup" ()
 cdef extern void discus_loop()
 cdef extern void get_cr_pos_c "get_cr_pos" (float*,int)
+cdef extern void get_cr_dw_c "get_cr_dw" (float*,int)
+cdef extern void get_cr_scat_c "get_cr_scat" (float*,int)
 cdef extern void set_cr_pos_c "set_cr_pos" (float*,int)
 cdef extern void get_cr_iscat_c "get_cr_iscat" (int*,int)
 cdef extern void get_crystal_name_f "get_crystal_name" (char*)
@@ -67,7 +77,10 @@ cdef extern void rese_cr_f "rese_cr" ()
 cdef extern void read_cell_f "read_cell" (char*,int,int,int,int)
 cdef extern void get_atom_type(char*,int)
 cdef extern void alloc_pdf_f ()
-cdef extern void set_pdf_logical_f "set_pdf_logical" (bool,bool,bool,bool,bool,bool,bool)
+cdef extern void set_pdf_logical_f "set_pdf_logical" (bool,bool,bool,
+                                                      bool,bool,bool,
+                                                      bool,bool,bool,
+                                                      bool)
 
 def setup():
     setup_c()
@@ -89,9 +102,92 @@ def set_nmax(n):
     global nmax
     nmax = n
 
+def get_cr():
+    return cr_ncatoms,get_cr_icc(),cr_v, \
+        get_cr_gten(),get_cr_scat(),get_crystal_name(), \
+        get_crystal_spcgr(),get_cr_at_lis(),cr_nscat, \
+        cr_natoms,cr_n_real_atoms,get_cr_a0(), \
+        get_cr_win(),get_cr_dw(),get_cr_iscat(), \
+        get_cr_pos()
+
+def set_cr(ncatoms,icc,v, \
+               gten,scat,name, \
+               spcgr,at_lis,nscat, \
+               natoms,n_real_atoms,a0, \
+               win,dw,iscat, \
+               pos):
+    global cr_ncatoms,cr_icc,cr_v,cr_gten,cr_nscat,cr_a0,cr_win,cr_natoms,cr_n_real_atoms
+    cr_ncatoms  = ncatoms
+    set_cr_icc(icc)
+    cr_v        = v
+    
+    set_cr_gten(gten)
+    #scat
+    #name
+    
+    #spcgr
+    #at_lis
+    cr_nscat    = nscat
+    
+    cr_natoms   = natoms
+    cr_n_real_atoms = n_real_atoms
+    set_cr_a0(a0)
+    
+    set_cr_win(win)
+    #dw
+    #iscat
+    
+    #pos
+    
+
+def get_cr_icc():
+    icc = np.empty(3,dtype=np.int32)
+    cdef int [:] icc2 = icc
+    icc2[:] = cr_icc
+    return icc
+
+def set_cr_icc(icc):
+    global cr_icc
+    for i in range(3):
+        cr_icc[i] = icc[i]
+
+def get_cr_a0():
+    a0 = np.empty(3,dtype=np.float32)
+    cdef float [:] a02 = a0
+    a02[:] = cr_a0
+    return a0
+
+def set_cr_a0(a0):
+    global cr_a0
+    for i in range(3):
+        cr_a0[i] = a0[i]
+
+def get_cr_win():
+    win = np.empty(3,dtype=np.float32)
+    cdef float [:] win2 = win
+    win2[:] = cr_win
+    return win
+
+def set_cr_win(win):
+    global cr_win
+    for i in range(3):
+        cr_win[i] = win[i]
+
+def get_cr_gten():
+    gten = np.empty((3,3),dtype=np.float32,order='F')
+    cdef float [:,:] gten2 = gten
+    gten2[:][:] = cr_gten
+    return gten
+
+def set_cr_gten(gten):
+    global cr_gten
+    gten = np.asfortranarray(gten)
+    for i in range(3):
+        for j in range(3):
+            cr_gten[i][j] = gten[i][j]
+
 def get_cr_pos():
     foo = np.empty((3,nmax),dtype=np.float32,order='F')
-    #foo = np.asfortranarray(foo)
     cdef float [::1,:] bar = foo
     get_cr_pos_c(&bar[0][0],nmax)
     return foo
@@ -99,6 +195,18 @@ def get_cr_pos():
 def set_cr_pos(pos_in):
     cdef float [::1,:] cr_pos_in = np.asfortranarray(pos_in)
     set_cr_pos_c(&cr_pos_in[0][0],nmax)
+
+def get_cr_dw():
+    foo = np.empty((maxscat+1),dtype=np.float32,order='F')
+    cdef float [:] bar = foo
+    get_cr_dw_c(&bar[0],maxscat+1)
+    return foo
+
+def get_cr_scat():
+    foo = np.empty((11,cr_nscat+1),dtype=np.float32,order='F')
+    cdef float [::1,:] bar = foo
+    get_cr_scat_c(&bar[0][0],cr_nscat+1)
+    return foo
 
 def get_cr_iscat():
     foo = np.empty((nmax),dtype=np.int32,order='F')
@@ -155,38 +263,42 @@ def get_cr_at_lis():
     return out
 
 def set_pdf(rmax,qmax,deltar,
-    skal,sigmaq,xq,
-    rfmin,rfmax,delta,
-    rcut,srat,gamma,
-    qalp,dnorm,rho0,
-    sphere,diam_poly,diam,
-    shape,scale,poly,
-    bin,finite,radiation):
-    global pdf_nscat,pdf_ndat,pdf_nbnd,pdf_rmax,pdf_qmax,pdf_deltar,pdf_skal,pdf_sigmaq,pdf_xq,pdf_rfmin,pdf_rfmax,pdf_delta,pdf_rcut,pdf_srat,pdf_gamma,pdf_qalp,pdf_dnorm,pdf_rho0,pdf_sphere,pdf_diam_poly,pdf_diam,pdf_shape,pdf_scale,pdf_poly,pdf_bin,pdf_finite,pdf_radiation
-    pdf_rmax=rmax
-    pdf_qmax=qmax
-    pdf_deltar=deltar
-    pdf_skal=skal
-    pdf_sigmaq=sigmaq
-    pdf_xq=xq
-    pdf_rfmin=rfmin
-    pdf_rfmax=rfmax
-    pdf_delta=delta
-    pdf_rcut=rcut
-    pdf_srat=srat
-    pdf_gamma=gamma
-    pdf_qalp=qalp
-    pdf_dnorm=dnorm
-    pdf_rho0=rho0
-    pdf_sphere=sphere
-    pdf_diam_poly=diam_poly
-    pdf_diam=diam
-    pdf_shape=shape
-    pdf_scale=scale
-    ###pdf_poly=poly
-    pdf_bin=bin
-    pdf_finite=finite
-    pdf_radiation=radiation
+            skal,sigmaq,xq,
+            rfmin,rfmax,delta,
+            rcut,srat,gamma,
+            qalp,dnorm,rho0,
+            sphere,diam_poly,diam,
+            shape,scale,poly,
+            bin,finite,radiation,
+            poly_n):
+    global pdf_nscat,pdf_ndat,pdf_nbnd,pdf_rmax,pdf_qmax,pdf_deltar,pdf_skal,pdf_sigmaq,pdf_xq,pdf_rfmin,pdf_rfmax,pdf_delta,pdf_rcut,pdf_srat,pdf_gamma,pdf_qalp,pdf_dnorm,pdf_rho0,pdf_sphere,pdf_diam_poly,pdf_diam,pdf_shape,pdf_scale,pdf_poly,pdf_bin,pdf_finite,pdf_radiation,pdf_poly_n
+    pdf_rmax      = rmax
+    pdf_qmax      = qmax
+    pdf_deltar    = deltar
+    pdf_skal      = skal
+    pdf_sigmaq    = sigmaq
+    pdf_xq        = xq
+    pdf_rfmin     = rfmin
+    pdf_rfmax     = rfmax
+    pdf_delta     = delta
+    pdf_rcut      = rcut
+    pdf_srat      = srat
+    pdf_gamma     = gamma
+    pdf_qalp      = qalp
+    pdf_dnorm     = dnorm
+    pdf_rho0      = rho0
+    pdf_sphere    = sphere
+    pdf_diam_poly = diam_poly
+    pdf_diam      = diam
+    pdf_shape     = shape
+    pdf_scale     = scale
+    #poly      = np.zeros(5,dtype=np.int32)
+    #cdef int [:] poly2 = poly
+    #pdf_poly = poly2
+    pdf_bin       = bin
+    pdf_finite    = finite
+    pdf_radiation = radiation
+    pdf_poly_n    = poly_n
     if bin>pdf_maxdat:
         pdf_nscat = max(pdf_nscat, cr_nscat, pdf_maxscat, maxscat)
         pdf_ndat  = max(pdf_ndat , pdf_bin , pdf_maxdat)
@@ -195,7 +307,14 @@ def set_pdf(rmax,qmax,deltar,
 
 def set_pdf_logical(lxray,gauss,d2d,
                     lweights,lrho0,lexact,
-                    lrho0_rel):
+                    lrho0_rel,chem_period):
+    chem_period1 = chem_period[0]
+    chem_period2 = chem_period[1]
+    chem_period3 = chem_period[2]
     set_pdf_logical_f(lxray,gauss,d2d,
                       lweights,lrho0,lexact,
-                      lrho0_rel)
+                      lrho0_rel,
+                      chem_period1,chem_period2,chem_period3)
+    
+def set_structure():
+    pass
