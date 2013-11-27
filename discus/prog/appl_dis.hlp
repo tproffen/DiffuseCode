@@ -3594,7 +3594,7 @@
    The program is instructed not to apply a correction. The crystal
    is periodic. Also, use ==> "set bound,periodic".
 
-   "poly"
+   "poly",<diameter>
    A polynomial function of order N is used to correct the -4Pi Rho0 r
    line. See ==> "set poly" for the corresponding parameters.
    The -4Pi Rho0 r line is set to zero for distances longer than the 
