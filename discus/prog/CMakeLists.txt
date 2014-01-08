@@ -2,9 +2,11 @@
 
 option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
 option(DISCUS_OMP    "DISCUS_OMP"     OFF)
+option(DISCUSPY      "DISCUSPY"       OFF)
 
 find_package(NEXUS)
 find_package(OpenMP)
+include( UseCython )
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -125,6 +127,10 @@ else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
 endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
 
+if (DISCUSPY)
+  cython_add_module( discuspy ${DIFFUSE_SOURCE_DIR}/discus/prog/discuspy.pyx ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_wrap.f90 ${SOURCES_ALL})
+  
+endif (DISCUSPY)
 
 install (TARGETS discus DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
