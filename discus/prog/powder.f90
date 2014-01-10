@@ -1,4 +1,5 @@
 MODULE powder
+USE iso_c_binding
 !
 USE errlist_mod 
 !
@@ -203,7 +204,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE do_powder                      
 !*****7*****************************************************************
-      SUBROUTINE pow_show 
+      SUBROUTINE pow_show() BIND(C)
 !-                                                                      
 !     Prints summary of powder diffraction settings                     
 !+                                                                      
@@ -1001,7 +1002,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE do_pow_set                     
 !*****7*****************************************************************
-      SUBROUTINE powder_run 
+      SUBROUTINE powder_run() BIND(C)
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      

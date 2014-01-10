@@ -59,9 +59,58 @@ cdef extern int pdf_poly_n
 #cdef extern bool pdf_lrho0_rel
 ### end pdf_mod ###
 
+### powder_mod ###
+cdef extern int POW_MAXPKT
+cdef extern int pow_axis
+cdef extern int pow_four_mode
+cdef extern int pow_four_type
+cdef extern int pow_four_vers
+cdef extern int pow_lp
+#cdef extern bool pow_l_all
+cdef extern float pow_tthmin
+cdef extern float pow_tthmax
+cdef extern float pow_deltatth
+cdef extern float pow_qmin
+cdef extern float pow_qmax
+cdef extern float pow_deltaq
+cdef extern float pow_ds_max
+cdef extern float pow_ds_min
+cdef extern float pow_delta
+cdef extern float pow_lp_fac
+cdef extern float pow_lp_ang
+cdef extern float pow_lp_cos
+cdef extern float pow_back[6]
+cdef extern float pow_scale
+cdef extern float pow_hkl_max[3]
+cdef extern float pow_hkl_del[3]
+cdef extern float pow_hkl_shift[3]
+#cdef extern bool pow_pref
+cdef extern int pow_pref_type
+cdef extern float pow_pref_g1
+cdef extern float pow_pref_g2
+cdef extern float pow_pref_hkl[3]
+cdef extern int pow_profile
+cdef extern int pow_pr_par
+cdef extern float pow_fwhm
+cdef extern float pow_eta
+cdef extern float pow_etax
+cdef extern float pow_u
+cdef extern float pow_v
+cdef extern float pow_w
+cdef extern float pow_p1
+cdef extern float pow_p2
+cdef extern float pow_p3
+cdef extern float pow_p4
+cdef extern float pow_width
+cdef extern int pow_size_of
+### end powder_mod ###
 
+### routines ###
 cdef extern void setup_c "setup" ()
 cdef extern void discus_loop()
+### end routines ###
+
+### crystal routines ###
 cdef extern void get_cr_pos_c "get_cr_pos" (float*,int)
 cdef extern void get_cr_dw_c "get_cr_dw" (float*,int)
 cdef extern void get_cr_scat_c "get_cr_scat" (float*,int)
@@ -69,18 +118,27 @@ cdef extern void set_cr_pos_c "set_cr_pos" (float*,int)
 cdef extern void get_cr_iscat_c "get_cr_iscat" (int*,int)
 cdef extern void get_crystal_name_f "get_crystal_name" (char*)
 cdef extern void get_crystal_spcgr_f "get_crystal_spcgr" (char*)
+cdef extern void rese_cr_f "rese_cr" ()
+cdef extern void read_cell_f "read_cell" (char*,int,int,int,int)
+cdef extern void read_stru_f "read_stru" (char*,int)
+cdef extern void get_atom_type(char*,int)
+### end crystal routines ###
+
+### pdf routines ###
 cdef extern void get_pdf_c "get_pdf" ( double*,int,int)
 cdef extern void pdf_determine_c (bool)
 cdef extern void pdf_show_c(char*,int)
 cdef extern void pdf_setup_c "pdf_setup" ()
-cdef extern void rese_cr_f "rese_cr" ()
-cdef extern void read_cell_f "read_cell" (char*,int,int,int,int)
-cdef extern void get_atom_type(char*,int)
 cdef extern void alloc_pdf_f ()
 cdef extern void set_pdf_logical_f "set_pdf_logical" (bool,bool,bool,
                                                       bool,bool,bool,
                                                       bool,bool,bool,
                                                       bool)
+### end pdf routines ###
+
+### powder routines ###
+cdef extern void pow_show_c "pow_show" ()
+### end powder routines ###
 
 def setup():
     setup_c()
@@ -254,6 +312,11 @@ def read_cell(fname,dim1,dim2,dim3):
     cdef int fname_length = len(fname)
     read_cell_f(&c_str[0],fname_length,dim1,dim2,dim3)
 
+def read_stru(fname):
+    cdef char* c_str = fname
+    cdef int fname_length = len(fname)
+    read_stru_f(&c_str[0],fname_length)
+
 def get_cr_at_lis():
     out = dict()
     cdef char[5] c_str
@@ -318,3 +381,6 @@ def set_pdf_logical(lxray,gauss,d2d,
     
 def set_structure():
     pass
+
+def pow_show():
+    pow_show_c()

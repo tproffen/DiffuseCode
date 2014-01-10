@@ -8,6 +8,7 @@ use pdf_menu
 use structur
 use allocate_appl_mod
 use stack_rese_mod
+use save_mod
 use update_cr_dim_mod
 implicit none
 
@@ -127,6 +128,52 @@ contains
     enddo
     call do_stack_rese
   end subroutine read_cell
+  
+  subroutine read_stru(fname,fname_length) bind(C)
+    character(kind=c_char), dimension(1024), intent(in) :: fname
+    integer(c_int), value :: fname_length
+    character(kind=c_char,len=1024) :: strucfile
+    integer :: natoms,nscats,n_mole,n_type,n_atom,iatom,ce_natoms,ncells,i,j,k,l,n
+    logical :: need_alloc = .false.
+    strucfile = transfer(fname,strucfile)
+    strucfile(fname_length+1:) = ' '
+    call rese_cr()
+    call test_file(strucfile, natoms, nscats, n_mole, n_type, &
+          n_atom, -1 , .false.)
+    need_alloc = .false.
+    if(natoms > nmax) then
+       natoms = max(int(natoms * 1.1), natoms + 10,nmax)
+       need_alloc = .true.
+    endif
+    if(nscats > maxscat) then
+       nscats = max(int(nscats * 1.1), nscats + 2, maxscat)
+       need_alloc = .true.
+    endif
+    if ( need_alloc ) then
+       call alloc_crystal (nscats, natoms)
+    endif
+    call readstru (nmax, maxscat, strucfile, cr_name,        &
+         cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
+         cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms, &
+         as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
+         sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)
+    do l = 1, 3
+       cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) )
+       cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) )
+    enddo
+    if (sav_r_ncell) then
+       do i = 1, 3
+          cr_icc (i) = sav_ncell (i)
+       enddo
+       cr_ncatoms = sav_ncatoms
+    else
+       do i = 1, 3
+          cr_icc (i) = max (1, int (cr_dim0 (i, 2) - cr_dim0 (i, 1) ) )
+       enddo
+       cr_ncatoms = cr_natoms / (cr_icc (1) * cr_icc (2) * cr_icc (3) )
+    endif
+    call do_stack_rese
+  end subroutine read_stru
   
   subroutine alloc_pdf_f() BIND(C)
     CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
