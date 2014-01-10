@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from discuspy import *
 import numpy as np
 from func import getRadiation, getRadiationPar
 import matplotlib.pyplot as plt

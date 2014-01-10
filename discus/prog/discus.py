@@ -7,17 +7,3 @@ from copy import copy
 import numpy as np
 setup()
 
-class MMC(object):
-    """
-    MMC calculation.
-    """
-    def __init__(self,structure):
-        self.structure=structure
-
-class Fourier(object):
-    """
-    Fourier calculation.
-    """
-    def __init__(self,structure):
-        self.structure=structure
-
