@@ -31,9 +31,10 @@ CHARACTER(LEN=9)   :: at_name_i
 INTEGER            :: n_atom_cell  ! Dummy for allocation
 INTEGER            :: n_max_atom   ! Dummy for allocation
 !
-IF ( CHEM_MAXAT_CELL < MAXAT_CELL .or. &
-     CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT)) THEN
-   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
+IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
+     CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT) .or. &
+     CHEM_MAXAT_CELL   <= cr_ncatoms                    ) THEN
+   n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL, cr_ncatoms)
    n_max_atom  = MAX(CHEM_MAX_AVE_ATOM, cr_ncatoms, MAXSCAT) + 1
    call alloc_chem_aver ( n_atom_cell, n_max_atom)
 ENDIF
@@ -47,7 +48,7 @@ ENDIF
 !                                                                       
 !------ reset counters                                                  
 !                                                                       
-IF (cr_ncatoms.gt.MAXAT_CELL) then 
+IF (cr_ncatoms.gt.CHEM_MAXAT_CELL) then 
    ier_num = - 103 
    ier_typ = ER_APPL 
    ier_msg (1) = 'Adjust the value of the variable' 
