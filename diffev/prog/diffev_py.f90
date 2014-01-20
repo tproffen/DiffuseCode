@@ -156,7 +156,7 @@ parameters = pop_dimx
 END SUBROUTINE pop 
 !
 !
-SUBROUTINE trial ( trials, member, parameters )
+SUBROUTINE send_trial ( trials, member, parameters )
 !
 !  Returns the current trial parameters
 !  of parameters to calling routine
@@ -180,7 +180,7 @@ ELSE
    trials = 0.0
 ENDIF
 !
-END SUBROUTINE trial
+END SUBROUTINE send_trial
 !
 !
 SUBROUTINE cost ( values, children )
