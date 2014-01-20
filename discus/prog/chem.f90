@@ -5099,6 +5099,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE debug_mod 
       USE errlist_mod 
       USE param_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -5334,8 +5335,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
          IF (chem_cran_short (iv) ) then 
             IF (ldbg) then 
-               WRITE ( * , * ) ' natom(ncent) ', natom (ncent) 
-!      WRITE ( * ,  * ) ' nshort       ', chem_cran_nshort (iv) 
+               WRITE ( output_io , * ) ' natom(ncent) ', natom (ncent) 
+!      WRITE ( output_io ,  * ) ' nshort       ', chem_cran_nshort (iv) 
             ENDIF 
             DO l = chem_cran_nshort (iv) + 1, natom (ncent) 
             iatom (l, ncent) = 0 

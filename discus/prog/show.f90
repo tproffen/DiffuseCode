@@ -808,7 +808,7 @@ CONTAINS
       ENDIF 
       IF (mode.eq.FULL) then 
          WRITE (output_io, 2200) is, igroup 
-         WRITE ( *, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
+         WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
          (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is), j = 1, 4),&
          spc_xyz (is)                                                   
       ELSEIF (mode.eq.SYMBOL) then 

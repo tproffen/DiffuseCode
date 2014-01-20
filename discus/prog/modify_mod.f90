@@ -2952,8 +2952,8 @@ CONTAINS
       INTEGER i 
 !                                                                       
       IF (SURF_MAXSCAT==0) THEN
-        WRITE(*,*) ' No distances to surfaces have been defined yet'
-        WRITE(*,*) ' Set distances first'
+        WRITE(output_io,*) ' No distances to surfaces have been defined yet'
+        WRITE(output_io,*) ' Set distances first'
         RETURN
       ENDIF
       WRITE (output_io, * ) 

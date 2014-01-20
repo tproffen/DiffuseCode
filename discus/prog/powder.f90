@@ -1606,7 +1606,7 @@ CONTAINS
 !write(*,*) ' ABOUT TO deallocate   ; ier_num', ier_num
       CALL dealloc_powder_nmax ! was allocated in powder_getatoms
       ss = seknds (ss) 
-      WRITE ( *, 4000) ss 
+      WRITE (output_io, 4000) ss 
 !DBG_RBN      close(13)                                                 
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
@@ -1763,7 +1763,7 @@ CONTAINS
       IF (ier_num.ne.0) return 
       CALL four_formtab 
 !DBG                                                                    
-      WRITE ( * , * ) ' Starting histogram' 
+      WRITE (output_io, * ) ' Starting histogram' 
       ss = seknds (0.0) 
 !                                                                       
 !     loop over all atoms                                               
@@ -1791,20 +1791,20 @@ CONTAINS
             ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)       &
             / pow_del_hist)                                             
             IF (ibin.eq.0) then 
-               WRITE ( * , * ) ' Atoms are too close' 
-               WRITE ( * , * ) ' Numbers: ', j, l 
+               WRITE (output_io , * ) ' Atoms are too close' 
+               WRITE (output_io , * ) ' Numbers: ', j, l 
             ELSEIF (ibin.gt.MAXHIST) then 
-               WRITE ( * , * ) ' Atoms are too far' 
-               WRITE ( * , * ) ' Numbers: ', j, l 
-               WRITE ( * , * ) ' Distance ', pow_del_hist * ibin
-               WRITE(*,*) ' ibin, MAXHIST ', ibin, MAXHIST, v
+               WRITE ( output_io, * ) ' Atoms are too far' 
+               WRITE ( output_io, * ) ' Numbers: ', j, l 
+               WRITE ( output_io, * ) ' Distance ', pow_del_hist * ibin
+               WRITE(output_io,*) ' ibin, MAXHIST ', ibin, MAXHIST, v
                RETURN
             ELSEIF (look (jscat, iscat) .gt.MAXLOOK) then 
-               WRITE ( * , * ) ' LOOK too big ', look (jscat, iscat) 
-               WRITE ( * , * ) ' Numbers: ', j, l 
+               WRITE ( output_io, * ) ' LOOK too big ', look (jscat, iscat) 
+               WRITE ( output_io, * ) ' Numbers: ', j, l 
             ELSEIF (look (jscat, iscat) .lt.1) then 
-               WRITE ( * , * ) ' LOOK too small ', look (jscat, iscat) 
-               WRITE ( * , * ) ' Numbers: ', j, l 
+               WRITE ( output_io, * ) ' LOOK too small ', look (jscat, iscat) 
+               WRITE ( output_io, * ) ' Numbers: ', j, l 
                RETURN 
             ELSE 
                histogram (ibin, look (jscat, iscat) ) = histogram (ibin,&

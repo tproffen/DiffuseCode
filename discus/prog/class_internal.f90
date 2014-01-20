@@ -77,6 +77,7 @@ CONTAINS
 !*******************************************************************************
    RECURSIVE SUBROUTINE store_write_node ( ptr )
 !
+   USE prompt_mod
    IMPLICIT NONE
 !
    TYPE(internal_storage), POINTER :: ptr     ! Pointer to current position in tree
@@ -87,13 +88,13 @@ CONTAINS
       IF ( ASSOCIATED(ptr%before)) THEN
          CALL store_write_node ( ptr%before )
       ENDIF
-      WRITE(*,1000) ptr%number, ptr%strucfile
+      WRITE(output_io,1000) ptr%number, ptr%strucfile
       IF ( ASSOCIATED(ptr%after)) THEN
          CALL store_write_node ( ptr%after )
       ENDIF
    ELSE
-      WRITE(*,*) 'Pointer is not associated '
-      WRITE(*,*) ' Error in write_node'
+      WRITE(output_io,*) 'Pointer is not associated '
+      WRITE(output_io,*) ' Error in write_node'
    ENDIF
 1000 FORMAT(i4,1x, a40)
    END SUBROUTINE store_write_node

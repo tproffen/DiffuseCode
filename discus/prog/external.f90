@@ -358,6 +358,7 @@ CONTAINS
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+      USE prompt_mod 
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -436,11 +437,11 @@ CONTAINS
             sf = - sf / (zpi * hh (3) ) 
             tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase+90),        &
             sf * sind (phase+90) )                                      
-            WRITE ( * , * ) ' calculating line' 
+            WRITE ( output_io, * ) ' calculating line' 
          ELSE 
             sf = - 0.5 * sf 
             sf = - 1.0 * sf 
-            WRITE ( * , * ) ' Calculated hh=0' 
+            WRITE ( output_io, * ) ' Calculated hh=0' 
             tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind &
             (phase) )                                                   
          ENDIF 
@@ -448,9 +449,9 @@ CONTAINS
       ENDDO 
       ENDDO 
 !DBG_RBN                                                                
-      WRITE ( * , * ) 'hmin ', hmin (1) 
-      WRITE ( * , * ) 'hmin ', hmin (2) 
-      WRITE ( * , * ) 'hmin ', hmin (3) 
+!     WRITE ( output_io , * ) 'hmin ', hmin (1) 
+!     WRITE ( output_io , * ) 'hmin ', hmin (2) 
+!     WRITE ( output_io , * ) 'hmin ', hmin (3) 
 !                                                                       
       END SUBROUTINE external_edge                  
 !*****7**************************************************************** 
@@ -560,6 +561,7 @@ CONTAINS
 !     Opens the external file for input/output                          
 !+                                                                      
       USE errlist_mod 
+      USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -577,7 +579,7 @@ CONTAINS
       ier_typ = ER_NONE 
   999 CONTINUE 
       IF (ier_num.eq. - 2) then 
-         WRITE ( *, 2000) ios 
+         WRITE ( output_io, 2000) ios 
       ENDIF 
 !                                                                       
  2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
