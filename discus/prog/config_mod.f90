@@ -61,15 +61,16 @@ SAVE
 !     RMC_MAX_ATOM   : Maximum number of atoms moved in one RMC move
 !     RMC_MAX_LOTS   : Maximum number of 'lots' allowed
 !
-      INTEGER            RMC_MAX_Q,RMC_MAX_PLANES,RMC_MAX_SYM
-      INTEGER            RMC_MAX_ATOM,RMC_MAX_LOTS,RMC_MAX_SQ
+!     INTEGER            RMC_MAX_Q ,RMC_MAX_PLANES,RMC_MAX_SYM
+      INTEGER            RMC_MAX_ATOM
+!     INTEGER            RMC_MAX_ATOM,RMC_MAX_LOTS,RMC_MAX_SQ
 !
-      PARAMETER      (RMC_MAX_PLANES = 1)
-      PARAMETER      (RMC_MAX_SYM    = 1)
-      PARAMETER      (RMC_MAX_Q      = 50  )
-      PARAMETER      (RMC_MAX_SQ     = RMC_MAX_SYM*RMC_MAX_Q)
+!     PARAMETER      (RMC_MAX_PLANES = 1)
+!     PARAMETER      (RMC_MAX_SYM    = 1)
+!     PARAMETER      (RMC_MAX_Q      = 100000 )
+!     PARAMETER      (RMC_MAX_SQ     = RMC_MAX_SYM*RMC_MAX_Q) ! RMC_MAX_SYM*RMC_MAX_Q)
       PARAMETER      (RMC_MAX_ATOM   = 20)
-      PARAMETER      (RMC_MAX_LOTS   = 1)
+!     PARAMETER      (RMC_MAX_LOTS   = 100)
 !
 !#######################################################################
 ! (4) CHEM and MC 

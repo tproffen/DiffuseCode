@@ -2370,7 +2370,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !     Give average energy changes for the different energy terms        
 !                                                                       
-      WRITE ( *, 5000) 
+      WRITE ( output_io, 5000) 
       DO i = 1, MC_N_ENERGY 
       IF (n_e_av_p (i) .gt.0) then 
          e_aver_p (i) = e_aver_p (i) / float (n_e_av_p (i) ) 
@@ -2378,7 +2378,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       IF (n_e_av_m (i) .gt.0) then 
          e_aver_m (i) = e_aver_m (i) / float (n_e_av_m (i) ) 
       ENDIF 
-      WRITE ( *, 5010) c_energy (i), n_e_av_m (i), e_aver_m (i),        &
+      WRITE ( output_io, 5010) c_energy (i), n_e_av_m (i), e_aver_m (i),        &
       n_e_av_z (i), n_e_av_p (i), e_aver_p (i)                          
       n_e_av_p (i) = 0 
       n_e_av_m (i) = 0 

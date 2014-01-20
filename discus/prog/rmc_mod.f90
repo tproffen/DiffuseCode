@@ -6,7 +6,12 @@ USE config_mod
 !
 SAVE
 !
+INTEGER                 :: RMC_MAX_PLANES    = 1
 INTEGER                 :: RMC_MAXSCAT       = 1
+INTEGER                 :: RMC_MAX_Q         = 1
+INTEGER                 :: RMC_MAX_SQ        = 1
+INTEGER                 :: RMC_MAX_LOTS      = 1
+INTEGER                 :: RMC_MAX_SYM       = 48  ! Maximum no of sym op in rec space
 !
 INTEGER, PARAMETER      :: rmc_mode_shift    = 1
 INTEGER, PARAMETER      :: rmc_mode_swchem   = 2
@@ -34,26 +39,46 @@ INTEGER , PARAMETER     :: RMC_RAD_XRAY = 1
 INTEGER , PARAMETER     :: RMC_RAD_NEUT = 2
 INTEGER , PARAMETER     :: RMC_RAD_ELEC = 3
 !
-CHARACTER (LEN=80), DIMENSION(RMC_MAX_PLANES)      :: rmc_fname
+LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed   ! (0:RMC_MAXSCAT)
+!
+CHARACTER (LEN=80), DIMENSION(:), ALLOCATABLE     :: rmc_fname      ! (RMC_MAX_PLANES)
+CHARACTER (LEN= 4), DIMENSION(:), ALLOCATABLE     :: rmc_lambda     ! (RMC_MAX_PLANES)
+REAL              , DIMENSION(:,:), ALLOCATABLE   :: rmc_xy         ! (4,RMC_MAX_PLANES)
+REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_rlambda    ! (RMC_MAX_PLANES)
+REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_skal       ! (RMC_MAX_PLANES)
+REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_back       ! (RMC_MAX_PLANES)
+REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_chi2       ! (RMC_MAX_PLANES)
+REAL   , DIMENSION(:), ALLOCATABLE                :: rmc_wtot       ! (RMC_MAX_PLANES)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: offq           ! (RMC_MAX_PLANES+1)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_wic_typ    ! (RMC_MAX_PLANES)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_nsym       ! (RMC_MAX_PLANES)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_constrain  ! (RMC_MAX_PLANES)
+INTEGER, DIMENSION(:,:), ALLOCATABLE              :: rmc_num        ! (2,RMC_MAX_PLANES)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_radiation  ! (RMC_MAX_PLANES)
+INTEGER, DIMENSION(:), ALLOCATABLE                :: rmc_power      ! (RMC_MAX_PLANES)
+LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_lxray      ! (RMC_MAX_PLANES)
+LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_ano        ! (RMC_MAX_PLANES)
+LOGICAL, DIMENSION(:), ALLOCATABLE                :: rmc_ldbw       ! (RMC_MAX_PLANES)
+!
+REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_eck        ! (3,3,RMC_MAX_SYM,RMC_MAX_PLANES)
+REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_vi         ! (3,2,RMC_MAX_SYM,RMC_MAX_PLANES)
+INTEGER, DIMENSION(:,:)    , ALLOCATABLE          :: offsq          ! (RMC_MAX_PLANES+1,RMC_MAX_SYM) 
+
+COMPLEX, DIMENSION(:,:,:)  , ALLOCATABLE          :: rcfact         ! (0:CFPKT, DEF_MAXSCAT, RMC_MAX_PLANES)
+REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_maxmove    ! (3,0:DEF_MAXSCAT)
+REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist    ! (DEF_MAXSCAT,DEF_MAXSCAT)
+!
+COMPLEX, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+COMPLEX, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+INTEGER, DIMENSION(:)      , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
+INTEGER, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_lots_orig ! (3,RMC_MAX_LOTS)
+!
+REAL   , DIMENSION(:)      , ALLOCATABLE           :: rmc_int       ! (RMC_MAX_Q)
+REAL   , DIMENSION(:)      , ALLOCATABLE           :: rmc_wic       ! (RMC_MAX_Q)
+!
+!
 CHARACTER (LEN=80)                                 :: rmc_lname
-CHARACTER (LEN= 4), DIMENSION(RMC_MAX_PLANES)      :: rmc_lambda
 !
-complex, DIMENSION(RMC_MAX_SQ,RMC_MAX_LOTS)        :: rmc_csf
-complex, DIMENSION(RMC_MAX_SQ,RMC_MAX_LOTS)        :: rmc_csf_new
-complex, DIMENSION(0:CFPKT,DEF_MAXSCAT,RMC_MAX_PLANES) :: rcfact
-!
-REAL   , DIMENSION(3,3,RMC_MAX_SYM,RMC_MAX_PLANES) :: rmc_eck
-REAL   , DIMENSION(3,2,RMC_MAX_SYM,RMC_MAX_PLANES) :: rmc_vi
-REAL   , DIMENSION(RMC_MAX_Q)                      :: rmc_int
-REAL   , DIMENSION(RMC_MAX_Q)                      :: rmc_wic
-REAL   , DIMENSION(4,RMC_MAX_PLANES)               :: rmc_xy
-REAL   , DIMENSION(RMC_MAX_PLANES)                 :: rmc_rlambda
-REAL   , DIMENSION(RMC_MAX_PLANES)                 :: rmc_skal
-REAL   , DIMENSION(RMC_MAX_PLANES)                 :: rmc_back
-REAL   , DIMENSION(RMC_MAX_PLANES)                 :: rmc_chi2
-REAL   , DIMENSION(RMC_MAX_PLANES)                 :: rmc_wtot
-REAL   , DIMENSION(3,0:DEF_MAXSCAT   )                 :: rmc_maxmove
-REAL   , DIMENSION(DEF_MAXSCAT,DEF_MAXSCAT)                :: rmc_mindist
 REAL                                               :: rmc_mindist_max
 REAL                                               :: rmc_ave
 REAL                                               :: rmc_sigma
@@ -62,30 +87,19 @@ REAL                                               :: rmc_llim,rmc_ulim
 !
 INTEGER                                            :: rmc_nplane
 INTEGER                                            :: rmc_data
-INTEGER, DIMENSION(RMC_MAX_PLANES+1,RMC_MAX_SYM)   :: offsq
-INTEGER, DIMENSION(RMC_MAX_PLANES+1)               :: offq
-INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_wic_typ
-INTEGER, DIMENSION(RMC_MAX_SQ)                     :: ristl
-INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_nsym
-INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_constrain
-INTEGER, DIMENSION(2,RMC_MAX_PLANES)               :: rmc_num
-INTEGER, DIMENSION(3,RMC_MAX_LOTS)                 :: rmc_lots_orig
 INTEGER, DIMENSION(3)                              :: rmc_csize
 INTEGER                                            :: rmc_nlots,rmc_ilots
 INTEGER                                            :: rmc_maxcyc,rmc_display
 INTEGER                                            :: rmc_mode,rmc_local
 INTEGER, DIMENSION(0:1)                            :: rmc_sel_prop
 !
-LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_lxray
-INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_radiation
-INTEGER, DIMENSION(RMC_MAX_PLANES)                 :: rmc_power
-LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_ano 
-LOGICAL, DIMENSION(RMC_MAX_PLANES)                 :: rmc_ldbw 
-LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed  ! (0:RMC_MAXSCAT)
 LOGICAL                                            :: rmc_doskal,rmc_doback
 LOGICAL                                            :: rmc_calc_f,rmc_log,rmc_dosym,rmc_nosym
 LOGICAL                                            :: rmc_ranloc,rmc_sel_atom
 !
 INTEGER                                            :: rmc_size_of  ! Bytes allocates for rmc
+INTEGER                                            :: rmc_n_sym    ! Actual number of symmetry operations
+INTEGER                                            :: rmc_n_qxy    ! Size of RMC_MAX_Q arrays
+INTEGER                                            :: rmc_n_sq     ! Size of RMC_MAX_Q arrays* Number of Symmetry
 !     
 END MODULE rmc_mod

@@ -41,6 +41,7 @@ SUBROUTINE pdf
       INTEGER lbeg (3) 
       INTEGER lp, length
       INTEGER indxg, ianz, lbef, i, ia, is, ic (3), iianz, jjanz 
+      INTEGER :: n_nscat  ! Dummy for RMC allocation
       LOGICAL lout, ldummy 
 !                                                                       
       INTEGER len_str 
@@ -210,6 +211,12 @@ SUBROUTINE pdf
          ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.         &
                  str_comp (befehl, 'dese', 2, lbef, 4) ) then                             
 !                                                                       
+            IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
+               CALL alloc_rmc ( n_nscat )
+               IF ( ier_num < 0 ) THEN
+                  RETURN
+               ENDIF
+            ENDIF
             CALL atom_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
             rmc_sel_atom, .false., str_comp (              &
             befehl, 'sele', 3, lbef, 4) )                               

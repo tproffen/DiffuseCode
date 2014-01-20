@@ -287,6 +287,7 @@ MODULE allocate_appl_mod
       CALL alloc_powder   ( 1            )
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1            )
+      CALL alloc_rmc_planes(1, 48        )
       CALL alloc_save     ( 1            )
       CALL alloc_shear    ( 1            )
       CALL alloc_stack    ( 1,  1,  1,  .TRUE.)
@@ -983,11 +984,11 @@ MODULE allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
-       CALL alloc_arr ( dsi     ,1,n_qxy  ,  all_status, 0.0      , size_of)
+       CALL alloc_arr ( istl    ,1,n_qxy  ,  all_status, 0        , size_of)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
-       CALL alloc_arr ( istl    ,1,n_qxy  ,  all_status, 0        , size_of)
+       CALL alloc_arr ( dsi     ,1,n_qxy  ,  all_status, 0.0      , size_of)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
@@ -1977,7 +1978,15 @@ MODULE allocate_appl_mod
       lstat     = .TRUE.
       rmc_size_of = 0
 !
-       CALL alloc_arr ( rmc_allowed    ,0,n_scat  ,  all_status, .false.  , size_of )
+       CALL alloc_arr ( rmc_allowed    ,0,n_scat  ,  all_status, .true.   , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_maxmove,1,3,0,n_scat  ,  all_status, 0.2      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_mindist,1,n_scat,1,n_scat,  all_status, 0.5   , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        rmc_size_of = rmc_size_of + size_of
 !
@@ -1999,6 +2008,295 @@ MODULE allocate_appl_mod
          RETURN
       END IF
     END SUBROUTINE alloc_rmc
+!
+!
+    SUBROUTINE alloc_rmc_data ( n_qxy )
+!-
+!     Allocate the data intensity arrays needed by RMC
+!+
+      USE rmc_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_qxy
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      COMPLEX              :: def_value
+!
+      def_value = CMPLX(0.0,0.0)
+      lstat     = .TRUE.
+      rmc_size_of = 0
+!
+       CALL alloc_arr ( rmc_int        ,1,n_qxy   ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_wic        ,1,n_qxy   ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+!
+      IF( lstat ) THEN                        ! Success
+         RMC_MAX_Q     = n_qxy
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'RMC'
+         ENDIF
+      ELSE                                    ! Failure
+         RMC_MAX_Q     = n_qxy
+         rmc_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'RMC'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_rmc_data
+!
+!
+    SUBROUTINE alloc_rmc_istl ( n_sq, n_scat, n_planes )
+!-
+!     Allocate the arrays needed by RMC
+!+
+      USE rmc_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_sq
+      INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_planes
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      COMPLEX              :: def_value
+!
+      def_value = CMPLX(0.0,0.0)
+      lstat     = .TRUE.
+      rmc_size_of = 0
+!
+       CALL alloc_arr ( ristl,             1,n_sq  , all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rcfact, 0, CFPKT,1,n_scat,1, n_planes , all_status, def_value  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+!
+      IF( lstat ) THEN                        ! Success
+!        RMC_MAXSCAT   = n_scat
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'RMC'
+         ENDIF
+      ELSE                                    ! Failure
+!        RMC_MAXSCAT   = n_scat
+         rmc_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'RMC'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_rmc_istl
+!
+!
+    SUBROUTINE alloc_rmc_q ( n_sq, n_lots )
+!-
+!     Allocate the arrays needed by RMC
+!+
+      USE rmc_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_sq
+      INTEGER, INTENT(IN)  :: n_lots
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      COMPLEX              :: def_value
+!
+      def_value = CMPLX(0.0,0.0)
+      lstat     = .TRUE.
+      rmc_size_of = 0
+!
+       CALL alloc_arr ( rmc_lots_orig,1,3, 1,n_lots, all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_csf    , 1, n_sq, 1, n_lots, all_status, def_value, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_csf_new, 1, n_sq, 1, n_lots, all_status, def_value, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+!
+      IF( lstat ) THEN                        ! Success
+!        RMC_MAXSCAT   = n_scat
+         RMC_MAX_SQ    = n_sq
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'RMC'
+         ENDIF
+      ELSE                                    ! Failure
+!        RMC_MAXSCAT   = n_scat
+         RMC_MAX_SQ    = n_sq
+         ier_typ       = 0
+         rmc_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'RMC'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_rmc_q
+!
+!
+    SUBROUTINE alloc_rmc_planes ( n_planes, n_sym )
+!-
+!     Allocate the arrays needed by RMC
+!+
+      USE rmc_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_planes
+      INTEGER, INTENT(IN)  :: n_sym
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+      INTEGER              :: i
+!
+      lstat     = .TRUE.
+      rmc_size_of = 0
+!
+       CALL alloc_arr ( rmc_fname      ,1,n_planes  ,  all_status, ' '      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_lambda     ,1,n_planes  ,  all_status, ' '      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_xy, 1,4    ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_rlambda    ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_skal       ,1,n_planes  ,  all_status, 1.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_back       ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_chi2       ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_wtot       ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_wic_typ    ,1,n_planes  ,  all_status, RMC_WIC_EINS,size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_nsym       ,1,n_planes  ,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_constrain  ,1,n_planes  ,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+       DO i=1,n_planes
+          rmc_constrain(i) = i
+       ENDDO
+!
+       CALL alloc_arr ( rmc_num, 1,2   ,1,n_planes  ,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_radiation  ,1,n_planes  ,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_power      ,1,n_planes  ,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr (     offq       ,1,n_planes+1,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+!
+       CALL alloc_arr ( rmc_lxray      ,1,n_planes  ,  all_status, .true.   , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_ano        ,1,n_planes  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_ldbw       ,1,n_planes  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_eck, 1,3,1,3, 1, n_sym  ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr ( rmc_vi , 1,3,1,2, 1, n_sym  ,1,n_planes  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+       CALL alloc_arr (     offsq      ,1,n_planes+1, 1,n_sym,  all_status, 0        , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       rmc_size_of = rmc_size_of + size_of
+!
+      IF( lstat ) THEN                        ! Success
+         RMC_MAX_PLANES = n_planes
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'RMC'
+         ENDIF
+      ELSE                                    ! Failure
+         RMC_MAX_PLANES = n_planes
+         rmc_size_of   = 0
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'RMC'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_rmc_planes
+!
 !
     SUBROUTINE alloc_save ( n_scat )
 !-

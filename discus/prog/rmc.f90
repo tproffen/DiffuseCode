@@ -27,20 +27,22 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
+      INTEGER, PARAMETER :: MAXW = 2
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
       CHARACTER(40) cdummy 
-      CHARACTER(1024) line, zeile, cpara (MAXSCAT) 
-      INTEGER lpara (MAXSCAT), lp, length 
+      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=1024) :: cpara(MAXW) !  (MAXSCAT) 
+      INTEGER             :: lpara(MAXW) ! (MAXSCAT)
+      INTEGER lp, length 
       INTEGER indxg, ianz, lbef 
       INTEGER i, j
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
 !
-      maxw = MAXSCAT
+!     maxw = MAXSCAT
       IF( cr_nscat > RMC_MAXSCAT) THEN
          CALL alloc_rmc ( cr_nscat )
          IF ( ier_num < 0 ) THEN
@@ -60,9 +62,9 @@ CONTAINS
 !                                                                       
          indxg = index (line, '=') 
       IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
-     &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+                    .and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) &
+                    .and..not. (str_comp (befehl, 'help', 2, lbef, 4)   &
+                    .or.        str_comp (befehl, '?   ', 2, lbef, 4) ) ) then                                              
             CALL do_math (line, indxg, length) 
 !                                                                       
 !------ execute a macro file                                            
@@ -130,15 +132,17 @@ CONTAINS
          ELSEIF (str_comp (befehl, 'rese', 3, lbef, 4) ) then 
             rmc_nplane = 0 
             rmc_calc_f = .true. 
-            rmc_qmin = 9999.0 
-            rmc_qmax = - 9999.0 
+            rmc_qmin   =  9999.0 
+            rmc_qmax   = - 9999.0 
+            offq       = 0   ! offq (*)
+            offsq      = 0   ! offsq(*)
 !                                                                       
-            DO i = 1, RMC_MAX_PLANES 
-            offq (i) = 0 
-            DO j = 1, RMC_MAX_SYM 
-            offsq (i, j) = 0 
-            ENDDO 
-            ENDDO 
+!           DO i = 1, RMC_MAX_PLANES 
+!           offq (i) = 0 
+!           DO j = 1, RMC_MAX_SYM 
+!           offsq (i, j) = 0 
+!           ENDDO 
+!           ENDDO 
 !                                                                       
 !------ run 'run'                                                       
 !                                                                       

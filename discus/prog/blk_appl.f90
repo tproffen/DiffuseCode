@@ -147,30 +147,30 @@ CONTAINS
 !        rmc_repl    (i) = 0
 !        rmc_allowed (i) = .TRUE. 
 !     ENDDO
-      DO i = 1, MAXSCAT 
-      rmc_maxmove (1, i) = 0.2 
-      rmc_maxmove (2, i) = 0.2 
-      rmc_maxmove (3, i) = 0.2 
-      DO j = 1, MAXSCAT 
-      rmc_mindist (i, j) = 0.5 
-      ENDDO 
-      ENDDO 
+!     DO i = 1, MAXSCAT 
+!     rmc_maxmove (1, i) = 0.2 
+!     rmc_maxmove (2, i) = 0.2 
+!     rmc_maxmove (3, i) = 0.2 
+!     DO j = 1, MAXSCAT 
+!     rmc_mindist (i, j) = 0.5 
+!     ENDDO 
+!     ENDDO 
 !                                                                       
-      DO i = 1, RMC_MAX_PLANES 
-      rmc_fname (i) = ' ' 
-      rmc_num (1, i) = 0 
-      rmc_num (2, i) = 0 
-      rmc_ldbw (i) = .FALSE. 
-      rmc_ano (i) = .FALSE. 
-      rmc_skal (i) = 1.0 
-      rmc_back (i) = 0.0 
-      rmc_wic_typ (i) = RMC_WIC_EINS 
-      rmc_constrain (i) = i 
-      offq (i) = 0 
-      DO j = 1, RMC_MAX_SYM 
-      offsq (i, j) = 0 
-      ENDDO 
-      ENDDO 
+!     DO i = 1, RMC_MAX_PLANES 
+!     rmc_fname (i) = ' ' 
+!     rmc_num (1, i) = 0 
+!     rmc_num (2, i) = 0 
+!     rmc_ldbw (i) = .FALSE. 
+!     rmc_ano (i) = .FALSE. 
+!     rmc_skal (i) = 1.0 
+!     rmc_back (i) = 0.0 
+!     rmc_wic_typ (i) = RMC_WIC_EINS 
+!     rmc_constrain (i) = i 
+!     offq (i) = 0 
+!     DO j = 1, RMC_MAX_SYM 
+!     offsq (i, j) = 0 
+!     ENDDO 
+!     ENDDO 
 !
       END SUBROUTINE initarrays                     
 !*****7*****************************************************************

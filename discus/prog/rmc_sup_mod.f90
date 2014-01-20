@@ -21,13 +21,17 @@ CONTAINS
       INTEGER, PARAMETER :: MIN_PARA = 23  ! A command requires at leaset these no of parameters
       INTEGER maxw 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+      CHARACTER ( LEN=* ), INTENT(INOUT) :: zeile 
+      INTEGER            , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
-      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
+!     CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
+!     REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
+!     REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
+!     INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
+      CHARACTER(LEN=1024), DIMENSION(25                     ) :: cpara
+      REAL               , DIMENSION(25                     ) :: werte
+      REAL               , DIMENSION(25                     ) :: wwerte
+      INTEGER            , DIMENSION(25                     ) :: lpara
 !
       REAL mmdis, hklmin (3), hklmax (3)
 !, quad 
@@ -35,6 +39,7 @@ CONTAINS
       LOGICAL flag 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
+      maxw = 25
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (ianz.ge.2) then 
@@ -103,8 +108,9 @@ CONTAINS
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      ie1 = nint (werte (1) ) 
                      ie2 = nint (werte (2) ) 
-      IF (ie1.gt.0.and.ie1.le.rmc_max_planes.and.ie2.gt.0.and.ie2.le.rmc&
-     &_max_planes.and.ie2.le.ie1) then                                  
+                     IF (ie1.gt.0.and.ie1.le.rmc_max_planes.and. &
+                         ie2.gt.0.and.ie2.le.rmc_max_planes.and. &
+                         ie2.le.ie1                        ) then                                  
                         rmc_constrain (ie1) = ie2 
                      ELSE 
                         ier_num = - 19 
@@ -235,7 +241,7 @@ CONTAINS
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
                         CALL ber_params (4, cpara, lpara, werte, maxw) 
                         IF (ier_num.eq.0) then 
-                           IF (nint (werte (4) ) .le.RMC_MAX_LOTS) then 
+!                          IF (nint (werte (4) ) .le.RMC_MAX_LOTS) then 
                               ls_xyz (1) = nint (werte (1) ) 
                               ls_xyz (2) = nint (werte (2) ) 
                               ls_xyz (3) = nint (werte (3) ) 
@@ -254,10 +260,10 @@ CONTAINS
                               ELSE 
                                  rmc_ranloc = .TRUE. 
                               ENDIF 
-                           ELSE 
-                              ier_num = - 21 
-                              ier_typ = ER_RMC 
-                           ENDIF 
+!                          ELSE 
+!                             ier_num = - 21 
+!                             ier_typ = ER_RMC 
+!                          ENDIF 
                         ENDIF 
                      ENDIF 
                   ELSE 
@@ -438,18 +444,19 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: maxww = 4 
+!
+      INTEGER                             , INTENT(IN )   :: maxw
+      REAL        , DIMENSION(3,0:MAXSCAT), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
+      LOGICAL                             , INTENT(IN )   :: sel_atom 
+      INTEGER                             , INTENT(INOUT) :: ianz
 !                                                                       
-      INTEGER maxw, maxww 
-      PARAMETER (maxww = 4) 
-!                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      REAL move (3, 0:MAXSCAT) 
-      REAL werte (maxw) 
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara !(maxw) 
+      REAL             , DIMENSION(1:MAXW), INTENT(INOUT) :: werte !(maxw) 
+      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara !(maxw) 
+!
       REAL wwerte (maxww) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz, ii, is, i, j 
-      LOGICAL sel_atom 
+      INTEGER ii, is, i, j 
 !                                                                       
 !------ Atoms                                                           
 !                                                                       
@@ -528,11 +535,13 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxw 
+      INTEGER, INTENT(IN) :: maxw 
 !                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ianz, imode, ilocal 
+      INTEGER           , INTENT(OUT) :: imode
+      INTEGER           , INTENT(OUT) :: ilocal 
+      INTEGER           , INTENT(IN ) :: ianz
+      CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(IN ) :: cpara  !(maxw) 
+      INTEGER           , DIMENSION(1:MAXW), INTENT(IN ) :: lpara  !(maxw) 
 !                                                                       
       IF (ianz.ge.1) then 
          CALL do_cap (cpara (1) ) 
@@ -584,10 +593,11 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      INTEGER is, js, ii, jj 
-      REAL dist 
+      INTEGER , INTENT(IN) :: is
+      INTEGER , INTENT(IN) :: js
+      REAL    , INTENT(IN) :: dist 
+!
+      INTEGER :: ii, jj 
 !                                                                       
                                                                         
       IF (is.ne. - 1.and.js.ne. - 1) then 
@@ -690,7 +700,8 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      CHARACTER ( * ) cmd 
+      CHARACTER (LEN=*), INTENT(IN) :: cmd
+! 
       CHARACTER(25) wic (8) 
       CHARACTER(9) at_lis (maxscat+1) 
       CHARACTER(8) ra 
@@ -760,7 +771,7 @@ CONTAINS
             ENDIF 
          ENDIF 
 !                                                                       
-         IF (rmc_ave.gt.0.0) write (output_io, 1240) rmc_ave * 100.0 
+         IF (rmc_ave.gt.0.0) WRITE (output_io, 1240) rmc_ave * 100.0 
          WRITE (output_io, 1250) rmc_maxcyc 
          WRITE (output_io, 1300) rmc_display, rmc_log 
          WRITE (output_io, 1400) rmc_sigma 
@@ -919,13 +930,13 @@ CONTAINS
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
-       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
+      INTEGER, PARAMETER :: maxw = 10 
+!
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER i, il, lp 
+      INTEGER i, il
 !                                                                       
       CHARACTER(1024) cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw), ip, is 
@@ -1044,10 +1055,11 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      CHARACTER ( * ) fname 
-      INTEGER pgmmax, ip, is, i, j 
+      CHARACTER (LEN=*), INTENT(IN) :: fname 
+      INTEGER          , INTENT(IN) :: ip
+      INTEGER          , INTENT(IN) :: is
+!
+      INTEGER pgmmax, i, j 
 !                                                                       
       pgmmax = 255 
 !                                                                       
@@ -1107,7 +1119,9 @@ CONTAINS
 !     read experimental data for rmc fit                                
 !-                                                                      
       USE config_mod 
+      USE allocate_appl_mod
       USE crystal_mod 
+      USE diffuse_mod
       USE metric_mod
       USE rmc_mod 
       USE rmc_symm_mod
@@ -1119,13 +1133,11 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 13) 
-      INTEGER max_sym 
-      PARAMETER (max_sym = 48) 
+      INTEGER, PARAMETER :: maxw = 13 
+      INTEGER, PARAMETER :: max_sym = 48 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw), cfile, cwic 
       CHARACTER(4) cdummy 
@@ -1141,9 +1153,26 @@ CONTAINS
       REAL ee3 (4, max_sym) 
       REAL zone (4, max_sym) 
       REAL mat (4, 4, max_sym) 
+!
+      INTEGER  :: n_planes=1 ! Number of planes
+      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
+      INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
+      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
+      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
+      INTEGER  :: n_sym   =48! Maximum number of symmetry operations in reciprocal space
+!
       LOGICAL lexist 
 !                                                                       
 !     REAL rmc_dowic 
+!
+!
+!------ Allocate RMC PLANES
+!
+      IF(rmc_nplane == RMC_MAX_PLANES ) THEN
+         n_planes = RMC_MAX_PLANES + 5
+         n_sym    = 48       ! These arrays are small, use maximum symmetry number
+         CALL alloc_rmc_planes(n_planes, n_sym)
+      ENDIF
 !                                                                       
 !------ check if there is space for another plane                       
 !                                                                       
@@ -1269,13 +1298,17 @@ CONTAINS
                ier_typ = ER_RMC 
             ENDIF 
          ENDIF 
-         IF (nx * ny.gt. (rmc_max_q - offq (ip) ) ) then 
+!                                                                       
+         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q , offq(ip)+nx*ny)
+         CALL alloc_rmc_data ( n_qxy)
+!
+         IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
             ier_num = - 2 
             ier_typ = ER_RMC 
          ENDIF 
 !                                                                       
          IF (ier_num.ne.0) goto 98 
-!                                                                       
+!
          DO j = 1, ny 
          READ (17, *, end = 99, err = 999) (rmc_int (offq (ip) +        &
          (i - 1) * ny + j), i = 1, nx)                                  
@@ -1302,7 +1335,11 @@ CONTAINS
                ier_typ = ER_RMC 
             ENDIF 
          ENDIF 
-         IF (nx * ny.gt. (rmc_max_q - offq (ip) ) ) then 
+!                                                                       
+         n_qxy  = MAX( n_qxy , rmc_n_qxy, RMC_MAX_Q , offq(ip)+nx*ny)
+         CALL alloc_rmc_data ( n_qxy)
+!
+         IF (nx * ny.gt. (RMC_MAX_Q - offq (ip) ) ) then 
             ier_num = - 2 
             ier_typ = ER_RMC 
          ENDIF 
@@ -1360,7 +1397,7 @@ CONTAINS
       CALL rmc_symmetry (nsym, zone, mat, max_sym, .true., cr_acentric) 
       IF (ier_num.ne.0) return 
 !                                                                       
-      IF (nsym.gt.rmc_max_sym) then 
+      IF (nsym.gt.RMC_MAX_SYM) then 
          rmc_dosym = .false. 
          rmc_nosym = .true. 
          rsym = nsym 
@@ -1394,7 +1431,7 @@ CONTAINS
 !                                                                       
       IF (dbg) then 
          DO i = 1, rmc_max_planes 
-         DO j = 1, rmc_max_sym 
+         DO j = 1, RMC_MAX_SYM    ! Here RMC_MAX_SYM=48 is OK
          WRITE (output_io, 9999) i, j, offq (i), offsq (i, j) 
          ENDDO 
          ENDDO 
@@ -1418,6 +1455,18 @@ CONTAINS
       rmc_eck (j, 3, i, ip) = ee3 (j, i) 
       ENDDO 
       ENDDO 
+!
+!------ Allocate initial Diffuse
+!
+      rmc_n_qxy = MAX(nx*ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
+      n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
+      n_natoms  = MAX(n_natoms, cr_natoms, DIF_MAXSCAT)
+      n_nscat   = MAX(n_nscat, cr_nscat, DIF_MAXSCAT)
+      call alloc_diffuse (n_qxy, n_nscat, n_natoms)
+      rmc_n_sym = MAX(rmc_n_sym, nsym)    ! Save RMC actual number of symmetry operations
+      n_sq      = n_qxy*rmc_n_sym
+      rmc_n_sq  = n_sq                    ! Save RMC_actual number of data points * nsym
+      CALL alloc_rmc_istl ( n_sq, n_nscat, rmc_nplane )
 !                                                                       
 !------ initial q range of data to be used is ALL data                  
 !                                                                       
@@ -1469,10 +1518,17 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
+      INTEGER, INTENT(IN)    :: ifile
+      INTEGER, INTENT(INOUT) :: nx
+      INTEGER, INTENT(INOUT) :: ny
+      REAL   , INTENT(OUT)   :: xmin
+      REAL   , INTENT(OUT)   :: xmax
+      REAL   , INTENT(OUT)   :: ymin
+      REAL   , INTENT(OUT)   :: ymax 
+!
       CHARACTER(1024) zeile 
       CHARACTER(2) cmagic 
-      REAL xmin, xmax, ymin, ymax 
-      INTEGER ifile, nx, ny, id 
+      INTEGER id 
 !                                                                       
       READ (ifile, 1000, end = 99, err = 999) cmagic 
       IF (cmagic (1:2) .ne.'P2') then 
@@ -1514,10 +1570,8 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      REAL inte 
-      INTEGER typ 
+      INTEGER, INTENT(IN) :: typ 
+      REAL   , INTENT(IN) :: inte 
 !                                                                       
       IF (inte.le.0.0) then 
          rmc_dowic = 0.0 
@@ -1546,6 +1600,7 @@ CONTAINS
 !     main rmc loop - called by run command                             
 !-                                                                      
       USE config_mod 
+      USE allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -1578,6 +1633,12 @@ CONTAINS
       INTEGER i, j, ip, iq, is, iii 
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
+!
+      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
+      INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
+      INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
+!      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
+!      INTEGER  :: n_nscat =1 ! Maximum number of atoms for DIFFUSE allocation
 !                                                                       
       REAL ran1 
 !                                                                       
@@ -1597,6 +1658,12 @@ CONTAINS
 !                                                                       
       CALL rmc_check_input 
       IF (ier_num.ne.0) return 
+!
+!------	Allocate arrays related to SQ, LOTS
+!
+      n_sq   = rmc_n_qxy*rmc_n_sym   ! Could like wise be = rmc_n_sq
+      n_lots = MAX( n_lots, rmc_nlots, RMC_MAX_LOTS)
+      CALL alloc_rmc_q ( n_sq, n_lots)
 !                                                                       
 !------ sym ?                                                           
 !                                                                       
@@ -1908,7 +1975,7 @@ CONTAINS
       INTEGER isym (rmc_max_planes) 
       INTEGER lbeg (3), ncell 
       INTEGER ip, iscat, nlot, i, k, iii 
-!                                                                       
+!
       CALL four_cexpt 
       CALL rmc_zero 
       CALL four_csize (cr_icc, rmc_csize, lperiod, ls_xyz) 
@@ -1934,48 +2001,48 @@ CONTAINS
 !                                                                       
 !------ Loop over all exp. data planes                                  
 !                                                                       
-      DO ip = 1, rmc_nplane 
-      CALL dlink (rmc_lxray (ip), rmc_ano (ip), rmc_lambda (ip),        &
-      rmc_rlambda (ip),  rmc_radiation(ip), rmc_power(ip) )
-      CALL rmc_formtab (ip, .true.) 
+loop_plane: DO ip = 1, rmc_nplane 
+         CALL dlink (rmc_lxray (ip), rmc_ano (ip), rmc_lambda (ip),        &
+                     rmc_rlambda (ip),  rmc_radiation(ip), rmc_power(ip) )
+         CALL rmc_formtab (ip, .true.) 
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          
 !                                                                       
-      DO k = 1, isym (ip) 
-      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      acsf (i) = cmplx (0.0d0, 0.0d0) 
-      ENDDO 
+         loop_sym: DO k = 1, isym (ip) 
+            DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+               acsf (i) = cmplx (0.0d0, 0.0d0) 
+            ENDDO 
 !                                                                       
-      CALL rmc_layer (k, ip) 
-      CALL rmc_stltab (k, ip, .true.) 
-      CALL four_aver (rmc_ilots, rmc_ave) 
+            CALL rmc_layer (k, ip) 
+            CALL rmc_stltab (k, ip, .true.) 
+            CALL four_aver (rmc_ilots, rmc_ave) 
 !                                                                       
-      iii = offsq (ip, k) 
+            iii = offsq (ip, k) 
 !                                                                       
 !------ --- Loop over all 'lots'                                        
 !                                                                       
-      DO nlot = 1, rmc_nlots 
-      DO i = 1, 3 
-      lbeg (i) = rmc_lots_orig (i, nlot) 
-      ENDDO 
+            DO nlot = 1, rmc_nlots 
+               DO i = 1, 3 
+                  lbeg (i) = rmc_lots_orig (i, nlot) 
+               ENDDO 
 !                                                                       
 !------ ----- Loop over all atom types                                  
 !                                                                       
-      DO iscat = 1, cr_nscat 
-      CALL four_getatm (iscat, rmc_ilots, lbeg, rmc_csize, ncell) 
-      CALL four_strucf (iscat, .true.) 
-      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i) 
-      ENDDO 
-      ENDDO 
+            DO iscat = 1, cr_nscat 
+               CALL four_getatm (iscat, rmc_ilots, lbeg, rmc_csize, ncell) 
+               CALL four_strucf (iscat, .true.) 
+               DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+                  rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i) 
+               ENDDO 
+            ENDDO 
 !                                                                       
-      DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) - acsf (i) 
-      ENDDO 
-      ENDDO 
-      WRITE (output_io, 1200) ip, k 
-      ENDDO 
-      ENDDO 
+            DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
+               rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) - acsf (i) 
+            ENDDO 
+         ENDDO 
+         WRITE (output_io, 1200) ip, k 
+         ENDDO  loop_sym
+      ENDDO loop_plane
 !                                                                       
 !------ we don not need to calculate the initial Fourier again          
 !                                                                       
@@ -2009,9 +2076,11 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER iq, is, ip, il 
-      LOGICAL lnew 
+      INTEGER, INTENT(IN) :: ip
+      INTEGER, INTENT(IN) :: is
+      LOGICAL, INTENT(IN) :: lnew 
 !                                                                       
+      INTEGER iq, il 
 !------ We want to average rmc_csf_new ..                               
 !                                                                       
       IF (lnew) then 
@@ -2183,12 +2252,16 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN) :: ip 
+      REAL   , INTENT(IN) :: wtot 
 !                                                                       
-      REAL(8) c, cc, ce, se, see 
-      REAL sk (rmc_max_planes) 
-      REAL ba (rmc_max_planes) 
-      REAL wtot 
-      INTEGER ip 
+      REAL(8), INTENT(IN) :: c
+      REAL(8), INTENT(IN) :: cc
+      REAL(8), INTENT(IN) :: ce
+      REAL(8), INTENT(IN) :: se
+      REAL(8), INTENT(IN) :: see 
+      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
+      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
 !------ calculate the values                                            
 !                                                                       
@@ -2231,8 +2304,11 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER is, ip, i 
-      LOGICAL lsave 
+      INTEGER , INTENT(IN) :: is
+      INTEGER , INTENT(IN) :: ip
+      LOGICAL , INTENT(IN) :: lsave 
+!
+      INTEGER i 
 !                                                                       
 !------ Calculate sin(theta)/lambda table for plan 'ip' and             
 !------ symmetry peration 'is' and store it                             
@@ -2264,10 +2340,18 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER , INTENT(IN) :: ip
+      LOGICAL , INTENT(IN) :: lsave 
 !                                                                       
-      INTEGER ip, i, j 
-      LOGICAL lsave, bano, blxray, bldbw 
+      INTEGER i, j 
+      INTEGER    :: all_status
+      LOGICAL bano, blxray, bldbw 
+!
+!     ALLOCATE(rcfact(0:CFPKT,1:cr_nscat,1),STAT=all_status)
+!     IF(all_status /= 0 ) THEN
+!        ier_num = -9999
+!        RETURN
+!     ENDIF
 !                                                                       
 !------ Calculate formfactor table for plan 'ip' and store it           
 !                                                                       
@@ -2299,6 +2383,8 @@ CONTAINS
          ENDDO 
          ENDDO 
       ENDIF 
+!
+!     DEALLOCATE(rcfact)
 !                                                                       
       END SUBROUTINE rmc_formtab                    
 !*****7*****************************************************************
@@ -2311,8 +2397,10 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER , INTENT(IN) :: is
+      INTEGER , INTENT(IN) :: ip
 !                                                                       
-      INTEGER ip, is, i 
+      INTEGER i 
 !                                                                       
       DO i = 1, 3 
       xm (i) = rmc_eck (i, 1, is, ip) 
@@ -2356,10 +2444,12 @@ CONTAINS
       USE tensors_mod
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, INTENT(IN) :: n
+      REAL   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
+      INTEGER, INTENT(IN) :: nsym
 !                                                                       
-      INTEGER nsym, i, j, k, n 
-      REAL mat (4, 4, n), a (3, 3), b (3, 3) 
+      INTEGER i, j, k
+      REAL a (3, 3), b (3, 3) 
 !                                                                       
       DO i = 1, nsym 
       DO j = 1, 3 
@@ -2389,9 +2479,12 @@ CONTAINS
       USE config_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN) :: n
+      REAL   , DIMENSION(4,  n), INTENT(INOUT) :: v
+      REAL   , DIMENSION(4,4,n), INTENT(INOUT) :: mat
+      INTEGER, INTENT(IN) :: nsym
 !                                                                       
-      INTEGER nsym, n 
-      REAL v (4, n), mat (4, 4, n) 
+!      REAL v (4, n), mat (4, 4, n) 
 !                                                                       
       INTEGER i, j, isym 
 !                                                                       
@@ -2417,15 +2510,18 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN)  :: ip
+      INTEGER, INTENT(IN)  :: is
+      INTEGER, INTENT(IN)  :: natoms
+      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: i_new !(rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
        
 !                                                                       
-      REAL p_new (3, rmc_max_atom) 
       REAL p_old (3, rmc_max_atom) 
       REAL off (3) 
-      INTEGER i_new (rmc_max_atom) 
       INTEGER i_old (rmc_max_atom) 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER i, ip, is, il, natoms 
+      INTEGER i, il
 !                                                                       
 !     LOGICAL rmc_inlot 
 !                                                                       
@@ -2469,10 +2565,16 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN) :: iscat
+      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(IN) :: pos !(3, rmc_max_atom)
+      REAL   , DIMENSION(3)              , INTENT(IN) :: off !(3) 
+      INTEGER, INTENT(IN) :: isite
+      INTEGER, INTENT(IN) :: is
+      INTEGER, INTENT(IN) :: ip
+      INTEGER, INTENT(IN) :: il
+      LOGICAL, INTENT(IN) :: lplus 
 !                                                                       
-      REAL pos (3, rmc_max_atom), off (3) 
-      INTEGER iscat, isite, is, ip, il, i 
-      LOGICAL lplus 
+      INTEGER i 
 !                                                                       
       IF (iscat.eq.0) return 
 !                                                                       
@@ -2509,15 +2611,16 @@ CONTAINS
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER              , INTENT(IN)  :: ia 
+      INTEGER              , INTENT(IN)  :: il 
+      REAL   , DIMENSION(3), INTENT(OUT) :: off !(3) 
 !                                                                       
-      REAL xtest (3), off (3), x0 
+      REAL xtest (3), x0 
       INTEGER cr_end 
       INTEGER iz (3), izmin, izmax 
-      INTEGER ia, il, is, i 
+      INTEGER is, i 
 !                                                                       
-      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3)        &
-      + 1                                                               
+      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3) + 1                                                               
 !                                                                       
 !------ We are not using lots                                           
 !                                                                       
@@ -2604,13 +2707,13 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
+      INTEGER, DIMENSION(RMC_MAX_PLANES), INTENT(IN) :: isym !(rmc_max_planes) 
+      INTEGER                           , INTENT(IN) :: natoms 
 !                                                                       
-      REAL p_new (3, rmc_max_atom) 
-      INTEGER i_new (rmc_max_atom) 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER imol (rmc_max_atom) 
-      INTEGER natoms 
-      INTEGER isym (rmc_max_planes) 
+      INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: i_new !(rmc_max_atom) 
+      REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN) :: p_new !(3, rmc_max_atom) 
+      INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: isel  !(rmc_max_atom) 
+      INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN) :: imol  !(rmc_max_atom) 
 !                                                                       
       INTEGER i, j, ip, iq, is, il 
 !                                                                       
@@ -2653,11 +2756,10 @@ CONTAINS
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      REAL p_new (3, rmc_max_atom) 
-      INTEGER i_new (rmc_max_atom), iatom 
-      LOGICAL laccept 
+      LOGICAL, INTENT(OUT) :: laccept 
+      INTEGER, INTENT(IN)  :: iatom 
+      INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN)  :: i_new !(rmc_max_atom)
+      REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
       INTEGER i 
       REAL pos (3), werte(1) 
@@ -2693,12 +2795,15 @@ CONTAINS
       USE random_mod
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER                         , INTENT(IN)    :: imode
+      INTEGER                         , INTENT(IN)    :: natoms 
+      INTEGER, DIMENSION(RMC_MAX_ATOM), INTENT(INOUT) :: isel !(rmc_max_atom) 
+      INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz1 !(3)
+      INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz2 !(3)
+      INTEGER                         , INTENT(INOUT) :: is1
+      INTEGER                         , INTENT(INOUT) :: is2
 !                                                                       
-      INTEGER imode, natoms 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER iz1 (3), iz2 (3) 
-      INTEGER i, is1, is2 
+      INTEGER i
       REAL ran1 
 !                                                                       
    10 CONTINUE 
@@ -2771,13 +2876,12 @@ CONTAINS
 !                                                                       
       USE prompt_mod 
       IMPLICIT none 
-       
-!                                                                       
-      REAL p_new (3, rmc_max_atom) 
-      INTEGER i_new (rmc_max_atom) 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER natoms 
-      LOGICAL laccept 
+!
+      LOGICAL, INTENT(OUT) :: laccept 
+      INTEGER, INTENT(OUT) :: natoms 
+      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
 !                                                                       
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, is1, is2, il 
@@ -2905,14 +3009,13 @@ CONTAINS
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
-       
-!                                                                       
-      REAL p_new (3, rmc_max_atom) 
-      INTEGER i_new (rmc_max_atom) 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER imol (rmc_max_atom) 
-      INTEGER natoms 
-      LOGICAL laccept 
+!
+      LOGICAL, INTENT(OUT) :: laccept 
+      INTEGER, INTENT(OUT) :: natoms 
+      REAL   , DIMENSION(3, RMC_MAX_ATOM), INTENT(OUT) :: p_new !(3, rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: i_new !(rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: isel  !(rmc_max_atom) 
+      INTEGER, DIMENSION(   RMC_MAX_ATOM), INTENT(OUT) :: imol !(rmc_max_atom) 
 !                                                                       
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, k, is1, is2, il, i0, j0 

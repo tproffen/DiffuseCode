@@ -17,10 +17,12 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER max_hkl, n_hkl 
-      REAL hkl (4, max_hkl), mat_hkl (4, 4, max_hkl) 
-      LOGICAL lfriedel_remove 
-      LOGICAL lacentric 
+      INTEGER, INTENT(OUT) :: n_hkl 
+      INTEGER, INTENT(IN)  :: max_hkl
+      REAL   , INTENT(OUT) :: hkl (4, max_hkl)
+      REAL   , INTENT(OUT) :: mat_hkl (4, 4, max_hkl) 
+      LOGICAL, INTENT(IN)  :: lfriedel_remove 
+      LOGICAL, INTENT(OUT) :: lacentric 
 !                                                                       
       REAL x (4), y (4), xmat (4, 4), wmat (4, 4), eps 
       INTEGER i, j, k, l, ii, iii, igs, igg, ipg, ia, iaa 
