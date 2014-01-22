@@ -63,7 +63,7 @@
       CHARACTER(5) zone 
       INTEGER values (8) 
 !                                                                       
-      CALL date_and_time (date, time, zone, values) 
+      CALL DATE_AND_TIME (date, time, zone, values) 
       int_date (1) = values (1) 
       int_date (2) = values (2) 
       int_date (3) = values (3) 
@@ -89,7 +89,7 @@
       CHARACTER(5) zone 
       INTEGER values (8) 
 !                                                                       
-      CALL date_and_time (date, time, zone, values) 
+      CALL DATE_AND_TIME (date, time, zone, values) 
       int_date (1) = values (1) 
       int_date (2) = values (2) 
       int_date (3) = values (3) 
@@ -131,7 +131,8 @@
 !                                                                       
       answer = ' ' 
       length = len_str(request)
-      CALL getenv (request(1:length), answer) 
+!     CALL getenv (request(1:length), answer) 
+      CALL GET_ENVIRONMENT_VARIABLE (request(1:length), answer)
 !                                                                       
       END SUBROUTINE holeenv                        
 !*****7*****************************************************************
@@ -164,12 +165,14 @@
       INTEGER narg, iarg, i 
       CHARACTER ( * ) arg (narg) 
 !                                                                       
-      iarg = iargc () 
+!     iarg = iargc () 
+      iarg = COMMAND_ARGUMENT_COUNT()
       iarg = min (iarg, narg) 
 !                                                                       
       IF (iarg.gt.0) then 
          DO i = 1, iarg 
-         CALL getarg (i, arg (i) ) 
+!        CALL getarg (i, arg (i) ) 
+         CALL GET_COMMAND_ARGUMENT (i, arg (i) )
          ENDDO 
       ENDIF 
 !                                                                       
@@ -191,6 +194,7 @@
 !                                                                       
 !     CALL system (command, ier_num) 
       ier_num = system (command(1:len_str(command)))
+!     ier_num = EXECUTE_COMMAND_LINE (command(1:len_str(command)))
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -307,6 +311,7 @@
       command (1:6) = 'rm -f ' 
       command (7:7 + laenge) = name (1:laenge) 
       ier_num = system (command(1:7+laenge)) 
+!     ier_num = EXECUTE_COMMAND_LINE (command(1:7+laenge))
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -347,6 +352,7 @@
       command (5 + lo:4 + lo + ln) = namenew (1:ln) 
 !                                                                       
       ier_num = system (command(1:4+lo+ln)) 
+!     ier_num = EXECUTE_COMMAND_LINE (command(1:4+lo+ln))
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -368,9 +374,13 @@
 !                                                                       
       REAL s 
       REAL time (2), res 
+      REAL :: current
 !                                                                       
-      CALL etime (time, res) 
-      seknds = time (1) - s 
+!     CALL etime (time, res) 
+!     seknds = time (1) - s 
+      CALL CPU_TIME(current)
+      seknds = current - s
+!
       END FUNCTION seknds                           
 !*****7*****************************************************************
       SUBROUTINE open_def (idef) 
