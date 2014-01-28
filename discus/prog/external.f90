@@ -579,9 +579,11 @@ CONTAINS
       ier_typ = ER_NONE 
   999 CONTINUE 
       IF (ier_num.eq. - 2) then 
+         WRITE ( *, 1900) outfile
          WRITE ( output_io, 2000) ios 
       ENDIF 
-!                                                                       
+!                      
+ 1900 FORMAT    ('Could not open: ', a)
  2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
      &                  '****')                                         
       END SUBROUTINE oeffne_external                
