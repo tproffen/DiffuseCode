@@ -305,11 +305,13 @@
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
+         WRITE ( *, 1900) name
          WRITE ( *, 2000) ier_num 
          ier_num = - 5 
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
+ 1900 FORMAT    ('Could not delete file: ', a)
  2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
      &                  '****')                                         
       END SUBROUTINE do_del_file                    
