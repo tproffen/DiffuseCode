@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 !*****7**************************************************************** 
 !                                                                       
       SUBROUTINE file_kdo (line, i) 
@@ -51,6 +54,9 @@
 !                                                                       
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.eq.0) then 
+
+            MACRO(line)
+
 !                                                                       
 !       Try to open the macro file                                      
 !                                                                       
