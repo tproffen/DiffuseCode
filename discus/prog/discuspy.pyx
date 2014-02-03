@@ -4,7 +4,7 @@ import numpy as np
 ### config_mod ###
 cdef extern int maxscat
 cdef extern int nmax
-### end config_mod ###
+# end config_mod #
 
 ### crystal_mod ###
 cdef extern int cr_ncatoms
@@ -16,7 +16,7 @@ cdef extern float cr_a0[3]
 cdef extern float cr_win[3]
 cdef extern int cr_natoms
 cdef extern int cr_n_real_atoms
-### endcrystal_mod ###
+# end crystal_mod #
 
 ### pdf_mod ###
 cdef extern int pdf_maxscat
@@ -57,7 +57,7 @@ cdef extern int pdf_poly_n
 #cdef extern bool pdf_lrho0
 #cdef extern bool pdf_lexact
 #cdef extern bool pdf_lrho0_rel
-### end pdf_mod ###
+# end pdf_mod #
 
 ### powder_mod ###
 cdef extern int POW_MAXPKT
@@ -103,29 +103,47 @@ cdef extern float pow_p3
 cdef extern float pow_p4
 cdef extern float pow_width
 cdef extern int pow_size_of
-### end powder_mod ###
+# end powder_mod #
+
+### diffuse_mod ###
+cdef extern int dif_maxat
+cdef extern int dif_maxscat
+cdef extern float fave
+cdef extern int nlots
+cdef extern int ilots
+cdef extern int ls_xyz[3]
+cdef extern int nxat
+cdef extern int inc[3]
+cdef extern int diff_radiation
+cdef extern float eck[4][3]
+cdef extern float vi[3][3]
+cdef extern float rlambda
+# end diffuse_mod #
+
 
 ### routines ###
 cdef extern void setup_c "setup" ()
 cdef extern void discus_loop()
-### end routines ###
+# end routines #
 
 ### crystal routines ###
 cdef extern void get_cr_pos_c "get_cr_pos" (float*,int)
+cdef extern void set_cr_pos_c "set_cr_pos" (float*,int)
 cdef extern void get_cr_dw_c "get_cr_dw" (float*,int)
 cdef extern void get_cr_scat_c "get_cr_scat" (float*,int)
-cdef extern void set_cr_pos_c "set_cr_pos" (float*,int)
+cdef extern void set_cr_scat_c "set_cr_scat" (float*,int)
 cdef extern void get_cr_iscat_c "get_cr_iscat" (int*,int)
 cdef extern void get_crystal_name_f "get_crystal_name" (char*)
 cdef extern void get_crystal_spcgr_f "get_crystal_spcgr" (char*)
 cdef extern void rese_cr_f "rese_cr" ()
 cdef extern void read_cell_f "read_cell" (char*,int,int,int,int)
 cdef extern void read_stru_f "read_stru" (char*,int)
-cdef extern void get_atom_type(char*,int)
-### end crystal routines ###
+cdef extern void get_atom_type (char*,int)
+cdef extern void set_atom_type (char*,int)
+# end crystal routines #
 
 ### pdf routines ###
-cdef extern void get_pdf_c "get_pdf" ( double*,int,int)
+cdef extern void get_pdf_c "get_pdf" (double*,int,int)
 cdef extern void pdf_determine_c (bool)
 cdef extern void pdf_show_c(char*,int)
 cdef extern void pdf_setup_c "pdf_setup" ()
@@ -134,11 +152,22 @@ cdef extern void set_pdf_logical_f "set_pdf_logical" (bool,bool,bool,
                                                       bool,bool,bool,
                                                       bool,bool,bool,
                                                       bool)
-### end pdf routines ###
+# end pdf routines #
 
 ### powder routines ###
+cdef extern void get_powder_c "get_powder" (double*,int,int)
+cdef extern void powder_run_c ()
 cdef extern void pow_show_c "pow_show" ()
-### end powder routines ###
+# end powder routines #
+
+### fourier routines ###
+cdef extern void get_diffuse_dsi_c "get_diffuse_dsi" (float*, int)
+cdef extern void four_show_c (bool)
+cdef extern void four_run_f ()
+cdef extern void set_diffuse_logical_f "set_diffuse_logical" (bool,bool)
+cdef extern void set_ltop_f "set_ltop" (bool)
+cdef extern void dlink_f ()
+# end fourier routines #
 
 def setup():
     setup_c()
@@ -162,7 +191,7 @@ def set_nmax(n):
 
 def get_cr():
     return cr_ncatoms,get_cr_icc(),cr_v, \
-        get_cr_gten(),get_cr_scat(),get_crystal_name(), \
+        get_cr_gten(),get_cr_scat(),get_crystal_name().strip(), \
         get_crystal_spcgr(),get_cr_at_lis(),cr_nscat, \
         cr_natoms,cr_n_real_atoms,get_cr_a0(), \
         get_cr_win(),get_cr_dw(),get_cr_iscat(), \
@@ -180,11 +209,12 @@ def set_cr(ncatoms,icc,v, \
     cr_v        = v
     
     set_cr_gten(gten)
-    #scat
+    set_cr_scat(scat,nscat)
     #name
     
     #spcgr
     #at_lis
+    #set_cr_at_lis(at_lis)
     cr_nscat    = nscat
     
     cr_natoms   = natoms
@@ -195,7 +225,7 @@ def set_cr(ncatoms,icc,v, \
     #dw
     #iscat
     
-    #pos
+    set_cr_pos(pos,natoms)
     
 
 def get_cr_icc():
@@ -250,9 +280,9 @@ def get_cr_pos():
     get_cr_pos_c(&bar[0][0],nmax)
     return foo
 
-def set_cr_pos(pos_in):
+def set_cr_pos(pos_in,n):
     cdef float [::1,:] cr_pos_in = np.asfortranarray(pos_in)
-    set_cr_pos_c(&cr_pos_in[0][0],nmax)
+    set_cr_pos_c(&cr_pos_in[0][0],n)
 
 def get_cr_dw():
     foo = np.empty((maxscat+1),dtype=np.float32,order='F')
@@ -265,6 +295,11 @@ def get_cr_scat():
     cdef float [::1,:] bar = foo
     get_cr_scat_c(&bar[0][0],cr_nscat+1)
     return foo
+
+def set_cr_scat(scat,nscat):
+    #foo = np.empty((11,cr_nscat+1),dtype=np.float32,order='F')
+    cdef float [::1,:] cr_scat = scat
+    set_cr_scat_c(&cr_scat[0][0],nscat+1)
 
 def get_cr_iscat():
     foo = np.empty((nmax),dtype=np.int32,order='F')
@@ -322,8 +357,13 @@ def get_cr_at_lis():
     cdef char[5] c_str
     for i in range(maxscat+1):
         get_atom_type(&c_str[0],i)
-        out[i]=c_str
+        out[i]=c_str.strip()
     return out
+
+#def set_cr_at_lis(at_lis):
+#    #cdef char[5] c_str
+#    for i in at_lis:
+#        set_atom_type(at_lis[i],i)
 
 def set_pdf(rmax,qmax,deltar,
             skal,sigmaq,xq,
@@ -378,9 +418,51 @@ def set_pdf_logical(lxray,gauss,d2d,
                       lweights,lrho0,lexact,
                       lrho0_rel,
                       chem_period1,chem_period2,chem_period3)
+
+def get_diffuse_dsi(i1,i2,i3):
+    dsi = np.empty((i1,i2),dtype=np.float32,order='F')
+    cdef float [::1,:] dsi_c = dsi
+    get_diffuse_dsi_c(&dsi_c[0][0],i1*i2)
+    return dsi
+
+def four_show_f():
+    four_show_c(True)
+
+def set_fourier(f_fave,f_nlots,f_ilots,f_ls_xyz,f_inc,radiation,f_eck,f_vi,f_rlambda):
+    global fave,nlots,ilots,ls_xyz,inc,diff_radiation,eck,vi,rlambda
+    fave              = f_fave
+    nlots             = f_nlots
+    ilots             = f_ilots
+    diff_radiation    = radiation
+    rlambda           = f_rlambda
+    for i in range(3):
+        ls_xyz[i]     = f_ls_xyz[i]
+    for i in range(3):
+        inc[i]        = f_inc[i]
+    for i in range(4):
+        for j in range(3):
+            eck[i][j] = f_eck[i][j]
+    for i in range(3):
+        for j in range(3):
+            vi[i][j]  = f_vi[i][j]
+
+def set_diffuse_logical(lperiod,lxray):
+    set_diffuse_logical_f(lperiod,lxray)
+
+def set_ltop(ltop):
+    set_ltop_f(ltop)
+
+def four_run():
+    four_run_f()
+
+def dlink():
+    dlink_f()
     
 def set_structure():
     pass
 
 def pow_show():
     pow_show_c()
+
+def pow_calc():
+    powder_run_c()

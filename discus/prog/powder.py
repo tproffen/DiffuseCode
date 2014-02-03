@@ -64,7 +64,7 @@ class Powder(object):
         return self.name+"\nStructure: "+self.structure.getName()
     
     def calc(self):
-        pass
+        pow_calc()
     
     def show(self):
         pass
@@ -81,10 +81,12 @@ class Powder(object):
     def plot(self):
         plt.plot(self.r,self.powder)
         plt.ylabel('Intensity')
-        plt.xlabel('???2theta (1/$\AA$)???')
+        plt.xlabel('q [1/$\AA$]')
         plt.show()
     
     def setRad(self,rad):
         self.radiation,self.lxray = getRadiationPar(rad)
         print "Setting radiation to",getRadiation(self.radiation)
+        if self.lxray:
+            print "with wavelength",self.xq,"A"
 

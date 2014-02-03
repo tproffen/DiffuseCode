@@ -1,14 +1,18 @@
 module discus_wrap
 use iso_c_binding
+use allocate_appl_mod
 use config_mod
 use chem_mod
 use crystal_mod
-use pdf_mod
+use diffuse_mod
+use fourier_menu
+use fourier_sup
 use pdf_menu
-use structur
-use allocate_appl_mod
-use stack_rese_mod
+use pdf_mod
+use powder
 use save_mod
+use stack_rese_mod
+use structur
 use update_cr_dim_mod
 implicit none
 
@@ -31,6 +35,12 @@ contains
     integer(c_int), intent(in), value :: n
     cr_scat_out=cr_scat
   end subroutine get_cr_scat
+  
+  subroutine set_cr_scat(cr_scat_in,n) bind(C)
+    real(c_float), intent (out), dimension(11,n) :: cr_scat_in
+    integer(c_int), intent(in), value :: n
+    cr_scat=cr_scat_in
+  end subroutine set_cr_scat
   
   subroutine set_cr_pos(cr_pos_in,n) bind(C)
     real(c_float), intent (in), dimension(3,n) :: cr_pos_in
@@ -63,8 +73,21 @@ contains
     call pdf_show(str_out)
   end subroutine pdf_show_c
   
+  subroutine four_show_c(ltop) bind(C)
+    logical(c_bool), value :: ltop
+    logical :: ltop_f = .false.
+    if (ltop) ltop_f = .true.
+    call four_show(ltop_f)
+  end subroutine four_show_c
+  
+  subroutine get_diffuse_dsi(out,n) bind(C)
+    real(c_float), intent(out), dimension(n) :: out
+    integer(c_int), intent(in), value :: n
+    out = dsi
+  end subroutine get_diffuse_dsi
+  
   subroutine get_crystal_name(str) bind(C)
-    character(kind=c_int), dimension(len_trim(cr_name)+1) :: str
+    character(len=1,kind=c_int), dimension(len_trim(cr_name)+1) :: str
     str = transfer(cr_name,str)
     str(len_trim(cr_name)+1)=c_null_char
   end subroutine get_crystal_name
@@ -83,6 +106,16 @@ contains
     str=transfer(cr_at_lis(n),str)
     str(len_trim(cr_at_lis(n))+1)=c_null_char
   end subroutine get_atom_type
+  
+!  subroutine set_atom_type(str,n) bind(C)
+!    character(len=4,kind=c_char) :: str
+!    integer(c_int), value :: n
+!    !print*,size(cr_at_lis),len(cr_at_lis),maxscat
+!    !print*,cr_at_lis(n)
+!    !cr_at_lis(n)=transfer(str,cr_at_lis(n))
+!    !str(len_trim(cr_at_lis(n))+1)=c_null_char
+!    cr_at_lis(n)=str
+!  end subroutine set_atom_type
   
   subroutine read_cell(fname,fname_length,dim1,dim2,dim3) bind(C)
     character(kind=c_char), dimension(1024), intent(in) :: fname
@@ -175,11 +208,11 @@ contains
     call do_stack_rese
   end subroutine read_stru
   
-  subroutine alloc_pdf_f() BIND(C)
-    CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+  subroutine alloc_pdf_f() bind(c)
+    call alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
   end subroutine alloc_pdf_f
   
-  subroutine pdf_determine_c(x) BIND(C)
+  subroutine pdf_determine_c(x) bind(c)
     logical(c_bool), value :: x
     logical :: y
     y = .false.
@@ -187,26 +220,76 @@ contains
     call pdf_determine(y)
   end subroutine pdf_determine_c
   
-  subroutine set_pdf_logical(lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel,cp1,cp2,cp3) BIND(C)
+  subroutine set_pdf_logical(lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel,cp1,cp2,cp3) bind(C)
     logical(c_bool), value :: lxray,gauss,d2d,lweights,lrho0,lexact,lrho0_rel,cp1,cp2,cp3
-                   pdf_lxray     = .false.
-                   pdf_gauss     = .false.
-                   pdf_2d        = .false.
-                   pdf_lweights  = .false.
-                   pdf_lrho0     = .false.
-                   pdf_lexact    = .false.
-                   pdf_lrho0_rel = .false.
-                   chem_period   = .false.
-    if (lxray)     pdf_lxray     = .true.
-    if (gauss)     pdf_gauss     = .true.
-    if (d2d)       pdf_2d        = .true.
-    if (lweights)  pdf_lweights  = .true.
-    if (lrho0)     pdf_lrho0     = .true.
-    if (lexact)    pdf_lexact    = .true.
-    if (lrho0_rel) pdf_lrho0_rel = .true.
-    if (cp1)       chem_period(1)= .true.
-    if (cp2)       chem_period(2)= .true.
-    if (cp3)       chem_period(3)= .true.
+    pdf_lxray     = boolC2F(lxray)
+    pdf_gauss     = boolC2F(gauss)
+    pdf_2d        = boolC2F(d2d)
+    pdf_lweights  = boolC2F(lweights)
+    pdf_lrho0     = boolC2F(lrho0)
+    pdf_lexact    = boolC2F(lexact)
+    pdf_lrho0_rel = boolC2F(lrho0_rel)
+    chem_period(1)= boolC2F(cp1)
+    chem_period(2)= boolC2F(cp2)
+    chem_period(3)= boolC2F(cp3)
   end subroutine set_pdf_logical
+  
+  subroutine powder_run_c() bind(C)
+    call dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+         diff_power)
+    call powder_run()
+    four_was_run = .true.
+  end subroutine powder_run_c
+  
+  subroutine set_diffuse_logical(f_lperiod,f_lxray) bind(C)
+    logical(c_bool), value :: f_lperiod,f_lxray
+    lperiod = boolC2F(f_lperiod)
+    lxray   = boolC2F(f_lxray)
+    
+    lambda = ' ' !!! remove this hack
+  end subroutine set_diffuse_logical
+  
+  subroutine set_ltop(ltop) bind(C)
+    logical(c_bool), value :: ltop
+    if (ltop) then
+       eck(1,4) = eck(1,1)
+       eck(2,4) = eck(2,1)
+       eck(3,4) = eck(3,1)
+       vi (1,3) = 0.00
+       vi (2,3) = 0.00
+       vi (3,3) = 0.00
+       inc(3)   = 1
+    end if
+  end subroutine set_ltop
+  
+  subroutine four_run_f() bind(C)
+    integer :: n_qxy,n_natoms,n_nscat
+    n_qxy    = 1
+    n_nscat  = 1
+    n_natoms = 1
+    if (inc(1) * inc(2) *inc(3) .gt. MAXQXY .or.&
+         cr_natoms > DIF_MAXAT .or. &
+         cr_nscat > DIF_MAXSCAT ) then
+       n_qxy    = max(n_qxy,inc(1)*inc(2)*inc(3),maxqxy)
+       n_natoms = max(n_natoms,cr_natoms,dif_maxat)
+       n_nscat  = max(n_nscat,cr_nscat,dif_maxscat)
+       call alloc_diffuse (n_qxy, n_nscat, n_natoms)
+    end if
+    call dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+         diff_power)
+    call four_run
+  end subroutine four_run_f
+  
+  subroutine dlink_f() bind(C)
+    call dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+         diff_power)
+  end subroutine dlink_f
+  
+  function boolC2F(c_logical) result(f_logical)
+    logical(c_bool), intent(in) :: c_logical
+    logical :: f_logical
+    f_logical = .false.
+    if (c_logical) f_logical = .true.
+  end function boolC2F
 
 end module discus_wrap

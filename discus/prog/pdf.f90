@@ -255,7 +255,7 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf                            
 !*****7*****************************************************************
-      SUBROUTINE pdf_setup() BIND(C)
+      SUBROUTINE pdf_setup() bind(C)
 !+                                                                      
 !     Setup for various arrays and functions for PDF calculation.       
 !-                                                                      
@@ -1675,7 +1675,7 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf_makemove                   
 !*****7*****************************************************************
-      SUBROUTINE pdf_determine (lout) BIND(C)
+      SUBROUTINE pdf_determine (lout) bind(C)
 !+                                                                      
 !     Calculate PDF of current structure                                
 !-                                                                      

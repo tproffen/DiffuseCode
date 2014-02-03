@@ -59,120 +59,6 @@ class PDF(object):
         pdf_determine()
         [self.r,self.pdf]=get_pdf()
 
-    def show(self,what='all'):
-        if what == 'all':
-            print 'Current PDF calculation settings'.ljust(30)+':'
-            print '  Maximum r [A]'.ljust(30)+':',self.rmax
-            print '  Grid size DR [A]'.ljust(30)+':',self.deltar,'('+str(self.bin)+')'
-            print '  Radiation'.ljust(30)+':',getRadiation(self.radiation),\
-                '(at '+str(self.xq)+' A**-1)'
-            print
-            print '  Applied corrections'.ljust(30)+':'
-            if self.qmax == 0:
-                print '    Q termination (SINC)'.ljust(30)+': not applied'
-            else:
-                print '    Q termination (SINC)'.ljust(30)+': Qmax =',self.qmax,' A**-1'
-            if self.sigmaq == 0:
-                print '    Instrument resolution'.ljust(30)+': not applied'
-            else:
-                print '    Instrument resolution'.ljust(30)+':',self.sigmaq
-            if self.chem_period[0] and self.chem_period[1] and self.chem_period[2]:
-                if self.d2d:
-                    print '    Periodic boundaries'.ljust(30)+': applied - 2D'
-                else:
-                    print '    Periodic boundaries'.ljust(30)+': applied - 3D'
-                if self.finite == 0:
-                    print '    Particle size'.ljust(30)+': infinite'
-                elif self.finite == 2:
-                    print '    Particle size is sphere'.ljust(30)+':',self.sphere, \
-                        'A diameter'
-                else:
-                    print '    Periodic boundaries'.ljust(30)+': illegal'
-            else:
-                print '    Periodic boundaries'.ljust(30)+': not applied'
-                if self.finite == 0:
-                    print '    4 Pi Rho r correction'.ljust(30)+': none'
-                elif self.finite == 2:
-                    print '    4 Pi Rho r correction'.ljust(30)+': ',self.sphere
-                elif self.finite == 1:
-                    print 'TO DO !!!!!'
-                elif self.finite == 3:
-                    print '    4 Pi Rho r correction'.ljust(30)+': treated by tanh'
-                    print '       Particle diameter'.ljust(30)+':',self.diam
-                    print '       Particle shape param.'.ljust(30)+':',self.shape
-            print '    Weight correction'.ljust(30)+':',self.scale
-            if self.gauss:
-                print '    Convolution therm. Gauss.'.ljust(30)+': applied'
-                print '    Resolution broadening'.ljust(30)+':',self.qalp
-                print '    Quad. correlation fac.'.ljust(30)+':',self.delta
-                print '    Linear correlation fac.'.ljust(30)+':',self.gamma
-                print '    PDF peak width ratio'.ljust(30)+':',self.srat,'below',self.rcut
-            else:
-                print '    Convolution therm. Gauss.'.ljust(30)+': not applied'
-                print '    Resolution broadening'.ljust(30)+':',self.qalp
-            if self.lrho0:
-                print '    Number density'.ljust(30)+': automatic'
-            else:
-                if self.lrho0_rel:
-                    print '    Number density'.ljust(30)+':',self.rho0,'(Mode: relative)'
-                else:
-                    print '    Number density'.ljust(30)+':',self.rho0,'(Mode: absolute)'
-            print '    Correction for RHO0'.ljust(30)+':',self.dnorm
-            if self.lexact:
-                print '    PDF calculation mode'.ljust(30)+': all atoms'
-            else:
-                print '    PDF calculation mode'.ljust(30)+': neighboring unit cells'
-            print
-            print '  Refinement settings'.ljust(30)+':'
-            print '    Fit minimum r [A]'.ljust(30)+':',self.rfmin, \
-                '(pt.'+str(int(self.rfmin/self.deltar))+')'
-            print '    Fit maximum r [A]'.ljust(30)+':',self.rfmax, \
-                '(pt.'+str(int(self.rfmax/self.deltar))+')'
-            print '    Current scale factor'.ljust(30)+':',self.skal, \
-                '(refined = '+'str(self.doskal)'+')'
-            print
-            print 'Selected atoms for PDF calculation :'
-            print '  ...'
-            print
-            if self.lweights:
-                print 'Weights for PDF calculation (user defined) :'
-            else:
-                print 'Weights for PDF calculation (internal) :'
-            print '  ...'
-        else:
-            menu = {'rmax':       self.rmax,
-                    'qmax':       self.qmax,
-                    'deltar':     self.deltar,
-                    'skal':       self.skal,
-                    'qsig':       self.sigmaq,
-                    'wavelength': self.xq,
-                    'rfmin':      self.rfmin,
-                    'rfmax':      self.rfmax,
-                    'delta':      self.delta,
-                    'rcut':       self.rcut,
-                    'srat':       self.srat,
-                    'gamma':      self.gamma,
-                    'qalp':       self.qalp,
-                    'dnorm':      self.dnorm,
-                    'rho0':       self.rho0,
-                    'sphere':     self.sphere,
-                    'diam_poly':  self.diam_poly,
-                    'diam':       self.diam,
-                    'shape':      self.shape,
-                    'weight':     self.scale,
-                    'poly':       self.poly,
-                    'bin':        self.bin,
-                    'finite':     self.finite,
-                    'rad':        self.radiation,
-                    'gauss':      self.gauss,
-                    '2d':         self.d2d,
-                    'lweights':   self.lweights,
-                    'lrho0':      self.lrho0,
-                    'lexact':     self.lexact,
-                    'lrho0_rel':  self.lrho0_rel}
-            if menu.has_key(what):
-                print what,'=',menu[what]
-
     def show_f(self):
         pdf_show()
 
@@ -291,6 +177,88 @@ class PDF(object):
         #print choice,menu[choice]
         #menu[choice]=value
         pass
+
+    def show(self,what='all'):
+        print 'Current PDF calculation settings'.ljust(30)+':'
+        print '  Maximum r [A]'.ljust(30)+':',self.rmax
+        print '  Grid size DR [A]'.ljust(30)+':',self.deltar,'('+str(self.bin)+')'
+        print '  Radiation'.ljust(30)+':',getRadiation(self.radiation),\
+            '(at '+str(self.xq)+' A**-1)'
+        print
+        print '  Applied corrections'.ljust(30)+':'
+        if self.qmax == 0:
+            print '    Q termination (SINC)'.ljust(30)+': not applied'
+        else:
+            print '    Q termination (SINC)'.ljust(30)+': Qmax =',self.qmax,' A**-1'
+        if self.sigmaq == 0:
+            print '    Instrument resolution'.ljust(30)+': not applied'
+        else:
+            print '    Instrument resolution'.ljust(30)+':',self.sigmaq
+        if self.chem_period[0] and self.chem_period[1] and self.chem_period[2]:
+            if self.d2d:
+                print '    Periodic boundaries'.ljust(30)+': applied - 2D'
+            else:
+                print '    Periodic boundaries'.ljust(30)+': applied - 3D'
+            if self.finite == 0:
+                print '    Particle size'.ljust(30)+': infinite'
+            elif self.finite == 2:
+                print '    Particle size is sphere'.ljust(30)+':',self.sphere, \
+                    'A diameter'
+            else:
+                print '    Periodic boundaries'.ljust(30)+': illegal'
+        else:
+            print '    Periodic boundaries'.ljust(30)+': not applied'
+            if self.finite == 0:
+                print '    4 Pi Rho r correction'.ljust(30)+': none'
+            elif self.finite == 2:
+                print '    4 Pi Rho r correction'.ljust(30)+': ',self.sphere
+            elif self.finite == 1:
+                print 'TO DO !!!!!'
+            elif self.finite == 3:
+                print '    4 Pi Rho r correction'.ljust(30)+': treated by tanh'
+                print '       Particle diameter'.ljust(30)+':',self.diam
+                print '       Particle shape param.'.ljust(30)+':',self.shape
+        print '    Weight correction'.ljust(30)+':',self.scale
+        if self.gauss:
+            print '    Convolution therm. Gauss.'.ljust(30)+': applied'
+            print '    Resolution broadening'.ljust(30)+':',self.qalp
+            print '    Quad. correlation fac.'.ljust(30)+':',self.delta
+            print '    Linear correlation fac.'.ljust(30)+':',self.gamma
+            print '    PDF peak width ratio'.ljust(30)+':',self.srat,'below',self.rcut
+        else:
+            print '    Convolution therm. Gauss.'.ljust(30)+': not applied'
+            print '    Resolution broadening'.ljust(30)+':',self.qalp
+        if self.lrho0:
+            print '    Number density'.ljust(30)+': automatic'
+        else:
+            if self.lrho0_rel:
+                print '    Number density'.ljust(30)+':',self.rho0,'(Mode: relative)'
+            else:
+                print '    Number density'.ljust(30)+':',self.rho0,'(Mode: absolute)'
+        print '    Correction for RHO0'.ljust(30)+':',self.dnorm
+        if self.lexact:
+            print '    PDF calculation mode'.ljust(30)+': all atoms'
+        else:
+            print '    PDF calculation mode'.ljust(30)+': neighboring unit cells'
+        print
+        print '  Refinement settings'.ljust(30)+':'
+        print '    Fit minimum r [A]'.ljust(30)+':',self.rfmin, \
+            '(pt.'+str(int(self.rfmin/self.deltar))+')'
+        print '    Fit maximum r [A]'.ljust(30)+':',self.rfmax, \
+            '(pt.'+str(int(self.rfmax/self.deltar))+')'
+        print '    Current scale factor'.ljust(30)+':',self.skal, \
+            '(refined = '+'str(self.doskal)'+')'
+        print
+        print 'Selected atoms for PDF calculation :'
+        print '  ...'
+        print
+        if self.lweights:
+            print 'Weights for PDF calculation (user defined) :'
+        else:
+            print 'Weights for PDF calculation (internal) :'
+        print '  ...'
+
+
         
 def getFiniteNumber(f):
     if f[0:3].lower()=='pol':

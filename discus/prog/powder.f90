@@ -204,7 +204,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE do_powder                      
 !*****7*****************************************************************
-      SUBROUTINE pow_show() BIND(C)
+      SUBROUTINE pow_show() bind(C)
 !-                                                                      
 !     Prints summary of powder diffraction settings                     
 !+                                                                      
@@ -1002,7 +1002,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE do_pow_set                     
 !*****7*****************************************************************
-      SUBROUTINE powder_run() BIND(C)
+      SUBROUTINE powder_run()
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      

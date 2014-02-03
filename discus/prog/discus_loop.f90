@@ -3,7 +3,7 @@ USE iso_c_binding, only: c_int,c_float
 !
 CONTAINS
 !
-SUBROUTINE discus_loop() BIND(C)
+SUBROUTINE discus_loop() bind(C)
 !                                                                       
    USE exit_mod
    USE doact_mod 

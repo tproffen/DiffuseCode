@@ -95,3 +95,5 @@ class Structure(object):
                 +'  '+'{:11.5f}'.format(self.gten[1][i]) \
                 +'  '+'{:11.5f}'.format(self.gten[2][i])
 
+    def replace(self):
+        pass
