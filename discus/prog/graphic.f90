@@ -657,7 +657,7 @@ SUBROUTINE do_niplps (linverse)
       CLOSE (2) 
 !                                                                       
  1111 FORMAT     (a) 
- 2000 FORMAT    (1x,2i4/1x,i8) 
+ 2000 FORMAT    (2(1x,i4)/1x,i8) 
  5000 FORMAT     (7i8) 
 !                                                                       
       END SUBROUTINE do_pgm                         
