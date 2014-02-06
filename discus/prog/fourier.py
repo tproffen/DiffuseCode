@@ -66,6 +66,11 @@ class Fourier(object):
         for i in range(3):
             self.vi[1,i]  = (self.eck[2,i]-self.eck[0,i])/max(1,self.inc[1]-1)
 
+    def nt(self,inc3):
+        self.inc[2]=inc3
+        for i in range(3):
+            self.vi[2,i]  = (self.eck[3,i]-self.eck[0,i])/max(1,self.inc[2]-1)
+
     def layer(self,e11,e12,e13,e21,e22,e23,e31,e32,e33,inc1,inc2):
         self.inc[0]=inc1
         self.inc[1]=inc2
