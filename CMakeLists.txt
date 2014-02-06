@@ -18,13 +18,12 @@ set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 0)
 set (DIFFUSE_VERSION_PATCH 0)
 
-option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" ON)
 # Readline required for all programs
 
 find_package(Readline REQUIRED)
 
 # Option to build a PYTHON interface
-option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" ON)
+option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
 if (DIFFUSE_PYTHON)
   find_package(NumPy)
 endif (DIFFUSE_PYTHON)
