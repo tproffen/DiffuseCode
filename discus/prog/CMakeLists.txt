@@ -1,8 +1,11 @@
 # DISCUS Build
 
-option(DISCUS_NEXUS "DISCUS_NEXUS" OFF)
+option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
+option(DISCUS_OMP    "DISCUS_OMP"     OFF)
+option(DISCUS_CUDA   "DISCUS_CUDA"    OFF)
 
 find_package(NEXUS)
+find_package(OpenMP)
 find_package(CUDA)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
@@ -11,17 +14,17 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
 ###	
-set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
-	blk_appl.f90 bv_data_mod.f90 
-	chem.f90 chem_mod.f90 config_mod.f90
+set( SOURCE_MAIN discus.f90 )
+set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
+	atom_name.f90 blk_appl.f90 bv_data_mod.f90 
+	chem.f90 chem_mod.f90 chem_aver_mod.f90 config_mod.f90
 	conn_def_mod.f90 conn_mod.f90 crystal_mod.f90 
 	class_atom.f90 class_crystal.f90 class_internal.f90
-	class_dc_def.f90 
+	class_dc_def.f90 celltoindex.f90
 	deco_mod.f90 
 	debye_mod.f90 diffuse_mod.f90
-	discus.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
+	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
 	err_appl.f90 exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
-        four_strucf_cuda_mod.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
 	inter_readstru.f90
 	interpret.f90 inverse_mod.f90 kdo.f90        mc_mod.f90 metric.f90 micro_mod.f90
@@ -29,48 +32,111 @@ set( SOURCES  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	molecule_mod.f90 output_mod.f90 patters.f90 patters_mod.f90 
 	place_molecule.f90  read_internal_mod.f90
 	pdf.f90 pdf_mod.f90
-	plot.f90 plot_mod.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
+	plot.f90 plot_mod.f90 plot_init.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
 	prop_para_mod.f90
-	recipro_mod.f90 rmc.f90 rmc_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
+	recipro_mod.f90 rmc.f90 rmc_mod.f90 rmc_symm.f90 rmc_sup_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
 	show.f90 spcgr_apply.f90 spcgr_mod.f90 spcgr_setup.f90 stack.f90 stack_cr_mod.f90 stack_mod.f90
-	structur.f90 surface_mod.f90 sym_add_mod.f90 symm.f90 symm_mod.f90 tensors.f90
-	thermal.f90 trafo.f90 transfrm.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
-	waves.f90 waves_mod.f90 wyckoff_mod.f90 
+        stack_rese.f90
+	structur.f90 surface_mod.f90 sym_add_mod.f90 symm.f90 symm_mod.f90 symm_sup.f90 tensors.f90
+	thermal.f90 trafo.f90 transfrm.f90 trans_sup.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
+	update_cr_dim.f90
+	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90
   )
+#set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
 set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 
 # NEXUS support ?
 
 if (NEXUS_FOUND AND DISCUS_NEXUS)
-  set (SOURCES ${SOURCES} nexus.f90)
-  set (LIBS ${LIBS} ${NEXUS_LIBRARIES})
+  set (SOURCES_ALL ${SOURCES_ALL} nexus.f90)
+  set (LIBS_OPT     ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
 
 else (NEXUS_FOUND AND DISCUS_NEXUS)
-  set (SOURCES ${SOURCES} nexus_no.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} nexus_no.f90)
+  set (LIBS_OPT )
 
 endif (NEXUS_FOUND AND DISCUS_NEXUS)
 
-set(CUDA_NVCC_FLAGS -O3)
+# OpenMP ?
 
-cuda_compile(FOUR_STRUCF_CUDA_O four_strucf_cuda.cu)
+if (CUDA_FOUND AND DISCUS_CUDA)
 
-add_executable (discus ${SOURCES} ${FOUR_STRUCF_CUDA_O})
-#target_link_libraries (discus lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
-target_link_libraries (discus ${LIBS} cudart) 
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_cuda_mod.f90)
+  set (CUDA_NVCC_FLAGS -O3)
+  cuda_compile(FOUR_STRUCF_CUDA_O four_strucf_cuda.cu)
+  set (SOURCE_MAIN ${SOURCE_MAIN} ${FOUR_STRUCF_CUDA_O})
+  set (LIBS ${LIBS} cudart)
+
+else (CUDA_FOUND AND DISCUS_CUDA)
+
+  if( DISCUS_OMP)
+    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+  else (DISCUS_OMP)
+    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
+  endif (DISCUS_OMP)
+
+endif (CUDA_FOUND AND DISCUS_CUDA)
+
+add_library (discus_all ${SOURCES_ALL} )
+add_dependencies (discus_all lib_f90)
+
+set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 
+
+add_executable (discus ${SOURCE_MAIN} ) 
+
+target_link_libraries (discus ${LIBS}) 
 
 add_custom_command (
   OUTPUT discus.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
-  COMMAND cat  ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
   )
 
 add_custom_target(discushlp DEPENDS discus.hlp)
-add_dependencies(discus discushlp)
+
+# Numpy ?
+
+if (NUMPY_FOUND AND DIFFUSE_PYTHON)
+  add_custom_command (
+    OUTPUT lib_discus.so
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
+    COMMAND f2py -c -m lib_discus 
+            ${DIFFUSE_LIBS}
+            ${LIBS_OPT}
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
+            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/macro_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/send_get.f90
+    )
+  add_custom_target (discus_python DEPENDS lib_discus.so)
+  add_dependencies  (discus_python discus_all lib_f90c  )
+
+  add_dependencies(discus discushlp discus_python)
+
+else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
+
+  add_dependencies(discus discushlp)
+
+endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
+
+
 
 install (TARGETS discus DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp DESTINATION share)
