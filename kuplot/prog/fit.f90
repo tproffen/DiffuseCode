@@ -2956,7 +2956,7 @@
       ENDDO 
       ENDDO 
       f = 1.0 
-      IF (urf) 60, 60, 40 
+      IF (urf.le.0) GOTO 60
    40 CONTINUE 
       h = 0.0 
       DO k = 1, n 
@@ -2969,9 +2969,9 @@
       zalt = zl 
       zdif = zwert - zl 
       fend = f 
-      IF (j) 80, 80, 70 
+      IF (j.le.0) GOTO 80
    70 CONTINUE 
-      IF (zwert - zl) 80, 300, 300 
+      IF (zwert - zl .ge. 0) GOTO 300
    80 CONTINUE 
       zl = zwert 
       DO k = 1, n 
@@ -2981,30 +2981,30 @@
       DO l = 1, k 
       l1 = l - 1 
       s = cl (k, l) 
-      IF (l - k) 100, 140, 100 
-  100 IF (l1) 130, 130, 110 
+      IF (l - k .eq. 0) GOTO 140
+  100 IF (l1 .le. 0) GOTO 130
   110 DO i = 1, l1 
       s = s - cl (i, l) * cl (i, k) 
       ENDDO 
   130 cl (l, k) = s 
       ENDDO 
-  140 IF (s) 145, 142, 145 
+  140 IF (s.ne.0) GOTO 145
   142 dl (k) = 0.0 
       GOTO 190 
   145 s = s * f 
-      IF (l1) 170, 170, 150 
+      IF (l1.le.0) GOTO 170
   150 DO i = 1, l1 
       ttt = cl (i, k) 
       cl (i, k) = ttt * dl (i) 
       s = s - ttt * cl (i, k) 
       ENDDO 
-  170 IF (s) 190, 190, 180 
+  170 IF (s.le.0) GOTO 190
   180 dl (k) = 1.0 / s 
   190 CONTINUE 
       ENDDO 
-      IF (j - ncycle) 200, 200, 300 
+      IF (j - ncycle .gt. 0) GOTO 300 
   200 j = j + 1 
-      IF (n - 1) 230, 230, 210 
+      IF (n - 1 .le.0) GOTO 230
   210 DO l = 2, n 
       l1 = l - 1 
       DO k = 1, l1 
@@ -3012,7 +3012,7 @@
       ENDDO 
       ENDDO 
   230 dz (n) = dz (n) * dl (n) 
-      IF (n - 1) 260, 260, 240 
+      IF (n - 1 .le.0) GOTO 260
   240 DO nl = 2, n 
       l = n - nl + 1 
       l1 = l + 1 
@@ -3035,7 +3035,7 @@
       dl (k) = dl (k) * g 
       cl (k, k) = 1.0 
       ENDDO 
-      IF (n - 1) 350, 350, 320 
+      IF (n - 1 .le.0) GOTO 350
   320 DO l = 2, n 
       l1 = l - 1 
       DO k = 1, l1 
@@ -3049,7 +3049,7 @@
   350 DO k = 1, n 
       DO l = k, n 
       s = 0.0 
-      IF (l - k) 380, 360, 380 
+      IF (l - k .ne. 0) GOTO 380
   360 DO i = l, n 
       ttt = cl (i, k) 
       cl (i, k) = ttt * dl (i) 
@@ -3064,7 +3064,7 @@
       ENDDO 
       ENDDO 
       DO l = 1, n 
-      IF (dl (l) ) 502, 501, 502 
+      IF (dl (l) .ne. 0 ) GOTO 502
   501 dp (l) = 1.0 
       dp (l) = 0.0 
       GOTO 570 

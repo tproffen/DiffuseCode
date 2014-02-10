@@ -68,11 +68,11 @@ SAVE
 !
 !------ Plotting PARAMETERs
 !
-      CHARACTER*80      titel(maxwin,maxframe,2)
-      CHARACTER*60      achse(maxwin,maxframe,3)
-      CHARACTER*40      ftext(maxwin,maxframe)
-      CHARACTER*40      clegend(maxwin,maxframe,maxkurvtot)
-      CHARACTER*40      antext(maxwin,maxframe,maxan)
+      CHARACTER(LEN=80)      titel(maxwin,maxframe,2)
+      CHARACTER(LEN=60)      achse(maxwin,maxframe,3)
+      CHARACTER(LEN=40)      ftext(maxwin,maxframe)
+      CHARACTER(LEN=40)      clegend(maxwin,maxframe,maxkurvtot)
+      CHARACTER(LEN=40)      antext(maxwin,maxframe,maxan)
       REAL colour(maxwin,0:20,3)
       REAL frame(maxwin,maxframe,4)
       REAL ex(maxwin,maxframe,2),ey(maxwin,maxframe,2)
@@ -172,7 +172,7 @@ SAVE
 !
 !------ Parameter frame 
 !
-      CHARACTER*40      fpara(maxwin)
+      CHARACTER(LEN=40)      fpara(maxwin)
       INTEGER ipara(maxwin)
       INTEGER ilength(maxwin)
       INTEGER iwidth(maxwin)
@@ -181,10 +181,10 @@ SAVE
 !
 !------ Fit PARAMETERs
 !
-      CHARACTER*1024      fit_func
-      CHARACTER*4      ftyp
-      CHARACTER*3      wtyp
-      CHARACTER*1      dummy_spacer
+      CHARACTER(LEN=1024)      fit_func
+      CHARACTER(LEN=4)      ftyp
+      CHARACTER(LEN=3)      wtyp
+      CHARACTER(LEN=1)      dummy_spacer
       REAL w(maxarray)
       REAL p(maxpara),pinc(maxpara),dp(maxpara)
       REAL p_merk(maxpara),pinc_merk(maxpara)
