@@ -1575,18 +1575,18 @@ SUBROUTINE cmdline_args
       IF (ier_num.ne.0) return 
 !                                                                       
       IF (ianz.eq.0) then 
-         WRITE ( *, 1000) 
+         WRITE ( *, 1000,advance='no') 
          READ ( *, 5000, err = 50, end = 50) cdummy 
       ELSEIF (ianz.eq.1.or.ianz.eq.2) then 
          IF (str_comp (cpara (1) , 'return', 1, lpara (1) , 6) ) then 
-            WRITE ( *, 1000) 
+            WRITE ( *, 1000,advance='no') 
             READ ( *, 5000, err = 50, end = 50) cdummy 
          ELSEIF (str_comp (cpara (1) , 'input', 1, lpara (1) , 5) )     &
          then                                                           
             IF (ianz.eq.1) then 
-               WRITE ( *, 1500) 
+               WRITE ( *, 1500,advance='no') 
             ELSEIF (ianz.eq.2) then 
-               WRITE ( *, 1600) cpara (2) (1:lpara (2) ) 
+               WRITE ( *, 1600,advance='no') cpara (2) (1:lpara (2) ) 
             ENDIF 
             READ ( *, 5000, err = 50, end = 50) line 
             lp = len_str (line) 
@@ -1619,9 +1619,9 @@ SUBROUTINE cmdline_args
       ier_num = - 9 
       ier_typ = ER_IO 
 !                                                                       
- 1000 FORMAT     (' ------ > Waiting for <RETURN> : ',$) 
- 1500 FORMAT     (' ------ > Waiting for input : ',$) 
- 1600 FORMAT     (a,' ',$) 
+ 1000 FORMAT     (' ------ > Waiting for <RETURN> : ') 
+ 1500 FORMAT     (' ------ > Waiting for input : ') 
+ 1600 FORMAT     (a,' ') 
  5000 FORMAT     (a) 
       END SUBROUTINE do_input                       
 !*****7***********************************************************      
@@ -1673,7 +1673,7 @@ SUBROUTINE cmdline_args
       IF (                                                              &
       prompt_status.eq.PROMPT_ON.or.prompt_status.eq.PROMPT_REDIRECT)   &
       then                                                              
-         WRITE (output_io, '(1X,A,'' > '',$)') prom (1:len_str (prom) ) 
+         WRITE (output_io, '(1X,A,'' > '')',advance='no') prom (1:len_str (prom) ) 
       ENDIF 
 !                                                                       
       END SUBROUTINE do_prompt                      

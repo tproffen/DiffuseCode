@@ -19,12 +19,12 @@
       pname_l = len_str (pname) 
       home_dir = ' ' 
       lines = 42 
-      CALL getenv ('LINES', home_dir) 
+      CALL get_environment_variable ('LINES', home_dir) 
       IF (home_dir.ne.' ') then 
          READ (home_dir, *, end = 10) lines 
    10    CONTINUE 
       ELSE 
-         CALL getenv ('TERMCAP', home_dir) 
+         CALL get_environment_variable ('TERMCAP', home_dir) 
          ico = index (home_dir, 'co') + 3 
          ice = index (home_dir (ico:256) , ':') + ico - 2 
          IF (ice.gt.ico) then 
@@ -35,19 +35,19 @@
       lines = lines - 2 
 !                                                                       
       home_dir = ' ' 
-      CALL getenv ('HOME', home_dir) 
+      CALL get_environment_variable ('HOME', home_dir) 
       IF (home_dir.eq.' ') then 
          home_dir = '.' 
       ENDIF 
       home_dir_l = len_str (home_dir) 
 !                                                                       
       appl_dir = ' ' 
-      CALL getenv (pname_cap, appl_dir) 
+      CALL get_environment_variable (pname_cap, appl_dir) 
       IF (appl_dir.eq.' ') then 
          appl_dir = '.' 
       ENDIF 
 !
-      CALL getenv ('_', cdummy) 
+      CALL get_environment_variable ('_', cdummy) 
       iii=index(cdummy,pname,.true.)
       appl_dir=cdummy(1:iii-1)
       appl_dir_l = len_str (appl_dir) 
