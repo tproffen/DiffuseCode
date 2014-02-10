@@ -1600,7 +1600,7 @@ CONTAINS
 !                                                                       
       REAL h (3) 
 !                                                                       
-      REAL(8) xarg0, xincu, xincv 
+      REAL(dp) xarg0, xincu, xincv 
       INTEGER iarg, iarg0, iincu, iincv, iadd 
       INTEGER i, j, ii 
       COMPLEX a_b 

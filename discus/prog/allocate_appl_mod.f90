@@ -1697,7 +1697,7 @@ MODULE allocate_appl_mod
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      REAL*8 , PARAMETER   :: def_dbl = 0.0D0
+      REAL(dp) , PARAMETER   :: def_dbl = 0.0D0
       INTEGER              :: size_of
 !
       lstat       = .TRUE.

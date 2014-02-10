@@ -23,16 +23,16 @@ INTEGER             ::  pdf_nscat = 1
 INTEGER             ::  pdf_ndat  = 1
 INTEGER             ::  pdf_nbnd  = 1
 !
-REAL*8 , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
-REAL*8 , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
+REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
+REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
 INTEGER, DIMENSION(:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
 REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
 !
-!REAL*8 , DIMENSION(MAXDAT)             ::  pdf_calc   ! (MAXDAT)
-!REAL*8 , DIMENSION(MAXDAT)             ::  pdf_corr   ! (MAXDAT)
+!REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_calc   ! (MAXDAT)
+!REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_corr   ! (MAXDAT)
 !INTEGER, DIMENSION(MAXDAT,0:MAXSCAT,0:MAXSCAT) ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
 !REAL   , DIMENSION(MAXDAT)             ::  pdf_obs    ! (MAXDAT)
 !REAL   , DIMENSION(MAXDAT)             ::  pdf_wic    ! (MAXDAT)

@@ -1615,9 +1615,9 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      REAL(8) rmc_cc, rmc_c, rmc_ce 
-      REAL(8) rmc_e (rmc_max_planes) 
-      REAL(8) rmc_ee (rmc_max_planes) 
+      REAL(dp) rmc_cc, rmc_c, rmc_ce 
+      REAL(dp) rmc_e (rmc_max_planes) 
+      REAL(dp) rmc_ee (rmc_max_planes) 
       REAL chi2_new, chi2_old, sig2 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL chi2 (rmc_max_planes) 
@@ -2255,11 +2255,11 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, INTENT(IN) :: ip 
       REAL   , INTENT(IN) :: wtot 
 !                                                                       
-      REAL(8), INTENT(IN) :: c
-      REAL(8), INTENT(IN) :: cc
-      REAL(8), INTENT(IN) :: ce
-      REAL(8), INTENT(IN) :: se
-      REAL(8), INTENT(IN) :: see 
+      REAL(dp), INTENT(IN) :: c
+      REAL(dp), INTENT(IN) :: cc
+      REAL(dp), INTENT(IN) :: ce
+      REAL(dp), INTENT(IN) :: se
+      REAL(dp), INTENT(IN) :: see 
       REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
       REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       

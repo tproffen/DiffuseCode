@@ -932,7 +932,7 @@ CONTAINS
      &          '   top   increment    : ',3(2x,f9.4),2x,               &
      &          ' -> ',f9.4,' A**-1')                                   
  1420 FORMAT (  '   # of points        :  ',I5,' x',I5,' x',I5,'  (',   &
-     &          A1,',',A1,',',A1')')                                          
+     &          A1,',',A1,',',A1,')')                                          
  1430 FORMAT (  '   Angle Ratio Aver ',a3, 3x,f9.4,' degrees',3x        &
      &                                    ,2(2x,f9.4))                  
       END SUBROUTINE four_show 

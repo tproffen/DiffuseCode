@@ -1892,7 +1892,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) xarg0, xincu, twopi 
+      REAL(dp) xarg0, xincu, twopi 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
       LOGICAL lform 
@@ -1962,7 +1962,7 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      REAL(8) twopi, xmult, xarg, xt 
+      REAL(dp) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -1994,7 +1994,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) xarg0, xincu, twopi 
+      REAL(dp) xarg0, xincu, twopi 
       INTEGER iscat, jscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
       LOGICAL lform 
@@ -2058,7 +2058,7 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      REAL(8) twopi, xmult, xarg, xt 
+      REAL(dp) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -2274,7 +2274,7 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      REAL(8) xarg0, xincu, xincv 
+      REAL(dp) xarg0, xincu, xincv 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iincv, iadd 
       LOGICAL lform 

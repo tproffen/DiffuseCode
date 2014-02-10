@@ -2609,7 +2609,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                   RETURN
                ENDIF
                length = len_str (line) 
-               READ(line,1500), latt(1),latt(2),latt(3)
+               READ(line,1500) latt(1),latt(2),latt(3)
                nline = nline + 1
                IF(iostatus /= 0) THEN
                   CLOSE(ird)
@@ -2619,7 +2619,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                   RETURN
                ENDIF
                length = len_str (line) 
-               READ(line,1500), latt(1),latt(2),latt(3)
+               READ(line,1500) latt(1),latt(2),latt(3)
             ELSEIF(str_comp(line(1:4),'List', 4, length, 4)) THEN
                indx1 = INDEX(line,'all')
                indx2 = INDEX(line,'atoms')

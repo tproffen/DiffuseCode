@@ -14,7 +14,7 @@ CONTAINS
       INTEGER, INTENT(IN) :: iscat 
       LOGICAL, INTENT(IN) :: lform 
 !                                                                       
-      REAL(KIND=8)        :: xarg0, xincu, xincv , xincw
+      REAL(KIND=dp)        :: xarg0, xincu, xincv , xincw
       INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
 !
       INTEGER IAND, ISHFT 

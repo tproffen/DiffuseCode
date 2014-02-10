@@ -599,7 +599,7 @@ SUBROUTINE pdf
  2300 FORMAT     ('     Periodic boundaries      : ',a) 
  2310 FORMAT     ('     Particle size            : ','infinite') 
  2320 FORMAT ('     Particle size is sphere  : ',F8.4,' A diameter') 
- 2330 FORMAT ('     Particle size is         : treated by polynomial'   &
+ 2330 FORMAT ('     Particle size is         : treated by polynomial',   &
      &                   '              parameters      : ',5(F8.4,2x)) 
  2350 FORMAT ('     4 Pi Rho r correction    : none') 
  2360 FORMAT ('     4 Pi Rho r correction    : ',F8.4,              &
@@ -1384,7 +1384,7 @@ SUBROUTINE pdf
       IMPLICIT none 
        
 !                                                                       
-      REAL(8) cc, c, ce, e, ee, wtot 
+      REAL(dp) cc, c, ce, e, ee, wtot 
 !     REAL pdf_old (MAXDAT) 
       REAL, DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
       REAL cnew, cold, sig2, sum 
@@ -1914,9 +1914,9 @@ SUBROUTINE pdf
       INTEGER ig, igaus, ib, ie 
       INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin, nn, ncc 
       INTEGER istart (3), iend (3), iii (3), cell (3) 
-!     REAL(8) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
-      REAL(8), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
-      REAL(8), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
+!     REAL(dp) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
+      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
+      REAL(dp), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
       REAL rsign, sum 
       REAL asym, gnorm, norm, dist, dist2, r, r0, rg 
       REAL sigma, fac 
@@ -2201,8 +2201,8 @@ SUBROUTINE pdf
 !                                                                       
       INTEGER ig, igaus, ib, ie 
       INTEGER ii, kk, is, js, ibin 
-!     REAL(8) gaus ( - MAXDAT:MAXDAT) 
-      REAL(8), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
+!     REAL(dp) gaus ( - MAXDAT:MAXDAT) 
+      REAL(dp), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
       REAL rsign, sum 
       REAL asym, gnorm, dist, dist2, rg 
       REAL sigma, fac 

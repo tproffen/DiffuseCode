@@ -519,7 +519,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) twopi, xmult, xarg 
+      REAL(dp) twopi, xmult, xarg 
       INTEGER i 
 !                                                                       
       IF (.not.ffour) then 

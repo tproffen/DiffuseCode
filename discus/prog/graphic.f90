@@ -248,7 +248,7 @@ SUBROUTINE do_niplps (linverse)
                      + iy) )                                            
                      ENDDO 
                      ENDDO 
-                     WRITE (output_io, 1015) zmin, zmax 
+                     WRITE (output_io, 1015, advance='no') zmin, zmax 
                      READ ( *, *, end = 20) zmin, zmax 
    20                CONTINUE 
                   ENDIF 
@@ -493,7 +493,7 @@ SUBROUTINE do_niplps (linverse)
  9999 CONTINUE 
 !                                                                       
  1015 FORMAT ( /1x,'Z-MIN = ',G20.6,/,1x,'Z-MAX = ',G20.6,//            &
-     &                     1x,'Give new values zmin, zmax    : ',$)     
+     &                     1x,'Give new values zmin, zmax    : ')     
  3000 FORMAT( ' Output file                  : ',a) 
  3060 FORMAT(/' Bragg minimum                : ',g12.6/                 &
      &        ' Bragg maximum                : ',g12.6/                 &
