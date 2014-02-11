@@ -251,7 +251,6 @@ CONTAINS
       ENDIF 
 !                                                                       
  1000 FORMAT    (a) 
- 3000 FORMAT    (1x,2i4/1x,4e12.5e3) 
  3010 FORMAT    (5(1x,e11.5)) 
  3020 FORMAT    (4(1x,e11.5)) 
  3030 FORMAT    (2(1x,e11.5)) 

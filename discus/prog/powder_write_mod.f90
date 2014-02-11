@@ -35,7 +35,7 @@ CONTAINS
       REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
       REAL ttheta, lp 
       REAL ss, st 
-      REAL dst, q, stl, dstar 
+      REAL q, stl, dstar 
       REAL xmin, xmax, xdel , xpos
       REAL      :: xequ    ! x-position of equdistant curve
       REAL      :: yequ    ! y-value    of equdistant curve
@@ -46,7 +46,7 @@ CONTAINS
 !                                                                       
 !      REAL lorentz 
 !      REAL polarisation 
-      REAL cosd, sind, asind 
+      REAL sind, asind 
 !
       ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
       ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
@@ -284,9 +284,9 @@ CONTAINS
 !                                                                       
 !                                                                       
       REAL ttheta 
-      REAL r 
 !                                                                       
-      REAL sind, cosd 
+!
+      REAL sind
 !                                                                       
       IF (pow_four_type.eq.POW_DEBYE) then 
          lorentz = 1.0 
@@ -313,9 +313,9 @@ CONTAINS
 !                                                                       
 !                                                                       
       REAL ttheta 
-      REAL r 
-!                                                                       
-      REAL sind, cosd 
+!
+!
+      REAL cosd 
 !                                                                       
       IF (pow_lp.eq.POW_LP_BRAGG) then 
          polarisation = (1. + (cosd (ttheta) ) **2 * pow_lp_fac)        &
@@ -349,7 +349,7 @@ CONTAINS
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
       REAL gauss (0:2 * POW_MAXPKT) 
-      REAL tth, ysum 
+      REAL tth
       INTEGER imax, i, j, ii 
       INTEGER max_ps 
 !                                                                       
@@ -408,7 +408,7 @@ REAL pow_width
 !                                                                       
 REAL dummy (0:POW_MAXPKT) 
 REAL psvgt (0:2 * POW_MAXPKT) 
-REAL tth, ysum 
+REAL tth
 INTEGER imax, i, j, ii 
 INTEGER max_ps 
 !                                                                       
@@ -478,8 +478,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER POW_AXIS_Q 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
-      REAL psvgt (0:2 * POW_MAXPKT) 
-      REAL tth, ysum 
+      REAL tth
       REAL tantth 
       REAL tth1 
       REAL tth2 
@@ -493,7 +492,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !      REAL pseudovoigt 
 !      REAL profile_asymmetry 
-      REAL tand, sind, asind 
+      REAL tand
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
@@ -566,8 +565,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER POW_AXIS_Q 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
-      REAL psvgt (0:2 * POW_MAXPKT) 
-      REAL tth, ysum 
+      REAL tth
       REAL tantth 
       REAL tth1 
       REAL tth2 

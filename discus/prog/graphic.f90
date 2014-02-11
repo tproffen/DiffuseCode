@@ -596,7 +596,6 @@ SUBROUTINE do_niplps (linverse)
      &        ' [ ',6(I3,1X),']'/'{'/                                   &
      &        '  currentfile DataString readhexstring pop'/             &
      &        ' }  false 3 colorimage')                                 
- 2200 FORMAT (Z8) 
  5000 FORMAT (10A6) 
 !                                                                       
       END SUBROUTINE do_post                        

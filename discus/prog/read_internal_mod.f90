@@ -33,8 +33,6 @@ CONTAINS
    INTEGER       , INTENT(INOUT) :: n_type
    INTEGER       , INTENT(INOUT) :: n_atom
 !
-   INTEGER                       :: istatus
-!
    read_temp%strucfile = strucfile
    CALL store_find_node(store_root, read_temp, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
@@ -146,7 +144,6 @@ CONTAINS
 !
    INTEGER                       :: i,j,k        ! Dummy
    INTEGER                       :: ia         ! Dummy; atoms in internal crystal
-   INTEGER                       :: inum       ! Dummy; atoms in standard crystal
    INTEGER                       :: istatus
    INTEGER                       :: natoms
    INTEGER                       :: nscat
@@ -559,7 +556,6 @@ do_scat_dw: DO k = 1,cr_nscat
    INTEGER                       :: natoms
    INTEGER                       :: nscat
    INTEGER                       :: istatus
-   INTEGER                       :: i
 !
    ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
    IF ( istatus /= 0) THEN

@@ -638,8 +638,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
       END SUBROUTINE plot                           
 !*****7*****************************************************************
       SUBROUTINE plot_show 
@@ -972,7 +970,6 @@ CONTAINS
       CLOSE (iff) 
       RETURN 
 !                                                                       
-  999 CONTINUE 
       CLOSE (iff) 
       ier_num = - 2 
       ier_typ = ER_IO 
@@ -1242,7 +1239,6 @@ CONTAINS
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
-      INTEGER len_str 
 !     LOGICAL check_select_status 
 !     REAL skalpro 
 !                                                                       
@@ -1835,7 +1831,6 @@ CONTAINS
       ENDIF 
 !                                                                       
  1000 FORMAT    (6(f12.6,','),'dddd') 
- 2000 FORMAT    ('*',a) 
  2100 FORMAT    ('atom      ',a4,3f11.3) 
  2200 FORMAT    ('spec      ',a4,f10.3,3f7.2) 
  2300 FORMAT    ('bonds     ',a4,4x,a4,6f9.3) 
@@ -1872,13 +1867,10 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      CHARACTER(1024) zeile 
-      INTEGER laenge 
-      INTEGER i, j, k, iff 
+      INTEGER i, j, iff 
       LOGICAL latom, lspace 
       LOGICAL lscreen 
       REAL uvw (4) 
-      REAL absz (3) 
       REAL xmin (3), xmax (3), null (3) 
       REAL xx 
 !                                                                       

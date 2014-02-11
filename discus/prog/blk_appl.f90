@@ -41,7 +41,7 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER i, j, k, l, m 
+      INTEGER i, j, k
       INTEGER stift (0:4) 
 !                                                                       
       DATA stift / 5, 3, 1, 2, 4 / 
@@ -184,7 +184,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER i, j, k, l, m 
+!      INTEGER i, j, k, l, m 
 !                                                                       
 !     /mmcbl/                                                   
 !                                                                       
@@ -287,6 +287,5 @@ CONTAINS
       CLOSE (idef) 
 !                                                                       
       WRITE (output_io, * ) 
- 1000 FORMAT    (a) 
       END SUBROUTINE autodef                        
 END MODULE init_mod

@@ -1079,11 +1079,10 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER i, ii, idel, ndel, mdel 
-      INTEGER j, k, l, m 
+      INTEGER i, ii, idel, ndel, mdel, k
       INTEGER nmol 
       INTEGER mmol 
-      INTEGER ivoid, iatom 
+      INTEGER iatom 
       LOGICAL lmolecule_deleted 
       LOGICAL lout 
 !                                                                       
@@ -1743,15 +1742,12 @@ CONTAINS
       INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
       INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
 !
-      INTEGER  :: sel_mask (0:1) 
       INTEGER  :: maxw
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
       REAL               , DIMENSION(1:lo+1) :: werte 
       INTEGER            , DIMENSION(1:lo+1) :: lpara 
-      INTEGER                                :: ianz, i, is, j, k
-!                                                                       
-      LOGICAL str_comp 
+      INTEGER                                :: ianz, i, is
 !                                                                       
       maxw = lo+1
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -1812,7 +1808,6 @@ CONTAINS
       INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
       INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
 !
-      INTEGER,             DIMENSION(0:1)    :: sel_mask
       INTEGER                                :: maxw
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
@@ -1820,8 +1815,6 @@ CONTAINS
       INTEGER            , DIMENSION(1:lo+1) :: lpara 
 !                                                                       
       INTEGER                                :: ianz, i, is
-!                                                                       
-      LOGICAL str_comp 
 !                                                                       
       maxw = lo+1
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -1917,7 +1910,6 @@ CONTAINS
       INTEGER ianz 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      LOGICAL lselect 
       INTEGER sel_field (0:1) 
       LOGICAL lentry1 
       LOGICAL lentry2 
@@ -2358,7 +2350,6 @@ CONTAINS
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      INTEGER i, j 
       INTEGER laenge 
       REAL werte (maxw) 
 !                                                                       
@@ -2604,13 +2595,10 @@ CONTAINS
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
-      CHARACTER(1024) line, zeile, cpara (MAXSCAT) 
-      INTEGER lpara (MAXSCAT), lp, length, lbef 
-      INTEGER indxg, ianz, i 
-      INTEGER indxc 
-      LOGICAL lend, lspace 
-      LOGICAL lselect 
-      REAL werte (MAXSCAT) 
+      CHARACTER(1024) line, zeile
+      INTEGER lp, length, lbef 
+      INTEGER indxg
+      LOGICAL lend
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -2733,8 +2721,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
       END SUBROUTINE surface_menu                   
 !*****7*****************************************************************
       SUBROUTINE surf_do_set (zeile, length) 
@@ -2753,19 +2739,11 @@ CONTAINS
       INTEGER length 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) string 
       INTEGER lpara (maxw) 
-      INTEGER laenge 
       INTEGER ianz 
-      INTEGER i 
-      LOGICAL lold 
-      LOGICAL linternal 
-      LOGICAL lexternal 
       REAL werte (maxw) 
-      REAL distance 
 !                                                                       
       LOGICAL str_comp 
-      REAL berechne 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 
@@ -3007,10 +2985,8 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
-      INTEGER indxg, ianz, i 
-      INTEGER indxc 
-      LOGICAL lend, lspace 
-      LOGICAL lselect 
+      INTEGER indxg
+      LOGICAL lend
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -3138,8 +3114,6 @@ CONTAINS
          ENDIF 
       ENDIF 
       ENDDO 
-!                                                                       
- 9999 CONTINUE 
 !                                                                       
       END SUBROUTINE property_menu                  
 !*****7*****************************************************************

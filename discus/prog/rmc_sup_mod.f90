@@ -1041,7 +1041,6 @@ CONTAINS
  1510 FORMAT     (' Saving intensities of plane ',I2,' to file : ',A30) 
  1520 FORMAT     (' Saving intensities (ip:',I2,'/is:',I2,              &
      &                   ') to file: ',A30)                             
- 1600 FORMAT     (3(F7.3,1X),3X,F15.2) 
       END SUBROUTINE rmc_save                       
 !*****7*****************************************************************
       SUBROUTINE rmc_writedat (ip, is, fname) 
@@ -1634,7 +1633,7 @@ CONTAINS
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !
-      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
+!      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
       INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
       INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
@@ -1865,8 +1864,6 @@ CONTAINS
 !------ --WRITE info and terminate or loop again                        
 !                                                                       
         ENDIF 
-!                                                                       
- 2222       continue 
 !                                                                       
         loop = (itry.lt.rmc_maxcyc) 
 !                                                                       
@@ -2344,7 +2341,7 @@ loop_plane: DO ip = 1, rmc_nplane
       LOGICAL , INTENT(IN) :: lsave 
 !                                                                       
       INTEGER i, j 
-      INTEGER    :: all_status
+!     INTEGER    :: all_status
       LOGICAL bano, blxray, bldbw 
 !
 !     ALLOCATE(rcfact(0:CFPKT,1:cr_nscat,1),STAT=all_status)

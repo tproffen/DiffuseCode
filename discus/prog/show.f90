@@ -440,7 +440,7 @@ CONTAINS
       INTEGER lpara (maxw) 
       REAL werte (maxw) 
 !                                                                       
-      INTEGER elem_1, elem_2, ie_1, ie_2, i 
+      INTEGER ie_1, ie_2, i 
       INTEGER  :: ilook  ! lookup dummy for bv_index
 !                                                                       
       IF (ianz.eq.3) then 
@@ -468,7 +468,6 @@ CONTAINS
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
- 1000 FORMAT    (a4) 
  2000 FORMAT    (' Bond valence parameters ',a4,' - ',a4,' : r0 = ',    &
      &                   f7.4,' b = ',f7.4)                             
       END SUBROUTINE do_show_bval                   

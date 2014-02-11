@@ -47,15 +47,12 @@
       INTEGER, PARAMETER :: maxw = 1
 !                                                                       
       CHARACTER(1024) zeile 
-      CHARACTER(70) command 
       CHARACTER(5) befehl 
       INTEGER indxb, indxg, lcomm, lbef 
       INTEGER                  :: indxt ! position of a TAB
       INTEGER                  ::  inverse_type
       LOGICAL lout_rho, lkick 
       LOGICAL str_comp 
-!                                                                       
-      SAVE command 
 !                                                                       
       DATA lout_rho / .false. / 
 !                                                                       
@@ -402,14 +399,10 @@
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(80) logfile 
-      REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      LOGICAL llog 
 !                                                                       
       LOGICAL str_comp 
-      INTEGER len_str 
 !                                                                       
       IF (zeile.ne.' ') then 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 

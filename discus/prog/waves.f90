@@ -40,7 +40,6 @@ SUBROUTINE waves_menu
       INTEGER lp, length, lbef, ldummy 
       INTEGER indxg, ianz, is 
       INTEGER         :: nscat
-      INTEGER         :: i
       LOGICAL lend 
 !                                                                       
       INTEGER len_str 

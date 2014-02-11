@@ -1245,7 +1245,7 @@ CONTAINS
          DO i = 1, rho_inc (1) 
          DO j = 1, rho_inc (2) 
          ii = ii + 1 
-         csf (ii) = cmplx (0.0d0, 0.0d0) 
+         csf (ii) = cmplx (0.0, 0.0) 
          ENDDO 
          ENDDO 
       ENDIF 
@@ -1581,7 +1581,6 @@ CONTAINS
       ENDIF 
 !                                                                       
  1000 FORMAT    (a) 
- 2000 FORMAT    (5(f9.3,2x)) 
       END SUBROUTINE do_patters                     
 !*****7*****************************************************************
       SUBROUTINE calc_patters (a_b, h) 
@@ -1658,7 +1657,7 @@ CONTAINS
       REAL patt_excl_val 
       COMPLEX a_b 
 !                                                                       
-      INTEGER i, j 
+      INTEGER i
 !                                                                       
       REAL cosd, sind 
 !                                                                       
@@ -1817,13 +1816,6 @@ CONTAINS
       INTEGER e_num_hhl (20) 
       INTEGER e_num_hMh0l (20) 
       INTEGER e_num_hhM2hl (20) 
-      INTEGER e_n 
-      INTEGER e_n_hk0 
-      INTEGER e_n_h0l 
-      INTEGER e_n_0kl 
-      INTEGER e_n_hhl 
-      INTEGER e_n_hMh0l 
-      INTEGER e_n_hhM2l 
       INTEGER n_hkl 
       INTEGER n_hk0 
       INTEGER n_h0l 
@@ -2353,7 +2345,6 @@ CONTAINS
          ENDIF 
          ENDDO 
 !                                                                       
-  901    CONTINUE 
   903    CONTINUE 
          CLOSE (ifa) 
 !                                                                       
@@ -2748,7 +2739,7 @@ CONTAINS
       PARAMETER (MAXW = 40) 
       CHARACTER(1024) outfile 
       INTEGER ifa, idot 
-      INTEGER i, j 
+      INTEGER i
       INTEGER h (3) 
       INTEGER w_num (MAXW) 
       REAL hh (3) 
@@ -2793,7 +2784,7 @@ CONTAINS
                   diff_power) 
       DO i = 1, MAXW 
       w_aver (i) = 0.0 
-      w_num (i) = 0.0 
+      w_num (i) = 0
       ENDDO 
 !                                                                       
       IF (ftyp.ne.HKLF4) then 

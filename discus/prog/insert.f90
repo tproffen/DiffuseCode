@@ -39,9 +39,8 @@ CONTAINS
       CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara (MAXW) 
       INTEGER,             DIMENSION(1:MAXW) :: lpara
       INTEGER                                :: lp, length, lbef 
-      INTEGER                                :: indxg, ianz, i, j, k 
-      LOGICAL                                :: lend, lspace 
-      REAL   ,             DIMENSION(1:3)    :: hkl (3) 
+      INTEGER                                :: indxg, ianz, i, j
+      LOGICAL                                :: lend
       REAL   ,             DIMENSION(1:MAXW) :: werte (MAXW) 
 !                                                                       
       INTEGER :: len_str 
@@ -542,8 +541,6 @@ CONTAINS
          ENDIF 
       ENDIF 
       ENDDO 
-!                                                                       
- 9999 CONTINUE 
 !                                                                       
       END SUBROUTINE insert                         
 !*****7*****************************************************************

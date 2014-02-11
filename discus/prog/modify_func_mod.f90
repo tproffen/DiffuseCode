@@ -79,7 +79,7 @@ CONTAINS
 !                                                                       
       INTEGER comp 
       INTEGER erg 
-      INTEGER i, j 
+      INTEGER i
 !                                                                       
       IF (sel_mask (0) .eq.0) then 
          check_select_status = atom_status 

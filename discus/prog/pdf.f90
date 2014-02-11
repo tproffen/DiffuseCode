@@ -30,19 +30,15 @@ SUBROUTINE pdf
       INTEGER maxw 
 !                                                                       
       CHARACTER(1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-      REAL           , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
-      REAL           , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
-      REAL           , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwwerte
       INTEGER        , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
       CHARACTER(1024) line, zeile, cdummy 
-      INTEGER lbeg (3) 
       INTEGER lp, length
-      INTEGER indxg, ianz, lbef, i, ia, is, ic (3), iianz, jjanz 
+      INTEGER indxg, ianz, lbef
       INTEGER :: n_nscat  ! Dummy for RMC allocation
-      LOGICAL lout, ldummy 
+      LOGICAL ldummy 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -280,7 +276,7 @@ SUBROUTINE pdf
 !                                                                       
        
 !                                                                       
-      REAL sincut, rcut, z, bave, hh, fac, rtot, ract 
+      REAL sincut, rcut, z, bave, hh, rtot, ract 
       INTEGER :: max_bnd
       INTEGER i, j, ia, is, js, nn, nnn 
       LOGICAL ltot 
@@ -599,8 +595,6 @@ SUBROUTINE pdf
  2300 FORMAT     ('     Periodic boundaries      : ',a) 
  2310 FORMAT     ('     Particle size            : ','infinite') 
  2320 FORMAT ('     Particle size is sphere  : ',F8.4,' A diameter') 
- 2330 FORMAT ('     Particle size is         : treated by polynomial',   &
-     &                   '              parameters      : ',5(F8.4,2x)) 
  2350 FORMAT ('     4 Pi Rho r correction    : none') 
  2360 FORMAT ('     4 Pi Rho r correction    : ',F8.4,              &
      &                                         ' A diameter sphere')    
@@ -656,11 +650,11 @@ SUBROUTINE pdf
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      INTEGER i, il, lp, nmi, nma 
+      INTEGER i, lp, nmi, nma 
       REAL r 
 !                                                                       
       CHARACTER(1024) cdummy, cpara (maxw) 
-      INTEGER ianz, lpara (maxw), ip, is 
+      INTEGER ianz, lpara (maxw)
       REAL werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -842,9 +836,6 @@ SUBROUTINE pdf
       INTEGER ifil 
 !                                                                       
       CHARACTER(1024) line 
-      INTEGER is, ie 
-!                                                                       
-      INTEGER len_str 
 !                                                                       
       READ (ifil, 5000) line 
       IF (line (1:7) .eq.'History') then 
@@ -1397,7 +1388,7 @@ SUBROUTINE pdf
       INTEGER isel (rmc_max_atom), natoms 
       INTEGER imol (rmc_max_atom) 
       INTEGER zh, zm, zs, nmi, nma 
-      INTEGER i, j, ip, iq, is, iii 
+      INTEGER i, j, ip
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !                                                                       
@@ -1582,8 +1573,6 @@ SUBROUTINE pdf
 !                                                                       
       ENDIF 
 !                                                                       
- 2222 CONTINUE 
-!                                                                       
       loop = (itry.lt.rmc_maxcyc) 
 !                                                                       
       IF (igen.gt.1000 * rmc_display.and.itry.eq.0) then 
@@ -1699,8 +1688,6 @@ SUBROUTINE pdf
       INTEGER i, ia, id 
       INTEGER is, js 
       REAL done, sum 
-      INTEGER nmi, nma 
-      REAL r 
       LOGICAL lout 
       REAL seknds, ss 
 !                                                                       
@@ -1796,12 +1783,11 @@ SUBROUTINE pdf
 !                                                                       
        
 !                                                                       
-      INTEGER i, k, ia, ncc 
+      INTEGER i, k, ncc 
 !     REAL ppp (MAXDAT) 
       REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
-      REAL norm, fac, r, r0 
+      REAL norm, r, r0 
       REAL rr 
-      INTEGER nmi, nma 
 !                                                                       
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 
@@ -1912,16 +1898,15 @@ SUBROUTINE pdf
        
 !                                                                       
       INTEGER ig, igaus, ib, ie 
-      INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin, nn, ncc 
+      INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin
       INTEGER istart (3), iend (3), iii (3), cell (3) 
 !     REAL(dp) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
-      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
+!      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
       REAL(dp), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
       REAL rsign, sum 
-      REAL asym, gnorm, norm, dist, dist2, r, r0, rg 
+      REAL asym, gnorm, dist, dist2, rg 
       REAL sigma, fac 
       REAL dd (3), d (3), offset (3) 
-      LOGICAL lout 
 !                                                                       
       fac = 1.0 / (2.0 * zpi**2) 
 !                                                                       
@@ -2040,7 +2025,6 @@ SUBROUTINE pdf
          ENDDO 
          ENDDO 
          ENDDO 
- 1111    CONTINUE 
       ENDIF 
 !                                                                       
       END SUBROUTINE pdf_addcorr                    

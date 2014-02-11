@@ -70,7 +70,6 @@ MODULE allocate_appl_mod
        INTEGER , PARAMETER                      :: MAXW=10
        CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
        INTEGER             , DIMENSION(1:MAXW)  :: lpara
-       REAL                , DIMENSION(1:MAXW)  :: werte
        INTEGER                                  :: ianz
 !
        LOGICAL, EXTERNAL  :: str_comp

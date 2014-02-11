@@ -50,7 +50,6 @@ CONTAINS
       INTEGER indxg, ianz, i, j 
       LOGICAL lend, lchange, lscreen 
       REAL hkl (4) 
-      REAL, DIMENSION(TRAN_MAXSCAT) :: repl  ! dummy variable needed for atom_select 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -737,8 +736,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
  3000 FORMAT    (20x,'    Unit cell transformations '/                  &
      &                  20x,' ==============================='//)       
  3010 FORMAT    (                                                       &
@@ -784,8 +781,6 @@ CONTAINS
      &           '   V(old)   = ',G12.5E3,' * V(new)'/)                    
  3200 FORMAT    (                                                       &
      &           '   Determinant of transformation is zero'/)           
- 3070 FORMAT    (/' select status           : ',a) 
- 3075 FORMAT    (22x,i4) 
  3080 FORMAT    (' Range of atoms from to    : All atoms included') 
  3081 FORMAT    (' Range of atoms from to    : ',2(2x,i9)) 
  3090 FORMAT    (' selected atoms    :') 
@@ -1249,8 +1244,7 @@ CONTAINS
       CHARACTER ( * ) infile 
       CHARACTER(1024) outfile 
       CHARACTER(1024) restfile 
-      CHARACTER(1024) line 
-      INTEGER infile_l, outfile_l 
+      INTEGER infile_l
       INTEGER hkl (3) 
       REAL usym (4), ures (4), utest (3) 
       REAL matrix (4, 4) 

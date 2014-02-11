@@ -23,19 +23,11 @@ CONTAINS
       PARAMETER (idim = 3) 
 !                                                                       
       INTEGER i, j, k, l, m, mm 
-      INTEGER ii, jj 
       INTEGER ij 
       INTEGER iscat 
-      REAL a (3, 3), b (3, 3) 
-      REAL c (3, 3), d (3, 3) 
-      REAL ai (3, 3), ci (3, 3) 
-      REAL h (3), hh (3) 
       REAL det 
-      REAL phase 
-      REAL ds, sf 
 !                                                                       
 !     REAL skalpro 
-      REAL cosd, sind 
 !DBG                                                                    
       exte_orig (1) = 0 
       exte_orig (2) = 0 
@@ -47,8 +39,8 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0d0, 0.0d0) 
-      acsf (i) = cmplx (0.0d0, 0.0d0) 
+      csf (i) = cmplx (0.0, 0.0) 
+      acsf (i) = cmplx (0.0, 0.0) 
       dsi (i) = 0.0d0 
       ENDDO 
 !                                                                       
@@ -86,7 +78,7 @@ CONTAINS
 !DBG    write (*,3000) 'Final Matrix ',((exte_rmat (i,j),j=1,4),i=1,3)  
 !WORK          call external_header(mole_type(l))                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0d0, 0.0d0) 
+      tcsf (i) = cmplx (0.0, 0.0) 
       ENDDO 
 !                                                                       
 !     -- Call the specialised subroutines for standard shapes           
@@ -466,24 +458,16 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER ext_number 
-!                                                                       
       INTEGER iwr 
       PARAMETER (iwr = 7) 
       LOGICAL lread 
       PARAMETER (lread = .false.) 
 !                                                                       
-      CHARACTER(1024) line 
-      INTEGER length 
-!                                                                       
       INTEGER(1) header (1024) 
-      CHARACTER(20) stat 
       CHARACTER(80) char_header (EXTE_HLINES) 
 !                                                                       
       INTEGER exte_num 
-      INTEGER i, j, k, is, irec, jj 
-      INTEGER iii, jjj 
-      INTEGER ia, ie 
+      INTEGER i, j, is
       INTEGER irecl 
 !                                                                       
       irecl = 512 
