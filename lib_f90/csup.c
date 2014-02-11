@@ -25,7 +25,6 @@ glob_t globbuf;
 int ifiles_ (unsigned char *mask, int *l)
 {
 	char *cmask;
-	int cl;
 
 	cmask=malloc((int)*l+1);
 	strncpy(cmask,(char *)mask,(int)*l);

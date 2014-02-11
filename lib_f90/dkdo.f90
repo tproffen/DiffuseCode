@@ -33,9 +33,6 @@
       END INTERFACE
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 2) 
-!                                                                       
       CHARACTER(1024) line 
       CHARACTER(1024) zeile 
       CHARACTER(20) prom 
@@ -261,9 +258,7 @@
       ENDIF 
 !                                                                       
 !                                                                       
- 1000 FORMAT    (a) 
  2000 FORMAT    (a1) 
- 2001 FORMAT    (' Macro > ',a) 
  3000 FORMAT    ('Erroneous line in block structure') 
  3100 FORMAT    (a41) 
       END SUBROUTINE do_loop                        
@@ -603,7 +598,6 @@
             RETURN 
          ENDIF 
       ENDIF 
-  999 CONTINUE 
       END SUBROUTINE do_end                         
 !*****7**************************************************************** 
       LOGICAL FUNCTION if_test (string, laenge) 
@@ -1305,7 +1299,7 @@
       INTEGER ising 
       INTEGER length, l_string 
 !                                                                       
-      REAL berechne, wert, werte (maxw) 
+      REAL wert, werte (maxw) 
 !                                                                       
 !     for flexibility                                                   
 !                                                                       
@@ -1399,7 +1393,7 @@
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER(1024) line, zeile 
+      CHARACTER(1024) line
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) cstr 
       INTEGER lpara (maxw) 
@@ -1646,7 +1640,7 @@
       CHARACTER(1024) substring 
       INTEGER lpara (maxw) 
       INTEGER max 
-      INTEGER laenge, ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
+      INTEGER laenge, ikla, iklz, ikla1, ikla2, ikl, ll, lll
       INTEGER ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
       INTEGER lsub 
       INTEGER icol 
@@ -2415,7 +2409,6 @@
          CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
       ENDIF 
 !                                                                       
-  999 CONTINUE 
       END SUBROUTINE calc_intr                      
 !*****7**************************************************************** 
       SUBROUTINE get_w1_w2 (w1, w2, line, iverk, iz1, iz2, ll, lverk,   &
@@ -2704,8 +2697,8 @@ END FUNCTION len_str
       CHARACTER ( * ) string 
       CHARACTER(1024) cpara (nwerte) 
       INTEGER lpara (nwerte) 
-      INTEGER suche_nach, i, lll 
-      INTEGER laenge, ipos, ianz, iko, ikk 
+      INTEGER i, lll 
+      INTEGER laenge, ipos, ianz
       INTEGER level 
       LOGICAL quote 
       LOGICAL search 
@@ -3004,7 +2997,6 @@ END FUNCTION len_str
       CHARACTER(1) c_form (NUM_FORM) 
       CHARACTER(1024) fstring 
       CHARACTER(1024) line, number 
-      CHARACTER(1024) cwert 
       INTEGER ftyp 
       INTEGER ind_ql, ind_qr 
       INTEGER ind_d, ind_i, ind_f 

@@ -89,7 +89,6 @@ SUBROUTINE cmdline_args
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER len_str 
       LOGICAL llocal 
       INTEGER socket_init
 !                                                                       
@@ -128,13 +127,11 @@ SUBROUTINE cmdline_args
       INTEGER lpara (MAXW) 
       INTEGER ianz 
       INTEGER il, i, j 
-      INTEGER i_comma 
       INTEGER port 
 !                                                                       
       REAL wert 
 !                                                                       
       LOGICAL str_comp 
-      INTEGER len_str 
       REAL berechne 
       INTEGER socket_connect
       INTEGER socket_get
@@ -607,7 +604,6 @@ SUBROUTINE cmdline_args
 !                                                                       
 !                                                                       
       INTEGER iflag 
-      REAL seknds 
 !                                                                       
       IF (iflag.ge.0) then 
          CALL datum_intrinsic () 
@@ -637,11 +633,11 @@ SUBROUTINE cmdline_args
 !                                                                       
 !                                                                       
       CHARACTER ( * ) line, befehl, zeile, prom 
-      CHARACTER(1024) input, string 
+      CHARACTER(1024) input
       CHARACTER(60) bprom 
       CHARACTER(10) cready 
       INTEGER lbef, lp, ll, indxb 
-      INTEGER il, jl, lll, lcready 
+      INTEGER il, jl, lcready 
       LOGICAL lreg 
       LOGICAL str_comp 
 !                                                                       
@@ -826,13 +822,9 @@ SUBROUTINE cmdline_args
       CHARACTER ( * ) line 
       INTEGER ll 
 !                                                                       
-      CHARACTER(1024) string 
-      INTEGER il 
       INTEGER i 
       LOGICAL quote 
       LOGICAL search 
-!                                                                       
-      INTEGER len_str 
 !                                                                       
       search = .true. 
       DO i = 1, ll 
@@ -941,9 +933,6 @@ SUBROUTINE cmdline_args
             ENDIF 
          ENDIF 
       ENDIF 
-!                                                                       
- 2000 FORMAT    (1x,21a) 
- 2010 FORMAT    (1x,  a) 
 !                                                                       
       END SUBROUTINE do_operating                   
 !*****7***********************************************************      
@@ -1102,7 +1091,7 @@ SUBROUTINE cmdline_args
       PARAMETER (maxw = 25) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw), line 
+      CHARACTER(1024) cpara (maxw)
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ii 
@@ -1161,8 +1150,6 @@ SUBROUTINE cmdline_args
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ianzz 
       INTEGER ii 
-      LOGICAL lappend 
-      LOGICAL one_open 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1404,8 +1391,6 @@ SUBROUTINE cmdline_args
       INTEGER lpara (maxw), lp 
       INTEGER ii, iii, ianz 
       REAL werte (maxw) 
-!                                                                       
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -1728,7 +1713,6 @@ SUBROUTINE cmdline_args
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(80) logfile 
-      REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
       LOGICAL llog 
@@ -1905,7 +1889,6 @@ SUBROUTINE cmdline_args
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
- 2000 FORMAT    (a) 
  5000 FORMAT    (' debug  > Prompt (current, old) : ',2I3) 
  5010 FORMAT    (' debug  > Output (current, old) : ',2I3) 
 !                                                                       
@@ -2157,8 +2140,6 @@ SUBROUTINE cmdline_args
       INTEGER i 
       INTEGER length 
 !                                                                       
-      LOGICAL str_comp 
-!                                                                       
       ier_num = - 24 
       ier_typ = ER_FORT 
 !                                                                       
@@ -2219,7 +2200,6 @@ SUBROUTINE cmdline_args
       LOGICAL l_init 
 !                                                                       
       LOGICAL str_comp 
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -2346,15 +2326,6 @@ SUBROUTINE cmdline_args
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
- 2000 FORMAT    (' User defined variables',i3,                          &
-     &                  ' Maximum number: ',i3/)                        
- 2050 FORMAT    (' No user defined variables',                          &
-     &                  ' Maximum number: ',i3/)                        
- 2100 FORMAT    (' Name: ',a30,' = ',8x,e20.8e2,' Real') 
- 2150 FORMAT    (' Name: ',a30,' = ',8x,f16.8  ,'     Real') 
- 2200 FORMAT    (' Name: ',a30,' = ',i15,13x,' Integer') 
- 2300 FORMAT    (' Name: ',a30,' = ''',a,''' Character') 
-!                                                                       
       END SUBROUTINE define_variable                
 !*****7**************************************************************** 
       SUBROUTINE show_variables 
@@ -2428,7 +2399,6 @@ SUBROUTINE cmdline_args
       INTEGER i, ii 
       LOGICAL lok 
 !                                                                       
-      LOGICAL str_comp 
       DATA reserved / 'asin', 'acos', 'atan', 'asind', 'acosd', 'atand',&
       'sin', 'cos', 'tan', 'sind', 'cosd', 'tand', 'sinh', 'cosh',      &
       'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',   &

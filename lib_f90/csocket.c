@@ -67,7 +67,6 @@ int socket_accept_ (int *sock, int *cid, unsigned char *host,
 	int	 addrlen, test;
 	struct   sockaddr_in pin,pout;
 	struct   hostent *hp;
-        char     *some_addr;
 
 	memcpy(hostname,host,(size_t)*lhost);
 	hostname[*lhost]='\0';
@@ -141,7 +140,6 @@ int socket_connect_ (int *sock, unsigned char *host, int *lhost,
                       int *port)
 {
         char   hostname[100];
-	struct sockaddr_in sin;
 	struct sockaddr_in pin;
 	struct hostent *hp;
 

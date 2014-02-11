@@ -363,7 +363,7 @@
       IMPLICIT none 
 !                                                                       
       REAL s 
-      REAL time (2), res 
+!     REAL time (2), res 
       REAL :: current
 !                                                                       
 !     CALL etime (time, res) 
@@ -484,9 +484,6 @@
          ier_typ = ER_IO 
       ENDIF 
   999 CONTINUE 
-!                                                                       
- 2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
-     &                  '****')                                         
       END SUBROUTINE oeffne                         
 !*****7***************************************************************  
       SUBROUTINE oeffne_append (inum, datei, stat, lread) 
@@ -552,9 +549,6 @@
          ier_typ = ER_IO 
       ENDIF 
   999 CONTINUE 
-!                                                                       
- 2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
-     &                  '****')                                         
       END SUBROUTINE oeffne_append                  
 !*****7***************************************************************  
       SUBROUTINE do_sleep (seconds) 
