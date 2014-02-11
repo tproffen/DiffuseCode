@@ -42,6 +42,13 @@ set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp")
 
+# Debug mode - turn on warnings and other options
+option(DEBUG "DEBUG" OFF)
+if (DEBUG)
+  set (CMAKE_C_FLAGS "-fPIC -Wall")
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -std=f2008 -fall-intrinsics -Wall")
+endif (DEBUG)
+
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
