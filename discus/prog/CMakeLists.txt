@@ -74,6 +74,7 @@ else (CUDA_FOUND AND DISCUS_CUDA)
 
   if( DISCUS_OMP)
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
   else (DISCUS_OMP)
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
   endif (DISCUS_OMP)
