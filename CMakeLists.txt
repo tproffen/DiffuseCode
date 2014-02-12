@@ -40,13 +40,13 @@ endif (WIN32 OR CYGWIN)
 
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp")
+set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
 
 # Debug mode - turn on warnings and other options
 option(DEBUG "DEBUG" OFF)
 if (DEBUG)
-  set (CMAKE_C_FLAGS "-fPIC -Wall")
-  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -std=f2008 -fall-intrinsics -Wall")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
 endif (DEBUG)
 
 # Go into directories
