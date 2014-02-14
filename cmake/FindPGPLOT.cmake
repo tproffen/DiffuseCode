@@ -34,6 +34,7 @@ MESSAGE( STATUS "Looking for PGPLOT: " )
 #### SEARCH PACKAGE COMPONENTS
 ####################################################################################################
 SET( PGPLOT_DIR "" CACHE PATH "Path to an PGPLOT installation" )
+MESSAGE( "\t PGPLOT_DIR=${PGPLOT_DIR}" )
 
 SET( PGPLOT_LIBRARY_SEARCH_DIRS
 	${PGPLOT_DIR}

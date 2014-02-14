@@ -1,11 +1,11 @@
 
-/* 
-       DEBUG.H 
-       Fortran debugging output tools 
+/*
+       DEBUG.H
+       Fortran debugging output tools
 */
 
 #define TRACE_MACROS 1
-#define DEBUG 0
+#define DEBUG 1
 
 #if TRACE_MACROS==1
 
@@ -21,6 +21,7 @@
 
 /** Show a message */
 #define MSG(message)  print *, "F90: ", message
+/* #define qeprintf(format, ...) fprintf (stderr, format, ##__VA_ARGS__) */
 /** Show a variable */
 #define VAR(variable) print *, "F90: ", "variable: ", variable
 /** Show a vector */

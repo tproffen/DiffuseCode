@@ -30,19 +30,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/bin/cmake
+CMAKE_COMMAND = /mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake
 
 # The command to remove a file.
-RM = /usr/bin/cmake -E remove -f
+RM = /mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -E remove -f
 
 # The program to use to edit the cache.
-CMAKE_EDIT_COMMAND = /usr/bin/ccmake
+CMAKE_EDIT_COMMAND = /mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/reinhard/develop/DiffuseCode/discus/prog
+CMAKE_SOURCE_DIR = /u/sciteam/wozniak/proj/diffuse/code
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/reinhard/develop/DiffuseCode/discus/prog
+CMAKE_BINARY_DIR = /u/sciteam/wozniak/proj/diffuse/code
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -50,7 +50,7 @@ CMAKE_BINARY_DIR = /home/reinhard/develop/DiffuseCode/discus/prog
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/usr/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -60,19 +60,19 @@ edit_cache/fast: edit_cache
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -P cmake_install.cmake
 .PHONY : install
 
 # Special rule for the target install
 install/fast: preinstall/fast
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
 
 # Special rule for the target install/local
 install/local: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
 .PHONY : install/local
 
 # Special rule for the target install/local
@@ -82,7 +82,7 @@ install/local/fast: install/local
 # Special rule for the target install/strip
 install/strip: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip
 
 # Special rule for the target install/strip
@@ -101,7 +101,7 @@ list_install_components/fast: list_install_components
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/mnt/a/sw/xe/cmake/2.8.7/sles11.1_gnu4.3.4/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -110,14 +110,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/reinhard/develop/DiffuseCode/discus/prog/CMakeFiles /home/reinhard/develop/DiffuseCode/discus/prog/CMakeFiles/progress.marks
-	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/reinhard/develop/DiffuseCode/discus/prog/CMakeFiles 0
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(CMAKE_COMMAND) -E cmake_progress_start /u/sciteam/wozniak/proj/diffuse/code/CMakeFiles /u/sciteam/wozniak/proj/diffuse/code/discus/prog/CMakeFiles/progress.marks
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /u/sciteam/wozniak/proj/diffuse/code/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	$(MAKE) -f CMakeFiles/Makefile2 clean
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/clean
 .PHONY : clean
 
 # The main clean target
@@ -126,57 +126,938 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	$(MAKE) -f CMakeFiles/Makefile2 preinstall
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	$(MAKE) -f CMakeFiles/Makefile2 preinstall
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-#=============================================================================
-# Target rules for targets named discus
+# Convenience name for target.
+discus/prog/CMakeFiles/discus.dir/rule:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/CMakeFiles/discus.dir/rule
+.PHONY : discus/prog/CMakeFiles/discus.dir/rule
 
-# Build rule for target.
-discus: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 discus
+# Convenience name for target.
+discus: discus/prog/CMakeFiles/discus.dir/rule
 .PHONY : discus
 
 # fast build rule for target.
 discus/fast:
-	$(MAKE) -f CMakeFiles/discus.dir/build.make CMakeFiles/discus.dir/build
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus.dir/build.make discus/prog/CMakeFiles/discus.dir/build
 .PHONY : discus/fast
 
-#=============================================================================
-# Target rules for targets named discus_all
+# Convenience name for target.
+discus/prog/CMakeFiles/discus_all.dir/rule:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/CMakeFiles/discus_all.dir/rule
+.PHONY : discus/prog/CMakeFiles/discus_all.dir/rule
 
-# Build rule for target.
-discus_all: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 discus_all
+# Convenience name for target.
+discus_all: discus/prog/CMakeFiles/discus_all.dir/rule
 .PHONY : discus_all
 
 # fast build rule for target.
 discus_all/fast:
-	$(MAKE) -f CMakeFiles/discus_all.dir/build.make CMakeFiles/discus_all.dir/build
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/build
 .PHONY : discus_all/fast
 
-#=============================================================================
-# Target rules for targets named discushlp
+# Convenience name for target.
+discus/prog/CMakeFiles/discus_python.dir/rule:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/CMakeFiles/discus_python.dir/rule
+.PHONY : discus/prog/CMakeFiles/discus_python.dir/rule
 
-# Build rule for target.
-discushlp: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 discushlp
+# Convenience name for target.
+discus_python: discus/prog/CMakeFiles/discus_python.dir/rule
+.PHONY : discus_python
+
+# fast build rule for target.
+discus_python/fast:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_python.dir/build.make discus/prog/CMakeFiles/discus_python.dir/build
+.PHONY : discus_python/fast
+
+# Convenience name for target.
+discus/prog/CMakeFiles/discushlp.dir/rule:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f CMakeFiles/Makefile2 discus/prog/CMakeFiles/discushlp.dir/rule
+.PHONY : discus/prog/CMakeFiles/discushlp.dir/rule
+
+# Convenience name for target.
+discushlp: discus/prog/CMakeFiles/discushlp.dir/rule
 .PHONY : discushlp
 
 # fast build rule for target.
 discushlp/fast:
-	$(MAKE) -f CMakeFiles/discushlp.dir/build.make CMakeFiles/discushlp.dir/build
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discushlp.dir/build.make discus/prog/CMakeFiles/discushlp.dir/build
 .PHONY : discushlp/fast
+
+addfile.o: addfile.f90.o
+.PHONY : addfile.o
+
+# target to build an object file
+addfile.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/addfile.f90.o
+.PHONY : addfile.f90.o
+
+allocate_appl_mod.o: allocate_appl_mod.f90.o
+.PHONY : allocate_appl_mod.o
+
+# target to build an object file
+allocate_appl_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/allocate_appl_mod.f90.o
+.PHONY : allocate_appl_mod.f90.o
+
+atom_env_mod.o: atom_env_mod.f90.o
+.PHONY : atom_env_mod.o
+
+# target to build an object file
+atom_env_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/atom_env_mod.f90.o
+.PHONY : atom_env_mod.f90.o
+
+atom_name.o: atom_name.f90.o
+.PHONY : atom_name.o
+
+# target to build an object file
+atom_name.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/atom_name.f90.o
+.PHONY : atom_name.f90.o
+
+blk_appl.o: blk_appl.f90.o
+.PHONY : blk_appl.o
+
+# target to build an object file
+blk_appl.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/blk_appl.f90.o
+.PHONY : blk_appl.f90.o
+
+bv_data_mod.o: bv_data_mod.f90.o
+.PHONY : bv_data_mod.o
+
+# target to build an object file
+bv_data_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/bv_data_mod.f90.o
+.PHONY : bv_data_mod.f90.o
+
+celltoindex.o: celltoindex.f90.o
+.PHONY : celltoindex.o
+
+# target to build an object file
+celltoindex.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/celltoindex.f90.o
+.PHONY : celltoindex.f90.o
+
+chem.o: chem.f90.o
+.PHONY : chem.o
+
+# target to build an object file
+chem.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/chem.f90.o
+.PHONY : chem.f90.o
+
+chem_aver_mod.o: chem_aver_mod.f90.o
+.PHONY : chem_aver_mod.o
+
+# target to build an object file
+chem_aver_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/chem_aver_mod.f90.o
+.PHONY : chem_aver_mod.f90.o
+
+chem_mod.o: chem_mod.f90.o
+.PHONY : chem_mod.o
+
+# target to build an object file
+chem_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/chem_mod.f90.o
+.PHONY : chem_mod.f90.o
+
+class_atom.o: class_atom.f90.o
+.PHONY : class_atom.o
+
+# target to build an object file
+class_atom.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/class_atom.f90.o
+.PHONY : class_atom.f90.o
+
+class_crystal.o: class_crystal.f90.o
+.PHONY : class_crystal.o
+
+# target to build an object file
+class_crystal.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/class_crystal.f90.o
+.PHONY : class_crystal.f90.o
+
+class_dc_def.o: class_dc_def.f90.o
+.PHONY : class_dc_def.o
+
+# target to build an object file
+class_dc_def.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/class_dc_def.f90.o
+.PHONY : class_dc_def.f90.o
+
+class_internal.o: class_internal.f90.o
+.PHONY : class_internal.o
+
+# target to build an object file
+class_internal.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/class_internal.f90.o
+.PHONY : class_internal.f90.o
+
+config_mod.o: config_mod.f90.o
+.PHONY : config_mod.o
+
+# target to build an object file
+config_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/config_mod.f90.o
+.PHONY : config_mod.f90.o
+
+conn_def_mod.o: conn_def_mod.f90.o
+.PHONY : conn_def_mod.o
+
+# target to build an object file
+conn_def_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/conn_def_mod.f90.o
+.PHONY : conn_def_mod.f90.o
+
+conn_mod.o: conn_mod.f90.o
+.PHONY : conn_mod.o
+
+# target to build an object file
+conn_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/conn_mod.f90.o
+.PHONY : conn_mod.f90.o
+
+crystal_mod.o: crystal_mod.f90.o
+.PHONY : crystal_mod.o
+
+# target to build an object file
+crystal_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/crystal_mod.f90.o
+.PHONY : crystal_mod.f90.o
+
+debye_mod.o: debye_mod.f90.o
+.PHONY : debye_mod.o
+
+# target to build an object file
+debye_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/debye_mod.f90.o
+.PHONY : debye_mod.f90.o
+
+deco_mod.o: deco_mod.f90.o
+.PHONY : deco_mod.o
+
+# target to build an object file
+deco_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/deco_mod.f90.o
+.PHONY : deco_mod.f90.o
+
+diffuse_mod.o: diffuse_mod.f90.o
+.PHONY : diffuse_mod.o
+
+# target to build an object file
+diffuse_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/diffuse_mod.f90.o
+.PHONY : diffuse_mod.f90.o
+
+discus.o: discus.f90.o
+.PHONY : discus.o
+
+# target to build an object file
+discus.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus.dir/build.make discus/prog/CMakeFiles/discus.dir/discus.f90.o
+.PHONY : discus.f90.o
+
+discus_loop.o: discus_loop.f90.o
+.PHONY : discus_loop.o
+
+# target to build an object file
+discus_loop.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/discus_loop.f90.o
+.PHONY : discus_loop.f90.o
+
+discus_setup.o: discus_setup.f90.o
+.PHONY : discus_setup.o
+
+# target to build an object file
+discus_setup.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/discus_setup.f90.o
+.PHONY : discus_setup.f90.o
+
+domain.o: domain.f90.o
+.PHONY : domain.o
+
+# target to build an object file
+domain.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/domain.f90.o
+.PHONY : domain.f90.o
+
+domain_mod.o: domain_mod.f90.o
+.PHONY : domain_mod.o
+
+# target to build an object file
+domain_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/domain_mod.f90.o
+.PHONY : domain_mod.f90.o
+
+domaindis_mod.o: domaindis_mod.f90.o
+.PHONY : domaindis_mod.o
+
+# target to build an object file
+domaindis_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/domaindis_mod.f90.o
+.PHONY : domaindis_mod.f90.o
+
+element_data_mod.o: element_data_mod.f90.o
+.PHONY : element_data_mod.o
+
+# target to build an object file
+element_data_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/element_data_mod.f90.o
+.PHONY : element_data_mod.f90.o
+
+err_appl.o: err_appl.f90.o
+.PHONY : err_appl.o
+
+# target to build an object file
+err_appl.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/err_appl.f90.o
+.PHONY : err_appl.f90.o
+
+exit.o: exit.f90.o
+.PHONY : exit.o
+
+# target to build an object file
+exit.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/exit.f90.o
+.PHONY : exit.f90.o
+
+external.o: external.f90.o
+.PHONY : external.o
+
+# target to build an object file
+external.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/external.f90.o
+.PHONY : external.f90.o
+
+external_mod.o: external_mod.f90.o
+.PHONY : external_mod.o
+
+# target to build an object file
+external_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/external_mod.f90.o
+.PHONY : external_mod.f90.o
+
+extrmc.o: extrmc.f90.o
+.PHONY : extrmc.o
+
+# target to build an object file
+extrmc.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/extrmc.f90.o
+.PHONY : extrmc.f90.o
+
+four_strucf_mod.o: four_strucf_mod.f90.o
+.PHONY : four_strucf_mod.o
+
+# target to build an object file
+four_strucf_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/four_strucf_mod.f90.o
+.PHONY : four_strucf_mod.f90.o
+
+fourier.o: fourier.f90.o
+.PHONY : fourier.o
+
+# target to build an object file
+fourier.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/fourier.f90.o
+.PHONY : fourier.f90.o
+
+fourier_sup.o: fourier_sup.f90.o
+.PHONY : fourier_sup.o
+
+# target to build an object file
+fourier_sup.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/fourier_sup.f90.o
+.PHONY : fourier_sup.f90.o
+
+gen_add_mod.o: gen_add_mod.f90.o
+.PHONY : gen_add_mod.o
+
+# target to build an object file
+gen_add_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/gen_add_mod.f90.o
+.PHONY : gen_add_mod.f90.o
+
+generate_mod.o: generate_mod.f90.o
+.PHONY : generate_mod.o
+
+# target to build an object file
+generate_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/generate_mod.f90.o
+.PHONY : generate_mod.f90.o
+
+graphic.o: graphic.f90.o
+.PHONY : graphic.o
+
+# target to build an object file
+graphic.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/graphic.f90.o
+.PHONY : graphic.f90.o
+
+insert.o: insert.f90.o
+.PHONY : insert.o
+
+# target to build an object file
+insert.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/insert.f90.o
+.PHONY : insert.f90.o
+
+insert_mod.o: insert_mod.f90.o
+.PHONY : insert_mod.o
+
+# target to build an object file
+insert_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/insert_mod.f90.o
+.PHONY : insert_mod.f90.o
+
+intens_mod.o: intens_mod.f90.o
+.PHONY : intens_mod.o
+
+# target to build an object file
+intens_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/intens_mod.f90.o
+.PHONY : intens_mod.f90.o
+
+inter_readstru.o: inter_readstru.f90.o
+.PHONY : inter_readstru.o
+
+# target to build an object file
+inter_readstru.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/inter_readstru.f90.o
+.PHONY : inter_readstru.f90.o
+
+interpret.o: interpret.f90.o
+.PHONY : interpret.o
+
+# target to build an object file
+interpret.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/interpret.f90.o
+.PHONY : interpret.f90.o
+
+inverse_mod.o: inverse_mod.f90.o
+.PHONY : inverse_mod.o
+
+# target to build an object file
+inverse_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/inverse_mod.f90.o
+.PHONY : inverse_mod.f90.o
+
+kdo.o: kdo.f90.o
+.PHONY : kdo.o
+
+# target to build an object file
+kdo.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/kdo.f90.o
+.PHONY : kdo.f90.o
+
+mc_mod.o: mc_mod.f90.o
+.PHONY : mc_mod.o
+
+# target to build an object file
+mc_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/mc_mod.f90.o
+.PHONY : mc_mod.f90.o
+
+metric.o: metric.f90.o
+.PHONY : metric.o
+
+# target to build an object file
+metric.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/metric.f90.o
+.PHONY : metric.f90.o
+
+micro_mod.o: micro_mod.f90.o
+.PHONY : micro_mod.o
+
+# target to build an object file
+micro_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/micro_mod.f90.o
+.PHONY : micro_mod.f90.o
+
+mmc.o: mmc.f90.o
+.PHONY : mmc.o
+
+# target to build an object file
+mmc.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/mmc.f90.o
+.PHONY : mmc.f90.o
+
+mmc_mod.o: mmc_mod.f90.o
+.PHONY : mmc_mod.o
+
+# target to build an object file
+mmc_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/mmc_mod.f90.o
+.PHONY : mmc_mod.f90.o
+
+modify_func_mod.o: modify_func_mod.f90.o
+.PHONY : modify_func_mod.o
+
+# target to build an object file
+modify_func_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/modify_func_mod.f90.o
+.PHONY : modify_func_mod.f90.o
+
+modify_mod.o: modify_mod.f90.o
+.PHONY : modify_mod.o
+
+# target to build an object file
+modify_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/modify_mod.f90.o
+.PHONY : modify_mod.f90.o
+
+mole_env_mod.o: mole_env_mod.f90.o
+.PHONY : mole_env_mod.o
+
+# target to build an object file
+mole_env_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/mole_env_mod.f90.o
+.PHONY : mole_env_mod.f90.o
+
+molecule_mod.o: molecule_mod.f90.o
+.PHONY : molecule_mod.o
+
+# target to build an object file
+molecule_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/molecule_mod.f90.o
+.PHONY : molecule_mod.f90.o
+
+nexus_no.o: nexus_no.f90.o
+.PHONY : nexus_no.o
+
+# target to build an object file
+nexus_no.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/nexus_no.f90.o
+.PHONY : nexus_no.f90.o
+
+output_mod.o: output_mod.f90.o
+.PHONY : output_mod.o
+
+# target to build an object file
+output_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/output_mod.f90.o
+.PHONY : output_mod.f90.o
+
+patters.o: patters.f90.o
+.PHONY : patters.o
+
+# target to build an object file
+patters.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/patters.f90.o
+.PHONY : patters.f90.o
+
+patters_mod.o: patters_mod.f90.o
+.PHONY : patters_mod.o
+
+# target to build an object file
+patters_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/patters_mod.f90.o
+.PHONY : patters_mod.f90.o
+
+pdf.o: pdf.f90.o
+.PHONY : pdf.o
+
+# target to build an object file
+pdf.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/pdf.f90.o
+.PHONY : pdf.f90.o
+
+pdf_mod.o: pdf_mod.f90.o
+.PHONY : pdf_mod.o
+
+# target to build an object file
+pdf_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/pdf_mod.f90.o
+.PHONY : pdf_mod.f90.o
+
+place_molecule.o: place_molecule.f90.o
+.PHONY : place_molecule.o
+
+# target to build an object file
+place_molecule.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/place_molecule.f90.o
+.PHONY : place_molecule.f90.o
+
+plot.o: plot.f90.o
+.PHONY : plot.o
+
+# target to build an object file
+plot.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/plot.f90.o
+.PHONY : plot.f90.o
+
+plot_init.o: plot_init.f90.o
+.PHONY : plot_init.o
+
+# target to build an object file
+plot_init.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/plot_init.f90.o
+.PHONY : plot_init.f90.o
+
+plot_mod.o: plot_mod.f90.o
+.PHONY : plot_mod.o
+
+# target to build an object file
+plot_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/plot_mod.f90.o
+.PHONY : plot_mod.f90.o
+
+powder.o: powder.f90.o
+.PHONY : powder.o
+
+# target to build an object file
+powder.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/powder.f90.o
+.PHONY : powder.f90.o
+
+powder_mod.o: powder_mod.f90.o
+.PHONY : powder_mod.o
+
+# target to build an object file
+powder_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/powder_mod.f90.o
+.PHONY : powder_mod.f90.o
+
+powder_scat_mod.o: powder_scat_mod.f90.o
+.PHONY : powder_scat_mod.o
+
+# target to build an object file
+powder_scat_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/powder_scat_mod.f90.o
+.PHONY : powder_scat_mod.f90.o
+
+powder_write_mod.o: powder_write_mod.f90.o
+.PHONY : powder_write_mod.o
+
+# target to build an object file
+powder_write_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/powder_write_mod.f90.o
+.PHONY : powder_write_mod.f90.o
+
+prop_para_mod.o: prop_para_mod.f90.o
+.PHONY : prop_para_mod.o
+
+# target to build an object file
+prop_para_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/prop_para_mod.f90.o
+.PHONY : prop_para_mod.f90.o
+
+quad.o: quad.f90.o
+.PHONY : quad.o
+
+# target to build an object file
+quad.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/quad.f90.o
+.PHONY : quad.f90.o
+
+qval.o: qval.f90.o
+.PHONY : qval.o
+
+# target to build an object file
+qval.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/qval.f90.o
+.PHONY : qval.f90.o
+
+read_internal_mod.o: read_internal_mod.f90.o
+.PHONY : read_internal_mod.o
+
+# target to build an object file
+read_internal_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/read_internal_mod.f90.o
+.PHONY : read_internal_mod.f90.o
+
+recipro_mod.o: recipro_mod.f90.o
+.PHONY : recipro_mod.o
+
+# target to build an object file
+recipro_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/recipro_mod.f90.o
+.PHONY : recipro_mod.f90.o
+
+rmc.o: rmc.f90.o
+.PHONY : rmc.o
+
+# target to build an object file
+rmc.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/rmc.f90.o
+.PHONY : rmc.f90.o
+
+rmc_mod.o: rmc_mod.f90.o
+.PHONY : rmc_mod.o
+
+# target to build an object file
+rmc_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/rmc_mod.f90.o
+.PHONY : rmc_mod.f90.o
+
+rmc_sup_mod.o: rmc_sup_mod.f90.o
+.PHONY : rmc_sup_mod.o
+
+# target to build an object file
+rmc_sup_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/rmc_sup_mod.f90.o
+.PHONY : rmc_sup_mod.f90.o
+
+rmc_symm.o: rmc_symm.f90.o
+.PHONY : rmc_symm.o
+
+# target to build an object file
+rmc_symm.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/rmc_symm.f90.o
+.PHONY : rmc_symm.f90.o
+
+save.o: save.f90.o
+.PHONY : save.o
+
+# target to build an object file
+save.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/save.f90.o
+.PHONY : save.f90.o
+
+save_mod.o: save_mod.f90.o
+.PHONY : save_mod.o
+
+# target to build an object file
+save_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/save_mod.f90.o
+.PHONY : save_mod.f90.o
+
+shear.o: shear.f90.o
+.PHONY : shear.o
+
+# target to build an object file
+shear.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/shear.f90.o
+.PHONY : shear.f90.o
+
+shear_mod.o: shear_mod.f90.o
+.PHONY : shear_mod.o
+
+# target to build an object file
+shear_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/shear_mod.f90.o
+.PHONY : shear_mod.f90.o
+
+show.o: show.f90.o
+.PHONY : show.o
+
+# target to build an object file
+show.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/show.f90.o
+.PHONY : show.f90.o
+
+spcgr_apply.o: spcgr_apply.f90.o
+.PHONY : spcgr_apply.o
+
+# target to build an object file
+spcgr_apply.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/spcgr_apply.f90.o
+.PHONY : spcgr_apply.f90.o
+
+spcgr_mod.o: spcgr_mod.f90.o
+.PHONY : spcgr_mod.o
+
+# target to build an object file
+spcgr_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/spcgr_mod.f90.o
+.PHONY : spcgr_mod.f90.o
+
+spcgr_setup.o: spcgr_setup.f90.o
+.PHONY : spcgr_setup.o
+
+# target to build an object file
+spcgr_setup.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/spcgr_setup.f90.o
+.PHONY : spcgr_setup.f90.o
+
+stack.o: stack.f90.o
+.PHONY : stack.o
+
+# target to build an object file
+stack.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/stack.f90.o
+.PHONY : stack.f90.o
+
+stack_cr_mod.o: stack_cr_mod.f90.o
+.PHONY : stack_cr_mod.o
+
+# target to build an object file
+stack_cr_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/stack_cr_mod.f90.o
+.PHONY : stack_cr_mod.f90.o
+
+stack_mod.o: stack_mod.f90.o
+.PHONY : stack_mod.o
+
+# target to build an object file
+stack_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/stack_mod.f90.o
+.PHONY : stack_mod.f90.o
+
+stack_rese.o: stack_rese.f90.o
+.PHONY : stack_rese.o
+
+# target to build an object file
+stack_rese.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/stack_rese.f90.o
+.PHONY : stack_rese.f90.o
+
+structur.o: structur.f90.o
+.PHONY : structur.o
+
+# target to build an object file
+structur.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/structur.f90.o
+.PHONY : structur.f90.o
+
+surface_mod.o: surface_mod.f90.o
+.PHONY : surface_mod.o
+
+# target to build an object file
+surface_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/surface_mod.f90.o
+.PHONY : surface_mod.f90.o
+
+sym_add_mod.o: sym_add_mod.f90.o
+.PHONY : sym_add_mod.o
+
+# target to build an object file
+sym_add_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/sym_add_mod.f90.o
+.PHONY : sym_add_mod.f90.o
+
+symm.o: symm.f90.o
+.PHONY : symm.o
+
+# target to build an object file
+symm.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/symm.f90.o
+.PHONY : symm.f90.o
+
+symm_mod.o: symm_mod.f90.o
+.PHONY : symm_mod.o
+
+# target to build an object file
+symm_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/symm_mod.f90.o
+.PHONY : symm_mod.f90.o
+
+symm_sup.o: symm_sup.f90.o
+.PHONY : symm_sup.o
+
+# target to build an object file
+symm_sup.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/symm_sup.f90.o
+.PHONY : symm_sup.f90.o
+
+tensors.o: tensors.f90.o
+.PHONY : tensors.o
+
+# target to build an object file
+tensors.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/tensors.f90.o
+.PHONY : tensors.f90.o
+
+thermal.o: thermal.f90.o
+.PHONY : thermal.o
+
+# target to build an object file
+thermal.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/thermal.f90.o
+.PHONY : thermal.f90.o
+
+trafo.o: trafo.f90.o
+.PHONY : trafo.o
+
+# target to build an object file
+trafo.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/trafo.f90.o
+.PHONY : trafo.f90.o
+
+trans_sup.o: trans_sup.f90.o
+.PHONY : trans_sup.o
+
+# target to build an object file
+trans_sup.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/trans_sup.f90.o
+.PHONY : trans_sup.f90.o
+
+transfrm.o: transfrm.f90.o
+.PHONY : transfrm.o
+
+# target to build an object file
+transfrm.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/transfrm.f90.o
+.PHONY : transfrm.f90.o
+
+transfrm_mod.o: transfrm_mod.f90.o
+.PHONY : transfrm_mod.o
+
+# target to build an object file
+transfrm_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/transfrm_mod.f90.o
+.PHONY : transfrm_mod.f90.o
+
+unitcell_mod.o: unitcell_mod.f90.o
+.PHONY : unitcell_mod.o
+
+# target to build an object file
+unitcell_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/unitcell_mod.f90.o
+.PHONY : unitcell_mod.f90.o
+
+upd_par.o: upd_par.f90.o
+.PHONY : upd_par.o
+
+# target to build an object file
+upd_par.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/upd_par.f90.o
+.PHONY : upd_par.f90.o
+
+update_cr_dim.o: update_cr_dim.f90.o
+.PHONY : update_cr_dim.o
+
+# target to build an object file
+update_cr_dim.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/update_cr_dim.f90.o
+.PHONY : update_cr_dim.f90.o
+
+waves.o: waves.f90.o
+.PHONY : waves.o
+
+# target to build an object file
+waves.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/waves.f90.o
+.PHONY : waves.f90.o
+
+waves_mod.o: waves_mod.f90.o
+.PHONY : waves_mod.o
+
+# target to build an object file
+waves_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/waves_mod.f90.o
+.PHONY : waves_mod.f90.o
+
+wyckoff_mod.o: wyckoff_mod.f90.o
+.PHONY : wyckoff_mod.o
+
+# target to build an object file
+wyckoff_mod.f90.o:
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(MAKE) -f discus/prog/CMakeFiles/discus_all.dir/build.make discus/prog/CMakeFiles/discus_all.dir/wyckoff_mod.f90.o
+.PHONY : wyckoff_mod.f90.o
 
 # Help Target
 help:
@@ -186,6 +1067,7 @@ help:
 	@echo "... depend"
 	@echo "... discus"
 	@echo "... discus_all"
+	@echo "... discus_python"
 	@echo "... discushlp"
 	@echo "... edit_cache"
 	@echo "... install"
@@ -193,6 +1075,114 @@ help:
 	@echo "... install/strip"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... addfile.o"
+	@echo "... allocate_appl_mod.o"
+	@echo "... atom_env_mod.o"
+	@echo "... atom_name.o"
+	@echo "... blk_appl.o"
+	@echo "... bv_data_mod.o"
+	@echo "... celltoindex.o"
+	@echo "... chem.o"
+	@echo "... chem_aver_mod.o"
+	@echo "... chem_mod.o"
+	@echo "... class_atom.o"
+	@echo "... class_crystal.o"
+	@echo "... class_dc_def.o"
+	@echo "... class_internal.o"
+	@echo "... config_mod.o"
+	@echo "... conn_def_mod.o"
+	@echo "... conn_mod.o"
+	@echo "... crystal_mod.o"
+	@echo "... debye_mod.o"
+	@echo "... deco_mod.o"
+	@echo "... diffuse_mod.o"
+	@echo "... discus.o"
+	@echo "... discus_loop.o"
+	@echo "... discus_setup.o"
+	@echo "... domain.o"
+	@echo "... domain_mod.o"
+	@echo "... domaindis_mod.o"
+	@echo "... element_data_mod.o"
+	@echo "... err_appl.o"
+	@echo "... exit.o"
+	@echo "... external.o"
+	@echo "... external_mod.o"
+	@echo "... extrmc.o"
+	@echo "... four_strucf_mod.o"
+	@echo "... fourier.o"
+	@echo "... fourier_sup.o"
+	@echo "... gen_add_mod.o"
+	@echo "... generate_mod.o"
+	@echo "... graphic.o"
+	@echo "... insert.o"
+	@echo "... insert_mod.o"
+	@echo "... intens_mod.o"
+	@echo "... inter_readstru.o"
+	@echo "... interpret.o"
+	@echo "... inverse_mod.o"
+	@echo "... kdo.o"
+	@echo "... mc_mod.o"
+	@echo "... metric.o"
+	@echo "... micro_mod.o"
+	@echo "... mmc.o"
+	@echo "... mmc_mod.o"
+	@echo "... modify_func_mod.o"
+	@echo "... modify_mod.o"
+	@echo "... mole_env_mod.o"
+	@echo "... molecule_mod.o"
+	@echo "... nexus_no.o"
+	@echo "... output_mod.o"
+	@echo "... patters.o"
+	@echo "... patters_mod.o"
+	@echo "... pdf.o"
+	@echo "... pdf_mod.o"
+	@echo "... place_molecule.o"
+	@echo "... plot.o"
+	@echo "... plot_init.o"
+	@echo "... plot_mod.o"
+	@echo "... powder.o"
+	@echo "... powder_mod.o"
+	@echo "... powder_scat_mod.o"
+	@echo "... powder_write_mod.o"
+	@echo "... prop_para_mod.o"
+	@echo "... quad.o"
+	@echo "... qval.o"
+	@echo "... read_internal_mod.o"
+	@echo "... recipro_mod.o"
+	@echo "... rmc.o"
+	@echo "... rmc_mod.o"
+	@echo "... rmc_sup_mod.o"
+	@echo "... rmc_symm.o"
+	@echo "... save.o"
+	@echo "... save_mod.o"
+	@echo "... shear.o"
+	@echo "... shear_mod.o"
+	@echo "... show.o"
+	@echo "... spcgr_apply.o"
+	@echo "... spcgr_mod.o"
+	@echo "... spcgr_setup.o"
+	@echo "... stack.o"
+	@echo "... stack_cr_mod.o"
+	@echo "... stack_mod.o"
+	@echo "... stack_rese.o"
+	@echo "... structur.o"
+	@echo "... surface_mod.o"
+	@echo "... sym_add_mod.o"
+	@echo "... symm.o"
+	@echo "... symm_mod.o"
+	@echo "... symm_sup.o"
+	@echo "... tensors.o"
+	@echo "... thermal.o"
+	@echo "... trafo.o"
+	@echo "... trans_sup.o"
+	@echo "... transfrm.o"
+	@echo "... transfrm_mod.o"
+	@echo "... unitcell_mod.o"
+	@echo "... upd_par.o"
+	@echo "... update_cr_dim.o"
+	@echo "... waves.o"
+	@echo "... waves_mod.o"
+	@echo "... wyckoff_mod.o"
 .PHONY : help
 
 
@@ -204,6 +1194,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /u/sciteam/wozniak/proj/diffuse/code && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

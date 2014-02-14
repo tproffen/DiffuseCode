@@ -23,7 +23,7 @@ set (DIFFUSE_VERSION_PATCH 0)
 find_package(Readline REQUIRED)
 
 # Option to build a PYTHON interface
-option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
+option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" ON)
 if (DIFFUSE_PYTHON)
   find_package(NumPy)
 endif (DIFFUSE_PYTHON)

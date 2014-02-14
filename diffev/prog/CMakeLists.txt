@@ -1,6 +1,6 @@
 # DIFFEV Build
 
-option(DIFFEV_MPI    "DIFFEV_MPI"    ON)
+option(DIFFEV_MPI    "DIFFEV_MPI"    OFF)
 
 find_package(MPI)
 
@@ -40,8 +40,8 @@ target_link_libraries (diffev ${LIBS})
 
 add_custom_command (
   OUTPUT diffev.hlp
-  COMMAND cat  ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp 
-               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
+  COMMAND cat  ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp >
                ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp
   )
 
@@ -57,13 +57,13 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
-    COMMAND f2py -c -m lib_diffev 
+    COMMAND f2py -c -m lib_diffev
             ${DIFFUSE_LIBS}
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
-            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
-            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90
+            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
             ${LIBS_OPT}
             ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
