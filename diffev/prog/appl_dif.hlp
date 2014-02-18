@@ -24,6 +24,7 @@
 !p News        ! Information on recent changes
 !p allocate    ! Allocate array sizes
 !p adapt       ! Adaption of global/local search width
+!p backup      ! Backup current best solutions
 !p compare     ! Compares the results of the current population
 !p constraint  ! Defines a constraint condition
 !p deallocate  ! Deallocate array sizes
@@ -417,6 +418,56 @@
    Whether DIFFEV uses this mode, is determined  by the ==> variable 
    diff_lo[1]. This gives the probability, that a given member will be 
    modified by the local change instead of differential evolution.
+2  backup
+!b backup "NONE"
+!b backup <input> [,<extension] , <output>
+
+   This command allows you to back up the current best solutions.
+   Diffev expects that the current trial solutions are called
+   inputfile.????
+   or 
+   inputfile.????.extension
+   where "????" is a four digit integer number with leading zeros.
+   Note that the '.' before the number "????" and before the extension
+   are mandatory parts of the filename. You need to ensure that your
+   version of "kup.diffev.mac" adheres to this standard. 
+   If the output file name includes a path, make sure that the output
+   directory does exist. DIFFEV does not create the output directory.
+
+
+   Examples
+   backup CALC/calc, FINAL/final
+   This form will back up the files 
+         "CALC/calc.????" as "FINAL/final.????"
+   backup TEMP/calc, tth, FINAL/final
+   This form will back up the files 
+         "TEMP/calc.????.tth" as "FINAL/final.????.tth"
+
+   If multiple files need to be backed up, use the 'backup' command
+   repeatedly:
+
+   backup TEMP/calc, tth,    FINAL/final
+   backup TEMP/calc, grcalc, FINAL/final
+   These two lines will back up the files 
+         "TEMP/calc.????.tth"    as "FINAL/final.????.tth"
+         "TEMP/calc.????.grcalc" as "FINAL/final.????.grcalc"
+
+   backup NONE
+     Turns off the back up option
+
+   The backup option is useful, if the calculation of the solutions
+   takes a long time and involves random configurations. In these cases,
+   the extra time required to copy the files may outway the time to
+   calculates these again after the end of the refinement. 
+   If the calculation involves random configurations, a repeated 
+   calculation of the solutions on which the cost function depends 
+   may not yield exactly the same result. With the backup option you
+   ensure that you always have those backed up solutions correspond
+   to the actual cost function values that DIFFEV used.
+
+   If the calculation of the solutions is quick or if it does not 
+   involve random configurations it is faster not to run the backup
+   during the refinements. 
 2  compare
 !b compare {"silent"}
 

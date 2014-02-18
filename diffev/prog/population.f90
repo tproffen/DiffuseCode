@@ -21,6 +21,7 @@ CHARACTER (LEN=  8) ,DIMENSION(:) , ALLOCATABLE :: pop_name ! (MAXDIMX)
 !
 INTEGER                 :: MAXPOP                      ! Maximum population size
 INTEGER                 :: MAXDIMX                     ! Maximum parameter number
+INTEGER                 :: MAXBACK                     ! Maximum backup number
 INTEGER                 :: pop_n
 INTEGER                 :: pop_c
 INTEGER                 :: pop_dimx
@@ -35,6 +36,8 @@ INTEGER                 :: ltrial_results
 INTEGER                 :: trial_results_ext
 INTEGER                 :: lparent_results
 INTEGER                 :: lparent_summary
+INTEGER                 :: pop_back_number = 0
+LOGICAL                 :: pop_backup = .false.
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_type       !  (MAXDIMX)
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_lname      !  (MAXDIMX)
 !
@@ -66,6 +69,13 @@ REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP)
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: child_val      !  (MAXPOP)
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: trial_val      !  (MAXPOP)
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: parent_val     !  (MAXPOP)
+!
+CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_fil ! (MAXBACK)
+CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_ext ! (MAXBACK)
+CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_trg ! (MAXBACK)
+INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_fil_l ! (MAXBACK)
+INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_ext_l ! (MAXBACK)
+INTEGER            ,DIMENSION(:)  , ALLOCATABLE :: pop_back_trg_l ! (MAXBACK)
 !
 INTEGER                 :: pop_size_of  ! Bytes allocated for population
 !

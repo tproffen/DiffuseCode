@@ -42,7 +42,8 @@ CONTAINS
 !                                                                       
    INTEGER, PARAMETER             :: maxw = 2 
 !                                                                       
-   INTEGER                        :: i, j 
+   CHARACTER(LEN=600)             :: string 
+   INTEGER                        :: i, j , nb
    REAL                           ::  best, worst 
 !                                                                       
    CALL do_read_values
@@ -57,6 +58,16 @@ CONTAINS
                child (i, j) = trial (i, j) 
                child_val (j) = trial_val (j) 
             ENDDO 
+            bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
+                                               ! This effectively replaces kup.backup.mac
+               DO nb = 1, pop_back_number
+                  WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)), j, &
+                                     pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
+                                     pop_back_trg(nb)(1:pop_back_trg_l(nb)), j, &
+                                     pop_back_ext(nb)(1:pop_back_ext_l(nb))
+                  CALL do_operating_comm(string)
+               ENDDO
+            ENDIF bck_during
          ELSE 
             DO i = 1, pop_dimx 
                child (i, j) = pop_x (i, j) 
@@ -70,6 +81,16 @@ CONTAINS
             child (i, j) = trial (i, j) 
             child_val (j) = trial_val (j) 
          ENDDO 
+         bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
+                                            ! This effectively replaces kup.backup.mac
+            DO nb = 1, pop_back_number
+               WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)), j, &
+                                  pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
+                                  pop_back_trg(nb)(1:pop_back_trg_l(nb)), j, &
+                                  pop_back_ext(nb)(1:pop_back_ext_l(nb))
+               CALL do_operating_comm(string)
+            ENDDO
+         ENDIF bck_prior
       ENDDO 
    ENDIF during
 !                                                                       
@@ -94,6 +115,8 @@ CONTAINS
 !                                                                       
    CALL write_parents 
 !                                                                       
+1000 FORMAT('cp ',a,i4.4,a,' ',a,i4.4,a)
+!
    END SUBROUTINE compare_toparent               
 !*****7**************************************************************** 
    SUBROUTINE compare_best_all 
@@ -107,11 +130,14 @@ CONTAINS
    IMPLICIT none 
 !                                                                       
 !                                                                       
+   CHARACTER(LEN=600)             :: string 
    INTEGER                        :: list_number 
    INTEGER                        :: list_index (2 * MAXPOP) 
    REAL                           :: list_val (2 * MAXPOP) 
 !                                                                       
-   INTEGER                        :: i, j, k, ii 
+   INTEGER                        :: i, j, k, ii , nb
+!
+   INTEGER :: len_str
 !                                                                       
    CALL do_read_values
    IF ( ier_num /=0) RETURN
@@ -143,6 +169,38 @@ CONTAINS
 !     copy the pop_n best into the child variables                      
 !                                                                       
    copy: IF (pop_gen.gt.0) THEN 
+      bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
+                                         ! This effectively replaces kup.backup.mac
+         DO k = pop_n ,1, -1
+            IF (list_index (k) .le.pop_n) THEN 
+!                                                                       
+!     ------ an old parent                                                 
+!                                                                       
+               ii = list_index (k) 
+               IF(ii /= k) THEN
+                  DO nb = 1, pop_back_number
+                     WRITE(string,1000) pop_back_trg(nb)(1:pop_back_trg_l(nb)),ii, &
+                                        pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
+                                        pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
+                                        pop_back_ext(nb)(1:pop_back_ext_l(nb))
+                     CALL do_operating_comm(string)
+                  ENDDO
+               ENDIF
+            ELSE 
+!                                                                       
+!     ------ a child                                                       
+!                                                                       
+               ii = list_index (k) - pop_n 
+               DO nb = 1, pop_back_number
+                  WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
+                                     pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
+                                     pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
+                                     pop_back_ext(nb)(1:pop_back_ext_l(nb))
+                  CALL do_operating_comm(string)
+               ENDDO
+            ENDIF
+         ENDDO
+      ENDIF bck_during
       DO k = 1, pop_n 
          IF (list_index (k) .le.pop_n) THEN 
 !                                                                       
@@ -165,6 +223,18 @@ CONTAINS
          ENDIF 
       ENDDO 
    ELSE copy
+      bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
+         DO k = pop_n ,1, -1
+            ii = list_index (k) 
+            DO nb = 1, pop_back_number
+               WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
+                                  pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
+                                  pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
+                                  pop_back_ext(nb)(1:pop_back_ext_l(nb))
+               CALL do_operating_comm(string)
+            ENDDO
+         ENDDO
+      ENDIF bck_prior
       DO k = 1, pop_n 
          ii = list_index (k) 
          DO i = 1, pop_dimx 
@@ -183,6 +253,8 @@ CONTAINS
 !     create new trial file                                             
 !                                                                       
    CALL write_parents 
+!
+1000 FORMAT('cp ',a,i4.4,a,' ',a,i4.4,a)
 !                                                                       
    END SUBROUTINE compare_best_all               
 !*****7**************************************************************** 

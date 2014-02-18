@@ -19,6 +19,7 @@ USE errlist_mod
 PRIVATE
 PUBLIC  :: alloc_appl          ! Generic interface for all allocations
 !PUBLIC  :: do_deallocate_appl
+PUBLIC  :: alloc_backup
 PUBLIC  :: show_config
 !
 INTERFACE  alloc_appl
@@ -172,6 +173,7 @@ CONTAINS
 !
       CALL alloc_constraint ( 1 )
       CALL alloc_population ( 1,  1    )
+      CALL alloc_backup     ( 20)
       CALL alloc_socket_nprogs ( 2, 1, .true. )
 !
     END SUBROUTINE alloc_default
@@ -371,6 +373,64 @@ CONTAINS
     END SUBROUTINE alloc_population
 !
 !
+    SUBROUTINE alloc_backup ( n_pop)
+!-
+!     Allocate the number of backups     avaliable to DIFFEV
+!+
+      USE population
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_pop
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      lstat = .TRUE.
+!
+!
+      CALL alloc_arr ( pop_back_fil  ,1,n_pop, all_status, ' ', size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( pop_back_ext  ,1,n_pop, all_status, ' ', size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( pop_back_trg  ,1,n_pop, all_status, ' ', size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( pop_back_fil_l,1,n_pop, all_status, 1, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( pop_back_ext_l,1,n_pop, all_status, 1, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( pop_back_trg_l,1,n_pop, all_status, 1, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      IF( lstat ) THEN                        ! Success
+         MAXBACK       = n_pop 
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            pop_back_number = 0
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'Backups'
+         ENDIF
+      ELSE                                    ! Failure
+         MAXBACK        =  0
+         pop_back_number=  0
+         ier_num        = -2
+         ier_typ        = ER_COMM
+         ier_msg(1)     = 'Backups'
+         RETURN
+      END IF
+!
+      RETURN
+    END SUBROUTINE alloc_backup
+!
     SUBROUTINE alloc_socket_nprogs ( nprog, nproc, ldummy)
 !-
 !     Allocate the number of programs that may be started via sockets
@@ -452,6 +512,20 @@ CONTAINS
       CALL init_population
 !
     END SUBROUTINE dealloc_population
+!
+    SUBROUTINE dealloc_backup
+!-
+!     Deallocate the number of constraints avaliable to DIFFEV
+!     To avoid possible pitfals with old code, the arrays are simply
+!     reallocated to a size of 1.
+!+
+    USE population
+      IMPLICIT NONE
+!
+      CALL alloc_backup ( 1)
+      pop_back_number =  0
+!
+    END SUBROUTINE dealloc_backup
 !
 !
 END MODULE allocate_appl

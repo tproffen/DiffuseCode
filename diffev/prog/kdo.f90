@@ -34,7 +34,8 @@ CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara
 CHARACTER (LEN=  70)                  :: command 
 CHARACTER (LEN=   9)                  :: befehl 
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
-INTEGER                               :: i, j, ii 
+INTEGER                               :: i, j, ii , nb
+INTEGER                               :: n_pop  ! dummy for allocation
 INTEGER                               :: lb,ub
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
@@ -184,6 +185,50 @@ ELSE
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
+         ENDIF 
+      ENDIF 
+!                                                                 
+!     -- set backup option 
+!                                                                 
+   ELSEIF (str_comp (befehl, 'backup', 3, lbef, 6) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num.eq.0) then 
+         IF(cpara(1)=='NONE') THEN
+            pop_backup = .false.
+         ELSE
+            IF(pop_back_number==MAXBACK) THEN
+               CALL alloc_backup(n_pop)
+            ENDIF
+            pop_back_number = pop_back_number + 1
+            nb              = pop_back_number
+            IF(cpara(ianz)(lpara(ianz):lpara(ianz))=='.') THEN
+               pop_back_trg  (nb) = cpara(ianz)(1:lpara(ianz))
+               pop_back_trg_l(nb) = lpara(ianz)
+            ELSE
+               pop_back_trg  (nb) = cpara(ianz)(1:lpara(ianz)) // '.'
+               pop_back_trg_l(nb) = lpara(ianz) + 1
+            ENDIF
+            ianz = ianz - 1
+            IF(ianz==2) THEN
+               IF(cpara(ianz)(1:1)=='.') THEN
+                  pop_back_ext  (nb) = cpara(ianz)(1:lpara(ianz))
+                  pop_back_ext_l(nb) = lpara(ianz)
+               ELSE
+                  pop_back_ext  (nb) = '.' // cpara(ianz)(1:lpara(ianz))
+                  pop_back_ext_l(nb) = lpara(ianz)+1
+               ENDIF
+            ELSE
+               pop_back_ext   = ' '
+               pop_back_ext_l = 1
+            ENDIF
+            IF(cpara(1)(lpara(1):lpara(1))=='.') THEN
+               pop_back_fil  (nb) = cpara(1)(1:lpara(1))
+               pop_back_fil_l(nb) = lpara(1)
+            ELSE
+               pop_back_fil  (nb) = cpara(1)(1:lpara(1)) // '.'
+               pop_back_fil_l(nb) = lpara(1) + 1
+            ENDIF 
+            pop_backup = .true.
          ENDIF 
       ENDIF 
 !                                                                 
