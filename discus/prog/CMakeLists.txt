@@ -2,9 +2,11 @@
 
 option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
 option(DISCUS_OMP    "DISCUS_OMP"     OFF)
+option(DISCUS_CUDA   "DISCUS_CUDA"    OFF)
 
 find_package(NEXUS)
 find_package(OpenMP)
+find_package(CUDA)
 
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
@@ -60,13 +62,24 @@ endif (NEXUS_FOUND AND DISCUS_NEXUS)
 
 # OpenMP ?
 
-if( DISCUS_OMP)
-  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+if (CUDA_FOUND AND DISCUS_CUDA)
 
-else (DISCUS_OMP)
-  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_cuda_mod.f90)
+  set (CUDA_NVCC_FLAGS -O3)
+  cuda_compile(FOUR_STRUCF_CUDA_O four_strucf_cuda.cu)
+  set (SOURCE_MAIN ${SOURCE_MAIN} ${FOUR_STRUCF_CUDA_O})
+  set (LIBS ${LIBS} cudart)
 
-endif (DISCUS_OMP)
+else (CUDA_FOUND AND DISCUS_CUDA)
+
+  if( DISCUS_OMP)
+    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
+  else (DISCUS_OMP)
+    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
+  endif (DISCUS_OMP)
+
+endif (CUDA_FOUND AND DISCUS_CUDA)
 
 add_library (discus_all ${SOURCES_ALL} )
 add_dependencies (discus_all lib_f90)

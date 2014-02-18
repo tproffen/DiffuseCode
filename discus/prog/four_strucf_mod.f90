@@ -14,14 +14,14 @@ CONTAINS
       INTEGER, INTENT(IN) :: iscat 
       LOGICAL, INTENT(IN) :: lform 
 !                                                                       
-      REAL(KIND=8)        :: xarg0, xincu, xincv , xincw
-      INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
+      REAL(KIND=dp)        :: xarg0, xincu, xincv , xincw
+      INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
 !
       INTEGER IAND, ISHFT 
 !
 !------ zero fourier array                                              
 !                                                                       
-      tcsf = cmplx (0.0d0, 0.0d0) 
+      tcsf = cmplx (0.0, 0.0) 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       

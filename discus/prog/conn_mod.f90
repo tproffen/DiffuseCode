@@ -156,8 +156,8 @@ CONTAINS
 !
    REAL   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
 !
-   INTEGER              :: j,i,jj
-   INTEGER              :: is,js ! dummies for scattering types
+   INTEGER              :: j,i
+   INTEGER              :: is  ! dummies for scattering types
    INTEGER              :: ianz
    LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
    LOGICAL              :: fq    ! quick search algorithm
@@ -271,8 +271,6 @@ CONTAINS
 !
       INTEGER             :: ianz         ! number of command line parameters
       INTEGER             :: iianz        ! dummy number
-      INTEGER             :: max_scat     ! dummy number
-      INTEGER             :: i,j          ! dummy number
       INTEGER             :: is1          ! first atom type
       INTEGER             :: is2          ! second atom type
       INTEGER             :: temp_id      ! temporary definition ID
@@ -287,9 +285,6 @@ CONTAINS
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !                                                                       
-      LOGICAL :: str_comp 
-      REAL    :: berechne 
-!
       maxw = MAX(MIN_PARA, MAXSCAT+4)
 !                                                                       
 !     Check definitions array
@@ -595,10 +590,8 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) line, zeile, cpara (MAXSCAT) 
       INTEGER lpara (MAXSCAT), lp, length, lbef 
-      INTEGER indxg, ianz, i 
-      INTEGER indxc 
-      LOGICAL lend, lspace 
-      LOGICAL lselect 
+      INTEGER indxg, ianz
+      LOGICAL lend
       REAL werte (MAXSCAT) 
 !                                                                       
       INTEGER len_str 
@@ -757,8 +750,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!
    END SUBROUTINE conn_menu
 !
    SUBROUTINE conn_show
@@ -773,8 +764,6 @@ CONTAINS
 !
       INTEGER   :: is
       INTEGER   :: i
-      CHARACTER(LEN=9)           :: at_name_i
-!     CHARACTER(LEN=9), EXTERNAL :: at_name
 !
       exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
         scats: DO is=0,maxscat                     ! Loop over all atom types
@@ -855,7 +844,6 @@ CONTAINS
       INTEGER, INTENT(IN)  :: is1     ! central atom type
       INTEGER, INTENT(IN)  :: ino     ! Connectivity def. no.
       CHARACTER(LEN=256)   :: c_name  ! Connectivity name
-      INTEGER              :: c_name_l! Connectivity name length
       INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
       INTEGER, DIMENSION(1:maxw), INTENT(OUT) :: c_list    ! Size of array c_list 
       INTEGER, INTENT(OUT) :: natoms  ! number of atoms in connectivity list
@@ -903,9 +891,6 @@ CONTAINS
       INTEGER,            INTENT(INOUT)   :: work_id    ! Connectivity def. no.
       CHARACTER(LEN=256), INTENT(INOUT)   :: work_name  ! Connectivity name
       INTEGER           , INTENT(INOUT)   :: work_name_l! Connectivity name length
-!
-      INTEGER    :: i
-!
 !
       IF ( ALLOCATED(def_main) ) THEN
          is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists

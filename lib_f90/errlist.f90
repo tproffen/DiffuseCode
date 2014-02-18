@@ -72,9 +72,9 @@
 !
 !
        integer       i,iu,io
-       CHARACTER*80  estr
-       CHARACTER*45  error(iu:io)
-       CHARACTER*4   typ
+       CHARACTER(LEN=80)  estr
+       CHARACTER(LEN=45)  error(iu:io)
+       CHARACTER(LEN=4)   typ
        integer             le
 !
        integer       len_str
@@ -118,7 +118,7 @@
        integer       iu,io
        parameter    (iu=0,io=3)
 !
-       CHARACTER*45  error(iu:io)
+       CHARACTER(LEN=45)  error(iu:io)
 !
        DATA ERROR (  0:  3) /                         &
      &  'No error',                                 & !  0  ! command
@@ -142,7 +142,7 @@
        integer       iu,io
        parameter    (IU=-17,IO=0)
 !
-       CHARACTER*45  error(IU:IO)
+       CHARACTER(LEN=45)  error(IU:IO)
 !
        DATA ERROR (-17:-01) /                         &
      &  'Too many parameters',                      & !-17  ! command
@@ -183,7 +183,7 @@
        integer       iu,io
        parameter    (IU=-34,IO=1)
 !
-       CHARACTER*45  ERROR(IU:IO)
+       CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR (-34:-21) /                       &
      &  'String has length zero',                   & !-34  ! fortran
@@ -242,7 +242,7 @@
        integer       iu,io
        parameter    (IU= -26,IO=0)
 !
-       CHARACTER*45  ERROR(IU:IO)
+       CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR (-26:-21) /                       &
      &  'Second parameter must be >= first Param.', & ! -26 ! io
@@ -292,7 +292,7 @@
        integer       iu,io
        parameter    (IU=-41,IO=3)
 !
-       CHARACTER*45  ERROR(IU:IO)
+       CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR (-41:-21) /                       &
      &  'Not enough macro parameters given ',       & !-41  ! macro
@@ -360,7 +360,7 @@
        integer       iu,io
        parameter    (IU= -1,IO=0)
 !
-       CHARACTER*45  ERROR(IU:IO)
+       CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR/                                  &
      &  'Singular Matrix',                          & !- 1  ! math

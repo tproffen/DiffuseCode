@@ -608,8 +608,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
       END SUBROUTINE symm                           
 !*****7*****************************************************************
       SUBROUTINE symm_show 
@@ -743,7 +741,6 @@ CONTAINS
  3090 FORMAT    ( '   Type of symmetry element  : ',2x,a) 
  3100 FORMAT    ( '   Mode of symmetry operation: ',2x,a) 
  3110 FORMAT    ( '   Molecule status           : ',2x,a) 
- 3120 FORMAT    (/'   Select status             : ',2x,a) 
  3210 FORMAT    ( '   Selected atom types       : ',2x,50(a9,1x)) 
  3220 FORMAT    ( '   Range of selected atoms   :   All atoms included') 
  3225 FORMAT( '   Range of selected atoms   :   Current environment') 

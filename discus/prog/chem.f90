@@ -39,7 +39,7 @@ SUBROUTINE chem
       REAL uwerte (maxw) 
       INTEGER lbeg (3) 
       INTEGER lpara (maxw), lp, length 
-      INTEGER indxg, ianz, lbef, i, ia, is, ic (3), iianz, jjanz 
+      INTEGER indxg, ianz, lbef, iianz, jjanz 
       INTEGER kkanz 
       LOGICAL lout , lsite
 !                                                                       
@@ -882,7 +882,7 @@ CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
 REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
-INTEGER     :: is1, is2, iv, i, j 
+INTEGER     :: is1, is2, iv
 INTEGER     :: n_vec  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
 !                                                                       
@@ -966,7 +966,7 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
 !                                                                       
    CHARACTER (LEN=256)  :: c_name   ! Connectivity name
    INTEGER              :: c_name_l ! connectivity name length
-   INTEGER     :: is1, ino, iv, i, j , iianz
+   INTEGER     :: is1, ino, iv, iianz
    INTEGER     :: n_con  ! Dummy for allocations
    INTEGER     :: n_cor  ! Dummy for allocations
    LOGICAL     :: lold   ! Atom types have to be present
@@ -1064,7 +1064,7 @@ INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 INTEGER, PARAMETER  :: max_uvw = 48 
 !                                                                       
-INTEGER             :: is1, is2, iv, i, j, k 
+INTEGER             :: iv, i, j
 INTEGER             :: janz 
 INTEGER             :: n_ran  ! Dummy for allocations
 INTEGER             :: n_cor  ! Dummy for allocations
@@ -1306,7 +1306,7 @@ CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
 REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
-INTEGER            :: is1, is2, is3, iv, i, j 
+INTEGER            :: is1, is2, is3, iv
 !
 INTEGER     :: n_ang  ! Dummy for allocations
 INTEGER     :: n_cor  ! Dummy for allocations
@@ -1395,7 +1395,7 @@ ENDIF
       CHARACTER ( * ) cpara (maxw) 
       REAL werte (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz, janz, iv, i, j, k 
+      INTEGER ianz, janz, iv, i, j
       INTEGER            :: n_atom
       INTEGER            :: n_env
       INTEGER            :: n_cor
@@ -1486,7 +1486,6 @@ ENDIF
       REAL uvw (4, max_uvw) 
       REAL uvw_mat (4, 4, max_uvw) 
       LOGICAL lacentric, csym 
-      LOGICAL lrange 
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -1960,7 +1959,6 @@ ENDIF
       INTEGER iatom, isite, icell (3) 
       INTEGER      :: ie_1, ie_2 
       INTEGER      :: ilook  ! Lookup entry in bv_index_table
-      INTEGER      :: itry   ! Encoded Lookup entry in bv_index_table
       REAL werte (maxw), dummy (1)
       REAL radius, bval, pos (3) 
       LOGICAL latom 
@@ -2071,7 +2069,6 @@ ENDIF
       ENDIF 
 !                                                                       
  1000 FORMAT    (' Bond valence sum for ',a9,' : ',f7.4) 
- 2000 FORMAT    (a4) 
 !                                                                       
       END SUBROUTINE chem_bval                      
 !*****7*****************************************************************
@@ -3752,7 +3749,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       CHARACTER(9) at_name_i, at_name_j 
       CHARACTER(9) name_1, name_2, name_3 
       INTEGER atom (0:maxatom), natom 
-      INTEGER iianz, i, j, k, l, is, js, ic 
+      INTEGER iianz, i, j, k, is, js, ic 
       INTEGER jjanz, kkanz 
       INTEGER lname_1, lname_2, lname_3 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
@@ -3939,7 +3936,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       CHARACTER(9) name_1, name_2, name_3 
       INTEGER atom (0:maxatom, CHEM_MAX_CENT) 
       INTEGER natom (CHEM_MAX_CENT) 
-      INTEGER iianz, i, j, k, l, is, js, ic 
+      INTEGER iianz, i, j, k, is, js, ic 
       INTEGER jj 
       INTEGER jjanz, kkanz 
       INTEGER icent, ncent 
@@ -5123,10 +5120,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER                    :: ino    ! number of connectivity list 
       INTEGER                    :: natoms ! number of atoms in connectivity list 
       INTEGER, DIMENSION(1:maxw) :: c_list ! Result of connectivity search
-      INTEGER icent, nnew 
       LOGICAL laccept 
       LOGICAL lok 
-      LOGICAL lis_neig 
       LOGICAL ldbg 
 !                                                                       
 !     LOGICAL atom_allowed 
@@ -5903,8 +5898,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDDO 
       CLOSE (43) 
 !                                                                       
-  400 FORMAT (/,' Calculating bond-length distibution (Mode: QUICK)') 
-  410 FORMAT (/,' Calculating bond-length distibution (Mode: EXACT)') 
   500 FORMAT (' Calculating bond-length distibution',/,                 &
      &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
      &        '  A / File : ',A12,' (',I4,' pts)',/)                    
@@ -5935,14 +5928,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
 !                                                                       
-      INTEGER i, j, k, l, is, js, ibin 
-      INTEGER bl_anz (0:maxscat, 0:maxscat) 
+      INTEGER i, j, k, ibin 
       REAL u (3), v (3), dist 
-      REAL bl_min (0:maxscat, 0:maxscat) 
-      REAL bl_max (0:maxscat, 0:maxscat) 
-      REAL bl_sum (0:maxscat, 0:maxscat) 
-      REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL bl_ave, bl_sig 
 !                                                                       
 !     LOGICAL atom_allowed 
 !     REAL do_blen 
@@ -5995,9 +5982,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
   500 FORMAT (' Calculating bond-length distibution',/,                 &
      &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
      &        '  A / File : ',A12,' (',I4,' pts)',/)                    
- 1000 FORMAT ('    ',A9,'- ',A9,': d =',F7.3,' +- ',F6.3,' A ',         &
-     &        '(Min =',F7.3,', Max =',F7.3,')',/,                       &
-     &        49x,'(Pairs = ',i18,')')                                  
  5000 FORMAT (F8.3,I12) 
       END SUBROUTINE chem_blen_cluster              
 !*****7*****************************************************************
@@ -6163,8 +6147,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDDO 
       CLOSE (43) 
 !                                                                       
-  400 FORMAT     (/,' Calculating bond-angle distibution (Mode: QUICK)') 
-  410 FORMAT     (/,' Calculating bond-angle distibution (Mode: EXACT)') 
   500 FORMAT     (' Calculating bond-angle distibution',/,              &
      &        '    Allowed range : ',F6.2,'   to ',F6.2,' Degrees',/,   &
      &        '    Allowed length: ',F6.2,' A to ',F6.2,                &

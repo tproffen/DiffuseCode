@@ -30,16 +30,12 @@ IMPLICIT none
 INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
 INTEGER            :: maxw           ! Array size for cpara, lpara, werte
 !                                                                       
-CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
-REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
-!
 CHARACTER(LEN=5)    :: befehl 
 CHARACTER(LEN=50)   :: prom 
 CHARACTER(LEN=40)   :: cdummy 
 CHARACTER(LEN=1024) :: line, zeile 
 INTEGER             :: lp, length 
-INTEGER             :: indxg, lbef, ianz 
+INTEGER             :: indxg, lbef
 LOGICAL, PARAMETER  :: lold = .false. 
 !
 INTEGER             :: n_corr ! dummy for allocation
@@ -201,8 +197,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
  9999 CONTINUE 
 !                                                                       
- 1500 FORMAT   (' Saving structure to file : ',a) 
-!                                                                       
       END SUBROUTINE mmc                            
 !*****7*****************************************************************
       SUBROUTINE mmc_show 
@@ -225,17 +219,17 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !                                                                       
       CHARACTER(1024) zeile 
-      CHARACTER(LEN=24), DIMENSION(0:MC_N_ENERGY) :: c_energy = & !(0:MC_N_ENERGY) 
-         (/'                        ', &
-           'Occupation correlation  ', &
-           'Displacement correlation', &
-           'Displacement energy     ', &
-           'Angular energy          ', &
-           'Vector energy           ', &
-           'Bond length energy      ', &
-           'Lennard Jones Potential ', &
-           'Buckingham    Potential ', &
-           'Repulsive  Potential    '/)
+!      CHARACTER(LEN=24), DIMENSION(0:MC_N_ENERGY) :: c_energy = & !(0:MC_N_ENERGY) 
+!         (/'                        ', &
+!           'Occupation correlation  ', &
+!           'Displacement correlation', &
+!           'Displacement energy     ', &
+!           'Angular energy          ', &
+!           'Vector energy           ', &
+!           'Bond length energy      ', &
+!           'Lennard Jones Potential ', &
+!           'Buckingham    Potential ', &
+!           'Repulsive  Potential    '/)
       CHARACTER (LEN=20), DIMENSION(MC_N_MOVE)    :: c_move = & !  (MC_N_MOVE) 
          (/ 'switch chemistry    ', &
             'switch displacement ', &
@@ -247,10 +241,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             'local, same site    ', &
             'all,   same site    ' /)
       CHARACTER(9) at_name_i, at_name_j 
-      INTEGER i, j, k, l, m 
-      INTEGER ii, jj 
-      INTEGER ie 
-      LOGICAL l_is, l_js 
+      INTEGER i, j, k
 !                                                                       
 !                                                                       
       IF (mo_sel_atom) then 
@@ -567,7 +558,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
  1300 FORMAT (  '   Feedback/update intervall    : ',i8) 
  1400 FORMAT (  '   Temperature [kT]             : ',f8.4) 
  3000 FORMAT (/,' Correlation definitions        : ',/) 
- 2000 FORMAT (/,' Defined potential energies     : ',/) 
  2100 FORMAT (/,' Desired correlations for Chemical Occupancy : ',/,/,  &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2200 FORMAT (/,' Desired correlations for Displacement : ',/,/,        &
@@ -575,7 +565,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
  2300 FORMAT (/,' Desired distortions for SPRING : ',/,/,               &
      &         12x,'Pairs',10x,'neigh. #',3x,'distance',7x,'depth')     
  2010 FORMAT (/,' Desired distortions for ANGLE  : ',/) 
- 2020 FORMAT (/,' Desired distortions for VECTOR : ',/) 
  2700 FORMAT (/,' Desired distance for LENNARD : ',/,/,                 &
      &         12x,'Pairs',10x,'neigh. #',3x,'distance/A',7x,           &
      &             'depth/B',7x,'m',7x,'n')                             
@@ -592,17 +581,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
      &         30x,g18.8e2,g18.8e2,g18.8e2,f7.3,2x     )                        
  7800 FORMAT (  5x,a8,' - ',a8,5x,i3,5x,f7.3,5x,g18.8e2,/,              &
      &         30x,g18.8e2,g18.8e2,g18.8e3)                             
- 4120 FORMAT (  '   Atoms : ',a4,' - ',a4,'  neig. #',i3,               &
-     &          '   vector : ',3(f7.3,2x),f7.3)                         
- 4130 FORMAT (  '   Atoms : ',a4,' - ',a4,'  neig. #',i3,               &
-     &          '   potential : ',f10.3,2x,f10.3/                       &
-     &         40x,'power     : ',f10.3,2x,f10.3)                       
- 4140 FORMAT (  '   Atoms : ',a4,' - ',a4,'  neig. #',i3,               &
-     &          '   potential : ',2(f9.3,2x),f9.3)                      
  4200 FORMAT (  '   Molecule types : ',i4,' - ',i4,'  neig. #',i3,      &
      &          '   distance : ',f7.3,' A',' depth ',g18.8e2)           
- 4220 FORMAT (  '   Molecule types : ',i4,' - ',i4,'  neig. #',i3,      &
-     &          '   vector : ',3(f7.3,2x),f7.3)                         
  6000 FORMAT (/,' Sigmas for MC shifts (l.u.)    : ') 
  6010 FORMAT (  '                 Atom ',a9,' : ',3(F9.5,1X)) 
  6020 FORMAT (  '        Molecule type ',i9,' : ',3(F9.5,1X)) 
@@ -655,8 +635,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER, DIMENSION(MAXW) :: lpara2 ! (maxw) 
       INTEGER ianz, iianz, jjanz, kkanz, is, js, ls, ic, i, j 
       INTEGER is_start, is_end 
-      INTEGER js_start, ks_end 
-      INTEGER ls_start, ls_end 
       INTEGER                :: n_corr ! Dummy for allocation
       INTEGER                :: n_scat ! Dummy for allocation
       INTEGER                :: n_angles ! Dummy for allocation
@@ -1691,11 +1669,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER maxatom 
       PARAMETER (maxatom = CHEM_MAX_NEIG) 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(9) at_name_i, at_name_j
       CHARACTER(24) c_energy (0:MC_N_ENERGY) 
       REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
-      REAL verte (maxw), vverte (maxw), vvverte (maxw) 
       REAL start, zeit, seknds 
       REAL disp1, disp2 
       REAL disp (3, 0:CHEM_MAX_NEIG, 2) 
@@ -1707,28 +1682,23 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL posz2 (3) 
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
-      INTEGER lpara (maxw) 
       INTEGER igen, itry, iacc_good, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
       INTEGER iselz, iselz2 
       INTEGER lbeg (3) 
       INTEGER ic, is (2), iz1 (3), iz2 (3), ie 
       INTEGER iz (2, 3) 
-      INTEGER i, j, k, natoms, ianz, janz, ia, l, kanz 
-      INTEGER ii, jj 
+      INTEGER i, j, natoms, ia
       INTEGER natom (CHEM_MAX_CENT) 
       INTEGER ncent 
       INTEGER icent 
-      INTEGER imove 
       INTEGER iscat 
       INTEGER zh, zm, zs 
-      LOGICAL l_is, l_js 
       LOGICAL loop, laccept, done 
       LOGICAL valid_e 
       LOGICAL valid_all 
       LOGICAL lout 
 !                                                                       
-      REAL d 
       REAL v (3) 
       REAL z 
 !                                                                       
@@ -1744,7 +1714,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !      REAL mmc_energy_buck 
 !      REAL mmc_energy_rep 
       REAL ran1, gasdev 
-      INTEGER len_str 
+!      INTEGER len_str 
 !     LOGICAL atom_allowed 
 !     LOGICAL check_select_status 
 !     REAL do_blen 
@@ -2395,17 +2365,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       zs = int (zeit - zh * 3600 - zm * 60.) 
       WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
 !                                                                       
- 1000 FORMAT   (' Running MC simulation ...',//                         &
-     &         ' Size of model crystal     : ',I3,' x ',I3,' x ',I3,    &
-     &         ' containing ',I9,' atoms')                              
  2000 FORMAT (/,' Gen: ',I8,' try: ',I8,' acc: (good/bad): ',I7,        &
      &          ' / ',I7,'  MC moves ')                                 
- 2300 FORMAT ('Neig. ',i3,' ',a9,'- ',a9,'target ',                     &
-     &        f7.3,' ach. ',f7.3,' +- ',f7.3,' Dif ',f7.3)              
- 2400 FORMAT (/36x,'(',f7.3,')    (',f7.3,')  (',f7.3,')') 
- 2410 FORMAT ('Neig. ',i3,' ',a9,'- ',a9,'target(',                     &
-     &        f7.3,')ach.(',f7.3,')+-(',f7.3,')')                       
- 2420 FORMAT ( 36x,'(',f7.3,')    (',f7.3,')  (',f7.3,')') 
  3000 FORMAT (/,' --- Final multiple energy configuration ---') 
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
@@ -2508,12 +2469,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER icent 
       LOGICAL valid_e 
 !                                                                       
-      INTEGER i, is, js, ic, in, ia, jjs 
+      INTEGER is, js, ic, in, ia
       INTEGER in_a, in_e 
       INTEGER ncalc 
-      INTEGER ival1, ival2 
+      INTEGER ival1
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
-      REAL d, u (3), v (3) 
 !                                                                       
 !     LOGICAL check_select_status 
 !                                                                       
@@ -2705,7 +2665,7 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER in_a, in_e 
       INTEGER cell (3), site 
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
-      REAL d, u (3), v (3) 
+      REAL u (3)
 !                                                                       
       REAL jdir (3) 
       REAL rdj (CHEM_MAX_COR)
@@ -4208,14 +4168,6 @@ buck_pair: DO is = 0, cr_nscat
      &    'Sigma',5x,'Diff',6x,'Number',/                               &
      &    ' Def.   Type    central  Neighbors',13x,'Angle'              &
      &   ,25x,'of pairs')                                               
- 1000 FORMAT (  '    Atom types : A = ',A4,' and B = ',A4,' ',//,       &
-     &          4x,'Neig.',5x,'AA',9x,'AB',9x,'BB',9x,                  &
-     &          '# pairs    correlation',/,4x,65('-'))                  
- 1100 FORMAT (5x,i3,3x,3(f6.2,' % ',2x),1x,i8,6x,f7.4) 
- 2000 FORMAT (  ' Calculating distortions ',/,                          &
-     &          '    Atom types : A = ',A4,' and B = ',A4,' ',//,       &
-     &           '    Neig.  Atom A      Atom B       distance',        &
-     &          '   sigma     # pairs',/,4x,60('-'))                    
  2100 FORMAT (1x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
  3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,i8)                                           
@@ -4229,8 +4181,6 @@ buck_pair: DO is = 0, cr_nscat
      &             ,i8)                                                 
  3700 FORMAT (1x,i3,3x,'Lennard  ',a5,3x,a5,      8x,4(f7.3,3x)         &
      &             ,i8)                                                 
- 3800 FORMAT (1x,i3,3x,'Bucking. ',a5,3x,a5,      8x,f7.3,3x,           &
-     &        f7.3,3x,i8)                                               
  3900 FORMAT (1x,i3,3x,'Repuls.  ',a5,3x,a5,      8x,4(f7.3,3x)         &
      &             ,i8)                                                 
 !                                                                       
@@ -4383,7 +4333,6 @@ buck_pair: DO is = 0, cr_nscat
       INTEGER is 
       INTEGER js 
       INTEGER ls 
-      INTEGER CHEM_MAXSCAT 
       INTEGER MMC_MAX_ANGLES 
       INTEGER MAXSCAT 
       INTEGER, PARAMETER :: X_ANGLES =  200  ! This needs work, may not be unique!
@@ -4417,7 +4366,6 @@ buck_pair: DO is = 0, cr_nscat
       INTEGER is 
       INTEGER js 
       INTEGER ls 
-      INTEGER CHEM_MAXSCAT 
       INTEGER MMC_MAX_ANGLES 
       INTEGER MAXSCAT 
 !                                                                       

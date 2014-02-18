@@ -48,7 +48,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       INTEGER lcomm, sav_flen 
       INTEGER                      :: n_nscat
       LOGICAL lend 
-      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
+!      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -499,8 +499,6 @@ SUBROUTINE save_struc (zeile, lcomm)
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
  3000 FORMAT(20x,'    Data written to structure file '/                 &
      &       20x,' ===================================='//              &
      &       ' Structure file                            : ',a/)        
@@ -594,7 +592,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       CHARACTER ( LEN=* ) strucfile 
       CHARACTER(31) fform 
       CHARACTER(15) C_MOLE ( - 4:4) 
-      INTEGER ist, i, j, k, j_end, l1, l2, l 
+      INTEGER ist, i, j, k, l 
       INTEGER i_start, i_end 
       INTEGER is, ie 
       LOGICAL lread 
@@ -834,8 +832,6 @@ SUBROUTINE save_struc (zeile, lcomm)
                                                                         
  4000 FORMAT    (a) 
  4002 FORMAT    (a,' type,',i8) 
- 4005 FORMAT    (a,' content,',i8,',',i8) 
- 4010 FORMAT    (a,' atoms',7(a1,i8)) 
  4100 FORMAT    (a,' character,',a15) 
  4200 FORMAT    (a,' density  ,',f12.4) 
  4300 FORMAT    (a,' file     ,',a) 

@@ -37,7 +37,6 @@ CONTAINS
       INTEGER             :: lpara(MAXW) ! (MAXSCAT)
       INTEGER lp, length 
       INTEGER indxg, ianz, lbef 
-      INTEGER i, j
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 

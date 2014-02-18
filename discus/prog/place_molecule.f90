@@ -30,14 +30,11 @@ CONTAINS
    CHARACTER (LEN=50)                      :: prom  ! Menu prompt
    CHARACTER (LEN=1024)                    :: line  ! input line
    CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
-   CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara ! parameter array
-   INTEGER             , DIMENSION(1:MAXW) :: lpara ! length of parameters
    INTEGER                                 :: indxg ! location of "="
    INTEGER                                 :: lp    ! lengtz of zeile
-   INTEGER i, j, ii, ianz, m, l, k, laenge, lbef
+   INTEGER laenge, lbef
    LOGICAL                                 :: lend  ! condition of EOF
    LOGICAL                                 :: lold =.true. ! condition of EOF
-   REAL                , DIMENSION(1:MAXW) :: werte ! parameter values
 !
    INTEGER, EXTERNAL :: len_str
    LOGICAL, EXTERNAL :: str_comp
@@ -380,7 +377,6 @@ write(*,*) ' neigbor ',ib,' deviates by ',deviat(ib)
    INTEGER   :: istatus          ! status
    INTEGER   :: i  ! dummy index
    INTEGER   :: ia ! dummy index
-   INTEGER   :: ib ! dummy index
    INTEGER   :: istart,iend ! dummy index
    INTEGER   :: is ! scattering number of surface atom
    INTEGER   :: idef ! connectivity definition number

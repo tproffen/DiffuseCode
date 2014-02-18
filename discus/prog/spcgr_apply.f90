@@ -441,7 +441,6 @@ CONTAINS
       REAL scale 
       REAL glide 
       REAL eps 
-      REAL sum_a, sum_t, lambda 
 !                                                                       
       DATA eps / 0.0001 / 
 !                                                                       
@@ -1085,8 +1084,6 @@ CONTAINS
 !                                                                       
  3100 FORMAT    (' (',a4,',',a4,',',a4,') ') 
  3200 FORMAT    ('  ',a4,',',a4,',',a4,'  ') 
- 3300 FORMAT    (' ') 
- 4000 FORMAT    (i4,2x,i3,2x,a) 
 !                                                                       
       END SUBROUTINE get_detail                     
 !********************************************************************** 
@@ -1304,10 +1301,8 @@ CONTAINS
        
 !                                                                       
       REAL eps 
-      INTEGER i, j, ii, iii, igs, igg 
+      INTEGER ii, iii, igs, igg 
       INTEGER iiii 
-      INTEGER mole_i, mole_st 
-!                                                                       
 !                                                                       
       DATA eps / 0.00001 / 
 !                                                                       
@@ -1416,7 +1411,7 @@ CONTAINS
       INTEGER ia, iaa, ipg 
       INTEGER i, j, k 
       LOGICAL lnew 
-      REAL x (4), y (4), z (4), w (4) 
+      REAL x (4), y (4)
       REAL wmat (4, 4) 
       REAL xmat (4, 4) 
       REAL eps 
@@ -1513,8 +1508,6 @@ CONTAINS
       ENDDO 
 !     --End of loop over all powers                                     
       ENDDO 
-   10 CONTINUE 
-!                                                                       
       END SUBROUTINE symmetry_gener                 
 !********************************************************************** 
       SUBROUTINE mole_insert (ii) 
@@ -1532,11 +1525,10 @@ CONTAINS
       INTEGER ii 
 !                                                                       
       INTEGER i, j, l 
-      INTEGER m, n 
+      INTEGER m
       INTEGER is 
       INTEGER ifirst 
       INTEGER mole_st 
-      INTEGER mole_natoms 
       INTEGER mole_temp (192) 
 !                                                                       
       LOGICAL lsame 

@@ -34,7 +34,7 @@ SUBROUTINE do_domain (line, lp)
       CHARACTER(50) prom 
       CHARACTER(1024) zeile, cpara (maxw) 
       INTEGER lpara (maxw), lp 
-      INTEGER i, j, ii, ianz, m, l, k, laenge, lbef 
+      INTEGER i, j, ianz, laenge, lbef 
       INTEGER indxg 
       INTEGER, SAVE    :: n_clu = 0   ! current number of clusters
       LOGICAL, SAVE    :: linit = .true. ! do we need to initialize?
@@ -352,7 +352,6 @@ SUBROUTINE do_domain (line, lp)
 !       have a break                                                    
 !     --Jump here if an error occured                                   
 !                                                                       
- 9998 CONTINUE 
       IF (ier_num.ne.0) then 
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
@@ -369,8 +368,6 @@ SUBROUTINE do_domain (line, lp)
          ENDIF 
       ENDIF 
       ENDDO 
-!                                                                       
- 9999 CONTINUE 
 !                                                                       
       END SUBROUTINE do_domain                      
 !*****7*****************************************************************
@@ -507,10 +504,9 @@ SUBROUTINE do_domain (line, lp)
       REAL mc_dimen (4, 4) 
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
-integer natoms_old
-real    shortest
-real    vv(3)
-integer i
+      integer natoms_old
+      real    shortest
+      real    vv(3)
 !
       clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 !                                                                       
@@ -658,7 +654,6 @@ integer i
       mc_matrix (i, i) = 1.0 
       mc_dimen (i, i) = 1.0 
       ENDDO 
- 1100 CONTINUE 
       line = ' ' 
       READ (imd, 2000, end = 2, err = 999) line 
       lline = len_str (line) 
@@ -843,7 +838,6 @@ integer i
       INTEGER ist 
       PARAMETER (ist = 46) 
 !                                                                       
-      INTEGER i, j 
       LOGICAL lcell 
       LOGICAL lread 
 !                                                                       
@@ -1397,11 +1391,9 @@ mole_int: IF(mk_infile_internal) THEN
       INTEGER, INTENT(IN)                                   :: MK_MAX_SCAT
       CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN) :: mk_at_lis
 !                                                                       
-      CHARACTER(10) befehl 
-      CHARACTER(1024) line, zeile 
+      CHARACTER(1024) line
 !                                                                       
       INTEGER i, j, ii 
-      REAL x, y, z 
       REAL xyz (3) 
       INTEGER  :: dummy_iscat
       INTEGER  :: dummy_prop
@@ -1673,19 +1665,11 @@ mole_int: IF(mk_infile_internal) THEN
       INTEGER length 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) string 
       INTEGER lpara (maxw) 
-      INTEGER laenge 
       INTEGER ianz 
-      INTEGER i 
-      LOGICAL lold 
-      LOGICAL linternal 
-      LOGICAL lexternal 
       REAL werte (maxw) 
-      REAL distance 
 !                                                                       
       LOGICAL str_comp 
-      REAL berechne 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 

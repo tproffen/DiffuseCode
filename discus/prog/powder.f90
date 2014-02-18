@@ -37,9 +37,8 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
-      INTEGER indxg, ianz, i, j 
-      LOGICAL lend, lspace 
-      REAL hkl (4) 
+      INTEGER indxg
+      LOGICAL lend
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -199,8 +198,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
       END SUBROUTINE do_powder                      
 !*****7*****************************************************************
       SUBROUTINE pow_show 
@@ -233,7 +230,6 @@ CONTAINS
 !                                                                       
 !     REAL skalpro 
       REAL asind 
-      REAL cosd 
       REAL sind 
 !                                                                       
       DATA cfour / 'normal Fourier', 'Stacking fault' / 
@@ -1116,10 +1112,9 @@ CONTAINS
       LOGICAL l_hh_real 
       LOGICAL l_kk_real 
       LOGICAL l_ll_real 
-      REAL kkstart, kkend 
       REAL llstart, llend 
       REAL llstart2, llend2 
-      REAL hh, kk, dk, ll 
+      REAL hh, kk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
       REAL ttheta, dstar , q
@@ -1501,7 +1496,7 @@ CONTAINS
 !DBG_RBN     &               pow_l_all,l_hh_real,l_kk_real,l_ll_real,   
 !DBG_RBN     &               pow_l_all .or. .not.pow_l_all .and.        
 !DBG_RBN     &               (l_hh_real .or. l_kk_real .or. l_ll_real)  
- 4444 FORMAT    (3(2x,f5.1),f8.5,f8.3,2x,f12.6,f12.6,2x,f12.6,5(2x,l1)) 
+! 4444 FORMAT    (3(2x,f5.1),f8.5,f8.3,2x,f12.6,f12.6,2x,f12.6,5(2x,l1)) 
             ENDDO 
             IF (l_twoparts) then 
 !                                                                       
@@ -1612,8 +1607,6 @@ CONTAINS
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
  5000 FORMAT     (' Currently at H = ',f9.4,'   (dH = ',f9.4,           &
      &                   ', maxH = ',f9.4,')')                          
- 5010 FORMAT     (' Currently at L = ',f9.4,'   (dL = ',f9.4,           &
-     &                   ', maxL = ',f9.4,')')                          
  8888 FORMAT    ('Current number = ',i10) 
  8889 FORMAT    ('Maximum number = ',i10) 
       END SUBROUTINE powder_complete                
@@ -1656,7 +1649,6 @@ CONTAINS
       REAL                   :: distance
       REAL ss, st 
       REAL u (3), v (3) 
-      REAL v_1, v_2, v_3 
       REAL arg 
 !                                                                       
       INTEGER IAND 
@@ -1892,7 +1884,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) xarg0, xincu, twopi 
+      REAL(dp) xarg0, xincu, twopi 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
       LOGICAL lform 
@@ -1962,7 +1954,7 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      REAL(8) twopi, xmult, xarg, xt 
+      REAL(dp) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -1994,10 +1986,9 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) xarg0, xincu, twopi 
+      REAL(dp) xarg0, xincu, twopi 
       INTEGER iscat, jscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
-      LOGICAL lform 
 !                                                                       
       INTEGER IAND, ISHFT 
 !                                                                       
@@ -2006,7 +1997,7 @@ CONTAINS
 !------ zero fourier array                                              
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0d0, 0.0d0) 
+      tcsf (i) = cmplx (0.0, 0.0) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -2058,7 +2049,7 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      REAL(8) twopi, xmult, xarg, xt 
+      REAL(dp) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -2185,9 +2176,8 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      REAL dnorm 
       INTEGER lbeg (3), csize (3) 
-      INTEGER iscat, nlot, ncell, i 
+      INTEGER iscat, i 
 !                                                                       
       ier_num = 0 
       csize (1) = cr_icc (1) 
@@ -2201,7 +2191,7 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0d0, 0.0d0) 
+      csf (i) = cmplx (0.0, 0.0) 
 !DBG        acsf(i) = cmplx(0.0d0,0.0d0)                                
 !DBG         dsi(i) = 0.0d0                                             
       ENDDO 
@@ -2274,7 +2264,7 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      REAL(8) xarg0, xincu, xincv 
+      REAL(dp) xarg0, xincu, xincv 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iincv, iadd 
       LOGICAL lform 
@@ -2285,7 +2275,7 @@ CONTAINS
 !                                                                       
 !DBGXXX      do i=1,num(1)*num(2)                                       
       DO i = 1, num (1) 
-      tcsf (i) = cmplx (0.0d0, 0.0d0) 
+      tcsf (i) = cmplx (0.0, 0.0) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -2400,14 +2390,11 @@ CONTAINS
 !                                                                       
       REAL w (3) 
       REAL pow_pref_hkl (3) 
-      REAL pow_pref_g1 
-      REAL pow_pref_g2 
 !                                                                       
       INTEGER i 
       LOGICAL lspace 
       REAL null (3) 
       REAL uv, uu, vv 
-      REAL alpha2 
 !     REAL skalpro 
 !                                                                       
       null (1) = 0.0 
@@ -2449,7 +2436,7 @@ CONTAINS
 !                                                                       
       REAL ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
 !
-      INTEGER              ::  i ,j
+      INTEGER              ::  i
       LOGICAL, PARAMETER   :: lscreen = .false. 
       REAL, DIMENSION(1:4) :: uvw
       REAL             :: xmin

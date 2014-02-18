@@ -9,8 +9,8 @@ SAVE
 INTEGER      :: MK_MAX_SCAT
 INTEGER      :: MK_MAX_ATOM
 !
-CHARACTER*80 mk_name
-CHARACTER*16 mk_spcgr
+CHARACTER(LEN=80) mk_name
+CHARACTER(LEN=16) mk_spcgr
 CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE ::  mk_at_lis  ! (0:MK_MAX_SCAT)
 !
 REAL            , DIMENSION(:), ALLOCATABLE ::  mk_dw      ! (0:MK_MAX_SCAT)
@@ -19,7 +19,7 @@ REAL                :: mk_win(3)
 REAL                :: mk_dim(3,2)
 !
 INTEGER             :: ik,il
-INTEGER*4           :: mk_nscat
+INTEGER           :: mk_nscat
 INTEGER             :: mk_natoms
 !
 INTEGER             :: mk_spcgr_ianz,mk_spcgr_para

@@ -883,7 +883,6 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER a_start, a_end 
       INTEGER imole, imole_s, imole_t 
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators

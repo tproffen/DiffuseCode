@@ -20,8 +20,8 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER nviele, ihl, maxw 
-      PARAMETER (nviele = 101, ihl = 77, maxw = 10) 
+      INTEGER ihl, maxw 
+      PARAMETER (ihl = 77, maxw = 10) 
 !                                                                       
       CHARACTER ( * ) ein 
       CHARACTER(80) line, zeile, dummy 
@@ -128,10 +128,7 @@
 !                                                                       
       IF (.not.lende) goto 10 
 !                                                                       
-   20 CONTINUE 
-!                                                                       
  1000 FORMAT    (8(a12,1x)) 
- 2000 FORMAT    (a) 
       END SUBROUTINE do_hel                         
 !****7******************************************************************
       SUBROUTINE do_status (iwhere, bef, ibef, il, maxw) 
@@ -389,8 +386,6 @@
       INTEGER ihl, nl, nbef, ianz 
       INTEGER ll 
       REAL werte 
-!                                                                       
-      CHARACTER(1) cdummy 
 !                                                                       
       INTEGER len_str 
 !                                                                       

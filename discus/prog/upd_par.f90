@@ -673,8 +673,6 @@
          ier_typ = ER_FORT 
          WRITE (ier_msg (1), 8000) ctype 
       ENDIF 
- 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
- 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
  8000 FORMAT    (a) 
       END SUBROUTINE upd_para                       
 !*****7***************************************************************  
@@ -707,7 +705,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw)
       INTEGER i, j, k, ianz, lcomm, l 
-      LOGICAL lspace, lins 
+      LOGICAL lspace
       REAL werte (maxw), u (3), v (3), w (3) 
       REAL unitmat (3, 3) 
 !                                                                       
@@ -1128,7 +1126,6 @@
       CHARACTER(LEN=12), DIMENSION(1:reserved_n) :: reserved
       INTEGER  :: i 
 !                                                                       
-      LOGICAL str_comp 
       DATA reserved / 'bang', 'blen', 'dstar', 'md_test', 'mol_test',   &
       'rang', 'scalpro', 'x', 'y', 'z', 'm', 'b', 'n', 'cdim', 'lat',   &
       'vol', 'rvol', 'rlat', 'env', 'menv', 'md_num', 'md_cre',         &

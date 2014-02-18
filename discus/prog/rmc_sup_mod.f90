@@ -1041,7 +1041,6 @@ CONTAINS
  1510 FORMAT     (' Saving intensities of plane ',I2,' to file : ',A30) 
  1520 FORMAT     (' Saving intensities (ip:',I2,'/is:',I2,              &
      &                   ') to file: ',A30)                             
- 1600 FORMAT     (3(F7.3,1X),3X,F15.2) 
       END SUBROUTINE rmc_save                       
 !*****7*****************************************************************
       SUBROUTINE rmc_writedat (ip, is, fname) 
@@ -1615,9 +1614,9 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      REAL(8) rmc_cc, rmc_c, rmc_ce 
-      REAL(8) rmc_e (rmc_max_planes) 
-      REAL(8) rmc_ee (rmc_max_planes) 
+      REAL(dp) rmc_cc, rmc_c, rmc_ce 
+      REAL(dp) rmc_e (rmc_max_planes) 
+      REAL(dp) rmc_ee (rmc_max_planes) 
       REAL chi2_new, chi2_old, sig2 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL chi2 (rmc_max_planes) 
@@ -1634,7 +1633,7 @@ CONTAINS
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !
-      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
+!      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
       INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
       INTEGER  :: n_lots  =1 ! DANumber of RMC Lots for Fourier
 !      INTEGER  :: n_natoms=1 ! Maximum number of atoms for DIFFUSE allocation
@@ -1865,8 +1864,6 @@ CONTAINS
 !------ --WRITE info and terminate or loop again                        
 !                                                                       
         ENDIF 
-!                                                                       
- 2222       continue 
 !                                                                       
         loop = (itry.lt.rmc_maxcyc) 
 !                                                                       
@@ -2255,11 +2252,11 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, INTENT(IN) :: ip 
       REAL   , INTENT(IN) :: wtot 
 !                                                                       
-      REAL(8), INTENT(IN) :: c
-      REAL(8), INTENT(IN) :: cc
-      REAL(8), INTENT(IN) :: ce
-      REAL(8), INTENT(IN) :: se
-      REAL(8), INTENT(IN) :: see 
+      REAL(dp), INTENT(IN) :: c
+      REAL(dp), INTENT(IN) :: cc
+      REAL(dp), INTENT(IN) :: ce
+      REAL(dp), INTENT(IN) :: se
+      REAL(dp), INTENT(IN) :: see 
       REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
       REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
@@ -2344,7 +2341,7 @@ loop_plane: DO ip = 1, rmc_nplane
       LOGICAL , INTENT(IN) :: lsave 
 !                                                                       
       INTEGER i, j 
-      INTEGER    :: all_status
+!     INTEGER    :: all_status
       LOGICAL bano, blxray, bldbw 
 !
 !     ALLOCATE(rcfact(0:CFPKT,1:cr_nscat,1),STAT=all_status)

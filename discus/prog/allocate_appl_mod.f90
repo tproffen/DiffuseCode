@@ -70,7 +70,6 @@ MODULE allocate_appl_mod
        INTEGER , PARAMETER                      :: MAXW=10
        CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
        INTEGER             , DIMENSION(1:MAXW)  :: lpara
-       REAL                , DIMENSION(1:MAXW)  :: werte
        INTEGER                                  :: ianz
 !
        LOGICAL, EXTERNAL  :: str_comp
@@ -1697,7 +1696,7 @@ MODULE allocate_appl_mod
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      REAL*8 , PARAMETER   :: def_dbl = 0.0D0
+      REAL(dp) , PARAMETER   :: def_dbl = 0.0D0
       INTEGER              :: size_of
 !
       lstat       = .TRUE.

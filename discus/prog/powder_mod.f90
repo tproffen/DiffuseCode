@@ -73,7 +73,7 @@ REAL                     :: pow_pref_g2    = 0.0
 REAL   , DIMENSION(3)    :: pow_pref_hkl   = (/0., 0., 1./)
 !
 INTEGER                  :: pow_profile    = POW_PROFILE_PSVGT
-INTEGER                  :: pow_pr_par     =  0.0
+INTEGER                  :: pow_pr_par     =  0
 REAL                     :: pow_fwhm       =  0.01
 REAL                     :: pow_eta        =  0.5
 REAL                     :: pow_etax       =  0.0

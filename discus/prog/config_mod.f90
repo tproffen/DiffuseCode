@@ -160,4 +160,8 @@ SAVE
 !     PARAMETER      (POW_MAXPKT=100000)
 !     PARAMETER      (MAXHIST   =320001)
 !
+
+! create kind for portable double precision real number
+      integer, parameter:: dp=kind(0.d0)  ! double precision
+
 END MODULE config_mod

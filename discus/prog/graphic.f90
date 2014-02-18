@@ -248,7 +248,7 @@ SUBROUTINE do_niplps (linverse)
                      + iy) )                                            
                      ENDDO 
                      ENDDO 
-                     WRITE (output_io, 1015) zmin, zmax 
+                     WRITE (output_io, 1015, advance='no') zmin, zmax 
                      READ ( *, *, end = 20) zmin, zmax 
    20                CONTINUE 
                   ENDIF 
@@ -493,7 +493,7 @@ SUBROUTINE do_niplps (linverse)
  9999 CONTINUE 
 !                                                                       
  1015 FORMAT ( /1x,'Z-MIN = ',G20.6,/,1x,'Z-MAX = ',G20.6,//            &
-     &                     1x,'Give new values zmin, zmax    : ',$)     
+     &                     1x,'Give new values zmin, zmax    : ')     
  3000 FORMAT( ' Output file                  : ',a) 
  3060 FORMAT(/' Bragg minimum                : ',g12.6/                 &
      &        ' Bragg maximum                : ',g12.6/                 &
@@ -596,7 +596,6 @@ SUBROUTINE do_niplps (linverse)
      &        ' [ ',6(I3,1X),']'/'{'/                                   &
      &        '  currentfile DataString readhexstring pop'/             &
      &        ' }  false 3 colorimage')                                 
- 2200 FORMAT (Z8) 
  5000 FORMAT (10A6) 
 !                                                                       
       END SUBROUTINE do_post                        
@@ -657,7 +656,7 @@ SUBROUTINE do_niplps (linverse)
       CLOSE (2) 
 !                                                                       
  1111 FORMAT     (a) 
- 2000 FORMAT    (1x,2i4/1x,i8) 
+ 2000 FORMAT    (2(1x,i4)/1x,i8) 
  5000 FORMAT     (7i8) 
 !                                                                       
       END SUBROUTINE do_pgm                         

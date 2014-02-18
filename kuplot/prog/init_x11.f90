@@ -13,7 +13,7 @@
       INTEGER ll 
       INTEGER len_str 
 !                                                                       
-      CALL getenv ('KUPLOT_PRINTER', prn_name) 
+      CALL get_environment_variable ('KUPLOT_PRINTER', prn_name) 
       ll = len_str (prn_name) 
 !                                                                       
 !------ X11 device definitions for PGPLOT                               

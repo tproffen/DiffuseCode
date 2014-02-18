@@ -756,7 +756,6 @@ CONTAINS
       ENDIF 
       GOTO 10 
  9999 CONTINUE 
- 2000 FORMAT    (a) 
 !                                                                       
       END SUBROUTINE fourier                        
 !*****7*****************************************************************
@@ -790,12 +789,8 @@ CONTAINS
       REAL                                       ::  angle_tv
       REAL                                       ::  ratio_tv
       REAL                                       ::   aver_tv
-      REAL            , DIMENSION(3)             ::  u
-      REAL            , DIMENSION(3)             ::  v
-      REAL            , DIMENSION(3)             ::  w
       REAL            , DIMENSION(3)             ::  zero = (/0.0, 0.0, 0.0/)
       REAL            , DIMENSION(3)             ::  length = (/0.0, 0.0, 0.0/)
-      REAL dvi1, dvi2, dvi3, dvi4, dvi5 
       INTEGER i, j 
       LOGICAL lspace 
 !                                                                       
@@ -932,7 +927,7 @@ CONTAINS
      &          '   top   increment    : ',3(2x,f9.4),2x,               &
      &          ' -> ',f9.4,' A**-1')                                   
  1420 FORMAT (  '   # of points        :  ',I5,' x',I5,' x',I5,'  (',   &
-     &          A1,',',A1,',',A1')')                                          
+     &          A1,',',A1,',',A1,')')                                          
  1430 FORMAT (  '   Angle Ratio Aver ',a3, 3x,f9.4,' degrees',3x        &
      &                                    ,2(2x,f9.4))                  
       END SUBROUTINE four_show 

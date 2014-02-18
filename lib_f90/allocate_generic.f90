@@ -19,6 +19,7 @@ MODULE allocate_generic
 PRIVATE
 PUBLIC  :: alloc_arr
 !
+integer, parameter:: dp=kind(0.d0)  ! double precision
 !
   INTERFACE alloc_arr                        ! Define a generic interface to allocate n-dim arrays
     MODULE PROCEDURE alloc_1D_char, alloc_1D_int, alloc_1D_log, alloc_1D_real,  alloc_1D_cmplx,  &
@@ -371,9 +372,9 @@ PUBLIC  :: alloc_arr
 !
       IMPLICIT NONE
 !
-      REAL*8 , INTENT(INOUT), DIMENSION (:),ALLOCATABLE :: array
-      REAL*8 ,                DIMENSION (:),ALLOCATABLE :: temp
-      REAL*8 , INTENT(IN)    :: def_value
+      REAL(dp) , INTENT(INOUT), DIMENSION (:),ALLOCATABLE :: array
+      REAL(dp) ,                DIMENSION (:),ALLOCATABLE :: temp
+      REAL(dp) , INTENT(IN)    :: def_value
       INTEGER, INTENT(IN)    :: lb
       INTEGER, INTENT(IN)    :: ub
       INTEGER, INTENT(INOUT) :: all_status
@@ -1479,9 +1480,9 @@ PUBLIC  :: alloc_arr
 !
       IMPLICIT NONE
 !
-      REAL*8 , INTENT(INOUT), DIMENSION (:,:,:),ALLOCATABLE :: array
-      REAL*8 ,                DIMENSION (:,:,:),ALLOCATABLE :: temp
-      REAL*8 , INTENT(IN)    :: def_value
+      REAL(dp) , INTENT(INOUT), DIMENSION (:,:,:),ALLOCATABLE :: array
+      REAL(dp) ,                DIMENSION (:,:,:),ALLOCATABLE :: temp
+      REAL(dp) , INTENT(IN)    :: def_value
       INTEGER, INTENT(IN)    :: lb1,  lb2,  lb3
       INTEGER, INTENT(IN)    :: ub1,  ub2,  ub3
       INTEGER, INTENT(INOUT) :: all_status

@@ -33,8 +33,8 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) * num(3)
-         csf (i) = cmplx (0.0d0, 0.0d0) 
-         acsf (i) = cmplx (0.0d0, 0.0d0) 
+         csf (i) = cmplx (0.0, 0.0) 
+         acsf (i) = cmplx (0.0, 0.0) 
          dsi (i) = 0.0d0 
       ENDDO 
 !                                                                       
@@ -51,7 +51,7 @@ CONTAINS
 !                                                                       
       loop_lots: DO nlot = 1, nlots 
          DO i = 1, num (1) * num (2) * num(3)
-            csf (i) = cmplx (0.0d0, 0.0d0) 
+            csf (i) = cmplx (0.0, 0.0) 
          ENDDO 
 !                                                                       
          CALL four_ranloc (csize, lbeg) 
@@ -519,7 +519,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(8) twopi, xmult, xarg 
+      REAL(dp) twopi, xmult, xarg 
       INTEGER i 
 !                                                                       
       IF (.not.ffour) then 

@@ -649,8 +649,6 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
       END SUBROUTINE shear_menue                          
 !*****7*****************************************************************
       SUBROUTINE shear_show 
@@ -791,8 +789,6 @@ CONTAINS
  3020 FORMAT    ( ' Origin of shear element  : ',3(2x,f11.4),1x,a) 
  3050 FORMAT    ( ' Real space matrix        : ',4(2x,f11.4)/           &
      &                2( '                          : ',4(2x,f11.4)/))  
- 3060 FORMAT    ( ' Reciprocal space matrix  : ',3(2x,f11.4)/           &
-     &                2( '                          : ',3(2x,f11.4)/))  
  3100 FORMAT    ( ' Mode of shear operation  : ',2x,a) 
  3110 FORMAT    ( ' Molecule status          : ',2x,a) 
  3210 FORMAT    ( ' Selected atom types      : ',2x,50(a9,1x)) 
@@ -828,24 +824,17 @@ CONTAINS
        
 !                                                                       
       CHARACTER(1024) line 
-      INTEGER i, j, k, l 
+      INTEGER i, j
       INTEGER laenge 
       LOGICAL lspace 
-      REAL length 
 !                                                                       
-      REAL uij 
-      REAL ctheta, stheta 
-      REAL shear_d (3), shear_r (3) 
-      REAL ushear (4), ures (4) 
       REAL kron (3, 3) 
       REAL a (3, 3) 
       REAL b (3, 3) 
       REAL fd, fn, sca 
       REAL u (3), v (3), NULL (3), w (3) 
       REAL inv_eigenv (3, 3) 
-      REAL inv_eigent (3, 3) 
-!                                                                       
-      REAL cosd, sind 
+!
 !     REAL skalpro 
 !     REAL do_blen 
 !                                                                       
@@ -991,7 +980,7 @@ CONTAINS
 !       ENDDO                                                           
       ENDIF 
 !     write (output_io,2000) ((shear_rmat(i,j),j=1,3),i=1,3)            
- 2000 FORMAT    (3(3(2x,f10.6)/)) 
+! 2000 FORMAT    (3(3(2x,f10.6)/)) 
  4000 FORMAT    (5(e15.8e2,','),e15.8e2) 
 !                                                                       
       END SUBROUTINE shear_setup                    
@@ -1010,7 +999,6 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      CHARACTER(4) name 
       INTEGER i, j, l 
       INTEGER i_start, i_end 
       REAL ushear (4), ures (4) 
@@ -1086,10 +1074,9 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_t 
+      INTEGER imole_t 
       REAL ushear (4), ures (4) 
       REAL werte (5), use_orig (3) 
       REAL diff (3) 
@@ -1256,10 +1243,9 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      CHARACTER(4) name 
       INTEGER i, j, ii, l, i0 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_t 
+      INTEGER imole_t 
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 
@@ -1421,10 +1407,9 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      CHARACTER(4) name 
       INTEGER i, j, ii, l, i0, m 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_t 
+      INTEGER imole_t 
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 

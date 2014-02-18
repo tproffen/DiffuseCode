@@ -896,8 +896,6 @@ SUBROUTINE stack
       ENDIF 
       ENDDO 
 !                                                                       
- 9999 CONTINUE 
-!                                                                       
  3000 FORMAT    (/30x,' Generalized Stacking Faults'/                   &
      &                   30x,' ==========================='/)           
  3005 FORMAT    (' Fourier Mode               : ','turbo Fourier') 
@@ -932,10 +930,8 @@ SUBROUTINE stack
  3110 FORMAT    ('     affects                : ',                      &
      &                  '  all layers individually')                    
  3120 FORMAT    ('     affects                :  only stacking faults ') 
- 3130 FORMAT    ('     normal         ,sigma  : ',3(2x,f9.4),4x,f9.4 ) 
  3140 FORMAT    ('     axis in-plane 1,sigma  : ',3(2x,f9.4),2x,a1,2x,  &
      &                  f9.4 )                                          
- 3150 FORMAT    ('     axis in-plane 2,sigma  : ',3(2x,f9.4),4x,f9.4 ) 
 !                                                                       
       END SUBROUTINE stack                          
 !*****7*****************************************************************
@@ -1278,7 +1274,6 @@ SUBROUTINE stack
 !       write (output_io,2020) i,st_number(i)                           
 !     ENDDO                                                             
  2000 FORMAT    (a,i4,3f11.4) 
- 2020 FORMAT    (i4,2x,i8) 
       END SUBROUTINE do_stack_create                
 !*****7*****************************************************************
       SUBROUTINE st_init_prob (ptot_n, prob_n) 
@@ -1400,7 +1395,7 @@ SUBROUTINE stack
       INTEGER          ::         max_n_mole
       INTEGER          ::         max_n_type
       INTEGER          ::         max_n_atom
-      INTEGER i, j, k ,l
+      INTEGER i, j, k
       INTEGER iatom 
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
@@ -1652,14 +1647,12 @@ internal: IF(st_internal(st_type(i)) ) THEN
          ENDDO layers
       ENDIF more1
 !                                                                       
-  999 CONTINUE 
       CLOSE (ist) 
 !                                                                       
 !     Update Crystal dimension                                          
 !                                                                       
       CALL update_cr_dim 
 !                                                                       
- 2010 FORMAT    (a) 
       END SUBROUTINE do_stack_fill                  
 !*****7*****************************************************************
       SUBROUTINE stack_rot_setup (line, lbef, iatom, i, lorigin) 
@@ -2283,7 +2276,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !                                                                       
  3000 FORMAT     ( '                   Atom typ = ',A4,7X,'(# ',I9,' )') 
- 5000 FORMAT     ( ' displacement vector : ',3(2x,f8.3)) 
 !                                                                       
       END SUBROUTINE st_fourier_aver                
 !*****7*****************************************************************
@@ -2311,8 +2303,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER, DIMENSION(3)   :: sav_ncell (3) 
       INTEGER                 :: sav_ncatoms 
       LOGICAL                 :: sav_r_ncell 
-!                                                                       
-      INTEGER                 :: i ,l
 !                                                                       
       CHARACTER ( LEN=* )     :: cr_spcgr 
       REAL   , DIMENSION(3)   :: cr_a0 (3)

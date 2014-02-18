@@ -46,7 +46,6 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) line, zeile, cpara (maxw) 
       CHARACTER(1024) strucfile 
-      CHARACTER (LEN=1024)   :: string
       CHARACTER(50) prom 
       CHARACTER(5) befehl 
       INTEGER lpara (maxw), lp, length 
@@ -54,7 +53,6 @@ CONTAINS
       INTEGER ianz, l, n, lbef 
       INTEGER    :: natoms,nscats
       LOGICAL lout 
-      REAL hkl (3), u (3), xc (3), yc (3), zc (3), dist 
       REAL werte (maxw) 
       INTEGER          :: ncells
       INTEGER          :: n_gene
@@ -501,16 +499,11 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
-      CHARACTER(80) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER property 
       INTEGER i, j, ibl, lbef 
       INTEGER lline 
       INTEGER     :: new_nmax
       INTEGER     :: new_nscat
       INTEGER     :: io_line
-      INTEGER          :: n_gene
-      INTEGER          :: n_symm
       INTEGER                          :: n_mole 
       INTEGER                          :: n_type 
       INTEGER                          :: n_atom 
@@ -784,7 +777,6 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       ENDIF 
 !                                                                       
  2000 FORMAT    (a) 
- 2010 FORMAT    (a16) 
       END SUBROUTINE readcell                       
 !********************************************************************** 
       SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw,    &
@@ -1250,15 +1242,11 @@ got_params: IF (ier_num.eq.0) THEN
          ENDIF 
       ENDIF 
 !                                                                       
-  999 CONTINUE 
       CLOSE (ist) 
       IF (ier_num.eq. - 49) then 
          WRITE (ier_msg (1), 3000) cr_natoms + 1 
  3000 FORMAT      ('At atom number = ',i8) 
       ENDIF 
-!                                                                       
- 2000 FORMAT    (a) 
- 2010 FORMAT    (a16) 
       END SUBROUTINE readstru                       
 !********************************************************************** 
       SUBROUTINE stru_readheader (ist, HD_NMAX, HD_MAXSCAT, lcell, cr_name,   &
@@ -1687,18 +1675,13 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER as_iscat (MAXSCAT) 
       INTEGER as_prop (MAXSCAT) 
 !                                                                       
-      REAL cr_a0 (3) 
-      REAL cr_win (3) 
       REAL cr_dim (3, 2) 
       REAL cr_dw (0:MAXSCAT) 
       REAL as_pos (3, MAXSCAT) 
       REAL as_dw (0:MAXSCAT) 
 !                                                                       
       CHARACTER(10) befehl 
-      CHARACTER(80) cpara (maxw) 
       CHARACTER(1024) line, zeile 
-      INTEGER lpara (maxw) 
-      INTEGER ianz 
       INTEGER i, j, ibl, lbef 
       INTEGER lline 
       INTEGER          :: n_gene
@@ -2122,7 +2105,7 @@ got_params: IF (ier_num.eq.0) THEN
       CHARACTER(1024) infile 
       CHARACTER(1024) ofile 
       INTEGER ird, iwr 
-      INTEGER i, j, ii, jj 
+      INTEGER i, j, jj 
       INTEGER ix, iy, iz, idot 
       INTEGER ntyp , ntyp_prev
       INTEGER length, length1, length2, lp 
@@ -2136,7 +2119,6 @@ got_params: IF (ier_num.eq.0) THEN
       LOGICAL lcontinue 
       REAL z, latt (6) 
       REAL xyz (3) 
-      REAL sof 
       REAL uiso, uij (6) 
       REAL gen (3, 4) 
       REAL fv (NFV) 
@@ -2517,7 +2499,6 @@ got_params: IF (ier_num.eq.0) THEN
  2400 FORMAT    ('gener -1.0, 0.0, 0.0, 0.0,',                          &
      &                     '    0.0,-1.0, 0.0, 0.0,',                   &
      &                     '    0.0, 0.0,-1.0, 0.0,  1')                
- 2500 FORMAT    ('scat ',20(a4,a1)) 
  2600 FORMAT    ('gener',3(2X,4(1x,f12.8,',')),' 1.') 
 !                                                                       
  3000 FORMAT    ('atoms') 
@@ -2609,7 +2590,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                   RETURN
                ENDIF
                length = len_str (line) 
-               READ(line,1500), latt(1),latt(2),latt(3)
+               READ(line,1500) latt(1),latt(2),latt(3)
                nline = nline + 1
                IF(iostatus /= 0) THEN
                   CLOSE(ird)
@@ -2619,7 +2600,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                   RETURN
                ENDIF
                length = len_str (line) 
-               READ(line,1500), latt(1),latt(2),latt(3)
+               READ(line,1500) latt(1),latt(2),latt(3)
             ELSEIF(str_comp(line(1:4),'List', 4, length, 4)) THEN
                indx1 = INDEX(line,'all')
                indx2 = INDEX(line,'atoms')
@@ -2697,18 +2678,13 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       CHARACTER(LEN=1024)   :: ofile  = ' '
       INTEGER               :: ird, iwr 
       INTEGER               :: i
-      INTEGER               :: indx1, indx2
       INTEGER               :: iostatus
       INTEGER               :: natoms
       LOGICAL               :: lread
       LOGICAL               :: lwrite
       INTEGER               :: nline
-      INTEGER               :: length
       REAL   , DIMENSION(6) :: latt! (6) 
       REAL   , DIMENSION(3) :: pos ! (6) 
-!                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp
 !                                                                       
 !     Create input / output file name
 !
