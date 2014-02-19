@@ -74,7 +74,6 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
          ENDIF 
       ENDDO main
 !                                                                       
-       9999 CONTINUE 
 !
    ELSEIF(run_mpi_active) THEN  master_slave
       CALL RUN_MPI_SLAVE  ! MPI slave, standalone never

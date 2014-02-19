@@ -137,7 +137,6 @@ CONTAINS
 !                                                                       
    INTEGER                        :: i, j, k, ii , nb
 !
-   INTEGER :: len_str
 !                                                                       
    CALL do_read_values
    IF ( ier_num /=0) RETURN
@@ -315,11 +314,10 @@ CONTAINS
    CHARACTER (LEN=1024)           :: fname
    INTEGER                        :: j, i, ii 
    INTEGER                        :: len_file,length 
-   INTEGER                        :: nf_dimx
    INTEGER                        :: pop_dimx_old
    INTEGER                        :: iostatus
    LOGICAL                        :: lread =.false.
-   LOGICAL                        :: lblank, istda
+   LOGICAL                        :: istda
    REAL                           :: best, worst 
 !                                                                       
    INTEGER                        :: len_str   
@@ -444,10 +442,10 @@ CONTAINS
    INTEGER                        :: i1, i2 
    INTEGER                        :: length
 !                                                                       
-   CHARACTER (LEN=7)              :: stat  = 'append'
+!   CHARACTER (LEN=7)              :: stat  = 'append'
    CHARACTER (LEN=2048)           :: line 
    CHARACTER (LEN=1024)           :: fname
-   LOGICAL                        :: lread = .false.
+!   LOGICAL                        :: lread = .false.
 !                                                                       
    REAL                           :: pave, pmin, pmax, psig 
    REAL                           :: sx, sx2, arg 
@@ -456,7 +454,7 @@ CONTAINS
 !                                                                       
    changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
       IF(pop_dimx.gt.MAXDIMX) THEN
-         CALL alloc_appl(pop_c, pop_dimx)
+         CALL alloc_population(pop_c, pop_dimx)
       ENDIF
       call patch_para
       pop_dimx_new = .false.
@@ -610,19 +608,19 @@ CONTAINS
    CALL create_trial 
    CALL write_genfile 
 !                                                                       
-   RETURN 
-     999 CONTINUE 
-   WRITE ( * , * ) ' Error opening file' 
+!   RETURN 
+!     999 CONTINUE 
+!   WRITE ( * , * ) ' Error opening file' 
 !                                                                       
      900 FORMAT (A,'.',I4.4)
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
-    1200 FORMAT (a10) 
+!    1200 FORMAT (a10) 
     1250 FORMAT (a) 
     1300 FORMAT (i5,2(2x,e18.10))
-    1310 FORMAT (2x,e18.10) 
-    2100 FORMAT (i5,' = Member     Number ',i5) 
-    3000 FORMAT (2x,e18.10) 
-    5000 FORMAT (2x,i5,2x,e18.10) 
+!    1310 FORMAT (2x,e18.10) 
+!    2100 FORMAT (i5,' = Member     Number ',i5) 
+!    3000 FORMAT (2x,e18.10) 
+!    5000 FORMAT (2x,i5,2x,e18.10) 
     4000 FORMAT (i4) 
     4100 FORMAT (4(1x,e17.10)) 
     4200 FORMAT (a) 

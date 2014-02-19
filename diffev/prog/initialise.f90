@@ -40,7 +40,7 @@ CONTAINS
 !                                                                       
    CHARACTER (LEN=2048) :: line 
    CHARACTER (LEN=1024) :: fname 
-   INTEGER              :: i, j, l 
+   INTEGER              :: i, j
    INTEGER              :: i1, i2 
    INTEGER              :: length
 !                                                                       
@@ -68,7 +68,7 @@ CONTAINS
       RETURN
    ENDIF
 !
-! should never be needed!!!   CALL alloc_appl(pop_c , pop_dimx)
+! should never be needed!!!   CALL alloc_population(pop_c , pop_dimx)
    CALL init_x ( 1, pop_dimx)
    IF ( ier_num /= 0) RETURN
 !                                                                 

@@ -26,9 +26,8 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 INTEGER             , INTENT(INOUT) :: lp 
 !
 CHARACTER (LEN=1024), DIMENSION(maxw)  :: cpara (maxw) 
-REAL                , DIMENSION(maxw)  :: werte (maxw) 
 INTEGER             , DIMENSION(maxw)  :: lpara (maxw)
-INTEGER                                :: ianz, iku 
+INTEGER                                :: ianz
 LOGICAL                                :: str_comp 
 !                                                                       
 CALL get_params (line, ianz, cpara, lpara, maxw, lp) 

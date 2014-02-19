@@ -18,14 +18,15 @@ USE errlist_mod
 !
 PRIVATE
 PUBLIC  :: alloc_appl          ! Generic interface for all allocations
-!PUBLIC  :: do_deallocate_appl
+PUBLIC  :: do_allocate_appl
+PUBLIC  :: do_deallocate_appl
+PUBLIC  :: alloc_default
 PUBLIC  :: alloc_backup
+PUBLIC  :: alloc_socket_nprogs
+PUBLIC  :: alloc_population
+PUBLIC  :: alloc_constraint
 PUBLIC  :: show_config
 !
-INTERFACE  alloc_appl
-   MODULE PROCEDURE do_allocate_appl, do_deallocate_appl, alloc_default, &
-                    alloc_constraint, alloc_population, alloc_socket_nprogs
-END INTERFACE alloc_appl
 !
 CONTAINS
 !
@@ -89,19 +90,18 @@ CONTAINS
 !
     END SUBROUTINE do_allocate_appl
 !
-    SUBROUTINE do_deallocate_appl(zeile,lcomm, flag)
+    SUBROUTINE do_deallocate_appl(zeile,lcomm)
 !
        IMPLICIT NONE
 !
 !
        CHARACTER (LEN=*), INTENT(IN)            :: zeile     ! input command line
        INTEGER          , INTENT(IN)            :: lcomm     ! command line length
-       CHARACTER (LEN=*), INTENT(IN)            :: flag      ! flag deallocation
 !
        INTEGER , PARAMETER                      :: MAXW=10
        CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
        INTEGER             , DIMENSION(1:MAXW)  :: lpara
-       REAL                , DIMENSION(1:MAXW)  :: werte
+!      REAL                , DIMENSION(1:MAXW)  :: werte
        INTEGER                                  :: ianz
 !
        LOGICAL  :: str_comp
@@ -174,7 +174,7 @@ CONTAINS
       CALL alloc_constraint ( 1 )
       CALL alloc_population ( 1,  1    )
       CALL alloc_backup     ( 20)
-      CALL alloc_socket_nprogs ( 2, 1, .true. )
+      CALL alloc_socket_nprogs ( 2, 1)
 !
     END SUBROUTINE alloc_default
 !
@@ -431,7 +431,7 @@ CONTAINS
       RETURN
     END SUBROUTINE alloc_backup
 !
-    SUBROUTINE alloc_socket_nprogs ( nprog, nproc, ldummy)
+    SUBROUTINE alloc_socket_nprogs ( nprog, nproc)
 !-
 !     Allocate the number of programs that may be started via sockets
 !+
@@ -442,7 +442,6 @@ CONTAINS
 !      
       INTEGER, INTENT(IN)  :: nprog
       INTEGER, INTENT(IN)  :: nproc
-      LOGICAL, INTENT(IN)  :: ldummy
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat

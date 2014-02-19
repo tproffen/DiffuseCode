@@ -19,8 +19,6 @@ CONTAINS
    INTEGER, INTENT(INOUT) :: j3
    INTEGER, INTENT(IN   ) :: n 
 !
-   INTEGER              :: ii 
-   REAL                 :: r 
 !                                                                       
    REAL                 :: ran1 
 !                                                                       

@@ -23,7 +23,6 @@ CONTAINS
    INTEGER            ,INTENT(IN   ) :: n        ! extension number
 !
    CHARACTER (LEN=5)              :: string 
-   CHARACTER (LEN=1024)           :: fname 
    CHARACTER (LEN=1024)           :: cpara (maxw) 
    INTEGER                        :: lpara (maxw) 
    INTEGER                        :: fpara 

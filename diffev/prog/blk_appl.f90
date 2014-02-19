@@ -139,7 +139,6 @@ CONTAINS
    ENDIF 
    CLOSE (idef) 
 !
-    1000 FORMAT    (a) 
 !
    END SUBROUTINE autodef                        
 !

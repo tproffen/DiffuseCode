@@ -43,7 +43,7 @@ WRITE ( *, 1000) version, cdate
 MAXPOP     = 0
 MAXDIMX    = 0
 MAX_CONSTR = 0
-CALL alloc_appl
+CALL alloc_default
 !                                                                       
 !     Call initialization routine.                                      
 !                                                                       

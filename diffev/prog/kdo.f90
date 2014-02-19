@@ -31,7 +31,6 @@ INTEGER             , INTENT(INOUT) :: length
 !
 CHARACTER (LEN=1024)                  :: zeile 
 CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER (LEN=  70)                  :: command 
 CHARACTER (LEN=   9)                  :: befehl 
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 INTEGER                               :: i, j, ii , nb
@@ -46,7 +45,6 @@ REAL                                  :: werte (maxw)
 REAL                                  :: value
 LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
-SAVE command 
 !                                                                       
 CALL no_error 
 !                                                                 
@@ -115,12 +113,12 @@ ELSE
 !     -- Allocate array sizes
 !
    ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) then
-      CALL alloc_appl (zeile, lcomm)
+      CALL do_allocate_appl (zeile, lcomm)
 !
 !     -- Deallocate array sizes
 !
    ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) then
-      CALL alloc_appl (zeile, lcomm, 'deallocate')
+      CALL do_deallocate_appl (zeile, lcomm)
 !                                                                 
 !     -- define adaptation of sigmas 'adapt'                      
 !                                                                 
@@ -259,7 +257,7 @@ ELSE
 !                                                                 
    ELSEIF (str_comp (befehl, 'const', 3, lbef, 5) ) then 
       IF(constr_number >= MAX_CONSTR) THEN
-         CALL alloc_appl ( constr_number + 1)
+         CALL alloc_constraint ( constr_number + 1)
          IF(ier_num < 0) then
             RETURN
          ENDIF
@@ -435,7 +433,7 @@ ELSE
       IF (ier_num.eq.0) then 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.eq.0) then 
-            parent_results = cpara (1) 
+            parent_results = cpara (1)(1:lpara(1)) 
             lparent_results = lpara (1) 
          ENDIF 
       ENDIF 
@@ -451,8 +449,8 @@ ELSE
             IF (nint(werte(1)) >  0       .and.         &
                 nint(werte(1)) <= MAXDIMX .and.         &
                 nint(werte(1)) <= pop_dimx     ) THEN
-            pop_name (nint (werte (1) ) ) = cpara (2) 
             pop_lname (nint (werte (1) ) ) = min (lpara (2), 8)
+            pop_name (nint (werte (1) ) ) = cpara (2)(1:pop_lname(nint (werte (1) ) )) 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -489,12 +487,12 @@ ELSE
             run_mpi_senddata%member     = pop_n      ! Number of members
             run_mpi_senddata%children   = pop_c      ! Number of children
             run_mpi_senddata%parameters = pop_dimx   ! Number of parameters
-            run_mpi_senddata%prog   = cpara(1)        ! Program to run
+            run_mpi_senddata%prog   = cpara(1)(1:100) ! Program to run
             run_mpi_senddata%prog_l = lpara(1)
-            run_mpi_senddata%mac    = cpara(2)        ! Macro to run
+            run_mpi_senddata%mac    = cpara(2)(1:100) ! Macro to run
             run_mpi_senddata%mac_l  = lpara(2)
             IF ( ianz == 4 ) THEN
-               run_mpi_senddata%out   = cpara(4)      ! Target for program output 
+               run_mpi_senddata%out   = cpara(4)(1:100)! Target for program output 
                run_mpi_senddata%out_l = lpara(4)
             ELSE
                run_mpi_senddata%out   = '/dev/null'   ! Default output
@@ -534,7 +532,7 @@ ELSE
       IF (ier_num.eq.0) then 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.eq.0) then 
-            parent_summary = cpara (1) 
+            parent_summary = cpara (1)(1:lpara(1)) 
             lparent_summary = lpara (1) 
          ENDIF 
       ENDIF 
@@ -599,7 +597,7 @@ ELSE
       IF (ier_num.eq.0) then 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.eq.0) then 
-            pop_trialfile = cpara (1) 
+            pop_trialfile = cpara (1)(1:lpara(1)) 
             pop_ltrialfile = lpara (1) 
          ENDIF 
       ENDIF 
@@ -633,7 +631,7 @@ ELSE
       IF (ier_num.eq.0) then 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.eq.0) then 
-            trial_results = cpara (1) 
+            trial_results = cpara (1)(1:lpara(1)) 
             ltrial_results = lpara (1) 
          ENDIF 
       ENDIF 

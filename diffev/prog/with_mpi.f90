@@ -110,7 +110,7 @@ run_mpi_active = .true.
 socket_status = PROMPT_OFF  ! Turn off socket responses
 !
 3000 FORMAT('MPI system returned error no. ',i8)
-4000 FORMAT(1x,'MPI initilization successful ..')
+!4000 FORMAT(1x,'MPI initilization successful ..')
 !
 END SUBROUTINE run_mpi_init
 !
@@ -145,8 +145,8 @@ LOGICAL               :: prog_exist    ! program/macro combination exists in dat
 !DBG
 INTEGER               :: ierr
 !
-INTEGER  :: len_str
-INTEGER  :: system
+!INTEGER  :: len_str
+!INTEGER  :: system
 !
 IF( MAXDIMX > ndimx ) THEN  ! Allocate arrays to transmit the trial values to the slave
    IF(ALLOCATED(run_mpi_senddata%trial_values)) THEN
@@ -178,7 +178,7 @@ IF (run_mpi_senddata%use_socket) THEN
    IF(.NOT. prog_exist) THEN                    ! New program to be started by slaves
       IF(run_mpi_nprog==RUN_MPI_MAXPROG) THEN   ! Need more space
          nprog = RUN_MPI_MAXPROG + 2            ! increment by two programs
-         CALL alloc_appl ( nprog, run_mpi_numprocs,.true. )
+         CALL alloc_socket_nprogs ( nprog, run_mpi_numprocs)
       ELSE                                      ! Sufficient space
          run_mpi_nprog = run_mpi_nprog + 1      ! Increment no of known prog/mac entries
          prog_entry(run_mpi_nprog) = run_mpi_senddata%prog(1:run_mpi_senddata%prog_l) &
@@ -197,7 +197,7 @@ run_mpi_senddata%prog_start = prog_start        ! Copy start flag into send stru
 !
 CALL do_cwd ( send_direc, send_direc_l )        ! Get current working directory
 run_mpi_senddata%direc_l = send_direc_l         ! Copy directory into send structure
-run_mpi_senddata%direc   = send_direc
+run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
 !
 run_mpi_numsent = 0                             ! No jobs sent yet
 run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
@@ -614,8 +614,8 @@ USE population
 USE errlist_mod
 IMPLICIT none
 !
-INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
-INTEGER :: ierr
+!INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
+!INTEGER :: ierr
 INTEGER :: i,j
 INTEGER :: all_status
 !

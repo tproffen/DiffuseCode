@@ -31,6 +31,7 @@ laenge = ll
 ltyp = 1 
 zeile = ' ' 
 kpara = nint (ww (1) ) 
+kpara2 = 1
 IF (maxw.ge.2) then 
    kpara2 = nint (ww (2) ) 
 ENDIF 
@@ -453,7 +454,7 @@ INTEGER           , INTENT(IN   )    :: ianz
 INTEGER           , INTENT(IN   )    :: ww (maxw)
 REAL              , INTENT(IN   )    :: wert 
 !
-INTEGER               :: l ,i
+INTEGER               :: i
 INTEGER               :: pop_neu
 REAL                  :: highest_r
 !                                                                       
@@ -495,7 +496,7 @@ ELSEIF (ctype.eq.'pop_n') then
          IF ( pop_gen == 0) THEN    ! We are still in generation zero
             pop_n = nint (wert) 
             IF(NINT(wert) > MAXPOP) THEN
-               CALL alloc_appl( pop_n, MAXDIMX )
+               CALL alloc_population( pop_n, MAXDIMX )
                IF(ier_num < 0) THEN
                   RETURN
                ENDIF
@@ -506,7 +507,7 @@ ELSEIF (ctype.eq.'pop_n') then
                CALL write_genfile
             ELSE                    ! New population has increased, needs initialization
                IF(NINT(wert) > MAXPOP) THEN
-                  CALL alloc_appl( NINT(wert), MAXDIMX )
+                  CALL alloc_population( NINT(wert), MAXDIMX )
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
@@ -537,7 +538,7 @@ ELSEIF (ctype.eq.'pop_c') then
          IF ( pop_gen == 0) THEN    ! We are still in generation zero
             pop_c = nint (wert) 
             IF(NINT(wert) > MAXPOP) THEN
-               CALL alloc_appl( pop_c, MAXDIMX )
+               CALL alloc_population( pop_c, MAXDIMX )
                IF(ier_num < 0) THEN
                   RETURN
                ENDIF
@@ -549,7 +550,7 @@ ELSEIF (ctype.eq.'pop_c') then
                CALL write_genfile
             ELSEIF ( pop_c < nint (wert) ) THEN  ! New population has increased, needs initialization
                IF(NINT(wert) > MAXPOP) THEN
-                  CALL alloc_appl( NINT(wert), MAXDIMX )
+                  CALL alloc_population( NINT(wert), MAXDIMX )
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
@@ -597,7 +598,7 @@ ELSEIF (ctype.eq.'pop_dimx') then
          ENDIF
          pop_dimx = nint (wert) 
          IF(pop_dimx  > MAXDIMX) THEN
-            CALL alloc_appl( MAXPOP, pop_dimx )
+            CALL alloc_population( MAXPOP, pop_dimx )
             IF(ier_num < 0) THEN
                RETURN
             ENDIF
@@ -785,8 +786,8 @@ ELSE
    ier_typ = ER_FORT 
    WRITE ( *, * ) ctype 
 ENDIF 
- 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
- 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
+! 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
+! 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
 !
 END SUBROUTINE upd_para                       
 !*****7***************************************************************  
@@ -813,18 +814,12 @@ INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
 REAL               , INTENT(INOUT) :: ww
 !
-CHARACTER (LEN=1024) :: cpara (maxw) 
-INTEGER              :: lpara (maxw)
-INTEGER              :: i, j, k, ianz, lcomm, l 
-LOGICAL              :: lspace, lins 
-REAL                 :: werte (maxw), u (3), v (3), w (3) 
+INTEGER              :: i, lcomm
+REAL                 :: werte (maxw)
 !                                                                       
 INTEGER              :: length_com 
-LOGICAL              :: str_comp 
-REAL                 :: do_blen, do_bang 
-REAL                 :: do_read_number 
 !                                                                       
-lcomm = length_com (string, laenge, ikl) 
+lcomm = length_com (string(1:lp), laenge, ikl) 
 ier_num = - 1 
 ier_typ = ER_FORT 
 DO i = 1, maxw 
@@ -837,8 +832,6 @@ ELSE
    ier_num = - 3 
    ier_typ = ER_FORT 
 ENDIF 
-!                                                                 
-  999 CONTINUE 
 !                                                                 
 IF (ier_num.ne.0) then 
    WRITE ( *, * ) string 
@@ -870,7 +863,6 @@ CHARACTER (LEN=12),DIMENSION(reserved_n) :: reserved = &
               (/'pop_gen     ', 'pop_n       ', 'pop_t       ', 'pop_dimx    ', &
                 'pop_xmin    ', 'pop_xmax    ', 'diff_cr     ', 'diff_f      '/)                      
 INTEGER                                  :: i 
-LOGICAL                                  :: str_comp 
 !                                                                       
 !                                                                       
 ier_num = 0 

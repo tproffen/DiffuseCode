@@ -143,6 +143,7 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !                                                                 
 !     ------Determine trial value                                 
 !                                                                 
+               value = pop_x (i, pop_best) ! sensible default value, will never be used...
  trial1:       IF (diff_donor_mode.eq.ADD_TO_RANDOM) then 
                   value = diff_k * pop_x (i, j3) + (1. - diff_k)        &
                   * pop_x (i, j) + shift                                
@@ -315,7 +316,6 @@ INTEGER,           INTENT(IN)  :: jt
 CHARACTER (LEN=7)              :: stat  = 'unknown'
 LOGICAL                        :: lread = .false.
 !                                                                       
-INTEGER                        :: number 
 INTEGER                        :: i
 INTEGER                        :: len_file 
 !                                                                       
