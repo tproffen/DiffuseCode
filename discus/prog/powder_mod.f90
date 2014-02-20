@@ -35,6 +35,7 @@ INTEGER, PARAMETER  :: POW_LP_NONE         = 0
 INTEGER, PARAMETER  :: POW_LP_BRAGG        = 1
 INTEGER, PARAMETER  :: POW_LP_NEUT         = 2
 INTEGER, PARAMETER  :: POW_LP_SYNC         = 3
+INTEGER, PARAMETER  :: POW_LP_CORRE        = 4
 !
 INTEGER                  :: pow_axis       = POW_AXIS_Q
 !

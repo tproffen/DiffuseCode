@@ -247,6 +247,7 @@ CONTAINS
    USE chem_mod
    USE modify_mod
    USE tensors_mod
+   USE prompt_mod
 !
    IMPLICIT NONE
 !
@@ -309,7 +310,7 @@ write(*,*) ' Central : ',ia, cr_iscat(ia),cr_pos(:,ia), cr_prop(ia)
         vector = 0.0
         DO ib = 1, atom_env(0) 
            IF(IBITS(cr_prop(atom_env(ib)),PROP_SURFACE_EXT,1).eq.1 ) THEN          ! real Atom is near surface
-           WRITE(*,*) '   neig:',atom_env(ib),cr_iscat(atom_env(ib)),' at ',atom_pos(:,ib), cr_prop(atom_env(ib))
+           WRITE(output_io,*) '   neig:',atom_env(ib),cr_iscat(atom_env(ib)),' at ',atom_pos(:,ib), cr_prop(atom_env(ib))
            direct(1,1) = direct(1,1) + atom_pos(1,ib)**2             ! Accumulate x^2 etc
            direct(2,2) = direct(2,2) + atom_pos(2,ib)**2
            direct(3,3) = direct(3,3) + atom_pos(3,ib)**2
@@ -325,13 +326,13 @@ write(*,*) ' Central : ',ia, cr_iscat(ia),cr_pos(:,ia), cr_prop(ia)
         direct(3,1) = direct(1,3)
         direct(3,2) = direct(2,3)
 !
-        write(*,*) ' row 1 ',direct(1,:), ' V ',vector(1)
-        write(*,*) ' row 2 ',direct(2,:), ' V ',vector(2)
-        write(*,*) ' row 3 ',direct(3,:), ' V ',vector(3)
+        write(output_io,*) ' row 1 ',direct(1,:), ' V ',vector(1)
+        write(output_io,*) ' row 2 ',direct(2,:), ' V ',vector(2)
+        write(output_io,*) ' row 3 ',direct(3,:), ' V ',vector(3)
         call invmat( recipr, direct )  ! calculate inverse matrix
-        write(*,*) ' row 1 ',recipr(1,:)
-        write(*,*) ' row 2 ',recipr(2,:)
-        write(*,*) ' row 3 ',recipr(3,:)
+        write(output_io,*) ' row 1 ',recipr(1,:)
+        write(output_io,*) ' row 2 ',recipr(2,:)
+        write(output_io,*) ' row 3 ',recipr(3,:)
         finalv      = MATMUL(recipr, vector) ! finalv contains the hkl of the plane
         sigma = 0.0
         DO ib = 1, atom_env(0) 

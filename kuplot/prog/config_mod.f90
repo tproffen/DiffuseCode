@@ -25,7 +25,7 @@ SAVE
 !#######################################################################
 !
       INTEGER, PARAMETER :: MAXPARA    =      150
-      INTEGER, PARAMETER :: MAXKURVTOT =      100
+      INTEGER, PARAMETER :: MAXKURVTOT =      200
       INTEGER, PARAMETER :: MAXARRAY   =  1500000
       INTEGER, PARAMETER :: MAXHL      =        5
 

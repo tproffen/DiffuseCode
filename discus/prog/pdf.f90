@@ -1719,7 +1719,7 @@ SUBROUTINE pdf
       DO i = 1, PDF_MAXDAT 
       DO is = 1, cr_nscat 
       DO js = 1, cr_nscat 
-      pdf_temp (i, is, js) = 0 
+      pdf_temp (i, is, js) = 0
       ENDDO 
       ENDDO 
       ENDDO 
@@ -2048,7 +2048,7 @@ SUBROUTINE pdf
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       REAL dist, dist2 
       REAL dd (3), d (3), offset (3) 
-!                                                                       
+!
       is = cr_iscat (ia) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
          CALL indextocell (ia, iii, ks) 

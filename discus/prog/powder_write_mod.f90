@@ -51,6 +51,9 @@ CONTAINS
       ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
       ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
       ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+      pow_tmp = 0.0
+      xpl     = 0.0
+      ypl     = 0.0
 !                                                                       
       IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) then 
          IF (pow_axis.eq.POW_AXIS_Q) then 
@@ -221,11 +224,20 @@ CONTAINS
                tthmax = pow_tthmax
             ENDIF
             ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-            CALL spline (npkt, xpl, ypl, 1e30, 1e30, y2a)
+            y2a = 0.0
+            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             npkt_equi = INT((tthmax-tthmin)/pow_deltatth) + 1
             DO ii = 1, npkt_equi
                xequ = tthmin + (ii-1)*pow_deltatth
                CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               IF(ier_num/=0) THEN
+                  CLOSE(iff)
+                  DEALLOCATE( pow_tmp, stat = all_status)
+                  DEALLOCATE( xpl, stat = all_status)
+                  DEALLOCATE( ypl, stat = all_status)
+                  DEALLOCATE( y2a, stat = all_status)
+                  RETURN
+               ENDIF
                WRITE( iff, *) xequ, yequ
             ENDDO
             DEALLOCATE(y2a, stat = all_status)
@@ -248,11 +260,19 @@ CONTAINS
                qmax = pow_qmax
             ENDIF
             ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-            CALL spline (npkt, xpl, ypl, 1e30, 1e30, y2a)
+            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             npkt_equi = NINT((qmax-qmin)/pow_deltaq) + 1
             DO ii = 1, npkt_equi
                xequ = qmin + (ii-1)*pow_deltaq
                CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               IF(ier_num/=0) THEN
+                  CLOSE(iff)
+                  DEALLOCATE( pow_tmp, stat = all_status)
+                  DEALLOCATE( xpl, stat = all_status)
+                  DEALLOCATE( ypl, stat = all_status)
+                  DEALLOCATE( y2a, stat = all_status)
+                  RETURN
+               ENDIF
                WRITE( iff, *) xequ, yequ
             ENDDO
             DEALLOCATE(y2a, stat = all_status)
@@ -330,6 +350,27 @@ CONTAINS
       ENDIF 
 !                                                                       
       END FUNCTION polarisation                     
+!*****7*****************************************************************
+      REAL FUNCTION lorentz_pol (ttheta) 
+!+                                                                      
+!-                                                                      
+      USE config_mod 
+      USE powder_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      REAL ttheta 
+      REAL r 
+!                                                                       
+      REAL sind, cosd 
+!                                                                       
+      IF (pow_four_type.eq.POW_DEBYE) then 
+         lorentz_pol = 1.0 
+      ELSE
+         lorentz_pol = (1-pow_lp_fac+pow_lp_fac*(cosd(pow_lp_ang))**2*(cosd(ttheta))**2)/ &
+                       (2.*(sind(0.5*ttheta))**2*cosd(0.5*ttheta))
+      ENDIF
+      END FUNCTION lorentz_pol
 !*****7*****************************************************************
       SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta,     &
       pow_width, POW_MAXPKT)                                                        
@@ -747,7 +788,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       REAL, DIMENSION(1:n), INTENT(IN)  :: xa
       REAL, DIMENSION(1:n), INTENT(IN)  :: ya
       REAL, DIMENSION(1:n), INTENT(IN)  :: y2a
-      REAL                , INTENT(OUT) :: x
+      REAL                , INTENT(IN)  :: x
       REAL                , INTENT(OUT) :: y
       INTEGER  :: klo, khi, k
       REAL     :: a,b,h
@@ -764,7 +805,13 @@ END SUBROUTINE powder_conv_psvgt_fix
          GOTO 1 
       ENDIF 
       h = xa (khi) - xa (klo) 
-!!!      IF (h.eq.0.) pause 'bad xa input.' 
+      IF (h.eq.0.) THEN
+         ier_num = -121
+         ier_typ = ER_APPL
+         WRITE(ier_msg(1),'(''x- pos: '',F10.4,2x, F10.4)') xa(khi), xa(klo)
+         WRITE(ier_msg(2),'(''x- pos: '',I6   ,6x, I6  )' )    khi ,    klo 
+         RETURN
+      ENDIF
       a = (xa (khi) - x) / h 
       b = (x - xa (klo) ) / h 
       y = a * ya (klo) + b * ya (khi) + ( (a**3 - a) * y2a (klo)        &

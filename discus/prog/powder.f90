@@ -869,6 +869,22 @@ CONTAINS
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+               ELSEIF (str_comp (cpara (2) , 'corre', 4, lpara (2) , 5) )   &
+               then                                                     
+                  pow_lp = POW_LP_CORRE 
+                  CALL del_params (2, ianz, cpara, lpara, maxw) 
+                  IF (ianz.eq.1) then 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     IF (ier_num.eq.0) then 
+                        pow_lp_ang = werte (1) 
+                        pow_lp_fac = 0.5
+                     ELSE 
+                        RETURN 
+                     ENDIF 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
                ELSEIF (str_comp (cpara (2) , 'neutron', 4, lpara (2) ,  &
                7) ) then                                                
                   pow_lp = POW_LP_NEUT 
@@ -1468,6 +1484,10 @@ CONTAINS
                      itth = (ttheta - pow_tthmin) / pow_deltatth 
                      inten = real (csf (i) * conjg (csf (i) ) ) 
                      IF (pow_pref) then 
+!write(*,'(a,3(f4.0,1x),1x,f5.2,1x,f10.2,1x,f10.2)') 'hkl',hkl,ttheta,   &
+!                        inten , inten * calc_preferred (hkl,            &
+!                        pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
+!                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)     
                         inten = inten * calc_preferred (hkl,            &
                         pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
                         pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)     
@@ -2345,8 +2365,8 @@ CONTAINS
 !                                                                       
       LOGICAL lspace 
       REAL null (3) 
-      REAL alpha 
-      REAL alpha2 
+      REAL :: alpha   = 0.0
+      REAL :: alpha2  = 0.0
 !     REAL do_bang 
       REAL sind 
       REAL cosd 
@@ -2372,8 +2392,8 @@ CONTAINS
          pow_pref_g1 * cosd (alpha) ) **2 + (sind (alpha) ) **2 /       &
          pow_pref_g1) ** ( - 1.5)                                       
       ENDIF 
-!DBG      write(*,'(3f4.0,2x,f10.2,2x,f10.2,2x,f8.5)') w,alpha,alpha2,  
-!DBG     &           calc_preferred                                     
+!     write(*,'(3f4.0,2x,f10.2,2x,f10.2,2x,f8.5)') w,alpha,alpha2,  &
+!                calc_preferred                                     
       END FUNCTION calc_preferred                   
 !*****7*****************************************************************
       SUBROUTINE proj_preferred (w, pow_pref_hkl) 

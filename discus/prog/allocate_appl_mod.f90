@@ -286,6 +286,9 @@ MODULE allocate_appl_mod
       CALL alloc_powder   ( 1            )
       CALL alloc_powder_nmax ( 1,1          )
       CALL alloc_rmc      ( 1            )
+      CALL alloc_rmc_data ( 1            )
+      CALL alloc_rmc_istl ( 1,  1, 1     )
+      CALL alloc_rmc_q    ( 1,  1        )
       CALL alloc_rmc_planes(1, 48        )
       CALL alloc_save     ( 1            )
       CALL alloc_shear    ( 1            )
@@ -1712,7 +1715,7 @@ MODULE allocate_appl_mod
 !
       CALL alloc_arr ( pdf_temp      ,1,n_dat,0,n_scat, &
                                               0,n_scat, &
-                                              all_status, 0, size_of)
+                                              all_status, def_dbl, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
