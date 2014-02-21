@@ -401,7 +401,7 @@ CONTAINS
                         lpara (1) , 6) .or.str_comp (cpara (1) ,        &
                         'deselect', 2, lpara (1) , 8)                   
                         CALL mole_select (line, lp, 0, SHEAR_MAXSCAT,   &
-                        shear_latom, shear_sel_atom, lold, lselect)
+                        shear_latom, shear_sel_atom, lselect)
                         shear_mode = SHEAR_DOMAIN 
 !                                                                       
                      ELSEIF (str_comp (cpara (1) , 'include', 3, lpara (&
@@ -450,7 +450,7 @@ CONTAINS
                   lselect = str_comp (befehl, 'msel', 2, lbef, 4)       &
                   .or.str_comp (befehl, 'osel', 2, lbef, 4)             
                   CALL mole_select (zeile, lp, 0, SHEAR_MAXSCAT,        &
-                       shear_latom, shear_sel_atom, lold, lselect)
+                       shear_latom, shear_sel_atom, lselect)
                   IF (str_comp (befehl, 'msel', 3, lbef, 5)             &
                   .or.str_comp (befehl, 'mdes', 3, lbef, 5) ) then      
                      shear_mode = SHEAR_MOLECULE 

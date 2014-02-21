@@ -134,7 +134,7 @@ SUBROUTINE waves_menu
                .or.str_comp (befehl, 'mdes', 2, lbef, 4) ) then         
 !                                                                       
                   CALL mole_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
-                  wv_sel_atom, lold,        &
+                  wv_sel_atom,         &
                   str_comp (befehl, 'msel', 2, lbef, 4) )               
 !                                                                       
 !     --- select which atoms are copied to their image 'sele'           
@@ -342,7 +342,7 @@ SUBROUTINE waves_menu
                         IF (is.ge.0.and.is.le.mole_num_type) then 
                            is = nint (werte (1) ) 
                            CALL mole_select (cdummy, ldummy, 0, WV_MAXSCAT,&
-                                wv_latom, wv_sel_atom, lold, .true.,    &
+                                wv_latom, wv_sel_atom, .true.,    &
                                 is, wv_repl)             
                         ELSE 
                            ier_num = - 64 

@@ -155,14 +155,9 @@ write(*,*) ' NODE does not exist, make new ',lnew
    END SUBROUTINE dc_set_file
 !
 !
-   SUBROUTINE dc_set_connection(this, MAXP, ianz, cpara, lpara, ier_num)
+   SUBROUTINE dc_set_connection(this)
 !
    TYPE (dc_def), POINTER :: this
-   INTEGER             , INTENT(IN) :: MAXP 
-   INTEGER             , INTENT(IN) :: ianz 
-   INTEGER             , DIMENSION(MAXP), INTENT(IN) :: lpara
-   CHARACTER (LEN=1024), DIMENSION(MAXP), INTENT(IN) :: cpara
-   INTEGER             , INTENT(OUT) :: ier_num 
 !
    IF(ASSOCIATED(this)) THEN
 !     this%dc_def_file  = dc_temp_file
@@ -191,13 +186,12 @@ write(*,*) ' NODE does not exist, make new ',lnew
    END SUBROUTINE dc_show_def
 !
 !
-   SUBROUTINE dc_reset_def (this,ier_num)
+   SUBROUTINE dc_reset_def (this)
 !
 !  Remove the current definitions
 !
    TYPE (dc_def), POINTER :: this
    TYPE (dc_def), POINTER :: search
-   INTEGER, INTENT(OUT)   :: ier_num
 !
    reset_loop: DO 
       IF ( ASSOCIATED(this)) THEN

@@ -66,7 +66,7 @@ CONTAINS
 !------ - loop over all different atom types                            
 !                                                                       
          loop_atoms: DO iscat = 1, cr_nscat 
-            CALL four_getatm (iscat, ilots, lbeg, csize, ncell) 
+            CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
 !                                                                       
 !------ --- Add this part of the structur factor to the total           
@@ -209,7 +209,7 @@ CONTAINS
  2000 FORMAT     (' Used ',F5.1,' % of the crystal to calulate <F> ...') 
       END SUBROUTINE four_aver                      
 !*****7*****************************************************************
-      SUBROUTINE four_getatm (iscat, lots, lbeg, csize, ncell) 
+      SUBROUTINE four_getatm (iscat, lots, lbeg, ncell) 
 !+                                                                      
 !     This routine creates an atom list of atoms of type 'iscat'        
 !     which are within the current lot.                                 
@@ -224,7 +224,6 @@ CONTAINS
       INTEGER, INTENT(IN)  :: iscat
       INTEGER, INTENT(IN)  :: lots
       INTEGER, DIMENSION(3), INTENT(IN)  :: lbeg
-      INTEGER, DIMENSION(3), INTENT(IN)  :: csize
       INTEGER, INTENT(OUT) :: ncell
 !                                                                       
       REAL offset (3) 
@@ -736,7 +735,7 @@ CONTAINS
       ENDIF 
       END FUNCTION form                             
 !*****7*****************************************************************
-      SUBROUTINE dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+      SUBROUTINE dlink (ano, lambda, rlambda, diff_radiation, &
                         diff_power) 
 !-                                                                      
 !     This routine reads wavelength symbols, wavelength values 
@@ -751,7 +750,6 @@ CONTAINS
 !                                                                       
 !                                                                       
       LOGICAL             , INTENT(IN)   :: ano
-      LOGICAL             , INTENT(IN)   :: lxray 
       CHARACTER (LEN = * ), INTENT(IN)   :: lambda 
       REAL                , INTENT(OUT)  :: rlambda
       INTEGER             , INTENT(IN)   :: diff_radiation

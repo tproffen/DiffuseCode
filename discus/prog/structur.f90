@@ -561,7 +561,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, NMAX, MAXSCAT, lcell, cr_name,      &
+         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
       IF (ier_num.ne.0) THEN 
@@ -1230,7 +1230,7 @@ got_params: IF (ier_num.eq.0) THEN
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, NMAX, MAXSCAT, lcell, cr_name,      &
+         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
 !                                                                       
@@ -1249,7 +1249,7 @@ got_params: IF (ier_num.eq.0) THEN
       ENDIF 
       END SUBROUTINE readstru                       
 !********************************************************************** 
-      SUBROUTINE stru_readheader (ist, HD_NMAX, HD_MAXSCAT, lcell, cr_name,   &
+      SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
       cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)                 
 !-                                                                      
@@ -1259,7 +1259,6 @@ got_params: IF (ier_num.eq.0) THEN
       USE sym_add_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER HD_NMAX 
       INTEGER HD_MAXSCAT 
 !                                                                       
 !                                                                       
@@ -1291,7 +1290,6 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER sav_ncell (3) 
       INTEGER sav_ncatoms 
       LOGICAL sav_r_ncell 
-      LOGICAL lcell 
       LOGICAL lend 
 !DBG      real            spcgr_para                                    
       REAL werte (maxw) 

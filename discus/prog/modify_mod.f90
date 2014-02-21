@@ -436,7 +436,7 @@ CONTAINS
             IF (ier_num.ne.0) return 
             ENDDO 
             IF (ianz.ge.4) then 
-               CALL do_ins_atom (name, werte, ianz) 
+               CALL do_ins_atom (name, werte) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -599,7 +599,7 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte, ianz) 
+                     CALL do_ins_atom (name, werte) 
                   ELSE 
 !                                                                       
 !     ----------Interpret parameters 8,9,10 as direct lattice units     
@@ -637,13 +637,13 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte, ianz) 
+                     CALL do_ins_atom (name, werte) 
                   ENDIF 
                ELSEIF (cr_natoms.eq.0) then 
 !                                                                       
 !     --------The crystal is empty. Insert atom in any case             
 !                                                                       
-                  CALL do_ins_atom (name, werte, ianz) 
+                  CALL do_ins_atom (name, werte) 
                ELSE 
 !                                                                       
 !     --------Wrong range of atoms to compare to the new one            
@@ -666,7 +666,7 @@ CONTAINS
    10 CONTINUE 
       END SUBROUTINE do_app                         
 !****7******************************************************************
-      SUBROUTINE do_ins_atom (name, werte, ianz) 
+      SUBROUTINE do_ins_atom (name, werte) 
 !-                                                                      
 !     Inserts the atom given by name and position in werte into the     
 !     structure.                                                        
@@ -683,7 +683,6 @@ CONTAINS
 !                                                                       
       CHARACTER (LEN=* )    , INTENT(IN) :: name 
       REAL , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
-      INTEGER               , INTENT(IN) :: ianz 
 !
       INTEGER                :: i, l
       INTEGER                :: new_nmax   = 1
@@ -1452,9 +1451,8 @@ CONTAINS
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   ENDIF 
                   IF (ier_num.eq.0) then 
-                     CALL do_find_mol (ianz, werte, maxw, x, rmin,      &
-                     radius, fq, fp)                                    
-                  ENDIF 
+                     CALL do_find_mol (ianz, werte, maxw, x, rmin, radius)
+                  ENDIF
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1786,7 +1784,7 @@ CONTAINS
       END SUBROUTINE atom_select                    
 !*****7*****************************************************************
       SUBROUTINE mole_select (zeile, lp, lu, lo, latom, &
-                              sel_atom, lold, lselect,  &
+                              sel_atom, lselect,  &
                               ival, repl)                             
 !+                                                                      
 !     This routine exectues the select command                          
@@ -1803,7 +1801,6 @@ CONTAINS
       INTEGER,                   INTENT(IN)    :: lo
       LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
       LOGICAL,                   INTENT(INOUT) :: sel_atom
-      LOGICAL,                   INTENT(IN)    :: lold
       LOGICAL,                   INTENT(IN)    :: lselect 
       INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
       INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
@@ -1959,7 +1956,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE property_set                   
 !*****7*****************************************************************
-      SUBROUTINE do_find_mol (ianz, werte, maxw, x, rmin, rmax, fq, fp) 
+      SUBROUTINE do_find_mol (ianz, werte, maxw, x, rmin, rmax) 
 !                                                                       
 !     This routine finds all molecules around x with a minimal          
 !     distance of rmin and a maximum distance of rmax.                  
@@ -1978,7 +1975,6 @@ CONTAINS
       REAL werte (maxw) 
       REAL x (3) 
       REAL rmin, rmax 
-      LOGICAL fq, fp (3) 
 !                                                                       
       INTEGER i, j 
 !                                                                       

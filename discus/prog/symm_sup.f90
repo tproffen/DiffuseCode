@@ -227,7 +227,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -312,7 +312,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -438,7 +438,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -593,7 +593,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -815,7 +815,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -1032,7 +1032,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 

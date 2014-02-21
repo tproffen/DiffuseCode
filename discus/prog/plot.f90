@@ -182,8 +182,7 @@ CONTAINS
                        str_comp (befehl, 'mdes', 2, lbef, 4) ) then
 !                   
                   CALL mole_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
-                  pl_sel_atom, lold,        &
-                  str_comp (befehl, 'msel', 2, lbef, 4) )               
+                  pl_sel_atom, str_comp (befehl, 'msel', 2, lbef, 4) )
 !                                                                       
 !------ --Handle property settings 'property'                           
 !                                                                       

@@ -470,7 +470,7 @@ CONTAINS
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL insert_show (itype) 
+                  CALL insert_show () 
 !                                                                       
 !     ----GENERAL MENU COMMANDS                                         
 !                                                                       
@@ -544,7 +544,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE insert                         
 !*****7*****************************************************************
-      SUBROUTINE insert_show (itype) 
+      SUBROUTINE insert_show ()
 !-                                                                      
 !     Shows current shear settings                                      
 !+                                                                      
@@ -558,7 +558,6 @@ CONTAINS
 !                                                                       
       CHARACTER(8) c_char (0:4) 
       CHARACTER(8) ctype ( - 1:1) 
-      INTEGER itype 
 !                                                                       
       DATA c_char / 'Atom    ', 'Cube    ', 'Cylinder', 'Sphere  ', 'Fuz&
      &zy   ' /                                                          

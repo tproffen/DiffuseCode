@@ -223,7 +223,7 @@ SUBROUTINE pdf
                  str_comp (befehl, 'mdes', 2, lbef, 4) ) then                             
 !                                                                       
             CALL mole_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
-            rmc_sel_atom, .false., str_comp (  &
+            rmc_sel_atom, str_comp (  &
             befehl, 'msel', 2, lbef, 4) )                               
 !                                                                       
 !------ no command found                                                
@@ -337,7 +337,7 @@ SUBROUTINE pdf
 !                                                                       
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
-      CALL dlink (pdf_lxray, ano, lambda, rlambda,  pdf_radiation, &
+      CALL dlink (ano, lambda, rlambda,  pdf_radiation, &
                   pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 

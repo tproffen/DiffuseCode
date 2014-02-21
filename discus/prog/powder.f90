@@ -132,7 +132,7 @@ CONTAINS
 !     ----run transformation 'run'                                      
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
-                  CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                  CALL dlink (ano, lambda, rlambda, diff_radiation, &
                               diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
@@ -142,7 +142,7 @@ CONTAINS
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+                  CALL dlink (ano, lambda, rlambda, diff_radiation, &
                               diff_power) 
                   CALL pow_show 
 !                                                                       

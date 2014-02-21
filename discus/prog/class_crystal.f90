@@ -130,7 +130,7 @@ END TYPE cl_cryst
 CONTAINS
 !
 !******************************************************************************
-   SUBROUTINE alloc_arrays   ( this, natoms, nscat, n_mole, n_type, n_atom)
+   SUBROUTINE alloc_arrays   ( this, natoms, nscat, n_mole, n_atom)
 !
 !  Allocate the arrays for "this" crystal 
 !  Initialize all variables
@@ -141,7 +141,6 @@ CONTAINS
    INTEGER,              INTENT(IN) :: natoms      ! Number of atoms for this crystal
    INTEGER,              INTENT(IN) :: nscat       ! Number of atom types for this crystal
    INTEGER,              INTENT(IN) :: n_mole      ! Number of molecules  for this crystal
-   INTEGER,              INTENT(IN) :: n_type      ! Number of molecule types for this crystal
    INTEGER,              INTENT(IN) :: n_atom      ! Number of atoms in molecules for this crystal
 !
    INTEGER  :: istatus
@@ -604,7 +603,6 @@ CONTAINS
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
-   INTEGER               :: inum
    INTEGER               :: i,j
    INTEGER               :: ia
 !
@@ -695,18 +693,16 @@ CONTAINS
 !
    END SUBROUTINE get_header_from_crystal
 !******************************************************************************
-   SUBROUTINE get_header_to_local (this, rd_NMAX, rd_MAXSCAT, rd_lcell, rd_cr_name,      &
+   SUBROUTINE get_header_to_local (this, rd_MAXSCAT, rd_cr_name,      &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,      &
-            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_no, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
    IMPLICIT NONE
 !
-   INTEGER                                      , INTENT(INOUT) :: rd_NMAX 
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 
 !
-   LOGICAL                                      , INTENT(IN)    :: rd_lcell
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
@@ -717,7 +713,6 @@ CONTAINS
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
    INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
-   INTEGER                                      , INTENT(INOUT) :: rd_spcgr_no 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
 !
@@ -735,7 +730,7 @@ CONTAINS
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
 !
-   INTEGER                          :: i,j
+   INTEGER                          :: i
 !
    rd_cr_name         = this%cr_name
    rd_cr_spcgr        = this%cr_spcgr
@@ -799,8 +794,7 @@ CONTAINS
 !
    END SUBROUTINE get_atoms_from_crystal
 !******************************************************************************
-   SUBROUTINE get_atoms_to_local( this, RD_NMAX, RD_MAXSCAT, &
-            rd_cr_natoms, rd_cr_nscat,  &
+   SUBROUTINE get_atoms_to_local( this, RD_NMAX, rd_cr_natoms,  &
             rd_cr_pos, rd_cr_iscat, rd_cr_prop )
 !
 !  Get atom positions from internal crystal and copy them into
@@ -809,9 +803,7 @@ CONTAINS
    IMPLICIT none
 !
    INTEGER,                          INTENT(IN)     :: RD_NMAX
-   INTEGER,                          INTENT(IN)     :: RD_MAXSCAT
    INTEGER,                          INTENT(INOUT)  :: rd_cr_natoms
-   INTEGER,                          INTENT(INOUT)  :: rd_cr_nscat
    INTEGER, DIMENSION(1:RD_NMAX),    INTENT(INOUT)  :: rd_cr_iscat
    INTEGER, DIMENSION(1:RD_NMAX),    INTENT(INOUT)  :: rd_cr_prop
    REAL   , DIMENSION(1:3,1:RD_NMAX),INTENT(INOUT)  :: rd_cr_pos
@@ -840,7 +832,7 @@ CONTAINS
    END SUBROUTINE get_atoms_to_local
 !******************************************************************************
    SUBROUTINE get_molecules_from_crystal   ( this, mole_max_mole,         &
-              mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
+              mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_fuzzy, mole_cont)
 !
@@ -852,7 +844,6 @@ CONTAINS
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
    INTEGER,                                       INTENT(IN ) :: mole_max_mole
-   INTEGER,                                       INTENT(IN ) :: mole_max_type
    INTEGER,                                       INTENT(IN ) :: mole_max_atom
    INTEGER,                                       INTENT(OUT) :: mole_num_mole
    INTEGER,                                       INTENT(OUT) :: mole_num_type
@@ -866,7 +857,6 @@ CONTAINS
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
-   INTEGER               :: inum
    INTEGER               :: ia
 !
    mole_num_mole = this%cr_num_mole

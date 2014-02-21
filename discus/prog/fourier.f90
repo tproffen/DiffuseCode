@@ -137,7 +137,7 @@ CONTAINS
                             RETURN
                           ENDIF
                         ENDIF
-                        CALL dlink (lxray, ano, lambda, rlambda, &
+                        CALL dlink (ano, lambda, rlambda, &
                                     diff_radiation, diff_power) 
                         CALL calc_000 (rhkl) 
                      ENDIF 
@@ -145,7 +145,7 @@ CONTAINS
                      rhkl (1) = 0.0 
                      rhkl (2) = 0.0 
                      rhkl (3) = 0.0 
-                     CALL dlink (lxray, ano, lambda, rlambda,    &
+                     CALL dlink (ano, lambda, rlambda,    &
                                     diff_radiation, diff_power) 
                      CALL calc_000 (rhkl) 
                   ELSE 
@@ -514,7 +514,7 @@ CONTAINS
                  ENDIF
                ENDIF
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
-                  CALL dlink (lxray, ano, lambda, rlambda, &
+                  CALL dlink (ano, lambda, rlambda, &
                               diff_radiation, diff_power) 
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
@@ -654,7 +654,7 @@ CONTAINS
                   inc(3)   = 1
                   divis(3) = 1
                ENDIF
-               CALL dlink (lxray, ano, lambda, rlambda, &
+               CALL dlink (ano, lambda, rlambda, &
                            diff_radiation, diff_power) 
                CALL four_show  ( ltop )
 !                                                                       

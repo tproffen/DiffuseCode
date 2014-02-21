@@ -191,7 +191,7 @@ CONTAINS
                         'deselect', 2, lpara (1) , 8)                   
 !                                                                       
                         CALL mole_select (line, lp, 0, SYM_MAXSCAT,     &
-                             sym_latom, sym_sel_atom, lold, lselect)
+                             sym_latom, sym_sel_atom, lselect)
                         sym_sel_mode = SYM_RUN_DOMAIN 
                      ELSEIF (str_comp (cpara (1) , 'include', 3, lpara (&
                      1) , 7) ) then                                     
@@ -394,7 +394,7 @@ CONTAINS
                   .or.str_comp (befehl, 'osel', 2, lbef, 4)             
 !                                                                       
                   CALL mole_select (zeile, lp, 0, SYM_MAXSCAT,         &
-                             sym_latom, sym_sel_atom, lold, lselect)
+                             sym_latom, sym_sel_atom, lselect)
 !                                                                       
 !     ----Select the origin of the symmetry operation  'origin'         
 !                                                                       

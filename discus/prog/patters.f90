@@ -2780,7 +2780,7 @@ CONTAINS
          ier_msg (3) = ' been defined' 
          RETURN 
       ENDIF 
-      CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+      CALL dlink (ano, lambda, rlambda, diff_radiation, &
                   diff_power) 
       DO i = 1, MAXW 
       w_aver (i) = 0.0 

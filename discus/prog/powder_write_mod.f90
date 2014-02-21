@@ -119,7 +119,7 @@ CONTAINS
          IF (pow_profile.eq.POW_PROFILE_GAUSS) then 
             IF (pow_delta.gt.0.0) then 
                CALL powder_conv_res (pow_tmp, xmin, xmax, xdel,         &
-               pow_delta, pow_width, POW_MAXPKT)                                    
+               pow_delta, POW_MAXPKT)                                    
             ENDIF 
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
            IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
@@ -129,12 +129,10 @@ CONTAINS
 !DBG     &                pow_axis.eq.POW_AXIS_Q                 ) then 
                CALL powder_conv_psvgt_uvw (pow_tmp, xmin, xmax, xdel,   &
                pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-               pow_p3, pow_p4, pow_width, rlambda, pow_axis, POW_AXIS_Q,&
-               POW_MAXPKT)
+               pow_p3, pow_p4, pow_width, POW_MAXPKT)
             ELSE 
                CALL powder_conv_psvgt_fix (pow_tmp, xmin, xmax, xdel,   &
-               pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-               pow_p3, pow_p4, pow_width, POW_MAXPKT)                               
+               pow_eta, pow_w, pow_width, POW_MAXPKT)
             ENDIF 
          ENDIF 
 !                                                                       
@@ -331,8 +329,7 @@ CONTAINS
 !                                                                       
       END FUNCTION polarisation                     
 !*****7*****************************************************************
-      SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta,     &
-      pow_width, POW_MAXPKT)                                                        
+      SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Gaussian)      
 !+                                                                      
@@ -345,7 +342,6 @@ CONTAINS
 !                                                                       
       REAL dat (0:POW_MAXPKT) 
       REAL tthmin, tthmax, dtth, delta 
-      REAL pow_width 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
       REAL gauss (0:2 * POW_MAXPKT) 
@@ -388,7 +384,7 @@ CONTAINS
       END SUBROUTINE powder_conv_res                
 !*****7*****************************************************************
 SUBROUTINE powder_conv_psvgt_fix (dat, tthmin, tthmax, dtth, eta, &
-      etax, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
+      w, pow_width, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     Constant FWHM, Constant eta                                       
@@ -401,9 +397,8 @@ IMPLICIT none
 INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
 REAL dat (0:POW_MAXPKT) 
-REAL tthmin, tthmax, dtth, fwhm, eta, etax 
-REAL u, v, w 
-REAL p1, p2, p3, p4 
+REAL tthmin, tthmax, dtth, fwhm, eta
+REAL w 
 REAL pow_width 
 !                                                                       
 REAL dummy (0:POW_MAXPKT) 
@@ -454,8 +449,7 @@ ENDDO
 END SUBROUTINE powder_conv_psvgt_fix          
 !*****7*****************************************************************
       SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
-      etax, u, v, w, p1, p2, p3, p4, pow_width, rlambda, pow_axis,      &
-      POW_AXIS_Q, POW_MAXPKT)
+      etax, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
@@ -473,9 +467,6 @@ END SUBROUTINE powder_conv_psvgt_fix
       REAL u, v, w 
       REAL p1, p2, p3, p4 
       REAL pow_width 
-      REAL rlambda 
-      INTEGER pow_axis 
-      INTEGER POW_AXIS_Q 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
       REAL tth

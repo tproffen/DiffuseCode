@@ -497,7 +497,6 @@ SUBROUTINE do_domain (line, lp)
       PARAMETER (imd = 45) 
 !                                                                       
       CHARACTER(1024) infile 
-      LOGICAL lcell 
       LOGICAL lend 
       LOGICAL lread 
       LOGICAL lmetric 
@@ -510,13 +509,11 @@ SUBROUTINE do_domain (line, lp)
 !
       clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 !                                                                       
-      lcell = .false. 
       lread = .true. 
       IF ( clu_infile_internal ) THEN
-         CALL stru_readheader_internal (clu_infile, MK_MAX_ATOM, MK_MAX_SCAT, lcell, mk_name,   &
+         CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
-         mk_spcgr_no, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          clu_iatom = 0
@@ -526,7 +523,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
-         CALL stru_readheader (imd, MK_MAX_ATOM, MK_MAX_SCAT, lcell, mk_name,     &
+         CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
       ENDIF
@@ -563,7 +560,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
          DO while (.not.lend) 
          IF (mc_type  .lt.0) then 
-            CALL micro_read_atoms (infile, mc_dimen, mc_idimen,         &
+            CALL micro_read_atoms (infile, mc_idimen,         &
             mc_matrix)                                                  
          ENDIF 
          IF (ier_num.ne.0) return 
@@ -596,7 +593,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
          DO while (.not.lend) 
          IF (mc_type  .lt.0) then 
-            CALL micro_read_atoms (infile, mc_dimen, mc_idimen,         &
+            CALL micro_read_atoms (infile, mc_idimen,         &
             mc_matrix)                                                  
          ENDIF 
          IF (ier_num.ne.0) return 
@@ -814,7 +811,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       END SUBROUTINE micro_read_micro               
 !*****7*****************************************************************
-      SUBROUTINE micro_read_atoms (infile, mc_dimen, mc_idimen,         &
+      SUBROUTINE micro_read_atoms (infile, mc_idimen,         &
       mc_matrix)                                                        
 !                                                                       
       USE config_mod 
@@ -831,24 +828,20 @@ SUBROUTINE do_domain (line, lp)
        
 !                                                                       
       CHARACTER ( * ) infile 
-      REAL mc_dimen (4, 4) 
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
 !                                                                       
       INTEGER ist 
       PARAMETER (ist = 46) 
 !                                                                       
-      LOGICAL lcell 
       LOGICAL lread 
 !                                                                       
-      lcell = .false. 
       lread = .true. 
       IF(infile(1:8)=='internal') THEN
          mk_infile_internal = .true.
-         CALL stru_readheader_internal (infile, MK_MAX_ATOM, MK_MAX_SCAT, lcell, mk_name,   &
+         CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
-         mk_spcgr_no, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          mk_iatom = 0
@@ -858,7 +851,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
-         CALL stru_readheader (ist, MK_MAX_ATOM, MK_MAX_SCAT, lcell, mk_name,     &
+         CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
       ENDIF
@@ -1259,7 +1252,7 @@ mole_int: IF(mk_infile_internal) THEN
        ALLOCATE ( temp_mole_fuzzy(0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_cont (0:temp_num_atom), STAT = istatus)
        CALL stru_internal_molecules(infile, TEMP_MAX_MOLE,                & ! Read domain 
-              TEMP_MAX_TYPE, TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
+              TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
               temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type,& ! into temp
               temp_mole_char,    &
               temp_mole_file, temp_mole_dens, temp_mole_fuzzy, temp_mole_cont)

@@ -260,7 +260,7 @@ SUBROUTINE chem
                      lbeg (3) = 0 
 !                                                                       
                      IF (chem_sel_atom) then 
-                        CALL chem_corr_occ (ianz, cpara, lpara, maxw,   &
+                        CALL chem_corr_occ (cpara, lpara, maxw,   &
                         .true., lbeg)                                   
                      ELSE 
                         CALL chem_corr_occ_mol (ianz, cpara, lpara,     &
@@ -2548,7 +2548,7 @@ ENDIF
       IF (locc) then 
          l = 2 
          IF (chem_sel_atom) then 
-            CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+            CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
          ELSE 
             CALL chem_corr_occ_mol (l, catom, latom, 2, .false., lbeg) 
          ENDIF 
@@ -2817,7 +2817,7 @@ ENDIF
          IF (locc) then 
             l = 2 
             IF (chem_sel_atom) then 
-               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+               CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
             ELSE 
                CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
                lbeg)                                                    
@@ -2854,7 +2854,7 @@ ENDIF
          IF (locc) then 
             l = 2 
             IF (chem_sel_atom) then 
-               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+               CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
             ELSE 
                CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
                lbeg)                                                    
@@ -4500,7 +4500,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       END SUBROUTINE chem_corr_dis_mol              
 !*****7*****************************************************************
-      SUBROUTINE chem_corr_occ (ianz, cpara, lpara, maxw, lout, lbeg) 
+      SUBROUTINE chem_corr_occ (cpara, lpara, maxw, lout, lbeg) 
 !+                                                                      
 !     Calculates occupational correlations within the crystal           
 !       according to: cij = (Pij-T**2)/T(1-T).                          
@@ -4523,7 +4523,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
-      INTEGER ianz, maxw 
+      INTEGER maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw), lbeg (3) 
       LOGICAL lout 
@@ -5416,7 +5416,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
-               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, natoms )
+               CALL get_connectivity_list ( jatom, ino, maxw, c_list, natoms )
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)

@@ -4,7 +4,7 @@ CONTAINS
 !*****7*****************************************************************
 !                                                                       
       SUBROUTINE trafo (hkl, u, xc, yc, zc, gmat, fmat, dist, eps, gten,&
-      reps, rten)                                                       
+      rten)                                                       
 !+                                                                      
 !     Calculates the transformation matrix : crystal <> plotsection     
 !     from lattice comstant and hkl of viewing vector. Also             
@@ -18,7 +18,7 @@ CONTAINS
       INTEGER inull2 (2), i, j, k, l, m, inull 
       REAL eps (3, 3, 3), fmat (3, 3), gmat (3, 3), gten (3, 3) 
       REAL rten (3, 3), u (3), xc (3), yc (3), zc (3), dist 
-      REAL reps (3, 3, 3), hkl (3), zcc, xcc
+      REAL hkl (3), zcc, xcc
 !, quad 
 !                                                                       
 !     Determine achses for transformation                               
