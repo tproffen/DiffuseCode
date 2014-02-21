@@ -175,14 +175,14 @@ CONTAINS
                         maxw, 2)                                        
                         IF (ier_num.eq.0) then 
                            i = 1 
-                           rho_file (i) = cpara (2) 
+                           rho_file (i) = cpara (2) (1:lpara(2))
                         ENDIF 
       ELSEIF (str_comp (cpara (1) , 'b    ', 1, lpara (2) , 5) ) then 
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 2)                                        
                         IF (ier_num.eq.0) then 
                            i = 2 
-                           rho_file (i) = cpara (2) 
+                           rho_file (i) = cpara (2) (1:lpara(2))
                         ENDIF 
                      ELSE 
                         ier_num = - 41 

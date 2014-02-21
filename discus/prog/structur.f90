@@ -994,7 +994,7 @@ got_params: IF (ier_num.eq.0) THEN
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'file', 3, lpara (1) , 4) )   &
             then                                                        
-               mole_file (mole_num_mole) = cpara (2) 
+               mole_file (mole_num_mole) = cpara (2) (1:lpara(2))
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'density', 3, lpara (1) , 6) )&
             then                                                        
@@ -1333,7 +1333,7 @@ got_params: IF (ier_num.eq.0) THEN
          ELSE 
             line = ' ' 
          ENDIF 
-         cr_name = line 
+         cr_name = line (1:len(cr_name))
 !                                                                       
          CALL no_error 
          DO while (.not.str_comp (befehl, 'atoms', 1, lbef, 5) ) 
@@ -1383,7 +1383,7 @@ got_params: IF (ier_num.eq.0) THEN
             cpara (1) (islash:islash) = '/' 
             islash = index (cpara (1) (1:lpara (1) ) , 'S') 
             ENDDO 
-            cr_spcgr = cpara (1) 
+            cr_spcgr = cpara (1) (1:lpara(1))
             spcgr_ianz = ianz - 1 
             ianz = ianz - 1 
             spcgr_para = 1 
@@ -1500,7 +1500,7 @@ got_params: IF (ier_num.eq.0) THEN
                IF (xx_nscat + ianz.le.HD_MAXSCAT) then 
                   DO i = 1, ianz 
                   CALL do_cap (cpara (i) (1:lpara (i) ) ) 
-                  cr_at_lis (xx_nscat + i) = cpara (i) 
+                  cr_at_lis (xx_nscat + i) = cpara (i) (1:lpara(i))
                   ENDDO 
                   xx_nscat = xx_nscat + ianz 
                   cr_nscat = max (cr_nscat, xx_nscat) 
@@ -1617,7 +1617,7 @@ got_params: IF (ier_num.eq.0) THEN
          READ (ist, 2010, end = 999, err = 999) line 
          lp = len_str (line) 
          CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
-         cr_spcgr = cpara (1) 
+         cr_spcgr = cpara (1) (1:lpara(1))
          ianz = ianz - 1 
          IF (ianz.eq.1) then 
             cpara (1) = cpara (2) 

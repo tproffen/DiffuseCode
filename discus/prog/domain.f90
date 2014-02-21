@@ -208,7 +208,7 @@ SUBROUTINE do_domain (line, lp)
                               CALL do_build_name (ianz, cpara, lpara,   &
                               werte, maxw, 1)                           
                               IF (ier_num.eq.0) then 
-                                 clu_content (clu_index) = cpara (1) 
+                                 clu_content (clu_index) = cpara (1) (1:lpara(1))
                               ENDIF 
                            ENDIF 
                         ELSEIF (str_comp (cpara (1) , 'fuzzy', 1, lpara &
@@ -288,7 +288,7 @@ SUBROUTINE do_domain (line, lp)
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
                      IF (ier_num.eq.0) then 
-                        clu_infile = cpara (1) 
+                        clu_infile = cpara (1) (1:lpara(1))
                         clu_infile_internal = clu_infile(1:8)=='internal'
                      ENDIF 
                   ENDIF 

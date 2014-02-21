@@ -975,7 +975,7 @@ CONTAINS
             IF (ianz.eq.2) then 
                IF (ichar ('A') .le.ichar (cpara (2) (1:1) ) .and.ichar (&
                cpara (2) (1:1) ) .le.ichar ('Z') ) then                 
-                  lambda = cpara (2) 
+                  lambda = cpara (2) (1:lpara(2))
                ELSE 
                   cpara (1) = '0' 
                   lpara (1) = 1 

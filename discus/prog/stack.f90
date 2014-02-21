@@ -219,7 +219,7 @@ SUBROUTINE stack
                            werte, maxw, 2)                              
                            IF (ier_num.eq.0) then 
                               st_distr = ST_DIST_FILE 
-                              st_infile = cpara (2) 
+                              st_infile = cpara (2) (1:lpara(2))
                               st_infile_l = lpara (2) 
                            ENDIF 
                         ELSE 
@@ -233,7 +233,7 @@ SUBROUTINE stack
                            werte, maxw, 2)                              
                            IF (ier_num.eq.0) then 
                               st_distr = ST_DIST_LIST 
-                              st_infile = cpara (2) 
+                              st_infile = cpara (2) (1:lpara(2))
                               st_infile_l = lpara (2) 
                            ENDIF 
                         ELSE 
@@ -301,7 +301,7 @@ SUBROUTINE stack
                            IF (st_ntypes.lt.ST_MAXTYPE) then 
                               st_ntypes = st_ntypes + 1 
                               st_internal(st_ntypes) = cpara(1)(1:8)=='internal'
-                              st_layer (st_ntypes) = cpara (1) 
+                              st_layer (st_ntypes) = cpara (1) (1:lpara(1))
                               st_llayer (st_ntypes) = lpara (1) 
                               DO i = 1, st_nchem 
                               IF (cpara (1) .eq.st_layer_c (i) ) then 
@@ -311,7 +311,7 @@ SUBROUTINE stack
                               ENDDO 
                               st_nchem = st_nchem + 1 
                               st_chem (st_ntypes) = st_nchem 
-                              st_layer_c (st_nchem) = cpara (1) 
+                              st_layer_c (st_nchem) = cpara (1) (1:lpara(1))
  5000                         CONTINUE 
                            ELSE 
                               ier_num = - 53 

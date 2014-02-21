@@ -263,7 +263,7 @@ SUBROUTINE do_niplps (linverse)
                   CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
                   1)                                                    
                   IF (ier_num.eq.0) then 
-                     outfile = cpara (1) 
+                     outfile = cpara (1) (1:lpara(1))
                   ENDIF 
                ENDIF 
 !                                                                       

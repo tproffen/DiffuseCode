@@ -234,7 +234,7 @@ CONTAINS
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 1)                                        
                         IF (ier_num.eq.0) then 
-                           ins_file = cpara (1) 
+                           ins_file = cpara (1) (1:lpara(1))
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 

@@ -75,7 +75,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.eq.0) THEN 
-               sav_file = cpara (1) 
+               sav_file = cpara (1) (1:lpara(1))
                sav_flen = lpara (1) 
 !                                                                       
                IF (sav_keyword) THEN 
@@ -304,7 +304,7 @@ SUBROUTINE save_struc (zeile, lcomm)
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
                      IF (ier_num.eq.0) THEN 
-                        sav_file = cpara (1) 
+                        sav_file = cpara (1) (1:lpara(1))
                         sav_flen = lpara (1) 
                      ENDIF 
                   ENDIF 

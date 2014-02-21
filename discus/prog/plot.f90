@@ -132,7 +132,7 @@ CONTAINS
                         IF (cpara (1) .eq.'xyz'.or.cpara (1).eq.'yzx'.or. &
                             cpara (1) .eq.'zxy'.or.cpara (1).eq.'xzy'.or. &
                             cpara (1) .eq.'zyx'.or.cpara (1).eq.'yxz') then
-                           pl_col = cpara (1) 
+                           pl_col = cpara (1)(1:lpara(1))
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -358,7 +358,7 @@ CONTAINS
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      IF (ier_num.eq.0) then 
-                        pl_out = cpara (1) 
+                        pl_out = cpara (1) (1:lpara(1))
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -540,7 +540,7 @@ CONTAINS
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      IF (ier_num.eq.0) then 
-                        pl_title = cpara (1) 
+                        pl_title = cpara (1) (1:lpara(1))
                      ENDIF 
                   ENDIF 
 !                                                                       

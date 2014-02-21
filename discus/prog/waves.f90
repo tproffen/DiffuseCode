@@ -170,7 +170,7 @@ SUBROUTINE waves_menu
                      IF (ianz.eq.1.or.ianz.eq.2) then 
                         IF (str_comp (cpara (1) , 'box', 3, lpara (1) , &
                         3) ) then                                       
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_BOX 
                            IF (ianz.eq.2) then 
                               CALL del_params (1, ianz, cpara, lpara,   &
@@ -189,11 +189,11 @@ SUBROUTINE waves_menu
                            ENDIF 
                         ELSEIF (str_comp (cpara (1) , 'sinus', 3, lpara &
                         (1) , 5) ) then                                 
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_SINUS 
                         ELSEIF (str_comp (cpara (1) , 'trian', 3, lpara &
                         (1) , 5) ) then                                 
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_TRIANGLE 
                         ELSE 
                            ier_num = - 6 

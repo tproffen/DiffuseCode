@@ -255,7 +255,7 @@ CONTAINS
                                  werte, maxw, 1)                        
                                  IF (ier_num.eq.0) then 
                                     rmc_ranloc = .FALSE. 
-                                    rmc_lname = cpara (1) 
+                                    rmc_lname = cpara (1) (1:lpara(1))
                                  ENDIF 
                               ELSE 
                                  rmc_ranloc = .TRUE. 
@@ -794,7 +794,7 @@ CONTAINS
             CASE(RMC_RAD_NEUT)
                ra = 'Neutrons'
             CASE(RMC_RAD_ELEC)
-               ra = 'Electrons'
+               ra = 'Electron'
          END SELECT
       IF (rmc_lambda (i) .eq.'    ') then 
             WRITE (output_io, 1850) rmc_rlambda (i), ra, rmc_ldbw (i),  &
@@ -1138,7 +1138,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) cpara (maxw), cfile, cwic 
       CHARACTER(4) cdummy 
-      INTEGER lpara (maxw) 
+      INTEGER lpara (maxw) , cfile_l
       INTEGER ianz, nsym, rsym 
       INTEGER ip, nx, ny, wx, wy 
       INTEGER i, j, k 
@@ -1206,7 +1206,7 @@ CONTAINS
          CALL do_cap (cpara (2) ) 
          IF (ichar ('A') .le.ichar (cpara (2) (1:1) ) .and.ichar (cpara &
          (2) (1:1) ) .le.ichar ('Z') ) then                             
-            rmc_lambda (ip) = cpara (2) 
+            rmc_lambda (ip) = cpara (2) (1:lpara(2))
          ELSE 
             CALL ber_params (1, cpara (2), lpara (2), werte, maxw) 
             rmc_rlambda (ip) = werte (1) 
@@ -1218,6 +1218,7 @@ CONTAINS
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 3) 
          IF (ier_num.eq.0) then 
             cfile = cpara (3) 
+            cfile_l = lpara(3)
          ELSE 
             RETURN 
          ENDIF 
@@ -1278,7 +1279,7 @@ CONTAINS
 !                                                                       
 !------ read data for given plane                                       
 !                                                                       
-      rmc_fname (ip) = cfile 
+      rmc_fname (ip) = cfile (1:cfile_l)
       CALL oeffne (17, cfile, 'old', .false.) 
       IF (ier_num.ne.0) return 
 !                                                                       

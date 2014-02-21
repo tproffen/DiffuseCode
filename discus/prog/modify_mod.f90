@@ -28,7 +28,7 @@ CONTAINS
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw), cc 
-      INTEGER lpara (maxw) 
+      INTEGER lpara (maxw) , ccl
       INTEGER ianz, iianz, jjanz, lp, i 
       INTEGER is1, is2, isite, itype 
       INTEGER ja, jsite, jcell (3) 
@@ -124,7 +124,7 @@ CONTAINS
                ENDIF
                IF (cr_nscat + 1.le.maxscat) then 
                   cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2) 
+                  cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
 !DBG                cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
                   cr_dw (cr_nscat) = 0.05 
                   CALL no_error 
@@ -215,7 +215,7 @@ CONTAINS
                ENDIF
                IF (cr_nscat + 1.le.maxscat) then 
                   cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2) 
+                  cr_at_lis (cr_nscat) = cpara (2)  (1:lpara(2))
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   cr_dw (cr_nscat) = werte (1) 
@@ -231,6 +231,7 @@ CONTAINS
 !     ------Atom name exists, but since DW was given check this         
 !                                                                       
                cc = cpara (2) 
+               ccl = lpara (2)
                CALL del_params (2, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                                                                         
@@ -251,7 +252,7 @@ CONTAINS
                   ENDIF
                   IF (cr_nscat + 1.le.maxscat) then 
                      cr_nscat = cr_nscat + 1 
-                     cr_at_lis (cr_nscat) = cc 
+                     cr_at_lis (cr_nscat) = cc(1:ccl)
                      cr_dw (cr_nscat) = werte (1) 
                      is1 = cr_nscat 
                      CALL no_error 
@@ -418,7 +419,7 @@ CONTAINS
          IF (ier_num.eq.0) then 
             i = ichar (cpara (1) (1:1) ) 
             IF ( (a.le.i.and.i.le.z) .or. (aa.le.i.and.i.le.zz) ) then 
-               name = cpara (1) 
+               name = cpara (1) (1:lpara(1))
                j = 2 
             ELSE 
                j = 1 
@@ -523,7 +524,7 @@ CONTAINS
                i = ichar (cpara (1) (1:1) ) 
                IF ( (a.le.i.and.i.le.z) .or. (aa.le.i.and.i.le.zz) )    &
                then                                                     
-                  name = cpara (1) 
+                  name = cpara (1)(1:lpara(1))
                   j = 2 
                ELSE 
                   j = 1 

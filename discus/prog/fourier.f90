@@ -582,13 +582,13 @@ CONTAINS
                            k = nint (werte (1) ) 
                            cr_scat_equ (k) = .true. 
                            CALL do_cap (cpara (2) ) 
-                           cr_at_equ (k) = cpara (2) 
+                           cr_at_equ (k) = cpara (2) (1:lpara(2))
                         ELSEIF (werte (1) .eq. - 1) then 
                            k = nint (werte (1) ) 
                            CALL do_cap (cpara (2) ) 
                            DO k = 1, cr_nscat 
                            cr_scat_equ (k) = .true. 
-                           cr_at_equ (k) = cpara (2) 
+                           cr_at_equ (k) = cpara (2) (1:lpara(2))
                            ENDDO 
                         ELSE 
                            ier_num = - 27 
@@ -715,7 +715,7 @@ CONTAINS
                IF (ianz.eq.1) then 
                   IF (ichar ('A') .le.ichar (cpara (1) (1:1) )          &
                   .and.ichar (cpara (1) (1:1) ) .le.ichar ('Z') ) then  
-                     lambda = cpara (1) 
+                     lambda = cpara (1) (1:lpara(1))
                   ELSE 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      rlambda = werte (1) 

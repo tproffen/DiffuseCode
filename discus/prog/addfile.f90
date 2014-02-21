@@ -133,7 +133,7 @@ CONTAINS
 !       presence or absence of file type specifier                      
 !                                                                       
          IF (ianz.eq.2) then 
-            ftyp = cpara (2) 
+            ftyp = cpara (2) (1:lpara(2))
             laenge = lpara (2) 
             CALL rem_bl (ftyp, laenge) 
          ELSE 

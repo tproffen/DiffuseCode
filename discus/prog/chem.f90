@@ -120,7 +120,7 @@ SUBROUTINE chem
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL do_build_name (ianz, cpara, lpara,      &
                            wwwerte, maxw, 1)                            
-                           chem_fname = cpara (1) 
+                           chem_fname = cpara (1) (1:lpara(1))
                            IF (ier_num.eq.0) then 
                               CALL chem_bang (iianz, jjanz, kkanz,      &
                               werte, wwerte, uwerte, maxw)              
@@ -159,7 +159,7 @@ SUBROUTINE chem
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL do_build_name (ianz, cpara, lpara,      &
                            wwwerte, maxw, 1)                            
-                           chem_fname = cpara (1) 
+                           chem_fname = cpara (1) (1:lpara(1))
                         ELSE 
                            chem_fname = 'discus.blen' 
                         ENDIF 
