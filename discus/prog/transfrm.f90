@@ -1042,7 +1042,7 @@ CONTAINS
 !
       IMPLICIT none 
 !                                                                       
-      INTEGER i, j, k, n, nn, jp, l 
+      INTEGER :: i, j, k, n, nn=0, jp, l 
       LOGICAL lequal 
 !                                                                       
       REAL mat (4, 4), arr (4, 4) 

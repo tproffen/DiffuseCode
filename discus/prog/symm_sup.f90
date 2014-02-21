@@ -348,7 +348,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -505,7 +505,7 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER ::imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -655,7 +655,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -883,7 +883,7 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules

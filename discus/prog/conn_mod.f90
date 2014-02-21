@@ -282,8 +282,8 @@ CONTAINS
       LOGICAL             :: l_type       ! Unused DUMMY argument
       INTEGER             :: is_no        ! Unused DUMMY argument
       INTEGER             :: all_status   ! Allocation status
-      REAL                :: rmin         ! minimum bond distance
-      REAL                :: rmax         ! maximum bond distance
+      REAL                :: rmin=0.0     ! minimum bond distance
+      REAL                :: rmax=5.0     ! maximum bond distance
 !                                                                       
       maxw = MAX(MIN_PARA, MAXSCAT+4)
 !                                                                       

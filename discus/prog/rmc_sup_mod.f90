@@ -1569,6 +1569,7 @@ CONTAINS
 !                                                                       
       INTEGER, INTENT(IN) :: typ 
       REAL   , INTENT(IN) :: inte 
+      rmc_dowic = 0.0
 !                                                                       
       IF (inte.le.0.0) then 
          rmc_dowic = 0.0 
@@ -2613,8 +2614,9 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER cr_end 
       INTEGER iz (3), izmin, izmax 
       INTEGER is, i 
-!                                                                       
-      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3) + 1                                                               
+!     
+      rmc_inlot = .false.
+      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3) + 1
 !                                                                       
 !------ We are not using lots                                           
 !                                                                       

@@ -422,7 +422,7 @@ CONTAINS
       INTEGER i, j, k, l 
       INTEGER ia, ie 
       INTEGER ii, jj, kk 
-      INTEGER nnull 
+      INTEGER :: nnull = 0
       INTEGER nnullg 
       INTEGER iglide 
       LOGICAL lsearch 
@@ -435,7 +435,7 @@ CONTAINS
       REAL p3 (3) 
       REAL hmin 
       REAL det 
-      REAL factor 
+      REAL :: factor = 1.0
       REAL scale 
       REAL glide 
       REAL eps 
@@ -1173,7 +1173,7 @@ CONTAINS
       INTEGER is 
       INTEGER n_center 
       INTEGER igroup 
-      INTEGER block 
+      INTEGER :: block = 1
       LOGICAL lident 
       REAL orig (4) 
       REAL copy (4) 

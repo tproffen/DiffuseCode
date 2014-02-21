@@ -23,7 +23,7 @@ REAL, DIMENSION(3) ::  p , ez
 REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
 REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
-INTEGER            :: i, j, k, ii, jj, kk, ia, is , nvalues
+INTEGER            :: i, j, k, ii, jj, kk, ia, is=1 , nvalues
 LOGICAL            :: flag
 !                                                                       
 CHARACTER(LEN=9)   :: at_name_i 

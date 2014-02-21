@@ -766,7 +766,7 @@ CONTAINS
       CHARACTER(26) cr_system (1:9) 
       INTEGER is, j 
       INTEGER igroup 
-      INTEGER block 
+      INTEGER :: block = 1
       INTEGER n_center 
 !                                                                       
       DATA cr_system / 'triclinic', 'monoclinic b-unique', 'monoclinic c&

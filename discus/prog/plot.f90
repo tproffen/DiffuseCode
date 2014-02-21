@@ -39,7 +39,7 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(5) befehl 
       CHARACTER(1) cdum 
-      REAL size, rr, rg, rb 
+      REAL :: size, rr=0.0, rg=0.0, rb=0.0
       INTEGER lp, length 
       INTEGER ianz, i, j, is, it, ic, lbef 
       INTEGER indxg 

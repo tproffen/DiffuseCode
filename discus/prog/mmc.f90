@@ -1555,7 +1555,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz, imode, i 
+      INTEGER :: ianz, imode=MC_MOVE_NONE, i 
       INTEGER is 
       REAL werte (maxw) 
       REAL sump 
@@ -1678,13 +1678,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL rdi (CHEM_MAX_COR) 
       REAL rdj (CHEM_MAX_COR) 
       REAL delta 
-      REAL posz (3) 
-      REAL posz2 (3) 
+      REAL :: posz (3) = 0.0
+      REAL :: posz2 (3) = 0.0
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER igen, itry, iacc_good, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
-      INTEGER iselz, iselz2 
+      INTEGER :: iselz=0, iselz2=0
       INTEGER lbeg (3) 
       INTEGER ic, is (2), iz1 (3), iz2 (3), ie 
       INTEGER iz (2, 3) 
@@ -1696,7 +1696,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER zh, zm, zs 
       LOGICAL loop, laccept, done 
       LOGICAL valid_e 
-      LOGICAL valid_all 
+      LOGICAL :: valid_all = .false.
       LOGICAL lout 
 !                                                                       
       REAL v (3) 
@@ -3601,8 +3601,8 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER pneig (0:DEF_MAXSCAT, 0:DEF_MAXSCAT) 
       INTEGER pair11, pair12, pair21, pair22 
       INTEGER nneigh 
-      REAL prob11, prob12, prob22 
-      REAL thet 
+      REAL :: prob11=0.0, prob12, prob22 
+      REAL :: thet = 0.0
 !                                                                       
       REAL wi, wis 
 !                                                                       
@@ -3612,7 +3612,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       INTEGER icc (3), jcc (3) 
       REAL idir (3), jdir (3), disi (3), disj (3) 
-      REAL rdi, rdj, dpi, dpj 
+      REAL :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
       INTEGER xnn (0:maxscat, 0:maxscat) 
       REAL xij (0:maxscat, 0:maxscat) 
       REAL xi2 (0:maxscat, 0:maxscat) 

@@ -33,9 +33,9 @@ CONTAINS
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
-      REAL ttheta, lp 
+      REAL :: ttheta, lp=1.0
       REAL ss, st 
-      REAL q, stl, dstar 
+      REAL :: q=0.0, stl=0.0, dstar=0.0
       REAL xmin, xmax, xdel , xpos
       REAL      :: xequ    ! x-position of equdistant curve
       REAL      :: yequ    ! y-value    of equdistant curve
@@ -286,6 +286,8 @@ CONTAINS
 !
       REAL sind
 !                                                                       
+      lorentz = 1.0
+      
       IF (pow_four_type.eq.POW_DEBYE) then 
          lorentz = 1.0 
       ELSE 
@@ -315,6 +317,8 @@ CONTAINS
 !
       REAL cosd 
 !                                                                       
+      polarisation = 1.0
+      
       IF (pow_lp.eq.POW_LP_BRAGG) then 
          polarisation = (1. + (cosd (ttheta) ) **2 * pow_lp_fac)        &
          / (1. + pow_lp_fac)                                            

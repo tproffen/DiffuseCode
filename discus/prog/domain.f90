@@ -994,7 +994,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER              :: new_nscat ! DUMMY for allocation
       INTEGER              :: new_nmax  ! DUMMY for allocation
       LOGICAL lspace 
-      LOGICAL linside 
+      LOGICAL :: linside = .false.
       REAL d 
       REAL u (4), v (4), w (4) 
       REAL vv (3) 
@@ -1506,7 +1506,7 @@ mole_int: IF(mk_infile_internal) THEN
       REAL u (3), v (3)
       REAL a, b, c 
       REAL distance 
-      REAL separation 
+      REAL :: separation = 1.0e03
 !                                                                       
 !     REAL do_blen 
 !                                                                       

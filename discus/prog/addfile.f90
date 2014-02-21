@@ -27,7 +27,7 @@ CONTAINS
       INTEGER lpara (maxw) 
       INTEGER nx (2), ny (2), i, j, ianz, laenge 
       INTEGER line_no 
-      LOGICAL lcont, lread 
+      LOGICAL :: lcont= .false., lread 
       REAL xmin (2), xmax (2), ymin (2), ymax (2), scale 
       REAL x1, x2, y1, y2, z1, z2, zz1, zz2 
       REAL werte (maxw) 

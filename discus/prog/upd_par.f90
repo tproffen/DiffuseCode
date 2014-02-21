@@ -24,7 +24,7 @@
 !                                                                       
       CHARACTER(1024) zeile 
 !                                                                       
-      INTEGER laenge, ltyp, kpara, kpara2
+      INTEGER :: laenge, ltyp, kpara, kpara2=0
       INTEGER lcomm 
       INTEGER length_com 
 !                                                                       

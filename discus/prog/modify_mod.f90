@@ -2779,8 +2779,8 @@ CONTAINS
       INTEGER laenge 
       INTEGER i 
       LOGICAL lold 
-      LOGICAL linternal 
-      LOGICAL lexternal 
+      LOGICAL :: linternal = .true.
+      LOGICAL :: lexternal = .false.
       REAL distance 
 !                                                                       
       LOGICAL str_comp 
@@ -3137,7 +3137,7 @@ CONTAINS
       REAL               , DIMENSION(MAXW) :: werte
       INTEGER                              :: ianz
       INTEGER                              :: i,is
-      INTEGER                              :: ibit_nr
+      INTEGER                              :: ibit_nr = PROP_NORMAL
       INTEGER                              :: sel_mode
       INTEGER                              :: istart, iend
       LOGICAL, DIMENSION(:), ALLOCATABLE   :: latom

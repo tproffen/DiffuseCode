@@ -37,7 +37,7 @@ CONTAINS
       REAL uc_su2 (3, 0:maxscat) 
       REAL pi2, bfac, a 
       REAL gasdev 
-      LOGICAL flag_all, flag_mol 
+      LOGICAL :: flag_all=.true., flag_mol=.false. 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       

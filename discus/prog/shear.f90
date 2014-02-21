@@ -1076,7 +1076,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t = 1
       REAL ushear (4), ures (4) 
       REAL werte (5), use_orig (3) 
       REAL diff (3) 
@@ -1245,7 +1245,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l, i0 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t = 1
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 
@@ -1409,7 +1409,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l, i0, m 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t=1
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 

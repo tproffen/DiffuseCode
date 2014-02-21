@@ -678,9 +678,9 @@ SUBROUTINE waves_menu
       REAL ww, rnn 
       INTEGER i, lbef 
 !                                                                       
-      REAL hkl (3), uvw (3), tran (3), orig (3), angle 
-      INTEGER start, end, power 
-      LOGICAL pmult, mode, new, orig_mol, typ, sel_atom 
+      REAL :: hkl (3), uvw (3), tran (3), orig (3), angle=0.0
+      INTEGER :: start=1, end=1, power=1
+      LOGICAL :: pmult=.true., mode=.true., new=.false., orig_mol=.true., typ=.true., sel_atom=.true.
 !                                                                       
 !     REAL quad 
       INTEGER len_str 

@@ -42,7 +42,7 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) zeile
       CHARACTER(1024) line 
-      INTEGER i, j, k, ianz, lp, length 
+      INTEGER :: i, j=1, k, ianz, lp, length 
       INTEGER indxg, lbef 
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
       INTEGER              :: n_nscat  ! required no of atom types right now

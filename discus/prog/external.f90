@@ -474,7 +474,7 @@ CONTAINS
 !                                                                       
       CALL no_error 
 !                                                                       
-      exte_filename = exte_names (exte_num) (1:exte_length (i) ) 
+      exte_filename = exte_names (exte_num) !(1:exte_length (i) ) 
 !                                                                       
       CALL oeffne_external (iwr, exte_filename, irecl) 
 !                                                                       

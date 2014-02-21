@@ -855,7 +855,7 @@ SUBROUTINE do_niplps (linverse)
       COMPLEX shel_acsf 
       REAL shel_dsi 
       COMPLEX shel_tcsf 
-      REAL factor 
+      REAL :: factor=0.0
 !                                                                       
 !     REAL qval 
       INTEGER  len_str

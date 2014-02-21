@@ -2628,6 +2628,7 @@ ENDIF
       INTEGER cr_end 
       INTEGER lbeg (3), iz (3), izmin, izmax 
       INTEGER ia, is, i 
+      chem_inlot = .false.
 !                                                                       
       cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3)        &
       + 1                                                               

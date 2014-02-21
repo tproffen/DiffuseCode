@@ -1101,19 +1101,19 @@ CONTAINS
       INTEGER i 
       INTEGER h_start, h_end 
       INTEGER k_start, k_end 
-      INTEGER l_start, l_end 
+      INTEGER :: l_start=0, l_end=1
       INTEGER ih, ik 
       INTEGER                    :: n_qxy
       INTEGER                    :: n_nscat
       INTEGER                    :: n_pkt
       INTEGER itth 
-      LOGICAL l_twoparts 
+      LOGICAL :: l_twoparts = .false.
       LOGICAL l_ano 
       LOGICAL l_hh_real 
       LOGICAL l_kk_real 
       LOGICAL l_ll_real 
       REAL llstart, llend 
-      REAL llstart2, llend2 
+      REAL :: llstart2=0.0, llend2=1.0
       REAL hh, kk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
