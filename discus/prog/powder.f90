@@ -28,10 +28,6 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      LOGICAL lnew, lold 
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -1010,10 +1006,6 @@ CONTAINS
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER MAXW 
-      PARAMETER (MAXW = 2) 
-!                                                                       
-       
 !
       REAL   , DIMENSION(1:3) :: u
 !                                                                       
@@ -1092,9 +1084,6 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER MAXW 
-      PARAMETER (MAXW = 2) 
-       
 !                                                                       
       CHARACTER(1024) line 
       INTEGER laenge 
@@ -1633,10 +1622,6 @@ CONTAINS
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
       INTEGER, INTENT(IN)  :: cr_nscat_temp
-
-      INTEGER iff 
-      PARAMETER (iff = 2) 
-       
 !                                                                       
       INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
       INTEGER ibin 

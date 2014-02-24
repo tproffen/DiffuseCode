@@ -39,9 +39,9 @@ CONTAINS
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 29  ! A command requires at leaset these no of parameters
       INTEGER maxw 
-      LOGICAL lnew, lold 
+      LOGICAL lold 
 !                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
+      PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara

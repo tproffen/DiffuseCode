@@ -31,8 +31,6 @@ SUBROUTINE stack
       INTEGER, PARAMETER :: MIN_PARA = 99  ! A command requires at least these no of parameters
                                            ! Needs work as it should also be >= ST_MAXTYPE
       INTEGER maxw 
-      LOGICAL lnew, lold 
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MIN_PARA) :: cpara
       INTEGER            , DIMENSION(MIN_PARA) :: lpara

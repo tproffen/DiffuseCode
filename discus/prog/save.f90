@@ -32,8 +32,6 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
       INTEGER maxw 
-      LOGICAL lnew, lold 
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara

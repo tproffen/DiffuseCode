@@ -529,7 +529,7 @@ CONTAINS
          DO i = 0, MASK 
             xmult   = (dble (i) * 1.0d0) / dble (I2PI) 
             xarg    = twopi * xmult 
-            cex (i) = cmplx (int( cos (xarg)), int( sin (xarg)) ) 
+            cex (i) = cmplx (real( cos (xarg)), real( sin (xarg)) ) 
          ENDDO 
          ffour = .true. 
       ENDIF 

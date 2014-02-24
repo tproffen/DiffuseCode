@@ -28,8 +28,6 @@ CONTAINS
       INTEGER, INTENT(IN) :: itype 
 !                                                                       
       INTEGER, PARAMETER  :: maxw =  30
-      LOGICAL, PARAMETER  :: lnew = .true.
-      LOGICAL, PARAMETER  :: lold = .false.
 !                                                                       
       CHARACTER(LEN=5)                  :: befehl 
       CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype

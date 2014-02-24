@@ -22,8 +22,8 @@ SUBROUTINE do_niplps (linverse)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxp, maxw, iff 
-      PARAMETER (maxp = 11, maxw = 1, iff = 2) 
+      INTEGER maxp
+      PARAMETER (maxp = 11) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -839,7 +839,6 @@ SUBROUTINE do_niplps (linverse)
       CHARACTER(LEN=2024) dummy_file
       INTEGER HKLF4, LIST5, LIST9 , ASCII3D
       PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
-      INTEGER, PARAMETER :: NEXUS = 10
 !                                                                       
       INTEGER extr_ima, i, j, k, l, value 
       LOGICAL lread, laver 

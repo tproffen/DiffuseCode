@@ -979,8 +979,6 @@ SUBROUTINE do_domain (line, lp)
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
       INTEGER idim4 
       PARAMETER (idim4 = 4) 
       INTEGER maxw 
@@ -1371,9 +1369,6 @@ mole_int: IF(mk_infile_internal) THEN
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
 !                                                                       
       CHARACTER ( * ) infile 
       INTEGER imd 

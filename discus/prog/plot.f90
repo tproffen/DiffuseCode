@@ -989,10 +989,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1101,10 +1097,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1228,7 +1220,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER   :: idim = 3 
       REAL   , PARAMETER   :: eightpisq = 8.*3.14159265
 !                                                                       
        
@@ -1654,10 +1645,6 @@ CONTAINS
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 
@@ -1861,10 +1848,6 @@ CONTAINS
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       INTEGER i, j, iff 
       LOGICAL latom, lspace 
@@ -1953,10 +1936,6 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 

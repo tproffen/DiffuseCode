@@ -31,8 +31,6 @@ CONTAINS
 !
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at leaset these no of parameters
       INTEGER maxw 
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara 
@@ -1197,8 +1195,8 @@ CONTAINS
       INTEGER ifa, ifb 
       PARAMETER (ifa = 21, ifb = 22) 
 !                                                                       
-      INTEGER KUPL, GNU, SHELXL, HKLF4, HKLF4ALL 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5, HKLF4ALL = 6) 
+      INTEGER KUPL, GNU, SHELXL, HKLF4
+      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER i, j, ii, k, itic 
@@ -1786,8 +1784,8 @@ CONTAINS
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
-      INTEGER KUPL, GNU, SHELXL, HKLF4 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
+      INTEGER HKLF4 
+      PARAMETER (HKLF4 = 5) 
 !                                                                       
       CHARACTER ( * ) cpara 
       CHARACTER(1024) outfile 
@@ -2751,8 +2749,8 @@ CONTAINS
       REAL sumx, sumx2, sumy, sumy2, sumxy 
       REAL m, p, number 
 !                                                                       
-      INTEGER KUPL, GNU, SHELXL, HKLF4, HKLF4ALL 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5, HKLF4ALL = 6) 
+      INTEGER HKLF4
+      PARAMETER (HKLF4 = 5) 
 !                                                                       
       INTEGER len_str 
 !     INTEGER e_hist 

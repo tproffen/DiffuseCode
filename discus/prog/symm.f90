@@ -35,9 +35,9 @@ CONTAINS
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 20
       INTEGER            :: maxw 
-      LOGICAL lnew, lold 
+      LOGICAL lold 
 !                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
+      PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte

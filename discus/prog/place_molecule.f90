@@ -23,8 +23,6 @@ CONTAINS
    IMPLICIT none
 !
 !
-   INTEGER, PARAMETER   :: MAXW = 9
-!
 !  CHARACTER (LEN=*)   :: line
    CHARACTER (LEN=5)                       :: befehl! command on input line
    CHARACTER (LEN=50)                      :: prom  ! Menu prompt

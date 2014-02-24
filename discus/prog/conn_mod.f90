@@ -582,9 +582,6 @@ CONTAINS
 !                                                                       
 !                                                                       
       INTEGER maxw 
-      LOGICAL lnew, lold 
-!                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
