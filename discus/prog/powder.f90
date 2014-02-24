@@ -1258,9 +1258,9 @@ CONTAINS
          IF (.not.l_ano.and.ih.eq.0) then 
             k_start = 0 
          ELSE 
-            k_start = w_min (2) / pow_hkl_del (2) 
+            k_start = int( w_min (2) / pow_hkl_del (2) )
          ENDIF 
-         k_end = w_max (2) / pow_hkl_del (2) 
+         k_end = int( w_max (2) / pow_hkl_del (2) )
 !DBG_RBN                                                                
 !DBG      k_start = -6.00000/pow_hkl_del(2)                             
 !DBG      k_end   =  6.00000/pow_hkl_del(2)                             
@@ -1345,8 +1345,8 @@ CONTAINS
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llstartmini          
 !DBGXXX                write( *,'(2f12.4)') hkl(2),llend                
                   llstart = llstartmini 
-                  l_start = llstart / pow_hkl_del (3) 
-                  l_end = llend / pow_hkl_del (3) 
+                  l_start = int( llstart / pow_hkl_del (3) )
+                  l_end = int( llend / pow_hkl_del (3) )
                   l_twoparts = .false. 
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
@@ -1358,8 +1358,8 @@ CONTAINS
                   llend2 = llend 
                   llstart = llstart 
                   llend = llendmini 
-                  l_start = llstart / pow_hkl_del (3) 
-                  l_end = llend / pow_hkl_del (3) 
+                  l_start = int( llstart / pow_hkl_del (3) )
+                  l_end = int( llend / pow_hkl_del (3) )
                   l_twoparts = .true. 
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
@@ -1376,12 +1376,12 @@ CONTAINS
 !                                                                       
                IF (.not.l_ano.and.ih.eq.0.and.ik.eq.0) then 
                   l_start = 0 
-                  l_end = llend / pow_hkl_del (3) 
+                  l_end = int( llend / pow_hkl_del (3) )
 !DBG                  write(15,'(2f12.4)') hkl(2),0.00                  
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
                ELSE 
-                  l_start = llstart / pow_hkl_del (3) 
-                  l_end = llend / pow_hkl_del (3) 
+                  l_start = int( llstart / pow_hkl_del (3) )
+                  l_end = int( llend / pow_hkl_del (3) )
 !DBG                  write(15,'(2f12.4)') hkl(2),llstart               
 !DBG                  write(15,'(2f12.4)') hkl(2),llend                 
                ENDIF 
@@ -1465,7 +1465,7 @@ CONTAINS
                   ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                   IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax)    &
                   then                                                  
-                     itth = (ttheta - pow_tthmin) / pow_deltatth 
+                     itth = int( (ttheta - pow_tthmin) / pow_deltatth )
                      inten = real (csf (i) * conjg (csf (i) ) ) 
                      IF (pow_pref) then 
                         inten = inten * calc_preferred (hkl,            &
@@ -1480,7 +1480,7 @@ CONTAINS
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = zpi * dstar
                      IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
-                        itth = (q - pow_qmin) / pow_deltaq 
+                        itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * calc_preferred (hkl,         &
@@ -1503,8 +1503,8 @@ CONTAINS
 !     ----------Intersection with 2Theta min sphere, calculate          
 !               second section along line                               
 !                                                                       
-               l_start = llstart2 / pow_hkl_del (3) 
-               l_end = llend2 / pow_hkl_del (3) 
+               l_start = int( llstart2 / pow_hkl_del (3) )
+               l_end = int( llend2 / pow_hkl_del (3) )
 !DBG                write(17,'(2f12.4)') hkl(2),llstart2                
 !DBG                write(17,'(2f12.4)') hkl(2),llend2                  
 !DBG_RBN                                                                
@@ -1557,7 +1557,7 @@ CONTAINS
                      ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
                      IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax) &
                      then                                               
-                        itth = (ttheta - pow_tthmin) / pow_deltatth 
+                        itth = int( (ttheta - pow_tthmin) / pow_deltatth )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * calc_preferred (hkl,         &
@@ -1571,7 +1571,7 @@ CONTAINS
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = zpi * dstar
                      IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
-                        itth = (q - pow_qmin) / pow_deltaq 
+                        itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
                            inten = inten * calc_preferred (hkl,         &
@@ -1737,7 +1737,7 @@ CONTAINS
       ENDDO 
       DO i = 1, MAXHIST 
       DO j = 1, nlook 
-      histogram (i, j) = 0.0 
+      histogram (i, j) = 0 
       ENDDO 
       ENDDO 
       DO i = 0, cr_nscat 
@@ -1826,8 +1826,7 @@ CONTAINS
          arg = zpi * (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) 
 !DBG              partial(k,i) = partial(k,i)+                          
 !DBG     &                   histogram(j,i)*sin(arg)/arg                
-         iarg = (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) )      &
-         * I2PI                                                         
+         iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
          partial (k, i) = partial (k, i) + histogram (j, i) * sinetab ( &
          iadd) / arg                                                    
@@ -1896,7 +1895,7 @@ CONTAINS
 !------ zero fourier array                                              
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0d0, 0.0d0) 
+      tcsf (i) = cmplx (0.0, 0.0) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -1966,7 +1965,7 @@ CONTAINS
       DO i = 0, MASK 
       xmult = float (i) * xt 
       xarg = twopi * xmult 
-      cex (i) = cmplx (sin (xarg), 0.0d0) 
+      cex (i) = cmplx (int( sin (xarg) ), 0.0) 
 !DBG      write(9,*) xarg,real(cex(i))                                  
       ENDDO 
       ffour = .false. 
@@ -2061,7 +2060,7 @@ CONTAINS
       DO i = 0, MASK 
       xmult = float (i) * xt 
       xarg = twopi * xmult 
-      sinetab (i) = sin (xarg) 
+      sinetab (i) = real( dsin (xarg) )
 !DBG      write(9,*) xarg,real(sinetab(i))                              
       ENDDO 
       ffour = .false. 

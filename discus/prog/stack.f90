@@ -1821,7 +1821,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         csf (i) = cmplx (0.0d0, 0.0d0) 
+         csf (i) = cmplx (0.0, 0.0) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
          ENDDO 
 !                                                                       
@@ -1923,7 +1923,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
             IF (ier_num.ne.0) then 
                ier_msg (1) = 'Reading layer file: ' 
-               ier_msg (2) = st_layer_c (l) 
+               ier_msg (2) = trim(st_layer_c (l))
                RETURN 
             ENDIF 
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
@@ -1958,7 +1958,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------zero some arrays                                          
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0d0, 0.0d0) 
+            st_csf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
 !------ ------loop over all different atom types                        
@@ -2074,7 +2074,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         acsf (i) = cmplx (0.0d0, 0.0d0) 
+         acsf (i) = cmplx (0.0, 0.0) 
          ENDDO 
 !                                                                       
 !     --Calculation is only performed if average is needed              
@@ -2184,7 +2184,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ----zero some arrays                                            
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0d0, 0.0d0) 
+            st_csf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
 !     ----Loop over all layer types                                     
@@ -2319,7 +2319,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       st_spcgr_ianz, st_spcgr_para)                                     
       IF (ier_num.ne.0) then 
          ier_msg (1) = 'Error occured while reading' 
-         ier_msg (2) = st_infile 
+         ier_msg (2) = trim(st_infile)
          RETURN 
       ENDIF 
 !                                                                       

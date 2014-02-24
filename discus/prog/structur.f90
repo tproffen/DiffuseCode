@@ -1546,9 +1546,9 @@ got_params: IF (ier_num.eq.0) THEN
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) then 
                      DO j = 1, 3 
-                     sav_ncell (j) = werte (j) 
+                     sav_ncell (j) = int( werte (j) )
                      ENDDO 
-                     sav_ncatoms = werte (4) 
+                     sav_ncatoms = int( werte (4) )
                      sav_r_ncell = .true. 
                   ENDIF 
                ELSE 

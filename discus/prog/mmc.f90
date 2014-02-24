@@ -719,8 +719,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.ne.0) return 
                   DO i = 1, 3 
-                  mmc_l_center (i) = werte (i) 
-                  mmc_l_extend (i) = werte (i + 3) 
+                  mmc_l_center (i) = int( werte (i) )
+                  mmc_l_extend (i) = int( werte (i + 3) )
                   ENDDO 
                   mmc_l_limited = .true. 
                   mmc_l_type = MMC_L_CELLS 
@@ -728,8 +728,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.ne.0) return 
-                  mmc_l_lower = werte (1) 
-                  mmc_l_upper = werte (2) 
+                  mmc_l_lower = int( werte (1) )
+                  mmc_l_upper = int( werte (2) )
                   mmc_l_limited = .true. 
                   mmc_l_type = MMC_L_ATOMS 
                ELSEIF (cpara (1) (1:3) .eq.'OFF') then 
@@ -945,19 +945,19 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                               is_end = cr_nscat 
                               mmc_allowed = .true.           ! all atoms are allowed in mmc moves
                            ELSE 
-                              is_start = uerte (1) 
-                              is_end = uerte (1) 
+                              is_start = int( uerte (1) )
+                              is_end = int( uerte (1) )
                               mmc_allowed(is_start) = .true. ! this atom is allowed in mmc moves
                            ENDIF 
-                           is = uerte (1) 
+                           is = int( uerte (1) )
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL get_iscat (jjanz, cpara, lpara, uerte,  &
                            maxw, .false.)                               
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL get_iscat (kkanz, cpara, lpara, verte,  &
                            maxw, .false.)                               
-                           js = min (uerte (1), verte (1) ) 
-                           ls = max (uerte (1), verte (1) ) 
+                           js = min1 (uerte (1), verte (1) ) 
+                           ls = max1 (uerte (1), verte (1) ) 
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(ls) = .true. ! this atom is allowed in mmc moves
                            i = angles2index (ic, mmc_n_angles, is, js,  &
@@ -4270,7 +4270,7 @@ buck_pair: DO is = 0, cr_nscat
          DO i = 1, natoms 
          ntrial = mmc_l_extend (1) * mmc_l_extend (2) * mmc_l_extend (3)&
          * cr_ncatoms                                                   
-         nsel = ran1 (idum) * ntrial + 1 
+         nsel = int( ran1 (idum) * ntrial + 1 )
          CALL mmc_indextocell (nsel, icell, isite, mmc_l_extend) 
          DO j = 1, 3 
          icell (j) = icell (j) + mmc_l_center (j) - 1 
@@ -4280,8 +4280,8 @@ buck_pair: DO is = 0, cr_nscat
          ENDDO 
       ELSEIF (mmc_l_type.eq.MMC_L_ATOMS) then 
          DO i = 1, natoms 
-         isel (i) = mmc_l_lower + ran1 (idum) * (mmc_l_upper -          &
-         mmc_l_lower + 1)                                               
+         isel (i) = int( mmc_l_lower + ran1 (idum) * (mmc_l_upper -          &
+         mmc_l_lower + 1) )
          ENDDO 
       ENDIF 
 !                                                                       

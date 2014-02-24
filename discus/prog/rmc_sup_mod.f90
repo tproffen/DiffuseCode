@@ -1740,9 +1740,9 @@ CONTAINS
         IF (rmc_e(ip).gt.1E-06) THEN 
           call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,        &
                                  rmc_e(ip),skal,back)        
-          chi2(ip)=rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*           &
+          chi2(ip)=real( rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*     &
                    rmc_wtot(ip)+2.0*(skal(ip)*back(ip)*rmc_c-back(ip)*  &
-                   rmc_e(ip)-skal(ip)*rmc_ce)                      
+                   rmc_e(ip)-skal(ip)*rmc_ce) )
           chi2(ip)=chi2(ip)/rmc_wtot(ip) 
           chi2_old=chi2_old + chi2(ip) 
         ENDIF 
@@ -1814,9 +1814,9 @@ CONTAINS
 !                                                                       
             call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,      &
      &                             rmc_e(ip),skal,back)      
-            chi2(ip)=rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*         &
+            chi2(ip)=real( rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*   &
      &               rmc_wtot(ip)+2.0*(skal(ip)*back(ip)*rmc_c-         &
-     &               back(ip)*rmc_e(ip)-skal(ip)*rmc_ce)           
+     &               back(ip)*rmc_e(ip)-skal(ip)*rmc_ce) )
             chi2(ip)=chi2(ip)/rmc_wtot(ip) 
             chi2_new=chi2_new + chi2(ip) 
 !                                                                       
@@ -2007,7 +2007,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
          loop_sym: DO k = 1, isym (ip) 
             DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               acsf (i) = cmplx (0.0d0, 0.0d0) 
+               acsf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
             CALL rmc_layer (k, ip) 
@@ -2256,20 +2256,20 @@ loop_plane: DO ip = 1, rmc_nplane
       REAL(dp), INTENT(IN) :: cc
       REAL(dp), INTENT(IN) :: ce
       REAL(dp), INTENT(IN) :: se
-      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
-      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
+      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
+      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
 !------ calculate the values                                            
 !                                                                       
       IF (rmc_doskal.and.rmc_doback) then 
-         sk (ip) = (wtot * ce-se * c) / (wtot * cc - c * c) 
-         ba (ip) = (se-sk (ip) * c) / wtot 
+         sk (ip) = real( (wtot * ce-se * c) / (wtot * cc - c * c) )
+         ba (ip) = real( (se-sk (ip) * c) / wtot )
       ELSEIF (rmc_doskal.and..not.rmc_doback) then 
-         sk (ip) = (ce-rmc_back (ip) * c) / cc 
+         sk (ip) = real( (ce-rmc_back (ip) * c) / cc )
          ba (ip) = rmc_back (ip) 
       ELSEIF (.not.rmc_doskal.and.rmc_doback) then 
          sk (ip) = rmc_skal (ip) 
-         ba (ip) = (se-sk (ip) * c) / wtot 
+         ba (ip) = real( (se-sk (ip) * c) / wtot )
       ELSE 
          sk (ip) = rmc_skal (ip) 
          ba (ip) = rmc_back (ip) 
@@ -2424,7 +2424,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO ip = 1, rmc_max_sq 
       DO il = 1, rmc_nlots 
-      rmc_csf (ip, il) = cmplx (0.0d0, 0.0d0) 
+      rmc_csf (ip, il) = cmplx (0.0, 0.0) 
       ENDDO 
       ENDDO 
 !                                                                       

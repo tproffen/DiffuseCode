@@ -193,7 +193,7 @@ CONTAINS
          CALL four_strucf (0, .false.) 
          norm = 1.0 / ncell 
          DO j = 1, num (1) * num (2) * num (3)
-            acsf (j) = acsf (j) * tcsf (j) * cmplx (dble (norm), 0.0d0) 
+            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0) 
          ENDDO 
 !                                                                       
 !------ - write how much of the crystal we actually used                
@@ -529,7 +529,7 @@ CONTAINS
          DO i = 0, MASK 
             xmult   = (dble (i) * 1.0d0) / dble (I2PI) 
             xarg    = twopi * xmult 
-            cex (i) = cmplx (cos (xarg), sin (xarg) ) 
+            cex (i) = cmplx (int( cos (xarg)), int( sin (xarg)) ) 
          ENDDO 
          ffour = .true. 
       ENDIF 

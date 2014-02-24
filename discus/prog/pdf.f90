@@ -1375,10 +1375,10 @@ SUBROUTINE pdf
       IMPLICIT none 
        
 !                                                                       
-      REAL(dp) cc, c, ce, e, ee, wtot 
+      REAL(dp) cc, c, ce, e, ee, wtot, cold, cnew
 !     REAL pdf_old (MAXDAT) 
-      REAL, DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
-      REAL cnew, cold, sig2, sum 
+      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+      REAL sig2, sum 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL start, zeit, seknds 
       REAL p_new (3, rmc_max_atom) 
@@ -1434,13 +1434,13 @@ SUBROUTINE pdf
 !                                                                       
       CALL pdf_determine (.false.) 
 !                                                                       
-      cold = 0.0 
-      wtot = 0.0 
-      e = 0.0 
-      ee = 0.0 
-      c = 0.0 
-      cc = 0.0 
-      ce = 0.0 
+      cold = 0.0d0
+      wtot = 0.0d0
+      e = 0.0d0
+      ee = 0.0d0
+      c = 0.0d0
+      cc = 0.0d0
+      ce = 0.0d0
 !                                                                       
       DO ip = nmi, nma 
       wtot = wtot + pdf_wic (ip) 
@@ -1513,7 +1513,7 @@ SUBROUTINE pdf
          CALL pdf_convert 
 !                                                                       
          itry = itry + 1 
-         cnew = 0.0 
+         cnew = 0.0d0
          c = 0.0 
          cc = 0.0 
          ce = 0.0 
@@ -1533,7 +1533,7 @@ SUBROUTINE pdf
 !                                                                       
 !     ----Accept move ?                                                 
 !                                                                       
-         prob = cnew - cold 
+         prob = real( cnew - cold )
 !                                                                       
          IF (prob.lt.0) then 
             laccept = .true. 
@@ -1601,13 +1601,13 @@ SUBROUTINE pdf
       zs = int (zeit - zh * 3600 - zm * 60.) 
       WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
 !                                                                       
-      rmc_skal (1) = 1.0 / pdf_skal 
+      rmc_skal (1) = real(1.0d0 / pdf_skal )
 !                                                                       
 !------ save some results to res[i] blo                                 
 !                                                                       
       res_para (0) = 8 
 !                                                                       
-      res_para (1) = cold 
+      res_para (1) = real(cold)
       res_para (2) = float (itry) 
       res_para (3) = float (iacc_good) 
       res_para (4) = float (iacc_bad) 
@@ -1785,7 +1785,7 @@ SUBROUTINE pdf
 !                                                                       
       INTEGER i, k, ncc 
 !     REAL ppp (MAXDAT) 
-      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
+      REAL(dp), DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
       REAL :: rr = 0.0
 !                                                                       

@@ -355,7 +355,7 @@ CONTAINS
 !                                                                       
 !------ Setup Gaussian                                                  
 !                                                                       
-      max_ps = (10.0 * delta) / dtth 
+      max_ps = int( (10.0 * delta) / dtth )
       DO i = 0, max_ps 
       tth = i * dtth 
       gauss (i) = 1.0 / sqrt (pi) / delta * exp ( - (tth**2 / delta**2) &
@@ -368,7 +368,7 @@ CONTAINS
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       dummy (i) = dat (i) * (gauss (0) - gauss (2 * i) ) 
       ii = max (i - 1 - max_ps + 1, 0) 
@@ -416,7 +416,7 @@ INTEGER max_ps
 !------ Setup Pseudo-Voigt                                              
 !                                                                       
 fwhm = sqrt (abs (w) ) 
-max_ps = (pow_width * fwhm) / dtth 
+max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
 DO i = 0, max_ps 
    tth = i * dtth 
@@ -429,7 +429,7 @@ ENDDO
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
 DO i = 0, imax 
    dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
    ii = max (i - 1 - max_ps + 1, 0  ) 
@@ -491,7 +491,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5) 
@@ -499,7 +499,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       atwoth = tth 
       fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001) ) 
       fwhm1 = fwhm 
-      max_ps = (pow_width * fwhm) / dtth 
+      max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
@@ -578,7 +578,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5) 
@@ -594,7 +594,7 @@ END SUBROUTINE powder_conv_psvgt_fix
          fwhm = 0.500 * (fpi * sind (atheta + 0.5 * fwhm1) / rlambda -  &
          fpi * sind (atheta - 0.5 * fwhm1) / rlambda)                   
       ENDIF 
-      max_ps = (pow_width * fwhm) / dtth 
+      max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 

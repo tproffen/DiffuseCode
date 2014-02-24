@@ -941,7 +941,7 @@ CONTAINS
                   scale = - jj * (hkl (j) / hkl (k) ) 
                   kk = - nint (jj * hkl (j) / hkl (k) ) 
                   IF (abs (scale) .lt.1) then 
-                     jj = jj / abs (scale) 
+                     jj = int( jj / abs (scale) )
                      kk = - nint (jj * hkl (j) / hkl (k) ) 
                   ENDIF 
                   IF (abs (hkl (1) ) .lt.eps) then 

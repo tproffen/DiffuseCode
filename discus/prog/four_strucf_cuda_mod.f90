@@ -15,10 +15,8 @@ CONTAINS
       INTEGER, INTENT(IN) :: iscat 
       LOGICAL, INTENT(IN) :: lform 
 !                                                                       
-      REAL(dp) xarg0, xincu, xincv , xincw
-      INTEGER h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
+      INTEGER i
 !                                                                       
-      INTEGER IAND, ISHFT 
       
       call four_strucf_cuda(tcsf,cex,xat,nxat,num,xm,win,vin,uin,cr_natoms)
       

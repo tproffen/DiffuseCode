@@ -1144,7 +1144,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             ENDIF 
 inside:     IF (linside) then 
                IF (cr_natoms.eq.nmax) then 
-                  new_nmax = nmax*1.1
+                  new_nmax = int( nmax*1.1 )
                   CALL alloc_crystal(MAXSCAT, new_nmax)
                ENDIF
                IF (cr_natoms.eq.nmax) then 

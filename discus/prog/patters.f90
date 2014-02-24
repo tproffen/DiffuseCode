@@ -652,7 +652,7 @@ CONTAINS
                         i = rho_type (2) 
                         rho_file (2) = rho_file (1) 
                         rho_type (2) = rho_type (1) 
-                        rho_file (1) = line 
+                        rho_file (1) = trim(line)
                         rho_type (1) = i 
                      ENDIF 
                      IF (ftyp.eq.4) then 

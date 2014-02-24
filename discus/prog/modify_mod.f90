@@ -900,11 +900,11 @@ CONTAINS
 !     --------Set limits for types that can be removed                  
 !                                                                       
                   IF (ianz.eq.5) then 
-                     tstart = werte (5) 
-                     tend = werte (5) 
+                     tstart = int( werte (5) )
+                     tend = int (werte (5) )
                   ELSEIF (ianz.eq.6) then 
-                     tstart = werte (5) 
-                     tend = werte (6) 
+                     tstart = int( werte (5) )
+                     tend = int( werte (6) )
                   ENDIF 
       IF (0.lt.tstart.and.tstart.le.tend.and.tend.le.mole_num_type) then 
 !                                                                       

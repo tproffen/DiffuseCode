@@ -163,7 +163,7 @@ CONTAINS
                   ier_typ = ER_IO 
                   READ (if2, *, err = 900) (dsi (j), j = 1, nx (1) ) 
                   DO j = 1, nx (1) 
-                  tcsf (j) = cmplx (dble (dsi (j) ), 0.0d0) 
+                  tcsf (j) = cmplx ( dsi (j), 0.0) 
                   ENDDO 
                   READ (if3, *, err = 900) (dsi (j), j = 1, nx (1) ) 
                   ier_num = 0 

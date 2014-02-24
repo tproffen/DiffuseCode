@@ -41,7 +41,7 @@ REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAX
 REAL                ::  pdf_rmax   = 50.00
 REAL                ::  pdf_qmax   = 30.00
 REAL                ::  pdf_deltar =  0.01
-REAL                ::  pdf_skal   =  1.00
+REAL(dp)            ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
 REAL                ::  pdf_rfmin  =  0.05

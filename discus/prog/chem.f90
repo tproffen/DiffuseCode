@@ -930,11 +930,11 @@ IF (ianz.eq.6) then
          ier_num = - 10 
          ier_typ = ER_CHEM 
       ELSE 
-         chem_cvec (1, iv) = werte (2) 
-         chem_cvec (2, iv) = werte (3) 
-         chem_cvec (3, iv) = werte (4) 
-         chem_cvec (4, iv) = werte (5) 
-         chem_cvec (5, iv) = werte (6) 
+         chem_cvec (1, iv) = int( werte (2) )
+         chem_cvec (2, iv) = int( werte (3) )
+         chem_cvec (3, iv) = int( werte (4) )
+         chem_cvec (4, iv) = int( werte (5) )
+         chem_cvec (5, iv) = int( werte (6) )
       ENDIF 
    ENDIF 
 ELSE 
@@ -1358,15 +1358,15 @@ IF (ianz.eq.10) then
          ier_num = - 10 
          ier_typ = ER_CHEM 
       ELSE 
-         chem_cwin (1, iv) = werte (2) 
-         chem_cwin (2, iv) = werte (3) 
-         chem_cwin (3, iv) = werte (4) 
-         chem_cwin (4, iv) = werte (5) 
-         chem_cwin (5, iv) = werte (6) 
-         chem_cwin (6, iv) = werte (7) 
-         chem_cwin (7, iv) = werte (8) 
-         chem_cwin (8, iv) = werte (9) 
-         chem_cwin (9, iv) = werte (10) 
+         chem_cwin (1, iv) = int( werte (2) )
+         chem_cwin (2, iv) = int( werte (3) )
+         chem_cwin (3, iv) = int( werte (4) )
+         chem_cwin (4, iv) = int( werte (5) )
+         chem_cwin (5, iv) = int( werte (6) )
+         chem_cwin (6, iv) = int( werte (7) )
+         chem_cwin (7, iv) = int( werte (8) )
+         chem_cwin (8, iv) = int( werte (9) )
+         chem_cwin (9, iv) = int( werte (10) )
       ENDIF 
    ENDIF 
 ELSE 
