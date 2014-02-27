@@ -198,7 +198,7 @@
 !                                                                       
       CALL system (command, ier_num) 
 !     CALL EXECUTE_COMMAND_LINE (command(1:len_str(command)), EXITSTAT=ier_num)
-      ier_num = system(command(1:len_str(command))
+      call system(command(1:len_str(command)),ier_num)
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
