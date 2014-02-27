@@ -518,7 +518,7 @@ SUBROUTINE do_domain (line, lp)
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          clu_iatom = 0
       ELSE
-         CALL oeffne (imd, clu_infile, 'old', lread) 
+         CALL oeffne (imd, clu_infile, 'old') 
          IF (ier_num.ne.0) return 
 !                                                                       
 !     Read the input file header                                        
@@ -846,7 +846,7 @@ SUBROUTINE do_domain (line, lp)
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          mk_iatom = 0
       ELSE
-         CALL oeffne (ist, infile, 'unknown', lread) 
+         CALL oeffne (ist, infile, 'unknown') 
          IF (ier_num.ne.0) return 
 !                                                                       
 !     Read the input file header                                        

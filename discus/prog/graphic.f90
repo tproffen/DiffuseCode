@@ -230,7 +230,7 @@ SUBROUTINE do_niplps (linverse)
                IF (ier_num.eq.0) then 
                   infile = cpara (1) 
                   lread = .true. 
-                  CALL oeffne (1, infile, 'old', lread) 
+                  CALL oeffne (1, infile, 'old') 
                   IF (ier_num.eq.0) then 
                      READ (1, * ) out_inc (1), out_inc (2) 
                      READ (1, * ) xmin, xmax, ymin, ymax 
@@ -547,7 +547,7 @@ SUBROUTINE do_niplps (linverse)
 !-------Farbtabelle einlesen                                            
 !                                                                       
       lread = .true. 
-      CALL oeffne (2, colorfile, 'old', lread) 
+      CALL oeffne (2, colorfile, 'old') 
       IF (ier_num.ne.0) return 
       DO i = 1, 255 
       READ (2, 100, end = 20) cfarb (i) 
@@ -558,7 +558,7 @@ SUBROUTINE do_niplps (linverse)
       cfarb (256) = 'ffffff' 
 !                                                                       
       lread = .false. 
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (2, 1111) '%!PS-Adobe-2.0' 
@@ -632,7 +632,7 @@ SUBROUTINE do_niplps (linverse)
       lread = .false. 
       ncol = maxcol 
 !                                                                       
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (2, 1111) 'P2' 
@@ -700,7 +700,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       CALL set_colorfeld (cfarb) 
       lread = .true. 
-      CALL oeffne (2, colorfile, 'old', lread) 
+      CALL oeffne (2, colorfile, 'old') 
       IF (ier_num.ne.0) return 
       DO i = 1, 255 
       READ (2, 100, end = 20) (icolor (i, j), j = 1, 3) 
@@ -714,7 +714,7 @@ SUBROUTINE do_niplps (linverse)
       icolor (255, 3) = 255 
 !                                                                       
       lread = .false. 
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       ncol = maxcol 
@@ -923,7 +923,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       lread = .false. 
       IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
-         CALL oeffne (iff, outfile, 'unknown', lread) 
+         CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
       IF (ier_num.eq.0) then 
          IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then 
@@ -932,7 +932,7 @@ SUBROUTINE do_niplps (linverse)
                   IF(out_inc(3) > 1) THEN
                      WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
 7777 FORMAT(a,'.PART_',i4.4)
-                     CALL oeffne (iff, dummy_file, 'unknown', lread) 
+                     CALL oeffne (iff, dummy_file, 'unknown') 
                   ENDIF
                WRITE (iff, * ) out_inc (1), out_inc(2)
                WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &

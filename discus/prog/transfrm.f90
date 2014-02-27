@@ -1254,14 +1254,14 @@ CONTAINS
 !     Open input file, and the two output files                         
 !                                                                       
       lread = .true. 
-      CALL oeffne (ird, infile, 'unknown', lread) 
+      CALL oeffne (ird, infile, 'unknown') 
       IF (ier_num.ne.0) then 
          CLOSE (ird) 
          RETURN 
       ENDIF 
       lread = .false. 
       outfile = infile (1:infile_l) //'.trans' 
-      CALL oeffne (iwr, outfile, 'unknown', lread) 
+      CALL oeffne (iwr, outfile, 'unknown') 
       IF (ier_num.ne.0) then 
          CLOSE (ird) 
          CLOSE (iwr) 
@@ -1269,7 +1269,7 @@ CONTAINS
       ENDIF 
       lread = .false. 
       restfile = infile (1:infile_l) //'.rest' 
-      CALL oeffne (irs, restfile, 'unknown', lread) 
+      CALL oeffne (irs, restfile, 'unknown') 
       IF (ier_num.ne.0) then 
          CLOSE (ird) 
          CLOSE (iwr) 

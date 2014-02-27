@@ -276,7 +276,7 @@
       CHARACTER ( * ) filname 
       INTEGER i, ir, ig, ib 
 !                                                                       
-      CALL oeffne (33, filname, 'old', .false.) 
+      CALL oeffne (33, filname, 'old') 
       IF (ier_num.eq.0) then 
          WRITE (output_io, 1000) filname 
 !                                                                       
@@ -319,7 +319,7 @@
       CHARACTER ( * ) filname 
       INTEGER i, ir, ig, ib 
 !                                                                       
-      CALL oeffne (33, filname, 'unknown', .false.) 
+      CALL oeffne (33, filname, 'unknown') 
       IF (ier_num.eq.0) then 
          WRITE (output_io, 1000) filname 
 !                                                                       

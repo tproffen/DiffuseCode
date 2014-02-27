@@ -159,7 +159,7 @@ CONTAINS
             ENDIF 
             CALL do_show_symmetry (mode) 
          ELSE 
-            CALL do_show_generic (ianz, cpara, lpara, maxw) 
+            CALL do_show_generic (cpara, lpara, maxw) 
          ENDIF 
       ENDIF 
 !                                                                       

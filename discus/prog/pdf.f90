@@ -679,7 +679,7 @@ SUBROUTINE pdf
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) (1:lpara (1) ) 
             cdummy = cpara (1) (1:lpara (1) ) 
-            CALL oeffne (57, cdummy, 'unknown', .false.) 
+            CALL oeffne (57, cdummy, 'unknown') 
             IF (ier_num.eq.0) then 
                nmi = nint (pdf_rfmin / pdf_deltar) 
                nma = nint (pdf_rfmax / pdf_deltar) 
@@ -701,7 +701,7 @@ SUBROUTINE pdf
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                WRITE (output_io, 1508) cpara (1) (1:lpara (1) ) 
                cdummy = cpara (1) (1:lpara (1) ) 
-               CALL oeffne (57, cdummy, 'unknown', .false.) 
+               CALL oeffne (57, cdummy, 'unknown') 
                IF (ier_num.eq.0) then 
                   nmi = int (pdf_rfmin / pdf_deltar) 
                   nma = int (pdf_rfmax / pdf_deltar) 
@@ -770,7 +770,7 @@ SUBROUTINE pdf
 !------ Read observed PDF for given plane                               
 !                                                                       
       IF (ianz.eq.1) then 
-         CALL oeffne (17, datafile, 'old', .false.) 
+         CALL oeffne (17, datafile, 'old') 
          IF (ier_num.ne.0) return 
          CALL extract_hist (17) 
          CALL skip_spec (17) 

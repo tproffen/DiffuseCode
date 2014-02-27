@@ -890,7 +890,7 @@
                IF (ier_num.ne.0) return 
                ifil = 66 
                cdummy = cpara (1) 
-               CALL oeffne (ifil, cdummy, 'unknown', .false.) 
+               CALL oeffne (ifil, cdummy, 'unknown') 
                IF (ier_num.ne.0) return 
                WRITE (output_io, 900) cdummy (1:len_str (cdummy) ) 
             ELSE 

@@ -1651,6 +1651,7 @@
       REAL berechne 
       REAL do_read_number 
 !                                                                       
+      lll = 1
       ier_num = 0 
       ier_typ = ER_NONE 
       IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
@@ -2061,7 +2062,7 @@
       ENDIF 
       ier_num = 0 
       ier_typ = ER_NONE 
-      lcom = length_com (string, lll, ikl) 
+      lcom = length_com (string, ikl) 
       IF (lcom.eq.0) then 
          CALL ersetz2 (string, ikl, iklz, ww, 0, lll) 
       ELSEIF (lcom.eq.6) then 
@@ -2888,7 +2889,7 @@ END FUNCTION len_str
  9999 CONTINUE 
       END SUBROUTINE ber_params                     
 !*****7***************************************************************  
-      INTEGER FUNCTION length_com (string, laenge, ikl) 
+      INTEGER FUNCTION length_com (string, ikl) 
 !-                                                                      
 !     Determines the length of the variable or intrinsic function       
 !     by searching backwards from the bracket to the first non          
@@ -2900,7 +2901,7 @@ END FUNCTION len_str
 !                                                                       
       CHARACTER ( * ) string 
 !                                                                       
-      INTEGER laenge, ikl, i, c 
+      INTEGER ikl, i, c 
       LOGICAL lchar 
 !                                                                       
       i = ikl 
@@ -3021,6 +3022,9 @@ END FUNCTION len_str
       DATA c_form / 'd', 'D', 'f', 'F', 'c', 'C' / 
 !                                                                       
       string = ' ' 
+      lwert = 0
+      wert = 0.
+      fstring_l = 0
       IF (lpara (fpara) .le.1) then 
 !                                                                       
 !     --If first parameter is too short for a string, return            

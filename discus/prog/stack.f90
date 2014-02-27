@@ -1572,7 +1572,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     --Open file, read header                                          
 !                                                                       
-         CALL oeffne (ist, st_layer (st_type (i) ) , 'old', lread) 
+         CALL oeffne (ist, st_layer (st_type (i) ) , 'old') 
          IF (ier_num /= 0) then 
             RETURN
          ENDIF

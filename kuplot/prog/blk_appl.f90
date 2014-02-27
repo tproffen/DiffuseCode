@@ -349,7 +349,7 @@
          cdummy = cpara (1) 
       ENDIF 
 !                                                                       
-      CALL oeffne (idef, cdummy, 'old', .false.) 
+      CALL oeffne (idef, cdummy, 'old') 
       IF (ier_num.eq.0) then 
          CALL read_def (idef) 
          WRITE (output_io, 1000) cdummy (1:len_str (cdummy) ) 
@@ -391,7 +391,7 @@
          cdummy = cpara (1) 
       ENDIF 
 !                                                                       
-      CALL oeffne (idef, cdummy, 'unknown', .false.) 
+      CALL oeffne (idef, cdummy, 'unknown') 
       IF (ier_num.eq.0) then 
          CALL write_def (idef) 
          WRITE (output_io, 1000) cdummy (1:len_str (cdummy) ) 

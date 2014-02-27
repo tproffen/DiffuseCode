@@ -548,7 +548,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             RETURN
          ENDIF
       ENDIF
-      CALL oeffne (ist, strucfile, 'old', lread) 
+      CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num /= 0) THEN
          CLOSE (ist)
          RETURN
@@ -1221,7 +1221,7 @@ got_params: IF (ier_num.eq.0) THEN
       cr_natoms = 0 
       lread = .true. 
       lcell = .false. 
-      CALL oeffne (ist, strucfile, 'old', lread) 
+      CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num.eq.0) then 
          DO i = 1, 3 
          cr_dim (i, 1) = 1.e10 
@@ -2164,11 +2164,11 @@ got_params: IF (ier_num.eq.0) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2556,11 +2556,11 @@ got_params: IF (ier_num.eq.0) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2702,11 +2702,11 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2854,7 +2854,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       ENDIF
       in_mole = .false.
 !
-      CALL oeffne ( 99, strucfile, 'old', .true. )
+      CALL oeffne ( 99, strucfile, 'old')
       IF ( ier_num /= 0) THEN
           CLOSE ( 99 )
           RETURN

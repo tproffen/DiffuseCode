@@ -35,7 +35,7 @@
       kpara (i) = nint (ww (i) ) 
       ENDDO 
 !                                                                       
-      lcomm = length_com (string, laenge, ikl) 
+      lcomm = length_com (string, ikl) 
 !                                                                       
       IF (lcomm.eq.1) then 
          IF (ikl.gt.2) zeile (1:ikl - 1) = string (1:ikl - 2) 

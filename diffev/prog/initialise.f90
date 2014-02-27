@@ -45,7 +45,6 @@ CONTAINS
    INTEGER              :: length
 !                                                                       
    CHARACTER (LEN=7)    :: stat  = 'unknown'
-   LOGICAL              :: lread = .false.
 !
    INTEGER, EXTERNAL    :: len_str
 !                                                                       
@@ -81,7 +80,7 @@ CONTAINS
    length = len_str(parent_results)
    DO i = 0, pop_dimx
       WRITE (fname, 900) parent_results(1:length), i
-      CALL oeffne (iwr, fname, stat, lread) 
+      CALL oeffne (iwr, fname, stat) 
       IF (ier_num.ne.0) return 
       WRITE (iwr, 1000) 
       CLOSE (iwr) 
@@ -93,7 +92,7 @@ CONTAINS
 !
    i    = 0
    WRITE (fname, 900) parent_summary(1:length), i
-   CALL oeffne (iwr, fname, stat, lread) 
+   CALL oeffne (iwr, fname, stat) 
    IF (ier_num.ne.0) return 
    WRITE (iwr, 2000) i
    WRITE (iwr, 2100) 
@@ -106,7 +105,7 @@ CONTAINS
 !
    DO i = 1, pop_dimx 
       WRITE (fname, 900) parent_summary(1:length), i
-      CALL oeffne (iwr, fname, stat, lread) 
+      CALL oeffne (iwr, fname, stat) 
       IF (ier_num.ne.0) return 
       WRITE (iwr, 2000) i
       WRITE (iwr, 2100) 
@@ -135,7 +134,7 @@ CONTAINS
 !
    length = len_str(parent_results)
    fname  = parent_results(1:length) // '.name'
-   CALL oeffne (iwr, fname, stat, lread)
+   CALL oeffne (iwr, fname, stat)
    IF (ier_num.ne.0) return
    WRITE(IWR, 2250) 'Member'
    WRITE(IWR, 2250) 'Rvalue'
@@ -178,7 +177,6 @@ CONTAINS
    REAL                 :: w 
 !                                                                       
    CHARACTER (LEN=7)    :: stat  = 'unknown'
-   LOGICAL              :: lread = .false.
 !
    INTEGER, EXTERNAL    :: len_str
 !
@@ -241,7 +239,7 @@ CONTAINS
 !
    length = len_str(parent_results)
    fname  = parent_results(1:length) // '.name'
-   CALL oeffne (iwr, fname, stat, lread)
+   CALL oeffne (iwr, fname, stat)
    IF (ier_num.ne.0) return
    WRITE(IWR, 2250) 'Member'
    WRITE(IWR, 2250) 'Rvalue'

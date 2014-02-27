@@ -513,7 +513,7 @@
          filname = ftext (iwin, iframe) 
       ENDIF 
 !                                                                       
-      CALL oeffne (21, filname, 'unknown', .true.) 
+      CALL oeffne (21, filname, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       CALL PGSCI (foncol (iwin, iframe, 5) ) 

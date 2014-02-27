@@ -36,7 +36,7 @@
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.ne.0) return 
-         CALL oeffne (57, cpara (1) , 'unknown', .false.) 
+         CALL oeffne (57, cpara (1) , 'unknown') 
          IF (ier_num.ne.0) return 
          WRITE (output_io, 1500) cpara (1) (1:lpara (1) ) 
          WRITE (57, 5000) elem_name (elem_diff (1) ) (1:len_str (       &
@@ -54,7 +54,7 @@
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.ne.0) return 
-         CALL oeffne (57, cpara (1) , 'unknown', .false.) 
+         CALL oeffne (57, cpara (1) , 'unknown') 
          IF (ier_num.ne.0) return 
          WRITE (output_io, 1700) cpara (1) (1:lpara (1) ) 
          io = output_io 
@@ -79,7 +79,7 @@
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.ne.0) return 
-         CALL oeffne (57, cpara (1) , 'unknown', .false.) 
+         CALL oeffne (57, cpara (1) , 'unknown') 
          IF (ier_num.ne.0) return 
          CALL do_calc_weights 
          WRITE (output_io, 1600) cpara (1) (1:lpara (1) ) 

@@ -549,7 +549,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       DATA ist / 7 / 
 !                                                                       
       lread = .false. 
-      CALL oeffne (ist, strucfile, 'unknown', lread) 
+      CALL oeffne (ist, strucfile, 'unknown') 
       IF (ier_num.eq.0) THEN 
 !                                                                       
 !-----      --Write old type of structur file                           
@@ -611,7 +611,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       IF (sav_end.eq. - 1) i_end = cr_natoms 
 !                                                                       
       lread = .false. 
-      CALL oeffne (ist, strucfile, 'unknown', lread) 
+      CALL oeffne (ist, strucfile, 'unknown') 
       IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 

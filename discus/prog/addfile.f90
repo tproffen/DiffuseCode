@@ -110,7 +110,7 @@ CONTAINS
          ENDIF 
          stat = 'unknown' 
          lread = .false. 
-         CALL oeffne (if1, datei, stat, lread) 
+         CALL oeffne (if1, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -118,13 +118,13 @@ CONTAINS
          datei = ccpara (2) 
          stat = 'old' 
          lread = .true. 
-         CALL oeffne (if2, datei, stat, lread) 
+         CALL oeffne (if2, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
 !                                                                       
          datei = ccpara (4) 
-         CALL oeffne (if3, datei, stat, lread) 
+         CALL oeffne (if3, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 

@@ -198,7 +198,8 @@
 !                                                                       
       CALL system (command, ier_num) 
 !     CALL EXECUTE_COMMAND_LINE (command(1:len_str(command)), EXITSTAT=ier_num)
-      ier_num = system(command(1:len_str(command))
+      ier_num = 0
+      call system(command(1:len_str(command)))
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -401,7 +402,7 @@
 !                                                                       
       dffile = deffile 
       lread = .true. 
-      CALL oeffne (idef, dffile, 'old', lread) 
+      CALL oeffne (idef, dffile, 'old') 
       IF (ier_num.ne.0) then 
 !                                                                       
 !     not found, try in home directory                                  
@@ -410,7 +411,7 @@
          l1 = home_dir_l + 1 
          l2 = home_dir_l + 1 + deffile_l + 1 
          dffile (l1:l2) = '/'//deffile 
-         CALL oeffne (idef, dffile, 'old', lread) 
+         CALL oeffne (idef, dffile, 'old') 
          IF (ier_num.ne.0) then 
 !                                                                       
 !     not found, try in home/bin directory                              
@@ -422,12 +423,12 @@
             l1 = l2 + 1 
             l2 = l1 + deffile_l 
             dffile (l1:l2) = deffile 
-            CALL oeffne (idef, dffile, 'old', lread) 
+            CALL oeffne (idef, dffile, 'old') 
          ENDIF 
       ENDIF 
       END SUBROUTINE open_def                       
 !*****7***************************************************************  
-      SUBROUTINE oeffne (inum, datei, stat, lread) 
+      SUBROUTINE oeffne (inum, datei, stat) 
 !-                                                                      
 !     opens a file 'datei' with status 'stat' and unit 'inum'           
 !     if lread = .true. the file is opened readonly                     
@@ -444,7 +445,7 @@
       CHARACTER (LEN=1024)  :: line 
       INTEGER inum, ios 
       INTEGER l_datei 
-      LOGICAL lda, lread 
+      LOGICAL lda
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -500,7 +501,7 @@
      &                  '****')                                         
       END SUBROUTINE oeffne                         
 !*****7***************************************************************  
-      SUBROUTINE oeffne_append (inum, datei, stat, lread) 
+      SUBROUTINE oeffne_append (inum, datei, stat) 
 !-                                                                      
 !     opens a file 'datei' with status 'stat' and unit 'inum'           
 !     in append mode.                                                   
@@ -517,7 +518,7 @@
       CHARACTER(1024) line 
       INTEGER inum, ios 
       INTEGER l_datei 
-      LOGICAL lda, lread 
+      LOGICAL lda
 !                                                                       
       INTEGER len_str 
 !                                                                       

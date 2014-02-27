@@ -36,7 +36,7 @@
          kpara2 = nint (ww (2) ) 
       ENDIF 
 !                                                                       
-      lcomm = length_com (string, laenge, ikl) 
+      lcomm = length_com (string, ikl) 
 !                                                                       
       IF (lcomm.eq.1) then 
 !                                                                       
@@ -717,7 +717,7 @@
 !                                                                       
       DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
-      lcomm = length_com (string, laenge, ikl) 
+      lcomm = length_com (string, ikl) 
       ier_num = - 1 
       ier_typ = ER_FORT 
       DO i = 1, maxw 

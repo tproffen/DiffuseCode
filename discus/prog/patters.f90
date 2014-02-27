@@ -1227,12 +1227,12 @@ CONTAINS
          CALL wilson_calc 
       ENDIF 
 !                                                                       
-      CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+      CALL oeffne (ifa, rho_file (1) , 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
       IF (ltwo_files) then 
-         CALL oeffne (ifb, rho_file (2) , 'old', .true.) 
+         CALL oeffne (ifb, rho_file (2) , 'old') 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -2021,7 +2021,7 @@ CONTAINS
          i_aver_RO = 0.0 
          i_aver_RR = 0.0 
 !                                                                       
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n = 0 
    50    CONTINUE 
 !                                                                       
@@ -2099,7 +2099,7 @@ CONTAINS
          ENDIF 
 !                                                                       
 !                                                                       
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n_all = 0 
          lsuccess = .false. 
          DO i = 1, n 
@@ -2192,7 +2192,7 @@ CONTAINS
       ENDDO 
 !                                                                       
       IF (io_mode) then 
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n_hkl = 0 
          n_0kl = 0 
          n_h0l = 0 
@@ -2206,7 +2206,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.ehkl' 
-            CALL oeffne (e_io_hkl, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io_hkl, outfile, 'unknown') 
          ENDIF 
 !                                                                       
          DO i = 0, 30 
@@ -2350,7 +2350,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.statistics' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          lcomm = 3 
          CALL e_write (n_hkl, 'HKL', lcomm, e_e1_hkl, e_e2_hkl,         &
@@ -2408,7 +2408,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.short' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          lcomm = 3 
          CALL e_write (n_hkl, 'HKL', lcomm, e_e1_hkl, e_e2_hkl,         &
@@ -2466,7 +2466,7 @@ CONTAINS
       IF (io_mode) then 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hkl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph (i) )        &
@@ -2477,7 +2477,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hk0.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hk0 (i) )    &
@@ -2488,7 +2488,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.h0l.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_h0l (i) )    &
@@ -2499,7 +2499,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.0kl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0kl (i) )    &
@@ -2510,7 +2510,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hhl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhl (i) )    &
@@ -2521,7 +2521,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hMh0l.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hMh0l (i) )  &
@@ -2532,7 +2532,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hhM2Hl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhM2Hl (i) ) &
@@ -2543,7 +2543,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.0k0.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0k0 (i) )    &
@@ -2790,7 +2790,7 @@ CONTAINS
          ier_typ = ER_APPL 
          RETURN 
       ELSE 
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
 !                                                                       
 !     Open output file                                                  
 !                                                                       
@@ -2802,7 +2802,7 @@ CONTAINS
                outfile = rho_file (1) (1:len_str (rho_file (1) ) ) //   &
                '.wilson'                                                
             ENDIF 
-            CALL oeffne (w_io, outfile, 'unknown', .true.) 
+            CALL oeffne (w_io, outfile, 'unknown') 
          ENDIF 
 !                                                                       
 !------ --Read HKLF4 file, accumulate the Intensities in the            

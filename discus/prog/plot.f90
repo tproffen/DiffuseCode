@@ -858,7 +858,7 @@ CONTAINS
 !                                                                       
       IF (pl_prog.ne.'frames'.or..not.pl_append) then 
          lread = .false. 
-         CALL oeffne (iff, pl_out, 'unknown', lread) 
+         CALL oeffne (iff, pl_out, 'unknown') 
       ELSEIF (pl_prog.eq.'frames'.and.pl_append) then 
          INQUIRE (file = pl_out, exist = lexist) 
          IF (lexist) then 
@@ -870,7 +870,7 @@ CONTAINS
 !DBG     &               err=999)                                       
             ier_num = 0 
          ELSE 
-            CALL oeffne (iff, pl_out, 'new', lread) 
+            CALL oeffne (iff, pl_out, 'new') 
          ENDIF 
       ENDIF 
       IF (ier_num.ne.0) return 

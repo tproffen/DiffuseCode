@@ -960,7 +960,7 @@ CONTAINS
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) 
-            CALL oeffne (57, cpara (1) , 'unknown', .false.) 
+            CALL oeffne (57, cpara (1) , 'unknown') 
             IF (ier_num.eq.0) then 
                DO il = 1, rmc_nlots 
                WRITE (57, '(3(I4,1X))') (rmc_lots_orig (i, il) , i = 1, &
@@ -1269,7 +1269,7 @@ CONTAINS
          INQUIRE (file = cwic, exist = lexist) 
          IF (lexist) then 
             rmc_wic_typ (ip) = rmc_wic_dat 
-            CALL oeffne (18, cwic, 'old', .false.) 
+            CALL oeffne (18, cwic, 'old') 
          ELSE 
             ier_num = - 16 
             ier_typ = ER_RMC 
@@ -1280,7 +1280,7 @@ CONTAINS
 !------ read data for given plane                                       
 !                                                                       
       rmc_fname (ip) = cfile (1:cfile_l)
-      CALL oeffne (17, cfile, 'old', .false.) 
+      CALL oeffne (17, cfile, 'old') 
       IF (ier_num.ne.0) return 
 !                                                                       
 !------ NIPL file                                                       
@@ -1987,7 +1987,7 @@ CONTAINS
          ENDDO 
          ENDDO 
       ELSE 
-         CALL oeffne (57, rmc_lname, 'old', .false.) 
+         CALL oeffne (57, rmc_lname, 'old') 
          IF (ier_num.ne.0) return 
          DO nlot = 1, rmc_nlots 
          READ (57, *, end = 99, err = 999) (rmc_lots_orig (i, nlot),    &

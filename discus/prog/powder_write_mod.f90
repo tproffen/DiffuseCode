@@ -204,7 +204,7 @@ CONTAINS
          ENDIF 
       ENDIF 
 !
-      CALL oeffne (iff, outfile, 'unknown', lread) 
+      CALL oeffne (iff, outfile, 'unknown') 
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline

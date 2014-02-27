@@ -47,7 +47,7 @@
                   ip = index (fname, ' ') 
                   fname = fname (1:ip - 1) //'.mac' 
                ENDIF 
-               CALL oeffne (33, fname, 'unknown', .false.) 
+               CALL oeffne (33, fname, 'unknown') 
                IF (ier_num.ne.0) return 
                llearn = .true. 
                WRITE (output_io, 1000) fname (1:len_str (fname) ) 

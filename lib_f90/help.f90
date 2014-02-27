@@ -63,7 +63,7 @@
 !------ - print help file entry                                         
 !                                                                       
       IF (stay) call do_status (1, bef, ibef, il, maxw) 
-      CALL oeffne (ihl, hlpfile, status, lread) 
+      CALL oeffne (ihl, hlpfile, status) 
       IF (ier_num.ne.0) return 
       CALL do_cap (line) 
       CALL do_trenn (line, bef, ibef, length, maxw) 

@@ -2454,7 +2454,7 @@ ENDIF
 !                                                                       
       WRITE (output_io, 1000) fname (1:len_str (fname) ) 
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne(37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
       WRITE (37, 2000) float (i - 1) / float (chem_bin - 1), chem_hist (&
@@ -2579,7 +2579,7 @@ ENDIF
 !                                                                       
       WRITE (output_io, 1000) fname (1:len_str (fname) ) 
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne (37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
       WRITE (37, 2000) (2. * float (i - 1) / float (chem_bin - 1) )     &
@@ -2794,7 +2794,7 @@ ENDIF
 !------ Here starts the calculation of the correlation field            
 !-------------------------------------------------------------------    
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne (37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       WRITE (output_io, 1000) fname (1:lname), catom (1) (1:latom (1) ),&
       catom (2) (1:latom (2) )                                          
@@ -3074,7 +3074,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
          (1:lpara (2) )                                                 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, fname, 'unknown', .false.) 
+            CALL oeffne (37, fname, 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3227,7 +3227,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
          (1:lpara (2) )                                                 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (3) , 'unknown')
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3419,7 +3419,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !        WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
 !        (1:lpara (2) )                                                 
 !        IF (ianz.gt.2) then 
-!           CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+!           CALL oeffne (37, cpara (3) , 'unknown') 
 !        ENDIF 
 !     ENDIF 
 !                                                                       
@@ -3628,7 +3628,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       IF (lout) then 
          WRITE (output_io, 1000) it1, it2 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (3) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3791,7 +3791,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
          name_3 (1:lname_3)                                             
          IF (ianz.gt.1) then 
-            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (2) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3978,7 +3978,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
          name_3 (1:lname_3)                                             
          IF (ianz.gt.1) then 
-            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (2) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
