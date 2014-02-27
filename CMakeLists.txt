@@ -4,6 +4,14 @@ cmake_minimum_required(VERSION 2.8.4)
 project(DIFFUSE)
 enable_language(Fortran)
 
+# Detect if Intel or Portland Fortran compiler is used.
+if (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
+  set(IFORT TRUE)
+elseif (${CMAKE_Fortran_COMPILER} MATCHES "pgf")
+  set(PGF TRUE)
+endif (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
+
+
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   # gfortran 2008 doesn't exist until gcc 4.6
   exec_program(${CMAKE_C_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gcc_version_info)
@@ -41,6 +49,12 @@ endif (WIN32 OR CYGWIN)
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
+
+# Set different compiler flags for Portland compiler
+if (PGF)
+  set (CMAKE_Fortran_FLAGS "-fPIC -O3 -Mbackslash -Mpreprocess")
+  set (CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS "") # To fix link flags
+endif (PGF)
 
 # Debug mode - turn on warnings and other options
 option(DEBUG "DEBUG" OFF)
