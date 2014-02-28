@@ -167,7 +167,7 @@
      &  ' '                                         & !  0  ! command
      &       /
 !
-       ERROR(-1)(1:6) = pname_cap
+       ERROR(-1)(1:6) = pname_cap(1:6)
 !
        call disp_error ('COMM',error,iu,io)
        end

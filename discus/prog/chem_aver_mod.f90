@@ -23,13 +23,15 @@ REAL, DIMENSION(3) ::  p , ez
 REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
 REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
-INTEGER            :: i, j, k, ii, jj, kk, ia, is=1 , nvalues
+INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
 LOGICAL            :: flag
 !                                                                       
 CHARACTER(LEN=9)   :: at_name_i 
 !
 INTEGER            :: n_atom_cell  ! Dummy for allocation
 INTEGER            :: n_max_atom   ! Dummy for allocation
+!
+is = 1
 !
 IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
      CHEM_MAX_AVE_ATOM < MAX(cr_ncatoms, MAXSCAT) .or. &

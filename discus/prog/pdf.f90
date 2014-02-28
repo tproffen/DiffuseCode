@@ -1787,7 +1787,8 @@ SUBROUTINE pdf
 !     REAL ppp (MAXDAT) 
       REAL(dp), DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
-      REAL :: rr = 0.0
+      REAL rr
+      rr = 0.0
 !                                                                       
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 

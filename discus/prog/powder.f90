@@ -1096,7 +1096,7 @@ CONTAINS
       INTEGER                    :: n_nscat
       INTEGER                    :: n_pkt
       INTEGER itth 
-      LOGICAL :: l_twoparts = .false.
+      LOGICAL l_twoparts
       LOGICAL l_ano 
       LOGICAL l_hh_real 
       LOGICAL l_kk_real 
@@ -1123,6 +1123,7 @@ CONTAINS
       n_qxy   = 1
       n_nscat = 1
       n_pkt   = 1
+      l_twoparts = .false.
 !                                                                       
 !DBG_RBN      open(13,file='hkl.list',status='unknown')                 
       ss = seknds (0.0) 

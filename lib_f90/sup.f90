@@ -2306,7 +2306,7 @@ SUBROUTINE cmdline_args
                ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) then 
                   var_type (i) = VAR_TYPE_CHAR 
                   var_val (i) = 0.0 
-                  var_char (i) = c_init 
+                  var_char (i) = c_init (1:len(var_char))
                ENDIF 
             ELSE 
                ier_num = - 23 

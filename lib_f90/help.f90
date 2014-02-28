@@ -152,7 +152,7 @@
 !------ Build status lines                                              
 !                                                                       
       IF (iwhere.eq.1) then 
-         prom = prompt 
+         prom = prompt (1:len(prom))
          CALL do_cap (prom) 
          WRITE (output_io, 2000) prom, version 
       ELSEIF (iwhere.eq.2) then 

@@ -27,12 +27,13 @@ CONTAINS
       INTEGER lpara (maxw) 
       INTEGER nx (2), ny (2), i, j, ianz, laenge 
       INTEGER line_no 
-      LOGICAL :: lcont= .false., lread 
+      LOGICAL lcont, lread 
       REAL xmin (2), xmax (2), ymin (2), ymax (2), scale 
       REAL x1, x2, y1, y2, z1, z2, zz1, zz2 
       REAL werte (maxw) 
 !                                                                       
 !                                                                       
+      lcont = .false.
       ier_num = 0 
       ier_typ = ER_NONE 
       line_no = 0 

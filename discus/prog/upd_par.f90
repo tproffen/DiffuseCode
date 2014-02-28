@@ -24,7 +24,7 @@
 !                                                                       
       CHARACTER(1024) zeile 
 !                                                                       
-      INTEGER :: laenge, ltyp, kpara, kpara2=0
+      INTEGER laenge, ltyp, kpara, kpara2
       INTEGER lcomm 
       INTEGER length_com 
 !                                                                       
@@ -32,6 +32,7 @@
       ltyp = 1 
       zeile = ' ' 
       kpara = nint (ww (1) ) 
+      kpara2 = 0
       IF (maxw.ge.2) then 
          kpara2 = nint (ww (2) ) 
       ENDIF 

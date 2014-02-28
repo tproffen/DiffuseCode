@@ -992,7 +992,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER              :: new_nscat ! DUMMY for allocation
       INTEGER              :: new_nmax  ! DUMMY for allocation
       LOGICAL lspace 
-      LOGICAL :: linside = .false.
+      LOGICAL linside
       REAL d 
       REAL u (4), v (4), w (4) 
       REAL vv (3) 
@@ -1033,7 +1033,8 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
-      lspace = .true. 
+      lspace = .true.
+      linside = .false.
       v (1) = 0.0 
       v (2) = 0.0 
       v (3) = 0.0 
@@ -1501,11 +1502,12 @@ mole_int: IF(mk_infile_internal) THEN
       REAL u (3), v (3)
       REAL a, b, c 
       REAL distance 
-      REAL :: separation = 1.0e03
+      REAL separation
 !                                                                       
 !     REAL do_blen 
 !                                                                       
       shortest = 1.0e03 
+      separation = 1.0e03
       lspace = .true. 
 !
       type_fuzzy: IF(mc_type.eq.MD_DOMAIN_FUZZY) THEN  !This is a fuzzy domain do fast loop
