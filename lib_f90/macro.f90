@@ -149,7 +149,7 @@
 !     ----------Copy parameters to macro parameter list.
 !
                            DO i = 2, ianz
-                           mac_para (i - 1, mac_level) = cpara (i)
+                           mac_para (i - 1, mac_level) = cpara (i) (1:lpara(i))
                            mac_leng (i - 1, mac_level) = lpara (i)
                            ENDDO
                            mac_n_par (mac_level) = ianz - 1

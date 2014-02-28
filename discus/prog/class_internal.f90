@@ -81,8 +81,6 @@ CONTAINS
    IMPLICIT NONE
 !
    TYPE(internal_storage), POINTER :: ptr     ! Pointer to current position in tree
-   CHARACTER (LEN=200)             :: strucfile = ' '
-   INTEGER                         :: number    = 0
 !
    IF ( ASSOCIATED(ptr) ) THEN
       IF ( ASSOCIATED(ptr%before)) THEN

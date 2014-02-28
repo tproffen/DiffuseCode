@@ -91,7 +91,7 @@ CONTAINS
          befehl, 'mdes', 2, lbef, 4) ) then                             
 !                                                                       
             CALL mole_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
-            rmc_sel_atom, .false., str_comp (  &
+            rmc_sel_atom, str_comp (  &
             befehl, 'msel', 2, lbef, 4) )                               
 !                                                                       
 !------ read experimental data 'data'                                   

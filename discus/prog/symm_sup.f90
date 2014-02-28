@@ -227,7 +227,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -312,7 +312,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -348,7 +348,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -438,7 +438,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -505,7 +505,7 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER ::imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -593,7 +593,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -655,7 +655,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -815,7 +815,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -883,7 +883,7 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole, imole_s, imole_t 
+      INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
@@ -1032,7 +1032,7 @@ CONTAINS
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte, 5) 
+            CALL do_ins_atom (name, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 

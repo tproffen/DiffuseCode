@@ -273,14 +273,13 @@ CONTAINS
    INTEGER                        :: j 
    INTEGER                        :: iostatus
    INTEGER                        :: len_file 
-   LOGICAL                        :: lread  = .false.
    REAL                           :: r 
 !                                                                       
    silent: IF(pop_result_file_rd) THEN
    DO j = 1, pop_c 
       len_file = ltrial_results 
       CALL make_file (trial_results, len_file, 4, j) 
-      CALL oeffne (iwr, trial_results, stat, lread) 
+      CALL oeffne (iwr, trial_results, stat) 
       READ (iwr, * ,iostat=iostatus) r, trial_val (j) 
       CLOSE (iwr) 
       IF ( iostatus /= 0) THEN
@@ -316,7 +315,6 @@ CONTAINS
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
    INTEGER                        :: iostatus
-   LOGICAL                        :: lread =.false.
    LOGICAL                        :: istda
    REAL                           :: best, worst 
 !                                                                       
@@ -328,7 +326,7 @@ CONTAINS
       DO j = 1, pop_c 
         len_file = pop_ltrialfile 
         CALL make_file (pop_trialfile, len_file, 4, j) 
-        CALL oeffne (iwr, pop_trialfile, stat, lread) 
+        CALL oeffne (iwr, pop_trialfile, stat) 
         READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
         READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
         READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
@@ -367,7 +365,7 @@ CONTAINS
       ENDDO
       DO i = 1, pop_dimx_old                   ! Loop over old dimension
          WRITE(fname, 900) parent_results(1:length), i
-         CALL oeffne (iwr, fname, stat, lread) 
+         CALL oeffne (iwr, fname, stat) 
          ii = - 1 
          DO while (ii.ne.pop_gen - 1)          ! Loop over all previous generations
             READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 

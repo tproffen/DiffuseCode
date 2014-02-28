@@ -38,7 +38,7 @@
          kpara3 = nint (ww (3) ) 
       ENDIF 
 !                                                                       
-      lcomm = length_com (string, laenge, ikl) 
+      lcomm = length_com (string, ikl) 
 !                                                                       
 !------ Variables of length 1                                           
 !                                                                       

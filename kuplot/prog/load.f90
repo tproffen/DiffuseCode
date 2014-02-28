@@ -460,7 +460,7 @@
       WRITE (output_io, 2000) fname (iz) (1:len_str (fname (iz) ) ) 
 !                                                                       
       IF (unter.ne.'MP') then 
-         CALL oeffne (ifil, fname (iz) , 'old', .true.) 
+         CALL oeffne (ifil, fname (iz) , 'old') 
       ELSE 
          OPEN (ifil, file = fname (iz) , status = 'unknown', access =   &
          'direct', form = 'unformatted', recl = 16)                     
@@ -470,7 +470,7 @@
       IF (                                                              &
       istr.eq.2.and.unter.ne.'ZZ'.and.unter.ne.'DE'.and.unter.ne.'MP')  &
       then                                                              
-         CALL oeffne (iwgb, wname, 'old', .true.) 
+         CALL oeffne (iwgb, wname, 'old') 
          IF (ier_num.ne.0) then 
             istr = 1 
             ier_num = 0 
@@ -2891,7 +2891,7 @@
 !                                                                       
       INTEGER len_str 
 !                                                                       
-      CALL oeffne (12, inam, 'old', .true.) 
+      CALL oeffne (12, inam, 'old') 
       IF (ier_num.ne.0) return 
 !                                                                       
 !------ Read instrument parameter file information                      

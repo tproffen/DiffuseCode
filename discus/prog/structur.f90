@@ -548,7 +548,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             RETURN
          ENDIF
       ENDIF
-      CALL oeffne (ist, strucfile, 'old', lread) 
+      CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num /= 0) THEN
          CLOSE (ist)
          RETURN
@@ -561,7 +561,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, NMAX, MAXSCAT, lcell, cr_name,      &
+         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
       IF (ier_num.ne.0) THEN 
@@ -994,7 +994,7 @@ got_params: IF (ier_num.eq.0) THEN
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'file', 3, lpara (1) , 4) )   &
             then                                                        
-               mole_file (mole_num_mole) = cpara (2) 
+               mole_file (mole_num_mole) = cpara (2) (1:lpara(2))
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'density', 3, lpara (1) , 6) )&
             then                                                        
@@ -1221,7 +1221,7 @@ got_params: IF (ier_num.eq.0) THEN
       cr_natoms = 0 
       lread = .true. 
       lcell = .false. 
-      CALL oeffne (ist, strucfile, 'old', lread) 
+      CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num.eq.0) then 
          DO i = 1, 3 
          cr_dim (i, 1) = 1.e10 
@@ -1230,7 +1230,7 @@ got_params: IF (ier_num.eq.0) THEN
 !                                                                       
 !     --Read header of structure file                                   
 !                                                                       
-         CALL stru_readheader (ist, NMAX, MAXSCAT, lcell, cr_name,      &
+         CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
 !                                                                       
@@ -1249,7 +1249,7 @@ got_params: IF (ier_num.eq.0) THEN
       ENDIF 
       END SUBROUTINE readstru                       
 !********************************************************************** 
-      SUBROUTINE stru_readheader (ist, HD_NMAX, HD_MAXSCAT, lcell, cr_name,   &
+      SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
       cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)                 
 !-                                                                      
@@ -1259,7 +1259,6 @@ got_params: IF (ier_num.eq.0) THEN
       USE sym_add_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER HD_NMAX 
       INTEGER HD_MAXSCAT 
 !                                                                       
 !                                                                       
@@ -1291,7 +1290,6 @@ got_params: IF (ier_num.eq.0) THEN
       INTEGER sav_ncell (3) 
       INTEGER sav_ncatoms 
       LOGICAL sav_r_ncell 
-      LOGICAL lcell 
       LOGICAL lend 
 !DBG      real            spcgr_para                                    
       REAL werte (maxw) 
@@ -1335,7 +1333,7 @@ got_params: IF (ier_num.eq.0) THEN
          ELSE 
             line = ' ' 
          ENDIF 
-         cr_name = line 
+         cr_name = line (1:len(cr_name))
 !                                                                       
          CALL no_error 
          DO while (.not.str_comp (befehl, 'atoms', 1, lbef, 5) ) 
@@ -1385,7 +1383,7 @@ got_params: IF (ier_num.eq.0) THEN
             cpara (1) (islash:islash) = '/' 
             islash = index (cpara (1) (1:lpara (1) ) , 'S') 
             ENDDO 
-            cr_spcgr = cpara (1) 
+            cr_spcgr = cpara (1) (1:lpara(1))
             spcgr_ianz = ianz - 1 
             ianz = ianz - 1 
             spcgr_para = 1 
@@ -1502,7 +1500,7 @@ got_params: IF (ier_num.eq.0) THEN
                IF (xx_nscat + ianz.le.HD_MAXSCAT) then 
                   DO i = 1, ianz 
                   CALL do_cap (cpara (i) (1:lpara (i) ) ) 
-                  cr_at_lis (xx_nscat + i) = cpara (i) 
+                  cr_at_lis (xx_nscat + i) = cpara (i) (1:lpara(i))
                   ENDDO 
                   xx_nscat = xx_nscat + ianz 
                   cr_nscat = max (cr_nscat, xx_nscat) 
@@ -1548,9 +1546,9 @@ got_params: IF (ier_num.eq.0) THEN
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) then 
                      DO j = 1, 3 
-                     sav_ncell (j) = werte (j) 
+                     sav_ncell (j) = int( werte (j) )
                      ENDDO 
-                     sav_ncatoms = werte (4) 
+                     sav_ncatoms = int( werte (4) )
                      sav_r_ncell = .true. 
                   ENDIF 
                ELSE 
@@ -1619,7 +1617,7 @@ got_params: IF (ier_num.eq.0) THEN
          READ (ist, 2010, end = 999, err = 999) line 
          lp = len_str (line) 
          CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
-         cr_spcgr = cpara (1) 
+         cr_spcgr = cpara (1) (1:lpara(1))
          ianz = ianz - 1 
          IF (ianz.eq.1) then 
             cpara (1) = cpara (2) 
@@ -2166,11 +2164,11 @@ got_params: IF (ier_num.eq.0) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2558,11 +2556,11 @@ got_params: IF (ier_num.eq.0) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2704,11 +2702,11 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       lwrite = .false. 
       ird = 34 
       iwr = 35 
-      CALL oeffne (ird, infile, 'old', lread) 
+      CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown', lwrite) 
+      CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
@@ -2856,7 +2854,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       ENDIF
       in_mole = .false.
 !
-      CALL oeffne ( 99, strucfile, 'old', .true. )
+      CALL oeffne ( 99, strucfile, 'old')
       IF ( ier_num /= 0) THEN
           CLOSE ( 99 )
           RETURN

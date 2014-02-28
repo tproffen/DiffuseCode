@@ -22,8 +22,8 @@ SUBROUTINE do_niplps (linverse)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxp, maxw, iff 
-      PARAMETER (maxp = 11, maxw = 1, iff = 2) 
+      INTEGER maxp
+      PARAMETER (maxp = 11) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -230,7 +230,7 @@ SUBROUTINE do_niplps (linverse)
                IF (ier_num.eq.0) then 
                   infile = cpara (1) 
                   lread = .true. 
-                  CALL oeffne (1, infile, 'old', lread) 
+                  CALL oeffne (1, infile, 'old') 
                   IF (ier_num.eq.0) then 
                      READ (1, * ) out_inc (1), out_inc (2) 
                      READ (1, * ) xmin, xmax, ymin, ymax 
@@ -263,7 +263,7 @@ SUBROUTINE do_niplps (linverse)
                   CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
                   1)                                                    
                   IF (ier_num.eq.0) then 
-                     outfile = cpara (1) 
+                     outfile = cpara (1) (1:lpara(1))
                   ENDIF 
                ENDIF 
 !                                                                       
@@ -547,7 +547,7 @@ SUBROUTINE do_niplps (linverse)
 !-------Farbtabelle einlesen                                            
 !                                                                       
       lread = .true. 
-      CALL oeffne (2, colorfile, 'old', lread) 
+      CALL oeffne (2, colorfile, 'old') 
       IF (ier_num.ne.0) return 
       DO i = 1, 255 
       READ (2, 100, end = 20) cfarb (i) 
@@ -558,7 +558,7 @@ SUBROUTINE do_niplps (linverse)
       cfarb (256) = 'ffffff' 
 !                                                                       
       lread = .false. 
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (2, 1111) '%!PS-Adobe-2.0' 
@@ -632,7 +632,7 @@ SUBROUTINE do_niplps (linverse)
       lread = .false. 
       ncol = maxcol 
 !                                                                       
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (2, 1111) 'P2' 
@@ -700,7 +700,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       CALL set_colorfeld (cfarb) 
       lread = .true. 
-      CALL oeffne (2, colorfile, 'old', lread) 
+      CALL oeffne (2, colorfile, 'old') 
       IF (ier_num.ne.0) return 
       DO i = 1, 255 
       READ (2, 100, end = 20) (icolor (i, j), j = 1, 3) 
@@ -714,7 +714,7 @@ SUBROUTINE do_niplps (linverse)
       icolor (255, 3) = 255 
 !                                                                       
       lread = .false. 
-      CALL oeffne (2, outfile, 'unknown', lread) 
+      CALL oeffne (2, outfile, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       ncol = maxcol 
@@ -839,7 +839,6 @@ SUBROUTINE do_niplps (linverse)
       CHARACTER(LEN=2024) dummy_file
       INTEGER HKLF4, LIST5, LIST9 , ASCII3D
       PARAMETER (HKLF4 = 6, LIST5 = 7, LIST9 = 8, ASCII3D = 9) 
-      INTEGER, PARAMETER :: NEXUS = 10
 !                                                                       
       INTEGER extr_ima, i, j, k, l, value 
       LOGICAL lread, laver 
@@ -855,10 +854,11 @@ SUBROUTINE do_niplps (linverse)
       COMPLEX shel_acsf 
       REAL shel_dsi 
       COMPLEX shel_tcsf 
-      REAL factor 
+      REAL factor
 !                                                                       
 !     REAL qval 
       INTEGER  len_str
+      factor = 0.0
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
@@ -924,7 +924,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       lread = .false. 
       IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
-         CALL oeffne (iff, outfile, 'unknown', lread) 
+         CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
       IF (ier_num.eq.0) then 
          IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then 
@@ -933,7 +933,7 @@ SUBROUTINE do_niplps (linverse)
                   IF(out_inc(3) > 1) THEN
                      WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
 7777 FORMAT(a,'.PART_',i4.4)
-                     CALL oeffne (iff, dummy_file, 'unknown', lread) 
+                     CALL oeffne (iff, dummy_file, 'unknown') 
                   ENDIF
                WRITE (iff, * ) out_inc (1), out_inc(2)
                WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &

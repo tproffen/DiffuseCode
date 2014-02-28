@@ -42,7 +42,7 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) zeile
       CHARACTER(1024) line 
-      INTEGER i, j, k, ianz, lp, length 
+      INTEGER :: i, j=1, k, ianz, lp, length 
       INTEGER indxg, lbef 
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
       INTEGER              :: n_nscat  ! required no of atom types right now
@@ -137,7 +137,7 @@ CONTAINS
                             RETURN
                           ENDIF
                         ENDIF
-                        CALL dlink (lxray, ano, lambda, rlambda, &
+                        CALL dlink (ano, lambda, rlambda, &
                                     diff_radiation, diff_power) 
                         CALL calc_000 (rhkl) 
                      ENDIF 
@@ -145,7 +145,7 @@ CONTAINS
                      rhkl (1) = 0.0 
                      rhkl (2) = 0.0 
                      rhkl (3) = 0.0 
-                     CALL dlink (lxray, ano, lambda, rlambda,    &
+                     CALL dlink (ano, lambda, rlambda,    &
                                     diff_radiation, diff_power) 
                      CALL calc_000 (rhkl) 
                   ELSE 
@@ -514,7 +514,7 @@ CONTAINS
                  ENDIF
                ENDIF
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
-                  CALL dlink (lxray, ano, lambda, rlambda, &
+                  CALL dlink (ano, lambda, rlambda, &
                               diff_radiation, diff_power) 
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
@@ -582,13 +582,13 @@ CONTAINS
                            k = nint (werte (1) ) 
                            cr_scat_equ (k) = .true. 
                            CALL do_cap (cpara (2) ) 
-                           cr_at_equ (k) = cpara (2) 
+                           cr_at_equ (k) = cpara (2) (1:lpara(2))
                         ELSEIF (werte (1) .eq. - 1) then 
                            k = nint (werte (1) ) 
                            CALL do_cap (cpara (2) ) 
                            DO k = 1, cr_nscat 
                            cr_scat_equ (k) = .true. 
-                           cr_at_equ (k) = cpara (2) 
+                           cr_at_equ (k) = cpara (2) (1:lpara(2))
                            ENDDO 
                         ELSE 
                            ier_num = - 27 
@@ -654,7 +654,7 @@ CONTAINS
                   inc(3)   = 1
                   divis(3) = 1
                ENDIF
-               CALL dlink (lxray, ano, lambda, rlambda, &
+               CALL dlink (ano, lambda, rlambda, &
                            diff_radiation, diff_power) 
                CALL four_show  ( ltop )
 !                                                                       
@@ -715,7 +715,7 @@ CONTAINS
                IF (ianz.eq.1) then 
                   IF (ichar ('A') .le.ichar (cpara (1) (1:1) )          &
                   .and.ichar (cpara (1) (1:1) ) .le.ichar ('Z') ) then  
-                     lambda = cpara (1) 
+                     lambda = cpara (1) (1:lpara(1))
                   ELSE 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      rlambda = werte (1) 

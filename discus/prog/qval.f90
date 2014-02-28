@@ -26,6 +26,7 @@ CONTAINS
       REAL atan2d 
       REAL ran1 
       LOGICAL laver 
+      qval = 0.0
 !                                                                       
 !------ Get values of F or <F>                                          
 !                                                                       

@@ -32,8 +32,6 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of parameters
       INTEGER maxw 
-      LOGICAL lnew, lold 
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
@@ -75,7 +73,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.eq.0) THEN 
-               sav_file = cpara (1) 
+               sav_file = cpara (1) (1:lpara(1))
                sav_flen = lpara (1) 
 !                                                                       
                IF (sav_keyword) THEN 
@@ -304,7 +302,7 @@ SUBROUTINE save_struc (zeile, lcomm)
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
                      IF (ier_num.eq.0) THEN 
-                        sav_file = cpara (1) 
+                        sav_file = cpara (1) (1:lpara(1))
                         sav_flen = lpara (1) 
                      ENDIF 
                   ENDIF 
@@ -551,7 +549,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       DATA ist / 7 / 
 !                                                                       
       lread = .false. 
-      CALL oeffne (ist, strucfile, 'unknown', lread) 
+      CALL oeffne (ist, strucfile, 'unknown') 
       IF (ier_num.eq.0) THEN 
 !                                                                       
 !-----      --Write old type of structur file                           
@@ -613,7 +611,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       IF (sav_end.eq. - 1) i_end = cr_natoms 
 !                                                                       
       lread = .false. 
-      CALL oeffne (ist, strucfile, 'unknown', lread) 
+      CALL oeffne (ist, strucfile, 'unknown') 
       IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 
@@ -885,7 +883,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
       CALL store_temp%crystal%alloc_arrays(cr_natoms,cr_nscat, &
-           mole_max_mole, mole_max_type, mole_max_atom           ) ! Allocate the crystal arrays
+           mole_max_mole, mole_max_atom           ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.

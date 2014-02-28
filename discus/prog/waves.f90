@@ -134,7 +134,7 @@ SUBROUTINE waves_menu
                .or.str_comp (befehl, 'mdes', 2, lbef, 4) ) then         
 !                                                                       
                   CALL mole_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
-                  wv_sel_atom, lold,        &
+                  wv_sel_atom,         &
                   str_comp (befehl, 'msel', 2, lbef, 4) )               
 !                                                                       
 !     --- select which atoms are copied to their image 'sele'           
@@ -170,7 +170,7 @@ SUBROUTINE waves_menu
                      IF (ianz.eq.1.or.ianz.eq.2) then 
                         IF (str_comp (cpara (1) , 'box', 3, lpara (1) , &
                         3) ) then                                       
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_BOX 
                            IF (ianz.eq.2) then 
                               CALL del_params (1, ianz, cpara, lpara,   &
@@ -189,11 +189,11 @@ SUBROUTINE waves_menu
                            ENDIF 
                         ELSEIF (str_comp (cpara (1) , 'sinus', 3, lpara &
                         (1) , 5) ) then                                 
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_SINUS 
                         ELSEIF (str_comp (cpara (1) , 'trian', 3, lpara &
                         (1) , 5) ) then                                 
-                           wv_func = cpara (1) 
+                           wv_func = cpara (1) (1:lpara(1))
                            wv_ifunc = WV_TRIANGLE 
                         ELSE 
                            ier_num = - 6 
@@ -342,7 +342,7 @@ SUBROUTINE waves_menu
                         IF (is.ge.0.and.is.le.mole_num_type) then 
                            is = nint (werte (1) ) 
                            CALL mole_select (cdummy, ldummy, 0, WV_MAXSCAT,&
-                                wv_latom, wv_sel_atom, lold, .true.,    &
+                                wv_latom, wv_sel_atom, .true.,    &
                                 is, wv_repl)             
                         ELSE 
                            ier_num = - 64 
@@ -678,13 +678,23 @@ SUBROUTINE waves_menu
       REAL ww, rnn 
       INTEGER i, lbef 
 !                                                                       
-      REAL hkl (3), uvw (3), tran (3), orig (3), angle 
-      INTEGER start, end, power 
-      LOGICAL pmult, mode, new, orig_mol, typ, sel_atom 
+      REAL hkl (3), uvw (3), tran (3), orig (3), angle
+      INTEGER start, end, power
+      LOGICAL pmult, mode, new, orig_mol, typ, sel_atom
 !                                                                       
 !     REAL quad 
       INTEGER len_str 
       LOGICAL str_comp 
+      angle = 0.0
+      start = 1
+      end = 1
+      power = 1
+      pmult=.true.
+      mode=.true.
+      new=.false.
+      orig_mol=.true.
+      typ=.true.
+      sel_atom=.true.
 !                                                                       
 !      REAL sinus, box, triang 
 !      EXTERNAL sinus, box, triang 

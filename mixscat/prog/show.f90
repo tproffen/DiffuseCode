@@ -49,7 +49,7 @@
 !-----  - General show command                                          
 !                                                                       
       ELSE 
-         CALL do_show_generic (ianz, cpara, lpara, maxw) 
+         CALL do_show_generic (cpara, lpara, maxw) 
       ENDIF 
 !                                                                       
       END SUBROUTINE do_show                        

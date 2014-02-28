@@ -17,11 +17,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
       INTEGER i, j, k, l, m, mm 
       INTEGER ij 
       INTEGER iscat 
@@ -131,9 +126,6 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
       INTEGER number 
       INTEGER i, j, k 
       INTEGER ii, jj 
@@ -195,11 +187,6 @@ CONTAINS
       USE errlist_mod 
       USE wink_mod
       IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
@@ -283,9 +270,6 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
       INTEGER number 
       INTEGER i, j, k 
       INTEGER ii, jj 
@@ -355,9 +339,6 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
        
-!                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
 !                                                                       
       INTEGER number 
       INTEGER i, j, k 
@@ -460,8 +441,6 @@ CONTAINS
 !                                                                       
       INTEGER iwr 
       PARAMETER (iwr = 7) 
-      LOGICAL lread 
-      PARAMETER (lread = .false.) 
 !                                                                       
       INTEGER(1) header (1024) 
       CHARACTER(80) char_header (EXTE_HLINES) 
@@ -474,7 +453,7 @@ CONTAINS
 !                                                                       
       CALL no_error 
 !                                                                       
-      exte_filename = exte_names (exte_num) (1:exte_length (i) ) 
+      exte_filename = exte_names (exte_num) !(1:exte_length (i) ) 
 !                                                                       
       CALL oeffne_external (iwr, exte_filename, irecl) 
 !                                                                       

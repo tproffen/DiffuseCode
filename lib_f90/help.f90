@@ -63,7 +63,7 @@
 !------ - print help file entry                                         
 !                                                                       
       IF (stay) call do_status (1, bef, ibef, il, maxw) 
-      CALL oeffne (ihl, hlpfile, status, lread) 
+      CALL oeffne (ihl, hlpfile, status) 
       IF (ier_num.ne.0) return 
       CALL do_cap (line) 
       CALL do_trenn (line, bef, ibef, length, maxw) 
@@ -152,7 +152,7 @@
 !------ Build status lines                                              
 !                                                                       
       IF (iwhere.eq.1) then 
-         prom = prompt 
+         prom = prompt (1:len(prom))
          CALL do_cap (prom) 
          WRITE (output_io, 2000) prom, version 
       ELSEIF (iwhere.eq.2) then 

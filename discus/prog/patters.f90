@@ -31,8 +31,6 @@ CONTAINS
 !
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at leaset these no of parameters
       INTEGER maxw 
-      LOGICAL lold 
-      PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara 
@@ -175,14 +173,14 @@ CONTAINS
                         maxw, 2)                                        
                         IF (ier_num.eq.0) then 
                            i = 1 
-                           rho_file (i) = cpara (2) 
+                           rho_file (i) = cpara (2) (1:lpara(2))
                         ENDIF 
       ELSEIF (str_comp (cpara (1) , 'b    ', 1, lpara (2) , 5) ) then 
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 2)                                        
                         IF (ier_num.eq.0) then 
                            i = 2 
-                           rho_file (i) = cpara (2) 
+                           rho_file (i) = cpara (2) (1:lpara(2))
                         ENDIF 
                      ELSE 
                         ier_num = - 41 
@@ -652,7 +650,7 @@ CONTAINS
                         i = rho_type (2) 
                         rho_file (2) = rho_file (1) 
                         rho_type (2) = rho_type (1) 
-                        rho_file (1) = line 
+                        rho_file (1) = trim(line)
                         rho_type (1) = i 
                      ENDIF 
                      IF (ftyp.eq.4) then 
@@ -1197,8 +1195,8 @@ CONTAINS
       INTEGER ifa, ifb 
       PARAMETER (ifa = 21, ifb = 22) 
 !                                                                       
-      INTEGER KUPL, GNU, SHELXL, HKLF4, HKLF4ALL 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5, HKLF4ALL = 6) 
+      INTEGER KUPL, GNU, SHELXL, HKLF4
+      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
 !                                                                       
       CHARACTER(1024) line 
       INTEGER i, j, ii, k, itic 
@@ -1229,12 +1227,12 @@ CONTAINS
          CALL wilson_calc 
       ENDIF 
 !                                                                       
-      CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+      CALL oeffne (ifa, rho_file (1) , 'old') 
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
       IF (ltwo_files) then 
-         CALL oeffne (ifb, rho_file (2) , 'old', .true.) 
+         CALL oeffne (ifb, rho_file (2) , 'old') 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -1786,8 +1784,8 @@ CONTAINS
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
-      INTEGER KUPL, GNU, SHELXL, HKLF4 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5) 
+      INTEGER HKLF4 
+      PARAMETER (HKLF4 = 5) 
 !                                                                       
       CHARACTER ( * ) cpara 
       CHARACTER(1024) outfile 
@@ -2023,7 +2021,7 @@ CONTAINS
          i_aver_RO = 0.0 
          i_aver_RR = 0.0 
 !                                                                       
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n = 0 
    50    CONTINUE 
 !                                                                       
@@ -2101,7 +2099,7 @@ CONTAINS
          ENDIF 
 !                                                                       
 !                                                                       
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n_all = 0 
          lsuccess = .false. 
          DO i = 1, n 
@@ -2194,7 +2192,7 @@ CONTAINS
       ENDDO 
 !                                                                       
       IF (io_mode) then 
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
          n_hkl = 0 
          n_0kl = 0 
          n_h0l = 0 
@@ -2208,7 +2206,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.ehkl' 
-            CALL oeffne (e_io_hkl, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io_hkl, outfile, 'unknown') 
          ENDIF 
 !                                                                       
          DO i = 0, 30 
@@ -2352,7 +2350,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.statistics' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          lcomm = 3 
          CALL e_write (n_hkl, 'HKL', lcomm, e_e1_hkl, e_e2_hkl,         &
@@ -2410,7 +2408,7 @@ CONTAINS
 !                                                                       
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.short' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          lcomm = 3 
          CALL e_write (n_hkl, 'HKL', lcomm, e_e1_hkl, e_e2_hkl,         &
@@ -2468,7 +2466,7 @@ CONTAINS
       IF (io_mode) then 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hkl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph (i) )        &
@@ -2479,7 +2477,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hk0.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hk0 (i) )    &
@@ -2490,7 +2488,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.h0l.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_h0l (i) )    &
@@ -2501,7 +2499,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.0kl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0kl (i) )    &
@@ -2512,7 +2510,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hhl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhl (i) )    &
@@ -2523,7 +2521,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hMh0l.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hMh0l (i) )  &
@@ -2534,7 +2532,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.hhM2Hl.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhM2Hl (i) ) &
@@ -2545,7 +2543,7 @@ CONTAINS
          ENDIF 
          IF (e_io.ne.6) then 
             outfile = cpara (1:lpara) //'.0k0.histogram' 
-            CALL oeffne (e_io, outfile, 'unknown', .true.) 
+            CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
          WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0k0 (i) )    &
@@ -2751,8 +2749,8 @@ CONTAINS
       REAL sumx, sumx2, sumy, sumy2, sumxy 
       REAL m, p, number 
 !                                                                       
-      INTEGER KUPL, GNU, SHELXL, HKLF4, HKLF4ALL 
-      PARAMETER (KUPL = 0, GNU = 3, SHELXL = 4, HKLF4 = 5, HKLF4ALL = 6) 
+      INTEGER HKLF4
+      PARAMETER (HKLF4 = 5) 
 !                                                                       
       INTEGER len_str 
 !     INTEGER e_hist 
@@ -2780,7 +2778,7 @@ CONTAINS
          ier_msg (3) = ' been defined' 
          RETURN 
       ENDIF 
-      CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+      CALL dlink (ano, lambda, rlambda, diff_radiation, &
                   diff_power) 
       DO i = 1, MAXW 
       w_aver (i) = 0.0 
@@ -2792,7 +2790,7 @@ CONTAINS
          ier_typ = ER_APPL 
          RETURN 
       ELSE 
-         CALL oeffne (ifa, rho_file (1) , 'old', .true.) 
+         CALL oeffne (ifa, rho_file (1) , 'old') 
 !                                                                       
 !     Open output file                                                  
 !                                                                       
@@ -2804,7 +2802,7 @@ CONTAINS
                outfile = rho_file (1) (1:len_str (rho_file (1) ) ) //   &
                '.wilson'                                                
             ENDIF 
-            CALL oeffne (w_io, outfile, 'unknown', .true.) 
+            CALL oeffne (w_io, outfile, 'unknown') 
          ENDIF 
 !                                                                       
 !------ --Read HKLF4 file, accumulate the Intensities in the            

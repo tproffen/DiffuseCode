@@ -255,7 +255,7 @@ CONTAINS
                                  werte, maxw, 1)                        
                                  IF (ier_num.eq.0) then 
                                     rmc_ranloc = .FALSE. 
-                                    rmc_lname = cpara (1) 
+                                    rmc_lname = cpara (1) (1:lpara(1))
                                  ENDIF 
                               ELSE 
                                  rmc_ranloc = .TRUE. 
@@ -310,8 +310,7 @@ CONTAINS
             ELSEIF (cpara (1) (1:3) .eq.'MOD') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
-               CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,     &
-               lpara, maxw)                                             
+               CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,maxw)
 !                                                                       
 !------ --- 'set move': sets factor for generated moves                 
 !                                                                       
@@ -525,7 +524,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE rmc_set_move                   
 !*****7*****************************************************************
-      SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, lpara, maxw) 
+      SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, maxw) 
 !+                                                                      
 !     Sets RMC/MC mode                                                  
 !-                                                                      
@@ -541,7 +540,6 @@ CONTAINS
       INTEGER           , INTENT(OUT) :: ilocal 
       INTEGER           , INTENT(IN ) :: ianz
       CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(IN ) :: cpara  !(maxw) 
-      INTEGER           , DIMENSION(1:MAXW), INTENT(IN ) :: lpara  !(maxw) 
 !                                                                       
       IF (ianz.ge.1) then 
          CALL do_cap (cpara (1) ) 
@@ -796,7 +794,7 @@ CONTAINS
             CASE(RMC_RAD_NEUT)
                ra = 'Neutrons'
             CASE(RMC_RAD_ELEC)
-               ra = 'Electrons'
+               ra = 'Electron'
          END SELECT
       IF (rmc_lambda (i) .eq.'    ') then 
             WRITE (output_io, 1850) rmc_rlambda (i), ra, rmc_ldbw (i),  &
@@ -962,7 +960,7 @@ CONTAINS
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) 
-            CALL oeffne (57, cpara (1) , 'unknown', .false.) 
+            CALL oeffne (57, cpara (1) , 'unknown') 
             IF (ier_num.eq.0) then 
                DO il = 1, rmc_nlots 
                WRITE (57, '(3(I4,1X))') (rmc_lots_orig (i, il) , i = 1, &
@@ -1140,7 +1138,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) cpara (maxw), cfile, cwic 
       CHARACTER(4) cdummy 
-      INTEGER lpara (maxw) 
+      INTEGER lpara (maxw) , cfile_l
       INTEGER ianz, nsym, rsym 
       INTEGER ip, nx, ny, wx, wy 
       INTEGER i, j, k 
@@ -1208,7 +1206,7 @@ CONTAINS
          CALL do_cap (cpara (2) ) 
          IF (ichar ('A') .le.ichar (cpara (2) (1:1) ) .and.ichar (cpara &
          (2) (1:1) ) .le.ichar ('Z') ) then                             
-            rmc_lambda (ip) = cpara (2) 
+            rmc_lambda (ip) = cpara (2) (1:lpara(2))
          ELSE 
             CALL ber_params (1, cpara (2), lpara (2), werte, maxw) 
             rmc_rlambda (ip) = werte (1) 
@@ -1220,6 +1218,7 @@ CONTAINS
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 3) 
          IF (ier_num.eq.0) then 
             cfile = cpara (3) 
+            cfile_l = lpara(3)
          ELSE 
             RETURN 
          ENDIF 
@@ -1270,7 +1269,7 @@ CONTAINS
          INQUIRE (file = cwic, exist = lexist) 
          IF (lexist) then 
             rmc_wic_typ (ip) = rmc_wic_dat 
-            CALL oeffne (18, cwic, 'old', .false.) 
+            CALL oeffne (18, cwic, 'old') 
          ELSE 
             ier_num = - 16 
             ier_typ = ER_RMC 
@@ -1280,8 +1279,8 @@ CONTAINS
 !                                                                       
 !------ read data for given plane                                       
 !                                                                       
-      rmc_fname (ip) = cfile 
-      CALL oeffne (17, cfile, 'old', .false.) 
+      rmc_fname (ip) = cfile (1:cfile_l)
+      CALL oeffne (17, cfile, 'old') 
       IF (ier_num.ne.0) return 
 !                                                                       
 !------ NIPL file                                                       
@@ -1571,6 +1570,7 @@ CONTAINS
 !                                                                       
       INTEGER, INTENT(IN) :: typ 
       REAL   , INTENT(IN) :: inte 
+      rmc_dowic = 0.0
 !                                                                       
       IF (inte.le.0.0) then 
          rmc_dowic = 0.0 
@@ -1739,10 +1739,10 @@ CONTAINS
         ENDDO 
         IF (rmc_e(ip).gt.1E-06) THEN 
           call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,        &
-                                 rmc_e(ip),rmc_ee(ip),skal,back)        
-          chi2(ip)=rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*           &
+                                 rmc_e(ip),skal,back)        
+          chi2(ip)=real( rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*     &
                    rmc_wtot(ip)+2.0*(skal(ip)*back(ip)*rmc_c-back(ip)*  &
-                   rmc_e(ip)-skal(ip)*rmc_ce)                      
+                   rmc_e(ip)-skal(ip)*rmc_ce) )
           chi2(ip)=chi2(ip)/rmc_wtot(ip) 
           chi2_old=chi2_old + chi2(ip) 
         ENDIF 
@@ -1791,7 +1791,7 @@ CONTAINS
             rmc_c    = 0.0 
             rmc_cc   = 0.0 
             rmc_ce   = 0.0 
-            call dlink(rmc_lxray(ip),rmc_ano(ip),           &
+            call dlink(rmc_ano(ip),           &
      &                     rmc_lambda(ip),rmc_rlambda(ip),  & 
                            rmc_radiation(ip), rmc_power(ip))
             DO is=1,isym(ip) 
@@ -1813,10 +1813,10 @@ CONTAINS
             IF (rmc_e(ip).lt.1E-06) goto 1111 
 !                                                                       
             call rmc_calcskal(ip,rmc_wtot(ip),rmc_c,rmc_cc,rmc_ce,      &
-     &                             rmc_e(ip),rmc_ee(ip),skal,back)      
-            chi2(ip)=rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*         &
+     &                             rmc_e(ip),skal,back)      
+            chi2(ip)=real( rmc_ee(ip)+skal(ip)**2*rmc_cc+back(ip)**2*   &
      &               rmc_wtot(ip)+2.0*(skal(ip)*back(ip)*rmc_c-         &
-     &               back(ip)*rmc_e(ip)-skal(ip)*rmc_ce)           
+     &               back(ip)*rmc_e(ip)-skal(ip)*rmc_ce) )
             chi2(ip)=chi2(ip)/rmc_wtot(ip) 
             chi2_new=chi2_new + chi2(ip) 
 !                                                                       
@@ -1987,7 +1987,7 @@ CONTAINS
          ENDDO 
          ENDDO 
       ELSE 
-         CALL oeffne (57, rmc_lname, 'old', .false.) 
+         CALL oeffne (57, rmc_lname, 'old') 
          IF (ier_num.ne.0) return 
          DO nlot = 1, rmc_nlots 
          READ (57, *, end = 99, err = 999) (rmc_lots_orig (i, nlot),    &
@@ -1999,7 +1999,7 @@ CONTAINS
 !------ Loop over all exp. data planes                                  
 !                                                                       
 loop_plane: DO ip = 1, rmc_nplane 
-         CALL dlink (rmc_lxray (ip), rmc_ano (ip), rmc_lambda (ip),        &
+         CALL dlink (rmc_ano (ip), rmc_lambda (ip),        &
                      rmc_rlambda (ip),  rmc_radiation(ip), rmc_power(ip) )
          CALL rmc_formtab (ip, .true.) 
 !                                                                       
@@ -2007,7 +2007,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
          loop_sym: DO k = 1, isym (ip) 
             DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               acsf (i) = cmplx (0.0d0, 0.0d0) 
+               acsf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
             CALL rmc_layer (k, ip) 
@@ -2026,7 +2026,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !------ ----- Loop over all atom types                                  
 !                                                                       
             DO iscat = 1, cr_nscat 
-               CALL four_getatm (iscat, rmc_ilots, lbeg, rmc_csize, ncell) 
+               CALL four_getatm (iscat, rmc_ilots, lbeg, ncell) 
                CALL four_strucf (iscat, .true.) 
                DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
                   rmc_csf (iii + i, nlot) = rmc_csf (iii + i, nlot) + tcsf (i) 
@@ -2241,7 +2241,7 @@ loop_plane: DO ip = 1, rmc_nplane
  1050 FORMAT     (/,' Calculating average structure ... ') 
       END SUBROUTINE rmc_check_input                
 !*****7*****************************************************************
-      SUBROUTINE rmc_calcskal (ip, wtot, c, cc, ce, se, see, sk, ba) 
+      SUBROUTINE rmc_calcskal (ip, wtot, c, cc, ce, se, sk, ba) 
 !+                                                                      
 !     Calculate scaling factor / background                             
 !-                                                                      
@@ -2256,21 +2256,20 @@ loop_plane: DO ip = 1, rmc_nplane
       REAL(dp), INTENT(IN) :: cc
       REAL(dp), INTENT(IN) :: ce
       REAL(dp), INTENT(IN) :: se
-      REAL(dp), INTENT(IN) :: see 
-      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
-      REAL   , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
+      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
+      REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
 !------ calculate the values                                            
 !                                                                       
       IF (rmc_doskal.and.rmc_doback) then 
-         sk (ip) = (wtot * ce-se * c) / (wtot * cc - c * c) 
-         ba (ip) = (se-sk (ip) * c) / wtot 
+         sk (ip) = real( (wtot * ce-se * c) / (wtot * cc - c * c) )
+         ba (ip) = real( (se-sk (ip) * c) / wtot )
       ELSEIF (rmc_doskal.and..not.rmc_doback) then 
-         sk (ip) = (ce-rmc_back (ip) * c) / cc 
+         sk (ip) = real( (ce-rmc_back (ip) * c) / cc )
          ba (ip) = rmc_back (ip) 
       ELSEIF (.not.rmc_doskal.and.rmc_doback) then 
          sk (ip) = rmc_skal (ip) 
-         ba (ip) = (se-sk (ip) * c) / wtot 
+         ba (ip) = real( (se-sk (ip) * c) / wtot )
       ELSE 
          sk (ip) = rmc_skal (ip) 
          ba (ip) = rmc_back (ip) 
@@ -2425,7 +2424,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO ip = 1, rmc_max_sq 
       DO il = 1, rmc_nlots 
-      rmc_csf (ip, il) = cmplx (0.0d0, 0.0d0) 
+      rmc_csf (ip, il) = cmplx (0.0, 0.0) 
       ENDDO 
       ENDDO 
 !                                                                       
@@ -2616,8 +2615,9 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER cr_end 
       INTEGER iz (3), izmin, izmax 
       INTEGER is, i 
-!                                                                       
-      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3) + 1                                                               
+!     
+      rmc_inlot = .false.
+      cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3) + 1
 !                                                                       
 !------ We are not using lots                                           
 !                                                                       
@@ -2781,7 +2781,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       END SUBROUTINE rmc_check_dist                 
 !*****7*****************************************************************
-      SUBROUTINE rmc_select (imode, natoms, isel, iz1, iz2, is1, is2) 
+      SUBROUTINE rmc_select (imode, isel, iz1, iz2, is1, is2) 
 !+                                                                      
 !     Select two atom sites (global, local, ...)                        
 !                                                                       
@@ -2793,7 +2793,6 @@ loop_plane: DO ip = 1, rmc_nplane
       IMPLICIT none 
 !                                                                       
       INTEGER                         , INTENT(IN)    :: imode
-      INTEGER                         , INTENT(IN)    :: natoms 
       INTEGER, DIMENSION(RMC_MAX_ATOM), INTENT(INOUT) :: isel !(rmc_max_atom) 
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz1 !(3)
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz2 !(3)
@@ -2891,7 +2890,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       IF (rmc_mode.eq.rmc_mode_swchem) then 
          natoms = 2 
-         CALL rmc_select (rmc_local, natoms, isel, iz1, iz2, is1, is2) 
+         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) ) .and.cr_iscat (isel (1) ) .ne.cr_iscat &
          (isel (2) )                                                    
@@ -2924,7 +2923,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
          natoms = 2 
-         CALL rmc_select (rmc_local, natoms, isel, iz1, iz2, is1, is2) 
+         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) )                                        
          IF (laccept) then 

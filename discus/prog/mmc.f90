@@ -719,8 +719,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.ne.0) return 
                   DO i = 1, 3 
-                  mmc_l_center (i) = werte (i) 
-                  mmc_l_extend (i) = werte (i + 3) 
+                  mmc_l_center (i) = int( werte (i) )
+                  mmc_l_extend (i) = int( werte (i + 3) )
                   ENDDO 
                   mmc_l_limited = .true. 
                   mmc_l_type = MMC_L_CELLS 
@@ -728,8 +728,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.ne.0) return 
-                  mmc_l_lower = werte (1) 
-                  mmc_l_upper = werte (2) 
+                  mmc_l_lower = int( werte (1) )
+                  mmc_l_upper = int( werte (2) )
                   mmc_l_limited = .true. 
                   mmc_l_type = MMC_L_ATOMS 
                ELSEIF (cpara (1) (1:3) .eq.'OFF') then 
@@ -945,26 +945,26 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                               is_end = cr_nscat 
                               mmc_allowed = .true.           ! all atoms are allowed in mmc moves
                            ELSE 
-                              is_start = uerte (1) 
-                              is_end = uerte (1) 
+                              is_start = int( uerte (1) )
+                              is_end = int( uerte (1) )
                               mmc_allowed(is_start) = .true. ! this atom is allowed in mmc moves
                            ENDIF 
-                           is = uerte (1) 
+                           is = int( uerte (1) )
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL get_iscat (jjanz, cpara, lpara, uerte,  &
                            maxw, .false.)                               
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL get_iscat (kkanz, cpara, lpara, verte,  &
                            maxw, .false.)                               
-                           js = min (uerte (1), verte (1) ) 
-                           ls = max (uerte (1), verte (1) ) 
+                           js = min1 (uerte (1), verte (1) ) 
+                           ls = max1 (uerte (1), verte (1) ) 
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(ls) = .true. ! this atom is allowed in mmc moves
                            i = angles2index (ic, mmc_n_angles, is, js,  &
-                           ls, MMC_MAX_ANGLES, MAXSCAT)                 
+                           ls, MAXSCAT)                 
                            mmc_angles (mmc_n_angles) = i 
                            CALL index2angles (i, ic, mmc_n_angles, is,  &
-                           js, ls, MMC_MAX_ANGLES, MAXSCAT)             
+                           js, ls, MAXSCAT)             
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL ber_params (2, cpara, lpara, werte,     &
                            maxw)                                        
@@ -1041,7 +1041,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         - werte (3) ) * werte (1) **werte (3)           
                         b = - ABS(werte(2)) * werte(3) / (werte(4)       &
                         - werte (3) ) * werte (1) **werte (4)           
-                        CALL mmc_set_lenn (ic, MC_LENNARD, is, js, a, b,&
+                        CALL mmc_set_lenn (ic, is, js, a, b,&
                         werte (3), werte (4) )                          
                         ENDDO 
                         ENDDO 
@@ -1096,7 +1096,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_REPULSIVE, is, js,    &
                         100.0    , ABS(werte (1)) )                          
-                        CALL mmc_set_rep  (ic, MC_REPULSIVE, is, js,    &
+                        CALL mmc_set_rep  (ic, is, js,    &
                         ABS(werte (1)), werte(2) , werte(3), werte(4) )                          
                         ENDDO 
                         ENDDO 
@@ -1340,7 +1340,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !
       END SUBROUTINE mmc_set_disp_occ
 !*****7*****************************************************************
-      SUBROUTINE mmc_set_lenn (ic, ie, is, js, a, b, m, n) 
+      SUBROUTINE mmc_set_lenn (ic, is, js, a, b, m, n) 
 !+                                                                      
 !     Set desired displacements                                         
 !-                                                                      
@@ -1353,7 +1353,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
        
 !                                                                       
-      INTEGER ic, ie, is, js, ii, jj 
+      INTEGER ic, is, js, ii, jj 
       REAL a, b, m, n 
 !                                                                       
                                                                         
@@ -1405,7 +1405,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       END SUBROUTINE mmc_set_lenn                   
 !*****7*****************************************************************
-      SUBROUTINE mmc_set_rep (ic, ie, is, js, a, b, c, m) 
+      SUBROUTINE mmc_set_rep (ic, is, js, a, b, c, m) 
 !+                                                                      
 !     Set desired displacements                                         
 !-                                                                      
@@ -1418,7 +1418,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
        
 !                                                                       
-      INTEGER ic, ie, is, js, ii, jj 
+      INTEGER ic, is, js, ii, jj 
       REAL a,  b, c, m
 !                                                                       
 !     Define mimimum energy at infinity distance
@@ -1555,7 +1555,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz, imode, i 
+      INTEGER :: ianz, imode=MC_MOVE_NONE, i 
       INTEGER is 
       REAL werte (maxw) 
       REAL sump 
@@ -1678,13 +1678,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL rdi (CHEM_MAX_COR) 
       REAL rdj (CHEM_MAX_COR) 
       REAL delta 
-      REAL posz (3) 
-      REAL posz2 (3) 
+      REAL :: posz (3) = 0.0
+      REAL :: posz2 (3) = 0.0
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER igen, itry, iacc_good, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
-      INTEGER iselz, iselz2 
+      INTEGER :: iselz=0, iselz2=0
       INTEGER lbeg (3) 
       INTEGER ic, is (2), iz1 (3), iz2 (3), ie 
       INTEGER iz (2, 3) 
@@ -1696,7 +1696,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER zh, zm, zs 
       LOGICAL loop, laccept, done 
       LOGICAL valid_e 
-      LOGICAL valid_all 
+      LOGICAL :: valid_all = .false.
       LOGICAL lout 
 !                                                                       
       REAL v (3) 
@@ -1825,7 +1825,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          ENDDO 
       ELSEIF (mmc_move.eq.MC_MOVE_SWDISP) then 
          natoms = 2 
-         CALL rmc_select (mo_local, natoms, isel, iz1, iz2, is (1),     &
+         CALL rmc_select (mo_local, isel, iz1, iz2, is (1),     &
          is (2) )                                                       
          iselz = isel (1) 
          iselz2 = isel (2) 
@@ -1839,7 +1839,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          .true., cr_prop (isel (2) ), cr_sel_prop)                      
       ELSEIF (mmc_move.eq.MC_MOVE_SWCHEM) then 
          natoms = 2 
-         CALL rmc_select (mo_local, natoms, isel, iz1, iz2, is (1),     &
+         CALL rmc_select (mo_local, isel, iz1, iz2, is (1),     &
          is (2) )                                                       
 !RBN_REP
 !isel(1) = 34
@@ -1917,7 +1917,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   IF (cr_iscat (isel (1) ) .ne.cr_iscat (isel (2) ) )   &
                   then                                                  
                      e_old (MC_OCC) = e_old (MC_OCC) + mmc_energy_occ ( &
-                     isel, ia, ic, iatom, patom, icent, natom, valid_e) 
+                     isel, ia, ic, iatom, icent, natom, valid_e) 
                      valid_all = valid_all.or.valid_e 
                   ENDIF 
                ENDIF 
@@ -1942,7 +1942,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
             IF (mmc_cor_energy (ic, MC_ANGLE) ) then 
                e_old (MC_ANGLE) = e_old (MC_ANGLE) + mmc_energy_angle ( &
-               isel, ic, iatom, patom, icent, natom, valid_e)           
+               ic, iatom, patom, icent, natom, valid_e)           
                valid_all = valid_all.or.valid_e 
             ENDIF 
 !                                                                       
@@ -1964,8 +1964,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
             IF (mmc_cor_energy (ic, MC_LENNARD) ) then 
                e_old (MC_LENNARD) = e_old (MC_LENNARD) + mmc_energy_len &
-               (isel, ia, ic, iatom, patom, icent, natom, valid_e,      &
-               'old')                                                   
+               (isel, ia, ic, iatom, patom, icent, natom, valid_e)
                valid_all = valid_all.or.valid_e 
             ENDIF 
 !
@@ -1974,7 +1973,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             IF (mmc_cor_energy (ic, MC_REPULSIVE) ) then 
                e_old (MC_REPULSIVE) = e_old (MC_REPULSIVE) +            &
                      mmc_energy_rep (isel, ia, ic, iatom, patom, icent, &
-                                     natom, valid_e, 'old')
+                                     natom, valid_e)
                valid_all = valid_all.or.valid_e 
             ENDIF 
 !                                                                       
@@ -2103,7 +2102,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
                   valid_all = valid_all.or.valid_e 
                   e_new (MC_OCC) = e_new (MC_OCC) + mmc_energy_occ (    &
-                  isel, ia, ic, iatom, patom, icent, natom, valid_e)    
+                  isel, ia, ic, iatom, icent, natom, valid_e)    
                   valid_all = valid_all.or.valid_e 
                ENDIF 
 !                                                                       
@@ -2129,7 +2128,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                      delta = skalpro (v, idir, cr_gten) / rdi (ic) 
                   ENDIF 
                   e_new (MC_DISP) = e_new (MC_DISP) + mmc_energy_dis (  &
-                  isel, ia, ic, iatom, patom, icent, natom, jdir, delta,&
+                  isel, ia, ic, iatom, icent, natom, jdir, delta,&
                   rdj, valid_e)                                         
                   loop = .false. 
                ENDIF 
@@ -2147,7 +2146,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
                IF (mmc_cor_energy (ic, MC_ANGLE) ) then 
                   e_new (MC_ANGLE) = e_new (MC_ANGLE) +                 &
-                  mmc_energy_angle (isel, ic, iatom, patom, icent,      &
+                  mmc_energy_angle (ic, iatom, patom, icent,      &
                   natom, valid_e)                                       
                   valid_all = valid_all.or.valid_e 
                ENDIF 
@@ -2173,7 +2172,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                IF (mmc_cor_energy (ic, MC_LENNARD) ) then 
                   e_new (MC_LENNARD) = e_new (MC_LENNARD) +             &
                   mmc_energy_len (isel, ia, ic, iatom, patom, icent,    &
-                  natom, valid_e, 'new')                                
+                  natom, valid_e)
                   valid_all = valid_all.or.valid_e 
                ENDIF 
 !
@@ -2182,7 +2181,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                IF (mmc_cor_energy (ic, MC_REPULSIVE) ) then 
                   e_new (MC_REPULSIVE) = e_new (MC_REPULSIVE) +         &
                      mmc_energy_rep (isel, ia, ic, iatom, patom, icent, &
-                                     natom, valid_e, 'new')
+                                     natom, valid_e)
                   valid_all = valid_all.or.valid_e 
                ENDIF 
 !                                                                       
@@ -2440,7 +2439,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       END SUBROUTINE mmc_test_multi                 
 !*****7*****************************************************************
-      REAL function mmc_energy_occ (isel, ia, ic, iatom, patom, icent,  &
+      REAL function mmc_energy_occ (isel, ia, ic, iatom, icent,  &
       natom, valid_e)                                                   
 !+                                                                      
 !     Calculates the energy for chemical disorder                       
@@ -2473,7 +2472,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER in_a, in_e 
       INTEGER ncalc 
       INTEGER ival1
-      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
 !                                                                       
 !     LOGICAL check_select_status 
 !                                                                       
@@ -2631,7 +2629,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       END FUNCTION mmc_energy_occ_mol               
 !*****7*****************************************************************
-      REAL function mmc_energy_dis (isel, ia, ic, iatom, patom, icent,  &
+      REAL function mmc_energy_dis (isel, ia, ic, iatom, icent,  &
       natom, jdir, delta, rdj, valid_e)                                 
 !+                                                                      
 !     Calculates the energy for chemical disorder                       
@@ -2664,7 +2662,6 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER i, is, js, ic, in, ia, jjs 
       INTEGER in_a, in_e 
       INTEGER cell (3), site 
-      REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL u (3)
 !                                                                       
       REAL jdir (3) 
@@ -2944,7 +2941,7 @@ write(*,*) ' WARNING NEIGHBOR'
       END FUNCTION mmc_energy_spr_mol               
 !*****7*****************************************************************
       REAL function mmc_energy_len (isel, ia, ic, iatom, patom, icent,  &
-      natom, valid_e, mode)                                             
+      natom, valid_e)
 !+                                                                      
 !     Calculates the energy for distortions according to a Lennard-Jones
 !     potential                                                         
@@ -2965,8 +2962,6 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       INTEGER maxatom 
       PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-      CHARACTER(3) mode 
 !                                                                       
       INTEGER isel (chem_max_atom) 
 !                                                                       
@@ -3048,7 +3043,7 @@ write(*,*) ' WARNING NEIGHBOR'
       END FUNCTION mmc_energy_len                   
 !*****7*****************************************************************
       REAL function mmc_energy_rep (isel, ia, ic, iatom, patom, icent,  &
-      natom, valid_e, mode)                                             
+      natom, valid_e)
 !+                                                                      
 !     Calculates the energy for distortions according to a Repulsive
 !     potential                                                         
@@ -3069,8 +3064,6 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       INTEGER maxatom 
       PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-      CHARACTER(3) mode 
 !                                                                       
       INTEGER isel (chem_max_atom) 
 !                                                                       
@@ -3270,7 +3263,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       END FUNCTION mmc_energy_buck                  
 !*****7*****************************************************************
-      REAL function mmc_energy_angle (isel, ic, iatom, patom, icent,    &
+      REAL function mmc_energy_angle (ic, iatom, patom, icent,    &
       natom, valid_e)                                                   
 !+                                                                      
 !     Calculates the energy for angular deviations according to         
@@ -3292,8 +3285,6 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       INTEGER maxatom 
       PARAMETER (maxatom = chem_max_neig) 
-!                                                                       
-      INTEGER isel (CHEM_MAX_ATOM) 
 !                                                                       
       INTEGER iatom (0:maxatom, CHEM_MAX_CENT) 
       INTEGER natom (CHEM_MAX_CENT) 
@@ -3610,8 +3601,8 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER pneig (0:DEF_MAXSCAT, 0:DEF_MAXSCAT) 
       INTEGER pair11, pair12, pair21, pair22 
       INTEGER nneigh 
-      REAL prob11, prob12, prob22 
-      REAL thet 
+      REAL :: prob11=0.0, prob12, prob22 
+      REAL :: thet = 0.0
 !                                                                       
       REAL wi, wis 
 !                                                                       
@@ -3621,7 +3612,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !                                                                       
       INTEGER icc (3), jcc (3) 
       REAL idir (3), jdir (3), disi (3), disj (3) 
-      REAL rdi, rdj, dpi, dpj 
+      REAL :: rdi=1.0, rdj=1.0, dpi=1.0, dpj
       INTEGER xnn (0:maxscat, 0:maxscat) 
       REAL xij (0:maxscat, 0:maxscat) 
       REAL xi2 (0:maxscat, 0:maxscat) 
@@ -3828,7 +3819,7 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
             DO while (searching.and.k.le.mmc_n_angles) 
             k = k + 1 
             CALL index2angles (mmc_angles (k), iic, kk, iis, jjs, lls,  &
-            MMC_MAX_ANGLES, MAXSCAT)                                    
+            MAXSCAT)
             IF (iic.eq.ic) then 
                IF (iis.eq.is.or.iis.eq. - 1) then 
                   IF (jjs.eq. - 1.or.jjs.eq.min (js, ls) ) then 
@@ -4020,7 +4011,7 @@ angl_pair: IF (mmc_cor_energy (ic, MC_ANGLE) ) then
          je = MC_ANGLE 
          DO k = 1, mmc_n_angles 
          CALL index2angles (mmc_angles (k), iic, kk, iis, jjs, lls,     &
-         MMC_MAX_ANGLES, MAXSCAT)                                       
+         MAXSCAT)
          IF (ba_anz (k) .ne.0) then 
             mmc_ach_angl (k) = (ba_sum (k) ) / (ba_anz (k) ) 
             mmc_ang_sigm (k) = (ba_s2 (k) ) / (ba_anz (k) ) 
@@ -4279,7 +4270,7 @@ buck_pair: DO is = 0, cr_nscat
          DO i = 1, natoms 
          ntrial = mmc_l_extend (1) * mmc_l_extend (2) * mmc_l_extend (3)&
          * cr_ncatoms                                                   
-         nsel = ran1 (idum) * ntrial + 1 
+         nsel = int( ran1 (idum) * ntrial + 1 )
          CALL mmc_indextocell (nsel, icell, isite, mmc_l_extend) 
          DO j = 1, 3 
          icell (j) = icell (j) + mmc_l_center (j) - 1 
@@ -4289,8 +4280,8 @@ buck_pair: DO is = 0, cr_nscat
          ENDDO 
       ELSEIF (mmc_l_type.eq.MMC_L_ATOMS) then 
          DO i = 1, natoms 
-         isel (i) = mmc_l_lower + ran1 (idum) * (mmc_l_upper -          &
-         mmc_l_lower + 1)                                               
+         isel (i) = int( mmc_l_lower + ran1 (idum) * (mmc_l_upper -          &
+         mmc_l_lower + 1) )
          ENDDO 
       ENDIF 
 !                                                                       
@@ -4321,8 +4312,7 @@ buck_pair: DO is = 0, cr_nscat
 !                                                                       
       END SUBROUTINE mmc_indextocell                
 !*****7*****************************************************************
-      INTEGER function angles2index (ic, nr, is, js, ls, MMC_MAX_ANGLES,&
-      MAXSCAT)                                                          
+      INTEGER function angles2index (ic, nr, is, js, ls, MAXSCAT)
 !-                                                                      
 !     Calculates a unique number for the angle triplet                  
 !+                                                                      
@@ -4333,7 +4323,6 @@ buck_pair: DO is = 0, cr_nscat
       INTEGER is 
       INTEGER js 
       INTEGER ls 
-      INTEGER MMC_MAX_ANGLES 
       INTEGER MAXSCAT 
       INTEGER, PARAMETER :: X_ANGLES =  200  ! This needs work, may not be unique!
       INTEGER, PARAMETER :: X_SCAT   =   50  ! This needs work, may not be unique!
@@ -4349,8 +4338,7 @@ buck_pair: DO is = 0, cr_nscat
                      (is + 1) * na * na + (js + 1) * na + ls + 2      
       END FUNCTION angles2index                     
 !*****7*****************************************************************
-      SUBROUTINE index2angles (in, ic, nr, is, js, ls, MMC_MAX_ANGLES,  &
-      MAXSCAT)                                                          
+      SUBROUTINE index2angles (in, ic, nr, is, js, ls, MAXSCAT)
 !-                                                                      
 !     Calculates the correlation number, and the angle triplet from     
 !     a unique number that was determined by angles2index               
@@ -4366,7 +4354,6 @@ buck_pair: DO is = 0, cr_nscat
       INTEGER is 
       INTEGER js 
       INTEGER ls 
-      INTEGER MMC_MAX_ANGLES 
       INTEGER MAXSCAT 
 !                                                                       
       INTEGER i 

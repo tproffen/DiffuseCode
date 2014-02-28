@@ -545,7 +545,7 @@
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
       IF (ier_num.ne.0) return 
 !                                                                       
-      CALL oeffne (77, cpara (1) , 'unknown', .false.) 
+      CALL oeffne (77, cpara (1) , 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (output_io, 3000) cpara (1) (1:len_str (cpara (1) ) ) 
@@ -619,7 +619,7 @@
       filname = fname (ikfit) 
       filname = filname (1:len_str (filname) ) //'.erg' 
 !                                                                       
-      CALL oeffne (77, filname, 'unknown', .false.) 
+      CALL oeffne (77, filname, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       CALL do_fit_info (77, .true., .true., .true.) 
@@ -898,7 +898,7 @@
       INTEGER i, j 
       LOGICAL kor 
 !                                                                       
-      CALL oeffne (22, 'kupl.fit', 'unknown', .false.) 
+      CALL oeffne (22, 'kupl.fit', 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (22, 1000) ftyp, r4 * 100., re * 100. 
@@ -1467,7 +1467,7 @@
       INTEGER len_str 
       REAL sind 
 !                                                                       
-      CALL oeffne (12, iname, 'old', .true.) 
+      CALL oeffne (12, iname, 'old') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (key, 1000) itype 

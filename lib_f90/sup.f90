@@ -993,8 +993,7 @@ SUBROUTINE cmdline_args
                lappend = .false. 
             ENDIF 
             IF (lappend) then 
-               CALL oeffne_append (io_unit (ii) , cpara (1) , 'unknown',&
-               .false.)                                                 
+               CALL oeffne_append (io_unit (ii) , cpara (1) , 'unknown')
                IF (ier_num.ne.0) return 
 !DBG            open (unit=io_unit(ii),file=cpara(1),status='unknown',  
 !DBG     &                       access='append',err=999)               
@@ -1795,8 +1794,7 @@ SUBROUTINE cmdline_args
                         logfile = pname (1:len_str (pname) ) //'.log' 
                         INQUIRE (file = logfile, exist = llog) 
                         IF (llog) then 
-                           CALL oeffne_append (output_io, logfile,      &
-                           'old', .false.)                              
+                           CALL oeffne_append (output_io, logfile, 'old')
                            IF (ier_num.ne.0) return 
 !DBG                    open(unit=output_io,file=logfile,               
 !DBG     &                   status='old',access='append')              
@@ -1842,8 +1840,7 @@ SUBROUTINE cmdline_args
                         logfile = pname (1:len_str (pname) ) //'.log' 
                         INQUIRE (file = logfile, exist = llog) 
                         IF (llog) then 
-                           CALL oeffne_append (output_io, logfile,      &
-                           'old', .false.)                              
+                           CALL oeffne_append (output_io, logfile, 'old')
                            IF (ier_num.ne.0) return 
 !DBG                    open(unit=output_io,file=logfile,               
 !DBG     &                   status='old',access='append')              
@@ -2309,7 +2306,7 @@ SUBROUTINE cmdline_args
                ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) then 
                   var_type (i) = VAR_TYPE_CHAR 
                   var_val (i) = 0.0 
-                  var_char (i) = c_init 
+                  var_char (i) = c_init (1:len(var_char))
                ENDIF 
             ELSE 
                ier_num = - 23 
@@ -2439,15 +2436,13 @@ SUBROUTINE cmdline_args
 !                                                                       
       END SUBROUTINE validate_variable              
 !*****7**************************************************************** 
-      SUBROUTINE do_show_generic (ianz, cpara, lpara, maxw) 
+      SUBROUTINE do_show_generic (cpara, lpara, maxw) 
 !-                                                                      
 !     shows something related to the general command language           
 !+                                                                      
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-!                                                                       
-      INTEGER ianz 
       INTEGER maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 

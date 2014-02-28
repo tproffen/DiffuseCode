@@ -44,8 +44,6 @@
       LOGICAL            , INTENT(OUT)   :: lend
       INTEGER            , INTENT(INOUT) :: length 
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 1
-!                                                                       
       CHARACTER(1024) zeile 
       CHARACTER(5) befehl 
       INTEGER indxb, indxg, lcomm, lbef 

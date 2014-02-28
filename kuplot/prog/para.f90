@@ -1283,7 +1283,7 @@
       LOGICAL lho 
 !                                                                       
       lho = .false. 
-      CALL oeffne (ifil, 'kupl.par', 'unknown', .false.) 
+      CALL oeffne (ifil, 'kupl.par', 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (ifil, 1000) 

@@ -28,7 +28,7 @@ CONTAINS
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw), cc 
-      INTEGER lpara (maxw) 
+      INTEGER lpara (maxw) , ccl
       INTEGER ianz, iianz, jjanz, lp, i 
       INTEGER is1, is2, isite, itype 
       INTEGER ja, jsite, jcell (3) 
@@ -124,7 +124,7 @@ CONTAINS
                ENDIF
                IF (cr_nscat + 1.le.maxscat) then 
                   cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2) 
+                  cr_at_lis (cr_nscat) = cpara (2) (1:lpara(2))
 !DBG                cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
                   cr_dw (cr_nscat) = 0.05 
                   CALL no_error 
@@ -215,7 +215,7 @@ CONTAINS
                ENDIF
                IF (cr_nscat + 1.le.maxscat) then 
                   cr_nscat = cr_nscat + 1 
-                  cr_at_lis (cr_nscat) = cpara (2) 
+                  cr_at_lis (cr_nscat) = cpara (2)  (1:lpara(2))
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   cr_dw (cr_nscat) = werte (1) 
@@ -231,6 +231,7 @@ CONTAINS
 !     ------Atom name exists, but since DW was given check this         
 !                                                                       
                cc = cpara (2) 
+               ccl = lpara (2)
                CALL del_params (2, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                                                                         
@@ -251,7 +252,7 @@ CONTAINS
                   ENDIF
                   IF (cr_nscat + 1.le.maxscat) then 
                      cr_nscat = cr_nscat + 1 
-                     cr_at_lis (cr_nscat) = cc 
+                     cr_at_lis (cr_nscat) = cc(1:ccl)
                      cr_dw (cr_nscat) = werte (1) 
                      is1 = cr_nscat 
                      CALL no_error 
@@ -418,7 +419,7 @@ CONTAINS
          IF (ier_num.eq.0) then 
             i = ichar (cpara (1) (1:1) ) 
             IF ( (a.le.i.and.i.le.z) .or. (aa.le.i.and.i.le.zz) ) then 
-               name = cpara (1) 
+               name = cpara (1) (1:lpara(1))
                j = 2 
             ELSE 
                j = 1 
@@ -436,7 +437,7 @@ CONTAINS
             IF (ier_num.ne.0) return 
             ENDDO 
             IF (ianz.ge.4) then 
-               CALL do_ins_atom (name, werte, ianz) 
+               CALL do_ins_atom (name, werte) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -523,7 +524,7 @@ CONTAINS
                i = ichar (cpara (1) (1:1) ) 
                IF ( (a.le.i.and.i.le.z) .or. (aa.le.i.and.i.le.zz) )    &
                then                                                     
-                  name = cpara (1) 
+                  name = cpara (1)(1:lpara(1))
                   j = 2 
                ELSE 
                   j = 1 
@@ -599,7 +600,7 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte, ianz) 
+                     CALL do_ins_atom (name, werte) 
                   ELSE 
 !                                                                       
 !     ----------Interpret parameters 8,9,10 as direct lattice units     
@@ -637,13 +638,13 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte, ianz) 
+                     CALL do_ins_atom (name, werte) 
                   ENDIF 
                ELSEIF (cr_natoms.eq.0) then 
 !                                                                       
 !     --------The crystal is empty. Insert atom in any case             
 !                                                                       
-                  CALL do_ins_atom (name, werte, ianz) 
+                  CALL do_ins_atom (name, werte) 
                ELSE 
 !                                                                       
 !     --------Wrong range of atoms to compare to the new one            
@@ -666,7 +667,7 @@ CONTAINS
    10 CONTINUE 
       END SUBROUTINE do_app                         
 !****7******************************************************************
-      SUBROUTINE do_ins_atom (name, werte, ianz) 
+      SUBROUTINE do_ins_atom (name, werte) 
 !-                                                                      
 !     Inserts the atom given by name and position in werte into the     
 !     structure.                                                        
@@ -683,7 +684,6 @@ CONTAINS
 !                                                                       
       CHARACTER (LEN=* )    , INTENT(IN) :: name 
       REAL , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
-      INTEGER               , INTENT(IN) :: ianz 
 !
       INTEGER                :: i, l
       INTEGER                :: new_nmax   = 1
@@ -900,11 +900,11 @@ CONTAINS
 !     --------Set limits for types that can be removed                  
 !                                                                       
                   IF (ianz.eq.5) then 
-                     tstart = werte (5) 
-                     tend = werte (5) 
+                     tstart = int( werte (5) )
+                     tend = int (werte (5) )
                   ELSEIF (ianz.eq.6) then 
-                     tstart = werte (5) 
-                     tend = werte (6) 
+                     tstart = int( werte (5) )
+                     tend = int( werte (6) )
                   ENDIF 
       IF (0.lt.tstart.and.tstart.le.tend.and.tend.le.mole_num_type) then 
 !                                                                       
@@ -1452,9 +1452,8 @@ CONTAINS
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   ENDIF 
                   IF (ier_num.eq.0) then 
-                     CALL do_find_mol (ianz, werte, maxw, x, rmin,      &
-                     radius, fq, fp)                                    
-                  ENDIF 
+                     CALL do_find_mol (ianz, werte, maxw, x, rmin, radius)
+                  ENDIF
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1786,7 +1785,7 @@ CONTAINS
       END SUBROUTINE atom_select                    
 !*****7*****************************************************************
       SUBROUTINE mole_select (zeile, lp, lu, lo, latom, &
-                              sel_atom, lold, lselect,  &
+                              sel_atom, lselect,  &
                               ival, repl)                             
 !+                                                                      
 !     This routine exectues the select command                          
@@ -1803,7 +1802,6 @@ CONTAINS
       INTEGER,                   INTENT(IN)    :: lo
       LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
       LOGICAL,                   INTENT(INOUT) :: sel_atom
-      LOGICAL,                   INTENT(IN)    :: lold
       LOGICAL,                   INTENT(IN)    :: lselect 
       INTEGER,                   OPTIONAL,  INTENT(IN)    :: ival
       INTEGER, DIMENSION(lu:lo), OPTIONAL,  INTENT(OUT)   :: repl (lu:lo)
@@ -1959,7 +1957,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE property_set                   
 !*****7*****************************************************************
-      SUBROUTINE do_find_mol (ianz, werte, maxw, x, rmin, rmax, fq, fp) 
+      SUBROUTINE do_find_mol (ianz, werte, maxw, x, rmin, rmax) 
 !                                                                       
 !     This routine finds all molecules around x with a minimal          
 !     distance of rmin and a maximum distance of rmax.                  
@@ -1978,7 +1976,6 @@ CONTAINS
       REAL werte (maxw) 
       REAL x (3) 
       REAL rmin, rmax 
-      LOGICAL fq, fp (3) 
 !                                                                       
       INTEGER i, j 
 !                                                                       
@@ -2589,9 +2586,6 @@ CONTAINS
        
 !                                                                       
       INTEGER maxw 
-      LOGICAL lnew, lold 
-!                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -2783,8 +2777,8 @@ CONTAINS
       INTEGER laenge 
       INTEGER i 
       LOGICAL lold 
-      LOGICAL linternal 
-      LOGICAL lexternal 
+      LOGICAL :: linternal = .true.
+      LOGICAL :: lexternal = .false.
       REAL distance 
 !                                                                       
       LOGICAL str_comp 
@@ -2977,9 +2971,6 @@ CONTAINS
        
 !                                                                       
       INTEGER maxw 
-      LOGICAL lnew, lold 
-!                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -3141,7 +3132,7 @@ CONTAINS
       REAL               , DIMENSION(MAXW) :: werte
       INTEGER                              :: ianz
       INTEGER                              :: i,is
-      INTEGER                              :: ibit_nr
+      INTEGER                              :: ibit_nr = PROP_NORMAL
       INTEGER                              :: sel_mode
       INTEGER                              :: istart, iend
       LOGICAL, DIMENSION(:), ALLOCATABLE   :: latom

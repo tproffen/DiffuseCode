@@ -33,6 +33,7 @@ CONTAINS
       REAL werte (maxw) 
 !                                                                       
 !                                                                       
+      lcont = .false.
       ier_num = 0 
       ier_typ = ER_NONE 
       line_no = 0 
@@ -110,7 +111,7 @@ CONTAINS
          ENDIF 
          stat = 'unknown' 
          lread = .false. 
-         CALL oeffne (if1, datei, stat, lread) 
+         CALL oeffne (if1, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -118,13 +119,13 @@ CONTAINS
          datei = ccpara (2) 
          stat = 'old' 
          lread = .true. 
-         CALL oeffne (if2, datei, stat, lread) 
+         CALL oeffne (if2, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
 !                                                                       
          datei = ccpara (4) 
-         CALL oeffne (if3, datei, stat, lread) 
+         CALL oeffne (if3, datei, stat) 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 
@@ -133,7 +134,7 @@ CONTAINS
 !       presence or absence of file type specifier                      
 !                                                                       
          IF (ianz.eq.2) then 
-            ftyp = cpara (2) 
+            ftyp = cpara (2) (1:lpara(2))
             laenge = lpara (2) 
             CALL rem_bl (ftyp, laenge) 
          ELSE 
@@ -163,7 +164,7 @@ CONTAINS
                   ier_typ = ER_IO 
                   READ (if2, *, err = 900) (dsi (j), j = 1, nx (1) ) 
                   DO j = 1, nx (1) 
-                  tcsf (j) = cmplx (dble (dsi (j) ), 0.0d0) 
+                  tcsf (j) = cmplx ( dsi (j), 0.0) 
                   ENDDO 
                   READ (if3, *, err = 900) (dsi (j), j = 1, nx (1) ) 
                   ier_num = 0 

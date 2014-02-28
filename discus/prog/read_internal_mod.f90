@@ -119,7 +119,7 @@ CONTAINS
    CALL read_temp%crystal%get_header_from_crystal()
    CALL read_temp%crystal%get_atoms_from_crystal()
    CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
-              mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
+              mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_fuzzy, mole_cont)
 !
@@ -341,10 +341,9 @@ do_scat_dw: DO k = 1,cr_nscat
 !
    END SUBROUTINE readcell_internal
 !*******************************************************************************
-   SUBROUTINE stru_readheader_internal (rd_strucfile,rd_NMAX, rd_MAXSCAT, rd_lcell, rd_cr_name,   &
+   SUBROUTINE stru_readheader_internal (rd_strucfile, rd_MAXSCAT, rd_cr_name,   &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,        &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para,   &
-            rd_spcgr_no, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
@@ -353,10 +352,8 @@ do_scat_dw: DO k = 1,cr_nscat
    IMPLICIT NONE
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: rd_strucfile 
-   INTEGER                                      , INTENT(INOUT) :: rd_NMAX 
    INTEGER                                      , INTENT(INOUT) :: rd_MAXSCAT 
 !
-   LOGICAL                                      , INTENT(IN)    :: rd_lcell
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
@@ -369,7 +366,6 @@ do_scat_dw: DO k = 1,cr_nscat
    INTEGER                                      , INTENT(INOUT) :: rd_sav_ncatoms 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_ianz 
    INTEGER                                      , INTENT(INOUT) :: rd_spcgr_para 
-   INTEGER                                      , INTENT(INOUT) :: rd_spcgr_no 
 !
    INTEGER             ::  rd_GEN_ADD_MAX
    INTEGER             ::  rd_gen_add_n
@@ -397,9 +393,9 @@ do_scat_dw: DO k = 1,cr_nscat
       RETURN
    ENDIF
 !
-   CALL read_temp%crystal%get_header_to_local (rd_NMAX, rd_MAXSCAT, rd_lcell, rd_cr_name,      &
+   CALL read_temp%crystal%get_header_to_local (rd_MAXSCAT, rd_cr_name,      &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,      &
-            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_no, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
@@ -411,7 +407,7 @@ do_scat_dw: DO k = 1,cr_nscat
 !  
    END SUBROUTINE stru_readheader_internal
 !*******************************************************************************
-   SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, RD_MAXSCAT, &
+   SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
               rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop )
 !
 !  This subroutine adds all atoms from the internal storage to the local
@@ -422,7 +418,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: strucfile 
    INTEGER                                      , INTENT(IN   ) :: rd_NMAX 
-   INTEGER                                      , INTENT(IN   ) :: rd_MAXSCAT 
    INTEGER                                      , INTENT(INOUT) :: rd_cr_natoms
    REAL                , DIMENSION(3,1:RD_NMAX) , INTENT(INOUT) :: rd_cr_pos
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
@@ -524,7 +519,7 @@ do_scat_dw: DO k = 1,cr_nscat
    END SUBROUTINE struc_read_one_atom_internal
 !*******************************************************************************
    SUBROUTINE stru_internal_molecules(strucfile, MOLE_MAX_MOLE,           &
-              MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
+              MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_fuzzy, mole_cont)
 !
@@ -539,7 +534,6 @@ do_scat_dw: DO k = 1,cr_nscat
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
    INTEGER,                                       INTENT(IN ) :: mole_max_mole
-   INTEGER,                                       INTENT(IN ) :: mole_max_type
    INTEGER,                                       INTENT(IN ) :: mole_max_atom
    INTEGER,                                       INTENT(OUT) :: mole_num_mole
    INTEGER,                                       INTENT(OUT) :: mole_num_type
@@ -573,7 +567,7 @@ do_scat_dw: DO k = 1,cr_nscat
 !  Now copy from crystal to local variables
 !
    CALL read_temp%crystal%get_molecules_from_crystal(MOLE_MAX_MOLE,       &
-              MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
+              MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_fuzzy, mole_cont)
 !

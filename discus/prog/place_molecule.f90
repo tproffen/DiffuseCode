@@ -23,8 +23,6 @@ CONTAINS
    IMPLICIT none
 !
 !
-   INTEGER, PARAMETER   :: MAXW = 9
-!
 !  CHARACTER (LEN=*)   :: line
    CHARACTER (LEN=5)                       :: befehl! command on input line
    CHARACTER (LEN=50)                      :: prom  ! Menu prompt
@@ -226,7 +224,7 @@ CONTAINS
          dc_def_temp => dc_def_head
          lnew          = .true.
          CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,ier_typ)
-!         CALL dc_set_connection(dc_def_temp, ianz, cpara, lpara)
+!         CALL dc_set_connection()
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
@@ -411,7 +409,7 @@ write(*,*) ' STARTING MAIN LOOP', istart, iend
 !write(*,*) ' Central : ',ia, cr_iscat(ia),cr_pos(:,ia), cr_prop(ia)
         is   = cr_iscat(ia)                  ! get scattering type central
         idef = dc_use_conn(is)               ! use this connectivity list for surface
-        CALL get_connectivity_list (ia, is, idef, maxw, c_list, natoms )
+        CALL get_connectivity_list (ia, idef, maxw, c_list, natoms )
      ENDIF is_sel ! END IF BLOCK is selected
    ENDDO main_loop   ! END DO main loop over all atoms
 write(*,*) 'CLEANING UP'
@@ -455,8 +453,7 @@ write(*,*) 'CLEANING UP'
 write(*,*) ' STRUCFILE ',strufile
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
-      CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, &
-                     n_type, n_atom)
+      CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
 !      CALL read_crystal ( dc_molecules(i), strufile )
       m_length(i) = natoms
       m_ntypes(i) = ntypes
@@ -485,7 +482,7 @@ write(*,*) ' STRUCFILE ',strufile
 !
    dc_init        = .true.    ! We need to initialize
    dc_n_molecules = 0         ! There are no molecules
-   CALL dc_reset_def ( dc_def_head ,ier_num)
+   CALL dc_reset_def ( dc_def_head)
 !
    END SUBROUTINE deco_reset
 !

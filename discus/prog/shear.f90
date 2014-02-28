@@ -39,9 +39,9 @@ CONTAINS
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 29  ! A command requires at leaset these no of parameters
       INTEGER maxw 
-      LOGICAL lnew, lold 
+      LOGICAL lold 
 !                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
+      PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
@@ -401,7 +401,7 @@ CONTAINS
                         lpara (1) , 6) .or.str_comp (cpara (1) ,        &
                         'deselect', 2, lpara (1) , 8)                   
                         CALL mole_select (line, lp, 0, SHEAR_MAXSCAT,   &
-                        shear_latom, shear_sel_atom, lold, lselect)
+                        shear_latom, shear_sel_atom, lselect)
                         shear_mode = SHEAR_DOMAIN 
 !                                                                       
                      ELSEIF (str_comp (cpara (1) , 'include', 3, lpara (&
@@ -450,7 +450,7 @@ CONTAINS
                   lselect = str_comp (befehl, 'msel', 2, lbef, 4)       &
                   .or.str_comp (befehl, 'osel', 2, lbef, 4)             
                   CALL mole_select (zeile, lp, 0, SHEAR_MAXSCAT,        &
-                       shear_latom, shear_sel_atom, lold, lselect)
+                       shear_latom, shear_sel_atom, lselect)
                   IF (str_comp (befehl, 'msel', 3, lbef, 5)             &
                   .or.str_comp (befehl, 'mdes', 3, lbef, 5) ) then      
                      shear_mode = SHEAR_MOLECULE 
@@ -1076,7 +1076,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t = 1
       REAL ushear (4), ures (4) 
       REAL werte (5), use_orig (3) 
       REAL diff (3) 
@@ -1245,7 +1245,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l, i0 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t = 1
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 
@@ -1409,7 +1409,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, ii, l, i0, m 
       INTEGER i_start, i_end 
-      INTEGER imole_t 
+      INTEGER :: imole_t=1
       REAL diff (3) 
       REAL ushear (4), ures (4) 
       REAL werte (5) 

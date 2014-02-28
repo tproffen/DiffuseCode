@@ -17,10 +17,6 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       INTEGER i, j 
       LOGICAL lspace 

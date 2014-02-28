@@ -120,7 +120,7 @@ SUBROUTINE chem
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL do_build_name (ianz, cpara, lpara,      &
                            wwwerte, maxw, 1)                            
-                           chem_fname = cpara (1) 
+                           chem_fname = cpara (1) (1:lpara(1))
                            IF (ier_num.eq.0) then 
                               CALL chem_bang (iianz, jjanz, kkanz,      &
                               werte, wwerte, uwerte, maxw)              
@@ -159,7 +159,7 @@ SUBROUTINE chem
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL do_build_name (ianz, cpara, lpara,      &
                            wwwerte, maxw, 1)                            
-                           chem_fname = cpara (1) 
+                           chem_fname = cpara (1) (1:lpara(1))
                         ELSE 
                            chem_fname = 'discus.blen' 
                         ENDIF 
@@ -260,7 +260,7 @@ SUBROUTINE chem
                      lbeg (3) = 0 
 !                                                                       
                      IF (chem_sel_atom) then 
-                        CALL chem_corr_occ (ianz, cpara, lpara, maxw,   &
+                        CALL chem_corr_occ (cpara, lpara, maxw,   &
                         .true., lbeg)                                   
                      ELSE 
                         CALL chem_corr_occ_mol (ianz, cpara, lpara,     &
@@ -930,11 +930,11 @@ IF (ianz.eq.6) then
          ier_num = - 10 
          ier_typ = ER_CHEM 
       ELSE 
-         chem_cvec (1, iv) = werte (2) 
-         chem_cvec (2, iv) = werte (3) 
-         chem_cvec (3, iv) = werte (4) 
-         chem_cvec (4, iv) = werte (5) 
-         chem_cvec (5, iv) = werte (6) 
+         chem_cvec (1, iv) = int( werte (2) )
+         chem_cvec (2, iv) = int( werte (3) )
+         chem_cvec (3, iv) = int( werte (4) )
+         chem_cvec (4, iv) = int( werte (5) )
+         chem_cvec (5, iv) = int( werte (6) )
       ENDIF 
    ENDIF 
 ELSE 
@@ -1358,15 +1358,15 @@ IF (ianz.eq.10) then
          ier_num = - 10 
          ier_typ = ER_CHEM 
       ELSE 
-         chem_cwin (1, iv) = werte (2) 
-         chem_cwin (2, iv) = werte (3) 
-         chem_cwin (3, iv) = werte (4) 
-         chem_cwin (4, iv) = werte (5) 
-         chem_cwin (5, iv) = werte (6) 
-         chem_cwin (6, iv) = werte (7) 
-         chem_cwin (7, iv) = werte (8) 
-         chem_cwin (8, iv) = werte (9) 
-         chem_cwin (9, iv) = werte (10) 
+         chem_cwin (1, iv) = int( werte (2) )
+         chem_cwin (2, iv) = int( werte (3) )
+         chem_cwin (3, iv) = int( werte (4) )
+         chem_cwin (4, iv) = int( werte (5) )
+         chem_cwin (5, iv) = int( werte (6) )
+         chem_cwin (6, iv) = int( werte (7) )
+         chem_cwin (7, iv) = int( werte (8) )
+         chem_cwin (8, iv) = int( werte (9) )
+         chem_cwin (9, iv) = int( werte (10) )
       ENDIF 
    ENDIF 
 ELSE 
@@ -2454,7 +2454,7 @@ ENDIF
 !                                                                       
       WRITE (output_io, 1000) fname (1:len_str (fname) ) 
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne(37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
       WRITE (37, 2000) float (i - 1) / float (chem_bin - 1), chem_hist (&
@@ -2548,7 +2548,7 @@ ENDIF
       IF (locc) then 
          l = 2 
          IF (chem_sel_atom) then 
-            CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+            CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
          ELSE 
             CALL chem_corr_occ_mol (l, catom, latom, 2, .false., lbeg) 
          ENDIF 
@@ -2579,7 +2579,7 @@ ENDIF
 !                                                                       
       WRITE (output_io, 1000) fname (1:len_str (fname) ) 
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne (37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
       WRITE (37, 2000) (2. * float (i - 1) / float (chem_bin - 1) )     &
@@ -2628,6 +2628,7 @@ ENDIF
       INTEGER cr_end 
       INTEGER lbeg (3), iz (3), izmin, izmax 
       INTEGER ia, is, i 
+      chem_inlot = .false.
 !                                                                       
       cr_end = cr_ncatoms * cr_icc (1) * cr_icc (2) * cr_icc (3)        &
       + 1                                                               
@@ -2793,7 +2794,7 @@ ENDIF
 !------ Here starts the calculation of the correlation field            
 !-------------------------------------------------------------------    
 !                                                                       
-      CALL oeffne (37, fname, 'unknown', .false.) 
+      CALL oeffne (37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       WRITE (output_io, 1000) fname (1:lname), catom (1) (1:latom (1) ),&
       catom (2) (1:latom (2) )                                          
@@ -2817,7 +2818,7 @@ ENDIF
          IF (locc) then 
             l = 2 
             IF (chem_sel_atom) then 
-               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+               CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
             ELSE 
                CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
                lbeg)                                                    
@@ -2854,7 +2855,7 @@ ENDIF
          IF (locc) then 
             l = 2 
             IF (chem_sel_atom) then 
-               CALL chem_corr_occ (l, catom, latom, 2, .false., lbeg) 
+               CALL chem_corr_occ (catom, latom, 2, .false., lbeg) 
             ELSE 
                CALL chem_corr_occ_mol (l, catom, latom, 2, .false.,     &
                lbeg)                                                    
@@ -3073,7 +3074,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
          (1:lpara (2) )                                                 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, fname, 'unknown', .false.) 
+            CALL oeffne (37, fname, 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3226,7 +3227,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
          (1:lpara (2) )                                                 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (3) , 'unknown')
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3418,7 +3419,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !        WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
 !        (1:lpara (2) )                                                 
 !        IF (ianz.gt.2) then 
-!           CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+!           CALL oeffne (37, cpara (3) , 'unknown') 
 !        ENDIF 
 !     ENDIF 
 !                                                                       
@@ -3627,7 +3628,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       IF (lout) then 
          WRITE (output_io, 1000) it1, it2 
          IF (ianz.gt.2) then 
-            CALL oeffne (37, cpara (3) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (3) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3790,7 +3791,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
          name_3 (1:lname_3)                                             
          IF (ianz.gt.1) then 
-            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (2) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -3977,7 +3978,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          WRITE (output_io, 1000) name_1 (1:lname_1), name_2 (1:lname_2),&
          name_3 (1:lname_3)                                             
          IF (ianz.gt.1) then 
-            CALL oeffne (37, cpara (2) , 'unknown', .false.) 
+            CALL oeffne (37, cpara (2) , 'unknown') 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -4500,7 +4501,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       END SUBROUTINE chem_corr_dis_mol              
 !*****7*****************************************************************
-      SUBROUTINE chem_corr_occ (ianz, cpara, lpara, maxw, lout, lbeg) 
+      SUBROUTINE chem_corr_occ (cpara, lpara, maxw, lout, lbeg) 
 !+                                                                      
 !     Calculates occupational correlations within the crystal           
 !       according to: cij = (Pij-T**2)/T(1-T).                          
@@ -4523,7 +4524,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
-      INTEGER ianz, maxw 
+      INTEGER maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw), lbeg (3) 
       LOGICAL lout 
@@ -5416,7 +5417,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
-               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, natoms )
+               CALL get_connectivity_list ( jatom, ino, maxw, c_list, natoms )
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)

@@ -39,7 +39,7 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(5) befehl 
       CHARACTER(1) cdum 
-      REAL size, rr, rg, rb 
+      REAL :: size, rr=0.0, rg=0.0, rb=0.0
       INTEGER lp, length 
       INTEGER ianz, i, j, is, it, ic, lbef 
       INTEGER indxg 
@@ -132,7 +132,7 @@ CONTAINS
                         IF (cpara (1) .eq.'xyz'.or.cpara (1).eq.'yzx'.or. &
                             cpara (1) .eq.'zxy'.or.cpara (1).eq.'xzy'.or. &
                             cpara (1) .eq.'zyx'.or.cpara (1).eq.'yxz') then
-                           pl_col = cpara (1) 
+                           pl_col = cpara (1)(1:lpara(1))
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -182,8 +182,7 @@ CONTAINS
                        str_comp (befehl, 'mdes', 2, lbef, 4) ) then
 !                   
                   CALL mole_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
-                  pl_sel_atom, lold,        &
-                  str_comp (befehl, 'msel', 2, lbef, 4) )               
+                  pl_sel_atom, str_comp (befehl, 'msel', 2, lbef, 4) )
 !                                                                       
 !------ --Handle property settings 'property'                           
 !                                                                       
@@ -359,7 +358,7 @@ CONTAINS
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      IF (ier_num.eq.0) then 
-                        pl_out = cpara (1) 
+                        pl_out = cpara (1) (1:lpara(1))
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -541,7 +540,7 @@ CONTAINS
                   IF (ier_num.eq.0) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      IF (ier_num.eq.0) then 
-                        pl_title = cpara (1) 
+                        pl_title = cpara (1) (1:lpara(1))
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -859,7 +858,7 @@ CONTAINS
 !                                                                       
       IF (pl_prog.ne.'frames'.or..not.pl_append) then 
          lread = .false. 
-         CALL oeffne (iff, pl_out, 'unknown', lread) 
+         CALL oeffne (iff, pl_out, 'unknown') 
       ELSEIF (pl_prog.eq.'frames'.and.pl_append) then 
          INQUIRE (file = pl_out, exist = lexist) 
          IF (lexist) then 
@@ -871,7 +870,7 @@ CONTAINS
 !DBG     &               err=999)                                       
             ier_num = 0 
          ELSE 
-            CALL oeffne (iff, pl_out, 'new', lread) 
+            CALL oeffne (iff, pl_out, 'new') 
          ENDIF 
       ENDIF 
       IF (ier_num.ne.0) return 
@@ -990,10 +989,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1102,10 +1097,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       REAL d, dist, fac 
       REAL v (3) 
@@ -1229,7 +1220,6 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER   :: idim = 3 
       REAL   , PARAMETER   :: eightpisq = 8.*3.14159265
 !                                                                       
        
@@ -1655,10 +1645,6 @@ CONTAINS
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 
@@ -1862,10 +1848,6 @@ CONTAINS
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       INTEGER i, j, iff 
       LOGICAL latom, lspace 
@@ -1954,10 +1936,6 @@ CONTAINS
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER idim 
-      PARAMETER (idim = 3) 
-!                                                                       
-       
 !                                                                       
       CHARACTER(1024) zeile 
       INTEGER laenge 

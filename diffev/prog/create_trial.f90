@@ -314,7 +314,6 @@ INTEGER, PARAMETER             :: iwr = 7
 INTEGER,           INTENT(IN)  :: jt 
 !
 CHARACTER (LEN=7)              :: stat  = 'unknown'
-LOGICAL                        :: lread = .false.
 !                                                                       
 INTEGER                        :: i
 INTEGER                        :: len_file 
@@ -322,7 +321,7 @@ INTEGER                        :: len_file
 len_file = pop_ltrialfile 
 CALL make_file (pop_trialfile, len_file, 4, jt) 
 CALL do_del_file (pop_trialfile) 
-CALL oeffne (iwr, pop_trialfile, stat, lread) 
+CALL oeffne (iwr, pop_trialfile, stat) 
 !                                                                       
 WRITE (iwr, 2000) pop_gen, pop_n, pop_c, pop_dimx 
 WRITE (iwr, 2100) jt 
@@ -348,10 +347,9 @@ IMPLICIT none
 INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'unknown'
-LOGICAL             :: lread = .false.
 !                                                                       
 CALL do_del_file (pop_genfile) 
-CALL oeffne (iwr, pop_genfile, stat, lread) 
+CALL oeffne (iwr, pop_genfile, stat) 
 WRITE (iwr, 1000) pop_gen, pop_n, pop_c, pop_dimx 
 WRITE (iwr, 1100) pop_trialfile (1:pop_ltrialfile) 
 WRITE (iwr, 1200) trial_results (1:ltrial_results) 
@@ -379,10 +377,9 @@ INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'old'
 INTEGER             :: io_status
-LOGICAL             :: lread = .false.
 REAL                :: r1, r2, r3, r4 
 !                                                                       
-CALL oeffne (iwr, pop_genfile, stat, lread) 
+CALL oeffne (iwr, pop_genfile, stat) 
 IF ( ier_num/=0) THEN
    ier_msg(1) = 'Could not open the GENERATION file'
    CLOSE ( iwr)

@@ -223,7 +223,7 @@ SUBROUTINE pdf
                  str_comp (befehl, 'mdes', 2, lbef, 4) ) then                             
 !                                                                       
             CALL mole_select (zeile, lp, 0, MAXSCAT, rmc_allowed, &
-            rmc_sel_atom, .false., str_comp (  &
+            rmc_sel_atom, str_comp (  &
             befehl, 'msel', 2, lbef, 4) )                               
 !                                                                       
 !------ no command found                                                
@@ -337,7 +337,7 @@ SUBROUTINE pdf
 !                                                                       
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
-      CALL dlink (pdf_lxray, ano, lambda, rlambda,  pdf_radiation, &
+      CALL dlink (ano, lambda, rlambda,  pdf_radiation, &
                   pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 
@@ -679,7 +679,7 @@ SUBROUTINE pdf
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) (1:lpara (1) ) 
             cdummy = cpara (1) (1:lpara (1) ) 
-            CALL oeffne (57, cdummy, 'unknown', .false.) 
+            CALL oeffne (57, cdummy, 'unknown') 
             IF (ier_num.eq.0) then 
                nmi = nint (pdf_rfmin / pdf_deltar) 
                nma = nint (pdf_rfmax / pdf_deltar) 
@@ -701,7 +701,7 @@ SUBROUTINE pdf
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                WRITE (output_io, 1508) cpara (1) (1:lpara (1) ) 
                cdummy = cpara (1) (1:lpara (1) ) 
-               CALL oeffne (57, cdummy, 'unknown', .false.) 
+               CALL oeffne (57, cdummy, 'unknown') 
                IF (ier_num.eq.0) then 
                   nmi = int (pdf_rfmin / pdf_deltar) 
                   nma = int (pdf_rfmax / pdf_deltar) 
@@ -770,7 +770,7 @@ SUBROUTINE pdf
 !------ Read observed PDF for given plane                               
 !                                                                       
       IF (ianz.eq.1) then 
-         CALL oeffne (17, datafile, 'old', .false.) 
+         CALL oeffne (17, datafile, 'old') 
          IF (ier_num.ne.0) return 
          CALL extract_hist (17) 
          CALL skip_spec (17) 
@@ -1375,10 +1375,10 @@ SUBROUTINE pdf
       IMPLICIT none 
        
 !                                                                       
-      REAL(dp) cc, c, ce, e, ee, wtot 
+      REAL(dp) cc, c, ce, e, ee, wtot, cold, cnew
 !     REAL pdf_old (MAXDAT) 
-      REAL, DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
-      REAL cnew, cold, sig2, sum 
+      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+      REAL sig2, sum 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL start, zeit, seknds 
       REAL p_new (3, rmc_max_atom) 
@@ -1434,13 +1434,13 @@ SUBROUTINE pdf
 !                                                                       
       CALL pdf_determine (.false.) 
 !                                                                       
-      cold = 0.0 
-      wtot = 0.0 
-      e = 0.0 
-      ee = 0.0 
-      c = 0.0 
-      cc = 0.0 
-      ce = 0.0 
+      cold = 0.0d0
+      wtot = 0.0d0
+      e = 0.0d0
+      ee = 0.0d0
+      c = 0.0d0
+      cc = 0.0d0
+      ce = 0.0d0
 !                                                                       
       DO ip = nmi, nma 
       wtot = wtot + pdf_wic (ip) 
@@ -1513,7 +1513,7 @@ SUBROUTINE pdf
          CALL pdf_convert 
 !                                                                       
          itry = itry + 1 
-         cnew = 0.0 
+         cnew = 0.0d0
          c = 0.0 
          cc = 0.0 
          ce = 0.0 
@@ -1533,7 +1533,7 @@ SUBROUTINE pdf
 !                                                                       
 !     ----Accept move ?                                                 
 !                                                                       
-         prob = cnew - cold 
+         prob = real( cnew - cold )
 !                                                                       
          IF (prob.lt.0) then 
             laccept = .true. 
@@ -1601,13 +1601,13 @@ SUBROUTINE pdf
       zs = int (zeit - zh * 3600 - zm * 60.) 
       WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
 !                                                                       
-      rmc_skal (1) = 1.0 / pdf_skal 
+      rmc_skal (1) = real(1.0d0 / pdf_skal )
 !                                                                       
 !------ save some results to res[i] blo                                 
 !                                                                       
       res_para (0) = 8 
 !                                                                       
-      res_para (1) = cold 
+      res_para (1) = real(cold)
       res_para (2) = float (itry) 
       res_para (3) = float (iacc_good) 
       res_para (4) = float (iacc_bad) 
@@ -1785,9 +1785,10 @@ SUBROUTINE pdf
 !                                                                       
       INTEGER i, k, ncc 
 !     REAL ppp (MAXDAT) 
-      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
+      REAL(dp), DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
-      REAL rr 
+      REAL rr
+      rr = 0.0
 !                                                                       
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 

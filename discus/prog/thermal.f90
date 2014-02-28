@@ -38,6 +38,8 @@ CONTAINS
       REAL pi2, bfac, a 
       REAL gasdev 
       LOGICAL flag_all, flag_mol 
+      flag_all=.true.
+      flag_mol=.false.
 !                                                                       
 !------ get parameters                                                  
 !                                                                       

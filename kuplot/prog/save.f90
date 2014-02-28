@@ -89,7 +89,7 @@
       LOGICAL k_in_f 
       INTEGER len_str 
 !                                                                       
-      CALL oeffne (ifil, filname, 'unknown', .false.) 
+      CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       DO ikurv = 1, iz - 1 
@@ -126,7 +126,7 @@
       LOGICAL k_in_f 
       INTEGER len_str 
 !                                                                       
-      CALL oeffne (ifil, filname, 'unknown', .false.) 
+      CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
       WRITE (ifil, 1000) path (1:len_str (path) ) 
@@ -796,7 +796,7 @@
 !                                                                       
       INTEGER len_str 
 !                                                                       
-      CALL oeffne (isa, filname, 'unknown', .false.) 
+      CALL oeffne (isa, filname, 'unknown') 
       IF (ier_num.ne.0) return 
 !                                                                       
 !-------xy-kurve abspeichern                                            

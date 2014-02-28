@@ -40,7 +40,7 @@ IF (ianz.eq.1) then
 !                                                                       
 !     -- try generic show commands                                      
 !                                                                       
-      CALL do_show_generic (ianz, cpara, lpara, maxw) 
+      CALL do_show_generic (cpara, lpara, maxw) 
    ENDIF
 ELSE 
    ier_num = - 6 

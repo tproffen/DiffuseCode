@@ -33,9 +33,9 @@ CONTAINS
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
-      REAL ttheta, lp 
+      REAL :: ttheta, lp=1.0
       REAL ss, st 
-      REAL q, stl, dstar 
+      REAL :: q=0.0, stl=0.0, dstar=0.0
       REAL xmin, xmax, xdel , xpos
       REAL      :: xequ    ! x-position of equdistant curve
       REAL      :: yequ    ! y-value    of equdistant curve
@@ -122,7 +122,7 @@ CONTAINS
          IF (pow_profile.eq.POW_PROFILE_GAUSS) then 
             IF (pow_delta.gt.0.0) then 
                CALL powder_conv_res (pow_tmp, xmin, xmax, xdel,         &
-               pow_delta, pow_width, POW_MAXPKT)                                    
+               pow_delta, POW_MAXPKT)                                    
             ENDIF 
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) then 
            IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
@@ -132,12 +132,10 @@ CONTAINS
 !DBG     &                pow_axis.eq.POW_AXIS_Q                 ) then 
                CALL powder_conv_psvgt_uvw (pow_tmp, xmin, xmax, xdel,   &
                pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-               pow_p3, pow_p4, pow_width, rlambda, pow_axis, POW_AXIS_Q,&
-               POW_MAXPKT)
+               pow_p3, pow_p4, pow_width, POW_MAXPKT)
             ELSE 
                CALL powder_conv_psvgt_fix (pow_tmp, xmin, xmax, xdel,   &
-               pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-               pow_p3, pow_p4, pow_width, POW_MAXPKT)                               
+               pow_eta, pow_w, pow_width, POW_MAXPKT)
             ENDIF 
          ENDIF 
 !                                                                       
@@ -209,7 +207,7 @@ CONTAINS
          ENDIF 
       ENDIF 
 !
-      CALL oeffne (iff, outfile, 'unknown', lread) 
+      CALL oeffne (iff, outfile, 'unknown') 
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
@@ -308,6 +306,8 @@ CONTAINS
 !
       REAL sind
 !                                                                       
+      lorentz = 1.0
+      
       IF (pow_four_type.eq.POW_DEBYE) then 
          lorentz = 1.0 
       ELSE 
@@ -337,6 +337,8 @@ CONTAINS
 !
       REAL cosd 
 !                                                                       
+      polarisation = 1.0
+      
       IF (pow_lp.eq.POW_LP_BRAGG) then 
          polarisation = (1. + (cosd (ttheta) ) **2 * pow_lp_fac)        &
          / (1. + pow_lp_fac)                                            
@@ -372,8 +374,7 @@ CONTAINS
       ENDIF
       END FUNCTION lorentz_pol
 !*****7*****************************************************************
-      SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta,     &
-      pow_width, POW_MAXPKT)                                                        
+      SUBROUTINE powder_conv_res (dat, tthmin, tthmax, dtth, delta, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Gaussian)      
 !+                                                                      
@@ -386,7 +387,6 @@ CONTAINS
 !                                                                       
       REAL dat (0:POW_MAXPKT) 
       REAL tthmin, tthmax, dtth, delta 
-      REAL pow_width 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
       REAL gauss (0:2 * POW_MAXPKT) 
@@ -396,7 +396,7 @@ CONTAINS
 !                                                                       
 !------ Setup Gaussian                                                  
 !                                                                       
-      max_ps = (10.0 * delta) / dtth 
+      max_ps = int( (10.0 * delta) / dtth )
       DO i = 0, max_ps 
       tth = i * dtth 
       gauss (i) = 1.0 / sqrt (pi) / delta * exp ( - (tth**2 / delta**2) &
@@ -409,7 +409,7 @@ CONTAINS
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       dummy (i) = dat (i) * (gauss (0) - gauss (2 * i) ) 
       ii = max (i - 1 - max_ps + 1, 0) 
@@ -429,7 +429,7 @@ CONTAINS
       END SUBROUTINE powder_conv_res                
 !*****7*****************************************************************
 SUBROUTINE powder_conv_psvgt_fix (dat, tthmin, tthmax, dtth, eta, &
-      etax, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
+      w, pow_width, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     Constant FWHM, Constant eta                                       
@@ -442,9 +442,8 @@ IMPLICIT none
 INTEGER, INTENT(IN) :: POW_MAXPKT
 !                                                                       
 REAL dat (0:POW_MAXPKT) 
-REAL tthmin, tthmax, dtth, fwhm, eta, etax 
-REAL u, v, w 
-REAL p1, p2, p3, p4 
+REAL tthmin, tthmax, dtth, fwhm, eta
+REAL w 
 REAL pow_width 
 !                                                                       
 REAL dummy (0:POW_MAXPKT) 
@@ -458,7 +457,7 @@ INTEGER max_ps
 !------ Setup Pseudo-Voigt                                              
 !                                                                       
 fwhm = sqrt (abs (w) ) 
-max_ps = (pow_width * fwhm) / dtth 
+max_ps = int( (pow_width * fwhm) / dtth )
 psvgt = 0.0
 DO i = 0, max_ps 
    tth = i * dtth 
@@ -471,7 +470,7 @@ ENDDO
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
 DO i = 0, imax 
    dummy (i) = dat (i) * (psvgt (0) - psvgt (2 * i) ) 
    ii = max (i - 1 - max_ps + 1, 0  ) 
@@ -495,8 +494,7 @@ ENDDO
 END SUBROUTINE powder_conv_psvgt_fix          
 !*****7*****************************************************************
       SUBROUTINE powder_conv_psvgt_uvw (dat, tthmin, tthmax, dtth, eta0,&
-      etax, u, v, w, p1, p2, p3, p4, pow_width, rlambda, pow_axis,      &
-      POW_AXIS_Q, POW_MAXPKT)
+      etax, u, v, w, p1, p2, p3, p4, pow_width, POW_MAXPKT)
 !-                                                                      
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     FWHM according to caglioti equation, Constant eta                 
@@ -514,9 +512,6 @@ END SUBROUTINE powder_conv_psvgt_fix
       REAL u, v, w 
       REAL p1, p2, p3, p4 
       REAL pow_width 
-      REAL rlambda 
-      INTEGER pow_axis 
-      INTEGER POW_AXIS_Q 
 !                                                                       
       REAL dummy (0:POW_MAXPKT) 
       REAL tth
@@ -537,7 +532,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5) 
@@ -545,7 +540,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       atwoth = tth 
       fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001) ) 
       fwhm1 = fwhm 
-      max_ps = (pow_width * fwhm) / dtth 
+      max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 
@@ -624,7 +619,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
-      imax = (tthmax - tthmin) / dtth 
+      imax = int( (tthmax - tthmin) / dtth )
       DO i = 0, imax 
       tth = tthmin + i * dtth 
       tantth = tand (tth * 0.5) 
@@ -640,7 +635,7 @@ END SUBROUTINE powder_conv_psvgt_fix
          fwhm = 0.500 * (fpi * sind (atheta + 0.5 * fwhm1) / rlambda -  &
          fpi * sind (atheta - 0.5 * fwhm1) / rlambda)                   
       ENDIF 
-      max_ps = (pow_width * fwhm) / dtth 
+      max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
       tth1 = 0 * dtth 
       tth2 = 2 * i * dtth 

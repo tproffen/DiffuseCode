@@ -59,7 +59,7 @@ CONTAINS
 !     ----Show bond valence parameters     'bval'                       
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'bval', 2, lpara (1) , 4) ) then 
-            CALL do_show_bval (ianz, cpara, lpara, werte, maxw) 
+            CALL do_show_bval (ianz, cpara, maxw) 
 !                                                                       
 !     ----Show the chemistry               'chem'                       
 !                                                                       
@@ -159,7 +159,7 @@ CONTAINS
             ENDIF 
             CALL do_show_symmetry (mode) 
          ELSE 
-            CALL do_show_generic (ianz, cpara, lpara, maxw) 
+            CALL do_show_generic (cpara, lpara, maxw) 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -417,7 +417,7 @@ CONTAINS
  3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
       END SUBROUTINE do_show_atom                   
 !*****7*****************************************************************
-      SUBROUTINE do_show_bval (ianz, cpara, lpara, werte, maxw) 
+      SUBROUTINE do_show_bval (ianz, cpara, maxw) 
 !-                                                                      
 !     Shows bond valence parameters for an atom.                        
 !+                                                                      
@@ -437,8 +437,6 @@ CONTAINS
       CHARACTER ( * ) cpara (maxw) 
       CHARACTER (LEN=4) el_name
       INTEGER ianz 
-      INTEGER lpara (maxw) 
-      REAL werte (maxw) 
 !                                                                       
       INTEGER ie_1, ie_2, i 
       INTEGER  :: ilook  ! lookup dummy for bv_index
@@ -637,7 +635,7 @@ CONTAINS
       ENDDO 
       ianz = ianz - 1 
 !                                                                       
-      CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+      CALL dlink (ano, lambda, rlambda, diff_radiation, &
                   diff_power) 
 !                                                                       
       DO i = 0, cr_nscat 
@@ -768,7 +766,7 @@ CONTAINS
       CHARACTER(26) cr_system (1:9) 
       INTEGER is, j 
       INTEGER igroup 
-      INTEGER block 
+      INTEGER :: block = 1
       INTEGER n_center 
 !                                                                       
       DATA cr_system / 'triclinic', 'monoclinic b-unique', 'monoclinic c&

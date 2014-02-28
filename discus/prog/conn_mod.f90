@@ -285,6 +285,8 @@ CONTAINS
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !                                                                       
+      rmin = 0.0
+      rmax = 0.5
       maxw = MAX(MIN_PARA, MAXSCAT+4)
 !                                                                       
 !     Check definitions array
@@ -582,9 +584,6 @@ CONTAINS
 !                                                                       
 !                                                                       
       INTEGER maxw 
-      LOGICAL lnew, lold 
-!                                                                       
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
@@ -832,7 +831,7 @@ CONTAINS
    END SUBROUTINE conn_test
 !
 !
-   SUBROUTINE get_connectivity_list (jatom, is1, ino, maxw, c_list, natoms )
+   SUBROUTINE get_connectivity_list (jatom, ino, maxw, c_list, natoms )
 !-                                                                      
 !     Get the list of neighbors for central atom jatom of type is1
 !+                                                                      
@@ -841,7 +840,6 @@ CONTAINS
       IMPLICIT none 
 !
       INTEGER, INTENT(IN)  :: jatom   ! central atom number
-      INTEGER, INTENT(IN)  :: is1     ! central atom type
       INTEGER, INTENT(IN)  :: ino     ! Connectivity def. no.
       CHARACTER(LEN=256)   :: c_name  ! Connectivity name
       INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
@@ -944,7 +942,7 @@ CONTAINS
       INTEGER                    :: i
 !
       is1 = cr_iscat(iatom)
-      CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, natoms )
+      CALL get_connectivity_list (iatom, idef, maxw, c_list, natoms )
 !
       WRITE(output_io,1000) iatom, is1
       IF ( natoms > 0 ) THEN

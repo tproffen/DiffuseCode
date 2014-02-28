@@ -49,7 +49,7 @@ CONTAINS
       spc_spur (spc_n) = 3 
       spc_det (spc_n) = 1 
       CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-      spc_det, spc_char, spc_xyz, cr_syst)                              
+      spc_det, spc_char, spc_xyz)
 !                                                                       
 !     Loop over all generators                                          
 !                                                                       
@@ -110,7 +110,7 @@ CONTAINS
       spc_mat (3, 2, spc_n) - spc_mat (3, 1, spc_n) * spc_mat (2, 2,    &
       spc_n) )                                                          
       CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-      spc_det, spc_char, spc_xyz, cr_syst)                              
+      spc_det, spc_char, spc_xyz)
       ENDDO 
 !-----      End of loop over additional symmetry matices                
 !                                                                       
@@ -226,7 +226,7 @@ CONTAINS
                ENDIF
             ENDDO is_exist
             CALL get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,        &
-            spc_det, spc_char, spc_xyz, cr_syst)
+            spc_det, spc_char, spc_xyz)
          ENDDO generate
 !                                                                       
 !     --Set power of Generator                                          
@@ -241,7 +241,7 @@ CONTAINS
       END SUBROUTINE make_symmetry_matrix           
 !********************************************************************** 
       SUBROUTINE get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,  &
-      spc_det, spc_char, spc_xyz, cr_syst)                              
+      spc_det, spc_char, spc_xyz)
 !-                                                                      
 !     Determines the xyz triplet, and the letter that describes the     
 !     symmetry operation                                                
@@ -255,7 +255,6 @@ CONTAINS
       REAL spc_mat (4, 4, 1:SPC_MAX) 
       REAL spc_det (1:SPC_MAX) 
       REAL spc_spur (1:SPC_MAX) 
-      INTEGER cr_syst 
 !                                                                       
       INTEGER i, j, ii, ja, je 
       INTEGER pwr ( - 3:3, - 1:1) 
@@ -378,7 +377,7 @@ CONTAINS
       ENDDO 
       add (i) = spc_mat (i, 4, spc_n) 
       ENDDO 
-      CALL get_detail (spc_n, work, add, spc_char (spc_n), power, axis, &
+      CALL get_detail (work, add, spc_char (spc_n), power, axis, &
       screw, posit, hkl)                                                
 !                                                                       
 4000  FORMAT(   '     -',A1)
@@ -392,7 +391,7 @@ CONTAINS
 !
       END SUBROUTINE get_symmetry_type              
 !****&******************************************************************
-      SUBROUTINE get_detail (no, work, add, w_char, power, axis, screw, &
+      SUBROUTINE get_detail (work, add, w_char, power, axis, screw, &
       posit, hkl)                                                       
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
@@ -405,7 +404,6 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER no 
       REAL work (3, 3) 
       REAL add (3) 
       CHARACTER(65) w_char 
@@ -424,7 +422,7 @@ CONTAINS
       INTEGER i, j, k, l 
       INTEGER ia, ie 
       INTEGER ii, jj, kk 
-      INTEGER nnull 
+      INTEGER :: nnull = 0
       INTEGER nnullg 
       INTEGER iglide 
       LOGICAL lsearch 
@@ -437,7 +435,7 @@ CONTAINS
       REAL p3 (3) 
       REAL hmin 
       REAL det 
-      REAL factor 
+      REAL :: factor = 1.0
       REAL scale 
       REAL glide 
       REAL eps 
@@ -943,7 +941,7 @@ CONTAINS
                   scale = - jj * (hkl (j) / hkl (k) ) 
                   kk = - nint (jj * hkl (j) / hkl (k) ) 
                   IF (abs (scale) .lt.1) then 
-                     jj = jj / abs (scale) 
+                     jj = int( jj / abs (scale) )
                      kk = - nint (jj * hkl (j) / hkl (k) ) 
                   ENDIF 
                   IF (abs (hkl (1) ) .lt.eps) then 
@@ -1175,7 +1173,7 @@ CONTAINS
       INTEGER is 
       INTEGER n_center 
       INTEGER igroup 
-      INTEGER block 
+      INTEGER :: block = 1
       LOGICAL lident 
       REAL orig (4) 
       REAL copy (4) 
@@ -1971,7 +1969,7 @@ CONTAINS
       ENDDO 
       hkl (3) = 1.0 
       CALL trafo (hkl, u, xc, yc, zc, cr_gmat, cr_fmat, dist, cr_eps,   &
-      cr_gten, cr_reps, cr_rten)                                        
+      cr_gten, cr_rten)                                        
       CALL recip_symm 
 !                                                                       
       END SUBROUTINE setup_lattice                  

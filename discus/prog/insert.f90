@@ -28,8 +28,6 @@ CONTAINS
       INTEGER, INTENT(IN) :: itype 
 !                                                                       
       INTEGER, PARAMETER  :: maxw =  30
-      LOGICAL, PARAMETER  :: lnew = .true.
-      LOGICAL, PARAMETER  :: lold = .false.
 !                                                                       
       CHARACTER(LEN=5)                  :: befehl 
       CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype
@@ -234,7 +232,7 @@ CONTAINS
                         CALL do_build_name (ianz, cpara, lpara, werte,  &
                         maxw, 1)                                        
                         IF (ier_num.eq.0) then 
-                           ins_file = cpara (1) 
+                           ins_file = cpara (1) (1:lpara(1))
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -470,7 +468,7 @@ CONTAINS
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL insert_show (itype) 
+                  CALL insert_show () 
 !                                                                       
 !     ----GENERAL MENU COMMANDS                                         
 !                                                                       
@@ -544,7 +542,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE insert                         
 !*****7*****************************************************************
-      SUBROUTINE insert_show (itype) 
+      SUBROUTINE insert_show ()
 !-                                                                      
 !     Shows current shear settings                                      
 !+                                                                      
@@ -558,7 +556,6 @@ CONTAINS
 !                                                                       
       CHARACTER(8) c_char (0:4) 
       CHARACTER(8) ctype ( - 1:1) 
-      INTEGER itype 
 !                                                                       
       DATA c_char / 'Atom    ', 'Cube    ', 'Cylinder', 'Sphere  ', 'Fuz&
      &zy   ' /                                                          

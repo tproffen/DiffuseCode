@@ -31,8 +31,6 @@ SUBROUTINE stack
       INTEGER, PARAMETER :: MIN_PARA = 99  ! A command requires at least these no of parameters
                                            ! Needs work as it should also be >= ST_MAXTYPE
       INTEGER maxw 
-      LOGICAL lnew, lold 
-      PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MIN_PARA) :: cpara
       INTEGER            , DIMENSION(MIN_PARA) :: lpara
@@ -219,7 +217,7 @@ SUBROUTINE stack
                            werte, maxw, 2)                              
                            IF (ier_num.eq.0) then 
                               st_distr = ST_DIST_FILE 
-                              st_infile = cpara (2) 
+                              st_infile = cpara (2) (1:lpara(2))
                               st_infile_l = lpara (2) 
                            ENDIF 
                         ELSE 
@@ -233,7 +231,7 @@ SUBROUTINE stack
                            werte, maxw, 2)                              
                            IF (ier_num.eq.0) then 
                               st_distr = ST_DIST_LIST 
-                              st_infile = cpara (2) 
+                              st_infile = cpara (2) (1:lpara(2))
                               st_infile_l = lpara (2) 
                            ENDIF 
                         ELSE 
@@ -301,7 +299,7 @@ SUBROUTINE stack
                            IF (st_ntypes.lt.ST_MAXTYPE) then 
                               st_ntypes = st_ntypes + 1 
                               st_internal(st_ntypes) = cpara(1)(1:8)=='internal'
-                              st_layer (st_ntypes) = cpara (1) 
+                              st_layer (st_ntypes) = cpara (1) (1:lpara(1))
                               st_llayer (st_ntypes) = lpara (1) 
                               DO i = 1, st_nchem 
                               IF (cpara (1) .eq.st_layer_c (i) ) then 
@@ -311,7 +309,7 @@ SUBROUTINE stack
                               ENDDO 
                               st_nchem = st_nchem + 1 
                               st_chem (st_ntypes) = st_nchem 
-                              st_layer_c (st_nchem) = cpara (1) 
+                              st_layer_c (st_nchem) = cpara (1) (1:lpara(1))
  5000                         CONTINUE 
                            ELSE 
                               ier_num = - 53 
@@ -1035,7 +1033,7 @@ SUBROUTINE stack
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
-         CALL stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim)
+         CALL stack_dist_file ()
          IF ( ier_num /= 0 ) THEN
             RETURN
          ENDIF
@@ -1401,11 +1399,9 @@ SUBROUTINE stack
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
       LOGICAL lread, lout 
-      LOGICAL lcell 
       LOGICAL           :: need_alloc = .false. 
       INTEGER, EXTERNAL :: len_str
 !                                                                       
-      lcell = .false. 
 !                                                                       
 !     If there are any layers in the crystal read each layer            
 !                                                                       
@@ -1550,10 +1546,9 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
             gen_add_n = 0 
             sym_add_n = 0 
-            CALL stru_readheader_internal (st_layer(st_type(i)), NMAX, MAXSCAT, lcell, cr_name,   &
+            CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, cr_name,   &
             cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win,        &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
-            cr_spcgrno, &
             GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                 &
             SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add )
 !
@@ -1567,7 +1562,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ier_num = 0 
             ier_typ = ER_NONE 
 !                                                                       
-            CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX, MAXSCAT,&
+            CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX,&
                   cr_natoms, cr_pos, cr_iscat, cr_prop)
             CLOSE (ist) 
             IF (ier_num.ne.0) then 
@@ -1577,7 +1572,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     --Open file, read header                                          
 !                                                                       
-         CALL oeffne (ist, st_layer (st_type (i) ) , 'old', lread) 
+         CALL oeffne (ist, st_layer (st_type (i) ) , 'old') 
          IF (ier_num /= 0) then 
             RETURN
          ENDIF
@@ -1586,7 +1581,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
             gen_add_n = 0 
             sym_add_n = 0 
-            CALL stru_readheader (ist, NMAX, MAXSCAT, lcell, cr_name,   &
+            CALL stru_readheader (ist, MAXSCAT, cr_name,   &
             cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win,        &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)
 !                                                                       
@@ -1772,7 +1767,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
-      INTEGER lbeg (3), csize (3) 
+      INTEGER lbeg (3)
       INTEGER ncell 
       INTEGER         :: n_qxy    ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  ! Number of different atom types
@@ -1824,7 +1819,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         csf (i) = cmplx (0.0d0, 0.0d0) 
+         csf (i) = cmplx (0.0, 0.0) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
          ENDDO 
 !                                                                       
@@ -1926,7 +1921,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
             IF (ier_num.ne.0) then 
                ier_msg (1) = 'Reading layer file: ' 
-               ier_msg (2) = st_layer_c (l) 
+               ier_msg (2) = trim(st_layer_c (l))
                RETURN 
             ENDIF 
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
@@ -1947,7 +1942,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  RETURN
                ENDIF
             ENDIF
-            CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+            CALL dlink (ano, lambda, rlambda, diff_radiation, &
                         diff_power) 
                                                                         
             IF (ier_num.ne.0) then 
@@ -1961,13 +1956,13 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------zero some arrays                                          
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0d0, 0.0d0) 
+            st_csf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
 !------ ------loop over all different atom types                        
 !                                                                       
             DO iscat = 1, cr_nscat 
-            CALL four_getatm (iscat, ilots, lbeg, csize, ncell) 
+            CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
@@ -2039,7 +2034,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
-      INTEGER lbeg (3), csize (3) 
+      INTEGER lbeg (3)
       INTEGER ncell 
       LOGICAL lout 
       INTEGER         :: n_qxy    ! Number of data points in reciprocal space
@@ -2077,7 +2072,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         acsf (i) = cmplx (0.0d0, 0.0d0) 
+         acsf (i) = cmplx (0.0, 0.0) 
          ENDDO 
 !                                                                       
 !     --Calculation is only performed if average is needed              
@@ -2187,7 +2182,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ----zero some arrays                                            
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0d0, 0.0d0) 
+            st_csf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
 !     ----Loop over all layer types                                     
@@ -2236,7 +2231,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
             ier_num = 0 
             ier_typ = ER_NONE 
-            CALL dlink (lxray, ano, lambda, rlambda, diff_radiation, &
+            CALL dlink (ano, lambda, rlambda, diff_radiation, &
                         diff_power) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -2249,7 +2244,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------loop over all different atom types                        
 !                                                                       
             DO iscat = 1, cr_nscat 
-            CALL four_getatm (iscat, ilots, lbeg, csize, ncell) 
+            CALL four_getatm (iscat, ilots, lbeg, ncell) 
             CALL four_strucf (iscat, .true.) 
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
@@ -2279,7 +2274,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
       END SUBROUTINE st_fourier_aver                
 !*****7*****************************************************************
-      SUBROUTINE stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim)
+      SUBROUTINE stack_dist_file ()
 !     SUBROUTINE stack_dist_file (cr_spcgr, cr_a0, cr_win, cr_dim,      &
 !     st_name, st_spcgr, st_a0, st_win, st_natoms, st_nscat, st_dw,     &
 !     st_at_lis, st_pos, st_iscat, st_dim, sa_natoms, sa_at_lis, sa_dw, &
@@ -2304,11 +2299,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER                 :: sav_ncatoms 
       LOGICAL                 :: sav_r_ncell 
 !                                                                       
-      CHARACTER ( LEN=* )     :: cr_spcgr 
-      REAL   , DIMENSION(3)   :: cr_a0 (3)
-      REAL   , DIMENSION(3)   :: cr_win (3) 
-      REAL   , DIMENSION(3,2) :: cr_dim (3, 2) 
-!                                                                       
 !     Initialize counters for Atom numbers                              
 !                                                                       
       st_natoms     = 0 
@@ -2327,7 +2317,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       st_spcgr_ianz, st_spcgr_para)                                     
       IF (ier_num.ne.0) then 
          ier_msg (1) = 'Error occured while reading' 
-         ier_msg (2) = st_infile 
+         ier_msg (2) = trim(st_infile)
          RETURN 
       ENDIF 
 !                                                                       

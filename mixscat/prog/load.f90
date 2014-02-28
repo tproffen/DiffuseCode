@@ -112,7 +112,7 @@
 !                                                                       
 !------ Read observed PDF for given plane                               
 !                                                                       
-      CALL oeffne (17, pfile, 'old', .false.) 
+      CALL oeffne (17, pfile, 'old') 
       IF (ier_num.ne.0) return 
 !                                                                       
 !------ Has the file a prepended History ?                              
