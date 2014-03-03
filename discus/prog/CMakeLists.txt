@@ -70,14 +70,21 @@ if (CUDA_FOUND AND DISCUS_CUDA)
   set (SOURCE_MAIN ${SOURCE_MAIN} ${FOUR_STRUCF_CUDA_O})
   set (LIBS ${LIBS} cudart)
 
+elseif( DISCUS_OMP)
+
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+  # Add OpenMP flag depending on compiler
+  if (PGF)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mp")
+  elseif (IFORT)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -openmp")
+  else (PGF) # Else assume gfortran
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
+  endif (PGF)
+
 else (CUDA_FOUND AND DISCUS_CUDA)
 
-  if( DISCUS_OMP)
-    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
-  else (DISCUS_OMP)
-    set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
-  endif (DISCUS_OMP)
+  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
 
 endif (CUDA_FOUND AND DISCUS_CUDA)
 
