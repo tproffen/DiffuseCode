@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 MODULE diffev
 !
 
@@ -60,7 +63,9 @@ LOGICAL              :: lend
 INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 !
 INTEGER              :: len_str
-!
+
+MSG("diffev_py: command(): " // trim(incomming))
+
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
@@ -77,11 +82,13 @@ line   = incomming              ! Make a local working copy
 CALL mache_kdo (line, lend, laenge)  ! Execute initial command
 !
 IF( ier_num /= 0 ) THEN         ! Handle error messages
+   MSG("ERROR!")
    CALL errlist
    ier_status = -1
    CALL macro_close
    CALL no_error
 ELSE
+   MSG("MACRO LOOP")
    main: DO WHILE( lmakro )     ! Initial command was a macro, run this macro
       CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
       ok: IF (ier_num.eq.0.and.laenge.gt.0) then 

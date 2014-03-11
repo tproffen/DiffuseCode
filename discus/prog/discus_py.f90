@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 MODULE discus
 !
 PRIVATE
@@ -23,16 +26,18 @@ USE prompt_mod
 USE setup_mod
 USE discus_loop_mod
 !
-IMPLICIT none 
-!
-!
+IMPLICIT none
+
+MSG('interactive()...')
+VAR(lsetup_done)
+
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
 lstandalone = .false.
 CALL discus_loop
-!                                                                       
-END SUBROUTINE interactive                            
+!
+END SUBROUTINE interactive
 !
 !
 !
@@ -41,14 +46,14 @@ SUBROUTINE command (incomming, ier_status)
 ! Interface routine to execute the command on the incomming line
 ! Control is returned to the host system
 ! Currently commands 'do' 'enddo' and 'if', 'elseif', 'else'
-! 'endif' cannot be used. 
+! 'endif' cannot be used.
 ! A command '@macro.mac' is fine, and the macro may even contain
-! loops, and if blocks. 
-! If an error occurs inside a sub-menu, discus will start an 
+! loops, and if blocks.
+! If an error occurs inside a sub-menu, discus will start an
 ! interactive session at this point
 ! Commands that branch into sub-menus cause an interactive section.
-! 
-! 
+!
+!
 USE setup_mod
 USE errlist_mod
 USE macro_mod
@@ -67,13 +72,16 @@ INTEGER              :: lp
 LOGICAL              :: lend
 !
 INTEGER              :: len_str
-!
+
+MSG('command()...')
+VAR(lsetup_done)
+
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
 lend = .false.
 !
-laenge = len_str(incomming)     ! 
+laenge = len_str(incomming)     !
 IF ( laenge > LEN(line)) THEN    ! Excessively long string, refuse
    ier_status = -1
    RETURN
@@ -90,24 +98,24 @@ IF( ier_num /= 0 ) THEN         ! Handle error messages
 ELSE
    main: DO WHILE( lmakro )     ! Initial command was a macro, run this macro
       CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
-      ok: IF (ier_num.eq.0.and.laenge.gt.0) then 
-!                                                                       
-!     - If not a comment continue                                       
-!                                                                       
-         IF (.not. (line (1:1) .eq.'#'.or.line (1:1) .eq.'!') ) then 
-!                                                                       
-!     - execute command                                                 
-!                                                                       
-            IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge) 
-            ELSE 
-               CALL mache_kdo (line, lend, laenge) 
-            ENDIF 
-         ENDIF 
+      ok: IF (ier_num.eq.0.and.laenge.gt.0) then
+!
+!     - If not a comment continue
+!
+         IF (.not. (line (1:1) .eq.'#'.or.line (1:1) .eq.'!') ) then
+!
+!     - execute command
+!
+            IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then
+               CALL do_loop (line, lend, laenge)
+            ELSE
+               CALL mache_kdo (line, lend, laenge)
+            ENDIF
+         ENDIF
       ENDIF ok
-!                                                                       
-!     - Handle error message                                            
-!                                                                       
+!
+!     - Handle error message
+!
       IF( ier_num /= 0 ) THEN
          CALL errlist
          ier_status = -1
@@ -124,10 +132,10 @@ END SUBROUTINE command
 !
 !  INCLUDE the generic send and get routines from lib_f90
 !  These allow to send/get sections of i[] and r[].
-!  As these are identical to all programs, the source 
-!  code is in lib_f90. As I want to have these routines 
+!  As these are identical to all programs, the source
+!  code is in lib_f90. As I want to have these routines
 !  to be part of this module, its easiest to include
-!  the source code instead of adding another file to 
+!  the source code instead of adding another file to
 !  the f2py command
 !
 INCLUDE 'send_get.f90'

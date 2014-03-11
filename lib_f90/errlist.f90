@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
        SUBROUTINE errlist
 !*****7****************************************************************
 !
@@ -53,6 +56,7 @@
        IMPLICIT       none
 !
 !
+       MSG("no_error()")
        ier_num = 0
        ier_typ = ER_NONE
 !

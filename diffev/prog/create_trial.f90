@@ -354,29 +354,29 @@ INTEGER, PARAMETER  :: iwr = 7
 !
 CHARACTER (LEN=7)   :: stat = 'unknown'
 LOGICAL             :: lread = .false.
-
-MSG('write_genfile()...')
-VAR(pop_genfile)
-
+!                                                                       
 CALL do_del_file (pop_genfile)
-CALL oeffne (iwr, pop_genfile, stat, lread)
-WRITE (iwr, 1000) pop_gen, pop_n, pop_c, pop_dimx
-WRITE (iwr, 1100) pop_trialfile (1:pop_ltrialfile)
-WRITE (iwr, 1200) trial_results (1:ltrial_results)
-WRITE (iwr, 1300) parent_results (1:lparent_results)
-WRITE (iwr, 1400) parent_summary (1:lparent_summary)
+
+MSG('write: ' // trim(pop_genfile))
+CALL oeffne (iwr, pop_genfile, stat, lread) 
+WRITE (iwr, 1000) pop_gen, pop_n, pop_c, pop_dimx 
+WRITE (iwr, 1100) pop_trialfile (1:pop_ltrialfile) 
+WRITE (iwr, 1200) trial_results (1:ltrial_results) 
+WRITE (iwr, 1300) parent_results (1:lparent_results) 
+WRITE (iwr, 1400) parent_summary (1:lparent_summary) 
 CLOSE (iwr)
+MSG('close: ' // trim(pop_genfile))
+!                                                                       
+ 1000 FORMAT ('# generation members children parameters',/ 4(i8,2x)) 
+ 1100 FORMAT ('# trial file'/a) 
+ 1200 FORMAT ('# result file'/a) 
+ 1300 FORMAT ('# log file'/a) 
+ 1400 FORMAT ('# summary file'/a) 
 !
- 1000 FORMAT ('# generation members children parameters',/ 4(i8,2x))
- 1100 FORMAT ('# trial file'/a)
- 1200 FORMAT ('# result file'/a)
- 1300 FORMAT ('# log file'/a)
- 1400 FORMAT ('# summary file'/a)
-!
-END SUBROUTINE write_genfile
-!*****7****************************************************************
-SUBROUTINE read_genfile
-!
+END SUBROUTINE write_genfile                  
+!*****7**************************************************************** 
+SUBROUTINE read_genfile 
+!                                                                       
 USE population
 USE errlist_mod
 !

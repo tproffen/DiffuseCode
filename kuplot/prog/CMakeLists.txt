@@ -86,7 +86,8 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
             -L${DIFFUSE_BINARY_DIR}/kuplot/prog -lkuplot_all
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90
             -L${DIFFUSE_BINARY_DIR}/kuplot/prog -lkuplot_all
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+	        #    -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c -lpgplot -lreadline
             ${DIFFUSE_LIBS}
             ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/errlist_mod.mod

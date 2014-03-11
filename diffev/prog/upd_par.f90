@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
@@ -456,7 +459,10 @@ REAL              , INTENT(IN   )    :: wert
 INTEGER               :: l ,i
 INTEGER               :: pop_neu
 REAL                  :: highest_r
-!                                                                       
+!
+
+MSG("diffev upd_para():")
+
 IF (ctype.eq.'i') then 
    IF (ianz.eq.1) then 
       IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
@@ -704,9 +710,13 @@ ELSEIF (ctype.eq.'pop_smax') then
    ENDIF 
 ELSEIF (ctype.eq.'child_val') then 
    IF (ianz.eq.1) then 
+      VAR(ww(1))
+      VAR(pop_c)
+      VAR(MAXPOP)
       IF (0.lt.ww (1) .and.ww (1) .le.MAXPOP .and. ww(1)<=pop_c) then 
          child_val (ww (1) ) = wert 
       ELSE 
+         MSG("BAD child_val")
          ier_num = -14 
          ier_typ = ER_APPL 
       ENDIF 

@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 !*****7*****************************************************************
 !                                                                       
 SUBROUTINE mache_kdo (line, lend, length) 
@@ -64,7 +67,8 @@ indxb  = index (line, ' ')
 IF(indxb==0) indxb = length + 1
 indxb  = MIN(indxb,indxt)
 lbef   = min (indxb - 1, 9) 
-befehl = line (1:lbef) 
+befehl = line (1:lbef)
+MSG('diffev: mache_kdo: ' // trim(line))
 !                                                                 
 !------ command parameters start at the first character following 
 !     the blank                                                   
@@ -89,8 +93,12 @@ IF (indxg.ne.0.and.                                              &
     &     str_comp (befehl, '?   ',  2, lbef, 4) )      ) then      
 !                                                                 
 !-------Zuweisung eines Funktionswertes                           
-!                                                                 
-   CALL do_math (line, indxg, length) 
+!
+   MSG('do_math():')
+   VAR(ier_num)
+   CALL do_math (line, indxg, length)
+   MSG('do_math done.')
+   VAR(ier_num)
 ELSE 
 !                                                                 
 !     --execute a macro file                                      
@@ -615,5 +623,6 @@ ELSE
       CALL kdo_all (befehl, lbef, zeile, lcomm) 
    ENDIF 
 ENDIF 
+MSG("mache_kdo done.")
 !                                                                       
 END SUBROUTINE mache_kdo                      

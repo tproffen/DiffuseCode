@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 !*****7****************************************************************
 !
       SUBROUTINE errlist_appl
@@ -43,7 +46,9 @@
      &  'The generation number must be >= zero',                        & ! -1  ! diffev
      &  ' '                                                             & !  0  ! diffev
      &     /
-!
+
+     MSG("errlist_appl")
+
       CALL disp_error ('APPL',error,iu,io)
 !
       END SUBROUTINE errlist_appl

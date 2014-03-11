@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 !+                                                                      
 !     Handling of blockstructures and all math functions                
 !     and parameter updating and referencing is done by                 
@@ -1189,7 +1192,8 @@
       INTEGER indxg, i, ikk, iii (maxw), ianz, lll 
       INTEGER length 
 !                                                                       
-      REAL berechne, wert, werte (maxw) 
+      REAL berechne, wert, werte (maxw)
+
 !                                                                       
 !     String substitution???                                            
 !                                                                       
@@ -1233,17 +1237,21 @@
                      zeile (1:i - ikk - 1) = line (ikk + 1:i - 1) 
                      lll = i - ikk - 1 
                      CALL get_params (zeile, ianz, cpara, lpara, maxw, lll)
+                     VAR(ier_num)
                      IF (ier_num.eq.0) then 
                         IF (ianz.ge.1.or.ianz.le.3) then 
                            CALL ber_params (ianz, cpara, lpara, werte, maxw)
+                           VAR(ier_num)
                            IF (ier_num.eq.0) then 
                               DO i = 1, ianz 
                               iii (i) = nint (werte (i) ) 
                               ENDDO 
 !                                                                       
 !     ------------Store result in the variable                          
-!                                                                       
+!
+      VAR(ier_num)
                               CALL upd_para (line (1:ikk - 1), iii,ianz, wert, ianz)
+      VAR(ier_num)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 
@@ -1270,7 +1278,8 @@
          length = length + 5 
          CALL do_string_alloc (zeile, indxg, length) 
       ENDIF 
-!                                                                       
+!
+     VAR(ier_num)
       END SUBROUTINE do_math                        
 !****7***************************************************************** 
       SUBROUTINE do_string_alloc (line, indxg, length) 

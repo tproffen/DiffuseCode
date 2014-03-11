@@ -58,12 +58,14 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
     COMMAND f2py -c -m lib_diffev
+            --f90flags="-cpp -I${DIFFUSE_SOURCE_DIR}/lib_f90"
             ${DIFFUSE_LIBS}
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
             -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90
             -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            # -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c -lreadline
             ${LIBS_OPT}
             ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod

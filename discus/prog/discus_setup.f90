@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 MODULE setup_mod
 !
 CONTAINS
@@ -16,7 +19,9 @@ SUBROUTINE setup
 IMPLICIT none 
 !                                                                       
       include'date.inc' 
-!
+
+MSG('setup_mod.setup()...')
+
       pname      = 'discus'
       pname_cap  = 'DISCUS'
 !                                                                       
@@ -24,8 +29,9 @@ IMPLICIT none
       prompt  = pname
       prompt_status = PROMPT_ON
       prompt_status_old = PROMPT_ON
-!                                                                       
-CALL ini_ran (0) 
+write (*,*) 'lsetup_done: ', lsetup_done
+CALL ini_ran (0)
+write (*,*) 'lsetup_done: ', lsetup_done
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
@@ -34,6 +40,8 @@ WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !
+    MSG('calling alloc_default...')
+
       CALL alloc_default
 !                                                                       
 !     Call initialization routine.                                      
@@ -54,7 +62,9 @@ CALL autodef
 CALL cmdline_args 
 !
 CALL no_error
+VAR(lsetup_done)
 lsetup_done = .true.
+VAR(lsetup_done)
 !
  1000 FORMAT (/,10x,59('*'),/,                                      &
               10x,'*',15x,'D I S C U S   Version ',a10,10x,'*',/,   &

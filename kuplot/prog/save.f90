@@ -793,6 +793,7 @@
       INTEGER ipg (maxarray)
       INTEGER ianz, ik, i, ix, iy, ie, k
       INTEGER :: ninterv  ! number of (points-1)==no of intervals writen to file
+
       INTEGER ispk, ixxx, ikk, ima, nma
       INTEGER nx_min, nx_max, ny_min, ny_max, nx_s, ny_s
       LOGICAL l_m999
@@ -808,6 +809,7 @@
       VAR(filname)
 
       IF (form (1:2) .eq.'XY'.and..not.lni (ik) ) then
+
          WRITE (isa, 3000) titel (iwin, iframe, 1) (1:len_str (titel (  &
          iwin, iframe, 1) ) )
          WRITE (isa, 3000) titel (iwin, iframe, 2) (1:len_str (titel (  &
