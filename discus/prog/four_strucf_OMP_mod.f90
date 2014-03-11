@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 MODULE four_strucf_mod
 !
 CONTAINS
@@ -23,31 +26,44 @@ CONTAINS
       COMPLEX, DIMENSION(:,:), ALLOCATABLE :: tcsfp     ! Partial structure factor from parallel OMP
 !                                                                       
       INTEGER IAND, ISHFT 
+
+      CHARACTER(len=16) :: omp_num_threads
+
+      MSG('four_strucf OMP')
+
 !
 !------ zero fourier array                                              
 !                                                                       
       tcsf = cmplx (0.0d0, 0.0d0) 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
-!                                                                       
+!
+
+      CALL GET_ENVIRONMENT_VARIABLE("OMP_NUM_THREADS", omp_num_threads)
+      print *, "omp_num_threads: ", omp_num_threads
+      CALL OMP_SET_NUM_THREADS(1)
 !     Jump into OpenMP to obtain number of threads
 !$OMP PARALLEL PRIVATE(tid)
+      nthreads = -1
       tid = OMP_GET_THREAD_NUM()
+      nthreads = OMP_GET_NUM_THREADS()
       IF (tid == 0) THEN
-         nthreads = OMP_GET_NUM_THREADS()
+         VAR(nthreads)
       END IF
 !$OMP END PARALLEL
 
 !     Allocate, initialize tcsfp
-  PRINT *, 'nthreads=',nthreads,'MAXQXY: ', MAXQXY
+      VAR(MAXQXY)
       ALLOCATE (tcsfp (1:MAXQXY,0:nthreads-1))
       tcsfp = cmplx(0.0d0, 0.0d0)
 
+CALL OMP_SET_NUM_THREADS(2)
 !$OMP PARALLEL PRIVATE(tid,k,xarg0,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
 !$OMP DO
 
       DO k = 1, nxat 
          tid = OMP_GET_THREAD_NUM()
+         VAR(tid)
          xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm  (3) * xat(k, 3)
          xincu = uin(1) * xat(k, 1) + uin(2) * xat(k, 2) + uin (3) * xat(k, 3)
          xincv = vin(1) * xat(k, 1) + vin(2) * xat(k, 2) + vin (3) * xat(k, 3)
