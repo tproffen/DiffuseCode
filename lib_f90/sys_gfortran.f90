@@ -305,10 +305,10 @@
 !
       print *, 'do_del_file: ', name
       CALL EXECUTE_COMMAND_LINE ('pwd')
-      command (1:6) = 'rm -rf '
-      command (7:7 + laenge) = name (1:laenge)
+      command (1:7) = 'rm -rf '
+      command (8:8 + laenge) = name (1:laenge)
 !     CALL system (command(1:7+laenge))
-      CALL EXECUTE_COMMAND_LINE (command(1:7+laenge),EXITSTAT=ier_num)
+      CALL EXECUTE_COMMAND_LINE (command(1:8+laenge),EXITSTAT=ier_num)
       IF (ier_num.eq.0) then
          ier_typ = ER_NONE
       ELSE
