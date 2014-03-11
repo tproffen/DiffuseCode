@@ -21,9 +21,11 @@
 
 /** Show a message */
 #define MSG(message)  print *, "F90: ", message
-/* #define qeprintf(format, ...) fprintf (stderr, format, ##__VA_ARGS__) */
+#define MSGF(message)  print *, "F90: ", __FILE__, __LINE__, message
+
 /** Show a variable */
-#define VAR(variable) print *, "F90: ", "variable: ", variable
+#define VAR(variable) print *, "F90: ", __FILE__, __LINE__,     \
+    "variable: ", variable
 /** Show a vector */
 #define VEC(variable) print *, "F90: ", "variable:", achar(10), \
                                variable, achar(10), "  --"
