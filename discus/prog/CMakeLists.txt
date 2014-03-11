@@ -1,7 +1,7 @@
 # DISCUS Build
 
 option(DISCUS_NEXUS  "DISCUS_NEXUS"   OFF)
-option(DISCUS_OMP    "DISCUS_OMP"     OFF)
+option(DISCUS_OMP    "DISCUS_OMP"     ON)
 option(DISCUS_CUDA   "DISCUS_CUDA"    OFF)
 
 if (DISCUS_NEXUS)
@@ -17,7 +17,7 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
 ###
 set( SOURCE_MAIN discus.f90 )
-set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
+set( SOURCES_ALL addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	atom_name.f90 blk_appl.f90 bv_data_mod.f90
 	chem.f90 chem_mod.f90 chem_aver_mod.f90 config_mod.f90
 	conn_def_mod.f90 conn_mod.f90 crystal_mod.f90
@@ -75,8 +75,10 @@ if (CUDA_FOUND AND DISCUS_CUDA)
 else (CUDA_FOUND AND DISCUS_CUDA)
 
   if( DISCUS_OMP)
+    message("OpenMP enabled.")
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
   else (DISCUS_OMP)
+    message("OpenMP not enabled.")
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
   endif (DISCUS_OMP)
 
@@ -85,7 +87,7 @@ endif (CUDA_FOUND AND DISCUS_CUDA)
 add_library (discus_all ${SOURCES_ALL} )
 add_dependencies (discus_all lib_f90)
 
-set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} )
+set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} -lgomp )
 
 add_executable (discus ${SOURCE_MAIN} )
 
@@ -111,14 +113,17 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
-    COMMAND f2py -c -m lib_discus
+    COMMAND f2py -c -m lib_discus --verbose
+            --f90flags="-cpp -I${DIFFUSE_SOURCE_DIR}/lib_f90"
             ${DIFFUSE_LIBS}
             ${LIBS_OPT}
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
             -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90
             -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            # -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c
+            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+            -lreadline -lpython2.7 -lgomp
             ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
