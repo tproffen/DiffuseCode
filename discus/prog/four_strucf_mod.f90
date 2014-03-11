@@ -1,3 +1,6 @@
+
+#include "debug.h"
+
 MODULE four_strucf_mod
 !
 CONTAINS
@@ -18,6 +21,9 @@ CONTAINS
       INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
 !
       INTEGER IAND, ISHFT 
+
+      MSG('four_strucf...')
+
 !
 !------ zero fourier array                                              
 !                                                                       
