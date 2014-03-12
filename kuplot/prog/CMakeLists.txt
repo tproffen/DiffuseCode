@@ -79,7 +79,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/kuplot/prog/kuplot_py.f90  ${DIFFUSE_BINARY_DIR}/kuplot/prog
-    COMMAND f2py -c -m lib_kuplot
+    COMMAND f2py -c -m lib_kuplot $(F2PY_VERBOSE)
             ${LIBS_OPT}
             ${LIBS_GRAPHIC}
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c

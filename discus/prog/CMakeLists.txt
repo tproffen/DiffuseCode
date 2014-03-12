@@ -113,7 +113,8 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
-    COMMAND f2py -c -m lib_discus --verbose
+    COMMAND echo CVM ${CMAKE_VERBOSE_MAKEFILE}
+    COMMAND f2py -c -m lib_discus $(F2PY_VERBOSE)
             --f90flags="-cpp -I${DIFFUSE_SOURCE_DIR}/lib_f90"
             ${DIFFUSE_LIBS}
             ${LIBS_OPT}
