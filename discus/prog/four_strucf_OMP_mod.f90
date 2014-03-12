@@ -57,7 +57,7 @@ CONTAINS
       ALLOCATE (tcsfp (1:MAXQXY,0:nthreads-1))
       tcsfp = cmplx(0.0d0, 0.0d0)
 
-CALL OMP_SET_NUM_THREADS(2)
+! CALL OMP_SET_NUM_THREADS(2)
 !$OMP PARALLEL PRIVATE(tid,k,xarg0,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
 !$OMP DO
 
@@ -112,6 +112,8 @@ CALL OMP_SET_NUM_THREADS(2)
 !        END FORALL
          END DO
       ENDIF 
-!                                                                       
+!
+
+      MSG('four_strucf OMP DONE.')
       END SUBROUTINE four_strucf                    
 END MODULE four_strucf_mod
