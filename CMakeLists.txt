@@ -40,7 +40,7 @@ endif (WIN32 OR CYGWIN)
 
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp -g -fopenmp")
+set (CMAKE_Fortran_FLAGS "-O0 -fPIC -cpp -g")
 
 # Go into directories
 
