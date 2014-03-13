@@ -21,46 +21,37 @@ CONTAINS
       REAL(KIND=8)        :: xarg0, xincu, xincv , xincw
       INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
 !
+      CHARACTER(len=16) :: omp_num_threads_env          ! Environment variable OMP_NUM_THREADS
+      INTEGER :: omp_num_threads                        ! Number of threads
       INTEGER                              :: tid       ! Id of this thread
-      INTEGER                              :: nthreads  ! Number of threadsa available from OMP
       COMPLEX, DIMENSION(:,:), ALLOCATABLE :: tcsfp     ! Partial structure factor from parallel OMP
 !                                                                       
       INTEGER IAND, ISHFT 
 
-      CHARACTER(len=16) :: omp_num_threads
 
       MSG('four_strucf OMP')
-
 !
 !------ zero fourier array                                              
 !                                                                       
       tcsf = cmplx (0.0d0, 0.0d0) 
-!                                                                       
-!------ Loop over all atoms in 'xat'                                    
-!
 
-      CALL GET_ENVIRONMENT_VARIABLE("OMP_NUM_THREADS", omp_num_threads)
-      print *, "omp_num_threads: ", omp_num_threads
-      CALL OMP_SET_NUM_THREADS(1)
-!     Jump into OpenMP to obtain number of threads
-!$OMP PARALLEL PRIVATE(tid)
-      nthreads = -1
-      tid = OMP_GET_THREAD_NUM()
-      nthreads = OMP_GET_NUM_THREADS()
-      IF (tid == 0) THEN
-         VAR(nthreads)
-      END IF
-!$OMP END PARALLEL
+!     OMP_NUM_THREADS doesn't work for me. -Justin
+!     Here, we handle this ourselves:
+      CALL GET_ENVIRONMENT_VARIABLE("OMP_NUM_THREADS", &
+                                     omp_num_threads_env)
+      read(omp_num_threads_env, *), omp_num_threads
+      CALL OMP_SET_NUM_THREADS(omp_num_threads)
 
 !     Allocate, initialize tcsfp
       VAR(MAXQXY)
-      ALLOCATE (tcsfp (1:MAXQXY,0:nthreads-1))
+      ALLOCATE (tcsfp (1:MAXQXY,0:omp_num_threads-1))
       tcsfp = cmplx(0.0d0, 0.0d0)
 
-! CALL OMP_SET_NUM_THREADS(2)
+      VAR(omp_num_threads)
+      CALL OMP_SET_NUM_THREADS(omp_num_threads)
 !$OMP PARALLEL PRIVATE(tid,k,xarg0,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
 !$OMP DO
-
+!------ Loop over all atoms in 'xat'
       DO k = 1, nxat 
          tid = OMP_GET_THREAD_NUM()
          VAR(tid)
