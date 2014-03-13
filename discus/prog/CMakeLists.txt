@@ -77,7 +77,9 @@ else (CUDA_FOUND AND DISCUS_CUDA)
   if (DISCUS_OMP)
     message("OpenMP enabled.")
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
-    set_source_files_properties(four_strucf_OMP_mod.f90 PROPERTIES COMPILE_FLAGS -fopenmp)
+    set_source_files_properties(four_strucf_OMP_mod.f90 
+                                PROPERTIES COMPILE_FLAGS 
+                                "-fopenmp -ffree-line-length-none")
   else (DISCUS_OMP)
     message("OpenMP not enabled.")
     set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
