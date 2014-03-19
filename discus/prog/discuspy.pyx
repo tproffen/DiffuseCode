@@ -420,9 +420,9 @@ def set_pdf_logical(lxray,gauss,d2d,
                       chem_period1,chem_period2,chem_period3)
 
 def get_diffuse_dsi(i1,i2,i3):
-    dsi = np.empty((i1,i2),dtype=np.float32,order='F')
-    cdef float [::1,:] dsi_c = dsi
-    get_diffuse_dsi_c(&dsi_c[0][0],i1*i2)
+    dsi = np.empty((i3,i2,i1),dtype=np.float32,order='F')
+    cdef float [::1,:,:] dsi_c = dsi
+    get_diffuse_dsi_c(&dsi_c[0][0][0],i1*i2*i3)
     return dsi
 
 def four_show_f():
