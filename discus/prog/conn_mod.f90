@@ -26,6 +26,7 @@ INTEGER, PARAMETER              :: MAX_ATOM=10
 !                 I do not want to update this list all the time.
 TYPE :: NEIGHBORS
    INTEGER                      :: atom_number
+   INTEGER, DIMENSION(1:3)      :: offset
    TYPE (NEIGHBORS), POINTER    :: next
 END TYPE
 !
@@ -39,6 +40,7 @@ TYPE :: NEIGHBORHOOD
    INTEGER                      :: conn_name_l        ! Connectivity name length
    REAL                         :: distance_min       ! minimum distance to neighbors
    REAL                         :: distance_max       ! maximum distance to neighbors
+   INTEGER                      :: natoms             ! number of neighbors
    TYPE (NEIGHBORS), POINTER    :: nachbar            ! The actual list of neighboring atoms
    TYPE (NEIGHBORHOOD), POINTER :: next_neighborhood  ! A next neighborhood
 END TYPE
@@ -213,18 +215,25 @@ CONTAINS
                hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
                hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
                hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
+               hood_temp%natoms         = atom_env(0)         ! Set number of neighbors
                NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
 !
                ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
-               j = atom_env(1)
+               j = 1
                tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
-               tail%atom_number = j                         ! I store the atom_no of the neighbor
+               tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
+               tail%offset(1)   = atom_pos(1,j)-cr_pos(1,atom_env(j))
+               tail%offset(2)   = atom_pos(2,j)-cr_pos(2,atom_env(j))
+               tail%offset(3)   = atom_pos(3,j)-cr_pos(3,atom_env(j))
                NULLIFY (tail%next)                          ! No further neighbors
 !
                DO j = 2, atom_env(0)                        ! Add all neighbors to list
                   ALLOCATE (tail%next)                      ! create a further NEIGHBOR
                   tail => tail%next                         ! reassign tail to new end of list
                   tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
+                  tail%offset(1)   = atom_pos(1,j)-cr_pos(1,atom_env(j))
+                  tail%offset(2)   = atom_pos(2,j)-cr_pos(2,atom_env(j))
+                  tail%offset(3)   = atom_pos(3,j)-cr_pos(3,atom_env(j))
                   NULLIFY (tail%next)                       ! No further neighbors
                ENDDO
             ENDIF
@@ -581,6 +590,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
+      INTEGER, PARAMETER :: MIN_PARA = 4
       INTEGER maxw 
       LOGICAL lnew, lold 
 !                                                                       
@@ -588,16 +598,23 @@ CONTAINS
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
-      CHARACTER(1024) line, zeile, cpara (MAXSCAT) 
-      INTEGER lpara (MAXSCAT), lp, length, lbef 
-      INTEGER indxg, ianz
+      CHARACTER(1024) line, zeile
+      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
+      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
+      CHARACTER (LEN=256)  :: c_name   ! Connectivity name
+      INTEGER              :: c_name_l ! connectivity name length
+      INTEGER              :: is1, ino ! Connectivity id, connectivity no
+      INTEGER              :: iatom    ! atoms no for show
+      INTEGER lp, length, lbef 
+      INTEGER indxg, ianz, iianz
+      LOGICAL              :: long     ! make long output
       LOGICAL lend
-      REAL werte (MAXSCAT) 
+      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
-      maxw = MAXSCAT
+      maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
       CALL no_error 
 !                                                                       
@@ -717,10 +734,31 @@ CONTAINS
                      CALL conn_show 
 !                  CALL conn_test  For debug only
                   ELSE
-                     IF (str_comp (cpara(1), 'connect', 4, lpara(1), 7) ) then
+                     IF (str_comp (cpara(1), 'connect', 3, lpara(1), 7) ) then
+                        CALL del_params (1, ianz, cpara, lpara, maxw)
+                        IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
+                           long = .true.
+                           ianz = ianz - 1
+                        ELSE
+                           long = .false.
+                        ENDIF
+                        iianz = 1
+                        CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+                        iatom = NINT(werte(1))
                         CALL del_params (1, ianz, cpara, lpara, maxw)
                         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                        CALL do_show_connectivity ( NINT(werte(1)), NINT(werte(2)))
+                        IF(ier_num/=0) THEN
+                           c_name   = cpara(1)
+                           c_name_l = lpara(1)
+                           ino      = 0
+                           CALL no_error
+                        ELSE                                               ! Success set to value
+                           ino = nint (werte (1) ) 
+                           c_name   = ' '
+                           c_name_l = 1
+                        ENDIF
+                        CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+                        CALL do_show_connectivity ( iatom, ino, long)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -832,7 +870,7 @@ CONTAINS
    END SUBROUTINE conn_test
 !
 !
-   SUBROUTINE get_connectivity_list (jatom, is1, ino, maxw, c_list, natoms )
+   SUBROUTINE get_connectivity_list (jatom, is1, ino, maxw, c_list, c_offs, natoms )
 !-                                                                      
 !     Get the list of neighbors for central atom jatom of type is1
 !+                                                                      
@@ -845,13 +883,13 @@ CONTAINS
       INTEGER, INTENT(IN)  :: ino     ! Connectivity def. no.
       CHARACTER(LEN=256)   :: c_name  ! Connectivity name
       INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
-      INTEGER, DIMENSION(1:maxw), INTENT(OUT) :: c_list    ! Size of array c_list 
+      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: c_list    ! Size of array c_list 
+      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: c_offs ! Offsets from periodic boundary
       INTEGER, INTENT(OUT) :: natoms  ! number of atoms in connectivity list
 !
-      INTEGER    :: i
+      INTEGER    :: i,k
 !
       natoms = 0
-      c_list = 0   ! clear connectivity list
 !
 !
       IF ( ALLOCATED(at_conn) ) THEN
@@ -863,9 +901,31 @@ CONTAINS
              temp => hood_temp%nachbar                    ! point to the first neighbor within current neigborhood
              IF ( hood_temp%neigh_type == ino  .OR. &
                   hood_temp%conn_name  == c_name   ) THEN   ! This is the right neighborhood
+                natoms = hood_temp%natoms
+                IF(ALLOCATED(c_list)) THEN
+!                  IF(UBOUND(c_list).lt.natoms) THEN
+                      DEALLOCATE(c_list)
+                      ALLOCATE(c_list(1:natoms))
+!                  ENDIF
+                ELSE
+                   ALLOCATE(c_list(1:natoms))
+                ENDIF
+                IF(ALLOCATED(c_offs)) THEN
+!                  IF(UBOUND(c_offs).lt.natoms) THEN
+                      DEALLOCATE(c_offs)
+                      ALLOCATE(c_offs(1:3,1:natoms))
+!                  ENDIF
+                ELSE
+                   ALLOCATE(c_offs(1:3,1:natoms))
+                ENDIF
+                c_list = 0   ! clear connectivity list
+                k = 0
                 DO WHILE ( ASSOCIATED(temp) )               ! While there are further neighbors
-                    natoms         = natoms + 1
-                    c_list(natoms) = temp%atom_number
+                    k         = k+ 1
+                    c_list(k) = temp%atom_number
+                    c_offs(1,k) = temp%offset(1)
+                    c_offs(2,k) = temp%offset(2)
+                    c_offs(3,k) = temp%offset(3)
                   temp => temp%next                         ! Point to next neighbor
                 END DO
                 RETURN                                      ! End of connectivity list
@@ -924,10 +984,13 @@ CONTAINS
    END SUBROUTINE get_connectivity_identity
 !
 !
-   SUBROUTINE do_show_connectivity ( iatom, idef )
+   SUBROUTINE do_show_connectivity ( iatom, idef, long )
 !-                                                                      
 !     Shows the connectivity no. idef around atom no iatom
 !+                                                                      
+      USE crystal_mod
+      USE atom_name
+      USE modify_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -935,16 +998,22 @@ CONTAINS
 !
       INTEGER, INTENT(in)        :: iatom
       INTEGER, INTENT(in)        :: idef
+      LOGICAL, INTENT(in)        :: long
 !
       INTEGER, PARAMETER         :: maxw = 2000
+!
+      CHARACTER (LEN=9)          :: at_name_d
+      CHARACTER (LEN=32)         :: c_property
       INTEGER                    :: is1
-      INTEGER, DIMENSION(1:maxw) :: c_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs
       INTEGER                    :: natoms
 !                                                                       
-      INTEGER                    :: i
+      INTEGER                    :: i, j
+      INTEGER                    :: length
 !
       is1 = cr_iscat(iatom)
-      CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, natoms )
+      CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, c_offs, natoms )
 !
       WRITE(output_io,1000) iatom, is1
       IF ( natoms > 0 ) THEN
@@ -957,9 +1026,27 @@ CONTAINS
          res_para(1:natoms) = FLOAT(c_list(1:natoms))
       ENDIF
 !
+      IF(long) THEN
+         DO j= 1,natoms
+            i = c_list(j)
+            at_name_d = at_name(cr_iscat(i))
+            CALL char_prop_1 (c_property, cr_prop (i), length) 
+            WRITE (output_io, 3010) at_name_d, cr_pos (1, i), cr_pos (2,&
+            i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &
+            length)
+            WRITE (output_io, 3020) c_offs(:,j)
+         ENDDO
+      ENDIF
+!
+      IF(ALLOCATED(c_list)) THEN
+         DEALLOCATE(c_list)
+      ENDIF
+!
 1000  FORMAT( ' Connectivity for atom No. ',I6,' of type ',i4)
 1100  FORMAT( '      Neighbors are        ',20(i6,2x))
 1200  FORMAT( '      Atom has no neighbours')
+3010  FORMAT(1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
+3020  FORMAT( 3x  ,3(8x,i6   )              ) 
 !
       END SUBROUTINE do_show_connectivity 
 END MODULE conn_mod

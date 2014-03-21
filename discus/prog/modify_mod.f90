@@ -1639,7 +1639,7 @@ CONTAINS
 !*****7*****************************************************************
       SUBROUTINE check_blen (x, iatom, rmin, rmax, offset) 
 !+                                                                      
-!     checks if atom 'iatom' is within rmin -> rmax awaz from           
+!     checks if atom 'iatom' is within rmin -> rmax away from           
 !     position x(3). All matching atoms are stored in the               
 !     arrays 'atom_env' and 'res_para'. The positions of the            
 !     atoms are stored in 'atom_pos' to retain information              
@@ -1664,6 +1664,9 @@ CONTAINS
 !                                                                       
       lspace = .true. 
 !                                                                       
+      DO j = 1, 3 
+         atom_pos (j, 0 ) = x (j) 
+      ENDDO 
       DO j = 1, 3 
       v (j) = cr_pos (j, iatom) + offset (j) 
       ENDDO 
