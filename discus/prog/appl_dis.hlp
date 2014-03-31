@@ -1744,10 +1744,18 @@
 !p                                   If only atoms i1 and i2 are given, the
 !p                                   angle at the origin between the vectors
 !p                                   to atoms i1 and i2 is calculated.
+!p bang(envi,i1,i2)                ! Returns the bond angle in the center of
+!p                                   the last find env command. The angle 
+!p                                   between the vectors from the center to
+!p                                   entries i1 and i2 in the environment is
+!p                                   calculated.
 !p blen(u1,u2,u3[,v1,v2,v3])       ! Returns the length of vector v-u.
 !p                                   Vector v defaults to zero.
 !p blen(atom,i1,i2)                ! Returns the length of the vector
 !p                                   between atoms i1 and i2
+!p blen(envi,i1)                   ! Returns the distance from the center of
+!p                                   the last environment to atom i1 in the 
+!p                                   environment
 !p dstar(h1,h2,h2[,k1,k2,k3])      ! Returns the length of reciprocal
 !p                                   vector k-h. Vector k defaults to zero.
 !p mol_test(i1)                    ! Returns the molecule number that contains

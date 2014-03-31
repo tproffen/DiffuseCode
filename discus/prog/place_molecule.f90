@@ -379,7 +379,8 @@ write(*,*) ' neigbor ',ib,' deviates by ',deviat(ib)
    INTEGER   :: istart,iend ! dummy index
    INTEGER   :: is ! scattering number of surface atom
    INTEGER   :: idef ! connectivity definition number
-   INTEGER, DIMENSION(1:MAXW) :: c_list
+   INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
+   INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
    INTEGER   :: natoms                 ! number of atoms in connectivity
 !
 integer ::itype
@@ -409,7 +410,7 @@ write(*,*) ' STARTING MAIN LOOP', istart, iend
 !write(*,*) ' Central : ',ia, cr_iscat(ia),cr_pos(:,ia), cr_prop(ia)
         is   = cr_iscat(ia)                  ! get scattering type central
         idef = dc_use_conn(is)               ! use this connectivity list for surface
-        CALL get_connectivity_list (ia, idef, maxw, c_list, natoms )
+        CALL get_connectivity_list (ia, is, idef, maxw, c_list, c_offs, natoms )
      ENDIF is_sel ! END IF BLOCK is selected
    ENDDO main_loop   ! END DO main loop over all atoms
 write(*,*) 'CLEANING UP'
@@ -422,6 +423,7 @@ write(*,*) 'CLEANING UP'
    DEALLOCATE(dc_molecules)
    DEALLOCATE(m_ntypes, STAT=istatus)
    DEALLOCATE(m_length, STAT=istatus)
+   DEALLOCATE(c_list  , STAT=istatus)
 !
    END SUBROUTINE deco_run
 !

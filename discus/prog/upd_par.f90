@@ -686,6 +686,7 @@
 !+                                                                      
       USE config_mod 
       USE crystal_mod 
+      USE atom_env_mod 
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
@@ -952,6 +953,38 @@
                            w (3) = cr_pos (3, k) 
                         ENDIF 
                      ENDIF 
+!     --------Input are atom numbers in an environment
+                  ELSEIF (str_comp(cpara(1), 'envi', 1, lpara(1), 4)) THEN
+                     DO i = 2, ianz 
+                     CALL eval (cpara (i), lpara (i) ) 
+                     IF (ier_num.ne.0) then 
+                        GOTO 999 
+                     ENDIF 
+                     werte (i) = do_read_number (cpara (i), lpara (i) ) 
+                     IF (ier_num.ne.0) then 
+                        GOTO 999 
+                     ENDIF 
+                     ENDDO 
+                     i = nint (werte (2) ) 
+                     j = nint (werte (3) ) 
+                     IF (ianz.eq.3) then 
+                        IF (i.lt.1.or.atom_env(0).lt.i.or.j.lt.1.or. &
+                                      atom_env(0).lt.j) THEN 
+                           ier_typ = ER_APPL 
+                           ier_num = - 19 
+                           RETURN 
+                        ELSE 
+                           u (1) = atom_pos (1, i) 
+                           u (2) = atom_pos (2, i) 
+                           u (3) = atom_pos (3, i) 
+                           v (1) = atom_pos (1, 0)
+                           v (2) = atom_pos (2, 0)
+                           v (3) = atom_pos (3, 0)
+                           w (1) = atom_pos (1, j) 
+                           w (2) = atom_pos (2, j) 
+                           w (3) = atom_pos (3, j) 
+                        ENDIF 
+                     ENDIF 
                   ELSE 
 !     --------Input are real space coordinates                          
                      DO i = 1, ianz 
@@ -990,7 +1023,7 @@
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'blen') then 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
             IF (ier_num.eq.0) then 
-               IF (ianz.eq.3.or.ianz.eq.6) then 
+               IF (ianz==2 .or. ianz.eq.3.or.ianz.eq.6) then 
 !     --------Input are atom numbers                                    
                   IF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) &
                   then                                                  
@@ -1017,6 +1050,31 @@
                         v (1) = cr_pos (1, j) 
                         v (2) = cr_pos (2, j) 
                         v (3) = cr_pos (3, j) 
+                     ENDIF 
+!     --------Input are atom numbers in an environment                                   
+                  ELSEIF (str_comp (cpara(1), 'envi', 1, lpara(1), 4)) THEN
+                     DO i = 2, ianz 
+                     CALL eval (cpara (i), lpara (i) ) 
+                     IF (ier_num.ne.0) then 
+                        GOTO 999 
+                     ENDIF 
+                     werte (i) = do_read_number (cpara (i), lpara (i) ) 
+                     IF (ier_num.ne.0) then 
+                        GOTO 999 
+                     ENDIF 
+                     ENDDO 
+                     i = nint (werte (2) ) 
+                     IF (i.lt.1.or.atom_env(0).lt.i) THEN
+                        ier_typ = ER_APPL 
+                        ier_num = - 19 
+                        RETURN 
+                     ELSE 
+                        u (1) = atom_pos (1, i) 
+                        u (2) = atom_pos (2, i) 
+                        u (3) = atom_pos (3, i) 
+                        v (1) = atom_pos (1, 0) 
+                        v (2) = atom_pos (2, 0) 
+                        v (3) = atom_pos (3, 0) 
                      ENDIF 
                   ELSE 
 !     --------Input are real space coordinates                          

@@ -33,10 +33,15 @@ CONTAINS
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz 
+      INTEGER ianz , iianz
       INTEGER i, j 
       INTEGER laenge 
       REAL werte (maxw) 
+      CHARACTER (LEN=256)  :: c_name   ! Connectivity name
+      INTEGER              :: c_name_l ! connectivity name length
+      INTEGER              :: is1, ino ! Connectivity id, connectivity no
+      INTEGER              :: iatom    ! atoms no for show
+      LOGICAL              :: long
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -75,8 +80,29 @@ CONTAINS
 !                                                                       
          ELSEIF (str_comp (cpara(1), 'connect', 4, lpara(1), 7) ) then
             CALL del_params (1, ianz, cpara, lpara, maxw)
+            IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
+               long = .true.
+               ianz = ianz - 1
+            ELSE
+               long = .false.
+            ENDIF
+            iianz = 1
+            CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+            iatom = NINT(werte(1))
+            CALL del_params (1, ianz, cpara, lpara, maxw)
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            CALL do_show_connectivity ( NINT(werte(1)), NINT(werte(2)))
+            IF(ier_num/=0) THEN
+               c_name   = cpara(1)
+               c_name_l = lpara(1)
+               ino      = 0
+               CALL no_error
+            ELSE                                               ! Success set to value
+               ino = nint (werte (1) ) 
+               c_name   = ' '
+               c_name_l = 1
+            ENDIF
+            CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+            CALL do_show_connectivity ( iatom, ino, long)
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
 !                                                                       
@@ -350,7 +376,8 @@ CONTAINS
       REAL werte (maxw) 
 !                                                                       
       CHARACTER(32) c_property 
-      INTEGER i, istart, iend, l 
+      INTEGER i, istart, iend, l ,k
+      INTEGER, DIMENSION(1:3) :: ioffset
       INTEGER length 
 !                                                                       
       CHARACTER(9) at_name_d 
@@ -384,7 +411,11 @@ CONTAINS
             CALL char_prop_1 (c_property, cr_prop (i), length) 
             WRITE (output_io, 3010) at_name_d, cr_pos (1, i), cr_pos (2,&
             i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &
-            length)                                                     
+            length)
+            DO k=1,3
+               ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
+            ENDDO
+            WRITE (output_io, 3020) ioffset
             ENDDO 
 !                                                                       
 !     --List sequence of atoms                                          
@@ -415,6 +446,7 @@ CONTAINS
 !                                                                       
  3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',9x,'Property') 
  3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
+ 3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
       END SUBROUTINE do_show_atom                   
 !*****7*****************************************************************
       SUBROUTINE do_show_bval (ianz, cpara, maxw) 
