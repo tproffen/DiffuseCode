@@ -5119,7 +5119,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER                    :: is1    ! central atom type
       INTEGER                    :: ino    ! number of connectivity list 
       INTEGER                    :: natoms ! number of atoms in connectivity list 
-      INTEGER, DIMENSION(1:maxw) :: c_list ! Result of connectivity search
+      INTEGER, DIMENSION(:), ALLOCATABLE :: c_list ! Result of connectivity search
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
       LOGICAL laccept 
       LOGICAL lok 
       LOGICAL ldbg 
@@ -5416,13 +5417,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
-               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, natoms )
+               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, c_offs, natoms )
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)
-                  patom(1,k+j,ncent) = cr_pos(1,c_list(j))
-                  patom(2,k+j,ncent) = cr_pos(2,c_list(j))
-                  patom(3,k+j,ncent) = cr_pos(3,c_list(j))
+                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + FLOAT(c_offs(1,j))
+                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + FLOAT(c_offs(2,j))
+                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + FLOAT(c_offs(3,j))
                ENDDO 
                natom(ncent) = natom(ncent) + natoms
             ENDIF
