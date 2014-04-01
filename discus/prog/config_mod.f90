@@ -107,7 +107,7 @@ SAVE
 !     Warning!      MAXPAR_RES  in "param_mod.f90" must always be of 
 !                                 identical size to
 !                 CHEM_MAX_NEIG in "config_mod.f90"
-        PARAMETER       (CHEM_MAX_NEIG = 3000 )
+        PARAMETER       (CHEM_MAX_NEIG = 6000 )
        PARAMETER        (MAX_ATOM_ENV  = CHEM_MAX_NEIG)
       PARAMETER      (CHEM_MAX_CENT = 200 )
 !
