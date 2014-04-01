@@ -11,7 +11,7 @@ MODULE param_mod
    SAVE
 !
    INTEGER, PARAMETER :: MAXPAR     =  500
-   INTEGER, PARAMETER :: MAXPAR_RES = 3000
+   INTEGER, PARAMETER :: MAXPAR_RES = 6000
 !
    INTEGER, DIMENSION(0:MAXPAR)     :: inpara   = 0   ! (0:MAXPAR)
    REAL   , DIMENSION(0:MAXPAR)     :: rpara    = 0.0 ! (0:MAXPAR)
