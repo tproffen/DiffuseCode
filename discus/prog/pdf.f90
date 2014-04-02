@@ -277,6 +277,7 @@ SUBROUTINE pdf
        
 !                                                                       
       REAL sincut, rcut, z, bave, hh, rtot, ract 
+      REAL(DP) :: factor
       INTEGER :: max_bnd
       INTEGER i, j, ia, is, js, nn, nnn 
       LOGICAL ltot 
@@ -407,13 +408,30 @@ SUBROUTINE pdf
             ENDIF 
          ENDIF 
 !                                                                       
-         DO i = 1, nn 
+         j = SIZE(pdf_sincc)+1
+         DO i = 1, INT(nn *1.5)
          pdf_sinc (i) = sin (z * float (i) ) / (pdf_deltar * float (i) ) 
+!        pdf_sincc(i)   = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
+!        pdf_sincc(j-i) = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
+         pdf_sincc(i)   = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
+         pdf_sincc(j-i) = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
          ENDDO 
          DO i = nn + 1, 2 * PDF_MAXDAT 
          pdf_sinc (i) = 0.0 
          ENDDO 
       ENDIF 
+!
+      IF(pdf_gauss) THEN
+         IF(pdf_gauss_init) THEN
+         factor = -0.5D0*pdf_gauss_step**2/1.D0/1.D0    ! 1/2 *r^2 /sigma^2
+         j = UBOUND(pdf_exp,1)
+         DO i=0,j !/2
+            pdf_exp(i)      = exp(factor * float(i*i))
+!           pdf_exp(j-i) = pdf_exp(i)
+         ENDDO
+           pdf_gauss_init = .false.
+        ENDIF
+      ENDIF
 !                                                                       
  1000 FORMAT     (' Setting up PDF segment ...') 
  1100 FORMAT     (' Extending PDF search distance to ',F8.4,' A ...') 
@@ -1435,12 +1453,12 @@ SUBROUTINE pdf
       CALL pdf_determine (.false.) 
 !                                                                       
       cold = 0.0d0
-      wtot = 0.0d0
+      wtot = 0.0d0 
       e = 0.0d0
-      ee = 0.0d0
-      c = 0.0d0
-      cc = 0.0d0
-      ce = 0.0d0
+      ee = 0.0d0 
+      c = 0.0d0 
+      cc = 0.0d0 
+      ce = 0.0d0 
 !                                                                       
       DO ip = nmi, nma 
       wtot = wtot + pdf_wic (ip) 
@@ -1451,7 +1469,7 @@ SUBROUTINE pdf
       ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
       ENDDO 
       IF (rmc_doskal) then 
-         pdf_skal = ce / cc 
+         pdf_skal = REAL(ce / cc )
       ELSE 
          pdf_skal = 1.0 / rmc_skal (1) 
       ENDIF 
@@ -1513,7 +1531,7 @@ SUBROUTINE pdf
          CALL pdf_convert 
 !                                                                       
          itry = itry + 1 
-         cnew = 0.0d0
+         cnew = 0.0d0 
          c = 0.0 
          cc = 0.0 
          ce = 0.0 
@@ -1524,7 +1542,7 @@ SUBROUTINE pdf
          ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
          ENDDO 
          IF (rmc_doskal) then 
-            pdf_skal = ce / cc 
+            pdf_skal = REAL(ce / cc )
          ELSE 
             pdf_skal = 1.0 / rmc_skal (1) 
          ENDIF 
@@ -1533,7 +1551,7 @@ SUBROUTINE pdf
 !                                                                       
 !     ----Accept move ?                                                 
 !                                                                       
-         prob = real( cnew - cold )
+         prob = REAL( cnew - cold )
 !                                                                       
          IF (prob.lt.0) then 
             laccept = .true. 
@@ -1601,13 +1619,13 @@ SUBROUTINE pdf
       zs = int (zeit - zh * 3600 - zm * 60.) 
       WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
 !                                                                       
-      rmc_skal (1) = real(1.0d0 / pdf_skal )
+      rmc_skal (1) = REAL(1.0d0 / pdf_skal )
 !                                                                       
 !------ save some results to res[i] blo                                 
 !                                                                       
       res_para (0) = 8 
 !                                                                       
-      res_para (1) = real(cold)
+      res_para (1) = REAL(cold) 
       res_para (2) = float (itry) 
       res_para (3) = float (iacc_good) 
       res_para (4) = float (iacc_bad) 
@@ -1785,11 +1803,16 @@ SUBROUTINE pdf
 !                                                                       
       INTEGER i, k, ncc 
 !     REAL ppp (MAXDAT) 
-      REAL(dp), DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
+!      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
+      REAL(DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
-      REAL rr
-      rr = 0.0
+      REAL rr 
+      REAL :: factor,fac4
+!     REAL(dp) :: convlv
+!     INTEGER (SELECTED_INT_KIND(9)) :: isign = 1
 !                                                                       
+      rr = 0.0
+      ALLOCATE(ppp(1:SIZE(pdf_calc)))
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 
          IF (pdf_lrho0_rel) then 
@@ -1851,32 +1874,38 @@ SUBROUTINE pdf
 !------ Apply instrument resolution correction                          
 !                                                                       
       IF (pdf_sigmaq.gt.0.0) then 
+         factor = (pdf_deltar*pdf_sigmaq) * (pdf_deltar*pdf_sigmaq) /2.0
+         fac4   = REAL(pdf_deltar/pdf_gauss_step*pdf_sigmaq )
          DO i = 1, pdf_bin 
-         r = float (i) * pdf_deltar 
-         pdf_calc (i) = pdf_calc (i) * exp ( - (r * pdf_sigmaq) **2 /   &
-         2.0)                                                           
+!         r = float (i) * pdf_deltar 
+!         pdf_calc (i) = pdf_calc (i) * exp ( - (r * pdf_sigmaq) **2 /   &
+!         2.0)                                                           
+            pdf_calc (i) = pdf_calc (i) * pdf_exp (NINT((i+1)*fac4))
          ENDDO 
       ENDIF 
 !                                                                       
 !------ Convolute with SINC function                                    
 !                                                                       
       IF (pdf_qmax.gt.0.0) then 
-         DO i = 1, pdf_bin 
-         ppp (i) = pdf_calc (i) * (pdf_qmax - pdf_sinc (2 * i) ) 
-         DO k = 1, i - 1 
-         ppp (i) = ppp (i) + pdf_calc (k) * (pdf_sinc (i - k) -         &
-         pdf_sinc (i + k) )                                             
-         ENDDO 
-         DO k = i + 1, pdf_bin 
-         ppp (i) = ppp (i) + pdf_calc (k) * (pdf_sinc (k - i) -         &
-         pdf_sinc (k + i) )                                             
-         ENDDO 
-         ENDDO 
+!write(*,*) ' Do old style'
+!         DO i = 1, pdf_bin 
+!         ppp (i) = pdf_calc (i) * (pdf_qmax - pdf_sinc (2 * i) ) 
+!         DO k = 1, i - 1 
+!         ppp (i) = ppp (i) + pdf_calc (k) * (pdf_sinc (i - k) - pdf_sinc (i + k) )
+!         ENDDO 
+!         DO k = i + 1, pdf_bin 
+!         ppp (i) = ppp (i) + pdf_calc (k) * (pdf_sinc (k - i) - pdf_sinc (k + i) )
+!         ENDDO 
+!         ENDDO 
 !                                                                       
+         CALL CONVLV_SUB(SIZE(pdf_calc), SIZE(pdf_sincc),ppp,pdf_calc, pdf_sincc, 1)
+         factor = pdf_deltar / zpi * 2.
          DO i = 1, pdf_bin 
-         pdf_calc (i) = ppp (i) * pdf_deltar / zpi * 2.0 
+            pdf_calc (i) = ppp (i) * factor
+!           pdf_calc (i) = ppp (i) * pdf_deltar / zpi * 2.0 
          ENDDO 
       ENDIF 
+      DEALLOCATE(ppp)
 !                                                                       
       END SUBROUTINE pdf_convert                    
 !*****7*****************************************************************
@@ -1905,8 +1934,8 @@ SUBROUTINE pdf
 !      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
       REAL(dp), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
       REAL rsign, sum 
-      REAL asym, gnorm, dist, dist2, rg 
-      REAL sigma, fac 
+      REAL asym, gnorm, dist, dist2 !, rg 
+      REAL sigma, fac , factor, fac4
       REAL dd (3), d (3), offset (3) 
 !                                                                       
       fac = 1.0 / (2.0 * zpi**2) 
@@ -1997,13 +2026,17 @@ SUBROUTINE pdf
                      pdf_corr (ibin) = pdf_corr (ibin) + rsign *        &
                      pdf_weight (is, js) / pdf_deltar                   
                   ELSE 
+                     factor = REAL(pdf_deltar/pdf_gauss_step/sigma)
+                     fac4   = pdf_deltar/dist
                      gnorm = 1.0 / (sqrt (zpi) * sigma) 
 !                                                                       
                      DO ig = - igaus, igaus 
-                     rg = (ig - 1) * pdf_deltar 
-                     asym = 1.0 + rg / dist 
-                     gaus (ig) = gnorm * asym * exp ( - 0.5 * (rg /     &
-                     sigma) **2)                                        
+!                    rg = (ig - 1) * pdf_deltar 
+!                    asym = 1.0 + rg / dist 
+                     asym = 1.0 + (ig-1)*fac4
+!                    gaus (ig) = gnorm * asym * exp ( - 0.5 * (rg /     &
+!                    sigma) **2)                                        
+                     gaus (ig) = gnorm * asym * pdf_exp(IABS(INT((ig-1)*factor)))
                      ENDDO 
 !                                                                       
                      DO ig = ib, ie 
@@ -2185,18 +2218,20 @@ SUBROUTINE pdf
        
 !                                                                       
       INTEGER ig, igaus, ib, ie 
-      INTEGER ii, kk, is, js, ibin 
+      INTEGER ii, is, js, ibin , ibin1
 !     REAL(dp) gaus ( - MAXDAT:MAXDAT) 
       REAL(dp), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
       REAL rsign, sum 
-      REAL asym, gnorm, dist, dist2, rg 
-      REAL sigma, fac 
+      REAL asym, gnorm, dist, dist2 !, rg 
+      REAL sigma, fac , factor, fac4
+      REAL :: sqrt_zpi
 !                                                                       
       fac = 1.0 / (2.0 * zpi**2) 
+      sqrt_zpi =1.0/sqrt(zpi)
       DO is = 1, cr_nscat 
       DO js = 1, cr_nscat 
-      IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. (         &
-      pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then               
+      IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. &
+           (pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then               
                                                                         
          ii = int (pdf_rmax / pdf_deltar) + 1 
          DO ibin = 1, ii 
@@ -2228,18 +2263,26 @@ SUBROUTINE pdf
                pdf_corr (ibin) = pdf_corr (ibin) + pdf_temp (ibin, is,  &
                js) * rsign * pdf_weight (is, js) / pdf_deltar           
             ELSE 
-               gnorm = 1.0 / (sqrt (zpi) * sigma) 
+!              gnorm = 1.0 / (sqrt (zpi) * sigma) 
+               gnorm =        sqrt_zpi / sigma 
 !                                                                       
+               factor = REAL(pdf_deltar/pdf_gauss_step/(sigma))
+               fac4   = REAL(pdf_deltar/dist)
                DO ig = - igaus, igaus 
-               rg = (ig - 1) * pdf_deltar 
-               asym = 1.0 + rg / dist 
-               gaus (ig) = gnorm * asym * exp (-0.5*(rg/sigma)** 2)
+!                 rg = (ig - 1) * pdf_deltar 
+!                 asym = 1.0 + rg / dist 
+!                 gaus (ig) = gnorm * asym * exp (-0.5*(rg/sigma)** 2)
+                  asym = 1.0 + (ig - 1)*fac4
+                  gaus (ig) = gnorm * asym * pdf_exp(IABS(INT((ig-1)*factor)))
                ENDDO 
 !                                                                       
+               fac4 = pdf_temp (ibin, is, js) * rsign * pdf_weight (is, js)
+               ibin1 = ibin-1
                DO ig = ib, ie 
-               kk = ig - ibin + 1 
-               pdf_corr (ig) = pdf_corr (ig) + pdf_temp (ibin, is, js)  &
-               * rsign * pdf_weight (is, js) * gaus (kk)                
+!                 kk = ig - ibin + 1 
+!                 pdf_corr (ig) = pdf_corr (ig) + pdf_temp (ibin, is, js)  &
+!                 * rsign * pdf_weight (is, js) * gaus (kk)                
+                  pdf_corr (ig) = pdf_corr (ig) + fac4 *gaus(ig - ibin1  )
                ENDDO 
             ENDIF 
 !                                                                       
