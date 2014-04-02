@@ -4671,12 +4671,19 @@
    name or B value. This allows one to read large asymmetric units
    (e.g. from a protein) without creating that many different atom types.
 3  free
-!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma>]
+!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma>i [,<name> | <number>]
 
    No structure is read. The space group is set to "P1". The lattice
    constants are set to the optional values on the command line. 
    Default values are 1,1,1 Angstrom and  90,90,90 degrees.
    The structure does not contain any atoms.
+
+   The optional 7th parameter allows you to set a space group for this
+   empty structure. The parameter may either be the space group name or
+   the space group number. This has no effect on the current structure 
+   or on atoms you may insert later. It does allow you to save this
+   structure and then to rad it as a unict cell file. It will then be
+   expanded to a full unit cell content according to the space group
 3  stru
 !b stru <name>
 

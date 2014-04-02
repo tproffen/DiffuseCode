@@ -29,6 +29,7 @@ CONTAINS
       USE read_internal_mod
       USE save_mod 
       USE spcgr_apply
+      USE spcgr_mod 
       USE stack_rese_mod
       USE update_cr_dim_mod
 !      USE interface_def
@@ -50,7 +51,7 @@ CONTAINS
       CHARACTER(5) befehl 
       INTEGER lpara (maxw), lp, length 
       INTEGER ce_natoms, lstr, i, j, k, iatom 
-      INTEGER ianz, l, n, lbef 
+      INTEGER ianz, l, n, lbef , iianz
       INTEGER    :: natoms,nscats
       LOGICAL lout 
       REAL werte (maxw) 
@@ -308,9 +309,9 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
          ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) then 
             CALL rese_cr 
             cr_name = 'freely created structure' 
-            cr_spcgr (1:1) = 'P' 
-            cr_spcgr (2:2) = '1' 
-      cr_spcgr (3:16)  = '              ' 
+            cr_spcgr (1:1)  = 'P' 
+            cr_spcgr (2:2)  = '1' 
+            cr_spcgr (3:16) = '              ' 
             cr_spcgrno = 1 
             cr_syst = 1 
             CALL get_symmetry_matrices 
@@ -319,8 +320,20 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                cr_a0 (i) = 1.0 
                cr_win (i) = 90.0 
                ENDDO 
-            ELSEIF (ianz.eq.6) then 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            ELSEIF (ianz.eq.6.or. ianz.eq.7) then 
+               iianz = 6
+               CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+               CALL del_params (6, ianz, cpara, lpara, maxw) 
+               IF(ianz.eq.1) THEN
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF(ier_num==0) THEN
+                     cr_spcgrno = NINT(werte(1))
+                     cr_spcgr   = spcgr_name (cr_spcgrno) 
+                  ELSE
+                     cr_spcgr = cpara(1)(1:lpara(1))
+                  ENDIF
+                  CALL no_error
+               ENDIF
                DO i = 1, 3 
                cr_a0 (i) = werte (i) 
                cr_win (i) = werte (i + 3) 
@@ -335,6 +348,8 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   ier_msg (1) = 'Error reading unit cell parameters' 
                   RETURN 
                ENDIF 
+               werte(1)=1
+               CALL spcgr_no(1,maxw,werte)
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
