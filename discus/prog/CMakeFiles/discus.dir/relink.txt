@@ -1,1 +1,0 @@
-/usr/bin/gfortran     -fPIC -cpp -O3 -pg -Wall CMakeFiles/discus.dir/discus.f90.o  -o CMakeFiles/CMakeRelink.dir/discus -rdynamic -L/home/reinhard/develop/DiffuseCode/lib_f90 libdiscus_all.a ../../lib_f90/liblib_f90.a ../../lib_f90/liblib_f90c.a /usr/lib64/libreadline.so libdiscus_all.a 
