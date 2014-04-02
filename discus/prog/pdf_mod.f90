@@ -28,8 +28,10 @@ REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
 INTEGER, DIMENSION(:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
-REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
+REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
+REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sincc  ! (2*MAXDAT)
 REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
+REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
 !
 !REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_calc   ! (MAXDAT)
 !REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_corr   ! (MAXDAT)
@@ -41,7 +43,7 @@ REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAX
 REAL                ::  pdf_rmax   = 50.00
 REAL                ::  pdf_qmax   = 30.00
 REAL                ::  pdf_deltar =  0.01
-REAL(dp)            ::  pdf_skal   =  1.00
+REAL                ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
 REAL                ::  pdf_rfmin  =  0.05
@@ -71,6 +73,8 @@ INTEGER             ::  pdf_radiation = PDF_RAD_XRAY
 INTEGER             ::  pdf_power     = 4
 LOGICAL             ::  pdf_lxray  = .false.
 LOGICAL             ::  pdf_gauss  = .false.
+LOGICAL             ::  pdf_gauss_init  = .true.
+REAL(dp), PARAMETER ::  pdf_gauss_step = 0.0005d0
 LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)

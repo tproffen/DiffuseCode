@@ -40,7 +40,7 @@ set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	structur.f90 surface_mod.f90 sym_add_mod.f90 symm.f90 symm_mod.f90 symm_sup.f90 tensors.f90
 	thermal.f90 trafo.f90 transfrm.f90 trans_sup.f90 transfrm_mod.f90 unitcell_mod.f90 upd_par.f90
 	update_cr_dim.f90
-	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90
+	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90 utilities.f90
   )
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
