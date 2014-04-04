@@ -457,7 +457,7 @@ slave: DO
 !
 !------       Define output redirection
 !
-      out_null: IF ( run_mpi_senddata%out(1:run_mpi_senddata%out_l) == '/dev/null' ) THEN  ! no output desired
+      out_null: IF ( run_mpi_senddata%out(1:run_mpi_senddata%out_l) == '/dev/null' ) THEN   ! no output desired
          output   = '/dev/null'
          output_l = 9
       ELSE out_null                                          ! redirect to a log file

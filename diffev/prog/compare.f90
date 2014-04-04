@@ -463,7 +463,7 @@ CONTAINS
    length = len_str(parent_results)
    i      = 0                                     ! 0 is the R-value
    WRITE (fname, 900) parent_results(1:length), i
-   CALL oeffne_append (iwr, fname, 'unknown')
+   CALL oeffne_append (iwr, fname, 'unknown' )
    IF (ier_num.ne.0) THEN 
       RETURN 
    ENDIF 
