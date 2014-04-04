@@ -463,7 +463,7 @@ CONTAINS
    length = len_str(parent_results)
    i      = 0                                     ! 0 is the R-value
    WRITE (fname, 900) parent_results(1:length), i
-   CALL oeffne_append (iwr, fname, 'unknown', .false.)
+   CALL oeffne_append (iwr, fname, 'unknown')
    IF (ier_num.ne.0) THEN 
       RETURN 
    ENDIF 
@@ -491,7 +491,7 @@ CONTAINS
 !
       fname = ' '
       WRITE (fname, 900) parent_results(1:length), i
-      CALL oeffne_append (iwr, fname, 'unknown', .false.)
+      CALL oeffne_append (iwr, fname, 'unknown')
       IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 
@@ -517,7 +517,7 @@ CONTAINS
    length = len_str(parent_summary)
    i    = 0
    WRITE (fname, 900) parent_summary(1:length), i
-   CALL oeffne_append (iwr, fname, 'unknown', .false.) 
+   CALL oeffne_append (iwr, fname, 'unknown') 
    IF (ier_num.ne.0) THEN 
       RETURN 
    ENDIF 
@@ -558,7 +558,7 @@ CONTAINS
 !
    DO i = 1, pop_dimx 
       WRITE (fname, 900) parent_summary(1:length), i
-      CALL oeffne_append (iwr, fname, 'unknown', .false.) 
+      CALL oeffne_append (iwr, fname, 'unknown') 
       IF (ier_num.ne.0) return
       pave = 0.0 
       psig = 0.0 
