@@ -1715,7 +1715,7 @@ MODULE allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_temp      ,1,n_dat,0,n_scat, &
+      CALL alloc_arr ( pdf_temp      ,0,n_dat,0,n_scat, &
                                               0,n_scat, &
                                               all_status, 0      , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out

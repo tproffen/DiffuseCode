@@ -1693,9 +1693,12 @@ SUBROUTINE pdf
 !+                                                                      
 !     Calculate PDF of current structure                                
 !-                                                                      
+      USE allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 
+      USE powder, ONLY : powder_trans_atoms_tocart, powder_trans_atoms_fromcart
+      USE plot_init_mod
 !
       USE debug_mod 
       USE errlist_mod 
@@ -1708,9 +1711,13 @@ SUBROUTINE pdf
       INTEGER is, js 
       REAL done, sum 
       LOGICAL lout 
+!
+      INTEGER              :: npoint   !Number of points for histogram in exact mode
+      REAL, DIMENSION(1:3) :: u        ! Crystal diagonal
       REAL seknds, ss 
 !                                                                       
       ss = seknds (0.0) 
+      u  = 0.00
 !                                                                       
       IF(.NOT. pdf_lexact) THEN
          IF (cr_ncatoms.eq.0) THEN
@@ -1729,6 +1736,26 @@ SUBROUTINE pdf
             WRITE (output_io, 500) 'unit cell mode' 
          ENDIF 
       ENDIF 
+      IF (pdf_lexact) then 
+!
+!------ Convert to cartesian
+!
+      CALL plot_ini_trans (1.0)
+      CALL powder_trans_atoms_tocart (u)
+      npoint = INT(SQRT(u(1)**2+u(2)**2+u(3)**2)/pdf_deltar)
+      IF(npoint > UBOUND(pdf_temp,1)) THEN
+         DEALLOCATE(pdf_temp)
+         pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
+         ALLOCATE(pdf_temp(0:pdf_ndat,0:pdf_nscat,0:pdf_nscat))
+!        pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+!        pdf_ndat  = MAX(pdf_ndat , npoint  , PDF_MAXDAT)
+!        pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
+!        CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+!        IF ( ier_num < 0 ) THEN
+!           RETURN
+!        ENDIF
+      ENDIF
+      ENDIF
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
@@ -1766,6 +1793,13 @@ SUBROUTINE pdf
          ENDIF 
          ENDDO 
       ENDIF 
+!
+      IF (pdf_lexact) then 
+!
+!------ Convert back to crystal metric
+!
+         CALL powder_trans_atoms_fromcart
+      ENDIF
 !                                                                       
       CALL pdf_convtherm (1.0, sum) 
 !                                                                       
@@ -2130,23 +2164,20 @@ SUBROUTINE pdf
          DO ii = 1, cr_ncatoms 
          CALL celltoindex (cell, ii, iatom) 
          js = cr_iscat (iatom) 
-         IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. (      &
-         pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then            
+         IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
             DO jj = 1, 3 
             dd (jj) = cr_pos (jj, ia) - cr_pos (jj, iatom) - offset (jj) 
             d (jj) = abs (dd (jj) ) * cr_a0 (jj) 
             ENDDO 
-!             dist2 = skalpro(dd,dd,cr_gten)                            
             dist2 = dd (1) * dd (1) * cr_gten (1, 1) + dd (2) * dd (2)  &
             * cr_gten (2, 2) + dd (3) * dd (3) * cr_gten (3, 3) + 2. *  &
             dd (1) * dd (2) * cr_gten (1, 2) + 2. * dd (1) * dd (3)     &
             * cr_gten (1, 3) + 2. * dd (2) * dd (3) * cr_gten (2, 3)    
             dist = sqrt (dist2) 
 !                                                                       
-            IF (dist.le.pdf_rmax.and.dist.gt.pdf_deltar) then 
+            IF (dist.le.pdf_rmax                       ) then 
                ibin = nint (dist / pdf_deltar) 
-               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js)        &
-               + 1                                                      
+               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) + 1
             ENDIF 
          ENDIF 
          ENDDO 
@@ -2183,20 +2214,17 @@ SUBROUTINE pdf
          js = cr_iscat (iatom) 
          IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. (      &
          pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then            
-            DO jj = 1, 3 
-            dd (jj) = cr_pos (jj, ia) - cr_pos (jj, iatom) 
-            d (jj) = abs (dd (jj) ) * cr_a0 (jj) 
-            ENDDO 
-            dist2 = dd (1) * dd (1) * cr_gten (1, 1) + dd (2) * dd (2)  &
-            * cr_gten (2, 2) + dd (3) * dd (3) * cr_gten (3, 3) + 2. *  &
-            dd (1) * dd (2) * cr_gten (1, 2) + 2. * dd (1) * dd (3)     &
-            * cr_gten (1, 3) + 2. * dd (2) * dd (3) * cr_gten (2, 3)    
-            dist = sqrt (dist2) 
+            dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) 
+            dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) 
+            dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) 
+
+            dist   = SQRT(dd (1) * dd (1) + &
+                          dd (2) * dd (2) + &
+                          dd (3) * dd (3)  )
 !                                                                       
-            IF (dist.le.pdf_rmax.and.dist.gt.pdf_deltar) then 
+            IF (dist.le.pdf_rmax                       ) then 
                ibin = nint (dist / pdf_deltar) 
-               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js)        &
-               + 1                                                      
+               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) +1
             ENDIF 
          ENDIF 
          ENDDO 
@@ -2237,6 +2265,7 @@ SUBROUTINE pdf
                                                                         
          ii = int (pdf_rmax / pdf_deltar) + 1 
          DO ibin = 1, ii 
+         zero: IF(pdf_temp(ibin,is,js)>0) THEN
          dist = ibin * pdf_deltar 
          dist2 = dist**2 
 !                                                                       
@@ -2295,6 +2324,7 @@ SUBROUTINE pdf
             * rsign * pdf_weight (is, js)                               
          ENDIF 
          sum = sum + pdf_weight (is, js) 
+            ENDIF zero
          ENDDO 
       ENDIF 
       ENDDO 
