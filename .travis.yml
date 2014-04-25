@@ -1,0 +1,12 @@
+language: c
+
+compiler: gcc
+
+before_install:
+  - sudo apt-get install -qq gfortran pgplot5
+
+before_script:
+  - cmake .
+
+script:
+  - make discus diffev kuplot
