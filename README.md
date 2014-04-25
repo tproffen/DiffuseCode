@@ -58,3 +58,4 @@ at http://discus.sourceforge.net.
 If you like to participate in code development, join us at
 
 
+[![Build Status](https://travis-ci.org/tproffen/DiffuseCode.svg?branch=master)](https://travis-ci.org/tproffen/DiffuseCode)
