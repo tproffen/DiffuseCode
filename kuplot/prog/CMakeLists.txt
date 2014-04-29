@@ -1,7 +1,5 @@
 # KUPLOT Build
 
-option(KUPLOT_NEXUS "KUPLOT_NEXUS" ON)
-
 find_package(PGPLOT REQUIRED)
 find_package(NEXUS)
 
@@ -39,17 +37,17 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 # NEXUS support ?
 
-if (NEXUS_FOUND AND KUPLOT_NEXUS)
+if (NEXUS_FOUND)
   set (SOURCES_ALL ${SOURCES_ALL} nexus.f90)
   set (LIBS_OPT         ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
 
-else (NEXUS_FOUND AND KUPLOT_NEXUS)
+else (NEXUS_FOUND)
   set (SOURCES_ALL ${SOURCES_ALL} nonexus.f90)
   set (LIBS_OPT )
 
-endif (NEXUS_FOUND AND KUPLOT_NEXUS)
+endif (NEXUS_FOUND)
 
 add_library (kuplot_all ${SOURCES_ALL})
 add_dependencies (kuplot_all lib_f90)
