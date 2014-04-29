@@ -71,10 +71,12 @@ SET( NEXUS_LIBRARY_SEARCH_DIRS
 
 
 #
-# Find the components of NEXUS itself
+# Find the components of NEXUS itself, these are the headers that the nexus
+# kit doesn't always install
 #
 MESSAGE( STATUS "Looking for NEXUS: include directory" )
-FIND_PATH( NEXUS_INCLUDE_DIR napi.h napif.inc nxmodule.mod nxumodule.mod
+FIND_PATH( NEXUS_INCLUDE_DIR
+        NAMES   nxmodule.mod nxumodule.mod
 	PATHS
 		${NEXUS_DIR}
 		${DEFAULT_PACKAGE_DIRS}
@@ -113,13 +115,9 @@ MESSAGE( STATUS "Looking for NEXUS: F90 library (${NEXUS_F90_LIBRARY})" )
 ####################################################################################################
 #### EVALUATE SEARCH RESULTS
 ####################################################################################################
-FIND_PACKAGE_HANDLE_STANDARD_ARGS( NEXUS DEFAULT_MSG
-	NEXUS_NEXUS_LIBRARY
-	NEXUS_F90_LIBRARY
-	NEXUS_LIBRARY_DIR
-	NEXUS_INCLUDE_DIR
+FIND_PACKAGE_HANDLE_STANDARD_ARGS( NEXUS 
+        REQUIRED_VARS NEXUS_NEXUS_LIBRARY NEXUS_F90_LIBRARY NEXUS_LIBRARY_DIR NEXUS_INCLUDE_DIR
 )
-
 
 IF( NEXUS_FOUND )
 	SET( NEXUS_INCLUDE_DIRS ${NEXUS_INCLUDE_DIR} )
