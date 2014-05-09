@@ -392,11 +392,9 @@
       IF (ier_num.ne.0) return 
       loverwrite = str_comp (cpara (ianz) , 'overwrite', 2, lpara (ianz)&
       , 9)                                                              
-      WRITE ( *, * ) ianz 
       IF (loverwrite) then 
          ianz = ianz - 1 
       ENDIF 
-      WRITE ( *, * ) ianz 
 !                                                                       
 !------ check arguments                                                 
 !                                                                       
@@ -1091,6 +1089,7 @@
       USE errlist_mod 
       USE config_mod 
       USE kuplot_mod 
+      USE prompt_mod 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1154,7 +1153,7 @@
          RETURN 
       ENDIF 
 !                                                                       
-      WRITE ( *, 1000) id, ik 
+      WRITE ( output_io, 1000) id, ik 
  1000 FORMAT     (1x,'------ > Calculating derivative ',i2,             &
      &                      ' for data set ',i3,' ...')                 
 !                                                                       
