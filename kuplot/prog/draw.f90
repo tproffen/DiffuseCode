@@ -505,14 +505,14 @@
 !                                                                       
       USE doact_mod 
       USE errlist_mod 
-      USE macro_mod 
+      USE class_macro_internal
       USE config_mod 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER(1024) command, befehl 
-      INTEGER ic, ib, mac_level_old 
+      INTEGER ic, ib, macro_level_old 
       LOGICAL lend, lreg 
 !                                                                       
       LOGICAL str_comp 
@@ -521,7 +521,7 @@
 !                                                                       
 !------ Now enter, check and execute command                            
 !                                                                       
-      mac_level_old = mac_level 
+      macro_level_old = macro_level 
       CALL draw_command (command, befehl, ic, ib) 
       IF (ic.gt.0) then 
 !                                                                       
@@ -536,7 +536,7 @@
 !                                                                       
 !------ --- Macro entered ?                                             
 !                                                                       
-            DO while (mac_level.gt.mac_level_old) 
+            DO while (macro_level.gt.macro_level_old) 
             IF (lblock) then 
                CALL do_execute (lreg, command, ic) 
                IF (ier_num.ne.0.or..not.lreg) goto 10 

@@ -5,6 +5,7 @@ set (FSOURCES allocate_generic.f90 appl_unix.f90 blockdat.f90 dkdo.f90
               random.f90 sup.f90 variable_test.f90 
               charact_mod.f90 debug_mod.f90 doact_mod.f90 doexec_mod.f90 
               doloop_mod.f90 envir_mod.f90 errlist_mod.f90 learn_mod.f90
+              class_macro.f90 macro_internal.f90
               macro_mod.f90 param_mod.f90 prompt_mod.f90
               random_mod.f90 times_mod.f90 variable_mod.f90 wink_mod.f90)
 

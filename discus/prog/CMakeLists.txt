@@ -119,7 +119,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     OUTPUT lib_discus.so
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
@@ -135,7 +135,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/macro_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/class_macro_internal.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/send_get.f90
     )

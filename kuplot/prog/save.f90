@@ -410,7 +410,7 @@
       USE doact_mod 
       USE errlist_mod 
       USE learn_mod 
-      USE macro_mod 
+      USE class_macro_internal
       USE param_mod 
       USE prompt_mod 
       USE config_mod 

@@ -17,7 +17,7 @@
       USE doloop_mod 
       USE errlist_mod 
       USE learn_mod 
-      USE macro_mod 
+      USE class_macro_internal 
       USE prompt_mod 
 !                                                                       
       IMPLICIT none 
@@ -255,6 +255,9 @@
       IF (ier_num.ne.0) then 
          WRITE (ier_msg (1), 3000) 
          WRITE (ier_msg (2), 3100) line (1:41) 
+         IF(lmakro) THEN
+            CALL macro_close
+         ENDIF 
       ENDIF 
 !                                                                       
 !                                                                       

@@ -15,7 +15,7 @@
       USE doact_mod 
       USE envir_mod 
       USE errlist_mod 
-      USE macro_mod 
+      USE class_macro_internal 
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       

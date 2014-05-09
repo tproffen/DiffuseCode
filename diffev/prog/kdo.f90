@@ -20,6 +20,7 @@ use show_mod
 !
 USE errlist_mod 
 USE learn_mod 
+USE macro_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -96,7 +97,8 @@ ELSE
 !                                                                 
    IF (befehl (1:1) .eq.'@') then 
       IF (length.ge.2) then 
-         CALL file_kdo (line (2:length), length - 1) 
+          CALL file_kdo (line(2:length), length -1)
+!         CALL file_kdo (line (2:length), length - 1) 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_MAC 

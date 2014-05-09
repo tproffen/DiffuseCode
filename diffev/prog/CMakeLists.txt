@@ -53,7 +53,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     OUTPUT lib_diffev.so
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/macro_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
@@ -67,7 +67,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
             ${LIBS_OPT}
             ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/macro_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/class_macro_internal.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/param_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/prompt_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90

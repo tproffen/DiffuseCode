@@ -627,7 +627,7 @@ SUBROUTINE cmdline_args
       USE errlist_mod 
       USE jsu_readline
       USE learn_mod 
-      USE macro_mod 
+      USE class_macro_internal 
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       

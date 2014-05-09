@@ -35,14 +35,8 @@
 !                                                                       
 !------ /MAKRO/     LMAKRO,MAC_LEVEL,MAC_LINE,MAC_NAME           
 !                                                                       
-      lmakro = .false. 
-      mac_level = 0 
-!                                                                       
-      DO i = 1, MAC_MAX_LEVEL 
-      mac_line (i) = 0 
-      mac_name (i) = ' ' 
-      lmacro_dbg (i) = .false. 
-      ENDDO 
+!     lmakro = .false. 
+!     mac_level = 0 
 !                                                                       
       DO i = 1, MAC_MAX_IO 
       io_unit (i) = 86 + i 

@@ -1,32 +1,164 @@
-!*****7****************************************************************
+SUBROUTINE file_kdo(line, ilen)
 !
-      SUBROUTINE file_kdo (line, i)
-!-
-!     Opens a new macro file.
-!+
+      USE class_macro_internal
       USE envir_mod
       USE errlist_mod
       USE macro_mod
       USE prompt_mod
-      IMPLICIT none
+!
+      IMPLICIT NONE
+!
+      INTEGER, PARAMETER ::  maxw = MAC_MAX_PARA + 1
+!
+      CHARACTER (LEN=*),  INTENT(INOUT) ::  line
+      INTEGER          ,  INTENT(INOUT) :: ilen
+!
+      CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara, ccpara
+      CHARACTER (LEN=1024)                    :: filename, string, text
+      CHARACTER (LEN=1024)                    :: filekid
+!
+      INTEGER             , DIMENSION(1:MAXW) :: lpara,llpara
+      INTEGER                                 :: ianz, iianz,i
+      LOGICAL                                 :: fileda
+      REAL                , DIMENSION(1:MAXW) :: werte, wwerte
 !
 !
-      INTEGER maxw
-      PARAMETER (maxw = MAC_MAX_PARA + 1)
+      LOGICAL, PARAMETER :: lread = .true.
+      INTEGER, PARAMETER :: imc   = 63
 !
-      CHARACTER ( * ) line
-      CHARACTER(1024) filename, string, cpara (maxw)
-      CHARACTER (LEN=1024) :: ldir  ! current local directory
-!
-      INTEGER lpara (maxw)
-      INTEGER              :: lslash          ! position os slash in filename
-      INTEGER              :: ldir_length     ! length of directory string
-      INTEGER              :: filename_length ! length of filename string
-      INTEGER ip, ianz, i, lc
-      LOGICAL fileda
-      REAL werte (maxw)
+      CHARACTER (LEN=1024), DIMENSION(:), ALLOCATABLE  :: content
+      INTEGER               :: length, file_length, length_kid
+      INTEGER               :: iline, ip
+      INTEGER               :: iseof
+      INTEGER               :: istatus
+      LOGICAL               :: is_stored
 !
       INTEGER   len_str
+!
+      is_stored = .false.                     ! assume macro does not exist in storage
+      macro_level = macro_level + 1
+      CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
+      file_length = len_str(filename)
+!
+      file_exist: IF (fileda) then
+!
+         ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
+         NULLIFY(macro_temp%before)            ! None before and after
+         NULLIFY(macro_temp%after)
+         IF ( istatus /= 0) THEN
+            ier_num = -114
+            ier_typ = ER_MAC
+            macro_level = 0
+!           THIS should be a routine "destroy tree"
+!           IF(ASSOCIATED(mac_tree_root)) DEALLOCATE(mac_tree_root) !WARNING MEMORY LEAK
+!           IF(ASSOCIATED(mac_tree_active)) DEALLOCATE(mac_tree_active) !WARNING MEMORY LEAK
+            lmakro = .false.
+            oprompt = prompt
+            CALL macro_close
+            RETURN
+         ENDIF
+         macro_temp%macrofile = filename       ! Copy filename
+!
+         IF(ASSOCIATED(macro_root)) THEN       ! We do have macros in storage, test for existence
+            CALL macro_find_node(macro_root, macro_temp, ier_num)
+            IF(ier_num == 0 ) THEN             ! Found the macro file in storage
+               is_stored = .true.
+            ELSE
+               CALL macro_add_node(macro_root, macro_temp)
+               ALLOCATE(macro_temp%macros,STAT=istatus)
+            ENDIF
+         ELSE
+            CALL macro_add_node(macro_root, macro_temp)
+            ALLOCATE(macro_temp%macros,STAT=istatus)
+         ENDIF
+!
+         is_new: IF(.not. is_stored ) THEN         ! This is a new macro
+            CALL oeffne(imc, filename, 'old')
+            ALLOCATE(content(1:5000) )
+            content = ' '
+            iline   = 0
+            readcont: DO
+               READ(IMC,'(a)',IOSTAT=iseof) string
+               IF ( IS_IOSTAT_END(iseof) ) EXIT readcont
+               length = len_str(string)
+               CALL rem_leading_bl(string,length)
+               iline          = iline + 1
+               content(iline) = string
+            ENDDO readcont
+!
+!     Store macro in the structure
+!
+            CALL macro_temp%macros%alloc_arrays(iline)
+            CALL macro_temp%macros%set_macro   (iline,content)
+            CLOSE(imc)
+!
+            DEALLOCATE(content)
+         ENDIF is_new
+      ELSE file_exist
+!       MACRO not found
+         ier_num = - 12
+         ier_typ = ER_MAC
+         oprompt = prompt
+         CALL macro_close
+         RETURN
+      ENDIF file_exist
+!
+      ALLOCATE(mac_tree_temp, STAT=istatus)      ! Allocate next node
+      NULLIFY(mac_tree_temp%kid)                 ! Currently no kid
+      mac_tree_temp%params   = ' '               ! Initialize parameters
+      mac_tree_temp%lparams  = 0  
+      DO I=1,ianz-1
+         mac_tree_temp%params(i)  = cpara(i+1)(1:lpara(i+1))   ! store parameters
+         mac_tree_temp%lparams(i) = lpara(i+1)
+      ENDDO
+      WRITE(mac_tree_temp%params(0), '(I5)') ianz-1 ! Store "$0"
+      mac_tree_temp%lparams(0) = 5               ! Length of "$0"
+      mac_tree_temp%nparams = ianz - 1           ! Store number of parameters
+      mac_tree_temp%current = 0                  ! Currently in line 0
+      mac_tree_temp%active => macro_temp         ! active macro is currently loaded macro
+!
+      IF(macro_level == 1 ) THEN                 ! Top level, start execution tree
+         NULLIFY(mac_tree_temp%parent)           ! This one has no parent, as top level
+         mac_tree_root    => mac_tree_temp       ! root points to current
+         mac_tree_active  => mac_tree_temp       ! Point to currently active macro
+         lmakro = .true.
+      ELSE
+         mac_tree_active%kid  => mac_tree_temp   ! Store new macro as kid of active macro
+         mac_tree_temp%parent => mac_tree_active ! Store parent of current macro
+         mac_tree_active      => mac_tree_temp   ! Point to currently active macro
+      ENDIF
+!
+      IF (prompt.ne.'macro ') oprompt = prompt
+!
+      END SUBROUTINE file_kdo
+!*****7*****************************************************************
+      SUBROUTINE build_macro_name(line, ilen, fileda, filename, MAXW, &
+                 ianz, cpara, lpara, werte)
+!
+      USE envir_mod
+      USE errlist_mod
+      USE prompt_mod
+!
+      IMPLICIT NONE
+!
+      CHARACTER (LEN=*), INTENT(IN   )  :: line
+      INTEGER          , INTENT(IN   )  :: ilen
+      LOGICAL          , INTENT(OUT  )  :: fileda
+      CHARACTER (LEN=*), INTENT(OUT  )  :: filename
+      INTEGER          , INTENT(IN   )  :: MAXW
+      INTEGER          , INTENT(OUT  )  :: ianz
+      CHARACTER (LEN=*), DIMENSION(1:MAXW),INTENT(OUT  )  :: cpara
+      INTEGER          , DIMENSION(1:MAXW),INTENT(OUT  )  :: lpara
+      REAL             , DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
+!
+      CHARACTER(LEN=1024)      :: ldir            ! local directory
+      CHARACTER(LEN=1024)      :: string
+      INTEGER                  :: ldir_length
+      INTEGER                  :: filename_length ! length of filename string
+      INTEGER                  :: ip, lc
+      INTEGER                  :: lslash          ! position os slash in filename
+!
+      INTEGER :: len_str
 !
 !---- Get current working directory
 !
@@ -36,184 +168,115 @@
         ldir(ldir_length:ldir_length) = '/'
       ENDIF
 !
-!     If there is place for another macro
-!
-      IF (mac_level.lt.MAC_MAX_LEVEL) then
-!
 !     --Get filename from command line and string for parameters
 !
-         string = line
-         ip = index (string, ' ')
-         string (ip:ip) = ','
-         CALL get_params (string, ianz, cpara, lpara, maxw, i)
+      string = line
+      ip = index (string, ' ')
+      string (ip:ip) = ','
+      CALL get_params (string, ianz, cpara, lpara, maxw, ilen)
 !
 !     --Try to build filename
 !
-         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-         IF (ier_num.eq.0) then
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+      build: IF (ier_num.eq.0) then
 !
 !       Try to open the macro file
 !
-            IF (ip.gt.1) then
+         IF (ip.gt.1) then
 !
-!-----      Try filename as is
+!-----   Try filename as is
 !
-               filename = cpara (1) (1:lpara (1) )
+            filename = cpara (1) (1:lpara (1) )
+            INQUIRE (file = filename, exist = fileda)
+!
+!-----   Try filename as is with appended '.mac'
+!
+            IF (.not.fileda) then
+               filename = cpara (1) (1:lpara (1) ) //'.mac'
+               INQUIRE (file = filename, exist = fileda)
+            ENDIF
+            filename_length = len_str(filename)
+!
+!-----   If file is found, convert to absolute path
+!
+            IF ( fileda ) THEN
+              lslash = index ( filename , '/' )
+              IF ( lslash == 0 ) THEN       ! No slash in filename
+                filename = ldir(1:ldir_length) // filename(1:filename_length)
+              ENDIF
+            ENDIF
+!
+!-----   Try local directory with appended '.mac'
+!
+            IF (.not.fileda) then
+               string = ' '
+               lc = 1
+               CALL do_chdir (string, lc, .false.)
+               IF (string (lc:lc) .ne.'/') then
+                  lc = lc + 1
+                  string (lc:lc) = '/'
+               ENDIF
+               filename = string (1:lc) //cpara (1) (1:lpara (1) ) //&
+               '.mac'
                INQUIRE (file = filename, exist = fileda)
 !
-!-----      Try filename as is with appended '.mac'
+!-----   Try local directory
 !
                IF (.not.fileda) then
-                  filename = cpara (1) (1:lpara (1) ) //'.mac'
+                  filename = string (1:lc) //cpara (1) (1:lpara (1) )
                   INQUIRE (file = filename, exist = fileda)
                ENDIF
-               filename_length = len_str(filename)
+            ENDIF
 !
-!-----      If file is found, convert to absolute path
+!-----   Try users system directory with appended '.mac'
 !
-               IF ( fileda ) THEN
-                 lslash = index ( filename , '/' )
-                 IF ( lslash == 0 ) THEN       ! No slash in filename
-                   filename = ldir(1:ldir_length) // filename(1:filename_length)
-                 ENDIF
-               ENDIF
+            IF (.not.fileda) then
+               filename = umac_dir (1:umac_dir_l) //cpara (1)        &
+               (1:lpara (1) ) //'.mac'
+               INQUIRE (file = filename, exist = fileda)
+            ENDIF
 !
-!-----      Try local directory with appended '.mac'
+!-----   Try users system directory
 !
-               IF (.not.fileda) then
-                  string = ' '
-                  lc = 1
-                  CALL do_chdir (string, lc, .false.)
-                  IF (string (lc:lc) .ne.'/') then
-                     lc = lc + 1
-                     string (lc:lc) = '/'
-                  ENDIF
-                  filename = string (1:lc) //cpara (1) (1:lpara (1) ) //&
-                  '.mac'
-                  INQUIRE (file = filename, exist = fileda)
+            IF (.not.fileda) then
+               filename = umac_dir (1:umac_dir_l) //cpara (1)        &
+               (1:lpara (1) )
+               INQUIRE (file = filename, exist = fileda)
+            ENDIF
 !
-!-----      Try local directory
+!-----   Try system directory with appended '.mac'
 !
-                  IF (.not.fileda) then
-                     filename = string (1:lc) //cpara (1) (1:lpara (1) )
-                     INQUIRE (file = filename, exist = fileda)
-                  ENDIF
-               ENDIF
+            IF (.not.fileda) then
+               filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
+               (1) ) //'.mac'
+               INQUIRE (file = filename, exist = fileda)
+            ENDIF
 !
-!-----      Try users system directory with appended '.mac'
+!-----   Try system directory
 !
-               IF (.not.fileda) then
-                  filename = umac_dir (1:umac_dir_l) //cpara (1)        &
-                  (1:lpara (1) ) //'.mac'
-                  INQUIRE (file = filename, exist = fileda)
-               ENDIF
-!
-!-----      Try users system directory
-!
-               IF (.not.fileda) then
-                  filename = umac_dir (1:umac_dir_l) //cpara (1)        &
-                  (1:lpara (1) )
-                  INQUIRE (file = filename, exist = fileda)
-               ENDIF
-!
-!-----      Try system directory with appended '.mac'
-!
-               IF (.not.fileda) then
-                  filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
-                  (1) ) //'.mac'
-                  INQUIRE (file = filename, exist = fileda)
-               ENDIF
-!
-!-----      Try system directory
-!
-               IF (.not.fileda) then
-                  filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
-                  (1) )
-                  INQUIRE (file = filename, exist = fileda)
-               ENDIF
-!
-               IF (fileda) then
-!
-!       File could be opened., append to maco-file listing
-!
-                  mac_level = mac_level + 1
-                  mac_name (mac_level) = filename
-                  mac_line (mac_level) = 0
-!
-!     ----Try to get parameters
-!
-                  IF (ip + 1.le.i) then
-                     IF (ianz.ge.2) then
-                        IF (ianz - 1.le.MAC_MAX_PARA) then
-!
-!     ----------Copy parameters to macro parameter list.
-!
-                           DO i = 2, ianz
-                           mac_para (i - 1, mac_level) = cpara (i) (1:lpara(i))
-                           mac_leng (i - 1, mac_level) = lpara (i)
-                           ENDDO
-                           mac_n_par (mac_level) = ianz - 1
-                           WRITE (mac_para (0, mac_level), 1000) ianz - &
-                           1
-                           mac_leng (0, mac_level) = 4
-                        ELSE
-                           ier_num = - 1
-                           ier_typ = ER_MAC
-                        ENDIF
-                     ENDIF
-                  ELSE
-                     mac_n_par (mac_level) = 0
-                     mac_para (0, mac_level) = '0'
-                     mac_leng (0, mac_level) = 1
-                  ENDIF
-!
-!       --if macro file is already active, or currently debugged,
-!         close current file
-!
-                  i = max (1, mac_level - 1)
-                  IF (lmakro.or.lmacro_dbg (i) ) then
-                     CLOSE (19)
-                  ENDIF
-!
-                  lmakro = .true.
-                  IF (prompt.ne.'macro ') oprompt = prompt
-      prompt = 'macro  '
-                  OPEN (unit = 19, file = filename, status = 'old')
-               ELSE
-!       MAKRO nicht gefunden
-                  ier_num = - 12
-                  ier_typ = ER_MAC
-               ENDIF
-            ELSE
-!       ungueltiges MAKRO
-               ier_num = - 13
-               ier_typ = ER_MAC
+            IF (.not.fileda) then
+               filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
+               (1) )
+               INQUIRE (file = filename, exist = fileda)
             ENDIF
          ENDIF
-      ELSE
-!     Too many macro levels
-         ier_num = - 35
+      ELSE build
+!       ungueltiges MAKRO
+         ier_num = - 13
          ier_typ = ER_MAC
-      ENDIF
+      ENDIF build
 !
-      IF (ier_num.NE.0) THEN
-         CALL ERRLIST
-         ier_num = - 11
-         ier_typ = ER_COMM
-      ENDIF
-!
- 1000 FORMAT    (i4)
-!
-      END SUBROUTINE file_kdo
+      END SUBROUTINE build_macro_name
 !*****7*****************************************************************
       SUBROUTINE macro_read (line, laenge)
 !-
-!     Reads a single line from the current macro file
+!     Reads a single line from the current macro storage
 !+
       USE charact_mod
       USE doact_mod
       USE errlist_mod
       USE macro_mod
+      USE class_macro_internal
       USE prompt_mod
       IMPLICIT none
 !
@@ -238,8 +301,21 @@
 !
       ier_num = 0
       ier_typ = ER_NONE
-      mac_line (mac_level) = mac_line (mac_level) + 1
-      READ (19, 1000, end = 20) line
+      mac_tree_active%current = mac_tree_active%current + 1
+      IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
+         IF(.not. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
+
+            lmakro = .false.
+            macro_level = 0
+            CALL macro_close
+         ELSE
+            mac_tree_active => mac_tree_active%parent
+            DEALLOCATE(mac_tree_active%kid)
+            macro_level = macro_level - 1
+         ENDIF
+         RETURN
+      ENDIF
+      line                  = mac_tree_active%active%macros%macro_line(mac_tree_active%current)
       laenge = len_str (line)
       IF (laenge.eq.0) then
          line = ' '
@@ -247,8 +323,7 @@
          RETURN
       ENDIF
 !
-      IF (line (1:1) .ne.'#'.and.line (1:1) .ne.'!'.and.Laenge.ne.0)    &
-      then
+      nocomment: IF (line(1:1) /= '#' .and. line (1:1) /=  '!' .and. laenge /= 0) THEN
 !
 !     If inside a macro, check for parameter substitution
 !
@@ -260,20 +335,20 @@
 !
 !     Replace all '$'-parameters
 !
-         DO while (ndol.ne.0)
+         sub_param: DO WHILE (ndol.ne.0)
 !
 !------ --Determine length of the numerical parameter string
 !       i.e.: '1', '12'
 !
-         lx = 0
-         nx = ndol + lx + 1
-         x = iachar (zeile (nx:nx) )
+         lx   = 0
+         nx   = ndol + lx + 1
+         x    = iachar (zeile (nx:nx) )
          lnum = zero.le.x.and.x.le.nine
-         DO while (lnum.and.nx.lt.laenge)
-         lx = lx + 1
-         nx = ndol + lx + 1
-         x = iachar (zeile (nx:nx) )
-         lnum = zero.le.x.and.x.le.nine
+         DO WHILE (lnum.and.nx.lt.laenge)
+            lx   = lx + 1
+            nx   = ndol + lx + 1
+            x    = iachar (zeile (nx:nx) )
+            lnum = zero.le.x.and.x.le.nine
          ENDDO
          IF (nx.lt.laenge) then
             nx = nx - 1
@@ -294,15 +369,14 @@
 !DBG        read(zeile(ndol+1:nx),*) n_par
          IF (ier_num.eq.0) then
             n_par = nint (r_par)
-            IF (n_par.le.mac_n_par (mac_level) ) then
-               lpar = mac_leng (n_par, mac_level)
+               IF(n_par <= mac_tree_active%nparams) THEN
+               lpar = mac_tree_active%lparams(n_par)
                line = ' '
                IF (ndol.gt.1) then
                   line (1:ndol - 1) = zeile (1:ndol - 1)
                ENDIF
 !
-               line (ndol:ndol + lpar - 1) = mac_para (n_par, mac_level)&
-               (1:lpar)
+               line (ndol:ndol+lpar-1) = mac_tree_active%params(n_par)(1:lpar)
                lll = ndol + lpar - 1
                IF (nx.lt.laenge) then
                   line (ndol + lpar:ndol + lpar + laenge-nx) = zeile (  &
@@ -324,10 +398,12 @@
                   ENDIF
                ENDIF
             ELSE
-               il = len_str (line)
+               lmakro = .false.
+               il     = len_str (line)
                WRITE (output_io, 1000) line (1:il)
                ier_num = - 41
                ier_typ = ER_MAC
+               CALL macro_close
                RETURN
             ENDIF
          ELSE
@@ -345,8 +421,8 @@
                ENDIF
             ENDIF
          ENDIF
-         ENDDO
-      ENDIF
+         ENDDO sub_param
+      ENDIF nocomment
 !
 !     line read, return to calling routine
 !
@@ -369,73 +445,24 @@
          then
             WRITE ( *, 2000) char (7)
             lmakro = .false.
-            lmacro_dbg (mac_level) = .true.
             line = '#'
             il = 1
          ENDIF
       ENDIF
       RETURN
-!
-!     End of macro file, if nested macro file go back to previous
-!     else set lmakro to .false.
-!
-   20 CONTINUE
-      IF (prompt_status.ne.PROMPT_OFF) then
-         WRITE (output_io, 1000) ' '
-      ENDIF
-!
-      CLOSE (19)
-      mac_line (mac_level) = 0
-      mac_name (mac_level) = ' '
-      lmacro_dbg (mac_level) = .false.
-      mac_level = mac_level - 1
-!
-      IF (mac_level.gt.0) then
-         OPEN (UNIT = 19, FILE = mac_name (mac_level) , STATUS = 'OLD')
-         DO i = 1, mac_line (mac_level)
-         READ (19, 1000, end = 30) cdummy
-         ENDDO
-!
-!     --This level has been stopped
-!
-         IF (lmacro_dbg (mac_level) ) then
-            lmakro = .false.
-            line = '#'
-            il = 1
-         ENDIF
-      ELSE
-!
-!     --This was the last macro, reset macro status and return
-!       program prompt
-!
-         CALL macro_close
-      ENDIF
-!
-      line = '#'
-      laenge = 1
-!
-      RETURN
-!
-   30 CONTINUE
-!
-!     unexpected EOF in previous macro file
-!
-      line = '#'
-      laenge = 1
-      CALL macro_close
-      ier_num = - 36
-      ier_typ = ER_MAC
 !
 !
  1000 FORMAT     (a)
  2000 FORMAT     (' ------ > Macro halted, continue with cont ...',a1)
       END SUBROUTINE macro_read
-!*****7*****************************************************************
-      SUBROUTINE macro_close
+!*****7****************************************************************
+!
+SUBROUTINE macro_close
 !-
 !     Closes the macro file, switches macro status off and sets the
 !     macro level back to zero.
 !+
+      USE class_macro_internal
       USE macro_mod
       USE prompt_mod
       IMPLICIT none
@@ -443,17 +470,28 @@
 !
       INTEGER i
 !
-      CLOSE (19)
+IF(prompt_status/=PROMPT_OFF) THEN
+   WRITE(output_io,*) ' '
+ENDIF
+!     
       lmakro = .false.
       prompt = oprompt
-      mac_level = 0
-      DO i = 1, MAC_MAX_LEVEL
-      mac_line (i) = 0
-      mac_name (i) = ' '
-      lmacro_dbg (i) = .false.
-      ENDDO
+!     mac_level = 0
+      macro_level = 0
+IF(ASSOCIATED(mac_tree_root)) THEN
 !
-      END SUBROUTINE macro_close
+   mac_tree_active => mac_tree_root
+!
+   DO WHILE(ASSOCIATED(mac_tree_active%kid))   ! There are more macros in the tree
+      mac_tree_active => mac_tree_active%kid   ! Point to kid
+      DEALLOCATE(mac_tree_active%parent)       ! Remove previous node
+   ENDDO
+   DEALLOCATE(mac_tree_active)                 ! Finally remove current node
+   NULLIFY(mac_tree_root)                      ! Clear pointer status
+   NULLIFY(mac_tree_temp)
+ENDIF
+!
+END SUBROUTINE macro_close
 !*****7*****************************************************************
       SUBROUTINE macro_continue (zeile, lcomm)
 !-
@@ -462,6 +500,7 @@
 !+
       USE doact_mod
       USE errlist_mod
+      USE class_macro_internal
       USE macro_mod
       USE prompt_mod
       IMPLICIT none
@@ -485,11 +524,11 @@
 !
 !     --Only active inside macros stopped by a previous 'stop' command
 !
-         IF (mac_level.gt.0) then
+!        IF (mac_level.gt.0) then
+         IF (macro_level.gt.0) then
             lmakro = .true.
             IF (prompt.ne.'macro ') oprompt = prompt
             prompt = 'macro '
-            lmacro_dbg (mac_level) = .false.
          ENDIF
 !
 !     Only active inside macros stopped by a previous 'stop' command
@@ -510,10 +549,12 @@
          ELSE
             ier_num = - 6
             ier_typ = ER_COMM
+            CALL macro_close
          ENDIF
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
+         CALL macro_close
       ENDIF
 !
       END SUBROUTINE macro_continue
