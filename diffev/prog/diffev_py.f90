@@ -61,6 +61,8 @@ INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 !
 INTEGER              :: len_str
 !
+EXTERNAL diffev_mache_kdo       ! Declare DIFFEV copy of mache_kdo
+!
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
@@ -74,7 +76,7 @@ IF ( laenge > LEN(line)) THEN    ! Excessively long string, refuse
 ENDIF
 line   = incomming              ! Make a local working copy
 !
-CALL mache_kdo (line, lend, laenge)  ! Execute initial command
+CALL diffev_mache_kdo (line, lend, laenge)  ! Execute initial command
 !
 IF( ier_num /= 0 ) THEN         ! Handle error messages
    CALL errlist
@@ -93,9 +95,9 @@ ELSE
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge) 
+               CALL do_loop (line, lend, laenge, diffev_mache_kdo) 
             ELSE 
-               CALL mache_kdo (line, lend, laenge) 
+               CALL diffev_mache_kdo (line, lend, laenge) 
             ENDIF 
          ENDIF 
       ENDIF ok

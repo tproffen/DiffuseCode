@@ -68,6 +68,8 @@ LOGICAL              :: lend
 !
 INTEGER              :: len_str
 !
+EXTERNAL             :: discus_mache_kdo
+!
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
@@ -80,7 +82,7 @@ IF ( laenge > LEN(line)) THEN    ! Excessively long string, refuse
 ENDIF
 line   = incomming              ! Make a local working copy
 !
-CALL mache_kdo (line, lend, laenge)  ! Execute initial command
+CALL discus_mache_kdo (line, lend, laenge)  ! Execute initial command
 !
 IF( ier_num /= 0 ) THEN         ! Handle error messages
    CALL errlist
@@ -99,9 +101,9 @@ ELSE
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge) 
+               CALL do_loop (line, lend, laenge, discus_mache_kdo) 
             ELSE 
-               CALL mache_kdo (line, lend, laenge) 
+               CALL discus_mache_kdo (line, lend, laenge) 
             ENDIF 
          ENDIF 
       ENDIF ok

@@ -4,7 +4,7 @@
 !     routines in this file.                                            
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE do_loop (line, lend, length) 
+      SUBROUTINE do_loop (line, lend, length, mache_kdo) 
 !+                                                                      
 !     All commands included in a block structure are read and stored in 
 !     character array. Executable commands are parsed to mach_kdo.      
@@ -21,6 +21,8 @@
       USE prompt_mod 
 !                                                                       
       IMPLICIT none 
+!
+      EXTERNAL mache_kdo
 !
       INTERFACE
          SUBROUTINE mache_kdo(line, lend, length) 

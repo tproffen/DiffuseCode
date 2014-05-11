@@ -1,5 +1,5 @@
 !*****7*****************************************************************
-      SUBROUTINE mache_kdo (line, lend, length) 
+      SUBROUTINE mixscat_mache_kdo (line, lend, length) 
 !+                                                                      
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
@@ -152,4 +152,4 @@
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE mache_kdo                      
+      END SUBROUTINE mixscat_mache_kdo                      

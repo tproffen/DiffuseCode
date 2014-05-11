@@ -33,6 +33,7 @@ INTEGER              :: laenge = 1
 INTEGER              :: lp     = 1
 INTEGER              :: lbef   = 1
 !                                                                       
+EXTERNAL             :: discus_mache_kdo    ! Declare DISCUS copy of mache_kdo
 !                                                                       
 lend    = .false. 
 !                                                                       
@@ -49,9 +50,9 @@ ok: IF (ier_num.eq.0.and.laenge.gt.0) then
 !     - execute command                                                 
 !                                                                       
          IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-            CALL do_loop (line, lend, laenge) 
+            CALL do_loop (line, lend, laenge, discus_mache_kdo) 
          ELSE 
-            CALL mache_kdo (line, lend, laenge) 
+            CALL discus_mache_kdo (line, lend, laenge) 
          ENDIF 
       ENDIF 
    ENDIF ok

@@ -1,6 +1,6 @@
 !*****7*****************************************************************
 !                                                                       
-SUBROUTINE mache_kdo (line, lend, length) 
+SUBROUTINE diffev_mache_kdo (line, lend, length) 
 !+                                                                      
 !     This is the main routine for command interpretation, each         
 !     command is identified here and the corresponding subroutine       
@@ -661,4 +661,4 @@ ELSE
    ENDIF 
 ENDIF 
 !                                                                       
-END SUBROUTINE mache_kdo                      
+END SUBROUTINE diffev_mache_kdo                      

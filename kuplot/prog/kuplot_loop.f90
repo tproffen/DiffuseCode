@@ -20,6 +20,8 @@ CONTAINS
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER lbef, lp, ll 
+!
+      EXTERNAL  :: kuplot_mache_kdo
 !                                                                       
       lend = .false.
 !                                                                       
@@ -32,9 +34,9 @@ CONTAINS
 !------ --- Execute command                                             
 !                                                                       
          IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') then 
-            CALL do_loop (line, lend, ll) 
+            CALL do_loop (line, lend, ll, kuplot_mache_kdo) 
          ELSE 
-            CALL mache_kdo (line, lend, ll) 
+            CALL kuplot_mache_kdo (line, lend, ll) 
          ENDIF 
          ENDIF 
       ENDIF ok

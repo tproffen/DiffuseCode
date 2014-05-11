@@ -33,6 +33,8 @@ LOGICAL                        :: lend    = .false.
 INTEGER                        :: laenge, lp, lbef 
 !
 INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
+!
+EXTERNAL                       :: diffev_mache_kdo   ! Declare DIFFEV copy of mache_kdo
 !                                                                       
 with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
    master_slave: IF ( run_mpi_myid == master ) THEN  ! MPI master or stand alone
@@ -52,9 +54,9 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
 !  - execute command                                                 
 !                                                                       
                IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-                  CALL do_loop (line, lend, laenge) 
+                  CALL do_loop (line, lend, laenge, diffev_mache_kdo) 
                ELSE 
-                  CALL mache_kdo (line, lend, laenge) 
+                  CALL diffev_mache_kdo (line, lend, laenge) 
                ENDIF 
             ENDIF 
          ENDIF no_cmd

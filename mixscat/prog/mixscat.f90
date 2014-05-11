@@ -16,6 +16,8 @@
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER laenge, lp, lbef 
+!
+      EXTERNAL :: mixscat_mache_kdo
 !                                                                       
       pname             = 'mixscat'
       pname_cap         = 'MIXSCAT'
@@ -44,9 +46,9 @@
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge) 
+               CALL do_loop (line, lend, laenge, mixscat_mache_kdo) 
             ELSE 
-               CALL mache_kdo (line, lend, laenge) 
+               CALL mixscat_mache_kdo (line, lend, laenge) 
             ENDIF 
          ENDIF 
       ENDIF 

@@ -2,7 +2,7 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !*****7*****************************************************************
-      SUBROUTINE mache_kdo (line, lend, length) 
+      SUBROUTINE kuplot_mache_kdo (line, lend, length) 
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
@@ -453,4 +453,4 @@
 !                                                                       
  2000 FORMAT     (' ****WARN**** Redundant command, do not use',        &
      &          13x,'**** -99 ****')                                    
-      END SUBROUTINE mache_kdo                      
+      END SUBROUTINE kuplot_mache_kdo                      

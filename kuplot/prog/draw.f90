@@ -531,7 +531,7 @@
          'do', 2, ib, 2) .or.str_comp (befehl, 'if', 2, ib, 2) ) then   
             GOTO 10 
          ELSE 
-            CALL mache_kdo (command, lend, ic) 
+            CALL kuplot_mache_kdo (command, lend, ic) 
             IF (ier_num.ne.0) goto 10 
 !                                                                       
 !------ --- Macro entered ?                                             
@@ -547,7 +547,7 @@
                befehl, 'if', 2, ib, 2) ) then                           
                   CALL do_loop (command, lend, ic) 
                ELSE 
-                  CALL mache_kdo (command, lend, ic) 
+                  CALL kuplot_mache_kdo (command, lend, ic) 
                ENDIF 
                IF (ier_num.ne.0) goto 10 
             ENDIF 

@@ -1,5 +1,5 @@
 !*****7*****************************************************************
-      SUBROUTINE mache_kdo (line, lend, length) 
+      SUBROUTINE discus_mache_kdo (line, lend, length) 
 !+                                                                      
 !     This is the main routine for command interpretation, each         
 !     command is identified here and the corresponding subroutine       
@@ -381,7 +381,7 @@
          ENDIF 
       ENDIF 
 !                                                                       
-      END SUBROUTINE mache_kdo                      
+      END SUBROUTINE discus_mache_kdo                      
 !*****7**************************************************************** 
       SUBROUTINE do_define (zeile, lp) 
 !-                                                                      
