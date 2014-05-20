@@ -327,7 +327,7 @@
 !     Show something                                 'show'             
 !                                                                       
          ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-            CALL do_show (zeile, lcomm) 
+            CALL discus_do_show (zeile, lcomm) 
 !                                                                       
 !     Go to stacking fault menu 'stack'                                 
 !                                                                       

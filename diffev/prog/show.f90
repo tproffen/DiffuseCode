@@ -8,7 +8,7 @@ CONTAINS
 !     corresponding command without parameters.                         
 !                                                                       
 !*****7*****************************************************************
-SUBROUTINE do_show (line, lp) 
+SUBROUTINE diffev_do_show (line, lp) 
 !                                                                       
 !     Main show menu                                                    
 !                                                                       
@@ -47,5 +47,5 @@ ELSE
    ier_typ = ER_COMM 
 ENDIF 
 !                                                                       
-END SUBROUTINE do_show                        
+END SUBROUTINE diffev_do_show                        
 END MODULE show_mod

@@ -3,7 +3,7 @@ MODULE show_menu
 CONTAINS
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE do_show (line, laenge) 
+      SUBROUTINE discus_do_show (line, laenge) 
 !-                                                                      
 !     These subroutine is the main routine for showing various          
 !     parameters.                                                       
@@ -195,7 +195,7 @@ CONTAINS
      &                  '  Y ',2(2x,f12.4)/                             &
      &                  '  Z ',2(2x,f12.4))                             
 !                                                                       
-      END SUBROUTINE do_show                        
+      END SUBROUTINE discus_do_show                        
 !*****7*****************************************************************
       SUBROUTINE show_asym 
 !-                                                                      

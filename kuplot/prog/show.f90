@@ -3,7 +3,7 @@
 !     parameter settings can also be displayed by entering the          
 !     corresponding command without parameters.                         
 !*****7*****************************************************************
-      SUBROUTINE do_show (line, lp) 
+      SUBROUTINE kuplot_do_show (line, lp) 
 !                                                                       
 !     Main show menu                                                    
 !                                                                       
@@ -111,7 +111,7 @@
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
-      END SUBROUTINE do_show                        
+      END SUBROUTINE kuplot_do_show                        
 !*****7*****************************************************************
       SUBROUTINE show_config 
 !+                                                                      

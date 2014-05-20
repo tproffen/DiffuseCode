@@ -1,7 +1,7 @@
 !*****7*****************************************************************
 !     This file contains routines to display information.               
 !*****7*****************************************************************
-      SUBROUTINE do_show (zeile, lp) 
+      SUBROUTINE mixscat_do_show (zeile, lp) 
 !-                                                                      
 !     Main menu for show command.                                       
 !+                                                                      
@@ -52,7 +52,7 @@
          CALL do_show_generic (cpara, lpara, maxw) 
       ENDIF 
 !                                                                       
-      END SUBROUTINE do_show                        
+      END SUBROUTINE mixscat_do_show                        
 !********************************************************************** 
       SUBROUTINE do_show_config 
 !-                                                                      

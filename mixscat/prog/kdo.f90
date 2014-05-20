@@ -138,7 +138,7 @@
 !-------  Display various settings                                      
 !                                                                       
          ELSEIF (str_comp (bef, 'show', 2, lbef, 4) ) then 
-            CALL do_show (zei, lc) 
+            CALL mixscat_do_show (zei, lc) 
 !                                                                       
 !-------  Save various files                                            
 !                                                                       

@@ -525,7 +525,7 @@ ELSE
 !-------  Show parameters 'show'                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'show', 3, lbef, 4) ) then 
-      CALL do_show (zeile, lcomm) 
+      CALL diffev_do_show (zeile, lcomm) 
 !                                                                 
 !     -- set the average information file                         
 !                                                                 

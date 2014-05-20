@@ -417,7 +417,7 @@
 !-------  Show parameters 'show'                                        
 !                                                                       
          ELSEIF (str_comp (bef, 'show', 3, lbef, 4) ) then 
-            CALL do_show (zei, lc) 
+            CALL kuplot_do_show (zei, lc) 
 !                                                                       
 !-------  Set data set caption                                          
 !                                                                       
