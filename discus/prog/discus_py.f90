@@ -55,7 +55,7 @@ USE setup_mod
 USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
-USE set_sub_generic
+USE set_sub_generic_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN   ) :: incomming

@@ -73,6 +73,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/kuplot/prog/
+    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/set_sub_generic_mod.mod      ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/kuplot/prog/
     COMMAND cp ${DIFFUSE_SOURCE_DIR}/kuplot/prog/kuplot_py.f90  ${DIFFUSE_BINARY_DIR}/kuplot/prog
     COMMAND f2py -c -m lib_kuplot 
@@ -89,6 +90,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/class_macro_internal.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/param_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/prompt_mod.mod
+    COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/set_sub_generic_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot_py.f90
     COMMAND rm ${DIFFUSE_BINARY_DIR}/kuplot/prog/send_get.f90
     )
