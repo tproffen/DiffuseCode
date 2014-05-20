@@ -1,4 +1,4 @@
-      SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
+      SUBROUTINE kuplot_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter. Modified version for KUPLOT.             
 !+                                                                      
@@ -571,9 +571,9 @@
          string = zeile 
          CALL rem_bl (string, ll) 
       ENDIF 
-      END SUBROUTINE ersetz_para                    
+      END SUBROUTINE kuplot_ersetz_para                    
 !*****7*****************************************************************
-      SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz) 
+      SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -827,9 +827,9 @@
       ENDIF 
 !                                                                       
  2000 FORMAT     (' ------ > Last ',i3,' data set(s) deleted ...') 
-      END SUBROUTINE upd_para                       
+      END SUBROUTINE kuplot_upd_para                       
 !*****7***************************************************************  
-      SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
+      SUBROUTINE kuplot_calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
       lp)                                                               
 !-                                                                      
 !     These are special intrinsic function for the KUPLOT. Any          
@@ -860,9 +860,9 @@
       il = max (len (ier_msg (1) ) - 11, len_str (string) ) 
       ier_msg (1) = 'Function : '//string (1:30) 
 !                                                                       
-      END SUBROUTINE calc_intr_spec                 
+      END SUBROUTINE kuplot_calc_intr_spec                 
 !*****7**************************************************************** 
-      SUBROUTINE validate_var_spec (zeile, lp) 
+      SUBROUTINE kuplot_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, KUPLOT specific part 
 !                                                                       
@@ -900,4 +900,4 @@
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE validate_var_spec              
+      END SUBROUTINE kuplot_validate_var_spec              

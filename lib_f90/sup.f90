@@ -2382,6 +2382,7 @@ SUBROUTINE cmdline_args
 !+                                                                      
       USE charact_mod
       USE errlist_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2416,7 +2417,7 @@ SUBROUTINE cmdline_args
 !     Check against variables/functions of the main program             
 !                                                                       
       IF (ier_num.eq.0) then 
-         CALL validate_var_spec (zeile, lp) 
+         CALL p_validate_var_spec (zeile, lp) 
       ENDIF 
 !                                                                       
 !     Check that the name contains only letters, Numbers and the "_"    

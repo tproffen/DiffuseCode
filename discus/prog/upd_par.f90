@@ -1,4 +1,4 @@
-      SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
+      SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
 !       replaces a substring in an expression by the value of the       
@@ -445,9 +445,9 @@
       CALL rem_bl (string, ll) 
 !                                                                       
  8000 FORMAT    (a) 
-      END SUBROUTINE ersetz_para                    
+      END SUBROUTINE discus_ersetz_para                    
 !*****7*****************************************************************
-      SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz) 
+      SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -675,9 +675,9 @@
          WRITE (ier_msg (1), 8000) ctype 
       ENDIF 
  8000 FORMAT    (a) 
-      END SUBROUTINE upd_para                       
+      END SUBROUTINE discus_upd_para                       
 !*****7***************************************************************  
-      SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
+      SUBROUTINE discus_calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
       lp)                                                               
 !-                                                                      
 !     These are special intrinsic function for the DISCUS. Any          
@@ -1161,9 +1161,9 @@
       ENDIF 
 !                                                                       
  9000 FORMAT    (a) 
-      END SUBROUTINE calc_intr_spec                 
+      END SUBROUTINE discus_calc_intr_spec                 
 !*****7**************************************************************** 
-      SUBROUTINE validate_var_spec (zeile, lp) 
+      SUBROUTINE discus_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, DISCUS specific part 
 !                                                                       
@@ -1201,4 +1201,4 @@
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE validate_var_spec              
+      END SUBROUTINE discus_validate_var_spec              

@@ -389,7 +389,7 @@ CONTAINS
             ier_typ = ER_APPL
             RETURN
          ENDIF
-         CALL validate_var_spec(work_name, work_name_l)
+         CALL discus_validate_var_spec(work_name, work_name_l)
          IF( ier_num == -25 ) THEN
             ier_num = -120
             ier_typ = ER_APPL

@@ -11,6 +11,7 @@
 !                                                                       
 !                                                                       
       CALL setup 
+      CALL kuplot_set_sub
       CALL kuplot_loop 
 !                                                                       
 !                                                                       

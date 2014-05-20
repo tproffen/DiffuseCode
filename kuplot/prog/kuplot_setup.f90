@@ -52,4 +52,80 @@ CONTAINS
      &        ' Robert B. Von Dreele *',/,                              &
      &        10x,59('*'),/)                                            
       END SUBROUTINE setup                          
+!
+SUBROUTINE kuplot_set_sub
+!
+! Sets the specific DIFFEV interfaces four routines that are refecenced in
+! LIB_F90 by their generic names
+!
+USE set_sub_generic_mod
+!
+INTERFACE
+   SUBROUTINE kuplot_mache_kdo (line, lend, length)
+!                                                                       
+   CHARACTER (LEN= *  ), INTENT(INOUT) :: line
+   LOGICAL             , INTENT(  OUT) :: lend
+   INTEGER             , INTENT(INOUT) :: length
+!
+   END SUBROUTINE kuplot_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE kuplot_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!
+   CHARACTER (LEN= * )  , INTENT(INOUT) :: string
+   INTEGER              , INTENT(IN   ) :: ikl
+   INTEGER              , INTENT(IN   ) :: iklz
+   INTEGER              , INTENT(INOUT) :: ll
+   INTEGER              , INTENT(IN   ) :: maxw
+   INTEGER              , INTENT(IN   ) :: ianz
+   REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+!
+   END SUBROUTINE kuplot_ersetz_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz)
+!
+   CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
+   INTEGER           , INTENT(IN   )    :: maxw
+   INTEGER           , INTENT(IN   )    :: ianz
+   INTEGER           , INTENT(IN   )    :: ww (maxw)
+   REAL              , INTENT(IN   )    :: wert
+!
+   END SUBROUTINE kuplot_upd_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE kuplot_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
+!
+   CHARACTER (LEN= * ), INTENT(INOUT) :: string
+   CHARACTER (LEN= * ), INTENT(INOUT) :: line
+   INTEGER            , INTENT(IN   ) :: ikl
+   INTEGER            , INTENT(IN   ) :: iklz
+   REAL               , INTENT(INOUT) :: ww
+   INTEGER            , INTENT(INOUT) :: laenge
+   INTEGER            , INTENT(INOUT) :: lp
+!
+   END SUBROUTINE kuplot_calc_intr_spec 
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE kuplot_validate_var_spec (string, lp)
+!
+   CHARACTER (LEN= * ), INTENT(IN   ) :: string
+   INTEGER            , INTENT(IN   ) :: lp
+!
+   END SUBROUTINE kuplot_validate_var_spec 
+END INTERFACE
+
+!
+p_mache_kdo         => kuplot_mache_kdo
+p_ersetz_para       => kuplot_ersetz_para
+p_upd_para          => kuplot_upd_para
+p_calc_intr_spec    => kuplot_calc_intr_spec
+p_validate_var_spec => kuplot_validate_var_spec
+!
+END SUBROUTINE kuplot_set_sub
+!
 END MODULE setup_mod

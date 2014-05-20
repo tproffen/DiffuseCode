@@ -1,4 +1,4 @@
-SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
+SUBROUTINE diffev_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
 !       replaces a substring in an expression by the value of the       
@@ -431,9 +431,9 @@ IF (ier_num.eq.0) then
 !   WRITE ( *, * ) string 
 ENDIF 
 CALL rem_bl (string, ll) 
-END SUBROUTINE ersetz_para                    
+END SUBROUTINE diffev_ersetz_para                    
 !*****7*****************************************************************
-SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz) 
+SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -789,9 +789,9 @@ ENDIF
 ! 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
 ! 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
 !
-END SUBROUTINE upd_para                       
+END SUBROUTINE diffev_upd_para                       
 !*****7***************************************************************  
-SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)                                                               
+SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)                                                               
 !-                                                                      
 !     These are special intrinsic function for the DIFFEV. Any          
 !     intrinsic function that references crystallographic values        
@@ -838,9 +838,9 @@ IF (ier_num.ne.0) then
    WRITE ( *, * ) line 
 ENDIF 
 !                                                                       
-END SUBROUTINE calc_intr_spec                 
+END SUBROUTINE diffev_calc_intr_spec                 
 !*****7**************************************************************** 
-SUBROUTINE validate_var_spec (zeile, lp) 
+SUBROUTINE diffev_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, DIFFEV specific part 
 !                                                                       
@@ -875,4 +875,4 @@ DO i = 1, reserved_n
    ENDIF 
 ENDDO 
 !                                                                       
-END SUBROUTINE validate_var_spec              
+END SUBROUTINE diffev_validate_var_spec              

@@ -1,4 +1,4 @@
-      SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
+      SUBROUTINE mixscat_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !-                                                                      
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter.                                          
@@ -139,9 +139,9 @@
          ier_msg (1) = string 
       ENDIF 
       CALL rem_bl (string, ll) 
-      END SUBROUTINE ersetz_para                    
+      END SUBROUTINE mixscat_ersetz_para                    
 !*****7*****************************************************************
-      SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz) 
+      SUBROUTINE mixscat_upd_para (ctype, ww, maxw, wert, ianz) 
 !-                                                                      
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
@@ -196,9 +196,9 @@
          ier_msg (1) = 'Variable '//ctype 
       ENDIF 
 !                                                                       
-      END SUBROUTINE upd_para                       
+      END SUBROUTINE mixscat_upd_para                       
 !*****7***************************************************************  
-      SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
+      SUBROUTINE mixscat_calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
       lp)                                                               
 !-                                                                      
 !     These are special intrinsic function for the PDFFIT. Any          
@@ -218,9 +218,9 @@
       INTEGER,           INTENT(IN)    :: laenge
       INTEGER,           INTENT(IN)    :: lp
       REAL   ,           INTENT(OUT)   :: ww
-      END SUBROUTINE calc_intr_spec                 
+      END SUBROUTINE mixscat_calc_intr_spec                 
 !*****7**************************************************************** 
-      SUBROUTINE validate_var_spec (zeile, lp) 
+      SUBROUTINE mixscat_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, MIXSCAT specific     
 !                                                                       
@@ -256,4 +256,4 @@
       ENDIF 
       ENDDO 
 !                                                                       
-      END SUBROUTINE validate_var_spec              
+      END SUBROUTINE mixscat_validate_var_spec              

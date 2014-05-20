@@ -4,7 +4,7 @@
 !     routines in this file.                                            
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE do_loop (line, lend, length, mache_kdo) 
+      SUBROUTINE do_loop (line, lend, length) 
 !+                                                                      
 !     All commands included in a block structure are read and stored in 
 !     character array. Executable commands are parsed to mach_kdo.      
@@ -19,22 +19,10 @@
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE set_sub_generic_mod
 !                                                                       
       IMPLICIT none 
 !
-      EXTERNAL mache_kdo
-!
-      INTERFACE
-         SUBROUTINE mache_kdo(line, lend, length) 
-!                                                                       
-         IMPLICIT none 
-         CHARACTER (LEN= * ), INTENT(INOUT) :: line 
-         LOGICAL            , INTENT(OUT)   :: lend
-         INTEGER            , INTENT(INOUT) :: length 
-         END SUBROUTINE mache_kdo
-      END INTERFACE
-!                                                                       
-!                                                                       
       CHARACTER(1024) line 
       CHARACTER(1024) zeile 
       CHARACTER(20) prom 
@@ -224,7 +212,7 @@
                IF (line (1:1) .eq.'@') then 
                   CALL file_kdo (line (2:length), length - 1) 
                ELSE 
-                  CALL mache_kdo (line, lend, length) 
+                  CALL p_mache_kdo (line, lend, length) 
                ENDIF 
                IF (ier_num.ne.0.and.ier_sta.ne.ER_S_LIVE) then 
                   GOTO 999 
@@ -241,7 +229,7 @@
             IF (line (1:1) .eq.'@') then 
                CALL file_kdo (line (2:length), length - 1) 
             ELSE 
-               CALL mache_kdo (line, lend, length) 
+               CALL p_mache_kdo (line, lend, length) 
             ENDIF 
             IF (ier_num.ne.0.and.ier_sta.ne.ER_S_LIVE) then 
                GOTO 999 
@@ -425,21 +413,11 @@
 !+                                                                      
       USE doloop_mod 
       USE errlist_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
-!                                                                       
-      INTERFACE
-         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
-         IMPLICIT none 
-         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
-         INTEGER,                    INTENT(IN) :: maxw
-         INTEGER,                    INTENT(IN) :: ianz 
-         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-         REAL   ,                    INTENT(IN) :: wert 
-         END SUBROUTINE upd_para
-      END INTERFACE
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) zeile, cpara (maxw) 
@@ -539,7 +517,7 @@
                CALL upd_variable (line (4:ipos - 1), ipos - 4, wert,    &
                cpara (1), lpara (1) )
             ELSE 
-               CALL upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d)
+               CALL p_upd_para (line (4:ikp - 1), do_kpara, 1, wert, ianz_d)
             ENDIF 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1165,18 +1143,8 @@
 !     in the proper variable                                            
 !                                                                       
       USE errlist_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
-!                                                                       
-      INTERFACE
-         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
-         IMPLICIT none 
-         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
-         INTEGER,                    INTENT(IN) :: maxw
-         INTEGER,                    INTENT(IN) :: ianz 
-         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-         REAL   ,                    INTENT(IN) :: wert 
-         END SUBROUTINE upd_para
-      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1242,7 +1210,7 @@
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL upd_para (line (1:ikk - 1), iii,ianz, wert, ianz)
+                              CALL p_upd_para (line (1:ikk - 1), iii,ianz, wert, ianz)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 
@@ -1279,18 +1247,8 @@
 !                                                                       
       USE errlist_mod 
       USE param_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
-!                                                                       
-      INTERFACE
-         SUBROUTINE upd_para (ctype, ww, maxw, wert, ianz)
-         IMPLICIT none 
-         CHARACTER (LEN=*),          INTENT(IN) :: ctype 
-         INTEGER,                    INTENT(IN) :: maxw
-         INTEGER,                    INTENT(IN) :: ianz 
-         INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-         REAL   ,                    INTENT(IN) :: wert 
-         END SUBROUTINE upd_para
-      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -1360,7 +1318,7 @@
 !                                                                       
 !     ------------Store result in the variable                          
 !                                                                       
-                              CALL upd_para (line (1:ikk - 1), iii, ianz, wert, ianz)
+                              CALL p_upd_para (line (1:ikk - 1), iii, ianz, wert, ianz)
                            ENDIF 
                         ELSE 
                            ier_num = - 6 
@@ -1449,20 +1407,8 @@
 !+                                                                      
       USE charact_mod
       USE errlist_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
-!                                                                       
-      INTERFACE
-         SUBROUTINE ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
-         IMPLICIT NONE
-         INTEGER,                    INTENT(IN   ) :: ikp
-         INTEGER,                    INTENT(IN   ) :: ikpz
-         CHARACTER (LEN=*),          INTENT(OUT  ) :: line 
-         INTEGER,                    INTENT(OUT  ) :: ll
-         INTEGER,                    INTENT(IN   ) :: maxw
-         REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: werte
-         INTEGER,                    INTENT(IN   ) :: ianz
-         END SUBROUTINE ersetz_para
-      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1560,7 +1506,7 @@
                         GOTO 999 
                      ENDIF 
                      ENDDO 
-                     CALL ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+                     CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
@@ -1622,20 +1568,8 @@
 !+                                                                      
       USE charact_mod
       USE errlist_mod 
+      USE set_sub_generic_mod
       IMPLICIT none 
-!                                                                       
-      INTERFACE
-         SUBROUTINE ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
-         IMPLICIT NONE
-         INTEGER,                    INTENT(IN   ) :: ikp
-         INTEGER,                    INTENT(IN   ) :: ikpz
-         CHARACTER (LEN=*),          INTENT(OUT  ) :: line 
-         INTEGER,                    INTENT(OUT  ) :: ll
-         INTEGER,                    INTENT(IN   ) :: maxw
-         REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: werte
-         INTEGER,                    INTENT(IN   ) :: ianz
-         END SUBROUTINE ersetz_para
-      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
@@ -1733,7 +1667,7 @@
                         GOTO 999 
                      ENDIF 
                      ENDDO 
-                     CALL ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+                     CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
@@ -2019,19 +1953,8 @@
       USE random_mod
       USE wink_mod
       USE times_mod
+      USE set_sub_generic_mod
       IMPLICIT none 
-!                                                                       
-      INTERFACE
-         SUBROUTINE calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
-         CHARACTER (LEN=*), INTENT(IN   ) :: string
-         CHARACTER (LEN=*), INTENT(INOUT) :: line 
-         INTEGER,           INTENT(IN)    :: ikl
-         INTEGER,           INTENT(IN)    :: iklz
-         INTEGER,           INTENT(IN)    :: lll
-         INTEGER,           INTENT(IN)    :: lp
-         REAL   ,           INTENT(OUT)   :: ww
-         END SUBROUTINE calc_intr_spec
-      END INTERFACE
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 9) 
@@ -2081,7 +2004,7 @@
             i = len_str (answer) 
             CALL ersetzc (string, ikl, iklz, answer, i, 6, lll) 
          ELSE 
-            CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+            CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
       ELSEIF (lcom.eq.5) then 
          IF (string (ikl - 5:ikl - 1) .eq.'asind') then 
@@ -2119,7 +2042,7 @@
             CALL datum 
             CALL ersetzc (string, ikl, iklz, f_date, 24, 5, lll) 
          ELSE 
-            CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+            CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
       ELSEIF (lcom.eq.4) then 
          IF (string (ikl - 4:ikl - 1) .eq.'asin') then 
@@ -2312,7 +2235,7 @@
             CALL datum_intrinsic 
             CALL ersetzc (string, ikl, iklz, f_date, 24, 4, lll) 
          ELSE 
-            CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+            CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
       ELSEIF (lcom.eq.3) then 
          IF (string (ikl - 3:ikl - 1) .eq.'sin') then 
@@ -2397,7 +2320,7 @@
             ww = ran1 (idum) 
             CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
          ELSE 
-            CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+            CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
       ELSEIF (lcom.eq.2) then 
          IF (string (ikl - 2:ikl - 1) .eq.'ln') then 
@@ -2409,10 +2332,10 @@
                ier_typ = ER_FORT 
             ENDIF 
          ELSE 
-            CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+            CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
       ELSE 
-         CALL calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
+         CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
       ENDIF 
 !                                                                       
       END SUBROUTINE calc_intr                      

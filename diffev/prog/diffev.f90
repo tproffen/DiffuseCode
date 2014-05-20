@@ -17,6 +17,7 @@ IMPLICIT none
 !*****7*****************************************************************
 !
 CALL setup
+CALL diffev_set_sub
 CALL diffev_loop
 !                                                                       
 !                                                                       

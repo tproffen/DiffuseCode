@@ -7,6 +7,7 @@ IMPLICIT none
 !
 !
 CALL setup
+CALL discus_set_sub
 CALL discus_loop
 !                                                                       
 END PROGRAM discus                            

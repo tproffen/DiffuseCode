@@ -74,4 +74,80 @@ lsetup_done = .true.
      10x,'* (c) R.B. Neder  ','(reinhard.neder@krist.uni-erlangen.de)  *',/, &
      10x,59('*'),/)                                        
 END SUBROUTINE setup                          
+!
+SUBROUTINE diffev_set_sub
+!
+! Sets the specific DIFFEV interfaces four routines that are refecenced in
+! LIB_F90 by their generic names
+!
+USE set_sub_generic_mod
+!
+INTERFACE
+   SUBROUTINE diffev_mache_kdo (line, lend, length)
+!                                                                       
+   CHARACTER (LEN= *  ), INTENT(INOUT) :: line
+   LOGICAL             , INTENT(  OUT) :: lend
+   INTEGER             , INTENT(INOUT) :: length
+!
+   END SUBROUTINE diffev_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE diffev_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!
+   CHARACTER (LEN= * )  , INTENT(INOUT) :: string
+   INTEGER              , INTENT(IN   ) :: ikl
+   INTEGER              , INTENT(IN   ) :: iklz
+   INTEGER              , INTENT(INOUT) :: ll
+   INTEGER              , INTENT(IN   ) :: maxw
+   INTEGER              , INTENT(IN   ) :: ianz
+   REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+!
+   END SUBROUTINE diffev_ersetz_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz)
+!
+   CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
+   INTEGER           , INTENT(IN   )    :: maxw
+   INTEGER           , INTENT(IN   )    :: ianz
+   INTEGER           , INTENT(IN   )    :: ww (maxw)
+   REAL              , INTENT(IN   )    :: wert
+!
+   END SUBROUTINE diffev_upd_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
+!
+   CHARACTER (LEN= * ), INTENT(INOUT) :: string
+   CHARACTER (LEN= * ), INTENT(INOUT) :: line
+   INTEGER            , INTENT(IN   ) :: ikl
+   INTEGER            , INTENT(IN   ) :: iklz
+   REAL               , INTENT(INOUT) :: ww
+   INTEGER            , INTENT(INOUT) :: laenge
+   INTEGER            , INTENT(INOUT) :: lp
+!
+   END SUBROUTINE diffev_calc_intr_spec 
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE diffev_validate_var_spec (string, lp)
+!
+   CHARACTER (LEN= * ), INTENT(IN   ) :: string
+   INTEGER            , INTENT(IN   ) :: lp
+!
+   END SUBROUTINE diffev_validate_var_spec 
+END INTERFACE
+
+!
+p_mache_kdo         => diffev_mache_kdo
+p_ersetz_para       => diffev_ersetz_para
+p_upd_para          => diffev_upd_para
+p_calc_intr_spec    => diffev_calc_intr_spec
+p_validate_var_spec => diffev_validate_var_spec
+!
+END SUBROUTINE diffev_set_sub
+!
 END MODULE setup_mod

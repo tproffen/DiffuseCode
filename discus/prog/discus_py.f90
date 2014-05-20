@@ -22,6 +22,7 @@ SUBROUTINE interactive ()
 USE prompt_mod
 USE setup_mod
 USE discus_loop_mod
+USE set_sub_generic_mod
 !
 IMPLICIT none 
 !
@@ -29,6 +30,7 @@ IMPLICIT none
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
+CALL diffev_set_sub
 lstandalone = .false.
 CALL discus_loop
 !                                                                       
@@ -53,6 +55,7 @@ USE setup_mod
 USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
+USE set_sub_generic
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN   ) :: incomming
@@ -73,6 +76,7 @@ EXTERNAL             :: discus_mache_kdo
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
+CALL diffev_set_sub
 lend = .false.
 !
 laenge = len_str(incomming)     ! 
@@ -101,7 +105,7 @@ ELSE
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge, discus_mache_kdo) 
+               CALL do_loop (line, lend, laenge) 
             ELSE 
                CALL discus_mache_kdo (line, lend, laenge) 
             ENDIF 

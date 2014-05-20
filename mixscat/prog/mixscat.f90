@@ -1,4 +1,4 @@
-      PROGRAM mixsca 
+PROGRAM mixsca 
 !                                                                       
       USE doact_mod
       USE errlist_mod 
@@ -17,8 +17,6 @@
       LOGICAL lend 
       INTEGER laenge, lp, lbef 
 !
-      EXTERNAL :: mixscat_mache_kdo
-!                                                                       
       pname             = 'mixscat'
       pname_cap         = 'MIXSCAT'
 !                                                                       
@@ -31,6 +29,7 @@
 !------ Setting up variables and print start screen                     
 !                                                                       
       CALL setup 
+      CALL mixscat_set_sub
       CALL no_error 
 !                                                                       
 !------ This is the main loop: reading commands ..                      
@@ -46,7 +45,7 @@
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge, mixscat_mache_kdo) 
+               CALL do_loop (line, lend, laenge) 
             ELSE 
                CALL mixscat_mache_kdo (line, lend, laenge) 
             ENDIF 
@@ -118,3 +117,79 @@
      &            ' Neutron Scattering Center    *',/,                  &
      &            10x,59('*'),/)                                        
       END SUBROUTINE setup                          
+!
+SUBROUTINE mixscat_set_sub
+!
+! Sets the specific DIFFEV interfaces four routines that are refecenced in
+! LIB_F90 by their generic names
+!
+USE set_sub_generic_mod
+!
+INTERFACE
+   SUBROUTINE mixscat_mache_kdo (line, lend, length)
+!                                                                       
+   CHARACTER (LEN= *  ), INTENT(INOUT) :: line
+   LOGICAL             , INTENT(  OUT) :: lend
+   INTEGER             , INTENT(INOUT) :: length
+!
+   END SUBROUTINE mixscat_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE mixscat_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!
+   CHARACTER (LEN= * )  , INTENT(INOUT) :: string
+   INTEGER              , INTENT(IN   ) :: ikl
+   INTEGER              , INTENT(IN   ) :: iklz
+   INTEGER              , INTENT(INOUT) :: ll
+   INTEGER              , INTENT(IN   ) :: maxw
+   INTEGER              , INTENT(IN   ) :: ianz
+   REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+!
+   END SUBROUTINE mixscat_ersetz_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE mixscat_upd_para (ctype, ww, maxw, wert, ianz)
+!
+   CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
+   INTEGER           , INTENT(IN   )    :: maxw
+   INTEGER           , INTENT(IN   )    :: ianz
+   INTEGER           , INTENT(IN   )    :: ww (maxw)
+   REAL              , INTENT(IN   )    :: wert
+!
+   END SUBROUTINE mixscat_upd_para
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE mixscat_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
+!
+   CHARACTER (LEN= * ), INTENT(INOUT) :: string
+   CHARACTER (LEN= * ), INTENT(INOUT) :: line
+   INTEGER            , INTENT(IN   ) :: ikl
+   INTEGER            , INTENT(IN   ) :: iklz
+   REAL               , INTENT(INOUT) :: ww
+   INTEGER            , INTENT(INOUT) :: laenge
+   INTEGER            , INTENT(INOUT) :: lp
+!
+   END SUBROUTINE mixscat_calc_intr_spec 
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE mixscat_validate_var_spec (string, lp)
+!
+   CHARACTER (LEN= * ), INTENT(IN   ) :: string
+   INTEGER            , INTENT(IN   ) :: lp
+!
+   END SUBROUTINE mixscat_validate_var_spec 
+END INTERFACE
+
+!
+p_mache_kdo         => mixscat_mache_kdo
+p_ersetz_para       => mixscat_ersetz_para
+p_upd_para          => mixscat_upd_para
+p_calc_intr_spec    => mixscat_calc_intr_spec
+p_validate_var_spec => mixscat_validate_var_spec
+!
+END SUBROUTINE mixscat_set_sub
+!

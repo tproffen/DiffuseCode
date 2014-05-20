@@ -10,6 +10,7 @@ SUBROUTINE interactive ()
 !
 USE prompt_mod
 USE setup_mod
+USE set_sub_generic_mod
 USE diffev_loop_mod
 !
 IMPLICIT none 
@@ -18,6 +19,7 @@ IMPLICIT none
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
+CALL diffev_set_sub
 lstandalone = .false.
 CALL diffev_loop
 !                                                                       
@@ -44,6 +46,7 @@ USE diffev_mpi_mod
 USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
+USE set_sub_generic_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN   ) :: incomming
@@ -61,11 +64,10 @@ INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 !
 INTEGER              :: len_str
 !
-EXTERNAL diffev_mache_kdo       ! Declare DIFFEV copy of mache_kdo
-!
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL setup
 ENDIF
+CALL diffev_set_sub
 master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
 lend = .false.
 !
@@ -95,7 +97,7 @@ ELSE
 !     - execute command                                                 
 !                                                                       
             IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
-               CALL do_loop (line, lend, laenge, diffev_mache_kdo) 
+               CALL do_loop (line, lend, laenge) 
             ELSE 
                CALL diffev_mache_kdo (line, lend, laenge) 
             ENDIF 
