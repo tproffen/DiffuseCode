@@ -59,7 +59,7 @@ CONTAINS
 !------ END of PROGRAM                                                  
 !                                                                       
       IF(lstandalone) THEN
-         CALL do_exit
+         CALL kuplot_do_exit
       ENDIF
 !                                                                       
 !                                                                       

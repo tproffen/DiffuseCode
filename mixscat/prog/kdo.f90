@@ -83,7 +83,7 @@
 !------ Terminate MIXSCAT 'exit'                                        
 !                                                                       
          ELSEIF (str_comp (bef, 'exit', 2, lbef, 4) ) then 
-            CALL do_exit 
+            CALL mixscat_do_exit 
             lend = .true. 
 !                                                                       
 !-------  --------------------------------------------------------------

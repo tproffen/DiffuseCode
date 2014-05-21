@@ -1,8 +1,8 @@
-      SUBROUTINE do_exit 
+      SUBROUTINE mixscat_do_exit 
 !                                                                       
       USE prompt_mod 
 !                                                                       
       IMPLICIT none 
 !
       CALL exit_all 
-      END SUBROUTINE do_exit                        
+      END SUBROUTINE mixscat_do_exit                        

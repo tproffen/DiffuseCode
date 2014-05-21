@@ -1,7 +1,7 @@
-MODULE exit_mod
+MODULE discus_exit_mod
 !
 CONTAINS
-      SUBROUTINE do_exit 
+      SUBROUTINE discus_do_exit 
 !+                                                                      
 !           Clean exit from the program DISCUS ;-)                      
 !-                                                                      
@@ -10,5 +10,5 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
       CALL exit_all 
-      END SUBROUTINE do_exit                        
-END MODULE exit_mod
+      END SUBROUTINE discus_do_exit                        
+END MODULE discus_exit_mod

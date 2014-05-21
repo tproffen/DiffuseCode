@@ -1,5 +1,5 @@
 !*****7**************************************************************** 
-      SUBROUTINE do_exit 
+      SUBROUTINE kuplot_do_exit 
 !                                                                       
 !       Things to do when KUPLOT exits                                  
 !                                                                       
@@ -18,4 +18,4 @@
 !                                                                       
       CALL exit_all 
 !                                                                       
-      END SUBROUTINE do_exit                        
+      END SUBROUTINE kuplot_do_exit                        

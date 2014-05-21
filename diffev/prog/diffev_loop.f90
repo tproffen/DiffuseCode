@@ -5,7 +5,7 @@ CONTAINS
 SUBROUTINE diffev_loop
 !                                                                       
 USE diffev_mpi_mod
-USE do_exit_mod
+USE diffev_do_exit_mod
 USE run_mpi_mod
 USE doact_mod
 USE errlist_mod 
@@ -86,7 +86,7 @@ ENDIF with_mpi_error
 CALL RUN_MPI_FINALIZE
 !
 IF ( lstandalone ) THEN
-   CALL do_exit
+   CALL diffev_do_exit
 ENDIF
 !                                                                       
 END SUBROUTINE diffev_loop

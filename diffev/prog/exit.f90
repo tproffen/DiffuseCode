@@ -1,8 +1,8 @@
-MODULE do_exit_mod
+MODULE diffev_do_exit_mod
 !
 CONTAINS
 !
-SUBROUTINE do_exit 
+SUBROUTINE diffev_do_exit 
 !                                                                       
 USE allocate_appl
 USE prompt_mod 
@@ -18,5 +18,5 @@ ENDIF
 !
 CALL do_deallocate_appl ( 'all',3)
 !
-END SUBROUTINE do_exit                        
-END MODULE do_exit_mod
+END SUBROUTINE diffev_do_exit                        
+END MODULE diffev_do_exit_mod

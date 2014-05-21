@@ -4,7 +4,7 @@ CONTAINS
 !
 SUBROUTINE discus_loop
 !                                                                       
-   USE exit_mod
+   USE discus_exit_mod
    USE doact_mod 
    USE errlist_mod 
    USE learn_mod 
@@ -73,7 +73,7 @@ fehler: IF (ier_num.ne.0) then
 ENDDO main
 !                                                                       
 IF ( lstandalone ) THEN
-   CALL do_exit 
+   CALL discus_do_exit 
 ENDIF
 !                                                                       
 END SUBROUTINE discus_loop
