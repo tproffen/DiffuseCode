@@ -12,7 +12,7 @@ SUBROUTINE stack
 !     created.                                                          
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE stack_mod 
@@ -938,7 +938,7 @@ SUBROUTINE stack
 !     Creates the list of origins for the crystal with stacking faults  
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
       USE stack_mod 
@@ -1368,7 +1368,7 @@ SUBROUTINE stack
 !     Creates the crystal with stacking faults                          
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE gen_add_mod 
       USE sym_add_mod 
@@ -1654,7 +1654,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !-                                                                      
 !     performs the setup for the rotations around the different axes    
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE symm_mod 
@@ -1749,7 +1749,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     by the respective layers.                                         
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup 
@@ -2016,7 +2016,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Calculates the Fourier transform of the average lattice.          
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup 

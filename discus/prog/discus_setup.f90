@@ -7,8 +7,8 @@ SUBROUTINE setup
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
-      USE allocate_appl_mod
-      USE init_mod
+      USE discus_allocate_appl_mod
+      USE discus_init_mod
 !
       USE errlist_mod
       USE prompt_mod 
@@ -34,11 +34,11 @@ WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !
-      CALL alloc_default
+      CALL discus_alloc_default
 !                                                                       
 !     Call initialization routine.                                      
 !                                                                       
-CALL initarrays 
+CALL discus_initarrays 
 CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
@@ -47,7 +47,7 @@ CALL appl_env
 !                                                                       
 !     try to read default file                                          
 !                                                                       
-CALL autodef 
+CALL discus_autodef 
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
@@ -88,6 +88,11 @@ INTERFACE
    INTEGER             , INTENT(INOUT) :: length
 !
    END SUBROUTINE discus_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE discus_errlist_appl
+   END SUBROUTINE discus_errlist_appl
 END INTERFACE
 !
 INTERFACE
@@ -141,6 +146,7 @@ END INTERFACE
 
 !
 p_mache_kdo         => discus_mache_kdo
+p_errlist_appl      => discus_errlist_appl
 p_ersetz_para       => discus_ersetz_para
 p_upd_para          => discus_upd_para
 p_calc_intr_spec    => discus_calc_intr_spec

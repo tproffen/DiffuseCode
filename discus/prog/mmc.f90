@@ -10,9 +10,9 @@ SUBROUTINE mmc
 !+                                                                      
 USE config_mod 
 USE crystal_mod 
-USE allocate_appl_mod
+USE discus_allocate_appl_mod
 USE chem_mod
-USE init_mod
+USE discus_init_mod
 USE mc_mod 
 USE mmc_mod 
 USE modify_mod
@@ -597,7 +597,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     sets parameters for MMC section                                   
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu

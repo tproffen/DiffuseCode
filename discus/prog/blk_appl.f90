@@ -1,8 +1,8 @@
-MODULE init_mod
+MODULE discus_init_mod
 !
 CONTAINS
 !
-      SUBROUTINE initarrays 
+      SUBROUTINE discus_initarrays 
 !                                                                       
 !+                                                                      
 !       Startvalues for all important arrays.                           
@@ -172,7 +172,7 @@ CONTAINS
 !     ENDDO 
 !     ENDDO 
 !
-      END SUBROUTINE initarrays                     
+      END SUBROUTINE discus_initarrays                     
 !*****7*****************************************************************
       SUBROUTINE mmc_init 
 !+                                                                      
@@ -252,7 +252,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE mmc_init                       
 !*****7*****************************************************************
-      SUBROUTINE autodef 
+      SUBROUTINE discus_autodef 
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
@@ -287,5 +287,5 @@ CONTAINS
       CLOSE (idef) 
 !                                                                       
       WRITE (output_io, * ) 
-      END SUBROUTINE autodef                        
-END MODULE init_mod
+      END SUBROUTINE discus_autodef                        
+END MODULE discus_init_mod

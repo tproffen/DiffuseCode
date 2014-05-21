@@ -1,6 +1,6 @@
 !*****7****************************************************************
 !
-      subroutine errlist_appl
+      subroutine mixscat_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
@@ -110,4 +110,4 @@
         call disp_error ('APPL',error_discus,iud,iod)
       endif
 !
-      end
+      end subroutine mixscat_errlist_appl

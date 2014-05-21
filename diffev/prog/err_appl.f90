@@ -1,6 +1,6 @@
 !*****7****************************************************************
 !
-      SUBROUTINE errlist_appl
+      SUBROUTINE diffev_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
@@ -46,5 +46,5 @@
 !
       CALL disp_error ('APPL',error,iu,io)
 !
-      END SUBROUTINE errlist_appl
+      END SUBROUTINE diffev_errlist_appl
 !*****7****************************************************************

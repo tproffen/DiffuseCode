@@ -14,7 +14,7 @@ CONTAINS
 !     Main menu for generalized symmetry operations                     
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 

@@ -1,4 +1,4 @@
-MODULE allocate_appl
+MODULE diffev_allocate_appl
 !-
 !     Contains data and routines to allocate application dependent arrays
 !
@@ -17,20 +17,20 @@ USE config
 USE errlist_mod 
 !
 PRIVATE
-PUBLIC  :: alloc_appl          ! Generic interface for all allocations
-PUBLIC  :: do_allocate_appl
-PUBLIC  :: do_deallocate_appl
-PUBLIC  :: alloc_default
+PUBLIC  :: diffev_alloc_appl          ! Generic interface for all allocations
+PUBLIC  :: diffev_do_allocate_appl
+PUBLIC  :: diffev_do_deallocate_appl
+PUBLIC  :: diffev_alloc_default
 PUBLIC  :: alloc_backup
 PUBLIC  :: alloc_socket_nprogs
 PUBLIC  :: alloc_population
 PUBLIC  :: alloc_constraint
-PUBLIC  :: show_config
+PUBLIC  :: diffev_show_config
 !
 !
 CONTAINS
 !
-    SUBROUTINE do_allocate_appl(zeile,lcomm)
+    SUBROUTINE diffev_do_allocate_appl(zeile,lcomm)
 !
     IMPLICIT NONE
 !
@@ -49,9 +49,9 @@ CONTAINS
     CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
     IF (ier_num.eq.0) then 
        IF ( ianz == 0 ) THEN
-          CALL show_config
+          CALL diffev_show_config
        ELSE IF (str_comp (cpara (1) , 'default'   , 1, lpara (1) , 7) )  THEN
-          CALL alloc_default
+          CALL diffev_alloc_default
        ELSE IF (str_comp (cpara (1) , 'constraint', 1, lpara (1) ,10) )  THEN
           IF ( ianz == 2 ) THEN
              CALL del_params (1, ianz, cpara, lpara, maxw) 
@@ -81,16 +81,16 @@ CONTAINS
              ier_typ = ER_COMM 
           ENDIF 
        ELSE IF (str_comp (cpara (1) , 'show', 1, lpara (1) , 4) )  THEN
-          CALL show_config
+          CALL diffev_show_config
        ELSE 
           ier_num = - 6 
           ier_typ = ER_COMM 
        ENDIF 
     ENDIF 
 !
-    END SUBROUTINE do_allocate_appl
+    END SUBROUTINE diffev_do_allocate_appl
 !
-    SUBROUTINE do_deallocate_appl(zeile,lcomm)
+    SUBROUTINE diffev_do_deallocate_appl(zeile,lcomm)
 !
        IMPLICIT NONE
 !
@@ -124,9 +124,9 @@ CONTAINS
                ENDIF
             ENDIF
 !
-    END SUBROUTINE do_deallocate_appl
+    END SUBROUTINE diffev_do_deallocate_appl
 !
-    SUBROUTINE show_config
+    SUBROUTINE diffev_show_config
 !
        USE constraint
        USE population
@@ -165,9 +165,9 @@ CONTAINS
 3110 format(' Current number of constraints ',i8)
 3500 format(' CONSTRAINTS are not allocated yet! DIFFEV will not run! ')
 !
-    END SUBROUTINE show_config
+    END SUBROUTINE diffev_show_config
 !
-    SUBROUTINE alloc_default
+    SUBROUTINE diffev_alloc_default
 !
       IMPLICIT NONE
 !
@@ -176,7 +176,7 @@ CONTAINS
       CALL alloc_backup     ( 20)
       CALL alloc_socket_nprogs ( 2, 1)
 !
-    END SUBROUTINE alloc_default
+    END SUBROUTINE diffev_alloc_default
 !
 !
     SUBROUTINE alloc_constraint ( n_constr)
@@ -503,7 +503,7 @@ CONTAINS
 !     To avoid possible pitfals with old code, the arrays are simply
 !     reallocated to a size of 1.
 !+
-      USE blk_appl
+      USE diffev_blk_appl
 !
       IMPLICIT NONE
 !
@@ -527,4 +527,4 @@ CONTAINS
     END SUBROUTINE dealloc_backup
 !
 !
-END MODULE allocate_appl
+END MODULE diffev_allocate_appl

@@ -7,6 +7,7 @@
 !*****7****************************************************************
        USE errlist_mod
        USE param_mod 
+       USE set_sub_generic_mod
        IMPLICIT      none
 !
 !
@@ -23,7 +24,7 @@
        elseif(ier_typ.eq.ER_MATH) then
          call errlist_math
        else
-         call errlist_appl
+         call p_errlist_appl
        endif
 !
 !------       Terminate program if an error occured and the 

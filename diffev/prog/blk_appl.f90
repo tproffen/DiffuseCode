@@ -1,17 +1,17 @@
-MODULE blk_appl
+MODULE diffev_blk_appl
 !                                                                       
 USE population
 USE diff_evol
 !
 PRIVATE
-PUBLIC :: autodef 
-PUBLIC :: initarrays
+PUBLIC :: diffev_autodef 
+PUBLIC :: diffev_initarrays
 PUBLIC :: init_diffev
 PUBLIC :: init_population
 !
 CONTAINS
 !
-   SUBROUTINE initarrays
+   SUBROUTINE diffev_initarrays
 !
 !       Startvalues for all important arrays.                           
 !                                                                       
@@ -27,7 +27,7 @@ CONTAINS
    CALL init_diffev
    CALL init_population
 !
-   END SUBROUTINE initarrays
+   END SUBROUTINE diffev_initarrays
 !
    SUBROUTINE init_diffev 
 !                                                                       
@@ -107,7 +107,7 @@ CONTAINS
 !                                                                       
    END SUBROUTINE init_population                     
 !*****7*****************************************************************
-   SUBROUTINE autodef 
+   SUBROUTINE diffev_autodef 
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
@@ -140,6 +140,6 @@ CONTAINS
    CLOSE (idef) 
 !
 !
-   END SUBROUTINE autodef                        
+   END SUBROUTINE diffev_autodef                        
 !
-END MODULE blk_appl
+END MODULE diffev_blk_appl

@@ -15,7 +15,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !     Main menu for generalized transformation operations               
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
       USE save_mod 

@@ -438,7 +438,7 @@ SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz)
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
-USE allocate_appl
+USE diffev_allocate_appl
 USE create_trial_mod
 USE diff_evol
 USE population

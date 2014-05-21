@@ -632,7 +632,7 @@ CONTAINS
 !     Places an individual object                                       
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE insert_mod 
       USE modify_mod
@@ -833,7 +833,7 @@ CONTAINS
 !     Places an individual domain                                       
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE insert_mod 
       USE modify_mod

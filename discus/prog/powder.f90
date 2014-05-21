@@ -1014,7 +1014,7 @@ CONTAINS
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
@@ -1087,7 +1087,7 @@ CONTAINS
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -1628,7 +1628,7 @@ CONTAINS
 !     Histogram Version                                                 
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod 
       USE diffuse_mod 
@@ -2115,7 +2115,7 @@ CONTAINS
 !     to the formfactor table for each sin(theta)/lambda.               
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
@@ -2231,7 +2231,7 @@ CONTAINS
 !     sorts all atoms by scattering type                                
 !                                                                       
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE powder_scat_mod 
       IMPLICIT none 

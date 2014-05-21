@@ -1116,7 +1116,7 @@ CONTAINS
 !     read experimental data for rmc fit                                
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod
       USE metric_mod
@@ -1599,7 +1599,7 @@ CONTAINS
 !     main rmc loop - called by run command                             
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 

@@ -18,7 +18,7 @@ CONTAINS
 !     Main menu for generalized shear operations                        
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE metric_mod
       USE modify_mod

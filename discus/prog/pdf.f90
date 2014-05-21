@@ -9,7 +9,7 @@ SUBROUTINE pdf
 !     of the RMC and CHEM segment which are simply overwritten !!       
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE modify_mod
@@ -262,7 +262,7 @@ SUBROUTINE pdf
 !     Setup for various arrays and functions for PDF calculation.       
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -933,7 +933,7 @@ SUBROUTINE pdf
 !     Sets most parameters for 'pdf' section                            
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -1693,7 +1693,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Calculate PDF of current structure                                
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE pdf_mod 

@@ -426,7 +426,7 @@ CONTAINS
 !                                                                       
 ! Writes the logfile and summary file
 !
-   USE allocate_appl
+   USE diffev_allocate_appl
    USE create_trial_mod
    USE diff_evol
    USE population

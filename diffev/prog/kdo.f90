@@ -11,7 +11,7 @@ USE charact_mod
 USE diff_evol
 USE diffev_mpi_mod
 USE population
-USE allocate_appl
+USE diffev_allocate_appl
 USE create_trial_mod
 USE compare
 USE initialise
@@ -115,12 +115,12 @@ ELSE
 !     -- Allocate array sizes
 !
    ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) then
-      CALL do_allocate_appl (zeile, lcomm)
+      CALL diffev_do_allocate_appl (zeile, lcomm)
 !
 !     -- Deallocate array sizes
 !
    ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) then
-      CALL do_deallocate_appl (zeile, lcomm)
+      CALL diffev_do_deallocate_appl (zeile, lcomm)
 !                                                                 
 !     -- define adaptation of sigmas 'adapt'                      
 !                                                                 

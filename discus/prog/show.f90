@@ -9,7 +9,7 @@ CONTAINS
 !     parameters.                                                       
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE conn_mod
 !                                                                       
@@ -74,7 +74,7 @@ CONTAINS
 !     ----Show current configuration       'config'                     
 !                                                                       
          ELSEIF (str_comp (cpara(1), 'config', 4, lpara(1), 6) )then
-            CALL show_config 
+            CALL discus_show_config 
 !                                                                       
 !     ----Show connectivity around an atom 'connect'                     
 !                                                                       

@@ -10,7 +10,7 @@ SUBROUTINE do_domain (line, lp)
 !     This is the new versio of the microdomain level.                  
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE domain_mod 
       USE micro_mod 
@@ -376,7 +376,7 @@ SUBROUTINE do_domain (line, lp)
 !     Displays the current parameters for domain distributions          
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod 
+      USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE domain_mod 
       USE surface_mod 
@@ -956,7 +956,7 @@ SUBROUTINE do_domain (line, lp)
       SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix) 
 !                                                                       
       USE config_mod 
-      USE allocate_appl_mod 
+      USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 

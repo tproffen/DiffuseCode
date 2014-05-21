@@ -21,7 +21,7 @@ CONTAINS
 !
 !  Reads the header section of a structure from an internal cystal. 
 !
-   USE allocate_appl_mod
+   USE discus_allocate_appl_mod
    IMPLICIT NONE
 !
 !
@@ -53,7 +53,7 @@ CONTAINS
 !
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
-   USE allocate_appl_mod
+   USE discus_allocate_appl_mod
    USE crystal_mod
    USE molecule_mod
 !   USE class_internal
@@ -131,7 +131,7 @@ CONTAINS
 !
 !  Reads a unit cell from an internal cystal. The old crystal is overwritten
 !
-   USE allocate_appl_mod
+   USE discus_allocate_appl_mod
 !   USE class_internal
    USE crystal_mod
    USE molecule_mod
@@ -413,7 +413,7 @@ do_scat_dw: DO k = 1,cr_nscat
 !  This subroutine adds all atoms from the internal storage to the local
 !  crystal rd_cr_pos. The number of atoms cr_natoms is incremented accordingly
 !
-   USE allocate_appl_mod
+   USE discus_allocate_appl_mod
    IMPLICIT NONE
 !
    CHARACTER (LEN=  * )                         , INTENT(IN   ) :: strucfile 
@@ -528,7 +528,7 @@ do_scat_dw: DO k = 1,cr_nscat
 !
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
-   USE allocate_appl_mod
+   USE discus_allocate_appl_mod
    IMPLICIT NONE
 !
 !

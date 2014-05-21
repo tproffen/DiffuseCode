@@ -1,6 +1,6 @@
 !*****7****************************************************************
 !
-      subroutine errlist_appl
+      SUBROUTINE discus_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
@@ -169,7 +169,7 @@
       ELSE
         call disp_error ('APPL',error,iu,io)
       endif
-      end
+      END SUBROUTINE discus_errlist_appl
 !*****7*****************************************************************
       SUBROUTINE errlist_four 
 !-                                                                      

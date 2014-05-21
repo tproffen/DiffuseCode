@@ -7,8 +7,8 @@ SUBROUTINE setup
 !                                                                       
 !     This routine makes inital setup of DIFFEV                         
 !                                                                       
-USE allocate_appl
-USE blk_appl
+USE diffev_allocate_appl
+USE diffev_blk_appl
 USE constraint
 USE diffev_mpi_mod
 USE population
@@ -43,11 +43,11 @@ WRITE ( *, 1000) version, cdate
 MAXPOP     = 0
 MAXDIMX    = 0
 MAX_CONSTR = 0
-CALL alloc_default
+CALL diffev_alloc_default
 !                                                                       
 !     Call initialization routine.                                      
 !                                                                       
-CALL initarrays 
+CALL diffev_initarrays 
 CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
@@ -56,7 +56,7 @@ CALL appl_env
 !                                                                       
 !     try to read default file                                          
 !                                                                       
-CALL autodef 
+CALL diffev_autodef 
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
@@ -90,6 +90,11 @@ INTERFACE
    INTEGER             , INTENT(INOUT) :: length
 !
    END SUBROUTINE diffev_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE diffev_errlist_appl
+   END SUBROUTINE diffev_errlist_appl
 END INTERFACE
 !
 INTERFACE
@@ -143,6 +148,7 @@ END INTERFACE
 
 !
 p_mache_kdo         => diffev_mache_kdo
+p_errlist_appl      => diffev_errlist_appl
 p_ersetz_para       => diffev_ersetz_para
 p_upd_para          => diffev_upd_para
 p_calc_intr_spec    => diffev_calc_intr_spec

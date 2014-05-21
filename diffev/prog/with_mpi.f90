@@ -120,7 +120,7 @@ SUBROUTINE run_mpi_master
 !  Main routine of the distribution. packs the relevant parameters and
 !  sends them to run_mpi_numprocs -1 slaves
 !
-USE allocate_appl
+USE diffev_allocate_appl
 USE mpi
 USE population
 USE run_mpi_mod

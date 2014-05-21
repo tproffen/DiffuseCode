@@ -30,10 +30,10 @@ CONTAINS
 !                                                                       
 !     Call initialization routines                                      
 !                                                                       
-      CALL initarrays 
+      CALL kuplot_initarrays 
       CALL init_sysarrays 
       CALL appl_env 
-      CALL auto_def 
+      CALL kuplot_auto_def 
       CALL cmdline_args 
       CALL no_error
 !
@@ -68,6 +68,11 @@ INTERFACE
    INTEGER             , INTENT(INOUT) :: length
 !
    END SUBROUTINE kuplot_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE kuplot_errlist_appl
+   END SUBROUTINE kuplot_errlist_appl
 END INTERFACE
 !
 INTERFACE
@@ -121,6 +126,7 @@ END INTERFACE
 
 !
 p_mache_kdo         => kuplot_mache_kdo
+p_errlist_appl      => kuplot_errlist_appl
 p_ersetz_para       => kuplot_ersetz_para
 p_upd_para          => kuplot_upd_para
 p_calc_intr_spec    => kuplot_calc_intr_spec

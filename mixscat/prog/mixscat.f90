@@ -91,7 +91,7 @@ PROGRAM mixsca
 !                                                                       
 !     Call initialization routine                                       
 !                                                                       
-      CALL initarrays 
+      CALL mixscat_initarrays 
       CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
@@ -100,7 +100,7 @@ PROGRAM mixsca
 !                                                                       
 !     try to read default file                                          
 !                                                                       
-      CALL autodef 
+      CALL mixscat_autodef 
 !                                                                       
 !     try to read command line arguments                                
 !                                                                       
@@ -133,6 +133,11 @@ INTERFACE
    INTEGER             , INTENT(INOUT) :: length
 !
    END SUBROUTINE mixscat_mache_kdo
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE mixscat_errlist_appl
+   END SUBROUTINE mixscat_errlist_appl
 END INTERFACE
 !
 INTERFACE
@@ -186,6 +191,7 @@ END INTERFACE
 
 !
 p_mache_kdo         => mixscat_mache_kdo
+p_errlist_appl      => mixscat_errlist_appl
 p_ersetz_para       => mixscat_ersetz_para
 p_upd_para          => mixscat_upd_para
 p_calc_intr_spec    => mixscat_calc_intr_spec

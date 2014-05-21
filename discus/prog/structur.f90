@@ -23,7 +23,7 @@ CONTAINS
 !     Main menu for read command.                                       
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
       USE read_internal_mod
@@ -497,7 +497,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !           This subroutine reads a unit cell.                          
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
       USE save_mod 
@@ -889,7 +889,7 @@ got_params: IF (ier_num.eq.0) THEN
 !     interprets the 'molecule' lines of a structure file               
 !+                                                                      
                                                                         
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE molecule_mod 
@@ -1663,7 +1663,7 @@ got_params: IF (ier_num.eq.0) THEN
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
 !+                                                                      
-      USE allocate_appl_mod , ONLY: alloc_molecule
+      USE discus_allocate_appl_mod , ONLY: alloc_molecule
       USE molecule_mod 
       USE spcgr_apply
       IMPLICIT none 

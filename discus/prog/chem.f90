@@ -867,7 +867,7 @@ SUBROUTINE chem_set_vec (ianz, cpara, lpara, werte, maxw)
 !+                                                                      
 !     'set vec' is processed here                                       
 !-                                                                      
-USE allocate_appl_mod 
+USE discus_allocate_appl_mod 
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
@@ -948,7 +948,7 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
 !+
 !     'set con' is processed here                                       
 !-
-   USE allocate_appl_mod 
+   USE discus_allocate_appl_mod 
    USE config_mod 
    USE crystal_mod 
    USE chem_mod 
@@ -1045,7 +1045,7 @@ SUBROUTINE chem_set_ranges (ianz, cpara, lpara, werte, maxw)
 !+                                                                      
 !     'set range' is processed here                                     
 !-                                                                      
-USE allocate_appl_mod 
+USE discus_allocate_appl_mod 
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
@@ -1292,7 +1292,7 @@ SUBROUTINE chem_set_angle (ianz, cpara, lpara, werte, maxw)
 !+                                                                      
 !     'set angle' is processed here                                     
 !-                                                                      
-USE allocate_appl_mod 
+USE discus_allocate_appl_mod 
 USE config_mod 
 USE crystal_mod 
 USE chem_mod 
@@ -1380,7 +1380,7 @@ ENDIF
 !+                                                                      
 !     'set environment' is processed here                               
 !-                                                                      
-      USE allocate_appl_mod 
+      USE discus_allocate_appl_mod 
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
@@ -3022,7 +3022,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculates distortions within the crystal                         
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE atom_name 
@@ -3171,7 +3171,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculates distortions within the crystal                         
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE atom_name 
@@ -3570,7 +3570,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates distortions within the crystal                         
 !     Molecules version ..                                              
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
@@ -3719,7 +3719,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculates angular distortions within the crystal                 
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE atom_name 
@@ -3905,7 +3905,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculates angular distortions within the crystal                 
 !-                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE atom_name 

@@ -331,7 +331,7 @@ CONTAINS
 !     Performs the actual symmetry operation, multiple copy version     
 !     Operates on molecules                                             
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -489,7 +489,7 @@ CONTAINS
 !     Performs the actual symmetry operation, single result version     
 !     Operates on molecules                                             
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -637,7 +637,7 @@ CONTAINS
 !     Performs the actual symmetry operation, multiple copy version     
 !     Operates on molecules                                             
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod
@@ -866,7 +866,7 @@ CONTAINS
 !     Performs the actual symmetry operation, single result version     
 !     Operates on microdomain represenatation                           
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE config_mod 
       USE crystal_mod 
       USE modify_mod

@@ -253,7 +253,7 @@ CONTAINS
 !-                                                                      
 !     Set the parameters for the connectivity
 !+                                                                      
-      USE allocate_appl_mod 
+      USE discus_allocate_appl_mod 
       USE config_mod 
       USE crystal_mod 
       USE modify_mod

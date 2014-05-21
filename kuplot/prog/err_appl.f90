@@ -1,5 +1,5 @@
 !*****7****************************************************************
-      subroutine errlist_appl
+      SUBROUTINE kuplot_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
@@ -86,5 +86,5 @@
      &           /
 !
       call disp_error ('KUPL',error,iu,io)
-      end
+      END SUBROUTINE kuplot_errlist_appl
 !*****7****************************************************************

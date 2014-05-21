@@ -6,7 +6,7 @@
 !     executed. A leading @ indicates a macro.                          
 !-                                                                      
       USE addfile_mod
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE charact_mod 
       USE chem_menu
       USE conn_mod
@@ -111,12 +111,12 @@
 !     -- Allocate array sizes
 !
          ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) then
-            CALL do_allocate_appl (zeile, lcomm)
+            CALL discus_do_allocate_appl (zeile, lcomm)
 !
 !     -- Deallocate array sizes
 !
          ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) then
-            CALL do_deallocate_appl (zeile, lcomm)
+            CALL discus_do_deallocate_appl (zeile, lcomm)
 !                                                                       
 !-------add two files 'addf'                                            
 !                                                                       

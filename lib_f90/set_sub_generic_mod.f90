@@ -24,6 +24,11 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE errlist_appl
+   END SUBROUTINE errlist_appl
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
    CHARACTER (LEN= * )  , INTENT(INOUT) :: string
@@ -73,6 +78,7 @@ INTERFACE
 END INTERFACE
 !
 PROCEDURE(mache_kdo     )   , POINTER :: p_mache_kdo      => NULL()
+PROCEDURE(errlist_appl  )   , POINTER :: p_errlist_appl   => NULL()
 PROCEDURE(ersetz_para   )   , POINTER :: p_ersetz_para    => NULL()
 PROCEDURE(upd_para      )   , POINTER :: p_upd_para       => NULL()
 PROCEDURE(calc_intr_spec)   , POINTER :: p_calc_intr_spec => NULL()

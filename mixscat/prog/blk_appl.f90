@@ -1,4 +1,4 @@
-      SUBROUTINE initarrays 
+      SUBROUTINE mixscat_initarrays 
 !+                                                                      
 !       Startvalues for all important arrays.                           
 !-                                                                      
@@ -46,9 +46,9 @@
       ier_msg (i) = ' ' 
       ENDDO 
 !                                                                       
-      END SUBROUTINE initarrays                     
+      END SUBROUTINE mixscat_initarrays                     
 !*****7*****************************************************************
-      SUBROUTINE autodef 
+      SUBROUTINE mixscat_autodef 
 !-                                                                      
 !     Tries to open a default file for the integer and real variables   
 !+                                                                      
@@ -85,4 +85,4 @@
 !                                                                       
       WRITE (output_io, * ) 
  1000 FORMAT    (a) 
-      END SUBROUTINE autodef                        
+      END SUBROUTINE mixscat_autodef                        

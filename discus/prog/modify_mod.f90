@@ -10,7 +10,7 @@ CONTAINS
 !     Replaces atom(s) or molecule(s) within the crystal ..             
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE celltoindex_mod
       USE modify_func_mod
@@ -372,7 +372,7 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE charact_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -464,7 +464,7 @@ CONTAINS
 !+                                                                      
       USE config_mod 
       USE charact_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE metric_mod
       USE prop_para_mod 
@@ -673,7 +673,7 @@ CONTAINS
 !     structure.                                                        
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
       USE errlist_mod 
@@ -2288,7 +2288,7 @@ CONTAINS
 !     Author   : R.B. Neder (reinhard.neder@krist.uni-erlangen.de)      
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
       USE surface_mod 
@@ -2761,7 +2761,7 @@ CONTAINS
 !     This subroutine sets the distances between atoms and a surface.   
 !-                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE surface_mod 
       USE errlist_mod 

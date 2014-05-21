@@ -12,7 +12,7 @@ SUBROUTINE diffev_do_show (line, lp)
 !                                                                       
 !     Main show menu                                                    
 !                                                                       
-USE allocate_appl
+USE diffev_allocate_appl
 !
 USE errlist_mod 
 USE prompt_mod 
@@ -35,7 +35,7 @@ IF (ier_num.ne.0) return
 !                                                                       
 IF (ianz.eq.1) then 
    IF (str_comp (cpara (1) , 'config', 1, lpara (1) , 6) )  THEN
-      CALL show_config
+      CALL diffev_show_config
    ELSE
 !                                                                       
 !     -- try generic show commands                                      

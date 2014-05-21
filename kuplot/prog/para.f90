@@ -1138,7 +1138,7 @@
       ELSE 
          IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) ) then 
             WRITE (output_io, 1100) 
-            CALL initarrays 
+            CALL kuplot_initarrays 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_APPL 

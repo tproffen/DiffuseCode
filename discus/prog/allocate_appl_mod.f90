@@ -1,9 +1,9 @@
-MODULE allocate_appl_mod
+MODULE discus_allocate_appl_mod
 !-
 !     Contains data and routines to allocate application dependent arrays
 !
-!     SUBROUTINE show_config    ! Shows the current configuration
-!     SUBROUTINE alloc_default  ! Allocate default array sizes, mostly used at program start
+!     SUBROUTINE discus_show_config    ! Shows the current configuration
+!     SUBROUTINE discus_alloc_default  ! Allocate default array sizes, mostly used at program start
 !     SUBROUTINE alloc_constraint ( n_constr)  ! Allocate the number of constraints
 !     SUBROUTINE alloc_population ( n_pop, n_dimx)  ! Allocate the number of members, parameters
 !+
@@ -13,7 +13,7 @@ MODULE allocate_appl_mod
 !
   CONTAINS
 !
-    SUBROUTINE do_allocate_appl(zeile,lcomm)
+    SUBROUTINE discus_do_allocate_appl(zeile,lcomm)
 !
     IMPLICIT NONE
 !
@@ -32,9 +32,9 @@ MODULE allocate_appl_mod
     CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
     IF (ier_num.eq.0) then 
        IF ( ianz == 0 ) THEN
-          CALL show_config
+          CALL discus_show_config
        ELSE IF (str_comp (cpara (1) , 'default'   , 1, lpara (1) , 7) )  THEN
-          CALL alloc_default
+          CALL discus_alloc_default
        ELSE IF (str_comp (cpara (1) , 'crystal'   , 1, lpara (1) , 5) )  THEN
           IF ( ianz == 3 ) THEN
              CALL del_params (1, ianz, cpara, lpara, maxw) 
@@ -50,16 +50,16 @@ MODULE allocate_appl_mod
              ier_typ = ER_COMM 
           ENDIF 
        ELSE IF (str_comp (cpara (1) , 'show', 1, lpara (1) , 4) )  THEN
-          CALL show_config
+          CALL discus_show_config
        ELSE 
           ier_num = - 6 
           ier_typ = ER_COMM 
        ENDIF 
     ENDIF 
 !
-    END SUBROUTINE do_allocate_appl
+    END SUBROUTINE discus_do_allocate_appl
 !
-    SUBROUTINE do_deallocate_appl(zeile,lcomm)
+    SUBROUTINE discus_do_deallocate_appl(zeile,lcomm)
 !
        IMPLICIT NONE
 !
@@ -80,7 +80,7 @@ MODULE allocate_appl_mod
                ier_num = - 6
                ier_typ = ER_COMM
             ELSE IF (str_comp (cpara (1) , 'all'       , 3, lpara (1) , 3) )  THEN
-               CALL alloc_default
+               CALL discus_alloc_default
 !
             ELSE IF (str_comp (cpara (1) , 'chemistry' , 3, lpara (1) , 9) )  THEN
                CALL dealloc_chemistry
@@ -126,10 +126,10 @@ MODULE allocate_appl_mod
             ENDIF
        ENDIF
 !
-    END SUBROUTINE do_deallocate_appl
+    END SUBROUTINE discus_do_deallocate_appl
 !
 !
-    SUBROUTINE show_config
+    SUBROUTINE discus_show_config
 !
        USE chem_mod
        USE debye_mod
@@ -258,9 +258,9 @@ MODULE allocate_appl_mod
  9985 FORMAT('   Number of bytes allocated   for transform     : ',i8)
  9990 FORMAT('   Number of bytes allocated   for waves         : ',i8)
 !
-    END SUBROUTINE show_config
+    END SUBROUTINE discus_show_config
 !
-    SUBROUTINE alloc_default
+    SUBROUTINE discus_alloc_default
 !
       USE config_mod
       IMPLICIT NONE
@@ -299,7 +299,7 @@ MODULE allocate_appl_mod
       CALL alloc_transfrm ( 1            )
       CALL alloc_waves    ( 1            )
 !
-    END SUBROUTINE alloc_default
+    END SUBROUTINE discus_alloc_default
 !
 !
     SUBROUTINE alloc_chem_aver ( n_atom_cell, n_max_atom )
@@ -3041,4 +3041,4 @@ MODULE allocate_appl_mod
     END SUBROUTINE dealloc_waves
 !
 !
-END MODULE allocate_appl_mod
+END MODULE discus_allocate_appl_mod

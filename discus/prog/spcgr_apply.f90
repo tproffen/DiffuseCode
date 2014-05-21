@@ -1641,7 +1641,7 @@ CONTAINS
 !     Inserts the last atom into the molecule list as last atom of      
 !     the specified molecule.                                           
 !+                                                                      
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE molecule_mod 
       IMPLICIT none 
 !                                                                       

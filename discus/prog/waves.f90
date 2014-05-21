@@ -7,7 +7,7 @@ SUBROUTINE waves_menu
 !     travelling through the crystal                                    
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -660,7 +660,7 @@ SUBROUTINE waves_menu
 !     Main waves routine                                                
 !+                                                                      
       USE config_mod 
-      USE allocate_appl_mod 
+      USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE quad_mod
       USE symm_mod 

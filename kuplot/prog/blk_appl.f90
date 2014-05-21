@@ -1,6 +1,6 @@
 !*****7*****************************************************************
 !                                                                       
-      SUBROUTINE initarrays 
+      SUBROUTINE kuplot_initarrays 
 !+                                                                      
 !     This is the initialisation routine called at startup time         
 !     of KUPLOT. In the first section there are a few definitions       
@@ -315,7 +315,7 @@
       ENDDO 
       ENDDO 
 !                                                                       
-      END SUBROUTINE initarrays                     
+      END SUBROUTINE kuplot_initarrays                     
 !*****7*****************************************************************
       SUBROUTINE do_read_def (zeile, lp) 
 !+                                                                      
@@ -688,7 +688,7 @@
     1 FORMAT  (a) 
       END SUBROUTINE read_def                       
 !*****7*****************************************************************
-      SUBROUTINE auto_def 
+      SUBROUTINE kuplot_auto_def 
 !+                                                                      
 !     If the default setup file is there load it ..                     
 !-                                                                      
@@ -716,4 +716,4 @@
       CLOSE (idef) 
 !                                                                       
  1000 FORMAT   (1x,'Reading defaults : ',a) 
-      END SUBROUTINE auto_def                       
+      END SUBROUTINE kuplot_auto_def                       

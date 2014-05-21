@@ -25,7 +25,7 @@ CONTAINS
 !                                                                       
 !     Authors : R.B. Neder  (reinhard.neder@krist.uni-erelangen.de)      
 !-                                                                      
-   USE allocate_appl
+   USE diffev_allocate_appl
    USE constraint
    USE create_trial_mod
    USE population
@@ -67,7 +67,7 @@ CONTAINS
       RETURN
    ENDIF
 !
-! should never be needed!!!   CALL alloc_population(pop_c , pop_dimx)
+! should never be needed!!!   CALL diffev_alloc_population(pop_c , pop_dimx)
    CALL init_x ( 1, pop_dimx)
    IF ( ier_num /= 0) RETURN
 !                                                                 
