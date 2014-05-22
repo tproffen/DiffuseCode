@@ -69,10 +69,10 @@
 
 !p prompt > @<name>
 
-   The commands must start in the left most column of the file and are
-   otherwise executed as typed.
-   Macro files may call other macro files up to a level defined at
-   installation. This is not a call in the sense of calling a function.
+   The commands may start in with leading blanks to help readability of 
+   the macro file. The commands are executed as typed.
+   Macro files may call other macro files. This is not a call in
+   the sense of calling a function.
    All variables are identical at all levels of macro file nesting.
 
    Macro files can be written by any editor on your
@@ -90,6 +90,20 @@
    The parameter "$0" contains the number of parameters listed on the line
    that called the macro. If no parameters were given this value will be 
    zero.
+
+   The prompt setting ==> 'set prompt,"redirect"' has an important side 
+   effect on macro treatment. 
+   With the "redirect" setting, macros are stored internally,
+   once they have been read from disk, and will be reused from memory. This
+   helps to reduce unnecessary I/O, especially when you have nested macros
+   inside loops. As a side effect, if a macro is modified on the disk, 
+   a further "@macro.mac" will not read the modified version but will
+   continue to use the internaly stored version.
+
+   For all other settings, the internal macro storage is 
+   cleared when you get back to the normal interactive mode. This allows
+   you to run a macro, then modify the version stored on the disk and 
+   execute the modified/corrected version.
 3  =
 !b <variable> = <expression>
 
@@ -632,6 +646,14 @@
 !b lend
 
    Finishes the learn sequence started by ==> learn.
+2  seed
+!b seed [ <value> ]
+
+   Reinitializes the pseudo random generator. The seed passed to the
+   random generator is -abs(nint(value)). If the <value> is omitted,
+   the random generator will be passed the number of hundredth of
+   seconds passed since midnight, essentially initializing the sequence
+   at a unknown fairly random point.
 3  set
 !b set <command>,..
 
@@ -658,6 +680,15 @@
    will result. To avoid this situation insert the line "set output,redirect"
    as first line in the inputfile to force discus to echo the lines from file
    inputfile.
+
+   The prompt setting "redirect" has an important side effect on macro 
+   treatment. With the "redirect" setting, macros are stored internally,
+   once they have been read from disk, and will be reused from memory. This
+   helps to reduce unnecessary I/O, especially when you have nested macros
+   inside loops. For all other settings, the internal macro storage is 
+   cleared when you get back to the normal interactive mode. This allows
+   you to run a macro, then modify the version stored on the disk and 
+   execute the modified/corrected version.
 
    This second parameter  allows the user to assign where the text output
    of the program should go: "on" prints on the screen, "off" will result 

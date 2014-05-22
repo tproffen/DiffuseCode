@@ -461,6 +461,10 @@ SUBROUTINE macro_close
 !-
 !     Closes the macro file, switches macro status off and sets the
 !     macro level back to zero.
+!     The macro tree is deallocated.
+!     In an interactive session (promot /= redirect ) the stored 
+!     macros are deallocated. This allows the user to modify a macro
+!     and run the modified version
 !+
       USE class_macro_internal
       USE macro_mod
@@ -489,6 +493,20 @@ IF(ASSOCIATED(mac_tree_root)) THEN
    DEALLOCATE(mac_tree_active)                 ! Finally remove current node
    NULLIFY(mac_tree_root)                      ! Clear pointer status
    NULLIFY(mac_tree_temp)
+ENDIF
+!
+IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
+   IF(ASSOCIATED(macro_root)) THEN             ! We have stored macros
+      macro_temp => macro_root
+   ENDIF
+!
+   DO WHILE(ASSOCIATED(macro_temp%after))      ! There are more macros in the list
+      macro_temp => macro_temp%after           ! Point to next macro
+      DEALLOCATE(macro_temp%before)            ! Remove previous macro
+   ENDDO
+   DEALLOCATE(macro_temp)                      ! Finally remove current node
+   NULLIFY(macro_root)                         ! Clear pointer status
+   NULLIFY(macro_temp)
 ENDIF
 !
 END SUBROUTINE macro_close
