@@ -408,15 +408,19 @@ SUBROUTINE pdf
             ENDIF 
          ENDIF 
 !                                                                       
+         pdf_sinc = 0.0
          j = SIZE(pdf_sincc)+1
-!        DO i = 1, INT(nn *1.5)
-         DO i = 1, j/2
-!        pdf_sinc (i) = sin (z * float (i) ) / (pdf_deltar * float (i) ) 
+!         DO i = 1, SIZE(pdf_sinc)/2 ! INT(nn *1.5)
+!         pdf_sinc (i+1) = sin (z * float (i) ) / (pdf_deltar * float (i) ) 
+!         ENDDO 
+         DO i = 1,j/2
 !        pdf_sincc(i)   = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
 !        pdf_sincc(j-i) = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
-         pdf_sincc(i)   = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
+         pdf_sincc(i+1) = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
          pdf_sincc(j-i) = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
          ENDDO 
+         pdf_sincc(1) = pdf_qmax
+!        pdf_sinc (1) = pdf_qmax
 !        DO i = nn + 1, 2 * PDF_MAXDAT 
 !        pdf_sinc (i) = 0.0 
 !        ENDDO 
@@ -1922,7 +1926,6 @@ SUBROUTINE pdf
 !------ Convolute with SINC function                                    
 !                                                                       
       IF (pdf_qmax.gt.0.0) then 
-!write(*,*) ' Do old style'
 !         DO i = 1, pdf_bin 
 !         ppp (i) = pdf_calc (i) * (pdf_qmax - pdf_sinc (2 * i) ) 
 !         DO k = 1, i - 1 
