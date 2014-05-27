@@ -1482,6 +1482,7 @@ SUBROUTINE cmdline_args
 !                                                                       
       IF (ianz.ge.1) then 
          ie = 0 
+         CALL rem_leading_bl(cpara(1),lpara(1))
          IF (cpara (1) (1:1) .eq.'"') then 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             line = cpara (1) 
