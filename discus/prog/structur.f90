@@ -814,8 +814,10 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) string 
       INTEGER lpara (maxw) 
-      INTEGER j 
+      INTEGER j ,isok
+      INTEGER  :: iplus, iminus,isl,istar
       INTEGER ianz 
+      LOGICAL  :: lcalc     ! Flag if calculation is needed
 !                                                                       
       werte (5) = 1.0 
       CALL get_params (line (ibl:length), ianz, cpara, lpara, maxw,     &
@@ -839,6 +841,21 @@ params: IF(IANZ.eq.1) THEN
 !                                                                       
 got_params: IF (ier_num.eq.0) THEN 
          IF (ianz.eq.4.or.ianz.eq.5) then 
+!
+            lcalc = .false.
+check_calc: DO j = 1, ianz 
+               IF(MAX( INDEX(cpara(j),'+') , INDEX(cpara(j),'-'),  &
+                       INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>0) THEN
+                  lcalc = .true.
+                  EXIT check_calc
+               ENDIF
+               READ(cpara(j)(1:lpara(j)),*,IOSTAT=isok) werte(j)
+               IF(isok /= 0) THEN
+                  lcalc = .true.
+                  EXIT check_calc
+               ENDIF
+            ENDDO check_calc
+            IF(lcalc) THEN    ! We need to calculate the parameter value
             DO j = 1, ianz 
                string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
                cpara (j) = string 
@@ -850,6 +867,7 @@ got_params: IF (ier_num.eq.0) THEN
                ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
                WRITE (ier_msg (3), 2000) cr_natoms + 1 
                RETURN 
+            ENDIF 
             ENDIF 
             CALL no_error 
          ELSE 
