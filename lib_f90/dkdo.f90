@@ -47,13 +47,15 @@
       ELSEIF (line (1:2) .eq.'do'.and.index (line, 'while') .ne.0) then 
          jlevel (0) = 2 
          i = length - 3 
-         CALL rem_bl (line (4:length), i) 
+!        CALL rem_bl (line (4:length), i) 
+         CALL rem_insig_bl (line (4:length), i) 
          length = i + 3 
       ELSEIF (line (1:2) .eq.'do'.and.length.eq.2) then 
          jlevel (0) = 3 
       ELSEIF (line (1:2) .eq.'if'.and.index (line, 'then') .ne.0) then 
          jlevel (0) = 1 
-         CALL rem_bl (line, length) 
+!        CALL rem_bl (line, length) 
+         CALL rem_insig_bl (line, length) 
       ELSE 
          ier_num = - 31 
          ier_typ = ER_FORT 
@@ -89,10 +91,12 @@
          length = i + 3 
       ELSEIF (line (1:2) .eq.'do'.and.index (line, 'while') .ne.0) then 
          i = length - 3 
-         CALL rem_bl (line (4:length), i) 
+!        CALL rem_bl (line (4:length), i) 
+         CALL rem_insig_bl (line (4:length), i) 
          length = i + 3 
       ELSEIF (line (1:2) .eq.'if') then 
-         CALL rem_bl (line, length) 
+!        CALL rem_bl (line, length) 
+         CALL rem_insig_bl (line, length) 
       ENDIF 
 !                                                                       
 !------ execute a macro file                                            
@@ -601,8 +605,10 @@
       CHARACTER(1024) cpara (MAXW) 
       INTEGER lpara (MAXW) 
       INTEGER ianz 
-      INTEGER suche_vor, suche_nach 
-      INTEGER laenge, icom, iz1, iz2 
+      INTEGER suche_vor, suche_nach , suche_vor_hoch, suche_nach_hoch
+      INTEGER laenge, icom, iz1, iz2 , iz3
+      INTEGER :: ic1, ic2, ic3
+      INTEGER :: iper
       INTEGER ikl, iklz, ikla, ikla1, ikla2 
       INTEGER ll, i, lcom, inot, lll 
       INTEGER istring1, istring2 
@@ -617,7 +623,7 @@
       ier_num = 0 
       ier_typ = ER_NONE 
       oldstr = string 
-      CALL rem_bl (string, laenge) 
+!     CALL rem_bl (string, laenge) 
       if_test = .false. 
       IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
          CONTINUE 
@@ -630,13 +636,32 @@
 !     --Found an operator, search for numbers before and after          
 !                                                                       
          comp = string (icom + 1:icom + 2) 
+         ic1 = 0
+         ic2 = 0
          lll = icom - 1 
          iz1 = suche_vor (string (1:icom - 1), lll) 
+         IF(iz1>2) THEN
+!
+!      -- Search for a comma, to detect expressions like "%c",variable
+!
+            IF(string(iz1-1:iz1-1)==',') THEN  !Found comma, get string expression
+               lll = iz1-2
+               ic1 = suche_vor_hoch (string (1:iz1  - 2), lll)   ! Search the "
+               iz1 = ic1                       ! Needed for ersetzt_log
+               istring1 = ic1
+               string1  = string(ic1:icom-1)
+               istring1_len = icom - ic1
+               lstring1 = .true. 
+            ENDIF
+         ENDIF
+         IF(ic1==0) THEN                       ! No " found, regular string or number?
          zeile = '('//string (iz1:icom - 1) //')' 
          ll = icom - 1 - iz1 + 3 
          istring1 = index (zeile, '''') 
          lstring1 = .false. 
-         IF (istring1.gt.1) then 
+         ENDIF
+         IF (istring1.gt.1) THEN
+            IF(ic1==0) THEN    ! Normal single string
 !                                                                       
 !     ----found a string variable                                       
 !                                                                       
@@ -652,6 +677,7 @@
             string1 = zeile (istring1 + 1:istring2 - 1) 
             istring1_len = istring2 - istring1 - 1 
             lstring1 = .true. 
+            ENDIF 
          ELSE 
             w1 = berechne (zeile, ll) 
             IF (ier_num.ne.0) then 
@@ -659,34 +685,59 @@
             ENDIF 
          ENDIF 
          lll = (laenge) - (icom + 4) + 1 
-         iz2 = suche_nach (string (icom + 4:laenge), lll) 
-         zeile = '('//string (icom + 4:icom + 4 + iz2 - 1) //')' 
-         ll = icom + 4 + iz2 - 1 - (icom + 4) + 3 
-         istring1 = index (zeile, '''') 
-         lstring2 = .false. 
-         IF (istring1.gt.1) then 
+         ic2 = INDEX(string(icom+4:laenge),'"')   ! Search for "  in post string
+         IF(ic2 > 0 ) THEN                        ! Found a "
+           zeile = string(icom+4+ic2:laenge)
+           lll = laenge-(icom+4+ic2) + 1
+           ic3 = INDEX(zeile(1:lll),'"')          ! Search closing "
+           iper = 0
+           DO i=1, ic3-1                          ! Count %
+              IF(zeile(i:i).eq.'%') THEN
+                 iper = iper + 1
+              ENDIF
+           ENDDO
+           ic3 = icom + 4 + ic2-1 + ic3 +1
+           DO i=1,iper                            ! jump to last argument
+              ic3 = ic3 + INDEX(string(ic3:laenge),',') 
+           ENDDO
+           lll = (laenge) - ic3 + 1
+           iz3 = suche_nach (string (ic3:laenge), lll) 
+           iz2 = ic3 + iz3 -icom - 4              ! Needed for ersetz_log
+           string2 = string(icom+4+ic2-1:ic3+iz3-1)  ! Cut the string expression
+           istring2_len = (ic3+iz3-1)-(icom+4+ic2-1) + 1
+           lstring2 = .true.
+         ENDIF
+         IF(ic2==0) THEN                          ! No " found, regular string or number
+            iz2 = suche_nach (string (icom + 4:laenge), lll)
+            zeile = '('//string (icom + 4:icom + 4 + iz2 - 1) //')' 
+            ll = icom + 4 + iz2 - 1 - (icom + 4) + 3 
+            istring1 = index (zeile, '''') 
+            lstring2 = .false. 
+!        ENDIF
+            IF (istring1.gt.1) then 
 !                                                                       
 !     ----found a string variable                                       
 !                                                                       
-            istring2 = index (zeile (istring1 + 1:ll) , '''') + istring1                                                    
-            IF (istring2.eq.istring1) then 
+               istring2 = index (zeile (istring1 + 1:ll) , '''') + istring1                                                    
+               IF (istring2.eq.istring1) then 
 !                                                                       
 !     ----Missing second ', first ' is there                            
 !                                                                       
-               ier_num = - 21 
-               ier_typ = ER_FORT 
-               RETURN 
+                  ier_num = - 21 
+                  ier_typ = ER_FORT 
+                  RETURN 
+               ENDIF 
+               string2 = zeile (istring1 + 1:istring2 - 1) 
+               istring2_len = istring2 - istring1 - 1 
+               lstring2 = .true. 
+            ELSE 
+               w2 = berechne (zeile, ll) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
             ENDIF 
-            string2 = zeile (istring1 + 1:istring2 - 1) 
-            istring2_len = istring2 - istring1 - 1 
-            lstring2 = .true. 
-         ELSE 
-            w2 = berechne (zeile, ll) 
-            IF (ier_num.ne.0) then 
-               RETURN 
-            ENDIF 
-         ENDIF 
-         IF (lstring1.and.lstring2) then 
+         ENDIF
+         IF (lstring1.and.lstring2) then   ! Compare two strings
             CALL get_params (string1 (1:istring1_len), ianz, cpara,     &
             lpara, maxw, istring1_len)                                  
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
@@ -723,6 +774,7 @@
                lscr = string1 (1:istring1_len) .ge.string2 (1:          &
                istring2_len)                                            
             ENDIF 
+!
          ELSE 
             IF (comp.eq.'lt') then 
                lscr = w1.lt.w2 
@@ -908,9 +960,10 @@
 !                                                                       
       CHARACTER ( * ) string 
       INTEGER i, level 
-      LOGICAL l_hyp 
+      LOGICAL l_hyp , l_quote
 !                                                                       
       l_hyp = .false. 
+      l_quote = .false. 
       level = 0 
       DO while (i.gt.0.and.level.ge.0) 
       IF (string (i:i) .eq.')'.or.string (i:i) .eq.']') then 
@@ -921,6 +974,12 @@
       ELSEIF (string (i:i) .eq.''''.and.l_hyp) then 
          level = level - 1 
          l_hyp = .false. 
+      ELSEIF (string (i:i) .eq.'"'.and..not.l_quote) then 
+         level = level + 1 
+         l_quote = .true. 
+      ELSEIF (string (i:i) .eq.'"'.and.l_quote) then 
+         level = level - 1 
+         l_quote = .false. 
       ELSEIF (string (i:i) .eq.'('.or.string (i:i) .eq.'[') then 
          level = level - 1 
       ELSEIF (level.eq.0.and.string (i:i) .eq.',') then 
@@ -1136,6 +1195,58 @@
          suche_nach2 = i 
       ENDIF 
       END FUNCTION suche_nach2                      
+!*****7**************************************************************** 
+      INTEGER FUNCTION suche_vor_hoch (string, i) 
+!-                                                                      
+!     searches for the last '(' or '.') in the string                   
+!+                                                                      
+      IMPLICIT none 
+!                                                                       
+      CHARACTER ( * ) string 
+      INTEGER i, level 
+      LOGICAL l_quote
+!                                                                       
+      l_quote = .false. 
+      level = 0 
+      DO while (i.gt.0.and.level.ge.0) 
+      IF (string (i:i) .eq.'"'.and..not.l_quote) then 
+         level = level + 1 
+         l_quote = .true. 
+      ELSEIF (string (i:i) .eq.'"'.and.l_quote) then 
+         level = level - 1 
+         l_quote = .false. 
+      ENDIF
+      i = i - 1 
+      ENDDO 
+      suche_vor_hoch = i + 2 
+      END FUNCTION suche_vor_hoch
+!*****7**************************************************************** 
+      INTEGER FUNCTION suche_nach_hoch (string, laenge) 
+!-                                                                      
+!     searches for the last '(' or '.') in the string                   
+!+                                                                      
+      IMPLICIT none 
+!                                                                       
+      CHARACTER ( * ) string 
+      INTEGER, INTENT(IN) :: laenge
+      INTEGER i, level 
+      LOGICAL l_quote
+!                                                                       
+      i = 1
+      l_quote = .false. 
+      level = 0 
+      DO while (i.le.laenge.and.level.ge.0) 
+      IF (string (i:i) .eq.'"'.and..not.l_quote) then 
+         level = level + 1 
+         l_quote = .true. 
+      ELSEIF (string (i:i) .eq.'"'.and.l_quote) then 
+         level = level - 1 
+         l_quote = .false. 
+      ENDIF
+      i = i + 1 
+      ENDDO 
+      suche_nach_hoch = i - 2 
+      END FUNCTION suche_nach_hoch
 !****7***************************************************************** 
       SUBROUTINE do_math (line, indxg, length) 
 !-                                                                      
@@ -2555,6 +2666,58 @@ main: DO i = 1, ll
       ll    = ll - j + 1
       line  = zeile
       END SUBROUTINE rem_leading_bl                         
+!*****7**************************************************************** 
+      SUBROUTINE rem_insig_bl (line, ll) 
+!                                                                       
+!     Removes all insignificant blanks from a string                                  
+!                                                                       
+      USE charact_mod
+      IMPLICIT none 
+!                                                                       
+      CHARACTER ( LEN=* ), INTENT(INOUT) :: line 
+      INTEGER            , INTENT(INOUT) :: ll
+      CHARACTER(LEN=1024)  :: zeile 
+      INTEGER              :: i
+      INTEGER :: skip
+      LOGICAL :: l_hyp
+      LOGICAL :: l_quo
+!                                                                       
+      zeile = ' '
+      l_hyp = .false.
+      l_quo = .false.
+      skip  = 0
+main: DO i = 1, ll
+         IF(l_hyp) THEN                     ! Within a '' pair keep blanks
+            IF(line(i:i)=='''') THEN
+               l_hyp = .false.
+               zeile(i-skip:i-skip) = line(i:i)
+            ELSE
+               zeile(i-skip:i-skip) = line(i:i)
+            ENDIF
+         ELSEIF(l_quo) THEN                 ! Within a "" pair keep blanks
+            IF(line(i:i)=='"') THEN
+               l_quo = .false.
+               zeile(i-skip:i-skip) = line(i:i)
+            ELSE
+               zeile(i-skip:i-skip) = line(i:i)
+            ENDIF
+         ELSE                               ! Regular mode delete blanks
+            IF(line(i:i)==' '.or. line(i:i)==tab) THEN
+               skip = skip + 1
+            ELSEIF(line(i:i)=='''') THEN
+               l_hyp = .true.
+               zeile(i-skip:i-skip) = line(i:i)
+            ELSEIF(line(i:i)=='"') THEN
+               l_quo = .true.
+               zeile(i-skip:i-skip) = line(i:i)
+            ELSE
+               zeile(i-skip:i-skip) = line(i:i)
+            ENDIF
+         ENDIF
+      ENDDO main
+      ll    = ll - skip
+      line  = zeile
+      END SUBROUTINE rem_insig_bl                         
 !*****7***************************************************************  
 INTEGER FUNCTION len_str ( string )
 !
