@@ -293,4 +293,38 @@ ENDIF
      &                   '  (',I6,' atoms)')                            
       END SUBROUTINE chem_elem                      
 !*****7*****************************************************************
+SUBROUTINE chem_com (com,lout)
+!
+! Calculate center of mass for crystal
+!
+USE crystal_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+REAL, DIMENSION(3), INTENT(OUT) :: com   ! Center of Mass
+LOGICAL,            INTENT(IN)  :: lout  ! Screen output flag
+!
+INTEGER :: i
+!
+com = 0.0
+!
+IF(cr_natoms > 0) THEN
+   DO i=1,cr_natoms
+      com(1) = com(1) + cr_pos(1,i)
+      com(2) = com(2) + cr_pos(2,i)
+      com(3) = com(3) + cr_pos(3,i)
+   ENDDO
+   com(1) = com(1)/cr_natoms
+   com(2) = com(2)/cr_natoms
+   com(3) = com(3)/cr_natoms
+!
+   IF(lout) THEN
+      WRITE(output_io, 1000) com
+   ENDIF
+ENDIF
+!
+1000 FORMAT('Center of mass at ',3(2x,F12.3))
+!
+END SUBROUTINE chem_com 
 END MODULE chem_aver_mod

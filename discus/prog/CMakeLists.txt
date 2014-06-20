@@ -37,7 +37,7 @@ set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	place_molecule.f90  read_internal_mod.f90
 	pdf.f90 pdf_mod.f90
 	plot.f90 plot_mod.f90 plot_init.f90 powder.f90 powder_mod.f90 powder_scat_mod.f90 powder_write_mod.f90
-	prop_para_mod.f90
+	prop_para_mod.f90 refine_mod.f90
 	recipro_mod.f90 rmc.f90 rmc_mod.f90 rmc_symm.f90 rmc_sup_mod.f90 save.f90 save_mod.f90 shear.f90 shear_mod.f90
 	show.f90 spcgr_apply.f90 spcgr_mod.f90 spcgr_setup.f90 stack.f90 stack_cr_mod.f90 stack_mod.f90
         stack_rese.f90

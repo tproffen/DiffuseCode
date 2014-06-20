@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-121,IO=4)
+      PARAMETER    (IU=-122,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-121: -121) /                     &
+      DATA ERROR (-122: -121) /                     &
+     &  'Atom type number outside limits',          & !-122 ! discus
      &  'Error calculating x-position for powder'   & !-121 ! discus
      &  /
       DATA ERROR (-120: -101) /                     &

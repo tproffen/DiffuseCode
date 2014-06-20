@@ -9,6 +9,16 @@ MODULE crystal_mod
 !
 USE config_mod
 !
+   INTEGER, PARAMETER               ::  cr_triclinic   = 1
+   INTEGER, PARAMETER               ::  cr_monoclinicB = 2
+   INTEGER, PARAMETER               ::  cr_monoclinicC = 3
+   INTEGER, PARAMETER               ::  cr_ortho       = 4
+   INTEGER, PARAMETER               ::  cr_tetragonal  = 5
+   INTEGER, PARAMETER               ::  cr_rhombohed   = 6
+   INTEGER, PARAMETER               ::  cr_trigonal    = 7
+   INTEGER, PARAMETER               ::  cr_hexagonal   = 8
+   INTEGER, PARAMETER               ::  cr_cubic       = 9
+!
    INTEGER                          ::  cr_spcgrno = 1
    INTEGER                          ::  cr_syst    = 1
    INTEGER                          ::  cr_ncatoms = 1

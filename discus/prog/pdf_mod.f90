@@ -87,4 +87,8 @@ LOGICAL             ::  pdf_lexact    = .false.
 LOGICAL             ::  pdf_lrho0_rel = .false.
 INTEGER             ::  pdf_size_of   = 0
 !
+LOGICAL               :: pdf_refine_scale   = .false.
+LOGICAL               :: pdf_refine_density = .false.
+LOGICAL, DIMENSION(6) :: pdf_refine_lattice = .false.
+!
 END MODULE pdf_mod

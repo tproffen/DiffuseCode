@@ -2740,7 +2740,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       END SUBROUTINE rmc_makemove                   
 !*****7*****************************************************************
-      SUBROUTINE rmc_check_dist (laccept, iatom, i_new, p_new) 
+      SUBROUTINE rmc_check_dist (laccept, iatom, inumber, i_new, p_new) 
 !+                                                                      
 !     check distances                                                   
 !                                                                       
@@ -2755,10 +2755,11 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       LOGICAL, INTENT(OUT) :: laccept 
       INTEGER, INTENT(IN)  :: iatom 
+      INTEGER, INTENT(IN)  :: inumber 
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN)  :: i_new !(rmc_max_atom)
       REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
-      INTEGER i 
+      INTEGER i , j
       REAL pos (3), werte(1) 
 !                                                                       
       werte = - 1 
@@ -2774,8 +2775,10 @@ loop_plane: DO ip = 1, rmc_nplane
       chem_quick, chem_period)                                          
       DO i = 1, atom_env (0) 
       IF (cr_iscat (atom_env (i) ) .ne.0.and.laccept) then 
+         IF(inumber /= atom_env(i)) THEN ! Do not check distance to original place!
          laccept = (res_para (i) .ge.rmc_mindist (i_new (iatom),        &
          cr_iscat (atom_env (i) ) ) )                                   
+            ENDIF
       ENDIF 
       ENDDO 
 !                                                                       
@@ -2916,6 +2919,11 @@ loop_plane: DO ip = 1, rmc_nplane
             DO i = 1, 3 
             p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (rmc_maxmove (&
             i, i_new (1) ) )                                            
+               IF(chem_period(i)) THEN ! Apply modulo of crystal dimensions
+                  p_new(i,1) = MOD( (p_new(i,1)-cr_dim0(i,1))+(cr_dim0(i,2)-cr_dim0(i,1)), &
+                                    (cr_dim0(i,2)-cr_dim0(i,1))                           )&
+                               +cr_dim0(i,1)
+               ENDIF
             ENDDO 
          ENDIF 
 !                                                                       
@@ -2961,7 +2969,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO i = 1, natoms 
       IF (laccept) then 
-         CALL rmc_check_dist (laccept, i, i_new, p_new) 
+         CALL rmc_check_dist (laccept, i, isel(i),i_new, p_new) 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -3131,7 +3139,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO i = 1, natoms 
       IF (laccept) then 
-         CALL rmc_check_dist (laccept, i, i_new, p_new) 
+         CALL rmc_check_dist (laccept, i, isel(i),i_new, p_new) 
       ENDIF 
       ENDDO 
 !                                                                       

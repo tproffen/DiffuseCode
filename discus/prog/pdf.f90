@@ -1301,9 +1301,103 @@ SUBROUTINE pdf
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
+!
+!------ - set refinement flags
+!
+         ELSEIF (str_comp(cpara (1),'REFINE',3,lpara(1),6)) THEN
 !                                                                       
 !------ - set weight: sets scale parameter to correct the weighting     
 !                                                                       
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            IF (str_comp(cpara (1),'none',3,lpara(1),4)) THEN
+               pdf_refine_scale   = .false.
+               pdf_refine_density = .false.
+               pdf_refine_lattice = .false.
+            ELSEIF (str_comp(cpara (1),'scale',3,lpara(1),5)) THEN
+               pdf_refine_scale   = .true.
+            ELSEIF (str_comp(cpara (1),'density',3,lpara(1),7)) THEN
+               pdf_refine_density = .true.
+            ELSEIF (str_comp(cpara (1),'lattice',3,lpara(1),7)) THEN
+               IF (ianz == 1) then 
+                  IF(cr_syst == CR_CUBIC) THEN
+                     pdf_refine_lattice    = .false.
+                     pdf_refine_lattice(1) = .true.
+                  ELSEIF(cr_syst == CR_HEXAGONAL .or. &
+                         cr_syst == CR_TRIGONAL  .or. &
+                         cr_syst == CR_TETRAGONAL    ) THEN
+                     pdf_refine_lattice    = .false.
+                     pdf_refine_lattice(1) = .true.
+                     pdf_refine_lattice(3) = .true.
+                  ELSEIF(cr_syst == CR_RHOMBOHED) THEN
+                     pdf_refine_lattice    = .false.
+                     pdf_refine_lattice(1) = .true.
+                     pdf_refine_lattice(4) = .true.
+                  ELSEIF(cr_syst == CR_ORTHO) THEN
+                     pdf_refine_lattice(4:6) = .false.
+                     pdf_refine_lattice(1:3) = .true.
+                  ELSEIF(cr_syst == CR_MONOCLINICC) THEN
+                     pdf_refine_lattice(1:3) = .true.
+                     pdf_refine_lattice(4:5) = .false.
+                     pdf_refine_lattice(6)   = .true.
+                  ELSEIF(cr_syst == CR_MONOCLINICB) THEN
+                     pdf_refine_lattice(1:3) = .true.
+                     pdf_refine_lattice(4:6) = .false.
+                     pdf_refine_lattice(5)   = .true.
+                  ELSEIF(cr_syst == CR_TRICLINIC  ) THEN
+                     pdf_refine_lattice      = .true.
+                  ENDIF
+               ELSE
+                  IF (str_comp(cpara (2),'a',1,lpara(2),1) .and.    &
+                      lpara(2)==1                             ) THEN
+                     pdf_refine_lattice(1)   = .true.
+                  ELSEIF (str_comp(cpara (2),'b',1,lpara(2),1).and. &
+                      lpara(2)==1                             ) THEN
+                     IF(cr_syst < CR_TETRAGONAL) THEN
+                        pdf_refine_lattice(2)   = .true.
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF
+                  ELSEIF (str_comp(cpara (2),'c',1,lpara(2),1)) THEN
+                     IF(cr_syst < CR_TETRAGONAL) THEN
+                        pdf_refine_lattice(3)   = .true.
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF
+                  ELSEIF (str_comp(cpara (2),'alpha',2,lpara(2),5)) THEN
+                     IF(cr_syst == CR_TRICLINIC .or. &
+                        cr_syst == CR_RHOMBOHED      ) THEN
+                        pdf_refine_lattice(4)   = .true.
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF
+                  ELSEIF (str_comp(cpara (2),'beta',2,lpara(2),4)) THEN
+                     IF(cr_syst == CR_TRICLINIC .or. &
+                        cr_syst == CR_MONOCLINICB    ) THEN
+                        pdf_refine_lattice(5)   = .true.
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF
+                  ELSEIF (str_comp(cpara (2),'gamma',2,lpara(2),5)) THEN
+                     IF(cr_syst == CR_TRICLINIC .or. &
+                        cr_syst == CR_MONOCLINICC    ) THEN
+                        pdf_refine_lattice(6)   = .true.
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF
+               ENDIF
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF
          ELSEIF (str_comp(cpara (1),'WEIGHT',3,lpara(1),6)) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -1387,6 +1481,7 @@ SUBROUTINE pdf
       USE chem_aver_mod
       USE diffuse_mod 
       USE pdf_mod 
+      USE refine_mod
       USE rmc_mod 
       USE rmc_sup_mod
       USE update_cr_dim_mod
@@ -1401,7 +1496,7 @@ SUBROUTINE pdf
       REAL(dp) cc, c, ce, e, ee, wtot, cold, cnew
 !     REAL pdf_old (MAXDAT) 
       REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
-      REAL sig2, sum 
+      REAL sig2, sumbad 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL start, zeit, seknds 
       REAL p_new (3, rmc_max_atom) 
@@ -1411,17 +1506,20 @@ SUBROUTINE pdf
       INTEGER isel (rmc_max_atom), natoms 
       INTEGER imol (rmc_max_atom) 
       INTEGER zh, zm, zs, nmi, nma 
-      INTEGER i, j, ip
+      INTEGER i, j, k, ip
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
+!
+      REAL ran1 , gasdev
 !                                                                       
-      REAL ran1 
-!                                                                       
+!open(89,file='shift.log', status='unknown')
       IF (pdf_obs (1) .eq. - 9999.) then 
          ier_num = - 4 
          ier_typ = ER_RMC 
          RETURN 
       ENDIF 
+!
+      CALL refine_alloc     ! Allocate generic refinement settings
 !                                                                       
       igen = 0 
       itry = 0 
@@ -1466,7 +1564,7 @@ SUBROUTINE pdf
       ce = 0.0d0 
 !                                                                       
       DO ip = nmi, nma 
-      wtot = wtot + pdf_wic (ip) 
+      wtot = wtot + pdf_wic (ip)
       e = e+pdf_wic (ip) * pdf_obs (ip) 
       ee = ee+pdf_wic (ip) * pdf_obs (ip) **2 
       c = c + pdf_wic (ip) * pdf_calc (ip) 
@@ -1499,6 +1597,13 @@ SUBROUTINE pdf
       DO while (loop) 
       laccept = .true. 
       igen = igen + 1 
+IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
+      CALL pdf_rmc_scale( nmi, nma, cold, wtot, ee, psum, p2sum, &
+                          sig2, pmax, pn )
+ELSEIF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==5) .or. MOD(igen,200)==5) THEN
+         CALL pdf_rmc_lattice( nmi, nma, cold, wtot, ee, psum, p2sum, &
+                               sig2, pmax, pn )
+ELSE
 !                                                                       
 !-------- generate move and check for limits                            
 !                                                                       
@@ -1527,11 +1632,11 @@ SUBROUTINE pdf
 !-------- - Calc new PDF and chi2                                       
 !                                                                       
          DO i = 1, natoms 
-         CALL pdf_addcorr (isel (i), - 2.0, sum) 
+         CALL pdf_addcorr (isel (i), - 2.0, sumbad) 
          ENDDO 
          CALL pdf_makemove (natoms, i_new, p_new, isel, imol) 
          DO i = 1, natoms 
-         CALL pdf_addcorr (isel (i), 2.0, sum) 
+         CALL pdf_addcorr (isel (i), 2.0, sumbad) 
          ENDDO 
          CALL pdf_convert 
 !                                                                       
@@ -1584,13 +1689,20 @@ SUBROUTINE pdf
             ELSE 
                iacc_bad = iacc_bad+1 
             ENDIF 
+!
+!           CALL refine_adapt_move (natoms, isel, 1)
          ELSE 
             CALL pdf_makemove (natoms, i_old, p_old, isel, imol) 
             DO i = 1, pdf_bin 
             pdf_corr (i) = pdf_old (i) 
             ENDDO 
             CALL pdf_convert 
+!           CALL refine_adapt_move (natoms, isel, 0)
+!
          ENDIF 
+!write(89,7777) itry, rmc_maxmove(1,1), cold
+!7777 format(i5,2(1x,G20.6e3))
+ENDIF
 !                                                                       
 !------ --WRITE info and terminate or loop again                        
 !                                                                       
@@ -1642,6 +1754,9 @@ SUBROUTINE pdf
 !------ Update crystal dimensions                                       
 !                                                                       
       CALL update_cr_dim 
+!
+      CALL refine_dealloc     ! Deallocate generic refinement settings
+close(89)
 !                                                                       
 !------ formats                                                         
 !                                                                       
@@ -1657,6 +1772,265 @@ SUBROUTINE pdf
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
       END SUBROUTINE pdf_run                        
+!*****7*****************************************************************
+      SUBROUTINE  pdf_rmc_scale( nmi, nma, cold, wtot, ee, psum, p2sum, &
+                                    sig2, pmax, pn )
+
+!
+      USE pdf_mod
+      USE refine_mod
+      USE rmc_mod
+      USE random_mod
+!
+      IMPLICIT NONE
+!
+      REAL(dp), INTENT(INOUT) :: cold
+      REAL(dp), INTENT(IN)    :: wtot
+      REAL(dp), INTENT(IN)    :: ee
+      REAL    , INTENT(INOUT) :: psum
+      REAL    , INTENT(INOUT) :: p2sum
+      REAL    , INTENT(INOUT) :: pmax
+      REAL    , INTENT(INOUT) :: pn 
+      REAL    , INTENT(IN)    :: sig2
+!
+      INTEGER  :: i, ip, nmi, nma
+      LOGICAL  :: laccept
+      REAL(dp) :: c, cc, ce, cnew
+      REAL     :: pdf_old_scale
+      REAL     :: pdf_old_rho0 
+      REAL     :: prob
+      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+!
+      REAL :: gasdev
+      REAL :: ran1
+!
+      laccept = .false.
+         pdf_old_scale = pdf_scale
+         pdf_old_rho0  = pdf_rho0 
+         IF(pdf_refine_scale )  THEN
+            pdf_scale     = pdf_scale + gasdev(ref_maxpdfsd(1))
+            laccept       = .true.
+         ENDIF
+         IF(pdf_refine_density) THEN
+            pdf_rho0      = pdf_rho0  + gasdev(ref_maxpdfsd(2))
+            laccept       = .true.
+         ENDIF
+      IF(laccept) THEN
+         DO i = 1, pdf_bin 
+            pdf_old (i) = pdf_corr (i) 
+         ENDDO 
+         CALL pdf_convert
+         cnew = 0.0d0 
+         c = 0.0 
+         cc = 0.0 
+         ce = 0.0 
+!                                                                       
+         DO ip = nmi, nma 
+         c = c + pdf_wic (ip) * pdf_calc (ip) 
+         cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
+         ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
+         ENDDO 
+         IF (rmc_doskal) then 
+            pdf_skal = REAL(ce / cc )
+         ELSE 
+            pdf_skal = 1.0 / rmc_skal (1) 
+         ENDIF 
+         cnew = ee+pdf_skal**2 * cc - 2.0 * pdf_skal * ce 
+         cnew = cnew / wtot 
+!                                                                       
+!     ----Accept move ?                                                 
+!                                                                       
+         prob = REAL( cnew - cold )
+!                                                                       
+         IF (prob.lt.0) then 
+            laccept = .true. 
+         ELSE 
+            IF (sig2.gt.0.0) then 
+               psum = psum + prob 
+               p2sum = p2sum + prob**2 
+               pmax = max (pmax, prob) 
+               pn = pn + 1 
+               prob = exp ( - prob / sig2) 
+               laccept = (prob.gt.ran1 (idum) ) 
+            ELSE 
+               laccept = .false. 
+               DO i = 1, pdf_bin 
+                  pdf_corr (i) = pdf_old (i) 
+               ENDDO 
+               CALL pdf_convert
+            ENDIF 
+         ENDIF 
+!write(*,*) ' TESTED sca/den ACCEPT : ', laccept, pdf_scale, pdf_rho0,cnew, cold
+!                                                                       
+         IF (rmc_sigma.eq. - 9999.) laccept = .true. 
+         IF (laccept) then 
+            cold = cnew 
+            CALL refine_adapt_pdf_sd (1)
+         ELSE
+            pdf_scale = pdf_old_scale
+            pdf_rho0  = pdf_old_rho0 
+            CALL refine_adapt_pdf_sd (0)
+         ENDIF
+      ENDIF
+      END SUBROUTINE  pdf_rmc_scale
+!*****7*****************************************************************
+      SUBROUTINE  pdf_rmc_lattice( nmi, nma, cold, wtot, ee, psum, p2sum, &
+                                    sig2, pmax, pn )
+
+!
+      USE crystal_mod
+      USE pdf_mod
+      USE rmc_mod
+      USE refine_mod
+      USE random_mod
+      USE spcgr_apply
+!
+      IMPLICIT NONE
+!
+      REAL(dp), INTENT(INOUT) :: cold
+      REAL(dp), INTENT(IN)    :: wtot
+      REAL(dp), INTENT(IN)    :: ee
+      REAL    , INTENT(INOUT) :: psum
+      REAL    , INTENT(INOUT) :: p2sum
+      REAL    , INTENT(INOUT) :: pmax
+      REAL    , INTENT(INOUT) :: pn 
+      REAL    , INTENT(IN)    :: sig2
+!
+      INTEGER  :: i, ip, nmi, nma
+      LOGICAL  :: laccept
+      REAL(dp) :: c, cc, ce, cnew
+      REAL, DIMENSION(6) :: pdf_old_lattice
+      REAL     :: sum
+      REAL     :: prob
+      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+!
+      REAL :: gasdev
+      REAL :: ran1
+!
+      pdf_old_lattice(1:3) = cr_a0     ! Backup old values
+      pdf_old_lattice(4:6) = cr_win
+laccept = .false.
+      IF(pdf_refine_lattice(1)) THEN   ! Change lattice params, check crystal system
+         cr_a0(1) = cr_a0(1) + gasdev(ref_maxlatt(1))
+         laccept = .true.
+         IF(cr_syst == cr_cubic) THEN
+            cr_a0(2) = cr_a0(1)
+            cr_a0(3) = cr_a0(1)
+         ELSEIF(cr_syst == cr_hexagonal) THEN
+            cr_a0(2) = cr_a0(1)
+         ELSEIF(cr_syst == cr_trigonal ) THEN
+            cr_a0(2) = cr_a0(1)
+         ELSEIF(cr_syst == cr_tetragonal ) THEN
+            cr_a0(2) = cr_a0(1)
+         ENDIF
+      ENDIF
+      IF(pdf_refine_lattice(2)) THEN
+         cr_a0(2) = cr_a0(2) + gasdev(ref_maxlatt(1))
+         laccept = .true.
+      ENDIF
+      IF(pdf_refine_lattice(3)) THEN
+         cr_a0(3) = cr_a0(3) + gasdev(ref_maxlatt(1))
+         laccept = .true.
+      ENDIF
+      IF(pdf_refine_lattice(4)) THEN
+         cr_win(1) = cr_win(1) + gasdev(ref_maxlatt(2))
+         laccept = .true.
+         IF(cr_syst == cr_rhombohed) THEN
+            cr_win(2) = cr_win(1)
+            cr_win(3) = cr_win(1)
+         ENDIF
+      ENDIF
+      IF(pdf_refine_lattice(5)) THEN
+         cr_win(2) = cr_win(2) + gasdev(ref_maxlatt(2))
+         laccept = .true.
+      ENDIF
+      IF(pdf_refine_lattice(6)) THEN
+         cr_win(3) = cr_win(3) + gasdev(ref_maxlatt(2))
+         laccept = .true.
+      ENDIF
+!
+!     Any lattice parameter to refine ?
+!
+      IF(laccept) THEN  ! LABEL laccept
+write(*,*) ' IN PDF_LATTICE', laccept
+!
+!     Define new lattice parameters
+!
+         CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,       &
+         cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., cr_gmat, cr_fmat, &
+         cr_cartesian)
+!
+         DO i = 1, pdf_bin 
+            pdf_old (i) = pdf_corr (i) 
+         ENDDO 
+         pdf_corr = 0.0  ! Clear pdf_corr, as we loop over all atoms
+!
+!        Calculate new PDF and chi2
+!
+         DO i = 1, cr_natoms 
+            CALL pdf_addcorr (i, 1.0, sum) 
+         ENDDO 
+         CALL pdf_convert
+         cnew = 0.0d0 
+         c = 0.0 
+         cc = 0.0 
+         ce = 0.0 
+!                                                                       
+         DO ip = nmi, nma 
+         c = c + pdf_wic (ip) * pdf_calc (ip) 
+         cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
+         ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
+         ENDDO 
+         IF (rmc_doskal) then 
+            pdf_skal = REAL(ce / cc )
+         ELSE 
+            pdf_skal = 1.0 / rmc_skal (1) 
+         ENDIF 
+         cnew = ee+pdf_skal**2 * cc - 2.0 * pdf_skal * ce 
+         cnew = cnew / wtot 
+!                                                                       
+!     ----Accept move ?                                                 
+!                                                                       
+         prob = REAL( cnew - cold )
+!                                                                       
+         IF (prob.lt.0) then 
+            laccept = .true. 
+         ELSE 
+            IF (sig2.gt.0.0) then 
+               psum = psum + prob 
+               p2sum = p2sum + prob**2 
+               pmax = max (pmax, prob) 
+               pn = pn + 1 
+               prob = exp ( - prob / sig2) 
+               laccept = (prob.gt.ran1 (idum) ) 
+            ELSE 
+               laccept = .false. 
+            ENDIF 
+         ENDIF 
+!                                                                       
+!write(*,*) 'Tested Lattice Acc ', laccept, cr_a0(1),pdf_old_lattice(1), psum,cold, cnew
+         IF (rmc_sigma.eq. - 9999.) laccept = .true. 
+         IF (laccept) then 
+            cold = cnew 
+1           CALL refine_adapt_lattice (1)
+         ELSE
+!
+!           Restore old lattice parameters
+!
+            cr_a0  = pdf_old_lattice(1:3)
+            cr_win = pdf_old_lattice(4:6)
+            CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,       &
+            cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., cr_gmat, cr_fmat, &
+            cr_cartesian)
+            pdf_corr = 0.0  ! Clear pdf_corr, as we loop over all atoms
+            DO i = 1, cr_natoms 
+               CALL pdf_addcorr (i, 1.0, sum) 
+            ENDDO 
+            CALL pdf_convert
+            CALL refine_adapt_lattice (0)
+         ENDIF
+      ENDIF ! LABEL laccept
+      END SUBROUTINE  pdf_rmc_lattice
 !*****7*****************************************************************
       SUBROUTINE pdf_makemove (natoms, i_new, p_new, isel, imol) 
 !+                                                                      
