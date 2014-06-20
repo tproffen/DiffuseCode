@@ -500,15 +500,17 @@ IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
       macro_temp => macro_root
    ENDIF
 !
-   DO WHILE(ASSOCIATED(macro_temp%after))      ! There are more macros in the list
+   IF(ASSOCIATED(macro_temp)) THEN             ! There are some macros
+      DO WHILE(ASSOCIATED(macro_temp%after))   ! There are more macros in the list
       macro_temp => macro_temp%after           ! Point to next macro
-      IF(ASSOCIATED(macro_temp%before)) THEN
-         DEALLOCATE(macro_temp%before)         ! Remove previous macro
-      ENDIF
-   ENDDO
-   DEALLOCATE(macro_temp)                      ! Finally remove current node
-   NULLIFY(macro_root)                         ! Clear pointer status
-   NULLIFY(macro_temp)
+         IF(ASSOCIATED(macro_temp%before)) THEN
+            DEALLOCATE(macro_temp%before)      ! Remove previous macro
+         ENDIF
+      ENDDO
+      DEALLOCATE(macro_temp)                   ! Finally remove current node
+      NULLIFY(macro_root)                      ! Clear pointer status
+      NULLIFY(macro_temp)
+   ENDIF
 ENDIF
 !
 END SUBROUTINE macro_close
