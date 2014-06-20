@@ -286,6 +286,22 @@
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+         ELSEIF (string (ikl - 7:ikl - 1) .eq.'at_type') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (0.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_nscat) THEN
+                  zeile (ikl - 7:ikl + 13) = cr_at_lis (kpara)
+               ELSE 
+                  ier_num = - 122 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
 !                                                                       
          ELSE 
             ier_num = - 2 
