@@ -9,7 +9,7 @@ SUBROUTINE interactive ()
 !  from the host system
 !
 USE prompt_mod
-USE setup_mod
+USE diffev_setup_mod
 USE set_sub_generic_mod
 USE diffev_loop_mod
 !
@@ -17,7 +17,7 @@ IMPLICIT none
 !
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL diffev_setup
 ENDIF
 CALL diffev_set_sub
 lstandalone = .false.
@@ -40,7 +40,7 @@ SUBROUTINE command (incomming, ier_status)
 ! Commands that branch into sub-menus cause an interactive section.
 ! 
 ! 
-USE setup_mod
+USE diffev_setup_mod
 USE run_mpi_mod
 USE diffev_mpi_mod
 USE errlist_mod
@@ -65,7 +65,7 @@ INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL diffev_setup
 ENDIF
 CALL diffev_set_sub
 master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
@@ -139,7 +139,7 @@ SUBROUTINE pop ( generation, member, children, parameters )
 !  of parameters to calling routine
 !
 USE population
-USE setup_mod
+USE diffev_setup_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -149,7 +149,7 @@ INTEGER, INTENT(OUT) :: children
 INTEGER, INTENT(OUT) :: parameters
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL diffev_setup
 ENDIF
 !
 generation = pop_gen
@@ -166,7 +166,7 @@ SUBROUTINE send_trial ( trials, member, parameters )
 !  of parameters to calling routine
 !
 USE population
-USE setup_mod
+USE diffev_setup_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -175,7 +175,7 @@ INTEGER,                             INTENT(IN ) :: parameters
 REAL, DIMENSION(member, parameters), INTENT(OUT) :: trials
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL diffev_setup
 ENDIF
 !
 IF(member == pop_n .and. parameters == pop_dimx ) THEN
@@ -192,7 +192,7 @@ SUBROUTINE cost ( values, children )
 ! Get the current cost function results from the calling routinee
 !
 USE population
-USE setup_mod
+USE diffev_setup_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -200,7 +200,7 @@ INTEGER,                   INTENT(IN ) :: children
 REAL, DIMENSION(children), INTENT(IN ) :: values
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL diffev_setup
 ENDIF
 !
 IF(children == pop_c) THEN
