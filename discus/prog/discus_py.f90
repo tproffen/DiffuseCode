@@ -20,7 +20,7 @@ SUBROUTINE interactive ()
 !  from the host system
 !
 USE prompt_mod
-USE setup_mod
+USE discus_setup_mod
 USE discus_loop_mod
 USE set_sub_generic_mod
 !
@@ -28,9 +28,9 @@ IMPLICIT none
 !
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL discus_setup
 ENDIF
-CALL diffev_set_sub
+CALL discus_set_sub
 lstandalone = .false.
 CALL discus_loop
 !                                                                       
@@ -51,7 +51,7 @@ SUBROUTINE command (incomming, ier_status)
 ! Commands that branch into sub-menus cause an interactive section.
 ! 
 ! 
-USE setup_mod
+USE discus_setup_mod
 USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
@@ -74,7 +74,7 @@ INTEGER              :: len_str
 EXTERNAL             :: discus_mache_kdo
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL setup
+   CALL discus_setup
 ENDIF
 CALL diffev_set_sub
 lend = .false.

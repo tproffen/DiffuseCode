@@ -1,12 +1,12 @@
 PROGRAM discus 
 !                                                                       
-USE setup_mod
+USE discus_setup_mod
 USE discus_loop_mod
 !
 IMPLICIT none 
 !
 !
-CALL setup
+CALL discus_setup
 CALL discus_set_sub
 CALL discus_loop
 !                                                                       

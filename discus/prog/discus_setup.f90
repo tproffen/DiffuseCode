@@ -1,9 +1,9 @@
-MODULE setup_mod
+MODULE discus_setup_mod
 !
 CONTAINS
 !
 !
-SUBROUTINE setup 
+SUBROUTINE discus_setup 
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
@@ -71,7 +71,7 @@ lsetup_done = .true.
      &            ' type: help News',6x,'*',/,                      &
      &        10x,'*',57(' '),'*',/,10x,59('*'),/                   &
      &                     )                                            
-END SUBROUTINE setup                          
+END SUBROUTINE discus_setup                          
 !
 SUBROUTINE discus_set_sub
 !
@@ -154,4 +154,4 @@ p_validate_var_spec => discus_validate_var_spec
 !
 END SUBROUTINE discus_set_sub
 !
-END MODULE setup_mod
+END MODULE discus_setup_mod
