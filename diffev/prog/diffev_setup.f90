@@ -1,9 +1,9 @@
-MODULE setup_mod
+MODULE diffev_setup_mod
 !
 CONTAINS
 !
 !*****7*****************************************************************
-SUBROUTINE setup 
+SUBROUTINE diffev_setup 
 !                                                                       
 !     This routine makes inital setup of DIFFEV                         
 !                                                                       
@@ -73,7 +73,7 @@ lsetup_done = .true.
      10x,'*',57('-'),'*',/,                                                  &
      10x,'* (c) R.B. Neder  ','(reinhard.neder@krist.uni-erlangen.de)  *',/, &
      10x,59('*'),/)                                        
-END SUBROUTINE setup                          
+END SUBROUTINE diffev_setup                          
 !
 SUBROUTINE diffev_set_sub
 !
@@ -156,4 +156,4 @@ p_validate_var_spec => diffev_validate_var_spec
 !
 END SUBROUTINE diffev_set_sub
 !
-END MODULE setup_mod
+END MODULE diffev_setup_mod
