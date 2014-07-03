@@ -3,6 +3,7 @@ SUBROUTINE file_kdo(line, ilen)
       USE class_macro_internal
       USE envir_mod
       USE errlist_mod
+      USE doact_mod
       USE macro_mod
       USE prompt_mod
 !
@@ -100,6 +101,10 @@ SUBROUTINE file_kdo(line, ilen)
          ier_typ = ER_MAC
          oprompt = prompt
          CALL macro_close
+         IF(lblock) THEN                ! If inside do/if terminate the block
+            lblock_dbg = .false.
+            lblock = .false.
+         ENDIF
          RETURN
       ENDIF file_exist
 !
