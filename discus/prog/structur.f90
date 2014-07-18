@@ -845,7 +845,7 @@ got_params: IF (ier_num.eq.0) THEN
             lcalc = .false.
 check_calc: DO j = 1, ianz 
                IF(MAX( INDEX(cpara(j),'+') , INDEX(cpara(j),'-'),  &
-                       INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>0) THEN
+                       INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>1) THEN
                   lcalc = .true.
                   EXIT check_calc
                ENDIF
