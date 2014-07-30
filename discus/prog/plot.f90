@@ -1226,14 +1226,18 @@ CONTAINS
 !                                                                       
       REAL d, dist 
       REAL v (3) 
+      INTEGER, DIMENSION(3)  :: scalef
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
 !     LOGICAL check_select_status 
 !     REAL skalpro 
 !                                                                       
+      scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+1)
+      scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+1)
+      scalef(3) = MAX(cr_icc(3), INT((cr_dim(3,2)-cr_dim(3,1)))+1)
       WRITE (iff, 500) 
-      WRITE (iff, 510) (cr_a0 (i) * cr_icc (i), i = 1, 3),  &
+      WRITE (iff, 510) (cr_a0 (i) * scalef (i), i = 1, 3),  &
                        (cr_win (i), i = 1, 3)
 !                                                                       
       latom = .false. 
@@ -1294,7 +1298,7 @@ CONTAINS
 !                                                                       
                latom = .true. 
                WRITE (iff, 1000) cr_at_lis (cr_iscat (i) ),             &
-                   ( (v (j) - cr_dim (j, 1) ) / cr_icc (j), j = 1, 3),  &
+                   ( (v (j) - cr_dim (j, 1) ) / scalef (j), j = 1, 3),  &
                     cr_dw ( cr_iscat (i) )/eightpisq
             ENDIF 
          ENDIF 
