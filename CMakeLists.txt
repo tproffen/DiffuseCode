@@ -66,7 +66,7 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-add_subdirectory(mixscat/prog)
+#add_subdirectory(mixscat/prog)
 add_subdirectory(discus/prog)
-add_subdirectory(diffev/prog)
-add_subdirectory(kuplot/prog)
+#add_subdirectory(diffev/prog)
+#add_subdirectory(kuplot/prog)

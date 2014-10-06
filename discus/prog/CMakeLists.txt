@@ -11,7 +11,9 @@ if (DISCUS_CUDA)
 endif (DISCUS_CUDA)
 
 find_package(NEXUS)
+find_package(HDF5 COMPONENTS Fortran)
 
+INCLUDE_DIRECTORIES (${HDF5_Fortran_INCLUDE_DIR})
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -29,7 +31,7 @@ set( SOURCES_ALL  addfile.f90 allocate_appl_mod.f90 atom_env_mod.f90
 	debye_mod.f90 diffuse_mod.f90
 	discus_loop.f90 discus_setup.f90 domain.f90 domain_mod.f90 domaindis_mod.f90 element_data_mod.f90
 	err_appl.f90 exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
-	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
+	gen_add_mod.f90 generate_mod.f90 graphic.f90 hdf.f90 insert.f90 insert_mod.f90 intens_mod.f90
 	inter_readstru.f90
 	interpret.f90 inverse_mod.f90 kdo.f90        mc_mod.f90 metric.f90 micro_mod.f90
 	mmc.f90 mmc_mod.f90 modify_func_mod.f90 modify_mod.f90 mole_env_mod.f90
@@ -101,7 +103,7 @@ set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} )
 
 add_executable (discus ${SOURCE_MAIN} ) 
 
-target_link_libraries (discus ${LIBS}) 
+target_link_libraries (discus ${LIBS} ${HDF5_hdf5_fortran_LIBRARIES}) 
 
 add_custom_command (
   OUTPUT discus.hlp

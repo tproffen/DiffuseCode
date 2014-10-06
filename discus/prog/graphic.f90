@@ -11,6 +11,7 @@ SUBROUTINE do_niplps (linverse)
       USE config_mod 
       USE diffuse_mod 
       USE nexus_discus
+      USE hdf_discus
       USE vtk_mod
       USE output_mod 
       USE powder_write_mod
@@ -208,6 +209,12 @@ SUBROUTINE do_niplps (linverse)
                      ELSEIF (str_comp (cpara (1) , 'vtk', 2, lpara (1)&
                      , 5) ) then
                         ityp = 11
+!                                                                       
+!     ------Switch output type to HDF5 format   'hdf'                
+!                                                                       
+                     ELSEIF (str_comp (cpara (1) , 'hdf', 2, lpara (1)&
+                     , 5) ) then                                        
+                        ityp = 12
                      ELSE
                         ier_num = - 9 
                         ier_typ = ER_APPL 
@@ -303,6 +310,8 @@ SUBROUTINE do_niplps (linverse)
                      CALL nexus_write (value, laver) 
                   ELSEIF (ityp.eq.11) then
                      CALL vtk_write (value, laver)
+                  ELSEIF (ityp.eq.12) then
+                     CALL hdf_write (value, laver)
                   ELSE 
                      ier_num = - 9 
                      ier_typ = ER_APPL 
