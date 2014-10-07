@@ -11,9 +11,9 @@ if (DISCUS_CUDA)
 endif (DISCUS_CUDA)
 
 find_package(NEXUS)
-find_package(HDF5 COMPONENTS Fortran)
+find_package(HDF5 COMPONENTS Fortran_HL)
 
-INCLUDE_DIRECTORIES (${HDF5_Fortran_INCLUDE_DIR})
+INCLUDE_DIRECTORIES (${HDF5_Fortran_HL_INCLUDE_DIR})
 include_directories(${DIFFUSE_SOURCE_DIR}/lib_f90)
 include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
@@ -103,7 +103,7 @@ set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} )
 
 add_executable (discus ${SOURCE_MAIN} ) 
 
-target_link_libraries (discus ${LIBS} ${HDF5_hdf5_fortran_LIBRARIES}) 
+target_link_libraries (discus ${LIBS} ${HDF5_hdf5hl_fortran_LIBRARY} ${HDF5_hdf5_fortran_LIBRARY})
 
 add_custom_command (
   OUTPUT discus.hlp

@@ -1,7 +1,6 @@
 MODULE hdf_discus
 !
-USE HDF5
-USE ISO_C_BINDING
+USE H5LT
 USE errlist_mod
 !
 IMPLICIT NONE
@@ -44,7 +43,7 @@ CONTAINS
    CALL no_error
 !
    call H5open_f(error)
-   call H5Fcreate_f(outfile, H5F_ACC_EXCL_F, fileId, error)
+   call H5Fcreate_f(outfile, H5F_ACC_TRUNC_F, fileId, error)
    IF(error == 0) THEN
       IF( out_inc(1) > 1 .AND. out_inc(2) == 1 .AND. out_inc(3) == 1 ) THEN
          !CALL hdf_write_data( value, laver, fileId, nx_status, out_inc(1))
@@ -73,24 +72,35 @@ CONTAINS
    USE output_mod 
    USE random_mod
    USE qval_mod 
+   USE iso_c_binding
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
    LOGICAL, INTENT(IN)              :: laver
    INTEGER(HID_T)   , INTENT(INOUT) :: fileId
-   INTEGER(HID_T)                   :: group1, group2
+   INTEGER(HID_T)                   :: entry0, data
    INTEGER          , INTENT(OUT)   :: error
    INTEGER          , INTENT(IN)    :: dimx
    INTEGER          , INTENT(IN)    :: dimy
    INTEGER          , INTENT(IN)    :: dimz
+   INTEGER(HSIZE_T)                 :: dimxx(1)
+   INTEGER(HSIZE_T)                 :: dimyy(1)
+   INTEGER(HSIZE_T)                 :: dimzz(1)
 !  
    INTEGER                             :: status_al
    INTEGER                             :: i,j,l
    CHARACTER(LEN=80)                   :: title = 'Default DISCUS title'
    REAL, DIMENSION(:,:,:), ALLOCATABLE :: sq
+   INTEGER                             :: signal(1) = 1
+   INTEGER(size_t)                     :: signal_size = 1
    REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
    REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
    REAL, DIMENSION(:)    , ALLOCATABLE :: qtop_l
+   INTEGER(HSIZE_T) :: dims(3)
+   dims = out_inc
+   dimxx = dimx
+   dimyy = dimy
+   dimzz = dimz
 !
 !  REAL :: qval
 !
@@ -132,23 +142,30 @@ CONTAINS
    WRITE(ctop_l,2100) chkl(out_extr_top)
 write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', ctop_l,' ',cvalue(value)
 !
-   call h5gcreate_f ( fileId, "entry", group1, error)
-   call h5gcreate_f ( group1, "data",  group2, error)
-   
-   !call h5dcreate_f ( group2, "Sq", H5T_IEEE_F32BE, 
-   !call h5dwrite_f  ( group2, H5T_NATIVE_REAL, "Sq", Sq, out_inc, error)
-   !call h5ltmake_daataset(group2,
-   !call NXUwritedata  ( fileId, "title", title)
-   !call NXUwritedata  ( fileId, "Sq", Sq)                ! "Sq" is hopefully flexible...
-   !call NXputattr     ( fileId, "signal", 1)
-   !call NXputattr     ( fileId, "axes", caxes )          ! Usually "Qh:Qk:Ql")
-   !call NXputattr     ( fileId, "long_name", cvalue(value)  ) ! Name of output field "I(hkl)" etc
-   !call NXUwritedata  ( fileId, cabs_h, qabs_h, "rlu")   ! Write value of abszissa usually h
-   !call NXUwritedata  ( fileId, cord_k, qord_k, "rlu")   ! Write value of ordinate usually k
-   !call NXUwritedata  ( fileId, ctop_l, qtop_l, "rlu")   ! Write value of top axis usually l
-   !call NXclosegroup  ( fileId)
-   call  h5gclose_f ( group2, error)
-   call  h5gclose_f ( group1, error)
+   !NXUwritegroup ( fileId, "entry", "NXentry")
+   call h5gcreate_f ( fileId, "entry", entry0, error)
+   !NXUwritegroup ( fileId, "data",  "NXdata")
+   call h5gcreate_f ( entry0, "data",  data, error)
+   !NXUwritedata  ( fileId, "title", title)
+   call h5ltmake_dataset_string_f(data,"title",title,error)
+   !NXUwritedata  ( fileId, "Sq", Sq)                ! "Sq" is hopefully flexible...
+   call h5ltmake_dataset_float_f(data,"Sq",3,dims,sq,error)
+   !NXputattr     ( fileId, "signal", 1)
+   call h5ltset_attribute_int_f(data,"Sq","signal",signal,signal_size,error)
+   !NXputattr     ( fileId, "axes", caxes )          ! Usually "Qh:Qk:Ql")
+   call h5ltset_attribute_string_f(data,"Sq","axes",caxes,error)
+   !NXputattr     ( fileId, "long_name", cvalue(value)  ) ! Name of output field "I(hkl)" etc
+   call h5ltset_attribute_string_f(data,"Sq","long_name",cvalue(value),error)
+   !NXUwritedata  ( fileId, cabs_h, qabs_h, "rlu")   ! Write value of abszissa usually h
+   call h5ltmake_dataset_float_f(data,cabs_h,1,dimxx,qabs_h,error)
+   !NXUwritedata  ( fileId, cord_k, qord_k, "rlu")   ! Write value of ordinate usually k
+   call h5ltmake_dataset_float_f(data,cord_k,1,dimyy,qord_k,error)
+   !NXUwritedata  ( fileId, ctop_l, qtop_l, "rlu")   ! Write value of top axis usually l
+   call h5ltmake_dataset_float_f(data,ctop_l,1,dimzz,qtop_l,error)
+   !NXclosegroup  ( fileId)
+   call  h5gclose_f ( data, error)
+   !NXclosegroup  ( fileId)
+   call  h5gclose_f ( entry0, error)
 !
 2000 FORMAT('Q',a1,':Q',a1,':Q',a1)
 2100 FORMAT('Q',a1)
