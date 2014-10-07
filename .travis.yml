@@ -3,7 +3,7 @@ language: c
 compiler: gcc
 
 before_install:
-  - sudo apt-get install -qq gfortran pgplot5 libhdf5-dev
+  - sudo apt-get install -qq gfortran pgplot5 libhdf5-serial-dev
 
 before_script:
   - cmake .
