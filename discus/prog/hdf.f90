@@ -20,7 +20,7 @@ CHARACTER(LEN=2) :: ctop_l
 !
 !  This interface block will serve to write 1D, 2D, 3D, etc data with one name 
 INTERFACE hdf_write_data          ! Define a generic name 
-   MODULE PROCEDURE hdf_write_3D !, hdf_write_2D, hdf_write_3D
+   MODULE PROCEDURE hdf_write_2D, hdf_write_3D !, hdf_write_2D, hdf_write_3D
 END INTERFACE hdf_write_data
 !
 CONTAINS
@@ -48,7 +48,7 @@ CONTAINS
       IF( out_inc(1) > 1 .AND. out_inc(2) == 1 .AND. out_inc(3) == 1 ) THEN
          !CALL hdf_write_data( value, laver, fileId, nx_status, out_inc(1))
       ELSEIF( out_inc(1) > 1 .AND. out_inc(2) >  1 .AND. out_inc(3) == 1 ) THEN
-         !CALL hdf_write_data( value, laver, fileId, nx_status, out_inc(1), out_inc(2))
+         CALL hdf_write_data( value, laver, fileId, error, out_inc(1), out_inc(2))
       ELSE
          CALL hdf_write_data( value, laver, fileId, error, out_inc(1), out_inc(2), out_inc(3))
       ENDIF
@@ -64,6 +64,98 @@ CONTAINS
    END SUBROUTINE hdf_write
 !
 !
+   SUBROUTINE hdf_write_2D(value, laver, fileId, error, dimx, dimy)
+!
+   USE crystal_mod 
+   USE diffuse_mod 
+   USE fourier_sup
+   USE output_mod 
+   USE qval_mod
+   IMPLICIT NONE
+!
+   INTEGER, INTENT(IN)              :: value
+   LOGICAL, INTENT(IN)              :: laver
+   INTEGER(HID_T)   , INTENT(INOUT) :: fileId
+   INTEGER(HID_T)                   :: entry0, data
+   INTEGER          , INTENT(OUT)   :: error
+   INTEGER          , INTENT(IN)    :: dimx
+   INTEGER          , INTENT(IN)    :: dimy
+   INTEGER(HSIZE_T)                 :: dimxx(1)
+   INTEGER(HSIZE_T)                 :: dimyy(1)
+!  
+   INTEGER                             :: status_al
+   INTEGER                             :: i,j,l
+   CHARACTER(LEN=80)                   :: title = 'Default DISCUS title'
+   REAL, DIMENSION(:,:  ), ALLOCATABLE :: sq
+   INTEGER                             :: signal(1) = 1
+   INTEGER(size_t)                     :: signal_size = 1
+   REAL, DIMENSION(:)    , ALLOCATABLE :: qabs_h
+   REAL, DIMENSION(:)    , ALLOCATABLE :: qord_k
+   INTEGER(HSIZE_T) :: dims(2)
+   dims(1) = dimx
+   dims(2) = dimy
+   dimxx = dimx
+   dimyy = dimy
+!
+!  REAL :: qval
+!
+   ALLOCATE ( sq(dimy, dimx), STAT=status_al)
+   ALLOCATE ( qabs_h(dimx), STAT=status_al)
+   ALLOCATE ( qord_k(dimy), STAT=status_al)
+   sq     = 0.0
+   qabs_h = 0.0
+   qord_k = 0.0
+!
+   DO i=1,out_inc(1)
+      qabs_h(i) = out_eck(extr_abs,1) + (i-1)*out_vi(extr_abs,1)
+   ENDDO
+!
+   DO i=1,out_inc(2)
+      qord_k(i) = out_eck(extr_ord,1) + (i-1)*out_vi(extr_ord,2)
+   ENDDO
+!
+      DO i = 1, out_inc(1)
+         DO j = 1, out_inc(2)
+            sq(j,i) =  qval ( (i - 1) * out_inc (2) + j,     &
+                              value,  i, j, laver)
+         ENDDO
+      ENDDO
+!
+!  Prepare Character strings for axes names
+   WRITE(caxes, 2000) chkl(out_extr_abs), chkl(out_extr_ord)
+   WRITE(cabs_h,2100) chkl(out_extr_abs)
+   WRITE(cord_k,2100) chkl(out_extr_ord)
+write(*,*) 'CAXES ', caxes,' ', cabs_h,' ', cord_k,' ', cvalue(value)
+!
+   !nx_status = NXUwritegroup ( fileId, "entry", "NXentry")
+   call h5gcreate_f ( fileId, "entry", entry0, error)
+   !nx_status = NXUwritegroup ( fileId, "data",  "NXdata")
+   call h5gcreate_f ( entry0, "data",  data, error)
+   !nx_status = NXUwritedata  ( fileId, "title", title)
+   call h5ltmake_dataset_string_f(data,"title",title,error)
+   !nx_status = NXUwritedata  ( fileId, "Sq", Sq)                ! "Sq" is hopefully flexible...
+   call h5ltmake_dataset_float_f(data,"Sq",2,dims,sq,error)
+   !nx_status = NXputattr     ( fileId, "signal", 1)
+   call h5ltset_attribute_int_f(data,"Sq","signal",signal,signal_size,error)
+   !nx_status = NXputattr     ( fileId, "axes", caxes(1:5) )     ! Usually "Qh:Qk")
+   call h5ltset_attribute_string_f(data,"Sq","axes",caxes,error)
+   !nx_status = NXputattr     ( fileId, "long_name", cvalue(value)  ) ! Name of output field "I(hkl)" etc
+   call h5ltset_attribute_string_f(data,"Sq","long_name",cvalue(value),error)
+   !nx_status = NXUwritedata  ( fileId, cabs_h, qabs_h, "rlu")   ! Write value of abszissa usually h
+   call h5ltmake_dataset_float_f(data,cabs_h,1,dimxx,qabs_h,error)
+   !nx_status = NXUwritedata  ( fileId, cord_k, qord_k, "rlu")   ! Write value of ordinate usually k
+   call h5ltmake_dataset_float_f(data,cord_k,1,dimyy,qord_k,error)
+   !nx_status = NXclosegroup  ( fileId)
+   call  h5gclose_f ( data, error)
+   !nx_status = NXclosegroup  ( fileId)
+   call  h5gclose_f ( entry0, error)
+!
+2000 FORMAT('Q',a1,':Q',a1)
+2100 FORMAT('Q',a1)
+!
+   END SUBROUTINE hdf_write_2D
+!
+!
    SUBROUTINE hdf_write_3D(value, laver, fileId, error, dimx, dimy, dimz)
 !
    USE crystal_mod 
@@ -72,7 +164,6 @@ CONTAINS
    USE output_mod 
    USE random_mod
    USE qval_mod 
-   USE iso_c_binding
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN)              :: value
