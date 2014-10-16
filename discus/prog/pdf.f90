@@ -1536,7 +1536,9 @@ SUBROUTINE pdf
       nmi = nint (pdf_rfmin / pdf_deltar) 
       nma = nint (pdf_rfmax / pdf_deltar) 
 !                                                                       
-      CALL chem_aver (.false., .true.) 
+      IF(rmc_move_prob(RMC_MODE_SWDISP)> 0.0) THEN
+         CALL chem_aver (.false., .true.) 
+      ENDIF
 !                                                                       
 !------ Calculate maximal value in rmc_mindist array                    
 !                                                                       
@@ -1764,8 +1766,8 @@ close(89)
      &        ' Size of model crystal     : ',I3,' x ',I3,' x ',I3,     &
      &        ' containing ',I9,' atoms')                               
  1250 FORMAT (/,' ---- Final configuration (s= ',F8.4,') ---- ',/) 
- 1300 FORMAT (  ' Gen: ',I6,' try: ',I6,' acc: (good/bad): ',I6,        &
-     &          ' / ',I6,' s2x2: ',G15.8)                               
+ 1300 FORMAT (  ' Gen: ',I8,' try: ',I8,' acc: (good/bad): ',I8,        &
+     &          ' / ',I8,' s2x2: ',G15.8)                               
  2000 FORMAT (/,' Starting main RMC loop ...',/,' (',A,') ',/) 
  3000 FORMAT (/,' Delta Chi    : ave: ',G15.4,' sig: ',G15.4,           &
      &          ' max: ',G15.4)                                         
@@ -1952,7 +1954,6 @@ laccept = .false.
 !     Any lattice parameter to refine ?
 !
       IF(laccept) THEN  ! LABEL laccept
-write(*,*) ' IN PDF_LATTICE', laccept
 !
 !     Define new lattice parameters
 !

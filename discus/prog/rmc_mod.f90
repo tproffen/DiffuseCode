@@ -17,6 +17,7 @@ INTEGER, PARAMETER      :: rmc_mode_shift    = 1
 INTEGER, PARAMETER      :: rmc_mode_swchem   = 2
 INTEGER, PARAMETER      :: rmc_mode_swdisp   = 3
 INTEGER, PARAMETER      :: rmc_mode_external = 4
+INTEGER, PARAMETER      :: RMC_N_MOVE        = 4
 !
 INTEGER, PARAMETER      :: rmc_data_nipl = 1
 INTEGER, PARAMETER      :: rmc_data_pgm  = 2
@@ -34,10 +35,15 @@ INTEGER, PARAMETER      :: rmc_local_all     = 1
 INTEGER, PARAMETER      :: rmc_local_loc     = 2
 INTEGER, PARAMETER      :: rmc_local_locsite = 3
 INTEGER, PARAMETER      :: rmc_local_site    = 4
+INTEGER, PARAMETER      :: rmc_local_conn    = 5
 !
 INTEGER , PARAMETER     :: RMC_RAD_XRAY = 1
 INTEGER , PARAMETER     :: RMC_RAD_NEUT = 2
 INTEGER , PARAMETER     :: RMC_RAD_ELEC = 3
+!
+INTEGER, DIMENSION(RMC_N_MOVE)          ::  rmc_move_local = 1   !=rmc_local_all  (RMC_N_MOVE)
+REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_prob  = 0.0 ! (RMC_N_MOVE)
+REAL   , DIMENSION(RMC_N_MOVE)          ::  rmc_move_cprob = 0.0 ! (RMC_N_MOVE)
 !
 LOGICAL, DIMENSION(:), ALLOCATABLE                 :: rmc_allowed   ! (0:RMC_MAXSCAT)
 !

@@ -10,6 +10,7 @@
       USE atom_env_mod 
       USE molecule_mod 
       USE mole_env_mod 
+      USE pdf_mod
       USE errlist_mod 
       USE param_mod 
       IMPLICIT none 
@@ -239,6 +240,30 @@
                   ier_typ = ER_APPL 
                   RETURN 
                ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_dens') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pdf_rho0
+               zeile (ikl + 3:ikl + 3) = 'e' 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_scal') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pdf_scale
+               zeile (ikl + 3:ikl + 3) = 'e' 
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 

@@ -310,7 +310,13 @@ CONTAINS
             ELSEIF (cpara (1) (1:3) .eq.'MOD') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
-               CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,maxw)
+               j = 1 
+               CALL ber_params (j, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.ne.0) return 
+               CALL rmc_set_mode (                     ianz, cpara,lpara, werte,maxw)
+!              CALL rmc_set_mode (rmc_mode, rmc_local, ianz, cpara,lpara, werte,maxw)
 !                                                                       
 !------ --- 'set move': sets factor for generated moves                 
 !                                                                       
@@ -524,7 +530,8 @@ CONTAINS
 !                                                                       
       END SUBROUTINE rmc_set_move                   
 !*****7*****************************************************************
-      SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, maxw) 
+!     SUBROUTINE rmc_set_mode (imode, ilocal, ianz, cpara, lpara, werte,maxw) 
+      SUBROUTINE rmc_set_mode (               ianz, cpara, lpara, werte,maxw) 
 !+                                                                      
 !     Sets RMC/MC mode                                                  
 !-                                                                      
@@ -536,10 +543,16 @@ CONTAINS
 !                                                                       
       INTEGER, INTENT(IN) :: maxw 
 !                                                                       
-      INTEGER           , INTENT(OUT) :: imode
-      INTEGER           , INTENT(OUT) :: ilocal 
+!     INTEGER           , INTENT(OUT) :: imode
+!     INTEGER           , INTENT(OUT) :: ilocal 
       INTEGER           , INTENT(IN ) :: ianz
       CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(IN ) :: cpara  !(maxw) 
+      INTEGER           , DIMENSION(1:MAXW), INTENT(IN ) :: lpara  !(maxw) 
+      REAL              , DIMENSION(1:MAXW), INTENT(IN ) :: werte  !(maxw) 
+!
+      INTEGER :: imode
+      INTEGER :: i
+      REAL    :: sump
 !                                                                       
       IF (ianz.ge.1) then 
          CALL do_cap (cpara (1) ) 
@@ -559,19 +572,36 @@ CONTAINS
          IF (ianz.eq.2) then 
             CALL do_cap (cpara (2) ) 
             IF (cpara (2) (1:1) .eq.'A') then 
-               ilocal = rmc_local_all 
+               rmc_move_local(imode) = rmc_local_all 
             ELSEIF (cpara (2) (1:1) .eq.'L') then 
-               ilocal = rmc_local_loc 
+               rmc_move_local(imode) = rmc_local_loc 
             ELSEIF (cpara (2) (1:2) .eq.'SL') then 
-               ilocal = rmc_local_locsite 
+               rmc_move_local(imode) = rmc_local_locsite 
             ELSEIF (cpara (2) (1:2) .eq.'SI') then 
-               ilocal = rmc_local_site 
+               rmc_move_local(imode) = rmc_local_site 
+            ELSEIF (cpara (2) (1:2) .eq.'CO') then 
+               rmc_move_local(imode) = rmc_local_conn 
             ELSE 
                ier_typ = ER_RMC 
                ier_num = - 9 
             ENDIF 
          ELSE 
-            ilocal = rmc_local_all 
+            rmc_move_local(imode) = rmc_local_all 
+         ENDIF 
+!                                                                       
+!     --Set probabilities for the different moves                       
+!                                                                       
+         rmc_move_prob (imode) = werte (1) 
+         sump = 0.0 
+         DO i = 1, RMC_N_MOVE 
+         sump = sump + rmc_move_prob (i) 
+         ENDDO 
+         IF (sump.gt.0) then 
+            rmc_move_cprob (1) = rmc_move_prob (1) / sump 
+            DO i = 2, RMC_N_MOVE 
+            rmc_move_cprob (i) = rmc_move_cprob (i - 1) + &
+                                 rmc_move_prob  (i) / sump                                                  
+            ENDDO 
          ENDIF 
       ELSE 
          ier_num = - 6 
@@ -2791,6 +2821,7 @@ loop_plane: DO ip = 1, rmc_nplane
       USE config_mod 
       USE crystal_mod 
       USE celltoindex_mod
+      USE conn_mod
       USE rmc_mod 
       USE random_mod
       IMPLICIT none 
@@ -2801,6 +2832,11 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz2 !(3)
       INTEGER                         , INTENT(INOUT) :: is1
       INTEGER                         , INTENT(INOUT) :: is2
+!
+      INTEGER, PARAMETER :: MAXW = 25
+      INTEGER, DIMENSION(:), ALLOCATABLE   :: c_list ! Result of connectivity search
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
+      INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
       INTEGER i
       REAL ran1 
@@ -2808,10 +2844,19 @@ loop_plane: DO ip = 1, rmc_nplane
    10 CONTINUE 
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
+      IF(.NOT.rmc_allowed(cr_iscat(isel(1)))) GOTO 10
+!
+      IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
+         CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), 1, MAXW, c_list, c_offs, natoms)
+         IF(natoms == 0) GOTO 10
+         isel(2) = c_list(INT(ran1(idum)*natoms) + 1)
+      ELSE
 !                                                                       
    20 CONTINUE 
       isel (2) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (2) .gt.cr_natoms.or.isel (2) .lt.1) goto 20 
+!
+      ENDIF
 !                                                                       
       CALL indextocell (isel (1), iz1, is1) 
       CALL indextocell (isel (2), iz2, is2) 
@@ -2872,8 +2917,10 @@ loop_plane: DO ip = 1, rmc_nplane
       USE random_mod
 !
       USE debug_mod 
+use errlist_mod
 !                                                                       
       USE prompt_mod 
+      USE random_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(OUT) :: laccept 
@@ -2884,10 +2931,21 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, is1, is2, il 
+      REAL  :: value
       REAL disp1, disp2 
       REAL ran1, gasdev 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
+!
+!------ Randomly select a move
+!
+      value = ran1(idum)
+      i     = 1
+      DO WHILE (value>rmc_move_cprob(i) .and. i<RMC_N_MOVE)
+         i = i + 1
+      ENDDO
+      rmc_mode  = i
+      rmc_local = rmc_move_local(i)
 !                                                                       
 !------ Mode 'swchem': only switch atoms => pnew=pold                   
 !                                                                       
