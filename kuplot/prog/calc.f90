@@ -1822,7 +1822,7 @@
       ELSEIF (iweight.eq.W_LIN) then 
          r_wichtung = z 
       ELSEIF (iweight.eq.W_DAT) then 
-         IF (z.ne.0) then 
+         IF (dz.ne.0) then 
             r_wichtung = 1.0 / dz 
          ELSE 
             r_wichtung = 0.0 
