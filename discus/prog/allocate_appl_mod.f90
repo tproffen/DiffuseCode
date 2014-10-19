@@ -2571,6 +2571,10 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
+      CALL alloc_arr ( sa_iscat,       1,n_scat,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
       CALL alloc_arr ( sa_prop,        1,n_scat,  all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
@@ -2587,7 +2591,15 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
+      CALL alloc_arr ( sa_prop       ,1,n_max ,  all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
       CALL alloc_arr ( st_pos,1,3,1,n_max ,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
+      CALL alloc_arr ( sa_pos,1,3,1,n_max ,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
