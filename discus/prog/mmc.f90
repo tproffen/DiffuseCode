@@ -1680,6 +1680,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL delta 
       REAL :: posz (3) = 0.0
       REAL :: posz2 (3) = 0.0
+      REAL :: rel_cycl    ! how far are we in the desired number of cycles
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER igen, itry, iacc_good, iacc_bad 
@@ -1693,6 +1694,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER ncent 
       INTEGER icent 
       INTEGER iscat 
+      INTEGER :: NALLOWED   ! Current size mmc_allowed
       INTEGER zh, zm, zs 
       LOGICAL loop, laccept, done 
       LOGICAL valid_e 
@@ -1774,8 +1776,12 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Initialize the different energies                                 
 !                                                                       
       lout = .false. 
-      CALL mmc_correlations (lout) 
+      CALL mmc_correlations (lout, 0.0) 
       IF (ier_num.ne.0) return 
+!
+!     current size of mmc_allowed
+!
+      NALLOWED = UBOUND(mmc_allowed,1)
 !                                                                       
       IF (mo_cyc.eq.0) loop = .false. 
 !                                                                       
@@ -1825,8 +1831,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          ENDDO 
       ELSEIF (mmc_move.eq.MC_MOVE_SWDISP) then 
          natoms = 2 
-         CALL rmc_select (mo_local, isel, iz1, iz2, is (1),     &
-         is (2) )                                                       
+         CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
+                          NALLOWED, mmc_allowed)                                                       
          iselz = isel (1) 
          iselz2 = isel (2) 
          DO i = 1, 3 
@@ -1839,8 +1845,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          .true., cr_prop (isel (2) ), cr_sel_prop)                      
       ELSEIF (mmc_move.eq.MC_MOVE_SWCHEM) then 
          natoms = 2 
-         CALL rmc_select (mo_local, isel, iz1, iz2, is (1),     &
-         is (2) )                                                       
+         CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
+                          NALLOWED, mmc_allowed)                                                       
 !RBN_REP
 !isel(1) = 34
 !isel(2) = 37
@@ -2263,7 +2269,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ----New mmc_correlations for all energies                         
 !                                                                       
          lout = .true. 
-         CALL mmc_correlations (lout) 
+         rel_cycl = float(itry)/float(mo_cyc)
+         CALL mmc_correlations (lout, rel_cycl)
                                                                         
 !        IF (mmc_cor_energy (0, MC_VECTOR) ) then 
 !                                                                       
@@ -2305,7 +2312,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       WRITE (output_io, 3000) 
       WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
       lout = .true. 
-      CALL mmc_correlations (lout) 
+      CALL mmc_correlations (lout, 1.0) 
 !     IF (mmc_cor_energy (0, MC_VECTOR) ) then 
 !                                                                       
 !     --VECTOR  energy was selected, give feedback                      
@@ -2528,7 +2535,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !     The selected atom is a neighbour, use this atom only              
 !                                                                       
-write(*,*) ' WARNING NEIGHBOR'
                in_a = 0 
                in_e = 0 
                is = cr_iscat (isel (ia) ) 
@@ -3548,7 +3554,7 @@ write(*,*) ' WARNING NEIGHBOR'
 !     ENDIF 
 !     END FUNCTION mmc_energy_vec                   
 !*****7*****************************************************************
-      SUBROUTINE mmc_correlations (lout) 
+      SUBROUTINE mmc_correlations (lout, rel_cycl) 
 !-                                                                      
 !     Determines the achieved correlations                              
 !                                                                       
@@ -3570,7 +3576,8 @@ write(*,*) ' WARNING NEIGHBOR'
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      LOGICAL , INTENT(IN) :: lout   ! Flag for output yes/no
+      LOGICAL , INTENT(IN) :: lout     ! Flag for output yes/no
+      REAL    , INTENT(IN) :: rel_cycl ! Relative progress along cycles
 ! 
 !                                                                       
       CHARACTER(30) energy_name (0:MC_N_ENERGY) 
@@ -3603,6 +3610,7 @@ write(*,*) ' WARNING NEIGHBOR'
       INTEGER nneigh 
       REAL :: prob11=0.0, prob12, prob22 
       REAL :: thet = 0.0
+      REAL :: damp = 1.0
 !                                                                       
       REAL wi, wis 
 !                                                                       
@@ -3628,6 +3636,8 @@ write(*,*) ' WARNING NEIGHBOR'
      &relation', 'Vector       correlation', 'Distance     correlation',&
      & 'Lennard Jones potential ', 'Buckingham    potential ' ,         &
        'Repulsive     potential '/         
+!
+      damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
 !                                                                       
 !------ Write title line                                                
 !                                                                       
@@ -3908,7 +3918,8 @@ corr_pair: DO is = 0, cr_nscat
 !               Feedback mechanism                                      
                     mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) - &
                     mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is,js)- &
-                                             mmc_ach_corr (ic, MC_OCC, is, js) ) / 2.              
+                                             mmc_ach_corr (ic, MC_OCC, is, js) ) / 2. &
+                    * damp
                  ELSE 
                     mmc_ach_corr (ic, je, is, js) = 0.0 
                     mmc_ach_corr (ic, je, js, is) = 0.0 
