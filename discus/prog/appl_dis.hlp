@@ -68,6 +68,9 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2014November
+
+   DISCUS will now import CIF files, see ==> import
 
 3  2013September
 
@@ -6983,7 +6986,7 @@
 !p "i[ ]"  integer variables
 !p "r[ ]"  real variables
 
-   The current implementation allows 10 free variables [0] through [59] each.
+   The current implementation allows 501 free variables [0] through [501] each.
 
 !p "res[ ]"  Result of several calculations that return more than one
 !p           value.
@@ -7037,17 +7040,23 @@
 !p                 ==> "find"
 !p                 "menv[0]" is the number of neighbours.
 
-!p mol_cont[i1,i2] Content of molecule number i1.
+!p "mol_cont[i1,i2]" Content of molecule number i1.
 !p                 mol_cont[i1,0] gives the number of
 !p                 atoms in the molecule. For <i2> > 0, the
 !p                 information about the <i2>'nd atom in the
 !p                 molecule is given. The number of the
 !p                 atom in the crystal is returned.
 !p                 read only
-!p mol_len[i1]     Number of atoms in molecule i1.
+!p "mol_len[i1]"   Number of atoms in molecule i1.
 !p                 read only
-!p mole_type[i1]   Type of molecule no. i1
+!p "mole_type[i1]" Type of molecule no. i1
 !p                 read only
+
+!p "in_mole[i1]"   Molecule number in which atom i1 is located
+!p                 read only
+
+!p "pdf_dens[0]"   Number density for PDF calculations
+!p "pdf_scal[0]"   Scale factor   for PDF calculations
 
    The variables can be assigned constant numbers:
 
