@@ -794,6 +794,10 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_mole       ,1,n_max ,  all_status, 0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_pos,1,3,1,n_max ,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
@@ -834,6 +838,10 @@ MODULE discus_allocate_appl_mod
       CALL alloc_arr ( as_at_lis,      0,n_scat,  all_status, ' ', size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       as_at_lis(0) = 'VOID'
+      cry_size_of = cry_size_of + size_of
+!
+      CALL alloc_arr ( as_mole ,       1,n_scat,  all_status,  0 , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
       CALL alloc_arr ( as_prop ,       1,n_scat,  all_status,  0 , size_of)
@@ -902,7 +910,7 @@ MODULE discus_allocate_appl_mod
       lstat  = .TRUE.
       deb_size_of = 0
 !
-      CALL alloc_arr ( histogram     ,1,n_hist,                      &
+      CALL alloc_arr ( histogram     ,0,n_hist,                      &
                                       1, n_look, all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       deb_size_of = deb_size_of + size_of
@@ -1625,6 +1633,10 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mol_size_of = mol_size_of + size_of
 !
+      CALL alloc_arr ( mole_biso      ,0,n_mole,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
       CALL alloc_arr ( mole_dens      ,0,n_mole,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mol_size_of = mol_size_of + size_of
@@ -1742,7 +1754,7 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_exp       ,0,12000 ,  all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_exp       ,0,20000 ,  all_status, def_dbl  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
@@ -2568,6 +2580,10 @@ MODULE discus_allocate_appl_mod
       st_cr_size_of = st_cr_size_of + size_of
 !
       CALL alloc_arr ( st_iscat,       1,n_scat,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
+      CALL alloc_arr ( st_mole ,       1,n_scat,  all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
