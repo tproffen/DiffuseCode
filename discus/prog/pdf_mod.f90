@@ -43,6 +43,7 @@ REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
 REAL                ::  pdf_rmax   = 50.00
 REAL                ::  pdf_qmax   = 30.00
 REAL                ::  pdf_deltar =  0.01
+REAL                ::  pdf_deltars=  0.005
 REAL                ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
