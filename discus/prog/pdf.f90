@@ -799,9 +799,19 @@ SUBROUTINE pdf
          CALL skip_spec (17) 
          ip = 1 
          READ (17, *, end = 20, err = 999) ra, pdf_obs (ip), dr, pdf_wic (ip)
+         IF(pdf_wic(ip) /= 0.0) THEN
+            pdf_wic(ip) = 1./pdf_wic(ip)**2
+         ELSE
+            pdf_wic(ip) = 1.0
+         ENDIF
          ip = ip + 1 
    10    CONTINUE 
          READ (17, *, end = 20, err = 999) re, pdf_obs (ip), dr, pdf_wic (ip)
+         IF(pdf_wic(ip) /= 0.0) THEN
+            pdf_wic(ip) = 1./pdf_wic(ip)**2
+         ELSE
+            pdf_wic(ip) = 1.0
+         ENDIF
          ip = ip + 1 
          IF (ip.gt.PDF_MAXDAT) goto 9999 
          GOTO 10 
@@ -812,6 +822,7 @@ SUBROUTINE pdf
          pdf_rmax = re 
          pdf_bin = ip - 1 
          pdf_deltar = (re-ra) / float (pdf_bin - 1) 
+         pdf_deltars=pdf_deltar/2.
          pdf_rfmin = ra 
          pdf_rfmax = re 
 !                                                                       
@@ -1294,6 +1305,7 @@ SUBROUTINE pdf
                ENDIF 
                pdf_rmax = werte (1) 
                pdf_deltar = werte (2) 
+               pdf_deltars= pdf_deltar/2.
                pdf_rfmin = werte (2) 
                pdf_rfmax = pdf_rmax 
                pdf_bin = nn 
@@ -2092,6 +2104,7 @@ laccept = .false.
       LOGICAL lout 
 !
       INTEGER              :: npoint   !Number of points for histogram in exact mode
+      LOGICAL              :: all_atoms ! Are all atoms included in PDF?
       REAL, DIMENSION(1:3) :: u        ! Crystal diagonal
       REAL seknds, ss 
 !                                                                       
@@ -2123,7 +2136,7 @@ laccept = .false.
       CALL powder_trans_atoms_tocart (u)
       npoint = INT(SQRT(u(1)**2+u(2)**2+u(3)**2)/pdf_deltar)
       IF(npoint > UBOUND(pdf_temp,1)) THEN
-         DEALLOCATE(pdf_temp)
+         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
          pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
          ALLOCATE(pdf_temp(0:pdf_ndat,0:pdf_nscat,0:pdf_nscat))
 !        pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
@@ -2148,6 +2161,11 @@ laccept = .false.
       ENDDO 
       ENDDO 
       ENDDO 
+!
+      all_atoms = .true.
+      do i=1,cr_nscat
+         all_atoms = all_atoms .and. pdf_allowed_i(i) .and. pdf_allowed_j(i)
+      enddo
 !                                                                       
       sum = 0.0 
 !                                                                       
@@ -2155,15 +2173,22 @@ laccept = .false.
 !                                                                       
       id = max (1, cr_natoms / 5) 
 !                                                                       
-      IF (pdf_lexact) then 
+      IF (pdf_lexact) THEN     ! Use exact loop over all atoms
+         IF(all_atoms) THEN    ! All atom types are selected
+            CALL pdf_addcorr_e_all(lout)
+         ELSE                  ! Partial PDF
+            CALL pdf_addcorr_e (lout) 
+         ENDIF 
+      ELSE                     ! Use unit cell indexing for large periodic objects 
+         IF(all_atoms) THEN    ! All atom types are selected
          DO ia = 1, cr_natoms 
-         CALL pdf_addcorr_e (ia) 
+         CALL pdf_addcorr_n_fast (ia) 
          IF (lout.and. (mod (ia, id) .eq.0) ) then 
             done = 100.0 * float (ia) / float (cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
          ENDDO 
-      ELSE 
+     ELSE
          DO ia = 1, cr_natoms 
          CALL pdf_addcorr_n (ia) 
          IF (lout.and. (mod (ia, id) .eq.0) ) then 
@@ -2171,7 +2196,15 @@ laccept = .false.
             WRITE (output_io, 1000) done 
          ENDIF 
          ENDDO 
+         ENDIF 
       ENDIF 
+!do is=1,cr_nscat
+!   do js= 1, cr_nscat
+!do ia=0,int(pdf_rmax/pdf_deltar)+1
+!   write(10*is+js,*) ia*pdf_deltar,pdf_temp(ia,is,js)
+!enddo
+!enddo
+!enddo
 !
       IF (pdf_lexact) then 
 !
@@ -2216,6 +2249,7 @@ laccept = .false.
        
 !                                                                       
       INTEGER i, k, ncc 
+      INTEGER :: jpdf_bin
 !     REAL ppp (MAXDAT) 
 !      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
       REAL(DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
@@ -2290,7 +2324,8 @@ laccept = .false.
       IF (pdf_sigmaq.gt.0.0) then 
          factor = (pdf_deltar*pdf_sigmaq) * (pdf_deltar*pdf_sigmaq) /2.0
          fac4   = REAL(pdf_deltar/pdf_gauss_step*pdf_sigmaq )
-         DO i = 1, pdf_bin 
+         jpdf_bin = MIN(pdf_bin, IABS(INT(UBOUND(pdf_exp,1)/fac4-1)))
+         DO i = 1, jpdf_bin 
 !         r = float (i) * pdf_deltar 
 !         pdf_calc (i) = pdf_calc (i) * exp ( - (r * pdf_sigmaq) **2 /   &
 !         2.0)                                                           
@@ -2332,7 +2367,7 @@ laccept = .false.
       USE chem_mod 
       USE atom_env_mod 
       USE celltoindex_mod
-!     USE modify_mod
+      USE molecule_mod
       USE pdf_mod 
       USE param_mod 
       USE wink_mod
@@ -2342,6 +2377,7 @@ laccept = .false.
        
 !                                                                       
       INTEGER ig, igaus, ib, ie 
+      INTEGER :: jgaus  ! Limit checked igaus
       INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin
       INTEGER istart (3), iend (3), iii (3), cell (3) 
 !     REAL(dp) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
@@ -2421,6 +2457,12 @@ laccept = .false.
                   sigma = 0.0 
                   IF (pdf_gauss) then 
                      sigma = fac * (cr_dw (is) + cr_dw (js) ) 
+!write(*,*) ia, iatom,is,js, cr_mole(ia),cr_mole(iatom), mole_type(cr_mole(ia)), mole_type(cr_mole(iatom)),&
+!           mole_biso(mole_type(cr_mole(ia))), mole_biso(mole_type(cr_mole(iatom)))
+!                     IF(cr_mole(ia)/=cr_mole(iatom)) THEN
+!                        sigma = sigma + fac*(mole_biso(mole_type(cr_mole(ia))) + &
+!                                             mole_biso(mole_type(cr_mole(iatom))) )
+!                     ENDIF
                      sigma = sigma - pdf_delta / dist2 
                      sigma = sigma - pdf_gamma / dist 
                      sigma = max (0.0, sigma) 
@@ -2444,7 +2486,8 @@ laccept = .false.
                      fac4   = pdf_deltar/dist
                      gnorm = 1.0 / (sqrt (zpi) * sigma) 
 !                                                                       
-                     DO ig = - igaus, igaus 
+                     jgaus = MIN(igaus, IABS(INT(UBOUND(pdf_exp,1)/factor+1)))
+                     DO ig = - jgaus, jgaus 
 !                    rg = (ig - 1) * pdf_deltar 
 !                    asym = 1.0 + rg / dist 
                      asym = 1.0 + (ig-1)*fac4
@@ -2476,6 +2519,108 @@ laccept = .false.
       ENDIF 
 !                                                                       
       END SUBROUTINE pdf_addcorr                    
+!*****7*****************************************************************
+      SUBROUTINE pdf_addcorr_n_fast (ia) 
+!+                                                                      
+!     Calculate correlation for given atom ia, fast version             
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE celltoindex_mod
+!     USE modify_mod
+      USE pdf_mod 
+      USE errlist_mod 
+      IMPLICIT none 
+!                                                                       
+       
+!                                                                       
+      INTEGER i, j, k, ii, jj, is, js, ks, ia, iatom, ibin 
+      INTEGER  :: ipdf_rmax
+      INTEGER istart (3), iend (3), iii (3), cell (3) 
+      REAL dist, dist2 
+      REAL dd (3), d (3), offset (3) 
+!
+      ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
+!
+      is = cr_iscat (ia) 
+      IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
+         CALL indextocell (ia, iii, ks) 
+         DO i = 1, 3 
+         istart (i) = iii (i) - 1 - int (pdf_rmax / cr_a0 (i) ) 
+         iend (i)   = iii (i) + 1 + int (pdf_rmax / cr_a0 (i) ) 
+         IF (pdf_2d.and.cr_icc (i) .le.1) then 
+            istart (i) = iii (i) 
+            iend (i)   = iii (i) 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!------ - In case we do not want to loop around cut range               
+!                                                                       
+         IF ( (.not.chem_period (1) ) .and. (.not.chem_period (2) )     &
+                                      .and. (.not.chem_period (3) ) ) then                           
+            DO i = 1, 3 
+            istart (i) = max (1, istart (i) ) 
+            iend (i)   = min (cr_icc (i), iend (i) ) 
+            ENDDO 
+         ENDIF 
+!                                                                       
+!------ - Here starts the inner loop                                    
+!                                                                       
+         DO k = istart (3), iend (3) 
+         cell (3) = k 
+         DO j = istart (2), iend (2) 
+         cell (2) = j 
+         DO i = istart (1), iend (1) 
+         cell (1) = i 
+!                                                                       
+!---------- Here we apply periodic boundaries                           
+!---------- Modified to allow more than a single cycle !                
+!                                                                       
+         DO ii = 1, 3 
+            iii (ii)    = cell (ii) 
+            cell (ii)   = pdf_bnd (ii, cell (ii) ) 
+            offset (ii) = float (iii (ii) - cell (ii) ) 
+         ENDDO 
+!                                                                       
+!------ --- Now look for neighbours in surrounding unit cells only      
+!                                                                       
+         DO ii = 1, cr_ncatoms 
+         CALL celltoindex (cell, ii, iatom) 
+         js = cr_iscat (iatom) 
+         IF ( (pdf_allowed_i (js) .and.pdf_allowed_j (js) ) )THEN
+!           DO jj = 1, 3 
+!              dd (jj) = cr_pos (jj, ia) - cr_pos (jj, iatom) - offset (jj) 
+!           ENDDO 
+               dd ( 1) = cr_pos ( 1, ia) - cr_pos ( 1, iatom) - offset ( 1) 
+               dd ( 2) = cr_pos ( 2, ia) - cr_pos ( 2, iatom) - offset ( 2) 
+               dd ( 3) = cr_pos ( 3, ia) - cr_pos ( 3, iatom) - offset ( 3) 
+!           ibin = int((SQRT(                                             &
+!                   dd(1)*dd(1)*cr_gten(1,1) + dd(2)*dd(2)*cr_gten(2,2) + &
+!                   dd(3)*dd(3)*cr_gten(3,3) + 2. * (                     &
+!                   dd(1)*dd(2)*cr_gten(1,2) + dd(1)*dd(3)*cr_gten(1,3) + &
+!                   dd(2)*dd(3)*cr_gten(2,3)))+pdf_deltars)/pdf_deltar)
+!           ibin = int((SQRT(                                             &
+            dist  = SQRT(dd(1)*dd(1)*cr_gten(1,1) + dd(2)*dd(2)*cr_gten(2,2) + &
+                    dd(3)*dd(3)*cr_gten(3,3) + 2. * (                     &
+                    dd(1)*dd(2)*cr_gten(1,2) + dd(1)*dd(3)*cr_gten(1,3) + &
+                    dd(2)*dd(3)*cr_gten(2,3)))
+!            dist = sqrt (dist2) 
+!                                                                       
+             IF (dist.le.pdf_rmax                       ) then 
+!            IF (ibin.le.ipdf_rmax) then 
+!              ibin = nint (dist / pdf_deltar) 
+               ibin =  int((dist+pdf_deltars) / pdf_deltar) 
+               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) + 1
+            ENDIF 
+         ENDIF 
+         ENDDO 
+         ENDDO 
+         ENDDO 
+         ENDDO 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE pdf_addcorr_n_fast                  
 !*****7*****************************************************************
       SUBROUTINE pdf_addcorr_n (ia) 
 !+                                                                      
@@ -2566,49 +2711,130 @@ laccept = .false.
 !                                                                       
       END SUBROUTINE pdf_addcorr_n                  
 !*****7*****************************************************************
-      SUBROUTINE pdf_addcorr_e (ia) 
+      SUBROUTINE pdf_addcorr_e (lout) 
 !+                                                                      
 !     Calculate correlation for given atom ia, exact version            
+!     Version for partial PDF, i.e. check on pdf-allowed is required
 !-                                                                      
       USE config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 
       USE errlist_mod 
+      USE prompt_mod
       IMPLICIT none 
+!
+      LOGICAL, INTENT(IN) :: lout
+!
+!
+      INTEGER   :: id
+      INTEGER   :: is, js, ia, jj, iatom, ibin 
+      INTEGER   :: ipdf_rmax
+      REAL      :: dist, done
+      REAL dd (3)
 !                                                                       
-       
-!                                                                       
-      INTEGER is, js, ia, jj, iatom, ibin 
-      REAL dist, dist2 
-      REAL dd (3), d (3) 
-!                                                                       
-      is = cr_iscat (ia) 
-      IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
+      id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
+      ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
+main: DO ia=1,cr_natoms    ! Outer loop over all atoms
+         IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
+            done = 100.0 * float (ia) / float (cr_natoms) 
+            WRITE (output_io, 1000) done 
+         ENDIF 
+         is = cr_iscat (ia) 
+         IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) THEN 
+            pdf_temp (0, is, is) = pdf_temp (0, is, is) +1  ! Element is,is is 
+!                                                           ! excluded in the inner loop
 !                                                                       
 !------ - Here starts the inner loop over all atoms                     
 !                                                                       
-         DO iatom = 1, cr_natoms 
-         js = cr_iscat (iatom) 
-         IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. (      &
-         pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then            
-            dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) 
-            dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) 
-            dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) 
-
-            dist   = SQRT(dd (1) * dd (1) + &
-                          dd (2) * dd (2) + &
-                          dd (3) * dd (3)  )
+inner:      DO iatom = ia+1, cr_natoms 
+               js = cr_iscat (iatom) 
+               IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or.  &
+                    (pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) THEN
+                  dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) 
+                  dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) 
+                  dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) 
+                  ibin=int((SQRT(dd (1) * dd (1) + &
+                                 dd (2) * dd (2) + &
+                                 dd (3) * dd (3)  )+pdf_deltars)/pdf_deltar)
 !                                                                       
-            IF (dist.le.pdf_rmax                       ) then 
-               ibin = nint (dist / pdf_deltar) 
-               pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) +1
-            ENDIF 
+!                  IF (dist.le.pdf_rmax) THEN
+                  IF (ibin.le.ipdf_rmax) THEN
+                     pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) +1
+                     pdf_temp (ibin, js, is) = pdf_temp (ibin, js, is) +1
+                  ENDIF 
+               ENDIF 
+            ENDDO inner
          ENDIF 
-         ENDDO 
-      ENDIF 
+      ENDDO  main
 !                                                                       
+1000  FORMAT     (  '   ',f6.2,' % done  ...') 
+!
       END SUBROUTINE pdf_addcorr_e                  
+!*****7*****************************************************************
+      SUBROUTINE pdf_addcorr_e_all(lout)
+!+                                                                      
+!     Calculate correlation for given atom ia, exact version, all atoms
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE pdf_mod 
+      USE errlist_mod 
+      USE prompt_mod
+      IMPLICIT none 
+!
+      LOGICAL, INTENT(IN) :: lout
+!                                                                       
+      INTEGER :: id
+      INTEGER :: is, js, ia, iatom, ibin 
+      INTEGER   :: ipdf_rmax
+      REAL                  :: dist
+      REAL                  :: done
+      REAL   , DIMENSION(3) :: dd
+      REAL :: ss, seknds
+!
+      id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
+      ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
+      ss = seknds (0.0)
+main: DO ia=1,cr_natoms    ! Outer loop over all atoms
+         IF (lout.and. (mod (ia, id) .eq.0) ) then 
+            done = 100.0 * float (ia) / float (cr_natoms) 
+            WRITE (output_io, 1000) done 
+         ENDIF 
+         is = cr_iscat (ia) 
+         IF (is /= 0 ) THEN   ! disregard VOIDs
+            pdf_temp (0, is, is) = pdf_temp (0, is, is) +1  ! Element is,is is 
+!                                                           ! excluded in the inner loop
+!                                                                       
+!------ - Here starts the inner loop over all atoms                     
+!                                                                       
+inner:      DO iatom = ia+1, cr_natoms 
+               js = cr_iscat (iatom) 
+               IF ( js /= 0) THEN 
+                  dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) 
+                  dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) 
+                  dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) 
+                  ibin=int((SQRT(dd (1) * dd (1) + &
+                                 dd (2) * dd (2) + &
+                                 dd (3) * dd (3)  )+pdf_deltars)/pdf_deltar)
+!                                                                       
+!                  IF (dist.le.pdf_rmax) THEN 
+                  IF (ibin.le.ipdf_rmax) THEN
+                     pdf_temp (ibin, is, js) = pdf_temp (ibin, is, js) +1
+                     pdf_temp (ibin, js, is) = pdf_temp (ibin, js, is) +1
+                  ENDIF 
+               ENDIF 
+            ENDDO  inner
+         ENDIF 
+      ENDDO  main
+      ss = seknds (ss )
+      WRITE (output_io, 4000) ss
+4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec')
+!                                                                       
+1000  FORMAT     (  '   ',f6.2,' % done  ...') 
+!
+      END SUBROUTINE pdf_addcorr_e_all
 !*****7*****************************************************************
       SUBROUTINE pdf_convtherm (rsign, sum) 
 !+                                                                      
