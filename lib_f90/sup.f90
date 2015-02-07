@@ -583,18 +583,35 @@ SUBROUTINE cmdline_args
 !-                                                                      
       IMPLICIT none 
 !                                                                       
-      CHARACTER ( * ) str 
-      INTEGER i 
-      INTEGER len 
+      CHARACTER (LEN=* ), INTENT(INOUT) :: str 
+      INTEGER  :: i 
+      INTEGER  :: len 
 !                                                                       
       DO i = 1, len (str) 
-      IF (iachar (str (i:i) ) .ge.iachar ('a') .and.iachar (str (i:i) )    &
-      .le.iachar ('z') ) then                                            
-         str (i:i) = achar (iachar (str (i:i) ) - iachar ('a') + iachar (   &
-         'A') )                                                         
-      ENDIF 
+         IF (iachar (str (i:i) ) .ge.iachar ('a') .and. &
+             iachar (str (i:i) ) .le.iachar ('z')       ) then                                            
+            str(i:i) = achar(iachar(str(i:i)) - iachar('a') + iachar('A'))                                                         
+         ENDIF 
       ENDDO 
       END SUBROUTINE do_cap                         
+!*****7*****************************************************************
+      SUBROUTINE do_low (str) 
+!+                                                                      
+!       Converts string 'str' to lower case letters                          
+!-                                                                      
+      IMPLICIT none 
+!                                                                       
+      CHARACTER (LEN=* ), INTENT(INOUT) :: str 
+      INTEGER  :: i 
+      INTEGER  :: len 
+!                                                                       
+      DO i = 1, len (str) 
+         IF (iachar (str (i:i) ) .ge.iachar ('A') .and. &
+             iachar (str (i:i) ) .le.iachar ('Z')       ) then                                            
+            str(i:i) = achar(iachar(str(i:i)) - iachar('A') + iachar('a'))                                                         
+         ENDIF 
+      ENDDO 
+      END SUBROUTINE do_low
 !*****7***********************************************************      
       SUBROUTINE ini_ran (iflag) 
 !                                                                       
@@ -878,8 +895,8 @@ SUBROUTINE cmdline_args
 !                                                                       
          iqo2 = index (zeile (iqo + 1:lp) , '"') 
          IF (iqo2.eq.0) then 
-            ier_num = - 44 
-            ier_typ = ER_APPL 
+            ier_num = -  4 
+            ier_typ = ER_COMM 
             RETURN 
          ENDIF 
 !                                                                       
@@ -1361,8 +1378,9 @@ SUBROUTINE cmdline_args
          IF (ii.gt.0.and.ii.le.MAC_MAX_FORM) then 
             io_out_format (ii) = '('//cpara (2) (1:lpara (2) ) //')' 
          ELSE 
-            ier_num = - 7 
-            ier_typ = ER_APPL 
+            ier_num = - 28
+            ier_typ = ER_IO 
+            WRITE(ier_msg(3),9000) MAC_MAX_FORM
          ENDIF 
       ELSE 
          ier_num = - 6 
@@ -1372,6 +1390,8 @@ SUBROUTINE cmdline_args
  1000 FORMAT     (' Current format setting for file output :',/) 
  1100 FORMAT     ('   Column : ',6(i8,2x)) 
  1200 FORMAT     ('   Format : ',6(a8,2x),/) 
+ 9000 FORMAT ( 'The first parameter must be in range 0 to',i3)
+
       END SUBROUTINE do_fformat                     
 !*****7***********************************************************      
       SUBROUTINE do_fgetsub (zeile, lp) 
@@ -1945,8 +1965,8 @@ SUBROUTINE cmdline_args
 !                                                                       
          iqo2 = index (zeile (iqo + 1:lp) , '"') 
          IF (iqo2.eq.0) then 
-            ier_num = - 44 
-            ier_typ = ER_APPL 
+            ier_num = -  4 
+            ier_typ = ER_COMM 
             RETURN 
          ENDIF 
 !                                                                       
@@ -2392,7 +2412,7 @@ SUBROUTINE cmdline_args
       INTEGER lp 
 !                                                                       
       INTEGER reserved_n 
-      PARAMETER (reserved_n = 46) 
+      PARAMETER (reserved_n = 47) 
                                                                         
       CHARACTER(12) reserved (reserved_n) 
       INTEGER i, ii 
@@ -2403,7 +2423,7 @@ SUBROUTINE cmdline_args
       'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',   &
       'nint', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif',     &
       'endif', 'else', 'while', 'until', 'lt', 'le', 'gt', 'ge', 'eq',  &
-      'and', 'or', 'xor', 'i', 'r', 'res' /                             
+      'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew' /                             
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
