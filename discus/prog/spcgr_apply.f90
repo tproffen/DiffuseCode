@@ -1323,7 +1323,7 @@ CONTAINS
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      ii, iii, iii, igg, NG, generators, generpower)                    
+      cr_mole, ii, iii, iii, igg, NG, generators, generpower)                    
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1340,7 +1340,7 @@ CONTAINS
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
+      cr_mole, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1364,7 +1364,7 @@ CONTAINS
       iii = cr_natoms 
 !                                                                       
       CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
-      ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
+      cr_mole, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
 !                                                                       
       IF (ier_num.ne.0) then 
          RETURN 
@@ -1384,7 +1384,7 @@ CONTAINS
       END SUBROUTINE symmetry                       
 !********************************************************************** 
       SUBROUTINE symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat,     &
-      cr_prop, ii, iii, iiii, igg, NG, generators, generpower)          
+      cr_prop, cr_mole, ii, iii, iiii, igg, NG, generators, generpower)          
 !-                                                                      
 !     Applies the generator to the current atom                         
 !+                                                                      
@@ -1396,6 +1396,7 @@ CONTAINS
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
+      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
       REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
 !                                                                       
@@ -1488,6 +1489,7 @@ CONTAINS
             cr_pos (2, cr_natoms) = y (2) 
             cr_pos (3, cr_natoms) = y (3) 
             cr_iscat (cr_natoms) = cr_iscat (ii) 
+            cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
          ELSE 
             ier_num = -10 
@@ -1642,7 +1644,9 @@ CONTAINS
 !     the specified molecule.                                           
 !+                                                                      
       USE discus_allocate_appl_mod
+      USE crystal_mod
       USE molecule_mod 
+      USE prop_para_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1691,6 +1695,7 @@ CONTAINS
             mole_type (imole) = mole_num_type 
             mole_char (imole) = mole_char (imole-1) 
             mole_dens (imole) = mole_dens (imole-1) 
+!            mole_biso (imole) = mole_biso (imole-1) 
          ELSE 
             ier_num = - 65 
             ier_typ = ER_APPL 
@@ -1727,6 +1732,8 @@ CONTAINS
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
+      cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+      cr_mole(iatom) = imole
 !                                                                       
       END SUBROUTINE mole_insert_current            
 !********************************************************************** 
