@@ -55,6 +55,7 @@ CONTAINS
 !
    USE discus_allocate_appl_mod
    USE crystal_mod
+   USE prop_para_mod
    USE molecule_mod
 !   USE class_internal
    IMPLICIT NONE
@@ -73,6 +74,8 @@ CONTAINS
    INTEGER                       :: n_mole
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
+   INTEGER                       :: i,j
+   INTEGER                       :: iatom
 !
    ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
    IF ( istatus /= 0) THEN
@@ -121,7 +124,14 @@ CONTAINS
    CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
               mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
+   DO i = 1, mole_num_mole       ! set molecule number for each atom
+      DO j = 1, mole_len (i)
+         iatom          = mole_cont (mole_off (i) + j)
+         cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+         cr_mole(iatom) = i
+      ENDDO
+   ENDDO
 !
    DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
@@ -168,6 +178,7 @@ CONTAINS
    CHARACTER (LEN=200)           :: c_file     ! and this molecule is of type i_type
    REAL                          :: r_fuzzy    ! and this molecule is of type i_type
    REAL                          :: r_dens     ! and this molecule is of type i_type
+   REAL                          :: r_biso     ! and this molecule is of type i_type
 
    LOGICAL                       :: need_alloc ! we need to allocate something
    LOGICAL                       :: new_type   ! Each atom is a new type
@@ -267,7 +278,7 @@ main: do ia = 1, natoms
       CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1  )
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
-                 i_char, c_file, r_fuzzy, r_dens )
+                 i_char, c_file, r_fuzzy, r_dens, r_biso)
 !
 !
 in_mole: IF ( i_mole > 0 ) THEN                ! This atom belongs to a molecule
@@ -284,6 +295,7 @@ in_mole: IF ( i_mole > 0 ) THEN                ! This atom belongs to a molecule
             mole_file (i_mole) = c_file           ! Set current molecule file
             mole_fuzzy(i_mole) = r_fuzzy          ! Set current molecule Fuzzy distance
             mole_dens (i_mole) = r_dens           ! Set current molecule density
+            mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
             mole_num_curr      = i_mole           ! Set molecule no we are working on
       ELSE  in_mole
          mole_l_on = .false.                      ! Next atom is not inside a molecule
@@ -321,6 +333,7 @@ do_scat_dw: DO k = 1,cr_nscat
          cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
       ENDDO
       cr_iscat(cr_natoms) = itype                 ! set the atom type
+      cr_mole (cr_natoms) = i_mole                ! set the molecule number
       cr_prop (cr_natoms) = iprop                 ! set the property flag
       CALL symmetry
    ENDDO main
@@ -521,7 +534,7 @@ do_scat_dw: DO k = 1,cr_nscat
    SUBROUTINE stru_internal_molecules(strucfile, MOLE_MAX_MOLE,           &
               MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !
 !  Read all molecules from internal storage into local variables.
 !
@@ -544,6 +557,7 @@ do_scat_dw: DO k = 1,cr_nscat
    INTEGER,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_char
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
+   REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_biso
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
@@ -569,7 +583,7 @@ do_scat_dw: DO k = 1,cr_nscat
    CALL read_temp%crystal%get_molecules_from_crystal(MOLE_MAX_MOLE,       &
               MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !
    DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
