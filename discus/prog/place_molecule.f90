@@ -544,7 +544,7 @@ write(*,*) ' STRUCFILE ',strufile
 !!write(*,*) ' IN read_crystal ', rd_NMAX, rd_MAXSCAT
 !   CALL readstru (rd_NMAX, rd_MAXSCAT, rd_strucfile, rd_cr_name,        &
 !               rd_cr_spcgr, rd_cr_a0, rd_cr_win, rd_cr_natoms, rd_cr_nscat, rd_cr_dw,     &
-!               rd_cr_at_lis, rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_dim, rd_as_natoms, &
+!               rd_cr_at_lis, rd_cr_pos, rd_cr_mole, rd_cr_iscat, rd_cr_prop, rd_cr_dim, rd_as_natoms, &
 !               rd_as_at_lis, rd_as_dw, rd_as_pos, rd_as_iscat, rd_as_prop, rd_sav_ncell,  &
 !               rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para)
 !write(*,*) ' BACK '
