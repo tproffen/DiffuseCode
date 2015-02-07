@@ -1807,6 +1807,12 @@
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
+!           ELSEIF(ikom.eq.1.and.icol.eq.0.and.iapo.eq.0) then
+!              CALL get_params (line, ianz, cpara, lpara, maxw, ll) 
+!              CALL eval(cpara(1),lpara(1))
+!              CALL eval(cpara(2),lpara(2))
+!              line = cpara(1)(1:lpara(1))//','//cpara(2)(1:lpara(2))
+!              ll   = lpara(1)+1+lpara(2)
             ENDIF 
             IF (ikl.ge.3.and.icol.eq.0) then 
                CALL calc_intr (string, line, ikl, iklz, laenge, ll) 
@@ -2080,14 +2086,15 @@
       INTEGER ihyp 
       INTEGER dummy 
       REAL fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
-      REAL werte (maxw), ww, a 
+      REAL werte (maxw), ww, a , skew
       REAL sind, cosd, tand, asind, acosd, atand 
       REAL atan2, atan2d 
 !                                                                       
       INTEGER length_com 
       INTEGER len_str 
-      REAL gasdev, ran1, poidev 
+      REAL gasdev, ran1, poidev , gasskew
       REAL do_read_number 
+!
 !                                                                       
       ier_num = - 1 
       ier_typ = ER_FORT 
@@ -2139,6 +2146,14 @@
             IF (ianz.eq.1) then 
                ww = atand (ww) 
             ELSEIF (ianz.eq.2) then 
+               CALL        eval           (cpara (1), lpara (1) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
+               CALL        eval           (cpara (2), lpara (2) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
                werte (1) = do_read_number (cpara (1), lpara (1) ) 
                werte (2) = do_read_number (cpara (2), lpara (2) ) 
                ww = atan2d (werte (1), werte (2) ) 
@@ -2146,6 +2161,54 @@
                ier_num = - 27 
                ier_typ = ER_FORT 
             ENDIF 
+            CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
+         ELSEIF (string (ikl - 5:ikl - 1) .eq.'gskew') then 
+            CALL get_params (line, ianz, cpara, lpara, 2, lp) 
+            IF (ianz.ge.2) then 
+               CALL eval (cpara (1), lpara (1) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
+               werte (1) = do_read_number (cpara (1), lpara (1) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
+               IF (werte (1) .lt.0.0) then 
+                  ier_num = - 35 
+                  ier_typ = ER_FORT 
+                  RETURN 
+               ENDIF 
+!
+               CALL eval (cpara (2), lpara (2) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
+               werte (2) = do_read_number (cpara (2), lpara (2) ) 
+               IF (ier_num.ne.0) then 
+                  RETURN 
+               ENDIF 
+               IF (ABS(werte (2)) .gt.1.0) then 
+                  ier_num = - 36 
+                  ier_typ = ER_FORT 
+                  RETURN 
+               ENDIF 
+               skew = werte(2)
+!                                                                       
+               IF (ianz.eq.2.or.cpara (3) .eq.'s') then 
+                  a = werte (1) 
+               ELSEIF (ianz.eq.3.and.cpara (3) .eq.'f') then 
+                  a = werte (1) / sqrt (8. * log (2.) ) 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_FORT 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+            ww = gasskew (a,skew) 
             CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
          ELSEIF (string (ikl - 5:ikl - 1) .eq.'fmodt') then 
             CALL ersetzc (string, ikl, iklz, f_modt, 24, 5, lll) 
@@ -2230,8 +2293,8 @@
                   RETURN 
                ENDIF 
                IF (werte (i) .lt.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
+                  ier_num = - 35 
+                  ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
                ENDDO 
@@ -2271,8 +2334,8 @@
                   RETURN 
                ENDIF 
                IF (werte (1) .lt.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
+                  ier_num = - 35 
+                  ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
 !                                                                       
@@ -2304,8 +2367,8 @@
                   RETURN 
                ENDIF 
                IF (werte (1) .lt.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
+                  ier_num = - 37 
+                  ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
 !                                                                       
@@ -2318,8 +2381,8 @@
                   RETURN 
                ENDIF 
                IF (werte (2) .lt.0.0) then 
-                  ier_num = - 28 
-                  ier_typ = ER_APPL 
+                  ier_num = - 35
+                  ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
 !                                                                       
@@ -2949,6 +3012,53 @@ END FUNCTION len_str
 !DBG      endif                                                         
       END SUBROUTINE get_params                     
 !*****7***************************************************************  
+      SUBROUTINE get_params_blank (string, ianz, cpara, lpara, nwerte, laenge) 
+!-                                                                      
+!     Reads parameters that have to be separated by  a blank " ".
+!+                                                                      
+      USE errlist_mod 
+      USE charact_mod 
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      CHARACTER (LEN=* )                      ,INTENT(IN)  :: string 
+      INTEGER                                 ,INTENT(OUT) :: ianz
+      INTEGER                                 ,INTENT(IN)  :: nwerte 
+      CHARACTER(LEN=1024),DIMENSION(1:nwerte), INTENT(OUT) :: cpara
+      INTEGER            ,DIMENSION(1:nwerte), INTENT(OUT) :: lpara
+      INTEGER                                 ,INTENT(IN ) :: laenge
+!
+      INTEGER :: i,j,k
+      LOGICAL :: no_par
+!
+      j = 0
+      k = 0
+      no_par = .true.
+main: DO i=1, laenge
+         IF(no_par) THEN
+            IF(string(i:i)==' ' .or. string==TAB) THEN  ! No param, cycle
+               CYCLE main
+            ELSE
+               no_par = .false.                         !parameter ==> on
+               j = j + 1                                !increment param no
+               k = 1
+               cpara(j)(k:k) = string(i:i)
+               lpara(j)      = 1
+            ENDIF
+         ELSE
+            IF(string(i:i)==' ' .or. string==TAB) THEN  ! No param, cycle
+               no_par = .true.
+            ELSE
+               k = k + 1
+               cpara(j)(k:k) = string(i:i)
+               lpara(j)      = lpara(j) + 1
+            ENDIF
+         ENDIF
+      ENDDO main
+      ianz = j
+!
+      END SUBROUTINE get_params_blank
+!*****7***************************************************************  
       SUBROUTINE ber_params (ianz, cpara, lpara, werte, maxpara) 
 !-                                                                      
 !     Calculated the value of all expressions stored in cpara           
@@ -3518,8 +3628,8 @@ END FUNCTION len_str
          lpara (ianz) = 0 
          ianz = ianz - 1 
       ELSE 
-         ier_num = - 43 
-         ier_typ = ER_APPL 
+         ier_num = - 27 
+         ier_typ = ER_IO 
          cpara (fpara) = ' ' 
          lpara (fpara) = 1 
          RETURN 
