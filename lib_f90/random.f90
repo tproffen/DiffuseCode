@@ -30,6 +30,32 @@
       gasdev = gasdev * sig 
       END FUNCTION gasdev                           
 !*****7*****************************************************************
+!                                                                       
+      REAL FUNCTION gasskew (sig, skew) 
+!-                                                                      
+!     calculates a random number for gaussian distribution of           
+!     sigma and skewness 
+!     skew =  0       : symmetric
+!     skew =  0.99999 : skewed with right shoulder
+!     skew = -0.99999 : skewed with left  shoulder
+!+                                                                      
+      USE random_mod
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      REAL, INTENT(in) :: sig
+      REAL, INTENT(in) :: skew
+!
+      REAL  :: v1, v2, v3
+      REAL  :: gasdev
+!                                                                       
+      v1      = gasdev(1.0)
+      v2      = gasdev(1.0)
+      v3      = skew*v1 + SQRT(1-skew**2)*v2
+      gasskew = v3 * SIGN(1.0 ,v1)*sig
+!
+      END FUNCTION gasskew                           
+!*****7*****************************************************************
       REAL FUNCTION ran1 (idum) 
 !                                                                       
       IMPLICIT none 
