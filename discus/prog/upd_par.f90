@@ -209,6 +209,25 @@
                RETURN 
             ENDIF 
 !                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_biso') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (0.lt.kpara.and.kpara.le.mole_num_type) then 
+                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
+                  mole_biso (kpara)                                     
+                  zeile (ikl + 3:ikl + 3) = 'e' 
+               ELSE 
+                  ier_num = - 64 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
          ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_dens') then 
             IF (ianz.eq.1) then 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
@@ -319,6 +338,23 @@
                   zeile (ikl - 7:ikl + 13) = cr_at_lis (kpara)
                ELSE 
                   ier_num = - 122 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+         ELSEIF (string (ikl - 7:ikl - 1) .eq.'in_mole') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
+               THEN                                                     
+                  WRITE(zeile(ikl-7:ikl + 13),'(i15)') cr_mole(kpara)
+               ELSE 
+                  ier_num = - 105 
                   ier_typ = ER_APPL 
                   RETURN 
                ENDIF 
@@ -675,6 +711,19 @@
          IF (ianz.eq.1) then 
             IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) then 
                mole_dens (ww (1) ) = wert 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'mol_biso') then 
+         IF (ianz.eq.1) then 
+            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) then 
+               mole_biso (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
