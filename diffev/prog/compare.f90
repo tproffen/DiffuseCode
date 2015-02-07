@@ -319,10 +319,12 @@ CONTAINS
    REAL                           :: best, worst 
 !                                                                       
    INTEGER                        :: len_str   
+!
+   iostatus = 0
 !                                                                       
 ! Read old trial value, if not yet initialized                     
 !                                                                       
-!  init_trial: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
+  init_trial: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
       DO j = 1, pop_c 
         len_file = pop_ltrialfile 
         CALL make_file (pop_trialfile, len_file, 4, j) 
@@ -347,7 +349,11 @@ CONTAINS
 !
       ENDDO 
       pop_t = trial  ! (i,j) 
-!  ENDIF init_trial
+      pop_current_trial = .true.
+   ELSE
+      trial = pop_t
+      pop_current_trial = .true.
+  ENDIF init_trial
 !                                                                       
 ! Read old Parent value, if not yet initialized                     
 !                                                                       
