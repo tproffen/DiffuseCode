@@ -59,6 +59,7 @@ USE config_mod
    INTEGER                          ::  cr_nscat  = 0
    INTEGER                          ::  as_natoms = 0
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_iscat  ! (  1:MAXSCAT)
+   INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_mole   ! (  1:MAXSCAT)
    INTEGER, DIMENSION(  :), ALLOCATABLE  ::  as_prop   ! (  1:MAXSCAT)
 !
    LOGICAL                               :: cr_cartesian = .false.
@@ -73,10 +74,11 @@ USE config_mod
 !
    INTEGER                              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0
-   INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)
-   INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)
+   INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
+   INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
+   INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule
 !
-   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)
+   REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)  !Atom coordinates
 !
 INTEGER                               ::  cry_size_of = 0 ! Bytes allocated fo
 !
