@@ -301,7 +301,8 @@ CONTAINS
        
 !                                                                       
       INTEGER idest, isource, ityp, i, k, ii, jj, is, js, i0, j0 
-      INTEGER ip, jp 
+      INTEGER  :: im, jm    ! molecule number 
+      INTEGER  :: ip, jp    ! property values
       REAL i0pos (3), j0pos (3), ipos (3) 
       LOGICAL lswap 
 !                                                                       
@@ -334,10 +335,13 @@ CONTAINS
       jj = mole_cont (mole_off (isource) + k) 
       is = cr_iscat (ii) 
       js = cr_iscat (jj) 
+      im = cr_mole (ii) 
+      jm = cr_mole (jj) 
       ip = cr_prop (ii) 
       jp = cr_prop (jj) 
 !                                                                       
       cr_iscat (ii) = js 
+      cr_mole (ii) = jm 
       cr_prop (ii) = jp 
       DO i = 1, 3 
       ipos (i) = cr_pos (i, ii) 
@@ -346,6 +350,7 @@ CONTAINS
 !                                                                       
       IF (lswap) then 
          cr_iscat (jj) = is 
+         cr_mole (jj) = im 
          cr_prop (jj) = ip 
          DO i = 1, 3 
          cr_pos (i, jj) = ipos (i) - i0pos (i) + j0pos (i) 
@@ -749,13 +754,12 @@ CONTAINS
             cr_pos (1, cr_natoms) = werte (2) 
             cr_pos (2, cr_natoms) = werte (3) 
             cr_pos (3, cr_natoms) = werte (4) 
+            cr_mole (cr_natoms) = 0 
             cr_prop (cr_natoms) = 0 
-      cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
+            cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
             DO l = 1, 3 
-            cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, cr_natoms) &
-            )                                                           
-            cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, cr_natoms) &
-            )                                                           
+               cr_dim(l,1) = amin1(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
+               cr_dim(l,2) = amax1(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
             ENDDO 
          ENDIF 
       ELSE 
@@ -921,6 +925,7 @@ CONTAINS
                         DO j = 1, mole_len (i) 
                         cr_iscat (mole_cont (mole_off (i) + j) )        &
                         = 0                                             
+                        cr_mole (mole_cont (mole_off (i) + j) ) = 0
                         cr_prop (mole_cont (mole_off (i) + j) ) = ibclr &
                         (cr_prop (mole_cont (mole_off (i) + j) ),       &
                         PROP_NORMAL)                                    
@@ -1011,6 +1016,7 @@ CONTAINS
          cr_pos (2, i) = cr_pos (2, ii) 
          cr_pos (3, i) = cr_pos (3, ii) 
          cr_iscat (i) = cr_iscat (ii) 
+         cr_mole (i) = cr_mole (ii) 
          cr_prop (i) = cr_prop (ii) 
          ENDDO 
          cr_natoms = cr_natoms - ndel 
@@ -1122,6 +1128,7 @@ CONTAINS
             cr_pos (2, ii) = cr_pos (2, ii + 1) 
             cr_pos (3, ii) = cr_pos (3, ii + 1) 
             cr_iscat (ii) = cr_iscat (ii + 1) 
+            cr_mole (ii) = cr_mole (ii + 1) 
             cr_prop (ii) = cr_prop (ii + 1) 
             ENDDO 
             idel = idel + 1 
@@ -1310,12 +1317,15 @@ CONTAINS
          j = nint (werte (2) ) 
          IF (0.lt.i.and.i.le.cr_natoms.and.0.lt.j.and.j.le.cr_natoms)   &
          then                                                           
-            is = cr_iscat (i) 
+            is           = cr_iscat (i) 
             cr_iscat (i) = cr_iscat (j) 
             cr_iscat (j) = is 
-            is = cr_prop (i) 
-            cr_prop (i) = cr_prop (j) 
-            cr_prop (j) = is 
+            is           = cr_prop (i) 
+            cr_prop (i)  = cr_prop (j) 
+            cr_prop (j)  = is 
+            is           = cr_mole (i) 
+            cr_mole (i)  = cr_mole (j) 
+            cr_mole (j)  = is 
          ELSE 
             ier_num = - 19 
             ier_typ = ER_APPL 
@@ -1422,7 +1432,7 @@ CONTAINS
 !     ------copy last three parameters for evaluation                   
 !                                                                       
                DO i = ianz - 4, ianz 
-               ii = i - (ianz - 4) 
+               ii = i - (ianz - 5) 
                ccpara (ii) = cpara (i) 
                llpara (ii) = lpara (i) 
                ENDDO 
@@ -2564,6 +2574,7 @@ CONTAINS
 !                                                                       
       mole_char (idest) = mole_char (isource) 
       mole_dens (idest) = mole_dens (isource) 
+!      mole_biso (idest) = mole_biso (isource) 
       mole_file (idest) = mole_file (isource) 
       mole_fuzzy (idest) = mole_fuzzy (isource) 
       mole_type (idest) = mole_type (isource) 
