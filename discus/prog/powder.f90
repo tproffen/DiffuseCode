@@ -1653,7 +1653,8 @@ CONTAINS
       INTEGER                :: n_qxy
       INTEGER                :: n_nscat
       REAL                   :: distance
-      REAL ss, st 
+      REAL ss, st , sss
+      REAL                   :: shift
       REAL u (3), v (3) 
       REAL arg 
 !                                                                       
@@ -1763,55 +1764,59 @@ CONTAINS
 !DBG                                                                    
       WRITE (output_io, * ) ' Starting histogram' 
       ss = seknds (0.0) 
+!DBG      sss = seknds (0.0) 
 !                                                                       
 !     loop over all atoms                                               
 !                                                                       
-      DO j = 1, cr_natoms 
-      jscat = cr_iscat (j) 
-      IF (jscat.gt.0) then 
+!-----Optimization notes
+!     Omitting the error checks saves about 1/4 time
+!     Replaced NINT by INT( + shift) this cuts the time in half!!!!
+!     Omitting the SQRT only saves a little, as do the local variables
+!     The if(iscat) do not cause much compute time
+
+      shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
+      DO j = 1, cr_natoms - 1
+         jscat = cr_iscat (j) 
+         IF (jscat.gt.0) then 
          u (1) = cr_pos (1, j) 
          u (2) = cr_pos (2, j) 
          u (3) = cr_pos (3, j) 
 !                                                                       
 !     --- get info on relative amount of atoms                          
 !                                                                       
-         natom (cr_iscat (j) ) = natom (cr_iscat (j) ) + 1 
+         natom (jscat) = natom (jscat) + 1 
 !                                                                       
 !------ --- loop over all different atom types                          
 !                                                                       
          DO l = j + 1, cr_natoms 
-         iscat = cr_iscat (l) 
-         IF (iscat.gt.0) then 
-            v (1) = cr_pos (1, l) - u (1) 
-            v (2) = cr_pos (2, l) - u (2) 
-            v (3) = cr_pos (3, l) - u (3) 
-!DBG              ibin = nint(sqrt(v(1)*v(1)+v(2)*v(2)+v(3)*v(3))/      
-            ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)       &
-            / pow_del_hist)                                             
-            IF (ibin.eq.0) then 
-               WRITE (output_io , * ) ' Atoms are too close' 
-               WRITE (output_io , * ) ' Numbers: ', j, l 
-            ELSEIF (ibin.gt.MAXHIST) then 
-               WRITE ( output_io, * ) ' Atoms are too far' 
-               WRITE ( output_io, * ) ' Numbers: ', j, l 
-               WRITE ( output_io, * ) ' Distance ', pow_del_hist * ibin
-               WRITE(output_io,*) ' ibin, MAXHIST ', ibin, MAXHIST, v
-               RETURN
-            ELSEIF (look (jscat, iscat) .gt.MAXLOOK) then 
-               WRITE ( output_io, * ) ' LOOK too big ', look (jscat, iscat) 
-               WRITE ( output_io, * ) ' Numbers: ', j, l 
-            ELSEIF (look (jscat, iscat) .lt.1) then 
-               WRITE ( output_io, * ) ' LOOK too small ', look (jscat, iscat) 
-               WRITE ( output_io, * ) ' Numbers: ', j, l 
-               RETURN 
-            ELSE 
-               histogram (ibin, look (jscat, iscat) ) = histogram (ibin,&
-               look (jscat, iscat) ) + 1                                
+            iscat = cr_iscat (l) 
+            IF (iscat.gt.0) then 
+              v (1) = cr_pos (1, l) - u (1) 
+              v (2) = cr_pos (2, l) - u (2) 
+              v (3) = cr_pos (3, l) - u (3) 
+
+!              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
+               ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
+               histogram (ibin, look (jscat, iscat) ) = &
+               histogram (ibin, look (jscat, iscat) ) + 1                                
             ENDIF 
-         ENDIF 
          ENDDO 
-      ENDIF 
+         ENDIF 
       ENDDO 
+!DBG      sss = seknds (sss) 
+!DBG      WRITE (output_io, 4000) sss 
+!
+!     Check for entries in histogram (0,*) ==> atoms at distance ZERO
+!
+      i= 0
+      DO j=1,nlook
+         i = MAX(i, histogram(0,j))
+      ENDDO
+      IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
+         ier_num = -123
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF
 !DBG_RBN                                                                
 !DBG      write(*,*) ' Writing histogram'                               
 !DBG      do i=1,nlook                                                  
