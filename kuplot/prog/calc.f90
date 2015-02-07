@@ -1749,16 +1749,16 @@
       sumwrz = 0.0 
       sumwrn = 0.0 
       DO i = 1, klen 
-      ikk = offxy (ik - 1) + i 
-      ikl = offxy (il - 1) + i 
-      sumrz = sumrz + abs (a (ikk) - a (ikl) ) 
-      sumrn = sumrn + abs (a (ikk) ) 
-      wght = r_wichtung (a (ikk), da (ikk), iweight) 
-      sumwrz = sumwrz + wght * (a (ikk) - a (ikl) ) **2 
-      sumwrn = sumwrn + wght * (a (ikk) ) **2 
+         ikk    = offxy (ik - 1) + i 
+         ikl    = offxy (il - 1) + i 
+         sumrz  = sumrz + abs (a (ikk) - a (ikl) ) **2
+         sumrn  = sumrn + abs (a (ikk) ) **2
+         wght   = r_wichtung (a (ikk), da (ikk), iweight) 
+         sumwrz = sumwrz + wght * (a (ikk) - a (ikl) ) **2 
+         sumwrn = sumwrn + wght * (a (ikk) ) **2 
       ENDDO 
 !                                                                       
-      rval = sumrz / sumrn 
+      rval  = sqrt (sumrz / sumrn) 
       wrval = sqrt (sumwrz / sumwrn) 
                                                                         
       END SUBROUTINE rvalue_y                       
@@ -1823,7 +1823,7 @@
          r_wichtung = z 
       ELSEIF (iweight.eq.W_DAT) then 
          IF (dz.ne.0) then 
-            r_wichtung = 1.0 / dz 
+            r_wichtung = 1.0 / dz**2
          ELSE 
             r_wichtung = 0.0 
          ENDIF 
