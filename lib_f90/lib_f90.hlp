@@ -21,7 +21,14 @@
    by the name of the program you are using (e.g. DISCUS).
 
    Further help topics are:
+3  News
 
+   Here you find a list of recent changes, additions, bug corrections
+3  2014November
+
+   A new random number "gskew" has been added, which returns a 
+   Gaussian distributed random number. The underlying distribution
+   can be set to be is left or right skewed.
 3  Options
 !b program [-debug] [-remote] [-port=p] [-access=ip] [macro.mac]
 !b program -macro <macro.mac>[ <par1> [ <par2> ...]]
@@ -528,6 +535,14 @@
 !p                                   sigma <arg> or FWHM <arg> if the 
 !p                                   second argument is equal to "f". 
 
+!p gskew(<arg>,<skew>{,"s"|"f"})   ! Returns gaussian distributed pseudo
+!p                                   random value with mean 0.0 and 
+!p                                   sigma <arg> or FWHM <arg> if the 
+!p                                   second argument is equal to "f". 
+!p                                   If skew is 0 the distribution is symmetric
+!p                                   For skew <=  1.0 it is right skewed
+!p                                   For skew >= -1.0 it is left  skewed
+
 !p logn(<arg1>,<arg2>{,"s"|"f"})   ! Returns lognormal distributed pseudo
 !p                                   random value. <arg1> is the location 
 !p                                   of the most likely value. 
@@ -646,7 +661,7 @@
 !b lend
 
    Finishes the learn sequence started by ==> learn.
-2  seed
+3  seed
 !b seed [ <value> ]
 
    Reinitializes the pseudo random generator. The seed passed to the
