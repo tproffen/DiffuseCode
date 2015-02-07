@@ -991,6 +991,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER i_count 
       INTEGER              :: new_nscat ! DUMMY for allocation
       INTEGER              :: new_nmax  ! DUMMY for allocation
+      LOGICAL              :: lcontent
       LOGICAL lspace 
       LOGICAL linside
       REAL d 
@@ -1018,6 +1019,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_char
       CHARACTER (LEN=200), DIMENSION(:), ALLOCATABLE :: temp_mole_file
       REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_dens
+      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_biso
       REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_fuzzy
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_cont
       LOGICAL, DIMENSION(:), ALLOCATABLE :: temp_present
@@ -1109,7 +1111,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             zeile = line (ibl:200) 
             i = 200 - ibl 
             i = len_str (zeile) 
-            CALL struc_mole_header (zeile, i, .false.) 
+            CALL struc_mole_header (zeile, i, .false.,lcontent) 
             IF (ier_num.ne.0) return 
          ELSE is_mole
             READ (line (ibl:80), *, end = 999, err = 999) (werte (j),   &
@@ -1248,13 +1250,14 @@ mole_int: IF(mk_infile_internal) THEN
        ALLOCATE ( temp_mole_char (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_file (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_dens (0:temp_num_mole), STAT = istatus)
+       ALLOCATE ( temp_mole_biso (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_fuzzy(0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_cont (0:temp_num_atom), STAT = istatus)
        CALL stru_internal_molecules(infile, TEMP_MAX_MOLE,                & ! Read domain 
               TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
               temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type,& ! into temp
               temp_mole_char,    &
-              temp_mole_file, temp_mole_dens, temp_mole_fuzzy, temp_mole_cont)
+              temp_mole_file, temp_mole_dens, temp_mole_biso, temp_mole_fuzzy, temp_mole_cont)
        IF(MOLE_MAX_MOLE < mole_num_mole + temp_num_mole .or.  &    ! If necessary increase
           MOLE_MAX_TYPE < mole_num_type + temp_num_type .or.  &    ! size of crystal molecule
           MOLE_MAX_ATOM < mole_num_atom + temp_num_atom     ) THEN ! arrays
@@ -1289,6 +1292,7 @@ mole_int: IF(mk_infile_internal) THEN
              mole_char (mole_num_mole) = temp_mole_char (i)
              mole_file (mole_num_mole) = temp_mole_file (i)
              mole_dens (mole_num_mole) = temp_mole_dens (i)
+             mole_biso (mole_type(mole_num_mole)) = temp_mole_biso (i)
              mole_fuzzy(mole_num_mole) = temp_mole_fuzzy(i)
           ENDIF
        ENDDO
@@ -1302,6 +1306,7 @@ mole_int: IF(mk_infile_internal) THEN
        DEALLOCATE ( temp_mole_char , STAT = istatus)
        DEALLOCATE ( temp_mole_file , STAT = istatus)
        DEALLOCATE ( temp_mole_dens , STAT = istatus)
+       DEALLOCATE ( temp_mole_biso , STAT = istatus)
        DEALLOCATE ( temp_mole_fuzzy, STAT = istatus)
        DEALLOCATE ( temp_mole_cont , STAT = istatus)
        DEALLOCATE ( temp_present   , STAT = istatus)
@@ -1314,7 +1319,7 @@ mole_int: IF(mk_infile_internal) THEN
 !     -- Removal is only performed, if md_sep_fuz is > 0
 !                                                                       
 !DBG      if(mc_type.eq.MD_DOMAIN_FUZZY) then                   
-      remove_strict: IF ( clu_remove_mode /= CLU_REMOVE_TRUST ) THEN
+      remove_strict: IF ( clu_remove_mode <  CLU_REMOVE_TRUST ) THEN
          IF ( md_sep_fuz > 0.00 ) THEN   ! Separation is > 0, remove atoms
             DO i = 1, 3 
                mk_dim (i, 1) = mk_dim (i, 1) - mc_matrix (i, 4) 
@@ -1675,6 +1680,8 @@ mole_int: IF(mk_infile_internal) THEN
             clu_remove_mode = CLU_REMOVE_STRICT
          ELSEIF(str_comp (cpara (2) , 'trust', 2, lpara (2) , 5) ) then
             clu_remove_mode = CLU_REMOVE_TRUST
+         ELSEIF(str_comp (cpara (2) , 'none', 2, lpara (2) , 5) ) then
+            clu_remove_mode = CLU_REMOVE_NONE
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
