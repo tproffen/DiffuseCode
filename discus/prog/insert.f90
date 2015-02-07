@@ -222,6 +222,27 @@ CONTAINS
                      ENDIF 
                   ENDIF 
 !                                                                       
+!     ----Select the isotropic B-value  of the object  'density'        
+!                                                                       
+               ELSEIF (str_comp (befehl, 'biso', 1, lbef, 4) ) then 
+                  IF (itype.gt.0) then 
+                     CALL get_params (zeile, ianz, cpara, lpara, maxw,  &
+                     lp)                                                
+                     IF (ier_num.eq.0.and.ianz.eq.1) then 
+                        CALL ber_params (ianz, cpara, lpara, werte,     &
+                        maxw)                                           
+                        IF (ier_num.eq.0) then 
+                           ins_biso = werte (1) 
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                  ENDIF 
+!                                                                       
 !     ----Select the domain file name 'file'                            
 !                                                                       
                ELSEIF (str_comp (befehl, 'file', 2, lbef, 4) ) then 
@@ -574,6 +595,7 @@ CONTAINS
             WRITE (output_io, 3016) ins_type 
          ENDIF 
          WRITE (output_io, 3019) ins_density 
+         WRITE (output_io, 3021) ins_biso    
          WRITE (output_io, 3020) ins_origin 
          WRITE (output_io, 3030) 'x', ins_xaxis 
          WRITE (output_io, 3030) 'y', ins_yaxis 
@@ -601,6 +623,7 @@ CONTAINS
  3015 FORMAT    ( '   type number        : New type') 
  3016 FORMAT    ( '   type number        : ',i6) 
  3019 FORMAT    ( '   Scattering density : ',2x,f9.4) 
+ 3021 FORMAT    ( '   Isotropic B-value  : ',2x,f9.4) 
  3020 FORMAT    ( '   origin             : ',3(2x,f9.4)/) 
  3030 FORMAT    ( '   ',a1,'-axis             : ',3(2x,f9.4)) 
  3110 FORMAT    ( '   file               : ',a) 
@@ -724,6 +747,7 @@ CONTAINS
                   mole_num_mole) + 1                                    
                   mole_type (i) = mole_num_type 
                   mole_dens (i) = ins_density 
+                  mole_biso (mole_type(i)) = ins_biso    
                ELSE 
                   mole_type (i) = ins_type 
                   kk = 1 
@@ -928,6 +952,7 @@ CONTAINS
                   ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) + 1
                   mole_type (i)  = mole_num_type 
                   mole_dens (i)  = 1.0 
+                  mole_biso (mole_type(i))  = 1.0 
                   mole_file (i)  = ins_file 
                   mole_fuzzy (i) = ins_fuzzy 
                ELSE 

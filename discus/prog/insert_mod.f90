@@ -14,6 +14,7 @@ INTEGER               ::  ins_type
 REAL   , DIMENSION(3) ::  ins_origin  ! (3)
 REAL   , DIMENSION(3) ::  ins_cent    ! (3)
 REAL                  ::  ins_density
+REAL                  ::  ins_biso
 REAL                  ::  ins_fuzzy
 REAL                  ::  ins_adp
 REAL   , DIMENSION(3) ::  ins_xaxis   ! (3)
