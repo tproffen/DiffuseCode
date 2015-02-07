@@ -6,15 +6,15 @@ package you have downloaded you will find one or all of the
 following program directories after unpacking the archive.
 
 DISCUS  : Diffuse Scattering & Defect Structure Simulation
-AUTHORS : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+AUTHORS : R.B. Neder  (reinhard.neder@fau.de)
           Th. Proffen (tproffen@ornl.gov)
 
 DIFFEV  : Generic refinement program using evolutionary algoritm
-AUTHOR  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+AUTHOR  : R.B. Neder  (reinhard.neder@fau.de)
 
 KUPLOT  : General plotting program (well suited for DISCUS outp)
 AUTHOR  : Th. Proffen (tproffen@ornl.gov)
-          R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)
+          R.B. Neder  (reinhard.neder@fau.de)
 
 MIXSCAT : Program to generate differential PDFs from n/X data
 AUTHOR  : C. Wurden K. Page A. Llobet
