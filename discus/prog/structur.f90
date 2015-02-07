@@ -26,6 +26,7 @@ CONTAINS
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
+      USE prop_para_mod 
       USE read_internal_mod
       USE save_mod 
       USE spcgr_apply
@@ -224,6 +225,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         j - 1)                                          
                         cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( &
                         k - 1)                                          
+                        cr_mole (cr_natoms) = cr_mole (n) 
                         cr_prop (cr_natoms) = cr_prop (n) 
                         ENDDO 
                         ENDDO 
@@ -238,48 +240,51 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ----------If molecules were read                                  
 !                                                                       
                         IF (mole_num_mole.gt.0) then 
-      need_alloc = .false.
-      n_gene = MAX( 1, MOLE_MAX_GENE)
-      n_symm = MAX( 1, MOLE_MAX_SYMM)
-      n_mole =         MOLE_MAX_MOLE
-      n_type =         MOLE_MAX_TYPE
-      n_atom =         MOLE_MAX_ATOM
-      IF (mole_num_mole* ncells                              >= MOLE_MAX_MOLE ) THEN
-         n_mole = mole_num_mole* ncells + 20
-         need_alloc = .true.
-      ENDIF
-      IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells >= MOLE_MAX_ATOM ) THEN
-         n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells + 200
-         need_alloc = .true.
-      ENDIF
-      IF ( need_alloc ) THEN
-         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
-      ENDIF
+                           need_alloc = .false.
+                           n_gene = MAX( 1, MOLE_MAX_GENE)
+                           n_symm = MAX( 1, MOLE_MAX_SYMM)
+                           n_mole =         MOLE_MAX_MOLE
+                           n_type =         MOLE_MAX_TYPE
+                           n_atom =         MOLE_MAX_ATOM
+                           IF (mole_num_mole* ncells                              >= MOLE_MAX_MOLE ) THEN
+                              n_mole = mole_num_mole* ncells + 20
+                              need_alloc = .true.
+                           ENDIF
+                           IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells >= MOLE_MAX_ATOM ) THEN
+                              n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells + 200
+                              need_alloc = .true.
+                           ENDIF
+                           IF ( need_alloc ) THEN
+                              call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+                           ENDIF
                            IF (mole_num_mole * cr_icc (1) * cr_icc (2)  &
-                           * cr_icc (3) .le.MOLE_MAX_MOLE) then         
+                                             * cr_icc (3) .le.MOLE_MAX_MOLE) then         
                               mole_num_atom = mole_off (mole_num_mole)  &
-                              + mole_len (mole_num_mole)                
-                              l = mole_num_mole 
+                                              + mole_len (mole_num_mole)                
+                              l             = mole_num_mole 
                               mole_num_unit = mole_num_mole 
-                              DO i = 2, cr_icc (1) * cr_icc (2) *       &
-                              cr_icc (3)                                
-                              DO j = 1, mole_num_mole 
-                              l = l + 1 
-                              mole_len (l) = mole_len (j) 
-                              mole_off (l) = mole_off (l -              &
-                              mole_num_mole) + mole_num_atom            
-                              mole_type (l) = mole_type (j) 
-                              mole_char (l) = mole_char (j) 
-                              mole_dens (l) = mole_dens (j) 
-                              DO k = 1, mole_len (j) 
-                              mole_cont (mole_off (l) + k) = mole_cont (&
-                              mole_off (j) + k) + (i - 1) * ce_natoms   
-                              ENDDO 
-                              ENDDO 
+                              DO i = 2,cr_icc(1)*cr_icc(2)*cr_icc(3)                                
+                                 DO j = 1, mole_num_mole 
+                                    l = l + 1 
+                                    mole_len (l) = mole_len (j) 
+                                    mole_off (l) = mole_off (l -              &
+                                    mole_num_mole) + mole_num_atom            
+                                    mole_type (l) = mole_type (j) 
+                                    mole_char (l) = mole_char (j) 
+                                    mole_dens (l) = mole_dens (j) 
+!                                    mole_biso (l) = mole_biso (j) 
+                                    DO k = 1, mole_len (j) 
+                                       mole_cont(mole_off(l) + k) =&
+                                       mole_cont(mole_off(j) + k) + (i - 1) * ce_natoms   
+                                       iatom          = mole_cont (mole_off (l) + k)
+                                       cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+                                       cr_mole(iatom) = l
+                                    ENDDO 
+                                 ENDDO 
                               ENDDO 
                               mole_num_mole = l 
-                              mole_num_atom = mole_off (mole_num_mole)  &
-                              + mole_len (mole_num_mole)                
+                              mole_num_atom = mole_off (mole_num_mole) +&
+                                              mole_len (mole_num_mole)                
                            ELSE 
                               ier_num = - 65 
                               ier_typ = ER_APPL 
@@ -407,7 +412,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
                cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
-               cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms, &
+               cr_at_lis, cr_pos, cr_mole, cr_iscat, cr_prop, cr_dim, as_natoms, &
                as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
                sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
                IF (ier_num.ne.0) then 
@@ -500,6 +505,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
+      USE prop_para_mod
       USE save_mod 
       USE spcgr_apply
       USE wyckoff_mod
@@ -515,6 +521,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
       INTEGER i, j, ibl, lbef 
+      INTEGER     :: iatom
       INTEGER lline 
       INTEGER     :: new_nmax
       INTEGER     :: new_nscat
@@ -523,6 +530,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       INTEGER                          :: n_type 
       INTEGER                          :: n_atom 
       LOGICAL          :: need_alloc = .false.
+      LOGICAL          :: lcontent
       LOGICAL lread, lcell, lout 
       REAL werte (maxw), dw1 
 !                                                                       
@@ -534,6 +542,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       lread     = .true. 
       lcell     = .true. 
       lout      = .false. 
+      lcontent  = .false.
       CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
                              n_atom, -1 , .not.cr_newtype)
       IF (ier_num /= 0) THEN
@@ -680,7 +689,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      zeile = ' ' 
                      i = 0 
                   ENDIF 
-                  CALL struc_mole_header (zeile, i, .true.) 
+                  CALL struc_mole_header (zeile, i, .true., lcontent) 
                   IF (ier_num.ne.0) THEN
                      CLOSE(IST)
                      RETURN 
@@ -709,6 +718,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
                   dw1 = werte (4) 
+                  cr_mole (i) = mole_num_mole
                   cr_prop (i) = nint (werte (5) ) 
 !                                                                       
                   IF (line (1:4) .ne.'    ') then 
@@ -749,6 +759,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                         DO j = 1, 3 
                         as_pos (j, as_natoms) = cr_pos (j, i) 
                         ENDDO 
+                        as_mole (as_natoms) = cr_mole (i) 
                         as_prop (as_natoms) = cr_prop (i) 
                         CALL symmetry 
                         IF (ier_num.ne.0) then 
@@ -781,6 +792,20 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             ENDDO 
             ENDDO 
          ENDIF 
+!     INTEGER     :: iatom
+!
+!     If a molecule containted a "molecule atoms" instruction, we need to
+!     set the molecule flag
+!
+      IF(lcontent) THEN 
+         DO i = 1, mole_num_mole
+            DO j = 1, mole_len (i)
+               iatom          = mole_cont (mole_off (i) + j)
+               cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+               cr_mole(iatom) = i
+            ENDDO
+         ENDDO
+      ENDIF 
 !                                                                       
 !     ENDIF 
 !                                                                       
@@ -902,7 +927,7 @@ check_calc: DO j = 1, ianz
  2000 FORMAT    ('Atom Nr. ',i4) 
       END SUBROUTINE read_atom_line                 
 !********************************************************************** 
-      SUBROUTINE struc_mole_header (zeile, lp, lcell) 
+      SUBROUTINE struc_mole_header (zeile, lp, lcell, lcontent) 
 !-                                                                      
 !     interprets the 'molecule' lines of a structure file               
 !+                                                                      
@@ -914,17 +939,18 @@ check_calc: DO j = 1, ianz
       USE spcgr_apply
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER(LEN=* ), INTENT(IN)    :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp
+      LOGICAL          , INTENT(IN)    :: lcell 
+      LOGICAL          , INTENT(OUT)   :: lcontent 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 21) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       INTEGER j, ianz 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       REAL werte (maxw) 
-      LOGICAL lcell 
       INTEGER          :: n_gene
       INTEGER          :: n_symm
       INTEGER          :: n_mole
@@ -933,6 +959,7 @@ check_calc: DO j = 1, ianz
       LOGICAL          :: need_alloc = .false.
 !                                                                       
       LOGICAL str_comp 
+!
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                                                                         
@@ -949,6 +976,10 @@ check_calc: DO j = 1, ianz
       n_atom =         MOLE_MAX_ATOM
       IF (mole_num_mole >= MOLE_MAX_MOLE ) THEN
          n_mole = mole_num_mole + 20
+         need_alloc = .true.
+      ENDIF
+      IF (mole_num_type >= MOLE_MAX_TYPE ) THEN
+         n_type = mole_num_type + 10
          need_alloc = .true.
       ENDIF
       IF ( need_alloc ) THEN
@@ -1046,6 +1077,22 @@ check_calc: DO j = 1, ianz
                   ENDIF 
                ENDIF 
 !                                                                       
+            ELSEIF(str_comp(cpara(1),'biso',3,lpara(1),3)) THEN                                                        
+!                                                                       
+!     ------Define the isotropic molecular B-Value
+!                                                                       
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  IF (ianz.eq.2) then 
+                     mole_biso(mole_type(mole_num_mole)) = werte (2) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF 
+!                                                                       
             ELSEIF (str_comp (cpara (1) , 'fuzzy', 3, lpara (1) , 5) )  &
             then                                                        
 !                                                                       
@@ -1118,21 +1165,19 @@ check_calc: DO j = 1, ianz
                      IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
                         IF (werte (2) .lt.MOLE_MAX_TYPE) then 
                            IF (mole_l_on) then 
-                              mole_type (mole_num_mole) = int (werte (2)&
-                              )                                         
-                              mole_num_type = max (mole_num_type-1, int &
-                              (werte (2) ) )                            
+                              mole_type(mole_num_mole) = int(werte(2))
+                              mole_num_type = max (mole_num_type-1,     &
+                                                   int(werte (2) ) )                            
                            ELSE 
                               mole_num_atom = mole_off (mole_num_mole)  &
                               + mole_len (mole_num_mole)                
                               mole_num_mole = mole_num_mole+1 
                               mole_num_curr = mole_num_mole 
-                              mole_type (mole_num_mole) = int (werte (2)&
-                              )                                         
+                              mole_type (mole_num_mole) = int (werte (2))
                               mole_off (mole_num_mole) = mole_num_atom 
                               mole_len (mole_num_mole) = 0 
-                              mole_num_type = max (mole_num_type, int ( &
-                              werte (2) ) )                             
+                              mole_num_type = max (mole_num_type,       &
+                                                   int(werte (2) ) )                             
                               mole_gene_n = 0 
                               mole_symm_n = 0 
                               mole_l_on = .true. 
@@ -1179,6 +1224,7 @@ check_calc: DO j = 1, ianz
                      mole_cont (mole_off (mole_num_mole) + mole_len (   &
                      mole_num_mole) ) = int (werte (j) )                
                      ENDDO 
+                     lcontent = .true.
                   ELSE 
                      ier_msg (1) = 'First characters of wrong line' 
                      ier_msg (2) = zeile (1:40) 
@@ -1202,6 +1248,7 @@ check_calc: DO j = 1, ianz
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,     &
+      cr_mole,                                                          &
       cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       spcgr_ianz, spcgr_para)                                           
@@ -1216,6 +1263,7 @@ check_calc: DO j = 1, ianz
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
+      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
       REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
 !                                                                       
@@ -1270,7 +1318,7 @@ check_calc: DO j = 1, ianz
          IF (ier_num.eq.0) then 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim,        &
+            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_prop, cr_dim, &
             as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)     
          ENDIF 
       ENDIF 
@@ -1675,58 +1723,61 @@ check_calc: DO j = 1, ianz
       END SUBROUTINE stru_readheader                
 !********************************************************************** 
       SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-      cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_prop, cr_dim, as_natoms,   &
-      as_at_lis, as_dw, as_pos, as_iscat, as_prop)                      
+      cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_prop, cr_dim,     &
+      as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
 !+                                                                      
       USE discus_allocate_appl_mod , ONLY: alloc_molecule
       USE molecule_mod 
+      USE prop_para_mod
       USE spcgr_apply
       IMPLICIT none 
 !                                                                       
-      INTEGER NMAX 
-      INTEGER MAXSCAT 
+      INTEGER                                ,INTENT(IN)    :: NMAX 
+      INTEGER                                ,INTENT(IN)    :: MAXSCAT 
 !                                                                       
 !
-      INTEGER,                       INTENT(INOUT)  :: cr_natoms
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
-      REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
+      INTEGER                                ,INTENT(INOUT) :: cr_natoms
+      INTEGER                                ,INTENT(INOUT) :: cr_nscat 
+      REAL            , DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_dw       ! (0:MAXSCAT) 
+      CHARACTER(LEN=4), DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
+      REAL            , DIMENSION(1:3,1:NMAX),INTENT(INOUT) :: cr_pos
+      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_iscat
+      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_mole 
+      INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_prop
+      REAL            , DIMENSION(3, 2)      ,INTENT(INOUT) :: cr_dim      ! (3, 2) 
+      INTEGER                                ,INTENT(INOUT) :: as_natoms 
+      CHARACTER(LEN=4), DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_at_lis   ! (0:MAXSCAT) 
+      REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_dw       ! (0:MAXSCAT) 
+      REAL            , DIMENSION(3,1:MAXSCAT), INTENT(INOUT) :: as_pos      ! (3, MAXSCAT) 
+      INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
+      INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
 !                                                                       
-      INTEGER ist, maxw 
-      PARAMETER (ist = 7, maxw = 5) 
+      INTEGER , PARAMETER :: ist  = 7
+      INTEGER , PARAMETER :: maxw = 5
 !                                                                       
-      CHARACTER(4) cr_at_lis (0:MAXSCAT) 
-      CHARACTER(4) as_at_lis (0:MAXSCAT) 
+      CHARACTER(LEN=10)   :: befehl 
+      CHARACTER(LEN=1024) ::  line, zeile 
+      INTEGER             :: i, j, ibl, lbef 
+      INTEGER             :: iatom
+      INTEGER             :: lline 
+      INTEGER             :: n_gene
+      INTEGER             :: n_symm
+      INTEGER             :: n_mole
+      INTEGER             :: n_type
+      INTEGER             :: n_atom
+      LOGICAL             :: need_alloc = .false.
+      LOGICAL             :: lcontent
+      REAL, PARAMETER     :: eps = 1e-6
+      REAL, DIMENSION(maxw) :: werte !(maxw)
+      REAL                :: dw1 
 !                                                                       
-      INTEGER cr_nscat 
-      INTEGER as_natoms 
-      INTEGER as_iscat (MAXSCAT) 
-      INTEGER as_prop (MAXSCAT) 
+      INTEGER :: len_str 
+      LOGICAL :: str_comp 
 !                                                                       
-      REAL cr_dim (3, 2) 
-      REAL cr_dw (0:MAXSCAT) 
-      REAL as_pos (3, MAXSCAT) 
-      REAL as_dw (0:MAXSCAT) 
-!                                                                       
-      CHARACTER(10) befehl 
-      CHARACTER(1024) line, zeile 
-      INTEGER i, j, ibl, lbef 
-      INTEGER lline 
-      INTEGER          :: n_gene
-      INTEGER          :: n_symm
-      INTEGER          :: n_mole
-      INTEGER          :: n_type
-      INTEGER          :: n_atom
-      LOGICAL          :: need_alloc = .false.
-      REAL, PARAMETER  :: eps = 1e-6
-      REAL werte (maxw), dw1 
-!                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
-!                                                                       
+      lcontent = .false.
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -1758,7 +1809,7 @@ check_calc: DO j = 1, ianz
                zeile = ' ' 
                i = 0 
             ENDIF 
-            CALL struc_mole_header (zeile, i, .false.) 
+            CALL struc_mole_header (zeile, i, .false., lcontent) 
             IF (ier_num.ne.0) return 
          ELSE 
 !                                                                       
@@ -1844,6 +1895,8 @@ check_calc: DO j = 1, ianz
                   IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
                      GOTO 999 
                   ENDIF 
+                  cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
+                  cr_mole(cr_natoms) = mole_num_curr
                ENDIF 
             ENDIF 
          ENDIF 
@@ -1851,12 +1904,25 @@ check_calc: DO j = 1, ianz
       GOTO 1000 
 !                                                                       
     2 CONTINUE 
-      IF (ier_num.eq. - 49) then 
+!                                                                       
+  999 CONTINUE 
+!
+!     If a molecule containted a "molecule atoms" instruction, we need to
+!     set the molecule flag
+!
+      IF(lcontent) THEN
+         DO i = 1, mole_num_mole
+            DO j = 1, mole_len (i)
+               iatom          = mole_cont (mole_off (i) + j)
+               cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+               cr_mole(iatom) = i
+            ENDDO
+         ENDDO
+      ENDIF 
+      IF (ier_num.eq. - 49) THEN 
          CALL no_error 
       ENDIF 
 !
-!                                                                       
-  999 CONTINUE 
       CLOSE (ist) 
 !                                                                       
  2000 FORMAT    (a) 
@@ -2075,6 +2141,15 @@ check_calc: DO j = 1, ianz
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                CALL ins2discus (ianz, cpara, lpara, MAXW) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) then 
+            IF (ianz.eq.2) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.ne.0) return 
+               CALL cif2discus (ianz, cpara, lpara, MAXW) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -2824,6 +2899,544 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !
       END SUBROUTINE rmcprofile2discus 
 !
+      SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW) 
+!-                                                                      
+!     converts a CIF file to DISCUS                   
+!+                                                                      
+!                                                                       
+      USE tensors_mod
+      USE wink_mod
+!
+      IMPLICIT none 
+!                                                                       
+      INTEGER          , INTENT(IN)                    :: ianz 
+      INTEGER          , INTENT(IN)                    :: MAXW 
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
+      INTEGER          , DIMENSION(1:MAXW), INTENT(IN) :: lpara
+!                                                                       
+      REAL, PARAMETER :: eightpi2 = 8.*3.1415926535897932384626433832795028841971693993751**2
+!                                                                       
+      REAL   , DIMENSION(3) :: werte
+!                                                                       
+      CHARACTER(LEN= 1)     :: bravais= ' '
+      CHARACTER(LEN= 4)     :: atom   = ' '
+      CHARACTER(LEN=80)     :: title  = ' '
+      CHARACTER(LEN=80)     :: spcgr  = ' '
+      CHARACTER(LEN=80)     :: aniso_label  = ' '
+      CHARACTER(LEN=80)     :: aniso_symb   = ' '
+      CHARACTER(LEN=1024)   :: infile = ' '
+      CHARACTER(LEN=1024)   :: ofile  = ' '
+      CHARACTER(LEN=1024)                              :: line
+      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: rawline
+      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: ccpara
+      INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
+      INTEGER               :: MAXLINES 
+      INTEGER               :: ird, iwr 
+      INTEGER               :: i, j, k
+      INTEGER               :: iostatus
+      INTEGER               :: natoms
+      LOGICAL               :: lread
+      LOGICAL               :: lwrite
+      LOGICAL, DIMENSION(7) :: header_done = .false.
+      INTEGER               :: line_no
+      INTEGER               :: length
+      INTEGER               :: is_cell
+      INTEGER               :: is_loop
+      INTEGER               :: is_spcgr
+      INTEGER               :: is_spcgr_no
+      INTEGER               :: is_atom
+      INTEGER               :: is_anis
+      INTEGER               :: is_paren
+      INTEGER               :: j_atom  = 0
+      INTEGER               :: j_anis  = 0
+      INTEGER               :: j_symb  = 0
+      INTEGER               :: j_label = 0
+      INTEGER               :: j_uiso  = 0
+      INTEGER               :: j_biso  = 0
+      INTEGER               :: j_x     = 0
+      INTEGER               :: j_y     = 0
+      INTEGER               :: j_z     = 0
+      INTEGER               :: j_aniso_symb  = 0
+      INTEGER               :: j_aniso_label = 0
+      INTEGER               :: j_aniso_11    = 0
+      INTEGER               :: j_aniso_22    = 0
+      INTEGER               :: j_aniso_33    = 0
+      INTEGER               :: j_aniso_12    = 0
+      INTEGER               :: j_aniso_13    = 0
+      INTEGER               :: j_aniso_23    = 0
+      INTEGER               :: j_aniso_B11   = 0
+      INTEGER               :: j_aniso_B22   = 0
+      INTEGER               :: j_aniso_B33   = 0
+      INTEGER               :: j_aniso_B12   = 0
+      INTEGER               :: j_aniso_B13   = 0
+      INTEGER               :: j_aniso_B23   = 0
+      INTEGER               :: nentries
+      INTEGER               :: spcgr_no
+      INTEGER               :: iquote1
+      INTEGER               :: iquote2
+      INTEGER               :: spcgr_l
+      INTEGER               :: nline
+      REAL   , DIMENSION(6) :: latt! (6) 
+      REAL   , DIMENSION(3) :: pos ! (6) 
+      REAL   , DIMENSION(3) :: rlatt    ! (6) 
+      REAL   , DIMENSION(3,3) :: uij ! (6) 
+      REAL   , DIMENSION(3,3) :: bij ! (6) 
+      REAL   , DIMENSION(3,3) :: gten ! (6) 
+      REAL   , DIMENSION(3,3) :: rten ! (6) 
+      REAL                  :: uiso
+      REAL                  :: biso
+!
+      TYPE :: atom_list
+         CHARACTER (LEN=80) :: label  
+         CHARACTER (LEN=80) :: symbol  
+         CHARACTER (LEN=4)  :: at_name
+         REAL,DIMENSION(3)  :: at_pos
+         REAL,DIMENSION(6)  :: at_uanis
+         REAL               :: at_bvalue
+         TYPE(atom_list), POINTER   :: next
+      END TYPE atom_list
+!
+      TYPE(atom_list), POINTER :: head
+      TYPE(atom_list), POINTER :: tail
+      TYPE(atom_list), POINTER :: temp
+!
+      INTEGER len_str 
+!                                                                       
+!     Create input / output file name
+!
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+      infile = cpara (1) 
+      i = index (infile, '.') 
+      IF (i.eq.0) then 
+         infile = cpara (1) (1:lpara (1) ) //'.cif' 
+         ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+      ELSE 
+         ofile  = cpara (1) (1:i) //'stru' 
+      ENDIF 
+      lread  = .true. 
+      lwrite = .false. 
+      ird = 34 
+      iwr = 35 
+      CALL oeffne (ird, infile, 'old') 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+      CALL oeffne (iwr, ofile, 'unknown') 
+      IF (ier_num.ne.0) then 
+         RETURN 
+      ENDIF 
+!
+      NULLIFY(head)
+      NULLIFY(tail)
+      NULLIFY(temp)
+!
+! As we do not know the length of the input file, lets read it once
+!
+      line_no = 0
+countline: DO
+         READ(ird, '(a)', IOSTAT=iostatus) line
+         IF ( IS_IOSTAT_END(iostatus )) EXIT countline
+         line_no = line_no + 1
+      ENDDO countline
+      MAXLINES = line_no 
+      ALLOCATE(rawline(1:MAXLINES))
+      rawline = ' '
+      line_no = 0
+      REWIND(ird)
+getline: DO
+         READ(ird, '(a)', IOSTAT=iostatus) rawline(line_no+1)
+         IF ( IS_IOSTAT_END(iostatus )) EXIT getline
+         line_no = line_no + 1
+         length  = len_str(rawline(line_no))
+         CALL rem_leading_bl(rawline(line_no),length)
+      ENDDO getline
+      CLOSE(ird)
+!
+      nline     = 0
+!
+!   Run an loop over all input lines
+!
+main: DO 
+         nline = nline + 1
+         IF(nline==line_no) EXIT main   ! End of input
+         line = rawline(nline)
+         length = len_str(line)
+         IF(line(1:1)=='#') CYCLE main
+!
+!  Loop statement
+!
+         IF(INDEX(line,'loop_')/=0) THEN
+            is_loop = nline                     ! Store line number of loop start
+         ENDIF
+!
+!  Space group name
+!
+         is_spcgr = INDEX(line,'_symmetry_space_group')
+         IF(is_spcgr/=0) THEN                   ! Got a symmetry info
+!
+            IF(INDEX(line,'_symmetry_space_group_name_H-M')/=0) THEN
+               iquote1 = INDEX(line(is_spcgr+30:length),'''')
+               iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'''')
+               iquote1 = is_spcgr+30+iquote1
+               iquote2 =             iquote1+iquote2 - 2
+               IF(iquote2> iquote1 .and. iquote1>0 .and. iquote2>0 ) THEN
+                  spcgr   = line(iquote1:iquote2)
+                  spcgr_l = iquote2 - iquote1 + 1
+               ELSE                     ! Space group is not enclosed in quotation marks
+                  spcgr = line(is_spcgr+30:length)
+                  spcgr_l = length - (is_spcgr+30) + 1
+               ENDIF
+               CALL rem_bl(spcgr,spcgr_l)
+               bravais = spcgr(1:1)
+               CALL do_low(spcgr)        ! Make lower case
+               CALL do_cap(bravais)      ! Upper case lattice type
+               spcgr(1:1) = bravais
+               IF(spcgr(3:3)=='3' .AND. spcgr(2:2)/='-'  &
+                                  .AND. spcgr(2:2)/='6') THEN
+                  spcgr = spcgr(1:2)//'-'//spcgr(3:spcgr_l)
+                  spcgr_l = spcgr_l + 1
+               ENDIF
+               IF(spcgr(spcgr_l-1:spcgr_l-1)==':') THEN
+                  spcgr(spcgr_l-1:spcgr_l-1) =','
+               ENDIF
+               header_done(1) = .true.
+            ENDIF
+         ENDIF
+!
+!  space group number
+!
+         is_spcgr_no = INDEX(line,'_space_group_IT_number')
+         IF(is_spcgr_no/=0) THEN
+               READ(line(is_spcgr_no+23:length),*,IOSTAT=iostatus) spcgr_no
+               header_done(1) = .true.
+         ENDIF
+!
+!  Unit cell dimensions
+!
+         is_cell = INDEX(line,'_cell_')         ! got a cell info
+         IF(is_cell/=0) THEN
+            is_paren = INDEX(line,'(')
+            IF(is_paren > 0 ) THEN
+               length = is_paren-1
+            ENDIF
+            IF(INDEX(line,'_cell_length_a')/=0) THEN
+               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(1)
+               header_done(2) = .true.
+            ELSEIF(INDEX(line,'_cell_length_b')/=0) THEN
+               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(2)
+               header_done(3) = .true.
+            ELSEIF(INDEX(line,'_cell_length_c')/=0) THEN
+               READ(line(is_cell+14:length),*,IOSTAT=iostatus) latt(3)
+               header_done(4) = .true.
+            ELSEIF(INDEX(line,'_cell_angle_alpha')/=0) THEN
+               READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(4)
+               header_done(5) = .true.
+            ELSEIF(INDEX(line,'_cell_angle_beta')/=0) THEN
+               READ(line(is_cell+16:length),*,IOSTAT=iostatus) latt(5)
+               header_done(6) = .true.
+            ELSEIF(INDEX(line,'_cell_angle_gamma')/=0) THEN
+               READ(line(is_cell+17:length),*,IOSTAT=iostatus) latt(6)
+               header_done(7) = .true.
+            ENDIF
+         ENDIF
+!
+!  atom coordinates
+!
+         is_atom = INDEX(line,'_atom_site_fract_x')
+         IF(is_atom /= 0) THEN               ! found the loop with atom coordinates
+            j_atom = is_loop                 ! start in line after 'loop_'
+            nentries = 0
+            j_label = 0
+            j_symb  = 0
+            j_uiso  = 0
+            j_biso  = 0
+            j_x     = 0
+            j_y     = 0
+            j_z     = 0
+analyze_atom: DO
+               j_atom = j_atom + 1
+               line = rawline(j_atom)
+               length = len_str(line)
+               IF(line(1:1)=='#') CYCLE analyze_atom
+               IF(line(1:10)/='_atom_site' .or. j_atom>line_no) THEN
+                  IF(j_atom < nline) THEN      ! wrong line prior to '_atom_site_frac_x'
+                     EXIT main
+                  ENDIF
+                  nline = j_atom             ! We are now in line j_atom
+                  EXIT analyze_atom
+               ENDIF
+               nentries = nentries + 1
+               IF(line(1:16)=='_atom_site_label')           j_label = nentries
+               IF(line(1:22)=='_atom_site_type_symbol')     j_symb  = nentries
+               IF(line(1:25)=='_atom_site_U_iso_or_equiv')  j_uiso  = nentries
+               IF(line(1:25)=='_atom_site_B_iso_or_equiv')  j_biso  = nentries
+               IF(line(1:18)=='_atom_site_fract_x')         j_x     = nentries
+               IF(line(1:18)=='_atom_site_fract_y')         j_y     = nentries
+               IF(line(1:18)=='_atom_site_fract_z')         j_z     = nentries
+            ENDDO analyze_atom
+            IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
+            IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
+            ccpara = ' '
+atoms:      DO                                 ! Get all atoms information
+               IF(line(1:1)/='#') THEN
+                  CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+!
+!   If there are a different number of parameters, the line does not appear to be 
+!   another atom line
+!
+                  IF(nentries/=ianz) THEN         ! no more atom lines
+                     nline = j_atom
+                     EXIT atoms
+                  ENDIF
+                  IF(INDEX(ccpara(j_x),'(')>0) llpara(j_x) = INDEX(ccpara(j_x),'(') - 1
+                  IF(INDEX(ccpara(j_y),'(')>0) llpara(j_y) = INDEX(ccpara(j_y),'(') - 1
+                  IF(INDEX(ccpara(j_z),'(')>0) llpara(j_z) = INDEX(ccpara(j_z),'(') - 1
+                  READ(ccpara(j_x)(1:llpara(j_x)),*) pos(1)
+                  READ(ccpara(j_y)(1:llpara(j_y)),*) pos(2)
+                  READ(ccpara(j_z)(1:llpara(j_z)),*) pos(3)
+                  uiso = 0.0
+                  biso = 0.0
+                  IF(j_uiso > 0) THEN
+                     IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
+                     READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
+                     biso = uiso * eightpi2
+                  ELSEIF(j_biso > 0) THEN
+                     IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
+                     READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                  ENDIF
+                  ALLOCATE(TEMP)
+                  TEMP%at_name   = ' '
+                  TEMP%at_bvalue = 0.0
+                  TEMP%at_pos    = 0.0
+                  IF(j_symb > 0) THEN  ! I prefer the atom symbol to its label
+                     TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
+                     TEMP%symbol    = ccpara(j_symb )(1:      llpara(j_symb ) )
+                     TEMP%at_name   = ccpara(j_symb )(1:MIN(4,llpara(j_symb )))
+                  ELSE
+                     TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
+                     TEMP%symbol    = ' '
+                     TEMP%at_name   = ccpara(j_label)(1:MIN(4,llpara(j_label)))
+                  ENDIF
+                  TEMP%at_pos(1) = pos(1)
+                  TEMP%at_pos(2) = pos(2)
+                  TEMP%at_pos(3) = pos(3)
+                  TEMP%at_bvalue = biso
+                  TEMP%at_uanis  = 0.0
+                  NULLIFY(temp%next)
+!
+                  IF(ASSOCIATED(TAIL)) THEN
+                     TAIL%NEXT => TEMP
+                     TAIL      => TAIL%NEXT
+                  ELSE
+                     TAIL      => TEMP
+                     HEAD      => TEMP
+                  ENDIF
+               ENDIF   ! end no comment
+!
+               j_atom = j_atom + 1
+               IF(j_atom>line_no) THEN
+                  nline = j_atom             ! We are now in line j_atom
+                  EXIT main
+               ENDIF
+               line   = rawline(j_atom)
+               length = len_str(line)
+            ENDDO atoms
+            IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+            IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+         ENDIF
+!
+!  anisotropic displacement parameters
+!
+         is_anis = INDEX(line,'_atom_site_aniso')
+         IF(is_anis /= 0) THEN               ! found the loop with aniso ADP's
+            j_anis = is_loop                 ! start in line after 'loop_'
+         ENDIF
+      ENDDO main
+!  The main atom list did not contain isotropic U/B values, 
+!  obtain equivalent values from the anisotropic ADP's
+!
+      IF(j_uiso == 0 .AND. j_anis > 0) THEN  ! Found anisotropic ADP's, and no ISO
+         nline    = j_anis
+         nentries = 0
+analyze_anis: DO
+            nline = nline + 1
+            line = rawline(nline)
+            length = len_str(line)
+            IF(line(1:1)/='#')  THEN
+               IF(line(1:16)/='_atom_site_aniso' .or. nline>line_no) THEN
+                  EXIT analyze_anis
+               ENDIF
+               nentries = nentries + 1
+               IF(line(1:22)=='_atom_site_aniso_label')           j_aniso_label = nentries
+               IF(line(1:28)=='_atom_site_aniso_type_symbol')     j_aniso_symb  = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_11')            j_aniso_11    = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_22')            j_aniso_22    = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_33')            j_aniso_33    = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_12')            j_aniso_12    = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_13')            j_aniso_13    = nentries
+               IF(line(1:21)=='_atom_site_aniso_U_23')            j_aniso_23    = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_11')            j_aniso_B11   = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_22')            j_aniso_B22   = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_33')            j_aniso_B33   = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_12')            j_aniso_B12   = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_13')            j_aniso_B13   = nentries
+               IF(line(1:21)=='_atom_site_aniso_B_23')            j_aniso_B23   = nentries
+            ENDIF
+         ENDDO analyze_anis
+!
+!           Build metric tensors and get recipr. lattice params
+!
+         gten(1,1) = latt(1)**2
+         gten(2,2) = latt(2)**2
+         gten(3,3) = latt(3)**2
+         gten(1,2) = latt(1)*latt(2)*cos(rad*latt(6))
+         gten(1,3) = latt(1)*latt(3)*cos(rad*latt(5))
+         gten(2,3) = latt(2)*latt(3)*cos(rad*latt(4))
+         gten(2,1) = gten(1,2)
+         gten(3,1) = gten(1,3)
+         gten(2,3) = gten(3,2)
+         CALL invmat(rten,gten)
+         rlatt(1) = SQRT(rten(1,1))
+         rlatt(2) = SQRT(rten(2,2))
+         rlatt(3) = SQRT(rten(3,3))
+         IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+         IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+         IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
+         IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
+         ccpara = ' '
+anis:    DO                                 ! Get all anisotropic information
+            IF(line(1:1)/='#')  THEN
+            CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+!
+!   If there are a different number of parameters, the line does not appear to be 
+!   another atom line
+!
+            IF(nentries/=ianz) THEN         ! no more aniso lines
+               EXIT anis
+            ENDIF
+            aniso_label = ' '
+            aniso_symb  = ' '
+            IF(j_aniso_label > 0) THEN
+               aniso_label = ccpara(j_aniso_label)(1:llpara(j_aniso_label))
+            ENDIF
+            IF(j_aniso_symb  > 0) THEN
+               aniso_symb  = ccpara(j_aniso_symb )(1:llpara(j_aniso_symb ))
+            ENDIF
+            IF(j_aniso_11 > 0 ) THEN
+               IF(INDEX(ccpara(j_aniso_11),'(')>0) llpara(j_aniso_11) = INDEX(ccpara(j_aniso_11),'(') - 1
+               IF(INDEX(ccpara(j_aniso_22),'(')>0) llpara(j_aniso_22) = INDEX(ccpara(j_aniso_22),'(') - 1
+               IF(INDEX(ccpara(j_aniso_33),'(')>0) llpara(j_aniso_33) = INDEX(ccpara(j_aniso_33),'(') - 1
+               IF(INDEX(ccpara(j_aniso_12),'(')>0) llpara(j_aniso_12) = INDEX(ccpara(j_aniso_12),'(') - 1
+               IF(INDEX(ccpara(j_aniso_13),'(')>0) llpara(j_aniso_13) = INDEX(ccpara(j_aniso_13),'(') - 1
+               IF(INDEX(ccpara(j_aniso_23),'(')>0) llpara(j_aniso_23) = INDEX(ccpara(j_aniso_23),'(') - 1
+               READ(ccpara(j_aniso_11)(1:llpara(j_aniso_11)),*) uij(1,1)
+               READ(ccpara(j_aniso_22)(1:llpara(j_aniso_22)),*) uij(2,2)
+               READ(ccpara(j_aniso_33)(1:llpara(j_aniso_33)),*) uij(3,3)
+               READ(ccpara(j_aniso_12)(1:llpara(j_aniso_12)),*) uij(1,2)
+               READ(ccpara(j_aniso_13)(1:llpara(j_aniso_13)),*) uij(1,3)
+               READ(ccpara(j_aniso_23)(1:llpara(j_aniso_23)),*) uij(2,3)
+               uij(2,1) = uij(1,2)
+               uij(3,1) = uij(1,3)
+               uij(3,2) = uij(2,3)
+               uiso = 0.0
+               DO i=1,3
+                  DO j=1,3
+                     uiso = uiso + uij(i,j)*latt(i)*latt(j)*rlatt(i)*rlatt(j)
+                  ENDDO
+               ENDDO
+               uiso = uiso / 3.
+               biso = uiso * eightpi2
+            ELSEIF(j_aniso_B11 > 0 ) THEN
+               IF(INDEX(ccpara(j_aniso_B11),'(')>0) llpara(j_aniso_B11) = INDEX(ccpara(j_aniso_B11),'(') - 1
+               IF(INDEX(ccpara(j_aniso_B22),'(')>0) llpara(j_aniso_B22) = INDEX(ccpara(j_aniso_B22),'(') - 1
+               IF(INDEX(ccpara(j_aniso_B33),'(')>0) llpara(j_aniso_B33) = INDEX(ccpara(j_aniso_B33),'(') - 1
+               IF(INDEX(ccpara(j_aniso_B12),'(')>0) llpara(j_aniso_B12) = INDEX(ccpara(j_aniso_B12),'(') - 1
+               IF(INDEX(ccpara(j_aniso_B13),'(')>0) llpara(j_aniso_B13) = INDEX(ccpara(j_aniso_B13),'(') - 1
+               IF(INDEX(ccpara(j_aniso_B23),'(')>0) llpara(j_aniso_B23) = INDEX(ccpara(j_aniso_B23),'(') - 1
+               READ(ccpara(j_aniso_B11)(1:llpara(j_aniso_B11)),*) bij(1,1)
+               READ(ccpara(j_aniso_B22)(1:llpara(j_aniso_B22)),*) bij(2,2)
+               READ(ccpara(j_aniso_B33)(1:llpara(j_aniso_B33)),*) bij(3,3)
+               READ(ccpara(j_aniso_B12)(1:llpara(j_aniso_B12)),*) bij(1,2)
+               READ(ccpara(j_aniso_B13)(1:llpara(j_aniso_B13)),*) bij(1,3)
+               READ(ccpara(j_aniso_B23)(1:llpara(j_aniso_B23)),*) bij(2,3)
+               bij(2,1) = bij(1,2)
+               bij(3,1) = bij(1,3)
+               bij(3,2) = bij(2,3)
+               biso = 0.0
+               DO i=1,3
+                  DO j=1,3
+                     biso = biso + bij(i,j)*latt(i)*latt(j)*rlatt(i)*rlatt(j)
+                  ENDDO
+               ENDDO
+               biso = biso / 3.
+            ENDIF
+            TEMP => HEAD
+find:       DO WHILE (ASSOCIATED(TEMP))
+               IF(j_label > 0 .AND. j_aniso_label > 0) THEN
+                  IF(TEMP%label == aniso_label) THEN
+                     TEMP%at_bvalue = biso
+                  ENDIF
+               ELSEIF(j_symb > 0 .AND. j_aniso_symb > 0) THEN
+                  IF(TEMP%symbol == aniso_symb) THEN
+                     TEMP%at_bvalue = biso
+                  ENDIF
+               ENDIF
+               TEMP => TEMP%next
+            ENDDO find
+            ENDIF   ! no comment
+!
+            nline = nline + 1
+            IF(nline>line_no) THEN
+               EXIT anis
+            ENDIF
+            line   = rawline(nline)
+            length = len_str(line)
+         ENDDO anis   
+         IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+         IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
+      ENDIF
+!
+!  Finally, write the structure to file
+!
+      WRITE(iwr, 1000) title(1:len_str(title))
+      IF(spcgr /= ' ') THEN
+         WRITE(iwr, 1100) spcgr(1:len_str(spcgr))
+      ELSEIF(spcgr_no /= 0) THEN
+         WRITE(iwr, 1150) spcgr_no
+      ELSE
+         WRITE(iwr, 1170)
+      ENDIF
+      WRITE(iwr, 1200) latt
+      WRITE(iwr, 1300)
+      TAIL => HEAD
+      TEMP => HEAD
+      DO WHILE (ASSOCIATED(TAIL))
+         WRITE(iwr,1400) TAIL%at_name,TAIL%at_pos,TAIL%at_bvalue 
+         TAIL => TAIL%next
+         DEALLOCATE(TEMP)       ! Clean up the memory structure
+         TEMP => TAIL
+      ENDDO
+      NULLIFY(HEAD)
+      NULLIFY(TEMP)
+      NULLIFY(TAIL)
+1000 FORMAT('title ',a)
+1100 FORMAT('spcgr ',a)
+1150 FORMAT('spcgr ',i5)
+1170 FORMAT('spcgr  P1')
+1200 FORMAT('cell  ',5(f12.5,', '),f12.5)
+1300 FORMAT('atoms')
+1400 FORMAT(a4, 4(F12.8,', '),'1'  )
+!
+      CLOSE(iwr)
+!
+! clean up arrays
+!
+      DEALLOCATE(rawline)
+!
+      END SUBROUTINE cif2discus
 !
       SUBROUTINE test_file ( strucfile, natoms, ntypes, n_mole, n_type, &
                              n_atom, init, lcell)
