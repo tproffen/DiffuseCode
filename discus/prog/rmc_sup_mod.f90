@@ -2814,7 +2814,8 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       END SUBROUTINE rmc_check_dist                 
 !*****7*****************************************************************
-      SUBROUTINE rmc_select (imode, isel, iz1, iz2, is1, is2) 
+      SUBROUTINE rmc_select (imode, isel, iz1, iz2, is1, is2, &
+                             MAXALLOWED, local_rmc_allowed) 
 !+                                                                      
 !     Select two atom sites (global, local, ...)                        
 !                                                                       
@@ -2832,19 +2833,23 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, DIMENSION(3)           , INTENT(INOUT) :: iz2 !(3)
       INTEGER                         , INTENT(INOUT) :: is1
       INTEGER                         , INTENT(INOUT) :: is2
+      INTEGER                         , INTENT(IN   ) :: MAXALLOWED
+      LOGICAL, DIMENSION(0:MAXALLOWED), INTENT(IN   ) :: local_rmc_allowed
 !
       INTEGER, PARAMETER :: MAXW = 25
       INTEGER, DIMENSION(:), ALLOCATABLE   :: c_list ! Result of connectivity search
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
       INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
-      INTEGER i
+      INTEGER i,j
       REAL ran1 
 !                                                                       
+      j = 0
    10 CONTINUE 
+      j = j + 1
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-      IF(.NOT.rmc_allowed(cr_iscat(isel(1)))) GOTO 10
+      IF(.NOT.local_rmc_allowed(cr_iscat(isel(1)))) GOTO 10
 !
       IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
          CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), 1, MAXW, c_list, c_offs, natoms)
@@ -2917,7 +2922,7 @@ loop_plane: DO ip = 1, rmc_nplane
       USE random_mod
 !
       USE debug_mod 
-use errlist_mod
+      USE errlist_mod
 !                                                                       
       USE prompt_mod 
       USE random_mod
@@ -2951,7 +2956,8 @@ use errlist_mod
 !                                                                       
       IF (rmc_mode.eq.rmc_mode_swchem) then 
          natoms = 2 
-         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2) 
+         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2,  &
+                          cr_nscat,rmc_allowed) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) ) .and.cr_iscat (isel (1) ) .ne.cr_iscat &
          (isel (2) )                                                    
@@ -2989,7 +2995,8 @@ use errlist_mod
 !                                                                       
       ELSEIF (rmc_mode.eq.rmc_mode_swdisp) then 
          natoms = 2 
-         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2) 
+         CALL rmc_select (rmc_local, isel, iz1, iz2, is1, is2, &
+                          cr_nscat,rmc_allowed) 
          laccept = rmc_allowed (cr_iscat (isel (1) ) ) .and.rmc_allowed &
          (cr_iscat (isel (2) ) )                                        
          IF (laccept) then 
