@@ -159,7 +159,7 @@
      &  ' ',                                        & ! -7  ! command
      &  'Missing or wrong parameters for command',  & ! -6  ! command,fortran
      &  'Error in operating system command',        & ! -5  ! command
-     &  ' ',                                        & ! -4  ! command
+     &  'Right quotation mark missing in format',   & ! -4  ! command
      &  'Could not allocate arrays',                & ! -3  ! command
      &  'Command parameter has zero length ',       & ! -2  ! io
      &  '       directory not defined '             & ! -1  ! io
@@ -182,11 +182,14 @@
 !
 !
        integer       iu,io
-       parameter    (IU=-34,IO=1)
+       parameter    (IU=-37,IO=1)
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-34:-21) /                       &
+       DATA ERROR (-37:-21) /                       &
+     &  'Mean of lognormal is less than zero',      & !-37  ! fortran
+     &  'Skew parameter outside [-1:1]',            & !-36  ! fortran
+     &  'Sigma/FWHM is less than zero',             & !-35  ! fortran
      &  'String has length zero',                   & !-34  ! fortran
      &  'Variable in use; cannot initialize value', & !-33  ! fortran
      &  'Variable name is already defined',         & !-32  ! fortran
@@ -241,11 +244,13 @@
 !
 !
        integer       iu,io
-       parameter    (IU= -26,IO=0)
+       parameter    (IU= -28,IO=0)
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-26:-21) /                       &
+       DATA ERROR (-28:-21) /                       &
+     &  'Format number outside allowed range',      & ! -28 ! io
+     &  'Not enough parameter for filename format ',& ! -27 ! io
      &  'Second parameter must be >= first Param.', & ! -26 ! io
      &  'Socket listen problem ',                   & ! -25 ! command
      &  'Socket bind problem ',                     & ! -24 ! command
