@@ -621,7 +621,8 @@ CONTAINS
       prom = prompt (1:len_str (prompt) ) //'/conn' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) then 
-         IF (line.ne.' '.and.line (1:1) .ne.'#') then 
+         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
+             line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       

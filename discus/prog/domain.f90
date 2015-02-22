@@ -67,8 +67,8 @@ SUBROUTINE do_domain (line, lp)
       prom = prompt (1:len_str (prompt) ) //'/domain' 
       CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) then 
-         IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13) ) &
-         then                                                           
+         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
+             line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       

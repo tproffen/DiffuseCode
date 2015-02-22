@@ -55,7 +55,8 @@ CONTAINS
       prom = prompt (1:len_str (prompt) ) //'/rmc' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) then 
-         IF (line.eq.' '.or.line (1:1) .eq.'#') goto 10 
+         IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+             line == char(13) .or. line(1:1) == '!'  ) GOTO 10
 !                                                                       
 !------ search for "="                                                  
 !                                                                       

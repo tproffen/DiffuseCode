@@ -58,8 +58,8 @@
 !                                                                       
 !-------If a commentary return immediately                              
 !                                                                       
-      IF (line (1:1) .EQ.' '.or.line (1:1) .eq.'#'.or.line (1:1) .eq.'!'&
-     &.or.length.eq.0) RETURN                                           
+      IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+          line == char(13) .or. line(1:1) == '!'  ) RETURN
 !                                                                       
 !     Only the first 5 characters are significant. The command consists 
 !     of the four nonblank characters                                   

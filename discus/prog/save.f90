@@ -108,7 +108,8 @@ SUBROUTINE save_struc (zeile, lcomm)
       prom = prompt (1:len_str (prompt) ) //'/save' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) THEN 
-         IF (line.ne.' '.and.line (1:1) .ne.'#') THEN 
+         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
+             line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
