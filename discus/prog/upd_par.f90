@@ -168,6 +168,9 @@
                ELSEIF (kpara.eq.6) then 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
                   mole_num_unit                                         
+               ELSEIF (kpara.eq.7) then 
+                  WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
+                  cr_ncreal
                ENDIF 
             ELSE 
                ier_num = - 13 

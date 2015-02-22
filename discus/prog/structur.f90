@@ -81,8 +81,8 @@ CONTAINS
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
 !                                                                       
       IF (ier_num.ne.0) return 
-      IF (line (1:1) .eq.' '.or.line (1:1) .eq.'#'.or.line.eq.char (13) &
-      ) goto 9999                                                       
+      IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
+          line == char(13) .or. line(1:1) == '!'  ) GOTO 9999
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
@@ -212,6 +212,10 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                       ENDIF 
                         ce_natoms = cr_natoms 
                         cr_ncatoms = cr_natoms 
+                        cr_ncreal  = 0   ! Non void atoms in unit cell
+                        DO n=1,cr_natoms
+                           IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
+                        ENDDO
                         cr_natoms = 0 
                         DO k = 1, cr_icc (3) 
                         DO j = 1, cr_icc (2) 
@@ -365,6 +369,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             cr_icc (3) = 1 
             cr_natoms = 0 
             cr_ncatoms = 1 
+            cr_ncreal  = 1 
             cr_nscat = 0 
             as_natoms = 0 
 !                                                                       
@@ -433,6 +438,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   cr_icc (i) = sav_ncell (i) 
                   ENDDO 
                   cr_ncatoms = sav_ncatoms 
+                  cr_ncreal  = sav_ncatoms 
                ELSE 
 !                                                                       
 !     ------Define initial crystal size in number of unit cells         
@@ -446,6 +452,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
                   cr_ncatoms = cr_natoms / (cr_icc (1) * cr_icc (2)     &
                   * cr_icc (3) )                                        
+                  cr_ncatoms = cr_ncatoms
                ENDIF 
                ENDIF internal
 !                                                                       
@@ -718,7 +725,11 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
                   dw1 = werte (4) 
-                  cr_mole (i) = mole_num_mole
+                  IF(mole_l_on) THEN
+                     cr_mole (i) = mole_num_mole
+                  ELSE
+                     cr_mole(i) = 0
+                  ENDIF
                   cr_prop (i) = nint (werte (5) ) 
 !                                                                       
                   IF (line (1:4) .ne.'    ') then 
@@ -740,6 +751,14 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                               RETURN 
                            ENDIF 
                            GOTO 22 
+!                       ELSEIF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
+!                          cr_iscat (i) = 0 
+!                          CALL symmetry 
+!                          IF (ier_num.ne.0) then 
+!                             CLOSE (IST)
+!                             RETURN 
+!                          ENDIF 
+!                          GOTO 22 
                         ENDIF 
                         ENDDO 
                      ENDIF 
@@ -747,15 +766,19 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !------ ----------- end new code                                        
 !                                                                       
                      IF (cr_nscat.lt.maxscat) then 
-                        cr_nscat = cr_nscat + 1 
-                        cr_iscat (i) = cr_nscat 
-                        cr_at_lis (cr_nscat) = line (1:ibl) 
-                        cr_dw (cr_nscat) = dw1 
-!                                                                       
                         as_natoms = as_natoms + 1 
-                        as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
-                        as_iscat (as_natoms) = cr_iscat (i) 
-                        as_dw (as_natoms) = cr_dw (cr_nscat) 
+!                       IF(line(1:ibl)=='VOID' .AND. mole_l_on) THEN
+!                          cr_iscat (i) = 0 
+!                       ELSE
+                           cr_nscat = cr_nscat + 1 
+                           cr_iscat (i) = cr_nscat 
+                           cr_at_lis (cr_nscat) = line (1:ibl) 
+                           cr_dw (cr_nscat) = dw1 
+!                                                                       
+                           as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
+                           as_iscat (as_natoms) = cr_iscat (i) 
+                           as_dw (as_natoms) = cr_dw (cr_nscat) 
+!                       ENDIF
                         DO j = 1, 3 
                         as_pos (j, as_natoms) = cr_pos (j, i) 
                         ENDDO 
@@ -2071,6 +2094,7 @@ check_calc: DO j = 1, ianz
       cr_natoms = 0 
       as_natoms = 0 
       cr_ncatoms = 1 
+      cr_ncreal  = 1 
       cr_nscat = 0 
       cr_icc       = 1
       cr_cartesian = .false. 
@@ -2091,6 +2115,8 @@ check_calc: DO j = 1, ianz
       cr_dim (i, 1) = 0.0 
       cr_dim (i, 2) = 0.0 
       ENDDO 
+!
+      cr_mole = 0
 !                                                                       
       DO i = 0, MOLE_MAX_MOLE 
       mole_len (i) = 0 
