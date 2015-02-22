@@ -68,6 +68,15 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+2  2015February
+
+   The speed of the PDF and powder(Debye) calculations has been improved
+   considerably. No side effects on the user.
+
+   DISCUS does check if an atom in the unit cell file has a name "void"
+   and it will ignore these atom types when calculating the PDF.
+   This helps to get the proper PDF density and weights for molecules
+   where the first atom is a void at the center of the molecule.
 3  2014November
 
    DISCUS will now import CIF files, see ==> import
@@ -3731,7 +3740,7 @@
 
    This command allows to set the maximum r and the step width used
    to calculate the PDF. Note that if observed data are used, these
-   values are set to the corresponding values of the read date file.
+   values are set to the corresponding values of the actual data file.
    All values are entered in units of A.
 4  shape
 !b set "shape",<shape>
@@ -6978,8 +6987,12 @@
    The value "all" is equal to the default.
 
    If the second parameter is set to "mol", the complete rigid molecule
-   is displaced according to the temperature factor of the atom at the
-   origin of the molecule.
+   is displaced according to the isotropic temperature factor 
+   defines via a "mole_bios[i]=" statement or specified on a 
+   "molecule biso,<value>" statement in the ==> Unit cell file.
+
+   The temperature factor of the atom at the origin of the molecule
+   is NO longer used!
 2  variables
    The program recognizes free variables:
 
@@ -7020,6 +7033,8 @@
 !p          crystal, this variable is read only.
 !p "n[6]"   is the total number of molecules in the original unit cell,
 !p          this variable is read only.
+!p "n[7]"   is the total number of non-void atoms in the original unit cell,
+!p          this variable is read only.
 
 !p "cdim[1,1]" lowest  x coordinate of any atom in the crystal.
 !p "cdim[1,2]" highest x coordinate of any atom in the crystal.
@@ -7051,6 +7066,8 @@
 !p                 read only
 !p "mole_type[i1]" Type of molecule no. i1
 !p                 read only
+!p "mole_biso[i1]" Isotropic B-value for Molecule i1
+!p                 read/write
 
 !p "in_mole[i1]"   Molecule number in which atom i1 is located
 !p                 read only
