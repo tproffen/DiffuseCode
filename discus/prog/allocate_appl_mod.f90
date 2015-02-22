@@ -272,7 +272,7 @@ MODULE discus_allocate_appl_mod
       CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
       CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
       CALL alloc_crystal  ( 1,  1        )
-      CALL alloc_debye    ( 1,  1,  1, 1 )
+      CALL alloc_debye    ( 1,  1,  1, 1, 1 )
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
@@ -887,7 +887,7 @@ MODULE discus_allocate_appl_mod
     END SUBROUTINE alloc_crystal
 !
 !
-    SUBROUTINE alloc_debye ( n_scat, n_hist, n_qxy, MASK )
+    SUBROUTINE alloc_debye ( n_scat, n_hist, n_qxy, nlook_mol, MASK )
 !-
 !     Allocate the arrays needed by DEBYE
 !+
@@ -899,6 +899,7 @@ MODULE discus_allocate_appl_mod
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_hist
       INTEGER, INTENT(IN)  :: n_qxy
+      INTEGER, INTENT(IN)  :: nlook_mol
       INTEGER, INTENT(IN)  :: MASK
 !
       INTEGER              :: n_look
@@ -909,21 +910,6 @@ MODULE discus_allocate_appl_mod
       n_look = n_scat*(n_scat+1)/2
       lstat  = .TRUE.
       deb_size_of = 0
-!
-      CALL alloc_arr ( histogram     ,0,n_hist,                      &
-                                      1, n_look, all_status, 0, size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      deb_size_of = deb_size_of + size_of
-!
-      CALL alloc_arr ( look          ,1,n_scat,                    &
-                                       1, n_scat, all_status, 0, size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      deb_size_of = deb_size_of + size_of
-!
-      CALL alloc_arr ( partial       ,1,n_qxy ,                      &
-                                      1, n_look, all_status, 0.0, size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      deb_size_of = deb_size_of + size_of
 !
       CALL alloc_arr ( rsf     ,1,n_qxy  ,  all_status, 0.0, size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -1728,7 +1714,7 @@ MODULE discus_allocate_appl_mod
       pdf_size_of = pdf_size_of + size_of
 !
       CALL alloc_arr ( pdf_temp      ,0,n_dat,0,n_scat, &
-                                              0,n_scat, &
+                                              0,n_scat, 0,0, &
                                               all_status, 0      , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
@@ -2856,7 +2842,7 @@ MODULE discus_allocate_appl_mod
 !+
       IMPLICIT NONE
 !
-      CALL alloc_debye ( 1, 1, 1, 1 )
+      CALL alloc_debye ( 1, 1, 1, 1, 1 )
 !
     END SUBROUTINE dealloc_debye
 !

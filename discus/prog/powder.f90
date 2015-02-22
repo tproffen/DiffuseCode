@@ -46,7 +46,8 @@ CONTAINS
       prom = prompt (1:len_str (prompt) ) //'/powd' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
       IF (ier_num.eq.0) then 
-         IF (line.ne.' '.and.line (1:1) .ne.'#') then 
+         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
+             line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
@@ -1018,11 +1019,15 @@ CONTAINS
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
+      USE molecule_mod 
       USE plot_init_mod
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
 !
+      INTEGER                 :: i
+      LOGICAL                 :: do_mol      ! Molecules with Biso /= 0.0
+      INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
       REAL   , DIMENSION(1:3) :: u
 !                                                                       
       REAL sind 
@@ -1074,8 +1079,24 @@ CONTAINS
 !           u is the body diagonal of the cartesian box around the crystal
 !           calculate its length and use the length to allocate the histogram size
 !
-            CALL powder_debye_hist_cart (u, cr_nscat)
-!           CALL alloc_debye (       1,      1,   MAXDQXY, MASK )
+!
+!           Any molecules with b-value /= zero ?
+!
+            do_mol      = .false.
+            powder_nmol = 0
+            search_mol: DO i=1, mole_num_type
+               IF(mole_biso(i) > 0.0) THEN
+                  do_mol   = .true.
+                  powder_nmol = mole_num_type + mole_num_type*(mole_num_type+1)/2
+                  EXIT search_mol
+               ENDIF
+            ENDDO search_mol
+            IF(do_mol) THEN
+               CALL powder_debye_hist_cart_mole (u, cr_nscat, do_mol, powder_nmol)
+            ELSE
+               CALL powder_debye_hist_cart      (u, cr_nscat)
+            ENDIF
+!           CALL alloc_debye (       1,      1,   MAXDQXY, 1, MASK )
             CALL powder_trans_atoms_fromcart 
          ENDIF 
       ENDIF 
@@ -1655,6 +1676,9 @@ CONTAINS
       REAL                   :: distance
       REAL ss, st , sss
       REAL                   :: shift
+      REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
+      INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
+      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
       REAL u (3), v (3) 
       REAL arg 
 !                                                                       
@@ -1715,7 +1739,7 @@ CONTAINS
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
         CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
       ENDIF
-      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
+      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, 0, MASK )
 !     IF(pow_axis == POW_AXIS_Q ) THEN
 !        n_qxy = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
 !     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
@@ -1723,8 +1747,10 @@ CONTAINS
 !     ENDIF
       CALL alloc_powder (n_qxy                   )
 !                                                                       
-!     prepare loopuptable                                               
+!     prepare loopuptable for atom types
 !                                                                       
+      ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
+      look  = 0
       nlook = 0 
       DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
@@ -1733,23 +1759,30 @@ CONTAINS
       look (j, i) = nlook 
       ENDDO 
       ENDDO 
+!
+      ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:0))
+      ALLOCATE(histogram(0:n_hist       ,1:nlook,0:0))
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-      DO i = 1, num (1) * num (2) 
-      DO j = 1, nlook 
-      partial (i, j) = 0.0 
-      ENDDO 
-      rsf (i) = 0.0 
-      ENDDO 
-      DO i = 1, MAXHIST 
-      DO j = 1, nlook 
-      histogram (i, j) = 0 
-      ENDDO 
-      ENDDO 
-      DO i = 0, cr_nscat 
-      natom (i) = 0 
-      ENDDO 
+!     DO i = 1, num (1) * num (2) 
+!     DO j = 1, nlook 
+!     partial (i, j) = 0.0 
+!     ENDDO 
+!     rsf (i) = 0.0 
+!     ENDDO 
+!     DO i = 1, MAXHIST 
+!     DO j = 1, nlook 
+!     histogram (i, j) = 0 
+!     ENDDO 
+!     ENDDO 
+!     DO i = 0, cr_nscat 
+!     natom (i) = 0 
+!     ENDDO 
+      partial   = 0.0
+      rsf       = 0.0 
+      histogram = 0 
+      natom     = 0 
 !DBG                                                                    
 !DBG      write(*,*) ' del_hist ',del_hist                              
 !DBG      write(*,*) ' MAXHIST  ',MAXHIST                               
@@ -1797,8 +1830,8 @@ CONTAINS
 
 !              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
-               histogram (ibin, look (jscat, iscat) ) = &
-               histogram (ibin, look (jscat, iscat) ) + 1                                
+               histogram (ibin, look (jscat, iscat),0 ) = &
+               histogram (ibin, look (jscat, iscat),0 ) + 1                                
             ENDIF 
          ENDDO 
          ENDIF 
@@ -1806,15 +1839,18 @@ CONTAINS
 !DBG      sss = seknds (sss) 
 !DBG      WRITE (output_io, 4000) sss 
 !
-!     Check for entries in histogram (0,*) ==> atoms at distance ZERO
+!     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
 !
       i= 0
       DO j=1,nlook
-         i = MAX(i, histogram(0,j))
+         i = MAX(i, histogram(0,j,0))
       ENDDO
       IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
          ier_num = -123
          ier_typ = ER_APPL
+         DEALLOCATE(look   )
+         DEALLOCATE(partial)
+         DEALLOCATE(histogram)
          RETURN
       ENDIF
 !DBG_RBN                                                                
@@ -1832,14 +1868,14 @@ CONTAINS
 !DBG      ss = seknds(0.0)                                              
       DO i = 1, nlook 
       DO j = 1, MAXHIST 
-      IF (histogram (j, i) .gt.0) then 
+      IF (histogram (j, i,0) .gt.0) then 
          DO k = 1, num (1) * num (2) 
          arg = zpi * (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) 
 !DBG              partial(k,i) = partial(k,i)+                          
-!DBG     &                   histogram(j,i)*sin(arg)/arg                
+!DBG     &                   histogram(j,i,0)*sin(arg)/arg                
          iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
-         partial (k, i) = partial (k, i) + histogram (j, i) * sinetab ( &
+         partial (k, i,0) = partial (k, i,0) + histogram (j, i,0) * sinetab ( &
          iadd) / arg                                                    
          ENDDO 
       ENDIF 
@@ -1854,7 +1890,7 @@ CONTAINS
       DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
       DO k = 1, num (1) * num (2) 
-      rsf (k) = rsf (k) + 2.0 * partial (k, look (i, j) ) * (real (     &
+      rsf (k) = rsf (k) + 2.0 * partial (k, look (i, j),0 ) * (real (     &
       cfact (istl (k), i) ) * real (cfact (istl (k), j) ) + aimag (     &
       cfact (istl (k), i) ) * aimag (cfact (istl (k), j) ) )            
       ENDDO 
@@ -1872,6 +1908,10 @@ CONTAINS
       istl (i), iscat) ) ) * natom (iscat)                              
       ENDDO 
       ENDDO 
+!
+      DEALLOCATE(look   )
+      DEALLOCATE(partial)
+      DEALLOCATE(histogram)
       ss = seknds (ss) 
       WRITE (output_io, 4000) ss 
 
@@ -1883,6 +1923,284 @@ CONTAINS
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
       END SUBROUTINE powder_debye_hist_cart         
+!*****7*****************************************************************
+      SUBROUTINE powder_debye_hist_cart_mole(udist, cr_nscat_temp, &
+                 do_mol, powder_nmol)
+!-                                                                      
+!     Calculate the powder pattern by using the Debye Formula according 
+!     to Giacovacco                                                     
+!     Histogram Version                                                 
+!+                                                                      
+      USE config_mod 
+      USE discus_allocate_appl_mod
+      USE crystal_mod 
+      USE debye_mod 
+      USE diffuse_mod 
+      USE fourier_sup
+      USE metric_mod
+      USE molecule_mod
+      USE output_mod 
+      USE powder_mod 
+      USE wink_mod
+!                                                                       
+      USE prompt_mod 
+      IMPLICIT none 
+!                                                                       
+      REAL,    INTENT(IN)  :: udist(3)
+      INTEGER, INTENT(IN)  :: cr_nscat_temp
+      LOGICAL, INTENT(IN)  :: do_mol      ! Molecules with Biso /= 0.0
+      INTEGER, INTENT(IN)  :: powder_nmol ! Number of look up dimensions molecules
+!                                                                       
+      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
+      INTEGER ibin 
+      INTEGER j, k, l , il
+      INTEGER i, iscat, jscat 
+      INTEGER iarg, iadd 
+      INTEGER                :: n_hist
+      INTEGER                :: n_qxy
+      INTEGER                :: n_nscat
+      INTEGER                :: nlook_mol   ! Number of look up dimensions molecules
+      INTEGER                :: islook      ! Actual molecule look up number
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: powder_look_mol
+      REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_bvalue_mole
+      REAL   , DIMENSION(:,:), ALLOCATABLE :: pow_dw
+      REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
+      INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
+      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
+      REAL                   :: distance
+      REAL ss, st , sss
+      REAL                   :: shift
+      REAL u (3), v (3) 
+      REAL arg 
+!                                                                       
+      INTEGER IAND 
+      REAL sind 
+      REAL seknds 
+!                                                                       
+      n_qxy   = 1
+      n_nscat = 1
+      ier_num = 0 
+!                                                                       
+!------ preset some values                                              
+!                                                                       
+      num (1) = 1021 
+      num (2) = 1 
+!------ Reset arrays
+      u     = 0.0 
+      v     = 0.0 
+      xm    = 0.0 
+      uin   = 0.0 
+      vin   = 0.0 
+!
+      IF (pow_axis.eq.POW_AXIS_DSTAR) then 
+         CONTINUE 
+      ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+         u (1) = 1.00 
+         xm (1) = pow_qmin / zpi 
+         ss = pow_qmax / zpi 
+         st = (pow_qmax - pow_deltaq) / zpi 
+         uin (1) = pow_deltaq / zpi 
+         num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+      ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+         u (1) = 1.00 
+         xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
+         ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
+         st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
+         uin (1) = (ss - st) / 2. 
+         num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+      ENDIF 
+!
+!     Lay out look_up table for molecule entries
+!
+      IF(ALLOCATED(powder_look_mol)) DEALLOCATE(powder_look_mol)
+      ALLOCATE(powder_look_mol(0:mole_num_type,0:mole_num_type))
+      IF(ALLOCATED(powder_bvalue_mole)) DEALLOCATE(powder_bvalue_mole)
+      ALLOCATE(powder_bvalue_mole(0:powder_nmol))
+      powder_look_mol    = 0
+      powder_bvalue_mole = 0.0
+      nlook_mol          = 0
+      IF(powder_nmol>0) THEN    ! Non-zero molecular bvalues
+         DO i=1,mole_num_type   ! First part biso for single molecule
+            powder_look_mol(0,i) = i
+            powder_look_mol(i,0) = i
+            powder_bvalue_mole(i) = mole_biso(i)
+         ENDDO
+         nlook_mol = mole_num_type
+         DO i=1,mole_num_type   !Second part biso for two molecules
+            DO j = i,mole_num_type
+               nlook_mol            = nlook_mol + 1
+               powder_look_mol(i,j) = nlook_mol
+               powder_look_mol(j,i) = nlook_mol
+               powder_bvalue_mole(nlook_mol) = mole_biso(i) + mole_biso(j)
+            ENDDO
+         ENDDO
+      ENDIF
+!
+!    Allocate arrays
+!
+      n_qxy    = num (1) * num (2)
+      distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
+      n_hist   = nint(distance/pow_del_hist) + 2
+      IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
+          num (1) * num (2) .gt. MAXDQXY .OR.          &
+          cr_nscat>DIF_MAXSCAT              ) THEN
+         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+        CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+      ENDIF
+      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, nlook_mol, MASK )
+!
+      CALL alloc_powder (n_qxy                   )
+      IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
+      ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
+      pow_dw = 1.0
+      IF(do_mol) THEN   ! If necessary calc Debye Waller terms for molecules
+        CALL powder_dwmoltab (n_qxy, nlook_mol, pow_dw, powder_bvalue_mole)
+      ENDIF
+!                                                                       
+!     prepare loopuptable for atom types
+!                                                                       
+      ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
+      look  = 0
+      nlook = 0 
+      DO i = 1, cr_nscat 
+      DO j = i, cr_nscat 
+      nlook = nlook + 1 
+      look (i, j) = nlook 
+      look (j, i) = nlook 
+      ENDDO 
+      ENDDO 
+!
+      ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:nlook_mol))
+      ALLOCATE(histogram(0:n_hist       ,1:nlook,0:nlook_mol))
+!                                                                       
+!------ zero some arrays                                                
+!                                                                       
+      partial   = 0.0
+      rsf       = 0.0 
+      histogram = 0 
+      natom     = 0 
+!                                                                       
+!------ preset some tables, calculate average structure                 
+!                                                                       
+      CALL powder_sinet 
+      CALL powder_stltab 
+      IF (ier_num.ne.0) return 
+      CALL four_formtab 
+!
+      WRITE (output_io, * ) ' Starting histogram'
+      ss = seknds (0.0) 
+!
+!                                                                       
+!     loop over all atoms                                               
+!                                                                       
+!-----Optimization notes
+!     Omitting the error checks saves about 1/4 time
+!     Replaced NINT by INT( + shift) this cuts the time in half!!!!
+!     Omitting the SQRT only saves a little, as do the local variables
+!     The if(iscat) do not cause much compute time
+
+      shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
+      DO j = 1, cr_natoms - 1
+         jscat = cr_iscat(j) 
+         IF (jscat.gt.0) then 
+            u(1) = cr_pos(1,j) 
+            u(2) = cr_pos(2,j) 
+            u(3) = cr_pos(3,j) 
+!                                                                       
+!     --- get info on relative amount of atoms                          
+!                                                                       
+         natom (jscat) = natom (jscat) + 1 
+!                                                                       
+!------ --- loop over all different atom types                          
+!                                                                       
+         DO l = j + 1, cr_natoms 
+            iscat = cr_iscat (l) 
+            IF (iscat.gt.0) then 
+              IF(cr_mole(j )==cr_mole(l)) THEN
+                 islook = 0   ! Atoms are within the same molecule
+              ELSE
+                 islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
+              ENDIF
+              v (1) = cr_pos (1, l) - u (1) 
+              v (2) = cr_pos (2, l) - u (2) 
+              v (3) = cr_pos (3, l) - u (3) 
+
+!              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
+               ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
+               histogram (ibin, look (jscat, iscat),islook ) = &
+               histogram (ibin, look (jscat, iscat),islook ) + 1                                
+            ENDIF 
+         ENDDO 
+         ENDIF 
+      ENDDO 
+!
+!     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
+!
+      i= 0
+      DO j=1,nlook
+         i = MAX(i, histogram(0,j,0))
+      ENDDO
+      IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
+         ier_num = -123
+         ier_typ = ER_APPL
+         DEALLOCATE(look)
+         DEALLOCATE(partial)
+         DEALLOCATE(histogram)
+         RETURN
+      ENDIF
+!                                                                       
+!     --- Calculate the Fourier                                         
+!                                                                       
+      DO i = 1, nlook 
+      DO j = 1, MAXHIST 
+         DO il=0,nlook_mol
+         IF (histogram (j, i,il) .gt.0) then 
+         DO k = 1, num (1) * num (2) 
+         arg  = zpi *(j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) 
+         iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
+         iadd = IAND (iarg, MASK) 
+         partial(k,i,il) = partial(k,i,il) + histogram(j,i,il) * sinetab(iadd)/arg
+         ENDDO 
+         ENDIF 
+         ENDDO 
+      ENDDO 
+      ENDDO 
+!                                                                       
+!------ Multiply the partial structure factors with form factors,add    
+!     to total sum                                                      
+!                                                                       
+      DO i = 1, cr_nscat 
+         DO j = i, cr_nscat 
+            DO k = 1, num (1) * num (2) 
+               DO il=0,powder_nmol
+                  rsf(k) = rsf (k) + 2.0 * partial (k, look (i, j),il ) *       &
+                           (real(cfact(istl(k),i)) * real (cfact(istl(k),j)) +  &
+                           aimag(cfact(istl(k),i)) * aimag(cfact(istl(k),j)))*  &
+                           pow_dw(istl(k),il)
+               ENDDO 
+            ENDDO 
+         ENDDO 
+      ENDDO 
+!                                                                       
+!                                                                       
+!     add the f**2 weighted by relative amount to intensity             
+!                                                                       
+      DO iscat = 1, cr_nscat 
+         DO i = 1, num (1) * num (2) 
+            rsf(i) = rsf(i) + real(cfact(istl(i),iscat) * &
+                             conjg(cfact(istl(i),iscat))) * natom(iscat)
+         ENDDO 
+      ENDDO 
+!
+      DEALLOCATE(look)
+      DEALLOCATE(partial)
+      DEALLOCATE(histogram)
+      ss = seknds (ss) 
+      WRITE (output_io, 4000) ss 
+!                                                                       
+ 4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
+      END SUBROUTINE powder_debye_hist_cart_mole
 !*****7*****************************************************************
       SUBROUTINE powder_strucf (iscat, lform) 
 !+                                                                      
@@ -1985,67 +2303,67 @@ CONTAINS
  1000 FORMAT     (' Computing complex exponent table ...') 
       END SUBROUTINE powder_cexpt                   
 !*****7*****************************************************************
-      SUBROUTINE powder_sine_f (iscat, jscat) 
+!!      SUBROUTINE powder_sine_f (iscat, jscat) 
 !+                                                                      
 !     Here the real structure factor of 'nxat' identical atoms          
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE config_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-      IMPLICIT none 
+!!      USE config_mod 
+!!      USE debye_mod 
+!!      USE diffuse_mod 
+!!      IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(dp) xarg0, xincu, twopi 
-      INTEGER iscat, jscat 
-      INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
+!!      REAL(dp) xarg0, xincu, twopi 
+!!      INTEGER iscat, jscat 
+!!      INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
 !                                                                       
-      INTEGER IAND, ISHFT 
+!!      INTEGER IAND, ISHFT 
 !                                                                       
-      twopi = 8.0d0 * datan (1.0d0) 
+!!      twopi = 8.0d0 * datan (1.0d0) 
 !                                                                       
 !------ zero fourier array                                              
 !                                                                       
-      DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0, 0.0) 
-      ENDDO 
+!!      DO i = 1, num (1) * num (2) 
+!!      tcsf (i) = cmplx (0.0, 0.0) 
+!!      ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       
-      DO k = 1, nxat 
-      xarg0 = xm (1) * xat (k, 1) + xm (2) * xat (k, 2) + xm (3)        &
-      * xat (k, 3)                                                      
-      xincu = uin (1) * xat (k, 1) + uin (2) * xat (k, 2) + uin (3)     &
-      * xat (k, 3)                                                      
+!!      DO k = 1, nxat 
+!!      xarg0 = xm (1) * xat (k, 1) + xm (2) * xat (k, 2) + xm (3)        &
+!!      * xat (k, 3)                                                      
+!!      xincu = uin (1) * xat (k, 1) + uin (2) * xat (k, 2) + uin (3)     &
+!!      * xat (k, 3)                                                      
 !DBG        xincv = vin(1)*xat(k,1)+vin(2)*xat(k,2)+vin(3)*xat(k,3)     
 !                                                                       
-      iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
-      iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
+!!      iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
+!!      iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
 !DBG        iincv = nint( 64*I2PI*( xincv-int(xincv)+1.0d0))            
-      iarg = iarg0 
+!!      iarg = iarg0 
 !                                                                       
 !------ - Loop over all points in Q. 'iadd' is the address of the       
 !------ - complex exponent table. 'IADD' divides out the 64 and         
 !------ - ISHFT acts as MOD so that the argument stays in the table     
 !------ - boundaries.                                                   
 !                                                                       
-      ii = 0 
+!!      ii = 0 
 !                                                                       
-      DO j = 1, num (1) 
+!!      DO j = 1, num (1) 
 !DBG          do i=1,num(2)                                             
-      iadd = ISHFT (iarg, - 6) 
-      iadd = IAND (iadd, MASK) 
-      ii = ii + 1 
-      partial (ii, look (iscat, jscat) ) = partial (ii, look (iscat,    &
-      jscat) ) + sinetab (iadd) / real ( (xarg0 + float (j - 1) * xincu)&
-      * twopi)                                                          
+!!      iadd = ISHFT (iarg, - 6) 
+!!      iadd = IAND (iadd, MASK) 
+!!      ii = ii + 1 
+!!      partial (ii, look (iscat, jscat),0 ) = partial (ii, look (iscat,    &
+!!      jscat),0 ) + sinetab (iadd) / real ( (xarg0 + float (j - 1) * xincu)&
+!!      * twopi)                                                          
 !DBG            iarg = iarg + iincv                                     
 !DBG          ENDDO                                                     
-      iarg = iarg0 + iincu * j 
-      ENDDO 
-      ENDDO 
+!!      iarg = iarg0 + iincu * j 
+!!      ENDDO 
+!!      ENDDO 
 !                                                                       
-      END SUBROUTINE powder_sine_f                  
+!!      END SUBROUTINE powder_sine_f                  
 !*****7*****************************************************************
       SUBROUTINE powder_sinet 
 !+                                                                      
@@ -2516,4 +2834,46 @@ CONTAINS
       ENDDO 
 !                                                                       
       END SUBROUTINE powder_trans_atoms_fromcart    
+!*****7*****************************************************************
+      SUBROUTINE powder_dwmoltab (n_qxy, nlook_mol, pow_dw, powder_bvalue_mole)
+!+                                                                      
+!     This routine sets up the complex formfactor lookup table          
+!     for all atom types. The range in sin(theta)/lambda is             
+!     0 -> 2 in steps of 0.001. These values can be changed             
+!     in the 'diffuse_mod.f90' file.                                        
+!-                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE diffuse_mod 
+!                                                                       
+      USE prompt_mod 
+      IMPLICIT none 
+!
+      INTEGER,                                 INTENT(IN)  :: n_qxy
+      INTEGER,                                 INTENT(IN)  :: nlook_mol
+      REAL   , DIMENSION(0:CFPKT,0:nlook_mol), INTENT(OUT) :: pow_dw
+      REAL   , DIMENSION(0:nlook_mol)        , INTENT(IN ) :: powder_bvalue_mole
+!                                                                       
+      REAL    :: q2, sb
+      INTEGER :: iq, iscat 
+!
+!      IF (four_log) then 
+         WRITE (output_io, 1000) 
+!      ENDIF 
+!                                                                       
+      DO iscat = 0, nlook_mol 
+         DO iq = 0, CFPKT 
+            q2 = (float (iq) * CFINC) **2 
+!
+            IF (powder_bvalue_mole(iscat)>0.0) then 
+               pow_dw (iq, iscat) = exp ( - powder_bvalue_mole ( iscat ) * q2) 
+            ELSE 
+               pow_dw (iq, iscat) = 1.0
+            ENDIF 
+!
+         ENDDO 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT     (' Computing Molecular DW lookup table ...') 
+      END SUBROUTINE powder_dwmoltab                   
 END MODULE powder
