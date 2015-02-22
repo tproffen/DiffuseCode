@@ -19,10 +19,11 @@ USE config_mod
    INTEGER, PARAMETER               ::  cr_hexagonal   = 8
    INTEGER, PARAMETER               ::  cr_cubic       = 9
 !
-   INTEGER                          ::  cr_spcgrno = 1
-   INTEGER                          ::  cr_syst    = 1
-   INTEGER                          ::  cr_ncatoms = 1
-   INTEGER, DIMENSION(3)            ::  cr_icc     = 1
+   INTEGER                          ::  cr_spcgrno = 1  ! Space group number
+   INTEGER                          ::  cr_syst    = 1  ! Crystal system number
+   INTEGER                          ::  cr_ncatoms = 1  ! NUmber of atoms in Unit cell
+   INTEGER                          ::  cr_ncreal  = 1  ! NUmber of non-void atoms in Unit cell
+   INTEGER, DIMENSION(3)            ::  cr_icc     = 1  ! Number of unit cells
 !
    INTEGER                          ::  spcgr_ianz  = 0
    INTEGER                          ::  spcgr_para  = 0
