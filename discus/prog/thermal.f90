@@ -79,7 +79,8 @@ CONTAINS
       IF (flag_mol) then 
          DO i = 1, mole_num_mole 
          is = mole_cont (mole_off (i) + 1) 
-         a = sqrt (bfac * cr_dw (cr_iscat (is) ) ) 
+!        a = sqrt (bfac * cr_dw (cr_iscat (is) ) ) 
+         a = sqrt (bfac * mole_biso (mole_type (i) ) ) 
          is = mole_type (i) 
          DO ii = 1, 3 
          IF (flag_all.or.cr_icc (ii) .ne.1) then 
