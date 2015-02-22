@@ -25,7 +25,7 @@ INTEGER             ::  pdf_nbnd  = 1
 !
 REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
 REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
-INTEGER, DIMENSION(:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
+INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
 REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
@@ -42,8 +42,10 @@ REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
 !REAL   , DIMENSION(0:MAXSCAT,0:MAXSCAT) ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
 REAL                ::  pdf_rmax   = 50.00
 REAL                ::  pdf_qmax   = 30.00
-REAL                ::  pdf_deltar =  0.01
-REAL                ::  pdf_deltars=  0.005
+REAL                ::  pdf_deltar =  0.001   ! internal delta r
+REAL                ::  pdf_deltars=  0.0005
+REAL                ::  pdf_deltaru=  0.01    ! User supplied delta r
+INTEGER             ::  pdf_us_int            ! Ratio user steps to internal steps
 REAL                ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
@@ -72,6 +74,7 @@ INTEGER             ::  pdf_sel_prop(0:1) = 0
 !                                                
 INTEGER             ::  pdf_radiation = PDF_RAD_XRAY
 INTEGER             ::  pdf_power     = 4
+INTEGER             ::  pdf_nmol      = 0   ! pdf_temp dimension if molecules are relevant
 LOGICAL             ::  pdf_lxray  = .false.
 LOGICAL             ::  pdf_gauss  = .false.
 LOGICAL             ::  pdf_gauss_init  = .true.
@@ -79,6 +82,8 @@ REAL(dp), PARAMETER ::  pdf_gauss_step = 0.0005d0
 LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
+INTEGER, DIMENSION(:,:),ALLOCATABLE  ::  pdf_look_mol ! (0:PDF_MAXSCAT)
+REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_bvalue_mole ! evvective mol bvalues
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
 LOGICAL             ::  pdf_ldata     = .false.
