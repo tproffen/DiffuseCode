@@ -979,7 +979,7 @@ CONTAINS
       IF (mole_num_mole.eq.0) then 
          CALL do_purge_atoms 
       ELSEIF (mole_num_mole.gt.0) then 
-         CALL do_purge_molecules 
+         CALL do_purge_molecules_new
       ENDIF 
 !                                                                       
       END SUBROUTINE do_purge                       
@@ -1071,6 +1071,111 @@ CONTAINS
 !                                                                       
       END SUBROUTINE do_check_purge                 
 !*****7**************************************************************** 
+      SUBROUTINE do_purge_molecules_new
+!-                                                                      
+!     Purges the list of atoms from all deleted atoms                   
+!+                                                                      
+      USE config_mod 
+      USE crystal_mod 
+      USE chem_aver_mod
+      USE molecule_mod 
+      USE errlist_mod 
+      USE param_mod 
+      IMPLICIT none 
+!                                                                       
+      INTEGER :: ndel
+      INTEGER :: ia                   ! Loop over atoms
+      INTEGER :: im                   ! Dummy index for molecule
+      INTEGER :: inew                 ! Dummy index for new molecule
+      INTEGER :: old_mole_num_mole    ! Original molecule number
+      INTEGER :: max_length           ! Original maximum molecule length
+      LOGICAL :: lout = .false.       ! no output
+!
+      INTEGER, DIMENSION(:,:), ALLOCATABLE :: new_mole ! Temporary moleceule properties
+      INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_len
+      INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_type
+      CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: new_file
+      INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_char
+      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_dens
+      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_biso
+      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_fuzz
+!                                                                       
+!                                                                       
+      CALL chem_elem (lout) 
+      ndel = nint (res_para (1) * cr_natoms) 
+!
+      old_mole_num_mole = mole_num_mole
+      max_length        = MAXVAL(mole_len)
+!                                                                       
+      IF (ndel.ne.0) then 
+         CALL do_purge_atoms        ! First remove atoms
+!
+         ALLOCATE(new_mole(0:old_mole_num_mole,1:max_length))
+         ALLOCATE(new_len (0:old_mole_num_mole))
+         ALLOCATE(new_type(0:old_mole_num_mole))
+         ALLOCATE(new_file(0:old_mole_num_mole))
+         ALLOCATE(new_char(0:old_mole_num_mole))
+         ALLOCATE(new_dens(0:old_mole_num_mole))
+         ALLOCATE(new_biso(0:old_mole_num_mole))
+         ALLOCATE(new_fuzz(0:old_mole_num_mole))
+!
+         new_mole = 0                 ! Initialise all arrays
+         new_len  = 0
+         new_type = 0
+         new_file = ' '
+         new_char = 0
+!
+         DO ia=1, cr_natoms           ! Loop over all atoms
+            IF(cr_mole(ia)/=0) THEN   ! Atom is in a molecule
+               im = cr_mole(ia)
+               new_len (im)             = new_len (im) + 1 ! increment length
+               new_mole(im,new_len(im)) = ia               ! insert atom
+            ENDIF
+         ENDDO
+!
+         new_type = mole_type         ! Copy all molecule properties
+         new_file = mole_file
+         new_char = mole_char
+         new_dens = mole_dens
+         new_biso = mole_biso
+         new_fuzz = mole_fuzzy
+!
+         mole_len  = 0               ! Clear old molecules
+         mole_off  = 0
+         mole_cont = 0
+!
+         inew = 0                    ! No new molecules yet
+         DO im=1,mole_num_mole       ! Loop over all old molecules
+            IF(new_len(im)>0) THEN   ! This molecule still has atoms
+               inew = inew + 1
+               mole_len  (inew) = new_len (im)  ! Cope molecule properties
+               mole_type (inew) = new_type(im)
+               mole_file (inew) = new_file(im)
+               mole_char (inew) = new_char(im)
+               mole_dens (inew) = new_dens(im)
+               mole_biso (inew) = new_biso(im)
+               mole_fuzzy(inew) = new_fuzz(im)
+               mole_off  (inew) = mole_off(inew-1) + mole_len(inew-1)
+               DO ia=1,new_len(im)   ! Loop over atoms in this molecule
+                  mole_cont(mole_off(inew)+ia) = new_mole(im,ia) ! Copy into molecule
+                  cr_mole(new_mole(im,ia))     = inew            ! update atom property
+               ENDDO
+            ENDIF
+         ENDDO
+!
+         DEALLOCATE(new_mole)    ! Free teporary memory
+         DEALLOCATE(new_len )
+         DEALLOCATE(new_type)
+         DEALLOCATE(new_file)
+         DEALLOCATE(new_char)
+         DEALLOCATE(new_dens)
+         DEALLOCATE(new_biso)
+         DEALLOCATE(new_fuzz)
+!
+      ENDIF 
+!                                                                       
+      END SUBROUTINE do_purge_molecules_new
+!*****7**************************************************************** 
       SUBROUTINE do_purge_molecules 
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
@@ -1108,6 +1213,8 @@ CONTAINS
 !     ------ molecule. If found, set reference to atom no to zero.      
 !     -------Shift all higher atom numbers one down                     
 !                                                                       
+            nmol = cr_mole(i)                ! Get molecule no.
+            IF(nmol>0) THEN                  ! Atom is in a molecule
             DO nmol = 1, mole_num_mole 
             DO iatom = 1, mole_len (nmol) 
             k = mole_cont (mole_off (nmol) + iatom) 
@@ -1120,6 +1227,7 @@ CONTAINS
             ENDIF 
             ENDDO 
             ENDDO 
+            ENDIF   ! Atom is in a molecule
 !                                                                       
 !     ------shift all following atoms one down                          
 !                                                                       
