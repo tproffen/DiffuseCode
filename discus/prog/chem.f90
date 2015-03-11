@@ -4132,16 +4132,23 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER                             ,INTENT(INOUT) :: ianz 
+      INTEGER                             ,INTENT(IN   ) :: maxw 
+      CHARACTER (LEN=*), DIMENSION(1:maxw), INTENT(IN) ::  cpara
+      INTEGER          , DIMENSION(1:maxw), INTENT(IN) ::  lpara
+      INTEGER          , DIMENSION(1:3   ), INTENT(IN) ::  lbeg 
+      LOGICAL                             , INTENT(IN) ::  lout 
 !                                                                       
       INTEGER maxww, maxatom 
 !                                                                       
       PARAMETER (maxatom = chem_max_neig) 
 !                                                                       
-      INTEGER ianz, maxw 
-      CHARACTER ( * ) cpara (maxw) 
-      INTEGER lpara (maxw), lbeg (3) 
-      LOGICAL lout 
+!     INTEGER ianz, maxw 
+!     CHARACTER ( * ) cpara (maxw) 
+!     INTEGER lpara (maxw), lbeg (3) 
+      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: ccpara
+      INTEGER         , DIMENSION(:), ALLOCATABLE :: llpara
+!     LOGICAL lout
 !                                                                       
       INTEGER atom (0:maxatom), natom 
       INTEGER icc (3), jcc (3) 
@@ -4152,56 +4159,71 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL rdi, rdj, dpi, dpj 
       REAL xij, xi2, xj2 
       LOGICAL lvalid 
+      LOGICAL lauto     ! catch autocorrelation of atom to itself
 !                                                                       
 !     REAL skalpro 
 !     LOGICAL atom_allowed, chem_inlot 
 !     LOGICAL chem_inlot 
+      lauto = .true.
 !                                                                       
 !------ writing output line                                             
 !                                                                       
       maxww = MAXSCAT
       IF (lout) then 
-         WRITE (output_io, 1000) cpara (1) (1:lpara (1) ), cpara (2)    &
-         (1:lpara (2) )                                                 
+         WRITE (output_io, 1000) cpara(1)(1:lpara(1)), &
+                                 cpara(2)(1:lpara (2))                                                 
       ENDIF 
+!
+      ALLOCATE(ccpara(1:maxw))
+      ALLOCATE(llpara(1:maxw))
+      llpara(1) = MAX(1,MIN(lpara(1),4))
+      llpara(2) = MAX(1,MIN(lpara(2),4))
+      ccpara(1) = cpara(1)(1:llpara(1))
+      ccpara(2) = cpara(2)(1:llpara(2))
+!
 !                                                                       
       iianz = 1 
       jjanz = 1 
-      CALL get_iscat (iianz, cpara, lpara, werte, maxww, .false.) 
-      CALL del_params (1, ianz, cpara, lpara, maxw) 
-      CALL get_iscat (jjanz, cpara, lpara, wwerte, maxww, .false.) 
-      IF (ier_num.ne.0) return 
+      CALL get_iscat (iianz, ccpara, llpara, werte, maxww, .false.) 
+      CALL del_params (1, ianz, ccpara, llpara, maxw) 
+      CALL get_iscat (jjanz, ccpara, llpara, wwerte, maxww, .false.) 
+      IF (ier_num.ne.0) THEN
+         DEALLOCATE(ccpara)
+         DEALLOCATE(llpara)
+         return 
+      ENDIF
 !                                                                       
       CALL chem_aver (.false., .true.) 
 !                                                                       
 !------ loop over all defined correlations                              
 !                                                                       
-      DO ic = 1, chem_ncor 
+      corr_loop: DO ic = 1, chem_ncor 
 !                                                                       
-      IF (chem_dir (1, 1, ic) .eq. - 9999..and..not.chem_ldall (ic) )   &
-      then                                                              
-         ier_num = - 15 
-         ier_typ = ER_CHEM 
-         RETURN 
-      ENDIF 
+         IF (chem_dir(1, 1, ic) ==  -9999..and..not.chem_ldall(ic)) THEN
+            ier_num = - 15 
+            ier_typ = ER_CHEM 
+            DEALLOCATE(ccpara)
+            DEALLOCATE(llpara)
+            RETURN 
+         ENDIF 
 !                                                                       
-      nn = 0 
-      xij = 0.0 
-      xi2 = 0.0 
-      xj2 = 0.0 
-      DO i = 1, 3 
-      idir (i) = chem_dir (i, 1, ic) 
-      jdir (i) = chem_dir (i, 2, ic) 
-      ENDDO 
+         nn = 0 
+         xij = 0.0 
+         xi2 = 0.0 
+         xj2 = 0.0 
+         DO i = 1, 3 
+            idir (i) = chem_dir (i, 1, ic) 
+            jdir (i) = chem_dir (i, 2, ic) 
+         ENDDO 
 !                                                                       
 !------ - calculate correlations                                        
 !                                                                       
-      rdi = skalpro (idir, idir, cr_gten) 
-      rdj = skalpro (jdir, jdir, cr_gten) 
-      IF (rdi.gt.0.0) rdi = sqrt (rdi) 
-      IF (rdj.gt.0.0) rdj = sqrt (rdj) 
+         rdi = skalpro (idir, idir, cr_gten) 
+         rdj = skalpro (jdir, jdir, cr_gten) 
+         IF (rdi.gt.0.0) rdi = sqrt (rdi) 
+         IF (rdj.gt.0.0) rdj = sqrt (rdj) 
 !                                                                       
-      DO i = 1, cr_natoms 
+         atom_loop: DO i = 1, cr_natoms 
 !                                                                       
 !------ --- Check if selected atom is valid                             
 !                                                                       
@@ -4215,13 +4237,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          IF (natom.gt.0) then 
             CALL indextocell (i, icc, is) 
             DO j = 1, 3 
-            di (j) = cr_pos (j, i) - chem_ave_pos (j, is) - float (icc (&
-            j) - 1) - cr_dim0 (j, 1)                                    
+               di(j) = cr_pos(j,i) - chem_ave_pos(j,is) -&
+                       float (icc(j) - 1) - cr_dim0 (j,1)                                    
             ENDDO 
 !                                                                       
             IF (chem_ldall (ic) ) then 
                DO j = 1, 3 
-               jdir (j) = di (j) 
+                  jdir (j) = di (j) 
                ENDDO 
                rdj = skalpro (jdir, jdir, cr_gten) 
                IF (rdj.gt.0.0) then 
@@ -4235,11 +4257,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             ENDIF 
 !                                                                       
             DO j = 1, natom 
+               lauto = lauto .AND. cr_iscat(i)==cr_iscat(atom(j))
             IF (atom_allowed (atom (j), wwerte, jjanz, maxww) ) then 
                CALL indextocell (atom (j), jcc, js) 
                DO ii = 1, 3 
-               dj (ii) = cr_pos (ii, atom (j) ) - chem_ave_pos (ii, js) &
-               - float (jcc (ii) - 1) - cr_dim0 (ii, 1)                 
+                  dj(ii) = cr_pos(ii,atom (j) ) - chem_ave_pos (ii,js) &
+                          - float(jcc(ii) - 1) - cr_dim0(ii,1)                 
                ENDDO 
                dpj = skalpro (dj, jdir, cr_gten) / rdj 
                xij = xij + dpi * dpj 
@@ -4249,49 +4272,59 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             ENDIF 
             ENDDO 
          ENDIF 
-      ENDIF 
-      ENDDO 
+         ENDIF 
+         ENDDO atom_loop
 !                                                                       
 !------ - write results and save to res_para block                      
 !                                                                       
-      IF (nn.ne.0) then 
-         xij = xij / float (nn) 
-         xi2 = xi2 / float (nn) 
-         xj2 = xj2 / float (nn) 
+         IF (nn.ne.0) then 
+            xij = xij / float (nn) 
+            xi2 = xi2 / float (nn) 
+            xj2 = xj2 / float (nn) 
 !                                                                       
-         IF (xi2.ne.0.and.xj2.ne.0.0) then 
-            mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
-         ELSE 
-            mo_ach_corr (ic) = 0.0 
-         ENDIF 
-!                                                                       
-         IF (lout) then 
-            IF (chem_ldall (ic) ) then 
-               WRITE (output_io, 1100) ic, nn, mo_ach_corr (ic) 
+            IF (xi2.ne.0.and.xj2.ne.0.0) then 
+               mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
             ELSE 
-               WRITE (output_io, 1110) ic, idir, jdir, nn, mo_ach_corr (&
-               ic)                                                      
+               mo_ach_corr (ic) = 0.0 
             ENDIF 
-         ENDIF 
+         ELSEIF(lauto) THEN   ! Got autocorrelation of atom to itself
+           mo_ach_corr (ic) = 1.0
+         ENDIF
+         IF (nn>0 .or. (nn==0.AND.lauto)) THEN
 !                                                                       
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_CHEM 
-      ENDIF 
-      IF (ier_num.ne.0) return 
-      ENDDO 
+            IF (lout) then 
+               IF (chem_ldall (ic) ) then 
+                  WRITE(output_io,1100) ic,nn,mo_ach_corr(ic) 
+               ELSE 
+                  WRITE(output_io,1110) ic,idir,jdir,nn,mo_ach_corr(ic)                                                      
+               ENDIF 
+            ENDIF 
+!                                                                       
+         ELSE 
+            ier_num = - 8 
+            ier_typ = ER_CHEM 
+         ENDIF 
+         IF (ier_num.ne.0) THEN
+            DEALLOCATE(ccpara)
+            DEALLOCATE(llpara)
+            RETURN
+         ENDIF
+      ENDDO   corr_loop
 !                                                                       
 !------ Save results to res[i]                                          
 !                                                                       
       res_para (0) = chem_ncor 
       DO ic = 1, chem_ncor 
-      IF (res_para (0) .lt.maxpar_res) then 
-         res_para (ic) = mo_ach_corr (ic) 
-      ELSE 
-         ier_typ = ER_CHEM 
-         ier_num = - 2 
-      ENDIF 
+         IF (res_para (0) .lt.maxpar_res) then 
+            res_para (ic) = mo_ach_corr (ic) 
+         ELSE 
+            ier_typ = ER_CHEM 
+            ier_num = - 2 
+         ENDIF 
       ENDDO 
+!
+      DEALLOCATE(ccpara)
+      DEALLOCATE(llpara)
 !                                                                       
  1000 FORMAT     (  ' Calculating correlations ',/,                     &
      &          '    Atom type: A = ',A4,' B = ',A4,                    &
