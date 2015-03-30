@@ -401,7 +401,7 @@ SUBROUTINE cmdline_args
 !                                                                       
 !------ Close output file                                               
 !                                                                       
-      IF (output_io.ne.OUTPUT_SCREEN) then 
+      IF (output_status.ne.OUTPUT_SCREEN) then 
          CLOSE (output_io) 
       ENDIF 
 !                                                                       
