@@ -3,26 +3,24 @@ MODULE diffev_setup_mod
 CONTAINS
 !
 !*****7*****************************************************************
-SUBROUTINE diffev_setup 
+SUBROUTINE diffev_setup(standalone)
 !                                                                       
 !     This routine makes inital setup of DIFFEV                         
 !                                                                       
 USE diffev_allocate_appl
 USE diffev_blk_appl
 USE constraint
-USE diffev_mpi_mod
 USE population
-USE run_mpi_mod
 !
 USE prompt_mod 
 !
 IMPLICIT none 
+!
+LOGICAL, INTENT(IN) :: standalone
 !                                                                       
       include'date.inc' 
 LOGICAL                        :: lend 
-INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
 !                                                                       
-run_mpi_myid      = 0
 lend              = .false. 
 blank             = ' ' 
 pname             = 'diffev' 
@@ -48,7 +46,7 @@ CALL diffev_alloc_default
 !     Call initialization routine.                                      
 !                                                                       
 CALL diffev_initarrays 
-CALL init_sysarrays 
+IF(standalone) CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
@@ -57,12 +55,21 @@ CALL appl_env
 !     try to read default file                                          
 !                                                                       
 CALL diffev_autodef 
+!
+!     Define Slave/stand alone status
+!
+IF(standalone) THEN
+   pop_result_file_rd = .true.
+   pop_trial_file_wrt = .true.
+ELSE
+   pop_result_file_rd = .false.
+   pop_trial_file_wrt = .false.
+ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-CALL cmdline_args
+IF(standalone) CALL cmdline_args
 !
-CALL run_mpi_init
 lsetup_done = .true.
 !                                                                       
 1000 FORMAT (/,                                                              &
@@ -77,7 +84,7 @@ END SUBROUTINE diffev_setup
 !
 SUBROUTINE diffev_set_sub
 !
-! Sets the specific DIFFEV interfaces four routines that are refecenced in
+! Sets the specific DIFFEV interfaces for routines that are refecenced in
 ! LIB_F90 by their generic names
 !
 USE set_sub_generic_mod
@@ -145,7 +152,6 @@ INTERFACE
 !
    END SUBROUTINE diffev_validate_var_spec 
 END INTERFACE
-
 !
 p_mache_kdo         => diffev_mache_kdo
 p_errlist_appl      => diffev_errlist_appl
@@ -155,5 +161,53 @@ p_calc_intr_spec    => diffev_calc_intr_spec
 p_validate_var_spec => diffev_validate_var_spec
 !
 END SUBROUTINE diffev_set_sub
+!
+SUBROUTINE diffev_set_sub_cost
+!
+! Sets the specific DIFFEV interfaces for the cost calculation function
+!
+USE set_sub_generic_mod
+!
+INTERFACE
+   SUBROUTINE diffev_execute_cost( repeat,    &
+                            prog  ,  prog_l , &
+                            mac   ,  mac_l  , &
+                            direc ,  direc_l, &
+                            kid   ,  indiv  , &
+                            rvalue, l_rvalue, &
+                            output, output_l, &
+                            generation, member, &
+                            children, parameters, &
+                            trial_v, NTRIAL, &
+                            ierr )
+!
+   IMPLICIT NONE
+   LOGICAL                , INTENT(IN) :: repeat
+   INTEGER                , INTENT(IN) :: prog_l
+   INTEGER                , INTENT(IN) :: mac_l
+   INTEGER                , INTENT(IN) :: direc_l
+   INTEGER                , INTENT(IN) :: output_l
+   CHARACTER(LEN=prog_l  ), INTENT(IN) :: prog
+   CHARACTER(LEN=mac_l   ), INTENT(IN) :: mac
+   CHARACTER(LEN=direc_l ), INTENT(IN) :: direc
+   INTEGER                , INTENT(IN) :: kid
+   INTEGER                , INTENT(IN) :: indiv
+   CHARACTER(LEN=output_l), INTENT(IN) :: output
+   REAL                   , INTENT(OUT):: rvalue
+   LOGICAL                , INTENT(OUT):: l_rvalue
+   INTEGER                , INTENT(IN) :: generation
+   INTEGER                , INTENT(IN) :: member
+   INTEGER                , INTENT(IN) :: children
+   INTEGER                , INTENT(IN) :: parameters
+   INTEGER                , INTENT(IN) :: NTRIAL
+   REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+   INTEGER                , INTENT(OUT):: ierr 
+!
+   END SUBROUTINE diffev_execute_cost
+END INTERFACE
+!
+p_execute_cost      => diffev_execute_cost
+!
+END SUBROUTINE diffev_set_sub_cost
 !
 END MODULE diffev_setup_mod

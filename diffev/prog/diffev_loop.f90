@@ -12,6 +12,7 @@ USE errlist_mod
 USE learn_mod 
 USE class_macro_internal 
 USE prompt_mod 
+USE set_sub_generic_mod
 !                                                                       
 IMPLICIT none 
 !
@@ -29,11 +30,12 @@ IMPLICIT none
 !                                                                       
 CHARACTER (LEN=1024)           :: line, zeile 
 CHARACTER (LEN=4)              :: befehl 
-LOGICAL                        :: lend    = .false.
+LOGICAL                        :: lend   = .false.
 INTEGER                        :: laenge, lp, lbef 
 !
 INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
 !
+lend = .false.                                       ! Always initialize the loop
 with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
    master_slave: IF ( run_mpi_myid == master ) THEN  ! MPI master or stand alone
 !                                                                       
@@ -76,14 +78,17 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
 !                                                                       
 !
    ELSEIF(run_mpi_active) THEN  master_slave
+!      IF(.NOT. lstandalone) THEN
+!        p_execute_cost ==> suite_execute_cost
+!      ELSE
+!        p_execute_cost ==> diffev_execute_cost
+!      ENDIF
       CALL RUN_MPI_SLAVE  ! MPI slave, standalone never
    ELSE master_slave
       ier_num = -23       ! Mpi returned a slave ID, but MPI is not active !?!
       ier_typ = ER_APPL
    ENDIF master_slave
 ENDIF with_mpi_error
-!
-CALL RUN_MPI_FINALIZE
 !
 IF ( lstandalone ) THEN
    CALL diffev_do_exit

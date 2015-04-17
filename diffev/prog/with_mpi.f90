@@ -34,6 +34,10 @@ USE prompt_mod
 IMPLICIT none
 !
 INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
+INTEGER                        :: run_mpi_integer_extent
+INTEGER                        :: run_mpi_logical_extent
+INTEGER                        :: run_mpi_charact_extent
+INTEGER                        :: run_mpi_real_extent
 !
 CALL MPI_INIT (ier_num)       ! initialize the MPI system
 !
@@ -82,26 +86,35 @@ ENDIF
 !
 ! For future use with MPI_TYPE_...
 !
-!run_mpi_offsets(0)     = 0
-!run_mpi_oldtypes(0)    = MPI_LOGICAL
-!run_mpi_blockcounts(0) = 1
+CALL MPI_TYPE_EXTENT ( MPI_INTEGER,   run_mpi_integer_extent, ier_num )
+CALL MPI_TYPE_EXTENT ( MPI_LOGICAL,   run_mpi_logical_extent, ier_num )
+CALL MPI_TYPE_EXTENT ( MPI_CHARACTER, run_mpi_charact_extent, ier_num )
+CALL MPI_TYPE_EXTENT ( MPI_REAL     , run_mpi_real_extent   , ier_num )
 !
-!CALL MPI_TYPE_EXTENT ( MPI_LOGICAL, run_mpi_extent, ier_num )
+run_mpi_offsets(0)     = 0
+run_mpi_oldtypes(0)    = MPI_INTEGER
+run_mpi_blockcounts(0) = RUN_MPI_COUNT_INTEGER*run_mpi_integer_extent
 !
-!run_mpi_offsets(1)     = run_mpi_extent
-!run_mpi_oldtypes(1)    = MPI_INTEGER
-!run_mpi_blockcounts(1) = RUN_MPI_COUNT_INTEGER
+run_mpi_offsets(1)     = run_mpi_offsets(0) +  run_mpi_integer_extent*RUN_MPI_COUNT_INTEGER
+run_mpi_oldtypes(1)    = MPI_LOGICAL
+run_mpi_blockcounts(1) = RUN_MPI_COUNT_LOGICAL*run_mpi_logical_extent
 !
-!CALL MPI_TYPE_EXTENT ( MPI_INTEGER, run_mpi_extent, ier_num )
+run_mpi_offsets(2)     = run_mpi_offsets(1) +  run_mpi_logical_extent*RUN_MPI_COUNT_LOGICAL
+run_mpi_oldtypes(2)    = MPI_CHARACTER
+run_mpi_blockcounts(2) = RUN_MPI_COUNT_CHARACTER*run_mpi_charact_extent
 !
-!run_mpi_offsets(2)     = run_mpi_offsets(1) + run_mpi_blockcounts(0)*run_mpi_extent
-!run_mpi_oldtypes(2)    = MPI_CHARACTER
-!run_mpi_blockcounts(2) = 4*2048
+run_mpi_offsets(3)     = run_mpi_offsets(2) +  run_mpi_charact_extent*RUN_MPI_COUNT_CHARACTER
+run_mpi_oldtypes(3)    = MPI_REAL
+run_mpi_blockcounts(3) = RUN_MPI_COUNT_REAL   *run_mpi_real_extent
 !
-!CALL MPI_TYPE_CREATE_STRUCT ( 3, run_mpi_blockcounts, run_mpi_offsets,  &
-!     run_mpi_oldtypes, run_mpi_data_type, ier_num )
-!CALL MPI_TYPE_COMMIT ( run_mpi_data_type, ier_num)
-!!!!write(*,*) '############## data type , myid', run_mpi_data_type,run_mpi_myid, ier_num
+run_mpi_offsets(4)     = run_mpi_offsets(3) +  run_mpi_real_extent*RUN_MPI_COUNT_REAL
+run_mpi_oldtypes(4)    = MPI_REAL
+run_mpi_blockcounts(4) = RUN_MPI_COUNT_TRIAL  *run_mpi_real_extent
+!
+CALL MPI_TYPE_STRUCT ( 5, run_mpi_blockcounts, run_mpi_offsets,  &
+     run_mpi_oldtypes, run_mpi_data_type, ier_num )
+CALL MPI_TYPE_COMMIT ( run_mpi_data_type, ier_num)
+!write(*,*) '############## data type , myid', run_mpi_data_type,run_mpi_myid, ier_num
 !
 !WRITE(*,4000)
 !
@@ -125,39 +138,24 @@ USE mpi
 USE population
 USE run_mpi_mod
 USE errlist_mod
+USE prompt_mod
 !
 IMPLICIT none
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 !
 CHARACTER (LEN=2048)  :: send_direc    ! working directory
-CHARACTER (LEN=  20)  :: line
 INTEGER               :: send_direc_l  ! working directory length
 INTEGER               :: sender        ! Id of slave that answered
-INTEGER               :: i,j,k
-INTEGER               :: ndimx = 0
-INTEGER               :: all_status
+INTEGER               :: i,j
+INTEGER               :: run_mpi_numsent  ! Number of jobs sent out
+INTEGER               :: run_mpi_numjobs  ! Number of initial jobs
 INTEGER               :: nprog         ! number of different program/mac combinations
 LOGICAL               :: prog_start    ! External program needs to be started
 !
 LOGICAL               :: prog_exist    ! program/macro combination exists in data base
 !
-!DBG
-INTEGER               :: ierr
-!
-!INTEGER  :: len_str
-!INTEGER  :: system
-!
-IF( MAXDIMX > ndimx ) THEN  ! Allocate arrays to transmit the trial values to the slave
-   IF(ALLOCATED(run_mpi_senddata%trial_values)) THEN
-      DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
-      DEALLOCATE(run_mpi_send_data,             STAT = all_status)
-   ENDIF
-   ALLOCATE(run_mpi_senddata%trial_values(1:MAXDIMX), STAT = all_status)
-   sdl_length = 560 + 20*MAXDIMX
-   ALLOCATE(run_mpi_send_data            (1:sdl_length), STAT = all_status)
-   ndimx = MAXDIMX
-ENDIF
+sdl_length = 1 !580! + 200
 !
 ! Test if program / macro combination exist /not exists ; sockets only
 !
@@ -193,6 +191,7 @@ IF (run_mpi_senddata%use_socket) THEN
 ELSE
    prog_start = .true.                          ! Always start non socket program
 ENDIF
+!
 run_mpi_senddata%prog_start = prog_start        ! Copy start flag into send structure
 !
 CALL do_cwd ( send_direc, send_direc_l )        ! Get current working directory
@@ -201,52 +200,6 @@ run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
 !
 run_mpi_numsent = 0                             ! No jobs sent yet
 run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
-!
-! SEND OUT INITIAL JOBS
-!
-!
-!  COPY permanent part into INTEGER array send_data ! Just while structure does not work
-!
-run_mpi_send_data     = 0                            ! Initialize all to 0
-IF (run_mpi_senddata%repeat) THEN                    ! This program needs NINDIV repetions yes/no
-   run_mpi_send_data( 1) = 1
-ENDIF
-run_mpi_send_data( 2) = run_mpi_senddata%generation  ! Current GENERATION
-run_mpi_send_data( 3) = run_mpi_senddata%member      ! population size
-run_mpi_send_data( 4) = run_mpi_senddata%children    ! number of children
-run_mpi_send_data( 5) = run_mpi_senddata%parameters  ! Number of parameters
-run_mpi_send_data( 6) = run_mpi_senddata%nindiv      ! Number of repetitions
-run_mpi_send_data( 7) = 0                            ! Current kid
-run_mpi_send_data( 8) = 0                            ! Current indiv
-run_mpi_send_data( 9) = 0                            ! Error flag
-run_mpi_send_data(10) = run_mpi_senddata%direc_l     ! Directory string length
-run_mpi_send_data(11) = run_mpi_senddata%prog_l      ! program name string length
-run_mpi_send_data(12) = run_mpi_senddata%mac_l       ! macro name string length
-run_mpi_send_data(13) = run_mpi_senddata%out_l       ! output name string length
-IF (run_mpi_senddata%use_socket) THEN                ! This program uses sockets yes/no
-   run_mpi_send_data(14) = 1
-ENDIF
-run_mpi_send_data(15) = run_mpi_senddata%prog_num    ! Number in program/mac database
-IF(run_mpi_senddata%prog_start) THEN                 ! Program needs to be started
-   run_mpi_send_data(16)     =  1                    ! Program needs to be started
-   run_mpi_send_data(17)     =  0                    ! socket number
-ELSE                                                 ! Program runs use database entries
-   run_mpi_senddata%s_remote = socket_id(run_mpi_senddata%prog_num)
-   run_mpi_send_data(17)     = run_mpi_senddata%s_remote
-ENDIF
-run_mpi_send_data(18) = run_mpi_senddata%port        ! Port no.
-DO i = 1,run_mpi_senddata%direc_l                    ! Encode directory
-   run_mpi_send_data( 20+i) = IACHAR(run_mpi_senddata%direc(i:i))
-ENDDO
-DO i = 1,run_mpi_senddata%prog_l                     ! Encode program
-   run_mpi_send_data(260+i) = IACHAR(run_mpi_senddata%prog (i:i))
-ENDDO
-DO i = 1,run_mpi_senddata%mac_l                      ! Encode macro
-   run_mpi_send_data(360+i) = IACHAR(run_mpi_senddata%mac  (i:i))
-ENDDO
-DO i = 1,run_mpi_senddata%out_l                      ! Encode output
-   run_mpi_send_data(460+i) = IACHAR(run_mpi_senddata%out  (i:i))
-ENDDO
 !
 !  Start initial jobs
 !
@@ -259,22 +212,13 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
    ELSE                                     ! Program is running use old port no
       run_mpi_senddata%port     = port_id  (run_mpi_senddata%prog_num,i)
    ENDIF
-!
-!  Temporarily, while structure does not work
-!
-   run_mpi_send_data( 7) = run_mpi_senddata%kid   
-   run_mpi_send_data( 8) = run_mpi_senddata%indiv
-   run_mpi_send_data(18) = run_mpi_senddata%port
    DO j=1,pop_dimx                          ! Encode current trial values
-      WRITE(line,'(E20.10)') pop_t(j,run_mpi_senddata%kid)
-      DO k=1,20
-         run_mpi_send_data(560+(j-1)*20 + k) = IACHAR(line(k:k))
-      ENDDO
+      run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
    ENDDO
 !
-   CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, i,i, MPI_COMM_WORLD, ierr)
-!====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
-!====                   MPI_COMM_WORLD, ier_num )
+sdl_length = 1! 580! + 200
+   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
+                   MPI_COMM_WORLD, ier_num )
 !
    run_mpi_numsent = run_mpi_numsent + 1
 ENDDO
@@ -282,38 +226,29 @@ ENDDO
 !------       --Receive results and hand out new jobs
 !
 DO i = 1, pop_c * run_mpi_senddata%nindiv
-!   write(*,*) ' WAITING FOR ANSWER IN LOOP ',i,pop_c * run_mpi_senddata%nindiv
-   CALL MPI_RECV ( run_mpi_send_data, sdl_length, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
-               MPI_COMM_WORLD, run_mpi_status, ierr)
-!====   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
-!====                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
+                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
 !
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
    IF(run_mpi_senddata%use_socket ) THEN   ! SOCKET option is active
-      socket_id(run_mpi_send_data(15)) = run_mpi_send_data(17)  ! Store socket info in data base
-      port_id  (run_mpi_send_data(15),sender) = run_mpi_send_data(18)  ! Store port info in data base
+       socket_id(run_mpi_senddata%prog_num) = run_mpi_senddata%s_remote  ! Store socket info in data base
+       port_id  (run_mpi_senddata%prog_num,sender) = run_mpi_senddata%port  ! Store port info in data base
+   ENDIF
+!
+   IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
+      trial_val(run_mpi_senddata%kid) = run_mpi_senddata%rvalue
    ENDIF
 !
    IF ( run_mpi_numsent < pop_c*run_mpi_senddata%nindiv ) THEN  ! There are more jobs to do
       run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
       run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
-!
-!     Temporarily, while structure does not work
-!
-      run_mpi_send_data( 7) = run_mpi_senddata%kid   
-      run_mpi_send_data( 8) = run_mpi_senddata%indiv
-      run_mpi_send_data(16) =  0                       ! Program has been started
-!
-      DO j=1,pop_dimx                                  ! Encode trial values
-         WRITE(line,'(E20.10)') pop_t(j,run_mpi_senddata%kid)
-         DO k=1,20
-            run_mpi_send_data(560+(j-1)*20 + k) = IACHAR(line(k:k))
-         ENDDO
+      DO j=1,pop_dimx                          ! Encode current trial values
+         run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
       ENDDO
 !
-      CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, sender,sender, MPI_COMM_WORLD, ierr)
-!====      CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, sender, i, &
-!====                      MPI_COMM_WORLD, ier_num )
+      CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, sender, i, &
+                      MPI_COMM_WORLD, ier_num )
+!
       run_mpi_numsent = run_mpi_numsent + 1
    ENDIF
 ENDDO
@@ -333,7 +268,9 @@ SUBROUTINE run_mpi_slave
 !
 USE mpi
 USE run_mpi_mod
+USE diffev_setup_mod
 !
+USE set_sub_generic_mod
 USE errlist_mod
 USE prompt_mod
 !
@@ -341,17 +278,14 @@ IMPLICIT none
 !
 CHARACTER (LEN=2048)   :: line
 CHARACTER (LEN=2048)   :: output
-CHARACTER (LEN=  20)   :: zeile
 !
 INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
 !
-INTEGER  :: i,j,k
+INTEGER  :: j
 INTEGER  :: il
 INTEGER  :: ierr
 INTEGER  :: job_l
 INTEGER  :: output_l
-INTEGER  :: all_status
-INTEGER  :: IDIMX = 0                   ! Dimension of incomming trial file array
 INTEGER  :: port  = 2000
 !
 INTEGER, PARAMETER :: seconds = 1       ! Wait time for application to start up
@@ -369,67 +303,15 @@ ierr = 0
 !
 slave: DO
    CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ierr) ! Querry incomming size
-   CALL MPI_GET_COUNT(run_mpi_status, MPI_INTEGER, sdl_length, ierr)                  ! Determine size
-   IF( (sdl_length-560)/20 > idimx ) THEN                                             ! Allocate if size increased
-      IDIMX = (sdl_length-560)/20
-      IF(ALLOCATED(run_mpi_senddata%trial_values)) THEN
-         DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
-         DEALLOCATE(run_mpi_send_data,             STAT = all_status)
-      ENDIF
-      ALLOCATE(run_mpi_senddata%trial_values(1:IDIMX)     , STAT = all_status)
-      ALLOCATE(run_mpi_send_data            (1:sdl_length), STAT = all_status)
-   ENDIF
+   CALL MPI_GET_COUNT(run_mpi_status, run_mpi_data_type, sdl_length, ierr)                  ! Determine size
 !
 !  Now receive incomming message
 !
-   CALL MPI_RECV ( run_mpi_send_data, sdl_length, MPI_INTEGER, MPI_ANY_SOURCE, MPI_ANY_TAG, &
-               MPI_COMM_WORLD, run_mpi_status, ierr)
-!====   CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
-!====                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   CALL MPI_RECV ( run_mpi_senddata, sdl_length, run_mpi_data_type, MPI_ANY_SOURCE, &
+                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
 !
-!====  temporarily, while TYPE does not work
-!
-   run_mpi_senddata%repeat     = run_mpi_send_data ( 1)  == 1   ! 1 is true 0 is false
-   run_mpi_senddata%generation = run_mpi_send_data ( 2)
-   run_mpi_senddata%member     = run_mpi_send_data ( 3)
-   run_mpi_senddata%children   = run_mpi_send_data ( 4)
-   run_mpi_senddata%parameters = run_mpi_send_data ( 5)
-   run_mpi_senddata%nindiv     = run_mpi_send_data ( 6)
-   run_mpi_senddata%kid        = run_mpi_send_data ( 7)
-   run_mpi_senddata%indiv      = run_mpi_send_data ( 8)
-   run_mpi_senddata%direc_l    = run_mpi_send_data (10)
-   run_mpi_senddata%prog_l     = run_mpi_send_data (11)
-   run_mpi_senddata%mac_l      = run_mpi_send_data (12)
-   run_mpi_senddata%out_l      = run_mpi_send_data (13)
-   run_mpi_senddata%use_socket = run_mpi_send_data (14)  == 1
-   run_mpi_senddata%prog_num   = run_mpi_send_data (15) 
-   run_mpi_senddata%prog_start = run_mpi_send_data (16)  == 1
-   run_mpi_senddata%s_remote   = run_mpi_send_data (17)     
-   run_mpi_senddata%port       = run_mpi_send_data (18) 
-   DO i = 1,run_mpi_senddata%direc_l
-      run_mpi_senddata%direc(i:i) = ACHAR(run_mpi_send_data( 20+i))
-   ENDDO
-   DO i = 1,run_mpi_senddata%prog_l
-      run_mpi_senddata%prog (i:i) = ACHAR(run_mpi_send_data(260+i))
-   ENDDO
-   DO i = 1,run_mpi_senddata%mac_l
-      run_mpi_senddata%mac  (i:i) = ACHAR(run_mpi_send_data(360+i))
-   ENDDO
-   DO i = 1,run_mpi_senddata%out_l
-      run_mpi_senddata%out  (i:i) = ACHAR(run_mpi_send_data(460+i))
-   ENDDO
-   DO j=1,run_mpi_senddata%parameters
-      DO k=1,20
-         zeile(k:k) = ACHAR(run_mpi_send_data(560 + (j-1)*20 + k))
-      ENDDO
-      READ(zeile,'(E20.10)') run_mpi_senddata%trial_values(j)
-   ENDDO
-! ==== End temporarily
    s_remote = run_mpi_senddata%s_remote
    port     = run_mpi_senddata%port
-!
-!  CALL MPI_RECV ( run_mpi_send_trial, run_mpi_senddata%parameters, MPI_REAL, MPI_ANY_SOURCE, MPI_ANY_TAG, &
-!              MPI_COMM_WORLD, run_mpi_status, ierr)
 !
 !------       --- If TAG is zero exit, else compute
 !
@@ -442,14 +324,10 @@ slave: DO
          ierr = socket_close   (s_remote)              ! Close socket
          lremote = .false.
          IF(run_mpi_senddata%prog_num == -1) THEN         ! This is the last program to close
-!           DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
-!           DEALLOCATE(run_mpi_send_data            , STAT = all_status)
             lremote = .false.
             EXIT slave                                    ! now we can end slave
          ENDIF
       ELSE
-!        DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
-!        DEALLOCATE(run_mpi_send_data            , STAT = all_status)
          lremote = .false.
          EXIT slave                                    ! now we can end slave
       ENDIF
@@ -547,17 +425,15 @@ slave: DO
          CALL   socket_wait
          DO j=1,run_mpi_senddata%parameters                         ! Current trial values
             WRITE(line, 4040) 200+j,run_mpi_senddata%trial_values(j)
+!            line = ' ' !WORK WORK WORK 
             ierr = socket_send    (s_remote, line, 29)
             CALL   socket_wait
          ENDDO
 !        Now send the macro
          WRITE(line, 4030) run_mpi_senddata%mac  (1:run_mpi_senddata%mac_l  )
          job_l = len_str(line)
-!write(*,*) ' SLAVE ', run_mpi_myid, line(1:job_l)
          ierr = socket_send    (s_remote, line, job_l)     ! Send macro
-!write(*,*) ' SLAVE BACK FROM MACRO', run_mpi_myid,ierr
          CALL   socket_wait
-!write(*,*) ' SLAVE BACK FROM wait ', run_mpi_myid,ierr
       ELSE use_socket                                      ! explicitely start DISCUS/KUPLOT
          repeat: IF ( run_mpi_senddata%repeat ) THEN       ! NINDIV calculations needed
             WRITE(line,2000) run_mpi_senddata%prog (1:run_mpi_senddata%prog_l ), &
@@ -565,7 +441,7 @@ slave: DO
                              run_mpi_senddata%direc(1:run_mpi_senddata%direc_l), &
                              run_mpi_senddata%kid   , run_mpi_senddata%indiv   , &
                              output(1:output_l)
-      ELSE repeat                                          ! no repatition required
+      ELSE repeat                                          ! no repetition required
          WRITE(line,2100) run_mpi_senddata%prog (1:run_mpi_senddata%prog_l ), &
                           run_mpi_senddata%mac  (1:run_mpi_senddata%mac_l  ), &
                           run_mpi_senddata%direc(1:run_mpi_senddata%direc_l), &
@@ -573,7 +449,18 @@ slave: DO
                           output(1:output_l)
       ENDIF repeat
       job_l = len_str(line)
-      ierr =  system ( line(1:job_l))    ! Start discus/kuplot and wait for it to finish
+!             Execute the "generic" cost function calculation
+      CALL p_execute_cost( run_mpi_senddata%repeat,                          &
+                           run_mpi_senddata%prog , run_mpi_senddata%prog_l , &
+                           run_mpi_senddata%mac  , run_mpi_senddata%mac_l  , &
+                           run_mpi_senddata%direc, run_mpi_senddata%direc_l, &
+                           run_mpi_senddata%kid  , run_mpi_senddata%indiv  , &
+                           run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
+                           output                , output_l ,                      &
+                           run_mpi_senddata%generation, run_mpi_senddata%member,   &
+                           run_mpi_senddata%children, run_mpi_senddata%parameters, &
+                           run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
+                           ierr )
    ENDIF use_socket
 !
 !  Answer back to master
@@ -581,14 +468,9 @@ slave: DO
    run_mpi_senddata%ierr     = ierr
    run_mpi_senddata%s_remote = s_remote
    run_mpi_senddata%port     = port
-   run_mpi_send_data( 9)     = run_mpi_senddata%ierr
-   run_mpi_send_data(17)     = run_mpi_senddata%s_remote   ! Send back socket ID
-   run_mpi_send_data(18)     = run_mpi_senddata%port       ! Send back port ID
 !
-   CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, 0,0, MPI_COMM_WORLD, ierr)
-!write(*,*) ' SLAVE ',run_mpi_myid,' SEND ANSWER BACK'
-!====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
-!====                   MPI_COMM_WORLD, ier_num )
+   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
+                   MPI_COMM_WORLD, ier_num )
    ENDIF tag_exit
 ENDDO slave
 !
@@ -614,18 +496,7 @@ USE population
 USE errlist_mod
 IMPLICIT none
 !
-!INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
-!INTEGER :: ierr
 INTEGER :: i,j
-INTEGER :: all_status
-!
-!
-!  Just in case the arrays were deallocated ...
-IF(.NOT.ALLOCATED(run_mpi_senddata%trial_values)) THEN
-   ALLOCATE(run_mpi_senddata%trial_values(1:MAXDIMX), STAT = all_status)
-   sdl_length = 560 + 20*MAXDIMX
-   ALLOCATE(run_mpi_send_data            (1:sdl_length), STAT = all_status)
-ENDIF
 !
 !------       -- Send termination signal to all slave processes
 !
@@ -633,36 +504,23 @@ IF ( run_mpi_myid == 0 ) THEN
    IF (run_mpi_senddata%use_socket) THEN   ! Closing down, socket variation
          DO i = 1, run_mpi_numprocs - 1
       DO j=1,run_mpi_nprog
-         run_mpi_send_data = 0
          IF(j==run_mpi_nprog) THEN   ! Last program to close, shutdown slave
-            run_mpi_send_data(15) = -1
+            run_mpi_senddata%prog_num = -1
          ENDIF
-            ier_num = 0
-            run_mpi_send_data(14) = 1
-            run_mpi_send_data(17) = socket_id(j)
-            run_mpi_send_data(18) = port_id  (j,i)
-            CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, i,0, MPI_COMM_WORLD, ier_num)
-!====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
-!====                   MPI_COMM_WORLD, ier_num )
+         ier_num = 0
+         CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
+                         MPI_COMM_WORLD, ier_num )
          ENDDO
       ENDDO
    ELSE                                     ! Closing down, system variation
       DO i = 1, run_mpi_numprocs - 1
-         CALL MPI_SEND ( run_mpi_send_data, sdl_length, MPI_INTEGER, i,0, MPI_COMM_WORLD, ier_num)
-!====   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
-!====                   MPI_COMM_WORLD, ier_num )
+   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
+                   MPI_COMM_WORLD, ier_num )
       ENDDO
    ENDIF
 ENDIF
 !
-DEALLOCATE(run_mpi_senddata%trial_values, STAT = all_status)
-DEALLOCATE(run_mpi_send_data,             STAT = all_status)
-DEALLOCATE(prog_entry       ,             STAT = all_status)
-DEALLOCATE(socket_id        ,             STAT = all_status)
-DEALLOCATE(port_id          ,             STAT = all_status)
-!
 CALL MPI_FINALIZE ( ier_num )
-!
 !
 END SUBROUTINE run_mpi_finalize
 END MODULE DIFFEV_MPI_MOD

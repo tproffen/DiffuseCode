@@ -10,12 +10,12 @@ include_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 
 set (SOURCE_MAIN diffev.f90 )
-set (SOURCES_ALL allocate_appl.f90 blk_appl.f90 compare.f90 config.f90
+set (SOURCES_ALL diffev_allocate_appl.f90 diffev_blk_appl.f90 compare.f90 diffev_config.f90
              constraint.f90 create_trial.f90 diff_evol.f90
              diffev_setup.f90 diffev_loop.f90
-             err_appl.f90 exit.f90 initialise.f90 kdo.f90
-             population.f90 show.f90 support_diffev_mod.f90
-             run_mpi_mod.f90 triple_perm.f90 upd_par.f90)
+             diffev_err_appl.f90 diffev_do_exit.f90 diffev_execute_cost.f90 initialise.f90 diffev_kdo.f90
+             population.f90 diffev_show.f90 support_diffev_mod.f90
+             run_mpi_mod.f90 triple_perm.f90 diffev_upd_par.f90)
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
 

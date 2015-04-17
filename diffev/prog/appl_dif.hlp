@@ -564,7 +564,7 @@
    If the second parameter is "best", the parameter is set to the
    corresponding value of the current member with the best R-value.
 2  initialize
-!b initialize [ <par_number1> [, <par_number2>]]
+!b initialize [ <par_number1> [, <par_number2>]] [, "silent"]
 
    This command initializes the differential evolution sequence. 
 
@@ -602,6 +602,11 @@
    parameter, or parameter range from <par_number1> to <par_number2>
    to the range defined by the values of pop_smin[*] and pop_smax[*].
    A new set of children and the GENERATION file is written.
+
+   If the last parameter is the string "silent", the trial files are
+   note written to your disk. DIFFEV expects to be part of a suite 
+   program and will transfer the trial parameters directly to the 
+   slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
 2  logfile
 !b logfile <filename>
 
@@ -646,6 +651,11 @@
    The file contains one line with two numbers, the member number and 
    the R-value obtained for the corresponding set of parameters in 
    file ==> 'trialfile'.
+
+   If the file name is the string "silent", the result files are
+   note read from your disk. DIFFEV expects to be part of a suite 
+   program and will expect that the result values have been transfered
+   directly from the slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
 2  run_mpi
 !b run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
 
@@ -735,7 +745,7 @@
 !p              speed up convergence, yet run a higher risk of getting stuck
 !p              in a local minimum.
 2  trialfile
-!b trialfile <filename>
+!b trialfile <filename>|"silent"
 
    These temporary files are used to communicate the current set of parameters
    between DIFFEV and the slave program. 
@@ -760,7 +770,6 @@
 !p     0.2050311089E+01
 !p     0.3000000000E+01
 
-
    The first states the current generation, the number of members in 
    the population, the number of children in each population, and the 
    number of parameters. 
@@ -768,6 +777,10 @@
    This is followed by a list of all parameter values, each in a separate
    line.
 
+   If the file name is the string "silent", the trial files are
+   note written to your disk. DIFFEV expects to be part of a suite 
+   program and will transfer the trial parameters directly to the 
+   slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
 2  type
 !b type {"integer" | "real"},<number>
 

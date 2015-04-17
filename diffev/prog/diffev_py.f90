@@ -17,7 +17,7 @@ IMPLICIT none
 !
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL diffev_setup(.false.)
 ENDIF
 CALL diffev_set_sub
 lstandalone = .false.
@@ -65,7 +65,7 @@ INTEGER, PARAMETER   :: master = 0 ! MPI ID of MASTER process
 INTEGER              :: len_str
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL diffev_setup(.false.)
 ENDIF
 CALL diffev_set_sub
 master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
@@ -149,7 +149,7 @@ INTEGER, INTENT(OUT) :: children
 INTEGER, INTENT(OUT) :: parameters
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL diffev_setup(.false.)
 ENDIF
 !
 generation = pop_gen
@@ -175,7 +175,7 @@ INTEGER,                             INTENT(IN ) :: parameters
 REAL, DIMENSION(member, parameters), INTENT(OUT) :: trials
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL diffev_setup(.false.)
 ENDIF
 !
 IF(member == pop_n .and. parameters == pop_dimx ) THEN
@@ -200,7 +200,7 @@ INTEGER,                   INTENT(IN ) :: children
 REAL, DIMENSION(children), INTENT(IN ) :: values
 !
 IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
-   CALL diffev_setup
+   CALL diffev_setup(.false.)
 ENDIF
 !
 IF(children == pop_c) THEN

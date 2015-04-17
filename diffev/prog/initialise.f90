@@ -72,6 +72,7 @@ CONTAINS
    IF ( ier_num /= 0) RETURN
 !                                                                 
    pop_current = .true. 
+   pop_current_trial = .true. 
 !                                                                 
    CALL write_genfile 
 !                                                                 
@@ -155,7 +156,7 @@ CONTAINS
 !*****7**************************************************************** 
    SUBROUTINE init_x (lb, ub)
 !
-   USE config
+   USE diffev_config
    USE population
    USE constraint
    USE create_trial_mod

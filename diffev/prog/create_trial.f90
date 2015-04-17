@@ -82,7 +82,7 @@ CONTAINS
 !*****7**************************************************************** 
 SUBROUTINE create_single (j, jt) 
 !                                                                       
-USE config
+USE diffev_config
 USE constraint
 USE diff_evol
 USE population
@@ -318,18 +318,20 @@ CHARACTER (LEN=7)              :: stat  = 'unknown'
 INTEGER                        :: i
 INTEGER                        :: len_file 
 !                                                                       
-len_file = pop_ltrialfile 
-CALL make_file (pop_trialfile, len_file, 4, jt) 
-CALL do_del_file (pop_trialfile) 
-CALL oeffne (iwr, pop_trialfile, stat) 
+IF(pop_trial_file_wrt) THEN
+   len_file = pop_ltrialfile 
+   CALL make_file (pop_trialfile, len_file, 4, jt) 
+   CALL do_del_file (pop_trialfile) 
+   CALL oeffne (iwr, pop_trialfile, stat) 
 !                                                                       
-WRITE (iwr, 2000) pop_gen, pop_n, pop_c, pop_dimx 
-WRITE (iwr, 2100) jt 
-WRITE (iwr, 2200) 
-DO i = 1, pop_dimx 
-   WRITE (iwr, 3000) pop_t (i, jt), i, pop_name (i) 
-ENDDO 
-CLOSE (iwr) 
+   WRITE (iwr, 2000) pop_gen, pop_n, pop_c, pop_dimx 
+   WRITE (iwr, 2100) jt 
+   WRITE (iwr, 2200) 
+   DO i = 1, pop_dimx 
+      WRITE (iwr, 3000) pop_t (i, jt), i, pop_name (i) 
+   ENDDO 
+   CLOSE (iwr) 
+ENDIF
 !                                                                       
  2000 FORMAT ('# generation members children parameters',/ 4(i8,2x)) 
  2100 FORMAT ('# current member ',/i5) 

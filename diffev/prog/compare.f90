@@ -9,7 +9,7 @@ PUBLIC  :: do_compare
 PUBLIC  :: do_dismiss
 PUBLIC  :: do_read_values
 !PUBLIC  :: read_obj_values
-!PUBLIC  :: read_par_values
+PUBLIC  :: read_par_values
 !
 CONTAINS
 !
@@ -301,7 +301,10 @@ CONTAINS
 ! Read the logfile
 !
    USE population
+   USE create_trial_mod
    USE support_diffev_mod
+!
+   USE prompt_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -322,42 +325,10 @@ CONTAINS
 !
    iostatus = 0
 !                                                                       
-! Read old trial value, if not yet initialized                     
-!                                                                       
-  init_trial: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
-      DO j = 1, pop_c 
-        len_file = pop_ltrialfile 
-        CALL make_file (pop_trialfile, len_file, 4, j) 
-        CALL oeffne (iwr, pop_trialfile, stat) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
-        DO i = 1, pop_dimx 
-           READ (iwr, * ,END=20,ERR=20,iostat=iostatus) trial (i, j) 
-        ENDDO 
-      20 CONTINUE
-      CLOSE (iwr) 
-         IF ( iostatus /= 0) THEN
-            ier_num = -12
-            ier_typ = ER_APPL
-            ier_msg(1) = 'Error while reading'
-            WRITE (ier_msg(2),2000) j
-            RETURN
-         ENDIF
-!
-      ENDDO 
-      pop_t = trial  ! (i,j) 
-      pop_current_trial = .true.
-   ELSE
-      trial = pop_t
-      pop_current_trial = .true.
-  ENDIF init_trial
-!                                                                       
 ! Read old Parent value, if not yet initialized                     
 !                                                                       
    init: IF (.not.pop_current.and.pop_gen.gt.0) THEN 
+!  init: IF (                     pop_gen.gt.0) THEN 
 !
 !     loop over dimension to find old dimension
 !
@@ -412,6 +383,50 @@ CONTAINS
       ENDDO
       pop_current = .true. 
    ENDIF init
+   iostatus = 0
+!                                                                       
+! Read old trial value, if not yet initialized, and a stand alone program                     
+!                                                                       
+  is_alone: IF (lstandalone) THEN
+  init_trial: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
+      DO j = 1, pop_c 
+        len_file = pop_ltrialfile 
+        CALL make_file (pop_trialfile, len_file, 4, j) 
+        CALL oeffne (iwr, pop_trialfile, stat) 
+        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
+        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
+        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
+        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
+        READ (iwr, * ,END=20,ERR=20,iostat=iostatus) 
+        DO i = 1, pop_dimx 
+           READ (iwr, * ,END=20,ERR=20,iostat=iostatus) trial (i, j) 
+        ENDDO 
+      20 CONTINUE
+      CLOSE (iwr) 
+         IF ( iostatus /= 0) THEN
+            ier_num = -12
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Error while reading'
+            WRITE (ier_msg(2),2000) j
+            RETURN
+         ENDIF
+!
+      ENDDO 
+      pop_t = trial  ! (i,j) 
+      pop_current_trial = .true.
+   ELSE
+      trial = pop_t
+      pop_current_trial = .true.
+     ENDIF init_trial
+  ELSE  is_alone
+     init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN 
+        CALL create_trial
+        pop_current_trial = .true.
+      ELSE init_slave
+         trial = pop_t
+         pop_current_trial = .true.
+     ENDIF init_slave
+  ENDIF is_alone
 !
 ! Read error  parent result file
 !
