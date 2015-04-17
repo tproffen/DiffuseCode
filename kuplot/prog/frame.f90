@@ -8,7 +8,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -56,7 +56,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -100,7 +100,7 @@
 !     Set backgound color for frames                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -152,7 +152,7 @@
 !     Copy plot parameters of one frame to other frame(s)               
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -198,7 +198,7 @@
 !     Sets frame sizes and locations                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -252,7 +252,7 @@
 !     or give textfile for text frames.                                 
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -317,7 +317,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -455,7 +455,7 @@
 !+                                                                      
 !     Copy parameters associated with frame if1 to frame if2            
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
@@ -568,7 +568,7 @@
 !+                                                                      
 !     Copy parameters associated with window iw1 to frame iw2           
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 

@@ -4,7 +4,7 @@
 !       Platform specific defaults                                      
 !       WINDOWS version ..                                              
 !+                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
 !                                                                       

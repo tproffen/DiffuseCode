@@ -6,7 +6,7 @@
 !     Mouse command ..                                                  
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
 !                                                                       
@@ -58,7 +58,7 @@
       USE errlist_mod 
       USE learn_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -190,7 +190,7 @@
 !                                                                       
 !     This sets the menu viewport and draws borders ...                 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -212,7 +212,7 @@
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -285,7 +285,7 @@
 !                                                                       
 !     This routine writes the strings tt1-tt3 below plot                
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -334,7 +334,7 @@
 !                                                                       
 !     Get command from GUI area ..                                      
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -377,7 +377,7 @@
 !                                                                       
 !     Extract 'befehl' string                                           
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -402,7 +402,7 @@
 !                                                                       
 !     Checks if button was pressed                                      
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -422,7 +422,7 @@
 !                                                                       
 !     Checks for 2D files in current frame                              
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -442,7 +442,7 @@
 !                                                                       
 !     Defines a button for the menu                                     
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -463,7 +463,7 @@
 !                                                                       
 !     This routine draws a button on menu panel                         
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -506,7 +506,7 @@
       USE doact_mod 
       USE errlist_mod 
       USE class_macro_internal
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -574,7 +574,7 @@
 !     LEFT : up by 5% / MIDDLE : down by 5% / RIGHT : back to menu      
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -639,7 +639,7 @@
 !     LEFT : select frame                                               
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -699,7 +699,7 @@
 !     LEFT : select region / RIGHT : back to showing ALL data           
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -782,7 +782,7 @@
 !                                                                       
       USE errlist_mod 
       USE learn_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -860,7 +860,7 @@
 !                                                                       
       USE errlist_mod 
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -909,7 +909,7 @@
 !                                                                       
       USE errlist_mod 
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -983,7 +983,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1044,7 +1044,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1097,7 +1097,7 @@
 !     and for log. axis ..                                              
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 

@@ -7,7 +7,7 @@
 !     Sets option value in integer arrays(nia:nie)                      
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -63,7 +63,7 @@
 !     Sets option value in integer arrays(nia,nib)                      
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -122,7 +122,7 @@
 !     Sets option value in integer arrays                               
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -157,7 +157,7 @@
 !     Sets strings for title                                            
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -190,7 +190,7 @@
 !     Sets strings for axes                                             
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -229,7 +229,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -301,7 +301,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -366,7 +366,7 @@
 !     Sets linewidth for given data set                                 
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -411,7 +411,7 @@
 !     Sets type of box & axis for active frame                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -456,7 +456,7 @@
 !     Sets size of markers                                              
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -495,7 +495,7 @@
 !     Sets possible caption for given data set                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -561,7 +561,7 @@
 !     Sets possible annotations                                         
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -659,7 +659,7 @@
 !     Command buff ..                                                   
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -702,7 +702,7 @@
 !     Command skal ..                                                   
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -761,7 +761,7 @@
 !     Command mark ..                                                   
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -814,7 +814,7 @@
 !     Setting of contour line intervalls                                
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -863,7 +863,7 @@
 !     Setting of contour line intervalls                                
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -942,7 +942,7 @@
 !     Setting of font size, type and color                              
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1075,7 +1075,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1155,7 +1155,7 @@
 !-                                                                      
       USE errlist_mod 
       USE koordinate_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1271,7 +1271,7 @@
 !       write parameter file 'kupl.par'                                 
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 

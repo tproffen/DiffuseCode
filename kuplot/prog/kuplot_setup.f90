@@ -1,15 +1,17 @@
-MODULE setup_mod
+MODULE kuplot_setup_mod
 !
 CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE setup 
+      SUBROUTINE kuplot_setup (standalone)
 !                                                                       
 !     This routine makes inital setup of KUPLOT                         
 !                                                                       
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
+!
+      LOGICAL, INTENT(IN) :: standalone
 !                                                                       
       include'date.inc' 
 !                                                                       
@@ -31,10 +33,10 @@ CONTAINS
 !     Call initialization routines                                      
 !                                                                       
       CALL kuplot_initarrays 
-      CALL init_sysarrays 
+      IF(standalone) CALL init_sysarrays 
       CALL appl_env 
       CALL kuplot_auto_def 
-      CALL cmdline_args 
+      IF(standalone) CALL cmdline_args 
       CALL no_error
 !
       lsetup_done = .true.
@@ -51,7 +53,7 @@ CONTAINS
      &        10x,'* GSAS code: (c) Allen C. Larson and',               &
      &        ' Robert B. Von Dreele *',/,                              &
      &        10x,59('*'),/)                                            
-      END SUBROUTINE setup                          
+      END SUBROUTINE kuplot_setup                          
 !
 SUBROUTINE kuplot_set_sub
 !
@@ -124,6 +126,14 @@ INTERFACE
    END SUBROUTINE kuplot_validate_var_spec 
 END INTERFACE
 
+INTERFACE
+   SUBROUTINE kuplot_branch(zeile, length)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+INTEGER          , INTENT(IN) :: length
+!
+   END SUBROUTINE kuplot_branch
+END INTERFACE
 !
 p_mache_kdo         => kuplot_mache_kdo
 p_errlist_appl      => kuplot_errlist_appl
@@ -131,7 +141,8 @@ p_ersetz_para       => kuplot_ersetz_para
 p_upd_para          => kuplot_upd_para
 p_calc_intr_spec    => kuplot_calc_intr_spec
 p_validate_var_spec => kuplot_validate_var_spec
+p_branch            => kuplot_branch
 !
 END SUBROUTINE kuplot_set_sub
 !
-END MODULE setup_mod
+END MODULE kuplot_setup_mod

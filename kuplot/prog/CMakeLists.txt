@@ -10,12 +10,12 @@ link_directories(${DIFFUSE_BINARY_DIR}/lib_f90)
 link_directories(${PGPLOT_LIBRARIES})
 
 set (SOURCE_MAIN kuplot.f90 )
-set (SOURCES_ALL blk_appl.f90 calc.f90 color.f90 draw.f90 
-        err_appl.f90 exit.f90 fit.f90 frame.f90 gsas.f90 
-	kdo.f90 koordinate_mod.f90 kuplot_loop.f90 
-        kuplot_setup.f90 load.f90 math.f90 para.f90 
-        plot.f90 save.f90 show.f90 upd_par.f90
-        config_mod.f90 kuplot_mod.f90)
+set (SOURCES_ALL kuplot_blk_appl.f90 calc.f90 color.f90 draw.f90 
+	kuplot_err_appl.f90 kuplot_exit.f90 fit.f90 frame.f90 gsas.f90 
+	kuplot_kdo.f90 koordinate_mod.f90 kuplot_loop.f90 
+	kuplot_setup.f90 load.f90 math.f90 para.f90 
+	kuplot_plot.f90 kuplot_save.f90 kuplot_show.f90 kuplot_upd_par.f90
+	kuplot_config.f90 kuplot_mod.f90 kuplot_branch.f90)
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
@@ -38,13 +38,13 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 # NEXUS support ?
 
 if (NEXUS_FOUND)
-  set (SOURCES_ALL ${SOURCES_ALL} nexus.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} kuplot_nexus.f90)
   set (LIBS_OPT         ${NEXUS_LIBRARIES})
   include_directories(${NEXUS_INCLUDE_PATH})
   link_directories(${NEXUS_LIBARY_PATH})
 
 else (NEXUS_FOUND)
-  set (SOURCES_ALL ${SOURCES_ALL} nonexus.f90)
+  set (SOURCES_ALL ${SOURCES_ALL} kuplot_nonexus.f90)
   set (LIBS_OPT )
 
 endif (NEXUS_FOUND)

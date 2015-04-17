@@ -8,7 +8,7 @@
 !*****7*****************************************************************
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -88,7 +88,7 @@
 !     berechnungen fuer x und y feld                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -159,7 +159,7 @@
 !     berechnungen fuer z feld                                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -249,7 +249,7 @@
 !     and replace by linear interpolation of end points.                
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -338,7 +338,7 @@
 !+                                                                      
 !     Find the point closest to xvalue;                                 
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -368,7 +368,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -598,7 +598,7 @@
 !     Merge different data sets                                         
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -742,7 +742,7 @@
 !     Rebin data to given grid (only 2D - otherwise save/read GNU)      
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -885,7 +885,7 @@
 !     Interpolate data set <ik> on grid of <ig> using spline            
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -984,7 +984,7 @@
 !     Convoluting two data sets                                         
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1087,7 +1087,7 @@
 !     Calculate n-th derivative of given data set.                      
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
       USE prompt_mod 
 !                                                                       
@@ -1225,7 +1225,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1430,7 +1430,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1554,7 +1554,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1642,6 +1642,9 @@
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
+               rvalues  (1) = rval 
+               rvalues  (2) = wrval 
+               rvalue_yes   = .true.
             ELSE 
                ier_num = - 23 
                ier_typ = ER_APPL 
@@ -1654,6 +1657,9 @@
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
+               rvalues  (1) = rval 
+               rvalues  (2) = wrval 
+               rvalue_yes   = .true.
             ELSE 
                ier_num = - 23 
                ier_typ = ER_APPL 
@@ -1682,7 +1688,7 @@
 !     berechnungen fuer z feld                                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1727,7 +1733,7 @@
 !     berechnungen fuer y feld                                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 

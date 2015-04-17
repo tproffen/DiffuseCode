@@ -8,7 +8,7 @@
 !                                                                       
       USE errlist_mod 
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -240,7 +240,7 @@
 !     Allocate space for new data set                                   
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -350,7 +350,7 @@
       USE errlist_mod 
       USE prompt_mod 
       USE times_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -590,7 +590,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -643,7 +643,7 @@
 !     Gets numbers from history part of data file                       
 !-                                                                      
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -674,7 +674,7 @@
 !     Load MPAUS extract files ..                                       
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -830,7 +830,7 @@
 !     Load xyz files ..                                                 
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -986,7 +986,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1102,7 +1102,7 @@
 !     contact the authors of KUPLOT.                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1166,7 +1166,7 @@
 !     Read NIPL (KUPLOT own 2D format) and PGM (ASCII) files            
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1331,7 +1331,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1736,7 +1736,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1997,7 +1997,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2186,7 +2186,7 @@
       USE wink_mod
 !
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2317,7 +2317,7 @@
       USE errlist_mod 
       USE wink_mod
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2492,7 +2492,7 @@
 !+                                                                      
 !     Reverse given array                                               
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2518,7 +2518,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2565,7 +2565,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2871,7 +2871,7 @@
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2975,7 +2975,7 @@
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3020,7 +3020,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3139,7 +3139,7 @@
 !     Load single MCA spectrum                                          
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3223,7 +3223,7 @@
 !     Load files point no versus value                                  
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3265,7 +3265,7 @@
 !     Line per atom  : x,y,z, mtyp,mcol,msiz                            
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3309,7 +3309,7 @@
 !     Read marker file (only x-values)                                  
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3358,7 +3358,7 @@
 !     Read powder scan files MAN1 program ..                            
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3410,7 +3410,7 @@
 !+                                                                      
 !     get max/min values of files                                       
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -3475,7 +3475,7 @@
 !     Load *.plt file from SIMREF                                       
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 

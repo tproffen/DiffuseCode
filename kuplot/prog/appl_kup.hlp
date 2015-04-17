@@ -26,6 +26,7 @@
 !p alloc         : Allocate space for data set without loading one
 !p angl          : Set angle between x- and y-axis
 !p aver          : Set ratio between units on y and x-axis
+!p branch        : Switch to discsu SUITE version only
 !p buff          : Set reserved space outside of plotting frame
 !p ccal          : Perform calculations with single data set
 !p color         : Set pen colours
@@ -171,6 +172,16 @@
    value of 0.3 will save 30% of the width/height of the plot itself
    for axis numbers, labels etc. - note that if the reserved space
    is too small text might be wrapped around or cut off.
+2  branch
+!b branch discus
+
+   Active within the discus suite only!
+
+   Branches to the "discus" section.
+
+   Within this section any standard DISCUS command can be
+   given. The behaviour of "discus" is essentially the same
+   as in the stand alone version.
 2  ccal
 !b ccal <oper>,<field>,<ik> [,<value>]
 

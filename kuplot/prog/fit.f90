@@ -11,7 +11,7 @@
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -392,7 +392,7 @@
 !     Set theory function                                               
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -524,7 +524,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -565,7 +565,7 @@
 !+                                                                      
 !     speichern der fitparameter                                        
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -582,7 +582,7 @@
 !+                                                                      
 !     speichern der fitparameter                                        
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -602,7 +602,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -652,7 +652,7 @@
 !     aendern der wichtung                                              
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -709,7 +709,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -766,7 +766,7 @@
 !+                                                                      
 !     anzeigen der fit-parameter                                        
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -852,7 +852,7 @@
 !+                                                                      
 !     anzeigen der fit-ergebnisse                                       
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -890,7 +890,7 @@
 !     kupl.fit schreiben fuer textframe                                 
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -944,7 +944,7 @@
 !+                                                                      
 !     ausgabe von fitinformationen                                      
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -986,7 +986,7 @@
 !     der eigentliche fit fuer xy-files                                 
 !-                                                                      
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1033,7 +1033,7 @@
 !     der eigentliche fit fuer xyz-files                                
 !-                                                                      
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1089,7 +1089,7 @@
 !     Calculation of weights. Values outside plotting range are         
 !     set to zero if frall is .false.                                   
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1127,7 +1127,7 @@
 !+                                                                      
 !     Calculation of weights.                                           
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1162,7 +1162,7 @@
 !*****7*****************************************************************
       SUBROUTINE kupl_theory (xx, f, df, iwert) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1199,7 +1199,7 @@
       SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1237,7 +1237,7 @@
 !*****7*****************************************************************
       SUBROUTINE show_user (idout) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1258,7 +1258,7 @@
       SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1308,7 +1308,7 @@
       REAL function func (xx) 
 !                                                                       
       USE param_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1326,7 +1326,7 @@
 !*****7*****************************************************************
       SUBROUTINE show_gsas (idout) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1366,7 +1366,7 @@
 !*****7*****************************************************************
       SUBROUTINE setup_gsas (ianz, werte, maxw, iname) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1445,7 +1445,7 @@
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1528,7 +1528,7 @@
 !*****7*****************************************************************
       SUBROUTINE theory_gsas (xx, f, df, i) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1594,7 +1594,7 @@
       SUBROUTINE show_lor (idout) 
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1650,7 +1650,7 @@
       SUBROUTINE setup_lor (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1730,7 +1730,7 @@
 !***********************************************************************
       SUBROUTINE theory_lor (xx, f, df, i) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1793,7 +1793,7 @@
       SUBROUTINE show_gauss (idout) 
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1852,7 +1852,7 @@
       SUBROUTINE setup_gauss (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1932,7 +1932,7 @@
 !*********************************************************************  
       SUBROUTINE theory_gauss (xx, f, df, iwert) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1994,7 +1994,7 @@
       SUBROUTINE show_psvgt (idout) 
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2052,7 +2052,7 @@
       SUBROUTINE setup_psvgt (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2151,7 +2151,7 @@
 !*********************************************************************  
       SUBROUTINE theory_psvgt (xx, f, df, i) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2256,7 +2256,7 @@
       SUBROUTINE show_gauss_2d (idout) 
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2335,7 +2335,7 @@
       SUBROUTINE setup_gauss_2d (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2432,7 +2432,7 @@
       SUBROUTINE theory_gauss_2d (xx, f, df, i) 
 !                                                                       
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2529,7 +2529,7 @@
 !***7*******************************************************************
       SUBROUTINE show_poly_cheb (idout) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2551,7 +2551,7 @@
       SUBROUTINE setup_poly_cheb (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2600,7 +2600,7 @@
 !***7*******************************************************************
       SUBROUTINE theory_poly_cheb (xx, f, df, iwert) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2642,7 +2642,7 @@
 !***7*******************************************************************
       SUBROUTINE show_poly (idout) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2664,7 +2664,7 @@
       SUBROUTINE setup_poly (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2712,7 +2712,7 @@
 !***7*******************************************************************
       SUBROUTINE theory_poly (xx, f, df, iwert) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2745,7 +2745,7 @@
 !***7*******************************************************************
       SUBROUTINE show_backpoly (idout) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2772,7 +2772,7 @@
       SUBROUTINE setup_backpoly (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2831,7 +2831,7 @@
 !***7*******************************************************************
       SUBROUTINE theory_backpoly (xx, f, df, iwert) 
 !                                                                       
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -2885,7 +2885,7 @@
 !-                                                                      
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
 !

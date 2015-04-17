@@ -7,7 +7,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -101,7 +101,7 @@
 !     by sample width in real space.                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -179,7 +179,7 @@
       USE errlist_mod 
       USE prompt_mod 
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -302,7 +302,7 @@
       USE errlist_mod 
       USE prompt_mod 
       USE wink_mod
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -430,7 +430,7 @@
 !-                                                                      
       USE errlist_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -540,7 +540,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -681,7 +681,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -852,7 +852,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -963,7 +963,7 @@
 !+                                                                      
 !     glaetten des nipl-2d-arrays                                       
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1055,7 +1055,7 @@
 !+                                                                      
 !     glaetten der kurve ik ueber ip punkte                             
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1111,7 +1111,7 @@
 !+                                                                      
 !     extrema der kurve ik local bestimmen                              
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1136,7 +1136,7 @@
 !+                                                                      
 !     extrema der kurve ik bestimmen                                    
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1158,7 +1158,7 @@
 !+                                                                      
 !     extrema der kurve ik bestimmen                                    
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1185,7 +1185,7 @@
 !     maxima bestimmen fuer xy-files                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1237,7 +1237,7 @@
 !     maxima bestimmen aus xyz files                                    
 !-                                                                      
       USE errlist_mod 
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1293,7 +1293,7 @@
 !+                                                                      
 !     schneiden eines subarrays fuer interpolationsroutinen             
 !-                                                                      
-      USE config_mod 
+      USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
@@ -1389,7 +1389,7 @@
       END SUBROUTINE polint                         
 !                                                                       
       SUBROUTINE spline (x, y, n, yp1, ypn, y2) 
-      USE config_mod 
+      USE kuplot_config 
       PARAMETER (nmax = maxarray) 
       DIMENSION x (n), y (n), y2 (n), u (nmax) 
       IF (yp1.gt..99e30) then 

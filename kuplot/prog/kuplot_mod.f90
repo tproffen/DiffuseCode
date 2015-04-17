@@ -1,6 +1,6 @@
 MODULE kuplot_mod
 !
-USE config_mod
+USE kuplot_config
 !
 IMPLICIT NONE
 PUBLIC

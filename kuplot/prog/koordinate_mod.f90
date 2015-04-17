@@ -1,6 +1,6 @@
 MODULE koordinate_mod
 !
-USE config_mod 
+USE kuplot_config 
 USE kuplot_mod 
 !                                                                       
 PRIVATE
