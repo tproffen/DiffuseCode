@@ -1,0 +1,58 @@
+1  suite
+
+   The discus_suite program integrates the stand alone programs
+   DISCUS DIFFEV and KUPLOT into one common program.
+
+2  Summary
+
+   You can branch to the individual sections "discus", "diffev",
+   and "kuplot" by typing the respective section name. To return
+   to the suite type "exit" at the main menu of each section.
+
+   The variables i[*], r[*] and res[*] are global variables, 
+   a change in any section will be seen in any other section 
+   as well.
+   The same holds for all user defined variables!
+2  News
+
+   This is the first release
+
+2  diffev
+
+   Branches to the "diffev" section. 
+
+   Within this section any standard DIFFEV command can be
+   given. The behaviour of "diffev" is essentially the same
+   as in the stand alone version. 
+   The 'diffev/run_mpi' command will start a discus/kuplot
+   section. The syntax of the command is unchanged. 
+   All trial parameters are placed into array <r[]> at 
+   entries 201, 202, ...
+   The values of generation, member, children and number
+   of parameters are placed into <i[]>:
+   i[201] = generation
+   i[202] = member
+   i[203] = children
+   i[204] = parameter
+
+   Use an 'exit' to return to the suite.
+2  discus
+
+   Branches to the "discus" section.
+
+   Within this section any standard DISCUS command can be
+   given. The behaviour of "discus" is essentially the same
+   as in the stand alone version.
+ 
+   Within the discus section you can use the command
+   'branch kuplot' to switch to the kuplot branch.
+2  kuplot
+
+   Branches to the "kuplot" section.
+
+   Within this section any standard KUPLOT command can be
+   given. The behaviour of "kuplot" is essentially the same
+   as in the stand alone version.
+ 
+   Within the kuplot section you can use the command
+   'branch discus' to switch to the discus branch.
