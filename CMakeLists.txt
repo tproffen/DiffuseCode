@@ -49,6 +49,7 @@ endif (WIN32 OR CYGWIN)
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -g -Wall")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
@@ -70,3 +71,4 @@ add_subdirectory(mixscat/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
+add_subdirectory(suite/prog)
