@@ -17,14 +17,14 @@ CONTAINS
 !-                                                                      
 !     Main menu for generalized shear operations                        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE metric_mod
       USE modify_mod
       USE molecule_mod 
       USE shear_mod 
-      USE show_menu
+      USE discus_show_menu
       USE update_cr_dim_mod
       USE trafo_mod
 !
@@ -656,7 +656,7 @@ CONTAINS
 !-                                                                      
 !     Shows current shear settings                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE metric_mod
@@ -811,7 +811,7 @@ CONTAINS
 !-                                                                      
 !     Defines the deformation matrix in real and reciprocal space       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE shear_mod 
@@ -990,7 +990,7 @@ CONTAINS
 !-                                                                      
 !     Performs the actual shear operation, single result version        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE shear_mod 
@@ -1065,7 +1065,7 @@ CONTAINS
 !     Performs the actual shear operation, single result version        
 !     Operates on molecules                                             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod
@@ -1234,7 +1234,7 @@ CONTAINS
 !     Performs the actual shear operation, single result version        
 !     Operates on objects                                               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
@@ -1398,7 +1398,7 @@ CONTAINS
 !     Performs the actual shear operation, single result version        
 !     Operates on Microdomains                                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE shear_mod 
@@ -1572,7 +1572,7 @@ CONTAINS
 !     Performs the actual shear operation, multiple copy version        
 !     Only the input vector uvw is used in direct or reciprocal space   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE shear_mod 
       USE trafo_mod
 !                                                                       

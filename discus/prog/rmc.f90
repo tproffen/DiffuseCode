@@ -8,7 +8,7 @@ CONTAINS
 !     This sublevel includes all commands and functions for the         
 !     Reverse-Monte-Carlo simulations in DISCUS.                        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod

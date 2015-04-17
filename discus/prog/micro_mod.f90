@@ -2,7 +2,7 @@ MODULE micro_mod
 !-
 !     Definition of all variables for the microdomain - crystal
 !+
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

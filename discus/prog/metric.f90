@@ -7,7 +7,7 @@ CONTAINS
 !     Calculates the length of the vector v-u in the space defined by   
 !     lspace (.true. = real space , .false. = reciprocal space)         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !                                                                       
@@ -38,7 +38,7 @@ CONTAINS
 !     defined by lspace (.true. = real space ,                          
 !       .false. = reciprocal space)                                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       USE wink_mod
@@ -137,7 +137,7 @@ CONTAINS
 !-                                                                      
 !     Transforms a vector from direct to reciprocal space or vice versa 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE trafo_mod
 !
@@ -215,7 +215,7 @@ CONTAINS
 !     both input vectors and the result can be in direct or             
 !     reciprocal spce                                                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE trafo_mod
       USE errlist_mod 
@@ -314,7 +314,7 @@ CONTAINS
 !     Both input vectors and the result can be in direct or             
 !     reciprocal spce                                                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       USE wink_mod

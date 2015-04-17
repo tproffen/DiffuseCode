@@ -1369,11 +1369,11 @@ MODULE nr
             END FUNCTION interp
       END INTERFACE
       INTERFACE
-            FUNCTION rank(indx)
+            FUNCTION rank_u(indx)
             USE nrtype
             INTEGER(I4B), DIMENSION(:), INTENT(IN) :: indx
-            INTEGER(I4B), DIMENSION(size(indx)) :: rank
-            END FUNCTION rank
+            INTEGER(I4B), DIMENSION(size(indx)) :: rank_u
+            END FUNCTION rank_u
       END INTERFACE
       INTERFACE
             FUNCTION irbit1(iseed)
@@ -2186,10 +2186,10 @@ MODULE nr
             END SUBROUTINE quadvl
       END INTERFACE
       INTERFACE
-            FUNCTION ran(idum)
+            FUNCTION ran_u(idum)
             INTEGER(selected_int_kind(9)), INTENT(INOUT) :: idum
-            REAL :: ran
-            END FUNCTION ran
+            REAL :: ran_u
+            END FUNCTION ran_u
       END INTERFACE
       INTERFACE ran0
             SUBROUTINE ran0_s(harvest)
