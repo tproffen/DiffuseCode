@@ -10,7 +10,7 @@ CONTAINS
 !-                                                                      
 !     Creates all symmetry matrices for the current space group         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
       USE gen_add_mod 
@@ -121,7 +121,7 @@ CONTAINS
 !-                                                                      
 !     Applies the current generator to all existing symmetry matrices   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !                                                                       
@@ -396,7 +396,7 @@ CONTAINS
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE tensors_mod
       USE trafo_mod
@@ -1150,7 +1150,7 @@ CONTAINS
 !-                                                                      
 !     Determines the local symmetry of position xyz within the unit cell
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE wyckoff_mod 
       USE unitcell_mod 
@@ -1287,7 +1287,7 @@ CONTAINS
 !                           yet symmetrically different atoms           
 !                                                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
       USE gen_add_mod 
@@ -1514,7 +1514,7 @@ CONTAINS
 !-                                                                      
 !     Sorts the newly created atoms into the correct molecules.         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE wyckoff_mod 
@@ -1753,7 +1753,7 @@ CONTAINS
 !     If the molecule does not include an atom on the highest point     
 !     of the molecule symmetry, you must insert a "void" on this site.  
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE molecule_mod 
@@ -1893,7 +1893,7 @@ CONTAINS
 !     Moves molecules whose first atom is outside the unit cell into    
 !     the first unit cell.                                              
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE molecule_mod 
       USE crystal_mod 
       IMPLICIT none 
@@ -1985,7 +1985,7 @@ CONTAINS
 !-                                                                      
 !     Creates the symmetry matrices in reciprocal space                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE recipro_mod 
       USE rmc_symm_mod

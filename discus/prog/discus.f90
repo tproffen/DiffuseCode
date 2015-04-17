@@ -5,8 +5,9 @@ USE discus_loop_mod
 !
 IMPLICIT none 
 !
+LOGICAL, PARAMETER :: standalone = .true.
 !
-CALL discus_setup
+CALL discus_setup(standalone)
 CALL discus_set_sub
 CALL discus_loop
 !                                                                       

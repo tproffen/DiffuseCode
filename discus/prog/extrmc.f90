@@ -114,7 +114,7 @@ CONTAINS
 !------ We recommend 'implicit none' to avoid the accidental use        
 !------ of DISCUS variables defined in the include files                
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE rmc_mod 

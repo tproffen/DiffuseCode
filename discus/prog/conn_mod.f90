@@ -254,7 +254,7 @@ CONTAINS
 !     Set the parameters for the connectivity
 !+                                                                      
       USE discus_allocate_appl_mod 
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE variable_test
@@ -582,7 +582,7 @@ CONTAINS
 !-                                                                      
 !     Main menu for connectivity related operations                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
 !
       USE doact_mod 
@@ -602,7 +602,7 @@ CONTAINS
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
       INTEGER              :: c_name_l ! connectivity name length
-      INTEGER              :: is1, ino ! Connectivity id, connectivity no
+      INTEGER              :: ino      ! connectivity no
       INTEGER              :: iatom    ! atoms no for show
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, iianz
@@ -794,7 +794,7 @@ CONTAINS
 !-                                                                      
 !     Show connectivity definitions
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE prompt_mod
@@ -841,7 +841,7 @@ CONTAINS
 !-                                                                      
 !     Mainly used while developing code, tests the connectivity
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !
@@ -874,7 +874,7 @@ CONTAINS
 !-                                                                      
 !     Get the list of neighbors for central atom jatom of type is1
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !
@@ -942,7 +942,7 @@ CONTAINS
 !-                                                                      
 !     Get the identity of a connectivity from central atom and number or name
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !

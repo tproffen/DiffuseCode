@@ -8,7 +8,7 @@ SUBROUTINE pdf
 !     PDF anlysis part of DISCUS. This segment uses variables           
 !     of the RMC and CHEM segment which are simply overwritten !!       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
@@ -262,7 +262,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Setup for various arrays and functions for PDF calculation.       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
@@ -447,7 +447,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Shows current parameters                                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE chem_mod 
@@ -658,7 +658,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Save PDF or current structure                                     
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE pdf_mod 
       USE save_menu
@@ -763,7 +763,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Reads observed PDF as xy ASCII file.                              
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE pdf_mod 
 !
@@ -864,7 +864,7 @@ SUBROUTINE pdf
 !                                                                       
 !     Extract history information if present                            
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE pdf_mod 
 !
       USE param_mod 
@@ -921,7 +921,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Gets numbers from history part of data file                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE param_mod 
       IMPLICIT none 
 !                                                                       
@@ -952,7 +952,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Sets most parameters for 'pdf' section                            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
@@ -1501,7 +1501,7 @@ SUBROUTINE pdf
 !+                                                                      
 !     Main PDF fit loop - called by run command                         
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
@@ -1532,11 +1532,11 @@ SUBROUTINE pdf
       INTEGER isel (rmc_max_atom), natoms 
       INTEGER imol (rmc_max_atom) 
       INTEGER zh, zm, zs, nmi, nma 
-      INTEGER i, j, k, ip
+      INTEGER i, j, ip
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !
-      REAL ran1 , gasdev
+      REAL ran1
 !                                                                       
 !open(89,file='shift.log', status='unknown')
       IF (pdf_obs (1) .eq. - 9999.) then 
@@ -2039,7 +2039,7 @@ laccept = .false.
          IF (rmc_sigma.eq. - 9999.) laccept = .true. 
          IF (laccept) then 
             cold = cnew 
-1           CALL refine_adapt_lattice (1)
+            CALL refine_adapt_lattice (1)
          ELSE
 !
 !           Restore old lattice parameters
@@ -2063,7 +2063,7 @@ laccept = .false.
 !+                                                                      
 !     make accepted move                                                
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE rmc_mod 
@@ -2099,12 +2099,12 @@ laccept = .false.
 !     Calculate PDF of current structure                                
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE pdf_mod 
       USE powder, ONLY : powder_trans_atoms_tocart, powder_trans_atoms_fromcart
-      USE plot_init_mod
+      USE discus_plot_init_mod
 !
       USE debug_mod 
       USE errlist_mod 
@@ -2114,7 +2114,6 @@ laccept = .false.
        
 !                                                                       
       INTEGER i, j, ia, id 
-      INTEGER is, js 
       REAL done, sum 
       LOGICAL lout 
 !
@@ -2302,7 +2301,7 @@ laccept = .false.
 !+                                                                      
 !     Convert to G(r) and do convolution                                
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE atom_env_mod 
@@ -2431,7 +2430,7 @@ laccept = .false.
 !+                                                                      
 !     Calculate correlation for given atom ia                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE atom_env_mod 
@@ -2593,7 +2592,7 @@ laccept = .false.
 !+                                                                      
 !     Calculate correlation for given atom ia, fast version             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE celltoindex_mod
@@ -2604,12 +2603,12 @@ laccept = .false.
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER i, j, k, ii, jj, is, js, ks, ia, iatom, ibin , islook
+      INTEGER i, j, k, ii, is, js, ks, ia, iatom, ibin , islook
       INTEGER  :: ipdf_rmax
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       INTEGER  :: offzero
-      REAL dist, dist2 
-      REAL dd (3), d (3), offset (3)
+      REAL dist
+      REAL dd (3), offset (3)
 !
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
 !
@@ -2703,7 +2702,7 @@ laccept = .false.
 !+                                                                      
 !     Calculate correlation for given atom ia, fast version             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE celltoindex_mod
@@ -2802,7 +2801,7 @@ laccept = .false.
 !     Version for partial PDF, i.e. check on pdf-allowed is required
 !     As this is not super fast, the check on molecules is included here
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE molecule_mod 
@@ -2815,9 +2814,9 @@ laccept = .false.
 !
 !
       INTEGER   :: id
-      INTEGER   :: is, js, ia, jj, iatom, ibin , islook
+      INTEGER   :: is, js, ia, iatom, ibin , islook
       INTEGER   :: ipdf_rmax
-      REAL      :: dist, done
+      REAL      :: done
       REAL dd (3)
 !                                                                       
       id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
@@ -2868,7 +2867,7 @@ inner:      DO iatom = ia+1, cr_natoms
 !+                                                                      
 !     Calculate correlation for given atom ia, exact version, all atoms
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 
@@ -2881,7 +2880,6 @@ inner:      DO iatom = ia+1, cr_natoms
       INTEGER :: id
       INTEGER :: is, js, ia, iatom, ibin 
       INTEGER   :: ipdf_rmax
-      REAL                  :: dist
       REAL                  :: done
       REAL   , DIMENSION(3) :: dd
       REAL :: ss, seknds
@@ -2933,7 +2931,7 @@ inner:      DO iatom = ia+1, cr_natoms
 !     Calculate correlation for given atom ia, exact version, all atoms
 !     Version for molecular b-value
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 
@@ -2947,7 +2945,6 @@ inner:      DO iatom = ia+1, cr_natoms
       INTEGER :: id
       INTEGER :: is, js, ia, iatom, ibin , islook
       INTEGER   :: ipdf_rmax
-      REAL                  :: dist
       REAL                  :: done
       REAL   , DIMENSION(3) :: dd
       REAL :: ss, seknds
@@ -3004,7 +3001,7 @@ inner:      DO iatom = ia+1, cr_natoms
 !     Convolute the pair correlation histograms with the                
 !     thermal Gaussian                                                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE pdf_mod 

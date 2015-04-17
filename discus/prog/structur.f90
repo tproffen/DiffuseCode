@@ -22,13 +22,13 @@ CONTAINS
 !-                                                                      
 !     Main menu for read command.                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
       USE read_internal_mod
-      USE save_mod 
+      USE discus_save_mod 
       USE spcgr_apply
       USE spcgr_mod 
       USE stack_rese_mod
@@ -508,12 +508,12 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod
-      USE save_mod 
+      USE discus_save_mod 
       USE spcgr_apply
       USE wyckoff_mod
       IMPLICIT none 
@@ -863,7 +863,6 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
       CHARACTER(1024) string 
       INTEGER lpara (maxw) 
       INTEGER j ,isok
-      INTEGER  :: iplus, iminus,isl,istar
       INTEGER ianz 
       LOGICAL  :: lcalc     ! Flag if calculation is needed
 !                                                                       
@@ -956,7 +955,7 @@ check_calc: DO j = 1, ianz
 !+                                                                      
                                                                         
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE spcgr_apply
@@ -1956,7 +1955,7 @@ check_calc: DO j = 1, ianz
 !-                                                                      
 !     Interprets the space group symbol. Returns the space group no.    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE spcgr_mod 
       IMPLICIT none 
@@ -2079,12 +2078,12 @@ check_calc: DO j = 1, ianz
 !                                                                       
 !     resets the crystal structure to empty                             
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE gen_add_mod 
       USE molecule_mod 
       USE sym_add_mod 
-      USE save_mod 
+      USE discus_save_mod 
       IMPLICIT none 
 !                                                                       
        
@@ -2838,10 +2837,12 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
+         CLOSE(ird)
          RETURN 
       ENDIF 
       CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
+         CLOSE(iwr)
          RETURN 
       ENDIF 
 !                                                                       
@@ -2856,7 +2857,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
          RETURN
       ENDIF
       nline     = nline + 1
-      READ(ird, *    ,IOSTAT=iostatus) latt(4:5)
+      READ(ird, *    ,IOSTAT=iostatus) latt(4:6)
       IF(iostatus/=0) THEN
          ier_num = -48
          WRITE(ier_msg(1),'(a,i7)') 'Error in line ', nline
@@ -2923,6 +2924,9 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 1300 FORMAT('atoms')     
 2000 FORMAT(A4,3(2x, F10.6,','),'   0.1,    1')
 !
+      CLOSE(iwr)
+      CLOSE(ird)
+!
       END SUBROUTINE rmcprofile2discus 
 !
       SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW) 
@@ -2945,7 +2949,6 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       REAL   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN= 1)     :: bravais= ' '
-      CHARACTER(LEN= 4)     :: atom   = ' '
       CHARACTER(LEN=80)     :: title  = ' '
       CHARACTER(LEN=80)     :: spcgr  = ' '
       CHARACTER(LEN=80)     :: aniso_label  = ' '
@@ -2958,9 +2961,8 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
       INTEGER               :: MAXLINES 
       INTEGER               :: ird, iwr 
-      INTEGER               :: i, j, k
+      INTEGER               :: i, j
       INTEGER               :: iostatus
-      INTEGER               :: natoms
       LOGICAL               :: lread
       LOGICAL               :: lwrite
       LOGICAL, DIMENSION(7) :: header_done = .false.

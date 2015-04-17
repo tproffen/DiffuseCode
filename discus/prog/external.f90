@@ -6,7 +6,7 @@ CONTAINS
 !     Calculates the Fourier Transformation using externally            
 !     calculated structure factors                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -114,7 +114,7 @@ CONTAINS
 !     Calculates the Fourier Transformation using externally            
 !     calculated structure factors for a cube shaped object             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
@@ -178,7 +178,7 @@ CONTAINS
 !     Calculates the Fourier Transformation using externally            
 !     calculated structure factors for a cylindrical object             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
@@ -258,7 +258,7 @@ CONTAINS
 !     Calculates the Fourier Transformation using externally            
 !     calculated structure factors for a spherical object               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
@@ -327,7 +327,7 @@ CONTAINS
 !     Calculates the Fourier Transformation using externally            
 !     calculated structure factors for an edge shaped object            
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE external_mod 
@@ -432,7 +432,7 @@ CONTAINS
 !-                                                                      
 !     Opens the external file and reads the header                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE external_mod 
       USE molecule_mod 
       USE errlist_mod 

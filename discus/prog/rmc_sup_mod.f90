@@ -6,7 +6,7 @@ CONTAINS
 !+                                                                      
 !     sets most parameters for 'set' section                            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -441,7 +441,7 @@ CONTAINS
 !+                                                                      
 !     Sets RMC/MC maximum shift in 'shift' mode                         
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -535,7 +535,7 @@ CONTAINS
 !+                                                                      
 !     Sets RMC/MC mode                                                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE rmc_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -615,7 +615,7 @@ CONTAINS
 !     Set minimal allowed atom distances                                
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
       USE errlist_mod 
@@ -656,7 +656,7 @@ CONTAINS
 !+                                                                      
 !     Calculate R-values                                                
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE rmc_mod 
 !                                                                       
@@ -716,7 +716,7 @@ CONTAINS
 !     Show current RMC settings                                         
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE diffuse_mod 
@@ -950,7 +950,7 @@ CONTAINS
 !+                                                                      
 !     save scattering amplitudes / structure                            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
       USE save_menu
@@ -1075,7 +1075,7 @@ CONTAINS
 !+                                                                      
 !     Save scattering data to disk                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE rmc_mod 
@@ -1145,7 +1145,7 @@ CONTAINS
 !+                                                                      
 !     read experimental data for rmc fit                                
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod
@@ -1593,7 +1593,7 @@ CONTAINS
 !+                                                                      
 !     Calulates the weight for intensity int                            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
       IMPLICIT none 
@@ -1628,7 +1628,7 @@ CONTAINS
 !+                                                                      
 !     main rmc loop - called by run command                             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
@@ -1987,7 +1987,7 @@ CONTAINS
 !+                                                                      
 !     This routine calculates initial Fourier transform                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -2097,7 +2097,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !     This routine copies average intensity for given plane and sym     
 !     in array 'dsi' ...                                                
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE rmc_mod 
       IMPLICIT none 
@@ -2156,7 +2156,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !     This routine checks if all input parameters are valid             
 !     for a RMC run.                                                    
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
@@ -2275,7 +2275,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Calculate scaling factor / background                             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
@@ -2323,7 +2323,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Save or restore SIN(THETA)/LAMBDA for diffuse routines            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE fourier_sup
       USE rmc_mod 
@@ -2359,7 +2359,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Save or restore FORMTAB for diffuse routines                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -2418,7 +2418,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Set diffuse layer variables for current plane/isym                
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE rmc_mod 
       IMPLICIT none 
@@ -2444,7 +2444,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Reset rmc_csf array                                               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE rmc_mod 
       IMPLICIT none 
@@ -2464,7 +2464,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Do transformation q = gSg*                                        
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
       USE tensors_mod
@@ -2502,7 +2502,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Compute symmetrically equivalent vectors of 'v' using 'mat'       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: n
@@ -2530,7 +2530,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !     This routine calculates the change in structure factor            
 !     cause by the RMC move.                                            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE rmc_mod 
@@ -2584,7 +2584,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Here is the real calculation :-)                                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE fourier_sup
       USE four_strucf_mod
@@ -2629,7 +2629,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Checks if given atom 'ia' is in given lot 'il'                    
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE diffuse_mod 
@@ -2727,7 +2727,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     make accepted move                                                
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE rmc_mod 
@@ -2774,7 +2774,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     check distances                                                   
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
@@ -2789,7 +2789,7 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, DIMENSION(  RMC_MAX_ATOM), INTENT(IN)  :: i_new !(rmc_max_atom)
       REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
-      INTEGER i , j
+      INTEGER i
       REAL pos (3), werte(1) 
 !                                                                       
       werte = - 1 
@@ -2819,7 +2819,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     Select two atom sites (global, local, ...)                        
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE conn_mod
@@ -2913,7 +2913,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !+                                                                      
 !     generate RMC move (for switch and relax. mode)                    
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -3062,7 +3062,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !     Generate RMC move (for switch and relax. mode)                    
 !     Version for molecules ..                                          
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE celltoindex_mod

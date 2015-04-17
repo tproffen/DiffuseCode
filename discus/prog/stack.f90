@@ -11,7 +11,7 @@ SUBROUTINE stack
 !     list of corresponding origins. Optionally the whole crystal is    
 !     created.                                                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
@@ -938,7 +938,7 @@ SUBROUTINE stack
 !-                                                                      
 !     Creates the list of origins for the crystal with stacking faults  
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
@@ -1279,7 +1279,7 @@ SUBROUTINE stack
 !-                                                                      
 !     Determines the probabilities from the correlation matrix          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE stack_mod 
       IMPLICIT none 
 !                                                                       
@@ -1308,7 +1308,7 @@ SUBROUTINE stack
 !     specific layer type i.e. sum corr(i,m) /st_type                   
 !     is added.                                                         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE stack_mod 
 !                                                                       
       IMPLICIT none 
@@ -1334,7 +1334,7 @@ SUBROUTINE stack
 !-                                                                      
 !     Determine type of layer from weighted probabilities               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE stack_mod 
       USE random_mod
       USE errlist_mod 
@@ -1368,14 +1368,14 @@ SUBROUTINE stack
 !-                                                                      
 !     Creates the crystal with stacking faults                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE gen_add_mod 
       USE sym_add_mod 
       USE molecule_mod 
       USE read_internal_mod
-      USE save_mod 
+      USE discus_save_mod 
       USE stack_mod  
       USE structur  
       USE symm_sup_mod
@@ -1656,7 +1656,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     performs the setup for the rotations around the different axes    
 !+                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE symm_mod 
       USE stack_mod 
@@ -1749,14 +1749,14 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Calculates the Fourier transform of the stacking fault decorated  
 !     by the respective layers.                                         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup 
       USE four_strucf_mod
       USE molecule_mod 
-      USE save_mod 
+      USE discus_save_mod 
       USE stack_mod 
       USE structur
       USE spcgr_apply
@@ -2017,14 +2017,14 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !-                                                                      
 !     Calculates the Fourier transform of the average lattice.          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup 
       USE four_strucf_mod
       USE molecule_mod 
-      USE save_mod 
+      USE discus_save_mod 
       USE stack_mod 
       USE structur
       USE spcgr_apply
@@ -2287,7 +2287,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Later on the origins will be interpreted as well as               
 !     origins of the stacking faults.                                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE stack_mod 
       USE stack_cr_mod
       USE structur

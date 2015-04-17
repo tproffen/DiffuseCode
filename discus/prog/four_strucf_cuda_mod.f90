@@ -7,7 +7,7 @@ CONTAINS
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE crystal_mod
       IMPLICIT none 

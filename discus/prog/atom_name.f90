@@ -8,7 +8,7 @@ CONTAINS
 !     able to distinguish between different atom types with             
 !     the same name.                                                    
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !                                                                       

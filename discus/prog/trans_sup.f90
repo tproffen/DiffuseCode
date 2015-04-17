@@ -7,7 +7,7 @@ CONTAINS
 !     Performs the transformation symmetry operation for a single       
 !     atom or reciprocal vector.                                        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE trafo_mod
 !
       USE errlist_mod 

@@ -7,7 +7,7 @@ CONTAINS
 !     Performs the generalized symmetry operation                       
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE symm_mod 
@@ -161,7 +161,7 @@ CONTAINS
 !-                                                                      
 !     Performs the actual symmetry operation, multiple copy version     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE modify_mod
@@ -249,7 +249,7 @@ CONTAINS
 !-                                                                      
 !     Performs the actual symmetry operation, single result version     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE modify_mod
@@ -332,7 +332,7 @@ CONTAINS
 !     Operates on molecules                                             
 !+                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -490,7 +490,7 @@ CONTAINS
 !     Operates on molecules                                             
 !+                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -638,7 +638,7 @@ CONTAINS
 !     Operates on molecules                                             
 !+                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -867,7 +867,7 @@ CONTAINS
 !     Operates on microdomain represenatation                           
 !+                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
@@ -1076,7 +1076,7 @@ CONTAINS
 !     Performs the actual symmetry operation, multiple copy version     
 !     Only the input vector uvw is used in direct or reciprocal space   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE symm_mod 
       USE trafo_mod
 !                                                                       
@@ -1164,7 +1164,7 @@ CONTAINS
 !     Performs the actual symmetry operation, multiple copy version     
 !     Only the input vector uvw is used in direct or reciprocal space   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE symm_mod 
       USE trafo_mod
 !                                                                       

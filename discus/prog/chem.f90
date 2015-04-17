@@ -12,7 +12,7 @@ SUBROUTINE chem
 !     Note: Some variables are used in the MC section as well           
 !           and settings might be overwritten.                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
@@ -421,7 +421,7 @@ SUBROUTINE chem
 !+                                                                      
 !     show current parameters                                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE diffuse_mod 
       USE errlist_mod 
@@ -654,7 +654,7 @@ SUBROUTINE chem
 !+                                                                      
 !     sets most parameters for 'chem' section                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -869,7 +869,7 @@ SUBROUTINE chem_set_vec (ianz, cpara, lpara, werte, maxw)
 !     'set vec' is processed here                                       
 !-                                                                      
 USE discus_allocate_appl_mod 
-USE config_mod 
+USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
 USE errlist_mod 
@@ -950,7 +950,7 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
 !     'set con' is processed here                                       
 !-
    USE discus_allocate_appl_mod 
-   USE config_mod 
+   USE discus_config_mod 
    USE crystal_mod 
    USE chem_mod 
    USE conn_mod
@@ -1047,7 +1047,7 @@ SUBROUTINE chem_set_ranges (ianz, cpara, lpara, werte, maxw)
 !     'set range' is processed here                                     
 !-                                                                      
 USE discus_allocate_appl_mod 
-USE config_mod 
+USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
 USE metric_mod
@@ -1294,7 +1294,7 @@ SUBROUTINE chem_set_angle (ianz, cpara, lpara, werte, maxw)
 !     'set angle' is processed here                                     
 !-                                                                      
 USE discus_allocate_appl_mod 
-USE config_mod 
+USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
 USE errlist_mod 
@@ -1382,7 +1382,7 @@ ENDIF
 !     'set environment' is processed here                               
 !-                                                                      
       USE discus_allocate_appl_mod 
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE modify_mod
@@ -1463,7 +1463,7 @@ ENDIF
 !+                                                                      
 !     Command 'set neig' processed here                                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE metric_mod
       USE rmc_sup_mod
@@ -1736,7 +1736,7 @@ ENDIF
 !+                                                                      
 !     Parameters for command 'set neig' processed here                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -1778,7 +1778,7 @@ ENDIF
 !-                                                                      
 !     Finds the environment around an atom, site or position            
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE atom_name 
@@ -1931,7 +1931,7 @@ ENDIF
 !-                                                                      
 !     Calculates the bond valence sum for specified site/atom           
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE atom_name 
@@ -2077,7 +2077,7 @@ ENDIF
 !-                                                                      
 !     Sets molecule/atom mode                                           
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
@@ -2123,7 +2123,7 @@ ENDIF
 !-                                                                      
 !     Finds the environment for given neighbour definition              
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
@@ -2276,7 +2276,7 @@ ENDIF
 !-                                                                      
 !     Check homogeniety of crstal                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE modify_mod
       USE errlist_mod 
@@ -2354,7 +2354,7 @@ ENDIF
 !-                                                                      
 !     Calculates concentration distribution for given atom typ          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -2490,7 +2490,7 @@ ENDIF
 !-                                                                      
 !     Calculates correlation distribution                               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
@@ -2616,7 +2616,7 @@ ENDIF
 !+                                                                      
 !     Checks if given atom 'ia' is in given lot 'lbeg'                  
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE diffuse_mod 
@@ -2705,7 +2705,7 @@ ENDIF
 !-                                                                      
 !     Calculates correlation field                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE mc_mod 
       USE errlist_mod 
@@ -2900,7 +2900,7 @@ ENDIF
 !-                                                                      
 !     Saves/restores current CHEM neighbour settings                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       IMPLICIT none 
 !                                                                       
 INTEGER, INTENT(IN) :: CHEM_MAX_VEC
@@ -2938,7 +2938,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Updates neigbouring distances for correlation field               
 !     calculations.                                                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE metric_mod
       USE errlist_mod 
@@ -2989,7 +2989,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !-                                                                      
 !     Checks input for correlation field                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -3024,7 +3024,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates distortions within the crystal                         
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
@@ -3173,7 +3173,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates distortions within the crystal                         
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
@@ -3359,7 +3359,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculates vector distortions within the crystal                  
 !-                                                                      
-!     USE config_mod 
+!     USE discus_config_mod 
 !     USE crystal_mod 
 !     USE chem_mod 
 !     USE mc_mod 
@@ -3572,7 +3572,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Molecules version ..                                              
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -3721,7 +3721,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates angular distortions within the crystal                 
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
@@ -3907,7 +3907,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates angular distortions within the crystal                 
 !-                                                                      
       USE discus_allocate_appl_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
@@ -4117,7 +4117,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates displacement correlations within the crystal           
 !       according to: cij = <x(i)x(j)>/sqrt(<x(i)**2><x(j)**2>)         
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
@@ -4342,7 +4342,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !       according to: cij = <x(i)x(j)>/sqrt(<x(i)**2><x(j)**2>)         
 !     Molecule version ...                                              
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
@@ -4540,7 +4540,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !     Calculates occupational correlations within the crystal           
 !       according to: cij = (Pij-T**2)/T(1-T).                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE mc_mod 
@@ -4712,7 +4712,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !       according to: cij = (Pij-T**2)/T(1-T).                          
 !     Molecules version ...                                             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE mc_mod 
@@ -4872,7 +4872,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Determine neighbours from given atom index 'jatom'.               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
@@ -5118,7 +5118,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Determine neighbours from given atom index 'jatom'.               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
@@ -5743,7 +5743,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Determine neighbours from given molecule index 'jmol'.            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE molecule_mod 
@@ -5799,7 +5799,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculate bond length distribution within crystal                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE atom_env_mod 
@@ -5948,7 +5948,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculate bond length distribution within crystal                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
@@ -6026,7 +6026,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Calculate bond angle distribution within crystal                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name 
       USE atom_env_mod 
@@ -6196,7 +6196,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !+                                                                      
 !     Show information about molecules/rel. amounts within crystal      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE molecule_mod 

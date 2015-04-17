@@ -12,7 +12,7 @@ CONTAINS
 !     J. Appl. Cryst. 25, 391-399.                                      
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
@@ -764,7 +764,7 @@ CONTAINS
 !+                                                                      
 !     prints summary of current fourier settings                        
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE metric_mod
       USE output_mod 

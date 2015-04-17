@@ -2,7 +2,7 @@ MODULE rmc_mod
 !+
 !     Variables for REVERSE-MONTE-CARLO level
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

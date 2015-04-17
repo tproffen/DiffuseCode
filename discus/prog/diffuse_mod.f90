@@ -2,7 +2,7 @@ MODULE diffuse_mod
 !+
 !     Contains all variables for Fourier transform
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

@@ -7,7 +7,7 @@ CONTAINS
 !     transforms the real and imaginary part of the Fourier transform   
 !     into the desired output format                                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE output_mod 
       USE random_mod

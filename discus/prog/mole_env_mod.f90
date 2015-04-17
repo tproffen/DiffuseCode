@@ -3,7 +3,7 @@ MODULE mole_env_mod
 !
 !     include file for molecular environment variables
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

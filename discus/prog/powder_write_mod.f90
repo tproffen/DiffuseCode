@@ -12,7 +12,7 @@ CONTAINS
 !-                                                                      
 !     Write the powder pattern                                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE debye_mod 
       USE diffuse_mod 
       USE output_mod 
@@ -296,7 +296,7 @@ CONTAINS
       REAL function lorentz (ttheta) 
 !+                                                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -327,7 +327,7 @@ CONTAINS
       REAL function polarisation (ttheta) 
 !+                                                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -356,13 +356,12 @@ CONTAINS
       REAL FUNCTION lorentz_pol (ttheta) 
 !+                                                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
       REAL ttheta 
-      REAL r 
 !                                                                       
       REAL sind, cosd 
 !                                                                       
@@ -378,7 +377,7 @@ CONTAINS
 !-                                                                      
 !     Convolute powder pattern with resolution function (Gaussian)      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -434,7 +433,7 @@ SUBROUTINE powder_conv_psvgt_fix (dat, tthmin, tthmax, dtth, eta, &
 !     Convolute powder pattern with resolution function (Pseudo-Voigt)  
 !     Constant FWHM, Constant eta                                       
 !+                                                                      
-USE config_mod 
+USE discus_config_mod 
 USE wink_mod
 IMPLICIT none 
 !                                                                       
@@ -500,7 +499,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM according to caglioti equation, Constant eta                 
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -584,7 +583,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM according to caglioti equation, Constant eta                 
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE wink_mod
       IMPLICIT none 
 !                                                                       

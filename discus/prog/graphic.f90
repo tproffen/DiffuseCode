@@ -8,7 +8,7 @@ SUBROUTINE do_niplps (linverse)
 !     of the Fourier transform/Patterson to an output file in           
 !     various formats.                                                  
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE nexus_discus
       USE vtk_mod
@@ -526,7 +526,7 @@ SUBROUTINE do_niplps (linverse)
 !-                                                                      
 !     Writes a POSTSCRIPT file                                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE output_mod 
       USE qval_mod
@@ -614,7 +614,7 @@ SUBROUTINE do_niplps (linverse)
 !-                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE output_mod 
       USE qval_mod
@@ -675,7 +675,7 @@ SUBROUTINE do_niplps (linverse)
 !+                                                                      
 !     Writes the data in a PGM format                                   
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE output_mod 
       USE qval_mod
@@ -830,7 +830,7 @@ SUBROUTINE do_niplps (linverse)
 !-                                                                      
 !     Writes output in standard or GNUPLOT format                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -1142,7 +1142,7 @@ SUBROUTINE do_niplps (linverse)
 !     Sets the proper output values for either Fourier or               
 !     inverse Fourier and Patterson                                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE output_mod 
       USE patters_mod 

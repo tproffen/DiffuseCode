@@ -9,7 +9,7 @@ CONTAINS
 !-                                                                      
 !     Replaces atom(s) or molecule(s) within the crystal ..             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE celltoindex_mod
@@ -292,7 +292,7 @@ CONTAINS
 !     Replaces molecule 'idest' with 'isource'. If 'lswap' is true      
 !     both molecule are swapped rather than one replaced by the other.  
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE errlist_mod 
@@ -375,7 +375,7 @@ CONTAINS
 !     that of the first type of temperature factor given for this atom  
 !     type, ELSE the temperature factor will be 0.                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE charact_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
@@ -467,7 +467,7 @@ CONTAINS
 !                                                                       
 !     Appends a new atom                                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE charact_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
@@ -677,7 +677,7 @@ CONTAINS
 !     Inserts the atom given by name and position in werte into the     
 !     structure.                                                        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
@@ -773,7 +773,7 @@ CONTAINS
 !     Removes a single atom from the structure. line is evaluated to    
 !     give the index of the atom.                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
@@ -970,7 +970,7 @@ CONTAINS
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE molecule_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -988,7 +988,7 @@ CONTAINS
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod
       USE chem_aver_mod
       USE molecule_mod 
@@ -1034,7 +1034,7 @@ CONTAINS
 !     modes, otherwise we select speed mode. Any changes are            
 !     reported on screen.                                               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE chem_mod 
       USE pdf_mod 
 !
@@ -1075,7 +1075,7 @@ CONTAINS
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_aver_mod
       USE molecule_mod 
@@ -1180,7 +1180,7 @@ CONTAINS
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_aver_mod
       USE molecule_mod 
@@ -1305,7 +1305,7 @@ CONTAINS
 !     copies an atom to a new position given in relativ or absolute     
 !     fractional coordinates                                            
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1373,7 +1373,7 @@ CONTAINS
 !     atoms must be given. If the last parameter is "mol" then          
 !     two molecules are swapped.                                        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE update_cr_dim_mod
@@ -1450,7 +1450,7 @@ CONTAINS
 !-                                                                      
 !     Finds the environment around an atom                              
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE charact_mod 
       USE charact_mod 
       USE crystal_mod 
@@ -1593,7 +1593,7 @@ CONTAINS
 !     This routine finds all atoms around x with a minimal              
 !     distance of rmin and a maximum distance of rmax.                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE celltoindex_mod
@@ -1700,7 +1700,7 @@ CONTAINS
 !+                                                                      
 !     This routine applies periodic boundaries if 'fp' is TRUE.         
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1762,7 +1762,7 @@ CONTAINS
 !     atoms are stored in 'atom_pos' to retain information              
 !     about possible periodic boundaries.                               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE metric_mod
@@ -1814,7 +1814,7 @@ CONTAINS
 !     checks if atom i is within the selected atom range in             
 !     werte(ianz).                                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1844,7 +1844,7 @@ CONTAINS
 !+                                                                      
 !     This routine executes the select command                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -1911,7 +1911,7 @@ CONTAINS
 !+                                                                      
 !     This routine exectues the select command                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE molecule_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -2084,7 +2084,7 @@ CONTAINS
 !     distance of rmin and a maximum distance of rmax.                  
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE mole_env_mod 
@@ -2138,7 +2138,7 @@ CONTAINS
 !     molecules are stored in 'mole_pos' to retain information          
 !     about possible periodic boundaries.                               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE molecule_mod 
@@ -2184,7 +2184,7 @@ CONTAINS
 !     This subroutine removes all atomes outside a given boundary.      
 !-                                                                      
       USE metric_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -2405,7 +2405,7 @@ CONTAINS
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@krist.uni-erlangen.de)      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE prop_para_mod 
@@ -2452,7 +2452,7 @@ CONTAINS
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
 !                                                                       
       USE param_mod 
@@ -2507,7 +2507,7 @@ CONTAINS
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
 !                                                                       
@@ -2669,7 +2669,7 @@ CONTAINS
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE molecule_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -2693,7 +2693,7 @@ CONTAINS
 !-                                                                      
 !     Main menu for surface related operations                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
@@ -2843,7 +2843,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine sets various parameters                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -2879,7 +2879,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine sets the distances between atoms and a surface.   
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE surface_mod 
@@ -3034,7 +3034,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine shows the surface settings                        
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE surface_mod 
       USE prompt_mod 
@@ -3078,7 +3078,7 @@ CONTAINS
 !-                                                                      
 !     Main menu for property related operations                         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
       USE prop_para_mod 
@@ -3234,7 +3234,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine sets or clears the property flag of an atom or atom type
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE prop_para_mod 
 !
@@ -3352,7 +3352,7 @@ CONTAINS
 !+                                                                      
 !     This subroutine shows the property settings                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE prop_para_mod 
 !
@@ -3450,7 +3450,7 @@ CONTAINS
 !-                                                                      
 !     Determines the scattering type of the parameter                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE charact_mod
       USE crystal_mod 
       USE errlist_mod 

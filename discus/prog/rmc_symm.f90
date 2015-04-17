@@ -8,7 +8,7 @@ CONTAINS
 !     Performs the space group symmetry on the given [hkl].             
 !     Altered from 'subroutine symmetry' in 'structur.f'.               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
       USE trafo_mod

@@ -9,11 +9,11 @@ CONTAINS
 !-                                                                      
 !     Main menu for inserting objects                                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE insert_mod 
       USE molecule_mod 
-      USE show_menu
+      USE discus_show_menu
       USE update_cr_dim_mod
 !
       USE doact_mod 
@@ -568,7 +568,7 @@ CONTAINS
 !-                                                                      
 !     Shows current shear settings                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE insert_mod 
       USE molecule_mod 
@@ -638,7 +638,7 @@ CONTAINS
 !-                                                                      
 !     Places an individual molecule into the postion defined in the menu
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE molecule_mod 
 !
@@ -655,7 +655,7 @@ CONTAINS
 !-                                                                      
 !     Places an individual object                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE insert_mod 
@@ -857,7 +857,7 @@ CONTAINS
 !-                                                                      
 !     Places an individual domain                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE insert_mod 

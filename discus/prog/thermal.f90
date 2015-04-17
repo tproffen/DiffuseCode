@@ -10,7 +10,7 @@ CONTAINS
 !     Molecules are displaced according to the B value of the           
 !       atom at the origin.                                             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE molecule_mod 

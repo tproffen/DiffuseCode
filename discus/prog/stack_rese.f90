@@ -6,7 +6,7 @@ CONTAINS
 !-                                                                      
 !     Resets the stacking fault setup                                   
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE stack_mod 
       IMPLICIT none 
 !                                                                       

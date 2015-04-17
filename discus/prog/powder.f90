@@ -15,12 +15,12 @@ CONTAINS
 !-                                                                      
 !     Main menu for powder diffraction pattern                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
       USE powder_mod 
-      USE show_menu
+      USE discus_show_menu
 !
       USE doact_mod 
       USE learn_mod 
@@ -201,7 +201,7 @@ CONTAINS
 !-                                                                      
 !     Prints summary of powder diffraction settings                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE metric_mod
@@ -447,7 +447,7 @@ CONTAINS
 !-                                                                      
 !     Set various paramters for the powder diffraction                  
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE debye_mod 
       USE diffuse_mod 
       USE powder_mod 
@@ -1014,13 +1014,13 @@ CONTAINS
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod
       USE diffuse_mod 
       USE molecule_mod 
-      USE plot_init_mod
+      USE discus_plot_init_mod
       USE powder_mod 
       IMPLICIT none 
 !                                                                       
@@ -1107,7 +1107,7 @@ CONTAINS
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
@@ -1648,7 +1648,7 @@ CONTAINS
 !     to Giacovacco                                                     
 !     Histogram Version                                                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod 
@@ -1674,7 +1674,7 @@ CONTAINS
       INTEGER                :: n_qxy
       INTEGER                :: n_nscat
       REAL                   :: distance
-      REAL ss, st , sss
+      REAL ss, st
       REAL                   :: shift
       REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
@@ -1931,7 +1931,7 @@ CONTAINS
 !     to Giacovacco                                                     
 !     Histogram Version                                                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod 
@@ -1968,7 +1968,7 @@ CONTAINS
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
       INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
       REAL                   :: distance
-      REAL ss, st , sss
+      REAL ss, st
       REAL                   :: shift
       REAL u (3), v (3) 
       REAL arg 
@@ -2207,7 +2207,7 @@ CONTAINS
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       IMPLICIT none 
 !                                                                       
@@ -2276,7 +2276,7 @@ CONTAINS
 !     This routine initialises the complex exponent table and           
 !     is called only at the first Powder run.                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
 !                                                                       
       USE prompt_mod 
@@ -2308,7 +2308,7 @@ CONTAINS
 !     Here the real structure factor of 'nxat' identical atoms          
 !     from array 'xat' is computed.                                     
 !-                                                                      
-!!      USE config_mod 
+!!      USE discus_config_mod 
 !!      USE debye_mod 
 !!      USE diffuse_mod 
 !!      IMPLICIT none 
@@ -2370,7 +2370,7 @@ CONTAINS
 !     This routine initialises the real sine lookup table and           
 !     is called only at the first Powder run.                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE debye_mod 
       USE diffuse_mod 
 !                                                                       
@@ -2403,7 +2403,7 @@ CONTAINS
 !     This routine creates an atom list of atoms of type 'iscat'        
 !     which are within the current lot.                                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE metric_mod
@@ -2437,7 +2437,7 @@ CONTAINS
 !     Sets up an integer array containing the corresponding integers    
 !     to the formfactor table for each sin(theta)/lambda.               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE debye_mod
@@ -2494,7 +2494,7 @@ CONTAINS
 !+                                                                      
 !     claculates the Fourier, complete mode                             
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE four_strucf_mod
@@ -2553,7 +2553,7 @@ CONTAINS
 !+                                                                      
 !     sorts all atoms by scattering type                                
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE powder_scat_mod 
@@ -2584,7 +2584,7 @@ CONTAINS
 !     Here the complex structure factor of 'nxat' identical atoms       
 !     from array 'xat' is computed.                                     
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE powder_scat_mod 
@@ -2709,7 +2709,7 @@ CONTAINS
 !                                                                       
 !-                                                                      
       USE metric_mod
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE param_mod 
       IMPLICIT none 
@@ -2756,9 +2756,9 @@ CONTAINS
 !     Warning, only the fractional coordinates are transformed,         
 !     the unit cell and space group information is not touched.         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
-      USE plot_mod 
+      USE discus_plot_mod 
       USE trans_sup_mod
       IMPLICIT none 
 !                                                                       
@@ -2810,9 +2810,9 @@ CONTAINS
 !     Warning, only the fractional coordinates are transformed,         
 !     the unit cell and space group information is not touched.         
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
-      USE plot_mod 
+      USE discus_plot_mod 
       USE trans_sup_mod
       IMPLICIT none 
 !                                                                       
@@ -2842,7 +2842,7 @@ CONTAINS
 !     0 -> 2 in steps of 0.001. These values can be changed             
 !     in the 'diffuse_mod.f90' file.                                        
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
 !                                                                       
@@ -2854,7 +2854,7 @@ CONTAINS
       REAL   , DIMENSION(0:CFPKT,0:nlook_mol), INTENT(OUT) :: pow_dw
       REAL   , DIMENSION(0:nlook_mol)        , INTENT(IN ) :: powder_bvalue_mole
 !                                                                       
-      REAL    :: q2, sb
+      REAL    :: q2
       INTEGER :: iq, iscat 
 !
 !      IF (four_log) then 

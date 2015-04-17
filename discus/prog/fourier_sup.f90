@@ -10,7 +10,7 @@ CONTAINS
 !     given plane in reciprocal space. Based on the program             
 !     'diffuse' written by B.D. Butler.                                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE four_strucf_mod
@@ -115,7 +115,7 @@ CONTAINS
 !+                                                                      
 !     This routine calculates the average structure factor <F>.         
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE diffuse_mod 
@@ -214,7 +214,7 @@ CONTAINS
 !     This routine creates an atom list of atoms of type 'iscat'        
 !     which are within the current lot.                                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE diffuse_mod 
@@ -373,7 +373,7 @@ CONTAINS
 !+                                                                      
 !     This routine computes the lattice inside the lot                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       IMPLICIT none 
@@ -487,7 +487,7 @@ CONTAINS
 !     This routine writes the corners of the plane to be calculated     
 !     in the 'diffuse_mod.f90' variables.                                   
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       IMPLICIT none 
 !                                                                       
@@ -512,7 +512,7 @@ CONTAINS
 !     This routine initialises the complex exponent table and           
 !     is called only at the first Fourier run.                          
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -542,7 +542,7 @@ CONTAINS
 !     Sets up an integer array containing the corresponding integers    
 !     to the formfactor table for each sin(theta)/lambda.               
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod
       USE quad_mod 
@@ -593,7 +593,7 @@ CONTAINS
 !     0 -> 2 in steps of 0.001. These values can be changed             
 !     in the 'diffuse_mod.f90' file.                                        
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
 !                                                                       
@@ -641,7 +641,7 @@ CONTAINS
 !     Gives information about max/min values for diffuse and            
 !     Bragg scattering.                                                 
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
 !                                                                     
       USE prompt_mod 
@@ -714,7 +714,7 @@ CONTAINS
 !+                                                                      
 !       calculates the form factor                                      
 !-                                                                      
-      USE config_mod
+      USE discus_config_mod
       USE element_data_mod
       IMPLICIT none 
 !                                                                       
@@ -742,7 +742,7 @@ CONTAINS
 !     and atomic form factors from module "element_data_mod"
 !     It replaces the old dlink and LAZY_PULVERIX
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE charact_mod
       USE crystal_mod 
       USE element_data_mod
@@ -875,7 +875,7 @@ CONTAINS
 !-                                                                      
 !     Calculates the value of F(rh,rk,rl)                               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
 !

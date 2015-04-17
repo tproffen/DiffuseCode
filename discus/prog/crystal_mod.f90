@@ -7,7 +7,7 @@ MODULE crystal_mod
 !+
 !
 !
-USE config_mod
+USE discus_config_mod
 !
    INTEGER, PARAMETER               ::  cr_triclinic   = 1
    INTEGER, PARAMETER               ::  cr_monoclinicB = 2

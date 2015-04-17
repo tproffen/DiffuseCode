@@ -8,7 +8,7 @@ CONTAINS
 !     from array 'xat' is computed.                                     
 !-                                                                      
       USE omp_lib
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       IMPLICIT none 
 !                                                                       

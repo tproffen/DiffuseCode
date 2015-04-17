@@ -2,7 +2,7 @@ MODULE pdf_mod
 !+
 !     This file contains variables for pdf routines
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

@@ -8,7 +8,7 @@ SUBROUTINE mmc
 !     This sublevel includes all commands and functions for the         
 !     Monte-Carlo simulations in DISCUS.                                
 !+                                                                      
-USE config_mod 
+USE discus_config_mod 
 USE crystal_mod 
 USE discus_allocate_appl_mod
 USE chem_mod
@@ -204,7 +204,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     Show parameters of MMC section                                    
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE chem_mod 
@@ -597,7 +597,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     sets parameters for MMC section                                   
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
@@ -1232,7 +1232,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Set desired displacements                                         
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
@@ -1288,7 +1288,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       SUBROUTINE mmc_set_disp_occ (ic, ie, ianz1, ianz2, &
                              MAXW, werte1, werte2, corr, depth )
 !
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE mmc_mod 
       IMPLICIT NONE
@@ -1346,7 +1346,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Set desired displacements                                         
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
@@ -1411,7 +1411,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Set desired displacements                                         
 !-                                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
@@ -1479,7 +1479,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Set desired displacements                                         
 !-                                                                      
 !                                                                       
-!     USE config_mod 
+!     USE discus_config_mod 
 !     USE crystal_mod 
 !     USE mmc_mod 
 !     USE errlist_mod 
@@ -1542,7 +1542,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     Sets MMC    mode                                                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE rmc_mod 
       USE mmc_mod 
@@ -1642,7 +1642,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     This is the MC routine for multiple energy calculations           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu
@@ -2389,7 +2389,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     Tests performed MC move                                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE mc_mod 
       USE mmc_mod 
       USE random_mod
@@ -2453,7 +2453,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Calculates the energy for chemical disorder                       
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE mc_mod 
@@ -2581,7 +2581,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Calculates the energy for occupational disorder for               
 !     molecules.                                                        
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu
@@ -2642,7 +2642,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Calculates the energy for chemical disorder                       
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE celltoindex_mod
@@ -2763,7 +2763,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = SUM k*(d-d0)**2                                             
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -2859,7 +2859,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !+                                                                      
 !     Calculates the energy for distortions for molecules ..            
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu
@@ -2956,7 +2956,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = SUM A/d**12 - b/d**6                                        
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -3058,7 +3058,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = 1/d**n + depth
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -3172,7 +3172,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = SUM A * exp(-d/rho) - B/r**6                                
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -3278,7 +3278,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = SUM k*(a-a0)**2                                             
 !                                                                       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -3378,7 +3378,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !       E = SUM k*|(v-v0)|**2                                           
 !                                                                       
 !-                                                                      
-!     USE config_mod 
+!     USE discus_config_mod 
 !     USE crystal_mod 
 !     USE chem_mod 
 !     USE mc_mod 
@@ -3560,7 +3560,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     Determines the achieved correlations                              
 !                                                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu
@@ -4194,7 +4194,7 @@ buck_pair: DO is = 0, cr_nscat
 !     Check whether geometrical constrains apply to the movement of     
 !     the selected atoms                                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
       USE metric_mod
@@ -4258,7 +4258,7 @@ buck_pair: DO is = 0, cr_nscat
 !-                                                                      
 !     Selects an atom from a limited subset                             
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
       USE mmc_mod 
@@ -4303,7 +4303,7 @@ buck_pair: DO is = 0, cr_nscat
 !-                                                                      
 !       calculates in which unit cell on which site the atom <ia> is    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 

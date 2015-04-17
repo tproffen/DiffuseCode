@@ -13,13 +13,13 @@ CONTAINS
 !-                                                                      
 !     Main menu for generalized symmetry operations                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
       USE update_cr_dim_mod
-      USE show_menu
+      USE discus_show_menu
       USE symm_mod 
       USE symm_sup_mod 
       USE trafo_mod
@@ -615,7 +615,7 @@ CONTAINS
 !-                                                                      
 !     Shows current symm settings                                       
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE molecule_mod 

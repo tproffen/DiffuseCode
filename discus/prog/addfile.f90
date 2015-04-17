@@ -9,7 +9,7 @@ CONTAINS
 !     string. Routine uses arrays 'dsi' and 'tcsf' => results of        
 !     Fourier might be destroyed !                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE diffuse_mod 
       USE errlist_mod 
       USE prompt_mod 

@@ -6,7 +6,7 @@ CONTAINS
 !-                                                                      
 !     Updates the crystal dimensions to the current values              
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !                                                                       

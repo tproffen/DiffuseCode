@@ -6,12 +6,12 @@ SUBROUTINE waves_menu
 !     calculates the displacement of the atoms due to a plane wave      
 !     travelling through the crystal                                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
-      USE show_menu
+      USE discus_show_menu
       USE waves_mod 
 !
       USE doact_mod 
@@ -515,7 +515,7 @@ SUBROUTINE waves_menu
 !-                                                                      
 !     Shows current settiungs in WAVES segment                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE molecule_mod 
@@ -660,7 +660,7 @@ SUBROUTINE waves_menu
 !-                                                                      
 !     Main waves routine                                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE quad_mod
@@ -850,7 +850,7 @@ SUBROUTINE waves_menu
 !     Displaces all atoms by the corresponding                          
 !     wave function.                                                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE trafo_mod
       USE waves_mod 
@@ -961,7 +961,7 @@ ENDIF is_density
 !     Displaces all molecules by the corresponding                      
 !     wave function.                                                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE prop_para_mod 
       USE modify_mod
@@ -1143,7 +1143,7 @@ ELSE wave_type
 !-                                                                      
 !     box shaped wave function                                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE waves_mod 
       USE wink_mod
       IMPLICIT none 

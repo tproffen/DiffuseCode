@@ -3,7 +3,7 @@ MODULE shear_mod
 !     variables needed for the generalized symmetry operations
 !-
 !
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

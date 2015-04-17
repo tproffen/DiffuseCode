@@ -8,7 +8,7 @@ CONTAINS
 !     patterson sets up the menu for inverse Fourier and Patterson      
 !     calculations.                                                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
@@ -1171,7 +1171,7 @@ CONTAINS
 !     Reads the files, if necessary calculates the values and           
 !     calls the patterson function                                      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -1587,7 +1587,7 @@ CONTAINS
 !     Calculates the patterson or inverse Fourier at all points         
 !     in real space.                                                    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -1773,7 +1773,7 @@ CONTAINS
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE patters_mod 
@@ -2575,7 +2575,7 @@ CONTAINS
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       IMPLICIT none 
@@ -2718,7 +2718,7 @@ CONTAINS
 !-                                                                      
 !     Calculates a Wilson plot                                          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -2886,7 +2886,7 @@ CONTAINS
 !-                                                                      
 !     Calculates the sum of all formfactors squared                     
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup, ONLY: form

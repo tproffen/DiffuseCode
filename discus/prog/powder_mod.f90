@@ -2,7 +2,7 @@ MODULE powder_mod
 !+
 !     variables needed for the powder diffraction
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

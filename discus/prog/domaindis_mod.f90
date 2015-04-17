@@ -3,7 +3,7 @@ MODULE domaindis_mod
 !     Common block for the microdomain distributions
 !
 !
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

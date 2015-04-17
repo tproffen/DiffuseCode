@@ -25,6 +25,7 @@
 !p append     ! Append atom to model crystal
 !p asym       ! Show the contents of the asymmetric unit
 !p boundary   ! Cuts off atoms along an hkl plane
+!p branch     ! Switches to KUPLOT, if within the suite
 !p change     ! Changes the character of an object
 !p chem       ! Enter CHEM level (see chem level for details)
 !p connect    ! Enter CONNECTIVITY level
@@ -865,6 +866,16 @@
           are inside the sphere.
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
+2  branch
+!b branch kuplot
+
+   Active within the discus suite only!
+
+   Branches to the "kuplot" section.
+
+   Within this section any standard KUPLOT command can be
+   given. The behaviour of "kuplot" is essentially the same
+   as in the stand alone version.
 2  change
 !b change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
 

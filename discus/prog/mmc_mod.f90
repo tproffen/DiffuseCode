@@ -2,7 +2,7 @@ MODULE mmc_mod
 !+
 !     Variables for MONTE-CARLO multi level
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

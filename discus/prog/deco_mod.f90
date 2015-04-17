@@ -3,7 +3,7 @@ MODULE deco_mod
 !
 !     variables needed for the decoration of structures
 !-
-USE config_mod
+USE discus_config_mod
 USE cryst_class
 USE dc_def_class
 !

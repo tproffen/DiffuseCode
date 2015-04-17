@@ -6,7 +6,7 @@ SUBROUTINE chem_aver (lout, lsite)
 !+                                                                      
 !     Calculate average structure and standard deviation                
 !-                                                                      
-USE config_mod 
+USE discus_config_mod 
 USE discus_allocate_appl_mod 
 USE crystal_mod 
 USE atom_name
@@ -228,7 +228,7 @@ ENDIF
 !+                                                                      
 !     Show information about elements/rel. amounts within crystal       
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE atom_name
       USE chem_mod 

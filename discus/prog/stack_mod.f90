@@ -3,7 +3,7 @@ MODULE stack_mod
 !
 !     Variables needed for the generalized stacking faults
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

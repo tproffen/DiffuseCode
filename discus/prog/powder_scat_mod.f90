@@ -3,7 +3,7 @@ MODULE powder_scat_mod
 !
 !     variables needed for the atom lists 
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

@@ -3,7 +3,7 @@ MODULE atom_env_mod
 !
 !     include file for atomic environment variables
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

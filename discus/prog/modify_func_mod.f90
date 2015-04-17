@@ -10,7 +10,7 @@ CONTAINS
 !     checks if atom i is within the selected atom range in             
 !     werte(ianz).                                                      
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       IMPLICIT none 
 !                                                                       

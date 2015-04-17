@@ -3,7 +3,7 @@ MODULE discus_setup_mod
 CONTAINS
 !
 !
-SUBROUTINE discus_setup 
+SUBROUTINE discus_setup (standalone)
 !                                                                       
 !     This routine makes inital setup of DISCUS                         
 !                                                                       
@@ -14,6 +14,8 @@ SUBROUTINE discus_setup
       USE prompt_mod 
 !
 IMPLICIT none 
+!
+LOGICAL, INTENT(IN) :: standalone
 !                                                                       
       include'date.inc' 
 !
@@ -39,7 +41,7 @@ WRITE ( *, 1000) version, cdate
 !     Call initialization routine.                                      
 !                                                                       
 CALL discus_initarrays 
-CALL init_sysarrays 
+IF(standalone) CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
@@ -51,7 +53,7 @@ CALL discus_autodef
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-CALL cmdline_args 
+IF(standalone) CALL cmdline_args 
 !
 CALL no_error
 lsetup_done = .true.
@@ -75,7 +77,7 @@ END SUBROUTINE discus_setup
 !
 SUBROUTINE discus_set_sub
 !
-! Sets the specific DIFFEV interfaces four routines that are refecenced in
+! Sets the specific DIFFEV interfaces for routines that are refecenced in
 ! LIB_F90 by their generic names
 !
 USE set_sub_generic_mod
@@ -143,7 +145,15 @@ INTERFACE
 !
    END SUBROUTINE discus_validate_var_spec 
 END INTERFACE
-
+!
+INTERFACE
+   SUBROUTINE discus_branch(zeile, length)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+INTEGER          , INTENT(IN) :: length
+!
+   END SUBROUTINE discus_branch
+END INTERFACE
 !
 p_mache_kdo         => discus_mache_kdo
 p_errlist_appl      => discus_errlist_appl
@@ -151,6 +161,7 @@ p_ersetz_para       => discus_ersetz_para
 p_upd_para          => discus_upd_para
 p_calc_intr_spec    => discus_calc_intr_spec
 p_validate_var_spec => discus_validate_var_spec
+p_branch            => discus_branch
 !
 END SUBROUTINE discus_set_sub
 !

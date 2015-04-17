@@ -4,7 +4,7 @@ MODULE mc_mod
 !     Variables for MONTE-CARLO level
 !-
 !
-      USE config_mod
+      USE discus_config_mod
 !
       SAVE
 !

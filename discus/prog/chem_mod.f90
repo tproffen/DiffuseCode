@@ -4,7 +4,7 @@ MODULE chem_mod
 !
 !     This file contains variables for chem routines
 !-
-USE config_mod
+USE discus_config_mod
 !
 SAVE
 !

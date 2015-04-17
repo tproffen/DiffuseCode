@@ -120,7 +120,7 @@ IMPLICIT NONE
 INTEGER,                           INTENT(IN) :: spin
 !
 
-INTEGER  :: i,j,k    ! dummy loop variables
+INTEGER  :: j,k    ! dummy loop variables
 !
    ref_latt_success_n =   &
    MOD(ref_latt_success_n + 1, REF_LAT_INT)
@@ -151,7 +151,7 @@ IMPLICIT NONE
 INTEGER,                           INTENT(IN) :: spin
 !
 
-INTEGER  :: i,j,k    ! dummy loop variables
+INTEGER  :: j,k    ! dummy loop variables
 !
    ref_pdfs_success_n =   &
    MOD(ref_pdfs_success_n + 1, REF_PDF_SD)

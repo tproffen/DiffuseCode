@@ -9,13 +9,13 @@ SUBROUTINE do_domain (line, lp)
 !     corresponding part of the structure.                              
 !     This is the new versio of the microdomain level.                  
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE domain_mod 
       USE micro_mod 
       USE domaindis_mod 
-      USE show_menu
+      USE discus_show_menu
 !
       USE doact_mod 
       USE errlist_mod 
@@ -375,7 +375,7 @@ SUBROUTINE do_domain (line, lp)
 !-                                                                      
 !     Displays the current parameters for domain distributions          
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE domain_mod 
@@ -480,13 +480,13 @@ SUBROUTINE do_domain (line, lp)
 !*****7*****************************************************************
       SUBROUTINE micro_filereading 
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 
       USE micro_mod 
       USE read_internal_mod
-      USE save_mod 
+      USE discus_save_mod 
       USE structur, ONLY: stru_readheader
       USE errlist_mod 
       IMPLICIT none 
@@ -611,7 +611,7 @@ SUBROUTINE do_domain (line, lp)
       SUBROUTINE micro_read_micro (imd, lend, infile, mc_dimen,         &
       mc_idimen, mc_matrix)                                             
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE domaindis_mod 
       USE tensors_mod
       USE errlist_mod 
@@ -814,12 +814,12 @@ SUBROUTINE do_domain (line, lp)
       SUBROUTINE micro_read_atoms (infile, mc_idimen,         &
       mc_matrix)                                                        
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE micro_mod 
       USE read_internal_mod 
-      USE save_mod 
+      USE discus_save_mod 
       USE structur, ONLY: stru_readheader
       USE trafo_mod
       USE errlist_mod 
@@ -868,7 +868,7 @@ SUBROUTINE do_domain (line, lp)
 !     This routine will become obsolete if the "fuzzy" property is      
 !     always used.                                                      
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE domaindis_mod 
       USE micro_mod 
@@ -955,7 +955,7 @@ SUBROUTINE do_domain (line, lp)
 !*****7*****************************************************************
       SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix) 
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod 
       USE crystal_mod 
       USE domain_mod 
@@ -1367,7 +1367,7 @@ mole_int: IF(mk_infile_internal) THEN
 !     Reads a single line from the input file. This should contain a 
 !     pseudo atom that is interpreted as cluster type
 !                                                                       
-      USE config_mod 
+      USE discus_config_mod 
       USE domain_mod 
       USE domaindis_mod 
       USE read_internal_mod 
@@ -1484,7 +1484,7 @@ mole_int: IF(mk_infile_internal) THEN
 !     Removes all atoms up to number natoms_old that are inside         
 !     the microdomain of fuzzy boundary type                            
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE molecule_mod 
@@ -1646,7 +1646,7 @@ mole_int: IF(mk_infile_internal) THEN
 !+                                                                      
 !     This subroutine sets various parameters                           
 !-                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE domain_mod
       USE modify_mod
       USE errlist_mod 

@@ -356,7 +356,7 @@ CONTAINS
 !
    USE crystal_mod
    USE molecule_mod
-   USE save_mod
+   USE discus_save_mod
    USE gen_add_mod
    USE sym_add_mod
 
@@ -605,7 +605,7 @@ CONTAINS
 !
    USE crystal_mod
    USE molecule_mod
-   USE save_mod    ! should be a read_mod !?!?
+   USE discus_save_mod    ! should be a read_mod !?!?
    USE gen_add_mod
    USE sym_add_mod
    IMPLICIT none
@@ -778,7 +778,7 @@ CONTAINS
 !
    USE crystal_mod
    USE molecule_mod
-   USE save_mod    ! should be a read_mod !?!?
+   USE discus_save_mod    ! should be a read_mod !?!?
    USE gen_add_mod
    USE sym_add_mod
    IMPLICIT none
@@ -848,7 +848,7 @@ CONTAINS
 !  Get all values from "this" crystal and place into the main DISCUS crystal!
 !  The standard crystal is completely overwritten!
 !
-   USE save_mod    ! should be a read_mod !?!?
+   USE discus_save_mod    ! should be a read_mod !?!?
    IMPLICIT none
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal

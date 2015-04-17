@@ -7,7 +7,7 @@ CONTAINS
 !-                                                                      
 !       calculates in which unit cell on which site the atom <ia> is    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -26,7 +26,7 @@ CONTAINS
 !-                                                                      
 !       calculates in which unit cell on which site the atom <ia> is    
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
       IMPLICIT none 

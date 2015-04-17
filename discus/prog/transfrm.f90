@@ -15,11 +15,11 @@ CONTAINS
 !-                                                                      
 !     Main menu for generalized transformation operations               
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE modify_mod
-      USE show_menu
+      USE discus_show_menu
       USE transfrm_mod 
       USE trans_sup_mod
 !
@@ -795,7 +795,7 @@ CONTAINS
 !     Performs the generalized symmetry operation                       
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE tensors_mod
       USE transfrm_mod 
       USE errlist_mod 
@@ -927,7 +927,7 @@ CONTAINS
 !     All atoms of the structure, all symmetry elements are transformed 
 !     into the new cell.                                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE metric_mod
       USE spcgr_apply, ONLY: setup_lattice
@@ -1029,7 +1029,7 @@ CONTAINS
 !-                                                                      
 !     Transforms the symmetry operations                                
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE crystal_mod 
       USE generate_mod 
       USE gen_add_mod 
@@ -1227,7 +1227,7 @@ CONTAINS
 !-                                                                      
 !     Transforms a list of reflections, read from file.                 
 !+                                                                      
-      USE config_mod 
+      USE discus_config_mod 
       USE transfrm_mod 
       USE trafo_mod
 !                                                                       
