@@ -1495,10 +1495,10 @@
                length = max (length, lpara (i) ) 
                ENDDO 
                DO i = 1, ianz 
-               WRITE ( *, 2222) cpara (i) (1:length), werte (i) 
-               IF (output_status.eq.OUTPUT_FILE) then 
+!              WRITE ( *, 2222) cpara (i) (1:length), werte (i) 
+!              IF (output_status.eq.OUTPUT_FILE) then 
                   WRITE (output_io, 2222) cpara (i) (1:length), werte ( i)
-               ENDIF 
+!              ENDIF 
                IF (lconn.and.lsocket.and.i.eq.1) then 
                   WRITE (cstr, 2222) cpara (i) (1:lpara (i) ), werte (i) 
                   il = len_str (cstr) 

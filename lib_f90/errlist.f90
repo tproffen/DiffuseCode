@@ -7,6 +7,7 @@
 !*****7****************************************************************
        USE errlist_mod
        USE param_mod 
+       USE prompt_mod 
        USE set_sub_generic_mod
        IMPLICIT      none
 !
@@ -31,7 +32,8 @@
 !       error status is set to ER_S_EXIT
 !
        if(ier_num.lt.0 .and. ier_sta.eq.ER_S_EXIT) then
-         write(*,1000) char(7)
+         write(output_io,1000) char(7)
+         IF(output_io/=6) write(*,1000) char(7)
          stop
        elseif(ier_num.lt.0 .and. ier_sta.eq.ER_S_CONT .or.              &
      &        ier_sta.eq.ER_S_LIVE                  ) then
@@ -82,17 +84,20 @@
 !
        if(iu.le.ier_num .and. ier_num.le.io) THEN
          IF(    error(ier_num).ne.' ') then
-            write(*      ,1000) typ,error(ier_num),ier_num,char(7)
+            write(output_io,1000) typ,error(ier_num),ier_num,char(7)
+            IF(output_io/=6) write(*        ,1000) typ,error(ier_num),ier_num,char(7)
             write(ier_out,1500) typ,error(ier_num)
             do i=1,3
               if (ier_msg(i)     .ne.' ')               &
      &                write(*,1500) typ,ier_msg(i),ier_num
             ENDDO
          else
-           write(*,2000) ier_num,typ,char(7)
+           write(output_io,2000) ier_num,typ,char(7)
+           IF(output_io/=6) write(*,2000) ier_num,typ,char(7)
          endif
        else
-         write(*,2000) ier_num,typ,char(7)
+         write(output_io,2000) ier_num,typ,char(7)
+         IF(output_io/=6) write(*,2000) ier_num,typ,char(7)
        endif
 !
        if (lconn .and. lsocket) then
@@ -156,7 +161,7 @@
      &  ' ',                                        & !-10  ! command
      &  ' ',                                        & ! -9  ! command
      &  'Unknown command',                          & ! -8  ! command
-     &  ' ',                                        & ! -7  ! command
+     &  'Branch is active within suite only ',      & ! -7  ! command
      &  'Missing or wrong parameters for command',  & ! -6  ! command,fortran
      &  'Error in operating system command',        & ! -5  ! command
      &  'Right quotation mark missing in format',   & ! -4  ! command

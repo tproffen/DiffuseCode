@@ -216,6 +216,7 @@
 !     Changes working directory ..                                      
 !-                                                                      
       USE IFPORT
+      USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -251,7 +252,14 @@
          IF (ier_num.eq.0) then 
             ier_typ = ER_NONE 
             dummy = getcwd (cwd )
-            WRITE (output_io, 1000) cwd (1:len_str (cwd) ) 
+            ld = len_str (cwd) 
+            IF(cwd(ld:ld) /= '/' ) THEN
+               cwd = cwd(1:ld) // '/'
+               ld  = ld + 1
+            ENDIF
+            WRITE (output_io, 1000) cwd (1:ld)
+            current_dir   = cwd
+            current_dir_l = ld
          ELSE 
             WRITE ( *, 2000) ier_num 
             ier_num = - 5 

@@ -77,11 +77,61 @@ INTERFACE
    END SUBROUTINE validate_var_spec
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE execute_cost( repeat,    &
+                            prog  ,  prog_l , &
+                            mac   ,  mac_l  , &
+                            direc ,  direc_l, &
+                            kid   ,  indiv  , &
+                            rvalue, l_rvalue, &
+                            output, output_l, &
+                            generation, member, &
+                            children, parameters, &
+                            trial_v, NTRIAL, &
+                            ierr )
+!
+   IMPLICIT NONE
+   LOGICAL                , INTENT(IN) :: repeat
+   INTEGER                , INTENT(IN) :: prog_l
+   INTEGER                , INTENT(IN) :: mac_l
+   INTEGER                , INTENT(IN) :: direc_l
+   INTEGER                , INTENT(IN) :: output_l
+   CHARACTER(LEN=prog_l  ), INTENT(IN) :: prog
+   CHARACTER(LEN=mac_l   ), INTENT(IN) :: mac
+   CHARACTER(LEN=direc_l ), INTENT(IN) :: direc
+   INTEGER                , INTENT(IN) :: kid
+   INTEGER                , INTENT(IN) :: indiv
+   CHARACTER(LEN=output_l), INTENT(IN) :: output
+   REAL                   , INTENT(OUT):: rvalue
+   LOGICAL                , INTENT(OUT):: l_rvalue
+   INTEGER                , INTENT(IN) :: generation
+   INTEGER                , INTENT(IN) :: member
+   INTEGER                , INTENT(IN) :: children
+   INTEGER                , INTENT(IN) :: parameters
+   INTEGER                , INTENT(IN) :: NTRIAL
+   REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+   INTEGER                , INTENT(OUT):: ierr
+!
+   END SUBROUTINE execute_cost
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE branch(zeile, length)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+INTEGER          , INTENT(IN) :: length
+!
+   END SUBROUTINE branch
+END INTERFACE
+!
+!
 PROCEDURE(mache_kdo     )   , POINTER :: p_mache_kdo      => NULL()
 PROCEDURE(errlist_appl  )   , POINTER :: p_errlist_appl   => NULL()
 PROCEDURE(ersetz_para   )   , POINTER :: p_ersetz_para    => NULL()
 PROCEDURE(upd_para      )   , POINTER :: p_upd_para       => NULL()
 PROCEDURE(calc_intr_spec)   , POINTER :: p_calc_intr_spec => NULL()
 PROCEDURE(validate_var_spec), POINTER :: p_validate_var_spec => NULL()
+PROCEDURE(execute_cost  )   , POINTER :: p_execute_cost   => NULL()
+PROCEDURE(branch        )   , POINTER :: p_branch         => NULL()
 !
 END MODULE set_sub_generic_mod

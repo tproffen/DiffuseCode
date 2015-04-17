@@ -33,15 +33,15 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER               :: iseof
       INTEGER               :: istatus
       LOGICAL               :: is_stored
+      INTEGER               :: lslash          ! position os slash in filename
 !
       INTEGER   len_str
 !
       is_stored = .false.                     ! assume macro does not exist in storage
       macro_level = macro_level + 1
       CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
-      file_length = len_str(filename)
 !
-      file_exist: IF (fileda) then
+!     Build a temporary storage
 !
          ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
          NULLIFY(macro_temp%before)            ! None before and after
@@ -58,22 +58,52 @@ SUBROUTINE file_kdo(line, ilen)
             CALL macro_close
             RETURN
          ENDIF
-         macro_temp%macrofile = filename       ! Copy filename
+!
+!  Copy filename, if no '/' within prepend with current directory
+!
+         lslash = index ( filename , '/' )
+         IF ( lslash == 0 ) THEN       ! No slash in filename
+            macro_temp%macrofile = current_dir(1:current_dir_l) // filename       ! Copy filename
+         ELSE
+            macro_temp%macrofile = filename       ! Copy filename
+         ENDIF
+!
+!  Let's first test if macro is stored internally
 !
          IF(ASSOCIATED(macro_root)) THEN       ! We do have macros in storage, test for existence
             CALL macro_find_node(macro_root, macro_temp, ier_num)
             IF(ier_num == 0 ) THEN             ! Found the macro file in storage
                is_stored = .true.
             ELSE
-               CALL macro_add_node(macro_root, macro_temp)
-               ALLOCATE(macro_temp%macros,STAT=istatus)
+               length = len_str(macro_temp%macrofile)
+!
+!              File not found, test with appended mac
+!
+               IF(macro_temp%macrofile(length-3:length) /= '.mac' ) THEN
+                  macro_temp%macrofile = macro_temp%macrofile(1:length) // '.mac'
+                  CALL macro_find_node(macro_root, macro_temp, ier_num)
+                  IF(ier_num == 0 ) THEN             ! Found the macro file in storage
+                     is_stored = .true.
+                  ELSE
+                     CALL macro_add_node(macro_root, macro_temp)  ! Add to storage
+                     ALLOCATE(macro_temp%macros,STAT=istatus)
+                  ENDIF
+               ELSE    ! Macro ends on '.mac' but was not found
+                  CALL macro_add_node(macro_root, macro_temp)     ! Add to storage
+                  ALLOCATE(macro_temp%macros,STAT=istatus)
+               ENDIF
             ENDIF
-         ELSE
+         ELSE           ! No internal storage yes, make new storage, and add
             CALL macro_add_node(macro_root, macro_temp)
             ALLOCATE(macro_temp%macros,STAT=istatus)
          ENDIF
+         CALL no_error
 !
-         is_new: IF(.not. is_stored ) THEN         ! This is a new macro
+         is_new: IF(.not. is_stored ) THEN             ! This is a new macro
+            CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
+            file_length = len_str(filename)
+!
+            file_exist: IF (fileda) then               ! File exist on disk
             CALL oeffne(imc, filename, 'old')
             ALLOCATE(content(1:5000) )
             content = ' '
@@ -94,7 +124,6 @@ SUBROUTINE file_kdo(line, ilen)
             CLOSE(imc)
 !
             DEALLOCATE(content)
-         ENDIF is_new
       ELSE file_exist
 !       MACRO not found
          ier_num = - 12
@@ -107,6 +136,7 @@ SUBROUTINE file_kdo(line, ilen)
          ENDIF
          RETURN
       ENDIF file_exist
+         ENDIF is_new
 !
       ALLOCATE(mac_tree_temp, STAT=istatus)      ! Allocate next node
       NULLIFY(mac_tree_temp%kid)                 ! Currently no kid
@@ -156,22 +186,8 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER          , DIMENSION(1:MAXW),INTENT(OUT  )  :: lpara
       REAL             , DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
 !
-      CHARACTER(LEN=1024)      :: ldir            ! local directory
       CHARACTER(LEN=1024)      :: string
-      INTEGER                  :: ldir_length
-      INTEGER                  :: filename_length ! length of filename string
-      INTEGER                  :: ip, lc
-      INTEGER                  :: lslash          ! position os slash in filename
-!
-      INTEGER :: len_str
-!
-!---- Get current working directory
-!
-      CALL do_cwd ( ldir, ldir_length )
-      If(ldir(ldir_length:ldir_length) /= '/') THEN
-        ldir_length = ldir_length + 1
-        ldir(ldir_length:ldir_length) = '/'
-      ENDIF
+      INTEGER                  :: ip
 !
 !     --Get filename from command line and string for parameters
 !
@@ -183,21 +199,58 @@ SUBROUTINE file_kdo(line, ilen)
 !     --Try to build filename
 !
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+      build: IF (ier_num == 0) then
+         filename = cpara(1)(1:lpara(1))
+      ELSE build
+!       ungueltiges MAKRO
+         ier_num = - 13
+         ier_typ = ER_MAC
+      ENDIF build
+!
+      END SUBROUTINE build_macro_name
+!*****7*****************************************************************
+      SUBROUTINE inquire_macro_name(fileda, infile)
+!
+      USE envir_mod
+      USE errlist_mod
+      USE prompt_mod
+!
+      IMPLICIT NONE
+!
+      LOGICAL          , INTENT(OUT  )  :: fileda
+      CHARACTER (LEN=*), INTENT(INOUT)  :: infile
+!
+      CHARACTER(LEN=1024)      :: ldir            ! local directory
+      CHARACTER(LEN=1024)      :: string
+      CHARACTER(LEN=1024)      :: filename
+      INTEGER                  :: ldir_length
+      INTEGER                  :: filename_length ! length of filename string
+      INTEGER                  :: infile_length   ! length of filename string
+      INTEGER                  :: ip, lc
+      INTEGER                  :: lslash          ! position os slash in filename
+!
+      INTEGER :: len_str
+!
+      ldir        = current_dir       ! Build current file name
+      ldir_length = current_dir_l
+!
       build: IF (ier_num.eq.0) then
 !
 !       Try to open the macro file
 !
-         IF (ip.gt.1) then
 !
 !-----   Try filename as is
 !
-            filename = cpara (1) (1:lpara (1) )
+!           filename = cpara (1) (1:lpara (1) )
+            infile_length = len_str(infile)
+            filename      = infile(1:infile_length)
             INQUIRE (file = filename, exist = fileda)
 !
 !-----   Try filename as is with appended '.mac'
 !
             IF (.not.fileda) then
-               filename = cpara (1) (1:lpara (1) ) //'.mac'
+!              filename = cpara (1) (1:lpara (1) ) //'.mac'
+               filename = infile(1:infile_length) // '.mac'
                INQUIRE (file = filename, exist = fileda)
             ENDIF
             filename_length = len_str(filename)
@@ -207,7 +260,11 @@ SUBROUTINE file_kdo(line, ilen)
             IF ( fileda ) THEN
               lslash = index ( filename , '/' )
               IF ( lslash == 0 ) THEN       ! No slash in filename
-                filename = ldir(1:ldir_length) // filename(1:filename_length)
+                IF(ldir(ldir_length:ldir_length) == '/') THEN
+                  filename = ldir(1:ldir_length) // filename(1:filename_length)
+                ELSE
+                  filename = ldir(1:ldir_length) // '/' // filename(1:filename_length)
+                ENDIF
               ENDIF
             ENDIF
 !
@@ -221,14 +278,16 @@ SUBROUTINE file_kdo(line, ilen)
                   lc = lc + 1
                   string (lc:lc) = '/'
                ENDIF
-               filename = string (1:lc) //cpara (1) (1:lpara (1) ) //&
-               '.mac'
+!              filename = string (1:lc) //cpara (1) (1:lpara (1) ) //&
+!              '.mac'
+               filename = string (1:lc) //infile(1:infile_length) // '.mac'
                INQUIRE (file = filename, exist = fileda)
 !
 !-----   Try local directory
 !
                IF (.not.fileda) then
-                  filename = string (1:lc) //cpara (1) (1:lpara (1) )
+!                 filename = string (1:lc) //cpara (1) (1:lpara (1) )
+                  filename = string (1:lc) //infile(1:infile_length)
                   INQUIRE (file = filename, exist = fileda)
                ENDIF
             ENDIF
@@ -236,42 +295,46 @@ SUBROUTINE file_kdo(line, ilen)
 !-----   Try users system directory with appended '.mac'
 !
             IF (.not.fileda) then
-               filename = umac_dir (1:umac_dir_l) //cpara (1)        &
-               (1:lpara (1) ) //'.mac'
+!              filename = umac_dir (1:umac_dir_l) //cpara (1)        &
+!              (1:lpara (1) ) //'.mac'
+               filename = umac_dir (1:umac_dir_l) //infile(1:infile_length) // '.mac'
                INQUIRE (file = filename, exist = fileda)
             ENDIF
 !
 !-----   Try users system directory
 !
             IF (.not.fileda) then
-               filename = umac_dir (1:umac_dir_l) //cpara (1)        &
-               (1:lpara (1) )
+!              filename = umac_dir (1:umac_dir_l) //cpara (1)        &
+!              (1:lpara (1) )
+               filename = umac_dir (1:umac_dir_l) //infile(1:infile_length)
                INQUIRE (file = filename, exist = fileda)
             ENDIF
 !
 !-----   Try system directory with appended '.mac'
 !
             IF (.not.fileda) then
-               filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
-               (1) ) //'.mac'
+!              filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
+!              (1) ) //'.mac'
+               filename = mac_dir (1:mac_dir_l) //infile(1:infile_length) // '.mac'
                INQUIRE (file = filename, exist = fileda)
             ENDIF
 !
 !-----   Try system directory
 !
             IF (.not.fileda) then
-               filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
-               (1) )
+!              filename = mac_dir (1:mac_dir_l) //cpara (1) (1:lpara &
+!              (1) )
+               filename = mac_dir (1:mac_dir_l) //infile(1:infile_length)
                INQUIRE (file = filename, exist = fileda)
             ENDIF
-         ENDIF
+         infile = filename(1:len_str(filename))
       ELSE build
 !       ungueltiges MAKRO
          ier_num = - 13
          ier_typ = ER_MAC
       ENDIF build
 !
-      END SUBROUTINE build_macro_name
+      END SUBROUTINE inquire_macro_name
 !*****7*****************************************************************
       SUBROUTINE macro_read (line, laenge)
 !-

@@ -11,6 +11,7 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: mac_dir
    CHARACTER(LEN= 256) :: umac_dir
    CHARACTER(LEN= 256) :: start_dir
+   CHARACTER(LEN= 256) :: current_dir
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
    CHARACTER(LEN= 80 ) :: colorfile
@@ -23,6 +24,7 @@ MODULE envir_mod
    INTEGER             :: mac_dir_l
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
+   INTEGER             :: current_dir_l
    INTEGER             :: lines
 !
 END MODULE envir_mod

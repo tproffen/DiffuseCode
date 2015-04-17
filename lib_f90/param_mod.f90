@@ -16,5 +16,7 @@ MODULE param_mod
    INTEGER, DIMENSION(0:MAXPAR)     :: inpara   = 0   ! (0:MAXPAR)
    REAL   , DIMENSION(0:MAXPAR)     :: rpara    = 0.0 ! (0:MAXPAR)
    REAL   , DIMENSION(0:MAXPAR_RES) :: res_para = 0.0 ! (0:MAXPAR_RES)
+   REAL   , DIMENSION(1:2)          :: rvalues  = 0.0 ! (1:2)
+   LOGICAL                          :: rvalue_yes = .false.
 !
 END MODULE param_mod
