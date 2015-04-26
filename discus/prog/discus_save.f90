@@ -900,5 +900,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !
 !     CALL store_write_node(store_root)
 !
+      NULLIFY(store_temp)
+!
       END SUBROUTINE save_internal
 END MODULE save_menu

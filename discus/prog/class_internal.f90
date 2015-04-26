@@ -7,10 +7,10 @@ IMPLICIT NONE
 PRIVATE
 PUBLIC  :: internal_storage
 PUBLIC  :: store_root, store_temp, read_temp
-PUBLIC  :: store_add_node, store_find_node, store_write_node
+PUBLIC  :: store_add_node, store_find_node  !, store_write_node
 !
 TYPE :: internal_storage
-   INTEGER                           :: number
+!   INTEGER                           :: number      ! numer the files, not needed at the moment 
    CHARACTER (LEN=200)               :: strucfile   ! "file" name for this internal storage
    TYPE (cl_cryst)        , POINTER  :: crystal     ! The actual data structure for the crystal
    TYPE (internal_storage), POINTER  :: before      ! Pointer to prev stored crystal
@@ -29,6 +29,7 @@ CONTAINS
 !
    TYPE(internal_storage), POINTER :: ptr
    TYPE(internal_storage), POINTER :: new_node
+   TYPE(internal_storage), POINTER :: temp    
 !
    IF ( .not. ASSOCIATED(ptr))  THEN                     ! Pointer does not exist
       ptr  => new_node                                   ! Add here
@@ -39,7 +40,15 @@ CONTAINS
          ptr%before  => new_node                         ! Add new node here
       ENDIF                                              ! 
    ELSEIF ( new_node%strucfile  ==   ptr%strucfile) THEN ! New "strucfile" is = old
-      new_node => ptr                                    ! new node points to old
+!
+      new_node%before => ptr%before                      ! Retain old before
+      new_node%after  => ptr%after                       !        and after
+      CALL ptr%crystal%finalize_atoms                    ! Clean up old arrays
+      DEALLOCATE(ptr%crystal)                            ! Remove old crystal
+      temp => ptr                                        ! Retain address to node
+      ptr  => new_node                                   ! Place new node instead of old
+      DEALLOCATE(temp)                                   ! delete old node
+!
    ELSEIF ( LGT(new_node%strucfile, ptr%strucfile)) THEN ! New "strucfile" is > old
       IF ( ASSOCIATED(ptr%after) ) THEN                  ! after node exists
          CALL store_add_node(ptr%after, new_node)        !    recursively add new node
@@ -75,25 +84,26 @@ CONTAINS
    ENDIF
    END SUBROUTINE store_find_node
 !*******************************************************************************
-   RECURSIVE SUBROUTINE store_write_node ( ptr )
-!
-   USE prompt_mod
-   IMPLICIT NONE
-!
-   TYPE(internal_storage), POINTER :: ptr     ! Pointer to current position in tree
-!
-   IF ( ASSOCIATED(ptr) ) THEN
-      IF ( ASSOCIATED(ptr%before)) THEN
-         CALL store_write_node ( ptr%before )
-      ENDIF
-      WRITE(output_io,1000) ptr%number, ptr%strucfile
-      IF ( ASSOCIATED(ptr%after)) THEN
-         CALL store_write_node ( ptr%after )
-      ENDIF
-   ELSE
-      WRITE(output_io,*) 'Pointer is not associated '
-      WRITE(output_io,*) ' Error in write_node'
-   ENDIF
-1000 FORMAT(i4,1x, a40)
-   END SUBROUTINE store_write_node
+!   RECURSIVE SUBROUTINE store_write_node ( ptr )
+!!
+!   USE prompt_mod
+!   IMPLICIT NONE
+!!
+!   TYPE(internal_storage), POINTER :: ptr     ! Pointer to current position in tree
+!!
+!   IF ( ASSOCIATED(ptr) ) THEN
+!!      IF ( ASSOCIATED(ptr%before)) THEN
+!         CALL store_write_node ( ptr%before )
+!      ENDIF
+!      WRITE(output_io,1000) ptr%number, ptr%strucfile
+!      IF ( ASSOCIATED(ptr%after)) THEN
+!         CALL store_write_node ( ptr%after )
+!      ENDIF
+!!   ELSE
+!      WRITE(output_io,*) 'Pointer is not associated '
+!      WRITE(output_io,*) ' Error in write_node'
+!   ENDIF
+!1000 FORMAT(i4,1x, a40)
+!   END SUBROUTINE store_write_node
+!*******************************************************************************
 END MODULE class_internal
