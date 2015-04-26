@@ -11,7 +11,7 @@ CONTAINS
 !     Version  : 0.0                                                    
 !     Date     : 24 Dec 1995                                            
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       IMPLICIT none 
 !                                                                       

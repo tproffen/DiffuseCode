@@ -1263,7 +1263,7 @@
 !       Version : 1.0                                                   
 !       Date    : 22 Oct 03                                             
 !                                                                       
-!       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
+!       Author  : R.B. Neder  (reinhard.neder@fau.de)    
 !+                                                                      
       USE discus_config_mod 
       USE errlist_mod 

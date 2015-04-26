@@ -20,7 +20,7 @@ SUBROUTINE discus_loop
 !     This is the main program for DISCUS. It sets up most              
 !     variables and calls the loop interpreting the commands.           
 !                                                                       
-!     Authors : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Authors : R.B. Neder  (reinhard.neder@fau.de)      
 !               Th. Proffen (tproffen@ornl.gov)                         
 !                                                                       
 !*****7*****************************************************************

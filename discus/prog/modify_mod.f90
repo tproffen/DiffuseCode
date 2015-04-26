@@ -2403,7 +2403,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 07 Sep 10                                              
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@krist.uni-erlangen.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       USE discus_config_mod 
       USE discus_allocate_appl_mod
@@ -2450,7 +2450,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 03 Jul 96                                              
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
@@ -2504,7 +2504,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 16 Mar 03                                              
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
 !                                                                       
       USE discus_config_mod 
@@ -2666,7 +2666,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 16 Sep 04                                              
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
 !                                                                       
       USE discus_config_mod 

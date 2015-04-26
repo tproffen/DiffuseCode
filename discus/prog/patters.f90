@@ -1771,7 +1771,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 27 Nov 2000                                            
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
@@ -2573,7 +2573,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 27 Nov 2000                                            
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
@@ -2618,7 +2618,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 27 Nov 2000                                            
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       IMPLICIT none 
 !                                                                       
@@ -2649,7 +2649,7 @@ CONTAINS
 !     Version  : 1.0                                                    
 !     Date     : 27 Nov 2000                                            
 !                                                                       
-!     Author   : R.B. Neder (reinhard.neder@mail.uni-wuerzburg.de)      
+!     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
       USE prompt_mod 
       IMPLICIT none 

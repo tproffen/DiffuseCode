@@ -64,7 +64,7 @@ lsetup_done = .true.
      &        10x,'*         Created : ',a35,3x,'*',/,              &
               10x,'*',57('-'),'*',/,                                &
      &        10x,'* (c) R.B. Neder  ',                             &
-     &        '(reinhard.neder@fau.der)                *',/,        &
+     &        '(reinhard.neder@fau.de)                 *',/,        &
      &        10x,'*     Th. Proffen ',                             &
      &        '(tproffen@ornl.gov)                     *',/,        &
      &        10x,59('*'),/,                                        &
