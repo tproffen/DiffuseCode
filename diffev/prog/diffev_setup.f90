@@ -78,7 +78,7 @@ lsetup_done = .true.
      10x,'*',57(' '),'*',/                                                   &
      10x,'*         Created : ',a35,3x,'*',/,                                &
      10x,'*',57('-'),'*',/,                                                  &
-     10x,'* (c) R.B. Neder  ','(reinhard.neder@krist.uni-erlangen.de)  *',/, &
+     10x,'* (c) R.B. Neder  ','(reinhard.neder@fau.de)                 *',/, &
      10x,59('*'),/)                                        
 END SUBROUTINE diffev_setup                          
 !

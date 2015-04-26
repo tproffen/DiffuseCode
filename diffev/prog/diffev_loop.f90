@@ -23,7 +23,7 @@ IMPLICIT none
 !     This is the main program for DIFFEV. It sets up most              
 !     variables and calls the loop interpreting the commands.           
 !                                                                       
-!     Authors : R.B. Neder  (reinhard.neder@mail.uni-erlangen.de)      
+!     Authors : R.B. Neder  (reinhard.neder@fau.de)      
 !                                                                       
 !*****7*****************************************************************
 !

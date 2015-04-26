@@ -847,7 +847,7 @@ SUBROUTINE diffev_validate_var_spec (zeile, lp)
 !       Version : 1.0                                                   
 !       Date    : 22 Oct 03                                             
 !                                                                       
-!       Author  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)    
+!       Author  : R.B. Neder  (reinhard.neder@fau.de)    
 !+                                                                      
 !
 USE errlist_mod 
