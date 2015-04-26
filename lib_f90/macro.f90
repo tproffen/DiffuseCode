@@ -87,15 +87,21 @@ SUBROUTINE file_kdo(line, ilen)
                   ELSE
                      CALL macro_add_node(macro_root, macro_temp)  ! Add to storage
                      ALLOCATE(macro_temp%macros,STAT=istatus)
+                     macro_temp%macros%macro_length = 0
+                     macro_temp%macros%lmacro       = .false.
                   ENDIF
                ELSE    ! Macro ends on '.mac' but was not found
                   CALL macro_add_node(macro_root, macro_temp)     ! Add to storage
                   ALLOCATE(macro_temp%macros,STAT=istatus)
+                  macro_temp%macros%macro_length = 0
+                  macro_temp%macros%lmacro       = .false.
                ENDIF
             ENDIF
          ELSE           ! No internal storage yes, make new storage, and add
             CALL macro_add_node(macro_root, macro_temp)
             ALLOCATE(macro_temp%macros,STAT=istatus)
+            macro_temp%macros%macro_length = 0
+            macro_temp%macros%lmacro       = .false.
          ENDIF
          CALL no_error
 !
@@ -556,8 +562,12 @@ IF(ASSOCIATED(mac_tree_root)) THEN
 !
    DO WHILE(ASSOCIATED(mac_tree_active%kid))   ! There are more macros in the tree
       mac_tree_active => mac_tree_active%kid   ! Point to kid
+      CALL mac_tree_active%parent%active%macros%finalize_macro ! Deallocate macro lines
+      DEALLOCATE(mac_tree_active%parent%active%macros)         ! Remove macro storage
       DEALLOCATE(mac_tree_active%parent)       ! Remove previous node
    ENDDO
+   CALL mac_tree_active%active%macros%finalize_macro ! Deallocate macro lines
+   DEALLOCATE(mac_tree_active%active%macros)         ! Remove macro storage
    DEALLOCATE(mac_tree_active)                 ! Finally remove current node
    NULLIFY(mac_tree_root)                      ! Clear pointer status
    NULLIFY(mac_tree_temp)

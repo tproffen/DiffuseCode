@@ -50,6 +50,7 @@ CONTAINS
 !
    TYPE(macro_internal), POINTER :: ptr
    TYPE(macro_internal), POINTER :: new_node
+   TYPE(macro_internal), POINTER :: temp
 !
    IF ( .not. ASSOCIATED(ptr))  THEN                     ! Pointer does not exist
       ptr  => new_node                                   ! Add here
@@ -60,7 +61,13 @@ CONTAINS
          ptr%before  => new_node                         ! Add new node here
       ENDIF                                              ! 
    ELSEIF ( new_node%macrofile  ==   ptr%macrofile) THEN ! New "macrofile" is = old
-      new_node => ptr                                    ! new node points to old
+      CALL ptr%macros%finalize_macro                     ! Clean up old macro
+      new_node%before => ptr%before                      ! Retain old before
+      new_node%after  => ptr%after                       !        and after 
+      temp => ptr                                        ! Retain address to node
+      ptr => new_node                                    ! Place new node instead of old
+      DEALLOCATE(temp)                                   ! delete old node
+!     new_node => ptr                                    ! new node points to old
    ELSEIF ( LGT(new_node%macrofile, ptr%macrofile)) THEN ! New "macrofile" is > old
       IF ( ASSOCIATED(ptr%after) ) THEN                  ! after node exists
          CALL macro_add_node(ptr%after, new_node)        !    recursively add new node
