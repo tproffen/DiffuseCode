@@ -6,7 +6,7 @@ before_install:
   - sudo apt-get install -qq gfortran pgplot5
 
 before_script:
-  - cmake .
+  - cmake -DDIFFEV_MPI=OFF .
 
 script:
-  - make discus diffev kuplot
+  - make
