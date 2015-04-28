@@ -40,9 +40,9 @@ endif (DIFFUSE_PYTHON)
 
 set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 
-if (WIN32 OR CYGWIN)
-  set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
-endif (WIN32 OR CYGWIN)
+##64## if (WIN32 OR CYGWIN)
+##64##   set (DIFFUSE_LIBS ${DIFFUSE_LIBS} ws2_32)
+##64## endif (WIN32 OR CYGWIN)
 
 # Set Compiler Flags
 

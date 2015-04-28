@@ -16,6 +16,9 @@
       INTEGER len_str 
       INTEGER pname_l 
 !                                                                       
+      operating = ' ' 
+      CALL get_environment_variable ('OS', operating) 
+!
       pname_l = len_str (pname) 
       home_dir = ' ' 
       lines = 42 
@@ -33,12 +36,19 @@
    20    CONTINUE 
       ENDIF 
       lines = lines - 2 
+!
+      IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
+         user_profile = ' '
+         CALL get_environment_variable ('USERPROFILE', user_profile)
+         home_dir = user_profile
+      ELSE
 !                                                                       
-      home_dir = ' ' 
-      CALL get_environment_variable ('HOME', home_dir) 
-      IF (home_dir.eq.' ') then 
-         home_dir = '.' 
-      ENDIF 
+         home_dir = ' ' 
+         CALL get_environment_variable ('HOME', home_dir) 
+         IF (home_dir.eq.' ') then 
+            home_dir = '.' 
+         ENDIF 
+      ENDIF
       home_dir_l = len_str (home_dir) 
 !                                                                       
       appl_dir = ' ' 
@@ -76,11 +86,28 @@
       colorfile (1:appl_dir_l) = appl_dir 
       colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
       colorfile_l = len_str (colorfile) 
+!
+      IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
+         start_dir = ' '
+         IF(user_profile == ' ') THEN
+            start_dir   = 'C:\Users'
+            start_dir_l = 8
+         ELSE
+            start_dir   = user_profile
+            start_dir_l = len_str(start_dir)
+         ENDIF
+         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+            start_dir   = start_dir(1:start_dir_l) // '/'
+            start_dir_l = start_dir_l + 1
+         ENDIF
+         CALL do_chdir ( start_dir, start_dir_l, .false.)
+      ELSE
 !                                                                       
-      CALL do_cwd (start_dir, start_dir_l) 
-      IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
-         start_dir   = start_dir(1:start_dir_l) // '/'
-         start_dir_l = start_dir_l + 1
+         CALL do_cwd (start_dir, start_dir_l) 
+         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+            start_dir   = start_dir(1:start_dir_l) // '/'
+            start_dir_l = start_dir_l + 1
+         ENDIF
       ENDIF
       current_dir   = start_dir
       current_dir_l = start_dir_l

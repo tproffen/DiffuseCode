@@ -12,6 +12,8 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: umac_dir
    CHARACTER(LEN= 256) :: start_dir
    CHARACTER(LEN= 256) :: current_dir
+   CHARACTER(LEN= 256) :: operating
+   CHARACTER(LEN= 256) :: user_profile
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
    CHARACTER(LEN= 80 ) :: colorfile

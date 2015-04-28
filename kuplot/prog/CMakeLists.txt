@@ -21,17 +21,17 @@ set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
 # Get the correct PGPLOT libraries
 
-if (WIN32 OR CYGWIN) 
-  set (LIBS_GRAPHIC ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
-                     -mwindows -Wl,--subsystem,console)
-  set (SOURCES_ALL ${SOURCES_ALL} init_win.f90)
-  set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
-
-else (WIN32 OR CYGWIN) 
+##64## if (WIN32 OR CYGWIN) 
+##64##   set (LIBS_GRAPHIC ${PGPLOT_PGPLOT_LIBRARY} ${GRWIN_LIBRARY}
+##64##                      -mwindows -Wl,--subsystem,console)
+##64##   set (SOURCES_ALL ${SOURCES_ALL} init_win.f90)
+##64##   set (PGSERVER ${PGPLOT_DIR}/GrWnd.exe)
+##64## 
+##64## else (WIN32 OR CYGWIN) 
   set (LIBS_GRAPHIC ${X11_X11_LIB} ${PGPLOT_PGPLOT_LIBRARY})
   set (SOURCES_ALL ${SOURCES_ALL} init_x11.f90)
   set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
-endif (WIN32 OR CYGWIN) 
+##64## endif (WIN32 OR CYGWIN) 
 
 set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
