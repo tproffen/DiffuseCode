@@ -34,7 +34,11 @@ if (MPI_FOUND AND SUITE_MPI)
   link_directories(${MPI_LIBARY_PATH})
 
 else (MPI_FOUND AND SUITE_MPI)
+##<<<<<<< HEAD
 #  set (SOURCES_ALL ${SOURCES_ALL} no_mpi.f90)
+#=======
+#  set (SOURCES_ALL ${SOURCES_ALL} ../../diffev/prog/no_mpi.f90)
+#>>>>>>> 53ede89c9c5b3956e77f68bb180bd9d9ec5d34ac
 
 endif (MPI_FOUND AND SUITE_MPI)
 
