@@ -675,6 +675,7 @@ SUBROUTINE pdf
 !                                                                       
       CHARACTER ( * ) zeile 
       INTEGER i, lp, nmi, nma, nmd 
+      INTEGER ::  pdf_calc_l, pdf_calc_u
       REAL r 
 !                                                                       
       CHARACTER(1024) cdummy, cpara (maxw) 
@@ -703,17 +704,10 @@ SUBROUTINE pdf
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) (1:lpara (1) ) 
             cdummy = cpara (1) (1:lpara (1) ) 
-            CALL oeffne (57, cdummy, 'unknown') 
-            IF (ier_num.eq.0) then 
-               nmi = nint (pdf_rfmin / pdf_deltar) 
-               nma = nint (pdf_rfmax / pdf_deltar) 
-               nmd = pdf_us_int   ! step width = (delta r user)/(deltar internal)
-               DO i = nmi, nma, nmd 
-               r = float (i) * pdf_deltar 
-               WRITE (57, 5000) r, pdf_skal * pdf_calc (i), 0.0, 1.0 
-               ENDDO 
-               CLOSE (57) 
-            ENDIF 
+            pdf_calc_l = LBOUND(pdf_calc,1)
+            pdf_calc_u = UBOUND(pdf_calc,1)
+            CALL pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, &
+                 pdf_us_int, pdf_calc_l, pdf_calc_u, pdf_skal, pdf_calc)
 !                                                                       
 !------ - Save markers                                                  
 !                                                                       
@@ -755,7 +749,7 @@ SUBROUTINE pdf
  1500 FORMAT     (' Saving structure to file : ',A,' ...') 
  1505 FORMAT     (' Saving PDF to file : ',A,' ...') 
  1508 FORMAT     (' Saving distance markers to file : ',A,' ...') 
- 5000 FORMAT     (F9.4,3X,F21.10,5X,2(F6.2,1X)) 
+! 5000 FORMAT     (F9.4,3X,F21.10,5X,2(F6.2,1X)) 
  5100 FORMAT     (F9.4,3X,F6.2) 
       END SUBROUTINE pdf_save                       
 !*****7*****************************************************************

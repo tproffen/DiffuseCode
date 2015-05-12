@@ -46,6 +46,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	update_cr_dim.f90 vtk_mod.f90
 	waves.f90 waves_mod.f90 wyckoff_mod.f90 quad.f90 qval.f90 utilities.f90
   )
+set( SOURCES_LOCAL discus_pdf_file.f90)
 #set( SOURCES ${SOURCE_MAIN} ${SOURCES_ALL} )
 
 set( LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS})
@@ -67,7 +68,7 @@ endif (NEXUS_FOUND)
 # OpenMP ?
 
 if (CUDA_FOUND)
-  message (status " building with cuda")
+  message (status " building DISCUS with cuda")
 
   set (SOURCES_ALL ${SOURCES_ALL} four_strucf_cuda_mod.f90)
   set (CUDA_NVCC_FLAGS -O3)
@@ -76,7 +77,7 @@ if (CUDA_FOUND)
   set (LIBS ${LIBS} cudart)
 
 elseif( DISCUS_OMP)
-  message (status " building with openmp")
+  message (status " building DISCUS with openmp")
 
   set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
   # Add OpenMP flag depending on compiler
@@ -90,16 +91,17 @@ elseif( DISCUS_OMP)
 
 else (CUDA_FOUND)
 
+  message (status " building DISCUS serial ")
   set (SOURCES_ALL ${SOURCES_ALL} four_strucf_mod.f90)
 
 endif (CUDA_FOUND)
 
 add_library (discus_all ${SOURCES_ALL} )
-add_dependencies (discus_all lib_f90)
+add_dependencies (discus_all lib_f90 )
 
 set ( LIBS discus_all ${LIBS} discus_all ${LIBS_OPT} ) 
 
-add_executable (discus ${SOURCE_MAIN} ) 
+add_executable (discus ${SOURCE_MAIN} ${SOURCES_LOCAL}) 
 
 target_link_libraries (discus ${LIBS}) 
 
@@ -133,6 +135,7 @@ if (NUMPY_FOUND AND DIFFUSE_PYTHON)
             -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
             -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
             ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+            ${SOURCES_LOCAL}
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
     COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod

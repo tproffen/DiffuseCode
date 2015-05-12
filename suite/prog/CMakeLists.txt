@@ -1,7 +1,5 @@
 # DISCUS_SUITE Build
 
-option(SUITE_MPI    "SUITE_MPI"    ON)
-
 find_package(MPI)
 find_package(NEXUS)
 find_package(PGPLOT REQUIRED)
@@ -24,23 +22,36 @@ set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
 	suite_err_appl.f90 suite_exit.f90 suite_execute_cost.f90 
 	suite_init_mod.f90 suite_kdo.f90 
 	suite_upd_par.f90 )
+set( SOURCES_LOCAL suite_pdf_file.f90)
 
 set (LIBS diffev_all discus_all kuplot_all lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY} )
 
-if (MPI_FOUND AND SUITE_MPI)
-#  set (SOURCES_ALL ${SOURCES_ALL} with_mpi.f90)
+if( DISCUS_OMP)
+  message (status " building SUITE with openmp")
+
+#  set (SOURCES_ALL ${SOURCES_ALL} four_strucf_OMP_mod.f90)
+  # Add OpenMP flag depending on compiler
+  if (PGF)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mp")
+  elseif (IFORT)
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -openmp")
+  else (PGF) # Else assume gfortran
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fopenmp")
+  endif (PGF)
+else(DISCUS_OMP)
+  message (status " building SUITE without openmp")
+endif(DISCUS_OMP)
+
+if (MPI_FOUND AND DIFFEV_MPI)
+  message (status " building SUITE with MPI")
   set (LIBS_OPT ${MPI_Fortran_LIBRARIES})
   include_directories(${MPI_Fortran_INCLUDE_PATH})
   link_directories(${MPI_LIBARY_PATH})
 
-else (MPI_FOUND AND SUITE_MPI)
-##<<<<<<< HEAD
-#  set (SOURCES_ALL ${SOURCES_ALL} no_mpi.f90)
-#=======
-#  set (SOURCES_ALL ${SOURCES_ALL} ../../diffev/prog/no_mpi.f90)
-#>>>>>>> 53ede89c9c5b3956e77f68bb180bd9d9ec5d34ac
+else (MPI_FOUND AND DIFFEV_MPI)
+  message (status " building SUITE without MPI")
 
-endif (MPI_FOUND AND SUITE_MPI)
+endif (MPI_FOUND AND DIFFEV_MPI)
 
 # NEXUS support ?
 
@@ -56,6 +67,8 @@ else (NEXUS_FOUND)
 
 endif (NEXUS_FOUND)
 
+set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
+
 # Get the correct PGPLOT libraries
 
 ##64## if (WIN32 OR CYGWIN)
@@ -70,16 +83,15 @@ endif (NEXUS_FOUND)
   set (PGSERVER ${PGPLOT_DIR}/pgxwin_server)
 ##64## endif (WIN32 OR CYGWIN)
 
-set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 
 add_library (discus_suite_all ${SOURCES_ALL})
 add_dependencies ( discus_suite_all diffev_all discus_all kuplot_all lib_f90)
 
-set (LIBS discus_suite_all diffev_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
+set (LIBS ${LIBS} discus_suite_all diffev_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
 
-add_executable(discus_suite ${SOURCE_MAIN} )
+add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
 target_link_libraries (discus_suite ${LIBS})
 
 add_custom_command (

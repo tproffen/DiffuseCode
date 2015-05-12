@@ -34,7 +34,7 @@ CALL ini_ran (0)
 !------ Write starting screen                                           
 !                                                                       
 version   = aktuell 
-WRITE ( *, 1000) version, cdate
+IF(standalone) WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !

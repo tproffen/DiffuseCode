@@ -2,6 +2,9 @@ PROGRAM discus_suite
 !                                                                       
 USE suite_setup_mod
 USE suite_loop_mod
+USE suite_init_mod
+USE discus_setup_mod
+USE kuplot_setup_mod
 USE diffev_setup_mod
 USE diffev_loop_mod
 USE diffev_mpi_mod
@@ -41,6 +44,12 @@ IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL suite_set_sub_cost ()
    CALL diffev_loop    ()
 ELSE
+   CALL discus_setup(lstandalone)
+   CALL kuplot_setup(lstandalone)
+   CALL diffev_setup(lstandalone)
+   suite_discus_init = .TRUE.
+   suite_kuplot_init = .TRUE.
+   suite_diffev_init = .TRUE.
    CALL suite_loop      ! Perform the normal main loop
 ENDIF
 !                                                                       

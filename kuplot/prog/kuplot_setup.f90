@@ -28,7 +28,7 @@ CONTAINS
 !------ Write starting screen                                           
 !                                                                       
       version = aktuell 
-      WRITE ( *, 1000) version, cdate 
+      IF(standalone) WRITE ( *, 1000) version, cdate 
 !                                                                       
 !     Call initialization routines                                      
 !                                                                       

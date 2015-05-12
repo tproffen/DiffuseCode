@@ -54,7 +54,7 @@
 !p remove     ! Remove atom or molecule from crystal
 !p replace    ! Replace atom(s) or molecule(s) with other type
 !p rmc        ! Enter REVERSE-MONTE-CARLO level
-!p save       ! Enter SAVEi level to save the structure
+!p save       ! Enter SAVE level to save the structure
 !p seed       ! Set seed for random number generator
 !p shear      ! Enter the SHEAR level
 !p show       ! Show various information
@@ -2830,7 +2830,7 @@
    A Lennard Jones type potential energy is calculated for the two
    atom types. 
    The energy is calculated as:
-   E = A/<r>^<pa> - <B>/<>^<pa>
+   E = A/<r>^<pa> - <B>/<r>^<pa>
    Here <r> is the interatomic distance and 
    A and B are calculated to give the minimum of the 
    Lennard-Jones potential at distance <distance> with a potential

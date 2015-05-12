@@ -249,11 +249,12 @@
 !
 !
        integer       iu,io
-       parameter    (IU= -28,IO=0)
+       parameter    (IU= -29,IO=0)
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-28:-21) /                       &
+       DATA ERROR (-29:-21) /                       &
+     &  'Number of data points exceeds limit',      & ! -29 ! io
      &  'Format number outside allowed range',      & ! -28 ! io
      &  'Not enough parameter for filename format ',& ! -27 ! io
      &  'Second parameter must be >= first Param.', & ! -26 ! io
