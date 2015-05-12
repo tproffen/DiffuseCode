@@ -3510,6 +3510,10 @@
    parameter "mark" saves the distances of all pairs in <file> 
    for plotting markers below a PDF. Markers can only be saved
    if the Gaussian mode is disabled.
+
+   If DISCUS is operated within the DISCUS_SUITE, a file name 
+   that starts with "kuplot" is copied directly into the KUPLOT
+   data array, and NOT written to disk.
 3  set
 !b set "subcommand"
 
