@@ -2967,6 +2967,10 @@
    intend to write the output in the other format, you need to 
    specify the limits on this axis as well.
 
+   If DISCUS is operated within the DISCUS_SUITE, a file name 
+   that starts with "kuplot" is copied directly into the KUPLOT
+   data array, and NOT written to disk.
+
 !b "post"
    Sets the type of the output to color postscript. A bitmap of the
    intensity is written in color postscript. The color scheme is read
