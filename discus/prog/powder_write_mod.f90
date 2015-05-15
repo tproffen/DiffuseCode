@@ -20,19 +20,21 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER iff 
-      PARAMETER (iff = 2) 
+!     INTEGER, PARAMETER :: iff = 2 
 !                                                                       
 !                                                                       
       INTEGER ii, j , iii
       INTEGER   :: all_status  ! Allocation status
       INTEGER   :: npkt        ! number of points in powder pattern
       INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
+      INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
       LOGICAL lread 
       REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: y2a  ! y-values of splined    powder pattern
+      REAL, DIMENSION(:), ALLOCATABLE :: xwrt ! x-values of powder pattern ready for output
+      REAL, DIMENSION(:), ALLOCATABLE :: ywrt ! y-values of powder pattern ready for output
       REAL :: ttheta, lp=1.0
       REAL ss, st 
       REAL :: q=0.0, stl=0.0, dstar=0.0
@@ -207,89 +209,118 @@ CONTAINS
          ENDIF 
       ENDIF 
 !
-      CALL oeffne (iff, outfile, 'unknown') 
+!
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
             IF(pow_tthmin < xpl(1) ) THEN                 ! User lower limit too low!
-               tthmin = pow_tthmin + (INT( (xpl(1)-pow_tthmin   )/pow_deltatth) + 1)*pow_deltatth
+               tthmin =              (INT( (xpl(1)              )/pow_deltatth) + 1)*pow_deltatth
             ELSE
                tthmin = pow_tthmin
             ENDIF
             IF(pow_tthmax > xpl(npkt) ) THEN              ! User upper limit too high!
-               tthmax = pow_tthmax - (INT( (pow_tthmax-xpl(npkt))/pow_deltatth) + 1)*pow_deltatth
+               tthmax =              (INT( (           xpl(npkt))/pow_deltatth) - 1)*pow_deltatth
             ELSE
                tthmax = pow_tthmax
             ENDIF
-            ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-            y2a = 0.0
-            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             npkt_equi = INT((tthmax-tthmin)/pow_deltatth) + 1
+            ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            xwrt = 0.0
+            ywrt = 0.0
+            y2a  = 0.0
+            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             DO ii = 1, npkt_equi
                xequ = tthmin + (ii-1)*pow_deltatth
                CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
                IF(ier_num/=0) THEN
-                  CLOSE(iff)
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
                   DEALLOCATE( ypl, stat = all_status)
                   DEALLOCATE( y2a, stat = all_status)
+                  DEALLOCATE( xwrt, stat = all_status)
+                  DEALLOCATE( ywrt, stat = all_status)
                   RETURN
                ENDIF
-               WRITE( iff, *) xequ, yequ
+               xwrt(ii) = xequ
+               ywrt(ii) = yequ
             ENDDO
+            npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
-         ELSE
+         ELSE                                              ! Matching form no spline needed
+            ALLOCATE(xwrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            xwrt = 0.0
+            ywrt = 0.0
             DO ii = 1,npkt
-               WRITE( iff, *) xpl(ii),ypl(ii)
+               xwrt(ii) = xpl(ii)
+               ywrt(ii) = ypl(ii)
             ENDDO
+            npkt_wrt = npkt
          ENDIF
       ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
          IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST              ) THEN ! DEBYE, always spline
             IF(pow_qmin < xpl(1) ) THEN                     ! User lower limit too low!
-               qmin = pow_qmin + (INT( (xpl(1)-pow_qmin   )/pow_deltaq) + 1)*pow_deltaq
+               qmin =            (INT( (xpl(1)            )/pow_deltaq) + 1)*pow_deltaq
             ELSE
                qmin = pow_qmin
             ENDIF
             IF(pow_qmax > xpl(npkt) ) THEN                  ! User upper limit too high!
-               qmax = pow_qmax - (INT( (pow_qmax-xpl(npkt))/pow_deltaq) + 1)*pow_deltaq
+               qmax =            (INT( (         xpl(npkt))/pow_deltaq) - 1)*pow_deltaq
             ELSE
                qmax = pow_qmax
             ENDIF
-            ALLOCATE(y2a(1:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             npkt_equi = NINT((qmax-qmin)/pow_deltaq) + 1
+            ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
+            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            xwrt = 0.0
+            ywrt = 0.0
+            y2a  = 0.0
+            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
             DO ii = 1, npkt_equi
                xequ = qmin + (ii-1)*pow_deltaq
                CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
                IF(ier_num/=0) THEN
-                  CLOSE(iff)
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
                   DEALLOCATE( ypl, stat = all_status)
                   DEALLOCATE( y2a, stat = all_status)
+                  DEALLOCATE( xwrt, stat = all_status)
+                  DEALLOCATE( ywrt, stat = all_status)
                   RETURN
                ENDIF
-               WRITE( iff, *) xequ, yequ
+               xwrt(ii) = xequ
+               ywrt(ii) = yequ
             ENDDO
+            npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
-         ELSE
+         ELSE                                              ! Matching form no spline needed
+            ALLOCATE(xwrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
             DO ii = 1,npkt
-               WRITE( iff, *) xpl(ii),ypl(ii)
+               xwrt(ii) = xpl(ii)
+               ywrt(ii) = ypl(ii)
             ENDDO
+            npkt_wrt = npkt
          ENDIF
       ELSE
          DO ii = 1,npkt
-            WRITE( iff, *) xpl(ii),ypl(ii)
+            xwrt(ii) = xpl(ii)
+            ywrt(ii) = ypl(ii)
          ENDDO
+         npkt_wrt = npkt
       ENDIF
 !
-      CLOSE(iff)
+      CALL powder_do_write (outfile, npkt_wrt, POW_MAXPKT, xwrt, ywrt)
 !
       DEALLOCATE( pow_tmp, stat = all_status)
       DEALLOCATE( xpl, stat = all_status)
       DEALLOCATE( ypl, stat = all_status)
+      DEALLOCATE( xwrt, stat = all_status)
+      DEALLOCATE( ywrt, stat = all_status)
 !                                                                       
       END SUBROUTINE powder_out                     
 !*****7*****************************************************************
@@ -732,11 +763,11 @@ END SUBROUTINE powder_conv_psvgt_fix
 !      PARAMETER (nmax = maxarray) 
 !
       INTEGER,              INTENT(IN)  :: n
-      REAL, DIMENSION(1:n), INTENT(IN)  :: x
-      REAL, DIMENSION(1:n), INTENT(IN)  :: y
+      REAL, DIMENSION(0:n), INTENT(IN)  :: x
+      REAL, DIMENSION(0:n), INTENT(IN)  :: y
       REAL                , INTENT(IN)  :: yp1
       REAL                , INTENT(IN)  :: ypn
-      REAL, DIMENSION(1:n), INTENT(OUT) :: y2
+      REAL, DIMENSION(0:n), INTENT(OUT) :: y2
 !
       INTEGER               :: i,k
       REAL, DIMENSION(1:n)  :: u
@@ -779,9 +810,9 @@ END SUBROUTINE powder_conv_psvgt_fix
       SUBROUTINE splint (n, xa, ya, y2a, x, y) 
 !
       INTEGER,              INTENT(IN)  :: n
-      REAL, DIMENSION(1:n), INTENT(IN)  :: xa
-      REAL, DIMENSION(1:n), INTENT(IN)  :: ya
-      REAL, DIMENSION(1:n), INTENT(IN)  :: y2a
+      REAL, DIMENSION(0:n), INTENT(IN)  :: xa
+      REAL, DIMENSION(0:n), INTENT(IN)  :: ya
+      REAL, DIMENSION(0:n), INTENT(IN)  :: y2a
       REAL                , INTENT(IN)  :: x
       REAL                , INTENT(OUT) :: y
       INTEGER  :: klo, khi, k
