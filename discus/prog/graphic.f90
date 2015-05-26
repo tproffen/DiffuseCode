@@ -865,6 +865,19 @@ SUBROUTINE do_niplps (linverse)
       REAL shel_dsi 
       COMPLEX shel_tcsf 
       REAL factor
+!
+      INTEGER                            :: npkt1      ! Points in 1D files standard file format
+      INTEGER                            :: npkt2      ! Points in 2D files standard file format
+      INTEGER                            :: npkt3      ! Points in 3D files standard file format
+      INTEGER                            :: all_status ! Allocation status 
+      INTEGER                            :: is_dim     ! dimension of standard output file
+      INTEGER                            :: is_axis    ! Axis of standard output file
+      INTEGER, DIMENSION(1:3)            :: loop       ! Allows flexible loop index
+      INTEGER, DIMENSION(1:3)            :: out_index  ! Index that is written along axis 
+      REAL   , DIMENSION(1:4)            :: ranges     ! xmin, xmax, ymin, ymax for NIPL files
+      REAL   , DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
+      REAL   , DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
+      REAL   , DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
 !                                                                       
 !     REAL qval 
       INTEGER  len_str
@@ -932,33 +945,134 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       extr_ima = 6 - out_extr_abs - out_extr_ord 
 !                                                                       
+IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
+!                               Write data to temporary data structure 
+!                               This allows to copy to KUPLOT
+   IF(    out_inc(2) == 1 .and. out_inc(3) == 1 ) THEN ! 1D file along axis 1
+      is_axis = 1  ! Axis is 1
+      is_dim  = 1  ! is a 1D file
+   ELSEIF(out_inc(1) == 1 .and. out_inc(3) == 1 ) THEN ! 1D file along axis 2
+      is_axis = 2  ! Axis is 2
+      is_dim  = 1  ! is a 1D file
+   ELSEIF(out_inc(1) == 1 .and. out_inc(2) == 1 ) THEN ! 1D file along axis 3
+      is_axis = 3  ! Axis is 3
+      is_dim  = 1  ! is a 1D file
+   ELSEIF(out_inc(3) == 1 ) THEN                       ! 2d Normal to axis 3
+      is_axis = 3  ! Axis is 3
+      is_dim  = 2  ! is a 2D file
+      npkt1   = out_inc(1)
+      npkt2   = out_inc(2)
+      ranges(1) = out_eck (out_extr_abs, 1)
+      ranges(2) = out_eck (out_extr_abs, 2)
+      ranges(3) = out_eck (out_extr_ord, 1)
+      ranges(4) = out_eck (out_extr_ord, 3)
+!  ELSEIF(out_inc(2) == 1 ) THEN                       ! 2d Normal to axis 2
+!     is_axis = 2  ! Axis is 2
+!     is_dim  = 2  ! is a 2D file
+!     npkt1   = out_inc(1)
+!     npkt2   = out_inc(3)
+!     ranges(1) = out_eck (out_extr_abs, 1)
+!     ranges(2) = out_eck (out_extr_abs, 2)
+!     ranges(3) = out_eck (out_extr_ord, 1)
+!     ranges(4) = out_eck (out_extr_ord, 4)
+!  ELSEIF(out_inc(1) == 1 ) THEN                       ! 2d Normal to axis 1
+!     is_axis = 1  ! Axis is 1
+!     is_dim  = 2  ! is a 2D file
+!     npkt1   = out_inc(2)
+!     npkt2   = out_inc(3)
+!     ranges(1) = out_eck (out_extr_abs, 1)
+!     ranges(2) = out_eck (out_extr_abs, 3)
+!     ranges(3) = out_eck (out_extr_ord, 1)
+!     ranges(4) = out_eck (out_extr_ord, 4)
+   ELSE
+      is_dim  = 3
+      npkt1   = out_inc(1)
+      npkt2   = out_inc(2)
+      npkt3   = out_inc(3)
+      ranges(1) = out_eck (out_extr_abs, 1)
+      ranges(2) = out_eck (out_extr_abs, 2)
+      ranges(3) = out_eck (out_extr_ord, 1)
+      ranges(4) = out_eck (out_extr_ord, 3)
+   ENDIF
+!
+   IF(is_dim==1) THEN                           ! 1D output
+      out_index(1) = out_extr_abs
+      out_index(2) = out_extr_ord
+      out_index(3) =     extr_ima
+      npkt1 = out_inc(is_axis)
+      ALLOCATE(xwrt(1:npkt1), STAT=all_status)  ! Allocate x-table
+      ALLOCATE(ywrt(1:npkt1), STAT=all_status)  ! Allocate y-table
+      loop = 1                                  ! Preset all loop indices to 1
+      j    = 1
+      DO i = 1, out_inc (is_axis)   ! loop along axis is_axis 
+         loop(is_axis) = i
+         DO k = 1, 3 
+            h (k) = out_eck(k,1) + out_vi(k,1) * float(loop(1)-1)   &
+                                 + out_vi(k,2) * float(loop(2)-1)   &
+                                 + out_vi(k,3) * float(loop(3)-1)  
+         ENDDO 
+         xwrt(i) = h(out_extr_abs)
+         ywrt(i) = qval (i, value, i, j, laver)
+      ENDDO 
+      CALL output_save_file_1d(outfile, out_index, npkt1, xwrt, ywrt)
+      DEALLOCATE(xwrt)
+      DEALLOCATE(ywrt)
+   ELSEIF(is_dim==2) THEN                       ! 2D output
+      ALLOCATE(zwrt(1:npkt1,1:npkt2), STAT=all_status)  ! Allocate z-table
+      l = 1
+      DO j = 1, npkt2
+         DO i=1,npkt1
+            zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+                                (j - 1) * out_inc(3)             + l,     &
+                         value,  i, j, laver))
+         ENDDO 
+      ENDDO 
+      CALL output_save_file_2d(outfile, ranges, npkt1, npkt2, zwrt)
+      DEALLOCATE(zwrt)
+   ELSEIF(is_dim==3) THEN                       ! 3D output into standard slices
+      ALLOCATE(zwrt(1:npkt1,1:npkt2), STAT=all_status)  ! Allocate z-table
+      DO l = 1, npkt3                           ! For all layers along 3rd axis
+         WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l  ! Modify file name
+7777 FORMAT(a,'.PART_',i4.4)
+         DO j = 1, npkt2                        ! Loop over points in 2D
+            DO i=1,npkt1                        ! and copy into intensity file
+               zwrt(i,j) = (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+                                   (j - 1) * out_inc(3)             + l,     &
+                            value,  i, j, laver))
+            ENDDO 
+         ENDDO 
+         CALL output_save_file_2d(dummy_file, ranges, npkt1, npkt2, zwrt)
+      ENDDO 
+      DEALLOCATE(zwrt)
+   ENDIF
+ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
       lread = .false. 
       IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
          CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
       IF (ier_num.eq.0) then 
-         IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then 
-            IF (ityp.eq.0) then 
-               DO l=1, out_inc(3)
-                  IF(out_inc(3) > 1) THEN
-                     WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
-7777 FORMAT(a,'.PART_',i4.4)
-                     CALL oeffne (iff, dummy_file, 'unknown') 
-                  ENDIF
-               WRITE (iff, * ) out_inc (1), out_inc(2)
-               WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
-                               out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3)
-               DO j = 1, out_inc (2) 
-               WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
-                                      (j - 1) * out_inc(3)             + l,     &
-                                      value,  i, j, laver), i = 1, out_inc (1) )
-               WRITE (iff, 100) 
-               ENDDO 
-                  IF(out_inc(3) > 1) THEN
-                     CLOSE(iff)
-                  ENDIF
-               ENDDO 
-            ELSEIF (ityp.eq.ASCII3D) then 
+         IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then  ! 2D or 3D data
+            IF (ityp.eq.0) then                             ! Standard file format
+!               DO l=1, out_inc(3)
+!                  IF(out_inc(3) > 1) THEN
+!                     WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
+!7777 FORMAT(a,'.PART_',i4.4)
+!                     CALL oeffne (iff, dummy_file, 'unknown') 
+!                  ENDIF
+!               WRITE (iff, * ) out_inc (1), out_inc(2)
+!               WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
+!                               out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3)
+!               DO j = 1, out_inc (2) 
+!               WRITE (iff, 4) (qval ( (i - 1) * out_inc(3)*out_inc (2) +        &
+!                                      (j - 1) * out_inc(3)             + l,     &
+!                                      value,  i, j, laver), i = 1, out_inc (1) )
+!               WRITE (iff, 100) 
+!               ENDDO 
+!                  IF(out_inc(3) > 1) THEN
+!                     CLOSE(iff)
+!                  ENDIF
+!               ENDDO 
+            ELSEIF (ityp.eq.ASCII3D) then                   ! 3D "NIPL" file
                WRITE (iff, * ) out_inc (1), out_inc(2), out_inc(3)
                WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
                                out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3), &
@@ -974,7 +1088,7 @@ SUBROUTINE do_niplps (linverse)
                      CLOSE(iff)
                   ENDIF
                ENDDO 
-            ELSEIF (ityp.eq.HKLF4) then 
+            ELSEIF (ityp.eq.HKLF4) then                     ! SHELXS HKL File
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
@@ -991,7 +1105,7 @@ SUBROUTINE do_niplps (linverse)
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST5) then 
+            ELSEIF (ityp.eq.LIST5) then                     ! SHELXS HKL Fobs Fcalc File
                shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
@@ -1010,7 +1124,7 @@ SUBROUTINE do_niplps (linverse)
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST9) then 
+            ELSEIF (ityp.eq.LIST9) then                     ! SHELXS File
                shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
@@ -1029,7 +1143,7 @@ SUBROUTINE do_niplps (linverse)
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSE 
+            ELSE             ! Should be GNU type == 3      ! Standard 2D File
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
@@ -1043,7 +1157,8 @@ SUBROUTINE do_niplps (linverse)
                WRITE (iff, 100) 
                ENDDO 
             ENDIF 
-         ELSEIF (out_inc (1) .eq.1) then 
+         ELSEIF (out_inc (1) .eq.1) then                    ! 1D Files
+            IF(ityp /= 0) THEN                              ! All BUT standard files
             i = 1 
             DO j = 1, out_inc (2) 
             DO k = 1, 3 
@@ -1051,13 +1166,13 @@ SUBROUTINE do_niplps (linverse)
             + out_vi (k, 2) * float (j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
-            IF (ityp.eq.HKLF4) then 
+            IF (ityp.eq.HKLF4) then                         ! SHELXS HKL INTENSITY
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) then 
+            ELSEIF (ityp.eq.LIST5) then                     ! SHELXS Fobs Fcalc
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
@@ -1066,7 +1181,7 @@ SUBROUTINE do_niplps (linverse)
                / cr_icc (2) / cr_icc (3) * out_fac                      
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) then 
+            ELSEIF (ityp.eq.LIST9) then                     ! SHELXS
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
@@ -1074,12 +1189,23 @@ SUBROUTINE do_niplps (linverse)
                sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
                / cr_icc (2) / cr_icc (3)                                
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
-            ELSE 
-               WRITE (iff, 6) h (out_extr_ord), qval (k, value, i, j,   &
-               laver)                                                   
             ENDIF 
-            ENDDO 
+               ENDDO 
+            ELSE     ! Should be GNU type == 3              ! Standard File
+               i = 1 
+               DO j = 1, out_inc (2) 
+                  DO k = 1, 3 
+                     h(k) = out_eck(k,1) + out_vi(k,1) * float(i-1)    &
+                                         + out_vi(k,2) * float(j-1)
+                  ENDDO 
+                  k       = (i - 1) * out_inc (2) + j 
+                  WRITE(iff,6) h(out_extr_ord), qval(k,value,i,j,laver)
+                  xwrt(i) = h(out_extr_ord)
+                  ywrt(i) = qval (k, value, i, j, laver)
+               ENDDO 
+            ENDIF 
          ELSEIF (out_inc (2) .eq.1) then 
+            IF(ityp /= 0) THEN                              ! All BUT standard files
             j = 1 
             DO i = 1, out_inc (1) 
             DO k = 1, 3 
@@ -1087,13 +1213,13 @@ SUBROUTINE do_niplps (linverse)
             + out_vi (k, 2) * float (j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
-            IF (ityp.eq.HKLF4) then 
+            IF (ityp.eq.HKLF4) then                         ! SHELXS Intensity
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) then 
+            ELSEIF (ityp.eq.LIST5) then                     ! SHELS Fobs Fcalc
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
@@ -1102,7 +1228,7 @@ SUBROUTINE do_niplps (linverse)
                / cr_icc (2) / cr_icc (3) * out_fac                      
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) then 
+            ELSEIF (ityp.eq.LIST9) then                     ! SHELS File
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
@@ -1110,11 +1236,19 @@ SUBROUTINE do_niplps (linverse)
                sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
                / cr_icc (2) / cr_icc (3)                                
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
-            ELSE 
-               WRITE (iff, 6) h (out_extr_abs), qval (k, value, i, j,   &
-               laver)                                                   
             ENDIF 
             ENDDO 
+            ELSE                                            ! Standard File
+!              j = 1 
+!              DO i = 1, out_inc (1) 
+!                 DO k = 1, 3 
+!                    h (k) = out_eck(k,1) + out_vi(k,1) * float(i-1)   &
+!                                         + out_vi(k,2) * float(j-1)
+!                 ENDDO 
+!                 k = (i - 1) * out_inc (2) + j 
+!                 WRITE(iff,6) h(out_extr_abs), qval(k,value,i,j,laver)
+!              ENDDO 
+            ENDIF 
          ENDIF 
       ENDIF 
 !     if(ier_num.ne.0) then                                             
@@ -1124,6 +1258,9 @@ SUBROUTINE do_niplps (linverse)
          WRITE (output_io, 1000) out_fac 
       ENDIF 
       CLOSE (iff) 
+      ENDIF       ! DATA TYPES ityp == 0 or else 
+      IF(ALLOCATED(xwrt)) DEALLOCATE(xwrt,STAT=all_status)
+      IF(ALLOCATED(ywrt)) DEALLOCATE(ywrt,STAT=all_status)
 !                                                                       
     4 FORMAT (5(1x,e11.5)) 
     5 FORMAT (4(1x,e11.5)) 

@@ -15,6 +15,10 @@
    The same holds for all user defined variables!
 
    The section specific variables are local within each section.
+
+   If an output filename in "discus" starts with "kuplot", the
+   data are written directly into the next available KUPLOT 
+   data set. This is available for Fourier output, powder, pdf.
 2  News
 
    This is the first release

@@ -35,14 +35,14 @@ CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 CALL suite_set_sub   ! Point to specific subroutines
 !
 IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
-   pname     = 'diffev'
-   pname_cap = 'DIFFEV'
-   prompt    = pname
    CALL suite_set_hlp ()
    CALL diffev_setup   (lstandalone)
    CALL diffev_set_sub ()
    CALL suite_set_sub_cost ()
    CALL diffev_loop    ()
+   pname     = 'diffev'
+   pname_cap = 'DIFFEV'
+   prompt    = pname
 ELSE
    CALL discus_setup(lstandalone)
    CALL kuplot_setup(lstandalone)
@@ -50,6 +50,9 @@ ELSE
    suite_discus_init = .TRUE.
    suite_kuplot_init = .TRUE.
    suite_diffev_init = .TRUE.
+   pname     = 'suite'
+   pname_cap = 'SUITE'
+   prompt    = pname
    CALL suite_loop      ! Perform the normal main loop
 ENDIF
 !                                                                       

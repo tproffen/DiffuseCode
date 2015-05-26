@@ -1,6 +1,7 @@
 !
 ! Version for DISCUS_SUITE
-! The file is always written to hard disk
+! The file is may be written directly into kuplot if the
+! filename starts with 'kuplot'
 !
 SUBROUTINE pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, pdf_us_int,&
                          pdf_calc_l, pdf_calc_u, pdf_skal,pdf_calc)

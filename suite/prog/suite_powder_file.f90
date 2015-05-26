@@ -1,6 +1,7 @@
 !
 ! Version for stand alone DISCUS
-! The file is always written to hard disk
+! The file is may be written directly into kuplot if the
+! filename starts with 'kuplot'
 !
 SUBROUTINE powder_do_write (outfile, npkt_wrt, POW_MAXPKT, xwrt, ywrt)
 !
