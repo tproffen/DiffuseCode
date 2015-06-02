@@ -485,7 +485,7 @@
 
    If the optional "silent" qualifier is specified, DIFFEV will not read 
    the result files. Instead, DIFFEV must have received the current results
-   by explicitly setting the valued of child_val[*] for all children. 
+   by explicitly setting the values of child_val[*] for all children. 
    This option will work best if a binding of DIFFEV, DISCUS, and KUPLOT
    into a library with interface to a common calling program is used.
 2  constraint
