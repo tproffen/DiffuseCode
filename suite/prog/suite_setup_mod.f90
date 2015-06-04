@@ -43,7 +43,7 @@ CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env
+CALL appl_env (.TRUE.)
 !                                                                       
 !     try to read default file                                          
 !                                                                       

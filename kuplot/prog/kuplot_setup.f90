@@ -34,7 +34,7 @@ CONTAINS
 !                                                                       
       CALL kuplot_initarrays 
       IF(standalone) CALL init_sysarrays 
-      CALL appl_env 
+      CALL appl_env (lstandalone)
       CALL kuplot_auto_def 
       IF(standalone) CALL cmdline_args 
       CALL no_error

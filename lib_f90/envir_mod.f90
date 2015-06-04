@@ -16,12 +16,14 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: user_profile
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
+   CHARACTER(LEN= 80 ) :: hlpdir
    CHARACTER(LEN= 80 ) :: colorfile
    CHARACTER(LEN= 80 ) :: nullfile
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
    INTEGER             :: deffile_l
    INTEGER             :: hlpfile_l
+   INTEGER             :: hlp_dir_l
    INTEGER             :: colorfile_l
    INTEGER             :: mac_dir_l
    INTEGER             :: umac_dir_l

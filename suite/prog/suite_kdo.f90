@@ -22,6 +22,7 @@ USE charact_mod
 USE errlist_mod 
 USE learn_mod 
 USE prompt_mod
+USE envir_mod
 !USE set_sub_generic_mod
 !
 IMPLICIT none 
@@ -113,7 +114,7 @@ ELSE
           pname     = 'diffev'
           pname_cap = 'DIFFEV'
           prompt    = pname
-          CALL suite_set_hlp ()
+          CALL program_files ()
        ELSE
          CALL diffev_setup   (lstandalone)
          suite_diffev_init = .TRUE.
@@ -126,7 +127,7 @@ ELSE
        prompt    = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL suite_set_hlp ()
+       CALL program_files ()
 !                                                                 
 !     -- branch to DISCUS
 !
@@ -135,7 +136,7 @@ ELSE
           pname     = 'discus'
           pname_cap = 'DISCUS'
           prompt    = pname
-          CALL suite_set_hlp ()
+          CALL program_files ()
        ELSE
          CALL discus_setup   (lstandalone)
          suite_discus_init = .TRUE.
@@ -149,7 +150,7 @@ ELSE
        prompt = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL suite_set_hlp ()
+       CALL program_files ()
 !                                                                 
 !     -- branch to KUPLOT
 !
@@ -158,7 +159,7 @@ ELSE
           pname     = 'kuplot'
           pname_cap = 'KUPLOT'
           prompt    = pname
-          CALL suite_set_hlp ()
+          CALL program_files ()
        ELSE
          CALL kuplot_setup   (lstandalone)
          suite_kuplot_init = .TRUE.
@@ -171,7 +172,7 @@ ELSE
        prompt = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL suite_set_hlp ()
+       CALL program_files ()
 !!!      CALL do_deallocate_appl (zeile, lcomm)
 !                                                                 
 !------   Try general commands                                    
@@ -182,38 +183,3 @@ ELSE
 ENDIF 
 !                                                                       
 END SUBROUTINE suite_mache_kdo                      
-!
-SUBROUTINE suite_set_hlp
-!
-!  Set the help file for the current application
-!
-USE envir_mod
-USE prompt_mod
-IMPLICIT none
-!
-CHARACTER(LEN=255) :: cdummy
-INTEGER            :: iii
-INTEGER            :: pname_l
-!
-INTEGER            :: len_str
-!                                                                       
-pname_l = len_str(pname)
-appl_dir = ' '
-CALL get_environment_variable (pname_cap, appl_dir)
-IF (appl_dir.eq.' ') then
-   appl_dir = '.'
-ENDIF
-!
-CALL get_environment_variable ('_', cdummy)
-iii=index(cdummy,pname,.true.)
-appl_dir=cdummy(1:iii-1)
-appl_dir_l = len_str (appl_dir)
-!                                                                       
-hlpfile = ' '
-hlpfile (1:appl_dir_l) = appl_dir
-hlpfile (appl_dir_l + 1:appl_dir_l + 1 + pname_l + 13) = '../share/'//     &
-pname (1:pname_l) //'.hlp'                                        
-hlpfile_l = len_str (hlpfile) 
-!
-END SUBROUTINE suite_set_hlp
-

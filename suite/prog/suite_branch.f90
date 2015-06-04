@@ -33,7 +33,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
       pname     = 'kuplot'
       pname_cap = 'KUPLOT'
       prompt    = pname
-      CALL suite_set_hlp ()
+      CALL program_files ()
    ELSE
       CALL kuplot_setup   (lstandalone)
       suite_kuplot_init = .TRUE.
@@ -50,7 +50,7 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
       pname     = 'discus'
       pname_cap = 'DISCUS'
       prompt    = pname
-      CALL suite_set_hlp ()
+      CALL program_files ()
    ELSE
       CALL discus_setup   (lstandalone)
       suite_discus_init = .TRUE.
@@ -72,6 +72,6 @@ IF(pname=='discus') THEN      ! Return to DISCUS branch
 ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()
 ENDIF
-CALL suite_set_hlp () 
+CALL program_files () 
 !
 END SUBROUTINE suite_branch

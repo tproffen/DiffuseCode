@@ -11,6 +11,7 @@ USE diffev_mpi_mod
 USE run_mpi_mod
 !
 USE prompt_mod
+USE envir_mod
 !                                                                       
 IMPLICIT none 
 !
@@ -35,7 +36,7 @@ CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 CALL suite_set_sub   ! Point to specific subroutines
 !
 IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
-   CALL suite_set_hlp ()
+   CALL program_files ()
    CALL diffev_setup   (lstandalone)
    CALL diffev_set_sub ()
    CALL suite_set_sub_cost ()
@@ -53,6 +54,8 @@ ELSE
    pname     = 'suite'
    pname_cap = 'SUITE'
    prompt    = pname
+   hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:LEN(TRIM(pname)))//'.hlp'
+   hlpfile_l = LEN(TRIM(hlpfile))
    CALL suite_loop      ! Perform the normal main loop
 ENDIF
 !                                                                       
