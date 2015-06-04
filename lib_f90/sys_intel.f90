@@ -257,7 +257,7 @@
                cwd = cwd(1:ld) // '/'
                ld  = ld + 1
             ENDIF
-            WRITE (output_io, 1000) cwd (1:ld)
+            IF(echo) WRITE (output_io, 1000) cwd (1:ld)
             current_dir   = cwd
             current_dir_l = ld
          ELSE 

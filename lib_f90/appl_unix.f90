@@ -61,8 +61,8 @@
       IF(standalone) THEN
          CALL get_environment_variable ('_', cdummy) 
          iii=index(cdummy,pname,.true.)
-         i  = INDEX(cdummy(1:iii),'/',.TRUE.)
-         j  = INDEX(cdummy(1:iii),'\',.TRUE.)
+         i  = INDEX(cdummy,'/',.TRUE.)
+         j  = INDEX(cdummy,'\',.TRUE.)
          iii = MAX(i,j)
          appl_dir=cdummy(1:iii  )
          appl_dir_l = len_str (appl_dir) 
