@@ -2326,11 +2326,12 @@ laccept = .false.
       IF (.not.pdf_lrho0) then 
          IF (pdf_lrho0_rel) then 
             r0 = pdf_rho0 * cr_ncreal  / cr_v 
+            r0 = pdf_rho0 * cr_n_real_atoms  / cr_v 
          ELSE 
             r0 = pdf_rho0 
          ENDIF 
       ELSE 
-         r0       = cr_ncreal  / cr_v 
+         r0       = cr_n_real_atoms  / cr_v 
          pdf_rho0 = r0
       ENDIF 
       norm = 1.0 / float (cr_n_real_atoms) * pdf_scale 
