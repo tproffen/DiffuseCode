@@ -153,12 +153,22 @@ INTERFACE
    END SUBROUTINE diffev_validate_var_spec 
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE diffev_branch(zeile, length)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+INTEGER          , INTENT(IN) :: length
+!
+   END SUBROUTINE diffev_branch
+END INTERFACE
+!
 p_mache_kdo         => diffev_mache_kdo
 p_errlist_appl      => diffev_errlist_appl
 p_ersetz_para       => diffev_ersetz_para
 p_upd_para          => diffev_upd_para
 p_calc_intr_spec    => diffev_calc_intr_spec
 p_validate_var_spec => diffev_validate_var_spec
+p_branch            => diffev_branch
 !
 END SUBROUTINE diffev_set_sub
 !

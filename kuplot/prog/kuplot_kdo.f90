@@ -14,6 +14,7 @@
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+      USE set_sub_generic_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -443,6 +444,11 @@
 !                                                                       
          ELSEIF (str_comp (bef, 'smax', 3, lbef, 4) ) then 
             CALL do_smax (zei, lc) 
+!                                                                       
+!       Branch to DISCUS (standalone call system, suite do branch)
+!                                                                       
+         ELSEIF (str_comp (bef, 'branch', 2, lbef, 6) ) then 
+            CALL p_branch (zei, lc) 
 !                                                                       
 !-------  Check for generic command                                     
 !                                                                       

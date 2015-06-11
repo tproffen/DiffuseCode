@@ -25,7 +25,7 @@
 
 2  diffev
 
-   Branches to the "diffev" section. 
+   Switches to the "diffev" section. 
 
    Within this section any standard DIFFEV command can be
    given. The behaviour of "diffev" is essentially the same
@@ -44,7 +44,7 @@
    Use an 'exit' to return to the suite.
 2  discus
 
-   Branches to the "discus" section.
+   Switches to the "discus" section.
 
    Within this section any standard DISCUS command can be
    given. The behaviour of "discus" is essentially the same
@@ -61,7 +61,7 @@
    shortly.
 2  kuplot
 
-   Branches to the "kuplot" section.
+   Switches to the "kuplot" section.
 
    Within this section any standard KUPLOT command can be
    given. The behaviour of "kuplot" is essentially the same

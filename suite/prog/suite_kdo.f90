@@ -120,6 +120,7 @@ ELSE
          suite_diffev_init = .TRUE.
        ENDIF
        CALL diffev_set_sub ()
+       CALL suite_set_sub_branch
        CALL diffev_loop    ()
        lend      = .false.
        pname     = 'suite'
@@ -165,6 +166,7 @@ ELSE
          suite_kuplot_init = .TRUE.
        ENDIF
        CALL kuplot_set_sub ()
+       CALL suite_set_sub_branch
        CALL kuplot_loop    ()
        lend   = .false.
        pname  = 'suite'

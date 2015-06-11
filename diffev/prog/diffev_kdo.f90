@@ -22,6 +22,7 @@ USE errlist_mod
 USE learn_mod 
 USE macro_mod
 USE prompt_mod
+USE set_sub_generic_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -676,6 +677,11 @@ ELSE
             ier_typ = ER_COMM
          ENDIF
       ENDIF
+!                                                                       
+!       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
+!                                                                       
+         ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) then
+            CALL p_branch (zeile, lcomm)
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
