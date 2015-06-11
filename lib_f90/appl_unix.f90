@@ -76,6 +76,11 @@
       CALL program_files
 !
       IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
+         CALL do_cwd (start_dir, start_dir_l) 
+         IF(start_dir == '/' .AND. start_dir_l==1) THEN
+!           This is started from the icon, set start directory
+!           to user home 
+!           otherwise use current directory
          start_dir = ' '
          IF(user_profile == ' ') THEN
             start_dir   = 'C:\Users'
@@ -87,6 +92,15 @@
          IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
             start_dir   = start_dir(1:start_dir_l) // '/'
             start_dir_l = start_dir_l + 1
+         ENDIF
+         ELSE
+!           start dir is not '/', started via system <pname>
+!           Use current start directory
+!
+            IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+               start_dir   = start_dir(1:start_dir_l) // '/'
+               start_dir_l = start_dir_l + 1
+            ENDIF
          ENDIF
          CALL do_chdir ( start_dir, start_dir_l, .false.)
       ELSE
