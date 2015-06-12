@@ -2,6 +2,7 @@ PROGRAM diffev
 !                                                                       
 USE diffev_setup_mod
 USE diffev_loop_mod
+USE diffev_do_exit_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 !
@@ -29,5 +30,6 @@ CALL diffev_set_sub_cost
 CALL diffev_loop
 !                                                                       
 CALL run_mpi_finalize
+CALL diffev_do_exit
 !                                                                       
 END PROGRAM diffev                            

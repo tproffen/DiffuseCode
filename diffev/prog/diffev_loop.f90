@@ -5,7 +5,6 @@ CONTAINS
 SUBROUTINE diffev_loop
 !                                                                       
 USE diffev_mpi_mod
-USE diffev_do_exit_mod
 USE run_mpi_mod
 USE doact_mod
 USE errlist_mod 
@@ -90,10 +89,6 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
    ENDIF master_slave
 ENDIF with_mpi_error
 !
-IF ( lstandalone ) THEN
-   CALL diffev_do_exit
-ENDIF
-!                                                                       
 END SUBROUTINE diffev_loop
 !*****7*****************************************************************
 END MODULE diffev_loop_mod

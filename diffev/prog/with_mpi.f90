@@ -154,6 +154,9 @@ INTEGER               :: nprog         ! number of different program/mac combina
 LOGICAL               :: prog_start    ! External program needs to be started
 !
 LOGICAL               :: prog_exist    ! program/macro combination exists in data base
+INTEGER               :: local_id      ! BUG Patch MPI_ID messy with structure
+!
+local_id = run_mpi_myid  ! BUG PATCH MPI_ID gets messed up be receive with structure
 !
 sdl_length = 1 !580! + 200
 !
@@ -228,6 +231,8 @@ ENDDO
 DO i = 1, pop_c * run_mpi_senddata%nindiv
    CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+!
 !
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
    IF(run_mpi_senddata%use_socket ) THEN   ! SOCKET option is active
@@ -252,6 +257,7 @@ DO i = 1, pop_c * run_mpi_senddata%nindiv
       run_mpi_numsent = run_mpi_numsent + 1
    ENDIF
 ENDDO
+run_mpi_myid = local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 !------       --End of loop over all kids in the population
 !
@@ -297,7 +303,11 @@ INTEGER  :: socket_connect
 INTEGER  :: socket_get
 INTEGER  :: socket_send
 !
+INTEGER  :: local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+!
 ierr = 0
+!
+local_id = run_mpi_myid ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 ! Infinite loop, as long as new jobs come in, terminated my TAG=0
 !
@@ -309,6 +319,7 @@ slave: DO
 !
    CALL MPI_RECV ( run_mpi_senddata, sdl_length, run_mpi_data_type, MPI_ANY_SOURCE, &
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
    s_remote = run_mpi_senddata%s_remote
    port     = run_mpi_senddata%port
@@ -473,6 +484,7 @@ slave: DO
                    MPI_COMM_WORLD, ier_num )
    ENDIF tag_exit
 ENDDO slave
+run_mpi_myid = local_id ! BUG PATCH MPI_ID gest messed up by receive with structure?????
 !
 1000 FORMAT ( a,'.',i4.4,'.',i4.4)
 1100 FORMAT ( a,'.',i4.4)
