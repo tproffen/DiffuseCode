@@ -69,6 +69,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+2  2015July
+
+   With the release of the DISCUS_SUITE several new capabilities have 
+   been introduced. 
+
+   Within the DISCUS_SUITE the output files can be written directly into 
+   KUPLOT. Simply start the file name with the fixed string 'kuplot'.
+   The data set number in kuplot will be incremented automatically.
+
+   DISCUS contains the new ==> 'branch' command that allows you to 
+   change to a KUPLOT or DIFFEV section. 
 2  2015February
 
    The speed of the PDF and powder(Debye) calculations has been improved
@@ -717,6 +728,13 @@
    The molecule content must be followed by ==> 'molecule atom' commands 
    and terminated by a 'molecule end' command.
 
+5  biso
+!b molecule biso, <value>
+
+   This keyword sets an isotropic displacement parameter for the molecule.
+   All intramolecular distances in a PDF and powder pattern only use
+   the atomic displacement parameters, while intermolecular distances
+   use this molecular isotropic displacement factor as well.
 5  density
 !b molecule density, <value>
 
@@ -868,14 +886,18 @@
           the outside of the sphere.
 2  branch
 !b branch kuplot
+!b branch diffev
 
    Active within the discus suite only!
 
-   Branches to the "kuplot" section.
+   Branches to the "kuplot" or "diffev" section.
 
    Within this section any standard KUPLOT command can be
    given. The behaviour of "kuplot" is essentially the same
-   as in the stand alone version.
+   as in the stand alone version. Likewise for DIFFEV.
+  
+   The main use will branch to KUPLOT while the discus section
+   is run via run_mpi from a DIFFEV slave.
 2  change
 !b change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
 
@@ -3005,6 +3027,10 @@
 !b outfile <filename>
 
    Sets the name of the output file, to which the intensities are written.
+
+   Within the DISCUS_SUITE the output files can be written directly into 
+   KUPLOT. Simply start the file name with the fixed string 'kuplot'.
+   The data set number in kuplot will be incremented automatically.
 3  run
 !b run
 
@@ -5177,6 +5203,7 @@
 !p "rval" : show R-values for current refinement
 !p "sym"  : show information about using symmetry information of read planes
 2  save
+!b save
 !b save <name>
 
    saves the current structure to file <name>
@@ -5211,6 +5238,7 @@
 !p format  ! Defines the format of the structure file
 !p help    ! gives on line help for saving the structure (see main help)
 !p omit    ! Defines which information to omit from the file
+!p outf    ! Defines the name of the output file
 !p run     ! starts the saving of the structure
 !p sel     ! selects atoms to be included in the structure file
 !p show    ! shows the current parameters
@@ -5332,6 +5360,12 @@
    "object"     Although the crystal contains objects their type and 
                 content is not written to the end of the structure file.
                 WARNING: All information about objects is lost!
+3  outf
+!b outf <filename>
+
+   Defines the output file name.
+   If the filename starts with the string 'internal', the file is not
+   written to disk but stored internally.
 3  run
 !b run
 
