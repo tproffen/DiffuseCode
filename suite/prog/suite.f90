@@ -37,7 +37,12 @@ CALL suite_set_sub   ! Point to specific subroutines
 !
 IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
+   CALL discus_setup   (lstandalone)
+   CALL kuplot_setup   (lstandalone)
    CALL diffev_setup   (lstandalone)
+   suite_discus_init = .TRUE.
+   suite_kuplot_init = .TRUE.
+   suite_diffev_init = .TRUE.
    CALL diffev_set_sub ()
    CALL suite_set_sub_cost ()
    CALL diffev_loop    ()
