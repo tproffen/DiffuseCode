@@ -554,6 +554,7 @@ SUBROUTINE do_domain (line, lp)
       ENDIF 
 !                                                                       
       IF (clu_mode.eq.CLU_IN_PSEUDO) then 
+         infile = ' '
          CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
          IF (ier_num.ne.0) return 
@@ -564,6 +565,15 @@ SUBROUTINE do_domain (line, lp)
             mc_matrix)                                                  
          ENDIF 
          IF (ier_num.ne.0) return 
+!!!!!!!!!!!
+         IF ( clu_infile_internal ) THEN
+         CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
+         sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
+         mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
+         ENDIF 
+!!!!!!!!!!!!!
          CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
          IF (ier_num.ne.0) return 
@@ -1406,6 +1416,7 @@ mole_int: IF(mk_infile_internal) THEN
 !     ENDDO                                                             
 !                                                                       
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
+1234 continue
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
               xyz, dummy_iscat, dummy_prop )
@@ -1416,6 +1427,7 @@ mole_int: IF(mk_infile_internal) THEN
             RETURN
          ENDIF
          WRITE(line, 1000) mk_at_lis(dummy_iscat), xyz ! copy into line
+!if(clu_infile=='internal/STRU/cubo.0002.0001.pt') goto 1234
       ELSE
         READ (imd, '(a)', end = 999) line 
       ENDIF
@@ -1427,6 +1439,7 @@ mole_int: IF(mk_infile_internal) THEN
             ii = i 
          ENDIF 
          ENDDO 
+!read(*,*) i
 !                                                                       
          IF (ii.eq.0) then 
             ier_num = - 91 
