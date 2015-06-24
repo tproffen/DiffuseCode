@@ -22,6 +22,14 @@
 2  News
 
    This is the first release
+3  2015_June
+
+   Starting with Version 5.1, we have migrated to a X-Window
+   environment for WINDOWS as well. As a small side effect, 
+   the technique to jump to the desired folder has changed slightly.
+   See the help entry on "cd" in the general "Command_lang" section
+   for further information. The process is described in the 
+   package manual as well.
 
 2  diffev
 

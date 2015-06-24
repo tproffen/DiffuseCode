@@ -22,6 +22,7 @@
    help can be obtained by typing the corresponding command name at the
    help prompt.
 
+!p News          : Information on program updates
 !p achx/y/z      : Set labels for x, y and z-axis
 !p alloc         : Allocate space for data set without loading one
 !p angl          : Set angle between x- and y-axis
@@ -91,6 +92,17 @@
 !p window        : Select graphics window
 !p variables     : List of variables
 !p errors        : List of error messages
+2  News
+
+   Here you can find updated info on the latest KUPLOT releases.
+3  2015_June
+
+   Starting with Version 5.1, we have migrated to a X-Window
+   environment for WINDOWS as well. As a small side effect, 
+   the technique to jump to the desired folder has changed slightly.
+   See the help entry on "cd" in the general "Command_lang" section
+   for further information. The process is described in the 
+   package manual as well.
 2  achx/y/z
 !b achx {<string> |"OFF"} [, {"lin" | "log"}]
 !b achy {<string> |"OFF"} [, {"lin" | "log"}]
@@ -983,7 +995,7 @@
 
 !p <ff>   <p1>,....           required   What
 !p ---------------------------------------------------------------------
-!p  xy    xmin,xmax              no      Saves xy file from xmin,xmax
+!p  xy    xmin,xmax,[<style>]    no      Saves xy file from xmin,xmax
 !p  ni    xmin,xmax,ymin,ymax    no      Nipl file, given area
 !p  pg    xmin,xmax,ymin,ymax    no      PGM file (ASCII), given area
 !p  gn    xmin,xmax,ymin,ymax    no      XYZ file (gnuplot), given area
@@ -994,6 +1006,19 @@
 !p  sk    ik                    yes      Crossection along xy of data set ik
 !p  sl    x1,y1,x2,y2,n         yes      Crossection from x1,y1 to x2,y2
 !p                                       with n points
+
+   For the xy format, the last optional parameter can be the string 
+   "four" to explicitly write the default four columns x, y, dx, dy.
+   Alternatively the last parameter can be "two" to write a two 
+   column file.  If the uncertainties for x and / or y are not zero, 
+   the values are lost!
+   For either option, the parameters xmin, xmax are still optional, 
+   and the command might take the forms:
+!p  xy    ,xmin,xmax, "four"   
+!p  xy    ,xmin,xmax, "two"   
+!p  xy    ,xmin,xmax
+!p  xy    ,"four"   
+!p  xy    ,"two"   
 3  m999
 !b m999 "excl"|"data"
 

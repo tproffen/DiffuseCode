@@ -157,6 +157,22 @@
    This command allows one to change the current working directory
    (may not be available everywhere). If the command is called with
    no parameters, the current working directory is shown.
+
+   For the Windows versions, two different styles help to copy the 
+   folder name into the program window. 
+
+   For KUPLOT and the DISCUS_SUITE type 
+   cd 
+   and a space. Do not hit the enter/return key at this moment. 
+   Within a Windos Explorer click on the folder icon and copy the 
+   string CTRL-c. Activate the KUPLOT or DISCUS_SUITE program and 
+   click the middle mouse button. This should paste the full path
+   to the folder into the KUPLOT or DISCUS_SUITE window. 
+
+   For DISCUS, DIFFEV, and MIXSCAT type "cd " with the space as well.
+   Now left click and drag the selected folder icon into the program 
+   window. This should copy the full pathinto the program window.
+   Activate the window and hit the ENTER key.
 3  continue
 !b continue [ "prog" ]
 
