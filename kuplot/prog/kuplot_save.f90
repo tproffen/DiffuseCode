@@ -516,6 +516,16 @@
                ELSEIF (str_comp (befehl, 'form', 2, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   cdummy = cpara (1) 
+                  IF(cdummy=='xy') THEN
+                     l_two_col = .false.
+                     IF(str_comp(cpara(ianz), 'two',3, lpara(ianz), 3)) THEN
+                        l_two_col = .true.
+                        ianz = ianz - 1
+                     ELSEIF(str_comp(cpara(ianz), 'four',3, lpara(ianz), 4)) THEN
+                        l_two_col = .false.
+                        ianz = ianz - 1
+                     ENDIF
+                  ENDIF
                   IF (ianz.gt.1) then 
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -806,6 +816,15 @@
          iwin, iframe, 1) ) )                                           
          WRITE (isa, 3000) titel (iwin, iframe, 2) (1:len_str (titel (  &
          iwin, iframe, 2) ) )                                           
+         IF(l_two_col) THEN
+         DO i = 1, len (ik) 
+         IF (x (offxy (ik - 1) + i) .ge.werte (1) .and.x (offxy (ik - 1)&
+         + i) .le.werte (2) ) then                                      
+            WRITE (isa, 4000) x (offxy (ik - 1) + i), y (offxy (ik - 1) &
+            + i)
+         ENDIF 
+         ENDDO 
+         ELSE
          DO i = 1, len (ik) 
          IF (x (offxy (ik - 1) + i) .ge.werte (1) .and.x (offxy (ik - 1)&
          + i) .le.werte (2) ) then                                      
@@ -813,6 +832,7 @@
             + i), dx (offxy (ik - 1) + i), dy (offxy (ik - 1) + i)      
          ENDIF 
          ENDDO 
+         ENDIF 
 !                                                                       
       ELSEIF (form (1:2) .eq.'DY'.and..not.lni (ik) ) then 
          WRITE (isa, 3000) titel (iwin, iframe, 1) (1:len_str (titel (  &

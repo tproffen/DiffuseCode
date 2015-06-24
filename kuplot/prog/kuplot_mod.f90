@@ -237,4 +237,5 @@ SAVE
 !
 !     COMMON  /gsas/ tof_offset
 !
+      LOGICAL :: l_two_col = .false.  ! save two column xy-files
 END MODULE kuplot_mod
