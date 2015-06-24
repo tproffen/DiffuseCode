@@ -69,7 +69,7 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
-2  2015July
+3  2015July
 
    With the release of the DISCUS_SUITE several new capabilities have 
    been introduced. 
@@ -80,7 +80,7 @@
 
    DISCUS contains the new ==> 'branch' command that allows you to 
    change to a KUPLOT or DIFFEV section. 
-2  2015February
+3  2015February
 
    The speed of the PDF and powder(Debye) calculations has been improved
    considerably. No side effects on the user.
