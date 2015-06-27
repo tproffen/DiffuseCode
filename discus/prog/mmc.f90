@@ -836,10 +836,16 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            mmc_cfac (ic, MC_OCC) = 0.0 
                            ianz = ianz - 1 
                         ENDIF 
-                        CALL ber_params (ianz, cpara, lpara, werte, maxw)                                           
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw)
+                        IF (mmc_cfac (ic, MC_OCC) ==1.0) then 
+                        CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
+                             MAXW, werte1, werte2, werte(1) , -werte(1) )                                   
+                           mmc_depth (ic, MC_OCC, 0, 0) = -werte (1) 
+                        ELSEIF (mmc_cfac (ic, MC_OCC) ==0.0) then 
                         CALL mmc_set_disp_occ (ic, MC_OCC, ianz1, ianz2, &
                              MAXW, werte1, werte2, werte(1) , werte(2) )                                   
-                        mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
+                           mmc_depth (ic, MC_OCC, 0, 0) = werte (2) 
+                        ENDIF
                         mmc_cor_energy (ic, MC_OCC) = .true. 
                         mmc_cor_energy (0, MC_OCC) = .true. 
                      ELSEIF (str_comp (cpara (2) , 'cd', 2, lpara (2) , &
@@ -3875,10 +3881,7 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
          pair21 = 0
          pair22 = 0
          DO is = 0, cr_nscat 
-            DO js = is, cr_nscat 
-!if(ic==1) then
-!   write(*,*) ' Neighbors ', is,js,pneig(is,js), mmc_pair(ic,MC_OCC,is,js)
-!ENDIF
+            DO js =  0, cr_nscat 
                IF     (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
                   pair12 = pair12 + pneig (is,js)
                ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -2 ) then 
@@ -3893,10 +3896,6 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
          je = MC_OCC 
 !                                                                       
 !                                                                       
-!        pair11 = pneig (is, is) 
-!        pair12 = pneig (is, js) 
-!        pair21 = pneig (js, is) 
-!        pair22 = pneig (js, js) 
          nneigh = pair11 + pair12 + pair21 + pair22 
          IF (nneigh.gt.0.) then 
             prob11 =  pair11           / float (nneigh) 
@@ -3904,9 +3903,6 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
             prob22 =  pair22           / float (nneigh) 
             thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / float(nneigh)                                                     
          ENDIF 
-!if(ic==4) then
-!   write(*,*) ' 11, 12, 21, 22 ', pair11, pair12,pair21, pair22, nneigh
-!endif
          lfirst = .true.
 corr_pair: DO is = 0, cr_nscat 
             DO js = is, cr_nscat 
@@ -3920,6 +3916,7 @@ corr_pair: DO is = 0, cr_nscat
                     mmc_depth (ic, MC_OCC, 0, 0) = mmc_depth (ic, MC_OCC, 0, 0) - &
                     mmc_cfac (ic, MC_OCC) * (mmc_target_corr (ic, MC_OCC, is,js)- &
                                              mmc_ach_corr (ic, MC_OCC, is, js) ) / 2. &
+                    *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
                     * damp
                  ELSE 
                     mmc_ach_corr (ic, je, is, js) = 0.0 
@@ -3960,10 +3957,11 @@ disp_pair: DO is = 0, cr_nscat
                mmc_ach_corr (ic, je, js, is) = mmc_ach_corr (ic, je, is,&
                js)                                                      
 !               Feedback mechanism                                      
-               mmc_depth (ic, MC_DISP, 0, 0) = mmc_depth (ic, MC_DISP,  &
-               0, 0) - mmc_cfac (ic, MC_DISP) * (mmc_target_corr (ic,   &
-               MC_DISP, is, js) - mmc_ach_corr (ic, MC_DISP, is, js) )  &
-               / 2.                                                     
+               mmc_depth (ic, MC_DISP, 0, 0) = mmc_depth (ic, MC_DISP, 0,0) - &
+               mmc_cfac  (ic, MC_DISP) * (mmc_target_corr (ic, MC_DISP, is, js) - &
+               mmc_ach_corr (ic, MC_DISP, is, js) ) / 2. &
+                    *ABS(mmc_target_corr (ic, MC_DISP, is, js)) &
+                    * damp
             ELSE 
                mmc_ach_corr (ic, je, is, js) = 0.0 
                mmc_ach_corr (ic, je, js, is) = 0.0 
@@ -4173,7 +4171,7 @@ buck_pair: DO is = 0, cr_nscat
      &   ,25x,'of pairs')                                               
  2100 FORMAT (1x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
  3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
-     &        10x,f7.3,3x,i8)                                           
+     &        10x,f7.3,3x,i8)
  3200 FORMAT (1x,i3,3x,'Disp.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,i8)                                           
  3300 FORMAT (1x,i3,3x,'Hooke    ',a5,3x,a5,      8x,4(f7.3,3x)         &
