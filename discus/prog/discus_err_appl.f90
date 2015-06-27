@@ -182,11 +182,11 @@
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = -15, IO = 0) 
+      PARAMETER (IU = -15, IO = 1) 
 !                                                                       
       CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR( IU: 0) /                             &
+      DATA ERROR( IU:-1) /                             &
         ' ',                                           &   ! -15  ! FOUR
         ' ',                                           &   ! -14  ! FOUR
         ' ',                                           &   ! -13  ! FOUR
@@ -201,8 +201,12 @@
         'Component of increment vector is zero    ',   &   ! -4   ! FOUR
         'SIN(THETA)/LAMBDA > lookup table limits  ',   &   ! -3   ! FOUR
         'Invalid lot shape selected               ',   &   ! -2   ! FOUR
-        'Invalid Fourier mode selected            ',   &   ! -1   ! FOUR
-        ' ' /                                              !  0   ! FOUR
+        'Invalid Fourier mode selected            '    &   ! -1   ! FOUR
+          /
+      DATA ERROR (   0:   io) /                        &
+     &  ' ',                                           &   !  0  ! FOUR
+     &  'The average intensity sampled zero cells!'    &   ! +1  ! FOUR
+          /
 !                                                                       
       CALL disp_error ('FOUR', error, iu, io) 
       END SUBROUTINE errlist_four                   

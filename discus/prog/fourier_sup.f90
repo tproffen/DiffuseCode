@@ -191,7 +191,15 @@ CONTAINS
 !                                                                       
          CALL four_getav (lots) 
          CALL four_strucf (0, .false.) 
-         norm = 1.0 / ncell 
+         IF(ncell >0) THEN
+            norm = 1.0 / ncell 
+         ELSE
+            norm = 0.0
+            ier_num = +1
+            ier_typ = ER_FOUR
+            ier_msg(1) = 'Does the crystal consist of just 1 unit cell?'
+            ier_msg(2) = 'Increase the percentage for >set aver<'
+         ENDIF
          DO j = 1, num (1) * num (2) * num (3)
             acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0) 
          ENDDO 
