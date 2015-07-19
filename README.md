@@ -51,6 +51,9 @@ Now build and install
     make
     sudo make install
 
+For further details, please check file AAA_INSTALL_DISCUS*.pdf in the 
+Directory Manul"
+
 
 Binary distributions as well as the source code can be found 
 at http://discus.sourceforge.net.
