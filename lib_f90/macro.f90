@@ -384,7 +384,7 @@ SUBROUTINE file_kdo(line, ilen)
             CALL macro_close
          ELSE
             mac_tree_active => mac_tree_active%parent
-            DEALLOCATE(mac_tree_active%kid)
+!            DEALLOCATE(mac_tree_active%kid)
             macro_level = macro_level - 1
          ENDIF
          RETURN
@@ -573,7 +573,7 @@ IF(ASSOCIATED(mac_tree_root)) THEN
    NULLIFY(mac_tree_temp)
 ENDIF
 !
-IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
+!!!IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
    IF(ASSOCIATED(macro_root)) THEN             ! We have stored macros
       macro_temp => macro_root
    ENDIF
@@ -589,7 +589,7 @@ IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
       NULLIFY(macro_root)                      ! Clear pointer status
       NULLIFY(macro_temp)
    ENDIF
-ENDIF
+!!!ENDIF
 !
 END SUBROUTINE macro_close
 !*****7*****************************************************************
