@@ -480,7 +480,7 @@
                IF (oper.eq.'SUB') z (ikk3) = z (ikk1) - z (ikk2) 
                IF (oper.eq.'ADD') z (ikk3) = z (ikk1) + z (ikk2) 
                IF (oper.eq.'DIV') then 
-                  IF (z (ikk3) .ne.0.0) then 
+                  IF (z (ikk2) .ne.0.0) then 
                      z (ikk3) = z (ikk1) / z (ikk2) 
                   ELSE 
                      z (ikk3) = 0.0 
