@@ -44,6 +44,11 @@ CONTAINS
 !     - Handle error message                                            
 !                                                                       
       fehler: IF (ier_num.ne.0) then 
+         IF( ier_num ==-9.and. ier_typ==ER_IO) THEN
+            write(output_io, 8000)
+            write(output_io, 9000)
+            stop
+         ENDIF
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
@@ -62,6 +67,10 @@ CONTAINS
          CALL kuplot_do_exit
       ENDIF
 !                                                                       
+8000 format(' ****EXIT**** Input error on normal read        ',        &
+     &       '        ****',a1/)
+9000 format(' ****EXIT**** Program terminated by error status',        &
+     &       '        ****',a1/)
 !                                                                       
       END SUBROUTINE kuplot_loop
 END MODULE kuplot_loop_mod

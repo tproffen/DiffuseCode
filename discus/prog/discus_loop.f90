@@ -60,6 +60,11 @@ ok: IF (ier_num.eq.0.and.laenge.gt.0) then
 !     - Handle error message                                            
 !                                                                       
 fehler: IF (ier_num.ne.0) then 
+      IF( ier_num ==-9.and. ier_typ==ER_IO) THEN  
+         WRITE(output_io, 8000)
+         WRITE(output_io, 9000)
+         stop
+      ENDIF
       CALL errlist 
       IF (ier_sta.ne.ER_S_LIVE) then 
          IF (lmakro) then 
@@ -75,6 +80,11 @@ ENDDO main
 IF ( lstandalone ) THEN
    CALL discus_do_exit 
 ENDIF
+!
+8000 format(' ****EXIT**** Input error on normal read        ',        &
+     &       '        ****',a1/)
+9000 format(' ****EXIT**** Program terminated by error status',        &
+     &       '        ****',a1/)
 !                                                                       
 END SUBROUTINE discus_loop
 !
