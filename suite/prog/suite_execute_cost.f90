@@ -78,7 +78,6 @@ inpara(201) = generation
 inpara(202) = member
 inpara(203) = children
 inpara(204) = parameters
-
 !
 !  build macro line
 !

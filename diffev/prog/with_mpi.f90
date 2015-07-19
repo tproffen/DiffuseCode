@@ -233,7 +233,6 @@ DO i = 1, pop_c * run_mpi_senddata%nindiv
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
    run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
-!
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
    IF(run_mpi_senddata%use_socket ) THEN   ! SOCKET option is active
        socket_id(run_mpi_senddata%prog_num) = run_mpi_senddata%s_remote  ! Store socket info in data base
