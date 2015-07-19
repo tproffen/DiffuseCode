@@ -1069,9 +1069,9 @@ CONTAINS
          ENDIF 
 !                                                                       
          IF (pow_four_type.eq.POW_COMPL) THEN 
-            CALL powder_complete 
+            CALL powder_complete (cr_nscat)
          ELSEIF (pow_four_type.eq.POW_NEW) THEN 
-            CALL powder_complete 
+            CALL powder_complete (cr_nscat)
          ELSEIF (pow_four_type.eq.POW_HIST) then 
             CALL plot_ini_trans (1.0) 
             CALL powder_trans_atoms_tocart (u)
@@ -1103,7 +1103,7 @@ CONTAINS
 !                                                                       
       END SUBROUTINE powder_run                     
 !*****7*****************************************************************
-      SUBROUTINE powder_complete 
+      SUBROUTINE powder_complete (cr_nscat_temp)
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
@@ -1121,6 +1121,7 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN)  :: cr_nscat_temp
 !                                                                       
       CHARACTER(1024) line 
       INTEGER laenge 
@@ -1133,6 +1134,7 @@ CONTAINS
       INTEGER                    :: n_nscat
       INTEGER                    :: n_pkt
       INTEGER itth 
+      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
       LOGICAL l_twoparts
       LOGICAL l_ano 
       LOGICAL l_hh_real 
@@ -1631,6 +1633,16 @@ CONTAINS
 !                                                                       
 !write(*,*) ' ABOUT TO deallocate   ; ier_num', ier_num
       CALL dealloc_powder_nmax ! was allocated in powder_getatoms
+!
+!     Prepare and calculate average form factors
+!
+      natom = 0
+      DO i=1,cr_natoms
+         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
+      ENDDO
+      pow_nreal = SUM(natom)  ! Add real atom numbers 
+      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
+!
       ss = seknds (ss) 
       WRITE (output_io, 4000) ss 
 !DBG_RBN      close(13)                                                 
@@ -1808,7 +1820,7 @@ CONTAINS
 !     The if(iscat) do not cause much compute time
 
       shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
-      DO j = 1, cr_natoms - 1
+      DO j = 1, cr_natoms ! - 1
          jscat = cr_iscat (j) 
          IF (jscat.gt.0) then 
          u (1) = cr_pos (1, j) 
@@ -1836,6 +1848,8 @@ CONTAINS
          ENDDO 
          ENDIF 
       ENDDO 
+!
+      pow_nreal = SUM(natom)  ! Add real atom numbers 
 !DBG      sss = seknds (sss) 
 !DBG      WRITE (output_io, 4000) sss 
 !
@@ -1899,15 +1913,29 @@ CONTAINS
 !                                                                       
 !                                                                       
 !     add the f**2 weighted by relative amount to intensity             
+!     store <f**2> and <f>**2
 !                                                                       
 !DBG_RBN                                                                
 !DBG      write(*,*) ' Add f**2 '                                       
+!     pow_u2aver = 0.0
       DO iscat = 1, cr_nscat 
       DO i = 1, num (1) * num (2) 
       rsf (i) = rsf (i) + real (cfact (istl (i), iscat) * conjg (cfact (&
       istl (i), iscat) ) ) * natom (iscat)                              
+!     pow_f2aver (i) = pow_f2aver (i)  + &
+!                      real (       cfact_pure(istl(i), iscat)  * &
+!                            conjg (cfact_pure(istl(i), iscat)))  &
+!                    * natom (iscat)/pow_nreal
+!     pow_faver2 (i) = pow_faver2 (i) +  &
+!                 SQRT(real (       cfact_pure(istl(i), iscat)  * &
+!                            conjg (cfact_pure(istl(i), iscat)))) &
+!                    * natom (iscat)/pow_nreal
       ENDDO 
+!        pow_u2aver = pow_u2aver + cr_dw(iscat)
       ENDDO 
+!     pow_u2aver = pow_u2aver /8./pi**2
+!
+      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
       DEALLOCATE(look   )
       DEALLOCATE(partial)
@@ -2876,4 +2904,42 @@ CONTAINS
 !                                                                       
  1000 FORMAT     (' Computing Molecular DW lookup table ...') 
       END SUBROUTINE powder_dwmoltab                   
+!*****7*****************************************************************
+      SUBROUTINE powder_f2aver ( nscat , natom , dw)
+!
+!     This subroutine calculates the average atomic form factor
+!     <f^2> and <f>^2
+!
+      USE diffuse_mod 
+      USE powder_mod 
+      USE wink_mod
+!
+      IMPLICIT NONE
+!
+      INTEGER,                     INTENT(IN) :: nscat
+      INTEGER, DIMENSION(0:NSCAT), INTENT(IN) :: natom
+      REAL   , DIMENSION(0:NSCAT), INTENT(IN) :: dw
+!
+      INTEGER :: iscat
+      INTEGER :: i
+!
+      pow_f2aver = 0.0
+      pow_faver2 = 0.0
+      pow_u2aver = 0.0
+      DO iscat = 1, nscat
+         DO i = 1, num (1) * num (2)
+            pow_f2aver (i) = pow_f2aver (i)  + &
+                       real (       cfact_pure(istl(i), iscat)  * &
+                             conjg (cfact_pure(istl(i), iscat)))  &
+                     * natom (iscat)/pow_nreal
+            pow_faver2 (i) = pow_faver2 (i) +  &
+                  SQRT(real (       cfact_pure(istl(i), iscat)  * &
+                             conjg (cfact_pure(istl(i), iscat)))) &
+                     * natom (iscat)/pow_nreal
+         ENDDO
+         pow_u2aver = pow_u2aver + dw(iscat)
+      ENDDO
+      pow_u2aver = pow_u2aver /8./pi**2
+!
+      END SUBROUTINE powder_f2aver
 END MODULE powder

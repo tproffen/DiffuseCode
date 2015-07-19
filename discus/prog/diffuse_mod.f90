@@ -26,6 +26,7 @@ INTEGER , PARAMETER  :: RAD_ELEC = 3
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
 COMPLEX , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
+COMPLEX , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
 COMPLEX , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
 COMPLEX , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
 COMPLEX , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)

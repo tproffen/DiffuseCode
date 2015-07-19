@@ -8,7 +8,7 @@ PUBLIC
 !
 CONTAINS
 !
-      SUBROUTINE powder_out 
+      SUBROUTINE powder_out (value)
 !-                                                                      
 !     Write the powder pattern                                          
 !+                                                                      
@@ -22,6 +22,7 @@ CONTAINS
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
 !                                                                       
+      INTEGER, INTENT(IN) :: value ! Type of output
 !                                                                       
       INTEGER ii, j , iii
       INTEGER   :: all_status  ! Allocation status
@@ -49,6 +50,12 @@ CONTAINS
 !      REAL lorentz 
 !      REAL polarisation 
       REAL sind, asind 
+!
+      IF(.NOT. (value == 1 .or. value == 7 .or. value == 8)) then
+         ier_num = -124
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF
 !
       ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
       ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
@@ -118,6 +125,31 @@ CONTAINS
          ELSE
             pow_tmp(:) = pow_qsp(:)
          ENDIF 
+         IF(value == 7) THEN
+            IF (pow_axis.eq.POW_AXIS_Q) then 
+               DO j = 1, num (1)
+                  q = ((j-1)*xdel + xmin)
+                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
+                               + 1.0 - exp(-q**2*pow_u2aver)) 
+               ENDDO
+            ELSE
+               ier_num = -125
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+         ELSEIF(value == 8) THEN
+            IF (pow_axis.eq.POW_AXIS_Q) then 
+               DO j = 1, num (1)
+                  q = ((j-1)*xdel + xmin)
+                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
+                                     - exp(-q**2*pow_u2aver)) * q
+               ENDDO
+            ELSE
+               ier_num = -125
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+         ENDIF
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                                       

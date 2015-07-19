@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-123,IO=4)
+      PARAMETER    (IU=-125,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-123: -121) /                     &
+      DATA ERROR (-125: -121) /                     &
+     &  'S(Q), F(Q) require Q-axis                ',& !-125 ! discus
+     &  'Powder output type wrong /= I, S(Q), F(Q)',& !-124 ! discus
      &  'Atoms are at identical positions',         & !-123 ! discus
      &  'Atom type number outside limits',          & !-122 ! discus
      &  'Error calculating x-position for powder'   & !-121 ! discus

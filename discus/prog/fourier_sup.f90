@@ -637,7 +637,8 @@ CONTAINS
          sb = 1.0 
       ENDIF 
 !                                                                       
-      cfact (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp) 
+      cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp) 
+      cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp) 
       ENDDO 
       ENDDO 
 !                                                                       

@@ -69,6 +69,11 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2015July_A
+
+   You can now write powder files as normalized scattering function S(Q) 
+   or as reduced normalized scattering function F(Q) = Q[S(Q)-1]
+
 3  2015July
 
    With the release of the DISCUS_SUITE several new capabilities have 
@@ -3063,6 +3068,9 @@
 3  value
 !b valu {  "int"  |  "amp"  |  "pha" [,"random"]  |  "real"  |  "imag" }
 !b valu { "<int>" | "<amp>" | "<pha>" [,"random"] | "<real>" | "<imag>" }
+!b
+!b valu { "S(Q)"  | "F(Q)" }
+!b valu { "S(Q)"  | "F(Q)" }
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas
@@ -3081,6 +3089,10 @@
 !p           -180 and +180 degrees.
 !p "real":   real part of structure factor
 !p "imag":   imaginary part of structure factor
+!p "S(Q)":   Normalized total scattering function
+!p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
+   The last two function are available for powder output only and require
+   a Q axis. 
 
    The file name is not adapted automatically!
 2  patterson

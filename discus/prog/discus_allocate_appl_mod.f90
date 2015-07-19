@@ -997,6 +997,11 @@ MODULE discus_allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
+       CALL alloc_arr ( cfact_pure,0,CFPKT  ,  1, n_scat, &
+                                 all_status, def_value, size_of)
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       dif_size_of = dif_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          MAXQXY        = n_qxy
          DIF_MAXAT     = n_atoms
@@ -1898,6 +1903,14 @@ MODULE discus_allocate_appl_mod
        CALL alloc_arr ( pow_qsp  ,0,n_qxy  ,  all_status, 0.0      , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = size_of
+!
+       CALL alloc_arr ( pow_f2aver  ,0,n_qxy  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pow_size_of = pow_size_of + size_of
+!
+       CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0      , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pow_size_of = pow_size_of + size_of
 !
       IF( lstat ) THEN                        ! Success
          POW_MAXPKT    = n_qxy

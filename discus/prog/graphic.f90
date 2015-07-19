@@ -28,7 +28,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
-      CHARACTER(14) cvalue (0:6) 
+      CHARACTER(14) cvalue (0:8) 
       CHARACTER(22) cgraphik (0:8) 
       CHARACTER(1024) infile 
       CHARACTER(1024) zeile 
@@ -45,9 +45,9 @@ SUBROUTINE do_niplps (linverse)
       DATA cgraphik / 'Standard', 'Postscript', 'Pseudo Grey Map', 'Gnup&
      &lot', 'Portable Any Map', 'Powder Pattern', 'SHELX', 'SHELXL List &
      &5', 'SHELXL List 5 real HKL' /                                    
-      DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     '&
-     &, 'Phase angle   ', 'Real Part     ', 'Imaginary Part', 'Random Ph&
-     &ase  ' /                                                          
+      DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
+                    'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
+                    'Random Phase  ', 'S(Q)          ', 'F(Q)          ' /
 !                                                                       
       DATA value / 1 / 
       DATA laver / .false. / 
@@ -291,7 +291,7 @@ SUBROUTINE do_niplps (linverse)
                   ELSEIF (ityp.eq.4) then 
                      CALL do_ppm (value, laver) 
                   ELSEIF (ityp.eq.5) then 
-                     CALL powder_out 
+                     CALL powder_out (value)
                   ELSEIF (ityp.eq.6) then 
                      CALL do_output (value, laver) 
                   ELSEIF (ityp.eq.7) then 
@@ -458,6 +458,12 @@ SUBROUTINE do_niplps (linverse)
 !     ----Calculate imaginary part 'imaginary'                          
                   ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') then 
                      value = 5 
+!     ----Calculate S(Q)           'S(Q)     '                          
+                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') then 
+                     value = 7 
+!     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
+                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') then 
+                     value = 8 
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
@@ -1014,7 +1020,7 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
          xwrt(i) = h(out_extr_abs)
          ywrt(i) = qval (i, value, i, j, laver)
       ENDDO 
-      CALL output_save_file_1d(outfile, out_index, npkt1, xwrt, ywrt)
+      CALL output_save_file_1d(outfile, npkt1, xwrt, ywrt)
       DEALLOCATE(xwrt)
       DEALLOCATE(ywrt)
    ELSEIF(is_dim==2) THEN                       ! 2D output
