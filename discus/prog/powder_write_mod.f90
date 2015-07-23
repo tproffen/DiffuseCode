@@ -127,6 +127,7 @@ CONTAINS
          ENDIF 
          IF(value == 7) THEN
             IF (pow_axis.eq.POW_AXIS_Q) then 
+               CALL powder_f2aver (num(1) )
                DO j = 1, num (1)
                   q = ((j-1)*xdel + xmin)
                   pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
@@ -139,6 +140,7 @@ CONTAINS
             ENDIF
          ELSEIF(value == 8) THEN
             IF (pow_axis.eq.POW_AXIS_Q) then 
+               CALL powder_f2aver (num(1) )
                DO j = 1, num (1)
                   q = ((j-1)*xdel + xmin)
                   pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
@@ -875,4 +877,55 @@ END SUBROUTINE powder_conv_psvgt_fix
       + (b**3 - b) * y2a (khi) ) * (h**2) / 6.                          
       RETURN 
       END SUBROUTINE splint                         
+!*****7*****************************************************************
+      SUBROUTINE powder_f2aver ( num1 )
+!
+!     This subroutine calculates the average atomic form factor
+!     <f^2> and <f>^2
+!
+      USE crystal_mod 
+      USE diffuse_mod 
+      USE powder_mod 
+      USE wink_mod
+!
+      IMPLICIT NONE
+!
+      INTEGER,                INTENT(IN) :: num1
+!
+      INTEGER, DIMENSION(:), ALLOCATABLE :: natom
+!
+      INTEGER :: iscat
+      INTEGER :: i
+!!!
+      pow_f2aver = 0.0
+      pow_faver2 = 0.0
+      pow_u2aver = 0.0
+      pow_nreal  = 0
+!
+!     Prepare and calculate average atom numbers
+!
+      ALLOCATE(natom(0:cr_nscat))
+      natom = 0
+      DO i=1,cr_natoms
+         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
+      ENDDO
+      pow_nreal = SUM(natom)  ! Add real atom numbers 
+!
+      DO iscat = 1, cr_nscat
+         DO i = 1, num1
+            pow_f2aver (i) = pow_f2aver (i)  + &
+                       real (       cfact_pure(istl(i), iscat)  * &
+                             conjg (cfact_pure(istl(i), iscat)))  &
+                     * natom (iscat)/pow_nreal
+            pow_faver2 (i) = pow_faver2 (i) +  &
+                  SQRT(real (       cfact_pure(istl(i), iscat)  * &
+                             conjg (cfact_pure(istl(i), iscat)))) &
+                     * natom (iscat)/pow_nreal
+         ENDDO
+         pow_u2aver = pow_u2aver + cr_dw(iscat)
+      ENDDO
+      pow_u2aver = pow_u2aver /8./pi**2
+      DEALLOCATE(natom)
+!
+      END SUBROUTINE powder_f2aver
 END MODULE powder_write_mod

@@ -1134,7 +1134,7 @@ CONTAINS
       INTEGER                    :: n_nscat
       INTEGER                    :: n_pkt
       INTEGER itth 
-      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
+!      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
       LOGICAL l_twoparts
       LOGICAL l_ano 
       LOGICAL l_hh_real 
@@ -1636,12 +1636,12 @@ CONTAINS
 !
 !     Prepare and calculate average form factors
 !
-      natom = 0
-      DO i=1,cr_natoms
-         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
-      ENDDO
-      pow_nreal = SUM(natom)  ! Add real atom numbers 
-      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
+!      natom = 0
+!      DO i=1,cr_natoms
+!         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
+!      ENDDO
+!      pow_nreal = SUM(natom)  ! Add real atom numbers 
+!      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
       ss = seknds (ss) 
       WRITE (output_io, 4000) ss 
@@ -1935,7 +1935,7 @@ CONTAINS
       ENDDO 
 !     pow_u2aver = pow_u2aver /8./pi**2
 !
-      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
+!      CALL powder_f2aver ( cr_nscat , natom , cr_dw)
 !
       DEALLOCATE(look   )
       DEALLOCATE(partial)
@@ -2904,42 +2904,4 @@ CONTAINS
 !                                                                       
  1000 FORMAT     (' Computing Molecular DW lookup table ...') 
       END SUBROUTINE powder_dwmoltab                   
-!*****7*****************************************************************
-      SUBROUTINE powder_f2aver ( nscat , natom , dw)
-!
-!     This subroutine calculates the average atomic form factor
-!     <f^2> and <f>^2
-!
-      USE diffuse_mod 
-      USE powder_mod 
-      USE wink_mod
-!
-      IMPLICIT NONE
-!
-      INTEGER,                     INTENT(IN) :: nscat
-      INTEGER, DIMENSION(0:NSCAT), INTENT(IN) :: natom
-      REAL   , DIMENSION(0:NSCAT), INTENT(IN) :: dw
-!
-      INTEGER :: iscat
-      INTEGER :: i
-!
-      pow_f2aver = 0.0
-      pow_faver2 = 0.0
-      pow_u2aver = 0.0
-      DO iscat = 1, nscat
-         DO i = 1, num (1) * num (2)
-            pow_f2aver (i) = pow_f2aver (i)  + &
-                       real (       cfact_pure(istl(i), iscat)  * &
-                             conjg (cfact_pure(istl(i), iscat)))  &
-                     * natom (iscat)/pow_nreal
-            pow_faver2 (i) = pow_faver2 (i) +  &
-                  SQRT(real (       cfact_pure(istl(i), iscat)  * &
-                             conjg (cfact_pure(istl(i), iscat)))) &
-                     * natom (iscat)/pow_nreal
-         ENDDO
-         pow_u2aver = pow_u2aver + dw(iscat)
-      ENDDO
-      pow_u2aver = pow_u2aver /8./pi**2
-!
-      END SUBROUTINE powder_f2aver
 END MODULE powder
