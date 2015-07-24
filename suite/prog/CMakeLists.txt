@@ -86,7 +86,7 @@ set (LIBS_GRAPHIC ${LIBS_GRAPHIC} ${PNG_LIBRARY})
 
 
 add_library (discus_suite_all ${SOURCES_ALL})
-add_dependencies ( discus_suite_all diffev_all discus_all kuplot_all lib_f90)
+add_dependencies ( discus_suite_all diffev_all discus_all kuplot_all lib_f90 suitehlp)
 
 set (LIBS ${LIBS} discus_suite_all diffev_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
