@@ -63,7 +63,7 @@ if (NEXUS_FOUND)
 
 else (NEXUS_FOUND)
 #  set (SOURCES_ALL ${SOURCES_ALL} nexus_no.f90)
-  set (LIBS_OPT )
+#  set (LIBS_OPT )
 
 endif (NEXUS_FOUND)
 
