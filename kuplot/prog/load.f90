@@ -1350,6 +1350,8 @@
       CHARACTER(4096) mine, sinfo 
       CHARACTER(200) date, tit 
       CHARACTER(40) field (0:colm), input (colm) 
+      CHARACTER(LEN=40) :: scan_type    ! Scan type on #S instruction
+      CHARACTER(LEN=40) :: scan_mot     ! Motor type on #S instruction
       REAL werte (maxw) 
       REAL col (0:colm), dummy 
       REAL mca_par (3) 
@@ -1361,6 +1363,12 @@
       INTEGER nmca 
       INTEGER nscans 
       INTEGER itype 
+      INTEGER  :: janz      ! temporary number of parameters
+      INTEGER  :: linput    ! temporary length
+      INTEGER  :: npoints   ! number of data point on the #S instruction
+      REAL     :: xstart    ! Start point          on the #S instruction
+      REAL     :: xend      ! End   point          on the #S instruction
+      REAL     :: ctime     ! Count time           on the #S instruction
       LOGICAL not_found, data_read, lsigma, lend, lall 
       LOGICAL lkev 
 !                                                                       
@@ -1471,6 +1479,24 @@
             IF (mine (1:2) .eq.'#S') then 
                CALL get_col (mine, field, nf, colm) 
                READ (field (1), * ) nscan 
+               IF(nf==7) THEN
+                  READ (field (2), * ) scan_type
+                  READ (field (3), * ) scan_mot 
+                  READ (field (4), * ) xstart 
+                  READ (field (5), * ) xend 
+                  READ (field (6), * ) npoints 
+                  READ (field (6), * ) ctime
+                  janz   = 1
+                  linput = LEN_TRIM(input(1))
+                  CALL ber_params (janz, input, linput, werte, maxw) 
+                  i = NINT(werte(1))
+!                  READ (input(1),*) i
+                  IF(npoints+1 < i) THEN
+                     ier_num = -41 
+                     ier_typ = ER_APPL 
+                     RETURN
+                  ENDIF
+               ENDIF 
                IF (iscan.eq.nscan.or.lall) then 
                   tit = mine 
    33             CONTINUE 
@@ -1591,6 +1617,8 @@
                mca_par (3) = 0.0 
             ENDIF 
             nr = 0 
+            READ (ifil, 9999, end = 20) mine 
+            READ (ifil, 9999, end = 20) mine 
             DO 
             READ (ifil, 9999, end = 20) mine 
             IF (mine (1:5) .eq.'#@MCA') then 
@@ -1599,13 +1627,16 @@
                   BACKSPACE (ifil) 
                   exit 
                ENDIF 
+               ELSEIF(mine(1:2) == '#S') THEN
+                  ier_num = -41 
+                  ier_typ = ER_APPL 
+                  RETURN
             ENDIF 
             ENDDO 
          ENDIF 
 !                                                                       
 !------ - Finally reading of the data                                   
 !                                                                       
-         IF (istart.ne.0) nr = 1 
          col (0) = 0.0 
          lsigma = itype.eq.READ_TYPE_SC.and. (icell (5) .eq.0) 
          maxpp = maxarray - offxy (iz - 1) 
@@ -1953,6 +1984,7 @@
       INTEGER nlines 
       INTEGER nrest 
       INTEGER ibsl 
+      INTEGER :: length 
       INTEGER nl, i, j 
 !                                                                       
       INTEGER len_str 
@@ -1962,28 +1994,41 @@
       ENDDO 
 !                                                                       
       READ (ifil, 9999, end = 20) mine 
+!write(*,*) ' POINT 1 ',mine(1:50)
       READ (mine (8:len_str (mine) ), * ) nchan, chana, chane 
 !                                                                       
       i = chana 
       READ (ifil, 9999, end = 20) mine 
+!write(*,*) ' POINT 2 ',mine(1:50)
 !                                                                       
       DO while (mine (1:1) .eq.'#') 
       READ (ifil, 9999, end = 20) mine 
+!write(*,*) ' POINT 3 ',mine(1:50)
       ENDDO 
       ibsl = index (mine, '\') 
       READ (mine (3:ibsl - 1), * ) (counts (j), j = i, i + 15) 
       nlines = (chane-chana + 1) / 16 - 1 
       nrest = mod (chane-chana, 16) + 1 
+!write(*,*) ' POINT 4 ,Nlines, Nrest ', nlines, nrest 
+!read(*,*) mine
 !                                                                       
       DO nl = 1, nlines 
       READ (ifil, 9999, end = 20) mine 
+         length = LEN(TRIM(mine))
+!if(mine(2:2).ne. '0') write(*,*) ' POINT 5 ',nl,' >>',mine(1:length)
       i = i + 16 
       ibsl = index (mine, '\') 
+      IF(ibsl == 0) ibsl = length+1
       READ (mine (1:ibsl - 1), * ) (counts (j), j = i, i + 15) 
       ENDDO 
-      i = i + 16 
-      READ (ifil, 9999, end = 20) mine 
-      READ (mine (1:ibsl - 1), * ) (counts (j), j = i, i + nrest - 1) 
+      IF(0 < nrest .AND. nrest < 16) THEN
+         i = i + 16 
+         READ (ifil, 9999, end = 20) mine 
+         length = LEN(TRIM(mine))
+         ibsl = index (mine, '\') 
+         IF(ibsl == 0) ibsl = length+1
+         READ (mine (1:ibsl - 1), * ) (counts (j), j = i, i + nrest - 1) 
+      ENDIF
 !                                                                       
    20 CONTINUE 
       RETURN 
