@@ -2966,7 +2966,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       LOGICAL               :: lread
       LOGICAL               :: lwrite
       LOGICAL, DIMENSION(7) :: header_done = .false.
-      INTEGER               :: line_no
+      INTEGER               :: line_no, line_sig
       INTEGER               :: length
       INTEGER               :: is_cell
       INTEGER               :: is_loop
@@ -3068,8 +3068,10 @@ countline: DO
          READ(ird, '(a)', IOSTAT=iostatus) line
          IF ( IS_IOSTAT_END(iostatus )) EXIT countline
          line_no = line_no + 1
+         length  = len_str(line)
+         IF(length > 0 ) line_sig = line_no
       ENDDO countline
-      MAXLINES = line_no 
+      MAXLINES = line_sig
       ALLOCATE(rawline(1:MAXLINES))
       rawline = ' '
       line_no = 0
@@ -3080,6 +3082,7 @@ getline: DO
          line_no = line_no + 1
          length  = len_str(rawline(line_no))
          CALL rem_leading_bl(rawline(line_no),length)
+         IF(line_no == line_sig) EXIT getline
       ENDDO getline
       CLOSE(ird)
 !
@@ -3092,6 +3095,7 @@ main: DO
          IF(nline==line_no) EXIT main   ! End of input
          line = rawline(nline)
          length = len_str(line)
+         IF(length   == 0 ) CYCLE main
          IF(line(1:1)=='#') CYCLE main
 !
 !  Loop statement
