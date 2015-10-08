@@ -18,14 +18,16 @@ INTEGER , PARAMETER  :: PDF_RAD_ELEC = 3
 INTEGER             ::  PDF_MAXSCAT      = 1
 INTEGER             ::  PDF_MAXDAT       = 1
 INTEGER             ::  PDF_MAXBND       = 1
+INTEGER             ::  PDF_MAXTEMP      = 1
 !
 INTEGER             ::  pdf_nscat = 1
 INTEGER             ::  pdf_ndat  = 1
 INTEGER             ::  pdf_nbnd  = 1
+INTEGER             ::  pdf_ntemp = 1
 !
 REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
 REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
-INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
+INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXTEMP,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
 REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)

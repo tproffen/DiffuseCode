@@ -2194,9 +2194,9 @@ laccept = .false.
 !           RETURN
 !        ENDIF
       ENDIF
-      pdf_ndat  = MAX(pdf_ndat, npoint,    PDF_MAXDAT)
+      pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
          IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
-         ALLOCATE(pdf_temp(0:pdf_ndat,0:pdf_nscat,0:pdf_nscat,0:nlook))
+         ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
 !      ENDIF
 !                                                                       
 !------ Reset arrays                                                    
@@ -2305,6 +2305,7 @@ laccept = .false.
       USE debug_mod 
       USE errlist_mod 
       USE param_mod 
+      USE prompt_mod
       IMPLICIT none 
 !                                                                       
        
