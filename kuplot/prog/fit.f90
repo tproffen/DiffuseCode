@@ -2909,6 +2909,7 @@
       REAL df (maxpara), dl (maxpara), dz (maxpara), pl (maxpara) 
       REAL pinc_old (maxpara) 
 !                                                                       
+      zl = 0.0
       IF (lni (ikfit) ) then 
          iiw = offz (ikfit - 1) 
          iix = offxy (ikfit - 1) 
