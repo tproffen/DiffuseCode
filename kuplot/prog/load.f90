@@ -1485,16 +1485,18 @@
                   READ (field (4), * ) xstart 
                   READ (field (5), * ) xend 
                   READ (field (6), * ) npoints 
-                  READ (field (6), * ) ctime
+                  READ (field (7), * ) ctime
                   janz   = 1
                   linput = LEN_TRIM(input(1))
                   CALL ber_params (janz, input, linput, werte, maxw) 
                   i = NINT(werte(1))
 !                  READ (input(1),*) i
-                  IF(npoints+1 < i) THEN
-                     ier_num = -41 
-                     ier_typ = ER_APPL 
-                     RETURN
+                  IF(nscan == iscan) THEN
+                     IF(npoints+1 < i) THEN
+                        ier_num = -41 
+                        ier_typ = ER_APPL 
+                        RETURN
+                     ENDIF
                   ENDIF
                ENDIF 
                IF (iscan.eq.nscan.or.lall) then 
