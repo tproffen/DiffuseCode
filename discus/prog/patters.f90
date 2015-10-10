@@ -50,6 +50,7 @@ CONTAINS
       INTEGER i, j, ianz, lp, length 
       INTEGER                  :: n_qxy    ! Number of data points in direct space
       INTEGER                  :: n_nscat  ! Number of different atom types this run
+      INTEGER                  :: n_natom  ! Number of atoms this run
       INTEGER indxg, lbef 
       REAL divis (2) 
       REAL rho_divis (2) 
@@ -72,6 +73,7 @@ CONTAINS
       maxw     = MAX(MIN_PARA,MAXSCAT+1)
       n_qxy    = 1
       n_nscat  = 1
+      n_natom  = 1
 !                                                                       
       IF (cr_natoms.gt.0.and.as_natoms.gt.0) then 
          patt_scale = float (cr_ncatoms) / float (cr_natoms) 
@@ -634,11 +636,13 @@ CONTAINS
                   ier_msg (1) = 'A proper unit cell must be defined' 
                   ier_msg (2) = 'for this command to operate       ' 
                ELSE 
-                 IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
+                 IF (inc(1)     * inc(2)     .gt. MAXQXY  .OR.          &
+                     rho_inc(1) * rho_inc(2) .gt. MAXQXY  .OR.          &
                      cr_nscat>DIF_MAXSCAT              ) THEN
-                    n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
-                    n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-                    call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+                    n_qxy   = MAX(1, n_qxy,inc(1) * inc(2),rho_inc(1)*rho_inc(2),MAXQXY)
+                    n_nscat = MAX(1, n_nscat,cr_nscat,DIF_MAXSCAT)
+                    n_natom = MAX(1, n_natom,cr_natoms, NMAX)
+                    call alloc_diffuse (n_qxy,  n_nscat, n_natom )
                     IF (ier_num.ne.0) THEN
                       RETURN
                     ENDIF

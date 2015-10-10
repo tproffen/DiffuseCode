@@ -15,7 +15,7 @@ INTEGER, PARAMETER  ::  PATT_SUBTRACT  =  1
 !
 CHARACTER(LEN=200), DIMENSION(2)  ::   rho_file = (/' ',' '/)
 INTEGER                 ::  patt_accu     = 0
-INTEGER, DIMENSION(2)   ::  rho_inc       = (/121,121/)
+INTEGER, DIMENSION(3)   ::  rho_inc       = (/121,121, 1/)
 INTEGER, DIMENSION(2)   ::  rho_type      = (/4,5/)
 INTEGER                 ::  patt_sign     = -1
 INTEGER                 ::  patt_mode     = PATT_NORMAL

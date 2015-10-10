@@ -1126,6 +1126,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3) * out_fac
                shel_value = 3 
                sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), qq, qq, sq
                ENDDO 
                ENDDO 
@@ -1145,6 +1146,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (2) / cr_icc (3)
                shel_value = 3 
                sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
                ENDDO 
                ENDDO 
@@ -1183,8 +1185,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
-               / cr_icc (2) / cr_icc (3) * out_fac                      
+!              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
+!              / cr_icc (2) / cr_icc (3) * out_fac                      
+               sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
             ELSEIF (ityp.eq.LIST9) then                     ! SHELXS
@@ -1192,8 +1196,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
-               / cr_icc (2) / cr_icc (3)                                
+!              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
+!              / cr_icc (2) / cr_icc (3)                                
+               sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
             ENDIF 
                ENDDO 
@@ -1230,8 +1236,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
-               / cr_icc (2) / cr_icc (3) * out_fac                      
+!              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
+!              / cr_icc (2) / cr_icc (3) * out_fac                      
+               sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
             ELSEIF (ityp.eq.LIST9) then                     ! SHELS File
@@ -1239,8 +1247,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
                shel_value = 3 
-               sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
-               / cr_icc (2) / cr_icc (3)                                
+!              sq = qval (k, shel_value, i, j, laver) / cr_icc (1)      &
+!              / cr_icc (2) / cr_icc (3)                                
+               sq = qval (k, shel_value, i, j, laver) 
+               IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 9) h (1), h (2), h (3), qq, qq, sq 
             ENDIF 
             ENDDO 
@@ -1301,17 +1311,18 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
          out_extr_ord = rho_extr_ord 
 !                                                                       
          DO i = 1, 3 
-         DO j = 1, 3 
-         out_eck (i, j) = rho_eck (i, j) 
-         ENDDO 
+            DO j = 1, 3 
+               out_eck (i, j) = rho_eck (i, j) 
+            ENDDO 
          ENDDO 
 !                                                                       
          DO i = 1, 2 
-         DO j = 1, 3 
-         out_vi (j, i) = rho_vi (j, i) 
+            DO j = 1, 3 
+               out_vi (j, i) = rho_vi (j, i) 
+            ENDDO 
+            out_inc (i) = rho_inc (i) 
          ENDDO 
-         out_inc (i) = rho_inc (i) 
-         ENDDO 
+         out_inc(3) = 1
       ELSE 
          out_extr_abs = extr_abs 
          out_extr_ord = extr_ord 
