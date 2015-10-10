@@ -276,7 +276,7 @@
       f (1) = dxx * f (1) 
       f (2) = dxx * f (2) 
       f (3) = sqrt (f (1) **2 + f (2) **2) 
-      f (4) = atan (f (2) / f (1) ) / rad 
+      f (4) = atan2(f (2) , f (1) ) / rad 
       kk = kk + 1 
 !                                                                       
       DO i = 1, 4 
@@ -403,7 +403,7 @@
       f (1) = dxx * dyy * f (1) 
       f (2) = dxx * dyy * f (2) 
       f (3) = sqrt (f (1) **2 + f (2) **2) 
-      f (4) = atan (f (2) / f (1) ) / rad 
+      f (4) = atan2(f (2) , f (1) ) / rad 
 !                                                                       
       DO i = 1, 4 
       IF (fo (i) ) then 
