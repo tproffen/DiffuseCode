@@ -36,6 +36,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
       pname     = 'kuplot'
       pname_cap = 'KUPLOT'
       prompt    = pname
+      oprompt   = pname
       CALL program_files ()
    ELSE
       CALL kuplot_setup   (lstandalone)
@@ -47,6 +48,7 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
+   oprompt    = pname
    prompt_status = br_prompt_status_old
    ier_sta       = br_ier_sta_old
 ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
@@ -54,6 +56,7 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
       pname     = 'discus'
       pname_cap = 'DISCUS'
       prompt    = pname
+      oprompt   = pname
       CALL program_files ()
    ELSE
       CALL discus_setup   (lstandalone)
@@ -65,6 +68,7 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
+   oprompt    = pname
    prompt_status = br_prompt_status_old
    ier_sta       = br_ier_sta_old
 ELSEIF(str_comp(zeile, 'diffev', 2, length, 6)) THEN
@@ -72,6 +76,7 @@ ELSEIF(str_comp(zeile, 'diffev', 2, length, 6)) THEN
       pname     = 'diffev'
       pname_cap = 'DIFFEV'
       prompt    = pname
+      oprompt   = pname
       CALL program_files ()
    ELSE
       CALL diffev_setup   (lstandalone)
@@ -83,6 +88,7 @@ ELSEIF(str_comp(zeile, 'diffev', 2, length, 6)) THEN
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
+   oprompt    = pname
    prompt_status = br_prompt_status_old
    ier_sta       = br_ier_sta_old
 ELSE

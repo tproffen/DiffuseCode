@@ -114,6 +114,7 @@ ELSE
           pname     = 'diffev'
           pname_cap = 'DIFFEV'
           prompt    = pname
+          oprompt   = pname
           CALL program_files ()
        ELSE
          CALL diffev_setup   (lstandalone)
@@ -137,6 +138,7 @@ ELSE
           pname     = 'discus'
           pname_cap = 'DISCUS'
           prompt    = pname
+          oprompt   = pname
           CALL program_files ()
        ELSE
          CALL discus_setup   (lstandalone)
@@ -160,6 +162,7 @@ ELSE
           pname     = 'kuplot'
           pname_cap = 'KUPLOT'
           prompt    = pname
+          oprompt   = pname
           CALL program_files ()
        ELSE
          CALL kuplot_setup   (lstandalone)
