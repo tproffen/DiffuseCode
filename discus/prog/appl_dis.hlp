@@ -5112,10 +5112,16 @@
    atomtypes to be selected can be specified by either name or number or
    all atomtypes can be selected by typing "all".
 4  mode
-!b set "mode",{ "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
+!b set "mode",<prob>,
+!b            { "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
 !b           [{ "a[ll]"   | "l[ocal]"  | "sl[ocal]" | "si[te]"     }]
 
-   This command allows to select one of the three RMC operation modes:
+   This command allows to select one of the three RMC operation modes.
+
+   The first parameter specifies the probability for the current mode. 
+   The probabilities do not have to add up to one, they will be scaled
+   at run time.
+   The possible modes are:
 
 !p "shift"    : The selected atoms are displaced by a random move. The
 !p              max. size of a move can be specified via "set move .."
@@ -5133,7 +5139,7 @@
 !p              source file 'extrmc.f' for details how to supply such a
 !p              subroutine.
 
-   The second optional parameter specifies if the pair of the atoms to
+   The third optional parameter specifies if the pair of the atoms to
    be selected for the SWCHEM and SWDISP mode should be restricted in
    any way. The following settings are valid, the setting "all" is the
    default, which will be taken if no second parameter is entered.
