@@ -2984,9 +2984,12 @@ loop_plane: DO ip = 1, rmc_nplane
             p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (rmc_maxmove (&
             i, i_new (1) ) )                                            
                IF(chem_period(i)) THEN ! Apply modulo of crystal dimensions
-                  p_new(i,1) = MOD( (p_new(i,1)-cr_dim0(i,1))+(cr_dim0(i,2)-cr_dim0(i,1)), &
-                                    (cr_dim0(i,2)-cr_dim0(i,1))                           )&
-                               +cr_dim0(i,1)
+                  IF(p_new(i,1) > cr_dim0(i,2) + 0.75 .or.  &
+                     p_new(i,1) < cr_dim0(i,1) - 0.75     ) THEN
+                     p_new(i,1) = MOD( (p_new(i,1)-cr_dim0(i,1))+    &
+                                        (cr_dim0(i,2)-cr_dim0(i,1)), &
+                                  (cr_dim0(i,2)-cr_dim0(i,1))+cr_dim0(i,1))
+                  ENDIF
                ENDIF
             ENDDO 
          ENDIF 
