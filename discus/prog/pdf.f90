@@ -37,7 +37,7 @@ SUBROUTINE pdf
       CHARACTER(1024) line, zeile, cdummy 
       INTEGER lp, length
       INTEGER indxg, ianz, lbef
-      INTEGER :: n_nscat  ! Dummy for RMC allocation
+      INTEGER :: n_nscat = 1  ! Dummy for RMC allocation
       LOGICAL ldummy 
 !                                                                       
       INTEGER len_str 
@@ -136,7 +136,8 @@ SUBROUTINE pdf
 !------ Just calculate PDF for current parameters                       
 !                                                                       
          ELSEIF (str_comp (befehl, 'calc', 2, lbef, 4) ) then 
-            CALL pdf_setup 
+            pdf_mode = PDF_DO_CALC
+            CALL pdf_setup (pdf_mode)
             IF (ier_num.eq.0) then 
                pdf_skal = 1.0 / rmc_skal (1) 
                CALL pdf_determine (.true.) 
@@ -145,12 +146,14 @@ SUBROUTINE pdf
 !------ Read observed PDF from XY file (ASCII)                          
 !                                                                       
          ELSEIF (str_comp (befehl, 'data', 2, lbef, 4) ) then 
+            pdf_mode = PDF_DO_FIT   ! Data were read, assume fit mode
             CALL pdf_readdata (zeile, lp) 
 !                                                                       
 !------ Runs PDF fit                                                    
 !                                                                       
          ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
-            CALL pdf_setup 
+            pdf_mode = PDF_DO_FIT
+            CALL pdf_setup (pdf_mode )
             IF (ier_num.eq.0) then 
                CALL pdf_run 
             ENDIF 
@@ -209,6 +212,7 @@ SUBROUTINE pdf
                  str_comp (befehl, 'dese', 2, lbef, 4) ) then                             
 !                                                                       
             IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
+               n_nscat = MAX(cr_nscat, MAXSCAT, RMC_MAXSCAT)
                CALL alloc_rmc ( n_nscat )
                IF ( ier_num < 0 ) THEN
                   RETURN
@@ -258,7 +262,7 @@ SUBROUTINE pdf
 !                                                                       
       END SUBROUTINE pdf                            
 !*****7*****************************************************************
-      SUBROUTINE pdf_setup 
+      SUBROUTINE pdf_setup (mode)
 !+                                                                      
 !     Setup for various arrays and functions for PDF calculation.       
 !-                                                                      
@@ -275,6 +279,7 @@ SUBROUTINE pdf
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN) :: mode
        
 !                                                                       
       REAL sincut, rcut, z, bave, hh, rtot, ract 
@@ -294,6 +299,32 @@ SUBROUTINE pdf
          ier_typ = ER_PDF 
          RETURN 
       ENDIF 
+!
+      IF(mode == PDF_DO_CALC) THEN ! Prepare for simple calculation
+         pdf_rmax  = pdf_rmaxu
+         pdf_rmin  = pdf_deltaru
+         pdf_rfmin = pdf_deltaru
+         pdf_rfmax = pdf_rmaxu
+      ELSEIF(mode == PDF_DO_FIT) THEN ! Prepare for refinement
+         IF(pdf_rfminu == 0.01) pdf_rfminu = pdf_rfminf  ! No user values, use file
+         IF(pdf_rfmaxu == 0.01) pdf_rfmaxu = pdf_rfmaxf  ! No user values, use file
+         IF(pdf_rfminu > pdf_rfmaxf .or. &               ! User values outside data range
+            pdf_rfminu < pdf_rfminf      ) THEN
+            ier_num =  -9
+            ier_typ = ER_PDF
+            RETURN
+         ENDIF
+         IF(pdf_rfmaxu < pdf_rfminf .or. &
+            pdf_rfmaxu > pdf_rfmaxf      ) THEN         ! User values outside data range
+            ier_num =  -10
+            ier_typ = ER_PDF
+            RETURN
+         ENDIF
+         pdf_rfmin = MAX(pdf_rfminu, pdf_rfminf)
+         pdf_rfmax = MAX(pdf_rfmaxu, pdf_rfmaxf)
+         pdf_rmin  = pdf_deltar
+         pdf_rmax  = pdf_rfmax
+      ENDIF
 !
 !------ Allocate arrays
 !
@@ -409,7 +440,7 @@ SUBROUTINE pdf
             ENDIF 
          ENDIF 
 !                                                                       
-         pdf_sinc = 0.0
+!        pdf_sinc = 0.0
          j = SIZE(pdf_sincc)+1
 !         DO i = 1, SIZE(pdf_sinc)/2 ! INT(nn *1.5)
 !         pdf_sinc (i+1) = sin (z * float (i) ) / (pdf_deltar * float (i) ) 
@@ -459,9 +490,9 @@ SUBROUTINE pdf
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
+      CHARACTER (LEN=*), INTENT(IN) :: cmd 
 !                                                                       
       CHARACTER(9) at_lis (MAXSCAT+1) 
-      CHARACTER ( * ) cmd 
       CHARACTER(9) cpoly (5) 
       INTEGER i, j, k 
 !                                                                       
@@ -469,7 +500,7 @@ SUBROUTINE pdf
                    '5. order' /                                                           
 !                                                                       
       IF (cmd.eq.'ALL'.or.cmd.eq.'PDF') then 
-         CALL pdf_setup 
+         CALL pdf_setup (pdf_mode)
          IF (ier_num.ne.0) return 
 !                                                                       
          pdf_skal = 1.0 / rmc_skal (1) 
@@ -668,13 +699,13 @@ SUBROUTINE pdf
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER          , INTENT(IN) :: lp
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER i, lp, nmi, nma, nmd 
+      INTEGER i, nmi, nma, nmd 
       INTEGER ::  pdf_calc_l, pdf_calc_u
       REAL r 
 !                                                                       
@@ -764,20 +795,20 @@ SUBROUTINE pdf
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE ISO_FORTRAN_ENV
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER          , INTENT(IN) :: lp
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 5) 
-!                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) datafile 
       INTEGER lpara (maxw) 
       INTEGER ianz, ip 
+      INTEGER  :: iostatus
       REAL ra, re, dr 
       REAL werte (maxw) 
 !                                                                       
@@ -785,47 +816,82 @@ SUBROUTINE pdf
       IF (ier_num.ne.0) return 
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
       IF (ier_num.ne.0) return 
-      datafile = cpara (1) (1:lpara (1) ) 
+      datafile = cpara(1)(1:lpara(1)) 
 !                                                                       
 !------ Read observed PDF for given plane                               
 !                                                                       
       IF (ianz.eq.1) then 
          CALL oeffne (17, datafile, 'old') 
          IF (ier_num.ne.0) return 
+         pdf_obs(:) = 0.0    ! reset data file
+         pdf_wic(:) = 0.0    ! reset weighting scheme
          CALL extract_hist (17) 
          CALL skip_spec (17) 
          ip = 1 
-         READ (17, *, end = 20, err = 999) ra, pdf_obs (ip), dr, pdf_wic (ip)
+!
+!        READ (17, *, end = 20, err = 999) ra, pdf_obs (ip), dr, pdf_wic (ip)
+         READ (17, *, IOSTAT = iostatus  ) ra, pdf_obs (ip), dr, pdf_wic (ip)
+         IF(IS_IOSTAT_END(iostatus)) THEN
+            CLOSE(17)
+         ELSE IF(IS_IOSTAT_EOR(iostatus)) THEN
+            CLOSE(17)
+            ier_num = - 3
+            ier_typ = ER_IO                                                           
+            RETURN
+         ENDIF
          IF(pdf_wic(ip) /= 0.0) THEN
             pdf_wic(ip) = 1./pdf_wic(ip)**2
          ELSE
             pdf_wic(ip) = 1.0
          ENDIF
-         ip = ip + 1 
-   10    CONTINUE 
-         READ (17, *, end = 20, err = 999) re, pdf_obs (ip), dr, pdf_wic (ip)
-         IF(pdf_wic(ip) /= 0.0) THEN
-            pdf_wic(ip) = 1./pdf_wic(ip)**2
-         ELSE
-            pdf_wic(ip) = 1.0
-         ENDIF
-         ip = ip + 1 
-         IF (ip.gt.PDF_MAXDAT) goto 9999 
-         GOTO 10 
-   20    CONTINUE 
+!!!         ip = ip + 1 
+!!!   10    CONTINUE 
+!!!         READ (17, *, end = 20, err = 999) re, pdf_obs (ip), dr, pdf_wic (ip)
+         ier_num = 0
+         ier_typ = ER_NONE
+main:    DO
+            ip = ip + 1 
+            IF (ip.gt.PDF_MAXDAT) goto 9999 
+            READ (17, *, IOSTAT = iostatus  ) re, pdf_obs (ip), dr, pdf_wic (ip)
+            IF(IS_IOSTAT_END(iostatus)) THEN
+               EXIT main
+            ELSE IF(IS_IOSTAT_EOR(iostatus)) THEN
+               ier_num = - 3
+               ier_typ = ER_IO                                                           
+               EXIT main
+            ENDIF
+            IF(pdf_wic(ip) /= 0.0) THEN
+               pdf_wic(ip) = 1./pdf_wic(ip)**2
+            ELSE
+               pdf_wic(ip) = 1.0
+            ENDIF
+         END DO main
+!!!         ip = ip + 1 
+!!!         IF (ip.gt.PDF_MAXDAT) goto 9999 
+!!!         GOTO 10 
+!!!   20    CONTINUE 
          CLOSE (17) 
          IF (ier_num.ne.0) return 
-!                                                                       
-         pdf_rmax = re 
-         pdf_bin = ip - 1 
-         pdf_deltar = (re-ra) / float (pdf_bin - 1) 
-         pdf_deltaru= pdf_deltar    ! copy delta r from file into user 
-         pdf_us_int = 1
+!!!         pdf_rmax = re 
+!!!         pdf_bin = ip - 1 
+!!!         pdf_deltar = (re-ra) / float (pdf_bin - 1) 
+!!!         pdf_deltaru= pdf_deltar    ! copy delta r from file into user 
+!!!         pdf_us_int = 1
+         pdf_deltaru =  (re-ra)/FLOAT(ip-2)
+         IF(pdf_deltaru > 0.001) THEN
+            pdf_us_int = NINT(pdf_deltaru/0.001)
+            pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ 0.001 always
+         ELSE
+            pdf_deltar = pdf_deltaru
+            pdf_us_int = 1
+         ENDIF
+         pdf_bin  = NINT((re-ra)/pdf_deltar)
+         pdf_rmax = re
          pdf_deltars=pdf_deltar/2.
-         pdf_rfmin = ra 
-         pdf_rfmax = re 
+         pdf_rfminf = ra      ! Set limits from file
+         pdf_rfmaxf = re      ! final value will be set in pdf_setup
 !                                                                       
-         IF (abs (ra - pdf_deltar) .gt.1e-6) then 
+         IF (abs (ra - pdf_deltaru) .gt.1e-6) then 
             ier_num = - 5 
             ier_typ = ER_PDF 
             RETURN 
@@ -839,10 +905,10 @@ SUBROUTINE pdf
       ENDIF 
       RETURN 
 !                                                                       
-  999 CONTINUE 
-      CLOSE (17) 
-      ier_num = - 3 
-      ier_typ = ER_IO 
+!!!  999 CONTINUE 
+!!!      CLOSE (17) 
+!!!      ier_num = - 3 
+!!!      ier_typ = ER_IO 
 !                                                                       
  9999 CONTINUE 
       CLOSE (17) 
@@ -866,7 +932,7 @@ SUBROUTINE pdf
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER ifil 
+      INTEGER , INTENT(IN) :: ifil 
 !                                                                       
       CHARACTER(1024) line 
 !                                                                       
@@ -898,7 +964,7 @@ SUBROUTINE pdf
 !-                                                                      
       IMPLICIT none 
 !                                                                       
-      INTEGER ifil 
+      INTEGER , INTENT(IN) :: ifil 
 !                                                                       
       CHARACTER(1) cstr 
 !                                                                       
@@ -920,7 +986,9 @@ SUBROUTINE pdf
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) line, key 
+      CHARACTER (LEN=*), INTENT(IN) :: line
+      CHARACTER (LEN=*), INTENT(IN) :: key 
+!
       INTEGER is, ie, ll, lk 
 !                                                                       
       INTEGER len_str 
@@ -964,8 +1032,8 @@ SUBROUTINE pdf
       INTEGER maxw 
       PARAMETER (maxw = 20) 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw), wa (maxw), wb (maxw) 
@@ -1144,8 +1212,11 @@ SUBROUTINE pdf
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
             IF (ianz.eq.2) then 
-               pdf_rfmin = werte (1) 
-               pdf_rfmax = werte (2) 
+               pdf_rfminu = werte (1) ! user value internal to be set 
+               pdf_rfmaxu = werte (2) ! with actual data
+!              pdf_rfmin  = werte (1) 
+!              pdf_rfmax  = werte (2) 
+               pdf_mode   = PDF_DO_FIT ! assume fit mode
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -1297,7 +1368,9 @@ SUBROUTINE pdf
                   ier_typ = ER_PDF 
                   RETURN 
                ENDIF 
-               pdf_rmax = werte (1) 
+               pdf_mode   = PDF_DO_CALC ! assume simple calculation mode
+               pdf_rmaxu  = werte (1)   ! user supplied Rmax
+               pdf_rmax   = werte (1) 
 !              pdf_deltar = werte (2) 
                pdf_deltaru= werte (2)   ! user supplied delta R
                IF(pdf_deltaru>0.001) then
@@ -1526,7 +1599,7 @@ SUBROUTINE pdf
       INTEGER isel (rmc_max_atom), natoms 
       INTEGER imol (rmc_max_atom) 
       INTEGER zh, zm, zs, nmi, nma 
-      INTEGER i, j, ip
+      INTEGER i, j, ip, ipc
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
 !
@@ -1541,17 +1614,17 @@ SUBROUTINE pdf
 !
       CALL refine_alloc     ! Allocate generic refinement settings
 !                                                                       
-      igen = 0 
-      itry = 0 
+      igen      = 0 
+      itry      = 0 
       iacc_good = 0 
-      iacc_bad = 0 
-      loop = .true. 
-      laccept = .true. 
+      iacc_bad  = 0 
+      loop      = .true. 
+      laccept   = .true. 
 !                                                                       
-      psum = 0.0 
+      psum  = 0.0 
       p2sum = 0.0 
-      pmax = 0.0 
-      pn = 0.0 
+      pmax  = 0.0 
+      pn    = 0.0 
 !                                                                       
       nmi = nint (pdf_rfmin / pdf_deltar) 
       nma = nint (pdf_rfmax / pdf_deltar) 
@@ -1564,9 +1637,9 @@ SUBROUTINE pdf
 !                                                                       
       rmc_mindist_max = rmc_mindist (1, 1) 
       DO i = 1, cr_nscat 
-      DO j = 1, cr_nscat 
-      rmc_mindist_max = max (rmc_mindist_max, rmc_mindist (i, j) ) 
-      ENDDO 
+         DO j = 1, cr_nscat 
+            rmc_mindist_max = MAX(rmc_mindist_max,rmc_mindist(i,j)) 
+         ENDDO 
       ENDDO 
 !                                                                       
 !------ Write some start information                                    
@@ -1579,19 +1652,20 @@ SUBROUTINE pdf
 !                                                                       
       cold = 0.0d0
       wtot = 0.0d0 
-      e = 0.0d0
-      ee = 0.0d0 
-      c = 0.0d0 
-      cc = 0.0d0 
-      ce = 0.0d0 
+      e    = 0.0d0
+      ee   = 0.0d0 
+      c    = 0.0d0 
+      cc   = 0.0d0 
+      ce   = 0.0d0 
 !                                                                       
-      DO ip = nmi, nma 
-      wtot = wtot + pdf_wic (ip)
-      e = e+pdf_wic (ip) * pdf_obs (ip) 
-      ee = ee+pdf_wic (ip) * pdf_obs (ip) **2 
-      c = c + pdf_wic (ip) * pdf_calc (ip) 
-      cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
-      ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
+      DO ip = nmi, nma / pdf_us_int
+         ipc = (ip-1)*pdf_us_int + 1
+         wtot = wtot + pdf_wic (ip)
+         e    = e    + pdf_wic (ip) * pdf_obs (ip) 
+         ee   = ee   + pdf_wic (ip) * pdf_obs (ip) **2 
+         c    = c    + pdf_wic (ip) * pdf_calc (ipc) 
+         cc   = cc   + pdf_wic (ip) * pdf_calc (ipc) **2 
+         ce   = ce   + pdf_wic (ip) * pdf_calc (ipc) * pdf_obs (ip) 
       ENDDO 
       IF (rmc_doskal) then 
          pdf_skal = REAL(ce / cc )
@@ -1616,11 +1690,11 @@ SUBROUTINE pdf
 !                                                                       
       sig2 = rmc_sigma**2 / 2.0 
 !                                                                       
-      DO while (loop) 
-      laccept = .true. 
-      igen = igen + 1 
+main: DO while (loop) 
+         laccept = .true. 
+         igen = igen + 1 
 IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
-      CALL pdf_rmc_scale( nmi, nma, cold, wtot, ee, psum, p2sum, &
+         CALL pdf_rmc_scale( nmi, nma, cold, wtot, ee, psum, p2sum, &
                           sig2, pmax, pn )
 ELSEIF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==5) .or. MOD(igen,200)==5) THEN
          CALL pdf_rmc_lattice( nmi, nma, cold, wtot, ee, psum, p2sum, &
@@ -1629,120 +1703,121 @@ ELSE
 !                                                                       
 !-------- generate move and check for limits                            
 !                                                                       
-      IF (rmc_sel_atom) then 
-         CALL rmc_genmove (laccept, natoms, p_new, i_new, isel) 
-      ELSE 
-         CALL rmc_genmove_mol (laccept, natoms, p_new, i_new, isel,     &
-         imol)                                                          
-      ENDIF 
-      IF (ier_num.ne.0) return 
-      IF (laccept) then 
+         IF (rmc_sel_atom) then 
+            CALL rmc_genmove (laccept, natoms, p_new, i_new, isel) 
+         ELSE 
+            CALL rmc_genmove_mol (laccept, natoms, p_new, i_new, isel,     &
+            imol)                                                          
+         ENDIF 
+         IF (ier_num.ne.0) return 
+         IF (laccept) then 
 !                                                                       
 !-------- - save old positions ...                                      
 !                                                                       
-         DO i = 1, natoms 
-         i_old (i) = cr_iscat (isel (i) ) 
-         p_old (1, i) = cr_pos (1, isel (i) ) 
-         p_old (2, i) = cr_pos (2, isel (i) ) 
-         p_old (3, i) = cr_pos (3, isel (i) ) 
-         ENDDO 
+            DO i = 1, natoms 
+               i_old (i) = cr_iscat (isel (i) ) 
+               p_old (1, i) = cr_pos (1, isel (i) ) 
+               p_old (2, i) = cr_pos (2, isel (i) ) 
+               p_old (3, i) = cr_pos (3, isel (i) ) 
+            ENDDO 
 !                                                                       
-         DO i = 1, pdf_bin 
-         pdf_old (i) = pdf_corr (i) 
-         ENDDO 
+            DO i = 1, pdf_bin 
+               pdf_old (i) = pdf_corr (i) 
+            ENDDO 
 !                                                                       
 !-------- - Calc new PDF and chi2                                       
 !                                                                       
-         DO i = 1, natoms 
-         CALL pdf_addcorr (isel (i), - 2.0, sumbad) 
-         ENDDO 
-         CALL pdf_makemove (natoms, i_new, p_new, isel, imol) 
-         DO i = 1, natoms 
-         CALL pdf_addcorr (isel (i), 2.0, sumbad) 
-         ENDDO 
-         CALL pdf_convert 
+            DO i = 1, natoms 
+               CALL pdf_addcorr (isel (i), - 2.0, sumbad) 
+            ENDDO 
+            CALL pdf_makemove (natoms, i_new, p_new, isel, imol) 
+            DO i = 1, natoms 
+               CALL pdf_addcorr (isel (i), 2.0, sumbad) 
+            ENDDO 
+            CALL pdf_convert 
 !                                                                       
-         itry = itry + 1 
-         cnew = 0.0d0 
-         c = 0.0 
-         cc = 0.0 
-         ce = 0.0 
+            itry = itry + 1 
+            cnew = 0.0d0 
+            c    = 0.0 
+            cc   = 0.0 
+            ce   = 0.0 
 !                                                                       
-         DO ip = nmi, nma 
-         c = c + pdf_wic (ip) * pdf_calc (ip) 
-         cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
-         ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
-         ENDDO 
-         IF (rmc_doskal) then 
-            pdf_skal = REAL(ce / cc )
-         ELSE 
-            pdf_skal = 1.0 / rmc_skal (1) 
-         ENDIF 
-         cnew = ee+pdf_skal**2 * cc - 2.0 * pdf_skal * ce 
-         cnew = cnew / wtot 
+            DO ip = nmi, nma / pdf_us_int
+               ipc = (ip-1)*pdf_us_int + 1
+               c   = c  + pdf_wic (ip) * pdf_calc (ipc) 
+               cc  = cc + pdf_wic (ip) * pdf_calc (ipc) **2 
+               ce  = ce + pdf_wic (ip) * pdf_calc (ipc) * pdf_obs (ip) 
+            ENDDO 
+            IF (rmc_doskal) then 
+               pdf_skal = REAL(ce / cc )
+            ELSE 
+               pdf_skal = 1.0 / rmc_skal (1) 
+            ENDIF 
+            cnew = ee+pdf_skal**2 * cc - 2.0 * pdf_skal * ce 
+            cnew = cnew / wtot 
 !                                                                       
 !     ----Accept move ?                                                 
 !                                                                       
-         prob = REAL( cnew - cold )
+            prob = REAL( cnew - cold )
 !                                                                       
-         IF (prob.lt.0) then 
-            laccept = .true. 
-         ELSE 
-            IF (sig2.gt.0.0) then 
-               psum = psum + prob 
-               p2sum = p2sum + prob**2 
-               pmax = max (pmax, prob) 
-               pn = pn + 1 
-               prob = exp ( - prob / sig2) 
-               laccept = (prob.gt.ran1 (idum) ) 
+            IF (prob.lt.0) then 
+               laccept = .true. 
             ELSE 
-               laccept = .false. 
+               IF (sig2.gt.0.0) then 
+                  psum = psum + prob 
+                  p2sum = p2sum + prob**2 
+                  pmax = max (pmax, prob) 
+                  pn = pn + 1 
+                  prob = exp ( - prob / sig2) 
+                  laccept = (prob.gt.ran1 (idum) ) 
+               ELSE 
+                  laccept = .false. 
+               ENDIF 
             ENDIF 
-         ENDIF 
 !                                                                       
-         IF (rmc_sigma.eq. - 9999.) laccept = .true. 
+            IF (rmc_sigma.eq. - 9999.) laccept = .true. 
 !                                                                       
 !------ ----if accepted make move                                       
 !                                                                       
-         IF (laccept) then 
-            cold = cnew 
-            IF (prob.lt.0) then 
-               iacc_good = iacc_good+1 
-            ELSE 
-               iacc_bad = iacc_bad+1 
-            ENDIF 
+            IF (laccept) then 
+               cold = cnew 
+               IF (prob.lt.0) then 
+                  iacc_good = iacc_good+1 
+               ELSE 
+                  iacc_bad = iacc_bad+1 
+               ENDIF 
 !
 !           CALL refine_adapt_move (natoms, isel, 1)
-         ELSE 
-            CALL pdf_makemove (natoms, i_old, p_old, isel, imol) 
-            DO i = 1, pdf_bin 
-            pdf_corr (i) = pdf_old (i) 
-            ENDDO 
-            CALL pdf_convert 
-!           CALL refine_adapt_move (natoms, isel, 0)
+            ELSE 
+               CALL pdf_makemove (natoms, i_old, p_old, isel, imol) 
+               DO i = 1, pdf_bin 
+                  pdf_corr (i) = pdf_old (i) 
+               ENDDO 
+               CALL pdf_convert 
+!              CALL refine_adapt_move (natoms, isel, 0)
 !
-         ENDIF 
+            ENDIF 
 !write(89,7777) itry, rmc_maxmove(1,1), cold
 !7777 format(i5,2(1x,G20.6e3))
-ENDIF
+         ENDIF
 !                                                                       
 !------ --WRITE info and terminate or loop again                        
 !                                                                       
-      ENDIF 
+         ENDIF 
 !                                                                       
-      loop = (itry.lt.rmc_maxcyc) 
+         loop = (itry.lt.rmc_maxcyc) 
 !                                                                       
-      IF (igen.gt.1000 * rmc_display.and.itry.eq.0) then 
-         ier_num = - 20 
-         ier_typ = ER_RMC 
-         loop = .false. 
-      ENDIF 
+         IF (igen.gt.1000 * rmc_display.and.itry.eq.0) then 
+            ier_num = - 20 
+            ier_typ = ER_RMC 
+            loop = .false. 
+         ENDIF 
 !                                                                       
-      IF (mod (igen, rmc_display) .eq.0.or..not.loop) then 
-         IF (.not.loop) WRITE (output_io, 1250) pdf_skal 
-         WRITE (output_io, 1300) igen, itry, iacc_good, iacc_bad, cold 
-      ENDIF 
-      ENDDO 
+         IF (mod (igen, rmc_display) .eq.0.or..not.loop) then 
+            IF (.not.loop) WRITE (output_io, 1250) pdf_skal 
+            WRITE (output_io, 1300) igen, itry, iacc_good, iacc_bad, cold 
+         ENDIF 
+      ENDDO  main    ! end of main loop
 !                                                                       
 !------ WRITE timing summary and "prob" statistics                      
 !                                                                       
@@ -2063,21 +2138,19 @@ laccept = .false.
       USE rmc_mod 
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      REAL p_new (3, rmc_max_atom) 
-      INTEGER i_new (rmc_max_atom) 
-      INTEGER isel (rmc_max_atom) 
-      INTEGER imol (rmc_max_atom) 
-      INTEGER natoms 
+      INTEGER , INTENT(IN) :: natoms 
+      REAL    , INTENT(IN) :: p_new (3, rmc_max_atom) 
+      INTEGER , INTENT(IN) :: i_new (rmc_max_atom) 
+      INTEGER , INTENT(IN) :: isel (rmc_max_atom) 
+      INTEGER , INTENT(IN) :: imol (rmc_max_atom) 
 !                                                                       
       INTEGER i, j, is 
 !                                                                       
       DO i = 1, natoms 
-      cr_iscat (isel (i) ) = i_new (i) 
-      DO j = 1, 3 
-      cr_pos (j, isel (i) ) = p_new (j, i) 
-      ENDDO 
+         cr_iscat (isel (i) ) = i_new (i) 
+         DO j = 1, 3 
+            cr_pos (j, isel (i) ) = p_new (j, i) 
+         ENDDO 
       ENDDO 
 !                                                                       
       IF (.not.rmc_sel_atom.and.rmc_mode.eq.rmc_mode_swchem) then 
@@ -2105,11 +2178,10 @@ laccept = .false.
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      LOGICAL , INTENT(IN) :: lout 
 !                                                                       
       INTEGER i, j, ia, id 
       REAL done, sum 
-      LOGICAL lout 
 !
       INTEGER              :: npoint   !Number of points for histogram in exact mode
       INTEGER              :: nlook    !Number of look up dimensions 
@@ -2194,9 +2266,9 @@ laccept = .false.
 !           RETURN
 !        ENDIF
       ENDIF
-      pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
-         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
-         ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
+!      pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
+!         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
+!         ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
 !      ENDIF
 !                                                                       
 !------ Reset arrays                                                    
@@ -2211,8 +2283,8 @@ laccept = .false.
 !      ENDDO 
 !      ENDDO 
 !      ENDDO 
-      pdf_corr  = 0.0
-      pdf_temp  = 0
+      pdf_corr(:)  = 0.0
+      pdf_temp(:,:,:,:)  = 0
 !
       all_atoms = .true.
       do i=1,cr_nscat
@@ -2438,16 +2510,17 @@ laccept = .false.
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER , INTENT(IN)  :: ia 
+      REAL    , INTENT(IN)  :: rsign
+      REAL    , INTENT(OUT) :: sum 
 !                                                                       
       INTEGER ig, igaus, ib, ie 
       INTEGER :: jgaus  ! Limit checked igaus
-      INTEGER i, j, k, ii, jj, kk, is, js, ks, ia, iatom, ibin
+      INTEGER i, j, k, ii, jj, kk, is, js, ks, iatom, ibin
       INTEGER istart (3), iend (3), iii (3), cell (3) 
 !     REAL(dp) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
 !      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
       REAL(dp), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
-      REAL rsign, sum 
       REAL asym, gnorm, dist, dist2 !, rg 
       REAL sigma, fac , factor, fac4
       REAL dd (3), d (3), offset (3) 
@@ -2542,7 +2615,8 @@ laccept = .false.
                   ib = max (1, ibin - igaus + 1) 
                   ie = min (pdf_bin, ibin + igaus - 1) 
 !                                                                       
-                  IF (sigma.le.0.0.or.igaus.lt.2) then 
+                  factor = REAL(pdf_deltar/pdf_gauss_step/sigma)
+                  IF (sigma.le.0.0.or.igaus.lt.2.or. factor>UBOUND(pdf_exp,1)/2) then 
                      pdf_corr (ibin) = pdf_corr (ibin) + rsign *        &
                      pdf_weight (is, js) / pdf_deltar                   
                   ELSE 
@@ -2581,6 +2655,7 @@ laccept = .false.
          ENDDO 
          ENDDO 
       ENDIF 
+!
 !                                                                       
       END SUBROUTINE pdf_addcorr                    
 !*****7*****************************************************************
@@ -2598,8 +2673,9 @@ laccept = .false.
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER , INTENT(IN) :: ia
 !                                                                       
-      INTEGER i, j, k, ii, is, js, ks, ia, iatom, ibin , islook
+      INTEGER i, j, k, ii, is, js, ks, iatom, ibin , islook
       INTEGER  :: ipdf_rmax
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       INTEGER  :: offzero
@@ -2708,8 +2784,9 @@ laccept = .false.
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER , INTENT(IN) :: ia
 !                                                                       
-      INTEGER i, j, k, ii, jj, is, js, ks, ia, iatom, ibin 
+      INTEGER i, j, k, ii, jj, is, js, ks, iatom, ibin 
       INTEGER istart (3), iend (3), iii (3), cell (3) 
       INTEGER  :: offzero, islook
       REAL dist, dist2 
@@ -3005,14 +3082,14 @@ inner:      DO iatom = ia+1, cr_natoms
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-       
+      REAL , INTENT(IN)  :: rsign
+      REAL , INTENT(OUT) :: sum 
 !                                                                       
       INTEGER ig, igaus, ib, ie , jgaus
       INTEGER ii, is, js, ibin , ibin1
       INTEGER :: il   ! Index for mole B-values
 !     REAL(dp) gaus ( - MAXDAT:MAXDAT) 
       REAL(dp), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
-      REAL rsign, sum 
       REAL asym, gnorm, dist, dist2 !, rg 
       REAL sigma, fac , factor, fac4
       REAL :: sqrt_zpi

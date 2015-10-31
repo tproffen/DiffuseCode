@@ -15,10 +15,15 @@ INTEGER , PARAMETER  :: PDF_RAD_XRAY = 1
 INTEGER , PARAMETER  :: PDF_RAD_NEUT = 2
 INTEGER , PARAMETER  :: PDF_RAD_ELEC = 3
 !
+INTEGER, PARAMETER :: PDF_DO_CALC = 0 ! Calculate PDF from structure
+INTEGER, PARAMETER :: PDF_DO_FIT  = 1 ! Refine    PDF
+INTEGER, PARAMETER :: PDF_DO_SHOW = 2 ! Show PDF, mode not yet known
+!
 INTEGER             ::  PDF_MAXSCAT      = 1
 INTEGER             ::  PDF_MAXDAT       = 1
 INTEGER             ::  PDF_MAXBND       = 1
 INTEGER             ::  PDF_MAXTEMP      = 1
+INTEGER             ::  PDF_MAXSINCC     = 2**12+1
 !
 INTEGER             ::  pdf_nscat = 1
 INTEGER             ::  pdf_ndat  = 1
@@ -30,7 +35,7 @@ REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
 INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXTEMP,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
-REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
+!REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
 REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sincc  ! (2*MAXDAT)
 REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
 REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
@@ -42,17 +47,25 @@ REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
 !REAL   , DIMENSION(MAXDAT)             ::  pdf_wic    ! (MAXDAT)
 !REAL   , DIMENSION(2*MAXDAT)           ::  pdf_sinc   ! (2*MAXDAT)
 !REAL   , DIMENSION(0:MAXSCAT,0:MAXSCAT) ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
-REAL                ::  pdf_rmax   = 50.00
+REAL                ::  pdf_rmin   =  0.001   ! Minimum distance to calculate, internal value
+REAL                ::  pdf_rminu  =  0.01    ! Minimum distance to calculate, user value
+REAL                ::  pdf_rmax   = 50.00    ! Maximum distance to calculate, internal value
+REAL                ::  pdf_rmaxu  = 50.00    ! Maximum distance to calculate, user value
 REAL                ::  pdf_qmax   = 30.00
 REAL                ::  pdf_deltar =  0.001   ! internal delta r
 REAL                ::  pdf_deltars=  0.0005
 REAL                ::  pdf_deltaru=  0.01    ! User supplied delta r
 INTEGER             ::  pdf_us_int            ! Ratio user steps to internal steps
+INTEGER             ::  pdf_mode   =  PDF_DO_CALC ! PDF mode, default to 'calc'
 REAL                ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00
 REAL                ::  pdf_xq     =  0.00
-REAL                ::  pdf_rfmin  =  0.05
-REAL                ::  pdf_rfmax  = 15.00
+REAL                ::  pdf_rfmin  =  0.01    ! distance range for refinement, internal value
+REAL                ::  pdf_rfmax  =  0.01    ! distance range for refinement, internal value
+REAL                ::  pdf_rfminu =  0.01    ! distance range for refinement, user value
+REAL                ::  pdf_rfmaxu =  0.01    ! distance range for refinement, user value
+REAL                ::  pdf_rfminf =  0.01    ! distance range for refinement, file value
+REAL                ::  pdf_rfmaxf =  0.01    ! distance range for refinement, file value
 REAL                ::  pdf_delta  =  0.00
 REAL                ::  pdf_rcut   =  0.00
 REAL                ::  pdf_srat   =  1.00
