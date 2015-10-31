@@ -265,7 +265,7 @@ SUBROUTINE stack
 !                                                                       
                ELSEIF (str_comp (befehl, 'four', 1, lbef, 4) ) then 
                   four_log = .true. 
-                  CALL st_fourier 
+                  CALL st_fourier (.false.)
                   four_was_run = .true.
 !                                                                       
 !     ----help 'help','?'                                               
@@ -440,7 +440,8 @@ SUBROUTINE stack
 !
 !                    Allocate rotational stacking faults
 !
-                     CALL alloc_stack ( st_layer_increment, 1, 1, .true.)
+                     CALL alloc_stack ( ST_MAXTYPE, ST_MAXLAYER, ST_MAXQXY, .true. )
+!                    CALL alloc_stack ( st_layer_increment, 1, 1, .true.)
                      IF (str_comp (cpara (1) , 'mode', 1, lpara (1) , 4)&
                      ) then                                             
 !                                                                       
@@ -1744,7 +1745,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
       END SUBROUTINE stack_rot_setup                
 !*****7*****************************************************************
-      SUBROUTINE st_fourier 
+      SUBROUTINE st_fourier (calc_f2aver)
 !-                                                                      
 !     Calculates the Fourier transform of the stacking fault decorated  
 !     by the respective layers.                                         
@@ -1758,18 +1759,22 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE molecule_mod 
       USE discus_save_mod 
       USE stack_mod 
+      USE powder_mod 
+      USE powder_tables_mod 
       USE structur
       USE spcgr_apply
       USE errlist_mod 
       USE prompt_mod 
+      USE wink_mod 
       IMPLICIT none 
 !                                                                       
-       
+      LOGICAL, INTENT(IN) :: calc_f2aver
 !                                                                       
       INTEGER i, j, l 
       INTEGER iscat 
       INTEGER lbeg (3)
       INTEGER ncell 
+      INTEGER         :: n_layers ! Number of layers for current layer type
       INTEGER         :: n_qxy    ! Number of data points in reciprocal space
       INTEGER         :: n_nscat  ! Number of different atom types
       INTEGER         :: n_atoms  ! Number of atoms
@@ -1819,8 +1824,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ --zero some arrays                                              
 !                                                                       
          DO i = 1, num (1) * num (2) 
-!         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         csf (i) = cmplx (0.0, 0.0) 
+!           st_csf(i) = cmplx(0.0d0,0.0d0)                                
+            csf (i) = cmplx (0.0, 0.0) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
          ENDDO 
 !                                                                       
@@ -1892,6 +1897,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             DO i = 1, num (1) * num (2) 
             acsf (i) = tcsf (i) 
             ENDDO 
+            n_layers = nxat
 !                                                                       
 !     ----read corresponding layer                                      
 !                                                                       
@@ -1975,6 +1981,26 @@ internal: IF(st_internal(st_type(i)) ) THEN
             IF (four_log) then 
                WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDIF 
+!
+!------ -------Calculate from factor squared
+!
+               IF(calc_f2aver) THEN
+               DO i = 1, pow_npkt         ! Always over all points in powder pattern!
+                  pow_f2aver (i) = pow_f2aver (i)  + &
+                             real (       cfact_pure(powder_istl(i), iscat)  * &
+                                   conjg (cfact_pure(powder_istl(i), iscat)))  &
+                             * n_layers * nxat
+                  pow_faver2 (i) = pow_faver2 (i) +  &
+                        SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
+                                   conjg (cfact_pure(powder_istl(i), iscat)))) &
+                             * n_layers * nxat
+               ENDDO
+                  pow_nreal = pow_nreal + n_layers * nxat
+               pow_faver2(:) = pow_faver2(:)**2
+               pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
+!write(*,*) ' SLAW  CALCULATE f2aver ', l, pow_u2aver, cr_dw(iscat), iscat, n_layers, nxat, pow_nreal, pow_npkt
+!write(*,*) ' SLAW  CALCULATE form   ', l, cfact_pure(powder_istl(1), iscat), iscat, powder_istl(1)
+               ENDIF
             ENDDO 
 !                                                                       
 !     ------Add product of acsf und st_csf to csf                       
@@ -1989,7 +2015,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          CALL st_fourier_aver 
          DO i = 1, num (1) * num (2) 
-         csf (i) = csf (i) - acsf (i) 
+            csf (i) = csf (i) - acsf (i) 
          ENDDO 
       ELSE 
          ier_num = - 8 
@@ -1999,8 +2025,25 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Compute intensity                                                 
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      dsi (i) = real (csf (i) * conjg (csf (i) ) ) 
+         dsi (i) = real (csf (i) * conjg (csf (i) ) ) 
       ENDDO 
+!
+!     CALCULATE normalized average squared atomic form factor
+!
+      IF(calc_f2aver) THEN
+      DO i=1,pow_npkt
+         pow_f2aver(i) = pow_f2aver(i) / pow_nreal
+         pow_faver2(i) = pow_faver2(i) / pow_nreal
+      ENDDO
+      pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
+write(*,*) ' IN ST_FOURIER pow_nreal , pow_f2aver(1),  pow_u2aver ', &
+         pow_nreal , pow_f2aver(1),  pow_u2aver, pow_npkt
+open(67,file='POWDER/f2aver',status='unknown')
+do i=1,pow_npkt
+   write(67, '(i5,2x, G15.6E3)') i, pow_f2aver(i)
+enddo
+close(67)
+      ENDIF
 !                                                                       
       IF (four_log) then 
          CALL four_qinfo 

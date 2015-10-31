@@ -39,6 +39,7 @@ CONTAINS
       REAL :: ttheta, lp=1.0
       REAL ss, st 
       REAL :: q=0.0, stl=0.0, dstar=0.0
+      REAL      :: normalizer
       REAL xmin, xmax, xdel , xpos
       REAL      :: xequ    ! x-position of equdistant curve
       REAL      :: yequ    ! y-value    of equdistant curve
@@ -51,6 +52,7 @@ CONTAINS
 !      REAL polarisation 
       REAL sind, asind 
 !
+!write(*,*) 'SLAW IN POWDER_OUT ', num(1)
       IF(.NOT. (value == 1 .or. value == 7 .or. value == 8)) then
          ier_num = -124
          ier_typ = ER_APPL
@@ -102,22 +104,23 @@ CONTAINS
          npkt = num(1)
       ENDIF 
       lread = .false. 
+!write(*,*) ' SLAW Point 2 ', num(1), npkt
       IF (ier_num.eq.0) then 
          IF (pow_four_type.ne.POW_COMPL) then 
 !                                                                       
 !     This is a Debye calculation, copy rsf or csf into pow_tmp         
 !                                                                       
             IF (pow_four_type.eq.POW_DEBYE) then 
-               IF (num (1) .lt.POW_MAXPKT) then 
-                  DO j = 1, num (1) 
+               IF (npkt    .lt.POW_MAXPKT) then 
+                  DO j = 1, npkt    
                   pow_tmp (j) = real (csf (j) ) 
                   ENDDO 
                ENDIF 
             ELSEIF (                                                    &
             pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST)     &
             then                                                        
-               IF (num (1) .le.POW_MAXPKT) then 
-                  DO j = 1, num (1) 
+               IF (npkt    .le.POW_MAXPKT) then 
+                  DO j = 1, npkt    
                   pow_tmp (j) = rsf (j) 
                   ENDDO 
                ENDIF 
@@ -125,33 +128,6 @@ CONTAINS
          ELSE
             pow_tmp(:) = pow_qsp(:)
          ENDIF 
-         IF(value == 7) THEN
-            IF (pow_axis.eq.POW_AXIS_Q) then 
-               CALL powder_f2aver (num(1) )
-               DO j = 1, num (1)
-                  q = ((j-1)*xdel + xmin)
-                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
-                               + 1.0 - exp(-q**2*pow_u2aver)) 
-               ENDDO
-            ELSE
-               ier_num = -125
-               ier_typ = ER_APPL
-               RETURN
-            ENDIF
-         ELSEIF(value == 8) THEN
-            IF (pow_axis.eq.POW_AXIS_Q) then 
-               CALL powder_f2aver (num(1) )
-               DO j = 1, num (1)
-                  q = ((j-1)*xdel + xmin)
-                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/pow_nreal   &
-                                     - exp(-q**2*pow_u2aver)) * q
-               ENDDO
-            ELSE
-               ier_num = -125
-               ier_typ = ER_APPL
-               RETURN
-            ENDIF
-         ENDIF
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                                       
@@ -174,6 +150,52 @@ CONTAINS
                pow_eta, pow_w, pow_width, POW_MAXPKT)
             ENDIF 
          ENDIF 
+!write(*,*) ' SLAW Point 3', value, pow_axis, POW_AXIS_Q
+         IF(value == 7) THEN
+            IF (pow_axis.eq.POW_AXIS_Q) then 
+               IF(.NOT.(pow_four_mode == POW_STACK)) THEN
+                  CALL powder_f2aver (npkt   )
+               ENDIF
+               IF (pow_four_type.eq.POW_COMPL) THEN
+                  normalizer = pow_nreal**2
+               ELSEIF(POW_four_type.eq.POW_DEBYE) THEN
+                  normalizer = pow_nreal
+               ENDIF
+!write(*,*) ' SLAW 5th powder_f2aver', npkt  , pow_four_mode, POW_STACK, pow_nreal, normalizer
+!write(*,*) ' SLAW 1st powder_f2aver done ',pow_f2aver(1), pow_u2aver 
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/normalizer   &
+                               + 1.0 - exp(-q**2*pow_u2aver)) 
+               ENDDO
+            ELSE
+               ier_num = -125
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+         ELSEIF(value == 8) THEN
+            IF (pow_axis.eq.POW_AXIS_Q) then 
+               IF(.NOT.(pow_four_mode == POW_STACK)) THEN
+                  CALL powder_f2aver (npkt   )
+               ENDIF
+               IF (pow_four_type.eq.POW_COMPL) THEN
+                  normalizer = pow_nreal**2
+               ELSEIF(POW_four_type.eq.POW_DEBYE) THEN
+                  normalizer = pow_nreal
+               ENDIF
+!write(*,*) ' SLAW 1st powder_f2aver', npkt  , pow_four_mode, POW_STACK, pow_nreal, normalizer
+!write(*,*) ' SLAW 1st powder_f2aver done ',pow_f2aver(1), pow_u2aver 
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  pow_tmp(j) =  (pow_tmp(j)/pow_f2aver(j)/normalizer   &
+                                     - exp(-q**2*pow_u2aver)) * q
+               ENDDO
+            ELSE
+               ier_num = -125
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+         ENDIF
 !                                                                       
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
@@ -222,7 +244,7 @@ CONTAINS
                st     = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda
                uin(1) = (ss - st) / 2. 
             ENDIF 
-            DO ii = 1, num (1) 
+            DO ii = 1, npkt    
             dstar = (xm (1) + (ii - 1) * uin (1) ) 
             stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
             q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
@@ -886,6 +908,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       USE crystal_mod 
       USE diffuse_mod 
       USE powder_mod 
+      USE powder_tables_mod 
       USE wink_mod
 !
       IMPLICIT NONE
@@ -897,10 +920,10 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER :: iscat
       INTEGER :: i
 !!!
-      pow_f2aver = 0.0
-      pow_faver2 = 0.0
-      pow_u2aver = 0.0
-      pow_nreal  = 0
+      pow_f2aver(:) = 0.0
+      pow_faver2(:) = 0.0
+      pow_u2aver    = 0.0
+      pow_nreal     = 0
 !
 !     Prepare and calculate average atom numbers
 !
@@ -910,22 +933,37 @@ END SUBROUTINE powder_conv_psvgt_fix
          natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
       ENDDO
       pow_nreal = SUM(natom)  ! Add real atom numbers 
+!write(*,*) ' IN POWDER_F2AVER ', LBOUND(pow_f2aver), UBOUND(pow_f2aver)
+!write(*,*) ' IN POWDER_F2AVER ', LBOUND(pow_faver2), UBOUND(pow_faver2)
+!write(*,*) '  ISTL            ', LBOUND(powder_istl      ), UBOUND(powder_istl      )
+!write(*,*) '  cfact_pure      ', LBOUND(cfact_pure), UBOUND(cfact_pure)
+!write(*,*) ' FORM             ', powder_istl(1), &
+!                      real (       cfact_pure(powder_istl(i), iscat)  * &
+!                            conjg (cfact_pure(powder_istl(i), iscat)))  &
+!                          , natom (1)/pow_nreal
 !
       DO iscat = 1, cr_nscat
          DO i = 1, num1
             pow_f2aver (i) = pow_f2aver (i)  + &
-                       real (       cfact_pure(istl(i), iscat)  * &
-                             conjg (cfact_pure(istl(i), iscat)))  &
+                       real (       cfact_pure(powder_istl(i), iscat)  * &
+                             conjg (cfact_pure(powder_istl(i), iscat)))  &
                      * natom (iscat)/pow_nreal
             pow_faver2 (i) = pow_faver2 (i) +  &
-                  SQRT(real (       cfact_pure(istl(i), iscat)  * &
-                             conjg (cfact_pure(istl(i), iscat)))) &
+                  SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
+                             conjg (cfact_pure(powder_istl(i), iscat)))) &
                      * natom (iscat)/pow_nreal
          ENDDO
-         pow_u2aver = pow_u2aver + cr_dw(iscat)
+         pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
       ENDDO
-      pow_u2aver = pow_u2aver /8./pi**2
+      pow_faver2(:) = pow_faver2(:)**2
+      pow_u2aver    = pow_u2aver /8./pi**2
       DEALLOCATE(natom)
+!
+!open(17,file='POWDER/f2aver', status='unknown')
+!do i=1, num1
+!   write(17, '(2(G15.7E3,2x))') powder_istl(i), pow_f2aver (i)
+!enddo
+!close(17)
 !
       END SUBROUTINE powder_f2aver
 END MODULE powder_write_mod

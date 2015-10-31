@@ -38,6 +38,7 @@ INTEGER, PARAMETER  :: POW_LP_SYNC         = 3
 INTEGER, PARAMETER  :: POW_LP_CORRE        = 4
 !
 INTEGER                  :: pow_axis       = POW_AXIS_Q
+INTEGER                  :: pow_npkt       = 1           ! Actual number of powder data points
 !
 INTEGER                  :: pow_four_mode  = 0
 INTEGER                  :: pow_four_type  = POW_COMPL

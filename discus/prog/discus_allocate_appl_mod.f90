@@ -1737,11 +1737,11 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_sinc      ,1,2*n_dat+1, all_status, def_dbl  , size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      pdf_size_of = pdf_size_of + size_of
+!     CALL alloc_arr ( pdf_sinc      ,1,2*n_dat+1, all_status, def_dbl  , size_of)
+!     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!     pdf_size_of = pdf_size_of + size_of
 !
-      CALL alloc_arr ( pdf_sincc     ,1,2*n_dat+1, all_status, def_dbl  , size_of)
+      CALL alloc_arr ( pdf_sincc     ,1,PDF_MAXSINCC, all_status, def_dbl  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !

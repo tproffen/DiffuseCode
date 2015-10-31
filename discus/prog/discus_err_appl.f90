@@ -222,12 +222,14 @@
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = -9, IO = 0) 
+      PARAMETER (IU = -11, IO = 0) 
 !                                                                       
       CHARACTER(LEN=45) ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR ( -9:  0) /                              &
-          'No atoms in asymmetric unit',                  & !  -r98
+      DATA ERROR ( IU: IO) /                              &
+          'User Fit maximum outside data range ',         & !  -11
+          'User Fit minimum outside data range ',         & !  -10
+          'No atoms in asymmetric unit',                  & !  -9
           'Atom type ALL not allowed              ',      & !  -8
           'Disable Gaussian mode and recalculate  ',      & !  -7
           'PDF range fixed with data loaded ',            & !  -6

@@ -1114,6 +1114,7 @@ CONTAINS
       USE fourier_sup
       USE metric_mod
       USE powder_mod 
+      USE powder_tables_mod 
       USE stack_menu
       USE wink_mod
 !                                                                       
@@ -1140,8 +1141,10 @@ CONTAINS
       LOGICAL l_hh_real 
       LOGICAL l_kk_real 
       LOGICAL l_ll_real 
+      LOGICAL                   :: calc_f2aver
       REAL llstart, llend 
       REAL :: llstart2=0.0, llend2=1.0
+      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL hh, kk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
@@ -1163,6 +1166,7 @@ CONTAINS
       n_nscat = 1
       n_pkt   = 1
       l_twoparts = .false.
+      calc_f2aver = .true.
 !                                                                       
 !DBG_RBN      open(13,file='hkl.list',status='unknown')                 
       ss = seknds (0.0) 
@@ -1171,8 +1175,8 @@ CONTAINS
 !                                                                       
       inc (2) = 1 
       DO i = 1, 3 
-      vi (i, 1) = 0.0 
-      vi (i, 2) = 0.0 
+         vi (i, 1) = 0.0 
+         vi (i, 2) = 0.0 
       ENDDO 
       vi (3, 1) = pow_hkl_del (3) 
       four_log = .false. 
@@ -1187,12 +1191,18 @@ CONTAINS
       ENDIF
 !     reset powder diagramm                                             
 !                                                                       
-      DO i = 1, POW_MAXPKT 
-      pow_qsp (i) = 0.0 
-      ENDDO 
+      pow_qsp(:)    = 0.0     ! 0:POW_MAXPKT
+      pow_f2aver(:) = 0.0     ! 0:POW_MAXPKT
+      pow_faver2(:) = 0.0     ! 0:POW_MAXPKT
+      pow_nreal     = 0
+      pow_u2aver    = 0.0
+!     DO i = 1, POW_MAXPKT 
+!     pow_qsp (i) = 0.0 
+!     ENDDO 
       IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
+          n_pkt             .gt. MAXQXY  .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
-        n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
+        n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
         call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
         IF (ier_num /= 0) THEN
@@ -1202,6 +1212,12 @@ CONTAINS
 !                                                                       
 !------ calculate complex exponent table, form factor table             
 !                                                                       
+      pow_npkt = n_pkt            ! set actual number of powder data points
+      IF(pow_axis == POW_AXIS_Q ) THEN
+         xstart = pow_qmin  /zpi
+         xdelta = pow_deltaq/zpi
+         CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ENDIF
       CALL four_cexpt 
       CALL four_formtab 
       CALL powder_getatoms 
@@ -1478,7 +1494,8 @@ CONTAINS
                   CALL four_run_powder 
                ENDIF 
             ELSEIF (pow_four_mode.eq.POW_STACK) then 
-               CALL st_fourier 
+               CALL st_fourier(calc_f2aver)
+               calc_f2aver = .false.
             ENDIF 
             DO i = 1, inc (1) 
             hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
@@ -1575,7 +1592,8 @@ CONTAINS
                      CALL four_run_powder 
                   ENDIF 
                ELSEIF (pow_four_mode.eq.POW_STACK) then 
-                  CALL st_fourier 
+                  CALL st_fourier(calc_f2aver)
+                  calc_f2aver = .false.
                ENDIF 
                DO i = 1, inc (1) 
                hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
@@ -1631,7 +1649,6 @@ CONTAINS
 !DBG        close(18)                                                   
       ENDDO 
 !                                                                       
-!write(*,*) ' ABOUT TO deallocate   ; ier_num', ier_num
       CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !
 !     Prepare and calculate average form factors
@@ -1669,6 +1686,7 @@ CONTAINS
       USE metric_mod
       USE output_mod 
       USE powder_mod 
+      USE powder_tables_mod 
       USE wink_mod
 !                                                                       
       USE prompt_mod 
@@ -1686,6 +1704,7 @@ CONTAINS
       INTEGER                :: n_qxy
       INTEGER                :: n_nscat
       REAL                   :: distance
+      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
       REAL                   :: shift
       REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
@@ -1751,6 +1770,7 @@ CONTAINS
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
         CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
       ENDIF
+
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, 0, MASK )
 !     IF(pow_axis == POW_AXIS_Q ) THEN
 !        n_qxy = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
@@ -1802,8 +1822,15 @@ CONTAINS
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
+      pow_npkt = n_qxy    ! set actual number of powder data points
       CALL powder_sinet 
-      CALL powder_stltab 
+      IF(pow_axis == POW_AXIS_Q ) THEN
+         xstart = pow_qmin  /zpi
+         xdelta = pow_deltaq/zpi
+         CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+         CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ENDIF
       IF (ier_num.ne.0) return 
       CALL four_formtab 
 !DBG                                                                    
@@ -1905,8 +1932,8 @@ CONTAINS
       DO j = i, cr_nscat 
       DO k = 1, num (1) * num (2) 
       rsf (k) = rsf (k) + 2.0 * partial (k, look (i, j),0 ) * (real (     &
-      cfact (istl (k), i) ) * real (cfact (istl (k), j) ) + aimag (     &
-      cfact (istl (k), i) ) * aimag (cfact (istl (k), j) ) )            
+      cfact (powder_istl (k), i) ) * real  (cfact (powder_istl (k), j) ) + aimag (     &
+      cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
       ENDDO 
       ENDDO 
       ENDDO 
@@ -1920,8 +1947,8 @@ CONTAINS
 !     pow_u2aver = 0.0
       DO iscat = 1, cr_nscat 
       DO i = 1, num (1) * num (2) 
-      rsf (i) = rsf (i) + real (cfact (istl (i), iscat) * conjg (cfact (&
-      istl (i), iscat) ) ) * natom (iscat)                              
+      rsf (i) = rsf (i) + real (cfact (powder_istl (i), iscat) * &
+                         conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)                              
 !     pow_f2aver (i) = pow_f2aver (i)  + &
 !                      real (       cfact_pure(istl(i), iscat)  * &
 !                            conjg (cfact_pure(istl(i), iscat)))  &
@@ -1969,6 +1996,7 @@ CONTAINS
       USE molecule_mod
       USE output_mod 
       USE powder_mod 
+      USE powder_tables_mod 
       USE wink_mod
 !                                                                       
       USE prompt_mod 
@@ -1996,6 +2024,7 @@ CONTAINS
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
       INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
       REAL                   :: distance
+      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
       REAL                   :: shift
       REAL u (3), v (3) 
@@ -2111,8 +2140,15 @@ CONTAINS
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
+      pow_npkt = n_qxy    ! set actual number of powder data points
       CALL powder_sinet 
-      CALL powder_stltab 
+      IF(pow_axis == POW_AXIS_Q ) THEN
+         xstart = pow_qmin  /zpi
+         xdelta = pow_deltaq/zpi
+         CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
+         CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ENDIF
       IF (ier_num.ne.0) return 
       CALL four_formtab 
 !
@@ -2194,6 +2230,7 @@ CONTAINS
          ENDDO 
       ENDDO 
       ENDDO 
+!
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
 !     to total sum                                                      
@@ -2203,9 +2240,9 @@ CONTAINS
             DO k = 1, num (1) * num (2) 
                DO il=0,powder_nmol
                   rsf(k) = rsf (k) + 2.0 * partial (k, look (i, j),il ) *       &
-                           (real(cfact(istl(k),i)) * real (cfact(istl(k),j)) +  &
-                           aimag(cfact(istl(k),i)) * aimag(cfact(istl(k),j)))*  &
-                           pow_dw(istl(k),il)
+                           (real(cfact(powder_istl(k),i)) * real (cfact(powder_istl(k),j)) +  &
+                           aimag(cfact(powder_istl(k),i)) * aimag(cfact(powder_istl(k),j)))*  &
+                           pow_dw(powder_istl(k),il)
                ENDDO 
             ENDDO 
          ENDDO 
@@ -2216,8 +2253,8 @@ CONTAINS
 !                                                                       
       DO iscat = 1, cr_nscat 
          DO i = 1, num (1) * num (2) 
-            rsf(i) = rsf(i) + real(cfact(istl(i),iscat) * &
-                             conjg(cfact(istl(i),iscat))) * natom(iscat)
+            rsf(i) = rsf(i) + real(cfact(powder_istl(i),iscat) * &
+                             conjg(cfact(powder_istl(i),iscat))) * natom(iscat)
          ENDDO 
       ENDDO 
 !
@@ -2393,39 +2430,6 @@ CONTAINS
 !                                                                       
 !!      END SUBROUTINE powder_sine_f                  
 !*****7*****************************************************************
-      SUBROUTINE powder_sinet 
-!+                                                                      
-!     This routine initialises the real sine lookup table and           
-!     is called only at the first Powder run.                           
-!-                                                                      
-      USE discus_config_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-!                                                                       
-      USE prompt_mod 
-      IMPLICIT none 
-!                                                                       
-      REAL(dp) twopi, xmult, xarg, xt 
-      INTEGER i 
-!                                                                       
-      WRITE (output_io, 1000) 
-!                                                                       
-      xt = 1.0d0 / float (I2PI) 
-      twopi = 8.0d0 * datan (1.0d0) 
-!                                                                       
-!DBG      open(9,file='SINETAB.DAT',status='unknown')                   
-      DO i = 0, MASK 
-      xmult = float (i) * xt 
-      xarg = twopi * xmult 
-      sinetab (i) = real( dsin (xarg) )
-!DBG      write(9,*) xarg,real(sinetab(i))                              
-      ENDDO 
-      ffour = .false. 
-!DBG      close(9)                                                      
-!                                                                       
- 1000 FORMAT     (' Computing powder sine lookup table ...') 
-      END SUBROUTINE powder_sinet                   
-!*****7*****************************************************************
       SUBROUTINE powder_getatm (iscat, i_start) 
 !+                                                                      
 !     This routine creates an atom list of atoms of type 'iscat'        
@@ -2459,64 +2463,6 @@ CONTAINS
       ENDIF 
       ENDDO 
       END SUBROUTINE powder_getatm                  
-!*****7*****************************************************************
-      SUBROUTINE powder_stltab 
-!+                                                                      
-!     Sets up an integer array containing the corresponding integers    
-!     to the formfactor table for each sin(theta)/lambda.               
-!-                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE debye_mod
-      USE diffuse_mod 
-!                                                                       
-      USE prompt_mod 
-      IMPLICIT none 
-       
-!                                                                       
-      REAL q2 
-      INTEGER i
-      INTEGER     :: n_qxy   ! Maximum number of points in reciprocal space 
-      INTEGER     :: n_nscat ! Maximum Number of atom type
-!
-      n_qxy   = 1
-      n_nscat = 1
-!                                                                       
-      IF (four_log) then 
-         WRITE (output_io, 1000) 
-      ENDIF 
-!                                                                       
-      IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
-          num (1) * num (2) .gt. MAXDQXY .OR.          &
-          cr_nscat>DIF_MAXSCAT              ) THEN
-         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
-         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
-        IF (ier_num.ne.0) THEN
-          RETURN
-        ENDIF
-      ENDIF
-      DO i = 1, num (1) 
-      q2 = ( (xm (1) + uin (1) * float (i - 1) ) **2) / 4.0 
-      istl (i) = nint (sqrt (q2) * (1.0 / CFINC) ) 
-!DBG                                                                    
-!DBG      if(i.eq.150) then                                             
-!DBG        write(*,*) 'q2  ', q2                                       
-!DBG        write(*,*) 'q   ', sqrt(q2)                                 
-!DBG        write(*,*) 'istl',istl(i)                                   
-!DBG      endif                                                         
-!                                                                       
-      IF (istl (i) .gt.CFPKT) then 
-         ier_num = - 3 
-         ier_typ = ER_FOUR 
-         RETURN 
-      ENDIF 
-!                                                                       
-      ENDDO 
-!                                                                       
- 1000 FORMAT     (' Computing sin(theta)/lambda table ...') 
-      END SUBROUTINE powder_stltab                  
 !*****7*****************************************************************
       SUBROUTINE four_run_powder 
 !+                                                                      

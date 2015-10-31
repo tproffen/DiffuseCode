@@ -562,8 +562,11 @@ MODULE nr
       END INTERFACE
       INTERFACE
 !           FUNCTION convlv(data,respns,isign)
-            SUBROUTINE convlv_sub(convlv,data,respns,isign)
+            SUBROUTINE convlv_sub(NDATA, NRESPNS,convlv,data,respns,isign)
+!!!!!       SUBROUTINE convlv_sub(convlv,data,respns,isign)
             USE nrtype
+            INTEGER               , INTENT(IN) :: NDATA
+            INTEGER               , INTENT(IN) :: NRESPNS
             REAL(DP), DIMENSION(:), INTENT(IN) :: data
             REAL(DP), DIMENSION(:), INTENT(IN) :: respns
             INTEGER(I4B), INTENT(IN) :: isign
