@@ -1890,7 +1890,7 @@ close(89)
       REAL    , INTENT(INOUT) :: pn 
       REAL    , INTENT(IN)    :: sig2
 !
-      INTEGER  :: i, ip, nmi, nma
+      INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
       REAL(dp) :: c, cc, ce, cnew
       REAL     :: pdf_old_scale
@@ -1918,14 +1918,15 @@ close(89)
          ENDDO 
          CALL pdf_convert
          cnew = 0.0d0 
-         c = 0.0 
-         cc = 0.0 
-         ce = 0.0 
+         c    = 0.0 
+         cc   = 0.0 
+         ce   = 0.0 
 !                                                                       
-         DO ip = nmi, nma 
-         c = c + pdf_wic (ip) * pdf_calc (ip) 
-         cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
-         ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
+         DO ip = nmi, nma/pdf_us_int
+            ipc = (ip-1)*pdf_us_int + 1
+            c   = c  + pdf_wic (ip) * pdf_calc (ipc) 
+            cc  = cc + pdf_wic (ip) * pdf_calc (ipc) **2 
+            ce  = ce + pdf_wic (ip) * pdf_calc (ipc) * pdf_obs (ip) 
          ENDDO 
          IF (rmc_doskal) then 
             pdf_skal = REAL(ce / cc )
@@ -1993,7 +1994,7 @@ close(89)
       REAL    , INTENT(INOUT) :: pn 
       REAL    , INTENT(IN)    :: sig2
 !
-      INTEGER  :: i, ip, nmi, nma
+      INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
       REAL(dp) :: c, cc, ce, cnew
       REAL, DIMENSION(6) :: pdf_old_lattice
@@ -2068,14 +2069,15 @@ laccept = .false.
          ENDDO 
          CALL pdf_convert
          cnew = 0.0d0 
-         c = 0.0 
-         cc = 0.0 
-         ce = 0.0 
+         c    = 0.0 
+         cc   = 0.0 
+         ce   = 0.0 
 !                                                                       
-         DO ip = nmi, nma 
-         c = c + pdf_wic (ip) * pdf_calc (ip) 
-         cc = cc + pdf_wic (ip) * pdf_calc (ip) **2 
-         ce = ce+pdf_wic (ip) * pdf_calc (ip) * pdf_obs (ip) 
+         DO ip = nmi, nma/pdf_us_int
+            ipc = (ip-1)*pdf_us_int + 1
+            c   = c  + pdf_wic (ip) * pdf_calc (ipc) 
+            cc  = cc + pdf_wic (ip) * pdf_calc (ipc) **2 
+            ce  = ce + pdf_wic (ip) * pdf_calc (ipc) * pdf_obs (ip) 
          ENDDO 
          IF (rmc_doskal) then 
             pdf_skal = REAL(ce / cc )
