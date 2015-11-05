@@ -2037,7 +2037,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       ENDDO
       pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
 !write(*,*) ' IN ST_FOURIER pow_nreal , pow_f2aver(1),  pow_u2aver ', &
-         pow_nreal , pow_f2aver(1),  pow_u2aver, pow_npkt
+!         pow_nreal , pow_f2aver(1),  pow_u2aver, pow_npkt
 !open(67,file='POWDER/f2aver',status='unknown')
 !do i=1,pow_npkt
 !   write(67, '(i5,2x, G15.6E3)') i, pow_f2aver(i)

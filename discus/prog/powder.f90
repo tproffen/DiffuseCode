@@ -1217,6 +1217,8 @@ CONTAINS
          xstart = pow_qmin  /zpi
          xdelta = pow_deltaq/zpi
          CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+      ELSE
+         calc_f2aver = .false.
       ENDIF
       CALL four_cexpt 
       CALL four_formtab 
