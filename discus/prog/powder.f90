@@ -1182,9 +1182,9 @@ CONTAINS
       four_log = .false. 
 !
       IF(pow_axis == POW_AXIS_Q ) THEN
-         n_pkt = INT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
+         n_pkt = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 2
       ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
-         n_pkt = INT((pow_tthmax-pow_tthmin)/pow_deltatth) + 1
+         n_pkt = NINT((pow_tthmax-pow_tthmin)/pow_deltatth) + 2
       ENDIF
       IF(n_pkt .gt. POW_MAXPKT) THEN
          CALL alloc_powder ( n_pkt )
@@ -1762,7 +1762,7 @@ CONTAINS
 !
 !    Allocate arrays
 !
-      n_qxy    = num (1) * num (2)
+      n_qxy    = num (1) * num (2) + 1
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
       n_hist   = nint(distance/pow_del_hist) + 2
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
@@ -2097,7 +2097,7 @@ CONTAINS
 !
 !    Allocate arrays
 !
-      n_qxy    = num (1) * num (2)
+      n_qxy    = num (1) * num (2) + 1
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
       n_hist   = nint(distance/pow_del_hist) + 2
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &

@@ -52,7 +52,6 @@ CONTAINS
 !      REAL polarisation 
       REAL sind, asind 
 !
-!write(*,*) 'SLAW IN POWDER_OUT ', num(1)
       IF(.NOT. (value == 1 .or. value == 7 .or. value == 8)) then
          ier_num = -124
          ier_typ = ER_APPL
@@ -83,7 +82,7 @@ CONTAINS
             ier_msg (3) = ' ' 
             RETURN 
          ENDIF 
-         npkt = NINT((xmax-xmin)/xdel) + 1
+         npkt = MIN(NINT((xmax-xmin)/xdel) + 1, POW_MAXPKT)
       ELSEIF (pow_four_type.eq.POW_HIST ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) then 
             xmin = pow_qmin 
@@ -101,17 +100,16 @@ CONTAINS
             ier_msg (3) = ' ' 
             RETURN 
          ENDIF 
-         npkt = num(1)
+         npkt = MIN(num(1), POW_MAXPKT)
       ENDIF 
       lread = .false. 
-!write(*,*) ' SLAW Point 2 ', num(1), npkt
       IF (ier_num.eq.0) then 
          IF (pow_four_type.ne.POW_COMPL) then 
 !                                                                       
 !     This is a Debye calculation, copy rsf or csf into pow_tmp         
 !                                                                       
             IF (pow_four_type.eq.POW_DEBYE) then 
-               IF (npkt    .lt.POW_MAXPKT) then 
+               IF (npkt    .le.POW_MAXPKT) then 
                   DO j = 1, npkt    
                   pow_tmp (j) = real (csf (j) ) 
                   ENDDO 
@@ -279,7 +277,7 @@ CONTAINS
             ELSE
                tthmax = pow_tthmax
             ENDIF
-            npkt_equi = INT((tthmax-tthmin)/pow_deltatth) + 1
+            npkt_equi = MIN(NINT((tthmax-tthmin)/pow_deltatth) + 1, POW_MAXPKT)
             ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
             ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
@@ -328,7 +326,7 @@ CONTAINS
             ELSE
                qmax = pow_qmax
             ENDIF
-            npkt_equi = NINT((qmax-qmin)/pow_deltaq) + 1
+            npkt_equi = MIN(NINT((qmax-qmin)/pow_deltaq) + 1, POW_MAXPKT)
             ALLOCATE(y2a (0:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
             ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
@@ -370,11 +368,12 @@ CONTAINS
          npkt_wrt = npkt
       ENDIF
 !
+      IF(xwrt(npkt_wrt) > xmax) npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
       CALL powder_do_write (outfile, npkt_wrt, POW_MAXPKT, xwrt, ywrt)
 !
       DEALLOCATE( pow_tmp, stat = all_status)
-      DEALLOCATE( xpl, stat = all_status)
       DEALLOCATE( ypl, stat = all_status)
+      DEALLOCATE( xpl, stat = all_status)
       DEALLOCATE( xwrt, stat = all_status)
       DEALLOCATE( ywrt, stat = all_status)
 !                                                                       
