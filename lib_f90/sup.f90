@@ -725,6 +725,9 @@ SUBROUTINE cmdline_args
 !---- --we assume non interactive input and use 'normal' FORTRAN      
 !---- --READ to avoid EOF problems.                                   
 !                                                                       
+!        On old Red Hat systems uses of readline for the first input
+!        line caused problems. Seems not to be an issue any longer
+         first_input = .false.
          IF (prompt_status.eq.PROMPT_ON.and..not.first_input) then 
             bprom = ' '//prom (1:len_str(prom)) //' > ' 
 !                                                                       
