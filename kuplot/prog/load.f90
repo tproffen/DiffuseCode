@@ -1988,6 +1988,7 @@
       INTEGER ibsl 
       INTEGER :: length 
       INTEGER nl, i, j 
+      INTEGER  :: iostatus
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -2008,7 +2009,9 @@
 !write(*,*) ' POINT 3 ',mine(1:50)
       ENDDO 
       ibsl = index (mine, '\') 
-      READ (mine (3:ibsl - 1), * ) (counts (j), j = i, i + 15) 
+      READ (mine (3:ibsl - 1), * , IOSTAT=iostatus) (counts (j), j = i, i + 15) 
+      IF(IS_IOSTAT_END(iostatus) ) GOTO 20
+      IF(IS_IOSTAT_EOR(iostatus) ) GOTO 20
       nlines = (chane-chana + 1) / 16 - 1 
       nrest = mod (chane-chana, 16) + 1 
 !write(*,*) ' POINT 4 ,Nlines, Nrest ', nlines, nrest 
@@ -2021,7 +2024,9 @@
       i = i + 16 
       ibsl = index (mine, '\') 
       IF(ibsl == 0) ibsl = length+1
-      READ (mine (1:ibsl - 1), * ) (counts (j), j = i, i + 15) 
+      READ (mine (1:ibsl - 1), * , IOSTAT=iostatus) (counts (j), j = i, i + 15) 
+      IF(IS_IOSTAT_END(iostatus) ) GOTO 20
+      IF(IS_IOSTAT_EOR(iostatus) ) GOTO 20
       ENDDO 
       IF(0 < nrest .AND. nrest < 16) THEN
          i = i + 16 
