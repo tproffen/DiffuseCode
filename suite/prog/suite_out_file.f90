@@ -5,7 +5,7 @@
 !
 !  Separate routines for 1D and 2D files
 !
-SUBROUTINE output_save_file_1d( outfile, out_index, npkt1, xwrt, ywrt )
+SUBROUTINE output_save_file_1d( outfile, npkt1, xwrt, ywrt )
 !
 USE kuplot_config
 USE kuplot_mod
@@ -14,7 +14,6 @@ USE errlist_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*),           INTENT(IN) :: outfile
-REAL   , DIMENSION(1:3),     INTENT(IN) :: out_index
 INTEGER,                     INTENT(IN) :: npkt1
 REAL   , DIMENSION(1:npkt1), INTENT(IN) :: xwrt
 REAL   , DIMENSION(1:npkt1), INTENT(IN) :: ywrt
