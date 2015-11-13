@@ -270,9 +270,9 @@ CONTAINS
       INTEGER             :: maxw
       INTEGER, PARAMETER  :: maxw2 = 2
 !
-      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+4)) :: cpara
-      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+4)) :: lpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+4)) :: werte
+      CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
+      INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
+      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
 !
       CHARACTER(LEN=1024), DIMENSION(2)  :: ccpara
       INTEGER            , DIMENSION(2)  :: llpara
@@ -296,7 +296,7 @@ CONTAINS
 !                                                                       
       rmin = 0.0
       rmax = 0.5
-      maxw = MAX(MIN_PARA, MAXSCAT+4)
+      maxw = MAX(MIN_PARA, MAXSCAT+5)     ! (MAXSCAT+ void) + 4 Parameters  
 !                                                                       
 !     Check definitions array
 !
