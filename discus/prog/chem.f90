@@ -3080,6 +3080,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDIF 
 !                                                                       
       lfile = lout.and. (ianz.gt.2) 
+      if(lfile) ianz = ianz - 1  ! Set ianz to actual atom type list
 !                                                                       
       iianz = 1 
       jjanz = 1 
