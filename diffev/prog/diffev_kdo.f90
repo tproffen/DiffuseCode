@@ -470,7 +470,7 @@ ELSE
             ENDIF 
          ENDIF 
       ENDIF 
-   ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) then 
+   ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
       IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
          ier_num =  -24
          ier_typ = ER_APPL
@@ -530,7 +530,7 @@ ELSE
                      CALL read_par_values
                   ENDIF init_slave
                ENDIF
-               call run_mpi_master 
+               CALL run_mpi_master 
             ENDIF 
          ELSE
             ier_num =  -6
