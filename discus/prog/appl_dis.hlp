@@ -890,8 +890,8 @@
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
 2  branch
-!b branch kuplot
-!b branch diffev
+!b branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!b branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
 
    Active within the discus suite only!
 
@@ -903,6 +903,10 @@
   
    The main use will branch to KUPLOT while the discus section
    is run via run_mpi from a DIFFEV slave.
+
+   Optionally the "-macro" qualifier instructs the suite to run the 
+   macro <macro_name> (with its optional parameters) before the 
+   interactive session is started.
 2  change
 !b change "object","character",<number>,{"atom"|"cube"|"cylinder"|"sphere"}
 
@@ -3071,6 +3075,8 @@
 !b
 !b valu { "S(Q)"  | "F(Q)" }
 !b valu { "S(Q)"  | "F(Q)" }
+!b
+!b valu { "f2aver"  | "faver2" }
 
    Sets what value is written to the output file. The keyword given in
    < > corresponds to the value of the average structure factor <F> whereas

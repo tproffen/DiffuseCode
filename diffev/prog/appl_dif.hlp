@@ -468,6 +468,24 @@
    If the calculation of the solutions is quick or if it does not 
    involve random configurations it is faster not to run the backup
    during the refinements. 
+2  branch
+!b branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!b branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+
+   Active within the discus suite only!
+
+   Branches to the "kuplot" or "discus" section.
+
+   Within this section any standard KUPLOT command can be
+   given. The behaviour of "kuplot" is essentially the same
+   as in the stand alone version. Likewise for DISCUS.
+  
+   The main use will branch to KUPLOT while the discus section
+   is run via run_mpi from a DIFFEV slave.
+
+   Optionally the "-macro" qualifier instructs the suite to run the 
+   macro <macro_name> (with its optional parameters) before the 
+   interactive session is started.
 2  compare
 !b compare {"silent"}
 

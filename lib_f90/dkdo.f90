@@ -23,14 +23,22 @@
 !                                                                       
       IMPLICIT none 
 !
+      INTEGER, PARAMETER :: MAXW = 4
+!
       CHARACTER(1024) line 
       CHARACTER(1024) zeile 
       CHARACTER(20) prom 
       CHARACTER(4) befehl 
       CHARACTER(3) cprom (0:3) 
+      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+      INTEGER            , DIMENSION(1:MAXW) :: lpara
+      INTEGER                                :: ianz
       INTEGER jlevel (0:maxlev) 
       INTEGER i, length, lp, lbef 
+      INTEGER         :: indxm
+      INTEGER         :: length_m
       LOGICAL lend, lreg 
+      REAL               , DIMENSION(1:MAXW) ::  werte
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -111,6 +119,15 @@
             ier_typ = ER_MAC 
          ENDIF 
          GOTO 10 
+      ELSEIF(line(1:6)=='branch') THEN
+         indxm = INDEX(line,'-macro')
+         IF(indxm>0) THEN   ! there is a macro name specified, 
+            zeile = line(indxm+7:length)
+            length_m = length - indxm - 6
+            CALL file_kdo(zeile, length_m)
+            line = line(1:indxm-2)
+            length = indxm-2
+         ENDIF
       ENDIF 
 !                                                                       
                                                                         

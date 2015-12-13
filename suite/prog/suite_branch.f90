@@ -14,17 +14,66 @@ USE errlist_mod
 USE prompt_mod
 USE suite_init_mod
 USE suite_setup_mod
+USE charact_mod
 !
 IMPLICIT NONE
+!
+INTEGER, PARAMETER   :: maxw = 40
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 !
+CHARACTER(LEN=1024)  :: line
+CHARACTER(LEN=1024), DIMENSION(1:maxw) :: cpara
+INTEGER            , DIMENSION(1:maxw) :: lpara
+REAL               , DIMENSION(1:maxw) :: werte
 CHARACTER(LEN= 7   ) :: br_pname_old,br_pname_cap_old
 INTEGER              :: br_prompt_status_old
 INTEGER              :: br_ier_sta_old
+INTEGER              :: indxt, indxb, indxm
+INTEGER              :: lbef
+INTEGER              :: lcomm
+INTEGER              :: ianz
+INTEGER              :: i
+LOGICAL              :: lmacro
 !
+INTEGER :: len_str
 LOGICAL str_comp
+!
+!
+! Get parameters on command line
+!
+lmacro = .false.
+indxt  = INDEX (zeile, tab)       ! find a tabulator
+IF(indxt==0) indxt = length + 1
+indxb  = index (zeile, ' ') 
+IF(indxb==0) indxb = length + 1
+indxb  = MIN(indxb,indxt)         ! find first "white" character
+lbef   = min (indxb - 1, 9) 
+!
+line  = ' ' 
+lcomm = 0 
+IF (indxb + 1.le.length) THEN     ! There is space for parameters
+   line  = zeile(indxb + 1:length) 
+   lcomm = length - indxb 
+   CALL rem_leading_bl(line , lcomm)
+ENDIF 
+!
+indxm = INDEX(line,'-macro')
+IF(indxm > 0) THEN                   ! Found '-macro' qualifier
+   lmacro = .true.
+   indxt  = INDEX (zeile, tab)       ! find a tabulator
+   IF(indxt==0) indxt = lcomm + 1
+   indxb  = index (zeile, ' ') 
+   IF(indxb==0) indxb = lcomm + 1
+   indxb  = MIN(indxb,indxt)
+   lbef   = min (indxb - 1, 9) 
+   IF (indxb + 1.le.lcomm) THEN      ! There is space for a macro name
+      line = line(indxb+1:lcomm)     ! copy macro name and parameter list
+      CALL rem_leading_bl(line , lcomm)
+      lcomm = len_str(line)
+   ENDIF
+ENDIF
 !
 br_pname_old         = pname         ! Store old prompt/error status
 br_pname_cap_old     = pname_cap
@@ -44,7 +93,12 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    ENDIF
    CALL kuplot_set_sub ()
    CALL suite_set_sub_branch ()
-   CALL kuplot_loop    ()
+   IF(lmacro) THEN           ! Execute "command line macro"
+      CALL file_kdo(line(1:lcomm),lcomm)
+   ENDIF
+   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+       CALL kuplot_loop    ()
+   ENDIF
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
@@ -64,7 +118,12 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
    ENDIF
    CALL discus_set_sub ()
    CALL suite_set_sub_branch ()
-   CALL discus_loop    ()
+   IF(lmacro) THEN           ! Execute "command line macro"
+      CALL file_kdo(line(1:lcomm),lcomm)
+   ENDIF
+   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+       CALL discus_loop    ()
+   ENDIF
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname
@@ -84,7 +143,12 @@ ELSEIF(str_comp(zeile, 'diffev', 2, length, 6)) THEN
    ENDIF
    CALL diffev_set_sub ()
    CALL suite_set_sub_branch ()
-   CALL diffev_loop    ()
+   IF(lmacro) THEN           ! Execute "command line macro"
+      CALL file_kdo(line(1:lcomm),lcomm)
+   ENDIF
+   IF(ier_num == 0) THEN     ! If no error in macro do interactive session
+       CALL diffev_loop    ()
+   ENDIF
    pname      = br_pname_old
    pname_cap  = br_pname_cap_old
    prompt     = pname

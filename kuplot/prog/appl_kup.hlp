@@ -174,6 +174,24 @@
 
    In order to disable the plotting of a defined bond, just specify
    a zero distance, i.e. 'bond <ic>,0.0'.
+2  branch
+!b branch discus [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+!b branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
+
+   Active within the discus suite only!
+
+   Branches to the "discus" or "diffev" section.
+
+   Within this section any standard DISCUS command can be
+   given. The behaviour of "discus" is essentially the same
+   as in the stand alone version. Likewise for DIFFEV.
+  
+   The main use will branch to DISCUS while the discus section
+   is run via run_mpi from a DIFFEV slave.
+
+   Optionally the "-macro" qualifier instructs the suite to run the 
+   macro <macro_name> (with its optional parameters) before the 
+   interactive session is started.
 2  buff
 !b buff <all>
 !b buff <left>,<right>,<bottom>,<top>
