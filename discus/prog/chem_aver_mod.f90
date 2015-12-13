@@ -224,7 +224,7 @@ ENDIF
  1100 FORMAT (3x,i3,2x,a9,2x,3(f7.4,1x),1x,3(f7.4,1x),1x,f7.4) 
       END SUBROUTINE chem_aver                      
 !*****7*****************************************************************
-      SUBROUTINE chem_elem (lout) 
+SUBROUTINE chem_elem (lout) 
 !+                                                                      
 !     Show information about elements/rel. amounts within crystal       
 !-                                                                      
@@ -236,54 +236,59 @@ ENDIF
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
+      USE wink_mod 
       IMPLICIT none 
-       
+!
+LOGICAL, INTENT(IN) :: lout 
 !                                                                       
-      REAL proz 
-      INTEGER natom (0:MAXSCAT) 
-      INTEGER i 
-      LOGICAL lout 
+REAL             :: proz 
+INTEGER          :: i 
 !                                                                       
-      CHARACTER(9) at_name_i 
+CHARACTER(LEN=9) :: at_name_i 
 !                                                                       
 !     Error condition                                                   
 !                                                                       
-      IF (cr_natoms.eq.0) then 
-         ier_typ = ER_CHEM 
-         ier_num = - 27 
-         RETURN 
-      ENDIF 
+IF (cr_natoms.eq.0) then 
+   ier_typ = ER_CHEM 
+   ier_num = - 27 
+   RETURN 
+ENDIF 
 !                                                                       
 !------ reset counters, ...                                             
 !                                                                       
-      DO i = 0, cr_nscat 
-      natom (i) = 0 
-      ENDDO 
+cr_amount(:)    = 0
+cr_n_real_atoms = 0
+cr_u2aver       = 0.0
 !                                                                       
 !------ get size of model crystal, rel. amount of elements              
 !                                                                       
-      DO i = 1, cr_natoms 
-      natom (cr_iscat (i) ) = natom (cr_iscat (i) ) + 1 
-      ENDDO 
+DO i = 1, cr_natoms 
+   cr_amount (cr_iscat (i) ) = cr_amount (cr_iscat (i) ) + 1 
+ENDDO 
 !                                                                       
 !------ write output                                                    
 !                                                                       
-      IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
-      IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
-      res_para (0) = float (cr_nscat) + 1 
-      DO i = 0, cr_nscat 
-      proz = float (natom (i) ) / cr_natoms 
-      IF (lout) then 
-         at_name_i = at_name (i) 
-         WRITE (output_io, 1200) at_name_i, proz, natom (i) 
-      ENDIF 
-      IF (i.le.maxpar_res) then 
-         res_para (i + 1) = proz 
-      ELSE 
-         ier_typ = ER_CHEM 
-         ier_num = - 2 
-      ENDIF 
-      ENDDO 
+IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
+IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
+res_para (0) = float (cr_nscat) + 1 
+DO i = 0, cr_nscat 
+   cr_u2aver = cr_u2aver + cr_dw(i) * cr_amount (i)
+   IF (cr_at_lis(cr_iscat (i)) /= 'VOID') then
+      cr_n_real_atoms = cr_n_real_atoms + cr_amount(i)
+   ENDIF
+   proz = float (cr_amount (i) ) / cr_natoms 
+   IF (lout) then 
+      at_name_i = at_name (i) 
+      WRITE (output_io, 1200) at_name_i, proz, cr_amount (i) 
+   ENDIF 
+   IF (i <= maxpar_res) then 
+      res_para (i + 1) = proz 
+   ELSE 
+      ier_typ = ER_CHEM 
+      ier_num = - 2 
+   ENDIF 
+ENDDO 
+cr_u2aver = cr_u2aver/cr_n_real_atoms/8./pi**2
 !                                                                       
  1000 FORMAT     (' Size of the crystal (unit cells) : ',2(I4,' x '),I4) 
  1100 FORMAT     (' Total number of atoms            : ',I6,/           &
@@ -291,7 +296,7 @@ ENDIF
      &                   ' Number of different atoms        : ',I6,/)   
  1200 FORMAT     ('    Element : ',A9,' rel. abundance : ',F5.3,        &
      &                   '  (',I6,' atoms)')                            
-      END SUBROUTINE chem_elem                      
+END SUBROUTINE chem_elem                      
 !*****7*****************************************************************
 SUBROUTINE chem_com (com,lout)
 !

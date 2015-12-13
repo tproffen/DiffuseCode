@@ -72,6 +72,8 @@ USE discus_config_mod
    REAL   , DIMENSION(:,:), ALLOCATABLE  ::  as_pos ! (3,1:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
 !
+   INTEGER, DIMENSION(  :), ALLOCATABLE  ::  cr_amount ! (  0:MAXSCAT)
+   REAL                                  ::  cr_u2aver
 !
    INTEGER                              ::  cr_natoms       = 0
    INTEGER                              ::  cr_n_REAL_atoms = 0

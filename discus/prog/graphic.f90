@@ -14,6 +14,8 @@ SUBROUTINE do_niplps (linverse)
       USE vtk_mod
       USE output_mod 
       USE powder_write_mod
+      USE chem_aver_mod
+      USE qval_mod
 !
       USE doact_mod 
       USE errlist_mod 
@@ -28,7 +30,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
-      CHARACTER(14) cvalue (0:8) 
+      CHARACTER(14) cvalue (0:12) 
       CHARACTER(22) cgraphik (0:8) 
       CHARACTER(1024) infile 
       CHARACTER(1024) zeile 
@@ -47,7 +49,9 @@ SUBROUTINE do_niplps (linverse)
      &5', 'SHELXL List 5 real HKL' /                                    
       DATA cvalue / 'undefined     ', 'Intensity     ', 'Amplitude     ',&
                     'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
-                    'Random Phase  ', 'S(Q)          ', 'F(Q)          ' /
+                    'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
+                    'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
+                    'Normal Inten  '                                     /
 !                                                                       
       DATA value / 1 / 
       DATA laver / .false. / 
@@ -279,6 +283,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
             ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
                IF(four_was_run) THEN    ! A fourier has been calculated do output
+                  CALL chem_elem(.false.)
                   CALL set_output (linverse) 
                   IF (ityp.eq.0) then 
                      CALL do_output (value, laver) 
@@ -440,30 +445,39 @@ SUBROUTINE do_niplps (linverse)
                   ENDIF 
 !     ----Calculate intensity 'intensity'                               
                   IF (cpara (1) (ix:ix + 1) .eq.'in') then 
-                     value = 1 
+                     value = val_inten
 !     ----Calculate amplitude 'amplitude'                               
                   ELSEIF (cpara (1) (ix:ix) .eq.'a') then 
-                     value = 2 
+                     value = val_ampli
 !     ----Calculate phase 'phase'                                       
                   ELSEIF (cpara (1) (ix:ix) .eq.'p') then 
                      IF (ianz.eq.1) then 
-                        value = 3 
+                        value = val_phase
                      ELSEIF (ianz.eq.2.and.cpara (2) (1:1) .eq.'r')     &
                      then                                               
-                        value = 6 
+                        value = val_ranph
                      ENDIF 
 !     ----Calculate real part 'real'                                    
                   ELSEIF (cpara (1) (ix:ix) .eq.'r') then 
-                     value = 4 
+                     value = val_real
 !     ----Calculate imaginary part 'imaginary'                          
                   ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') then 
-                     value = 5 
+                     value = val_imag
 !     ----Calculate S(Q)           'S(Q)     '                          
                   ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') then 
-                     value = 7 
+                     value = val_sq
 !     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
                   ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') then 
-                     value = 8 
+                     value = val_fq 
+                  ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') then
+                     value = val_f2aver
+                  ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') then
+                     value = val_faver2
+                  ELSEIF (cpara (1) (ix:ix + 4) == 'faver') then
+                     value = val_faver
+!     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
+                  ELSEIF (cpara (1) (ix:ix + 3) == 'norm') then 
+                     value = val_norm
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 

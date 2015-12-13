@@ -864,6 +864,10 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
+      CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
 !
       IF( lstat ) THEN                        ! Success
          MAXSCAT       = n_scat
