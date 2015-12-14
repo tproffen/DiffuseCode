@@ -112,7 +112,9 @@ add_custom_command (
                ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
   )
 
-add_custom_target(discushlp DEPENDS discus.hlp)
+add_custom_target(discushlp DEPENDS discus.hlp
+               ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp)
 
 # Numpy ?
 

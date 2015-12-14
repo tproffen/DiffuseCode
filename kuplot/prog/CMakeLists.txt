@@ -64,7 +64,9 @@ add_custom_command (
                ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp
   )
 
-add_custom_target(kuplothlp DEPENDS kuplot.hlp)
+add_custom_target(kuplothlp DEPENDS kuplot.hlp 
+               ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp)
 
 if (NUMPY_FOUND AND DIFFUSE_PYTHON)
   add_custom_command (
