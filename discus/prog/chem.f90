@@ -6256,11 +6256,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDDO 
 !                                                                       
  1000 FORMAT (' Size of the crystal (unit cells)  : ',2(I4,' x '),I4) 
- 1100 FORMAT (' Total number of molecules         : ',I6,/              &
-     &                   ' Number of molecules per unit cell : ',I6,/   &
-     &                   ' Number of different molecules     : ',I6,/)  
+ 1100 FORMAT (' Total number of molecules         : ',I9,/              &
+     &                   ' Number of molecules per unit cell : ',I9,/   &
+     &                   ' Number of different molecules     : ',I9,/)  
  1200 FORMAT     ('    Mol. type : ',I4,5X,' rel. abundance : ',F5.3,   &
-     &                   '  (',I6,' molecules)')                        
+     &                   '  (',I9,' molecules)')                        
       END SUBROUTINE chem_mole                      
 !
       SUBROUTINE chem_trans(zeile,lp)
