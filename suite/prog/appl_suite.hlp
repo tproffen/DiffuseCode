@@ -21,7 +21,11 @@
    data set. This is available for Fourier output, powder, pdf.
 2  News
 
-   This is the first release
+3  2015_December
+
+   The branch command within the sections discus, diffev, kuplot may 
+   now take the form :
+   branch discus -maceo macro_naem par1, par2, ...
 3  2015_June
 
    Starting with Version 5.1, we have migrated to a X-Window
