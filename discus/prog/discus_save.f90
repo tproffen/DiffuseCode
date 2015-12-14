@@ -595,7 +595,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       INTEGER i_start, i_end 
       INTEGER is, ie 
       LOGICAL lread 
-      LOGICAL lwritten 
+      LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -675,6 +675,9 @@ SUBROUTINE save_struc (zeile, lcomm)
          WRITE (ist, 3030) cr_icc, cr_ncatoms 
       ENDIF 
       WRITE (ist, 3900) 
+!
+      ALLOCATE(lwrite(1:cr_natoms))
+      lwrite(:) = .true.
 !                                                                       
 !     Write content of objects                                          
 !                                                                       
@@ -689,6 +692,7 @@ SUBROUTINE save_struc (zeile, lcomm)
             k = mole_cont (mole_off (i) + j) 
             WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
             l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+            lwrite(k) = .false.
             ENDDO 
             WRITE (ist, 4900) 'object' 
          ENDIF 
@@ -714,6 +718,7 @@ SUBROUTINE save_struc (zeile, lcomm)
             k = mole_cont (mole_off (i) + j) 
             WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
             l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+            lwrite(k) = .false.
             ENDDO 
             WRITE (ist, 4900) 'domain' 
          ENDIF 
@@ -733,6 +738,7 @@ SUBROUTINE save_struc (zeile, lcomm)
             k = mole_cont (mole_off (i) + j) 
             WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
             l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+            lwrite(k) = .false.
             ENDDO 
             WRITE (ist, 4900) 'molecule' 
          ENDIF 
@@ -747,38 +753,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !       type has been selected                                          
 !                                                                       
       IF (sav_latom (cr_iscat (i) ) ) THEN 
-         lwritten = .false. 
-         IF (sav_w_obje) THEN 
-            DO j = 1, mole_num_mole 
-            IF (mole_char (j) .gt.MOLE_ATOM) THEN 
-               DO k = 1, mole_len (j) 
-               l = mole_cont (mole_off (j) + k) 
-               lwritten = lwritten.or.l.eq.i 
-               ENDDO 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         IF (sav_w_doma) THEN 
-            DO j = 1, mole_num_mole 
-            IF (mole_char (j) .lt.MOLE_ATOM) THEN 
-               DO k = 1, mole_len (j) 
-               l = mole_cont (mole_off (j) + k) 
-               lwritten = lwritten.or.l.eq.i 
-               ENDDO 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         IF (sav_w_mole) THEN 
-            DO j = 1, mole_num_mole 
-            IF (mole_char (j) .eq.MOLE_ATOM) THEN 
-               DO k = 1, mole_len (j) 
-               l = mole_cont (mole_off (j) + k) 
-               lwritten = lwritten.or.l.eq.i 
-               ENDDO 
-            ENDIF 
-            ENDDO 
-         ENDIF 
-         IF (.not.lwritten) THEN 
+         IF(lwrite(i)) THEN
             IF(sav_w_prop) THEN
                WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
                               (cr_pos (j, i),j = 1, 3),          &
@@ -791,31 +766,9 @@ SUBROUTINE save_struc (zeile, lcomm)
          ENDIF 
       ENDIF 
       ENDDO 
-!                                                                       
-!     Write content of molecules ; OBSOLETE ! RBN                       
-!           Molecules are now written just like domains                 
-!                                                                       
-!DBG      if(sav_w_mole) THEN                                           
-!DBG        do i=1,mole_num_mole                                        
-!DBG          if(mole_char(i).eq.MOLE_ATOM) THEN                        
-!DBG            write(ist,4005) 'molecule',mole_type(i),i               
-!DBG            write(ist,4100) 'molecule',c_mole(mole_char(i))         
-!DBG            j_end = int(mole_len(i)/7.)                             
-!DBG            do j=1,j_end                                            
-!DBG              l1 = mole_off(i) + (j-1)*7 + 1                        
-!DBG              l2 = l1 + 7 - 1                                       
-!DBG              write(ist,4010) 'molecule',(',',mole_cont(k),k=l1,l2) 
-!DBG            ENDDO                                                   
-!DBG            if(j_end*7.lt.mole_len(i)) THEN                         
-!DBG              l1= mole_off(i) + int((mole_len(i)-1)/7.)*7 + 1       
-!DBG              l2= mole_off(i) + mole_len(i)                         
-!DBG              write(ist,4010) 'molecule',(',',mole_cont(k),k=l1,l2) 
-!DBG            endif                                                   
-!DBG            write(ist,4900) 'molecule'                              
-!DBG          endif                                                     
-!DBG        ENDDO                                                       
-!DBG      endif                                                         
+!
       CLOSE (ist) 
+      DEALLOCATE(lwrite)
 !                                                                       
  3000 FORMAT    ('title ',a) 
  3010 FORMAT    ('spcgr ',a16) 
