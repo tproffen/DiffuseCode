@@ -95,6 +95,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2015_Dec
+
+   Minor upgrade, increases the size of bitmaps KUPLOT can plot
 3  2015_June
 
    Starting with Version 5.1, we have migrated to a X-Window

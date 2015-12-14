@@ -36,7 +36,7 @@ SAVE
       INTEGER, PARAMETER :: MAXWIN     =        3
 
       INTEGER, PARAMETER :: MAXBOND    =       50
-      INTEGER, PARAMETER :: MAXZ       =      501
+      INTEGER, PARAMETER :: MAXZ       =     1501
       INTEGER, PARAMETER :: MAXB       =       12
       INTEGER, PARAMETER :: MAXGSAS    =    25000
 !
