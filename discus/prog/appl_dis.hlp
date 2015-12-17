@@ -69,6 +69,14 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2015_Dec
+
+   Added a command 'apply_symmetry' to the chemistry and mmc menues.
+   These allow to generate symmetry equivalent correlation vectors.
+   See mmc and chem ==> set ve; set neig; apply_symmetry for more help
+
+   Added the option to calculate normalized intensities for single
+   crystal pattern.
 3  2015July_A
 
    You can now write powder files as normalized scattering function S(Q) 
@@ -939,6 +947,7 @@
 !p @       ! Executes a macro (see main help level)
 !p =       ! Algebra (see main help level)
 !p angl    ! Calculate average bond angles for given neighbours
+!p apply_symmetry ! Use the space group symmetry to generate vectors
 !p aver    ! Calculates average structure and occupancies
 !p bang    ! Calculates distribution of bond angles
 !p blen    ! Calculates distribution of bond lengths
@@ -973,6 +982,34 @@
    the bond angle. If an additional parameter <file> is given, all position 
    parameters of the central atom (in lattice units) are written to the
    corresponding file for possible further analysis or plotting.
+3  apply_symmetry
+!b apply_symmetry [<output_file>]
+
+   This command applies the space group symmetry to generate the 
+   symmetrically equivalent vectors. You must have defined one or
+   several vectros with the ==> 'set vec' command and grouped 
+   these into neighborhods via ==> 'set neigh'.
+
+   The general concept assumes that you have defined the vector
+   correlations for the position x,y,z within the asymmetric unit
+   and would like DISCUS to generate the corresponding vector 
+   correlations for the other atom positions as well.
+
+   Example is an atom is on a general position you could specify:
+   set vec, 1,  1, 2, 0,0,0
+   set neig, vec, 1
+   apply_symmetry
+   This would generate the correspondig vector correlations for 
+   the otehr atoms in the unit cell that are symmetrically
+   equivalent to xyz.
+
+   If an atom is on a special position, like a mirror plane, the 
+   apply_symmetry command will generate the mirror image of the 
+   vector.
+
+
+   If the optional <output_file> is given, DISCUS will write the
+   original "set vec, ..." and the generated ones into this file.
 3  aver
 !b aver [ "one" | "ind"]
 
@@ -2575,6 +2612,7 @@
 
 !p @       ! Executes a macro (see main help)
 !p =       ! Algebra (see main help)
+!p apply_symmetry ! Use the space group symmetry to generate vectors
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
 !p eval    ! Evaluates an expression (see main help)
@@ -2588,6 +2626,34 @@
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
+3  apply_symmetry
+!b apply_symmetry [<output_file>]
+
+   This command applies the space group symmetry to generate the 
+   symmetrically equivalent vectors. You must have defined one or
+   several vectros with the ==> 'set vec' command and grouped 
+   these into neighborhods via ==> 'set neigh'.
+
+   The general concept assumes that you have defined the vector
+   correlations for the position x,y,z within the asymmetric unit
+   and would like DISCUS to generate the corresponding vector 
+   correlations for the other atom positions as well.
+
+   Example is an atom is on a general position you could specify:
+   set vec, 1,  1, 2, 0,0,0
+   set neig, vec, 1
+   apply_symmetry
+   This would generate the correspondig vector correlations for 
+   the otehr atoms in the unit cell that are symmetrically
+   equivalent to xyz.
+
+   If an atom is on a special position, like a mirror plane, the 
+   apply_symmetry command will generate the mirror image of the 
+   vector.
+
+
+   If the optional <output_file> is given, DISCUS will write the
+   original "set vec, ..." and the generated ones into this file.
 3  rese
 !b rese
 

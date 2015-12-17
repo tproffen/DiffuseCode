@@ -16,6 +16,7 @@ USE discus_init_mod
 USE mc_mod 
 USE mmc_mod 
 USE modify_mod
+USE chem_symm_mod
 !
 USE doact_mod 
 USE errlist_mod 
@@ -168,6 +169,11 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
          ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
             CALL mmc_show 
+!
+!------ command 'symmetry'
+!
+         ELSEIF (str_comp (befehl, 'apply_symm', 2, lbef, 10) ) then 
+            CALL chem_symm(zeile, lp)
 !                                                                       
 !------ no command found                                                
 !                                                                       

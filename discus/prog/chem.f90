@@ -16,6 +16,7 @@ SUBROUTINE chem
       USE crystal_mod 
       USE chem_mod 
       USE chem_aver_mod
+      USE chem_symm_mod
       USE celltoindex_mod
       USE modify_mod
 !
@@ -69,6 +70,11 @@ SUBROUTINE chem
 !                                                                       
          ELSEIF (befehl (1:1) .eq.'@') then 
             CALL file_kdo (line (2:length), length - 1) 
+!
+!------ command 'symmetry'
+!
+         ELSEIF (str_comp (befehl, 'apply_symm', 2, lbef, 10) ) then
+            CALL chem_symm(zeile, lp)
 !                                                                       
 !------ Calculate average structure and sigmas 'aver'                   
 !                                                                       
