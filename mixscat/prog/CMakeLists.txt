@@ -14,16 +14,13 @@ set (SOURCES blk_appl.f90 err_appl.f90 exit.f90
 add_executable(mixscat ${SOURCES})
 target_link_libraries (mixscat lib_f90 lib_f90c ${DIFFUSE_LIBS}) 
 
-add_custom_command (
-  OUTPUT mixscat.hlp
+add_custom_target(mixscathlp 
+  DEPENDS      ${DIFFUSE_BINARY_DIR}/mixscat/prog/mixscat.hlp
+               ${DIFFUSE_SOURCE_DIR}/mixscat/prog/appl_mix.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/mixscat/prog/appl_mix.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
-               ${DIFFUSE_BINARY_DIR}/mixscat/prog/mixscat.hlp
-  )
-
-add_custom_target(mixscathlp DEPENDS mixscat.hlp
-               ${DIFFUSE_SOURCE_DIR}/mixscat/prog/appl_mix.hlp
-               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp)
+               ${DIFFUSE_BINARY_DIR}/mixscat/prog/mixscat.hlp)
 
 add_dependencies(mixscat mixscathlp)
 

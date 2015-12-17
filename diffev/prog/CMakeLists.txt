@@ -38,18 +38,13 @@ set (LIBS diffev_all ${LIBS} diffev_all ${LIBS_OPT})
 add_executable(diffev ${SOURCE_MAIN} )
 target_link_libraries (diffev ${LIBS})
 
-add_custom_command (
-  OUTPUT diffev.hlp
+add_custom_target(diffevhlp 
+  DEPENDS      ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp
+               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
-               ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp
-  )
-
-add_custom_target(diffevhlp DEPENDS diffev.hlp
-               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
-               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp)
-
-
+               ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp)
 
 if (NUMPY_FOUND AND DIFFUSE_PYTHON)
   add_custom_command (

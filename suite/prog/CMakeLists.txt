@@ -94,20 +94,13 @@ set (LIBS ${LIBS} discus_suite_all diffev_all discus_all kuplot_all ${LIBS_GRAPH
 add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
 target_link_libraries (discus_suite ${LIBS})
 
-add_custom_command (
-  OUTPUT suite.hlp
+add_custom_target(suitehlp 
+  DEPENDS      ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp
+               ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
+               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
-               ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp
-  )
-
-add_custom_target(suitehlp DEPENDS suite.hlp
-               ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
-               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
-               ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
-               ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
-               ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp)
-
+               ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp)
 
 install (TARGETS discus_suite DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp DESTINATION share)
