@@ -1,8 +1,10 @@
 Diffuse program collection
 ----------------------------------------------------------------
 
-Welcome to the 'diffuse program' collection. Depending on the
-package you have downloaded you will find one or all of the
+Welcome to the 'diffuse program' collection.
+The website can be found at http://tproffen.github.io/DiffuseCode
+
+Depending on the package you have downloaded you will find one or all of the
 following program directories after unpacking the archive.
 
 DISCUS  : Diffuse Scattering & Defect Structure Simulation
@@ -27,8 +29,7 @@ To build from the source code, you need gfortran (> 4.7.x) as
 well as cmake installed. Here is the simple set of commands 
 to build the programs from the source:
 
-Download the source code from discus.sourceforge.net or fork
-our repository from GitHub https://github.com/tproffen/DiffuseCode
+Download the source code from GitHub https://github.com/tproffen/DiffuseCode
 
  Goto working directory and unpack
 
@@ -56,9 +57,7 @@ Directory Manul"
 
 
 Binary distributions as well as the source code can be found 
-at http://discus.sourceforge.net.
-
-If you like to participate in code development, join us at
+at https://github.com/tproffen/DiffuseCode/releases
 
 
 [![Build Status](https://travis-ci.org/tproffen/DiffuseCode.svg?branch=master)](https://travis-ci.org/tproffen/DiffuseCode)
