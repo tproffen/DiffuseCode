@@ -59,7 +59,7 @@ Now build and install
     make
     sudo make install
 
-For further details, please check file AAA_INSTALL_DISCUS.pdf in the directory Manual.
+For further details, please check file [AAA_INSTALL_DISCUS.pdf](Manual/AAA_INSTALL_DISCUS.pdf) in the directory Manual.
 
 OSX
 ---
@@ -82,7 +82,7 @@ Windows
 
 Recommend you install the binary found [here](https://github.com/tproffen/DiffuseCode/releases).
 
-Instructions to build from source please check file AAA_INSTALL_DISCUS_CYGWIN.pdf.
+Instructions to build from source please check file [AAA_INSTALL_DISCUS_CYGWIN.pdf](Manual/AAA_INSTALL_DISCUS_CYGWIN.pdf).
 
 
 [![Build Status](https://travis-ci.org/tproffen/DiffuseCode.svg?branch=master)](https://travis-ci.org/tproffen/DiffuseCode)
