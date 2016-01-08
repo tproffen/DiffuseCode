@@ -40,7 +40,7 @@ to build the programs from the source:
 
 Download the source code from GitHub https://github.com/tproffen/DiffuseCode/releases
 
- Goto working directory and unpack
+Goto working directory and unpack
 
     cd your-working-directory
     tar -xvzf DiffuseCode-vX.X.X.tar.gz
@@ -50,9 +50,7 @@ Create build directory
     mkdir DiffuseBuild
     cd DiffuseBuild
 
-Invoke cmake and change entries as needed. Then press 'c'
-to configure and 'g' to create the Makefiles. If you use the GUI
-version of cmake use the corresponding buttons.
+Invoke cmake.
   
     cmake ../DiffuseCode-vX.X.X
 
@@ -61,13 +59,14 @@ Now build and install
     make
     sudo make install
 
-For further details, please check file AAA_INSTALL_DISCUS*.pdf in the directory Manual
+For further details, please check file AAA_INSTALL_DISCUS.pdf in the directory Manual.
 
 OSX
 ---
 
 1. Install [XCode](https://developer.apple.com/xcode/download/), [XQuartz](http://www.xquartz.org/) and [Homebrew](http://brew.sh/)
 2. command line build:
+
 ```
 $ brew install gcc
 $ brew install homebrew/x11/pgplot
@@ -75,7 +74,15 @@ $ CC=gcc-5 CXX=g++-5 FC=gfortran cmake .
 $ make
 $ sudo make install
 ```
-You may receive some warnings but it should install succesfully. Check by seeing if you can run the command `discus`.
+
+You may receive some warnings but it should install successfully. Check by seeing if you can run the command `discus`.
+
+Windows
+-------
+
+Recommend you install the binary found [here](https://github.com/tproffen/DiffuseCode/releases).
+
+Instructions to build from source please check file AAA_INSTALL_DISCUS_CYGWIN.pdf.
 
 
 [![Build Status](https://travis-ci.org/tproffen/DiffuseCode.svg?branch=master)](https://travis-ci.org/tproffen/DiffuseCode)
