@@ -95,8 +95,7 @@ add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
 target_link_libraries (discus_suite ${LIBS})
 
 add_custom_target(suitehlp 
-  DEPENDS      ${DIFFUSE_BINARY_DIR}/suite/prog/suite.hlp
-               ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
+  DEPENDS      ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/suite/prog/appl_suite.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 

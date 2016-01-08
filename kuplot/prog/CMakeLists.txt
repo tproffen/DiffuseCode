@@ -58,8 +58,7 @@ add_executable(kuplot ${SOURCE_MAIN})
 target_link_libraries (kuplot ${LIBS})
 
 add_custom_target(kuplothlp 
-  DEPENDS      ${DIFFUSE_BINARY_DIR}/kuplot/prog/kuplot.hlp
-               ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
+  DEPENDS      ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/kuplot/prog/appl_kup.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 

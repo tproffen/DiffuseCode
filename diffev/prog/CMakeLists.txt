@@ -39,8 +39,7 @@ add_executable(diffev ${SOURCE_MAIN} )
 target_link_libraries (diffev ${LIBS})
 
 add_custom_target(diffevhlp 
-  DEPENDS      ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp
-               ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
+  DEPENDS      ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/diffev/prog/appl_dif.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 

@@ -107,8 +107,7 @@ target_link_libraries (discus ${LIBS})
 
 
 add_custom_target(discushlp 
-  DEPENDS      ${DIFFUSE_BINARY_DIR}/discus/prog/discus.hlp
-               ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
+  DEPENDS      ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp
   COMMAND cat  ${DIFFUSE_SOURCE_DIR}/discus/prog/appl_dis.hlp 
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
