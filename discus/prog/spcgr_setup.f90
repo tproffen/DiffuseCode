@@ -508,22 +508,22 @@ CONTAINS
       spcgr_name (243)  = 'P11b            ' 
       spcgr_syst (243) = MONOCLINIC_C 
                                                                         
-      spcgr_name (254)  = 'A1m1            ' 
-      spcgr_syst (254) = MONOCLINIC_B 
+      spcgr_name (244)  = 'A1m1            ' 
+      spcgr_syst (244) = MONOCLINIC_B 
                                                                         
-      spcgr_name (255)  = 'I1m1            ' 
-      spcgr_syst (255) = MONOCLINIC_B 
+      spcgr_name (245)  = 'I1m1            ' 
+      spcgr_syst (245) = MONOCLINIC_B 
                                                                         
-      spcgr_name (256)  = 'A11m            ' 
-      spcgr_syst (256) = MONOCLINIC_C 
+      spcgr_name (246)  = 'A11m            ' 
+      spcgr_syst (246) = MONOCLINIC_C 
                                                                         
-      spcgr_name (257)  = 'B11m            ' 
-      spcgr_syst (257) = MONOCLINIC_C 
+      spcgr_name (247)  = 'B11m            ' 
+      spcgr_syst (247) = MONOCLINIC_C 
                                                                         
-      spcgr_name (258)  = 'I11m            ' 
-      spcgr_syst (258) = MONOCLINIC_C 
+      spcgr_name (248)  = 'I11m            ' 
+      spcgr_syst (248) = MONOCLINIC_C 
                                                                         
-      spcgr_name (259)  = 'A1n1            ' 
+      spcgr_name (249)  = 'A1n1            ' 
       spcgr_syst (259) = MONOCLINIC_B 
                                                                         
       spcgr_name (250)  = 'I1a1            ' 
