@@ -426,21 +426,24 @@ CONTAINS
             IF ( (a.le.i.and.i.le.z) .or. (aa.le.i.and.i.le.zz) ) then 
                name = cpara (1) (1:lpara(1))
                j = 2 
+               cpara(1) = '0'
+               lpara(1) = 1
             ELSE 
                j = 1 
                name = 'yyyy' 
             ENDIF 
-            DO i = j, ianz 
-            lp = lpara (i) 
-            zeile = ' ' 
-            zeile (1:1) = '(' 
-            zeile (2:lp + 1) = cpara (i) (1:lp) 
-            zeile (lp + 2:lp + 2) = ')' 
-            lp = lp + 2 
-            werte (i) = 0 
-            werte (i) = berechne (zeile, lp) 
+            CALL ber_params(ianz, cpara, lpara, werte, maxw)
+!            DO i = j, ianz 
+!            lp = lpara (i) 
+!            zeile = ' ' 
+!            zeile (1:1) = '(' 
+!            zeile (2:lp + 1) = cpara (i) (1:lp) 
+!            zeile (lp + 2:lp + 2) = ')' 
+!            lp = lp + 2 
+!            werte (i) = 0 
+!            werte (i) = berechne (zeile, lp) 
             IF (ier_num.ne.0) return 
-            ENDDO 
+!            ENDDO 
             IF (ianz.ge.4) then 
                CALL do_ins_atom (name, werte) 
             ELSE 
@@ -531,24 +534,27 @@ CONTAINS
                then                                                     
                   name = cpara (1)(1:lpara(1))
                   j = 2 
+                  cpara(1) = '0'
+                  lpara(1) = 1
                ELSE 
                   j = 1 
                   name = 'yyyy' 
                ENDIF 
+               CALL ber_params(ianz, cpara, lpara, werte, maxw)
 !                                                                       
 !     ------Evaluate parameters, old form will be replaced by ber_params
 !                                                                       
-               DO i = j, ianz 
-               lp = lpara (i) 
-               zeile = ' ' 
-               zeile (1:1) = '(' 
-               zeile (2:lp + 1) = cpara (i) (1:lp) 
-               zeile (lp + 2:lp + 2) = ')' 
-               lp = lp + 2 
-               werte (i) = 0 
-               werte (i) = berechne (zeile, lp) 
+!               DO i = j, ianz 
+!               lp = lpara (i) 
+!               zeile = ' ' 
+!               zeile (1:1) = '(' 
+!               zeile (2:lp + 1) = cpara (i) (1:lp) 
+!               zeile (lp + 2:lp + 2) = ')' 
+!               lp = lp + 2 
+!               werte (i) = 0 
+!               werte (i) = berechne (zeile, lp) 
                IF (ier_num.ne.0) return 
-               ENDDO 
+!               ENDDO 
                j = nint (werte (6) ) 
                k = nint (werte (7) ) 
 !                                                                       
@@ -1316,6 +1322,7 @@ CONTAINS
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER ( * ) line 
+      CHARACTER(LEN=1) :: mode
       CHARACTER(80) zeile 
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
@@ -1330,26 +1337,30 @@ CONTAINS
          ier_typ = ER_COMM 
       ENDIF 
       IF (ier_num.eq.0) then 
-         DO i = 2, ianz 
-         lp = lpara (i) 
-         zeile = ' ' 
-         zeile (1:1) = '(' 
-         zeile (2:lp + 1) = cpara (i) (1:lp) 
-         zeile (lp + 2:lp + 2) = ')' 
-         lp = lp + 2 
-         werte (i) = berechne (zeile, lp) 
+         mode = cpara(1)(1:1)      
+         cpara(1) = '0'
+         lpara(1) = 1
+         CALL ber_params(ianz, cpara, lpara, werte, maxw)
+!         DO i = 2, ianz 
+!         lp = lpara (i) 
+!         zeile = ' ' 
+!         zeile (1:1) = '(' 
+!         zeile (2:lp + 1) = cpara (i) (1:lp) 
+!         zeile (lp + 2:lp + 2) = ')' 
+!         lp = lp + 2 
+!         werte (i) = berechne (zeile, lp) 
          IF (ier_num.ne.0) return 
-         ENDDO 
+!         ENDDO 
          ind = int (werte (2) ) 
          IF (0.lt.ind.and.ind.le.cr_natoms.and.ind.le.NMAX) then 
             zeile = ' ' 
             zeile (1:4) = cr_at_lis (cr_iscat (ind) ) 
             zeile (5:5) = ',' 
-            IF (cpara (1) (1:1) .eq.'a') then 
+            IF (mode            ==  'a') then 
                WRITE (zeile (7:57), 3000) (werte (i), i = 3, 5),        &
                cr_dw (cr_iscat (ind) )                                  
                lp = 57 
-            ELSEIF (cpara (1) (1:1) .eq.'r') then 
+            ELSEIF (mode            ==  'r') then 
                WRITE (zeile (7:57), 3000) (werte (i) + cr_pos (i - 2,   &
                ind), i = 3, 5), cr_dw (cr_iscat (ind) )                 
                lp = 57 
