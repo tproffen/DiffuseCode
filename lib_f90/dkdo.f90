@@ -3088,7 +3088,7 @@ main: DO i=1, laenge
       CHARACTER(1024) cpara (maxpara) 
       INTEGER lpara (maxpara) 
       CHARACTER(1024) line 
-      INTEGER ll, ianz, i 
+      INTEGER ll, ianz, i ,j
       REAL werte (maxpara), wert 
       REAL berechne 
 !                                                                       
@@ -3098,6 +3098,9 @@ main: DO i=1, laenge
       line = ' ' 
       line = '('//cpara (i) (1:ll) //')' 
       ll = ll + 2 
+         DO j=1, ll
+            if(IACHAR(line(j:j))==9) line(j:j) = ' '
+         ENDDO
       wert = berechne (line, ll) 
       IF (ier_num.ne.0) then 
          GOTO 9999 
