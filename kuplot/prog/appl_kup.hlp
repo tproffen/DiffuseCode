@@ -1260,6 +1260,14 @@
    correspond to the errors of <cx> and <cy> allowing the user to read 
    sigma values from any column of the file. The fields have to be 
    specified in the given order, for used field enter "0". 
+   The scan infor that KUPLOT derives from the file is in part stored
+   into the result varialbe ==> 'res[]'. The entries are:
+   0  number of values stored in res
+   1  number of scans
+   2  number of MCA points
+   3...2+NSCANS number of data points in each scan
+   2+1*NSCANS+1 ... 2+2*NSCANS  xmin for each scan
+   2+2*NSCANS+1 ... 2+3*NSCANS  xmax for each scan
 
    KUPLOT can also extract scan information for a given scan <iscan>
    from the SPEC file when the parameter "info" is specified. Note that

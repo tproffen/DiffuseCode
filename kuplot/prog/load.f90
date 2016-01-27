@@ -1355,6 +1355,8 @@
       REAL werte (maxw) 
       REAL col (0:colm), dummy 
       REAL mca_par (3) 
+      REAL, DIMENSION(:,:), ALLOCATABLE :: scan_limits
+      LOGICAL                           :: yes_limits
       INTEGER counts (8192) 
       INTEGER lpara (maxw), icell (5) 
       INTEGER ifil, ianz, iianz, il, ipt 
@@ -1377,6 +1379,7 @@
       REAL chan2kev 
 !                                                                       
       lend = .false. 
+      yes_limits = .false.
 !                                                                       
 !------ No further parameters -> list scans in file                     
 !                                                                       
@@ -1385,6 +1388,7 @@
 !                                                                       
       IF (ianz.eq.2) then 
          WRITE (output_io, 1000) fname (iz) (1:len_str (fname (iz) ) ) 
+         ALLOCATE(scan_limits(2,1000))
     1    CONTINUE 
          READ (ifil, 9999, end = 2) mine 
          IF (mine (1:2) .eq.'#S') then 
@@ -1409,9 +1413,22 @@
             IF (ipt.gt.0) then 
                WRITE (output_io, 1100) ipt, sinfo (3:min (70, len_str ( &
                sinfo) ) )                                               
+               CALL get_col (sinfo, field, nf, colm) 
+               READ (field (1), * ) nscan 
+               IF(nf==7) THEN
+                  yes_limits = .true.
+                  READ (field (2), * ) scan_type
+                  READ (field (3), * ) scan_mot 
+                  READ (field (4), * ) xstart 
+                  READ (field (5), * ) xend 
+                  READ (field (6), * ) npoints 
+                  READ (field (7), * ) ctime
+                  scan_limits(1,nscans) = xstart
+                  scan_limits(2,nscans) = xend
+               ENDIF 
                res_para (1) = nscans 
-               res_para (nscans + 2) = ipt 
-               res_para (0) = nscans + 2 
+               res_para (  nscans + 2) = ipt 
+               res_para (0) = 3*nscans + 2 
             ENDIF 
             BACKSPACE (ifil) 
          ELSEIF (mine (1:5) .eq.'#@MCA') then 
@@ -1426,6 +1443,14 @@
          res_para (1) = nscans 
          res_para (2) = nmca 
          res_para (0) = nscans + 2 
+         IF(yes_limits) THEN
+         DO i=1, nscans
+               res_para (1*nscans + 2 + i) = scan_limits(1,i)
+               res_para (2*nscans + 2 + i) = scan_limits(2,i)
+         ENDDO
+         res_para (0) = 3*nscans + 2
+         ENDIF 
+         DEALLOCATE(scan_limits)
          RETURN 
 !                                                                       
 !------ Scan information                                                
