@@ -2267,11 +2267,23 @@ laccept = .false.
 !        IF ( ier_num < 0 ) THEN
 !           RETURN
 !        ENDIF
+      ELSE
+!
+!------ Unit cell mode, size of pdf_temp is equal to pdf_ndat
+!
+         npoint = pdf_ndat
       ENDIF
-!      pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
-!         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
-!         ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
-!      ENDIF
+!
+!--------Reallocate pdf_temp only if dimensions have changed. 
+!        An automatic change collides with RMC, which needs 
+!        pdf_temp preserved accross its cycles!!!!!!!!!!!!!
+      IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
+         pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
+         nlook     > UBOUND(pdf_temp,4)      ) THEN
+         pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
+         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
+         ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
+      ENDIF
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
