@@ -96,7 +96,7 @@
       CHARACTER ( * ) op 
       INTEGER ilen, ik, ianz, maxw, i 
       REAL werte (maxw), a (maxarray) 
-      REAL summand, faktor 
+      REAL summand, faktor , thresh
 !                                                                       
       IF (op.eq.'INV') then 
          DO i = 1, ilen 
@@ -130,6 +130,14 @@
          ELSE 
             a (offxy (ik - 1) + i) = 0.0 
          ENDIF 
+         ENDDO 
+      ELSEIF (op.eq.'THR') then 
+         thresh = -9999.
+         IF (ianz.eq.2) thresh = werte (2) 
+         DO i = 1, ilen 
+         IF( a(offxy (ik - 1) + i)<= thresh .AND. a(offxy (ik - 1) + i)/=-9999.) THEN
+         a (offxy (ik - 1) + i) = -9999.0
+         ENDIF
          ENDDO 
       ELSEIF (op.eq.'ADD') then 
          summand = 0.0 
@@ -167,7 +175,7 @@
       CHARACTER ( * ) op 
       INTEGER nxx, nyy, ik, maxw, ianz, i, j, ikk 
       REAL werte (maxw), a (maxarray) 
-      REAL faktor, summand 
+      REAL faktor, summand , thresh
 !                                                                       
       IF (op.eq.'INV') then 
          DO i = 1, nxx 
@@ -211,6 +219,17 @@
          ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
          IF (a (ikk) .ge.0.0.and.a (ikk) .ne. - 9999.0) then 
             a (ikk) = sqrt (a (ikk) ) 
+         ENDIF 
+         ENDDO 
+         ENDDO 
+      ELSEIF (op.eq.'THR') then 
+         thresh = -9999.00
+         IF (ianz.eq.2) thresh = werte (2) 
+         DO i = 1, nxx 
+         DO j = 1, nyy 
+         ikk = offz (ik - 1) + (i - 1) * ny (ik) + j 
+         IF (a (ikk) <= thresh.and.a (ikk) .ne. - 9999.0) then 
+            a (ikk) =  -9999.0
          ENDIF 
          ENDDO 
          ENDDO 

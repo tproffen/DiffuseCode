@@ -234,6 +234,8 @@
 !p   "log"  :  x -> ln(x)       "add"  :  x -> x + <value>
 !p   "exp"  :  x -> exp(x)      "mul"  :  x -> x * <value>
 !p   "sqr"  :  x -> sqrt(x)     "abs"  :  x -> |a|
+!p   "thr"  :  x < value -> -9999; value is thus a threshold, 
+    data below are considered invalid
 
    The value "x" in the table above represents the coordinate selected
    by the <field> parameter. Allowed values are:
