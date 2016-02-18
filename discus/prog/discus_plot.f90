@@ -1945,6 +1945,7 @@ CONTAINS
       CHARACTER(1024) zeile 
       INTEGER laenge 
       INTEGER i, j, iff 
+      INTEGER :: natoms
       LOGICAL latom, lspace 
       LOGICAL lscreen 
       REAL uvw (4) 
@@ -1957,10 +1958,17 @@ CONTAINS
       CALL plot_ini_trans (1.0) 
 !                                                                       
       latom = .false. 
+!
+      natoms = 0
+      DO i = 1, cr_natoms 
+         IF (check_select_status(pl_latom(cr_iscat(i)), cr_prop (i),pl_sel_prop) ) THEN
+            natoms = natoms + 1
+         ENDIF
+      ENDDO
 !                                                                       
 !     Write number of atoms                                             
 !                                                                       
-      WRITE (zeile, 1000) cr_natoms 
+      WRITE (zeile, 1000) natoms 
       laenge = 20 
       CALL rem_bl (zeile, laenge) 
       WRITE (iff, 1100) zeile (1:laenge) 
