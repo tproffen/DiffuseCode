@@ -297,10 +297,23 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         ENDIF 
 !                                                                       
 !     ----------Define initial crystal size in fractional coordinates   
-!                                                                       
+!               cr_dim0(:,1) is often used as the coordinate of the lower left
+!               unit cell. Distances are then calculated relative to this
+!               unit cell to obtain relative unit cell numbers. If a large molecule
+!               sticks out of the unit cell, although its center is within the 
+!               unit cell, the offset was calculated wrong. cr_dim(:,2) is hardly used. 
+!               To reflect the intention of cr_dim0(:,1) it is now calculated from cr_icc.
                         DO l = 1, 3 
-                        cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
-                        cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+!                          cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
+!                          cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+                           IF(MOD(cr_icc(l),2)==0) THEN
+                              
+                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
+                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
+                           ELSE
+                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
+                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
+                           ENDIF 
                         ENDDO 
                      ENDIF 
                   ENDIF 
