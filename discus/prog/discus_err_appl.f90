@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-125,IO=4)
+      PARAMETER    (IU=-126,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR (-125: -121) /                     &
+      DATA ERROR ( IU : -121) /                     &
+     &  'H-M symbol in CIF file is a question mark',& !-126 ! discus
      &  'S(Q), F(Q) require Q-axis                ',& !-125 ! discus
      &  'Powder output type wrong /= I, S(Q), F(Q)',& !-124 ! discus
      &  'Atoms are at identical positions',         & !-123 ! discus

@@ -1802,7 +1802,6 @@
 !b tl <e41> , <e42> , <e43>
 
    Sets the top   left corner of the Fourier volume to be calculated.
-3  wvle
 3  top
 !b top <switch>
 
@@ -8790,6 +8789,26 @@
    cases use the variable value instead of the connectivity name.
 
    You must choose a connectivity name that is not used as variable name.
+4  -121
+   Error calculating x-position for powder
+4  -122
+   Atom type number outside limits
+4  -123
+   Atoms are at identical positions
+
+   While calculation a powder patterin DISCUS found a pair of atoms
+   on identical positions. 
+4  -124
+   Powder output type wrong /= I, S(Q), F(Q)
+4  -125
+   S(Q), F(Q) require Q-axis
+4  -126
+   H-M symbol in CIF file is a question mark
+
+   The Herman Mauguin Symbol in the CIF file is a question mark.
+   Please correct the space group in the structure file.
+   Currently DISCUS does not interpret the symmetry operations
+   listed in the CIF file
 3  chem
    Errors at the chemistry level of DISCUS
 

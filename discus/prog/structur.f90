@@ -3449,6 +3449,10 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       WRITE(iwr, 1000) title(1:len_str(title))
       IF(spcgr /= ' ') THEN
          WRITE(iwr, 1100) spcgr(1:len_str(spcgr))
+         IF(spcgr(1:1) == '?') THEN  !'HM is a '?', flag error but finish writing
+            ier_num = -126
+            ier_typ = ER_APPL
+         ENDIF
       ELSEIF(spcgr_no /= 0) THEN
          WRITE(iwr, 1150) spcgr_no
       ELSE
