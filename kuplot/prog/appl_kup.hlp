@@ -95,6 +95,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2016_Feb
+
+   Minor upgrade, added a threshold function to ==> 'ccal'
 3  2015_Dec
 
    Minor upgrade, increases the size of bitmaps KUPLOT can plot
