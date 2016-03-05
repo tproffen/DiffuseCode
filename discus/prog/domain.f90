@@ -225,6 +225,7 @@ SUBROUTINE do_domain (line, lp)
                         lpara (1) , 6) ) then                           
                            CALL del_params (2, ianz, cpara, lpara, maxw) 
                            IF (ier_num.eq.0) then 
+                              werte(:) = 0.0
                               CALL ber_params (ianz, cpara, lpara,      &
                               werte, maxw)                              
                               IF (ier_num.eq.0) then 
@@ -239,14 +240,15 @@ SUBROUTINE do_domain (line, lp)
                         (1) , 5) ) then                                 
                            CALL del_params (2, ianz, cpara, lpara, maxw) 
                            IF (ier_num.eq.0) then 
+                              werte(:) = 0.0
                               CALL ber_params (ianz, cpara, lpara,      &
                               werte, maxw)                              
                               IF (ier_num.eq.0) then 
                                  i = nint (werte (1) ) 
                                  DO j = 1, 4 
-                                 clu_shape (clu_index, i, j) = werte (j &
-                                 + 1)                                   
+                                    clu_shape(clu_index,i,j) = werte(j+1)                                   
                                  ENDDO 
+                                 clu_sigma(clu_index,i) = ABS(werte(6))
                               ENDIF 
                            ENDIF 
                         ENDIF 
@@ -435,7 +437,8 @@ SUBROUTINE do_domain (line, lp)
             WRITE (output_io, 4410) 
          ENDIF
          DO ii = 1, 3 
-         WRITE (output_io, 4500) (clu_shape (i, ii, j), j = 1, 4) 
+         WRITE (output_io, 4500) (clu_shape (i, ii, j), j = 1, 4), &
+              clu_sigma(i,ii)
          ENDDO 
          WRITE (output_io, * ) 
          DO ii = 1, 3 
@@ -472,7 +475,7 @@ SUBROUTINE do_domain (line, lp)
  4350 FORMAT('     content in file    : ','undefined') 
  4400 FORMAT('     fuzzy separation   : ',f15.7,' A') 
  4410 FORMAT('     fuzzy separation   : ','switched OFF old atoms are not removed')
- 4500 FORMAT('     shape orientation  : ','(',3(f9.4,2x),2x,f9.4,')') 
+ 4500 FORMAT('     shape orientation  : ','(',3(f9.4,2x),2x,f9.4,') +- ',f9.4 ) 
  4600 FORMAT('     atom orientation   : ','(',3(f9.4,2x),2x,f9.4,')') 
  5100 FORMAT (' Distances between atom types and an internal surface') 
  5010 FORMAT (' Atom type   ',a4,' at ',f8.3,' Angstroem') 
@@ -519,7 +522,10 @@ SUBROUTINE do_domain (line, lp)
          clu_iatom = 0
       ELSE
          CALL oeffne (imd, clu_infile, 'old') 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
 !                                                                       
 !     Read the input file header                                        
 !                                                                       
@@ -527,7 +533,10 @@ SUBROUTINE do_domain (line, lp)
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
       ENDIF
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) THEN 
+         CLOSE(imd)
+         RETURN
+      ENDIF
 !                                                                       
 !------ Here we should include comparison of the unit cell              
 !       space group etc.                                                
@@ -557,14 +566,20 @@ SUBROUTINE do_domain (line, lp)
          infile = ' '
          CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
 !                                                                       
          DO while (.not.lend) 
          IF (mc_type  .lt.0) then 
             CALL micro_read_atoms (infile, mc_idimen,         &
             mc_matrix)                                                  
          ENDIF 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
 !!!!!!!!!!!
          IF ( clu_infile_internal ) THEN
          CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
@@ -576,7 +591,10 @@ SUBROUTINE do_domain (line, lp)
 !!!!!!!!!!!!!
          CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
          ENDDO 
 !
 !        if the user trusts that no domains overlap among each other, then
@@ -599,17 +617,26 @@ SUBROUTINE do_domain (line, lp)
       ELSE 
          CALL micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, &
          mc_matrix)                                                     
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
 !                                                                       
          DO while (.not.lend) 
          IF (mc_type  .lt.0) then 
             CALL micro_read_atoms (infile, mc_idimen,         &
             mc_matrix)                                                  
          ENDIF 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
          CALL micro_read_micro (imd, lend, infile, mc_dimen, mc_idimen, &
          mc_matrix)                                                     
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) THEN 
+            CLOSE(imd)
+            RETURN
+         ENDIF
          ENDDO 
       ENDIF 
       IF ( .not. clu_infile_internal ) THEN
@@ -1038,6 +1065,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER             :: n_mole
       INTEGER             :: n_type
       INTEGER             :: n_atom
+      INTEGER             :: n_read_atoms
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -1045,6 +1073,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
 !                                                                       
+      n_read_atoms = 0
       lspace = .true.
       linside = .false.
       v (1) = 0.0 
@@ -1126,6 +1155,7 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
          ELSE is_mole
             READ (line (ibl:80), *, end = 999, err = 999) (werte (j),   &
             j = 1, 4)                                                   
+            n_read_atoms = n_read_atoms + 1
             DO j = 1, 3 
             u (j) = werte (j) 
             ENDDO 
@@ -1155,10 +1185,10 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             ENDIF 
 inside:     IF (linside) then 
                IF (cr_natoms.eq.nmax) then 
-                  new_nmax = int( nmax*1.1 )
+                  new_nmax = MAX(nmax + 100, int( nmax*1.1 ))
                   CALL alloc_crystal(MAXSCAT, new_nmax)
                ENDIF
-               IF (cr_natoms.eq.nmax) then 
+               IF (cr_natoms >  nmax) then 
 !                                                                       
 !     --------Too many atoms in the structure file                      
 !                                                                       
@@ -1364,6 +1394,12 @@ mole_int: IF(mk_infile_internal) THEN
 !                                                                       
   999 CONTINUE 
       CLOSE (ist) 
+      IF(n_read_atoms == 0) THEN
+         ier_num = -127
+         ier_typ = ER_APPL
+         ier_msg(1) = 'There were no atoms in the content file'
+         ier_msg(2)(1:44) = infile(1:44)
+      ENDIF
 !                                                                       
  2000 FORMAT    (a) 
  3000 FORMAT    (a4, 4(f16.8))
@@ -1399,10 +1435,12 @@ mole_int: IF(mk_infile_internal) THEN
 !                                                                       
       INTEGER i, j, ii 
       REAL xyz (3) 
+      REAL     :: size_sigma
       INTEGER  :: dummy_iscat
       INTEGER  :: dummy_prop
 !                                                                       
       LOGICAL str_comp 
+      REAL    gasdev
 !                                                                       
 !     do i=1,4                                                          
 !       do j=1,4                                                        
@@ -1452,10 +1490,11 @@ mole_int: IF(mk_infile_internal) THEN
          md_sep_fuz = clu_fuzzy (ii) 
          READ (line (5:52), * ) xyz 
 !                                                                       
+         size_sigma = MAX(1. + gasdev(clu_sigma(ii,i)), 0.01)
          DO i = 1, 3 
          DO j = 1, 4 
-         mc_dimen (i, j) = clu_shape (ii, i, j) 
-         mc_idimen (i, j) = clu_shape (ii, i, j) 
+         mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
+         mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
          mc_matrix (i, j) = clu_orient (ii, i, j) 
          ENDDO 
          mc_dimen (i, 4) = clu_shape (ii, i, 4) + xyz (i) 

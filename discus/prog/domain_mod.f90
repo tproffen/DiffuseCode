@@ -27,6 +27,7 @@ INTEGER,            DIMENSION(:)    , ALLOCATABLE  ::  clu_character ! (CLU_MAX_
 REAL   ,            DIMENSION(:)    , ALLOCATABLE  ::  clu_fuzzy  ! (CLU_MAX_TYPE)
 REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_orient ! (CLU_MAX_TYPE,3,4)
 REAL   ,            DIMENSION(:,:,:), ALLOCATABLE  ::  clu_shape  ! (CLU_MAX_TYPE,3,4)
+REAL   ,            DIMENSION(:,:  ), ALLOCATABLE  ::  clu_sigma  ! (CLU_MAX_TYPE,3  )
 INTEGER                               ::  clu_index
 INTEGER                               ::  clu_mode
 INTEGER                               ::  clu_number

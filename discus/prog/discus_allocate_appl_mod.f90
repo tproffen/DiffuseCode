@@ -1074,6 +1074,10 @@ MODULE discus_allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        clu_size_of =   clu_size_of + size_of
 !
+       CALL alloc_arr ( clu_sigma     ,1,n_clu,    1,3,  all_status, 0.0, size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       clu_size_of =   clu_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          CLU_MAX_TYPE  = n_clu
          ier_typ       = 0
