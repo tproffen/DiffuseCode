@@ -3017,6 +3017,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       INTEGER               :: iquote2
       INTEGER               :: spcgr_l
       INTEGER               :: nline
+      INTEGER               :: nblank
       REAL   , DIMENSION(6) :: latt! (6) 
       REAL   , DIMENSION(3) :: pos ! (6) 
       REAL   , DIMENSION(3) :: rlatt    ! (6) 
@@ -3205,7 +3206,7 @@ analyze_atom: DO
                j_atom = j_atom + 1
                line = rawline(j_atom)
                length = len_str(line)
-               IF(line(1:1)=='#') CYCLE analyze_atom
+               IF(line(1:1)=='#' .or. line == ' ') CYCLE analyze_atom
                IF(line(1:10)/='_atom_site' .or. j_atom>line_no) THEN
                   IF(j_atom < nline) THEN      ! wrong line prior to '_atom_site_frac_x'
                      EXIT main
@@ -3225,8 +3226,9 @@ analyze_atom: DO
             IF(.NOT. ALLOCATED(CCPARA)) ALLOCATE(ccpara(nentries))
             IF(.NOT. ALLOCATED(LLPARA)) ALLOCATE(llpara(nentries))
             ccpara = ' '
+            nblank = 0
 atoms:      DO                                 ! Get all atoms information
-               IF(line(1:1)/='#') THEN
+               IF(line(1:1)/='#' .and. line /= ' ') THEN
                   CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
 !
 !   If there are a different number of parameters, the line does not appear to be 
@@ -3279,14 +3281,16 @@ atoms:      DO                                 ! Get all atoms information
                      TAIL      => TEMP
                      HEAD      => TEMP
                   ENDIF
+                  j_atom = j_atom + 1
+               ELSE    ! Comment or empty line
+                  nblank = nblank + 1
                ENDIF   ! end no comment
 !
-               j_atom = j_atom + 1
                IF(j_atom>line_no) THEN
-                  nline = j_atom             ! We are now in line j_atom
+                  nline = j_atom + nblank            ! We are now in line j_atom
                   EXIT main
                ENDIF
-               line   = rawline(j_atom)
+               line   = rawline(j_atom + nblank)
                length = len_str(line)
             ENDDO atoms
             IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
