@@ -230,7 +230,13 @@ SUBROUTINE save_struc (zeile, lcomm)
                         maxw)                                           
                         IF (ier_num.eq.0) THEN 
                            sav_start = nint (werte (1) ) 
-                           sav_end = nint (werte (2) ) 
+                           sav_end   = nint (werte (2) ) 
+                           IF(sav_end<sav_start .or. sav_start<1) THEN
+                              ier_num = - 6 
+                              ier_typ = ER_COMM 
+                              ier_msg(1)='The upper limit must be larger than lower'
+                              ier_msg(2)='The lower limit must be larger than zero'
+                           ENDIF 
                         ENDIF 
                      ELSEIF (ianz.eq.1) THEN 
                         IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
@@ -595,15 +601,31 @@ SUBROUTINE save_struc (zeile, lcomm)
       INTEGER i_start, i_end 
       INTEGER is, ie 
       LOGICAL lread 
+      LOGICAL                            :: lsave
       LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
 !                                                                       
       INTEGER len_str 
 !                                                                       
 !                                                                       
       DATA ist / 67 / 
-      DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylind&
-     &er', 'domain_cube    ', 'atoms          ', 'cube           ', 'cyl&
-     &inder       ', 'sphere         ', 'cube           ' /             
+      DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylinder',&
+                    'domain_cube    ', 'atoms          ', 'cube           ',&
+                    'cylinder       ', 'sphere         ', 'cube           ' /             
+!
+!     Test if any atom type is selected for write
+!
+      lsave = .true.
+      DO i = 0, cr_nscat 
+         lsave = lsave .and. sav_latom(i)
+      ENDDO 
+      IF(.not. lsave ) THEN
+         ier_num = -58
+         ier_typ = ER_APPL
+         ier_msg(1) = 'No atom types were selected for write'
+         ier_msg(2) = 'The output file is not written'
+         ier_msg(3) = 'Select atoms, or set error to live'
+         RETURN
+      ENDIF
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -813,8 +835,26 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
+      LOGICAL                         :: lsave
       INTEGER                         :: n_latom
+      INTEGER                         :: i
       INTEGER                         :: istatus
+!
+!     Test if any atom type is selected for write
+!
+      lsave = .true.
+      DO i = 0, cr_nscat 
+         lsave = lsave .and. sav_latom(i)
+      ENDDO 
+      IF(.not. lsave ) THEN
+         ier_num = -58
+         ier_typ = ER_APPL
+         ier_msg(1) = 'No atom types were selected for write'
+         ier_msg(2) = 'The output file is not written'
+         ier_msg(3) = 'Select atoms, or set error to live'
+         RETURN
+      ENDIF
+!                                                                       
 !
       ALLOCATE(store_temp, STAT = istatus)        ! Allocate a temporary storage
       NULLIFY(store_temp%before)
