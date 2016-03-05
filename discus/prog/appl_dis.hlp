@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_March
+
+   Domains with an explicit shape (cube, sphere, cylinder) can now
+   be generated with a size distribution.
 3  2015_Dec
 
    Added a command 'apply_symmetry' to the chemistry and mmc menues.
@@ -7708,7 +7712,7 @@
 !b assign "content",<pseudoatom name>,<contentfile>
 !b assign "fuzzy",<pseudoatom name>,<radius>
 !b assign "orient",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
+!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
 
    These commands allow you to assign extended properties to the pseudo
    atoms. Since the pseudo atoms are identical to regular atoms, they can 
@@ -7767,7 +7771,7 @@
    The translational part <ti4> is added to the position of the 
    pseudo atom.
 
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
+!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
 
    The shape transformation matrix is used to determine the size and shape
    of the domain. Default size at program start are +- one unit cell
@@ -7784,6 +7788,10 @@
    DISCUS checks whether the position of the domain atom after its 
    transformation fits into the domain shape. If true, it is inserted into
    the guest structure.
+
+   The optional <sigma> allows for a size distribution of the domains.
+   the matrix part is multiplied by a factor (1 + gran(sigma)). 
+   Discus cuts the factor at 0.01, all large values are allowed.
 3  inputfile
 !b inputfile <inputfile>
 
@@ -8809,6 +8817,14 @@
    Please correct the space group in the structure file.
    Currently DISCUS does not interpret the symmetry operations
    listed in the CIF file
+4  -127
+   Empty content file
+
+   One of the daomin content files does not contain any atoms. 
+   Check the files to ensure that they all contain at least one
+   atom.
+   If an emty file is intended, set the error handling to 'live'.
+   See 'set error, live'
 3  chem
    Errors at the chemistry level of DISCUS
 
