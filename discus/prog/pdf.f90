@@ -789,6 +789,7 @@ SUBROUTINE pdf
 !     Reads observed PDF as xy ASCII file.                              
 !-                                                                      
       USE discus_config_mod 
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE pdf_mod 
 !
@@ -801,16 +802,17 @@ SUBROUTINE pdf
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
       INTEGER          , INTENT(IN) :: lp
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 5) 
+      INTEGER, PARAMETER :: maxw = 5 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) datafile 
-      INTEGER lpara (maxw) 
+      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+      CHARACTER(LEN=1024)                    :: datafile 
+      INTEGER            , DIMENSION(1:MAXW) :: lpara (maxw) 
       INTEGER ianz, ip 
       INTEGER  :: iostatus
+      INTEGER  :: n_dat
       REAL ra, re, dr 
-      REAL werte (maxw) 
+      REAL                                   :: r_dummy1, r_dummy2
+      REAL               , DIMENSION(1:MAXW) :: werte
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -825,6 +827,23 @@ SUBROUTINE pdf
          IF (ier_num.ne.0) return 
          pdf_obs(:) = 0.0    ! reset data file
          pdf_wic(:) = 0.0    ! reset weighting scheme
+         n_dat      = 0
+         READ (17, *, IOSTAT = iostatus  ) ra, pdf_obs (ip), dr, pdf_wic (ip)
+preread: DO
+            IF(IS_IOSTAT_END(iostatus)) EXIT preread
+            n_dat = n_dat + 1
+            READ (17, *, IOSTAT = iostatus  ) ra, r_dummy1   , dr, r_dummy2
+         ENDDO preread
+         REWIND(17)
+         IF(n_dat > PDF_MAXDAT) THEN
+            pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+            pdf_ndat  = MAX(pdf_ndat , n_dat   , PDF_MAXDAT)
+            pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
+            CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+            IF ( ier_num < 0 ) THEN
+               RETURN
+            ENDIF
+         ENDIF
          CALL extract_hist (17) 
          CALL skip_spec (17) 
          ip = 1 
