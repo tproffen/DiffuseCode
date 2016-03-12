@@ -61,6 +61,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -143,6 +145,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -225,6 +229,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -308,6 +314,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -391,6 +399,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -473,6 +483,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub < lb ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -555,6 +567,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 ) THEN                         ! boundaries are wrong; return
         all_status = -1
@@ -645,6 +659,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2) THEN         ! boundaries are wrong; return
         all_status = -1
@@ -735,6 +751,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2) THEN         ! boundaries are wrong; return
         all_status = -1
@@ -824,6 +842,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2) THEN         ! boundaries are wrong; return
         all_status = -1
@@ -913,6 +933,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2) THEN         ! boundaries are wrong; return
         all_status = -1
@@ -1004,6 +1026,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1103,6 +1127,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1202,6 +1228,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1301,6 +1329,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1400,6 +1430,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1499,6 +1531,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 ) THEN  ! boundaries are wrong; return
         all_status = -1
@@ -1599,6 +1633,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
 
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 .or. ub4 < lb4 ) THEN  ! boundaries are wrong; return
@@ -1710,6 +1746,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
 
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 .or. ub4 < lb4 ) THEN  ! boundaries are wrong; return
@@ -1822,6 +1860,8 @@ integer, parameter:: dp=kind(0.d0)  ! double precision
 !
       all_status = 0
       size_of    = 0
+      o_lower    = 0
+      o_upper    = 0
 !
       IF ( ub1 < lb1 .or. ub2 < lb2 .or. ub3 < lb3 .or.  &
            ub4 < lb4 .or. ub5 < lb5                    ) THEN  ! boundaries are wrong; return
