@@ -73,6 +73,8 @@
 
    Domains with an explicit shape (cube, sphere, cylinder) can now
    be generated with a size distribution.
+
+   Fourier can calculate the intensities for a SHELXL file
 3  2015_Dec
 
    Added a command 'apply_symmetry' to the chemistry and mmc menues.
@@ -1597,6 +1599,7 @@
 !p eval    ! Evaluates an expression for interactive check
 !p exit    ! terminates Fourier level
 !p help    ! help to Fourier commands (see main help level)
+!p hkl     ! Caclculate a list of Bragg reflection intensities
 !p layer   ! defines the layer in reciprocal space to be calculated
 !p ll      ! defines the lower left corner in reciprocal space
 !p lots    ! defines the crystal volume to be used for the Fourier transform
@@ -1664,6 +1667,13 @@
 !b electron
 
    switches to electron calculation
+3  hkl
+!b  hkl <infile>, <outputfile>, <scale>, "4"
+
+   This command reads the SHELX HKLF4 file <infile> and calculates
+   the intensity using the current structure. The data are written 
+   in a SHELX hklf4 type format (3I4,2x, F8.2,F8.2). 
+   The calculated intensities are multiplied by <scale>
 3  layer
 !b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 

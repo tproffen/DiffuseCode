@@ -42,8 +42,10 @@ CONTAINS
       CHARACTER(50) prom 
       CHARACTER(1024) zeile
       CHARACTER(1024) line 
+      CHARACTER(LEN=1024)  :: infile, calcfile
       INTEGER :: i, j=1, k, ianz, lp, length 
       INTEGER indxg, lbef 
+      INTEGER              :: infile_l, outfile_l
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
       INTEGER              :: n_nscat  ! required no of atom types right now
       INTEGER              :: n_natoms ! required no of atoms
@@ -265,6 +267,28 @@ CONTAINS
                ELSE 
                   lp = lp + 12 
                   CALL do_hel ('discus four '//zeile, lp) 
+               ENDIF 
+!                                                                       
+!     calculate at a SHELXL list of reciprocal points 'hkl'                     
+!                                                                       
+            ELSEIF (str_comp (befehl, 'hkl', 2, lbef, 3) ) then 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ier_num.eq.0) then 
+                  IF (ianz.eq.4) then 
+                     CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+                     infile   = cpara(1)
+                     infile_l = lpara(1)
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+                    calcfile   = cpara(1)
+                     outfile_l = lpara(1)
+                     CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     CALL calc_hkl(infile,infile_l, calcfile, outfile_l, werte(1),NINT(werte(2)))
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
                ENDIF 
 !                                                                       
 !     define the whole layer 'laye'                                     

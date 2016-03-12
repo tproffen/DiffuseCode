@@ -955,4 +955,115 @@ CONTAINS
       ENDDO 
 !                                                                       
       END SUBROUTINE calc_000                       
+!
+      SUBROUTINE calc_hkl(infile,infile_l, calcfile, calcfile_l,scale,style)
+!
+      USE crystal_mod 
+      USE diffuse_mod 
+      USE discus_allocate_appl_mod
+      USE param_mod
+!
+      IMPLICIT NONE
+!
+      CHARACTER(LEN=*), INTENT(IN) :: infile
+      INTEGER         , INTENT(IN) :: infile_l
+      CHARACTER(LEN=*), INTENT(IN) :: calcfile
+      INTEGER         , INTENT(IN) :: calcfile_l
+      REAL            , INTENT(IN) :: scale
+      INTEGER         , INTENT(IN) :: style
+!
+      INTEGER, PARAMETER :: ird = 54
+      INTEGER, PARAMETER :: iwr = 55
+      INTEGER, PARAMETER :: HKLF4 = 4
+!
+      INTEGER            :: n_qxy, n_natoms,n_nscat
+      INTEGER            :: iostatus
+      INTEGER            :: i,l
+      INTEGER            :: ih,ik,il
+      INTEGER            :: ih_min,ik_min,il_min
+      INTEGER            :: ih_max,ik_max,il_max
+      INTEGER            :: n_refl
+      INTEGER            :: indx
+      REAL               :: rint, sint, wert
+      REAL, DIMENSION(3) :: rhkl
+!
+      n_qxy    = 1
+      n_natoms = 1
+      n_nscat  = 1
+!
+      CALL oeffne(ird, infile,   'old') 
+      CALL oeffne(iwr, calcfile, 'unknown') 
+      inc(:) = 1
+!
+      ih_min  = 0
+      ih_max  = 0
+      ik_min  = 0
+      ik_max  = 0
+      il_min  = 0
+      il_max  = 0
+      n_refl  = 0
+check:DO     ! First read, get size and extrema
+         READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+         IF(IS_IOSTAT_END(iostatus)) EXIT check
+         ih_min = MIN(ih_min,ih)
+         ih_max = MAX(ih_max,ih)
+         ik_min = MIN(ik_min,ik)
+         ik_max = MAX(ik_max,ik)
+         il_min = MIN(il_min,il)
+         il_max = MAX(il_max,il)
+         n_refl = n_refl + 1
+      ENDDO check
+      vi(:,:) = 0
+      vi(1,1) = 1.0
+      vi(2,2) = 1.0
+      vi(3,3) = 1.0
+      inc(1)   = ih_max - ih_min             + 1
+      inc(2)   = ik_max - ik_min             + 1
+      inc(3)   = il_max - il_min             + 1
+      eck(1,1) = ih_min             ! minimum H
+      eck(2,1) = ik_min             ! minimum K
+      eck(3,1) = il_min             ! minimum L
+      eck(1,2) = ih_max             ! maximum H
+      eck(2,2) = ik_min             ! minimum K
+      eck(3,2) = il_min             ! minimum L
+      eck(1,3) = ih_min             ! minimum H
+      eck(2,3) = ik_max             ! maximum K
+      eck(3,3) = il_min             ! minimum L
+      eck(1,4) = ih_min             ! minimum H
+      eck(2,4) = ik_min             ! minimum K
+      eck(3,4) = il_max             ! maximum L
+!
+      IF (ier_num == 0) then 
+         IF (inc(1) * inc(2) * inc(3) .gt. MAXQXY  .OR.   &
+             cr_natoms > DIF_MAXAT                 .OR.   &
+             cr_nscat>DIF_MAXSCAT              ) THEN
+            n_qxy    = MAX(n_qxy,inc(1) * inc(2)*inc(3),MAXQXY)
+            n_natoms = MAX(n_natoms,cr_natoms,DIF_MAXAT)
+            n_nscat  = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+            CALL alloc_diffuse (n_qxy, n_nscat, n_natoms)
+            IF (ier_num /= 0) THEN
+               RETURN
+            ENDIF
+         ENDIF
+         CALL dlink (ano, lambda, rlambda, &
+                     diff_radiation, diff_power) 
+         call four_run
+         rhkl (1) =  0. 
+         rhkl (2) =  0. 
+         rhkl (3) =  0. 
+         IF(style==HKLF4) THEN
+            REWIND(ird)
+main:       DO
+               READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+               IF(IS_IOSTAT_END(iostatus)) EXIT main
+               indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
+               wert = REAL(csf(indx)*CONJG(csf(indx)))
+               WRITE(iwr,1000) ih,ik,il, scale*wert, scale*sint 
+            END DO main
+         ENDIF 
+      ENDIF 
+1000  FORMAT(3I4,2x, F8.2,F8.2)
+      CLOSE(ird)
+      CLOSE(iwr)
+      END SUBROUTINE calc_hkl
 END MODULE fourier_sup
