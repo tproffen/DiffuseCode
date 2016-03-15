@@ -211,6 +211,7 @@ SUBROUTINE pdf
          ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.         &
                  str_comp (befehl, 'dese', 2, lbef, 4) ) then                             
 !                                                                       
+!           This might be the first time RMC arrays are referenced
             IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
                n_nscat = MAX(cr_nscat, MAXSCAT, RMC_MAXSCAT)
                CALL alloc_rmc ( n_nscat )
@@ -828,7 +829,7 @@ SUBROUTINE pdf
          pdf_obs(:) = 0.0    ! reset data file
          pdf_wic(:) = 0.0    ! reset weighting scheme
          n_dat      = 0
-         READ (17, *, IOSTAT = iostatus  ) ra, pdf_obs (ip), dr, pdf_wic (ip)
+         READ (17, *, IOSTAT = iostatus  ) ra, r_dummy1    , dr, r_dummy2
 preread: DO
             IF(IS_IOSTAT_END(iostatus)) EXIT preread
             n_dat = n_dat + 1
@@ -1040,6 +1041,7 @@ main:    DO
       USE diffuse_mod 
       USE modify_mod
       USE pdf_mod 
+      USE rmc_mod 
       USE rmc_sup_mod
 !
       USE errlist_mod 
@@ -1059,6 +1061,7 @@ main:    DO
       INTEGER lpara (maxw) 
       INTEGER ianz, nn 
       INTEGER i, j, ia, ib 
+      INTEGER  :: n_nscat    ! dummy for rmc_allocation
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1567,6 +1570,14 @@ main:    DO
                  cpara (1) (1:3) .eq.'MDI'.or.      &
                  cpara (1) (1:3) .eq.'SCA'.or.      &
                  cpara (1) (1:3) .eq.'MOV'     ) then
+!           This might be the first time RMC arrays are referenced
+            IF(cr_nscat > RMC_MAXSCAT .or. MAXSCAT > RMC_MAXSCAT) THEN
+               n_nscat = MAX(cr_nscat, MAXSCAT, RMC_MAXSCAT)
+               CALL alloc_rmc ( n_nscat )
+               IF ( ier_num < 0 ) THEN
+                  RETURN
+               ENDIF
+            ENDIF
             CALL rmc_set (zeile, lp) 
 !                                                                       
 !------ - invalid command entered                                       
