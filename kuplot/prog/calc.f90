@@ -281,7 +281,7 @@
       REAL werte (maxw) 
       REAL a, b, x1, x2, y1, y2, xleft, xright 
       INTEGER lpara (maxw), lp 
-      INTEGER i, ipkt, ianz, ik, ileft, iright 
+      INTEGER i, ipkt, ianz, ik, ileft, iright
 !                                                                       
       INTEGER closest_point 
 !                                                                       
@@ -326,20 +326,35 @@
 !-------- left is outside                                               
 !                                                                       
          ELSEIF (xleft.lt.xmin (ik) .and.xright.lt.xmax (ik) ) then 
-            DO i = iright, len (ik) 
-            ipkt = offxy (ik - 1) + i 
-            x (ipkt - iright + 1) = x (ipkt) 
-            dx (ipkt - iright + 1) = dx (ipkt) 
-            y (ipkt - iright + 1) = y (ipkt) 
-            dy (ipkt - iright + 1) = dy (ipkt) 
-            ENDDO 
-            len (ik) = len (ik) - iright + 1 
+            IF(ileft<iright) THEN   ! normal dataset
+               DO i = iright, len (ik) 
+                  ipkt = offxy (ik - 1) + i 
+                  x (ipkt - iright + 1) = x (ipkt) 
+                  dx(ipkt - iright + 1) = dx(ipkt) 
+                  y (ipkt - iright + 1) = y (ipkt) 
+                  dy(ipkt - iright + 1) = dy(ipkt) 
+               ENDDO 
+               len (ik) = len (ik) - iright + 1 
+            ELSE     ! Data set in inverse sequence from + to -
+               len(ik) = iright
+            ENDIF
             CALL get_extrema_xy (x, ik, len, xmin, xmax) 
 !                                                                       
 !-------- right is outside                                              
 !                                                                       
          ELSEIF (xleft.gt.xmin (ik) .and.xright.gt.xmax (ik) ) then 
-            len (ik) = ileft 
+            IF(ileft<iright) THEN   ! normal dataset
+               len (ik) = ileft 
+            ELSE     ! Data set in inverse sequence from + to -
+               DO i=1, len(ik) - ileft + 1
+                  ipkt = offxy (ik - 1) + i 
+                  x (ipkt) = x (ipkt + ileft -1)
+                  dx(ipkt) = dx(ipkt + ileft -1)
+                  y (ipkt) = y (ipkt + ileft -1)
+                  dy(ipkt) = dy(ipkt + ileft -1)
+               ENDDO
+               len (ik) = len (ik) - ileft + 1 
+            ENDIF
             CALL get_extrema_xy (x, ik, len, xmin, xmax) 
 !                                                                       
          ELSE 
