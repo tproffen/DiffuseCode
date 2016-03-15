@@ -1301,6 +1301,7 @@ CONTAINS
       REAL eps 
       INTEGER ii, iii, igs, igg 
       INTEGER iiii 
+integer i
 !                                                                       
       DATA eps / 0.00001 / 
 !                                                                       
@@ -1772,6 +1773,8 @@ CONTAINS
       REAL d, dd 
       REAL u (3), v (3) 
       REAL x, y, z 
+      REAL :: d_min
+      REAL, DIMENSION(1:3) :: v_min
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -1796,12 +1799,9 @@ CONTAINS
       u (2) = cr_pos (2, mole_cont (mole_off (mole_num_curr) + 1) ) 
       u (3) = cr_pos (3, mole_cont (mole_off (mole_num_curr) + 1) ) 
 !                                                                       
-      v (1) = cr_pos (1, mole_cont (mole_off (mole_num_curr) + mole_st) &
-      )                                                                 
-      v (2) = cr_pos (2, mole_cont (mole_off (mole_num_curr) + mole_st) &
-      )                                                                 
-      v (3) = cr_pos (3, mole_cont (mole_off (mole_num_curr) + mole_st) &
-      )                                                                 
+      v (1) = cr_pos (1, mole_cont (mole_off (mole_num_curr) + mole_st))
+      v (2) = cr_pos (2, mole_cont (mole_off (mole_num_curr) + mole_st))
+      v (3) = cr_pos (3, mole_cont (mole_off (mole_num_curr) + mole_st))
 !                                                                       
       d = do_blen (lspace, u, v) 
 !DBG                                                                    
@@ -1854,6 +1854,9 @@ CONTAINS
 !                                                                       
 !     ----perform loop over next unit cells                             
 !                                                                       
+!     Modified to find the closest neighbor instead of the first at
+!     a short distance of 0.01
+      d_min = 0.1
       DO k1 = 2, - 2, - 1 
       DO k2 = 2, - 2, - 1 
       DO k3 = 2, - 2, - 1 
@@ -1864,21 +1867,29 @@ CONTAINS
 !DBG                                                                    
 !DBG      write (output_io,5556) u,j,mole_off(i)+j,v,dd                 
 !DBG5556      format(3f10.4,2(2x,i2),2x,3f10.4,2x,f12.4)                
-      IF (abs (d-dd) .lt.0.01) then 
-         GOTO 10 
-      ENDIF 
+!!      IF (abs (d-dd) .lt.0.01) then 
+!!         GOTO 10 
+!!      ENDIF 
+        IF(abs(d-dd) < d_min ) THEN
+           d_min = ABS(d-dd)
+           v_min(1) = v(1)
+           v_min(2) = v(2)
+           v_min(3) = v(3)
+        ENDIF
       ENDDO 
       ENDDO 
       ENDDO 
 !                                                                       
+      IF(d_min > 0.01) THEN
       ier_num = - 83 
       ier_typ = ER_APPL 
       RETURN 
+      ENDIF
 !                                                                       
-   10 CONTINUE 
-      cr_pos (1, mole_cont (mole_off (i) + j) ) = v (1) 
-      cr_pos (2, mole_cont (mole_off (i) + j) ) = v (2) 
-      cr_pos (3, mole_cont (mole_off (i) + j) ) = v (3) 
+!  10 CONTINUE 
+      cr_pos (1, mole_cont (mole_off (i) + j) ) = v_min (1) 
+      cr_pos (2, mole_cont (mole_off (i) + j) ) = v_min (2) 
+      cr_pos (3, mole_cont (mole_off (i) + j) ) = v_min (3) 
 !DBG                                                                    
 !DBG      write (output_io,5557) k1,k2,k3                               
 !DBG5557      format('loesung fuer ',3i3)                               
