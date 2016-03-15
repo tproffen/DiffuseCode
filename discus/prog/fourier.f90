@@ -894,6 +894,7 @@ CONTAINS
 !
 !     Calculate lengths in Ang-1
 !
+      lspace = .false.
       hor(:) = vi(:,1)
       ver(:) = vi(:,2)
       top(:) = vi(:,3)
@@ -978,7 +979,7 @@ CONTAINS
       REAL              , INTENT(OUT):: aver_vh
 !
       REAL   , DIMENSION(3) :: zero = (/0.0, 0.0, 0.0/)
-      LOGICAL, PARAMETER    :: lspace =.true.
+      LOGICAL, PARAMETER    :: lspace =.false.
 !
 !     REAL do_bang 
 !
