@@ -616,7 +616,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !
       lsave = .true.
       DO i = 0, cr_nscat 
-         lsave = lsave .and. sav_latom(i)
+         lsave = lsave .or. sav_latom(i)
       ENDDO 
       IF(.not. lsave ) THEN
          ier_num = -58
@@ -844,7 +844,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !
       lsave = .true.
       DO i = 0, cr_nscat 
-         lsave = lsave .and. sav_latom(i)
+         lsave = lsave .or. sav_latom(i)
       ENDDO 
       IF(.not. lsave ) THEN
          ier_num = -58
