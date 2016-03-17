@@ -2730,6 +2730,7 @@ laccept = .false.
 !
       is = cr_iscat (ia) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
+         pdf_temp(0,is,is,0) = pdf_temp(0,is,is,0) + 1       ! Add self correlation peak
          CALL indextocell (ia, iii, ks) 
          DO i = 1, 3 
          istart (i) = iii (i) - 1 - int (pdf_rmax / cr_a0 (i) ) 
