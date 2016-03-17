@@ -75,6 +75,8 @@
    be generated with a size distribution.
 
    Fourier can calculate the intensities for a SHELXL file
+
+   2D and 2D images can be written in MRC file format
 3  2015_Dec
 
    Added a command 'apply_symmetry' to the chemistry and mmc menues.
@@ -3026,7 +3028,8 @@
 !p wait    ! Waits for user input (see main help)
 3  format
 !b form {"gnu" | "pgm" | "ppm" | "powder" [,{"dst"|"tth"|"stl"|"q"}] 
-!b     | "post" | "shel" | "stan" | "hklf4" | "list5" }
+!b     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
+!b       "vtk" | "mrc"}
 
    Defines the output format that will be used. 
    Valid parameters are:
@@ -3047,6 +3050,14 @@
    always writes the amplitude and the phase angle in degrees.
    DISCUS calculates the value of F(000) and scales the data such 
    that F(000) is less than 10**8 to fit into the format. 
+
+!b "mrc"
+   Set the output file format to the MRC file format. Applies to 
+   2D and 3D data only. Images can be visualized for example with 
+   Chimera.
+
+!b "nexus"
+   Sets the output to NeXuS file format.
 
 !b "pgm"
    Sets the type of the output to portable grey map. A bitmap of the
@@ -3107,6 +3118,8 @@
    number of data points along the abszissa and the ordinate, the 
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
+!b "vtk"
+   Sets the output to vtk.
 3  input
 !b input
 

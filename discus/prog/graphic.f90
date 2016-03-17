@@ -11,6 +11,7 @@ SUBROUTINE do_niplps (linverse)
       USE discus_config_mod 
       USE diffuse_mod 
       USE nexus_discus
+      USE discus_mrc
       USE vtk_mod
       USE output_mod 
       USE powder_write_mod
@@ -64,7 +65,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       prom = prompt (1:len_str (prompt) ) //'/output' 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) GOTO 10
 !                                                                       
@@ -74,7 +75,7 @@ SUBROUTINE do_niplps (linverse)
       IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
      &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
      &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+     &2, lbef, 4) ) ) THEN                                              
 !                                                                       
 !     --evaluatean expression and assign the value to a variabble       
 !                                                                       
@@ -83,8 +84,8 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
-            IF (befehl (1:1) .eq.'@') then 
-               IF (length.ge.2) then 
+            IF (befehl (1:1) .eq.'@') THEN 
+               IF (length.ge.2) THEN 
                   CALL file_kdo (line (2:length), length - 1) 
                ELSE 
                   ier_num = - 13 
@@ -93,75 +94,70 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
-            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) then 
+            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) THEN 
                CALL macro_continue (zeile, lp) 
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
-            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
                CALL echo (zeile, lp) 
 !                                                                       
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
                CALL do_eval (zeile, lp) 
 !                                                                       
 !     Terminate output 'exit'                                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
                GOTO 9999 
 !                                                                       
 !     Determine format for output 'format'                              
 !                                                                       
-            ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.1.or.ianz.eq.2) then 
+               IF (ier_num.eq.0) THEN 
+                  IF (ianz.eq.1.or.ianz.eq.2) THEN 
 !                                                                       
 !     ------Switch output type to ASCII 3D  '3d'                      
 !                                                                       
-                     IF (str_comp (cpara (1) , '3d', 2, lpara (1) &
-                     , 2) ) then                                        
+                     IF(str_comp(cpara(1),'3d',2,lpara(1),2)) THEN                                        
                         ityp = 9 
 !                                                                       
 !     ------Switch output type to GNUPLOT 'gnup'                        
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'gnup', 1, lpara (1) , 4)&
-                     ) then                                             
+                     ELSEIF(str_comp(cpara(1),'gnup',1,lpara(1),4)) THEN                                             
                         ityp = 3 
 !                                                                       
 !     ------Switch output type to pgm 'pgm'                             
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'pgm ', 2, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'pgm ',2,lpara(1),4)) THEN                                        
                         ityp = 2 
 !                                                                       
 !     ------Switch output type to postscript 'post'                     
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'post', 3, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'post',3,lpara(1),4)) THEN                                        
                         ityp = 1 
 !                                                                       
 !     ------Switch output type to powder pattern 'powd'                 
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'powd', 3, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'powd',3,lpara(1),4)) THEN                                        
                         ityp = 5 
-                        IF (ianz.eq.2) then 
+                        IF (ianz.eq.2) THEN 
                            IF (str_comp (cpara (2) , 'tth', 2, lpara (2)&
-                           , 3) ) then                                  
+                           , 3) ) THEN                                  
                               cpow_form = 'tth' 
                            ELSEIF (str_comp (cpara (2) , 'q', 1, lpara (&
-                           2) , 1) ) then                               
-      cpow_form = 'q  ' 
+                           2) , 1) ) THEN                               
+                              cpow_form = 'q  ' 
                            ELSEIF (str_comp (cpara (2) , 'stl', 2,      &
-                           lpara (2) , 3) ) then                        
+                           lpara (2) , 3) ) THEN                        
                               cpow_form = 'stl' 
                            ELSEIF (str_comp (cpara (2) , 'dst', 2,      &
-                           lpara (2) , 3) ) then                        
+                           lpara (2) , 3) ) THEN                        
                               cpow_form = 'dst' 
                            ELSEIF (str_comp (cpara (2) , 'lop', 2,      &
-                           lpara (2) , 3) ) then                        
+                           lpara (2) , 3) ) THEN                        
                               cpow_form = 'lop' 
                            ELSE 
                               ier_num = - 6 
@@ -171,48 +167,45 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     ------Switch output type to ppm 'ppm'                             
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'ppm ', 2, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'ppm ',2,lpara(1),4)) THEN                                        
                         ityp = 4 
 !                                                                       
 !     ------Switch output type to standard  'stan'                      
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'stan', 2, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'stan',2,lpara(1),4)) THEN                                        
                         ityp = 0 
 !                                                                       
 !     ------Switch output type to Shelx 'shel', or 'hklf4'              
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'shel', 2, lpara (1) &
-                     , 4) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'shel',2,lpara(1),4)) THEN                                        
                         ityp = 6 
-                     ELSEIF (str_comp (cpara (1) , 'hklf4', 2, lpara (1)&
-                     , 5) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'hklf4',2,lpara(1),5)) THEN                                        
                         ityp = 6 
 !                                                                       
 !     ------Switch output type to Shelx LIST 5   'list5'                
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'list5', 2, lpara (1)&
-                     , 5) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'list5',2,lpara(1),5)) THEN                                        
                         ityp = 7 
 !                                                                       
 !     ------Switch output type to Shelx LIST 5   'list9'                
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'list9', 2, lpara (1)&
-                     , 5) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'list9',2,lpara(1),5)) THEN                                        
                         ityp = 8 
 !                                                                       
 !     ------Switch output type to NeXus format   'nexus'                
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'nexus', 2, lpara (1)&
-                     , 5) ) then                                        
+                     ELSEIF(str_comp(cpara(1),'nexus',2,lpara(1),5)) THEN                                        
                         ityp = 10 
 !                                                                       
 !     ------Switch output type to VTK format   'vtk'
 !                                                                       
-                     ELSEIF (str_comp (cpara (1) , 'vtk', 2, lpara (1)&
-                     , 5) ) then
+                     ELSEIF(str_comp(cpara(1),'vtk',2,lpara(1),5)) THEN
                         ityp = 11
+!                                                                       
+!     ------Switch output type to MRC   format   'mrc'                
+!                                                                       
+                     ELSEIF (str_comp(cpara(1), 'mrc', 2, lpara(1), 3) ) THEN                                        
+                        ityp = 12 
                      ELSE
                         ier_num = - 9 
                         ier_typ = ER_APPL 
@@ -226,8 +219,8 @@ SUBROUTINE do_niplps (linverse)
 !     help on output 'help'                                             
 !                                                                       
       ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-               IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+     &, '?   ', 1, lbef, 4) ) THEN                                      
+               IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                   lp = lp + 7 
                   CALL do_hel ('discus '//zeile, lp) 
                ELSE 
@@ -237,13 +230,13 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     read an old output file (only for standard file type' 'inpu'      
 !                                                                       
-            ELSEIF (str_comp (befehl, 'inpu', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'inpu', 1, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   infile = cpara (1) 
                   lread = .true. 
                   CALL oeffne (1, infile, 'old') 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      READ (1, * ) out_inc (1), out_inc (2) 
                      READ (1, * ) xmin, xmax, ymin, ymax 
                      READ (1, * ) zmax 
@@ -269,46 +262,48 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     define name of output file 'outf'                                 
 !                                                                       
-            ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'outf', 1, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   CALL do_build_name (ianz, cpara, lpara, werte, maxp,  &
                   1)                                                    
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      outfile = cpara (1) (1:lpara(1))
                   ENDIF 
                ENDIF 
 !                                                                       
 !     write output file 'run'                                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) THEN 
                IF(four_was_run) THEN    ! A fourier has been calculated do output
                   CALL chem_elem(.false.)
                   CALL set_output (linverse) 
-                  IF (ityp.eq.0) then 
+                  IF (ityp.eq.0) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.1) then 
+                  ELSEIF (ityp.eq.1) THEN 
                      CALL do_post (value, laver) 
-                  ELSEIF (ityp.eq.2) then 
+                  ELSEIF (ityp.eq.2) THEN 
                      CALL do_pgm (value, laver) 
-                  ELSEIF (ityp.eq.3) then 
+                  ELSEIF (ityp.eq.3) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.4) then 
+                  ELSEIF (ityp.eq.4) THEN 
                      CALL do_ppm (value, laver) 
-                  ELSEIF (ityp.eq.5) then 
+                  ELSEIF (ityp.eq.5) THEN 
                      CALL powder_out (value)
-                  ELSEIF (ityp.eq.6) then 
+                  ELSEIF (ityp.eq.6) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.7) then 
+                  ELSEIF (ityp.eq.7) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.8) then 
+                  ELSEIF (ityp.eq.8) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.9) then 
+                  ELSEIF (ityp.eq.9) THEN 
                      CALL do_output (value, laver) 
-                  ELSEIF (ityp.eq.10) then 
+                  ELSEIF (ityp.eq.10) THEN 
                      CALL nexus_write (value, laver) 
-                  ELSEIF (ityp.eq.11) then
+                  ELSEIF (ityp.eq.11) THEN
                      CALL vtk_write (value, laver)
+                  ELSEIF (ityp.eq.12) THEN
+                     CALL mrc_write (value, laver)
                   ELSE 
                      ier_num = - 9 
                      ier_typ = ER_APPL 
@@ -323,15 +318,15 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Show current settings for output 'show'                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                WRITE (output_io, 3000) outfile 
-               IF (ityp.lt.0.or.8.lt.ityp) then 
+               IF (ityp.lt.0.or.8.lt.ityp) THEN 
                   WRITE (output_io, * ) 'ityp undefiniert ', ityp 
-               ELSEIF (ityp.eq.5) then 
+               ELSEIF (ityp.eq.5) THEN 
                   WRITE (output_io, 3130) cgraphik (ityp), cpow_form 
                ELSE 
                   WRITE (output_io, 3100) cgraphik (ityp) 
-                  IF (laver) then 
+                  IF (laver) THEN 
                      WRITE (output_io, 3110) '<'//cvalue (value) //'>' 
                   ELSE 
                      WRITE (output_io, 3110) cvalue (value) 
@@ -344,8 +339,8 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-               IF (zeile.ne.' ') then 
+            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+               IF (zeile.ne.' ') THEN 
                   CALL do_operating (zeile (1:lp), lp) 
                ELSE 
                   ier_num = - 6 
@@ -354,39 +349,39 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Set threshold for intensity written to bitmaps 'thresh'           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'thre', 2, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
+               IF (ier_num.eq.0) THEN 
+                  IF (ianz.eq.2) THEN 
                      IF (str_comp (cpara (1) , 'high', 1, lpara (1) , 4)&
-                     ) then                                             
+                     ) THEN                                             
                         CALL del_params (1, ianz, cpara, lpara, maxp) 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            ps_high = werte (1) * 0.01 
                            zmax = diffumax * ps_high 
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'low', 1, lpara (1) ,&
-                     3) ) then                                          
+                     3) ) THEN                                          
                         CALL del_params (1, ianz, cpara, lpara, maxp) 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            ps_low = werte (1) * 0.01 
                            zmin = diffumax * ps_low 
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'sigma', 1, lpara (1)&
-                     , 5) ) then                                        
+                     , 5) ) THEN                                        
                         CALL del_params (1, ianz, cpara, lpara, maxp) 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            zmin = max (diffumin, diffuave-werte (1)     &
                            * diffusig)                                  
                            zmax = min (diffumax, diffuave+werte (1)     &
                            * diffusig)                                  
-                           IF (diffumax.ne.0) then 
+                           IF (diffumax.ne.0) THEN 
                               ps_high = zmax / diffumax 
                               ps_low = zmin / diffumax 
                            ELSE 
@@ -395,26 +390,26 @@ SUBROUTINE do_niplps (linverse)
                            ENDIF 
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'zmax', 3, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         CALL del_params (1, ianz, cpara, lpara, maxp) 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            zmax = werte (1) 
-                           IF (diffumax.ne.0) then 
+                           IF (diffumax.ne.0) THEN 
                               ps_high = zmax / diffumax 
                            ELSE 
                               ps_high = 0.0 
                            ENDIF 
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'zmin', 3, lpara (1) &
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         CALL del_params (1, ianz, cpara, lpara, maxp) 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            zmin = werte (1) 
-                           IF (diffumax.ne.0) then 
+                           IF (diffumax.ne.0) THEN 
                               ps_low = zmin / diffumax 
                            ELSE 
                               ps_low = 0.0 
@@ -432,11 +427,11 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Define output value 'value'                                       
 !                                                                       
-            ELSEIF (str_comp (befehl, 'valu', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'valu', 1, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
 !------ ----Check if we want the average values <F> ?                   
-                  IF (cpara (1) (1:1) .eq.'<') then 
+                  IF (cpara (1) (1:1) .eq.'<') THEN 
                      ix = 2 
                      laver = .true. 
                   ELSE 
@@ -444,39 +439,39 @@ SUBROUTINE do_niplps (linverse)
                      laver = .false. 
                   ENDIF 
 !     ----Calculate intensity 'intensity'                               
-                  IF (cpara (1) (ix:ix + 1) .eq.'in') then 
+                  IF (cpara (1) (ix:ix + 1) .eq.'in') THEN 
                      value = val_inten
 !     ----Calculate amplitude 'amplitude'                               
-                  ELSEIF (cpara (1) (ix:ix) .eq.'a') then 
+                  ELSEIF (cpara (1) (ix:ix) .eq.'a') THEN 
                      value = val_ampli
 !     ----Calculate phase 'phase'                                       
-                  ELSEIF (cpara (1) (ix:ix) .eq.'p') then 
-                     IF (ianz.eq.1) then 
+                  ELSEIF (cpara (1) (ix:ix) .eq.'p') THEN 
+                     IF (ianz.eq.1) THEN 
                         value = val_phase
                      ELSEIF (ianz.eq.2.and.cpara (2) (1:1) .eq.'r')     &
-                     then                                               
+                     THEN                                               
                         value = val_ranph
                      ENDIF 
 !     ----Calculate real part 'real'                                    
-                  ELSEIF (cpara (1) (ix:ix) .eq.'r') then 
+                  ELSEIF (cpara (1) (ix:ix) .eq.'r') THEN 
                      value = val_real
 !     ----Calculate imaginary part 'imaginary'                          
-                  ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') then 
+                  ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') THEN 
                      value = val_imag
 !     ----Calculate S(Q)           'S(Q)     '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') then 
+                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') THEN 
                      value = val_sq
 !     ----Calculate F(Q)=Q(S(Q)-1) 'F(Q)     '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') then 
+                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'F(Q)') THEN 
                      value = val_fq 
-                  ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') then
+                  ELSEIF (cpara (1) (ix:ix + 5) == 'f2aver') THEN
                      value = val_f2aver
-                  ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') then
+                  ELSEIF (cpara (1) (ix:ix + 5) == 'faver2') THEN
                      value = val_faver2
-                  ELSEIF (cpara (1) (ix:ix + 4) == 'faver') then
+                  ELSEIF (cpara (1) (ix:ix + 4) == 'faver') THEN
                      value = val_faver
 !     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
-                  ELSEIF (cpara (1) (ix:ix + 3) == 'norm') then 
+                  ELSEIF (cpara (1) (ix:ix + 3) == 'norm') THEN 
                      value = val_norm
                   ELSE 
                      ier_num = - 6 
@@ -484,7 +479,7 @@ SUBROUTINE do_niplps (linverse)
                      value = 0 
                   ENDIF 
 !------ ----check lots and allowed output                               
-                  IF (nlots.ne.1.and.value.ne.1.and..not.laver) then 
+                  IF (nlots.ne.1.and.value.ne.1.and..not.laver) THEN 
                      ier_num = - 60 
                      ier_typ = ER_APPL 
                      value = 0 
@@ -493,7 +488,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !------  -waiting for user input                                        
 !                                                                       
-            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                CALL do_input (zeile, lp) 
 !                                                                       
 !------ no valid subcommand found                                       
@@ -504,14 +499,14 @@ SUBROUTINE do_niplps (linverse)
             ENDIF 
          ENDIF 
       ENDIF 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro) then 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
+            IF (lmakro) THEN 
                CALL macro_close 
                prompt_status = PROMPT_ON 
             ENDIF 
-            IF (lblock) then 
+            IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
                RETURN 
@@ -568,7 +563,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) then 
+      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
          ier_num = - 50 
          ier_typ = ER_APPL 
          RETURN 
@@ -602,9 +597,9 @@ SUBROUTINE do_niplps (linverse)
       DO ix = 1, out_inc (1) 
       k = (ix - 1) * out_inc (2) + iy 
       qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) then 
+      IF (qqq.lt.zmin) THEN 
          qqq = zmin 
-      ELSEIF (qqq.gt.zmax) then 
+      ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
       iqqq = nint ( (maxcol - 2) * (qqq - zmin) / (zmax - zmin) )       &
@@ -653,7 +648,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) then 
+      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
          ier_num = - 50 
          ier_typ = ER_APPL 
          RETURN 
@@ -672,9 +667,9 @@ SUBROUTINE do_niplps (linverse)
       DO ix = 1, out_inc (1) 
       k = (ix - 1) * out_inc (2) + iy 
       qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) then 
+      IF (qqq.lt.zmin) THEN 
          qqq = zmin 
-      ELSEIF (qqq.gt.zmax) then 
+      ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
       iqqq (ix) = nint (float (ncol - 1) * (qqq - zmin) / (zmax - zmin) &
@@ -720,7 +715,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     Check whether data are 2-dimensional                              
 !                                                                       
-      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) then 
+      IF (.not. (out_inc (1) .gt.1.and.out_inc (2) .gt.1) ) THEN 
          ier_num = - 50 
          ier_typ = ER_APPL 
          RETURN 
@@ -755,9 +750,9 @@ SUBROUTINE do_niplps (linverse)
       DO ix = 1, out_inc (1) 
       k = (ix - 1) * out_inc (2) + iy 
       qqq = qval (k, value, ix, iy, laver) 
-      IF (qqq.lt.zmin) then 
+      IF (qqq.lt.zmin) THEN 
          qqq = zmin 
-      ELSEIF (qqq.gt.zmax) then 
+      ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
       iqqq (ix) = nint (float (ncol - 1) * (qqq - zmin) / (zmax - zmin) &
@@ -801,27 +796,27 @@ SUBROUTINE do_niplps (linverse)
       IF (rp.gt.1.0) rp = 1.0 
       IF (rq.gt.1.0) rq = 1.0 
 !                                                                       
-      IF (i.eq.0) then 
+      IF (i.eq.0) THEN 
          rgb (1) = int (0.5 + 1. * 255.0) 
          rgb (2) = int (0.5 + rt * 255.0) 
          rgb (3) = int (0.5 + rp * 255.0) 
-      ELSEIF (i.eq.1) then 
+      ELSEIF (i.eq.1) THEN 
          rgb (1) = int (0.5 + rq * 255.0) 
          rgb (2) = int (0.5 + 1. * 255.0) 
          rgb (3) = int (0.5 + rp * 255.0) 
-      ELSEIF (i.eq.2) then 
+      ELSEIF (i.eq.2) THEN 
          rgb (1) = int (0.5 + rp * 255.0) 
          rgb (2) = int (0.5 + 1. * 255.0) 
          rgb (3) = int (0.5 + rt * 255.0) 
-      ELSEIF (i.eq.3) then 
+      ELSEIF (i.eq.3) THEN 
          rgb (1) = int (0.5 + rp * 255.0) 
          rgb (2) = int (0.5 + rq * 255.0) 
          rgb (3) = int (0.5 + 1. * 255.0) 
-      ELSEIF (i.eq.4) then 
+      ELSEIF (i.eq.4) THEN 
          rgb (1) = int (0.5 + rt * 255.0) 
          rgb (2) = int (0.5 + rp * 255.0) 
          rgb (3) = int (0.5 + 1. * 255.0) 
-      ELSEIF (i.eq.5) then 
+      ELSEIF (i.eq.5) THEN 
          rgb (1) = int (0.5 + 1. * 255.0) 
          rgb (2) = int (0.5 + rp * 255.0) 
          rgb (3) = int (0.5 + rq * 255.0) 
@@ -905,7 +900,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
-      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) then 
+      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) THEN 
          DO i = 1, 3 
          shel_inc (i) = inc (i) 
          ENDDO 
@@ -931,9 +926,9 @@ SUBROUTINE do_niplps (linverse)
          vi (i, j) = 0.0 
          ENDDO 
          ENDDO 
-         IF (ityp.eq.HKLF4) then 
+         IF (ityp.eq.HKLF4) THEN 
             value = 1 
-         ELSEIF (ityp.eq.LIST5) then 
+         ELSEIF (ityp.eq.LIST5) THEN 
             value = 2 
          ENDIF 
          CALL four_run 
@@ -941,9 +936,9 @@ SUBROUTINE do_niplps (linverse)
          shel_000 = qval (1, value, 1, 1, laver) 
          qq = qval (1, value, 1, 1, laver) / cr_icc (1) / cr_icc (2)    &
          / cr_icc (3)                                                   
-         IF (ityp.eq.HKLF4) then 
+         IF (ityp.eq.HKLF4) THEN 
             factor = max (int (log (qq) / log (10.0) ) - 3, 0) 
-         ELSEIF (ityp.eq.LIST5) then 
+         ELSEIF (ityp.eq.LIST5) THEN 
             factor = max (int (log (qq) / log (10.0) ) - 2, 0) 
          ENDIF 
          out_fac = 10** ( - factor) 
@@ -1070,9 +1065,9 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
       IF(.not.(out_inc(3) > 1 .and. ityp.eq.0) ) THEN   ! NOT multiple layers in standard file type
          CALL oeffne (iff, outfile, 'unknown') 
       ENDIF
-      IF (ier_num.eq.0) then 
-         IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) then  ! 2D or 3D data
-            IF (ityp.eq.0) then                             ! Standard file format
+      IF (ier_num.eq.0) THEN 
+         IF (out_inc (1) .gt.1.and.out_inc (2) .gt.1) THEN  ! 2D or 3D data
+            IF (ityp.eq.0) THEN                             ! Standard file format
 !               DO l=1, out_inc(3)
 !                  IF(out_inc(3) > 1) THEN
 !                     WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l
@@ -1092,7 +1087,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !                     CLOSE(iff)
 !                  ENDIF
 !               ENDDO 
-            ELSEIF (ityp.eq.ASCII3D) then                   ! 3D "NIPL" file
+            ELSEIF (ityp.eq.ASCII3D) THEN                   ! 3D "NIPL" file
                WRITE (iff, * ) out_inc (1), out_inc(2), out_inc(3)
                WRITE (iff, * ) out_eck (out_extr_abs, 1), out_eck (out_extr_abs, 2), &
                                out_eck (out_extr_ord, 1), out_eck (out_extr_ord, 3), &
@@ -1108,7 +1103,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                      CLOSE(iff)
                   ENDIF
                ENDDO 
-            ELSEIF (ityp.eq.HKLF4) then                     ! SHELXS HKL File
+            ELSEIF (ityp.eq.HKLF4) THEN                     ! SHELXS HKL File
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
@@ -1125,7 +1120,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST5) then                     ! SHELXS HKL Fobs Fcalc File
+            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS HKL Fobs Fcalc File
                shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
@@ -1145,7 +1140,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                ENDDO 
                ENDDO 
                ENDDO 
-            ELSEIF (ityp.eq.LIST9) then                     ! SHELXS File
+            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELXS File
                shel_value = 3 
                DO l = 1, out_inc (3) 
                DO j = 1, out_inc (2) 
@@ -1179,7 +1174,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                WRITE (iff, 100) 
                ENDDO 
             ENDIF 
-         ELSEIF (out_inc (1) .eq.1) then                    ! 1D Files
+         ELSEIF (out_inc (1) .eq.1) THEN                    ! 1D Files
             IF(ityp /= 0) THEN                              ! All BUT standard files
             i = 1 
             DO j = 1, out_inc (2) 
@@ -1188,13 +1183,13 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             + out_vi (k, 2) * float (j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
-            IF (ityp.eq.HKLF4) then                         ! SHELXS HKL INTENSITY
+            IF (ityp.eq.HKLF4) THEN                         ! SHELXS HKL INTENSITY
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) then                     ! SHELXS Fobs Fcalc
+            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELXS Fobs Fcalc
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
@@ -1205,7 +1200,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) then                     ! SHELXS
+            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELXS
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
@@ -1230,7 +1225,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                   ywrt(i) = qval (k, value, i, j, laver)
                ENDDO 
             ENDIF 
-         ELSEIF (out_inc (2) .eq.1) then 
+         ELSEIF (out_inc (2) .eq.1) THEN 
             IF(ityp /= 0) THEN                              ! All BUT standard files
             j = 1 
             DO i = 1, out_inc (1) 
@@ -1239,13 +1234,13 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             + out_vi (k, 2) * float (j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
-            IF (ityp.eq.HKLF4) then                         ! SHELXS Intensity
+            IF (ityp.eq.HKLF4) THEN                         ! SHELXS Intensity
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
                sq = sqrt (qq) 
                WRITE (iff, 7) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, sq                                                   
-            ELSEIF (ityp.eq.LIST5) then                     ! SHELS Fobs Fcalc
+            ELSEIF (ityp.eq.LIST5) THEN                     ! SHELS Fobs Fcalc
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3) * out_fac                                
@@ -1256,7 +1251,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                IF(sq < 0.0 ) sq = sq + 360.0
                WRITE (iff, 8) int (h (1) ), int (h (2) ), int (h (3) ), &
                qq, qq, sq                                               
-            ELSEIF (ityp.eq.LIST9) then                     ! SHELS File
+            ELSEIF (ityp.eq.LIST9) THEN                     ! SHELS File
                shel_value = 2 
                qq = qval (k, value, i, j, laver) / cr_icc (1) / cr_icc (&
                2) / cr_icc (3)                                          
@@ -1281,10 +1276,10 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             ENDIF 
          ENDIF 
       ENDIF 
-!     if(ier_num.ne.0) then                                             
+!     if(ier_num.ne.0) THEN                                             
 !       call errlist                                                    
 !     endif                                                             
-      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) then 
+      IF (ityp.eq.HKLF4.or.ityp.eq.LIST5) THEN 
          WRITE (output_io, 1000) out_fac 
       ENDIF 
       CLOSE (iff) 
@@ -1320,7 +1315,7 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !                                                                       
       INTEGER i, j 
 !                                                                       
-      IF (linverse) then 
+      IF (linverse) THEN 
          out_extr_abs = rho_extr_abs 
          out_extr_ord = rho_extr_ord 
 !                                                                       
