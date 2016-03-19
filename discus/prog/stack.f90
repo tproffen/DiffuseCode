@@ -1781,6 +1781,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+      REAL      :: xstart  ! qmin  for sin Theta / lambda calculation
+      REAL      :: xdelta  ! qstep for sin Theta / lambda calculation
 !
       LOGICAL lout 
 !                                                                       
@@ -1985,21 +1987,23 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ -------Calculate from factor squared
 !
                IF(calc_f2aver) THEN
-               DO i = 1, pow_npkt         ! Always over all points in powder pattern!
-                  pow_f2aver (i) = pow_f2aver (i)  + &
-                             real (       cfact_pure(powder_istl(i), iscat)  * &
-                                   conjg (cfact_pure(powder_istl(i), iscat)))  &
-                             * n_layers * nxat
-                  pow_faver2 (i) = pow_faver2 (i) +  &
-                        SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
-                                   conjg (cfact_pure(powder_istl(i), iscat)))) &
-                             * n_layers * nxat
-               ENDDO
+! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+                  xstart = pow_qmin  /zpi
+                  xdelta = pow_deltaq/zpi
+                  CALL powder_stltab(pow_npkt,xstart,xdelta)  
+                  DO i = 1, pow_npkt         ! Always over all points in powder pattern!
+                     pow_f2aver (i) = pow_f2aver (i)  + &
+                                real (       cfact_pure(powder_istl(i), iscat)  * &
+                                      conjg (cfact_pure(powder_istl(i), iscat)))  &
+                                * n_layers * nxat
+                     pow_faver2 (i) = pow_faver2 (i) +  &
+                           SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
+                                      conjg (cfact_pure(powder_istl(i), iscat)))) &
+                                * n_layers * nxat
+                  ENDDO
                   pow_nreal = pow_nreal + n_layers * nxat
-               pow_faver2(:) = pow_faver2(:)**2
-               pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
-!write(*,*) ' SLAW  CALCULATE f2aver ', l, pow_u2aver, cr_dw(iscat), iscat, n_layers, nxat, pow_nreal, pow_npkt
-!write(*,*) ' SLAW  CALCULATE form   ', l, cfact_pure(powder_istl(1), iscat), iscat, powder_istl(1)
+                  pow_faver2(:) = pow_faver2(:)**2
+                  pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
                ENDIF
             ENDDO 
 !                                                                       
@@ -2027,23 +2031,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
       DO i = 1, num (1) * num (2) 
          dsi (i) = real (csf (i) * conjg (csf (i) ) ) 
       ENDDO 
-!
-!     CALCULATE normalized average squared atomic form factor
-!
-      IF(calc_f2aver) THEN
-      DO i=1,pow_npkt
-         pow_f2aver(i) = pow_f2aver(i) / pow_nreal
-         pow_faver2(i) = pow_faver2(i) / pow_nreal
-      ENDDO
-      pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
-!write(*,*) ' IN ST_FOURIER pow_nreal , pow_f2aver(1),  pow_u2aver ', &
-!         pow_nreal , pow_f2aver(1),  pow_u2aver, pow_npkt
-!open(67,file='POWDER/f2aver',status='unknown')
-!do i=1,pow_npkt
-!   write(67, '(i5,2x, G15.6E3)') i, pow_f2aver(i)
-!enddo
-!close(67)
-      ENDIF
 !                                                                       
       IF (four_log) then 
          CALL four_qinfo 

@@ -81,7 +81,7 @@
 
    Added a command 'apply_symmetry' to the chemistry and mmc menues.
    These allow to generate symmetry equivalent correlation vectors.
-   See mmc and chem ==> set ve; set neig; apply_symmetry for more help
+   See mmc and chem ==> set vec; set neig; apply_symmetry for more help
 
    Added the option to calculate normalized intensities for single
    crystal pattern.

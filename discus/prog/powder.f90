@@ -1141,7 +1141,7 @@ CONTAINS
       LOGICAL l_hh_real 
       LOGICAL l_kk_real 
       LOGICAL l_ll_real 
-      LOGICAL                   :: calc_f2aver
+      LOGICAL                   :: calc_f2aver, rept_f2aver
       REAL llstart, llend 
       REAL :: llstart2=0.0, llend2=1.0
       REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
@@ -1166,7 +1166,8 @@ CONTAINS
       n_nscat = 1
       n_pkt   = 1
       l_twoparts = .false.
-      calc_f2aver = .true.
+      calc_f2aver = .true.    ! Assume that we need form factors
+      rept_f2aver = .true.    ! Assume that we need to repeat them
 !                                                                       
 !DBG_RBN      open(13,file='hkl.list',status='unknown')                 
       ss = seknds (0.0) 
@@ -1219,6 +1220,7 @@ CONTAINS
          CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
       ELSE
          calc_f2aver = .false.
+         rept_f2aver = .false.
       ENDIF
       CALL four_cexpt 
       CALL four_formtab 
@@ -1496,8 +1498,8 @@ CONTAINS
                   CALL four_run_powder 
                ENDIF 
             ELSEIF (pow_four_mode.eq.POW_STACK) then 
-               CALL st_fourier(calc_f2aver)
-               calc_f2aver = .false.
+               CALL st_fourier(rept_f2aver)
+               rept_f2aver = .false.   ! No further calculations needed
             ENDIF 
             DO i = 1, inc (1) 
             hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
@@ -1594,8 +1596,8 @@ CONTAINS
                      CALL four_run_powder 
                   ENDIF 
                ELSEIF (pow_four_mode.eq.POW_STACK) then 
-                  CALL st_fourier(calc_f2aver)
-                  calc_f2aver = .false.
+                  CALL st_fourier(rept_f2aver)
+                  rept_f2aver = .false.   ! no further calculations needed
                ENDIF 
                DO i = 1, inc (1) 
                hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
@@ -1650,6 +1652,16 @@ CONTAINS
 !DBG        close(17)                                                   
 !DBG        close(18)                                                   
       ENDDO 
+!
+!     CALCULATE normalized average squared atomic form factor
+!
+      IF(calc_f2aver) THEN
+         DO i=1,pow_npkt
+            pow_f2aver(i) = pow_f2aver(i) / pow_nreal
+            pow_faver2(i) = pow_faver2(i) / pow_nreal
+         ENDDO
+         pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
+      ENDIF
 !                                                                       
       CALL dealloc_powder_nmax ! was allocated in powder_getatoms
 !

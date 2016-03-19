@@ -37,13 +37,15 @@ CONTAINS
       COMPLEX f 
       REAL h (3) 
       REAL      :: q2     = 0.0
+      REAL      :: faver2 = 0.0
       REAL      :: f2aver = 0.0
 !                                                                       
       REAL atan2d 
       REAL ran1 
       LOGICAL laver 
-      qval = 0.0
+      qval   = 0.0
       f2aver = 0.0
+      faver2 = 0.0
 !                                                                       
 !------ Get values of F or <F>                                          
 !                                                                       
@@ -109,7 +111,7 @@ CONTAINS
             qval = (ran1 (idum) - 0.5) * 360. 
          ENDIF 
 !
-!     Calculate S(Q) = I/<f^2>/N + 1-e^(q^2*u^2) normalized intensity plus inelastic part 
+!     Calculate S(Q) = I/<f>^2/N + 1-e^(q^2*u^2) normalized intensity plus inelastic part 
 !
       ELSEIF (value == val_sq) then
          IF (laver) then 
@@ -118,10 +120,11 @@ CONTAINS
             qval = dsi (i) 
          ENDIF 
          DO k=1,cr_nscat
-            f2aver = f2aver + (REAL(cfact_pure(istl(i),k)))**2*cr_amount(k)
+            faver2 = faver2 + (REAL(cfact_pure(istl(i),k)))*cr_amount(k)
          ENDDO
+         faver2 = faver2**2
          q2   = zpi**2*(2*istl(i)*CFINC)**2
-         qval = qval /f2aver/ cr_n_real_atoms &
+         qval = qval /faver2/ cr_n_real_atoms &
                 +1.0 - exp(-q2*cr_u2aver)
 !
 !     Calculate E(Q) = I/<f^2>/N normalized intensity 
