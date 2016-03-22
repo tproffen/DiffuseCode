@@ -76,7 +76,13 @@
 
    Fourier can calculate the intensities for a SHELXL file
 
+   The 'find env' command will now return the neigbors sorted by distance.
+
    2D and 2D images can be written in MRC file format
+
+   The ==> 'add' command within the ==> 'connectivity' menu can now take
+   a new optional parameter that restricts the connectivity to the 
+   closest N atoms. 
 3  2015_Dec
 
    Added a command 'apply_symmetry' to the chemistry and mmc menues.
@@ -1406,14 +1412,22 @@
 !p set     ! Sets an individual definition
 !p show    ! Shows the current definitions
 3  add
-!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> , <def_name>
+!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> [,<max_neig], <def_name>
 
    Add a new connectivity definition. 
    For the atom type <central_atom_type> a new definition is added. Atoms
    of types <neigh types> that are in a distance shell from <rmin> to <rmax> 
-   are entered into this definition. The last parameter is a name for
-   this definition. 
-   This command just definef the settings of this connectivity. The 
+   are entered into this definition. 
+   The last but one parameter is optional and can be used to limit the 
+   number of neighbors in the connectivity. If present, it takes the
+   form: "first_1" or "first_2" etc. The string "first_" is mandatory
+   and is followed by the actual number of neighbors. If DISCUS finds 
+   less than these neighbors, the connectivity is of course less than
+   the intended number ofneighbors.
+
+   The last parameter is a name for this definition. 
+
+   This command just defines the settings of this connectivity. The 
    actual list is created via ==> 'create'.
 3  create
 
@@ -1556,6 +1570,8 @@
    is set to the same value as "env[0]". Thus,for example, it is possible 
    to search selectively for the next oxygen atoms, while ignoring all 
    other atoms.
+   The command returns the list of neighbors sorted by distance, 
+   shortest first.
 
    Examples
 
