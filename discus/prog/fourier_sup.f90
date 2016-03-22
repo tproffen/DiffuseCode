@@ -92,7 +92,7 @@ CONTAINS
       IF (nlots.ne.1) then 
          dnorm = float (cr_icc (1) * cr_icc (2) * cr_icc (3) ) / float (&
          ncell * nlots)                                                 
-         dnorm = dnorm**2 
+!         dnorm = dnorm**2    Non-squared gives constant intensity for all sizes and numbers
          DO i = 1, num (1) * num (2) *num (3)
          dsi (i) = dnorm * dsi (i) 
          ENDDO 
