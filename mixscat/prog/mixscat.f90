@@ -5,6 +5,7 @@ PROGRAM mixsca
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE lib_f90_default_mod
       IMPLICIT none 
 !*****7*****************************************************************
 !                                                                       
@@ -28,6 +29,7 @@ PROGRAM mixsca
 !                                                                       
 !------ Setting up variables and print start screen                     
 !                                                                       
+      CALL lib_alloc_default
       CALL setup 
       CALL mixscat_set_sub
       CALL no_error 

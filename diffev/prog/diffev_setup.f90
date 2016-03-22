@@ -13,6 +13,7 @@ USE constraint
 USE population
 !
 USE prompt_mod 
+USE lib_f90_default_mod
 !
 IMPLICIT none 
 !
@@ -38,6 +39,7 @@ IF(standalone) WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !
+IF(standalone) CALL lib_alloc_default
 MAXPOP     = 0
 MAXDIMX    = 0
 MAX_CONSTR = 0

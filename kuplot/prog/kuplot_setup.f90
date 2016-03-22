@@ -7,6 +7,7 @@ CONTAINS
 !     This routine makes inital setup of KUPLOT                         
 !                                                                       
       USE prompt_mod 
+      USE lib_f90_default_mod
       USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
@@ -32,6 +33,7 @@ CONTAINS
 !                                                                       
 !     Call initialization routines                                      
 !                                                                       
+      IF(standalone) CALL lib_alloc_default
       CALL kuplot_initarrays 
       IF(standalone) CALL init_sysarrays 
       CALL appl_env (lstandalone)

@@ -17,6 +17,7 @@ TYPE :: CONN_DEFS
    CHARACTER (LEN=256)                :: def_name     ! Name of current definition
    INTEGER                            :: def_name_l   ! Length of connectivity name
    INTEGER                            :: valid_no     ! Number of valid atom types
+   INTEGER                            :: intend_no    ! Intended number of neighbors
    INTEGER, DIMENSION(:), ALLOCATABLE :: valid_types  ! Valid atom types in current definition
    REAL                               :: def_rmin     ! minimum distance for current definition
    REAL                               :: def_rmax     ! maximum distance for current definition

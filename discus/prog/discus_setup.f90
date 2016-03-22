@@ -12,6 +12,7 @@ SUBROUTINE discus_setup (standalone)
 !
       USE errlist_mod
       USE prompt_mod 
+      USE lib_f90_default_mod
 !
 IMPLICIT none 
 !
@@ -35,6 +36,7 @@ version = aktuell
 IF(standalone) WRITE ( *, 1000) version, cdate 
 !
 !     Call initial default allocation
+IF(standalone) CALL lib_alloc_default
 !
       CALL discus_alloc_default
 !                                                                       

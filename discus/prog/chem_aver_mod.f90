@@ -14,6 +14,7 @@ USE chem_mod
 USE errlist_mod 
 USE param_mod 
 USE prompt_mod 
+USE lib_f90_allocate_mod
 IMPLICIT none 
 !                                                                       
 LOGICAL, INTENT(IN) :: lout    ! Print output if true
@@ -24,6 +25,7 @@ REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
 REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
 INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
+INTEGER            :: n_res
 LOGICAL            :: flag
 !                                                                       
 CHARACTER(LEN=9)   :: at_name_i 
@@ -155,10 +157,14 @@ IF(lsite) THEN           ! one pos for all types on a single site
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-   IF ( (6 * cr_ncatoms) .gt.maxpar_res) then 
-      ier_typ = ER_CHEM 
-      ier_num = - 2 
-   ELSE 
+   IF ( (6 * cr_ncatoms) .gt.MAXPAR_RES) then 
+      n_res = MAX(6 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+      CALL alloc_param(n_res)
+      MAXPAR_RES = n_res
+!     ier_typ = ER_CHEM 
+!     ier_num = - 2 
+!  ELSE 
+   ENDIF 
       res_para (0) = 6 * cr_ncatoms 
       DO i = 1, cr_ncatoms 
          DO j = 1, 3 
@@ -168,7 +174,7 @@ IF(lsite) THEN           ! one pos for all types on a single site
             res_para ( (i - 1) * 6 + j + 3) = chem_ave_sig (j, i) 
          ENDDO 
       ENDDO 
-   ENDIF 
+!  ENDIF 
 ELSE
    nvalues = 0
    DO i = 1, cr_ncatoms 
@@ -194,10 +200,14 @@ ELSE
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-   IF ( (6 * nvalues) .gt.maxpar_res) then 
-      ier_typ = ER_CHEM 
-      ier_num = - 2 
-   ELSE 
+   IF ( (6 * nvalues) .gt.MAXPAR_RES) then 
+      n_res = MAX(6 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+      CALL alloc_param(n_res)
+      MAXPAR_RES = n_res
+!     ier_typ = ER_CHEM 
+!     ier_num = - 2 
+!  ELSE 
+   ENDIF
       res_para (0) = 6 * nvalues 
       ii = 0
       DO i = 1, cr_ncatoms 
@@ -211,7 +221,7 @@ ELSE
          ENDDO 
          ENDDO 
       ENDDO 
-   ENDIF 
+!  ENDIF 
 ENDIF
 IF(.not. lsite) THEN
    DEALLOCATE(chem_ave_posit)
@@ -234,6 +244,7 @@ SUBROUTINE chem_elem (lout)
       USE chem_mod 
 !                                                                       
       USE errlist_mod 
+      USE lib_f90_allocate_mod 
       USE param_mod 
       USE prompt_mod 
       USE wink_mod 
@@ -243,6 +254,7 @@ LOGICAL, INTENT(IN) :: lout
 !                                                                       
 REAL             :: proz 
 INTEGER          :: i 
+INTEGER          :: n_res 
 !                                                                       
 CHARACTER(LEN=9) :: at_name_i 
 !                                                                       
@@ -270,6 +282,11 @@ ENDDO
 !                                                                       
 IF (lout) write (output_io, 1000) (cr_icc (i), i = 1, 3) 
 IF (lout) write (output_io, 1100) cr_natoms, cr_ncatoms, cr_nscat 
+IF (i >  MAXPAR_RES) THEN 
+   n_res = MAX(cr_nscat, MAXPAR_RES, CHEM_MAX_NEIG)
+   CALL alloc_param(n_res)
+   MAXPAR_RES = n_res
+ENDIF
 res_para (0) = float (cr_nscat) + 1 
 DO i = 0, cr_nscat 
    cr_u2aver = cr_u2aver + cr_dw(i) * cr_amount (i)
@@ -281,7 +298,7 @@ DO i = 0, cr_nscat
       at_name_i = at_name (i) 
       WRITE (output_io, 1200) at_name_i, proz, cr_amount (i) 
    ENDIF 
-   IF (i <= maxpar_res) then 
+   IF (i <= MAXPAR_RES) then 
       res_para (i + 1) = proz 
    ELSE 
       ier_typ = ER_CHEM 

@@ -11,6 +11,7 @@ SUBROUTINE setup_suite
 !USE blk_appl
 !
 USE prompt_mod
+USE lib_f90_default_mod
 !
 IMPLICIT none
 !                                                                       
@@ -34,7 +35,7 @@ WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !
-!CALL alloc_default
+CALL lib_alloc_default
 !                                                                       
 !     Call initialization routine.                                      
 !                                                                       

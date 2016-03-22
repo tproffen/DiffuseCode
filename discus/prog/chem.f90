@@ -2135,6 +2135,7 @@ ENDIF
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -2153,6 +2154,7 @@ ENDIF
       INTEGER lpara (maxw) 
       INTEGER ind (0:maxatom), iatom, imol 
       INTEGER i, j, n, ic, ianz, laenge 
+      INTEGER :: n_res
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.ne.0) return 
@@ -2249,15 +2251,19 @@ ENDIF
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-      IF (n.gt.maxpar_res) then 
-         ier_typ = ER_CHEM 
-         ier_num = - 2 
-      ELSE 
+      IF (n.gt.MAXPAR_RES) then 
+         n_res = MAX(n, MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
+!        ier_typ = ER_CHEM 
+!        ier_num = - 2 
+!     ELSE 
          res_para (0) = n 
          DO i = 1, n 
          res_para (i) = float (ind (i) ) 
          ENDDO 
-      ENDIF 
+!     ENDIF 
 !                                                                       
  1000 FORMAT (  ' Neighbours found in defined direction ',/             &
      &          '   Center atom name            : ',a9,/                &
@@ -3737,6 +3743,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -3762,6 +3769,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER jjanz, kkanz 
       INTEGER lname_1, lname_2, lname_3 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
+      INTEGER :: n_res
       REAL ba_sum (0:maxscat, 0:maxscat) 
       REAL ba_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:maxatom) 
@@ -3882,8 +3890,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ ------- Save results to res[i]                                  
 !                                                                       
+         IF(res_para(0)+2 > MAXPAR_RES) THEN
+            n_res = MAX(NINT(res_para(0)+2), INT(MAXPAR_RES*1.1+10), CHEM_MAX_NEIG)
+            CALL alloc_param(n_res)
+            MAXPAR_RES = n_res
+         ENDIF
          res_para (0) = res_para (0) + 2 
-         IF (res_para (0) .lt.maxpar_res) then 
+         IF (res_para (0) .lt.MAXPAR_RES) then 
             res_para (NINT(res_para (0)) - 1) = chem_disp_ave (ic, i, j)
             res_para (NINT(res_para (0)) ) = chem_disp_sig (ic, i, j) 
          ELSE 
@@ -4135,6 +4148,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod   
       USE modify_func_mod
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -4160,6 +4174,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER atom (0:maxatom), natom 
       INTEGER icc (3), jcc (3) 
       INTEGER i, j, ii, is, js, ic, iianz, jjanz, nn 
+      INTEGER :: n_res
       REAL patom (3, 0:maxatom) 
       REAL werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL idir (3), jdir (3), di (3), dj (3) 
@@ -4320,9 +4335,14 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ Save results to res[i]                                          
 !                                                                       
+      IF(chem_ncor     > MAXPAR_RES) THEN
+         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
       res_para (0) = chem_ncor 
       DO ic = 1, chem_ncor 
-         IF (res_para (0) .lt.maxpar_res) then 
+         IF (res_para (0) <=  MAXPAR_RES) then 
             res_para (ic) = mo_ach_corr (ic) 
          ELSE 
             ier_typ = ER_CHEM 
@@ -4360,6 +4380,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod   
       USE molecule_mod 
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -4380,6 +4401,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER icc (3), jcc (3) 
       INTEGER i, j, ii, is, js, ic, nn 
       INTEGER it1, it2, imol, jmol 
+      INTEGER :: n_res
       REAL werte (maxww) 
       REAL idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
@@ -4523,9 +4545,14 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ Save results to res[i]                                          
 !                                                                       
+      IF(chem_ncor     > MAXPAR_RES) THEN
+         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
       res_para (0) = chem_ncor 
       DO ic = 1, chem_ncor 
-      IF (res_para (0) .lt.maxpar_res) then 
+      IF (res_para (0) <=  MAXPAR_RES) then 
          res_para (ic) = mo_ach_corr (ic) 
       ELSE 
          ier_typ = ER_CHEM 
@@ -4555,6 +4582,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -4576,6 +4604,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER atom (0:maxatom), natom 
       INTEGER i, j, is, js, ic, iianz, jjanz 
       INTEGER nneig 
+      INTEGER :: n_res
       REAL patom (3, 0:maxatom) 
       REAL werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL pneig (2, 2) 
@@ -4694,9 +4723,14 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ Save results to res[i]                                          
 !                                                                       
+      IF(chem_ncor     > MAXPAR_RES) THEN
+         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
       res_para (0) = chem_ncor 
       DO ic = 1, chem_ncor 
-      IF (res_para (0) .lt.maxpar_res) then 
+      IF (res_para (0) <=  MAXPAR_RES) then 
          res_para (ic) = mo_ach_corr (ic) 
       ELSE 
          ier_typ = ER_CHEM 
@@ -4726,6 +4760,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod   
       USE molecule_mod 
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -4745,6 +4780,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, is, js, ic 
       INTEGER imol, it1, it2 
       INTEGER nneig 
+      INTEGER :: n_res
       REAL werte (maxww) 
       REAL pneig (2, 2) 
       REAL pro00, pro01, pro11 
@@ -4857,9 +4893,14 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ Save results to res[i]                                          
 !                                                                       
+      IF(chem_ncor     > MAXPAR_RES) THEN
+         n_res = MAX(chem_ncor ,MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
       res_para (0) = chem_ncor 
       DO ic = 1, chem_ncor 
-      IF (res_para (0) .lt.maxpar_res) then 
+      IF (res_para (0) <=  MAXPAR_RES) then 
          res_para (ic) = mo_ach_corr (ic) 
       ELSE 
          ier_typ = ER_CHEM 
@@ -5814,6 +5855,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -5825,6 +5867,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
+      INTEGER :: ios
+      INTEGER :: n_res
       REAL u (3) 
       REAL bl_min (0:maxscat, 0:maxscat) 
       REAL bl_max (0:maxscat, 0:maxscat) 
@@ -5885,6 +5929,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       l = 0 
       btottot = 0 
+      n_res = (cr_nscat+2)*(cr_nscat+1)/2
+      IF(n_res                           > MAXPAR_RES) THEN
+         n_res = MAX(n_res     ,MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
 !                                                                       
       DO i = 0, cr_nscat 
       DO j = i, cr_nscat 
@@ -5917,7 +5967,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       (bl_min (i, j), bl_min (j, i) ), max (bl_max (i, j), bl_max (j, i)&
       ), btot                                                           
 !                                                                       
-      IF ( (l + 3) .lt.maxpar_res) then 
+      IF ( (l + 3) <=  MAXPAR_RES) then 
          res_para (l + 1) = bl_ave 
          res_para (l + 2) = bl_sig 
          res_para (l + 3) = float (btot) 
@@ -5934,7 +5984,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios) 
+      IF(ios/=0) THEN
+         ier_num = -2
+         ier_typ = ER_IO
+         ier_msg(1)(1:60) = chem_fname(1:60)
+         RETURN
+      ENDIF
       DO i = 1, chem_bin 
       WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
       chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
@@ -6208,6 +6264,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
+      USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -6217,6 +6274,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL proz 
       INTEGER nmole (0:MOLE_MAX_TYPE) 
       INTEGER i 
+      INTEGER :: n_res 
       LOGICAL lout 
 !                                                                       
 !     Error condition                                                   
@@ -6247,13 +6305,18 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          mole_num_type                                                  
       ENDIF 
 !                                                                       
+      IF(mole_num_type                   > MAXPAR_RES) THEN
+         n_res = MAX(mole_num_type, MAXPAR_RES, CHEM_MAX_NEIG)
+         CALL alloc_param(n_res)
+         MAXPAR_RES = n_res
+      ENDIF
       res_para (0) = float (mole_num_type) 
       DO i = 1, mole_num_type 
       proz = float (nmole (i) ) / mole_num_mole 
       IF (lout) then 
          WRITE (output_io, 1200) i, proz, nmole (i) 
       ENDIF 
-      IF (i.le.maxpar_res) then 
+      IF (i <= MAXPAR_RES) then 
          res_para (i + 1) = proz 
       ELSE 
          ier_typ = ER_CHEM 

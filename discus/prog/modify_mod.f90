@@ -1611,6 +1611,7 @@ CONTAINS
       USE modify_func_mod
       USE param_mod 
       USE errlist_mod 
+      USE sorting_mod 
       IMPLICIT none 
 !                                                                       
        
@@ -1625,6 +1626,10 @@ CONTAINS
       INTEGER istart (3), iend (3), iii (3), cell (3), iatom 
       REAL offset (3), nooffset (3) 
       LOGICAL ltype 
+      INTEGER, DIMENSION(  :), ALLOCATABLE :: tmp_ind
+      INTEGER, DIMENSION(  :), ALLOCATABLE :: tmp_env
+      REAL   , DIMENSION(:,:), ALLOCATABLE :: tmp_pos
+      REAL   , DIMENSION(  :), ALLOCATABLE :: tmp_dis
 !                                                                       
 !     LOGICAL atom_allowed 
 !     LOGICAL check_select_status 
@@ -1704,6 +1709,27 @@ CONTAINS
          ENDIF 
          ENDDO 
       ENDIF 
+!
+!     Sort neighbors according to distance
+!
+      ALLOCATE(tmp_ind(  1:atom_env(0)))
+      ALLOCATE(tmp_env(  1:atom_env(0)))
+      ALLOCATE(tmp_pos(3,0:atom_env(0)))
+      ALLOCATE(tmp_dis(  1:atom_env(0)))
+      tmp_env    = atom_env(1:atom_env(0))
+      tmp_ind    = 0
+      tmp_pos    = atom_pos
+      tmp_dis    = atom_dis(1:atom_env(0))
+      CALL indexx(atom_env(0),tmp_dis,tmp_ind)
+      DO i=1,atom_env(0)
+         atom_env(i)   = tmp_env(  tmp_ind(i))
+         atom_pos(:,i) = tmp_pos(:,tmp_ind(i))
+         atom_dis(i)   = tmp_dis(  tmp_ind(i))
+      ENDDO
+      DEALLOCATE(tmp_ind)
+      DEALLOCATE(tmp_env)
+      DEALLOCATE(tmp_pos)
+      DEALLOCATE(tmp_dis)
 !                                                                       
       END SUBROUTINE do_find_env                    
 !*****7*****************************************************************
@@ -1779,12 +1805,14 @@ CONTAINS
       USE metric_mod
       USE param_mod 
       USE errlist_mod 
+      USE lib_f90_allocate_mod 
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       REAL x (3), offset (3), rmin, rmax 
       INTEGER iatom 
+      INTEGER  :: n_res
 !                                                                       
       REAL v (3), dist  !, do_blen 
       INTEGER j 
@@ -1801,14 +1829,20 @@ CONTAINS
       dist = do_blen (lspace, x, v) 
       IF (dist.ge.rmin.and.dist.le.rmax) then 
          IF (atom_env (0) .lt.MAX_ATOM_ENV) then 
+            IF(atom_env(0) > MAXPAR_RES) THEN
+               n_res = MAX(atom_env(0), NINT(MAXPAR_RES*1.1+10),CHEM_MAX_NEIG)
+               CALL alloc_param(n_res)
+               MAXPAR_RES = n_res
+            ENDIF
             IF (atom_env (0) .lt.MAXPAR_RES) then 
                atom_env (0) = atom_env (0) + 1 
                atom_env (atom_env (0) ) = iatom 
                res_para (atom_env (0) ) = dist 
                res_para (0) = float (nint (res_para (0) ) + 1) 
                DO j = 1, 3 
-               atom_pos (j, atom_env (0) ) = v (j) 
+                  atom_pos (j, atom_env (0) ) = v (j) 
                ENDDO 
+               atom_dis (   atom_env (0) ) = dist
             ELSE 
                ier_num = - 79 
                ier_typ = ER_APPL 

@@ -161,6 +161,7 @@ CONTAINS
    INTEGER              :: j,i
    INTEGER              :: is  ! dummies for scattering types
    INTEGER              :: ianz
+   INTEGER              :: n_neig      ! Actual number of neighboring atoms
    LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
    LOGICAL              :: fq    ! quick search algorithm
    REAL                 :: rmin        ! Minimum bond length
@@ -209,13 +210,18 @@ CONTAINS
 !
 !           Now we set parameters of current NEIGHBORHOOD
 !
+               IF(def_temp%intend_no == -1) THEN
+                  n_neig = atom_env(0)
+               ELSE
+                  n_neig = MIN(atom_env(0),def_temp%intend_no)
+               ENDIF
                NULLIFY (hood_temp%next_neighborhood)        ! No further NEIGHBORHOODs
                hood_temp%central_number = i                 ! Just set central atom no.
                hood_temp%central_type   = cr_iscat(i)
                hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
                hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
                hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
-               hood_temp%natoms         = atom_env(0)         ! Set number of neighbors
+               hood_temp%natoms         = n_neig              ! Set number of neighbors
                NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
 !
                ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
@@ -227,7 +233,7 @@ CONTAINS
                tail%offset(3)   = atom_pos(3,j)-cr_pos(3,atom_env(j))
                NULLIFY (tail%next)                          ! No further neighbors
 !
-               DO j = 2, atom_env(0)                        ! Add all neighbors to list
+               DO j = 2, n_neig                             ! Add all (intended) neighbors to list
                   ALLOCATE (tail%next)                      ! create a further NEIGHBOR
                   tail => tail%next                         ! reassign tail to new end of list
                   tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
@@ -283,6 +289,7 @@ CONTAINS
       INTEGER             :: is1          ! first atom type
       INTEGER             :: is2          ! second atom type
       INTEGER             :: temp_id      ! temporary definition ID
+      INTEGER             :: temp_number  ! temporary Number of neighbors
       INTEGER             :: work_id      ! ID of the definition to change/delete
       CHARACTER(LEN=256)  :: work_name    ! Name of the definition to change/delete
       INTEGER             :: work_name_l  ! Length of name for the definition to change/delete
@@ -293,6 +300,8 @@ CONTAINS
       INTEGER             :: all_status   ! Allocation status
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
+!
+      REAL :: berechne
 !                                                                       
       rmin = 0.0
       rmax = 0.5
@@ -401,6 +410,13 @@ CONTAINS
          work_name   = cpara(ianz)(1:lpara(ianz))
          work_name_l = lpara(ianz)
          ianz        = ianz - 1
+         IF(cpara(ianz)(1:6)=='first_') THEN
+            cpara(ianz) = cpara(ianz)(7:lpara(ianz))
+            temp_number = berechne(cpara(ianz), lpara(ianz))
+            ianz        = ianz - 1
+         ELSE
+            temp_number = -1
+         ENDIF
       ENDIF
 !
       IF ( code /= code_del ) THEN
@@ -466,9 +482,10 @@ CONTAINS
                DO is2 = 1, ianz                                  ! Set all neighbor types
                   def_temp%valid_types(is2) = NINT(werte(is2))
                ENDDO
-               def_temp%valid_no = ianz                          ! Set number of neighb or types
-               def_temp%def_rmin = rmin                          ! Set bond length limits
-               def_temp%def_rmax = rmax                          ! Set bond length limits
+               def_temp%valid_no  = ianz                         ! Set number of neighb or types
+               def_temp%intend_no = temp_number                  ! Set intended number of neighbor atoms
+               def_temp%def_rmin  = rmin                         ! Set bond length limits
+               def_temp%def_rmax  = rmax                         ! Set bond length limits
             ELSEIF ( code == code_del ) THEN                     ! Remove this definition
                IF ( ASSOCIATED(def_temp%def_next) ) THEN         ! A further definition exists
                   IF ( work_id == 1 ) THEN                       ! This is the first def.
@@ -535,6 +552,7 @@ CONTAINS
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
             def_temp%valid_no   = ianz                        ! Set number of neighb or types
+            def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
@@ -568,6 +586,7 @@ CONTAINS
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
             def_temp%valid_no   = ianz                        ! Set number of neighb or types
+            def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
@@ -819,7 +838,8 @@ CONTAINS
                   (at_name  (def_temp%valid_types(i)),i=1,def_temp%valid_no)
 !                 (cr_at_lis(def_temp%valid_types(i)),                                &
 !                            def_temp%valid_types(i) ,i=1,def_temp%valid_no)
-              WRITE(output_io, 2300) def_temp%def_rmin,def_temp%def_rmax
+              WRITE(output_io, 2300) def_temp%intend_no,def_temp%def_rmin,&
+                                                        def_temp%def_rmax
               def_temp => def_temp%def_next
            ENDDO
         ENDDO scats
@@ -828,10 +848,10 @@ CONTAINS
       ENDIF exist_def
 !
 1000  FORMAT(' Central atom type       : ',a9)
-2000  FORMAT('     Def.no; Name; No.of.neigh; Types : ',i4,1x, a,1x,i4,1x, &
+2000  FORMAT('     Def.no; Name; No.of.types; Types : ',i4,1x, a,1x,i4,1x, &
              ': ',20(a9:,',',2x))
 !            20(a4,'(',i4,')',2x))
-2300  FORMAT('     Bond length range',23x     ,f8.4, 2x, f8.4)
+2300  FORMAT('     Max neig, Bond length range', 4x,i8,2x,f8.4, 2x, f8.4)
 7000  FORMAT(' No connectivity definitions set')
 !
    END SUBROUTINE conn_show
@@ -993,6 +1013,7 @@ CONTAINS
       USE modify_mod
       USE param_mod 
       USE prompt_mod 
+      USE lib_f90_allocate_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -1011,6 +1032,7 @@ CONTAINS
 !                                                                       
       INTEGER                    :: i, j
       INTEGER                    :: length
+      INTEGER                    :: n_res
 !
       is1 = cr_iscat(iatom)
       CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, c_offs, natoms )
@@ -1020,6 +1042,11 @@ CONTAINS
         WRITE(output_io, 1100) (c_list(i),i=1,natoms)
       ELSE
          WRITE(output_io, 1200)
+      ENDIF
+      IF( natoms > MAXPAR_RES) THEN
+        n_res = MAX(natoms,MAXPAR_RES,CHEM_MAX_NEIG)
+        CALL alloc_param(n_res)
+        MAXPAR_RES = n_res
       ENDIF
       IF ( natoms <= MAXPAR_RES ) THEN
          res_para(0) = FLOAT(natoms)
