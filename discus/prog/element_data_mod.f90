@@ -1125,28 +1125,78 @@ MODULE element_data_mod
 
       END SUBROUTINE symbf
 !
-      SUBROUTINE get_wave ( lambda , rlambda, ier_num, ier_typ )
+      SUBROUTINE get_wave ( lambda , rlambda, energy, l_energy, &
+                            diff_radiation,ier_num, ier_typ )
 !
       CHARACTER (LEN=*), INTENT(IN)    :: lambda
       REAL             , INTENT(OUT)   :: rlambda
+      REAL             , INTENT(INOUT) :: energy
+      LOGICAL          , INTENT(IN)    :: l_energy
+      INTEGER          , INTENT(IN)    :: diff_radiation
       INTEGER          , INTENT(INOUT) :: ier_num
       INTEGER          , INTENT(INOUT) :: ier_typ
 !
+      REAL, PARAMETER :: planck = 6.62607004   ! E-34 m^2 kg s^-1
+      REAL, PARAMETER :: mass_e = 9.10938356   ! E-31 kg
+      REAL, PARAMETER :: mass_n = 1.67492747   ! E-27 kg
+      REAL, PARAMETER :: light  = 2.99792458   ! E+8  m/s
+      REAL, PARAMETER :: charge = 1.60217656   ! E-19 As
+!
+      INTEGER , PARAMETER  :: RAD_XRAY = 1
+      INTEGER , PARAMETER  :: RAD_NEUT = 2
+      INTEGER , PARAMETER  :: RAD_ELEC = 3
+!
       INTEGER :: i
 !
-      IF ( lambda == ' ' .and. rlambda > 0.0 ) THEN
-         ier_num = 0
-         ier_typ = 0
+write(*,*) ' ENERGIE ? ', l_energy
+write(*,*) ' RADIATION ', diff_radiation, RAD_XRAY, RAD_NEUT, RAD_ELEC
+write(*,*) ' PLANCK    ', planck
+write(*,*) ' LIGHT     ', light 
+write(*,*) ' CHARGE    ', charge
+write(*,*) ' MASS_E    ', mass_e
+write(*,*) ' MASS_n    ', mass_n
+      IF(l_energy) THEN   ! energy is given instead of wave length
+         IF ( energy > 0.0 ) THEN
+            SELECTCASE(diff_radiation)
+              CASE(RAD_ELEC)        !  neutron scattering
+                 rlambda = planck/sqrt(2.*mass_e*charge*energy*10) / &
+                           sqrt(1.+(charge*energy)/(2*mass_e*light**2*10))
+              CASE(RAD_XRAY)        !  neutron scattering
+                 rlambda = (planck*light/charge ) / energy
+              CASE(RAD_NEUT)        !  neutron scattering
+                 rlambda = planck/sqrt(2.*mass_n*charge*energy/10.)
+            END SELECT
+            ier_num = 0
+            ier_typ = 0
+         ENDIF
       ELSE
-         wave: do i=1, PER_MAX_WAVE
-             IF ( lambda == per_symwl(i)) THEN
-                rlambda = per_wavel(i)
-                ier_num = 0
-                ier_typ = 0
-                EXIT wave
-            ENDIF
-         ENDDO wave
+         IF ( lambda == ' ' .and. rlambda > 0.0 ) THEN
+            SELECTCASE(diff_radiation)
+              CASE(RAD_ELEC)        !  neutron scattering
+                 energy = -10.*mass_e*light**2/charge + &
+                          sqrt( 100.*mass_e**2*light**4/charge**2 + &
+                                ((planck*light)/(charge*rlambda))**2)
+              CASE(RAD_XRAY)        !  neutron scattering
+                 energy = (planck*light/charge) / rlambda
+              CASE(RAD_NEUT)        !  neutron scattering
+                 energy  = planck**2/(2.*mass_n*charge*rlambda**2/10.)
+            END SELECT
+            ier_num = 0
+            ier_typ = 0
+         ELSE
+            wave: do i=1, PER_MAX_WAVE
+                IF ( lambda == per_symwl(i)) THEN
+                   rlambda = per_wavel(i)
+                   energy  = (planck*light/charge) / rlambda
+                   ier_num = 0
+                   ier_typ = 0
+                   EXIT wave
+               ENDIF
+            ENDDO wave
+         ENDIF
       ENDIF
+write(*,*) ' ENERGY ', energy
+write(*,*) ' lambda ', rlambda
       END SUBROUTINE get_wave
 !
       SUBROUTINE get_scat_xray ( j,temp_scat )

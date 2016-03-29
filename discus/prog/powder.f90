@@ -129,8 +129,8 @@ CONTAINS
 !     ----run transformation 'run'                                      
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
-                  CALL dlink (ano, lambda, rlambda, diff_radiation, &
-                              diff_power) 
+                  CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                              diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
                      four_was_run = .true.
@@ -139,8 +139,8 @@ CONTAINS
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  CALL dlink (ano, lambda, rlambda, diff_radiation, &
-                              diff_power) 
+                  CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                              diff_radiation, diff_power) 
                   CALL pow_show 
 !                                                                       
 !------- -Set values 'set'                                              

@@ -744,8 +744,8 @@ CONTAINS
       ENDIF 
       END FUNCTION form                             
 !*****7*****************************************************************
-      SUBROUTINE dlink (ano, lambda, rlambda, diff_radiation, &
-                        diff_power) 
+      SUBROUTINE dlink (ano, lambda, rlambda, renergy, l_energy, &
+                        diff_radiation, diff_power) 
 !-                                                                      
 !     This routine reads wavelength symbols, wavelength values 
 !     and atomic form factors from module "element_data_mod"
@@ -761,6 +761,8 @@ CONTAINS
       LOGICAL             , INTENT(IN)   :: ano
       CHARACTER (LEN = * ), INTENT(IN)   :: lambda 
       REAL                , INTENT(OUT)  :: rlambda
+      REAL                , INTENT(INOUT):: renergy
+      LOGICAL             , INTENT(IN)   :: l_energy
       INTEGER             , INTENT(IN)   :: diff_radiation
       INTEGER             , INTENT(OUT)  :: diff_power
 !
@@ -785,7 +787,8 @@ CONTAINS
       ier_num = -77 
       ier_typ = ER_APPL 
 !
-      CALL get_wave ( lambda, rlambda, ier_num, ier_typ )
+      CALL get_wave ( lambda, rlambda, renergy, l_energy,diff_radiation, &
+                      ier_num, ier_typ )
 !                                                                       
       IF (ier_num.ne.0) RETURN 
 !                                                                       
@@ -1045,7 +1048,7 @@ check:DO     ! First read, get size and extrema
                RETURN
             ENDIF
          ENDIF
-         CALL dlink (ano, lambda, rlambda, &
+         CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                      diff_radiation, diff_power) 
          call four_run
          rhkl (1) =  0. 

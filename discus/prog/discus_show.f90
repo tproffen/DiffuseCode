@@ -669,8 +669,8 @@ CONTAINS
       ENDDO 
       ianz = ianz - 1 
 !                                                                       
-      CALL dlink (ano, lambda, rlambda, diff_radiation, &
-                  diff_power) 
+      CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                  diff_radiation, diff_power) 
 !                                                                       
       DO i = 0, cr_nscat 
       latom (i) = .false. 

@@ -71,6 +71,9 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2016_March
 
+   Within the ==> fourier menu, the radiation may also be defined
+   via its ==> 'energy' instead of its wavelength ==> 'wvle'
+
    Domains with an explicit shape (cube, sphere, cylinder) can now
    be generated with a size distribution.
 
@@ -1614,6 +1617,7 @@
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! echo a string (see main help level)
 !p electron! switches to electron calculation
+!p energy  ! Defines the energy of the radiation
 !p eval    ! Evaluates an expression for interactive check
 !p exit    ! terminates Fourier level
 !p help    ! help to Fourier commands (see main help level)
@@ -1685,6 +1689,12 @@
 !b electron
 
    switches to electron calculation
+3  energy
+!b energy <value>
+
+   Defines the energy of the radiation. 
+   For X-rays and electrons the value is to be given in units of keV,
+   for neutrons in units of meV.
 3  hkl
 !b  hkl <infile>, <outputfile>, <scale>, "4"
 
@@ -4980,7 +4990,7 @@
    This command reads the experimental data stored in <file>. The parameter
    "x-ray" / "neutron" selects what kind of scattering data are stored
    in the file. The second parameter is the wavelength which can be given
-   as <name> (like cua1 ..) or as value (line 1.23). After the filename
+   as <name> (like cua1 ..) or as value (like 1.23). After the filename
    <file> the weighting scheme to be used can be specified. The parameter
    <wic> can take the following values:
 

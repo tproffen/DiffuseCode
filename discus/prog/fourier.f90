@@ -140,7 +140,7 @@ CONTAINS
                             RETURN
                           ENDIF
                         ENDIF
-                        CALL dlink (ano, lambda, rlambda, &
+                        CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                                     diff_radiation, diff_power) 
                         CALL calc_000 (rhkl) 
                      ENDIF 
@@ -148,7 +148,7 @@ CONTAINS
                      rhkl (1) = 0.0 
                      rhkl (2) = 0.0 
                      rhkl (3) = 0.0 
-                     CALL dlink (ano, lambda, rlambda,    &
+                     CALL dlink (ano, lambda, rlambda, renergy, l_energy,    &
                                     diff_radiation, diff_power) 
                      CALL calc_000 (rhkl) 
                   ELSE 
@@ -234,6 +234,20 @@ CONTAINS
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+               ENDIF 
+!                                                                       
+!     set the energy of the radiation to be used 'energy'                             
+!                                                                       
+            ELSEIF (str_comp (befehl, 'energy', 2, lbef, 6) ) then 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ianz.eq.1) then 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  renergy  = werte (1) 
+                  lambda   = ' ' 
+                  l_energy = .true.
+               ELSE 
+                  ier_num = -6 
+                  ier_typ = ER_COMM 
                ENDIF 
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
@@ -539,7 +553,7 @@ CONTAINS
                  ENDIF
                ENDIF
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
-                  CALL dlink (ano, lambda, rlambda, &
+                  CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
@@ -679,7 +693,7 @@ CONTAINS
                   inc(3)   = 1
                   divis(3) = 1
                ENDIF
-               CALL dlink (ano, lambda, rlambda, &
+               CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                            diff_radiation, diff_power) 
                CALL four_show  ( ltop )
 !                                                                       
@@ -741,10 +755,12 @@ CONTAINS
                   IF (ichar ('A') .le.ichar (cpara (1) (1:1) )          &
                   .and.ichar (cpara (1) (1:1) ) .le.ichar ('Z') ) then  
                      lambda = cpara (1) (1:lpara(1))
+                     l_energy = .false.
                   ELSE 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      rlambda = werte (1) 
                      lambda = ' ' 
+                     l_energy = .false.
                   ENDIF 
                ELSE 
                   ier_num = - 6 
@@ -848,7 +864,11 @@ CONTAINS
       IF (lxray) radiation = 'x-ray' 
       radiation = c_rad(diff_radiation)
       IF (lambda.eq.' ') then 
-         WRITE (output_io, 1200) radiation, rlambda 
+         IF(diff_radiation==2) THEN
+            WRITE (output_io, 1201) radiation, rlambda , renergy
+         ELSE 
+            WRITE (output_io, 1200) radiation, rlambda , renergy
+         ENDIF 
       ELSE 
          WRITE (output_io, 1210) radiation, lambda, rlambda 
       ENDIF 
@@ -936,7 +956,9 @@ CONTAINS
  1130 FORMAT (  '   Lot size           : ',I3,' x ',I3,' x ',I3,        &
      &          ' unit cells (periodic boundaries = ',L1,')')           
  1200 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
-     &          F7.4,' A')                                              
+     &          F7.4,' A == ', F8.4,'keV')                                              
+ 1201 FORMAT (  '   Radiation          : ',A,', wavelength = ',         &
+     &          F7.4,' A == ', F8.4,'meV')                                              
  1210 FORMAT (  '   Radiation          : ',A,', wavelength = ',A4,      &
      &          ' = ',F7.4,' A')                                        
  1300 FORMAT (  '   Temp. factors      : ',A) 

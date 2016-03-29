@@ -1662,6 +1662,8 @@ CONTAINS
       INTEGER i, j, ip, iq, is, iii 
       INTEGER igen, itry, iacc_good, iacc_bad 
       LOGICAL loop, laccept 
+      REAL    ::   rmc_energy = 0.00
+      LOGICAL :: l_rmc_energy = .false.
 !
 !      INTEGER  :: n_qxy   =1 ! Data points in reciprocal space
       INTEGER  :: n_sq    =1 ! Data points in reciprocal space*planes
@@ -1822,7 +1824,8 @@ CONTAINS
             rmc_cc   = 0.0 
             rmc_ce   = 0.0 
             call dlink(rmc_ano(ip),           &
-     &                     rmc_lambda(ip),rmc_rlambda(ip),  & 
+     &                     rmc_lambda(ip),rmc_rlambda(ip),   &
+                           rmc_energy, l_rmc_energy,                & 
                            rmc_radiation(ip), rmc_power(ip))
             DO is=1,isym(ip) 
               call rmc_fcalc (ip,is,natoms,i_new,p_new,isel) 
@@ -2002,6 +2005,8 @@ CONTAINS
       INTEGER isym (rmc_max_planes) 
       INTEGER lbeg (3), ncell 
       INTEGER ip, iscat, nlot, i, k, iii 
+      REAL    ::   rmc_energy = 0.00
+      LOGICAL :: l_rmc_energy = .false.
 !
       CALL four_cexpt 
       CALL rmc_zero 
@@ -2030,7 +2035,8 @@ CONTAINS
 !                                                                       
 loop_plane: DO ip = 1, rmc_nplane 
          CALL dlink (rmc_ano (ip), rmc_lambda (ip),        &
-                     rmc_rlambda (ip),  rmc_radiation(ip), rmc_power(ip) )
+                     rmc_rlambda (ip),  rmc_energy, l_rmc_energy, &
+                     rmc_radiation(ip), rmc_power(ip) )
          CALL rmc_formtab (ip, .true.) 
 !                                                                       
 !------ - Loop over all sym. equivalent planes                          

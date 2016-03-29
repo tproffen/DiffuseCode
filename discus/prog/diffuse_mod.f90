@@ -76,7 +76,9 @@ REAL    , DIMENSION(1:3, 1:4)           ::  eck      = reshape((/ 0.0, 0.0,  0.0
 REAL    , DIMENSION(1:3, 1:3)           ::  vi       = reshape((/0.05, 0.00, 0.00, &
                                                                  0.0 , 0.05, 0.00, &
                                                                  0.00, 0.00, 0.00/),shape(vi))
-REAL                                    ::  rlambda  = 0.709260
+REAL                                    ::  renergy  = 17.480782
+REAL                                    ::  rlambda  =  0.709260
+LOGICAL                                 ::  l_energy = .false.
 INTEGER                                 ::  dif_size_of
 !
 END MODULE diffuse_mod

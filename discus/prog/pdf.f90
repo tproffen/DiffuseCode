@@ -371,8 +371,8 @@ SUBROUTINE pdf
 !                                                                       
 !------ Setting up weighting (b(i)b(j)/<b**2>)                          
 !                                                                       
-      CALL dlink (ano, lambda, rlambda,  pdf_radiation, &
-                  pdf_power) 
+      CALL dlink (ano, lambda, rlambda,  renergy, l_energy, &
+                  pdf_radiation, pdf_power) 
       bave = 0.0 
       hh = pdf_xq**2 
 !                                                                       
