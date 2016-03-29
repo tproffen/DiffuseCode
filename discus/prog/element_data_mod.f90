@@ -1148,13 +1148,6 @@ MODULE element_data_mod
 !
       INTEGER :: i
 !
-write(*,*) ' ENERGIE ? ', l_energy
-write(*,*) ' RADIATION ', diff_radiation, RAD_XRAY, RAD_NEUT, RAD_ELEC
-write(*,*) ' PLANCK    ', planck
-write(*,*) ' LIGHT     ', light 
-write(*,*) ' CHARGE    ', charge
-write(*,*) ' MASS_E    ', mass_e
-write(*,*) ' MASS_n    ', mass_n
       IF(l_energy) THEN   ! energy is given instead of wave length
          IF ( energy > 0.0 ) THEN
             SELECTCASE(diff_radiation)
@@ -1195,8 +1188,6 @@ write(*,*) ' MASS_n    ', mass_n
             ENDDO wave
          ENDIF
       ENDIF
-write(*,*) ' ENERGY ', energy
-write(*,*) ' lambda ', rlambda
       END SUBROUTINE get_wave
 !
       SUBROUTINE get_scat_xray ( j,temp_scat )
