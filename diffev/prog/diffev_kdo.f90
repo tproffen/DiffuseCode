@@ -451,6 +451,18 @@ ELSE
          ENDIF 
       ENDIF 
 !                                                                 
+!     -- set the current file                                     
+!                                                                 
+   ELSEIF (str_comp (befehl, 'lastfile', 3, lbef, 8) ) then 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num.eq.0) then 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+         IF (ier_num.eq.0) then 
+            parent_current = cpara (1)(1:lpara(1)) 
+            lparent_current = lpara (1) 
+         ENDIF 
+      ENDIF 
+!                                                                 
 !     -- set the name of a refinement parameter                   
 !                                                                 
    ELSEIF (str_comp (befehl, 'pop_name', 3, lbef, 8) ) then 
@@ -614,8 +626,9 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) then 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
-               pop_result_file_rd = .false.
+               pop_trial_file_wrt = .false.
          ELSE
+            pop_trial_file_wrt = .true.
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.eq.0) then 
                pop_trialfile = cpara (1)(1:lpara(1)) 
@@ -668,6 +681,7 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
       IF (ier_num.eq.0) then
          IF (str_comp (cpara (1) , 'children', 3, lpara (1) , 8)) then
+            CALL read_par_values              ! Make sure parent values are set
             CALL create_trial                 ! Make a new set
             CALL write_genfile                ! Write the "GENERATION" file
          ELSE IF (str_comp (cpara (1) , 'generation', 3, lpara (1) ,10)) then

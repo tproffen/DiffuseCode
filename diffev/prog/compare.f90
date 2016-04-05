@@ -319,7 +319,7 @@ CONTAINS
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
    INTEGER                        :: iostatus
-   LOGICAL                        :: istda
+   LOGICAL                        :: istda, lcurrent
    REAL                           :: best, worst 
 !                                                                       
    INTEGER                        :: len_str   
@@ -333,16 +333,30 @@ CONTAINS
 !
 !     loop over dimension to find old dimension
 !
-      length       = len_str(parent_results)
+      length       = len_str(parent_current)
+      IF(length == 0 ) THEN                    ! Current file not defined
+         length       = len_str(parent_results)
+         lcurrent = .false.
+      ELSE
+         lcurrent = .true.
+      ENDIF
       pop_dimx_old = 0
       DO i = 1, pop_dimx
-         WRITE(fname, 900) parent_results(1:length), i
+         IF(lcurrent) THEN
+            WRITE(fname, 900) parent_current(1:length), i   ! Use current file
+         ELSE
+            WRITE(fname, 900) parent_results(1:length), i   ! Use full parameter file
+         ENDIF
          INQUIRE ( FILE=fname, EXIST=istda )   ! does file exist?
          IF ( .NOT. istda) EXIT                ! if not exit loop
          pop_dimx_old = i                      ! current old dimension
       ENDDO
       DO i = 1, pop_dimx_old                   ! Loop over old dimension
-         WRITE(fname, 900) parent_results(1:length), i
+         IF(lcurrent) THEN
+            WRITE(fname, 900) parent_current(1:length), i   ! Use current file
+         ELSE
+            WRITE(fname, 900) parent_results(1:length), i   ! Use full parameter file
+         ENDIF
          CALL oeffne (iwr, fname, stat) 
          ii = - 1 
          DO while (ii.ne.pop_gen - 1)          ! Loop over all previous generations
@@ -534,6 +548,66 @@ CONTAINS
       CLOSE (iwr) 
    ENDDO params
 !                                                                       
+!------ write the parameters and the results for the current generation 
+!                                                                       
+   length = len_str(parent_current)
+   i      = 0                                     ! 0 is the R-value
+   WRITE (fname, 900) parent_current(1:length), i
+   CALL oeffne(iwr, fname, 'unknown' )
+   IF (ier_num.ne.0) THEN 
+      RETURN 
+   ENDIF 
+!  write header
+   WRITE(iwr, 1000)
+!                                                                       
+!  write current generation as scan number                           
+!                                                                       
+   WRITE (iwr, 1100) pop_gen 
+!                                                                       
+!  write titles                                                      
+!                                                                       
+   WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
+!                                                                       
+!  write the parameters of the individual members                    
+!                                                                       
+   DO j = 1, pop_n 
+      line = ' ' 
+      WRITE (iwr, 1300) j, child_val (j), child_val (j) 
+   ENDDO 
+   CLOSE (iwr) 
+!
+!  Loop over all parameters pop_dimx
+!
+   length = len_str(parent_current)
+   IF(length > 0) THEN
+   current:DO i = 1, pop_dimx
+!
+      fname = ' '
+      WRITE (fname, 900) parent_current(1:length),i
+      CALL oeffne(iwr, fname, 'unknown')
+      IF (ier_num.ne.0) THEN 
+         RETURN 
+      ENDIF 
+!     write header
+      WRITE(iwr, 1000)
+!                                                                       
+!     write current generation as scan number                           
+!                                                                       
+      WRITE (iwr, 1100) pop_gen 
+!                                                                       
+!     write titles                                                      
+!                                                                       
+      WRITE (iwr, 1250) '#L Member Rvalue '//pop_name (i) (1:pop_lname (i) ) 
+!                                                                       
+!     write the parameters of the individual members                    
+!                                                                       
+      DO j = 1, pop_n 
+         WRITE (iwr, 1300) j, child_val (j), child (i, j) 
+      ENDDO 
+      CLOSE (iwr) 
+   ENDDO current
+   ENDIF
+!                                                                       
 !     Write the Summary files
 !                                                                       
    length = len_str(parent_summary)
@@ -633,6 +707,7 @@ CONTAINS
 !   WRITE ( * , * ) ' Error opening file' 
 !                                                                       
      900 FORMAT (A,'.',I4.4)
+    1000 FORMAT ('#C Current file by DIFFEV')
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
 !    1200 FORMAT (a10) 
     1250 FORMAT (a) 

@@ -163,6 +163,11 @@
    leading zeros. Parameter file no 0000 has the same structure, except that
    both column two and three are the R-values.
 
+   Last file
+
+   A short copy of the parameter file that contains the parameters
+   just for the last generation.
+
    Summary files
 
    For the R-value and for each parameter a SPEC type summary files 
@@ -625,6 +630,18 @@
    note written to your disk. DIFFEV expects to be part of a suite 
    program and will transfer the trial parameters directly to the 
    slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
+2  lastfile
+!b lastfile <filename>
+
+   This defines the short log file of the parameter evolution. 
+
+   After each generation, the short lastfile <filename> is overwritten
+   by the parameters of the current generation.
+
+   It is a SPEC type file that contains all old R-values and parameters.
+   Only this last generation makes up a scan. The first column is the 
+   member number, the second the R-value and all further columns the 
+   respective parameter values.
 2  logfile
 !b logfile <filename>
 

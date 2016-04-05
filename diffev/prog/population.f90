@@ -14,8 +14,9 @@ CHARACTER (LEN=200)     ::      pop_genfile
 CHARACTER (LEN=200)     ::      pop_trialfile
 !
 CHARACTER (LEN=200)     ::      trial_results
-CHARACTER (LEN=200)     ::      parent_results
-CHARACTER (LEN=200)     ::      parent_summary
+CHARACTER (LEN=200)     ::      parent_results = ' '
+CHARACTER (LEN=200)     ::      parent_current = ' '
+CHARACTER (LEN=200)     ::      parent_summary = ' '
 !
 CHARACTER (LEN=  8) ,DIMENSION(:) , ALLOCATABLE :: pop_name ! (MAXDIMX)
 !
@@ -34,8 +35,9 @@ INTEGER                 :: pop_ltrialfile
 INTEGER                 :: pop_trialfile_ext
 INTEGER                 :: ltrial_results
 INTEGER                 :: trial_results_ext
-INTEGER                 :: lparent_results
-INTEGER                 :: lparent_summary
+INTEGER                 :: lparent_current = 0
+INTEGER                 :: lparent_results = 0
+INTEGER                 :: lparent_summary = 0
 INTEGER                 :: pop_back_number = 0
 LOGICAL                 :: pop_backup = .false.
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_type       !  (MAXDIMX)
