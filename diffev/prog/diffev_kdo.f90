@@ -43,6 +43,7 @@ INTEGER                               :: ianz
 INTEGER                               :: iianz 
 INTEGER                               :: lpara (maxw) 
 LOGICAL                               :: lbest
+LOGICAL                               :: l_init_x = .true.
 !                                                                       
 REAL                                  :: werte (maxw) 
 REAL                                  :: value
@@ -386,12 +387,24 @@ ELSE
          IF (ier_num.eq.0) then 
             IF (ianz.eq.0) then 
                pop_trial_file_wrt = .true.
-               CALL do_initialise 
+               l_init_x = .true.
+               CALL do_initialise (l_init_x)
             ELSE
                IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
                   pop_trial_file_wrt = .false.
                   ianz = ianz - 1
-                  CALL do_initialise 
+                  l_init_x = .true.
+                  CALL do_initialise (l_init_x)
+               ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7)) THEN
+                  l_init_x = .false.
+                  CALL read_par_values              ! Make sure parent values are set
+                  CALL create_trial                 ! Make a new set
+                  CALL do_initialise (l_init_x)     ! Write empty log files
+                  CALL write_genfile                ! Write the "GENERATION" file
+                  IF(pop_gen > 0) THEN
+                     CALL write_current             ! Update the Current parameter file
+                     CALL write_parents             ! Add the current scan to the parameter files
+                  ENDIF
                ELSE
                IF (ianz ==  0) then 
 !               CALL read_genfile ! init,<i> works only in generations > 0
@@ -684,6 +697,7 @@ ELSE
             CALL read_par_values              ! Make sure parent values are set
             CALL create_trial                 ! Make a new set
             CALL write_genfile                ! Write the "GENERATION" file
+            CALL write_current                ! Update the Current parameter file
          ELSE IF (str_comp (cpara (1) , 'generation', 3, lpara (1) ,10)) then
             CALL write_genfile                ! Write the "GENERATION" file
          ELSE

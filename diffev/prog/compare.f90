@@ -11,6 +11,8 @@ PUBLIC  :: do_dismiss
 PUBLIC  :: do_read_values
 !PUBLIC  :: read_obj_values
 PUBLIC  :: read_par_values
+PUBLIC  :: write_current
+PUBLIC  :: write_parents
 !
 CONTAINS
 !
@@ -547,66 +549,8 @@ CONTAINS
       ENDDO 
       CLOSE (iwr) 
    ENDDO params
-!                                                                       
-!------ write the parameters and the results for the current generation 
-!                                                                       
-   length = len_str(parent_current)
-   i      = 0                                     ! 0 is the R-value
-   WRITE (fname, 900) parent_current(1:length), i
-   CALL oeffne(iwr, fname, 'unknown' )
-   IF (ier_num.ne.0) THEN 
-      RETURN 
-   ENDIF 
-!  write header
-   WRITE(iwr, 1000)
-!                                                                       
-!  write current generation as scan number                           
-!                                                                       
-   WRITE (iwr, 1100) pop_gen 
-!                                                                       
-!  write titles                                                      
-!                                                                       
-   WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
-!                                                                       
-!  write the parameters of the individual members                    
-!                                                                       
-   DO j = 1, pop_n 
-      line = ' ' 
-      WRITE (iwr, 1300) j, child_val (j), child_val (j) 
-   ENDDO 
-   CLOSE (iwr) 
 !
-!  Loop over all parameters pop_dimx
-!
-   length = len_str(parent_current)
-   IF(length > 0) THEN
-   current:DO i = 1, pop_dimx
-!
-      fname = ' '
-      WRITE (fname, 900) parent_current(1:length),i
-      CALL oeffne(iwr, fname, 'unknown')
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
-!     write header
-      WRITE(iwr, 1000)
-!                                                                       
-!     write current generation as scan number                           
-!                                                                       
-      WRITE (iwr, 1100) pop_gen 
-!                                                                       
-!     write titles                                                      
-!                                                                       
-      WRITE (iwr, 1250) '#L Member Rvalue '//pop_name (i) (1:pop_lname (i) ) 
-!                                                                       
-!     write the parameters of the individual members                    
-!                                                                       
-      DO j = 1, pop_n 
-         WRITE (iwr, 1300) j, child_val (j), child (i, j) 
-      ENDDO 
-      CLOSE (iwr) 
-   ENDDO current
-   ENDIF
+   CALL write_current
 !                                                                       
 !     Write the Summary files
 !                                                                       
@@ -721,6 +665,95 @@ CONTAINS
     4200 FORMAT (a) 
 !                                                                       
    END SUBROUTINE write_parents                  
+!
+!*******************************************************************************
+!
+   SUBROUTINE write_current
+!
+!   USE diffev_allocate_appl
+   USE create_trial_mod
+   USE diff_evol
+   USE population
+!
+   IMPLICIT NONE
+!
+   INTEGER, PARAMETER             :: iwr = 7
+!                                                                       
+   INTEGER                        :: i, j 
+   INTEGER                        :: length
+!
+   CHARACTER (LEN=1024)           :: fname
+   CHARACTER (LEN=1024)           :: line
+   INTEGER, EXTERNAL              :: len_str
+!                                                                       
+!                                                                       
+!------ write the parameters and the results for the current generation 
+!                                                                       
+   length = len_str(parent_current)
+   IF(length  > 0 ) THEN                    ! Current file is defined
+      i      = 0                                     ! 0 is the R-value
+      WRITE (fname, 900) parent_current(1:length), i
+      CALL oeffne(iwr, fname, 'unknown' )
+      IF (ier_num.ne.0) THEN 
+         RETURN 
+      ENDIF 
+!     write header
+      WRITE(iwr, 1000)
+!                                                                       
+!     write current generation as scan number                           
+!                                                                       
+      WRITE (iwr, 1100) pop_gen 
+!                                                                       
+!     write titles                                                      
+!                                                                       
+      WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
+!                                                                       
+!     write the parameters of the individual members                    
+!                                                                       
+      DO j = 1, pop_n 
+         line = ' ' 
+         WRITE (iwr, 1300) j, child_val (j), child_val (j) 
+      ENDDO 
+      CLOSE (iwr) 
+!
+!     Loop over all parameters pop_dimx
+!
+      current:DO i = 1, pop_dimx
+!
+         fname = ' '
+         WRITE (fname, 900) parent_current(1:length),i
+         CALL oeffne(iwr, fname, 'unknown')
+         IF (ier_num.ne.0) THEN 
+            RETURN 
+         ENDIF 
+!        write header
+         WRITE(iwr, 1000)
+!                                                                       
+!        write current generation as scan number                           
+!                                                                       
+         WRITE (iwr, 1100) pop_gen 
+!                                                                       
+!        write titles                                                      
+!                                                                       
+         WRITE (iwr, 1250) '#L Member Rvalue '//pop_name (i) (1:pop_lname (i) ) 
+!                                                                       
+!        write the parameters of the individual members                    
+!                                                                       
+         DO j = 1, pop_n 
+            WRITE (iwr, 1300) j, child_val (j), child (i, j) 
+         ENDDO 
+         CLOSE (iwr) 
+      ENDDO current
+   ENDIF
+!
+     900 FORMAT (A,'.',I4.4)
+    1000 FORMAT ('#C Current file by DIFFEV')
+    1100 FORMAT ('#S ',i5,' = Generation Number ') 
+    1250 FORMAT (a) 
+    1300 FORMAT (i5,2(2x,e18.10))
+!
+   END SUBROUTINE write_current
+!
 !*****7**************************************************************** 
    SUBROUTINE patch_para
 !

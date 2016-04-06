@@ -18,6 +18,26 @@
 
    Further help topics are:
 
+2  News
+3  2006_april
+
+   The initialise command was augmented by a second form to  initialise
+   just the logfiles, see ==> 'logfile', 'summary'.
+   This might be helpful if you want to reset the refinent cycle
+   to a smaller generation number. For very length refinements with 
+   a few thousand refinement cycles and many parameters, a continuation
+   will take appreciable time to read all previous cycles. If the
+   actual development accross the cycles is not relevant to you you 
+   can reduces the file sizes drastically be a sequence like:
+   pop_gen[1] = 1
+   initialise logfile
+
+   New command 'lastfile'
+
+   This new command creates a short copy of the ==> 'logfiles'. 
+   This short form contains the parameters just for the last
+   refinement generation.
+   
 2  Summary
 
 !p Description ! A description of the program
@@ -588,6 +608,7 @@
    corresponding value of the current member with the best R-value.
 2  initialize
 !b initialize [ <par_number1> [, <par_number2>]] [, "silent"]
+!b initialise "logfile"
 
    This command initializes the differential evolution sequence. 
 
@@ -630,6 +651,17 @@
    note written to your disk. DIFFEV expects to be part of a suite 
    program and will transfer the trial parameters directly to the 
    slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
+
+   The second form of the command can be used to initialize just
+   the logfiles, see ==> 'logfile', 'summary'.
+   This might be helpful if you want to reset the refinent cycle
+   to a smaller generation number. For very length refinements with 
+   a few thousand refinement cycles and many parameters, a continuation
+   will take appreciable time to read all previous cycles. If the
+   actual development accross the cycles is not relevant to you you 
+   can reduces the file sizes drastically be a sequence like:
+   pop_gen[1] = 1
+   initialise logfile
 2  lastfile
 !b lastfile <filename>
 

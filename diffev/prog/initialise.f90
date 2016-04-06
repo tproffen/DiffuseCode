@@ -13,7 +13,7 @@ PUBLIC  :: do_fix
 !
 CONTAINS
 !
-   SUBROUTINE do_initialise 
+   SUBROUTINE do_initialise (l_init_x)
 !-                                                                      
 !     These routines creates the initial two generations.               
 !     The first generation is purely random, the second is derived      
@@ -33,6 +33,7 @@ CONTAINS
 !
    IMPLICIT none 
 !                                                                       
+   LOGICAL, INTENT(IN)  :: l_init_x     ! Shall parameter be initialised?
 !                                                                       
    INTEGER, PARAMETER   :: maxw = 2
 !                                                                       
@@ -68,11 +69,13 @@ CONTAINS
    ENDIF
 !
 ! should never be needed!!!   CALL diffev_alloc_population(pop_c , pop_dimx)
-   CALL init_x ( 1, pop_dimx)
-   IF ( ier_num /= 0) RETURN
+   IF(l_init_x) THEN 
+      CALL init_x ( 1, pop_dimx)   ! Initialise parameters
+      IF ( ier_num /= 0) RETURN
 !                                                                 
-   pop_current = .true. 
-   pop_current_trial = .true. 
+      pop_current = .true. 
+      pop_current_trial = .true. 
+   ENDIF
 !                                                                 
    CALL write_genfile 
 !                                                                 
