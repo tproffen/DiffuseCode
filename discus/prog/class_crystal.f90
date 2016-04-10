@@ -112,6 +112,8 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: get_n_type           ! Return number of molecule types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_atom           ! Return number of molecule atoms in this crystal
    PROCEDURE, PUBLIC, PASS :: set_cryst_atom       ! Set iscat, posit, property
+   PROCEDURE, PUBLIC, PASS :: set_cryst_at_lis     ! Set cr_at_lis
+   PROCEDURE, PUBLIC, PASS :: set_cryst_dw         ! Set cr_dw
    PROCEDURE, PUBLIC, PASS :: get_cryst_atom       ! Get iscat, posit, property
    PROCEDURE, PUBLIC, PASS :: get_cryst_mole       ! Get molecule number in which inum is
    PROCEDURE, PUBLIC, PASS :: get_cryst_scat       ! Get iscat, atom_name and DW
@@ -274,6 +276,44 @@ CONTAINS
    CALL this%atoms(inum)%set_atom ( itype, posit, iprop )
 !
    END SUBROUTINE set_cryst_atom 
+!******************************************************************************
+   SUBROUTINE set_cryst_at_lis ( this, MAXSCAT, inum, cr_at_lis)
+!
+!  Set the atom name array for "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst)                 :: this
+   INTEGER,              INTENT(IN) :: MAXSCAT
+   INTEGER,              INTENT(IN) :: inum
+   CHARACTER (LEN=4),DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_at_lis
+!
+   INTEGER :: i
+!
+   DO i=0, inum
+      this%cr_at_lis(i) = cr_at_lis(i)
+   ENDDO
+!
+   END SUBROUTINE set_cryst_at_lis 
+!******************************************************************************
+   SUBROUTINE set_cryst_dw ( this, MAXSCAT, inum, cr_dw)
+!
+!  Set the atom name array for "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst)                 :: this
+   INTEGER,              INTENT(IN) :: MAXSCAT
+   INTEGER,              INTENT(IN) :: inum
+   REAL   ,DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_dw
+!
+   INTEGER :: i
+!
+   DO i=0, inum
+      this%cr_dw(i) = cr_dw(i)
+   ENDDO
+!
+   END SUBROUTINE set_cryst_dw 
 !******************************************************************************
    SUBROUTINE get_cryst_scat ( this, inum, itype, at_name, dw1)
 !

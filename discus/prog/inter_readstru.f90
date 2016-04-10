@@ -17,6 +17,7 @@ CHARACTER (LEN=   4), DIMENSION(:),   ALLOCATABLE :: rd_cr_at_lis ! (0:MAXSCAT)
 REAL                , DIMENSION(:,:), ALLOCATABLE :: rd_cr_pos    ! (1:3,1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_iscat  ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_prop   ! (1:NMAX)
+INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_mole   ! (1:NMAX)
 REAL                , DIMENSION(3,2)  :: rd_cr_dim
 INTEGER                               :: rd_as_natoms 
 CHARACTER (LEN=   4), DIMENSION(:),   ALLOCATABLE :: rd_as_at_lis ! (0:MAXSCAT) 
