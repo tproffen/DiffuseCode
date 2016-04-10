@@ -981,7 +981,6 @@ CONTAINS
 !
       INTEGER            :: n_qxy, n_natoms,n_nscat
       INTEGER            :: iostatus
-      INTEGER            :: i,l
       INTEGER            :: ih,ik,il
       INTEGER            :: ih_min,ik_min,il_min
       INTEGER            :: ih_max,ik_max,il_max

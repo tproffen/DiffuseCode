@@ -20,6 +20,7 @@ CONTAINS
       USE fourier_sup
       USE modify_mod
       USE output_mod 
+      USE zone
 !
       USE doact_mod 
       USE learn_mod 
@@ -270,6 +271,7 @@ CONTAINS
             ELSEIF (str_comp (befehl, 'electron', 2, lbef, 8) ) then 
                lxray = .true. 
                diff_radiation = RAD_ELEC
+               lambda = ' '
 !                                                                       
 !     help 'help' , '?'                                                 
 !                                                                       
@@ -455,6 +457,7 @@ CONTAINS
             ELSEIF (str_comp (befehl, 'neut', 2, lbef, 4) ) then 
                lxray = .false. 
                diff_radiation = RAD_NEUT
+               lambda = ' '
 !                                                                       
 !     define the number of points along the ordinate 'no'               
 !                                                                       
@@ -555,6 +558,7 @@ CONTAINS
                IF (inc (1) * inc (2) * inc(3) .le.MAXQXY) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
+                  IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
                   IF (four_mode.eq.INTERNAL) then 
                      IF (ier_num.eq.0) then 
                         four_log = .true. 
@@ -564,6 +568,7 @@ CONTAINS
                      four_log = .true. 
                      CALL four_external 
                   ENDIF 
+                  IF(l_zone) CALL zone_project   ! Project zone axis pattern
                   four_was_run = .true.
                ELSE 
                   ier_num = - 8 
@@ -695,6 +700,7 @@ CONTAINS
                ENDIF
                CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                            diff_radiation, diff_power) 
+               IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
                CALL four_show  ( ltop )
 !                                                                       
 !     Switch usage of temperature coefficients on/off 'temp'            
@@ -772,6 +778,46 @@ CONTAINS
             ELSEIF (str_comp (befehl, 'xray', 1, lbef, 4) ) then 
                lxray = .true. 
                diff_radiation = RAD_XRAY
+!                                                                       
+!     set a zone axis pattern calculation
+!                                                                       
+            ELSEIF (str_comp (befehl, 'zone', 2, lbef, 4) ) then 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (str_comp (cpara(1), 'OFF', 3, lpara(1), 3) ) then 
+                  l_zone = .false.
+                  inc(3) =   1
+                  ltop   = .true.
+               ELSE
+                  IF (ianz.eq.4) THEN 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     zone_uvw(1)  = werte (1) 
+                     zone_uvw(2)  = werte (2) 
+                     zone_uvw(3)  = werte (3) 
+                     zone_res     = werte (4) 
+                     lxray        = .true.        ! Switch X-ray on 
+                     diff_radiation = RAD_ELEC    ! Switch electron diffraction on
+                     fave         = 1.0           ! Set 100%aver
+                     ilots        = LOT_BOX
+                     lperiod      = .true.
+                     ls_xyz(1)    = MIN(10,cr_icc(1))
+                     ls_xyz(2)    = MIN(10,cr_icc(2))
+                     ls_xyz(3)    = MIN(10,cr_icc(3))
+                     inc(1)       = 512
+                     inc(2)       = 512
+                     inc(3)       =   1
+                     ltop         = .true.
+                     renergy      = 200.00   ! Default to 200 keV
+                     l_energy     = .true.
+                     l_zone       = .true.
+                     lambda       = ' '
+                  ELSE 
+                     ier_num = -6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ENDIF 
+!
+!      Wrong command
+!
             ELSE 
                ier_num = - 8 
                ier_typ = ER_COMM 
@@ -884,6 +930,11 @@ CONTAINS
       ELSE 
          WRITE (output_io, 1310) 'ignored' 
       ENDIF 
+!
+      IF(l_zone) THEN
+         WRITE( output_io, 1500) zone_uvw(:)
+         WRITE( output_io, 1510) zone_res
+      ENDIF
 !                                                                       
 !    !DO i = 1, 3 
 !    !u (i) = vi (i, 1) 
@@ -978,6 +1029,9 @@ CONTAINS
      &          A1,',',A1,',',A1,')')                                          
  1430 FORMAT (  '   Angle Ratio Aver ',a3, 3x,f9.4,' degrees',3x        &
      &                                    ,2(2x,f9.4))                  
+ 1500 FORMAT (/,' Zone axis pattern',/                                   &
+               ,'   axis [uvw]         : ',3(2x,f9.4))  
+ 1510 FORMAT (  '   resolution         : ',  2x,f9.4, '  2sin(theta)/lambda')  
       END SUBROUTINE four_show 
 !
 !

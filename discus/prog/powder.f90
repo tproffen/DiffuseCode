@@ -1131,9 +1131,10 @@ CONTAINS
       INTEGER k_start, k_end 
       INTEGER :: l_start=0, l_end=1
       INTEGER ih, ik 
-      INTEGER                    :: n_qxy
-      INTEGER                    :: n_nscat
-      INTEGER                    :: n_pkt
+      INTEGER                    :: n_qxy   = 1
+      INTEGER                    :: n_nscat = 1
+      INTEGER                    :: n_natom = 1
+      INTEGER                    :: n_pkt   = 1
       INTEGER itth 
 !      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
       LOGICAL l_twoparts
@@ -1162,9 +1163,10 @@ CONTAINS
       REAL asind 
       REAL seknds 
 !
-      n_qxy   = 1
-      n_nscat = 1
-      n_pkt   = 1
+!     n_qxy   = 1
+!     n_nscat = 1
+!     n_natom = 1
+!     n_pkt   = 1
       l_twoparts = .false.
       calc_f2aver = .true.    ! Assume that we need form factors
       rept_f2aver = .true.    ! Assume that we need to repeat them
@@ -1205,7 +1207,8 @@ CONTAINS
           cr_nscat>DIF_MAXSCAT              ) THEN
         n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+        n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+        CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
         IF (ier_num /= 0) THEN
           RETURN
         ENDIF
@@ -1477,7 +1480,8 @@ CONTAINS
                 cr_nscat>DIF_MAXSCAT              ) THEN
               n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
               n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-              call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+              n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+              CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
               IF (ier_num.ne.0) THEN
                 RETURN
               ENDIF
@@ -1575,7 +1579,8 @@ CONTAINS
                    cr_nscat>DIF_MAXSCAT              ) THEN
                  n_qxy   = MAX(n_qxy,inc(1) * inc(2),MAXQXY)
                  n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-                 call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+                 n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+                 CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
                  IF (ier_num.ne.0) THEN
                    RETURN
                  ENDIF
@@ -1715,8 +1720,9 @@ CONTAINS
       INTEGER i, iscat, jscat 
       INTEGER iarg, iadd 
       INTEGER                :: n_hist
-      INTEGER                :: n_qxy
-      INTEGER                :: n_nscat
+      INTEGER                :: n_qxy   = 1
+      INTEGER                :: n_nscat = 1
+      INTEGER                :: n_natom = 1
       REAL                   :: distance
       REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
@@ -1733,8 +1739,9 @@ CONTAINS
       REAL sind 
       REAL seknds 
 !                                                                       
-      n_qxy   = 1
-      n_nscat = 1
+!     n_qxy   = 1
+!     n_nscat = 1
+!     n_natom = 1
       ier_num = 0 
 !DBG      write (output_io,*) ' cr_nscat ',cr_nscat                     
 !                                                                       
@@ -1782,7 +1789,8 @@ CONTAINS
           cr_nscat>DIF_MAXSCAT              ) THEN
          n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
 
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, 0, MASK )
@@ -2027,8 +2035,9 @@ CONTAINS
       INTEGER i, iscat, jscat 
       INTEGER iarg, iadd 
       INTEGER                :: n_hist
-      INTEGER                :: n_qxy
-      INTEGER                :: n_nscat
+      INTEGER                :: n_qxy   = 1
+      INTEGER                :: n_nscat = 1
+      INTEGER                :: n_natom = 1
       INTEGER                :: nlook_mol   ! Number of look up dimensions molecules
       INTEGER                :: islook      ! Actual molecule look up number
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: powder_look_mol
@@ -2048,8 +2057,9 @@ CONTAINS
       REAL sind 
       REAL seknds 
 !                                                                       
-      n_qxy   = 1
-      n_nscat = 1
+!     n_qxy   = 1
+!     n_nscat = 1
+!     n_natom = 1
       ier_num = 0 
 !                                                                       
 !------ preset some values                                              
@@ -2117,7 +2127,8 @@ CONTAINS
           cr_nscat>DIF_MAXSCAT              ) THEN
          n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, nlook_mol, MASK )
 !

@@ -63,27 +63,30 @@ CONTAINS
 !                                                                       
       REAL q2 
       INTEGER i
-      INTEGER     :: n_qxy   ! Maximum number of points in reciprocal space 
-      INTEGER     :: n_nscat ! Maximum Number of atom type
+      INTEGER     :: n_qxy   = 1 ! Maximum number of points in reciprocal space 
+      INTEGER     :: n_nscat = 1 ! Maximum Number of atom type
+      INTEGER     :: n_natom = 1 ! Maximum Number of atom type
       INTEGER     :: astatus ! Allocation status
 !
-      n_qxy   = MAX(1,n_points)
-      n_nscat = 1
+!      n_qxy   = MAX(1,n_points)
+      n_qxy   = MAX(  n_points      , MAXQXY,MAXDQXY)
+!     n_nscat = 1
+!     n_natom = 1
 !                                                                       
 !     IF (four_log) then 
          WRITE (output_io, 1000) 
 !     ENDIF 
 !                                                                       
-      IF (n_points          .gt. MAXQXY  .OR.          &
-          n_points          .gt. MAXDQXY .OR.          &
+      IF (n_points > MAX(MAXQXY, MAXDQXY)  .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
-         n_qxy   = MAX(n_qxy,n_points      , MAXQXY,MAXDQXY)
          n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-         CALL alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
          IF (ier_num.ne.0) THEN
             RETURN
          ENDIF
       ENDIF
+      IF(ALLOCATED(powder_istl)) DEALLOCATE(powder_istl)
       ALLOCATE(powder_istl(1:n_qxy), stat=astatus)
       powder_istl(:) = 0
 !

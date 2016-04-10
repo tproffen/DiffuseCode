@@ -1775,9 +1775,9 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER lbeg (3)
       INTEGER ncell 
       INTEGER         :: n_layers ! Number of layers for current layer type
-      INTEGER         :: n_qxy    ! Number of data points in reciprocal space
-      INTEGER         :: n_nscat  ! Number of different atom types
-      INTEGER         :: n_atoms  ! Number of atoms
+      INTEGER         :: n_qxy    = 1 ! Number of data points in reciprocal space
+      INTEGER         :: n_nscat  = 1 ! Number of different atom types
+      INTEGER         :: n_atoms  = 1 ! Number of atoms
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
@@ -1789,8 +1789,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
       REAL ss 
       REAL seknds 
 !
-      n_qxy   = 1
-      n_nscat = 1
+!     n_qxy   = 1
+!     n_nscat = 1
 !                                                                       
 !------ preset some values                                              
 !                                                                       
@@ -1815,8 +1815,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
           MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXSCAT)
-        call alloc_diffuse (n_qxy, cr_nscat, n_atoms)
+        n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+        CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
         IF (ier_num.ne.0) THEN
           RETURN
         ENDIF
@@ -1836,8 +1836,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
          CALL rese_cr 
          CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
                           n_atom,-1, .true. )
-         IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
-            n_atoms = MAX( n_atoms, NMAX )
+         IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
+            n_atoms = MAX( n_atoms, st_nlayer, NMAX )
             n_nscat = MAX( n_nscat, MAXSCAT)
             CALL alloc_crystal (n_nscat, n_atoms)
             IF ( ier_num /= 0 ) RETURN
@@ -1946,8 +1946,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
                n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
                n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-               n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXSCAT)
-               call alloc_diffuse (n_qxy, cr_nscat, n_atoms)
+               n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+               CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
                IF (ier_num.ne.0) THEN
                  RETURN
                ENDIF
@@ -2069,17 +2069,18 @@ internal: IF(st_internal(st_type(i)) ) THEN
       INTEGER lbeg (3)
       INTEGER ncell 
       LOGICAL lout 
-      INTEGER         :: n_qxy    ! Number of data points in reciprocal space
-      INTEGER         :: n_nscat  ! Number of different atom types
-      INTEGER         :: n_natoms ! Number of atoms 
+      INTEGER         :: n_qxy    = 1! Number of data points in reciprocal space
+      INTEGER         :: n_nscat  = 1! Number of different atom types
+      INTEGER         :: n_natoms = 1! Number of atoms 
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
 !
       REAL u (3) 
 !
-      n_qxy   = 1
-      n_nscat = 1
+!     n_qxy    = 1
+!     n_nscat  = 1
+!     n_natoms = 1
 !                                                                       
 !------ preset some values                                              
 !                                                                       
@@ -2090,10 +2091,12 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Now start calculation if sufficient space                         
 !                                                                       
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
-          cr_nscat>DIF_MAXSCAT              ) THEN
+          cr_nscat>DIF_MAXSCAT           .OR.          &
+          MAX(cr_natoms,st_nlayer) > DIF_MAXAT ) THEN
         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        call alloc_diffuse (n_qxy, cr_nscat, cr_natoms)
+        n_natoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
+        CALL alloc_diffuse (n_qxy,  n_nscat, n_natoms)
         IF (ier_num.ne.0) THEN
           RETURN
         ENDIF

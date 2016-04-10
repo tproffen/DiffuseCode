@@ -290,7 +290,8 @@ ENDIF
 res_para (0) = float (cr_nscat) + 1 
 DO i = 0, cr_nscat 
    cr_u2aver = cr_u2aver + cr_dw(i) * cr_amount (i)
-   IF (cr_at_lis(cr_iscat (i)) /= 'VOID') then
+!   IF (cr_at_lis(cr_iscat (i)) /= 'VOID') then
+   IF (cr_at_lis(          i ) /= 'VOID') then
       cr_n_real_atoms = cr_n_real_atoms + cr_amount(i)
    ENDIF
    proz = float (cr_amount (i) ) / cr_natoms 

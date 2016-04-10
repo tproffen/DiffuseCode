@@ -1488,7 +1488,7 @@ CONTAINS
 !
       rmc_n_qxy = MAX(nx*ny,RMC_MAX_Q)   ! Save RMC required size for allocation prior to 'run'
       n_qxy     = MAX(n_qxy, nx*ny, RMC_MAX_Q, MAXQXY)
-      n_natoms  = MAX(n_natoms, cr_natoms, DIF_MAXSCAT)
+      n_natoms  = MAX(n_natoms, cr_natoms, DIF_MAXAT)
       n_nscat   = MAX(n_nscat, cr_nscat, DIF_MAXSCAT)
       call alloc_diffuse (n_qxy, n_nscat, n_natoms)
       rmc_n_sym = MAX(rmc_n_sym, nsym)    ! Save RMC actual number of symmetry operations

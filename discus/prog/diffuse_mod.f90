@@ -81,4 +81,10 @@ REAL                                    ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
 INTEGER                                 ::  dif_size_of
 !
+LOGICAL                                 ::  l_zone = .false.
+REAL   , DIMENSION(1:3)                 ::  zone_uvw 
+REAL   , DIMENSION(1:3)                 ::  zone_ewald 
+REAL                                    ::  zone_res 
+REAL                                    ::  zone_delta_d = 0.015
+!
 END MODULE diffuse_mod

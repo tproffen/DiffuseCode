@@ -1350,6 +1350,6 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
          out_inc (i) = inc (i) 
          ENDDO 
       ENDIF 
-!                                                                       
+!
       END SUBROUTINE set_output                     
 END MODULE output_menu
