@@ -1301,7 +1301,6 @@ CONTAINS
       REAL eps 
       INTEGER ii, iii, igs, igg 
       INTEGER iiii 
-integer i
 !                                                                       
       DATA eps / 0.00001 / 
 !                                                                       

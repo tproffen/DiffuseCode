@@ -392,14 +392,13 @@ CONTAINS
 !
       CHARACTER(LEN=4)              :: name 
       CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
-      CHARACTER(LEN=1024)                  :: zeile 
       INTEGER            , DIMENSION(maxw) :: lpara
-      INTEGER i, j, ianz, lp 
+      INTEGER i, j, ianz
       INTEGER                              :: new_nmax   = 0
       INTEGER                              :: new_nscat  = 0
       LOGICAL                              :: need_alloc = .false.
       REAL werte (maxw) 
-      REAL berechne 
+!     REAL berechne 
 !
 !     While developing, increment crystal if neede, but keep the check
 !
@@ -486,16 +485,16 @@ CONTAINS
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(4) name 
-      CHARACTER(1024) cpara (maxw), zeile 
+      CHARACTER(1024) cpara (maxw)
       INTEGER lpara (maxw) 
-      INTEGER i, j, k, ianz, laenge, lp 
+      INTEGER i, j, k, ianz, laenge
       INTEGER                              :: new_nmax
       INTEGER                              :: new_nscat
       LOGICAL                              :: need_alloc = .false.
       LOGICAL lkick, lspace 
       REAL werte (maxw) 
       REAL w (3), v (3) 
-      REAL berechne 
+!     REAL berechne 
 !     REAL do_blen 
 !                                                                       
       DATA lspace / .true. / 
@@ -1328,7 +1327,7 @@ CONTAINS
       INTEGER lpara (maxw) 
       INTEGER ianz, i, lp, ind 
       REAL werte (maxw) 
-      REAL berechne 
+!     REAL berechne 
 !                                                                       
       zeile = ' ' 
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 

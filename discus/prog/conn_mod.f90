@@ -228,18 +228,18 @@ CONTAINS
                j = 1
                tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
                tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
-               tail%offset(1)   = atom_pos(1,j)-cr_pos(1,atom_env(j))
-               tail%offset(2)   = atom_pos(2,j)-cr_pos(2,atom_env(j))
-               tail%offset(3)   = atom_pos(3,j)-cr_pos(3,atom_env(j))
+               tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+               tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+               tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
                NULLIFY (tail%next)                          ! No further neighbors
 !
                DO j = 2, n_neig                             ! Add all (intended) neighbors to list
                   ALLOCATE (tail%next)                      ! create a further NEIGHBOR
                   tail => tail%next                         ! reassign tail to new end of list
                   tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
-                  tail%offset(1)   = atom_pos(1,j)-cr_pos(1,atom_env(j))
-                  tail%offset(2)   = atom_pos(2,j)-cr_pos(2,atom_env(j))
-                  tail%offset(3)   = atom_pos(3,j)-cr_pos(3,atom_env(j))
+                  tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+                  tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+                  tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
                   NULLIFY (tail%next)                       ! No further neighbors
                ENDDO
             ENDIF
@@ -412,7 +412,7 @@ CONTAINS
          ianz        = ianz - 1
          IF(cpara(ianz)(1:6)=='first_') THEN
             cpara(ianz) = cpara(ianz)(7:lpara(ianz))
-            temp_number = berechne(cpara(ianz), lpara(ianz))
+            temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
             ianz        = ianz - 1
          ELSE
             temp_number = -1
@@ -767,8 +767,8 @@ CONTAINS
                         CALL del_params (1, ianz, cpara, lpara, maxw)
                         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                         IF(ier_num/=0) THEN
-                           c_name   = cpara(1)
-                           c_name_l = lpara(1)
+                           c_name_l = MIN(256,lpara(1))
+                           c_name   = cpara(1)(1:c_name_l)
                            ino      = 0
                            CALL no_error
                         ELSE                                               ! Success set to value
