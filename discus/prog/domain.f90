@@ -1454,7 +1454,6 @@ mole_int: IF(mk_infile_internal) THEN
 !     ENDDO                                                             
 !                                                                       
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
-1234 continue
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
               xyz, dummy_iscat, dummy_prop )
@@ -1490,8 +1489,8 @@ mole_int: IF(mk_infile_internal) THEN
          md_sep_fuz = clu_fuzzy (ii) 
          READ (line (5:52), * ) xyz 
 !                                                                       
-         size_sigma = MAX(1. + gasdev(clu_sigma(ii,i)), 0.01)
          DO i = 1, 3 
+         size_sigma = MAX(1. + gasdev(clu_sigma(ii,i)), 0.01)
          DO j = 1, 4 
          mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
          mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )

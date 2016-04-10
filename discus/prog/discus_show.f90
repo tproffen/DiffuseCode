@@ -92,8 +92,8 @@ CONTAINS
             CALL del_params (1, ianz, cpara, lpara, maxw)
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF(ier_num/=0) THEN
-               c_name   = cpara(1)
-               c_name_l = lpara(1)
+               c_name_l = MIN(256,lpara(1))
+               c_name   = cpara(1)(1:c_name_l)
                ino      = 0
                CALL no_error
             ELSE                                               ! Success set to value
