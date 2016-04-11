@@ -1022,6 +1022,7 @@ CONTAINS
       USE molecule_mod 
       USE discus_plot_init_mod
       USE powder_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -1037,11 +1038,6 @@ CONTAINS
 !     Calculate the global maximum h,k,l                                
 !                                                                       
       IF (rlambda.ne.0.0) then 
-         pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
-         pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
-         pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
-         pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
-         pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !                                                                       
 !      Perform error checking                                           
 !                                                                       
@@ -1067,6 +1063,19 @@ CONTAINS
                RETURN 
             ENDIF 
          ENDIF 
+!
+!        Caclulate hkl limits 
+!
+         IF(pow_axis.eq.POW_AXIS_TTH) THEN
+            pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
+            pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
+         ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
+            pow_ds_max = pow_qmax/zpi
+            pow_ds_min = pow_qmin/zpi
+         ENDIF
+         pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
+         pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
+         pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !                                                                       
          IF (pow_four_type.eq.POW_COMPL) THEN 
             CALL powder_complete (cr_nscat)
@@ -1665,6 +1674,7 @@ CONTAINS
             pow_f2aver(i) = pow_f2aver(i) / pow_nreal
             pow_faver2(i) = pow_faver2(i) / pow_nreal
          ENDDO
+         pow_faver2(:) = pow_faver2(:)**2
          pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
       ENDIF
 !                                                                       

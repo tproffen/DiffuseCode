@@ -1872,7 +1872,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     --Loop over all layer chemistries                                 
 !                                                                       
-         DO l = 1, st_nchem 
+         layers: DO l = 1, st_nchem 
          nxat = 0 
 !                                                                       
 !     ----loop over all layers                                          
@@ -1881,12 +1881,12 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     ------insert stacking fault distribution as electrons into crystal
 !                                                                       
-         IF (st_chem (st_type (j) ) .eq.l) then 
-            nxat = nxat + 1 
-            xat (nxat, 1) = st_origin (1, j) 
-            xat (nxat, 2) = st_origin (2, j) 
-            xat (nxat, 3) = st_origin (3, j) 
-         ENDIF 
+            IF (st_chem (st_type (j) ) .eq.l) then 
+               nxat = nxat + 1 
+               xat (nxat, 1) = st_origin (1, j) 
+               xat (nxat, 2) = st_origin (2, j) 
+               xat (nxat, 3) = st_origin (3, j) 
+            ENDIF 
          ENDDO 
          IF (nxat.gt.0) then 
 !                                                                       
@@ -1897,7 +1897,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     ------copy structure factor to temporary place                    
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            acsf (i) = tcsf (i) 
+               acsf (i) = tcsf (i) 
             ENDDO 
             n_layers = nxat
 !                                                                       
@@ -1966,7 +1966,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------zero some arrays                                          
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0, 0.0) 
+               st_csf (i) = cmplx (0.0, 0.0) 
             ENDDO 
 !                                                                       
 !------ ------loop over all different atom types                        
@@ -1978,7 +1978,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ --------Add this part of the structur factor to the total       
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = st_csf (i) + tcsf (i) 
+               st_csf (i) = st_csf (i) + tcsf (i) 
             ENDDO 
             IF (four_log) then 
                WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
@@ -2002,7 +2002,6 @@ internal: IF(st_internal(st_type(i)) ) THEN
                                 * n_layers * nxat
                   ENDDO
                   pow_nreal = pow_nreal + n_layers * nxat
-                  pow_faver2(:) = pow_faver2(:)**2
                   pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
                ENDIF
             ENDDO 
@@ -2010,10 +2009,10 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     ------Add product of acsf und st_csf to csf                       
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            csf (i) = csf (i) + st_csf (i) * acsf (i) 
+               csf (i) = csf (i) + st_csf (i) * acsf (i) 
             ENDDO 
          ENDIF 
-         ENDDO 
+         ENDDO  layers
 !                                                                       
 !     --Calculate average scattering and subtract                       
 !                                                                       
