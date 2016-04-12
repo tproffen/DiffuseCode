@@ -125,18 +125,18 @@
       .105787412d-6 /                                                   
       IF (abs (x) .lt.8.) then 
          y = x**2 
-         bessj1 = x * (r1 + y * (r2 + y * (r3 + y * (r4 + y * (r5 + y * &
+         bessj1 = REAL(x * (r1 + y * (r2 + y * (r3 + y * (r4 + y * (r5 + y * &
          r6) ) ) ) ) / (s1 + y * (s2 + y * (s3 + y * (s4 + y * (s5 + y *&
-         s6) ) ) ) )                                                    
+         s6) ) ) ) ))                                                    
       ELSE 
          ax = abs (x) 
          z = 8. / ax 
          y = z**2 
          xx = ax - 2.356194491 
-         bessj1 = sqrt (.636619772 / ax) * (cos (xx) * (p1 + y *        &
+         bessj1 = REAL(sqrt (.636619772 / ax) * (cos (xx) * (p1 + y *   &
          (p2 + y * (p3 + y * (p4 + y * p5) ) ) ) - z * sin (xx) *       &
          (q1 + y * (q2 + y * (q3 + y * (q4 + y * q5) ) ) ) ) * sign (1.,&
-         x)                                                             
+         x))                                                             
       ENDIF 
       END FUNCTION bessj1                           
 !*****7*****************************************************************
@@ -200,6 +200,6 @@
          y = y + 1.d0 
          ser = ser + cof (j) / y 
    11 END DO 
-      gammln = tmp + log (stp * ser / x) 
+      gammln = REAL(tmp + log (stp * ser / x) )
       RETURN 
       END FUNCTION gammln                           

@@ -18,23 +18,16 @@ USE charact_mod
 !
 IMPLICIT NONE
 !
-INTEGER, PARAMETER   :: maxw = 40
-!
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
 !
 CHARACTER(LEN=1024)  :: line
-CHARACTER(LEN=1024), DIMENSION(1:maxw) :: cpara
-INTEGER            , DIMENSION(1:maxw) :: lpara
-REAL               , DIMENSION(1:maxw) :: werte
 CHARACTER(LEN= 7   ) :: br_pname_old,br_pname_cap_old
 INTEGER              :: br_prompt_status_old
 INTEGER              :: br_ier_sta_old
 INTEGER              :: indxt, indxb, indxm
 INTEGER              :: lbef
 INTEGER              :: lcomm
-INTEGER              :: ianz
-INTEGER              :: i
 LOGICAL              :: lmacro
 !
 INTEGER :: len_str

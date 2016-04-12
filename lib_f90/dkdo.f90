@@ -30,15 +30,11 @@
       CHARACTER(20) prom 
       CHARACTER(4) befehl 
       CHARACTER(3) cprom (0:3) 
-      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
-      INTEGER            , DIMENSION(1:MAXW) :: lpara
-      INTEGER                                :: ianz
       INTEGER jlevel (0:maxlev) 
       INTEGER i, length, lp, lbef 
       INTEGER         :: indxm
       INTEGER         :: length_m
       LOGICAL lend, lreg 
-      REAL               , DIMENSION(1:MAXW) ::  werte
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -622,7 +618,7 @@
       CHARACTER(1024) cpara (MAXW) 
       INTEGER lpara (MAXW) 
       INTEGER ianz 
-      INTEGER suche_vor, suche_nach , suche_vor_hoch, suche_nach_hoch
+      INTEGER suche_vor, suche_nach , suche_vor_hoch
       INTEGER laenge, icom, iz1, iz2 , iz3
       INTEGER :: ic1, ic2, ic3
       INTEGER :: iper

@@ -13,7 +13,6 @@ CONTAINS
 !
    INTEGER, INTENT(IN)  :: n_res
    INTEGER              :: all_status
-   LOGICAL              :: lstat
    INTEGER              :: size_of
 !
    CALL alloc_arr(res_para, 0, n_res, all_status, 0.0, size_of )

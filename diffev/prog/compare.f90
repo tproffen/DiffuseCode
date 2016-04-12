@@ -651,7 +651,6 @@ CONTAINS
 !   WRITE ( * , * ) ' Error opening file' 
 !                                                                       
      900 FORMAT (A,'.',I4.4)
-    1000 FORMAT ('#C Current file by DIFFEV')
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
 !    1200 FORMAT (a10) 
     1250 FORMAT (a) 

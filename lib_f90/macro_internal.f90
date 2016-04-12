@@ -110,8 +110,6 @@ CONTAINS
    IMPLICIT NONE
 !
    TYPE(macro_internal), POINTER :: ptr     ! Pointer to current position in tree
-   CHARACTER (LEN=1024)          :: macrofile = ' '
-   INTEGER                       :: number    = 0
 !
    IF ( ASSOCIATED(ptr) ) THEN
       IF ( ASSOCIATED(ptr%before)) THEN

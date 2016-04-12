@@ -14,22 +14,21 @@ SUBROUTINE file_kdo(line, ilen)
       CHARACTER (LEN=*),  INTENT(INOUT) ::  line
       INTEGER          ,  INTENT(INOUT) :: ilen
 !
-      CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara, ccpara
-      CHARACTER (LEN=1024)                    :: filename, string, text
-      CHARACTER (LEN=1024)                    :: filekid
+      CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
+      CHARACTER (LEN=1024)                    :: filename, string
 !
-      INTEGER             , DIMENSION(1:MAXW) :: lpara,llpara
-      INTEGER                                 :: ianz, iianz,i
+      INTEGER             , DIMENSION(1:MAXW) :: lpara
+      INTEGER                                 :: ianz, i
       LOGICAL                                 :: fileda
-      REAL                , DIMENSION(1:MAXW) :: werte, wwerte
+      REAL                , DIMENSION(1:MAXW) :: werte
 !
 !
       LOGICAL, PARAMETER :: lread = .true.
       INTEGER, PARAMETER :: imc   = 63
 !
       CHARACTER (LEN=1024), DIMENSION(:), ALLOCATABLE  :: content
-      INTEGER               :: length, file_length, length_kid
-      INTEGER               :: iline, ip
+      INTEGER               :: length, file_length
+      INTEGER               :: iline
       INTEGER               :: iseof
       INTEGER               :: istatus
       LOGICAL               :: is_stored
@@ -232,7 +231,7 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER                  :: ldir_length
       INTEGER                  :: filename_length ! length of filename string
       INTEGER                  :: infile_length   ! length of filename string
-      INTEGER                  :: ip, lc
+      INTEGER                  :: lc
       INTEGER                  :: lslash          ! position os slash in filename
 !
       INTEGER :: len_str
@@ -357,7 +356,6 @@ SUBROUTINE file_kdo(line, ilen)
 !
       CHARACTER ( * ) line
 !
-      CHARACTER(1) cdummy
       CHARACTER(1024) zeile
       CHARACTER(1024) string
       INTEGER ndol
@@ -365,7 +363,7 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER n_par
       INTEGER laenge
       INTEGER lx, nx, x, lll, sdol
-      INTEGER i, il
+      INTEGER il
       INTEGER lstring
       LOGICAL lnum
       REAL r_par
@@ -545,8 +543,6 @@ SUBROUTINE macro_close
       USE prompt_mod
       IMPLICIT none
 !
-!
-      INTEGER i
 !
 IF(prompt_status/=PROMPT_OFF) THEN
    WRITE(output_io,*) ' '
