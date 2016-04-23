@@ -7878,7 +7878,7 @@
    Set the distances at wich an atom from the atom list shall be 
    considered to be close to a surface.
 4  remove
-!b set remove {"strict" | "initial" | "trust"}
+!b set remove {"strict" | "initial" | "trust" | "none"}
 
    When DISCUS replaces (parts of) an old structure with the 
    content of domains. it needs to remove the old atoms. You have 
