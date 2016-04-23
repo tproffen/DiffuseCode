@@ -498,6 +498,7 @@ CONTAINS
                   DO i = 2, ianz 
                   pow_back (i - 2) = werte (i) 
                   ENDDO 
+                  pow_nback = ianz - 2
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1067,10 +1068,10 @@ CONTAINS
 !        Caclulate hkl limits 
 !
          IF(pow_axis.eq.POW_AXIS_TTH) THEN
-            pow_ds_max = 2. * sind (pow_tthmax * 0.5) / rlambda 
+            pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
             pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
          ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
-            pow_ds_max = pow_qmax/zpi
+            pow_ds_max = (pow_qmax+pow_deltaq)/zpi
             pow_ds_min = pow_qmin/zpi
          ENDIF
          pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
@@ -1194,9 +1195,9 @@ CONTAINS
       four_log = .false. 
 !
       IF(pow_axis == POW_AXIS_Q ) THEN
-         n_pkt = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 2
+         n_pkt = NINT((pow_qmax+pow_deltaq  -pow_qmin  )/pow_deltaq  ) + 2
       ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
-         n_pkt = NINT((pow_tthmax-pow_tthmin)/pow_deltatth) + 2
+         n_pkt = NINT((pow_tthmax+pow_deltatth-pow_tthmin)/pow_deltatth) + 2
       ENDIF
       IF(n_pkt .gt. POW_MAXPKT) THEN
          CALL alloc_powder ( n_pkt )
@@ -1526,7 +1527,7 @@ CONTAINS
                   IF(pow_axis==POW_AXIS_TTH) THEN
                IF (rlambda * 0.5 * dstar.le.1.0) then 
                   ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-                  IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax)    &
+                  IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                   then                                                  
                      itth = int( (ttheta - pow_tthmin) / pow_deltatth )
                      inten = real (csf (i) * conjg (csf (i) ) ) 
@@ -1546,7 +1547,7 @@ CONTAINS
                ENDIF 
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = zpi * dstar
-                     IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
+                     IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
@@ -1624,7 +1625,7 @@ CONTAINS
                   IF(pow_axis==POW_AXIS_TTH) THEN
                   IF (rlambda * 0.5 * dstar.le.1.0) then 
                      ttheta = 2.0 * asind (rlambda * 0.5 * dstar) 
-                     IF (pow_tthmin.le.ttheta.and.ttheta.le.pow_tthmax) &
+                     IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                      then                                               
                         itth = int( (ttheta - pow_tthmin) / pow_deltatth )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
@@ -1639,7 +1640,7 @@ CONTAINS
                   ENDIF 
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
                      q = zpi * dstar
-                     IF( pow_qmin <= q .AND. q <= pow_qmax ) THEN
+                     IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = real (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 

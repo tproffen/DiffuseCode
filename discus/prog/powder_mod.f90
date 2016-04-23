@@ -61,6 +61,7 @@ REAL                     :: pow_lp_fac     =  0.88
 REAL                     :: pow_lp_ang     = 20.0
 REAL                     :: pow_lp_cos     =  0.936
 !
+INTEGER                  :: pow_nback      = 0
 REAL   , DIMENSION(0:5)  :: pow_back       = 0.0
 REAL                     :: pow_scale      = 1.0
 !

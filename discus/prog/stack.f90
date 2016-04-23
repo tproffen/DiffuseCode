@@ -1984,13 +1984,13 @@ internal: IF(st_internal(st_type(i)) ) THEN
                WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDIF 
 !
-!------ -------Calculate from factor squared
+!------ -------Calculate form factor squared
 !
                IF(calc_f2aver) THEN
-! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q) during first calculation
                   xstart = pow_qmin  /zpi
                   xdelta = pow_deltaq/zpi
-                  CALL powder_stltab(pow_npkt,xstart,xdelta)  
+!                 CALL powder_stltab(pow_npkt,xstart,xdelta)  
                   DO i = 1, pow_npkt         ! Always over all points in powder pattern!
                      pow_f2aver (i) = pow_f2aver (i)  + &
                                 real (       cfact_pure(powder_istl(i), iscat)  * &
