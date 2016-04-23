@@ -11,9 +11,11 @@ SAVE
 !
 INTEGER                                   :: DC_MAXSCAT = 1
 !
-INTEGER, PARAMETER                        :: DC_NONE   = 0
-INTEGER, PARAMETER                        :: DC_NORMAL = 1
-INTEGER, PARAMETER                        :: DC_BRIDGE = 2
+INTEGER, PARAMETER                        :: DC_NONE     = 0
+INTEGER, PARAMETER                        :: DC_NORMAL   = 1
+INTEGER, PARAMETER                        :: DC_BRIDGE   = 2
+INTEGER, PARAMETER                        :: DC_DOUBLE   = 3
+INTEGER, PARAMETER                        :: DC_MULTIPLE = 4
 !
 INTEGER, PARAMETER                        :: SURF_NONE   = 0
 INTEGER, PARAMETER                        :: SURF_PLANE  = 1
@@ -39,15 +41,8 @@ INTEGER                                   :: dc_temp_neig    ! Temporary neighbo
 INTEGER, DIMENSION(1:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
 REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
 !
-!TYPE dc_def
-!   INTEGER              :: dc_def_lname
-!   CHARACTER(LEN=1024)  :: dc_def_name
-!   INTEGER              :: dc_def_lfile
-!   CHARACTER(LEN=1024)  :: dc_def_file
-!   TYPE (dc_def), POINTER :: next
-!END TYPE dc_def
 TYPE (dc_def), POINTER                    :: dc_def_head => NULL()
-TYPE (dc_def), POINTER                    :: dc_def_tail => NULL()
+!TYPE (dc_def), POINTER                    :: dc_def_tail => NULL()
 TYPE (dc_def), POINTER                    :: dc_def_temp => NULL()
 TYPE (dc_con), POINTER                    :: dc_con_temp => NULL()
 INTEGER                                   :: dc_def_number = 0  ! number of definitions

@@ -31,6 +31,7 @@ TYPE dc_def
    CHARACTER(LEN=8)       :: dc_def_ntype    ! Connection type name (NORMAL, BRIDGE, ...)
    INTEGER                :: dc_def_ltype    ! Connection type name length (NORMAL, BRIDGE, ...)
    INTEGER,DIMENSION(1:2) :: dc_def_axis     ! Molecule axis defined by two atoms
+   INTEGER                :: dc_def_ncon     ! number of connections defined
    TYPE (dc_con), POINTER :: dc_def_con      ! Chain of Connections associated to this definition
    TYPE (dc_def), POINTER :: next            ! next definition entry
 !
@@ -43,10 +44,10 @@ END TYPE dc_def
 !TYPE (dc_def), POINTER    :: dc_def_tail => NULL()
 !TYPE (dc_def), POINTER    :: dc_def_temp => NULL()
 !
-CHARACTER (LEN=8), DIMENSION(0:2) :: type_name
-INTEGER          , DIMENSION(0:2) :: type_length
-DATA type_name /'none def','normal  ','bridge  '/
-DATA type_length /8,6,6/
+CHARACTER (LEN=8), DIMENSION(0:4) :: type_name
+INTEGER          , DIMENSION(0:4) :: type_length
+DATA type_name /'none def','normal  ','bridge  ','double','multiple'/
+DATA type_length /8,6,6,6,8/
 PUBLIC dc_find_def
 PUBLIC dc_set_file
 !
@@ -93,6 +94,7 @@ CONTAINS
                this%next%dc_def_axis(:)=-1.0
                NULLIFY(this%next%next)
                NULLIFY(this%next%dc_def_con)
+               this%next%dc_def_ncon = 0
 !              CALL dc_set_con_default(this%next%dc_def_con)
                search => this%next
                temp_id = this%dc_def_index
@@ -117,6 +119,7 @@ CONTAINS
          this%dc_def_axis(:)=-1.0
          NULLIFY(this%next)
          NULLIFY(this%dc_def_con)
+         this%dc_def_ncon = 0
 !        CALL dc_set_con_default(this%dc_def_con)
          search => this
          temp_id = this%dc_def_index
@@ -254,6 +257,7 @@ CONTAINS
                this%dc_def_axis(1), this%dc_def_axis(2)
          ENDIF
       ENDIF
+      WRITE(output_io, 1400 ) this%dc_def_ncon
       CALL dc_show_con(this%dc_def_con)
       IF ( ASSOCIATED(this%next)) THEN
          CALL dc_show_def(this%next, ier_num)
@@ -265,6 +269,7 @@ CONTAINS
 1300 FORMAT('   Connection type :     ',i4,' ',a8)
 1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to last')
 1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to ',i4 )
+1400 FORMAT('   No. of Connect. :     ',i4)
    END SUBROUTINE dc_show_def
 !
 !
@@ -273,12 +278,13 @@ CONTAINS
 !  Remove the current definitions
 !
    TYPE (dc_def), POINTER :: this
-   TYPE (dc_def), POINTER :: search
+   TYPE (dc_con), POINTER :: connection
 !
    reset_loop: DO 
       IF ( ASSOCIATED(this)) THEN
          IF(ASSOCIATED(this%next)) CALL dc_reset_def( this%next)
-         SEARCH => this%next
+         connection => this%dc_def_con
+         CALL dc_reset_con(connection)
          DEALLOCATE(this)
       ELSE
          EXIT reset_loop
@@ -436,5 +442,28 @@ CONTAINS
    length    = this%dc_def_lfile
 !
    END SUBROUTINE dc_get_mole_name
+!
+   SUBROUTINE dc_get_ncon(this, ncon)
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, INTENT(OUT)   :: ncon
+!
+   ncon = this%dc_def_ncon
+!
+   END SUBROUTINE dc_get_ncon
+!
+   SUBROUTINE dc_inc_ncon(this,ncon)
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, INTENT(out)   :: ncon
+!
+   this%dc_def_ncon = this%dc_def_ncon + 1 
+   ncon = this%dc_def_ncon
+!
+   END SUBROUTINE dc_inc_ncon
 !
 END MODULE dc_def_class

@@ -44,8 +44,8 @@ CONTAINS
    IF (dc_init) THEN
       dc_sel_prop(0) = bit_set ( dc_sel_prop, 0, PROP_SURFACE_EXT, .true.)
       dc_sel_prop(1) = bit_set ( dc_sel_prop, 1, PROP_SURFACE_EXT, .true.)
-      dc_use_conn    = 1 ! while developing!!!
-      dc_n_molecules = 1 ! while developing!!!
+      dc_use_conn(:) = 1 ! while developing!!!
+!      dc_n_molecules = 0 ! while developing!!!
       dc_init = .false.
    ENDIF
 !
@@ -197,8 +197,8 @@ CONTAINS
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAXW) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
-   INTEGER              :: ianz, janz, success,i
-   LOGICAL              :: lnew
+   INTEGER              :: ianz, janz, success,i, ncon
+   LOGICAL              :: lnew, lnew_mole = .false.
    REAL   , DIMENSION(1:MAXW) :: werte
    REAL   , DIMENSION(1:2   ) :: wwerte
 !
@@ -220,8 +220,8 @@ CONTAINS
       IF ( ianz == 4 ) THEN
          CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
          CALL ber_params (ianz, cpara, lpara, werte, maxw)
-         dc_temp_axis(1) = werte(1)
-         dc_temp_axis(2) = werte(2)
+         dc_temp_axis(1) = NINT(werte(1))
+         dc_temp_axis(2) = NINT(werte(2))
          CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
          IF(success==0) CALL dc_set_axis(dc_def_temp, dc_temp_axis)
       ELSE
@@ -255,10 +255,15 @@ CONTAINS
          CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
          IF(success==0) THEN
             CALL dc_set_con(dc_def_temp%dc_def_con, dc_temp_surf, dc_temp_neig, dc_temp_dist)
+            IF(ier_num == 0) THEN
+              CALL dc_inc_ncon(dc_def_temp, ncon)
+            ENDIF
 !            DO i=1, dc_temp_surf(0)
 !               dc_latom(dc_temp_surf(i)) = .true.              ! Select this atom type
 !            ENDDO
+            IF(ncon ==1 ) THEN
                dc_latom(dc_temp_surf(1)) = .true.              ! Select first atom type
+            ENDIF
          ENDIF
       ELSE
          ier_num = -6
@@ -272,7 +277,20 @@ CONTAINS
          dc_def_temp => dc_def_head
 !
          CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
-         IF(success==0) CALL dc_set_file(dc_def_temp, dc_temp_lfile, dc_temp_file)
+         IF(success==0) THEN
+            CALL dc_set_file(dc_def_temp, dc_temp_lfile, dc_temp_file)
+            lnew_mole = .true.
+            search: DO i=1, dc_n_molecules
+               IF(dc_input(i)(1:LEN_TRIM(dc_input(i))) == dc_temp_file(1:dc_temp_lfile)) THEN
+                  lnew_mole = .false.
+                  EXIT search
+               ENDIF
+            ENDDO search
+            IF(lnew_mole) THEN
+               dc_n_molecules = dc_n_molecules + 1
+               dc_input(dc_n_molecules) = dc_temp_file(1:dc_temp_lfile)
+            ENDIF
+         ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
@@ -353,17 +371,20 @@ CONTAINS
       dc_temp_lname = lpara(1)
       dc_temp_id    = 0
       success       = 1
-      IF ( str_comp(cpara(2),'normal',4,lpara(1),6) ) THEN
+      IF ( str_comp(cpara(2),'normal',4,lpara(2),6) ) THEN
          dc_temp_type = DC_NORMAL
-      ELSEIF ( str_comp(cpara(2),'bridge',4,lpara(1),6) ) THEN
+      ELSEIF ( str_comp(cpara(2),'bridge',4,lpara(2),6) ) THEN
          dc_temp_type = DC_BRIDGE
+      ELSEIF ( str_comp(cpara(2),'double',4,lpara(2),6) ) THEN
+         dc_temp_type = DC_DOUBLE
+      ELSEIF ( str_comp(cpara(2),'multiple',4,lpara(2),8) ) THEN
+         dc_temp_type = DC_MULTIPLE
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
          RETURN
       ENDIF
-      ALLOCATE(dc_def_temp)
-      NULLIFY(dc_def_temp) ! => dc_def_head
+write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
       lnew          = .true.
       NULLIFY(dc_def_temp) ! => dc_def_head
       CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
@@ -443,7 +464,7 @@ CONTAINS
         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
         ianz = 1
         werte(1) = -1                                              ! Find all atom types
-        call do_find_env (ianz, werte, maxw, x, rmin,&
+        CALL do_find_env (ianz, werte, maxw, x, rmin,&
                           radius, fq, fp)
         IF(atom_env(0) > 3 ) THEN
         direct = 0.0
@@ -468,7 +489,7 @@ CONTAINS
         write(output_io,*) ' row 1 ',direct(1,:), ' V ',vector(1)
         write(output_io,*) ' row 2 ',direct(2,:), ' V ',vector(2)
         write(output_io,*) ' row 3 ',direct(3,:), ' V ',vector(3)
-        call invmat( recipr, direct )  ! calculate inverse matrix
+        CALL invmat( recipr, direct )  ! calculate inverse matrix
         write(output_io,*) ' row 1 ',recipr(1,:)
         write(output_io,*) ' row 2 ',recipr(2,:)
         write(output_io,*) ' row 3 ',recipr(3,:)
@@ -509,6 +530,7 @@ CONTAINS
 !  Performs the actual decoration
 !
    USE conn_mod
+   USE discus_plot_init_mod
    USE modify_func_mod
 !
    IMPLICIT none
@@ -523,80 +545,92 @@ CONTAINS
    INTEGER   :: istart,iend ! dummy index
    INTEGER   :: is ! scattering number of surface atom
    INTEGER   :: idef ! connectivity definition number
+   INTEGER   :: ncon ! number of connections defined
    INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
    INTEGER   :: natoms                 ! number of atoms in connectivity
    REAL   , DIMENSION(1:3) :: xyz
 !
-character(len=4) :: atom_name
-integer ::itype
-real, dimension(3) :: posit
-real :: dw1
-integer iprop
-character(len=1) :: dummy
-!
 !  Load the molecules into temporary structures to reduce disk I/O
 !
-write(*,*) ' LOADING THE MOLECULES'
    CALL deco_get_molecules
-write(*,*) ' Content of molecules'
-DO i=1, dc_n_molecules
-   DO ia=1, dc_molecules(i)%get_natoms()
-   CALL dc_molecules(i)%get_cryst_atom(ia, itype, posit, iprop)
-   CALL dc_molecules(i)%get_cryst_scat(ia, itype, atom_name, dw1)
-   write(*,*) atom_name, itype, posit,iprop, dw1
-   ENDDO
-ENDDO
-write(*,*) 'Weiter mit a return'
-read(*,'(a)') dummy
-
+!
+!  Transform atom coordinates into caresian space to ease computations
+!
+!   CALL plot_ini_trans (1.0)
+!   CALL trans_atoms_tocart(uvw_out)
 !
    istart = 1
    iend   = cr_natoms
-write(*,*) ' STARTING MAIN LOOP', istart, iend
    main_loop: DO ia=istart,iend
      is_sel: IF(check_select_status (dc_latom (cr_iscat (ia) ), cr_prop (ia),   &
                                      dc_sel_prop)              ) THEN
-write(*,*)
-write(*,*) ' Central : ',ia, cr_iscat(ia),cr_pos(:,ia), cr_prop(ia)
-write(*,*) 'Weiter mit  return'
-read(*,'(a)') dummy
         is     = cr_iscat(ia)                  ! get scattering type central
         xyz(:) = cr_pos(:,ia)                  ! Get atom position
         idef   = dc_use_conn(is)               ! use this connectivity list for surface
         CALL get_connectivity_list (ia, is, idef, maxw, c_list, c_offs, natoms )
-write(*,*) 'CONNECT length : ', natoms, ' > ',c_list(1:natoms)
 !       Go through all definitions
         dc_def_temp => dc_def_head        
-        DO WHILE(ASSOCIATED(dc_def_temp))
-write(*,*) ' Found a definition '
+        defs: DO WHILE(ASSOCIATED(dc_def_temp))
            dc_con_temp => dc_def_temp%dc_def_con
-           DO WHILE(ASSOCIATED(dc_con_temp))           ! A connectivity exists
+           cons: DO WHILE(ASSOCIATED(dc_con_temp))           ! A connectivity exists
               CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
-write(*,*) ' Zentral, neigh, dist ', dc_temp_surf(1), dc_temp_neig, dc_temp_dist
               IF(cr_iscat(ia) == dc_temp_surf(1)) THEN    ! Matching atom in current definition
                  CALL dc_get_type(dc_def_temp, dc_temp_type)
                  CALL dc_get_axis(dc_def_temp, dc_temp_axis)
                  CALL dc_get_mole_name(dc_def_temp, mole_name, mole_length)
-write(*,*) ' MATCHING PAIR TYPE', dc_temp_type
+                 CALL dc_get_ncon(dc_def_temp, ncon)
                  SELECT CASE(dc_temp_type)
                     CASE ( DC_NORMAL )                 ! Molecule in normal position
+                       IF(ncon == 1) THEN
                        CALL deco_place_normal(dc_def_temp, ia, is, xyz, &
                             dc_temp_axis, mole_name, mole_length,       &
                             dc_temp_surf, dc_temp_neig, dc_temp_dist)
-                    CASE ( DC_BRIDGE )                 ! Molecule in normal position
+                       ELSE
+                          ier_num = -1118
+                          ier_msg(1) = 'The bridge connection requires one bond'
+                          RETURN
+                       ENDIF
+                    CASE ( DC_BRIDGE )                 ! Molecule in bridge position
+                       IF(ncon == 1) THEN
                        CALL deco_place_bridge(dc_def_temp, ia, is, xyz, &
                             dc_temp_axis, mole_name, mole_length,       &
                             dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                       ELSE
+                          ier_num = -1118
+                          ier_msg(1) = 'The bridge connection requires one bond'
+                          RETURN
+                       ENDIF
+                    CASE ( DC_DOUBLE   )               ! Molecule in double   connection position
+                       IF(ncon >  1) THEN
+                       CALL deco_place_double(dc_def_temp, ia, is, xyz, &
+                            dc_temp_axis, mole_name, mole_length,       &
+                            dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                          EXIT cons
+                       ELSE
+                          ier_num = -1118
+                          ier_msg(1) = 'The mult   connection requires > one bond'
+                          RETURN
+                       ENDIF
+                    CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
+                       IF(ncon >  1) THEN
+                       CALL deco_place_multi(dc_def_temp, ia, is, xyz, &
+                            dc_temp_axis, mole_name, mole_length,       &
+                            dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                          EXIT cons
+                       ELSE
+                          ier_num = -1118
+                          ier_msg(1) = 'The mult   connection requires > one bond'
+                          RETURN
+                       ENDIF
                  END SELECT
               ENDIF
-              dc_con_temp => dc_def_temp%dc_def_con%next
-           ENDDO
+              dc_con_temp => dc_con_temp%next
+           ENDDO cons
            dc_def_temp => dc_def_temp%next
-        ENDDO
+        ENDDO defs
      ENDIF is_sel ! END IF BLOCK is selected
    ENDDO main_loop   ! END DO main loop over all atoms
-write(*,*) 'CLEANING UP'
 !
 !  Clean up temporary arrays
 !
@@ -607,6 +641,10 @@ write(*,*) 'CLEANING UP'
    DEALLOCATE(m_ntypes, STAT=istatus)
    DEALLOCATE(m_length, STAT=istatus)
    DEALLOCATE(c_list  , STAT=istatus)
+!
+!  Transform atom coordinates back into crystal space 
+!
+!   CALL trans_atoms_fromcart()
 !
    END SUBROUTINE deco_run
 !
@@ -629,18 +667,29 @@ write(*,*) 'CLEANING UP'
    LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
 !
    ALLOCATE(m_name  (dc_n_molecules), STAT=istatus)
+write(*,*) ' istatus', istatus
    ALLOCATE(m_lname (dc_n_molecules), STAT=istatus)
+write(*,*) ' istatus', istatus
    ALLOCATE(m_ntypes(dc_n_molecules), STAT=istatus)
-   ALLOCATE(m_ntypes(dc_n_molecules), STAT=istatus)
+write(*,*) ' istatus', istatus
    ALLOCATE(m_length(dc_n_molecules), STAT=istatus)
+write(*,*) ' istatus', istatus
 !
    ALLOCATE(dc_molecules(dc_n_molecules), STAT = istatus)
+write(*,*) ' istatus', istatus
+!
+   m_name(:) = ' '
+   m_lname(:) = 0
+   m_ntypes(:) = 0
+   m_length(:) = 0
 !
    DO i=1,dc_n_molecules        ! load all molecules
       strufile = dc_input(i)
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
+write(*,*) ' TESTFILE ', ier_num, ier_typ
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
+write(*,*) ' natoms, ntypes ', natoms, ntypes
       CALL read_crystal ( dc_molecules(i), strufile )
       m_length(i) = natoms
       m_ntypes(i) = ntypes
@@ -659,6 +708,8 @@ write(*,*) 'CLEANING UP'
    dc_def_temp => dc_def_head
    CALL dc_show_def(dc_def_temp, ier_num)
 !
+   write(*,*) ' IER_NUM ', ier_num, ier_typ
+!
    END SUBROUTINE deco_show
 !
 !######################################################################
@@ -668,10 +719,21 @@ write(*,*) 'CLEANING UP'
 !  Set all definitions back to system default
 !
    IMPLICIT none
+   INTEGER :: istatus
 !
    dc_init        = .true.    ! We need to initialize
    dc_n_molecules = 0         ! There are no molecules
+   dc_latom(:)    = .false.
+   dc_use_conn(:) = 0
    CALL dc_reset_def ( dc_def_head)
+   NULLIFY(dc_def_head)
+   NULLIFY(dc_def_temp)
+   DEALLOCATE(m_name      , STAT=istatus)
+   DEALLOCATE(m_lname     , STAT=istatus)
+   DEALLOCATE(m_ntypes    , STAT=istatus)
+   DEALLOCATE(m_ntypes    , STAT=istatus)
+   DEALLOCATE(m_length    , STAT=istatus)
+   DEALLOCATE(dc_molecules,STAT = istatus)
 !
    END SUBROUTINE deco_reset
 !
@@ -679,7 +741,7 @@ write(*,*) 'CLEANING UP'
    SUBROUTINE read_crystal ( this, infile)
 !
 !  Read a crystal structure from file
-!  This procedure interfaces to the old "reastru" in "structur.f90"
+!  This procedure interfaces to the old "readtru" in "structur.f90"
 !
    USE inter_readstru
    USE structur, ONLY: readstru
@@ -692,6 +754,7 @@ write(*,*) 'CLEANING UP'
    REAL   , DIMENSION(3)             :: posit  ! dummy position vector
    INTEGER                           :: istat  ! status variable
 !
+logical :: is_open
    rd_strucfile = infile
    rd_NMAX      = this%get_natoms() ! cr_natoms
    rd_MAXSCAT   = this%get_nscat()  ! cr_nscat
@@ -710,29 +773,40 @@ write(*,*) 'CLEANING UP'
    ALLOCATE ( rd_as_iscat (1:rd_MAXSCAT)    , STAT = istat )
    ALLOCATE ( rd_as_prop  (1:rd_MAXSCAT)    , STAT = istat )
 !
-   rd_cr_dw   = 0.0
-   rd_cr_at_lis = ' '
-   rd_cr_pos    = 0.0
-   rd_cr_iscat  = 0
-   rd_cr_prop   = 0
-   rd_as_at_lis = ' '
-   rd_as_dw     = 0.0
-   rd_as_pos    = 0.0
-   rd_as_iscat  = 0
-   rd_as_prop   = 0
+   rd_cr_dw    (:) = 0.0
+   rd_cr_at_lis(:) = ' '
+   rd_cr_pos (:,:) = 0.0
+   rd_cr_iscat (:) = 0
+   rd_cr_prop  (:) = 0
+   rd_cr_mole  (:) = 0
+   rd_as_at_lis(:) = ' '
+   rd_as_dw    (:) = 0.0
+   rd_as_pos (:,:) = 0.0
+   rd_as_iscat (:) = 0
+   rd_as_prop  (:) = 0
+   rd_cr_natoms    = 0
+   rd_cr_nscat     = 0
 !
+write(*,*) ' STRUFILE ', rd_strucfile(1:LEN_TRIM(rd_strucfile))
+INQUIRE(FILE=rd_strucfile,OPENED=is_open)
+write(*,*) ' OPENED ', is_open
+write(*,*) ' cr_pos ', ubound(cr_pos,2)
+write(*,*) ' RD_NMAX, rd_MAXSCAT ', RD_NMAX, rd_MAXSCAT, rd_cr_natoms, rd_cr_nscat
    CALL readstru (rd_NMAX, rd_MAXSCAT, rd_strucfile, rd_cr_name,        &
                rd_cr_spcgr, rd_cr_a0, rd_cr_win, rd_cr_natoms, rd_cr_nscat, rd_cr_dw,     &
                rd_cr_at_lis, rd_cr_pos, rd_cr_mole, rd_cr_iscat, rd_cr_prop, rd_cr_dim, rd_as_natoms, &
                rd_as_at_lis, rd_as_dw, rd_as_pos, rd_as_iscat, rd_as_prop, rd_sav_ncell,  &
                rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para)
+write(*,*) ' ier ', ier_num, ier_typ
 !
 !
    DO inum=1, rd_NMAX
      posit = rd_cr_pos(:,inum)
+write(*,*) ' READING ATOM ', inum, rd_cr_iscat(inum), rd_cr_pos(:,inum)
 !     CALL this%atoms(inum)%set_atom ( rd_cr_iscat(inum), posit, rd_cr_prop(inum) )
      CALL this%set_cryst_atom ( inum, rd_cr_iscat(inum), posit , rd_cr_prop(inum) )
    ENDDO
+read(*,*) inum
    CALL this%set_cryst_at_lis( rd_MAXSCAT, rd_cr_nscat, rd_cr_at_lis)
    CALL this%set_cryst_dw    ( rd_MAXSCAT, rd_cr_nscat, rd_cr_dw)
 !
@@ -754,8 +828,10 @@ write(*,*) 'CLEANING UP'
                             mole_axis, mole_name, mole_length, &
                             surf, neig, dist)
 !
+   USE chem_mod
    USE metric_mod
    USE modify_mod
+   USE prop_para_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -782,7 +858,7 @@ write(*,*) 'CLEANING UP'
    CHARACTER (LEN=1024) :: line
    INTEGER :: i, im, laenge
    INTEGER :: itype
-   INTEGER   :: surf_char ! connectivity definition number
+   INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
    REAL   , DIMENSION(1:3) :: surf_normal
    REAL, DIMENSION(3) :: posit
    REAL, DIMENSION(3) :: vnull
@@ -797,8 +873,11 @@ write(*,*) 'CLEANING UP'
 !
    CALL find_surface_character(ia,ia, surf_char, surf_normal)
    IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
+!
+write(*,*) ' DC_N_molecules', dc_n_molecules
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+write(*,*) ' GOT CORRECT MOLECULE ', mole_name(1:mole_length),' ', m_name(i)(1:m_lname(i))
             im = mole_axis(2)                             ! Make mole axis from spcified atoms
             CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
             axis_ligand(1) = posit(1)
@@ -815,46 +894,58 @@ write(*,*) 'CLEANING UP'
             origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist  ! by dist away from 
             origin(3)  = cr_pos(3,ia) + surf_normal(3)/normal_l*dist  ! surface atom
             sym_latom(:) = .false.                        ! Initially deselect all atomtypes
+write(*,*) ' ABOUT TO INSERT ', m_length(i), cr_natoms
             atoms: DO im=1,m_length(i)                    ! Load all atoms from the molecule
                CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
                CALL dc_molecules(i)%get_cryst_scat(im, itype, atom_name, dw1)
                posit(:) = posit(:) + origin(:)
                WRITE(line, 1000) atom_name, posit, dw1
                laenge = 60
+write(*,*) ' AT ATOM ', line(1:laenge), cr_natoms
                CALL do_ins(line, laenge)                  ! Insert into crystal
+write(*,*) 'DID ATOM ', line(1:laenge), cr_natoms
+               CALL check_symm
                sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
             ENDDO atoms
+write(*,*) ' DID INSERT ', cr_natoms
 ! define rotation operation
             sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
             IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
-            sym_orig(:)    = origin(:)                    ! Define origin
-            sym_trans(:)   = 0.0                          ! No translation needed
-            sym_sel_atom   = .true.                       ! Select atoms
-            sym_new        = .false.                      ! No new types
-            sym_power      =  1                           ! Just need one operation
-            sym_type       = .true.                       ! Proper rotation
-            sym_mode       = .false.                      ! Move atom to new position
-            sym_orig_mol   = .false.                      ! Origin at crystal
-            sym_power_mult =.false.                       ! No multiple copies
-            sym_sel_atom   = .true.                       ! Select atoms not molecules
-            sym_start      =  cr_natoms - m_length(i) + 1 ! set range of atoms numbers
-            sym_end        =  cr_natoms
-            IF(ABS(sym_angle-180.) < EPS ) THEN           ! Ligand and surface normal are antiparallel
-               WRITE(line,1100) axis_ligand(3)+0.1,axis_ligand(2)+0.01,axis_ligand(1)+0.001, surf_normal
-            ELSE
-               WRITE(line,1100) axis_ligand, surf_normal
+               sym_orig(:)    = origin(:)                    ! Define origin
+               sym_trans(:)   = 0.0                          ! No translation needed
+               sym_sel_atom   = .true.                       ! Select atoms
+               sym_new        = .false.                      ! No new types
+               sym_power      =  1                           ! Just need one operation
+               sym_type       = .true.                       ! Proper rotation
+               sym_mode       = .false.                      ! Move atom to new position
+               sym_orig_mol   = .false.                      ! Origin at crystal
+               sym_power_mult =.false.                       ! No multiple copies
+               sym_sel_atom   = .true.                       ! Select atoms not molecules
+               sym_start      =  cr_natoms - m_length(i) + 1 ! set range of atoms numbers
+               sym_end        =  cr_natoms
+               IF(ABS(sym_angle-180.) < EPS ) THEN           ! Ligand and surface normal are antiparallel
+                  WRITE(line,1100) axis_ligand(3)+0.1,axis_ligand(2)+0.01,axis_ligand(1)+0.001, surf_normal
+               ELSE
+                  WRITE(line,1100) axis_ligand, surf_normal
+               ENDIF
+               laenge = 81
+               CALL vprod(line, laenge)                      ! Make rotation axis
+               sym_uvw(:) = res_para(1:3)
+               CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+               CALL symm_setup                               ! Symmetry setup defines matrix
+!              CALL symm_show                                ! Show only in debug
+               CALL symm_op_single                           ! Perform the operation
             ENDIF
-            laenge = 81
-            CALL vprod(line, laenge)                      ! Make rotation axis
-            sym_uvw(:) = res_para(1:3)
-            CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
-            CALL symm_setup                               ! Symmetry setup defines matrix
-!           CALL symm_show                                ! Show only in debug
-            CALL symm_op_single                           ! Perform the operation
+            IF(ABS(dist) < EPS ) THEN                      ! Remove surface atom
+               cr_iscat(ia) = 0
+               cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
             ENDIF
          ENDIF
       ENDDO moles
    ENDIF
+!
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
    1000 FORMAT(a4,4(2x,',',F12.6))
    1100 FORMAT(6(F12.6,', '),'ddd')
    END SUBROUTINE deco_place_normal
@@ -889,8 +980,6 @@ write(*,*) 'CLEANING UP'
 !
    REAL, PARAMETER :: EPS = 1.0E-6
    INTEGER, PARAMETER                      :: MAXW = 2
-   CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
-   INTEGER             , DIMENSION(1:MAXW) :: lpara
    REAL                , DIMENSION(1:MAXW) :: werte
 !
    CHARACTER (LEN=4) :: atom_name
@@ -910,7 +999,7 @@ write(*,*) 'CLEANING UP'
 !
    vnull(:) = 0.00
 !
-!  Find the second partner involved in the bridge 
+!  Find the other partners involved in the bridge 
    x(1)     = cr_pos(1,ia)
    x(2)     = cr_pos(2,ia)
    x(3)     = cr_pos(3,ia)
@@ -920,7 +1009,7 @@ write(*,*) 'CLEANING UP'
    werte(1) = surf(2)
    fp (:)   = chem_period (:)
    fq       = chem_quick
-   call do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+   CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
    IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
      j = 0
      check_prop: DO i=1,atom_env(0)                               ! Check properties 
@@ -974,6 +1063,7 @@ write(*,*) 'CLEANING UP'
                WRITE(line, 1000) atom_name, posit, dw1
                laenge = 60
                CALL do_ins(line, laenge)
+               CALL check_symm
                sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
             ENDDO
 ! define rotation operation
@@ -1001,15 +1091,835 @@ write(*,*) 'CLEANING UP'
                sym_uvw(:) = res_para(1:3)
                CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
                CALL symm_setup
-               CALL symm_show
+!              CALL symm_show
                CALL symm_op_single
             ENDIF
          ENDIF
       ENDDO moles
    ENDIF
 !
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
+!
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
 !
    END SUBROUTINE deco_place_bridge
+!
+   SUBROUTINE deco_place_double(dc_def_temp, ia, ia_scat, xyz, &
+                            mole_axis, mole_name, mole_length, &
+                            surf, neig, dist,ncon)
+!
+!  The molecule is bound by two of its atoms to two different surfae atoms.
+!  The molecule is placed such that:
+!     the vector between the two binding molecule atoms is parallel to the
+!     vector of the two surface atoms.
+!     The resulting trapezoid is parallel to the surface normal
+!     The remainder of the molecule is rotated around the vector between
+!     the two molecule atoms such that the molecule axis is as parallel as
+!     possible to the surface normal.
+!
+   USE atom_env_mod
+   USE chem_mod
+   USE metric_mod
+   USE modify_mod
+   USE symm_menu
+   USE symm_mod
+   USE symm_sup_mod
+   USE trafo_mod
+!
+   USE param_mod
+   USE wink_mod
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER              :: dc_def_temp     ! The definition to be used
+   INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
+   INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
+   REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
+   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
+   INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
+   INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
+   REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
+!
+   TYPE (dc_con), POINTER              :: dc_con_temp     ! A connectivity definition to be used
+   REAL, PARAMETER :: EPS = 1.0E-6
+   INTEGER, PARAMETER                      :: MAXW = 2
+   REAL                , DIMENSION(1:MAXW) :: werte
+!
+   CHARACTER (LEN=4) :: atom_name
+   CHARACTER (LEN=1024)                    :: line
+   INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
+   INTEGER, DIMENSION(0:4)             :: surface         ! Surface atom type
+   INTEGER                             :: neighbor        ! Connected to this neighbor in mole
+   REAL                                :: distance        ! distance to ligand molecule
+   INTEGER, DIMENSION(:), ALLOCATABLE  :: all_surface         ! Surface atom type
+   INTEGER, DIMENSION(:), ALLOCATABLE  :: all_neighbor        ! Connected to this neighbor in mole
+   REAL   , DIMENSION(:), ALLOCATABLE  :: all_distance        ! distance to ligand molecule
+   INTEGER                                 :: ianz
+   INTEGER                                 :: i,j, l,im, laenge
+   INTEGER                                 :: iprop
+   INTEGER                                 :: itype
+   INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
+   INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
+   INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
+   INTEGER                                 :: success        ! Everything went fine
+   LOGICAL  , DIMENSION(1:3)               :: fp
+   LOGICAL                                 :: fq
+   LOGICAL, PARAMETER :: lspace = .true.
+   REAL                                    :: rmin, radius, dw1, b_l, t_l
+   REAL                                    :: alpha, beta
+   REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w, u
+   REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
+   REAL     , DIMENSION(1:3)               :: surf_normal
+   REAL     , DIMENSION(1:3)               :: vnull
+!
+   vnull(:) = 0.00
+   success = -1
+!
+!  Load the molecule into the crystal structure
+!
+   n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
+   moles: DO i=1, dc_n_molecules
+      IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+      im = mole_axis(2)
+      CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
+      origin(:) = 0.0                               ! initially place at 0,0,0
+      sym_latom(:) = .false.                        ! Initially deselect all atomtypes
+      insert: DO im=1,m_length(i)                   ! Insert all atoms
+         CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
+         CALL dc_molecules(i)%get_cryst_scat(im, itype, atom_name, dw1)
+         posit(:) = posit(:) + origin(:)
+         WRITE(line, 1000) atom_name, posit, dw1
+         laenge = 60
+         CALL do_ins(line, laenge)
+         CALL check_symm
+         sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
+      ENDDO insert
+      ENDIF
+   ENDDO moles
+!
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
+!
+   ALLOCATE(all_surface(1:ncon))
+   ALLOCATE(all_neighbor(1:ncon))
+   ALLOCATE(all_distance(1:ncon))
+!
+   all_surface (1) = ia
+   all_neighbor(1) = neig
+   all_distance(1) = dist
+!
+!  FIND the other surface partners involved in the bonds.
+!
+   x(1)     = cr_pos(1,ia)
+   x(2)     = cr_pos(2,ia)
+   x(3)     = cr_pos(3,ia)
+   dc_con_temp => dc_def_temp%dc_def_con%next   ! Point to second connectivity
+   search: DO l=2,ncon
+      IF(.NOT. ASSOCIATED(dc_con_temp) ) GOTO 9999
+      CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
+      n2 = n_atoms_orig +     neighbor   
+      n1 = n_atoms_orig + all_neighbor(1)
+      bridge(1) = cr_pos(1,n2) - cr_pos(1,n1)
+      bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
+      bridge(3) = cr_pos(3,n2) - cr_pos(3,n1)
+      b_l      = sqrt(skalpro(bridge, bridge, cr_gten))
+      rmin     = MAX( 0.1, b_l - dist - distance )          ! Minimum distance between surface atoms
+      radius   = b_l + dist + distance                      ! Maximum distance between surface atoms
+      ianz     = 1
+      werte(1) = surface(1)
+      fp (:)   = chem_period (:)
+         fq    = chem_quick
+      CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+      IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
+        j = 0
+        check_prop: DO i=1,atom_env(0)                               ! Check properties 
+           IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+              IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+               j = i                                                 ! Will use this neighbor
+               EXIT check_prop                                       ! Found first good neighbor
+            ENDIF
+         ENDDO check_prop
+         IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
+            GOTO 9999
+         ENDIF
+         all_surface (l) = atom_env(j)
+         all_neighbor(l) = neighbor
+         all_distance(l) = distance
+      ELSE
+         GOTO 9999
+      ENDIF  ! 
+   ENDDO search
+!  Find surface character and local normal
+   CALL find_surface_character(ia,ia, surf_char, surf_normal)
+!  Determine rotation axis for surface vector
+   tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
+   t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
+   WRITE(*   ,1100) tangent, surf_normal                  ! Calculate rotation axis
+   WRITE(line,1100) tangent, surf_normal                  ! Calculate rotation axis
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) = res_para(1:3)
+!  Calculate angle in first trapezoid corner
+   sym_angle  = ACOS(-(all_distance(2)**2-all_distance(1)**2-(t_l-b_l)**2)/ &
+                      (2.*all_distance(1)*(t_l-b_l))) /rad
+!
+   sym_orig(:)    = 0.0                       ! Define origin at 0,0,0
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_sel_atom   = .true.                    ! Select atoms
+   sym_new        = .false.                   ! No new types
+   sym_power      =  1                        ! Just need one operation
+   sym_type       = .true.                    ! Proper rotation
+   sym_mode       = .false.                   ! Move atom to new position
+   sym_orig_mol   = .false.                   ! Origin at crystal
+   sym_power_mult =.false.                    ! No multiple copies
+   sym_sel_atom   = .true.                    ! Select atoms not molecules
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+   CALL symm_setup
+   v(:) =  tangent(:)*all_distance(1)/t_l     ! Scale vector to bond length
+   CALL symm_ca_single (v, .true., .false.)
+   origin(:) = cr_pos(:,all_surface(1)) + res_para(1:3)  ! Origin of the molecule = surface 1 + result 
+   shift (:) = origin(:) - cr_pos(:,n1)       ! All molecule atoms need to be shifted by this vector
+   DO i=n_atoms_orig+1,cr_natoms
+      cr_pos(:,i) = cr_pos(:,i) + shift(:)
+   ENDDO
+!
+!  Calculate angle in second trapezoid corner
+   sym_angle  = ACOS(-(all_distance(1)**2-all_distance(2)**2-(t_l-b_l)**2)/ &
+                      (2.*all_distance(2)*(t_l-b_l))) /rad
+!
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_orig(:)    = 0.0                       ! Define origin in 0,0,0
+   sym_uvw(:)     = -sym_uvw(:)               ! invert axis
+   v(:) =  -tangent(:)*all_distance(2)/t_l    ! invert and scale vector to bond length
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_ca_single (v, .true., .false.)   ! rotate negative surface vector
+   w(:) = cr_pos(:,all_surface(2)) + res_para(1:3)  ! Target position for 2nd molecule atom
+!
+   sym_orig(:)    = cr_pos(:,n1)              ! Define origin in 1st attached molecule atom
+   v1(:) = cr_pos(:,n2) - cr_pos(:,n1)        ! Current vector from 1st to 2nd molecule atom
+   v2(:) = w(:)         - cr_pos(:,n1)        ! Vector from 1st to target  2nd molecule atom
+   WRITE(line,1100) v1, v2                    ! Rotation axis will be v1 x v2
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) = res_para(1:3)
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_angle  = do_bang(lspace, v1, vnull, v2)  ! Calculate rotation angle = < (v1,v2)
+   sym_start  =  n_atoms_orig + 1             ! set range of atoms numbers
+   sym_end    =  cr_natoms
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                           ! Perform the operation
+!
+!   Rotate molecule up to straighten molecule axis out
+   sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
+   CALL dc_get_axis(dc_def_temp, dc_temp_axis)
+   a1 = n_atoms_orig + dc_temp_axis(1)
+   a2 = n_atoms_orig + dc_temp_axis(2)
+   v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
+   WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
+   laenge = 82                                   !   plane normal to the 
+   CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
+   v3(:) = res_para(4:6)                         ! This is the projection
+   WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
+   laenge = 81                                   !   vector between connected molecule atoms
+   CALL vprod(line, laenge)                      !   and surface normal
+   w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
+   WRITE(line,1200) v3, w                        ! Prepare projection
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project axis into plane 
+   v2(:) = res_para(4:6)                         ! This is the projection
+   alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
+   WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
+   laenge = 81
+   CALL vprod(line, laenge)
+   u(:) =  res_para(1:3)
+   beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   IF(beta < 90) THEN                            ! Need to invert rotation axis
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ENDIF
+   ELSE
+      sym_uvw(:) = -sym_uvw(:)
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
+      ENDIF
+   ENDIF
+   sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                           ! Perform the operation
+   success = 0 
+
+!
+9999 CONTINUE                                             ! Jump here from errors to ensure dealloc
+   DEALLOCATE(all_surface)
+   DEALLOCATE(all_neighbor)
+   DEALLOCATE(all_distance)
+   IF(success /=0) THEN                          ! An error occurred, reset crystal
+      cr_natoms = n_atoms_orig
+   ENDIF
+!
+1000 FORMAT(a4,4(2x,',',F12.6))
+1100 FORMAT(6(F12.6,', '),'ddd')
+1200 FORMAT(6(F12.6,', '),'dddd')
+!
+   END SUBROUTINE deco_place_double
+!
+!*****7*****************************************************************
+!
+   SUBROUTINE deco_place_multi(dc_def_temp, ia, ia_scat, xyz, &
+                            mole_axis, mole_name, mole_length, &
+                            surf, neig, dist,ncon)
+!
+!  Places a molecule that has multiple bonds to the surface.
+!  The first bond should be the one that carries multiple connections to
+!  the surface. 
+!  The first molecule atom is in a uniquely specified position.
+!  If further bonds are specified, the molecule is rotated around this
+!  first anchor point to fulfill as best as possible the further conditions.
+!
+   USE atom_env_mod
+   USE chem_mod
+   USE metric_mod
+   USE modify_mod
+   USE symm_menu
+   USE symm_mod
+   USE symm_sup_mod
+   USE trafo_mod
+!
+   USE param_mod
+   USE wink_mod
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER              :: dc_def_temp     ! The definition to be used
+   INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
+   INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
+   REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
+   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+   INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
+   INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
+   INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
+   REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
+!
+   TYPE (dc_con), POINTER              :: dc_con_temp     ! A connectivity definition to be used
+   REAL, PARAMETER :: EPS = 1.0E-6
+   INTEGER, PARAMETER                      :: MAXW = 2
+   REAL                , DIMENSION(1:MAXW) :: werte
+!
+   CHARACTER (LEN=4) :: atom_name
+   CHARACTER (LEN=1024)                    :: line
+   INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
+   INTEGER, DIMENSION(0:4)             :: surface         ! Surface atom type
+   INTEGER                             :: neighbor        ! Connected to this neighbor in mole
+   REAL                                :: distance        ! distance to ligand molecule
+   INTEGER, DIMENSION(:), ALLOCATABLE  :: all_surface         ! Surface atom type
+   INTEGER, DIMENSION(:), ALLOCATABLE  :: all_neighbor        ! Connected to this neighbor in mole
+   REAL   , DIMENSION(:), ALLOCATABLE  :: all_distance        ! distance to ligand molecule
+   INTEGER                                 :: ianz
+   INTEGER                                 :: i,j, l,im, laenge
+   INTEGER                                 :: iprop
+   INTEGER                                 :: itype
+   INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
+   INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
+   INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
+   INTEGER                                 :: success        ! Everything went fine
+   LOGICAL  , DIMENSION(1:3)               :: fp
+   LOGICAL                                 :: fq
+   LOGICAL, PARAMETER :: lspace = .true.
+   REAL                                    :: rmin, radius, dw1, b_l
+   REAL                                    :: alpha, beta, d1,d2, v_l
+   REAL     , DIMENSION(1:3)               :: x, bridge, base, origin, posit, v, w, u
+   REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
+   REAL     , DIMENSION(1:3)               :: surf_normal
+   REAL     , DIMENSION(1:3)               :: vnull
+!
+!
+   vnull(:) = 0.00
+   success = -1
+!
+!  Load the molecule into the crystal structure
+!
+   n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
+   moles: DO i=1, dc_n_molecules
+      IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+      im = mole_axis(2)
+      CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
+      origin(:) = 0.0                               ! initially place at 0,0,0
+      sym_latom(:) = .false.                        ! Initially deselect all atomtypes
+      insert: DO im=1,m_length(i)                   ! Insert all atoms
+         CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
+         CALL dc_molecules(i)%get_cryst_scat(im, itype, atom_name, dw1)
+         posit(:) = posit(:) + origin(:)
+         WRITE(line, 1000) atom_name, posit, dw1
+         laenge = 60
+         CALL do_ins(line, laenge)
+         CALL check_symm
+         sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+      ENDDO insert
+      ENDIF
+   ENDDO moles
+!
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
+!
+   ALLOCATE(all_surface(1:ncon))
+   ALLOCATE(all_neighbor(1:ncon))
+   ALLOCATE(all_distance(1:ncon))
+!
+   all_surface (1) = ia
+   all_neighbor(1) = neig
+   all_distance(1) = dist
+!
+write(*,*) ' IN MULTI FOR ATOM ', ia, cr_iscat(ia), cr_pos(:,ia)
+!  Find surface character and local normal
+   CALL find_surface_character(ia,ia, surf_char, surf_normal)
+!  Find the other surface atoms involved in this bond
+   dc_con_temp => dc_def_temp%dc_def_con
+   CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
+   n1 = n_atoms_orig +     neighbor   
+write(*,*) ' OTHER ATOM TYPES ', (surface(i),i=1, surface(0))
+   CALL deco_find_anchor(surface(0), surface, distance, ia, surf_normal, posit, base)
+!
+!   Move molecule to anchor position
+!
+   shift (:) = posit(:) - cr_pos(:,n1)
+write(*,*) ' Position ', posit
+write(*,*) ' CONNECTED TO ', n1,' at ', cr_pos(:,n1)
+   DO i=n_atoms_orig+1,cr_natoms
+      cr_pos(:,i) = cr_pos(:,i) + shift(:)
+   ENDDO
+   success = 0
+write(*,*) ' CONNECTED TO ', n1,' at ', cr_pos(:,n1)
+write(*,*) ' FIRST MOLE ', n_atoms_orig+1
+write(*,*) ' ncon  ', ncon
+!
+   IF(ncon == 2) THEN                            ! We have the second connection
+      dc_con_temp => dc_def_temp%dc_def_con%next   ! Point to second connectivity
+      l = 2
+!  search: DO l=2,ncon
+      IF(.NOT. ASSOCIATED(dc_con_temp) ) GOTO 9999
+      surface = 0
+      neighbor= 0
+      distance= 0.0
+      CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
+write(*,*) ' 2nd , surf, neig, dist ', surface, neighbor, distance
+      n2 = n_atoms_orig +     neighbor   
+      bridge(1) = cr_pos(1,n2) - cr_pos(1,n1)
+      bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
+      bridge(3) = cr_pos(3,n2) - cr_pos(3,n1)
+      b_l      = sqrt(skalpro(bridge, bridge, cr_gten))
+      rmin     = MAX( 0.0, b_l - dist - distance )          ! Minimum distance between surface atoms
+      radius   = b_l + dist + distance                      ! Maximum distance between surface atoms
+      ianz     = 1
+      werte(1) = surface(1)
+      x(:)     = cr_pos(:,ia)                               ! Search around 1.st surface atom
+      fp (:)   = chem_period (:)
+         fq    = chem_quick
+      CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+      IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
+        j = 0
+        check_prop: DO i=1,atom_env(0)                               ! Check properties 
+           IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+              IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+               j = i                                                 ! Will use this neighbor
+               EXIT check_prop                                       ! Found first good neighbor
+            ENDIF
+         ENDDO check_prop
+         IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
+            GOTO 9999
+         ENDIF
+         all_surface (l) = atom_env(j)
+         all_neighbor(l) = neighbor
+         all_distance(l) = distance
+      ELSE
+         GOTO 9999
+      ENDIF  ! 
+!   ENDDO search
+write(*,*) ' Second bond to mol ', n2, cr_pos(:,n2)
+   ENDIF
+!
+   bridge(1) = cr_pos(1,n2) - cr_pos(1,n1)    ! Current vector Mole 1 to mole 2
+   bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
+   bridge(3) = cr_pos(3,n2) - cr_pos(3,n1)
+   b_l      = sqrt(skalpro(bridge, bridge, cr_gten))
+   u(:) = base(:)      - cr_pos(:,ia)         ! Vector from 1st surface to point below 1st mole
+   v(:) = cr_pos(:,n1) - cr_pos(:,ia)         ! Vector from 1st surface to             1st mole
+   v_l      = sqrt(skalpro(v, v, cr_gten))    ! Bond length 1st surface to 1st mole
+   WRITE(line,1100) u, v                      ! Do vector product 
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) =  res_para(1:3)
+   d1 = all_distance(1)
+   d2 = all_distance(2)
+   sym_angle  = acos( (d1**2 + d2**2 - b_l**2)/(2.*d1*d2))/rad
+   v(:) = v(:) *d2/v_l                        ! Scale vector 1st surface to 1st mole to distance2
+write(*,*) ' DREIECK b_l, d1, d2, alpha', b_l, d1, d2, sym_angle
+!
+   sym_orig(:)    = 0.0                       ! Define origin at 0,0,0
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_sel_atom   = .true.                    ! Select atoms
+   sym_new        = .false.                   ! No new types
+   sym_power      =  1                        ! Just need one operation
+   sym_type       = .true.                    ! Proper rotation
+   sym_mode       = .false.                   ! Move atom to new position
+   sym_orig_mol   = .false.                   ! Origin at crystal
+   sym_power_mult =.false.                    ! No multiple copies
+   sym_sel_atom   = .true.                    ! Select atoms not molecules
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_ca_single (v, .true., .false.)
+   posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
+write(*,*) ' TARGET POSITION ', posit
+!
+! next step rotate molecule for 2nd mole to fall onto target posit
+   u(:) = posit(:) - cr_pos(:,n1)             ! Vector from 1st mole to target
+   WRITE(line,1100) bridge, u                 ! Do vector product (1st to 2nd mole) x (1st mole to target)
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) =  res_para(1:3)
+   sym_angle  = do_bang(lspace, bridge, vnull, u) ! Angle (1st to 2nd mole) and (1st mole to target)
+   sym_orig(:) = cr_pos(:,n1)                 ! Set origin in 1st mole
+   sym_start  =  n_atoms_orig + 1             ! set range of atoms numbers
+   sym_end    =  cr_natoms
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                        ! Perform the operation
+!
+!   Rotate molecule up to straighten molecule axis out
+   sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
+   CALL dc_get_axis(dc_def_temp, dc_temp_axis)
+   a1 = n_atoms_orig + dc_temp_axis(1)
+   a2 = n_atoms_orig + dc_temp_axis(2)
+   v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
+   WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
+   laenge = 82                                   !   plane normal to the 
+   CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
+   v3(:) = res_para(4:6)                         ! This is the projection
+   WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
+   laenge = 81                                   !   vector between connected molecule atoms
+   CALL vprod(line, laenge)                      !   and surface normal
+   w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
+   WRITE(line,1200) v3, w                        ! Prepare projection
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project axis into plane 
+   v2(:) = res_para(4:6)                         ! This is the projection
+   alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
+   WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
+   laenge = 81
+   CALL vprod(line, laenge)
+   u(:) =  res_para(1:3)
+   beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   IF(beta < 90) THEN                            ! Need to invert rotation axis
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ENDIF
+   ELSE
+      sym_uvw(:) = -sym_uvw(:)
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
+      ENDIF
+   ENDIF
+   sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                           ! Perform the operation
+!
+9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
+   DEALLOCATE(all_surface)
+   DEALLOCATE(all_neighbor)
+   DEALLOCATE(all_distance)
+   IF(success /=0) THEN                       ! An error occurred, reset crystal
+      cr_natoms = n_atoms_orig
+   ENDIF
+!
+1000 FORMAT(a4,4(2x,',',F12.6))
+1100 FORMAT(6(F12.6,', '),'ddd')
+1200 FORMAT(6(F12.6,', '),'dddd')
+!
+   END SUBROUTINE deco_place_multi
+!
+!*****7*****************************************************************
+   SUBROUTINE deco_find_anchor(MAXAT,surface, distance, ia, normal, posit, base)
+!-                                                                      
+!  Find a common point around MAXAT atom types in surface
+!  ia is the first surface atom number
+!
+   USE atom_env_mod
+   USE chem_mod
+   USE metric_mod
+   USE modify_mod
+!
+   USE param_mod
+   USE wink_mod
+!
+   IMPLICIT NONE
+   INTEGER                    , INTENT(IN)  :: MAXAT
+   INTEGER, DIMENSION(0:MAXAT), INTENT(IN)  :: surface
+   REAL                       , INTENT(IN)  :: distance
+   INTEGER                    , INTENT(IN)  :: ia
+   REAL   , DIMENSION(1:3)    , INTENT(IN)  :: normal
+   REAL   , DIMENSION(1:3)    , INTENT(OUT) :: posit
+   REAL   , DIMENSION(1:3)    , INTENT(OUT) :: base
+!
+   INTEGER, PARAMETER         :: MAXW = 3
+   LOGICAL, PARAMETER         :: lspace = .true. 
+!
+   CHARACTER (LEN=1024)                    :: line
+   INTEGER :: ianz, i, j, k, l, kgood, lgood
+   INTEGER :: good1, good2, good3
+   INTEGER :: laenge
+   INTEGER, DIMENSION(0:6,2:MAXAT) :: neig
+   LOGICAL, DIMENSION(1:3) :: fp
+   LOGICAL                 :: fq
+   REAL                    :: rmin, radius
+   REAL   , DIMENSION(1:MAXW) :: werte
+   REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3
+   REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
+   REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
+   REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
+   REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
+   REAL     , DIMENSION(1:3)               :: vnull
+!
+   vnull(:) = 0.00
+!
+   neig(:,:) = 0
+   rmin     = 0.0                  ! Minimum distance between surface atoms
+   radius   = 2.0 * distance       ! Maximum distance between surface atoms
+   ianz     = 1
+   x(:)     = cr_pos(:, ia)        ! Seach around atom ia
+   fp (:)   = chem_period (:)
+   fq       = chem_quick
+   find: DO l=2, MAXAT
+      werte(1) = surface(l)           ! Find this atom type
+      CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+      IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
+        j = 0
+        check_prop: DO i=1,atom_env(0)                               ! Check properties 
+           IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+              IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+               j = j +1                                              ! Will use this neighbor
+               neig(j,l) = atom_env(i)
+               neig(0,l) = j
+               IF(j==6) EXIT check_prop                              ! Found first six good neighbors
+            ENDIF
+         ENDDO check_prop
+         IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
+            ier_num = -1118
+            ier_typ = ER_APPL
+            RETURN
+         ENDIF
+      ELSE
+         ier_num = -1118
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF  ! 
+   ENDDO find
+!
+write(*,*) ' FIND ANCHOR ' 
+DO l=2, MAXAT
+   write(*,*) ' GROUP ',l,' neig ',(neig(j,l),j=1,neig(0,l))
+enddo
+!
+   IF(maxat==3) THEN                        ! Find a suitable triangle
+write(*,*) ' FIND SUITABLE TRIANGLE '
+       av_min = 1.E10
+      sig_min = 1.E10
+      lgood   = 0
+      kgood   = 0
+      first: DO l=1,neig(0,2)
+         u(:) = cr_pos(:,neig(l,2)) - x(:)         ! Difference vector central to neighbor
+         u_l  = SQRT(skalpro(u,u,cr_gten))         ! Calculate length ia to neighbor
+         second: DO k = 1,neig(0,3)                         ! Loop over all secon neighbors
+            IF(neig(l,2) /= neig(k,3) ) THEN          ! Exclude identical neighbors
+               v(:) = cr_pos(:,neig(k,3)) - x(:)         ! Difference vector central to neighbor
+               v_l  = SQRT(skalpro(v,v,cr_gten))         ! Calculate length ia to neighbor
+               w(:) = cr_pos(:,neig(k,3)) - cr_pos(:,neig(l,2)) ! Difference vector neigh to neighbor
+               w_l  = SQRT(skalpro(w,w,cr_gten))         ! Calculate length neigh to neighbor
+               av   = (u_l+v_l+w_l)/3.
+               sig  = SQRT((u_l-av)**2+(v_l-av)**2+(w_l-av)**2)/3
+               IF(sig < sig_min) THEN
+                  lgood = l
+                  kgood = k
+                  sig_min = sig
+                   av_min = av
+               ENDIF
+! write(*,*) ' l,k, av, sig',l,k, av, sig, u_l,v_l, w_l
+            ENDIF
+         ENDDO second
+      ENDDO first
+ write(*,*) ' l,k, av, sig',lgood,kgood, av_min, sig_min
+   good1 = ia                             ! Atom is is 0,0,0 corner in cartesian space
+   good2 = neig(lgood,2)                  ! Atom is along x-axis in cartesian space
+   good3 = neig(kgood,3)                  ! Atoms definex x-y plane in cartesian space
+   u (:) = cr_pos(:,good2) - cr_pos(:,good1)  ! Cartesian x-axis
+   u_l  = SQRT(skalpro(u ,u ,cr_gten))
+   e1(:) = u (:) / u_l                    ! Normalize to 1 angstroem
+   v (:) = cr_pos(:,good3) - cr_pos(:,good1)  ! Temporary vector
+   WRITE(line,1100) e1,v                         ! Do vector product (e1) x (atom good 3)
+   laenge = 81
+   CALL vprod(line, laenge)
+   e3(:) =  res_para(1:3)                 ! Result is cartesian z-axis
+   v_l  = SQRT(skalpro(e3,e3,cr_gten))
+write(*,*) 
+write(*,*) ' ANGLE es, normal ', do_bang(lspace, e3, vnull, normal)
+   IF(do_bang(lspace, e3, vnull, normal) <= 90) THEN
+      e3(:) =  e3(:) / v_l                ! Normalize to 1 angstroem
+   ELSE
+      e3(:) = -e3(:) / v_l                ! invert and Normalize to 1 angstroem
+   ENDIF
+   WRITE(line,1100) e3,e1                 ! Do vector product (e3) x (e1 )
+   laenge = 81
+   CALL vprod(line, laenge)
+   e2(:) =  res_para(1:3)                 ! Result is cartesian y-axis
+   v_l  = SQRT(skalpro(e2,e2,cr_gten))    ! cartesian x-coordinate of atom 2
+   e2(:) = e2(:) / v_l                    ! Normalize to 1 angstroem
+   g2x =     (skalpro(v,e1,cr_gten))      ! cartesian x-coordinate of atom 3
+   g2y =     (skalpro(v,e2,cr_gten))      ! cartesian y-coordinate of atom 3
+write(*,*) ' atom    1 ', cr_pos(:,good1), good1
+write(*,*) ' atom    2 ', cr_pos(:,good2), good2
+write(*,*) ' atom    3 ', cr_pos(:,good3), good3
+write(*,*) ' vector e1 ', e1
+write(*,*) ' vector e2 ', e2
+write(*,*) ' vector e3 ', e3
+write(*,*) ' length    ', SQRT(skalpro(e1,e1,cr_gten)),SQRT(skalpro(e2,e2,cr_gten)),SQRT(skalpro(e3,e3,cr_gten))
+write(*,*) ' angle     ', acos(skalpro(e1,e2,cr_gten))/rad,acos(skalpro(e1,e3,cr_gten))/rad,acos(skalpro(e2,e3,cr_gten))/rad
+!  Calculate target coordinates from trilateration
+   tx = 0.5 * u_l
+   ty = 0.5 * (g2x**2+g2y**2)/g2y - g2x/g2y*tx
+   tz = sqrt(distance**2-tx**2 - ty**2)
+write(*,*) ' CALCULATED cart  ',tx,ty, tz, u_l, g2x, g2y
+   posit(:) = cr_pos(:,good1) + tx*e1(:) + ty*e2(:) + tz*e3(:)
+write(*,*) ' CALCULATED posit ',posit
+   
+!DBG FAKE RESULT
+!   posit(1) = 2.722333
+!   posit(2) = 2.722333
+!   posit(3) = 1.722333
+write(*,*) ' DEFINED    posit ',posit
+   base(:) = (cr_pos(:,neig(lgood,2))+ cr_pos(:,neig(kgood,3)))*0.5
+   ENDIF
+!
+1100 FORMAT(6(F12.6,', '),'ddd')
+!
+   END SUBROUTINE deco_find_anchor
+!*****7*****************************************************************
+      SUBROUTINE trans_atoms_tocart (uvw_out)
+!-                                                                      
+!     transforms atom coordinates into a cartesian space                
+!     Warning, only the fractional coordinates are transformed,         
+!     the unit cell and space group information is not touched.         
+!+                                                                      
+      USE discus_config_mod 
+      USE crystal_mod 
+      USE discus_plot_mod 
+      USE trans_sup_mod
+      IMPLICIT none 
+!                                                                       
+      REAL ,DIMENSION(1:3), INTENT(OUT) :: uvw_out !(3)
+!
+      INTEGER              ::  i
+      LOGICAL, PARAMETER   :: lscreen = .false. 
+      REAL, DIMENSION(1:4) :: uvw
+      REAL             :: xmin
+      REAL             :: xmax
+      REAL             :: ymin
+      REAL             :: ymax
+      REAL             :: zmin
+      REAL             :: zmax
+!                                                                       
+      xmin = 0.0
+      xmax = 0.0
+      ymin = 0.0
+      ymax = 0.0
+      zmin = 0.0
+      zmax = 0.0
+      uvw(4) = 1.0
+!         
+      DO i = 1, cr_natoms 
+         uvw (1) = cr_pos (1, i) 
+         uvw (2) = cr_pos (2, i) 
+         uvw (3) = cr_pos (3, i) 
+         CALL tran_ca (uvw, pl_tran_f, lscreen) 
+         cr_pos (1, i) = uvw (1) 
+         cr_pos (2, i) = uvw (2) 
+         cr_pos (3, i) = uvw (3) 
+         xmin = MIN(xmin,uvw(1))
+         xmax = MAX(xmax,uvw(1))
+         ymin = MIN(ymin,uvw(2))
+         ymax = MAX(ymax,uvw(2))
+         zmin = MIN(zmin,uvw(3))
+         zmax = MAX(zmax,uvw(3))
+      ENDDO
+      uvw_out (1) = ABS(xmax-xmin)
+      uvw_out (2) = ABS(ymax-ymin)
+      uvw_out (3) = ABS(zmax-zmin) 
+!                                                                       
+      END SUBROUTINE trans_atoms_tocart      
+!*****7*****************************************************************
+      SUBROUTINE trans_atoms_fromcart 
+!-                                                                      
+!     transforms atom coordinates from a cartesian space back           
+!     to the original coordinates                                       
+!     Warning, only the fractional coordinates are transformed,         
+!     the unit cell and space group information is not touched.         
+!+                                                                      
+      USE discus_config_mod 
+      USE crystal_mod 
+      USE discus_plot_mod 
+      USE trans_sup_mod
+      IMPLICIT none 
+!                                                                       
+      INTEGER              :: i 
+      LOGICAL, PARAMETER   :: lscreen = .false.
+!                                                                       
+      REAL, DIMENSION(1:4) ::  uvw !(4) 
+!                                                                       
+!                                                                       
+      uvw(4) = 1.0
+      DO i = 1, cr_natoms 
+         uvw (1) = cr_pos (1, i) 
+         uvw (2) = cr_pos (2, i) 
+         uvw (3) = cr_pos (3, i) 
+         CALL tran_ca (uvw, pl_tran_fi, lscreen) 
+         cr_pos (1, i) = uvw (1) 
+         cr_pos (2, i) = uvw (2) 
+         cr_pos (3, i) = uvw (3) 
+      ENDDO 
+   END SUBROUTINE trans_atoms_fromcart
+!
+   SUBROUTINE check_symm
+!
+   USE discus_allocate_appl_mod
+   USE molecule_mod
+   USE symm_mod
+!
+   IMPLICIT NONE
+   INTEGER   :: nscat     ! dummy for allocation
+!
+   IF( cr_nscat > SYM_MAXSCAT .or. mole_num_type > SYM_MAXSCAT) THEN
+      nscat = max ( cr_nscat+10, mole_num_type)
+      CALL alloc_symmetry ( nscat )
+      IF ( ier_num < 0 ) THEN
+         RETURN
+      ENDIF
+   ENDIF
+   END SUBROUTINE check_symm
+!                                                                       
 END MODULE mole_surf_mod
