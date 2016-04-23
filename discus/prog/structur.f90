@@ -25,6 +25,7 @@ CONTAINS
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE chem_mod 
       USE molecule_mod 
       USE prop_para_mod 
       USE read_internal_mod
@@ -448,7 +449,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
                IF (sav_r_ncell) then 
                   DO i = 1, 3 
-                  cr_icc (i) = sav_ncell (i) 
+                     cr_icc (i) = sav_ncell (i) 
                   ENDDO 
                   cr_ncatoms = sav_ncatoms 
                   cr_ncreal  = sav_ncatoms 
@@ -457,15 +458,19 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ------Define initial crystal size in number of unit cells         
 !                                                                       
                   DO i = 1, 3 
-                  cr_icc (i) = max (1, int (cr_dim0 (i, 2) - cr_dim0 (i,&
-                  1) ) )                                                
+                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
                   ENDDO 
 !                                                                       
 !     ------Define (average) number of atoms per unit cell              
 !                                                                       
-                  cr_ncatoms = cr_natoms / (cr_icc (1) * cr_icc (2)     &
-                  * cr_icc (3) )                                        
+                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
+                                                * cr_icc (3) ))
                   cr_ncatoms = cr_ncatoms
+                               cr_ncatoms = cr_ncatoms
+                  IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+                     chem_period(:) = .false.
+                     chem_quick     = .false.
+                  ENDIF
                ENDIF 
                ENDIF internal
 !                                                                       
