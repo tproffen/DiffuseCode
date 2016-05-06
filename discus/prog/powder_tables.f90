@@ -90,7 +90,6 @@ CONTAINS
       ALLOCATE(powder_istl(1:n_qxy), stat=astatus)
       powder_istl(:) = 0
 !
-!write(*,*) ' IN POWDER_STLTAB xm uin ', xstart , xdelta
       DO i = 1, n_points
          q2 = ( (xstart + xdelta  * float (i - 1) ) **2) / 4.0 
          istl (i) = nint (sqrt (q2) * (1.0 / CFINC) ) 

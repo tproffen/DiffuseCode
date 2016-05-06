@@ -57,6 +57,7 @@ CONTAINS
 !      REAL polarisation 
       REAL sind, asind 
 !
+!
       IF(.NOT. (value == 1 .or. value == 7 .or. value == 8 .or. &
                 value == 9 .or. value == 10                )) THEN
          ier_msg(1) = ' Powder output is defined only for:'

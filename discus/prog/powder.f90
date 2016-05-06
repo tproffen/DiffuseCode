@@ -1021,6 +1021,7 @@ CONTAINS
       USE debye_mod
       USE diffuse_mod 
       USE molecule_mod 
+      USE discus_plot_mod
       USE discus_plot_init_mod
       USE powder_mod 
       USE wink_mod
@@ -1083,7 +1084,10 @@ CONTAINS
          ELSEIF (pow_four_type.eq.POW_NEW) THEN 
             CALL powder_complete (cr_nscat)
          ELSEIF (pow_four_type.eq.POW_HIST) then 
-            CALL plot_ini_trans (1.0) 
+            CALL plot_ini_trans (1.0,                          &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
+
             CALL powder_trans_atoms_tocart (u)
 !
 !           u is the body diagonal of the cartesian box around the crystal
@@ -1230,7 +1234,7 @@ CONTAINS
       IF(pow_axis == POW_AXIS_Q ) THEN
          xstart = pow_qmin  /zpi
          xdelta = pow_deltaq/zpi
-         CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+         CALL powder_stltab(n_pkt, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
       ELSE
          calc_f2aver = .false.
          rept_f2aver = .false.
