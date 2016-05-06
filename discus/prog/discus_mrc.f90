@@ -18,6 +18,8 @@ CONTAINS
    USE output_mod
    USE qval_mod
 !
+   USE envir_mod
+!
    IMPLICIT NONE
 !
    INTEGER, INTENT(IN) :: value
@@ -30,11 +32,22 @@ CONTAINS
    INTEGER, PARAMETER :: nxstart = 0
    INTEGER, PARAMETER :: nystart = 0
    INTEGER, PARAMETER :: nzstart = 0
+!
+   CHARACTER(LEN=1024) :: line
    INTEGER            :: i, j,l, irec
+   INTEGER            :: l_datei
    REAL               :: sqq
+!
+   INTEGER :: len_str
 !
    CALL no_error
 !
+   l_datei = len_str (outfile)
+   IF (outfile (1:1) .eq.'~') THEN 
+      line = home_dir (1:home_dir_l) //outfile (2:l_datei)
+      outfile = line
+   ENDIF
+ 
    OPEN(UNIT=IMRC,FILE=outfile,STATUS='unknown', &
         FORM='unformatted', ACCESS='direct',RECL=4)
 !
