@@ -61,14 +61,16 @@ Now build and install
 
 For further details, please check file [AAA_INSTALL_DISCUS.pdf](Manual/AAA_INSTALL_DISCUS.pdf) in the directory Manual.
 
-OSX
+OSX - Using homebrew
 ---
 
 1. Install [XCode](https://developer.apple.com/xcode/download/), [XQuartz](http://www.xquartz.org/) and [Homebrew](http://brew.sh/)
+2. Download and extract the source code from [here](https://github.com/tproffen/DiffuseCode/releases), `cd` into that directory
 2. command line build:
 
 ```
-$ brew install gcc
+$ brew install cmake
+$ brew install gcc  # Very slow
 $ brew install homebrew/x11/pgplot
 $ CC=gcc-5 CXX=g++-5 FC=gfortran cmake .
 $ make
