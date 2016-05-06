@@ -950,6 +950,43 @@ MODULE discus_allocate_appl_mod
       END IF
     END SUBROUTINE alloc_debye
 !
+!
+    SUBROUTINE alloc_deco ( n_scat )
+!-
+!     Allocate the arrays needed by DECORATE
+!+
+      USE deco_mod
+!
+      IMPLICIT NONE
+!
+!      
+      INTEGER, INTENT(IN)  :: n_scat
+!
+      INTEGER              :: all_status
+      LOGICAL              :: lstat
+      INTEGER              :: size_of
+!
+      lstat     = .TRUE.
+!
+       CALL alloc_arr ( dc_latom       ,0,n_scat  ,  all_status, .false.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      IF( lstat ) THEN                        ! Success
+         ier_typ       = 0
+         ier_num       = 0
+         IF ( all_status == 1 ) THEN
+            ier_typ       = 1
+            ier_num       = ER_COMM
+            ier_msg(1)    = 'Save'
+         ENDIF
+      ELSE                                    ! Failure
+         ier_num       = -2
+         ier_typ       = ER_COMM
+         ier_msg(1)    = 'Deco'
+         RETURN
+      END IF
+    END SUBROUTINE alloc_deco
+!
     SUBROUTINE alloc_diffuse ( n_qxy, n_scat, n_atoms )
 !-
 !     Allocate the arrays needed by DIFFUSE
@@ -2348,6 +2385,10 @@ MODULE discus_allocate_appl_mod
       sav_size_of   = 0
 !
        CALL alloc_arr ( sav_latom      ,0,n_scat  ,  all_status, .true.  , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+       sav_size_of = sav_size_of + size_of
+!
+       CALL alloc_arr ( sav_t_latom    ,0,n_scat  ,  all_status, .true.  , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        sav_size_of = sav_size_of + size_of
 !

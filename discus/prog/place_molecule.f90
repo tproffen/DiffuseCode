@@ -13,6 +13,7 @@ CONTAINS
 !
 !   Main menu and procedures to place molecules onto a surface
 !
+   USE discus_allocate_appl_mod
    USE modify_mod
    USE modify_func_mod
 !
@@ -23,7 +24,6 @@ CONTAINS
    IMPLICIT none
 !
 !
-!  CHARACTER (LEN=*)   :: line
    CHARACTER (LEN=5)                       :: befehl! command on input line
    CHARACTER (LEN=50)                      :: prom  ! Menu prompt
    CHARACTER (LEN=1024)                    :: line  ! input line
@@ -31,6 +31,7 @@ CONTAINS
    INTEGER                                 :: indxg ! location of "="
    INTEGER                                 :: lp    ! lengtz of zeile
    INTEGER laenge, lbef
+   LOGICAL                                 :: ladd = .true.  ! condition add command is fine
    LOGICAL                                 :: lend  ! condition of EOF
    LOGICAL                                 :: lold =.true. ! condition of EOF
 !
@@ -48,9 +49,12 @@ CONTAINS
 !      dc_n_molecules = 0 ! while developing!!!
       dc_init = .false.
    ENDIF
+   IF(MAXSCAT > UBOUND(dc_latom,1)) THEN
+      CALL alloc_deco(MAXSCAT)
+   ENDIF
 !
    main_loop: do
-     CALL no_error
+      CALL no_error
       prom = prompt (1:len_str (prompt) ) //'/deco'
       CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prom)
       no_err: IF (ier_num.eq.0) THEN
@@ -133,19 +137,34 @@ CONTAINS
 !
 !
               ELSEIF (str_comp (befehl, 'add', 3, lbef, 3)) THEN
-                  CALL deco_add (zeile, lp)
+                  IF(ladd) THEN
+                     CALL deco_add (zeile, lp)
+                     IF(ier_num == 0) ladd = .false.   ! exclude new add command
+                  ELSE
+                     ier_num = -128
+                     ier_typ = ER_COMM
+                     ier_msg(1) = 'Currently only one decoration definition'
+                     ier_msg(2) = 'can be used. Run the calculation or reset.'
+                  ENDIF
 !                                                                       
 !------ --Handle property settings 'property'                           
 !                                                                       
-              ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) then
+              ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) THEN
 !                                                                       
                   CALL property_select (zeile, lp, dc_sel_prop)
 !
               ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
                   CALL deco_reset
+                  if(ier_num == 0) ladd = .true.   ! allow new add command
 !
               ELSEIF (str_comp (befehl, 'run', 3, lbef, 3)) THEN
-                  CALL deco_run
+                  IF(ASSOCIATED(dc_def_temp)) THEN         ! We need at least one definition
+                     CALL deco_run
+                     if(ier_num == 0) ladd = .true.   ! allow new add command
+                  ELSE
+                     ier_num = -129
+                     ier_typ = ER_APPL
+                  ENDIF
 !
               ELSEIF (str_comp (befehl, 'sel', 3, lbef, 3) .or.  &
                       str_comp (befehl, 'del', 3, lbef, 3)     ) THEN
@@ -154,14 +173,19 @@ CONTAINS
                   str_comp (befehl, 'sel', 2, lbef, 3) )
 !
               ELSEIF (str_comp (befehl, 'set', 3, lbef, 3)) THEN
-                  CALL deco_set (zeile, lp)
+                 IF(dc_temp_type /= DC_NONE) THEN
+                    CALL deco_set (zeile, lp)
+                 ELSE
+                    ier_num = -129
+                    ier_typ = ER_APPL
+                    ier_msg(1) = 'Before setting details, a decoration'
+                    ier_msg(2) = 'must have been defined via => add'
+                 ENDIF
 !
 !
               ELSEIF (str_comp (befehl, 'show', 3, lbef, 4)) THEN
                   CALL deco_show
                   WRITE(output_io,*)
-!
-!                  CALL find_surface_character
 !
               ELSE is_com
                  ier_num = -8
@@ -171,6 +195,20 @@ CONTAINS
            ENDIF is_math   ! END IF BLOCK math equation or specific command
         ENDIF no_com       ! END IF BLOCK no comment
       ENDIF no_err         ! END IF BLOCK no error reading input
+!
+      IF (ier_num.ne.0) then 
+         CALL errlist 
+         IF (ier_sta.ne.ER_S_LIVE) then 
+            IF (lmakro) then 
+               CALL macro_close 
+               prompt_status = PROMPT_ON 
+            ENDIF 
+            IF (lblock) then 
+               RETURN 
+            ENDIF 
+            CALL no_error 
+         ENDIF 
+      ENDIF 
 !
    ENDDO main_loop     ! END DO main loop of menu 
 !
@@ -209,6 +247,8 @@ CONTAINS
    IF ( ianz <  3 ) THEN                   ! All commands need three parameters
       ier_num = -6
       ier_typ = ER_COMM
+      ier_msg(1) = 'All deco set commands need at least three '
+      ier_msg(2) = 'parameters'
       RETURN
    ENDIF
 !
@@ -220,23 +260,28 @@ CONTAINS
       IF ( ianz == 4 ) THEN
          CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
          CALL ber_params (ianz, cpara, lpara, werte, maxw)
-         dc_temp_axis(1) = NINT(werte(1))
-         dc_temp_axis(2) = NINT(werte(2))
-         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
-         IF(success==0) CALL dc_set_axis(dc_def_temp, dc_temp_axis)
+         IF(ier_num ==0) THEN
+            dc_temp_axis(1) = NINT(werte(1))
+            dc_temp_axis(2) = NINT(werte(2))
+            CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
+            IF(success==0) CALL dc_set_axis(dc_def_temp, dc_temp_axis)
+         ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'set axis command needs four parameters'
       ENDIF
    ELSEIF ( str_comp(cpara(2),'bond',4,lpara(2),4) ) THEN
       IF ( ianz >= 5 ) THEN
          CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         IF(ier_num /= 0) RETURN
          ccpara(1) = cpara(ianz-1)
          ccpara(2) = cpara(ianz  )
          llpara(1) = lpara(ianz-1)
          llpara(2) = lpara(ianz  )
          janz = 2
          CALL ber_params (janz, ccpara, llpara, wwerte, 2)
+         IF(ier_num /= 0) RETURN
          dc_temp_neig  = NINT(wwerte(1))
          dc_temp_dist  =      wwerte(2)
          cpara(ianz-1) = ' '
@@ -245,40 +290,71 @@ CONTAINS
          lpara(ianz  ) = 1
          janz = ianz - 2                                 ! ignore last two parameters
          CALL get_iscat (janz, cpara, lpara, werte, maxw, .false.)
-         DO i=1,janz
-            dc_temp_surf(i)  = NINT(werte(i))  ! Surface atom type
-         ENDDO
-         dc_temp_surf(0) = janz
-         dc_temp_id      = 0
-         dc_def_temp => dc_def_head
+         IF(ier_num /= 0) RETURN
+         IF(dc_temp_type == DC_NORMAL .AND. janz /= 1) THEN
+            ier_num = -132
+            ier_typ = ER_APPL
+            ier_msg(1) = 'For the NORMAL decoration we need one '
+            ier_msg(2) = 'exactly surface atom type '
+         ELSEIF(dc_temp_type == DC_BRIDGE .AND. janz /= 2) THEN
+            ier_num = -132
+            ier_typ = ER_APPL
+            ier_msg(1) = 'For the BRIDGE decoration we need '
+            ier_msg(2) = 'exactly two surface atom types'
+         ELSEIF(dc_temp_type == DC_DOUBLE .AND. janz <  3) THEN
+            ier_num = -132
+            ier_typ = ER_APPL
+            ier_msg(1) = 'For the MULTI decoration we need at least '
+            ier_msg(2) = 'three surface atom types '
+         ELSE ! SUCCESS
+            DO i=1,janz
+               dc_temp_surf(i)  = NINT(werte(i))  ! Surface atom type
+            ENDDO
+            dc_temp_surf(0) = janz
+            dc_temp_id      = 0
+            dc_def_temp => dc_def_head
 !
-         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
-         IF(success==0) THEN
-            CALL dc_set_con(dc_def_temp%dc_def_con, dc_temp_surf, dc_temp_neig, dc_temp_dist)
-            IF(ier_num == 0) THEN
-              CALL dc_inc_ncon(dc_def_temp, ncon)
-            ENDIF
-!            DO i=1, dc_temp_surf(0)
-!               dc_latom(dc_temp_surf(i)) = .true.              ! Select this atom type
-!            ENDDO
-            IF(ncon ==1 ) THEN
-               dc_latom(dc_temp_surf(1)) = .true.              ! Select first atom type
+            CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
+            IF(success==0) THEN
+               CALL dc_set_con(dc_def_temp%dc_def_con, dc_temp_surf, dc_temp_neig, dc_temp_dist)
+               IF(ier_num == 0) THEN
+                  CALL dc_inc_ncon(dc_def_temp, ncon)
+!               DO i=1, dc_temp_surf(0)
+!                  dc_latom(dc_temp_surf(i)) = .true.              ! Select this atom type
+!               ENDDO
+          
+                  IF(ncon ==1 ) THEN
+                     dc_latom(dc_temp_surf(1)) = .true.              ! Select first atom type
+                  ENDIF
+               ENDIF
+            ELSE
+               ier_num = -128
+               ier_typ = ER_APPL
+               ier_msg(1) = 'Check the definition type. '
+               ier_msg(2) = 'Did you use the add command first ?'
             ENDIF
          ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'set bond command needs >= five parameters'
       ENDIF
    ELSEIF ( str_comp(cpara(2),'ligand',4,lpara(2),6) ) THEN
-      IF ( ianz == 3 ) THEN
+      IF ( ianz == 4 ) THEN
          dc_temp_file  = cpara(3)
          dc_temp_lfile = lpara(3)
+         CALL del_params (3, ianz, cpara, lpara, maxw)   ! delete first 3 params
+         IF(ier_num /= 0) RETURN
+         CALL ber_params (ianz, cpara, lpara, werte, maxw)
+         IF(ier_num /= 0) RETURN
+         dc_temp_dens = werte(1)
          dc_temp_id    = 0
          dc_def_temp => dc_def_head
 !
          CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
          IF(success==0) THEN
             CALL dc_set_file(dc_def_temp, dc_temp_lfile, dc_temp_file)
+            CALL dc_set_dens(dc_def_temp, dc_temp_dens)
             lnew_mole = .true.
             search: DO i=1, dc_n_molecules
                IF(dc_input(i)(1:LEN_TRIM(dc_input(i))) == dc_temp_file(1:dc_temp_lfile)) THEN
@@ -290,50 +366,24 @@ CONTAINS
                dc_n_molecules = dc_n_molecules + 1
                dc_input(dc_n_molecules) = dc_temp_file(1:dc_temp_lfile)
             ENDIF
+         ELSE
+            ier_num = -128
+            ier_typ = ER_APPL
+            ier_msg(1) = 'Check the definition type. '
+            ier_msg(2) = 'Did you use the add command first ?'
          ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'set ligand command needs four parameters'
       ENDIF
-!   ELSEIF ( str_comp(cpara(2),'connection',4,lpara(2),10) ) THEN
-!      IF ( ianz == 6 ) THEN
-!         dc_temp_name  = cpara(2)
-!         dc_temp_lname = lpara(2)
-!         dc_temp_id    = 0
-!         dc_def_temp => dc_def_head
-!         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
-!!         CALL dc_set_connection()
-!      ELSE
-!         ier_num = -6
-!         ier_typ = ER_COMM
-!      ENDIF
-!  ELSEIF ( str_comp(cpara(1),'type',4,lpara(1),4) ) THEN
-!     IF ( ianz == 2 ) THEN
-!        IF ( str_comp(cpara(3),'normal',4,lpara(1),6) ) THEN
-!           dc_temp_type = DC_NORMAL
-!        ELSE
-!           ier_num = -6
-!           ier_typ = ER_COMM
-!           RETURN
-!        ENDIF
-!        dc_temp_name  = cpara(2)
-!        dc_temp_lname = lpara(2)
-!        dc_temp_id    = 0
-!        NULLIFY(dc_def_temp)
-!        lnew          = .false.
-!        CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,ier_typ)
-!         CALL dc_set_type(dc_def_temp, dc_temp_type)
-!     ELSE
-!        ier_num = -6
-!        ier_typ = ER_COMM
-!     ENDIF
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
    ENDIF
 !
    IF(success == -1) THEN
-      ier_num = -1116
+      ier_num = -128
       ier_typ = ER_APPL
    ENDIF
 !
@@ -382,16 +432,18 @@ CONTAINS
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
+         ier_msg(1) = 'Allowed decoration types are:'
+         ier_msg(2) = 'normal, bridge, double, multi'
+         NULLIFY(dc_def_temp) ! => dc_def_head
          RETURN
       ENDIF
-write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
       lnew          = .true.
       NULLIFY(dc_def_temp) ! => dc_def_head
       CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
       IF(success==0) THEN  ! set the type
          CALL dc_set_type(dc_def_temp, dc_temp_type)
       ELSE
-         ier_num = -1117
+         ier_num = -128
          ier_typ = ER_APPL
       ENDIF
    ELSE
@@ -404,28 +456,31 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
 !
 !######################################################################
 !
-   SUBROUTINE find_surface_character(istart, iend, surf_char, surf_normal)
+   SUBROUTINE find_surface_character(ia, surf_char, surf_normal)
 !
    USE atom_env_mod
    USE chem_mod
+   USE metric_mod
    USE modify_mod
    USE tensors_mod
    USE prompt_mod
 !
    IMPLICIT NONE
 !
-   INTEGER,INTENT(IN)  :: istart ! dummy index
-   INTEGER,INTENT(IN)  :: iend   ! dummy index
+   INTEGER,INTENT(IN)  :: ia     ! dummy index
+!  INTEGER,INTENT(IN)  :: istart ! dummy index
+!  INTEGER,INTENT(IN)  :: iend   ! dummy index
    INTEGER,INTENT(OUT) :: surf_char   ! Surface character
    REAL   ,DIMENSION(1:3),INTENT(OUT) :: surf_normal   ! Surface normal
 
    INTEGER, PARAMETER :: MAXW = 1
    LOGICAL, PARAMETER :: LNEW = .false.
+   REAL   , PARAMETER :: EPS  = 1E-7
 !
    CHARACTER  (LEN=4), DIMENSION(1:MAXW) :: cpara
    INTEGER  ,          DIMENSION(1:MAXW) :: lpara
    REAL     ,          DIMENSION(1:MAXW) :: werte
-   INTEGER   :: ia ! dummy index
+!  INTEGER   :: ia ! dummy index
    INTEGER   :: ib ! dummy index
    INTEGER                 :: ianz  ! number of parameters in cpara
    INTEGER                 :: istat
@@ -449,7 +504,7 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
    fq = chem_quick
    ALLOCATE(deviat(0:MAX_ATOM_ENV), STAT = istat)
 !
-   atomloop: DO ia=istart,iend
+!   atomloop: DO ia=istart,iend
 !
      IF(IBITS(cr_prop(ia),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
         IBITS(cr_prop(ia),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
@@ -486,13 +541,7 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
         direct(3,1) = direct(1,3)
         direct(3,2) = direct(2,3)
 !
-        write(output_io,*) ' row 1 ',direct(1,:), ' V ',vector(1)
-        write(output_io,*) ' row 2 ',direct(2,:), ' V ',vector(2)
-        write(output_io,*) ' row 3 ',direct(3,:), ' V ',vector(3)
         CALL invmat( recipr, direct )  ! calculate inverse matrix
-        write(output_io,*) ' row 1 ',recipr(1,:)
-        write(output_io,*) ' row 2 ',recipr(2,:)
-        write(output_io,*) ' row 3 ',recipr(3,:)
         finalv      = MATMUL(recipr, vector) ! finalv contains the hkl of the plane
         sigma = 0.0
         DO ib = 1, atom_env(0) 
@@ -504,12 +553,11 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
      ENDIF
         ENDDO
         sigma = SQRT(sigma)
-        write(*,*) ' Normal ',finalv,' sigma ',sigma
         surf_normal(:) = finalv(:)
         surf_char = SURF_PLANE
         IF(sigma <    0.05) THEN
 !           cr_iscat(ia) = cr_iscat(ia) + 4 !cr_nscat
-           CYCLE atomloop
+!          CYCLE atomloop
         ENDIF
         ENDIF
 !
@@ -517,9 +565,14 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
 !
      ENDIF
 !
-   ENDDO atomloop
+!  ENDDO atomloop
 !
    DEALLOCATE(deviat, STAT = istat)
+!
+   IF(skalpro(surf_normal,surf_normal, cr_gten) < EPS) THEN
+      surf_normal(:) = cr_pos(:,ia)
+      surf_char = SURF_ATOM
+   ENDIF
 !
    END SUBROUTINE find_surface_character
 !
@@ -529,18 +582,46 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
 !
 !  Performs the actual decoration
 !
+   USE chem_menu
    USE conn_mod
+   USE conn_def_mod
+   USE chem_aver_mod
+   USE discus_allocate_appl_mod
    USE discus_plot_init_mod
+   USE discus_save_mod
+   USE domain_menu
+   USE domain_mod
+   USE micro_mod
+   USE mmc_menu
+   USE mc_mod
+   USE mmc_mod
+   USE modify_mod
    USE modify_func_mod
+   USE prop_para_mod
+   USE read_internal_mod
+   USE structur , ONLY: rese_cr
+   USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting
+!
+   USE param_mod
+   USE random_mod
 !
    IMPLICIT none
 !
-   INTEGER, PARAMETER         :: MAXW = 2000  ! not ideal, should be dynamic ....
+   INTEGER, PARAMETER         :: MAXW = 200  ! not ideal, should be dynamic ....
 !
+   CHARACTER(LEN=1024) :: line      ! a string
    CHARACTER(LEN=1024) :: mole_name ! molecule file name
+   CHARACTER(LEN= 200) :: corefile  ! original structure file name
+   CHARACTER(LEN= 200) :: corelist  ! Place holder for core position at 0,0,0
+   CHARACTER(LEN= 200) :: shellfile  ! original structure file name
+   CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara      ! a string
+   INTEGER            , DIMENSION(MAXW) :: lpara      ! a string
+   REAL               , DIMENSION(MAXW) :: werte      ! a string
    INTEGER   :: istatus          ! status
    INTEGER   :: i  ! dummy index
    INTEGER   :: ia ! dummy index
+   INTEGER   :: ianz ! dummy number of parameters
+   INTEGER   :: length ! dummy length
    INTEGER   :: mole_length ! length of molecule file name
    INTEGER   :: istart,iend ! dummy index
    INTEGER   :: is ! scattering number of surface atom
@@ -549,88 +630,320 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
    INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
    INTEGER   :: natoms                 ! number of atoms in connectivity
+   INTEGER   :: n_scat                 ! Dummy maximum scattering types
+   INTEGER   :: n_corr                 ! Dummy maximum correlation number
+   INTEGER   :: nscat_old              ! maximum scattering types prior to modifying anchors
+   INTEGER   :: n_repl                 ! counter for anchor aatoms
+   REAL                    :: r_anch   ! relative amount of anchor atoms
+   REAL                    :: prob     ! Probability to replace by non_anchor dummy
    REAL   , DIMENSION(1:3) :: xyz
 !
-!  Load the molecules into temporary structures to reduce disk I/O
+   REAL ran1
+!
+!  Section for automatic distribution of all surface anchors
+!
+   CALL save_store_setting             ! Backup user "save" setting
+   CALL save_default_setting           ! Default to full saving
+   corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
+   CALL save_internal(corefile)        !     thus this file name is unique
+   shellfile  = 'internal.decoshell'   
+   line       = 'ignore, all'          ! Ignore all properties
+   length     = 11
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'present, external'    ! Force atom to be close to a surface
+   length     = 17
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'absent, outside'      ! Force atom to be inside
+   length     = 15
+write(*,*) ' ALL     ATOMS,             ', cr_natoms
+   CALL property_select(line, length, sav_sel_prop)
+   CALL save_internal(shellfile)
+!
+!  Make single atom "structure" for domain list file 
+   CALL rese_cr
+   cr_natoms    = 1
+   cr_ncatoms   = 1
+   cr_nscat     = 1
+   cr_pos(:,1)  = 0.0
+   cr_iscat(1)  = 1
+   cr_at_lis(1) = 'CORE'
+   corelist     = 'internal.core.list'
+   CALL save_internal(corelist)        ! Save the core list
+!
+!     Load the molecules into temporary structures to reduce disk I/O
 !
    CALL deco_get_molecules
 !
-!  Transform atom coordinates into caresian space to ease computations
+   CALL rese_cr
+!
+   CALL readstru_internal(shellfile)   ! Read shell file
+   IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
+!
+!     Now sort those surface atoms that are anchors to the ligand
+!
+      dc_def_temp => dc_def_head
+      CALL dc_get_dens(dc_def_temp, dc_temp_dens)    ! Get density for surface coverage 
+      CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
+      CALL chem_elem(.false.)             ! get composition
+      r_anch = res_para(dc_temp_surf(1)+1)           ! Fractional composition of the anchoring atoms
+      prob   = MAX(0.0,MIN(1.0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
+!     Replace anchors by a new atom type
+      nscat_old = cr_nscat
+      IF(cr_nscat == MAXSCAT) THEN                   ! Number of scattering types increased
+         n_scat = MAX(cr_nscat+5,MAXSCAT)
+         natoms = MAX(cr_natoms, NMAX)
+         CALL alloc_crystal(n_scat,natoms)
+      ENDIF
+      cr_at_lis(nscat_old + 1) = 'AN01'              ! Fixed name for anchor
+      cr_dw    (nscat_old + 1) = cr_dw(dc_temp_surf(1))
+      cr_nscat = nscat_old + 1
+      n_repl = 0
+!     As surface atom number is bound to be small try several tims unit we get sufficient anchors
+      i = 0
+      replace: DO i=1, cr_natoms 
+         DO ia = 1, cr_natoms                        ! Loop to replace
+            IF(cr_iscat(ia)==dc_temp_surf(1)) THEN   ! Got a surface atom of correct type
+            IF(ran1(idum) < prob) THEN            ! Randomly pick a fraction
+                  cr_iscat(ia) = nscat_old + 1       
+                  cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
+                  n_repl       = n_repl  + 1         ! Increment replaced atoms
+                  IF(n_repl == NINT(cr_natoms*r_anch*prob)) EXIT replace   ! got enough anchors
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO replace
+      IF(n_repl > 0 ) THEN                        ! Need at least one anchor
+!
+!        Prepare a connectivity 
+!
+         WRITE(line,1000), 'AN01','AN01', cr_at_lis(dc_temp_surf(1)), 'deco_0001'
+1000 FORMAT(3(a4,','),' 0.5, 18.0, ',a9)
+         length = 36
+         CALL conn_do_set (code_add,line, length)          ! Add connectivity around "AN01"
+         WRITE(line,1000),cr_at_lis(dc_temp_surf(1)),'AN01', cr_at_lis(dc_temp_surf(1)), 'deco_0002'
+         CALL conn_do_set (code_add,line, length)          ! Add connectivity around  other surface atoms
+!        CALL conn_show
+         CALL create_connectivity                             ! Create actual connecitivity list
+!
+!        SORT ATOMS WITH MMC REPULSIVE
+!
+         n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
+         n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+         CALL alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )       ! Basic mmc allocation
+         ianz = 1
+         cpara(1) = 'rese'                                    ! Prepare "set con, reset"
+         lpara(1) = 4
+         CALL chem_set_con (ianz, cpara, lpara, werte, maxw)  ! Reset conn list
+         cpara(1) = 'rese'                                    ! Prepare "set neig, reset"
+         CALL chem_set_neig(ianz, cpara, lpara, werte, maxw)  ! Reset neig list
+         ianz = 3
+         cpara(1) = '1'                                       ! Prepare "set con, 1, AN01, deco_0001"
+         lpara(1) = 1
+         cpara(2) = 'AN01'
+         lpara(2) = 4
+         cpara(3) = 'deco_0001'
+         lpara(3) = 9
+         CALL chem_set_con (ianz, cpara, lpara, werte, maxw)  ! Set conn list 1 'set con,1, AN01, deco_0001'
+         ianz = 3
+         cpara(1) = '2'                                       ! Prepare "set con, 2, <sur>, deco_0002"
+         lpara(1) = 1
+         cpara(2) = cr_at_lis(dc_temp_surf(1))
+         lpara(2) = 4
+         cpara(3) = 'deco_0002'
+         lpara(3) = 9
+         CALL chem_set_con (ianz, cpara, lpara, werte, maxw)  ! Set conn list 2 'set con,2, <surf>, deco_0002'
+         ianz = 3
+         cpara(1) = 'con'                                     ! Prepare "set neig, con, 1, 2"
+         lpara(1) = 3
+         cpara(2) = '1'
+         lpara(2) = 1
+         cpara(3) = '2'
+         lpara(3) = 1
+         CALL chem_set_neig(ianz, cpara, lpara, werte, maxw)  ! Set neig 'set neigh,1, 2'
+         ianz = 2
+         cpara(1) = 'swc'                                     ! Prepare "set mode, swchem, 1.0, all"
+         lpara(1) = 3
+         cpara(2) = 'all'
+         lpara(2) = 1
+         werte(1) = 1.000
+         cpara(3) = ' '
+         lpara(3) = 1
+         CALL  mmc_set_mode(ianz, cpara, lpara, werte, maxw)  ! Set mode 'set mode,swchem, 1.0, all'
+!
+         mmc_allowed(dc_temp_surf(1)) = .true.                ! 'set allowed AN01   and
+         mmc_allowed(nscat_old+1    ) = .true.                !  actual anchor type
+!
+         IF(1 > MMC_REP_CORR .or.  1 > CHEM_MAX_COR  .or. &   ! Allocate Repulsive
+            MAXSCAT > MMC_REP_SCAT                         ) THEN
+            n_corr = MAX(n_corr, CHEM_MAX_COR, MMC_REP_CORR)
+            n_scat = MAX(MAXSCAT,MMC_REP_SCAT)
+            CALL alloc_mmc_rep (n_corr, n_scat)
+!        IF(ier_num /= 0) THEN                             ! Does not seem to fail :-)
+!           RETURN
+!        ENDIF
+         ENDIF
+!                                                          ! define repulsive energy
+         is = nscat_old+1
+         CALL mmc_set_disp (1, MC_REPULSIVE, is, is, 100.0, 15.0)
+         CALL mmc_set_rep  (1, is, is, 15.,16000., 0.5, 1.)
+         mmc_cor_energy (1, MC_REPULSIVE) = .true.
+         mmc_cor_energy (0, MC_REPULSIVE) = .true.
+!
+         mo_cyc  = 100*cr_natoms                              ! Define cycles
+         mo_feed =   5*cr_natoms                              ! Define feedback
+         mo_kt   =   2.5                                      ! Define Temperature
+!
+!        CALL mmc_show
+         CALL mmc_run_multi                                   ! Run actual sorting
+
+!        Change Anchors back to their original names, keep property flag
+!
+         DO ia = 1, cr_natoms
+            IF(cr_at_lis(cr_iscat(ia))=='AN01') THEN
+               cr_iscat(ia) = dc_temp_surf(1)
+            ENDIF
+         ENDDO
+         cr_nscat = nscat_old                                 ! Set number of atom types back
+         cr_at_lis(nscat_old+1) = ' '                         ! Have atom type disappear
+!
+!  Transform atom coordinates into cartesian space to ease computations
 !
 !   CALL plot_ini_trans (1.0)
 !   CALL trans_atoms_tocart(uvw_out)
 !
-   istart = 1
-   iend   = cr_natoms
-   main_loop: DO ia=istart,iend
-     is_sel: IF(check_select_status (dc_latom (cr_iscat (ia) ), cr_prop (ia),   &
-                                     dc_sel_prop)              ) THEN
-        is     = cr_iscat(ia)                  ! get scattering type central
-        xyz(:) = cr_pos(:,ia)                  ! Get atom position
-        idef   = dc_use_conn(is)               ! use this connectivity list for surface
-        CALL get_connectivity_list (ia, is, idef, maxw, c_list, c_offs, natoms )
-!       Go through all definitions
-        dc_def_temp => dc_def_head        
-        defs: DO WHILE(ASSOCIATED(dc_def_temp))
-           dc_con_temp => dc_def_temp%dc_def_con
-           cons: DO WHILE(ASSOCIATED(dc_con_temp))           ! A connectivity exists
-              CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
-              IF(cr_iscat(ia) == dc_temp_surf(1)) THEN    ! Matching atom in current definition
-                 CALL dc_get_type(dc_def_temp, dc_temp_type)
-                 CALL dc_get_axis(dc_def_temp, dc_temp_axis)
-                 CALL dc_get_mole_name(dc_def_temp, mole_name, mole_length)
-                 CALL dc_get_ncon(dc_def_temp, ncon)
-                 SELECT CASE(dc_temp_type)
-                    CASE ( DC_NORMAL )                 ! Molecule in normal position
-                       IF(ncon == 1) THEN
-                       CALL deco_place_normal(dc_def_temp, ia, is, xyz, &
-                            dc_temp_axis, mole_name, mole_length,       &
-                            dc_temp_surf, dc_temp_neig, dc_temp_dist)
-                       ELSE
-                          ier_num = -1118
-                          ier_msg(1) = 'The bridge connection requires one bond'
-                          RETURN
-                       ENDIF
-                    CASE ( DC_BRIDGE )                 ! Molecule in bridge position
-                       IF(ncon == 1) THEN
-                       CALL deco_place_bridge(dc_def_temp, ia, is, xyz, &
-                            dc_temp_axis, mole_name, mole_length,       &
-                            dc_temp_surf, dc_temp_neig, dc_temp_dist)
-                       ELSE
-                          ier_num = -1118
-                          ier_msg(1) = 'The bridge connection requires one bond'
-                          RETURN
-                       ENDIF
-                    CASE ( DC_DOUBLE   )               ! Molecule in double   connection position
-                       IF(ncon >  1) THEN
-                       CALL deco_place_double(dc_def_temp, ia, is, xyz, &
-                            dc_temp_axis, mole_name, mole_length,       &
-                            dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
-                          EXIT cons
-                       ELSE
-                          ier_num = -1118
-                          ier_msg(1) = 'The mult   connection requires > one bond'
-                          RETURN
-                       ENDIF
-                    CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
-                       IF(ncon >  1) THEN
-                       CALL deco_place_multi(dc_def_temp, ia, is, xyz, &
-                            dc_temp_axis, mole_name, mole_length,       &
-                            dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
-                          EXIT cons
-                       ELSE
-                          ier_num = -1118
-                          ier_msg(1) = 'The mult   connection requires > one bond'
-                          RETURN
-                       ENDIF
-                 END SELECT
-              ENDIF
-              dc_con_temp => dc_con_temp%next
-           ENDDO cons
-           dc_def_temp => dc_def_temp%next
-        ENDDO defs
-     ENDIF is_sel ! END IF BLOCK is selected
-   ENDDO main_loop   ! END DO main loop over all atoms
+         istart = 1
+         iend   = cr_natoms
+         ier_num = 0
+         main_loop: DO ia=istart,iend
+           is_sel: IF(check_select_status (dc_latom (cr_iscat (ia) ), cr_prop (ia),   &
+                                        dc_sel_prop)              ) THEN
+              is     = cr_iscat(ia)                  ! get scattering type central
+              xyz(:) = cr_pos(:,ia)                  ! Get atom position
+              idef   = dc_use_conn(is)               ! use this connectivity list for surface
+              CALL get_connectivity_list (ia, is, idef, maxw, c_list, c_offs, natoms )
+!             Go through all definitions
+              dc_def_temp => dc_def_head        
+              defs: DO WHILE(ASSOCIATED(dc_def_temp))
+                 dc_con_temp => dc_def_temp%dc_def_con
+                 cons: DO WHILE(ASSOCIATED(dc_con_temp))           ! A connectivity exists
+                    CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                    IF(cr_iscat(ia) == dc_temp_surf(1).AND.        &
+                       BTEST(cr_prop(ia),PROP_DECO_ANCHOR) ) THEN    ! Matching atom in current definition
+                       CALL dc_get_type(dc_def_temp, dc_temp_type)
+                       CALL dc_get_axis(dc_def_temp, dc_temp_axis)
+                       CALL dc_get_mole_name(dc_def_temp, mole_name, mole_length)
+                       CALL dc_get_ncon(dc_def_temp, ncon)
+                       SELECT CASE(dc_temp_type)
+                          CASE ( DC_NORMAL )                 ! Molecule in normal position
+                             IF(ncon == 1) THEN
+                                CALL deco_place_normal(dc_def_temp, ia, is, xyz, &
+                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                             ELSE
+                                ier_num = -1118
+                                ier_msg(1) = 'The bridge connection requires one bond'
+                                EXIT main_loop
+                             ENDIF
+                          CASE ( DC_BRIDGE )                 ! Molecule in bridge position
+                             IF(ncon == 1) THEN
+                             CALL deco_place_bridge(dc_def_temp, ia, is, xyz, &
+                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                             ELSE
+                                ier_num = -1118
+                                ier_msg(1) = 'The bridge connection requires one bond'
+                                EXIT main_loop
+                             ENDIF
+                          CASE ( DC_DOUBLE   )               ! Molecule in double   connection position
+                             IF(ncon >  1) THEN
+                             CALL deco_place_double(dc_def_temp, ia, is, xyz, &
+                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                                EXIT cons
+                             ELSE
+                                ier_num = -1118
+                                ier_msg(1) = 'The mult   connection requires > one bond'
+                                EXIT main_loop
+                             ENDIF
+                          CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
+                             IF(ncon >  1) THEN
+                             CALL deco_place_multi(dc_def_temp, ia, is, xyz, &
+                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                                EXIT cons
+                             ELSE
+                                ier_num = -1118
+                                ier_msg(1) = 'The mult   connection requires > one bond'
+                                EXIT main_loop
+                             ENDIF
+                       END SELECT
+                    ENDIF
+                    dc_con_temp => dc_con_temp%next
+                 ENDDO cons
+                 dc_def_temp => dc_def_temp%next
+              ENDDO defs
+           ENDIF is_sel ! END IF BLOCK is selected
+         ENDDO main_loop   ! END DO main loop over all atoms
+!
+         IF(ier_num == 0)  THEN       ! Success in main_loop
+!
+!           Use domain to insert core back into the structure
+!
+            CALL alloc_domain ( clu_increment )
+            MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT)
+            MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX)
+            CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
+!
+            clu_infile          = corelist
+            clu_infile_internal = .true.
+            clu_mode            = CLU_IN_PSEUDO
+            clu_remove_mode     = CLU_REMOVE_STRICT
+            clu_remove_end      = iend     ! we do not need to check the ligand
+            clu_remove_dist     = 0.50
+            clu_content(1)      = corefile
+            clu_name(1)         = 'CORE'
+            clu_character(1)    = CLU_CHAR_FUZZY
+            clu_fuzzy(1)        = 0.5
+            clu_orient(1,:,:)   = 0.0
+            clu_orient(1,1,1)   = 1.0
+            clu_orient(1,2,2)   = 1.0
+            clu_orient(1,3,3)   = 1.0
+            clu_shape (1,:,:)   = 0.0
+            clu_shape (1,1,1)   = 1.0
+            clu_shape (1,2,2)   = 1.0
+            clu_shape (1,3,3)   = 1.0
+            clu_sigma (1,:  )   = 0.0
+            clu_index           = 1
+            clu_number          = 1
+!
+            CALL micro_filereading
+            DO ia=istart, iend
+               cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
+            ENDDO
+            CALL do_purge
+         ELSE     ! Error in main_loop
+           CALL readstru_internal(shellfile)   ! Read shell file
+         ENDIF
+      ELSE     ! n_repl > 0   !! No anchor atoms found
+        CALL readstru_internal( corefile)   ! Read  core file
+        ier_num = -131
+        ier_typ = ER_APPL
+        ier_msg(1) = 'Is the surface very small, just a few atoms?'
+        ier_msg(2) = 'Is the coverage too small? '
+        ier_msg(3) = 'Check the set ligand command'
+      ENDIF
+   ELSE     ! SHELL has atoms
+     CALL readstru_internal( corefile)   ! Read  core file
+     ier_num = -130
+     ier_typ = ER_APPL
+     ier_msg(1) = 'Possible reasons: no boundary was used to cut'
+     ier_msg(2) = 'Distance to external surface is too large'
+     ier_msg(3) = 'Check settings and command in surface menu'
+   ENDIF
+!
+   IF(ier_num == 0 ) THEN
+      CALL save_restore_setting     ! Restore user save settigns
+   ENDIF
 !
 !  Clean up temporary arrays
 !
@@ -652,11 +965,12 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
    SUBROUTINE deco_get_molecules
 !
    USE structur, ONLY: test_file
+   USE trafo_mod
    IMPLICIT none
 !
    CHARACTER (LEN=1024)                :: strufile
 !
-   INTEGER  :: i                ! dummy index
+   INTEGER  :: i,j,k            ! dummy index
    INTEGER  :: istatus          ! status
    INTEGER  :: natoms           ! number of atoms in file
    INTEGER  :: ntypes           ! number of atom types in file
@@ -664,19 +978,19 @@ write(*,*) ' ASSOCIATED  dc_def_temp ', ASSOCIATED(dc_def_temp)
    INTEGER  :: n_type           ! number of molecule types
    INTEGER  :: n_atom           ! number of atoms in molecules
    INTEGER  :: init   = -1      ! Initialize atom names/types
+   INTEGER  :: itype            ! atom scattering type
+   REAL, DIMENSION(3) :: posit  ! atom position
+   REAL, DIMENSION(3) :: uvw    ! atom position
+   REAL, DIMENSION(4,4) :: rd_tran_f  ! transformation matrix to cartesian
+   INTEGER  :: iprop            ! atom property 
    LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
 !
    ALLOCATE(m_name  (dc_n_molecules), STAT=istatus)
-write(*,*) ' istatus', istatus
    ALLOCATE(m_lname (dc_n_molecules), STAT=istatus)
-write(*,*) ' istatus', istatus
    ALLOCATE(m_ntypes(dc_n_molecules), STAT=istatus)
-write(*,*) ' istatus', istatus
    ALLOCATE(m_length(dc_n_molecules), STAT=istatus)
-write(*,*) ' istatus', istatus
 !
    ALLOCATE(dc_molecules(dc_n_molecules), STAT = istatus)
-write(*,*) ' istatus', istatus
 !
    m_name(:) = ' '
    m_lname(:) = 0
@@ -687,10 +1001,16 @@ write(*,*) ' istatus', istatus
       strufile = dc_input(i)
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
-write(*,*) ' TESTFILE ', ier_num, ier_typ
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
-write(*,*) ' natoms, ntypes ', natoms, ntypes
       CALL read_crystal ( dc_molecules(i), strufile )
+      CALL dc_molecules(i)%get_cryst_tran_f(rd_tran_f)  ! Get transformation matrix to cartesian
+!
+      DO j=1, natoms
+         CALL dc_molecules(i)%get_cryst_atom ( j, itype, posit, iprop)
+         CALL trans(posit,rd_tran_f ,uvw, 4)       ! Transform mol to cartesian
+         CALL trans(uvw  ,cr_tran_fi,posit, 4)     ! Transfrom cartesian to crystal
+         CALL dc_molecules(i)%set_cryst_atom ( j, itype, posit, iprop)
+      ENDDO
       m_length(i) = natoms
       m_ntypes(i) = ntypes
       m_lname(i)  = LEN_TRIM(strufile)
@@ -707,8 +1027,6 @@ write(*,*) ' natoms, ntypes ', natoms, ntypes
 !
    dc_def_temp => dc_def_head
    CALL dc_show_def(dc_def_temp, ier_num)
-!
-   write(*,*) ' IER_NUM ', ier_num, ier_typ
 !
    END SUBROUTINE deco_show
 !
@@ -734,27 +1052,35 @@ write(*,*) ' natoms, ntypes ', natoms, ntypes
    DEALLOCATE(m_ntypes    , STAT=istatus)
    DEALLOCATE(m_length    , STAT=istatus)
    DEALLOCATE(dc_molecules,STAT = istatus)
+   dc_temp_type = DC_NONE
 !
    END SUBROUTINE deco_reset
 !
 !******************************************************************************
+!
    SUBROUTINE read_crystal ( this, infile)
 !
 !  Read a crystal structure from file
 !  This procedure interfaces to the old "readtru" in "structur.f90"
 !
+   USE discus_plot_init_mod
+   USE spcgr_apply
    USE inter_readstru
    USE structur, ONLY: readstru
+   USE trans_cart_mod
 !
    IMPLICIT none
 !
+   LOGICAL, PARAMETER :: lout = .true.
    TYPE (cl_cryst)                  :: this   ! The current crystal
    CHARACTER (LEN=*   ), INTENT(IN)  :: infile ! Disk file
    INTEGER                           :: inum   ! dummy index
    REAL   , DIMENSION(3)             :: posit  ! dummy position vector
+   REAL   , DIMENSION(3)             :: uvw_out ! dummy position vector
    INTEGER                           :: istat  ! status variable
+   integer :: i,j
+   
 !
-logical :: is_open
    rd_strucfile = infile
    rd_NMAX      = this%get_natoms() ! cr_natoms
    rd_MAXSCAT   = this%get_nscat()  ! cr_nscat
@@ -763,6 +1089,15 @@ logical :: is_open
 !
    ALLOCATE ( rd_cr_dw    (0:rd_MAXSCAT)    , STAT = istat )
    ALLOCATE ( rd_cr_at_lis(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_as_lis(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_at_equ(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_scat_equ(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_scat_int(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_delf_int(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_sav_latom(0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_delfi (0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_delfr (0:rd_MAXSCAT)    , STAT = istat )
+   ALLOCATE ( rd_cr_scat(11,0:rd_MAXSCAT)    , STAT = istat )
    ALLOCATE ( rd_cr_pos   (1:3,1:rd_NMAX)   , STAT = istat )
    ALLOCATE ( rd_cr_iscat (1:rd_NMAX)       , STAT = istat )
    ALLOCATE ( rd_cr_prop  (1:rd_NMAX)       , STAT = istat )
@@ -775,6 +1110,15 @@ logical :: is_open
 !
    rd_cr_dw    (:) = 0.0
    rd_cr_at_lis(:) = ' '
+   rd_cr_as_lis(:) = ' '
+   rd_cr_at_equ(:) = ' '
+   rd_cr_scat_equ(:) = .false.
+   rd_cr_scat_int(:) = .true.
+   rd_cr_delf_int(:) = .true.
+   rd_sav_latom  (:) = .true.
+   rd_cr_delfi (:) = 0.0
+   rd_cr_delfr (:) = 0.0
+   rd_cr_delfr (:) = 0.0
    rd_cr_pos (:,:) = 0.0
    rd_cr_iscat (:) = 0
    rd_cr_prop  (:) = 0
@@ -787,31 +1131,47 @@ logical :: is_open
    rd_cr_natoms    = 0
    rd_cr_nscat     = 0
 !
-write(*,*) ' STRUFILE ', rd_strucfile(1:LEN_TRIM(rd_strucfile))
-INQUIRE(FILE=rd_strucfile,OPENED=is_open)
-write(*,*) ' OPENED ', is_open
-write(*,*) ' cr_pos ', ubound(cr_pos,2)
-write(*,*) ' RD_NMAX, rd_MAXSCAT ', RD_NMAX, rd_MAXSCAT, rd_cr_natoms, rd_cr_nscat
    CALL readstru (rd_NMAX, rd_MAXSCAT, rd_strucfile, rd_cr_name,        &
                rd_cr_spcgr, rd_cr_a0, rd_cr_win, rd_cr_natoms, rd_cr_nscat, rd_cr_dw,     &
                rd_cr_at_lis, rd_cr_pos, rd_cr_mole, rd_cr_iscat, rd_cr_prop, rd_cr_dim, rd_as_natoms, &
                rd_as_at_lis, rd_as_dw, rd_as_pos, rd_as_iscat, rd_as_prop, rd_sav_ncell,  &
                rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para)
-write(*,*) ' ier ', ier_num, ier_typ
 !
+   CALL lattice (rd_cr_a0, rd_cr_ar, rd_cr_eps, rd_cr_gten, rd_cr_reps, rd_cr_rten,  &
+                 rd_cr_win, rd_cr_wrez, rd_cr_vol, rd_cr_vr, lout,                   &
+                 rd_tran_g, rd_tran_gi, rd_tran_f, rd_tran_fi)
 !
-   DO inum=1, rd_NMAX
-     posit = rd_cr_pos(:,inum)
-write(*,*) ' READING ATOM ', inum, rd_cr_iscat(inum), rd_cr_pos(:,inum)
-!     CALL this%atoms(inum)%set_atom ( rd_cr_iscat(inum), posit, rd_cr_prop(inum) )
-     CALL this%set_cryst_atom ( inum, rd_cr_iscat(inum), posit , rd_cr_prop(inum) )
-   ENDDO
-read(*,*) inum
-   CALL this%set_cryst_at_lis( rd_MAXSCAT, rd_cr_nscat, rd_cr_at_lis)
-   CALL this%set_cryst_dw    ( rd_MAXSCAT, rd_cr_nscat, rd_cr_dw)
+   rd_n_latom = rd_MAXSCAT
+   CALL this%set_crystal_save_flags (rd_sav_scat, & 
+            rd_sav_adp, rd_sav_gene, rd_sav_symm,                     &
+            rd_sav_w_ncell, rd_sav_obje, rd_sav_doma, rd_sav_mole, rd_sav_prop, &
+            rd_sav_sel_prop,rd_n_latom,rd_sav_latom)
+   CALL this%set_crystal_from_local   ( rd_strucfile, &
+                                         rd_NMAX, rd_MAXSCAT, rd_cr_name,      &
+            rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
+            rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
+            rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,                                 &
+            rd_cr_ar, rd_cr_wrez, rd_cr_vol, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
+            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_tran_g, rd_tran_gi, rd_tran_f, rd_tran_fi, rd_cr_gmat, rd_cr_fmat, &
+            rd_cr_gten, rd_cr_rten, rd_cr_eps, rd_cr_reps,                              &
+            rd_cr_acentric, rd_cr_newtype, rd_cr_cartesian, rd_cr_sel_prop,             &
+            rd_cr_scat, rd_cr_delfi , rd_cr_delfr, rd_cr_delf_int,                    &
+            rd_cr_scat_int, rd_cr_scat_equ,                                             &
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop                                          &
+            )
 !
    DEALLOCATE ( rd_cr_dw    , STAT = istat )
    DEALLOCATE ( rd_cr_at_lis, STAT = istat )
+   DEALLOCATE ( rd_cr_as_lis, STAT = istat )
+   DEALLOCATE ( rd_cr_at_equ, STAT = istat )
+   DEALLOCATE ( rd_cr_scat_equ, STAT = istat )
+   DEALLOCATE ( rd_cr_scat_int, STAT = istat )
+   DEALLOCATE ( rd_cr_delf_int, STAT = istat )
+   DEALLOCATE ( rd_sav_latom, STAT = istat )
+   DEALLOCATE ( rd_cr_delfi , STAT = istat )
+   DEALLOCATE ( rd_cr_delfr , STAT = istat )
+   DEALLOCATE ( rd_cr_scat  , STAT = istat )
    DEALLOCATE ( rd_cr_pos   , STAT = istat )
    DEALLOCATE ( rd_cr_iscat , STAT = istat )
    DEALLOCATE ( rd_cr_prop  , STAT = istat )
@@ -823,6 +1183,8 @@ read(*,*) inum
    DEALLOCATE ( rd_as_prop  , STAT = istat )
 !
    END SUBROUTINE read_crystal
+!
+!******************************************************************************
 !
    SUBROUTINE deco_place_normal(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, mole_name, mole_length, &
@@ -871,13 +1233,11 @@ read(*,*) inum
 !
    vnull(:) = 0.00
 !
-   CALL find_surface_character(ia,ia, surf_char, surf_normal)
-   IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
+   CALL find_surface_character(ia,surf_char, surf_normal)
+!  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
 !
-write(*,*) ' DC_N_molecules', dc_n_molecules
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
-write(*,*) ' GOT CORRECT MOLECULE ', mole_name(1:mole_length),' ', m_name(i)(1:m_lname(i))
             im = mole_axis(2)                             ! Make mole axis from spcified atoms
             CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
             axis_ligand(1) = posit(1)
@@ -894,20 +1254,16 @@ write(*,*) ' GOT CORRECT MOLECULE ', mole_name(1:mole_length),' ', m_name(i)(1:m
             origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist  ! by dist away from 
             origin(3)  = cr_pos(3,ia) + surf_normal(3)/normal_l*dist  ! surface atom
             sym_latom(:) = .false.                        ! Initially deselect all atomtypes
-write(*,*) ' ABOUT TO INSERT ', m_length(i), cr_natoms
             atoms: DO im=1,m_length(i)                    ! Load all atoms from the molecule
                CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
                CALL dc_molecules(i)%get_cryst_scat(im, itype, atom_name, dw1)
                posit(:) = posit(:) + origin(:)
                WRITE(line, 1000) atom_name, posit, dw1
                laenge = 60
-write(*,*) ' AT ATOM ', line(1:laenge), cr_natoms
                CALL do_ins(line, laenge)                  ! Insert into crystal
-write(*,*) 'DID ATOM ', line(1:laenge), cr_natoms
                CALL check_symm
                sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
             ENDDO atoms
-write(*,*) ' DID INSERT ', cr_natoms
 ! define rotation operation
             sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
             IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
@@ -942,13 +1298,15 @@ write(*,*) ' DID INSERT ', cr_natoms
             ENDIF
          ENDIF
       ENDDO moles
-   ENDIF
+!   ENDIF
 !
    chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
    chem_quick     = .false.                         ! turn of quick search
    1000 FORMAT(a4,4(2x,',',F12.6))
    1100 FORMAT(6(F12.6,', '),'ddd')
    END SUBROUTINE deco_place_normal
+!
+!*******************************************************************************
 !
    SUBROUTINE deco_place_bridge(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, mole_name, mole_length, &
@@ -1106,6 +1464,8 @@ write(*,*) ' DID INSERT ', cr_natoms
 !
    END SUBROUTINE deco_place_bridge
 !
+!*******************************************************************************
+!
    SUBROUTINE deco_place_double(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, mole_name, mole_length, &
                             surf, neig, dist,ncon)
@@ -1255,7 +1615,7 @@ write(*,*) ' DID INSERT ', cr_natoms
       ENDIF  ! 
    ENDDO search
 !  Find surface character and local normal
-   CALL find_surface_character(ia,ia, surf_char, surf_normal)
+   CALL find_surface_character(ia, surf_char, surf_normal)
 !  Determine rotation axis for surface vector
    tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
    t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
@@ -1483,28 +1843,21 @@ write(*,*) ' DID INSERT ', cr_natoms
    all_neighbor(1) = neig
    all_distance(1) = dist
 !
-write(*,*) ' IN MULTI FOR ATOM ', ia, cr_iscat(ia), cr_pos(:,ia)
 !  Find surface character and local normal
-   CALL find_surface_character(ia,ia, surf_char, surf_normal)
+   CALL find_surface_character(ia, surf_char, surf_normal)
 !  Find the other surface atoms involved in this bond
    dc_con_temp => dc_def_temp%dc_def_con
    CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
    n1 = n_atoms_orig +     neighbor   
-write(*,*) ' OTHER ATOM TYPES ', (surface(i),i=1, surface(0))
    CALL deco_find_anchor(surface(0), surface, distance, ia, surf_normal, posit, base)
 !
 !   Move molecule to anchor position
 !
    shift (:) = posit(:) - cr_pos(:,n1)
-write(*,*) ' Position ', posit
-write(*,*) ' CONNECTED TO ', n1,' at ', cr_pos(:,n1)
    DO i=n_atoms_orig+1,cr_natoms
       cr_pos(:,i) = cr_pos(:,i) + shift(:)
    ENDDO
    success = 0
-write(*,*) ' CONNECTED TO ', n1,' at ', cr_pos(:,n1)
-write(*,*) ' FIRST MOLE ', n_atoms_orig+1
-write(*,*) ' ncon  ', ncon
 !
    IF(ncon == 2) THEN                            ! We have the second connection
       dc_con_temp => dc_def_temp%dc_def_con%next   ! Point to second connectivity
@@ -1515,7 +1868,6 @@ write(*,*) ' ncon  ', ncon
       neighbor= 0
       distance= 0.0
       CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
-write(*,*) ' 2nd , surf, neig, dist ', surface, neighbor, distance
       n2 = n_atoms_orig +     neighbor   
       bridge(1) = cr_pos(1,n2) - cr_pos(1,n1)
       bridge(2) = cr_pos(2,n2) - cr_pos(2,n1)
@@ -1548,7 +1900,6 @@ write(*,*) ' 2nd , surf, neig, dist ', surface, neighbor, distance
          GOTO 9999
       ENDIF  ! 
 !   ENDDO search
-write(*,*) ' Second bond to mol ', n2, cr_pos(:,n2)
    ENDIF
 !
    bridge(1) = cr_pos(1,n2) - cr_pos(1,n1)    ! Current vector Mole 1 to mole 2
@@ -1566,7 +1917,6 @@ write(*,*) ' Second bond to mol ', n2, cr_pos(:,n2)
    d2 = all_distance(2)
    sym_angle  = acos( (d1**2 + d2**2 - b_l**2)/(2.*d1*d2))/rad
    v(:) = v(:) *d2/v_l                        ! Scale vector 1st surface to 1st mole to distance2
-write(*,*) ' DREIECK b_l, d1, d2, alpha', b_l, d1, d2, sym_angle
 !
    sym_orig(:)    = 0.0                       ! Define origin at 0,0,0
    sym_trans(:)   = 0.0                       ! No translation needed
@@ -1582,7 +1932,6 @@ write(*,*) ' DREIECK b_l, d1, d2, alpha', b_l, d1, d2, sym_angle
    CALL symm_setup
    CALL symm_ca_single (v, .true., .false.)
    posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
-write(*,*) ' TARGET POSITION ', posit
 !
 ! next step rotate molecule for 2nd mole to fall onto target posit
    u(:) = posit(:) - cr_pos(:,n1)             ! Vector from 1st mole to target
@@ -1732,13 +2081,8 @@ write(*,*) ' TARGET POSITION ', posit
       ENDIF  ! 
    ENDDO find
 !
-write(*,*) ' FIND ANCHOR ' 
-DO l=2, MAXAT
-   write(*,*) ' GROUP ',l,' neig ',(neig(j,l),j=1,neig(0,l))
-enddo
 !
    IF(maxat==3) THEN                        ! Find a suitable triangle
-write(*,*) ' FIND SUITABLE TRIANGLE '
        av_min = 1.E10
       sig_min = 1.E10
       lgood   = 0
@@ -1760,11 +2104,9 @@ write(*,*) ' FIND SUITABLE TRIANGLE '
                   sig_min = sig
                    av_min = av
                ENDIF
-! write(*,*) ' l,k, av, sig',l,k, av, sig, u_l,v_l, w_l
             ENDIF
          ENDDO second
       ENDDO first
- write(*,*) ' l,k, av, sig',lgood,kgood, av_min, sig_min
    good1 = ia                             ! Atom is is 0,0,0 corner in cartesian space
    good2 = neig(lgood,2)                  ! Atom is along x-axis in cartesian space
    good3 = neig(kgood,3)                  ! Atoms definex x-y plane in cartesian space
@@ -1777,8 +2119,6 @@ write(*,*) ' FIND SUITABLE TRIANGLE '
    CALL vprod(line, laenge)
    e3(:) =  res_para(1:3)                 ! Result is cartesian z-axis
    v_l  = SQRT(skalpro(e3,e3,cr_gten))
-write(*,*) 
-write(*,*) ' ANGLE es, normal ', do_bang(lspace, e3, vnull, normal)
    IF(do_bang(lspace, e3, vnull, normal) <= 90) THEN
       e3(:) =  e3(:) / v_l                ! Normalize to 1 angstroem
    ELSE
@@ -1792,34 +2132,21 @@ write(*,*) ' ANGLE es, normal ', do_bang(lspace, e3, vnull, normal)
    e2(:) = e2(:) / v_l                    ! Normalize to 1 angstroem
    g2x =     (skalpro(v,e1,cr_gten))      ! cartesian x-coordinate of atom 3
    g2y =     (skalpro(v,e2,cr_gten))      ! cartesian y-coordinate of atom 3
-write(*,*) ' atom    1 ', cr_pos(:,good1), good1
-write(*,*) ' atom    2 ', cr_pos(:,good2), good2
-write(*,*) ' atom    3 ', cr_pos(:,good3), good3
-write(*,*) ' vector e1 ', e1
-write(*,*) ' vector e2 ', e2
-write(*,*) ' vector e3 ', e3
-write(*,*) ' length    ', SQRT(skalpro(e1,e1,cr_gten)),SQRT(skalpro(e2,e2,cr_gten)),SQRT(skalpro(e3,e3,cr_gten))
-write(*,*) ' angle     ', acos(skalpro(e1,e2,cr_gten))/rad,acos(skalpro(e1,e3,cr_gten))/rad,acos(skalpro(e2,e3,cr_gten))/rad
 !  Calculate target coordinates from trilateration
    tx = 0.5 * u_l
    ty = 0.5 * (g2x**2+g2y**2)/g2y - g2x/g2y*tx
    tz = sqrt(distance**2-tx**2 - ty**2)
-write(*,*) ' CALCULATED cart  ',tx,ty, tz, u_l, g2x, g2y
    posit(:) = cr_pos(:,good1) + tx*e1(:) + ty*e2(:) + tz*e3(:)
-write(*,*) ' CALCULATED posit ',posit
    
-!DBG FAKE RESULT
-!   posit(1) = 2.722333
-!   posit(2) = 2.722333
-!   posit(3) = 1.722333
-write(*,*) ' DEFINED    posit ',posit
    base(:) = (cr_pos(:,neig(lgood,2))+ cr_pos(:,neig(kgood,3)))*0.5
    ENDIF
 !
 1100 FORMAT(6(F12.6,', '),'ddd')
 !
    END SUBROUTINE deco_find_anchor
+!
 !*****7*****************************************************************
+!
       SUBROUTINE trans_atoms_tocart (uvw_out)
 !-                                                                      
 !     transforms atom coordinates into a cartesian space                

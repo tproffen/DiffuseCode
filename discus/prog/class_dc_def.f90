@@ -11,11 +11,8 @@ IMPLICIT NONE
 !PUBLIC dc_def
 !
 TYPE dc_con
-!  INTEGER                :: dc_con_lname  ! Length of the definition name
-!  CHARACTER(LEN=1024)    :: dc_con_name   ! the definition name
    INTEGER, DIMENSION(:), ALLOCATABLE :: dc_con_surf   ! Surface atom type that is connected to molecule
    INTEGER                :: dc_con_mole   ! Molecule atom no that is connected to surface
-!   INTEGER                :: dc_con_numb   ! Number of surface atoms that are connected to molecule
    REAL                   :: dc_con_dist   ! Distance to surface atoms
    TYPE (dc_con), POINTER :: next          ! next connection entry
 END TYPE dc_con
@@ -31,18 +28,13 @@ TYPE dc_def
    CHARACTER(LEN=8)       :: dc_def_ntype    ! Connection type name (NORMAL, BRIDGE, ...)
    INTEGER                :: dc_def_ltype    ! Connection type name length (NORMAL, BRIDGE, ...)
    INTEGER,DIMENSION(1:2) :: dc_def_axis     ! Molecule axis defined by two atoms
+   REAL                   :: dc_def_dens     ! Molecule density per square Angstroem
    INTEGER                :: dc_def_ncon     ! number of connections defined
    TYPE (dc_con), POINTER :: dc_def_con      ! Chain of Connections associated to this definition
    TYPE (dc_def), POINTER :: next            ! next definition entry
 !
-!   CONTAINS
-!   PROCEDURE, PUBLIC, PASS :: dc_find_def 
-!   PROCEDURE, PUBLIC, PASS :: dc_set_file
 END TYPE dc_def
 !
-!TYPE (dc_def), POINTER    :: dc_def_head => NULL()
-!TYPE (dc_def), POINTER    :: dc_def_tail => NULL()
-!TYPE (dc_def), POINTER    :: dc_def_temp => NULL()
 !
 CHARACTER (LEN=8), DIMENSION(0:4) :: type_name
 INTEGER          , DIMENSION(0:4) :: type_length
@@ -132,52 +124,7 @@ CONTAINS
    ENDIF
    END SUBROUTINE dc_find_def
 !
-!
-!   RECURSIVE SUBROUTINE dc_find_con(this, search, temp_lname, temp_name, temp_id, lnew, ier_num)
-!
-!   TYPE (dc_con), POINTER :: this
-!   TYPE (dc_con), POINTER :: search
-!   INTEGER             , INTENT(IN)  :: temp_lname
-!   CHARACTER (LEN=1024), INTENT(IN)  :: temp_name
-!   INTEGER             , INTENT(INOUT) :: temp_id
-!   LOGICAL             , INTENT(IN)  :: lnew
-!   INTEGER             , INTENT(OUT) :: ier_num
-!
-!write(*,*) ' TEMP_ID ', temp_id
-!   IF (ASSOCIATED(this)) THEN
-!      IF ( this%dc_con_name(1:this%dc_con_lname) == temp_name(1:temp_lname) ) THEN
-!         search => this
-!         ier_num = 0
-!         RETURN
-!      ELSE
-!         IF(ASSOCIATED(this%next)) THEN
-!            CALL dc_find_con(this%next,search,temp_lname, temp_name, temp_id, lnew, ier_num)
-!         ELSE
-!write(*,*) ' Next does not exist, make new ',lnew
-!            IF ( lnew ) THEN
-!               ALLOCATE(this%next   )
-!               this%next%dc_con_name  = temp_name
-!               this%next%dc_con_lname = temp_lname
-!               NULLIFY(this%next%next)
-!               search => this%next
-!            ELSE
-!               ier_num = -116
-!            ENDIF
-!         ENDIF
-!      ENDIF
-!   ELSE
-!write(*,*) ' NODE does not exist, make new ',lnew
-!      IF ( lnew ) THEN
-!         ALLOCATE(this)
-!         this%dc_con_name  = temp_name
-!         this%dc_con_lname = temp_lname
-!         NULLIFY(this%next)
-!         search => this
-!      ELSE
-!         ier_num = -116
-!      ENDIF
-!   ENDIF
-!   END SUBROUTINE dc_find_con
+!*******************************************************************************
 !
    SUBROUTINE dc_set_file(this, dc_temp_lfile, dc_temp_file)
 !
@@ -194,6 +141,8 @@ CONTAINS
 !
    END SUBROUTINE dc_set_file
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_set_axis(this, dc_temp_axis)
 !
    TYPE (dc_def), POINTER :: this
@@ -206,6 +155,23 @@ CONTAINS
    ENDIF
 !
    END SUBROUTINE dc_set_axis
+!
+!*******************************************************************************
+!
+   SUBROUTINE dc_set_dens(this, dc_temp_dens)
+!
+   TYPE (dc_def), POINTER :: this
+   REAL         , INTENT(IN) :: dc_temp_dens
+!
+   IF(ASSOCIATED(this)) THEN
+      this%dc_def_dens  = dc_temp_dens
+   ELSE
+      write(*,*) ' SET DENS, NODE NOT associated!'
+   ENDIF
+!
+   END SUBROUTINE dc_set_dens
+!
+!*******************************************************************************
 !
    SUBROUTINE dc_set_type(this, dc_temp_type)
 !
@@ -222,6 +188,8 @@ CONTAINS
 !
    END SUBROUTINE dc_set_type
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_set_connection(this)
 !
    TYPE (dc_def), POINTER :: this
@@ -235,6 +203,8 @@ CONTAINS
 !
    END SUBROUTINE dc_set_connection
 ! 
+!*******************************************************************************
+!
    RECURSIVE SUBROUTINE dc_show_def (this, ier_num )
 !
    TYPE (dc_def), POINTER :: this
@@ -272,6 +242,7 @@ CONTAINS
 1400 FORMAT('   No. of Connect. :     ',i4)
    END SUBROUTINE dc_show_def
 !
+!*******************************************************************************
 !
    RECURSIVE SUBROUTINE dc_reset_def (this)
 !
@@ -292,6 +263,8 @@ CONTAINS
    ENDDO reset_loop
    END SUBROUTINE dc_reset_def
 !
+!*******************************************************************************
+!
    RECURSIVE SUBROUTINE dc_reset_con (this)
 !
 !  Remove the current definitions
@@ -308,6 +281,8 @@ CONTAINS
    ENDDO reset_loop
    END SUBROUTINE dc_reset_con
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_set_con_default(this)
 !
    IMPLICIT NONE
@@ -322,6 +297,8 @@ CONTAINS
    NULLIFY(this%next)
 !
    END SUBROUTINE dc_set_con_default
+!
+!*******************************************************************************
 !
    RECURSIVE SUBROUTINE dc_set_con(this, surf, mole, dist)
 !
@@ -358,6 +335,8 @@ CONTAINS
 !
    END SUBROUTINE dc_set_con
 !
+!*******************************************************************************
+!
    RECURSIVE SUBROUTINE dc_show_con(this)
 !
    USE crystal_mod
@@ -385,6 +364,8 @@ CONTAINS
 1000 FORMAT('   Type , lig, dist: ',a,1x,i4,1x,f8.5)
    END SUBROUTINE dc_show_con
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_get_con(this, surf, mole, dist)
 !
    IMPLICIT NONE
@@ -408,6 +389,21 @@ CONTAINS
 !
    END SUBROUTINE dc_get_con
 !
+!*******************************************************************************
+!
+   SUBROUTINE dc_get_dens(this, dc_temp_dens)
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER :: this
+   REAL   , INTENT(OUT)   :: dc_temp_dens
+!
+   dc_temp_dens = this%dc_def_dens 
+!
+   END SUBROUTINE dc_get_dens
+!
+!*******************************************************************************
+!
    SUBROUTINE dc_get_type(this, dc_temp_type)
 !
    IMPLICIT NONE
@@ -419,6 +415,8 @@ CONTAINS
 !
    END SUBROUTINE dc_get_type
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_get_axis(this, axis)
 !
    IMPLICIT NONE
@@ -429,6 +427,8 @@ CONTAINS
    axis(:) = this%dc_def_axis(:) 
 !
    END SUBROUTINE dc_get_axis
+!
+!*******************************************************************************
 !
    SUBROUTINE dc_get_mole_name(this, mole_name, length)
 !
@@ -443,6 +443,8 @@ CONTAINS
 !
    END SUBROUTINE dc_get_mole_name
 !
+!*******************************************************************************
+!
    SUBROUTINE dc_get_ncon(this, ncon)
 !
    IMPLICIT NONE
@@ -453,6 +455,8 @@ CONTAINS
    ncon = this%dc_def_ncon
 !
    END SUBROUTINE dc_get_ncon
+!
+!*******************************************************************************
 !
    SUBROUTINE dc_inc_ncon(this,ncon)
 !

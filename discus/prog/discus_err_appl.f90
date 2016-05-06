@@ -9,11 +9,15 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-127,IO=4)
+      PARAMETER    (IU=-131,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'No surface sites for ligands found'       ,& !-131 ! discus
+     &  'No surface atoms found                   ',& !-130 ! discus
+     &  'No decoration definition exists yes      ',& !-129 ! discus
+     &  'Could not add the new decoration         ',& !-128 ! discus
      &  'Empty content file                       ',& !-127 ! discus
      &  'H-M symbol in CIF file is a question mark',& !-126 ! discus
      &  'S(Q), F(Q) require Q-axis                ',& !-125 ! discus

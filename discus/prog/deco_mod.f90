@@ -17,8 +17,11 @@ INTEGER, PARAMETER                        :: DC_BRIDGE   = 2
 INTEGER, PARAMETER                        :: DC_DOUBLE   = 3
 INTEGER, PARAMETER                        :: DC_MULTIPLE = 4
 !
+INTEGER, PARAMETER                        :: SURF_ATOM   =-1
 INTEGER, PARAMETER                        :: SURF_NONE   = 0
 INTEGER, PARAMETER                        :: SURF_PLANE  = 1
+!
+REAL   , PARAMETER                        :: DC_AREA     = 11.00  ! Estimates area per surface atom in [A^2]
 !
 !  Temporary arrays
 !
@@ -35,11 +38,12 @@ CHARACTER (LEN=1024)                      :: dc_temp_name    ! Temporary name fo
 INTEGER                                   :: dc_temp_lname   ! Temporary name length for definition structure
 CHARACTER (LEN=1024)                      :: dc_temp_file    ! Temporary filename for input
 INTEGER                                   :: dc_temp_lfile   ! Temporary filename length for input
-INTEGER                                   :: dc_temp_type    ! Temporary connection type for input
+INTEGER                                   :: dc_temp_type = DC_NONE   ! Temporary connection type for input
 INTEGER, DIMENSION(0:4)                   :: dc_temp_surf    ! Temporary surface atom type for input
 INTEGER                                   :: dc_temp_neig    ! Temporary neighbor atom number for input
 INTEGER, DIMENSION(1:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
 REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
+REAL                                      :: dc_temp_dens    ! Temporary ligand density       for input
 !
 TYPE (dc_def), POINTER                    :: dc_def_head => NULL()
 !TYPE (dc_def), POINTER                    :: dc_def_tail => NULL()
@@ -55,7 +59,7 @@ INTEGER, DIMENSION(0:200)                 :: dc_use_conn      ! Use this conn to
 INTEGER                                   :: dc_n_molecules = 0  ! number of molecule types
 LOGICAL                                   :: dc_init      = .true. ! do we need to initialize
 !LOGICAL, DIMENSION(:), ALLOCATABLE        :: dc_latom     ! (0:MAXSCAT)
-LOGICAL, DIMENSION(0:200    )             :: dc_latom     ! (0:MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE        :: dc_latom     ! (0:MAXSCAT)
 LOGICAL                                   :: dc_sel_atom  = .true.
 LOGICAL                                   :: dc_mol_all   = .true.
 !

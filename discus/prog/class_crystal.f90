@@ -47,6 +47,10 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    REAL              , DIMENSION(3,3)               ::  cr_rten = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),(/3,3/))
    REAL              , DIMENSION(3,3,3)             ::  cr_reps         ! reciprocel epsilon tensor
    REAL              , DIMENSION(3,3)               ::  cr_fmat = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),(/3,3/))
+   REAL              , DIMENSION(4,4)               ::  cr_tran_g       ! trans to cartesian
+   REAL              , DIMENSION(4,4)               ::  cr_tran_gi      ! trans to cartesian
+   REAL              , DIMENSION(4,4)               ::  cr_tran_f       ! trans to cartesian
+   REAL              , DIMENSION(4,4)               ::  cr_tran_fi      ! trans to cartesian
 !
    INTEGER                                          ::  cr_gen_add_n         = 0
    INTEGER                                          ::  cr_gen_add_power(14) = 1
@@ -76,6 +80,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    LOGICAL                                          ::  cr_sav_doma  = .true.
    LOGICAL                                          ::  cr_sav_mole  = .true.
    LOGICAL                                          ::  cr_sav_prop  = .true.
+   INTEGER           , DIMENSION(0:1)               ::  cr_sav_sel_prop  = (/0,0/)
 !
    INTEGER                                          ::  cr_natoms  !the number of atoms
    INTEGER                                          ::  cr_nscat   !the number of atom types
@@ -114,16 +119,18 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: set_cryst_atom       ! Set iscat, posit, property
    PROCEDURE, PUBLIC, PASS :: set_cryst_at_lis     ! Set cr_at_lis
    PROCEDURE, PUBLIC, PASS :: set_cryst_dw         ! Set cr_dw
+   PROCEDURE, PUBLIC, PASS :: get_cryst_tran_f     ! Get transformation matrix
    PROCEDURE, PUBLIC, PASS :: get_cryst_atom       ! Get iscat, posit, property
    PROCEDURE, PUBLIC, PASS :: get_cryst_mole       ! Get molecule number in which inum is
    PROCEDURE, PUBLIC, PASS :: get_cryst_scat       ! Get iscat, atom_name and DW
 !   PROCEDURE, PUBLIC, PASS :: read_crystal         ! Read from disk file
    PROCEDURE, PUBLIC, PASS :: set_crystal_from_standard ! Copy from DISCUS standard into a crystal type
+   PROCEDURE, PUBLIC, PASS :: set_crystal_from_local    ! Copy from local copy      into a crystal type
    PROCEDURE, PUBLIC, PASS :: set_crystal_save_flags    ! Set the "save" flags in the crystal type
    PROCEDURE, PUBLIC, PASS :: get_header_from_crystal   ! Copy from a crystal type into DISCUS standard
-   PROCEDURE, PUBLIC, PASS :: get_header_to_local       ! Copy from a crystal type into DISCUS standard
+   PROCEDURE, PUBLIC, PASS :: get_header_to_local       ! Copy from a crystal type into a local copy
    PROCEDURE, PUBLIC, PASS :: get_atoms_from_crystal    ! Copy from a crystal type into DISCUS standard
-   PROCEDURE, PUBLIC, PASS :: get_atoms_to_local        ! Copy from a crystal type into DISCUS standard
+   PROCEDURE, PUBLIC, PASS :: get_atoms_to_local        ! Copy from a crystal type into a local copy
    PROCEDURE, PUBLIC, PASS :: get_molecules_from_crystal ! Copy from a crystal type into DISCUS standard
    PROCEDURE, PUBLIC, PASS :: is_alloc_atom        ! Has atom array been allocated ?
    PROCEDURE, PUBLIC       :: finalize_atoms
@@ -315,6 +322,20 @@ CONTAINS
 !
    END SUBROUTINE set_cryst_dw 
 !******************************************************************************
+   SUBROUTINE get_cryst_tran_f ( this, cr_tran_f)
+!
+!  Get the transformation matrix to cartesian space
+!
+   IMPLICIT NONE
+!
+!
+   CLASS (cl_cryst)                  :: this
+   REAL, DIMENSION(4,4), INTENT(OUT) :: cr_tran_f
+!
+   cr_tran_f(:,:) = this%cr_tran_f(:,:)
+!
+   END SUBROUTINE get_cryst_tran_f
+!******************************************************************************
    SUBROUTINE get_cryst_scat ( this, inum, itype, at_name, dw1)
 !
 !  Get the atom name and Debye Waller factor for atom Nr. inum
@@ -399,6 +420,7 @@ CONTAINS
    USE discus_save_mod
    USE gen_add_mod
    USE sym_add_mod
+   USE modify_func_mod
 
    IMPLICIT none
 !
@@ -444,6 +466,10 @@ CONTAINS
    this%cr_rten         = cr_rten
    this%cr_reps         = cr_reps
    this%cr_fmat         = cr_fmat
+   this%cr_tran_g       = cr_tran_g
+   this%cr_tran_gi      = cr_tran_gi
+   this%cr_tran_f       = cr_tran_f
+   this%cr_tran_fi      = cr_tran_fi
 !
    IF(this%cr_sav_gene) THEN
       this%cr_gen_add_n    = gen_add_n
@@ -541,7 +567,10 @@ CONTAINS
 !
    ia = 0
    DO inum=1,cr_natoms
-      IF(this%cr_sav_atom(cr_iscat(inum))) THEN
+!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
+      IF(check_select_status(this%cr_sav_atom(cr_iscat(inum)),   &
+                                  cr_prop (inum),                &
+                             this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
          itype = iscat_table(cr_iscat(inum))
          posit = cr_pos(:,inum)
@@ -599,9 +628,302 @@ CONTAINS
 !
    END SUBROUTINE set_crystal_from_standard
 !******************************************************************************
+   SUBROUTINE set_crystal_from_local   ( this, strucfile, &
+                                         rd_NMAX, rd_MAXSCAT, rd_cr_name,      &
+            rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
+            rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
+            rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,                                 &
+            rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
+            rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
+            rd_cr_tran_g, rd_cr_tran_gi, rd_cr_tran_f, rd_cr_tran_fi, rd_cr_gmat, rd_cr_fmat, &
+            rd_cr_gten, rd_cr_rten, rd_cr_eps, rd_cr_reps,                              &
+            rd_cr_acentric, rd_cr_newtype, rd_cr_cartesian, rd_cr_sel_prop,             &
+            rd_cr_scat, rd_cr_delfi , rd_cr_delfr, rd_cr_delf_int,                    &
+            rd_cr_scat_int, rd_cr_scat_equ,                                             &
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop                                          &
+            )
+!
+!
+!  Set all values for the crystal to those of the local copy
+!
+!  USE crystal_mod
+   USE molecule_mod
+   USE discus_save_mod
+   USE gen_add_mod
+   USE sym_add_mod
+   USE modify_func_mod
+
+   IMPLICIT none
+!
+   CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
+   CHARACTER (LEN=*), INTENT(IN)    :: strucfile
+!
+   INTEGER                                      , INTENT(IN) :: rd_NMAX
+   INTEGER                                      , INTENT(IN) :: rd_MAXSCAT 
+!
+   CHARACTER (LEN=  80)                         , INTENT(IN) :: rd_cr_name 
+   INTEGER                                      , INTENT(IN) :: rd_cr_natoms 
+   INTEGER                                      , INTENT(IN) :: rd_cr_ncatoms 
+   INTEGER                                      , INTENT(IN) :: rd_cr_n_REAL_atoms 
+   INTEGER                                      , INTENT(IN) :: rd_cr_spcgrno 
+   CHARACTER (LEN=  16)                         , INTENT(IN) :: rd_cr_spcgr 
+   INTEGER                                      , INTENT(IN) :: rd_cr_syst 
+   REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_a0
+   REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_win
+   REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_ar
+   REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_wrez
+   REAL                                         , INTENT(IN) :: rd_cr_v
+   REAL                                         , INTENT(IN) :: rd_cr_vr
+   REAL                , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim
+   REAL                , DIMENSION(3,2)         , INTENT(IN) :: rd_cr_dim0
+   INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
+   INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
+   CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
+   CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_equ ! (0:MAXSCAT) 
+   CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_as_lis ! (0:MAXSCAT) 
+   INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_sav_ncell ! (3) 
+   LOGICAL                                      , INTENT(IN) :: rd_sav_r_ncell 
+   INTEGER                                      , INTENT(IN) :: rd_sav_ncatoms 
+   INTEGER                                      , INTENT(IN) :: rd_spcgr_ianz 
+   INTEGER                                      , INTENT(IN) :: rd_spcgr_para 
+!  INTEGER                                      , INTENT(IN) :: rd_GEN_ADD_MAX
+!  INTEGER                                      , INTENT(IN) :: rd_GEN_ADD_n
+!  INTEGER           , DIMENSION(rd_GEN_ADD_MAX), INTENT(IN) :: rd_gen_add_power
+!  REAL        , DIMENSION(4,4,0:rd_GEN_ADD_MAX), INTENT(IN) :: rd_gen_add
+!  INTEGER                                      , INTENT(IN) :: rd_SYM_ADD_MAX
+!  INTEGER                                      , INTENT(IN) :: rd_SYM_ADD_n
+!  INTEGER           , DIMENSION(rd_SYM_ADD_MAX), INTENT(IN) :: rd_sym_add_power
+!  REAL        , DIMENSION(4,4,0:rd_SYM_ADD_MAX), INTENT(IN) :: rd_sym_add
+   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gten
+   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_rten
+   REAL                , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_eps
+   REAL                , DIMENSION(3,3,3)       , INTENT(IN) :: rd_cr_reps
+   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_gmat
+   REAL                , DIMENSION(3,3)         , INTENT(IN) :: rd_cr_fmat
+   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_g
+   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_gi
+   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_f
+   REAL                , DIMENSION(4,4)         , INTENT(IN) :: rd_cr_tran_fi
+   LOGICAL                                      , INTENT(IN) :: rd_cr_acentric
+   LOGICAL                                      , INTENT(IN) :: rd_cr_newtype
+   LOGICAL                                      , INTENT(IN) :: rd_cr_cartesian
+   INTEGER             , DIMENSION(0:1)         , INTENT(IN) :: rd_cr_sel_prop
+   REAL              ,DIMENSION(11,0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat   ! (11,0:MAXSCAT)
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfr  ! (  0:MAXSCAT)
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delfi  ! (  0:MAXSCAT)
+   LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat_int  ! (  0:MAXSCAT)
+   LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_scat_equ  ! (  0:MAXSCAT)
+   LOGICAL             , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_delf_int  ! (  0:MAXSCAT)
+
+   REAL                , DIMENSION(3,rd_NMAX)   , INTENT(IN) :: rd_cr_pos
+   INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_iscat
+   INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
+!
+   INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
+   INTEGER               :: istatus
+   INTEGER               :: inum
+   INTEGER               :: itype
+   REAL   , DIMENSION(3) :: posit
+   INTEGER               :: iprop
+   INTEGER               :: i,j
+   INTEGER               :: ia
+   
+!
+   this%cr_file         = strucfile
+   this%cr_name         = rd_cr_name
+   this%cr_spcgr        = rd_cr_spcgr
+   this%cr_spcgrno      = rd_cr_spcgrno
+   this%cr_syst         = rd_cr_syst
+   this%cr_acentric     = rd_cr_acentric
+   IF(this%cr_sav_ncell) THEN
+      this%cr_ncatoms      = rd_cr_ncatoms
+      this%cr_icc          = rd_cr_icc
+   ENDIF
+!
+   this%spcgr_ianz      = rd_spcgr_ianz
+   this%spcgr_para      = rd_spcgr_para
+   this%cr_sel_prop     = rd_cr_sel_prop
+!
+   this%cr_a0           = rd_cr_a0
+   this%cr_win          = rd_cr_win
+   this%cr_dim          = rd_cr_dim
+   this%cr_dim0         = rd_cr_dim0
+   this%cr_v            = rd_cr_v
+   this%cr_gten         = rd_cr_gten
+   this%cr_eps          = rd_cr_eps
+   this%cr_gmat         = rd_cr_gmat
+   this%cr_ar           = rd_cr_ar
+   this%cr_wrez         = rd_cr_wrez
+   this%cr_vr           = rd_cr_vr
+   this%cr_rten         = rd_cr_rten
+   this%cr_reps         = rd_cr_reps
+   this%cr_fmat         = rd_cr_fmat
+   this%cr_tran_g       = rd_cr_tran_g
+   this%cr_tran_gi      = rd_cr_tran_gi
+   this%cr_tran_f       = rd_cr_tran_f
+   this%cr_tran_fi      = rd_cr_tran_fi
+!
+   IF(this%cr_sav_gene) THEN
+      this%cr_gen_add_n    = gen_add_n
+      this%cr_gen_add_power= gen_add_power
+      this%cr_gen_add      = gen_add
+   ELSE
+      this%cr_gen_add_n    = 0
+      this%cr_gen_add_power= 1
+      this%cr_gen_add      = 0.0
+   ENDIF
+   IF(this%cr_sav_symm) THEN
+      this%cr_sym_add_n    = sym_add_n
+      this%cr_sym_add_power= sym_add_power
+      this%cr_sym_add      = sym_add
+   ELSE
+      this%cr_sym_add_n    = 0
+      this%cr_sym_add_power= 1
+      this%cr_sym_add      = 0.0
+   ENDIF
+!
+!  Save scattering curves and names if "WRITE" flag was set
+!
+   ALLOCATE(iscat_table(0:rd_MAXSCAT), STAT = istatus)
+   iscat_table(:) = 0
+   IF(this%cr_sav_scat) THEN
+      ia = -1
+      DO i=0,rd_cr_nscat
+!        IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            DO j=1,11
+               this%cr_scat(j,ia)     = rd_cr_scat(j,ia)
+            ENDDO
+!
+            this%cr_delfr(ia)     = rd_cr_delfr(i)
+            this%cr_delfi(ia)     = rd_cr_delfi(i)
+!
+            this%cr_scat_int(ia)  = rd_cr_scat_int(i)
+            this%cr_scat_equ(ia)  = rd_cr_scat_equ(i)
+            this%cr_delf_int(ia)  = rd_cr_delf_int(i)
+            this%cr_at_equ(ia)    = rd_cr_at_equ(i)
+            this%cr_at_lis(ia)    = rd_cr_at_lis(i)
+!        ENDIF
+      ENDDO
+   ELSE
+      this%cr_scat         = 0.0
+      this%cr_delfr        = 0.0
+      this%cr_delfi        = 0.0
+!
+      this%cr_scat_int     = .true.
+      this%cr_scat_equ     = .false.
+      this%cr_delf_int     = .true.
+      this%cr_at_equ       = ' '
+      this%cr_at_lis(0)    = rd_cr_at_lis(0)   ! always save void name
+!     Always save atom names
+      ia = 0
+      DO i=1,rd_cr_nscat
+         IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_at_lis(ia)    = rd_cr_at_lis(i)
+         ENDIF
+      ENDDO
+   ENDIF
+!  Always save ADP values 
+!
+   ia =  0
+   this%cr_dw(0)       = rd_cr_dw(0)           ! always save void ADP
+   IF(this%cr_sav_adp) THEN
+      DO i=1,rd_cr_nscat
+!        IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_dw(ia)       = rd_cr_dw(ia)
+!        ENDIF
+      ENDDO
+   ELSE
+      DO i=1,rd_cr_nscat
+         IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_dw(ia)       = rd_cr_dw(ia)
+         ENDIF
+      ENDDO
+   ENDIF
+   this%cr_nscat = ia
+!
+   this%cr_newtype      = rd_cr_newtype
+   this%cr_cartesian    = rd_cr_cartesian
+!
+   this%cr_natoms       = rd_cr_natoms
+   this%cr_n_REAL_atoms = rd_cr_n_REAL_atoms
+!
+!  Save atoms, if selected
+!
+   ia = 0
+   DO inum=1,rd_cr_natoms
+!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
+      IF(check_select_status(this%cr_sav_atom(rd_cr_iscat(inum)),   &
+                                  rd_cr_prop (inum),                &
+                             this%cr_sav_sel_prop) ) THEN
+         ia = ia + 1
+         itype = iscat_table(rd_cr_iscat(inum))
+         posit = rd_cr_pos(:,inum)
+         IF(this%cr_sav_prop) THEN
+            iprop = rd_cr_prop (inum)
+         ELSE
+            iprop = 1
+         ENDIF
+         CALL this%atoms(ia)%set_atom ( itype, posit, iprop )
+      ENDIF
+   ENDDO
+   this%cr_natoms = MIN(rd_cr_natoms,ia)
+   DEALLOCATE(iscat_table, STAT=istatus)
+
+!
+   IF(this%cr_sav_mole .or. this%cr_sav_doma .or. this%cr_sav_obje) THEN
+      this%cr_mole_max_mole = mole_max_mole
+      this%cr_mole_max_type = mole_max_type
+      this%cr_mole_max_atom = mole_max_atom
+      this%cr_num_mole      = mole_num_mole
+      this%cr_num_type      = mole_num_type
+      this%cr_num_atom      = mole_num_atom
+      FORALL ( i=0:mole_num_type)
+         this%cr_mole_biso (i) = mole_biso (i)
+      END FORALL
+      FORALL ( i=0:mole_num_mole)
+         this%cr_mole_len  (i) = mole_len  (i)
+         this%cr_mole_off  (i) = mole_off  (i)
+         this%cr_mole_type (i) = mole_type (i)
+         this%cr_mole_char (i) = mole_char (i)
+         this%cr_mole_file (i) = mole_file (i)
+         this%cr_mole_dens (i) = mole_dens (i)
+         this%cr_mole_fuzzy(i) = mole_fuzzy(i)
+      END FORALL
+      FORALL ( i=0:mole_num_atom)
+         this%cr_mole_cont (i) = mole_cont (i)
+      END FORALL
+   ELSE
+      this%cr_mole_max_mole = 0
+      this%cr_mole_max_type = 0
+      this%cr_mole_max_atom = 0
+      this%cr_num_mole      = 0
+      this%cr_num_type      = 0
+      this%cr_num_atom      = 0
+      this%cr_mole_len      = 0
+      this%cr_mole_off      = 0
+      this%cr_mole_type     = 0
+      this%cr_mole_char     = 0
+      this%cr_mole_file     = ' '
+      this%cr_mole_dens     = 0.0
+      this%cr_mole_biso     = 0.0
+      this%cr_mole_fuzzy    = 0.0
+      this%cr_mole_cont     = 0
+   ENDIF
+!
+   END SUBROUTINE set_crystal_from_local
+!******************************************************************************
    SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_gene, sav_symm, &
                                        sav_ncell, sav_obje, sav_doma, sav_mole, &
-                                       sav_prop,n_latom,sav_latom)
+                                       sav_prop,sav_sel_prop,n_latom,sav_latom)
 !
    USE crystal_mod
    IMPLICIT none
@@ -618,6 +940,7 @@ CONTAINS
    LOGICAL, INTENT(IN)              ::  sav_doma
    LOGICAL, INTENT(IN)              ::  sav_mole
    LOGICAL, INTENT(IN)              ::  sav_prop
+   INTEGER, DIMENSION(0:1),INTENT(IN) ::  sav_sel_prop
    INTEGER, INTENT(IN)              ::  n_latom
    LOGICAL, DIMENSION(0:n_latom),INTENT(IN) ::  sav_latom
 !
@@ -632,6 +955,7 @@ CONTAINS
    this%cr_sav_doma  = sav_doma
    this%cr_sav_mole  = sav_mole
    this%cr_sav_prop  = sav_prop
+   this%cr_sav_sel_prop(:)  = sav_sel_prop(:)
    DO i = 0, cr_nscat
       this%cr_sav_atom(i) = sav_latom(i)
    ENDDO
@@ -679,6 +1003,10 @@ CONTAINS
    cr_rten         = this%cr_rten
    cr_reps         = this%cr_reps
    cr_fmat         = this%cr_fmat
+   cr_tran_g       = this%cr_tran_g
+   cr_tran_gi      = this%cr_tran_gi
+   cr_tran_f       = this%cr_tran_f
+   cr_tran_fi      = this%cr_tran_fi
 !
    cr_natoms       = this%cr_natoms
 !
