@@ -14,9 +14,9 @@ PUBLIC  get_connectivity_identity ! Identify a connectivity definition
 PUBLIC  do_show_connectivity   !  Show the current definitions
 PRIVATE allocate_conn_list     !  Allocate memory for the connectivity
 PRIVATE deallocate_conn        !  Free memory
-PRIVATE create_connectivity    !  Create the actual list of neighbors around each atom
-PRIVATE conn_do_set            !  Set parameters for the connectivity definitions
-PRIVATE conn_show              !  Main show routine
+PUBLIC  create_connectivity    !  Create the actual list of neighbors around each atom
+PUBLIC  conn_do_set            !  Set parameters for the connectivity definitions
+PUBLIC  conn_show              !  Main show routine
 PRIVATE conn_test              !  While developing, a routine to test functionality
 !
 INTEGER, PARAMETER              :: MAX_ATOM=10
