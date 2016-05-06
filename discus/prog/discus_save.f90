@@ -41,6 +41,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       CHARACTER(5) befehl 
       CHARACTER(50) prom 
       CHARACTER(1024) line
+      CHARACTER(LEN=32) :: c_property
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i 
       INTEGER lcomm, sav_flen 
@@ -301,6 +302,12 @@ SUBROUTINE save_struc (zeile, lcomm)
                      ENDIF 
                   ENDIF 
 !                                                                       
+!------ --Handle property settings 'property'                           
+!                                                                       
+               ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) then
+!                                                                       
+                  CALL property_select (zeile, lp,sav_sel_prop)
+!                                                                       
 !     define name of output file 'outfile'                              
 !                                                                       
                ELSEIF (str_comp (befehl, 'outfile', 1, lbef, 7) ) THEN 
@@ -401,6 +408,10 @@ SUBROUTINE save_struc (zeile, lcomm)
                      ELSE 
                         WRITE (output_io, 3060) 'omitted' 
                      ENDIF 
+      CALL char_prop_2 (c_property,sav_sel_prop (1), sav_sel_prop (0),   &
+      length)
+      WRITE (output_io, 3131) c_property (1:length)
+
 !                                                                       
                      WRITE (output_io, 3090) 
                      WRITE (output_io, 3091) 
@@ -528,6 +539,9 @@ SUBROUTINE save_struc (zeile, lcomm)
  3060 FORMAT(' Domain   information: content etc.        : ',a7) 
  3080 FORMAT(' Range of atoms from to    : All atoms included') 
  3081 FORMAT(' Range of atoms from to    : ',2(2x,i9)) 
+ 3131 FORMAT    (/' Atom properties         : ','NMDOEI'/               &
+                  '      absent=- ignored=. : ',a)
+
  3090 FORMAT(' Selected atoms    :') 
  3091 FORMAT('                      type name') 
  3092 FORMAT(20x,2(4x,i2,1x,a4)) 
@@ -586,6 +600,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       USE discus_config_mod 
       USE crystal_mod 
       USE gen_add_mod 
+      USE modify_func_mod
       USE molecule_mod 
       USE sym_add_mod 
       USE discus_save_mod 
@@ -774,7 +789,9 @@ SUBROUTINE save_struc (zeile, lcomm)
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (sav_latom (cr_iscat (i) ) ) THEN 
+!     IF (sav_latom (cr_iscat (i) ) ) THEN 
+      IF (check_select_status (sav_latom (cr_iscat (i) ), cr_prop (i),   &
+                               sav_sel_prop)     ) THEN
          IF(lwrite(i)) THEN
             IF(sav_w_prop) THEN
                WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
@@ -887,7 +904,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
            sav_w_adp, sav_w_gene, sav_w_symm,                     &
            sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
-           n_latom,sav_latom)
+           sav_sel_prop,n_latom,sav_latom)
 !
       CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !
@@ -896,4 +913,154 @@ SUBROUTINE save_struc (zeile, lcomm)
       NULLIFY(store_temp)
 !
       END SUBROUTINE save_internal
+!
+      SUBROUTINE save_store_setting
+!
+      USE crystal_mod 
+      USE discus_save_mod 
+      USE discus_allocate_appl_mod
+      IMPLICIT NONE
+!
+      INTEGER, PARAMETER :: MIN_PARA = 20
+      INTEGER            :: maxw
+      INTEGER            :: n_nscat
+!                                                                       
+      maxw = MAX(MIN_PARA,MAXSCAT+1)
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+         CALL alloc_save (  n_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!
+      SAV_T_MAXSCAT  = SAV_MAXSCAT
+      sav_t_latom(:) = sav_latom(:) 
+!
+      sav_t_sel_atom = sav_sel_atom
+!
+      sav_t_file    = sav_file
+!
+      sav_t_keyword = sav_keyword
+!
+      sav_t_w_scat  = sav_w_scat
+      sav_t_w_adp   = sav_w_adp
+      sav_t_r_ncell = sav_r_ncell
+      sav_t_w_ncell = sav_w_ncell
+      sav_t_w_gene  = sav_w_gene
+      sav_t_w_symm  = sav_w_symm
+      sav_t_w_mole  = sav_w_mole
+      sav_t_w_obje  = sav_w_obje
+      sav_t_w_doma  = sav_w_doma
+      sav_t_w_prop  = sav_w_prop
+!
+      sav_t_start   = sav_start
+      sav_t_end     = sav_end
+      sav_t_ncell(:)= sav_ncell(:)
+      sav_t_sel_prop(:)=  sav_sel_prop(:)
+      sav_t_ncatoms = sav_ncatoms
+      sav_t_size_of = sav_size_of
+!
+      END SUBROUTINE save_store_setting
+!
+      SUBROUTINE save_restore_setting
+!
+      USE discus_config_mod
+      USE crystal_mod 
+      USE discus_allocate_appl_mod
+      USE discus_save_mod 
+      IMPLICIT NONE
+!
+      INTEGER, PARAMETER :: MIN_PARA = 20
+      INTEGER            :: maxw
+      INTEGER            :: n_nscat
+!                                                                       
+      maxw = MAX(MIN_PARA,MAXSCAT+1)
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+         CALL alloc_save (  n_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!
+      SAV_MAXSCAT  = SAV_T_MAXSCAT
+      sav_latom(:) = sav_t_latom(:) 
+!
+      sav_sel_atom = sav_t_sel_atom
+!
+      sav_file    = sav_t_file
+!
+      sav_keyword = sav_t_keyword
+!
+      sav_w_scat  = sav_t_w_scat
+      sav_w_adp   = sav_t_w_adp
+      sav_r_ncell = sav_t_r_ncell
+      sav_w_ncell = sav_t_w_ncell
+      sav_w_gene  = sav_t_w_gene
+      sav_w_symm  = sav_t_w_symm
+      sav_w_mole  = sav_t_w_mole
+      sav_w_obje  = sav_t_w_obje
+      sav_w_doma  = sav_t_w_doma
+      sav_w_prop  = sav_t_w_prop
+!
+      sav_start   = sav_t_start
+      sav_end     = sav_t_end
+      sav_ncell(:)= sav_t_ncell(:)
+      sav_sel_prop(:)=  sav_t_sel_prop(:)
+      sav_ncatoms = sav_t_ncatoms
+      sav_size_of = sav_t_size_of
+!
+      END SUBROUTINE save_restore_setting
+!
+      SUBROUTINE save_default_setting
+!
+      USE discus_config_mod
+      USE crystal_mod 
+      USE discus_allocate_appl_mod
+      USE discus_save_mod 
+      IMPLICIT NONE
+!
+      INTEGER, PARAMETER :: MIN_PARA = 20
+      INTEGER            :: maxw
+      INTEGER            :: n_nscat
+!                                                                       
+      maxw = MAX(MIN_PARA,MAXSCAT+1)
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+         CALL alloc_save (  n_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!
+      SAV_MAXSCAT  = MAXSCAT
+      sav_latom(:) = .true.
+!
+      sav_sel_atom = .true.
+!
+      sav_file    = 'crystal.stru'
+!
+      sav_keyword = .true.
+!
+      sav_w_scat  = .false.
+      sav_w_adp   = .false.
+      sav_r_ncell = .true.
+      sav_w_ncell = .true.
+      sav_w_gene  = .true.
+      sav_w_symm  = .true.
+      sav_w_mole  = .true.
+      sav_w_obje  = .true.
+      sav_w_doma  = .true.
+      sav_w_prop  = .true.
+!
+      sav_start   =  1
+      sav_end     = -1
+      sav_ncell(:)=  1
+      sav_sel_prop(:)=  0
+      sav_ncatoms =  1
+      sav_size_of = 1
+!
+      END SUBROUTINE save_default_setting
+!
 END MODULE save_menu
