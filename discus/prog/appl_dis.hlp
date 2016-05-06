@@ -69,6 +69,9 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_May
+
+   Added option to save to utilize the atom properties.
 3  2016_March
 
    Within the ==> fourier menu, the radiation may also be defined
@@ -1493,6 +1496,100 @@
 
    The parallel, equivalent vector, normalized to 1/(length of [u,v,w]) 
    is stored in "res[4]", "res[5]", "res[6]"
+2  decorate
+
+   The main menu for surface decoration. 
+   The commands allow you to define a variety of decoration modes for 
+   guest structures (molecules=ligands) to be placed on top of an external surface.
+
+   The operation tries to do this quietly in the background but does have 
+   a few side effects. Once started the program will:
+   Distribute the surface atoms (=anchors) that are bonded to the ligands as 
+   evenly as possible on the surface. To achieve this, it builds resets the 
+   ==> 'connectivity', builds its own and then uses ==> 'mmc' with a repulsive
+   potential to distribute the anchors evenly and to avoid close anchor-anchor
+   distances. Eventually the internally saved core is placed back into the 
+   surface shell via the 'domain' concept. These steps overwrite previous user
+   settings within the connectivity, mmc, and domain menues.
+   The ligands are read from their structure files
+   and automatically transformed to the metric of the host structure. Theres is
+   no need to transform the ligand metric to that of the host structure prior
+   to being used. As the ligand molecules need to be rotated anyway to fit the 
+   local surface, the orientational relationship between the ligand metric and 
+   the host metric is not relevant. 
+
+3  Commands
+!p add     ! Add a new definition
+!p reset   ! Reset and clear all definitions
+!p run     ! starts the calculation
+!p set     ! Define parameters for a definition
+!p show    ! Show all current definitions
+
+3  add
+!b add <name>, <type>
+   Adds a new definition, called <name> of type <type>.
+   The definition is referenced by its name in the details on the 'set' command.
+   Valid tpyes are:
+   "normal"   The ligand molecule is place on top of a single surface atom. 
+              A single ligand atom is bonded to the surface atoms. 
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+   "bridge"   The ligand molecule is place on top of a single surface atom. 
+              A pair of ligand atoms is bonded to the identical surface atom.
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+   "double"   The ligand molecule is bonded with individual bonds to two surface
+              atoms. Each bond connects a signle surface atom to a single
+              ligand atom.
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+   "multi"    The ligand molecule is bonded with several bonds to a group of 
+              surface atoms. A second bond  connects (another) ligand atom to
+              a surface atom. 
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+3  reset
+!b reset
+   Reset and clear all definitions.
+3  run
+!b run
+   Starts the decoration. 
+3  set
+!b set
+!b set <name>, "ligand", <file>, <density>
+!b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
+!b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
+
+   This command allows to set the detailed definitions needed to decorate the
+   surface.
+
+   set <name>, "ligand", <file>, <density>
+       Defines the input file from which the ligand is read. 
+       The last parameter <density> defines the ligand density on the surface in
+       units of [ligands per A^2]. DISCUS estimates the surface area by counting 
+       the number of atoms with the "external" property flag. An average area of
+       11.0 A^2 is assigned to each surface atom. 
+
+   set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
+       Defines the bonds of length <distance> between surface atoms of type 
+       <atom_type> and atom number <ligand atom no> of the ligand. 
+       The number of surface atom types depends on the type of decoration that
+       is defined by the "add" command.
+       For the "normal" and "double" type exactly one surface type must be given.
+       For the "bridge" type exactly two surface types must be given.
+       For the "multi" type exactly three surface types must be given.
+
+   set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
+       Defines the ligand molecule axis. This axis is placed normal to the local
+       surface, in as much as the decoration type allows. 
+       For the types "normal" and "bridge" the axis is placed parallel to the
+       normal by an appropriate rotation of the ligand. 
+       For the types "double" and "multi" the orienation of the molecule is
+       partially defined by the bonds. The axis is placed into a plane parallel
+       to the local surface normal.
+3  show
+!b show
+   Show all current definitions
 2  define
 !b define generator, {"center" | "symmetry"}
 
@@ -5381,6 +5478,7 @@
 !p help    ! gives on line help for saving the structure (see main help)
 !p omit    ! Defines which information to omit from the file
 !p outf    ! Defines the name of the output file
+!p prop    ! Selects the atom properties, which will be checked
 !p run     ! starts the saving of the structure
 !p sel     ! selects atoms to be included in the structure file
 !p show    ! shows the current parameters
@@ -5428,6 +5526,44 @@
 !b outfile <filename>
 
    Sets the name of the output file to which the structure is written.
+3  prop
+!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+
+   Defines which properties an atom must have to be included in the plot.
+
+   "ignore"
+   The properties listed will be ignored. An atom will be included in
+   the saved file regardles, whether it has the properties or not, 
+   "present"
+   An atom must have the properties listed, to be included in the file
+   "absent"
+   An atom is not allowed to have the properties listed.
+
+   The properties can be one of:
+   "all"
+   Apply the rule to all properties.
+   "normal"
+   The rules apply if an atom is a normal atom (not a void)
+   "molecule"
+   The rules apply if an atom is part of a molecule
+   "domain"
+   The rules apply if an atom is part of a domain
+   "outside"
+   The rules apply if an atom is outside of the crystal. This status
+   is set if the atom has been cut off by a ==> 'boundary' command.
+   "external"
+   The rules apply if an atom is close to an external surface, either
+   on the inside or on the outside. 
+   The flag is set by the ==> 'boundary' command. Individual distances
+   to the boundary can be set within the ==> 'surface' menu through
+   the ==> 'surface/fuzzy' command.
+   "internal"
+   The rules apply if an atom is close to an internal surface, either
+   within the host or within the guest structure. 
+   The flag is set by placing a guest structure into the crystal through
+   the ==> 'domain' menu. Individual distances
+   to the boundary can be set within the ==> 'domain' menu through
+   the ==> 'domain/fuzzy' command.
 3  format
 !b format {"keyword" | "nokeyword" }
 
