@@ -943,6 +943,7 @@ SUBROUTINE stack
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE molecule_mod 
+      USE read_internal_mod
       USE stack_mod 
       USE stack_cr_mod 
       USE structur
@@ -1009,8 +1010,15 @@ SUBROUTINE stack
 !                                                                       
 !     --Stacking fault origins are read from file                       
 !                                                                       
-         CALL test_file ( st_infile, st_natoms, st_nscat, n_mole,  &
-                          n_type, n_atom, -1, .true. )
+         IF(st_infile(1:8)=='internal') THEN
+            CALL testfile_internal (st_infile,st_natoms, &        ! Get size of internal structure
+             st_nscat, n_mole, n_type, n_atom)
+         ELSE
+            CALL test_file ( st_infile,st_natoms,st_nscat, n_mole, n_type,&
+                             n_atom,-1, .true. )
+         ENDIF
+!        CALL test_file ( st_infile, st_natoms, st_nscat, n_mole,  &
+!                         n_type, n_atom, -1, .true. )
          IF(st_natoms > ST_MMAX .or. st_nscat > ST_MAX_SCAT) THEN
             CALL alloc_stack_crystal (st_nscat, st_natoms)
             IF ( ier_num /= 0 ) RETURN
@@ -1496,7 +1504,8 @@ more1: IF (st_nlayer.ge.1) then
 !                                                                       
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
-         cr_cartesian)                                                  
+         cr_cartesian,                                                  &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
          iatom = 1 
 !                                                                       
@@ -1761,6 +1770,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE stack_mod 
       USE powder_mod 
       USE powder_tables_mod 
+      USE read_internal_mod
       USE structur
       USE spcgr_apply
       USE errlist_mod 
@@ -1834,8 +1844,13 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     --read first layer to ensure that the metric tensors are set      
 !                                                                       
          CALL rese_cr 
-         CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
-                          n_atom,-1, .true. )
+         IF(st_layer(1)(1:8)=='internal') THEN
+            CALL testfile_internal (st_layer(1), n_atoms, &        ! Get size of internal structure
+              n_nscat, n_mole, n_type, n_atom)
+         ELSE
+            CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
+                             n_atom,-1, .true. )
+         ENDIF
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
             n_atoms = MAX( n_atoms, st_nlayer, NMAX )
             n_nscat = MAX( n_nscat, MAXSCAT)
@@ -1854,15 +1869,20 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
+         IF(st_internal(st_type(1)) ) THEN
+            CALL readstru_internal (st_layer (st_type (1) ))!, &
+         ELSE
          CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name, cr_spcgr, &
          cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,  &
          cr_mole,                                                       &
          cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,&
          as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,        &
          spcgr_ianz, spcgr_para)                                        
+         ENDIF
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
-         cr_cartesian)                                                  
+         cr_cartesian,                                                  &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
 !------ --preset some tables, calculate average structure               
 !                                                                       
@@ -1904,8 +1924,15 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     ----read corresponding layer                                      
 !                                                                       
             CALL rese_cr 
-            CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
-                             n_type, n_atom, -1, .true. )
+            IF(st_layer(l)(1:8)=='internal') THEN
+               CALL testfile_internal (st_layer(l), n_atoms, &        ! Get size of internal structure
+                 n_nscat, n_mole, n_type, n_atom)
+            ELSE
+               CALL test_file ( st_layer(l), n_atoms, n_nscat, n_mole, n_type,&
+                                n_atom,-1, .true. )
+            ENDIF
+!            CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
+!                             n_type, n_atom, -1, .true. )
             IF(n_atoms > NMAX .or. n_nscat > MAXSCAT) THEN
                n_atoms = MAX( n_atoms, NMAX)
                n_nscat = MAX( n_nscat, MAXSCAT)
@@ -1924,11 +1951,15 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
+            IF(st_layer_c(l)(1:8)=='internal') THEN
+               CALL readstru_internal (st_layer_c (l ))
+            ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer_c (l), cr_name,      &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_mole, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
+            ENDIF
             IF (ier_num.ne.0) then 
                ier_msg (1) = 'Reading layer file: ' 
                ier_msg (2) = trim(st_layer_c (l))
@@ -1936,7 +1967,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ENDIF 
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
-            cr_fmat, cr_cartesian)                                      
+            cr_fmat, cr_cartesian,                                      &
+            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             ier_num = 0 
             ier_typ = ER_NONE 
 !
@@ -2054,6 +2086,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE four_strucf_mod
       USE molecule_mod 
       USE discus_save_mod 
+      USE read_internal_mod
       USE stack_mod 
       USE structur
       USE spcgr_apply
@@ -2116,8 +2149,15 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     ----read first layer to ensure that the metric tensors are set    
 !                                                                       
             CALL rese_cr 
-         CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
-                          n_atom, -1, .true. )
+            IF(st_layer(1)(1:8)=='internal') THEN
+               CALL testfile_internal (st_layer(1), n_natoms, &        ! Get size of internal structure
+                 n_nscat, n_mole, n_type, n_atom)
+            ELSE
+               CALL test_file ( st_layer(1), n_natoms, n_nscat, n_mole, n_type,&
+                                n_atom,-1, .true. )
+            ENDIF
+!         CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
+!                          n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             n_natoms = MAX( n_natoms, NMAX)
             n_nscat  = MAX( n_nscat, MAXSCAT)
@@ -2136,14 +2176,19 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
 !
+            IF(st_layer(1)(1:8)=='internal') THEN
+               CALL readstru_internal (st_layer(1))
+            ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name,        &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_mole, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
+            ENDIF
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
-            cr_fmat, cr_cartesian)                                      
+            cr_fmat, cr_cartesian,                                      &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
             IF (ier_num.ne.0) return 
 !                                                                       
@@ -2226,8 +2271,15 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     ------read corresponding layer                                    
 !                                                                       
             CALL rese_cr 
-         CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
-                          n_atom, -1, .true. )
+            IF(st_layer(l)(1:8)=='internal') THEN
+               CALL testfile_internal (st_layer(l), n_natoms, &        ! Get size of internal structure
+                 n_nscat, n_mole, n_type, n_atom)
+            ELSE
+               CALL test_file ( st_layer(l), n_natoms, n_nscat, n_mole, n_type,&
+                                n_atom,-1, .true. )
+            ENDIF
+!        CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
+!                         n_atom, -1, .true. )
          IF(n_natoms > NMAX .or. n_nscat > MAXSCAT) THEN
             n_natoms = MAX( n_natoms, NMAX )
             n_nscat  = MAX( n_nscat,  MAXSCAT)
@@ -2245,15 +2297,20 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
                   IF ( ier_num /= 0 ) RETURN
                ENDIF
-!
+! 
+            IF(st_layer(l)(1:8)=='internal') THEN
+               CALL readstru_internal (st_layer(l))
+            ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (l), cr_name,        &
             cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
             cr_at_lis, cr_pos, cr_mole, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
+            ENDIF
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
-            cr_fmat, cr_cartesian)                                      
+            cr_fmat, cr_cartesian,                                      &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
 !     ------Add average displacement to each atom                       
 !                                                                       
@@ -2320,6 +2377,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     origins of the stacking faults.                                   
 !+                                                                      
       USE discus_config_mod 
+      USE read_internal_mod
       USE stack_mod 
       USE stack_cr_mod
       USE structur
@@ -2344,12 +2402,16 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     Now read the pseudo microdomain structure                         
 !
+      IF(st_infile(1:8)=='internal') THEN
+          CALL readstru_internal (st_infile)
+      ELSE
       CALL readstru (ST_MMAX, ST_MAX_SCAT, st_infile, st_name, st_spcgr,&
       st_a0, st_win, st_natoms, st_nscat, st_dw, st_at_lis, st_pos,     &
       st_mole,                                                          &
       st_iscat, st_prop, st_dim, sa_natoms, sa_at_lis, sa_dw, sa_pos,   &
       sa_iscat, sa_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       st_spcgr_ianz, st_spcgr_para)                                     
+      ENDIF
       IF (ier_num.ne.0) then 
          ier_msg (1) = 'Error occured while reading' 
          ier_msg (2) = trim(st_infile)
