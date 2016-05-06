@@ -1781,7 +1781,8 @@ CONTAINS
 !       constants and permutation tensors                               
       CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,       &
       cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., cr_gmat, cr_fmat, &
-      cr_cartesian)                                                     
+      cr_cartesian,                                                     &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
 !     Only one atom in the current molecule, return immediately         
 !                                                                       
@@ -1955,12 +1956,18 @@ CONTAINS
 !*****7**************************************************************** 
       SUBROUTINE setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
       cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat,    &
-      cr_cartesian)                                                     
+      cr_cartesian,                                                     &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !-                                                                      
 !     Updates the crystal lattice and symmetry information              
 !+                                                                      
       USE trafo_mod
       IMPLICIT none 
+!
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
       INTEGER i 
       LOGICAL lout 
@@ -1976,7 +1983,8 @@ CONTAINS
       REAL dist 
 !                                                                       
       CALL lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, cr_rten,    &
-      cr_win, cr_wrez, cr_v, cr_vr, lout)                               
+      cr_win, cr_wrez, cr_v, cr_vr, lout,                               &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
       cr_cartesian = cr_a0 (1) .eq.1..and.cr_a0 (2) .eq.1..and.cr_a0 (3)&
       .eq.1..and.cr_win (1) .eq.90..and.cr_win (2) .eq.90..and.cr_win ( &
       3) .eq.90.                                                        
@@ -2066,7 +2074,8 @@ CONTAINS
       END SUBROUTINE recip_symm                     
 !*****7*****************************************************************
       SUBROUTINE lattice (a0, ar, eps, gten, reps, rten, win, wrez, vol,&
-      vr, lout)                                                         
+      vr, lout,                                                         &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !+                                                                      
 !           Calculates lattice constants, metric and reciprocal metric  
 !           tensor, permutation tensors and unit cell volume.           
@@ -2074,11 +2083,17 @@ CONTAINS
 !     the direct metric tensor and its inverse.                         
 !-                                                                      
 !                                                                       
+      USE discus_plot_init_mod
       USE errlist_mod 
       USE prompt_mod 
       USE wink_mod
 !
       IMPLICIT none 
+!
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_g
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_gi
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_f
+      REAL, DIMENSION(4,4)  , INTENT(OUT) :: cr_tran_fi
 !                                                                       
       INTEGER i, i1, i2, j 
       LOGICAL lout 
@@ -2145,6 +2160,13 @@ CONTAINS
             i = 1, 3), vr                                               
             WRITE (output_io, 2004) ( (rten (i, j), j = 1, 3), i = 1, 3) 
          ENDIF 
+!
+!        Initialize trasnformation matrices to cartesian space and back
+!
+         CALL plot_ini_trans (1.0,                          &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi, &
+              gten, rten, eps)
+
 !                                                                       
       ELSE 
          ier_num = - 35 

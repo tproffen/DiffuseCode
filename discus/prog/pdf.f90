@@ -2085,7 +2085,8 @@ laccept = .false.
 !
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,       &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., cr_gmat, cr_fmat, &
-         cr_cartesian)
+         cr_cartesian,                                                     &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !
          DO i = 1, pdf_bin 
             pdf_old (i) = pdf_corr (i) 
@@ -2149,7 +2150,8 @@ laccept = .false.
             cr_win = pdf_old_lattice(4:6)
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,       &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., cr_gmat, cr_fmat, &
-            cr_cartesian)
+            cr_cartesian,                                                     &
+            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             pdf_corr = 0.0  ! Clear pdf_corr, as we loop over all atoms
             DO i = 1, cr_natoms 
                CALL pdf_addcorr (i, 1.0, sum) 
@@ -2199,6 +2201,7 @@ laccept = .false.
 !-                                                                      
       USE discus_allocate_appl_mod
       USE discus_config_mod 
+      USE discus_plot_mod
       USE crystal_mod 
       USE molecule_mod 
       USE pdf_mod 
@@ -2286,7 +2289,9 @@ laccept = .false.
 !
 !------ Convert to cartesian
 !
-      CALL plot_ini_trans (1.0)
+      CALL plot_ini_trans (1.0,                                &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
       CALL powder_trans_atoms_tocart (u)
       npoint    = INT(SQRT(u(1)**2+u(2)**2+u(3)**2)/pdf_deltar)
 !      IF(npoint > UBOUND(pdf_temp,1)) THEN

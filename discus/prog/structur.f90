@@ -495,7 +495,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !       constants and permutation tensors                               
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
-            cr_fmat, cr_cartesian)                                      
+            cr_fmat, cr_cartesian,                                      &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             IF (.not. (str_comp (befehl, 'cell',  1, lbef, 4) .or.      &
                        str_comp (befehl, 'lcell', 1, lbef, 5)     ) ) then
                CALL get_symmetry_matrices 
@@ -619,7 +620,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       ENDIF 
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
-         cr_cartesian)                                                  
+         cr_cartesian,                                                  &
+              cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
 !                                                                       
       IF (ier_num /= 0) THEN
          CLOSE (ist)

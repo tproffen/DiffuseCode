@@ -1019,7 +1019,7 @@ CONTAINS
          lout = .true. 
          CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps,    &
          cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat, cr_fmat, &
-         cr_cartesian)                                                  
+         cr_cartesian, cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
          CALL update_cr_dim 
       ENDIF 
 !                                                                       

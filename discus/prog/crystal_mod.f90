@@ -39,6 +39,10 @@ USE discus_config_mod
    REAL   , DIMENSION(3,3)          ::  cr_rten     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_rten))
    REAL   , DIMENSION(3,3,3)        ::  cr_reps
    REAL   , DIMENSION(3,3)          ::  cr_fmat     = RESHAPE((/1,0,0, 0,1,0, 0,0,1/),SHAPE(cr_fmat))
+   REAL   , DIMENSION(4,4)          ::  cr_tran_g   = 0.0
+   REAL   , DIMENSION(4,4)          ::  cr_tran_gi  = 0.0
+   REAL   , DIMENSION(4,4)          ::  cr_tran_f   = 0.0
+   REAL   , DIMENSION(4,4)          ::  cr_tran_fi  = 0.0
    REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_scat   ! (11,0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfr  ! (  0:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE ::  cr_delfi  ! (  0:MAXSCAT)

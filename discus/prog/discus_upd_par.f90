@@ -695,12 +695,14 @@
                cr_a0 (ww (1) ) = wert 
                CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
-               cr_gmat, cr_fmat, cr_cartesian)                          
+               cr_gmat, cr_fmat, cr_cartesian,                         &
+               cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             ELSEIF (ww (1) .ge.4.and.ww (1) .le.6) then 
                cr_win (ww (1) - 3) = wert 
                CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
-               cr_gmat, cr_fmat, cr_cartesian)                          
+               cr_gmat, cr_fmat, cr_cartesian,                          &
+               cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 

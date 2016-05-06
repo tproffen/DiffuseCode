@@ -1670,7 +1670,10 @@ CONTAINS
       DATA lspace / .true. / 
       DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
-      CALL plot_ini_trans (1.0) 
+      CALL plot_ini_trans (1.0,                                &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
+
 !                                                                       
       latom = .false. 
       uvw (4) = 1.0 
@@ -1870,7 +1873,9 @@ CONTAINS
       DATA lspace / .true. / 
       DATA null / 0.0, 0.0, 0.0 / 
 !                                                                       
-      CALL plot_ini_trans (1.0) 
+      CALL plot_ini_trans (1.0,                                &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
 !                                                                       
       latom = .false. 
       uvw (4) = 1.0 
@@ -1955,7 +1960,9 @@ CONTAINS
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
 !                                                                       
-      CALL plot_ini_trans (1.0) 
+      CALL plot_ini_trans (1.0,                                &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
 !                                                                       
       latom = .false. 
 !
