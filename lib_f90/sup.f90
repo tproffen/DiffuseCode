@@ -1185,12 +1185,12 @@ SUBROUTINE cmdline_args
       PARAMETER (maxw = 25) 
 !                                                                       
       CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw), line, cstr 
+      CHARACTER(1024) cpara (maxw), line, cstr , bstr
       CHARACTER(2048) string 
       REAL werte (maxw) 
       INTEGER lpara (maxw), lstr, lp 
       INTEGER ianz, i, igl, ii, ianzz 
-      INTEGER ia, ie, itab 
+      INTEGER ia, ie, itab , ll
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -1247,7 +1247,7 @@ SUBROUTINE cmdline_args
 !RBN          call do_math(line,igl,lp)                                 
 !RBN          if (ier_num.ne.0) return                                  
 !RBN        ENDDO                                                       
-         DO i = 1, ianz 
+         loop_para: DO i = 1, ianz 
          line = cpara (i) (1:lpara (i) ) //'=' 
          lp = lpara (i) + 1 
          igl = index (line, '=') 
@@ -1265,9 +1265,13 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     ---Copy the characters into the line, until a blank or ","        
 !                                                                       
+         ll = 0
+         bstr = ' '
          DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
+            ll = ll + 1
          lp = lp + 1 
          line (lp:lp) = cstr (1:1) 
+         bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
          ia = ia + 1 
          IF (ia.gt.ie) then 
             GOTO 997 
@@ -1276,7 +1280,13 @@ SUBROUTINE cmdline_args
          ENDDO 
   997    CONTINUE 
          CALL do_math (line, igl, lp) 
-         ENDDO 
+            IF(ier_num /= 0) THEN    ! Error in math assum string 
+               line = cpara(i)(1:lpara(i)) //' = '''// bstr(1:LEN_TRIM(bstr))//''''  
+               igl = lpara(i) + 2
+               lp  = LEN_TRIM(line)
+               CALL do_math (line, igl, lp)
+            ENDIF
+         ENDDO loop_para
       ELSE 
          READ (io_unit (ii), *, err = 998, end = 999) 
          res_para (0) = 0 
