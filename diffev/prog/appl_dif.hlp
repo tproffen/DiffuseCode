@@ -19,7 +19,7 @@
    Further help topics are:
 
 2  News
-3  2006_april
+3  2016_april
 
    The initialise command was augmented by a second form to  initialise
    just the logfiles, see ==> 'logfile', 'summary'.
@@ -38,7 +38,7 @@
    This short form contains the parameters just for the last
    refinement generation.
    
-2  Summary
+2  Synopsis
 
 !p Description ! A description of the program
 !p News        ! Information on recent changes
