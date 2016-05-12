@@ -2377,10 +2377,8 @@ SUBROUTINE cmdline_args
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
-!                                                                       
-      CHARACTER ( * ) zeile 
-!                                                                       
-      INTEGER lp 
+      CHARACTER (LEN=*), INTENT(IN) :: zeile 
+      INTEGER,           INTENT(IN) :: lp 
 !                                                                       
       INTEGER reserved_n 
       PARAMETER (reserved_n = 47) 
