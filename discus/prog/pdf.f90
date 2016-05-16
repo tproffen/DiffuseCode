@@ -493,7 +493,7 @@ SUBROUTINE pdf
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: cmd 
 !                                                                       
-      CHARACTER(9) at_lis (MAXSCAT+1) 
+      CHARACTER(9) at_lis (0:MAXSCAT+1) 
       CHARACTER(9) cpoly (5) 
       INTEGER i, j, k 
 !                                                                       

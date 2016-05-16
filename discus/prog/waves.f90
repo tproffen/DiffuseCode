@@ -527,7 +527,7 @@ SUBROUTINE waves_menu
        
 !                                                                       
       CHARACTER(15) cwave (3) 
-      CHARACTER(9) at_lis (maxscat)!, at_name 
+      CHARACTER(9) at_lis (0:maxscat)!, at_name 
       CHARACTER(6) cphase (2) 
       INTEGER mol_lis (maxscat) 
       INTEGER i, j, k 

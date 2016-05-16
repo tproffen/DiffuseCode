@@ -667,7 +667,7 @@ CONTAINS
 !
       IMPLICIT none 
 !                                                                       
-      CHARACTER(9) at_lis (maxscat+1)! , at_name 
+      CHARACTER(9) at_lis (0:maxscat+1)! , at_name 
       INTEGER mol_lis (maxscat+1) 
       INTEGER i, j, k 
       LOGICAL lspace 

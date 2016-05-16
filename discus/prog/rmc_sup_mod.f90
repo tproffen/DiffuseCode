@@ -731,7 +731,7 @@ CONTAINS
       CHARACTER (LEN=*), INTENT(IN) :: cmd
 ! 
       CHARACTER(25) wic (8) 
-      CHARACTER(9) at_lis (maxscat+1) 
+      CHARACTER(9) at_lis (0:maxscat+1) 
       CHARACTER(8) ra 
       INTEGER mol_lis (mole_max_type+1) 
       INTEGER i, j, k, ie, len_str 
