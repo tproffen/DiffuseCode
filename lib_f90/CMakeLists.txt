@@ -6,6 +6,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               random.f90 sup.f90 set_sub_generic_mod.f90 variable_test.f90 
               charact_mod.f90 debug_mod.f90 doact_mod.f90 doexec_mod.f90 
               doloop_mod.f90 envir_mod.f90 errlist_mod.f90 learn_mod.f90
+              mpi_slave_mod.f90
               class_macro.f90 macro_internal.f90 macro_mod.f90 
               param_mod.f90 prompt_mod.f90 random_mod.f90 sorting.f90 
               times_mod.f90 variable_mod.f90 wink_mod.f90)

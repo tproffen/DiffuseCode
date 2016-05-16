@@ -29,6 +29,7 @@ USE population
 USE times_mod
 !
 USE errlist_mod
+USE mpi_slave_mod
 USE prompt_mod
 !
 IMPLICIT none
@@ -121,6 +122,8 @@ CALL MPI_TYPE_COMMIT ( run_mpi_data_type, ier_num)
 run_mpi_active = .true.
 !
 socket_status = PROMPT_OFF  ! Turn off socket responses
+!
+mpi_active = .true.
 !
 3000 FORMAT('MPI system returned error no. ',i8)
 !4000 FORMAT(1x,'MPI initilization successful ..')
@@ -228,12 +231,20 @@ ENDDO
 !
 !------       --Receive results and hand out new jobs
 !
-DO i = 1, pop_c * run_mpi_senddata%nindiv
+rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
    CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
    run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
+   IF(run_mpi_senddata%ierr /=0 ) THEN
+      ier_msg(1) = 'A slave program exited with error message'
+      WRITE(ier_msg(2), 2000)  sender, ier_num
+      ier_num = -26
+      ier_typ = ER_APPL
+2000 FORMAT('Error message from slave ',I4,' is ',i8)
+      EXIT rec_hand
+   ENDIF
    IF(run_mpi_senddata%use_socket ) THEN   ! SOCKET option is active
        socket_id(run_mpi_senddata%prog_num) = run_mpi_senddata%s_remote  ! Store socket info in data base
        port_id  (run_mpi_senddata%prog_num,sender) = run_mpi_senddata%port  ! Store port info in data base
@@ -255,7 +266,14 @@ DO i = 1, pop_c * run_mpi_senddata%nindiv
 !
       run_mpi_numsent = run_mpi_numsent + 1
    ENDIF
-ENDDO
+ENDDO rec_hand
+IF(ier_num == -26) THEN   ! Fatal error occured, wait for remaining jobs
+   DO i=1, run_mpi_numjobs-1
+         CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
+                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   ENDDO
+   ier_num = -26 ! Reinstate the error message
+ENDIF
 run_mpi_myid = local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 !------       --End of loop over all kids in the population
@@ -277,6 +295,7 @@ USE diffev_setup_mod
 !
 USE set_sub_generic_mod
 USE errlist_mod
+USE mpi_slave_mod
 USE prompt_mod
 !
 IMPLICIT none
@@ -459,6 +478,8 @@ slave: DO
                           output(1:output_l)
       ENDIF repeat
       job_l = len_str(line)
+      mpi_is_slave = .true.
+      mpi_slave_error = 0
 !             Execute the "generic" cost function calculation
       CALL p_execute_cost( run_mpi_senddata%repeat,                          &
                            run_mpi_senddata%prog , run_mpi_senddata%prog_l , &

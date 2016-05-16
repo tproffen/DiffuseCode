@@ -6,11 +6,15 @@
 !
 !*****7****************************************************************
        USE errlist_mod
+       USE mpi_slave_mod
        USE param_mod 
        USE prompt_mod 
        USE set_sub_generic_mod
        IMPLICIT      none
 !
+       IF(mpi_is_slave .AND. ier_num /= 0) THEN
+          mpi_slave_error = ier_num   ! Transfer error for MPI to signal
+       ENDIF
 !
        if    (ier_typ.eq.ER_NONE) then
          call errlist_none
@@ -31,18 +35,19 @@
 !------       Terminate program if an error occured and the 
 !       error status is set to ER_S_EXIT
 !
-       if(ier_num.lt.0 .and. ier_sta.eq.ER_S_EXIT) then
-         write(output_io,1000) char(7)
+       IF(ier_num.lt.0 .and. ier_sta.eq.ER_S_EXIT .AND. &
+          .NOT. mpi_is_slave ) THEN
+         WRITE(output_io,1000) char(7)
          IF(output_io/=6) write(*,1000) char(7)
-         stop
-       elseif(ier_num.lt.0 .and. ier_sta.eq.ER_S_CONT .or.              &
+         STOP
+       ELSEIF(ier_num.lt.0 .and. ier_sta.eq.ER_S_CONT .or.              &
      &        ier_sta.eq.ER_S_LIVE                  ) then
          res_para(0) = -1
          res_para(1) = ier_num
          res_para(2) = ier_typ
-       endif
+       ENDIF
 !
-       call no_error
+       CALL no_error
 !
 1000  format(' ****EXIT**** Program terminated by error status',        &
      &       '        ****',a1/)
@@ -159,7 +164,7 @@
      &  ' ',                                        & !-12  ! command
      &  'Error in subroutine',                      & !-11  ! command
      &  ' ',                                        & !-10  ! command
-     &  ' ',                                        & ! -9  ! command
+     &  'Program section returned with error',      & ! -9  ! command
      &  'Unknown command',                          & ! -8  ! command
      &  'Branch is active within suite only ',      & ! -7  ! command
      &  'Missing or wrong parameters for command',  & ! -6  ! command,fortran

@@ -9,6 +9,7 @@ USE doact_mod
 USE errlist_mod 
 USE learn_mod 
 USE class_macro_internal
+USE mpi_slave_mod
 USE prompt_mod 
 !                                                                       
 IMPLICIT none 
@@ -60,6 +61,12 @@ INTEGER                        :: laenge, lp, lbef
                write(output_io, 9000)
                stop
             ENDIF
+            IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
+               ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
+               CALL errlist                     ! but get error message
+               ier_sta = ER_S_EXIT
+               EXIT main                        ! Now terminate program gracefully
+            ENDIF
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) then 
                IF (lmakro.and.ier_sta.ne.ER_S_LIVE) then 
@@ -77,7 +84,7 @@ INTEGER                        :: laenge, lp, lbef
 !
 8000 format(' ****EXIT**** Input error on normal read        ',        &
      &       '        ****',a1/)
-9000 format(' ****EXIT**** Program terminated by error status',        &
+9000 format(' ****EXIT**** SUITE   terminated by error status',        &
      &       '        ****',a1/)
 !                                                                       
 END SUBROUTINE suite_loop

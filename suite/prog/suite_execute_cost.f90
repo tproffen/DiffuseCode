@@ -17,6 +17,7 @@ USE kuplot_loop_mod
 USE suite_setup_mod
 !
 USE errlist_mod
+USE mpi_slave_mod
 USE prompt_mod
 USE param_mod
 !
@@ -123,7 +124,7 @@ IF(output_IO==37) THEN
    CLOSE(OUTPUT_IO)
 ENDIF
 !
-ierr = 0
+ierr = mpi_slave_error
 
 2000 FORMAT ( a,' ',a,',',i8,',',i8)
 2100 FORMAT ( a,' ',a,',',i8       )
