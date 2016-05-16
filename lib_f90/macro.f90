@@ -540,9 +540,15 @@ SUBROUTINE macro_close
 !+
       USE class_macro_internal
       USE macro_mod
+      USE mpi_slave_mod
       USE prompt_mod
       IMPLICIT none
 !
+      INTEGER :: all_status
+!
+IF(mpi_is_slave) THEN
+   RETURN
+ENDIF
 !
 IF(prompt_status/=PROMPT_OFF) THEN
    WRITE(output_io,*) ' '
@@ -559,8 +565,9 @@ IF(ASSOCIATED(mac_tree_root)) THEN
    DO WHILE(ASSOCIATED(mac_tree_active%kid))   ! There are more macros in the tree
       mac_tree_active => mac_tree_active%kid   ! Point to kid
       CALL mac_tree_active%parent%active%macros%finalize_macro ! Deallocate macro lines
-      DEALLOCATE(mac_tree_active%parent%active%macros)         ! Remove macro storage
-      DEALLOCATE(mac_tree_active%parent)       ! Remove previous node
+      IF(ASSOCIATED(mac_tree_active%parent%active%macros)) &
+      DEALLOCATE(mac_tree_active%parent%active%macros,STAT=all_status)         ! Remove macro storage
+      DEALLOCATE(mac_tree_active%parent,stat=all_status)       ! Remove previous node
    ENDDO
    CALL mac_tree_active%active%macros%finalize_macro ! Deallocate macro lines
    DEALLOCATE(mac_tree_active%active%macros)         ! Remove macro storage
