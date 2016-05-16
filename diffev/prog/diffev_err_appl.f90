@@ -9,11 +9,13 @@
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-24,IO=0)
+      PARAMETER    (IU=-26,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'MPI TERMINATED due to slave error ',                           & !-26  ! diffev
+     &  'Parameter could not be initialized',                           & !-25  ! diffev
      &  'Diffev not compiled/started with MPI',                         & !-24  ! diffev
      &  'MPI returned slave number, MPI is not active',                 & !-23  ! diffev
      &  'Error initializing MPI system',                                & !-22  ! diffev

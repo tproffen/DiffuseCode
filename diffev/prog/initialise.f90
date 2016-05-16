@@ -197,6 +197,13 @@ CONTAINS
             pop_para(i) = pop_x (i,j)
          ENDDO
          DO i = lb, ub
+            IF(pop_smin(i) < pop_xmin(i) .or. pop_xmax(i) < pop_smax(i)) THEN
+               ier_num = -25
+               ier_typ = ER_APPL
+               ier_msg(1) = 'Conflicting values for boundaries'
+               ier_msg(2) = 'Check values for pop_xmin/max; pop_smin/smax'
+               RETURN
+            ENDIF
             IF (pop_type (i) .eq.POP_INTEGER) THEN 
                pop_x (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
             ELSE 
