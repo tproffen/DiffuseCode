@@ -3058,12 +3058,18 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
          RETURN 
       ENDIF 
       infile = cpara (1) 
-      i = index (infile, '.') 
+      i = index (infile, '.',.true.)                  ! find last occurence of '.'
       IF (i.eq.0) then 
          infile = cpara (1) (1:lpara (1) ) //'.cif' 
          ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
       ELSE 
-         ofile  = cpara (1) (1:i) //'stru' 
+         IF(    cpara(1)(lpara(1)-3:lpara(1)) == '.cif') THEN
+            ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+         ELSEIF(cpara(1)(lpara(1)-3:lpara(1)) == '.CIF') THEN
+            ofile  = cpara (1) (1:lpara(1)-3) //'stru' 
+         ELSE
+            ofile  = cpara (1) (1:i) //'stru'
+         ENDIF
       ENDIF 
       lread  = .true. 
       lwrite = .false. 
@@ -3293,8 +3299,10 @@ atoms:      DO                                 ! Get all atoms information
                   nblank = nblank + 1
                ENDIF   ! end no comment
 !
-               IF(j_atom>line_no) THEN
+               IF(j_atom+nblank > line_no) THEN
                   nline = j_atom + nblank            ! We are now in line j_atom
+                  IF(ALLOCATED(CCPARA)) DEALLOCATE(ccpara)
+                  IF(ALLOCATED(LLPARA)) DEALLOCATE(llpara)
                   EXIT main
                ENDIF
                line   = rawline(j_atom + nblank)
