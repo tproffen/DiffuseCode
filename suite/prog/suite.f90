@@ -50,6 +50,7 @@ IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    pname_cap = 'DIFFEV'
    prompt    = pname
 ELSE
+   CALL program_files ()
    CALL discus_setup(lstandalone)
    CALL kuplot_setup(lstandalone)
    CALL diffev_setup(lstandalone)
@@ -61,6 +62,9 @@ ELSE
    prompt    = pname
    hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:LEN(TRIM(pname)))//'.hlp'
    hlpfile_l = LEN(TRIM(hlpfile))
+   IF(.NOT.run_mpi_active) THEN
+      CALL suite_set_sub_cost ()
+   ENDIF
    CALL suite_loop      ! Perform the normal main loop
 ENDIF
 !                                                                       

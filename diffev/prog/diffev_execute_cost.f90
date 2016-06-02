@@ -13,7 +13,8 @@ SUBROUTINE diffev_execute_cost( repeat,    &
 ! specific funtion to execute the cost function from diffev
 !
 !  This version runs a "system" call, just as in run_mpi_slave,
-!  as this version should never be executed!
+!  This version is called if diffev runs as standalone and 
+!  MPI is not active.
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat

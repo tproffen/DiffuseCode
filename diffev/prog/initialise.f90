@@ -202,6 +202,7 @@ CONTAINS
                ier_typ = ER_APPL
                ier_msg(1) = 'Conflicting values for boundaries'
                ier_msg(2) = 'Check values for pop_xmin/max; pop_smin/smax'
+               write(ier_msg(3),'(a,i5)') 'Parameter ',i
                RETURN
             ENDIF
             IF (pop_type (i) .eq.POP_INTEGER) THEN 

@@ -164,6 +164,7 @@ p_upd_para          => discus_upd_para
 p_calc_intr_spec    => discus_calc_intr_spec
 p_validate_var_spec => discus_validate_var_spec
 p_branch            => discus_branch
+p_loop_mpi          => dummy_loop_mpi
 !
 END SUBROUTINE discus_set_sub
 !

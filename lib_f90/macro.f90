@@ -97,10 +97,25 @@ SUBROUTINE file_kdo(line, ilen)
                ENDIF
             ENDIF
          ELSE           ! No internal storage yes, make new storage, and add
-            CALL macro_add_node(macro_root, macro_temp)
-            ALLOCATE(macro_temp%macros,STAT=istatus)
-            macro_temp%macros%macro_length = 0
-            macro_temp%macros%lmacro       = .false.
+            CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
+            file_length = len_str(filename)
+            IF(fileda) THEN   ! FILE EXISTS make storage
+               CALL macro_add_node(macro_root, macro_temp)
+               ALLOCATE(macro_temp%macros,STAT=istatus)
+               macro_temp%macros%macro_length = 0
+               macro_temp%macros%lmacro       = .false.
+            ELSE              ! File does not exist
+!              MACRO not found
+                ier_num = - 12
+                ier_typ = ER_MAC
+                oprompt = prompt
+                CALL macro_close
+                IF(lblock) THEN                ! If inside do/if terminate the block
+                   lblock_dbg = .false.
+                   lblock = .false.
+                ENDIF
+               RETURN
+            ENDIF
          ENDIF
          CALL no_error
 !
@@ -141,6 +156,7 @@ SUBROUTINE file_kdo(line, ilen)
          ENDIF
          RETURN
       ENDIF file_exist
+         ELSE is_new
          ENDIF is_new
 !
       ALLOCATE(mac_tree_temp, STAT=istatus)      ! Allocate next node
@@ -155,18 +171,23 @@ SUBROUTINE file_kdo(line, ilen)
       mac_tree_temp%lparams(0) = 5               ! Length of "$0"
       mac_tree_temp%nparams = ianz - 1           ! Store number of parameters
       mac_tree_temp%current = 0                  ! Currently in line 0
+      mac_tree_temp%level   = macro_level        ! Currently at depth macro_level
       mac_tree_temp%active => macro_temp         ! active macro is currently loaded macro
 !
       IF(macro_level == 1 ) THEN                 ! Top level, start execution tree
          NULLIFY(mac_tree_temp%parent)           ! This one has no parent, as top level
          mac_tree_root    => mac_tree_temp       ! root points to current
          mac_tree_active  => mac_tree_temp       ! Point to currently active macro
+         mac_tree_tail    => mac_tree_temp       ! Point to last macro
          lmakro = .true.
       ELSE
          mac_tree_active%kid  => mac_tree_temp   ! Store new macro as kid of active macro
          mac_tree_temp%parent => mac_tree_active ! Store parent of current macro
          mac_tree_active      => mac_tree_temp   ! Point to currently active macro
+         mac_tree_tail        => mac_tree_temp   ! Point to last macro
       ENDIF
+!
+!
 !
       IF (prompt.ne.'macro ') oprompt = prompt
 !
@@ -564,7 +585,7 @@ IF(ASSOCIATED(mac_tree_root)) THEN
 !
    DO WHILE(ASSOCIATED(mac_tree_active%kid))   ! There are more macros in the tree
       mac_tree_active => mac_tree_active%kid   ! Point to kid
-      CALL mac_tree_active%parent%active%macros%finalize_macro ! Deallocate macro lines
+      CALL          mac_tree_active%parent%active%macros%finalize_macro ! Deallocate macro lines
       IF(ASSOCIATED(mac_tree_active%parent%active%macros)) &
       DEALLOCATE(mac_tree_active%parent%active%macros,STAT=all_status)         ! Remove macro storage
       DEALLOCATE(mac_tree_active%parent,stat=all_status)       ! Remove previous node
@@ -595,6 +616,40 @@ ENDIF
 !!!ENDIF
 !
 END SUBROUTINE macro_close
+!
+!*****7*****************************************************************
+SUBROUTINE macro_close_mpi(first_mac, mac_l)
+!
+! close the tree associated with currently running mpi slave
+!
+USE class_macro_internal
+USE macro_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+CHARACTER (LEN=*), INTENT(IN) :: first_mac
+INTEGER          , INTENT(IN) :: mac_l
+INTEGER :: indx
+!
+mac_tree_active => mac_tree_tail   ! start at tail 
+indx = INDEX(mac_tree_active%active%macrofile,first_mac(1:mac_l))
+
+DO WHILE(indx == 0)
+   mac_tree_active => mac_tree_active%parent
+   DEALLOCATE(mac_tree_active%kid)
+   indx = INDEX(mac_tree_active%active%macrofile,first_mac(1:mac_l))
+ENDDO
+IF(ASSOCIATED(mac_tree_active%parent)) THEN
+   mac_tree_active => mac_tree_active%parent
+   DEALLOCATE(mac_tree_active%kid)
+   macro_level = mac_tree_active%level
+ELSE
+   DEALLOCATE(mac_tree_active)
+   lmakro = .false.
+   macro_level = 0
+ENDIF
+END SUBROUTINE macro_close_mpi
 !*****7*****************************************************************
       SUBROUTINE macro_continue (zeile, lcomm)
 !-

@@ -155,7 +155,7 @@ ENDIF
 !
 IF(pname=='discus') THEN      ! Return to DISCUS branch
       CALL discus_set_sub ()
-ELSEIF(pname=='diffev') THEN  ! Return to KUPLOT branch
+ELSEIF(pname=='diffev') THEN  ! Return to DIFFEV branch
       CALL diffev_set_sub ()
 ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()

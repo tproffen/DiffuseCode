@@ -10,6 +10,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          trial_v, NTRIAL, &
                          ierr )
 !
+USE diffev_setup_mod
 USE discus_setup_mod
 USE discus_loop_mod
 USE kuplot_setup_mod
@@ -45,13 +46,23 @@ INTEGER                , INTENT(OUT):: ierr
 !
 CHARACTER(LEN=2048) :: line
 CHARACTER(LEN=2048) :: logfile
+CHARACTER(LEN= 7   ) :: ct_pname_old,ct_pname_cap_old
+INTEGER              :: ct_prompt_status_old
+
 LOGICAL, SAVE       :: l_discus_init =.false.
 LOGICAL, SAVE       :: l_kuplot_init =.false.
 INTEGER             :: i
 INTEGER             :: job_l
+INTEGER             :: ios
 LOGICAL :: str_comp
 INTEGER :: len_str
 !
+! Store old program name and prompt status
+!
+ct_pname_old         = pname
+ct_pname_cap_old     = pname_cap
+ct_prompt_status_old = prompt_status
+
 IF(str_comp(output(1:output_l), '/dev/null', 9, output_l, 9)) THEN
    line  = 'prompt, redirect, off'
    job_l =  21
@@ -68,7 +79,14 @@ ELSE
    socket_status = PROMPT_REDIRECT
    output_io = 37
    logfile   = output(1:output_l)
-   OPEN(UNIT=output_IO, FILE=logfile, STATUS='unknown')
+   OPEN(UNIT=output_IO, FILE=logfile, STATUS='unknown', IOSTAT=ios)
+   IF(ios/=0) THEN
+      ier_num = -2
+      ier_typ = ER_IO
+      ier_msg(1) = logfile(1:80)
+      ier_msg(2) = 'Check spelling, existence of directories'
+      RETURN
+   ENDIF
 ENDIF
 !
 DO i=1,parameters
@@ -93,31 +111,37 @@ ELSE
 ENDIF
 job_l = len_str(line)
 CALL file_kdo(line, job_l)
+IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
-rvalue_yes = .false.   ! Reset the global R-value flag
-l_rvalue   = .false.
-rvalue     = 0.0
-IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
-   IF(.NOT. l_discus_init) THEN
-      CALL discus_setup   (lstandalone)
-      l_discus_init = .true.
+   rvalue_yes = .false.   ! Reset the global R-value flag
+   l_rvalue   = .false.
+   rvalue     = 0.0
+   IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
+      IF(.NOT. l_discus_init) THEN
+         CALL discus_setup   (lstandalone)
+         l_discus_init = .true.
+      ENDIF
+      CALL discus_set_sub ()
+      CALL suite_set_sub_branch
+      CALL discus_loop ()
+   ELSEIF(str_comp(prog, 'kuplot', 6, prog_l, 6)) THEN
+      IF(.NOT. l_kuplot_init) THEN
+         CALL kuplot_setup   (lstandalone)
+         l_kuplot_init = .true.
+      ENDIF
+      CALL kuplot_set_sub ()
+      CALL suite_set_sub_branch
+      CALL kuplot_loop ()
    ENDIF
-   CALL discus_set_sub ()
-   CALL suite_set_sub_branch
-   CALL discus_loop ()
-ELSEIF(str_comp(prog, 'kuplot', 6, prog_l, 6)) THEN
-   IF(.NOT. l_kuplot_init) THEN
-      CALL kuplot_setup   (lstandalone)
-      l_kuplot_init = .true.
-   ENDIF
-   CALL kuplot_set_sub ()
-   CALL suite_set_sub_branch
-   CALL kuplot_loop ()
-ENDIF
 !
-IF(rvalue_yes) THEN    ! We got an r-value
-   l_rvalue = .true.
-   rvalue   = rvalues(2)
+   CALL macro_close_mpi(mac, mac_l)
+!
+   IF(rvalue_yes) THEN    ! We got an r-value
+      l_rvalue = .true.
+      rvalue   = rvalues(2)
+   ENDIF
+ELSE
+   mpi_slave_error = ier_num
 ENDIF
 !
 IF(output_IO==37) THEN
@@ -125,7 +149,26 @@ IF(output_IO==37) THEN
 ENDIF
 !
 ierr = mpi_slave_error
-
+!
+! Restore old program secion settings, i.e. always DIFFEV...
+!
+pname         = ct_pname_old
+pname_cap     = ct_pname_cap_old
+prompt_status = ct_prompt_status_old
+prompt        = pname
+oprompt       = pname
+!
+!
+IF(pname=='discus') THEN      ! Return to DISCUS branch
+      CALL discus_set_sub ()
+ELSEIF(pname=='diffev') THEN  ! Return to DIFFEV branch
+      CALL diffev_set_sub ()
+ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
+      CALL kuplot_set_sub ()
+ENDIF
+CALL suite_set_sub_branch ()
+CALL program_files ()
+!
 2000 FORMAT ( a,' ',a,',',i8,',',i8)
 2100 FORMAT ( a,' ',a,',',i8       )
 !

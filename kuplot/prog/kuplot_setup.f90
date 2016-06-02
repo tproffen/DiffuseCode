@@ -144,6 +144,7 @@ p_upd_para          => kuplot_upd_para
 p_calc_intr_spec    => kuplot_calc_intr_spec
 p_validate_var_spec => kuplot_validate_var_spec
 p_branch            => kuplot_branch
+p_loop_mpi          => dummy_loop_mpi
 !
 END SUBROUTINE kuplot_set_sub
 !

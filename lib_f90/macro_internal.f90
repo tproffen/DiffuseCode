@@ -8,7 +8,7 @@ PRIVATE
 PUBLIC  :: macro_internal
 PUBLIC  :: macro_root, macro_temp, macro_read_temp
 PUBLIC  :: macro_add_node, macro_find_node, macro_write_node
-PUBLIC  :: mac_tree_root, mac_tree_temp, mac_tree_active
+PUBLIC  :: mac_tree_root, mac_tree_temp, mac_tree_active, mac_tree_tail
 PUBLIC  :: macro_level
 PUBLIC  :: lmakro
 !
@@ -30,6 +30,7 @@ TYPE :: macro_tree                                      ! Indicates which macro 
    CHARACTER (LEN= 256),DIMENSION(0:20):: params =' '   ! parameters
    INTEGER             ,DIMENSION(0:20):: lparams=0     ! parameter lengths
    INTEGER                           :: current  =0     ! Current line
+   INTEGER                           :: level    =0     ! Current macro depth
    TYPE (macro_tree), POINTER        :: parent          ! Parent of current macro
    TYPE (macro_tree), POINTER        :: kid             ! kid to the current macro
    TYPE (macro_internal), POINTER    :: active          ! The associated storage node
@@ -38,6 +39,7 @@ END TYPE macro_tree
 TYPE(macro_tree), POINTER            :: mac_tree_root   ! Main root for execution tree
 TYPE(macro_tree), POINTER            :: mac_tree_temp   ! temporary pointer to build the tree
 TYPE(macro_tree), POINTER            :: mac_tree_active ! temporary pointer that migrates the tree
+TYPE(macro_tree), POINTER            :: mac_tree_tail   ! temporary pointer that migrates the tree
 !
 INTEGER                              :: macro_level = 0 ! Current macro depth
 LOGICAL                              :: lmakro = .false.! Macro status is on/off

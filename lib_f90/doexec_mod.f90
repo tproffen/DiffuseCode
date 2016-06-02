@@ -16,5 +16,7 @@ MODULE doexec_mod
    INTEGER             , DIMENSION(         0:MAXLEV) :: jump     ! (0:MAXLEV)
    LOGICAL             , DIMENSION(         0:MAXLEV) :: ltest    ! (0:MAXLEV)
 !
+   INTEGER                                            :: nlevel_mpi
+   INTEGER                                            ::  level_mpi
 !
 END MODULE doexec_mod

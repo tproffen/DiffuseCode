@@ -17,6 +17,7 @@ USE compare
 USE initialise
 USE run_mpi_mod
 USE diffev_show_mod
+USE diffev_refine
 !
 USE errlist_mod 
 USE learn_mod 
@@ -244,7 +245,13 @@ ELSE
             pop_result_file_rd = .true.
          ELSEIF (ianz.eq.1) THEN
             IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
-               pop_result_file_rd = .false.
+               IF(lstandalone) THEN 
+                  ier_num = -27
+                  ier_typ = ER_APPL
+                  RETURN 
+               ELSE
+                  pop_result_file_rd = .false.
+               ENDIF
             ENDIF
          ELSE
             ier_num = -6
@@ -391,10 +398,16 @@ ELSE
                CALL do_initialise (l_init_x)
             ELSE
                IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
-                  pop_trial_file_wrt = .false.
-                  ianz = ianz - 1
-                  l_init_x = .true.
-                  CALL do_initialise (l_init_x)
+                  IF(lstandalone) THEN 
+                     ier_num = -27
+                     ier_typ = ER_APPL
+                     RETURN 
+                  ELSE
+                     pop_trial_file_wrt = .false.
+                     ianz = ianz - 1
+                     l_init_x = .true.
+                     CALL do_initialise (l_init_x)
+                  ENDIF
                ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7)) THEN
                   l_init_x = .false.
                   CALL read_par_values              ! Make sure parent values are set
@@ -496,7 +509,8 @@ ELSE
          ENDIF 
       ENDIF 
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
-      IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
+!     IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
+      IF (       run_mpi_active .and. run_mpi_numprocs < 2 ) THEN
          ier_num =  -24
          ier_typ = ER_APPL
          ier_msg(1) = 'To run an MPI distributed application requires'
@@ -514,6 +528,14 @@ ELSE
       ENDIF
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) then 
+         IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
+                                                ! and 'run_mpi' within a do loop
+            run_mpi_senddata%prog   = cpara(1)(1:lpara(1))
+            run_mpi_senddata%prog_l = lpara(1)
+            run_mpi_senddata%mac    = cpara(2)(1:lpara(2))
+            run_mpi_senddata%mac_l  = lpara(2)
+            CALL refine_no_mpi(.true.)
+         ELSE
          IF ( ianz == 5 ) THEN
             run_mpi_senddata%use_socket = str_comp(cpara(5), 'socket', 6, lpara(5), 6)
             ianz = 4
@@ -550,16 +572,22 @@ ELSE
                ENDIF 
             ENDIF 
             IF ( ier_num == 0) THEN
-               IF(.NOT.lstandalone) THEN
-                  init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN
-                     CALL read_par_values
-                  ENDIF init_slave
-               ENDIF
-               CALL run_mpi_master 
+               IF(run_mpi_active) THEN   !Parallel processing with MPI
+                  IF(.NOT.lstandalone) THEN
+                     init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN
+                        CALL read_par_values
+                     ENDIF init_slave
+                  ENDIF
+                  CALL run_mpi_master 
+               ELSE    ! run_mpi_active
+!                 MPI is not active, refine with non parallel algorithm
+                  CALL refine_no_mpi(.false.)
+               ENDIF   ! run_mpi_active
             ENDIF 
          ELSE
             ier_num =  -6
             ier_typ =  -ER_COMM
+         ENDIF 
          ENDIF 
       ENDIF 
 !                                                                 
@@ -639,7 +667,13 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) then 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
+            IF(lstandalone) THEN 
+               ier_num = -27
+               ier_typ = ER_APPL
+               RETURN 
+            ELSE
                pop_trial_file_wrt = .false.
+            ENDIF 
          ELSE
             pop_trial_file_wrt = .true.
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
@@ -678,7 +712,13 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) then 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
+            IF(lstandalone) THEN 
+               ier_num = -27
+               ier_typ = ER_APPL
+               RETURN 
+            ELSE
                pop_result_file_rd = .false.
+            ENDIF 
          ELSE
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.eq.0) then 

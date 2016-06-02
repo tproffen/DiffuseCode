@@ -124,6 +124,36 @@ INTEGER          , INTENT(IN) :: length
    END SUBROUTINE branch
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
+!
+CHARACTER (LEN=*), INTENT(IN) :: prog_n
+CHARACTER (LEN=*), INTENT(IN) :: mac_n
+CHARACTER (LEN=*), INTENT(IN) :: out_n
+INTEGER          , INTENT(IN) :: prog_l
+INTEGER          , INTENT(IN) :: mac_l
+INTEGER          , INTENT(IN) :: out_l
+LOGICAL          , INTENT(IN) :: repeat
+INTEGER          , INTENT(IN) :: nindiv
+!
+   END SUBROUTINE loop_mpi
+END INTERFACE
+!
+INTERFACE
+   SUBROUTINE dummy_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
+!
+CHARACTER (LEN=*), INTENT(IN) :: prog_n
+CHARACTER (LEN=*), INTENT(IN) :: mac_n
+CHARACTER (LEN=*), INTENT(IN) :: out_n
+INTEGER          , INTENT(IN) :: prog_l
+INTEGER          , INTENT(IN) :: mac_l
+INTEGER          , INTENT(IN) :: out_l
+LOGICAL          , INTENT(IN) :: repeat
+INTEGER          , INTENT(IN) :: nindiv
+!
+   END SUBROUTINE dummy_loop_mpi
+END INTERFACE
+!
 !
 PROCEDURE(mache_kdo     )   , POINTER :: p_mache_kdo      => NULL()
 PROCEDURE(errlist_appl  )   , POINTER :: p_errlist_appl   => NULL()
@@ -133,5 +163,7 @@ PROCEDURE(calc_intr_spec)   , POINTER :: p_calc_intr_spec => NULL()
 PROCEDURE(validate_var_spec), POINTER :: p_validate_var_spec => NULL()
 PROCEDURE(execute_cost  )   , POINTER :: p_execute_cost   => NULL()
 PROCEDURE(branch        )   , POINTER :: p_branch         => NULL()
+PROCEDURE(loop_mpi      )   , POINTER :: p_loop_mpi       => NULL()
+
 !
 END MODULE set_sub_generic_mod

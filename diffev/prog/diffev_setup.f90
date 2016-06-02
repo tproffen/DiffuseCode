@@ -164,6 +164,21 @@ INTEGER          , INTENT(IN) :: length
    END SUBROUTINE diffev_branch
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE diffev_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
+!
+CHARACTER (LEN=*), INTENT(IN) :: prog_n
+CHARACTER (LEN=*), INTENT(IN) :: mac_n
+CHARACTER (LEN=*), INTENT(IN) :: out_n
+INTEGER          , INTENT(IN) :: prog_l
+INTEGER          , INTENT(IN) :: mac_l
+INTEGER          , INTENT(IN) :: out_l
+LOGICAL          , INTENT(IN) :: repeat
+INTEGER          , INTENT(IN) :: nindiv
+!
+   END SUBROUTINE diffev_loop_mpi
+END INTERFACE
+!
 p_mache_kdo         => diffev_mache_kdo
 p_errlist_appl      => diffev_errlist_appl
 p_ersetz_para       => diffev_ersetz_para
@@ -171,6 +186,7 @@ p_upd_para          => diffev_upd_para
 p_calc_intr_spec    => diffev_calc_intr_spec
 p_validate_var_spec => diffev_validate_var_spec
 p_branch            => diffev_branch
+p_loop_mpi          => diffev_loop_mpi
 !
 END SUBROUTINE diffev_set_sub
 !

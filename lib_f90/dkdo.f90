@@ -4,7 +4,7 @@
 !     routines in this file.                                            
 !                                                                       
 !*****7*****************************************************************
-      SUBROUTINE do_loop (line, lend, length) 
+SUBROUTINE do_loop (line, lend, length) 
 !+                                                                      
 !     All commands included in a block structure are read and stored in 
 !     character array. Executable commands are parsed to mach_kdo.      
@@ -20,21 +20,35 @@
       USE class_macro_internal 
       USE prompt_mod 
       USE set_sub_generic_mod
+      USE mpi_slave_mod
 !                                                                       
       IMPLICIT none 
 !
-      INTEGER, PARAMETER :: MAXW = 4
+      INTEGER, PARAMETER :: MAXW = 5
 !
       CHARACTER(1024) line 
       CHARACTER(1024) zeile 
       CHARACTER(20) prom 
       CHARACTER(4) befehl 
       CHARACTER(3) cprom (0:3) 
+      CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+      INTEGER            , DIMENSION(MAXW) :: lpara
+      REAL               , DIMENSION(MAXW) :: werte
+      INTEGER                              :: ianz
       INTEGER jlevel (0:maxlev) 
       INTEGER i, length, lp, lbef 
       INTEGER         :: indxm
       INTEGER         :: length_m
       LOGICAL lend, lreg 
+!
+      CHARACTER (LEN=1024) :: outfile
+      CHARACTER (LEN=1024) :: mac_n
+      CHARACTER (LEN=1024) :: prog_n
+      INTEGER              :: out_l
+      INTEGER              :: prog_l
+      INTEGER              :: mac_l
+      INTEGER              :: nindiv
+      LOGICAL              :: repeat
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -124,9 +138,58 @@
             line = line(1:indxm-2)
             length = indxm-2
          ENDIF
+!        GOTO 10 
+      ELSEIF(line(1:7)=='run_mpi' .AND. .NOT.mpi_active ) THEN !.AND. .NOT.lstandalone) THEN
+!
+!        run  a slave from diffev within discus_suite at NO MPI
+!
+         IF(pname=='diffev') THEN
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, length)
+            IF(ier_num == 0) THEN
+               IF ( ianz >= 2 .and. ianz <= 4 ) THEN
+                  IF ( ianz == 4 ) THEN
+                     outfile = cpara(4)(1:100)! Target for program output 
+                     out_l   = lpara(4)
+                     cpara(4) = '0'
+                     lpara(4) = 1
+                  ELSE
+                     outfile = '/dev/null'   ! Default output
+                     out_l   = 9
+                  ENDIF
+                  prog_n = cpara(1)
+                  prog_l = lpara(1)
+                  mac_n  = cpara(2)
+                  mac_l  = lpara(2)
+                  cpara(1:2) = '0'
+                  lpara(1:2) = 1
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  repeat = .false.
+                  IF (ier_num.eq.0) then
+                     IF ( nint(werte(3)) > 0 ) THEN
+                        repeat = .true.             ! repeat = false means no repetition
+                     ENDIF
+                     nindiv = max(1,nint(werte(3))) ! nindiv is at least 1
+                  ENDIF
+                  CALL p_loop_mpi(prog_n, prog_l, mac_n, mac_l, &
+                               outfile, out_l, repeat, nindiv)
+                  IF(repeat) THEN
+                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205], i[206]'
+                     length_m = mac_l + 18
+                  ELSE
+                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205]'
+                     length_m = mac_l + 10
+                  ENDIF
+   
+                  CALL file_kdo(zeile, length_m)
+                   level_mpi = level
+                  nlevel_mpi = nlevel(level)
+                  line = 'run_mpi '//prog_n(1:prog_l)//','//mac_n(1:mac_l)//', DOLOOP'
+                  length = 17 + prog_l + mac_l
+               ENDIF
+            ENDIF
+         ENDIF
       ENDIF 
 !                                                                       
-                                                                        
       do_comm (nlevel (level), level) = line 
       do_leng (nlevel (level), level) = length 
       ldostart (level) = .true. 
@@ -303,6 +366,10 @@
       ilevel (level) = ilevel (level) + 1 
       line = do_comm (ilevel (level), level) 
       laenge = do_leng (ilevel (level), level) 
+      IF(line(1:7)=='run_mpi') THEN
+          level_mpi = level
+         nlevel_mpi = ilevel(level)
+      ENDIF
       IF (line (1:2) .eq.'&&') then 
          level = level + 1 
          READ (line (3:6), * ) jump (level) 
