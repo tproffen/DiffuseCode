@@ -278,13 +278,14 @@ SUBROUTINE pdf
       USE debug_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: mode
        
 !                                                                       
       REAL sincut, rcut, z, bave, hh, rtot, ract 
-      REAL(DP) :: factor
+      REAL(PREC_DP) :: factor
       INTEGER :: max_bnd
       INTEGER i, j, ia, is, js, nn, nnn 
       LOGICAL ltot 
@@ -1613,12 +1614,13 @@ main:    DO
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
        
 !                                                                       
-      REAL(dp) cc, c, ce, e, ee, wtot, cold, cnew
+      REAL(PREC_DP) cc, c, ce, e, ee, wtot, cold, cnew
 !     REAL pdf_old (MAXDAT) 
-      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+      REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
       REAL sig2, sumbad 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL start, zeit, seknds 
@@ -1908,12 +1910,13 @@ close(89)
       USE refine_mod
       USE rmc_mod
       USE random_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
-      REAL(dp), INTENT(INOUT) :: cold
-      REAL(dp), INTENT(IN)    :: wtot
-      REAL(dp), INTENT(IN)    :: ee
+      REAL(PREC_DP), INTENT(INOUT) :: cold
+      REAL(PREC_DP), INTENT(IN)    :: wtot
+      REAL(PREC_DP), INTENT(IN)    :: ee
       REAL    , INTENT(INOUT) :: psum
       REAL    , INTENT(INOUT) :: p2sum
       REAL    , INTENT(INOUT) :: pmax
@@ -1922,11 +1925,11 @@ close(89)
 !
       INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
-      REAL(dp) :: c, cc, ce, cnew
+      REAL(PREC_DP) :: c, cc, ce, cnew
       REAL     :: pdf_old_scale
       REAL     :: pdf_old_rho0 
       REAL     :: prob
-      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+      REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
       REAL :: gasdev
       REAL :: ran1
@@ -2012,12 +2015,13 @@ close(89)
       USE refine_mod
       USE random_mod
       USE spcgr_apply
+      USE precision_mod
 !
       IMPLICIT NONE
 !
-      REAL(dp), INTENT(INOUT) :: cold
-      REAL(dp), INTENT(IN)    :: wtot
-      REAL(dp), INTENT(IN)    :: ee
+      REAL(PREC_DP), INTENT(INOUT) :: cold
+      REAL(PREC_DP), INTENT(IN)    :: wtot
+      REAL(PREC_DP), INTENT(IN)    :: ee
       REAL    , INTENT(INOUT) :: psum
       REAL    , INTENT(INOUT) :: p2sum
       REAL    , INTENT(INOUT) :: pmax
@@ -2026,11 +2030,11 @@ close(89)
 !
       INTEGER  :: i, ip, nmi, nma, ipc
       LOGICAL  :: laccept
-      REAL(dp) :: c, cc, ce, cnew
+      REAL(PREC_DP) :: c, cc, ce, cnew
       REAL, DIMENSION(6) :: pdf_old_lattice
       REAL     :: sum
       REAL     :: prob
-      REAL(dp), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
+      REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
       REAL :: gasdev
       REAL :: ran1
@@ -2435,11 +2439,11 @@ laccept = .false.
       INTEGER :: jpdf_bin
 !     REAL ppp (MAXDAT) 
 !      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
-      REAL(DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
+      REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
       REAL rr 
       REAL :: factor,fac4
-!     REAL(dp) :: convlv
+!     REAL(PREC_DP) :: convlv
 !     INTEGER (SELECTED_INT_KIND(9)) :: isign = 1
 !                                                                       
       rr = 0.0
@@ -2557,6 +2561,7 @@ laccept = .false.
       USE param_mod 
       USE wink_mod
       USE errlist_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER , INTENT(IN)  :: ia 
@@ -2567,9 +2572,9 @@ laccept = .false.
       INTEGER :: jgaus  ! Limit checked igaus
       INTEGER i, j, k, ii, jj, kk, is, js, ks, iatom, ibin
       INTEGER istart (3), iend (3), iii (3), cell (3) 
-!     REAL(dp) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
-!      REAL(dp), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
-      REAL(dp), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
+!     REAL(PREC_DP) ppp (MAXDAT), gaus ( - MAXDAT:MAXDAT) 
+!      REAL(PREC_DP), DIMENSION( PDF_MAXDAT)            :: ppp   !(MAXDAT)
+      REAL(PREC_DP), DIMENSION(-PDF_MAXDAT:PDF_MAXDAT) :: gaus  ! ( - MAXDAT:MAXDAT) 
       REAL asym, gnorm, dist, dist2 !, rg 
       REAL sigma, fac , factor, fac4
       REAL dd (3), d (3), offset (3) 
@@ -3130,6 +3135,7 @@ inner:      DO iatom = ia+1, cr_natoms
       USE pdf_mod 
       USE errlist_mod 
       USE wink_mod
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       REAL , INTENT(IN)  :: rsign
@@ -3138,8 +3144,8 @@ inner:      DO iatom = ia+1, cr_natoms
       INTEGER ig, igaus, ib, ie , jgaus
       INTEGER ii, is, js, ibin , ibin1
       INTEGER :: il   ! Index for mole B-values
-!     REAL(dp) gaus ( - MAXDAT:MAXDAT) 
-      REAL(dp), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
+!     REAL(PREC_DP) gaus ( - MAXDAT:MAXDAT) 
+      REAL(PREC_DP), DIMENSION(- PDF_MAXDAT:PDF_MAXDAT) :: gaus ! ( - MAXDAT:MAXDAT) 
       REAL asym, gnorm, dist, dist2 !, rg 
       REAL sigma, fac , factor, fac4
       REAL :: sqrt_zpi

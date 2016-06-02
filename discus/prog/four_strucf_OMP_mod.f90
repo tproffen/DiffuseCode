@@ -10,13 +10,18 @@ CONTAINS
       USE omp_lib
       USE discus_config_mod 
       USE diffuse_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: iscat 
       LOGICAL, INTENT(IN) :: lform 
 !                                                                       
-      REAL(KIND=dp)        :: xarg0, xincu, xincv , xincw
-      INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
+!      REAL(KIND=dp)        :: xarg0, xincu, xincv , xincw
+!      INTEGER             :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw, iadd 
+      REAL(PREC_DP)        :: xarg0, xincu, xincv , xincw
+      REAL(PREC_DP)        ::        oincu, oincv , oincw
+      INTEGER (KIND=16)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
+      INTEGER (KIND=16)   ::                              jincu, jincv, jincw
 !
       INTEGER                              :: tid       ! Id of this thread
       INTEGER                              :: nthreads  ! Number of threadsa available from OMP
@@ -48,15 +53,23 @@ CONTAINS
 
       DO k = 1, nxat 
          tid = OMP_GET_THREAD_NUM()
-         xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm  (3) * xat(k, 3)
+!        xarg0 = xm (1) * xat(k, 1) + xm (2) * xat(k, 2) + xm  (3) * xat(k, 3)
          xincu = uin(1) * xat(k, 1) + uin(2) * xat(k, 2) + uin (3) * xat(k, 3)
          xincv = vin(1) * xat(k, 1) + vin(2) * xat(k, 2) + vin (3) * xat(k, 3)
          xincw = win(1) * xat(k, 1) + win(2) * xat(k, 2) + win (3) * xat(k, 3)
+         oincu = off_shift(1,1)* xat(k, 1) + off_shift(2,1) * xat(k, 2) + off_shift(3,1) * xat(k, 3)
+         oincv = off_shift(1,2)* xat(k, 1) + off_shift(2,2) * xat(k, 2) + off_shift(3,2) * xat(k, 3)
+         oincw = off_shift(1,3)* xat(k, 1) + off_shift(2,3) * xat(k, 2) + off_shift(3,3) * xat(k, 3)
 !                                                                       
-         iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
+!        iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 1.0d0) ) 
          iincu = nint (64 * I2PI * (xincu - int (xincu) + 1.0d0) ) 
          iincv = nint (64 * I2PI * (xincv - int (xincv) + 1.0d0) ) 
          iincw = nint (64 * I2PI * (xincw - int (xincw) + 1.0d0) ) 
+         jincu = nint (64 * I2PI * (oincu - int (oincu) + 0.0d0) ) 
+         jincv = nint (64 * I2PI * (oincv - int (oincv) + 0.0d0) ) 
+         jincw = nint (64 * I2PI * (oincw - int (oincw) + 0.0d0) ) 
+         iarg0 =  lmn(1)*iincu + lmn(2)*iincv + lmn(3)*iincw + &
+                  lmn(4)*jincu + lmn(5)*jincv + lmn(6)*jincw
          iarg = iarg0 
 !                                                                       
 !------ - Loop over all points in Q. 'iadd' is the address of the       

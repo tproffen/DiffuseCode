@@ -1000,13 +1000,13 @@ MODULE discus_allocate_appl_mod
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_atoms
 !
-      COMPLEX              :: def_value
+      COMPLEX (KIND=KIND(0.0D0)) :: def_value
       INTEGER              :: all_status
       LOGICAL              :: lstat
       INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      def_value = CMPLX(0.0,0.0)
+      def_value = CMPLX(0.0D0,0.0D0)
       dif_size_of = 0
 !
        CALL alloc_arr ( csf     ,1,n_qxy  ,  all_status, def_value, size_of)
@@ -1025,7 +1025,7 @@ MODULE discus_allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
-       CALL alloc_arr ( dsi     ,1,n_qxy  ,  all_status, 0.0      , size_of)
+       CALL alloc_arr ( dsi     ,1,n_qxy  ,  all_status, 0.0D0    , size_of)
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        dif_size_of = dif_size_of + size_of
 !
@@ -1737,6 +1737,7 @@ MODULE discus_allocate_appl_mod
 !     Allocate the arrays needed by PDF
 !+
       USE pdf_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -1747,7 +1748,7 @@ MODULE discus_allocate_appl_mod
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
-      REAL(dp) , PARAMETER   :: def_dbl = 0.0D0
+      REAL(PREC_DP) , PARAMETER   :: def_dbl = 0.0D0
       INTEGER              :: size_of
       INTEGER              :: n_dat2    !  Size rounded up to power of 2
 !

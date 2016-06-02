@@ -3,6 +3,7 @@ MODULE pdf_mod
 !     This file contains variables for pdf routines
 !-
 USE discus_config_mod
+USE precision_mod
 !
 SAVE
 !
@@ -30,18 +31,18 @@ INTEGER             ::  pdf_ndat  = 1
 INTEGER             ::  pdf_nbnd  = 1
 INTEGER             ::  pdf_ntemp = 1
 !
-REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
-REAL(dp) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
+REAL(PREC_DP) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
+REAL(PREC_DP) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
 INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXTEMP,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_wic    ! (MAXDAT)
-!REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
-REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sincc  ! (2*MAXDAT)
+!REAL(PREC_DP), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sinc   ! (2*MAXDAT)
+REAL(PREC_DP), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_sincc  ! (2*MAXDAT)
 REAL   , DIMENSION(:,:  ),ALLOCATABLE  ::  pdf_weight ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
-REAL(dp), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
+REAL(PREC_DP), DIMENSION(  :  ),ALLOCATABLE  ::  pdf_exp    ! (4000)
 !
-!REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_calc   ! (MAXDAT)
-!REAL(dp) , DIMENSION(MAXDAT)             ::  pdf_corr   ! (MAXDAT)
+!REAL(PREC_DP) , DIMENSION(MAXDAT)             ::  pdf_calc   ! (MAXDAT)
+!REAL(PREC_DP) , DIMENSION(MAXDAT)             ::  pdf_corr   ! (MAXDAT)
 !INTEGER, DIMENSION(MAXDAT,0:MAXSCAT,0:MAXSCAT) ::  pdf_temp   ! (MAXDAT,0:MAXSCAT,0:MAXSCAT)
 !REAL   , DIMENSION(MAXDAT)             ::  pdf_obs    ! (MAXDAT)
 !REAL   , DIMENSION(MAXDAT)             ::  pdf_wic    ! (MAXDAT)
@@ -93,7 +94,7 @@ INTEGER             ::  pdf_nmol      = 0   ! pdf_temp dimension if molecules ar
 LOGICAL             ::  pdf_lxray  = .false.
 LOGICAL             ::  pdf_gauss  = .false.
 LOGICAL             ::  pdf_gauss_init  = .true.
-REAL(dp), PARAMETER ::  pdf_gauss_step = 0.0005d0
+REAL(PREC_DP), PARAMETER ::  pdf_gauss_step = 0.0005d0
 LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)

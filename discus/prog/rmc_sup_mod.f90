@@ -1641,12 +1641,13 @@ CONTAINS
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
        
 !                                                                       
-      REAL(dp) rmc_cc, rmc_c, rmc_ce 
-      REAL(dp) rmc_e (rmc_max_planes) 
-      REAL(dp) rmc_ee (rmc_max_planes) 
+      REAL(PREC_DP) rmc_cc, rmc_c, rmc_ce 
+      REAL(PREC_DP) rmc_e (rmc_max_planes) 
+      REAL(PREC_DP) rmc_ee (rmc_max_planes) 
       REAL chi2_new, chi2_old, sig2 
       REAL prob, psum, p2sum, pave, psig, pmax, pn 
       REAL chi2 (rmc_max_planes) 
@@ -1995,6 +1996,7 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE four_strucf_mod
+      USE fourier_lmn_mod
       USE rmc_mod 
 !                                                                       
       USE errlist_mod 
@@ -2047,6 +2049,7 @@ loop_plane: DO ip = 1, rmc_nplane
             ENDDO 
 !                                                                       
             CALL rmc_layer (k, ip) 
+            CALL fourier_lmn(eck,vi,num,lmn,off_shift)
             CALL rmc_stltab (k, ip, .true.) 
             CALL four_aver (rmc_ilots, rmc_ave) 
 !                                                                       
@@ -2283,15 +2286,16 @@ loop_plane: DO ip = 1, rmc_nplane
 !-                                                                      
       USE discus_config_mod 
       USE rmc_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: ip 
       REAL   , INTENT(IN) :: wtot 
 !                                                                       
-      REAL(dp), INTENT(IN) :: c
-      REAL(dp), INTENT(IN) :: cc
-      REAL(dp), INTENT(IN) :: ce
-      REAL(dp), INTENT(IN) :: se
+      REAL(PREC_DP), INTENT(IN) :: c
+      REAL(PREC_DP), INTENT(IN) :: cc
+      REAL(PREC_DP), INTENT(IN) :: ce
+      REAL(PREC_DP), INTENT(IN) :: se
       REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: sk !(rmc_max_planes) 
       REAL    , DIMENSION(RMC_MAX_PLANES), INTENT(OUT) :: ba !(rmc_max_planes) 
 !                                                                       
@@ -2443,6 +2447,10 @@ loop_plane: DO ip = 1, rmc_nplane
       DO i = 1, 2 
       num (i) = rmc_num (i, ip) 
       ENDDO 
+      eck(1:3,1:3) = rmc_eck(1:3,1:3,is, ip)
+      vi (1:3,1:2) = rmc_vi (1:3,1:2,is, ip)
+      vi (1:3,3)   = 0.0
+      num(3)       = 1
 !                                                                       
       END SUBROUTINE rmc_layer                      
 !*****7*****************************************************************

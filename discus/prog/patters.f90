@@ -1596,13 +1596,14 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE patters_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       REAL h (3) 
 !                                                                       
-      REAL(dp) xarg0, xincu, xincv 
+      REAL(PREC_DP) xarg0, xincu, xincv 
       INTEGER iarg, iarg0, iincu, iincv, iadd 
       INTEGER i, j, ii 
       COMPLEX a_b 

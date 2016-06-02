@@ -46,6 +46,7 @@ SAVE
       INTEGER             ::   MAXQXY
       INTEGER, PARAMETER  ::   CFPKT  = 4999
       REAL   , PARAMETER  ::   CFINC  =    0.001
+!      REAL   , PARAMETER  ::   CFINC  =    0.0001
 !
 !#######################################################################
 ! (3) Reverse-Monte-Carlo
@@ -162,6 +163,6 @@ SAVE
 !
 
 ! create kind for portable double precision real number
-      integer, parameter:: dp=kind(0.d0)  ! double precision
+!      integer, parameter:: dp=kind(0.d0)  ! double precision
 
 END MODULE discus_config_mod

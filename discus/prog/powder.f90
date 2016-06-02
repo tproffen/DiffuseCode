@@ -1134,6 +1134,7 @@ CONTAINS
 !                                                                       
       USE param_mod 
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN)  :: cr_nscat_temp
@@ -1159,7 +1160,7 @@ CONTAINS
       LOGICAL                   :: calc_f2aver, rept_f2aver
       REAL llstart, llend 
       REAL :: llstart2=0.0, llend2=1.0
-      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+      REAL (PREC_DP):: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL hh, kk, ll 
       REAL rr, rrr, rtm 
       REAL hkl (3) 
@@ -1724,6 +1725,7 @@ CONTAINS
       USE wink_mod
 !                                                                       
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
@@ -1739,7 +1741,7 @@ CONTAINS
       INTEGER                :: n_nscat = 1
       INTEGER                :: n_natom = 1
       REAL                   :: distance
-      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+      REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
       REAL                   :: shift
       REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
@@ -2037,6 +2039,7 @@ CONTAINS
       USE wink_mod
 !                                                                       
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
@@ -2062,7 +2065,7 @@ CONTAINS
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
       INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
       REAL                   :: distance
-      REAL :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+      REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
       REAL                   :: shift
       REAL u (3), v (3) 
@@ -2314,10 +2317,11 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod 
       USE diffuse_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(dp) xarg0, xincu, twopi 
+      REAL(PREC_DP) xarg0, xincu, twopi 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
       LOGICAL lform 
@@ -2385,9 +2389,10 @@ CONTAINS
       USE diffuse_mod 
 !                                                                       
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL(dp) twopi, xmult, xarg, xt 
+      REAL(PREC_DP) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -2419,7 +2424,7 @@ CONTAINS
 !!      IMPLICIT none 
 !                                                                       
 !                                                                       
-!!      REAL(dp) xarg0, xincu, twopi 
+!!      REAL(PREC_DP) xarg0, xincu, twopi 
 !!      INTEGER iscat, jscat 
 !!      INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
 !                                                                       
@@ -2602,11 +2607,12 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE powder_scat_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL(dp) xarg0, xincu, xincv 
+      REAL(PREC_DP) xarg0, xincu, xincv 
       INTEGER iscat 
       INTEGER i, ii, j, k, iarg, iarg0, iincu, iincv, iadd 
       LOGICAL lform 

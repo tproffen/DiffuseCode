@@ -7,6 +7,7 @@ SUBROUTINE pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, pdf_us_int,&
 !
 USE discus_config_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -18,7 +19,7 @@ INTEGER,           INTENT(IN) :: pdf_us_int
 INTEGER,           INTENT(IN) :: pdf_calc_l
 INTEGER,           INTENT(IN) :: pdf_calc_u
 REAL,              INTENT(IN) :: pdf_skal
-REAL(DP), DIMENSION(pdf_calc_l:pdf_calc_u), INTENT(IN) :: pdf_calc
+REAL(PREC_DP), DIMENSION(pdf_calc_l:pdf_calc_u), INTENT(IN) :: pdf_calc
 !
 INTEGER   :: nmi
 INTEGER   :: nma

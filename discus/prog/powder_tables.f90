@@ -20,9 +20,10 @@ CONTAINS
       USE diffuse_mod 
 !                                                                       
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL(dp) twopi, xmult, xarg, xt 
+      REAL(PREC_DP) twopi, xmult, xarg, xt 
       INTEGER i 
 !                                                                       
       WRITE (output_io, 1000) 
@@ -55,11 +56,12 @@ CONTAINS
       USE diffuse_mod 
 !                                                                       
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
 !
       INTEGER, INTENT(IN) :: n_points   ! number of points in reciprocal space
-      REAL   , INTENT(IN) :: xstart     ! starting point in reciprocal space
-      REAL   , INTENT(IN) :: xdelta     ! starting point in reciprocal space
+      REAL   (PREC_DP), INTENT(IN) :: xstart     ! starting point in reciprocal space
+      REAL   (PREC_DP), INTENT(IN) :: xdelta     ! starting point in reciprocal space
 !                                                                       
       REAL q2 
       INTEGER i

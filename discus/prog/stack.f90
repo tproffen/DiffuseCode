@@ -1764,6 +1764,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup 
+      USE fourier_lmn_mod 
       USE four_strucf_mod
       USE molecule_mod 
       USE discus_save_mod 
@@ -1809,6 +1810,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
       lout = .false. 
       ss = seknds (0.0) 
       CALL four_layer 
+      CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
 !
 !                 ALLOCATE the fourier part of stacking faults
 !

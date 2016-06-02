@@ -19,6 +19,7 @@ CONTAINS
       USE powder_mod 
       USE powder_tables_mod
       USE wink_mod
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
@@ -42,8 +43,8 @@ CONTAINS
       REAL :: q=0.0, stl=0.0, dstar=0.0
       REAL      :: normalizer
       REAL xmin, xmax, xdel , xpos, xxmax
-      REAL      :: xstart  ! qmin  for sin Theta / lambda calculation
-      REAL      :: xdelta  ! qstep for sin Theta / lambda calculation
+      REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
+      REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
       REAL      :: xequ    ! x-position of equdistant curve
       REAL      :: yequ    ! y-value    of equdistant curve
       REAL      :: tthmin  ! minimum for equdistant curve

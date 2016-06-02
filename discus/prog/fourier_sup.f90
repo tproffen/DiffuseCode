@@ -14,6 +14,7 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE four_strucf_mod
+      USE fourier_lmn_mod
 !                                                                       
       USE prompt_mod 
       IMPLICIT none 
@@ -40,6 +41,7 @@ CONTAINS
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
+      CALL fourier_lmn(eck,vi,inc,lmn,off_shift)
       CALL four_cexpt 
       CALL four_stltab 
       IF (ier_num.ne.0) return 
@@ -523,20 +525,22 @@ CONTAINS
       USE discus_config_mod 
       USE diffuse_mod 
       USE prompt_mod 
+      USE precision_mod 
+      USE wink_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL(dp) twopi, xmult, xarg 
+      REAL(PREC_DP) xmult, xarg 
       INTEGER i 
 !                                                                       
       IF (.not.ffour) then 
          WRITE (output_io, 1000) 
 !                                                                       
-         twopi = 8.0d0 * datan (1.0d0) 
+!        zpi = 8.0d0 * datan (1.0d0) 
 !                                                                       
          DO i = 0, MASK 
             xmult   = (dble (i) * 1.0d0) / dble (I2PI) 
-            xarg    = twopi * xmult 
+            xarg    = zpi * xmult 
             cex (i) = cmplx (real( cos (xarg)), real( sin (xarg)) ) 
          ENDDO 
          ffour = .true. 
