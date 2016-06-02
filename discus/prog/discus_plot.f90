@@ -1313,9 +1313,9 @@ CONTAINS
 !                                                                       
   500 FORMAT ('data_00001',/,                                           &
      &        '_audit_creation_method   ''DISCUS''',/)                  
-  510 FORMAT ('_cell_length_a     ',f10.4,/                             &
-     &        '_cell_length_b     ',f10.4,/                             &
-     &        '_cell_length_c     ',f10.4,/                             &
+  510 FORMAT ('_cell_length_a     ',f15.4,/                             &
+     &        '_cell_length_b     ',f15.4,/                             &
+     &        '_cell_length_c     ',f15.4,/                             &
      &        '_cell_angle_alpha  ',f10.4,/                             &
      &        '_cell_angle_beta   ',f10.4,/                             &
      &        '_cell_angle_gamma  ',f10.4,//                            &
