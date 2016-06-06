@@ -44,8 +44,8 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
       ier_typ =ER_IO
       RETURN
    ENDIF
+   nr = 1
    DO i=1, npkt1
-         WRITE(iff, 1000) xwrt(i), ywrt(i)
       x (offxy (iz - 1) + nr) = xwrt(i)
       y (offxy (iz - 1) + nr) = ywrt(i)
       dx(offxy (iz - 1) + nr) = 0.00
