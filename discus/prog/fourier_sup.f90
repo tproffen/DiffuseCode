@@ -17,10 +17,12 @@ CONTAINS
       USE fourier_lmn_mod
 !                                                                       
       USE prompt_mod 
+      USE precision_mod 
       IMPLICIT none 
        
 !                                                                       
-      REAL ss, seknds, dnorm
+      REAL ss, seknds 
+      REAL (KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
 !                                                                       
@@ -34,8 +36,8 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) * num(3)
-         csf (i) = cmplx (0.0, 0.0) 
-         acsf (i) = cmplx (0.0, 0.0) 
+         csf (i) = cmplx (0.0D0, 0.0D0) 
+         acsf(i) = cmplx (0.0D0, 0.0D0) 
          dsi (i) = 0.0d0 
       ENDDO 
 !                                                                       
@@ -53,7 +55,7 @@ CONTAINS
 !                                                                       
       loop_lots: DO nlot = 1, nlots 
          DO i = 1, num (1) * num (2) * num(3)
-            csf (i) = cmplx (0.0, 0.0) 
+            csf (i) = cmplx (0.0D0, 0.0D0) 
          ENDDO 
 !                                                                       
          CALL four_ranloc (csize, lbeg) 
@@ -85,15 +87,15 @@ CONTAINS
 !                                                                       
          DO i = 1, num (1) * num (2) *num (3)
             csf (i) = csf (i) - acsf (i) 
-            dsi (i) = dsi (i) + real (csf (i) * conjg (csf (i) ) ) 
+            dsi (i) = dsi (i) + DBLE (csf (i) * conjg (csf (i) ) ) 
          ENDDO 
       ENDDO loop_lots
 !                                                                       
 !------ if we had lots, normalise the intensities                       
 !                                                                       
       IF (nlots.ne.1) then 
-         dnorm = float (cr_icc (1) * cr_icc (2) * cr_icc (3) ) / float (&
-         ncell * nlots)                                                 
+         dnorm = DBLE (cr_icc (1) * cr_icc (2) * cr_icc (3) ) / &
+                 DBLE (ncell * nlots)                                                 
 !         dnorm = dnorm**2    Non-squared gives constant intensity for all sizes and numbers
          DO i = 1, num (1) * num (2) *num (3)
          dsi (i) = dnorm * dsi (i) 
@@ -126,13 +128,15 @@ CONTAINS
       USE random_mod
 !                                                                       
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
        
 !
       INTEGER, INTENT(IN) :: lots
       REAL   , INTENT(IN) :: ave 
 !                                                                       
-      REAL ran1, norm
+      REAL ran1
+      REAL (KIND=PREC_DP) :: norm
       INTEGER isite, iatom, iscat, icell (3) 
       INTEGER scell, ncell, j, ii, jj, kk 
       LOGICAL sel 
@@ -194,16 +198,16 @@ CONTAINS
          CALL four_getav (lots) 
          CALL four_strucf (0, .false.) 
          IF(ncell >0) THEN
-            norm = 1.0 / ncell 
+            norm = DBLE(1.0D0 / ncell)
          ELSE
-            norm = 0.0
+            norm = 0.0D0
             ier_num = +1
             ier_typ = ER_FOUR
             ier_msg(1) = 'Does the crystal consist of just 1 unit cell?'
             ier_msg(2) = 'Increase the percentage for >set aver<'
          ENDIF
          DO j = 1, num (1) * num (2) * num (3)
-            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0) 
+            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0) 
          ENDDO 
 !                                                                       
 !------ - write how much of the crystal we actually used                
@@ -541,7 +545,7 @@ CONTAINS
          DO i = 0, MASK 
             xmult   = (dble (i) * 1.0d0) / dble (I2PI) 
             xarg    = zpi * xmult 
-            cex (i) = cmplx (real( cos (xarg)), real( sin (xarg)) ) 
+            cex (i) = cmplx (DBLE( COS (xarg)), DBLE( SIN (xarg)) ) 
          ENDDO 
          ffour = .true. 
       ENDIF 
@@ -610,10 +614,12 @@ CONTAINS
       USE diffuse_mod 
 !                                                                       
       USE prompt_mod 
+      USE precision_mod
       IMPLICIT none 
        
 !                                                                       
-      REAL q2, sb, sf, sfp, sfpp 
+      REAL                :: q2
+      REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
       INTEGER iq, iscat 
 !                                                                       
 !     REAL form 
@@ -625,20 +631,20 @@ CONTAINS
       DO iscat = 1, cr_nscat 
       DO iq = 0, CFPKT 
       q2 = (float (iq) * CFINC) **2 
-      sf = form (iscat, cr_scat, lxray, q2, diff_power) 
+      sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
 !                                                                       
       IF (ano) then 
-         sfp = cr_delfr ( (iscat) ) 
-         sfpp = cr_delfi ( (iscat) ) 
+         sfp  = DBLE(cr_delfr ( (iscat) ) )
+         sfpp = DBLE(cr_delfi ( (iscat) ) )
       ELSE 
-         sfp = 0.0 
-         sfpp = 0.0 
+         sfp  = 0.0D0 
+         sfpp = 0.0D0
       ENDIF 
 !                                                                       
       IF (ldbw) then 
-         sb = exp ( - cr_dw ( (iscat) ) * q2) 
+         sb = exp ( - DBLE(cr_dw ( (iscat) ) * q2)) 
       ELSE 
-         sb = 1.0 
+         sb = 1.0D0
       ENDIF 
 !                                                                       
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp) 
@@ -686,14 +692,14 @@ CONTAINS
 !     k = (i - 1) * num (2) + j 
       k = (i - 1) * num (3) * num (2) + (j -1) * num(3) + l 
       IF (lbragg) then 
-         braggmax = max (braggmax, dsi (k) ) 
-         braggmin = min (braggmin, dsi (k) ) 
+         braggmax = max (braggmax, REAL(dsi (k)) ) 
+         braggmin = min (braggmin, REAL(dsi (k)) ) 
       ELSE 
-         diffumax = max (diffumax, dsi (k) ) 
-         diffumin = min (diffumin, dsi (k) ) 
+         diffumax = max (diffumax, REAL(dsi (k)) ) 
+         diffumin = min (diffumin, REAL(dsi (k)) ) 
 !                                                                       
-         dsum = dsum + dsi (k) 
-         dsum2 = dsum2 + dsi (k) **2 
+         dsum  = dsum  + REAL( dsi (k) )
+         dsum2 = dsum2 + REAL( dsi (k) **2) 
          nd = nd+1 
       ENDIF 
       ENDDO 
@@ -729,6 +735,7 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod
       USE element_data_mod
+      USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: ll
@@ -896,6 +903,8 @@ CONTAINS
       USE diffuse_mod 
 !
       USE param_mod 
+      USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -906,9 +915,9 @@ CONTAINS
       INTEGER shel_inc (3) 
       REAL shel_eck (3, 4) 
       REAL shel_vi (3, 3) 
-      COMPLEX shel_acsf 
-      REAL shel_dsi 
-      COMPLEX shel_tcsf 
+      COMPLEX (KIND=PREC_DP) :: shel_acsf 
+      REAL    (KIND=PREC_DP) :: shel_dsi 
+      COMPLEX (KIND=PREC_DP) :: shel_tcsf 
 !                                                                       
       DO i = 1, 3 
          shel_inc (i) = inc (i) 
@@ -940,8 +949,8 @@ CONTAINS
 !
       four_log = .false. 
       CALL four_run 
-      res_para (1) = real (csf (1) ) 
-      res_para (2) = aimag (csf (1) ) 
+      res_para (1) = REAL (csf (1) ) 
+      res_para (2) = AIMAG(csf (1) ) 
       res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (0) = 4 

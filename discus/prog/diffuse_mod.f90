@@ -25,18 +25,18 @@ INTEGER , PARAMETER  :: RAD_ELEC = 3
 !
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
-COMPLEX (KIND=KIND(0.0d0)) , DIMENSION(0:MASK)             ::  cex       = (0.0,0.0)
-REAL    (KIND=KIND(0.0d0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact_pure   ! (0:CFPKT, 1:MAXSCAT)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  csf          ! (1:MAXQXY)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  tcsf         ! (1:MAXQXY)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1:MAXQXY)
+COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
+REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
 REAL    , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
-REAL    (KIND=KIND(0.0d0)), DIMENSION(1:3)                ::  xm        = 0.0
-REAL    (KIND=KIND(0.0d0)), DIMENSION(1:3)                ::  win       = 0.0
-REAL    (KIND=KIND(0.0d0)), DIMENSION(1:3)                ::  vin       = 0.0
-REAL    (KIND=KIND(0.0d0)), DIMENSION(1:3)                ::  uin       = 0.0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  xm        = 0.0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  win       = 0.0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  vin       = 0.0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  uin       = 0.0
 REAL                                    ::  fave      = 0.0
 INTEGER , DIMENSION(:)   , ALLOCATABLE  ::  istl         ! (1:MAXQXY)
 INTEGER , DIMENSION(1:3)                ::  num       = 1

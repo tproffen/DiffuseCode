@@ -1098,9 +1098,9 @@ CONTAINS
       dsi (i) = rmc_back (ip) + rmc_skal (ip) * dsi (i) 
       IF (rmc_wic (offq (ip) + i) .eq.0.0) then 
          IF (rmc_data.eq.rmc_data_nipl) then 
-            dsi (i) = - 9999.0 
+            dsi (i) = - 9999.0D0
          ELSEIF (rmc_data.eq.rmc_data_pgm) then 
-            dsi (i) = 0.0 
+            dsi (i) = 0.0D0 
          ENDIF 
       ENDIF 
       ENDDO 
@@ -2045,7 +2045,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
          loop_sym: DO k = 1, isym (ip) 
             DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               acsf (i) = cmplx (0.0, 0.0) 
+               acsf (i) = cmplx (0.0D0, 0.0D0) 
             ENDDO 
 !                                                                       
             CALL rmc_layer (k, ip) 
@@ -2124,7 +2124,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !------ - First copy lot 1 to dsi ..                                    
 !                                                                       
          DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         dsi (iq) = real (rmc_csf_new (offsq (ip, is) + iq, 1) * conjg (&
+         dsi (iq) = DBLE (rmc_csf_new (offsq (ip, is) + iq, 1) * conjg (&
          rmc_csf_new (offsq (ip, is) + iq, 1) ) )                       
          ENDDO 
 !                                                                       
@@ -2133,7 +2133,7 @@ loop_plane: DO ip = 1, rmc_nplane
          IF (rmc_nlots.gt.1) then 
             DO il = 2, rmc_nlots 
             DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-            dsi (iq) = dsi (iq) + real (rmc_csf_new (offsq (ip, is)     &
+            dsi (iq) = dsi (iq) + DBLE (rmc_csf_new (offsq (ip, is)     &
             + iq, il) * conjg (rmc_csf_new (offsq (ip, is) + iq, il) ) )
             ENDDO 
             ENDDO 
@@ -2144,14 +2144,14 @@ loop_plane: DO ip = 1, rmc_nplane
       ELSE 
 !                                                                       
          DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-         dsi (iq) = real (rmc_csf (offsq (ip, is) + iq, 1) * conjg (    &
+         dsi (iq) = DBLE (rmc_csf (offsq (ip, is) + iq, 1) * conjg (    &
          rmc_csf (offsq (ip, is) + iq, 1) ) )                           
          ENDDO 
 !                                                                       
          IF (rmc_nlots.gt.1) then 
             DO il = 2, rmc_nlots 
             DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-            dsi (iq) = dsi (iq) + real (rmc_csf (offsq (ip, is) + iq,   &
+            dsi (iq) = dsi (iq) + DBLE (rmc_csf (offsq (ip, is) + iq,   &
             il) * conjg (rmc_csf (offsq (ip, is) + iq, il) ) )          
             ENDDO 
             ENDDO 
@@ -2468,7 +2468,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO ip = 1, rmc_max_sq 
       DO il = 1, rmc_nlots 
-      rmc_csf (ip, il) = cmplx (0.0, 0.0) 
+      rmc_csf (ip, il) = cmplx (0.0D0, 0.0D0) 
       ENDDO 
       ENDDO 
 !                                                                       

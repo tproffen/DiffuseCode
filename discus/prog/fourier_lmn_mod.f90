@@ -3,8 +3,15 @@ MODULE fourier_lmn_mod
 CONTAINS
 SUBROUTINE fourier_lmn(eck,vi,inc,lmn,off)
 !
+!   Calculate integer "phase" values for the lower left corner
+!   in reciprocal space, which are used in four_strucf.
+!   This calculation ensures that the the phases at hkl and -hkl
+!   are identical.
+!
+!   If a rod or plane does not intersect hkl=0, offset phases 
+!   are calculated.
+!
 USE tensors_mod
-USE random_mod
 !
 IMPLICIT NONE
 !
@@ -22,7 +29,6 @@ REAL                        :: dummy
 REAL   , DIMENSION(1:3,1:3) :: mat_a
 REAL   , DIMENSION(1:3)     :: vec_r
 REAL   , DIMENSION(1:3,1:3) :: mat_i
-REAL :: ran1
 !
 mat_a    = 0.0
 dimen    = 0
@@ -79,7 +85,7 @@ lmn(:) = 0
 vec_r(:) = 0.0
 !write(*,*)
 !write(*,*) ' eck(j,1) =   vi(j,1) *  lambda +   vi(j,2) *      my +   vi(j,3) *      ny'
-DO j=1,j
+DO j=1,3
    DO i=1,3
       vec_r(j) = vec_r(j) + mat_i(j,i)*eck(i,1)
    ENDDO

@@ -45,7 +45,7 @@ SAVE
 !
       INTEGER             ::   MAXQXY
       INTEGER, PARAMETER  ::   CFPKT  = 4999
-      REAL   , PARAMETER  ::   CFINC  =    0.001
+      REAL   (KIND=KIND(0.0D0)), PARAMETER  ::   CFINC  =    0.001D0
 !      REAL   , PARAMETER  ::   CFINC  =    0.0001
 !
 !#######################################################################

@@ -915,11 +915,11 @@ MODULE discus_allocate_appl_mod
       lstat  = .TRUE.
       deb_size_of = 0
 !
-      CALL alloc_arr ( rsf     ,1,n_qxy  ,  all_status, 0.0, size_of )
+      CALL alloc_arr ( rsf     ,1,n_qxy  ,  all_status, 0.0D0, size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       deb_size_of = deb_size_of + size_of
 !
-      CALL alloc_arr ( sinetab ,0,MASK   ,  all_status, 0.0, size_of )
+      CALL alloc_arr ( sinetab ,0,MASK   ,  all_status, 0.0D0, size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       deb_size_of = deb_size_of + size_of
 !
@@ -1946,15 +1946,15 @@ MODULE discus_allocate_appl_mod
       lstat     = .TRUE.
       pow_size_of = 0
 !
-       CALL alloc_arr ( pow_qsp  ,0,n_qxy  ,  all_status, 0.0      , size_of )
+       CALL alloc_arr ( pow_qsp  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = size_of
 !
-       CALL alloc_arr ( pow_f2aver  ,0,n_qxy  ,  all_status, 0.0      , size_of )
+       CALL alloc_arr ( pow_f2aver  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
-       CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0      , size_of )
+       CALL alloc_arr ( pow_faver2  ,0,n_qxy  ,  all_status, 0.0D0    , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
@@ -2134,6 +2134,7 @@ MODULE discus_allocate_appl_mod
 !     Allocate the arrays needed by RMC
 !+
       USE rmc_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -2146,9 +2147,9 @@ MODULE discus_allocate_appl_mod
       LOGICAL              :: lstat
       INTEGER              :: size_of
 !
-      COMPLEX              :: def_value
+      COMPLEX (KIND=PREC_DP) :: def_value
 !
-      def_value = CMPLX(0.0,0.0)
+      def_value = CMPLX(0.0D0,0.0D0)
       lstat     = .TRUE.
       rmc_size_of = 0
 !
@@ -2186,6 +2187,7 @@ MODULE discus_allocate_appl_mod
 !     Allocate the arrays needed by RMC
 !+
       USE rmc_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -2197,9 +2199,9 @@ MODULE discus_allocate_appl_mod
       LOGICAL              :: lstat
       INTEGER              :: size_of
 !
-      COMPLEX              :: def_value
+      COMPLEX (KIND=PREC_DP) :: def_value
 !
-      def_value = CMPLX(0.0,0.0)
+      def_value = CMPLX(0.0D0,0.0D0)
       lstat     = .TRUE.
       rmc_size_of = 0
 !
@@ -2460,6 +2462,7 @@ MODULE discus_allocate_appl_mod
 !     Allocate the arrays needed by POWDER
 !+
       USE stack_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -2472,11 +2475,11 @@ MODULE discus_allocate_appl_mod
       INTEGER              :: all_status
       LOGICAL              :: lstat
       INTEGER              :: size_of
-      COMPLEX              :: def_value
+      COMPLEX (KIND=PREC_DP) :: def_value
 !
       lstat      = .TRUE.
       st_size_of = 0
-      def_value  = CMPLX(0.0,0.0)
+      def_value  = CMPLX(0.0D0,0.0D0)
 !
       CALL alloc_arr (  st_layer    ,0,n_types  ,  all_status, ' '      , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out

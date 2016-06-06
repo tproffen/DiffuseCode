@@ -3150,7 +3150,8 @@
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  format
-!b form {"gnu" | "pgm" | "ppm" | "powder" [,{"dst"|"tth"|"stl"|"q"}] 
+!b form {"gnu" | "pgm" | "ppm" | 
+!b       "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
 !b     | "post" | "shel" | "stan" | "hklf4" | "list5" | "nexus" |
 !b       "vtk" | "mrc"}
 
@@ -3195,7 +3196,7 @@
    minimum threshold are set to this value, all values above the maximum
    threshold are set to this maximum value.
 
-!b "powder"[,{"dst"|"tth"|"stl"|"q"}]
+!b "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
    Sets the output format to powder. You must have calculated a 
    powder diffraction pattern using the ==> 'powder' menu of DISCUS.
    DISCUS writes a two collumn output, with the intensity
@@ -3208,8 +3209,15 @@
 
    For the two types of axes in the ==> 'powder' menu, "Q" and "TTH",
    you need to remember to specify limits for the axis. If you
-   intend to write the output in the other format, you need to 
-   specify the limits on this axis as well.
+   intend to write the output in the other format, the default is
+   to convert these limits to the intended output axis. 
+
+   If the values [,<min>,<max>,<step>] are specified, they will 
+   overwrite the limits set in the powder menu. This especially
+   helpful if you want to calculate on a Q-axis but write a file
+   on a 2Theta axis or vice versa. Likewise you might want to 
+   limit the powder output compared to the calculation or write 
+   the output with a different step size.
 
    If DISCUS is operated within the DISCUS_SUITE, a file name 
    that starts with "kuplot" is copied directly into the KUPLOT

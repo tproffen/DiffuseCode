@@ -90,9 +90,9 @@ REAL                     :: pow_p4         =  0.0
 REAL                     :: pow_width      = 20.0
 !
 !
-REAL   , DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
-REAL   , DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
-REAL   , DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
+REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
+REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
+REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
 INTEGER                            :: pow_nreal
 REAL                               :: pow_u2aver
 !

@@ -51,6 +51,7 @@ CONTAINS
       REAL      :: tthmax  ! minimum for equdistant curve
       REAL      ::   qmin  ! minimum for equdistant curve
       REAL      ::   qmax  ! minimum for equdistant curve
+      REAL      :: arg
       REAL      :: pow_tmp_sum = 0.0
       REAL      :: pow_uuu_sum = 0.0
 !                                                                       
@@ -154,11 +155,11 @@ CONTAINS
       ENDIF
       IF(value == 9) THEN          ! Output is f^2 aver
          DO j = 1, npkt
-            pow_tmp (j-1) = pow_f2aver(j)
+            pow_tmp (j-1) = REAL(pow_f2aver(j))
          ENDDO
       ELSEIF(value == 10) THEN     ! Output is faver^2 
          DO j = 1, npkt
-            pow_tmp (j-1) = pow_faver2(j)
+            pow_tmp (j-1) = REAL(pow_faver2(j))
          ENDDO
       ELSE                         ! All other output
          IF (pow_four_type.ne.POW_COMPL) THEN 
@@ -168,18 +169,18 @@ CONTAINS
             IF (pow_four_type.eq.POW_DEBYE) THEN 
                IF (npkt    .le.POW_MAXPKT) THEN 
                   DO j = 1, npkt    
-                     pow_tmp (j) = real (csf (j) ) 
+                     pow_tmp (j) = REAL (csf (j) )    ! Double precision no longer needed
                   ENDDO 
                ENDIF 
             ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
                IF (npkt    .le.POW_MAXPKT) THEN 
                   DO j = 1, npkt    
-                     pow_tmp (j) = rsf (j) 
+                     pow_tmp (j) = REAL(rsf (j) )     ! Double precision no longer needed
                   ENDDO 
                ENDIF 
             ENDIF 
          ELSE
-            pow_tmp(:) = pow_qsp(:)
+            pow_tmp(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
          ENDIF 
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
@@ -293,7 +294,7 @@ CONTAINS
             jstart = MAX(1,int((1-xmin)/xdel)+1)        ! Exclude q < 1.0
             DO j = jstart, npkt
                q = ((j-1)*xdel + xmin)
-               pow_tmp_sum = pow_tmp_sum + ypl(j)/pow_faver2(j)* q
+               pow_tmp_sum = pow_tmp_sum + ypl(j)/REAL(pow_faver2(j))* q
                pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q
             ENDDO
             normalizer = pow_tmp_sum/pow_uuu_sum
@@ -301,13 +302,13 @@ CONTAINS
             IF(value == 7) THEN                         ! Calc S(Q)
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/pow_faver2(j)/normalizer   &
+                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
                             + 1.0 - exp(-q**2*pow_u2aver)) 
                ENDDO
             ELSE                                        ! Calc F(Q)
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/pow_faver2(j)/normalizer   &
+                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
                                   - exp(-q**2*pow_u2aver)) * q
                ENDDO
             ENDIF
@@ -328,6 +329,19 @@ CONTAINS
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
+            IF(out_user_limits) THEN                      ! User provided values
+               pow_tthmin   = out_user_values(1)
+               pow_tthmax   = out_user_values(2)
+               pow_deltatth = out_user_values(3)
+            ELSE                                          ! Convert q limits
+               IF ( pow_axis == POW_AXIS_Q) THEN             ! Convert q limits to 2Theta
+                  arg        = xmin/zpi * rlambda / 2.       ! Directly with arg in asind()
+                  pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
+                  arg        = xmax/zpi * rlambda / 2.
+                  pow_tthmax = 2.*asind(arg)
+                  pow_deltatth = xpl(2)-xpl(1)
+               ENDIF
+            ENDIF
             IF(pow_tthmin < xpl(1) ) THEN                 ! User lower limit too low!
                tthmin =              (INT( (xpl(1)              )/pow_deltatth) + 1)*pow_deltatth
             ELSE
@@ -338,10 +352,12 @@ CONTAINS
             ELSE
                tthmax = pow_tthmax
             ENDIF
-            npkt_equi = MIN(NINT((tthmax-tthmin)/pow_deltatth) + 1, POW_MAXPKT)
+            xmin = tthmin                                  ! Adjust limits needed later to cut 
+            xmax = tthmax                                  ! off rounding errors
+            npkt_equi =     INT((tthmax-tthmin)/pow_deltatth) + 1             
             ALLOCATE(y2a (1:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-            ALLOCATE(xwrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
@@ -377,6 +393,17 @@ CONTAINS
       ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
          IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST              ) THEN ! DEBYE, always spline
+            IF(out_user_limits) THEN                      ! User provided values
+               pow_qmin   = out_user_values(1)
+               pow_qmax   = out_user_values(2)
+               pow_deltaq = out_user_values(3)
+            ELSE                                          ! Convert q limits
+               IF(pow_axis      == POW_AXIS_TTH) THEN
+                  pow_qmin   = zpi*2/rlambda*sind(xmin)
+                  pow_qmax   = zpi*2/rlambda*sind(xmax)
+                  pow_deltaq = xpl(npkt)-xpl(npkt-1)
+               ENDIF
+            ENDIF
             IF(pow_qmin < xpl(1) ) THEN                     ! User lower limit too low!
                qmin =            (INT( (xpl(1)            )/pow_deltaq) + 1)*pow_deltaq
             ELSE
@@ -387,10 +414,12 @@ CONTAINS
             ELSE
                qmax = pow_qmax
             ENDIF
-            npkt_equi = MIN(NINT((qmax-qmin)/pow_deltaq) + 1, POW_MAXPKT)
+            xmin =   qmin                                  ! Adjust limits needed later to cut 
+            xmax =   qmax                                  ! off rounding errors
+            npkt_equi =     NINT((qmax-qmin)/pow_deltaq) + 1             
             ALLOCATE(y2a (1:POW_MAXPKT),stat = all_status) ! Allocate array for calculated powder pattern
-            ALLOCATE(xwrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(1:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt_equi),stat = all_status)  ! Allocate array for powder pattern ready to write
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
@@ -413,8 +442,8 @@ CONTAINS
             npkt_wrt = npkt_equi
             DEALLOCATE(y2a, stat = all_status)
          ELSE                                              ! Matching form no spline needed
-            ALLOCATE(xwrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
-            ALLOCATE(ywrt(1:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(xwrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
+            ALLOCATE(ywrt(0:npkt     ),stat = all_status)  ! Allocate array for powder pattern ready to write
             DO ii = 1,npkt
                xwrt(ii) = xpl(ii)
                ywrt(ii) = ypl(ii)
@@ -432,6 +461,8 @@ CONTAINS
       cut: DO
          IF(xwrt(npkt_wrt) > xmax) THEN
             npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
+         ELSEIF(xwrt(npkt_wrt) < xwrt(npkt_wrt-1)) THEN
+            npkt_wrt = npkt_wrt-1  ! Truncate in case of rounding errors
          ELSE
            EXIT cut
          ENDIF
@@ -440,7 +471,7 @@ CONTAINS
 !     Scale intensity and add a background
 !
       IF(value==1) THEN
-         DO ii=1,npkt
+         DO ii=1,npkt_wrt
             ywrt(ii) = pow_scale*ywrt(ii)
             DO iii=0,pow_nback
                ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
@@ -1003,8 +1034,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       INTEGER :: iscat
       INTEGER :: i
 !!!
-      pow_f2aver(:) = 0.0
-      pow_faver2(:) = 0.0
+      pow_f2aver(:) = 0.0D0
+      pow_faver2(:) = 0.0D0
       pow_u2aver    = 0.0
       pow_nreal     = 0
 !
@@ -1020,11 +1051,11 @@ END SUBROUTINE powder_conv_psvgt_fix
       DO iscat = 1, cr_nscat
          DO i = 1, num1
             pow_f2aver (i) = pow_f2aver (i)  + &
-                       real (       cfact_pure(powder_istl(i), iscat)  * &
+                       DBLE (       cfact_pure(powder_istl(i), iscat)  * &
                              conjg (cfact_pure(powder_istl(i), iscat)))  &
                      * natom (iscat)/pow_nreal
             pow_faver2 (i) = pow_faver2 (i) +  &
-                  SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
+                  SQRT(DBLE (       cfact_pure(powder_istl(i), iscat)  * &
                              conjg (cfact_pure(powder_istl(i), iscat)))) &
                      * natom (iscat)/pow_nreal
          ENDDO

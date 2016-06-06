@@ -70,12 +70,12 @@ REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_eck        ! (3,3,RMC_M
 REAL   , DIMENSION(:,:,:,:), ALLOCATABLE          :: rmc_vi         ! (3,2,RMC_MAX_SYM,RMC_MAX_PLANES)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE          :: offsq          ! (RMC_MAX_PLANES+1,RMC_MAX_SYM) 
 
-COMPLEX, DIMENSION(:,:,:)  , ALLOCATABLE          :: rcfact         ! (0:CFPKT, DEF_MAXSCAT, RMC_MAX_PLANES)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:,:), ALLOCATABLE  :: rcfact         ! (0:CFPKT, DEF_MAXSCAT, RMC_MAX_PLANES)
 REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_maxmove    ! (3,0:DEF_MAXSCAT)
 REAL   , DIMENSION(:,:)    , ALLOCATABLE          :: rmc_mindist    ! (DEF_MAXSCAT,DEF_MAXSCAT)
 !
-COMPLEX, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
-COMPLEX, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf       ! (RMC_MAX_SQ, RMC_MAX_LOTS)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:,:)  , ALLOCATABLE  :: rmc_csf_new   ! (RMC_MAX_SQ, RMC_MAX_LOTS)
 INTEGER, DIMENSION(:)      , ALLOCATABLE           :: ristl         ! (RMC_MAX_SQ)
 INTEGER, DIMENSION(:,:)    , ALLOCATABLE           :: rmc_lots_orig ! (3,RMC_MAX_LOTS)
 !

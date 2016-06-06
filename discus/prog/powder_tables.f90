@@ -35,7 +35,7 @@ CONTAINS
       DO i = 0, MASK 
          xmult       = float (i) * xt 
          xarg        = twopi * xmult 
-         sinetab (i) = real( dsin (xarg) )
+         sinetab (i) = DBLE( dsin (xarg) )
 !DBG      write(9,*) xarg,real(sinetab(i))                              
       ENDDO 
       ffour = .false. 

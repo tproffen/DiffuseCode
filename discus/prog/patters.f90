@@ -1217,7 +1217,7 @@ CONTAINS
       REAL z1 (10000), z2 (10000) 
       REAL e_f, dummy 
       REAL dstar2 
-      COMPLEX a_b 
+      COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
 !     INTEGER e_hist 
 !     REAL fj2 
@@ -1248,7 +1248,7 @@ CONTAINS
          DO i = 1, rho_inc (1) 
          DO j = 1, rho_inc (2) 
          ii = ii + 1 
-         csf (ii) = cmplx (0.0, 0.0) 
+         csf (ii) = cmplx (0.0D0, 0.0D0) 
          ENDDO 
          ENDDO 
       ENDIF 
@@ -1606,7 +1606,7 @@ CONTAINS
       REAL(PREC_DP) xarg0, xincu, xincv 
       INTEGER iarg, iarg0, iincu, iincv, iadd 
       INTEGER i, j, ii 
-      COMPLEX a_b 
+      COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
       INTEGER ISHFT, IAND 
 !                                                                       
@@ -1659,7 +1659,7 @@ CONTAINS
       LOGICAL l_incl 
       REAL z1 (10000), z2 (10000) 
       REAL patt_excl_val 
-      COMPLEX a_b 
+      COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
       INTEGER i
 !                                                                       
@@ -1744,7 +1744,7 @@ CONTAINS
 !                                                                       
       INTEGER rho_type (2) 
       REAL zz1, zz2, zz3 
-      COMPLEX a_b 
+      COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
       REAL cosd, sind 
 !                                                                       

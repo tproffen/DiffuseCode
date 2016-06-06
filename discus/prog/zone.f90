@@ -187,6 +187,7 @@ CONTAINS
    USE tensors_mod
 !
    USE param_mod
+   USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -201,14 +202,14 @@ CONTAINS
    REAL, DIMENSION(1:3)  :: rvec, rdif, rproj, rres
    REAL, DIMENSION(3,3)  :: matrix, inverse
    REAL                  :: dstar
-   REAL, DIMENSION(:,:), ALLOCATABLE :: layer
+   REAL (KIND=PREC_DP), DIMENSION(:,:), ALLOCATABLE :: layer
 !
    INTEGER, DIMENSION(1:3)     :: z_inc
    REAL   , DIMENSION(1:3,1:4) :: z_eck
-   REAL   , DIMENSION(1:3,1:3) :: z_vi 
+   REAL   (KIND=PREC_DP), DIMENSION(1:3,1:3) :: z_vi 
 !
    ALLOCATE(layer(1:inc(1),1:inc(2)))
-   layer(:,:) = 0.0
+   layer(:,:) = 0.0D0
    ii = 0
    DO i = 1, inc(1)
       DO j = 1, inc(2)

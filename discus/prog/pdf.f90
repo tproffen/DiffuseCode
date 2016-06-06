@@ -331,7 +331,10 @@ SUBROUTINE pdf
 !------ Allocate arrays
 !
       sincut   = 0.025
-      rcut     = 1.0 / (pdf_qmax * sincut)
+      rcut     = 1.0
+      IF(pdf_qmax> 0) THEN
+         rcut     = 1.0 / (pdf_qmax * sincut)
+      ENDIF
       nn       = INT (rcut / pdf_deltar) + 100
       nnn      = INT ( (pdf_rfmax + rcut) / pdf_deltar)
       pdf_ndat = MAX ( nn, nnn) + 1
@@ -2524,6 +2527,7 @@ laccept = .false.
 !                                                                       
 !------ Convolute with SINC function                                    
 !                                                                       
+!
       IF (pdf_qmax.gt.0.0) then 
 !         DO i = 1, pdf_bin 
 !         ppp (i) = pdf_calc (i) * (pdf_qmax - pdf_sinc (2 * i) ) 

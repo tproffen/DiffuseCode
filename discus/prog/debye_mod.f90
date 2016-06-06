@@ -14,9 +14,9 @@ INTEGER                               ::  DEB_MAXMASK   =1 !
 !
 INTEGER                                 ::  nlook
 !
-REAL   , DIMENSION(:),   ALLOCATABLE    ::  rsf          ! (1:MAXQXY)
+REAL (KIND(0.0D0)), DIMENSION(:),   ALLOCATABLE    ::  rsf          ! (1:MAXQXY)
 !!!   REAL                                  ::  sinetab(0:MASK) !!! MASK is in diffuse.inc!
-REAL   , DIMENSION(:),   ALLOCATABLE    ::  sinetab      ! (0:2**16-1)
+REAL (KIND(0.0D0)), DIMENSION(:),   ALLOCATABLE    ::  sinetab      ! (0:2**16-1)
 REAL                                    ::  pow_del_hist = 0.0100000000 ! = 0.001 can be changed by user
 INTEGER                                 ::  deb_size_of  = 0 ! Bytes allocated for DEBYE
 !

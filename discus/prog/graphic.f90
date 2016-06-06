@@ -117,7 +117,7 @@ SUBROUTINE do_niplps (linverse)
             ELSEIF (str_comp (befehl, 'form', 1, lbef, 4) ) THEN 
                CALL get_params (zeile, ianz, cpara, lpara, maxp, lp) 
                IF (ier_num.eq.0) THEN 
-                  IF (ianz.eq.1.or.ianz.eq.2) THEN 
+                  IF (ianz.eq.1.or.ianz.eq.2.or.ianz==5) THEN 
 !                                                                       
 !     ------Switch output type to ASCII 3D  '3d'                      
 !                                                                       
@@ -143,7 +143,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
                      ELSEIF(str_comp(cpara(1),'powd',3,lpara(1),4)) THEN                                        
                         ityp = 5 
-                        IF (ianz.eq.2) THEN 
+                        IF (ianz >= 2) THEN 
                            IF (str_comp (cpara (2) , 'tth', 2, lpara (2)&
                            , 3) ) THEN                                  
                               cpow_form = 'tth' 
@@ -163,6 +163,16 @@ SUBROUTINE do_niplps (linverse)
                               ier_num = - 6 
                               ier_typ = ER_COMM 
                            ENDIF 
+                           out_user_limits      = .false.
+                           IF(ianz==5) THEN
+                              cpara(1:2)='0'
+                              lpara(1:2)= 1 
+                              CALL ber_params (ianz, cpara, lpara, werte, maxp)
+                              IF(ier_num==0) THEN
+                                 out_user_values(1:3) = werte(3:5)
+                                 out_user_limits      = .true.
+                              ENDIF
+                           ENDIF
                         ENDIF 
 !                                                                       
 !     ------Switch output type to ppm 'ppm'                             

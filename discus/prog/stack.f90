@@ -1839,7 +1839,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !           st_csf(i) = cmplx(0.0d0,0.0d0)                                
-            csf (i) = cmplx (0.0, 0.0) 
+            csf (i) = cmplx (0.0D0, 0.0D0) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
          ENDDO 
 !                                                                       
@@ -2000,7 +2000,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------zero some arrays                                          
 !                                                                       
             DO i = 1, num (1) * num (2) 
-               st_csf (i) = cmplx (0.0, 0.0) 
+               st_csf (i) = cmplx (0.0D0, 0.0D0) 
             ENDDO 
 !                                                                       
 !------ ------loop over all different atom types                        
@@ -2062,7 +2062,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Compute intensity                                                 
 !                                                                       
       DO i = 1, num (1) * num (2) 
-         dsi (i) = real (csf (i) * conjg (csf (i) ) ) 
+         dsi (i) = DBLE (csf (i) * conjg (csf (i) ) ) 
       ENDDO 
 !                                                                       
       IF (four_log) then 
@@ -2141,7 +2141,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         acsf (i) = cmplx (0.0, 0.0) 
+         acsf (i) = cmplx (0.0D0, 0.0D0) 
          ENDDO 
 !                                                                       
 !     --Calculation is only performed if average is needed              
@@ -2263,7 +2263,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ----zero some arrays                                            
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = cmplx (0.0, 0.0) 
+            st_csf (i) = cmplx (0.0D0, 0.0D0) 
             ENDDO 
 !                                                                       
 !     ----Loop over all layer types                                     
@@ -2344,8 +2344,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !             Wheighted by the relative amount of layers of this type   
 !                                                                       
             DO i = 1, num (1) * num (2) 
-            st_csf (i) = st_csf (i) + tcsf (i) * float (st_number (l) ) &
-            / float (st_nlayer)                                         
+            st_csf (i) = st_csf (i) + tcsf (i) * DBLE (st_number (l) ) &
+            / DBLE (st_nlayer)                                         
             ENDDO 
             WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDDO 

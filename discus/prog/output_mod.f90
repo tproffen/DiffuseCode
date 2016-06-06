@@ -18,5 +18,7 @@ INTEGER, DIMENSION(3)   ::  out_inc ! (2)
 REAL   , DIMENSION(3,4) ::  out_eck ! (3,4)
 REAL   , DIMENSION(3,3) ::  out_vi  ! (3,3)
 CHARACTER(LEN=  3)      ::  cpow_form    = 'tth'
+LOGICAL                 ::  out_user_limits = .false.
+REAL   , DIMENSION(3)   ::  out_user_values = (/1.0, 10.0, 0.01/)
 !
 END MODULE output_mod

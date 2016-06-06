@@ -1165,7 +1165,7 @@ CONTAINS
       REAL rr, rrr, rtm 
       REAL hkl (3) 
       REAL ttheta, dstar , q
-      REAL inten 
+      REAL (KIND=PREC_DP)  :: inten 
       REAL u (3), v (3), w_min (3), w_max (3) 
       REAL u2, vv, ww 
       REAL aaa, bbb, ccc 
@@ -1209,9 +1209,9 @@ CONTAINS
       ENDIF
 !     reset powder diagramm                                             
 !                                                                       
-      pow_qsp(:)    = 0.0     ! 0:POW_MAXPKT
-      pow_f2aver(:) = 0.0     ! 0:POW_MAXPKT
-      pow_faver2(:) = 0.0     ! 0:POW_MAXPKT
+      pow_qsp(:)    = 0.0D0   ! 0:POW_MAXPKT
+      pow_f2aver(:) = 0.0D0   ! 0:POW_MAXPKT
+      pow_faver2(:) = 0.0D0   ! 0:POW_MAXPKT
       pow_nreal     = 0
       pow_u2aver    = 0.0
 !     DO i = 1, POW_MAXPKT 
@@ -1535,15 +1535,15 @@ CONTAINS
                   IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                   then                                                  
                      itth = int( (ttheta - pow_tthmin) / pow_deltatth )
-                     inten = real (csf (i) * conjg (csf (i) ) ) 
+                     inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                      IF (pow_pref) then 
 !write(*,'(a,3(f4.0,1x),1x,f5.2,1x,f10.2,1x,f10.2)') 'hkl',hkl,ttheta,   &
 !                        inten , inten * calc_preferred (hkl,            &
 !                        pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
 !                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)     
-                        inten = inten * calc_preferred (hkl,            &
+                        inten = inten * DBLE(calc_preferred (hkl,            &
                         pow_pref_type, pow_pref_hkl, pow_pref_g1,       &
-                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)     
+                        pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))     
                      ENDIF 
                      pow_qsp (itth) = pow_qsp (itth) + inten 
 !DBG_RBN                                                                
@@ -1554,11 +1554,11 @@ CONTAINS
                      q = zpi * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
-                        inten = real (csf (i) * conjg (csf (i) ) ) 
+                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
-                           inten = inten * calc_preferred (hkl,         &
+                           inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
-                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)  
+                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
                      ENDIF 
@@ -1633,11 +1633,11 @@ CONTAINS
                      IF (pow_tthmin.le.ttheta.and.ttheta.le.(pow_tthmax+pow_deltatth))    &
                      then                                               
                         itth = int( (ttheta - pow_tthmin) / pow_deltatth )
-                        inten = real (csf (i) * conjg (csf (i) ) ) 
+                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
-                           inten = inten * calc_preferred (hkl,         &
+                           inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
-                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)  
+                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
 !DBG      write(18,'(2f12.4)') hkl(2),hkl(3)                            
@@ -1647,11 +1647,11 @@ CONTAINS
                      q = zpi * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
-                        inten = real (csf (i) * conjg (csf (i) ) ) 
+                        inten = DBLE (csf (i) * conjg (csf (i) ) ) 
                         IF (pow_pref) then 
-                           inten = inten * calc_preferred (hkl,         &
+                           inten = inten * DBLE(calc_preferred (hkl,         &
                            pow_pref_type, pow_pref_hkl, pow_pref_g1,    &
-                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH)  
+                           pow_pref_g2, POW_PREF_RIET, POW_PREF_MARCH))  
                         ENDIF 
                         pow_qsp (itth) = pow_qsp (itth) + inten 
                      ENDIF 
@@ -1677,8 +1677,8 @@ CONTAINS
 !
       IF(calc_f2aver) THEN
          DO i=1,pow_npkt
-            pow_f2aver(i) = pow_f2aver(i) / pow_nreal
-            pow_faver2(i) = pow_faver2(i) / pow_nreal
+            pow_f2aver(i) = pow_f2aver(i) / DBLE(pow_nreal)
+            pow_faver2(i) = pow_faver2(i) / DBLE(pow_nreal)
          ENDDO
          pow_faver2(:) = pow_faver2(:)**2
          pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
@@ -1744,11 +1744,11 @@ CONTAINS
       REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
       REAL ss, st
       REAL                   :: shift
-      REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
+      REAL   (KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial
       INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
       INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
       REAL u (3), v (3) 
-      REAL arg 
+      REAL (KIND=PREC_DP) :: arg 
 !                                                                       
       INTEGER IAND 
 !     REAL skalpro 
@@ -1850,10 +1850,10 @@ CONTAINS
 !     DO i = 0, cr_nscat 
 !     natom (i) = 0 
 !     ENDDO 
-      partial   = 0.0
-      rsf       = 0.0 
-      histogram = 0 
-      natom     = 0 
+      partial(:,:,:)   = 0.0D0
+      rsf(:)           = 0.0D0
+      histogram(:,:,:) = 0
+      natom            = 0 
 !DBG                                                                    
 !DBG      write(*,*) ' del_hist ',del_hist                              
 !DBG      write(*,*) ' MAXHIST  ',MAXHIST                               
@@ -1909,7 +1909,7 @@ CONTAINS
 !              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
                histogram (ibin, look (jscat, iscat),0 ) = &
-               histogram (ibin, look (jscat, iscat),0 ) + 1                                
+               histogram (ibin, look (jscat, iscat),0 ) + 1
             ENDIF 
          ENDDO 
          ENDIF 
@@ -1948,14 +1948,14 @@ CONTAINS
 !DBG      ss = seknds(0.0)                                              
       DO i = 1, nlook 
       DO j = 1, MAXHIST 
-      IF (histogram (j, i,0) .gt.0) then 
+      IF (histogram (j, i,0) >  0) then 
          DO k = 1, num (1) * num (2) 
-         arg = zpi * (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) 
+         arg = zpi * DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
 !DBG              partial(k,i) = partial(k,i)+                          
 !DBG     &                   histogram(j,i,0)*sin(arg)/arg                
          iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
-         partial (k, i,0) = partial (k, i,0) + histogram (j, i,0) * sinetab ( &
+         partial (k, i,0) = partial (k, i,0) + DBLE(histogram (j, i,0)) * sinetab ( &
          iadd) / arg                                                    
          ENDDO 
       ENDIF 
@@ -1970,9 +1970,9 @@ CONTAINS
       DO i = 1, cr_nscat 
       DO j = i, cr_nscat 
       DO k = 1, num (1) * num (2) 
-      rsf (k) = rsf (k) + 2.0 * partial (k, look (i, j),0 ) * (real (     &
-      cfact (powder_istl (k), i) ) * real  (cfact (powder_istl (k), j) ) + aimag (     &
-      cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
+      rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
+         DBLE(cfact (powder_istl (k), i) ) * DBLE(cfact (powder_istl (k), j) ) + &
+        aimag(cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
       ENDDO 
       ENDDO 
       ENDDO 
@@ -1986,7 +1986,7 @@ CONTAINS
 !     pow_u2aver = 0.0
       DO iscat = 1, cr_nscat 
       DO i = 1, num (1) * num (2) 
-      rsf (i) = rsf (i) + real (cfact (powder_istl (i), iscat) * &
+      rsf (i) = rsf (i) + DBLE (cfact (powder_istl (i), iscat) * &
                          conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)                              
 !     pow_f2aver (i) = pow_f2aver (i)  + &
 !                      real (       cfact_pure(istl(i), iscat)  * &
@@ -2069,7 +2069,7 @@ CONTAINS
       REAL ss, st
       REAL                   :: shift
       REAL u (3), v (3) 
-      REAL arg 
+      REAL (KIND=PREC_DP) :: arg 
 !                                                                       
       INTEGER IAND 
       REAL sind 
@@ -2176,8 +2176,8 @@ CONTAINS
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-      partial   = 0.0
-      rsf       = 0.0 
+      partial   = 0.0D0
+      rsf       = 0.0D0
       histogram = 0 
       natom     = 0 
 !                                                                       
@@ -2264,10 +2264,10 @@ CONTAINS
          DO il=0,nlook_mol
          IF (histogram (j, i,il) .gt.0) then 
          DO k = 1, num (1) * num (2) 
-         arg  = zpi *(j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) 
+         arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
          iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
-         partial(k,i,il) = partial(k,i,il) + histogram(j,i,il) * sinetab(iadd)/arg
+         partial(k,i,il) = partial(k,i,il) + DBLE(histogram(j,i,il)) * sinetab(iadd)/arg
          ENDDO 
          ENDIF 
          ENDDO 
@@ -2282,8 +2282,8 @@ CONTAINS
          DO j = i, cr_nscat 
             DO k = 1, num (1) * num (2) 
                DO il=0,powder_nmol
-                  rsf(k) = rsf (k) + 2.0 * partial (k, look (i, j),il ) *       &
-                           (real(cfact(powder_istl(k),i)) * real (cfact(powder_istl(k),j)) +  &
+                  rsf(k) = rsf (k) + 2.0D0 * partial (k, look (i, j),il ) *       &
+                           (DBLE(cfact(powder_istl(k),i)) * DBLE (cfact(powder_istl(k),j)) +  &
                            aimag(cfact(powder_istl(k),i)) * aimag(cfact(powder_istl(k),j)))*  &
                            pow_dw(powder_istl(k),il)
                ENDDO 
@@ -2296,7 +2296,7 @@ CONTAINS
 !                                                                       
       DO iscat = 1, cr_nscat 
          DO i = 1, num (1) * num (2) 
-            rsf(i) = rsf(i) + real(cfact(powder_istl(i),iscat) * &
+            rsf(i) = rsf(i) + DBLE(cfact(powder_istl(i),iscat) * &
                              conjg(cfact(powder_istl(i),iscat))) * natom(iscat)
          ENDDO 
       ENDDO 
@@ -2333,7 +2333,7 @@ CONTAINS
 !------ zero fourier array                                              
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0, 0.0) 
+      tcsf (i) = cmplx (0.0D0, 0.0D0) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -2362,7 +2362,7 @@ CONTAINS
       iadd = ISHFT (iarg, - 6) 
       iadd = IAND (iadd, MASK) 
       ii = ii + 1 
-      tcsf (ii) = tcsf (ii) + cex (iadd) / real ( (xarg0 + float (j - 1)&
+      tcsf (ii) = tcsf (ii) + cex (iadd) / DBLE ( (xarg0 + float (j - 1)&
       * xincu) * twopi)                                                 
 !DBG            iarg = iarg + iincv                                     
 !DBG          ENDDO                                                     
@@ -2538,7 +2538,7 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0, 0.0) 
+      csf (i) = cmplx (0.0D0, 0.0D0) 
 !DBG        acsf(i) = cmplx(0.0d0,0.0d0)                                
 !DBG         dsi(i) = 0.0d0                                             
       ENDDO 
@@ -2623,7 +2623,7 @@ CONTAINS
 !                                                                       
 !DBGXXX      do i=1,num(1)*num(2)                                       
       DO i = 1, num (1) 
-      tcsf (i) = cmplx (0.0, 0.0) 
+      tcsf (i) = cmplx (0.0D0, 0.0D0) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    

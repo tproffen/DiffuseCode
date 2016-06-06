@@ -10,8 +10,8 @@ IMPLICIT NONE
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
 INTEGER                          , INTENT(IN) :: POW_MAXPKT
-REAL   , DIMENSION(1:POW_MAXPKT) , INTENT(IN) :: xwrt
-REAL   , DIMENSION(1:POW_MAXPKT) , INTENT(IN) :: ywrt
+REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
+REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
 !
 INTEGER, PARAMETER                            :: iff = 2
 INTEGER   :: ii

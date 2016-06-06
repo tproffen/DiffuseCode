@@ -46,7 +46,7 @@ REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_no   ! (  ST_MA
 REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m1   ! (  ST_MAXLAYER)
 REAL               , DIMENSION(:)    , ALLOCATABLE :: st_rot_ang_m2   ! (  ST_MAXLAYER)
 !
-COMPLEX            , DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)
+COMPLEX (KIND=KIND(0.0D0)), DIMENSION(:)    , ALLOCATABLE :: st_csf          ! (ST_MAXQXY)
 !
 CHARACTER (LEN=200)                        :: st_infile        = ' '
 !
