@@ -20,8 +20,8 @@ CONTAINS
 !                                                                       
       REAL(PREC_DP)        :: xarg0, xincu, xincv , xincw
       REAL(PREC_DP)        ::        oincu, oincv , oincw
-      INTEGER (KIND=16)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
-      INTEGER (KIND=16)   ::                              jincu, jincv, jincw
+      INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
+      INTEGER (KIND=PREC_INT_LARGE)   ::                              jincu, jincv, jincw
 !
       INTEGER IAND, ISHFT 
 !

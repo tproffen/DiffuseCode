@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-131,IO=4)
+      PARAMETER    (IU=-132,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'Mismatch between corners and increments'  ,& !-132 ! discus
      &  'No surface sites for ligands found'       ,& !-131 ! discus
      &  'No surface atoms found                   ',& !-130 ! discus
      &  'No decoration definition exists yes      ',& !-129 ! discus
