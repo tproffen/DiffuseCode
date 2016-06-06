@@ -41,7 +41,7 @@ off  (:,:) = 0.0
 direc(:)   = 0
 DO i=1,3
    IF(inc(i) > 1) THEN    ! reciprocal space has non_zero size along this increment
-      dummy = vi(1,i)**2 + vi(2,i)**2 +vi(3,i)**2
+      dummy = SQRT(ABS(vi(1,i)**2 + vi(2,i)**2 +vi(3,i)**2))
       IF(dummy > 1.0E-7) THEN    ! Increment vector is non zero
          dimen = dimen + 1   ! Increment total dimension
          direc(dimen) = i    ! Keep track which increments are "thick"
