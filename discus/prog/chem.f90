@@ -5860,7 +5860,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER(LEN=1024) :: message
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
@@ -5984,11 +5984,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios) 
+      OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios, &
+            IOMSG=message) 
       IF(ios/=0) THEN
          ier_num = -2
          ier_typ = ER_IO
          ier_msg(1)(1:60) = chem_fname(1:60)
+         ier_msg(3) = message(1:80)
          RETURN
       ENDIF
       DO i = 1, chem_bin 
@@ -6022,12 +6024,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER(LEN=1024) :: message
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
 !                                                                       
-      INTEGER i, j, k, ibin 
+      INTEGER i, j, k, ibin , ios
       REAL u (3), v (3), dist 
 !                                                                       
 !     LOGICAL atom_allowed 
@@ -6070,7 +6072,15 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      OPEN (unit = 43, file = chem_fname, status = 'unknown', &
+            IOSTAT=ios, IOMSG=message) 
+      IF(ios/=0) THEN
+         ier_num = -2
+         ier_typ = ER_IO
+         ier_msg(1)(1:60) = chem_fname(1:60)
+         ier_msg(3) = message(1:80)
+         RETURN
+      ENDIF
       DO i = 1, chem_bin 
       WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
       chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
@@ -6102,7 +6112,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-       
+      CHARACTER(LEN=1024) :: message 
 !                                                                       
       INTEGER maxw, iianz, jjanz, kkanz 
       REAL werte (maxw), wwerte (maxw), uwerte (maxw) 
@@ -6110,6 +6120,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
       INTEGER ba_env (0:MAX_ATOM_ENV) 
+      INTEGER :: ios
       LOGICAL lspace 
 !                                                                       
 !     von der relativen Reihenfolge der beiden Statements haengt es ab, 
@@ -6239,7 +6250,15 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown') 
+      OPEN (unit = 43, file = chem_fname, status = 'unknown', &
+            IOSTAT=ios, IOMSG=message) 
+      IF(ios/=0) THEN
+         ier_num = -2
+         ier_typ = ER_IO
+         ier_msg(1)(1:60) = chem_fname(1:60)
+         ier_msg(3) = message(1:80)
+         RETURN
+      ENDIF
       DO i = 1, chem_bin 
       WRITE (43, 5000) chem_bang_cut (1) + (chem_bang_cut (2) -         &
       chem_bang_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           

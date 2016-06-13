@@ -969,8 +969,10 @@ SUBROUTINE cmdline_args
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=1024) :: message
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
+      INTEGER :: ios
       INTEGER ianz, ianzz 
       INTEGER ii 
       LOGICAL lappend 
@@ -1021,7 +1023,14 @@ SUBROUTINE cmdline_args
                WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
             ELSE 
                OPEN (unit = io_unit (ii) , file = cpara (1) , status =  &
-               'unknown', err = 999)                                    
+               'unknown', IOSTAT=ios,IOMSG=message)                                    
+               IF(ios/=0) THEN
+                  ier_num = -2
+                  ier_typ = ER_IO
+                  ier_msg(1) ='Could not open the NULL file'
+                  ier_msg(2) = message
+                  RETURN
+               ENDIF
                WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
             ENDIF 
             io_open (ii) = .true. 
@@ -1703,8 +1712,10 @@ SUBROUTINE cmdline_args
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=1024) :: message
       CHARACTER(80) logfile 
       INTEGER lpara (maxw), lp 
+      INTEGER :: ios
       INTEGER ianz 
       LOGICAL llog 
 !                                                                       
@@ -1780,7 +1791,14 @@ SUBROUTINE cmdline_args
                      ELSEIF (output_status.eq.OUTPUT_NONE) then 
                         output_io = 37 
                         OPEN (unit = output_io, file = nullfile, status &
-                        = 'unknown')                                    
+                        = 'unknown',IOSTAT=ios,IOMSG=message)                                    
+                        IF(ios/=0) THEN
+                           ier_num = -2
+                           ier_typ = ER_IO
+                           ier_msg(1) ='Could not open the NULL file'
+                           ier_msg(2) = message
+                           RETURN
+                        ENDIF
                      ELSEIF (output_status.eq.OUTPUT_FILE) then 
                         output_io = 37 
                         logfile = pname (1:len_str (pname) ) //'.log' 
@@ -1793,7 +1811,15 @@ SUBROUTINE cmdline_args
 !DBG95     &                 status='old',access='sequential')          
                         ELSE 
                            OPEN (unit = output_io, file = logfile,      &
-                           status = 'new')                              
+                           status = 'new',IOSTAT=ios,IOMSG=message)                                    
+                           IF(ios/=0) THEN
+                              ier_num = -2
+                              ier_typ = ER_IO
+                              ier_msg(1) ='Could not open the logfile'
+                              ier_msg(2) = logfile
+                              ier_msg(3) = message
+                              RETURN
+                           ENDIF
                         ENDIF 
                      ENDIF 
                   ELSE 
@@ -1820,7 +1846,15 @@ SUBROUTINE cmdline_args
                         output_status = OUTPUT_NONE 
                         output_io = 37 
                         OPEN (unit = output_io, file = nullfile, status &
-                        = 'unknown')                                    
+                        = 'unknown',IOSTAT=ios,IOMSG=message)                                    
+                        IF(ios/=0) THEN
+                           ier_num = -2
+                           ier_typ = ER_IO
+                           ier_msg(1) ='Could not open the logfile'
+                           ier_msg(2) = logfile
+                           ier_msg(3) = message
+                           RETURN
+                        ENDIF
 !                                                                       
                      ELSEIF (str_comp (cpara (3) , 'file', 2, lpara (3) &
                      , 4) ) then                                        
@@ -1839,7 +1873,15 @@ SUBROUTINE cmdline_args
 !DBG95     &                 status='old',access='sequential')          
                         ELSE 
                            OPEN (unit = output_io, file = logfile,      &
-                           status = 'new')                              
+                           status = 'new',IOSTAT=ios,IOMSG=message)                              
+                           IF(ios/=0) THEN
+                              ier_num = -2
+                              ier_typ = ER_IO
+                              ier_msg(1) ='Could not open the logfile'
+                              ier_msg(2) = logfile
+                              ier_msg(3) = message
+                              RETURN
+                           ENDIF
                         ENDIF 
                      ELSE 
                         ier_num = - 6 

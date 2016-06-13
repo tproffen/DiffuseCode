@@ -19,6 +19,7 @@ CONTAINS
    USE qval_mod
 !
    USE envir_mod
+   USE errlist_mod
 !
    IMPLICIT NONE
 !
@@ -34,7 +35,8 @@ CONTAINS
    INTEGER, PARAMETER :: nzstart = 0
 !
    CHARACTER(LEN=1024) :: line
-   INTEGER            :: i, j,l, irec
+   CHARACTER(LEN=1024) :: message
+   INTEGER            :: i, j,l, irec, ios
    INTEGER            :: l_datei
    REAL               :: sqq
 !
@@ -49,7 +51,14 @@ CONTAINS
    ENDIF
  
    OPEN(UNIT=IMRC,FILE=outfile,STATUS='unknown', &
-        FORM='unformatted', ACCESS='direct',RECL=4)
+        FORM='unformatted', ACCESS='direct',RECL=4, &
+        IOSTAT=ios,IOMSG=message)
+   IF(ios/=0) THEN
+      ier_num = -2
+      ier_typ = ER_IO
+      ier_msg(3) = message(1:80)
+      RETURN
+   ENDIF
 !
 !  Write header is identical to all 
 !

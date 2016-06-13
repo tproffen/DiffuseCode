@@ -1086,6 +1086,8 @@ CONTAINS
       INTEGER          , INTENT(IN) :: ip
       INTEGER          , INTENT(IN) :: is
 !
+      CHARACTER(LEN=1024) :: message
+      INTEGER             :: ios
       INTEGER pgmmax, i, j 
 !                                                                       
       pgmmax = 255 
@@ -1105,7 +1107,15 @@ CONTAINS
       ENDIF 
       ENDDO 
 !                                                                       
-      OPEN (unit = 44, file = fname, status = 'unknown') 
+      OPEN (unit = 44, file = fname, status = 'unknown', &
+            IOSTAT=IOS, IOMSG=message) 
+      IF(ios/=0) THEN
+         ier_num = -2
+         ier_typ = ER_IO
+         ier_msg(1)(1:60) = fname(1:60)
+         ier_msg(3) = message(1:80)
+         RETURN
+      ENDIF
 !                                                                       
 !------ NIPL file                                                       
 !                                                                       

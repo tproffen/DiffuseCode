@@ -449,6 +449,7 @@
 !                                                                       
       CHARACTER (LEN=* )    :: datei, stat 
       CHARACTER (LEN=1024)  :: line 
+      CHARACTER (LEN=1024)  :: message
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -465,32 +466,50 @@
          ier_num = - 2 
          ier_typ = ER_IO 
          IF (stat.eq.'unknown') then 
-            line = datei(1:LEN_TRIM(datei))
-            line = ' '
-            line = 'test'
-            OPEN (UNIT=inum, file = datei , status = stat, err = 999, iostat =&
-            ios)                                                        
-            ier_num = 0 
-            ier_typ = ER_NONE 
+!            line = datei(1:LEN_TRIM(datei))
+!            line = ' '
+!            line = 'test'
+            OPEN (UNIT=inum, FILE = datei , STATUS = stat, IOSTAT =&
+            ios, IOMSG=message)
+            IF(ios==0) THEN
+               ier_num = 0 
+               ier_typ = ER_NONE 
+            ELSE
+               ier_num = -2
+               ier_typ = er_io
+               ier_msg(3) = message(1:80)
+            ENDIF
          ELSE 
             INQUIRE (file = datei, exist = lda) 
             IF (stat.eq.'old') then 
                IF (lda) then 
-                  OPEN (inum, file = datei, status = stat, err = 999,   &
-                  iostat = ios)                                         
-                  ier_num = 0 
-                  ier_typ = ER_NONE 
-                  CALL file_info (inum) 
+                  OPEN (inum, FILE = datei, STATUS = stat,  &
+                  IOSTAT = ios,IOMSG=message)
+                  IF(ios==0) THEN
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                     CALL file_info (inum) 
+                  ELSE
+                     ier_num = -2
+                     ier_typ = er_io
+                     ier_msg(3) = message(1:80)
+                  ENDIF
                ELSEIF (.not.lda) then 
                   ier_num = - 1 
                   ier_typ = ER_IO 
                ENDIF 
             ELSEIF (stat.eq.'new') then 
                IF (.not.lda) then 
-                  OPEN (inum, file = datei, status = stat, err = 999,   &
-                  iostat = ios)                                         
-                  ier_num = 0 
-                  ier_typ = ER_NONE 
+                  OPEN (inum, file = datei, status = stat,  &
+                  iostat = ios,IOMSG=message)
+                  IF(ios==0) THEN
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                  ELSE
+                     ier_num = -2
+                     ier_typ = er_io
+                     ier_msg(3) = message(1:80)
+                  ENDIF
                ELSEIF (lda) then 
                   ier_num = - 4 
                   ier_typ = ER_IO 
@@ -502,9 +521,6 @@
          ier_typ = ER_IO 
       ENDIF 
   999 CONTINUE 
-!                                                                       
- 2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
-     &                  '****')                                         
       END SUBROUTINE oeffne                         
 !*****7***************************************************************  
       SUBROUTINE oeffne_append (inum, datei, stat) 
@@ -522,6 +538,7 @@
 !                                                                       
       CHARACTER ( * ) datei, stat 
       CHARACTER(1024) line 
+      CHARACTER(LEN=1024) message 
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
@@ -538,17 +555,29 @@
          ier_typ = ER_IO 
          IF (stat.eq.'unknown') then 
             OPEN (inum, file = datei, status = stat, position =         &
-            'append', err = 999, iostat = ios)                          
-            ier_num = 0 
-            ier_typ = ER_NONE 
+            'append', iostat = ios, IOMSG = message)
+                  IF(ios==0) then
+               ier_num = 0 
+               ier_typ = ER_NONE 
+            ELSE
+               ier_num = -2
+               ier_typ = ER_IO
+               ier_msg(3) = message(1:80)
+            ENDIF
          ELSE 
             INQUIRE (file = datei, exist = lda) 
             IF (stat.eq.'old') then 
                IF (lda) then 
                   OPEN (inum, file = datei, status = stat, position =   &
-                  'append', err = 999, iostat = ios)                    
-                  ier_num = 0 
-                  ier_typ = ER_NONE 
+                  'append', iostat = ios, IOMSG = message)
+                  IF(ios==0) then
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                  ELSE
+                     ier_num = -2
+                     ier_typ = ER_IO
+                     ier_msg(3) = message(1:80)
+                  ENDIF
                ELSEIF (.not.lda) then 
                   ier_num = - 1 
                   ier_typ = ER_IO 
@@ -556,9 +585,15 @@
             ELSEIF (stat.eq.'new') then 
                IF (.not.lda) then 
                   OPEN (inum, file = datei, status = stat, position =   &
-                  'append', err = 999, iostat = ios)                    
-                  ier_num = 0 
-                  ier_typ = ER_NONE 
+                  'append', iostat = ios, IOMSG = message)
+                  IF(ios==0) then
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                  ELSE
+                     ier_num = -2
+                     ier_typ = ER_IO
+                     ier_msg(3) = message(1:80)
+                  ENDIF
                ELSEIF (lda) then 
                   ier_num = - 4 
                   ier_typ = ER_IO 
@@ -569,10 +604,7 @@
          ier_num = - 14 
          ier_typ = ER_IO 
       ENDIF 
-  999 CONTINUE 
-!                                                                       
- 2000 FORMAT    (' ****SYST****Operating System/Shell Error Number:',i5,&
-     &                  '****')                                         
+!
       END SUBROUTINE oeffne_append                  
 !*****7***************************************************************  
       SUBROUTINE do_sleep (seconds) 
