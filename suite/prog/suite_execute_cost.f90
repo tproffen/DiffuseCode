@@ -121,6 +121,10 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
          CALL discus_setup   (lstandalone)
          l_discus_init = .true.
       ENDIF
+      pname     = 'discus'
+      pname_cap = 'DISCUS'
+      prompt    = pname
+      oprompt   = pname
       CALL discus_set_sub ()
       CALL suite_set_sub_branch
       CALL discus_loop ()
@@ -129,6 +133,10 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
          CALL kuplot_setup   (lstandalone)
          l_kuplot_init = .true.
       ENDIF
+      pname     = 'kuplot'
+      pname_cap = 'KUPLOT'
+      prompt    = pname
+      oprompt   = pname
       CALL kuplot_set_sub ()
       CALL suite_set_sub_branch
       CALL kuplot_loop ()
