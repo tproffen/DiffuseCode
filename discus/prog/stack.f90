@@ -1438,7 +1438,7 @@ more1: IF (st_nlayer.ge.1) then
                                 n_type, n_atom)
             ELSE
                CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
-                                n_type, n_atom, -1*i, .true.)
+                                n_type, n_atom, -1*i, .false.)
             ENDIF
             max_natoms = MAX(max_natoms, natoms)
             max_nscats = MAX(max_nscats, nscats)
@@ -1851,7 +1851,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
               n_nscat, n_mole, n_type, n_atom)
          ELSE
             CALL test_file ( st_layer(1), n_atoms, n_nscat, n_mole, n_type,&
-                             n_atom,-1, .true. )
+                             n_atom,-1, .false. )
          ENDIF
          IF(n_atoms > NMAX .or. n_nscat > MAXSCAT .or. st_nlayer > NMAX) THEN
             n_atoms = MAX( n_atoms, st_nlayer, NMAX )
@@ -1931,7 +1931,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(l), n_atoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .true. )
+                                n_atom,-1, .false. )
             ENDIF
 !            CALL test_file ( st_layer_c(l), n_atoms, n_nscat,n_mole,    &
 !                             n_type, n_atom, -1, .true. )
@@ -2156,7 +2156,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(1), n_natoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .true. )
+                                n_atom,-1, .false. )
             ENDIF
 !         CALL test_file ( st_layer(1), n_natoms, n_nscat,n_mole, n_type,&
 !                          n_atom, -1, .true. )
@@ -2278,7 +2278,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                  n_nscat, n_mole, n_type, n_atom)
             ELSE
                CALL test_file ( st_layer(l), n_natoms, n_nscat, n_mole, n_type,&
-                                n_atom,-1, .true. )
+                                n_atom,-1, .false. )
             ENDIF
 !        CALL test_file ( st_layer(l), n_natoms, n_nscat,n_mole, n_type,&
 !                         n_atom, -1, .true. )
