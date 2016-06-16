@@ -56,7 +56,7 @@ REAL                ::  pdf_qmax   = 30.00
 REAL                ::  pdf_deltar =  0.001   ! internal delta r
 REAL                ::  pdf_deltars=  0.0005
 REAL                ::  pdf_deltaru=  0.01    ! User supplied delta r
-INTEGER             ::  pdf_us_int            ! Ratio user steps to internal steps
+INTEGER             ::  pdf_us_int =  1       ! Ratio user steps to internal steps
 INTEGER             ::  pdf_mode   =  PDF_DO_CALC ! PDF mode, default to 'calc'
 REAL                ::  pdf_skal   =  1.00
 REAL                ::  pdf_sigmaq =  0.00

@@ -903,7 +903,7 @@ main:    DO
 !!!         pdf_us_int = 1
          pdf_deltaru =  (re-ra)/FLOAT(ip-2)
          IF(pdf_deltaru > 0.001) THEN
-            pdf_us_int = NINT(pdf_deltaru/0.001)
+            pdf_us_int = NINT(MAX(pdf_deltaru/0.001,1.))
             pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ 0.001 always
          ELSE
             pdf_deltar = pdf_deltaru
@@ -1400,7 +1400,7 @@ main:    DO
 !              pdf_deltar = werte (2) 
                pdf_deltaru= werte (2)   ! user supplied delta R
                IF(pdf_deltaru>0.001) then
-                  pdf_us_int = NINT(pdf_deltaru/0.001)
+                  pdf_us_int = NINT(MAX(pdf_deltaru/0.001,1.))
                   pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ 0.001 always
                ELSE
                   pdf_deltar = pdf_deltaru
