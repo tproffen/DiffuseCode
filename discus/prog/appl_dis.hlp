@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_June
+
+   DISCUS may now be interruted gracefully with a CTRL-c.
+   This will cause DISCUS to write the current structure,
 3  2016_May
 
    Added option to save to utilize the atom properties.

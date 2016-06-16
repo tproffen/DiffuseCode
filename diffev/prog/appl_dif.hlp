@@ -21,6 +21,9 @@
 2  News
 3  2016_june
 
+   DIFFEV may now be interruted gracefully with a CTRL-c.
+   This will cause DIFFEV to shut down MPI if active.
+
    The 'run_mpi' command can now be used as a generic interface to identical
    slave macros, regardless of the MPI status. 
 3  2016_april

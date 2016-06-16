@@ -27,6 +27,7 @@ IMPLICIT none
 !*****7*****************************************************************
 !
 INTEGER, PARAMETER :: master = 0 ! Master ID for MPI
+EXTERNAL :: suite_sigint
 run_mpi_myid      = 0
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
@@ -34,6 +35,7 @@ lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 CALL setup_suite     ! Define initial parameter, array values
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 CALL suite_set_sub   ! Point to specific subroutines
+CALL SIGNAL(2, suite_sigint)
 !
 IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
@@ -71,3 +73,29 @@ ENDIF
 CALL run_mpi_finalize
 !                                                                       
 END PROGRAM discus_suite
+SUBROUTINE suite_sigint
+!
+USE discus_exit_mod
+USE diffev_do_exit_mod
+!
+IMPLICIT NONE
+CHARACTER(LEN=1) :: dummy
+!
+WRITE(*,*) 
+WRITE(*,*) ' CTRL-C was called, program will be terminated'
+!
+CALL discus_emergency_save
+!
+CALL diffev_emergency_save
+CALL diffev_emergency_mpi
+!
+CALL exit_all
+!
+WRITE(*,*) 
+WRITE(*,*) ' DISCUS SUITE closed by User Request CTRL-C '
+WRITE(*,*) ' For final close down hit ENTER key'
+READ(*,'(a)') dummy
+!
+STOP
+!
+END SUBROUTINE suite_sigint

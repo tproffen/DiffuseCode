@@ -21,11 +21,16 @@
    data set. This is available for Fourier output, powder, pdf.
 2  News
 
+3  2016_June
+
+   The SUITE may now be interruted gracefully with a CTRL-c.
+   This will cause the DISCUS part to write the current structure,
+   and DIFFEV to shut down MPI if active.
 3  2015_December
 
    The branch command within the sections discus, diffev, kuplot may 
    now take the form :
-   branch discus -maceo macro_naem par1, par2, ...
+   branch discus -macro macro_name par1, par2, ...
 3  2015_June
 
    Starting with Version 5.1, we have migrated to a X-Window
