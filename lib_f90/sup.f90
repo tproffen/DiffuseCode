@@ -390,6 +390,7 @@ SUBROUTINE cmdline_args
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
+      USE operating_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -420,6 +421,8 @@ SUBROUTINE cmdline_args
 !       For library procedure style set setup_done to false
 !
       lsetup_done = .false.
+!
+      CALL operating_exit   ! Exit for operating system
 !                                                                       
       END SUBROUTINE exit_all                       
 !*****7*****************************************************************

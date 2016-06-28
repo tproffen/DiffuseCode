@@ -11,12 +11,13 @@ USE prompt_mod
 !-                                                                      
 IMPLICIT none 
 !                                                                       
+!
+!CALL do_deallocate_appl ( 'all',3)
+CALL exit_all
 !                                                                       
 IF (output_io.ne.OUTPUT_SCREEN) then 
    CLOSE (output_io) 
 ENDIF 
-!
-!CALL do_deallocate_appl ( 'all',3)
 !
 END SUBROUTINE do_exit                        
 END MODULE do_exit_mod

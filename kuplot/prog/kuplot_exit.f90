@@ -10,13 +10,13 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-!------ close PGPLOT devices                                            
-!                                                                       
-      CALL PGEND 
-!                                                                       
 !------ call system wide exit routine                                   
 !                                                                       
       CALL exit_all 
+!                                                                       
+!------ close PGPLOT devices                                            
+!                                                                       
+      CALL PGEND 
 !                                                                       
       END SUBROUTINE kuplot_do_exit                        
 !

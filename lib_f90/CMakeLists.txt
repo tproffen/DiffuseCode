@@ -23,6 +23,21 @@ else (PGF)
   set( FSOURCES ${FSOURCES} sys_gfortran.f90 )
 endif (PGF)
 
+# Operating system dependent fortran code
+if ( CYGWIN ) 
+  set ( FSOURCES ${FSOURCES} op_windows.f90 )
+  message ( status " OP SYSTEM is Cygwin" )
+elseif ( APPLE )
+  set ( FSOURCES ${FSOURCES} op_macos.f90 )
+  message ( status " OP SYSTEM is MACOS" )
+elseiF( UNIX ) 
+  set ( FSOURCES ${FSOURCES} op_linux.f90 )
+  message ( status " OP SYSTEM is UNIX" )
+else ( CYGWIN )
+  set ( FSOURCES ${FSOURCES} op_linux.f90 )
+  message ( status " OP SYSTEM is unknown" )
+endif ( CYGWIN ) 
+
 # This macro modified from http://www.cmake.org/pipermail/cmake/2010-November/041034.html
 # The date is returned in ISO8601 format
 MACRO (TODAY RESULT)
@@ -39,7 +54,7 @@ MACRO (TODAY RESULT)
 ENDMACRO (TODAY)
 
 TODAY(BUILD_DATE)
-message (status " BUILD_DATE=${BUILD_DATE}")
+message (status " BUILD_DATE=${BUILD_DATE} ")
 configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/date.inc.template
                  ${CMAKE_CURRENT_BINARY_DIR}/date.inc )
 

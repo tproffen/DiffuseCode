@@ -12,11 +12,12 @@ USE prompt_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
+CALL diffev_do_deallocate_appl ( 'all',3)
+CALL exit_all
+!
 IF (output_io.ne.OUTPUT_SCREEN) then 
    CLOSE (output_io) 
 ENDIF 
-!
-CALL diffev_do_deallocate_appl ( 'all',3)
 !
 END SUBROUTINE diffev_do_exit                        
 !
