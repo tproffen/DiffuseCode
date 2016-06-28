@@ -117,10 +117,10 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    l_rvalue   = .false.
    rvalue     = 0.0
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
-      IF(.NOT. l_discus_init) THEN
+!     IF(.NOT. l_discus_init) THEN
          CALL discus_setup   (lstandalone)
          l_discus_init = .true.
-      ENDIF
+!     ENDIF
       pname     = 'discus'
       pname_cap = 'DISCUS'
       prompt    = pname

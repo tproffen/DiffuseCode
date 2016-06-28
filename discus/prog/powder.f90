@@ -1178,10 +1178,10 @@ CONTAINS
       REAL asind 
       REAL seknds 
 !
-!     n_qxy   = 1
-!     n_nscat = 1
-!     n_natom = 1
-!     n_pkt   = 1
+      n_qxy   = 1
+      n_nscat = 1
+      n_natom = 1
+      n_pkt   = 1
       l_twoparts = .false.
       calc_f2aver = .true.    ! Assume that we need form factors
       rept_f2aver = .true.    ! Assume that we need to repeat them
@@ -1217,12 +1217,12 @@ CONTAINS
 !     DO i = 1, POW_MAXPKT 
 !     pow_qsp (i) = 0.0 
 !     ENDDO 
+      n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
+      n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+      n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
       IF (inc (1) * inc (2) .gt. MAXQXY  .OR.          &
           n_pkt             .gt. MAXQXY  .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
-        n_qxy   = MAX(n_qxy,inc(1) * inc(2),n_pkt,MAXQXY)
-        n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-        n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
         IF (ier_num /= 0) THEN
           RETURN
@@ -1756,9 +1756,9 @@ CONTAINS
       REAL sind 
       REAL seknds 
 !                                                                       
-!     n_qxy   = 1
-!     n_nscat = 1
-!     n_natom = 1
+      n_qxy   = 1
+      n_nscat = 1
+      n_natom = 1
       ier_num = 0 
 !DBG      write (output_io,*) ' cr_nscat ',cr_nscat                     
 !                                                                       
@@ -1801,15 +1801,14 @@ CONTAINS
       n_qxy    = num (1) * num (2) + 1
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
       n_hist   = nint(distance/pow_del_hist) + 2
+      n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+      n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+      n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
           num (1) * num (2) .gt. MAXDQXY .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
-         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
-         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
          CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
-
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, 0, MASK )
 !     IF(pow_axis == POW_AXIS_Q ) THEN
 !        n_qxy = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
@@ -1838,13 +1837,13 @@ CONTAINS
 !                                                                       
 !     DO i = 1, num (1) * num (2) 
 !     DO j = 1, nlook 
-!     partial (i, j) = 0.0 
+!     partial (i, j,0) = 0.0 
 !     ENDDO 
 !     rsf (i) = 0.0 
 !     ENDDO 
-!     DO i = 1, MAXHIST 
+!     DO i = 0, MAXHIST 
 !     DO j = 1, nlook 
-!     histogram (i, j) = 0 
+!     histogram (i, j,0) = 0 
 !     ENDDO 
 !     ENDDO 
 !     DO i = 0, cr_nscat 
@@ -1870,7 +1869,12 @@ CONTAINS
       ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
          CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
       ENDIF
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) THEN
+         DEALLOCATE(look   )
+         DEALLOCATE(partial)
+         DEALLOCATE(histogram)
+         RETURN
+      ENDIF
       CALL four_formtab 
 !DBG                                                                    
       WRITE (output_io, * ) ' Starting histogram' 
@@ -2075,9 +2079,9 @@ CONTAINS
       REAL sind 
       REAL seknds 
 !                                                                       
-!     n_qxy   = 1
-!     n_nscat = 1
-!     n_natom = 1
+      n_qxy   = 1
+      n_nscat = 1
+      n_natom = 1
       ier_num = 0 
 !                                                                       
 !------ preset some values                                              
@@ -2140,12 +2144,12 @@ CONTAINS
       n_qxy    = num (1) * num (2) + 1
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
       n_hist   = nint(distance/pow_del_hist) + 2
+      n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+      n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+      n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
           num (1) * num (2) .gt. MAXDQXY .OR.          &
           cr_nscat>DIF_MAXSCAT              ) THEN
-         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
-         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-         n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
          CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
       CALL alloc_debye  (cr_nscat, n_hist, n_qxy, nlook_mol, MASK )
