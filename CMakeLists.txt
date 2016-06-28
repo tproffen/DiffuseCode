@@ -24,7 +24,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 6)
-set (DIFFUSE_VERSION_PATCH 0)
+set (DIFFUSE_VERSION_PATCH 1)
 
 # Readline required for all programs
 
@@ -49,7 +49,7 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -g -Wall")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -fcheck=all -g -Wall")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
