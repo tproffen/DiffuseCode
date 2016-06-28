@@ -549,13 +549,20 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          WRITE (output_io, 6000) 
          IF (mo_sel_atom) then 
             DO i = 0, cr_nscat 
-            at_name_i = at_name (i) 
-            WRITE (output_io, 6010) at_name_i, (mo_maxmove (j, i),      &
-            j = 1, 3)                                                   
+               at_name_i = at_name (i) 
+               IF(mo_maxmove(4,i)==0.0) THEN
+                  WRITE(output_io, 6010) at_name_i,(mo_maxmove(j,i), j = 1, 3)
+               ELSE
+                  WRITE(output_io, 6015) at_name_i,(mo_maxmove(j,i), j = 1, 4)
+               ENDIF
             ENDDO 
          ELSE 
             DO i = 1, mole_num_type 
-            WRITE (output_io, 6020) i, (mo_maxmove (j, i), j = 1, 3) 
+               IF(mo_maxmove(4,i)==0.0) THEN
+                  WRITE (output_io, 6020) i, (mo_maxmove (j, i), j = 1, 3) 
+               ELSE
+                  WRITE (output_io, 6025) i, (mo_maxmove (j, i), j = 1, 3) 
+               ENDIF
             ENDDO 
          ENDIF 
       ENDIF 
@@ -592,7 +599,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
      &          '   distance : ',f7.3,' A',' depth ',g18.8e2)           
  6000 FORMAT (/,' Sigmas for MC shifts (l.u.)    : ') 
  6010 FORMAT (  '                 Atom ',a9,' : ',3(F9.5,1X)) 
+ 6015 FORMAT (  '   Atom Vector; shift ',a9,' : ',3(F9.5,1X),'; ',F9.5) 
  6020 FORMAT (  '        Molecule type ',i9,' : ',3(F9.5,1X)) 
+ 6025 FORMAT (  '   Mol type; Vec; shft',i9,' : ',3(F9.5,1X),'; ',F9.5) 
  5000 FORMAT (/' Operation modes for MMC '/                             &
      &        '   Mode                  Probability',                   &
      &        '  two-atom correlation'/3x,55('-'))                      
@@ -761,7 +770,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                CALL rmc_set_move (mo_maxmove, mo_sel_atom, ianz, cpara, &
-               werte, lpara, maxw)                                      
+               werte, lpara, maxw, 4)                                      
 !                                                                       
 !------ --- 'set neig': setting correlation determination method        
 !                                                                       
@@ -1695,6 +1704,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL :: posz2 (3) = 0.0
       REAL :: rel_cycl    ! how far are we in the desired number of cycles
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
+      REAL :: rrrr 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       INTEGER igen, itry, iacc_good, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
@@ -2023,12 +2033,21 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ------Modify the central atom                                     
 !                                                                       
 !               CALL indextocell (isel (1), iz1, is (1) ) 
-               DO i = 1, 3 
-               disp (i, 0, 1) = gasdev (mo_maxmove (i, cr_iscat (iselz) &
-               ) )                                                      
-               posz (i) = cr_pos (i, iselz) 
-               cr_pos (i, iselz) = cr_pos (i, iselz) + disp (i, 0, 1) 
-               ENDDO 
+               IF(mo_maxmove(4, cr_iscat(iselz) )==0.0) THEN
+                  DO i = 1, 3 
+                     disp(i, 0, 1) = gasdev(mo_maxmove(i, cr_iscat(iselz) ))
+                     posz (i) = cr_pos (i, iselz) 
+                     cr_pos (i, iselz) = cr_pos (i, iselz) + disp (i, 0, 1) 
+                  ENDDO 
+               ELSE
+!     -- Move along a vector direction
+                  rrrr = gasdev(mo_maxmove(4, cr_iscat(iselz) ))
+                  DO i = 1, 3 
+                     disp(i, 0, 1) = rrrr* (mo_maxmove(i, cr_iscat(iselz) ))
+                     posz (i) = cr_pos (i, iselz) 
+                     cr_pos (i, iselz) = cr_pos (i, iselz) + disp (i, 0, 1) 
+                   ENDDO 
+               ENDIF
             ELSEIF (mmc_move.eq.MC_MOVE_SWDISP) then 
 !                                                                       
 !-----      ------Switch displacement of two selected atoms and their   

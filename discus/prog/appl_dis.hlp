@@ -71,11 +71,15 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2016_June
 
+   The mmc 'set move' command may now take a further parameter. This 
+   will actually restrict the movement of the specified atom along
+   the direction of a vector.
+
    DISCUS may now be interruted gracefully with a CTRL-c.
    This will cause DISCUS to write the current structure,
 3  2016_May
 
-   Added option to save to utilize the atom properties.
+   Added option to the save menu to utilize the atom properties.
 3  2016_March
 
    Within the ==> fourier menu, the radiation may also be defined
@@ -2943,6 +2947,7 @@
    target energies.
 4  move
 !b set "move",{ "all" | <name> | <number> },<sx>,<sy>,<sz>
+!b set "move",{ "all" | <name> | <number> },<u>,<v>,<w>,  <sig>
 
    Sets an user defined sigma for the generates moves. The created shifts
    are Gaussian distributed. The default is a sigma of 0.2 unit cell. Note
@@ -2950,6 +2955,10 @@
    speed up the RMC runs. In case molecules are selected <number> specifies
    the molecule type, otherwise atoms are addressed by their <number> or
    <name>.
+
+   If the second form is used, the parameters <u>,<v>,<w> define a vector.
+   The movement of the atom is restricted along this vector. The last 
+   parameter is a multiplicative sigma along this direction.
 4  neig
 !b set "neig","add"
 !b set "neig","ang",<iv1>,{ [<iv2>,..] | <iv2>, "range" }

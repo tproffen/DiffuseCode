@@ -324,7 +324,7 @@ CONTAINS
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                CALL rmc_set_move (rmc_maxmove, rmc_sel_atom, ianz,      &
-               cpara, werte, lpara, maxw)                               
+               cpara, werte, lpara, maxw, 3)                               
 !                                                                       
 !------ --- 'set range': set q-range to be used in RMC runs             
 !                                                                       
@@ -437,7 +437,7 @@ CONTAINS
       END SUBROUTINE rmc_set                        
 !*****7*****************************************************************
       SUBROUTINE rmc_set_move (move, sel_atom, ianz, cpara, werte,      &
-      lpara, maxw)                                                      
+      lpara, maxw,dimen)                                                      
 !+                                                                      
 !     Sets RMC/MC maximum shift in 'shift' mode                         
 !-                                                                      
@@ -451,8 +451,9 @@ CONTAINS
 !                                                                       
       INTEGER, PARAMETER :: maxww = 4 
 !
+      INTEGER                             , INTENT(IN)    :: dimen
       INTEGER                             , INTENT(IN )   :: maxw
-      REAL        , DIMENSION(3,0:MAXSCAT), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
+      REAL    , DIMENSION(dimen,0:MAXSCAT), INTENT(OUT)   :: move ! (3, 0:MAXSCAT) 
       LOGICAL                             , INTENT(IN )   :: sel_atom 
       INTEGER                             , INTENT(INOUT) :: ianz
 !                                                                       
@@ -465,9 +466,15 @@ CONTAINS
 !                                                                       
 !------ Atoms                                                           
 !                                                                       
+      wwerte(:) = 0.0
       IF (sel_atom) then 
-         IF (ianz.eq.4) then 
-            ii = ianz - 3 
+         IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
+             (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
+            IF(dimen==3) THEN
+               ii = ianz - 3
+            ELSEIF(dimen==4) THEN
+               ii = 1       ! MMC allows only ONE atom name
+            ENDIF
             CALL get_iscat (ii, cpara, lpara, werte, maxw, .false.) 
             IF (ier_num.eq.0) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
@@ -476,13 +483,13 @@ CONTAINS
                IF (is.ne. - 1) then 
                   DO i = 1, ii 
                   is = int (werte (i) ) 
-                  DO j = 1, 3 
+                  DO j = 1, ianz 
                   move (j, is) = wwerte (j) 
                   ENDDO 
                   ENDDO 
                ELSE 
                   DO i = 1, cr_nscat 
-                  DO j = 1, 3 
+                  DO j = 1, ianz 
                   move (j, i) = wwerte (j) 
                   ENDDO 
                   ENDDO 
@@ -496,7 +503,8 @@ CONTAINS
 !------ Molecules                                                       
 !                                                                       
       ELSE 
-         IF (ianz.eq.4) then 
+         IF ((dimen==3 .AND.ianz.eq.4) .OR.           &
+             (dimen==4 .AND. (ianz==4 .OR. ianz==5))) then 
             IF (cpara (1) (1:1) .eq.'a') then 
                is = - 1 
             ELSE 
@@ -511,12 +519,12 @@ CONTAINS
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
                IF (is.ne. - 1) then 
-                  DO j = 1, 3 
+                  DO j = 1, ianz 
                   move (j, is) = wwerte (j) 
                   ENDDO 
                ELSE 
                   DO i = 1, mole_num_type 
-                  DO j = 1, 3 
+                  DO j = 1, ianz 
                   move (j, i) = wwerte (j) 
                   ENDDO 
                   ENDDO 

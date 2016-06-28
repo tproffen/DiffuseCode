@@ -98,10 +98,12 @@ CONTAINS
       mo_maxmove (1, 0) = 0.0 
       mo_maxmove (2, 0) = 0.0 
       mo_maxmove (3, 0) = 0.0 
+      mo_maxmove (4, 0) = 0.0 
       DO i = 1, MAXSCAT 
       mo_maxmove (1, i) = 0.2 
       mo_maxmove (2, i) = 0.2 
       mo_maxmove (3, i) = 0.2 
+      mo_maxmove (4, i) = 0.0 
       ENDDO 
 !                                                                       
       DO i = 1, CHEM_MAX_COR 

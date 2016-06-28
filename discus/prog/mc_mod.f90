@@ -30,7 +30,7 @@ MODULE mc_mod
       REAL                ::  mo_const(0:CHEM_MAX_COR)
       REAL                ::  mo_cfac(0:CHEM_MAX_COR)
       REAL                ::  mo_disp(CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
-      REAL                ::  mo_maxmove(3,0:DEF_MAXSCAT)
+      REAL                ::  mo_maxmove(4,0:DEF_MAXSCAT)
       REAL                ::  mo_kt
       LOGICAL             ::  mo_sel_atom
 !
