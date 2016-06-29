@@ -11,10 +11,12 @@ td {
 	
 a {
 	color: #993300;
+	text-decoration: none;
 	}
 	
 a:hover {
 	color: #5C743D;
+	text-decoration: underline;
 	}
 
 /* ID Styles */
@@ -74,7 +76,9 @@ a:hover {
 	color: #F4FFE4;
 	letter-spacing:.1em;
 	}
-
+	
+/* Class Styles */
+	
 .bodyText {
 	font:12px Arial, Helvetica, sans-serif;
 	color:#666666;
@@ -88,17 +92,11 @@ a:hover {
 	line-height:26px;
 	letter-spacing:.21em;
 	}
-
-.pageNameLeft{
-	font: 18px Arial, Helvetica, sans-serif;
-	color: #5C743D;
-	line-height:26px;
-	letter-spacing:.15em;
-	}
 	
 .subHeader {
 	font:bold 11px Arial, Helvetica, sans-serif;
 	color: #993300;
+	line-height:22px;
 	letter-spacing:.2em;
 	}
 
@@ -122,3 +120,9 @@ a:hover {
 	text-decoration: none;
 	}
 	
+.counter {
+    color: #FFFF99;
+}
+
+.inperror  { background: pink; }
+.noperror  { background: white; }	
