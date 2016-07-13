@@ -59,7 +59,12 @@ DO i=1,3
       ENDIF
    ENDIF
 ENDDO
-IF(dimen==1) THEN   ! 1D line in reciprocal space
+IF(dimen==0) THEN       ! Single spot in reciprocal space
+   off(1,1) = 1.0
+   off(2,2) = 1.0
+   off(3,3) = 1.0
+   mat_a = off
+ELSEIF(dimen==1) THEN   ! 1D line in reciprocal space
    j  = direc(1)
    j1 = MOD(j  ,3) + 1 ! Cyclically increment j by one
    j2 = MOD(j+1,3) + 1 ! Cyclically increment j by two
