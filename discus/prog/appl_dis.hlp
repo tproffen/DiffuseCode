@@ -7366,7 +7366,7 @@
 !p "y[<i>]" and 
 !p "z[<i>]" are the fractional coordinates of the atom number <i>.
 
-!p "at_name[<i>]" is a character variable that hold the name of
+!p "at_name[<i>]" is a character variable that holds the name of
 !p          of atom number <i>
 
 !p "m[<i>]" is the number of the scattering curve for atom <i>.
