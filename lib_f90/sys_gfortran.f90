@@ -181,19 +181,22 @@
 !-                                                                      
       USE errlist_mod 
       USE param_mod 
+      USE prompt_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER ( * ) command 
 !
-      INTEGER len_str
+      INTEGER length
 !                                                                       
 !     CALL system (command(1:len_str(command)), ier_num) 
-      CALL EXECUTE_COMMAND_LINE (command(1:len_str(command)), EXITSTAT=ier_num) 
+      length = LEN_TRIM(command)
+      CALL EXECUTE_COMMAND_LINE (command(1:length), EXITSTAT=ier_num) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
-         WRITE ( *, 2000) ier_num 
+         WRITE ( output_io, 2000) ier_num 
+         WRITE ( output_io, 2010) command(1:MIN(38,length))
          res_para (0) = - 1 
          res_para (1) = - 5 
          res_para (2) = ER_COMM 
@@ -204,6 +207,7 @@
 !                                                                       
  2000 FORMAT    (' ****SYST**** Operating System/Shell Error Number:',  &
      &             i5,  ' ****')                                        
+ 2010 FORMAT    (' ****SYST**** ',a38,' ****')
       END SUBROUTINE do_operating_comm              
 !*****7*****************************************************************
       SUBROUTINE do_chdir (dir, ld, echo) 
