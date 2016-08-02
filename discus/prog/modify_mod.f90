@@ -1682,7 +1682,7 @@ CONTAINS
             RETURN 
          ENDIF 
 !                                                                       
-         ltype = atom_allowed (iatom, werte, ianz, maxw)                &
+         ltype = atom_allowed (i, werte, ianz, maxw)                &
          .and.check_select_status (.true., cr_prop (i), cr_sel_prop)    
          IF (ltype) then 
             CALL check_blen (x, i, rmin, rmax, nooffset) 
