@@ -380,7 +380,7 @@
 !p cell  <a>,  <b>,  <c>, <alpha>,  <beta>,  <gamma>
 !p cell  <a>   <b>   <c>  <alpha>   <beta>   <gamma>
 
-   The first form with comma seperating the lattice constants is 
+   The first form with comma separating the lattice constants is 
    encouraged. Only with this format, can you use a variable instead
    of fixed unit cell values.
 
@@ -399,7 +399,7 @@
    For each of the atoms a line must be given with the name of the atom,
    the fractional coordinates and the isotropic thermal coefficient B.
    The property flag is optional. This is, however, automatically
-   written to a saves structure file.
+   written to a saved structure file.
 
    The name (in capital characters) must be leftbound in the first four
    columns. 
@@ -869,9 +869,9 @@
    enddo
    This loop inserts up to 10 Al atoms in the x,y range 0 to 1 at
    z=0.5 with a minimum distance of 2.4 Angstrom. Since i[0], the 
-   value for <na> is initialla at n[1]+1, all previously inserted
+   value for <na> is initially at n[1]+1, all previously inserted
    atoms are not affected. Since i[0] remains fixed within the loop,
-   each new al atom affects all al atoms previously inserted within
+   each new Al atom affects all Al atoms previously inserted within
    this loop.
 2  asym
 !b asym
@@ -961,7 +961,7 @@
    model crystal can be obtained like relative amount of elements,
    distribution of bond-lengths, ...
 
-   NOTE: The MC and CHEM sublevel share some variables which define
+   NOTE: The MMC and CHEM sublevel share some variables which define
          neighbours etc. and settings made in this sublevel might be
          altered when using the other sublevel. It is always save to
          repeat settings when entering this sublevel if both levels
@@ -1023,12 +1023,12 @@
    and would like DISCUS to generate the corresponding vector 
    correlations for the other atom positions as well.
 
-   Example is an atom is on a general position you could specify:
+   Example if an atom is on a general position you could specify:
    set vec, 1,  1, 2, 0,0,0
    set neig, vec, 1
    apply_symmetry
    This would generate the correspondig vector correlations for 
-   the otehr atoms in the unit cell that are symmetrically
+   the other atoms in the unit cell that are symmetrically
    equivalent to xyz.
 
    If an atom is on a special position, like a mirror plane, the 
@@ -1065,11 +1065,11 @@
    is saved to the file <filename>. The number of points of the
    histogram is given by 'set bin,<ip>'. The calculation mode
    can be switched between "quick" and "exact". The mode "exact"
-   calculates the bondangle for EVERY atom pair within the crystal
+   calculates the bond angle for EVERY atom pair within the crystal
    whereas the mode "quick" only looks at neighbouring unit cells.
    BUT in the "quick" mode errors can occur due to using the "purge"
    command or appending atoms to the structure. 
-   Allowed bondangle rang, bondlength range, calculation mode and 
+   Allowed bond angle range, bondlength range, calculation mode and 
    sigmas for a neighbour matching criteria are given with the 
    'set' command.
 3  blen
@@ -1081,11 +1081,11 @@
    is saved to the file <filename>. The number of points of the
    histogram is given by 'set bin,<ip>'. The calculation mode
    can be switched between "quick" and "exact". The mode "exact"
-   calculates the bondlength for EVERY atom pair within the crystal
+   calculates the bond length for EVERY atom pair within the crystal
    whereas the mode "quick" only looks at neighbouring unit cells.
    BUT in the "quick" mode errors can occur due to using the "purge"
    command or appending atoms to the structure. 
-   Allowed bondlength range, calculation mode and sigmas for a neighbour
+   Allowed bond length range, calculation mode and sigmas for a neighbour
    matching criteria are given with the 'set' command.
    The resulting distances, standard deviations and number of pairs
    of atoms are stored in the res[i] variables.
@@ -1203,9 +1203,9 @@
    <file>. 
 
    "cor": Here the correlation distribution for all defined neighbours
-   is computed. The third parameter determines weather occupational 
+   is computed. The third parameter determines wether occupational 
    or displacement correlations are computed. The next two parameters
-   specified the atom types and the last parameter the filename for
+   specify the atom types and the last parameter the filename for
    the histogram output. Note that *all* defined neighbours will be
    written to the file. To get a specific correlation distribution 
    use a single neighbour definition.
@@ -1239,7 +1239,7 @@
 !p "bang"    : sets range for bond angle calculations
 !p "blen"    : sets range for bond length calculations
 !p "bin"     : sets number of points for bond length histogram
-!p "cryst"   : sets crystal dimensions (if wrong determined by read stru)
+!p "cryst"   : sets crystal dimensions (if determined wrong by read stru)
 !p "lots"    : sets crystal sampling volumes for 'homo'
 !p "mode"    : sets calculation mode ("quick"/"exact")
 !p "neig"    : defines how correlations are calculated
@@ -1297,7 +1297,7 @@
    in a neighouring unit cell can be wrong. In this case the "exact" mode
    should be used which taken ALL other atoms into account. 
 
-   The second optional parameter determines is periodic boundaries are
+   The second optional parameter determines if periodic boundaries are
    used. Note that this only works if the "quick" mode is selected and
    NO extra atoms were added to the crystal.
 
@@ -1308,7 +1308,7 @@
 
    This command determines how DISCUS calculates the correlation value
    using the command 'corr'. These settings might be overwritten when
-   using the MC sublevel. The following subcommands are valid:
+   using the MMC sublevel. The following subcommands are valid:
 
 5  commands
 !p "ang"  : Defines neighbours via given angles
@@ -1339,7 +1339,7 @@
 
    "Dis" causes DISCUS to determine the neighbours used for the 
    calculation of the correlations using the given distance and 
-   direction (optional). Those neighbours having a distance corresponding
+   direction (optional). Those neighbors having a distance corresponding
    to the vector <u>,<v>,<w> given in unit cell units are taken into
    account for the calculation. The parameter <fsig> sets the allowed
    difference of the observed distance to the theoretical value
@@ -1437,7 +1437,7 @@
    form: "first_1" or "first_2" etc. The string "first_" is mandatory
    and is followed by the actual number of neighbors. If DISCUS finds 
    less than these neighbors, the connectivity is of course less than
-   the intended number ofneighbors.
+   the intended number of neighbors.
 
    The last parameter is a name for this definition. 
 
@@ -1486,7 +1486,7 @@
    show the list of neighbors around atom no. <atom_no.>, which have
    been found using definition number <def.no.> for the scattering
    type of atom no. <atom_no.>
-   The list of atom numbers is coppied into the result variable "res".
+   The list of atom numbers is copied into the result variable "res".
 
 2  copy
 !b copy <s> , < n> , <x> , <y> , <z>
@@ -1608,7 +1608,7 @@
 
 !b define generator, {"center" | "symmetry"}
 
-   In the original progem development, all generators of a given space
+   In the original program development, all generators of a given space
    group were applied strictly in the sequence as printed in the header
    of the International Tables. Specifically, the centering generators
    were applied prior to all other generators. Each atom is immediately 
@@ -1633,8 +1633,7 @@
    define generator,center
    turns on the sequence in which centering generators are applied first
 
-   Currently the "center" mode is the default value, this will be changed 
-   in future releases!
+   The "symmetry" mode now the default value.
 2  diff-four
 !b diff
 
@@ -1675,7 +1674,7 @@
    The number of neighbouring atoms is stored in "env[0]", the indices
    are stored in the next <env[0]> elements of "env". The resulting bond
    lengths are stored in the first <env[0]> elements of "res". "res[0]"
-   is set to the same value as "env[0]". Thus,for example, it is possible 
+   is set to the same value as "env[0]". Thus, for example, it is possible 
    to search selectively for the next oxygen atoms, while ignoring all 
    other atoms.
    The command returns the list of neighbors sorted by distance, 
@@ -1719,14 +1718,14 @@
 !p delf    ! defines the anomalous scattering corrections for an element
 !p disp    ! switches anomalous dispersion on/off
 !p calc    ! calculates at a single point in reciprocal space
-!p continue! Continue a stopped macro (see main help level)
+!p continue! continue a stopped macro (see main help level)
 !p echo    ! echo a string (see main help level)
 !p electron! switches to electron calculation
-!p energy  ! Defines the energy of the radiation
-!p eval    ! Evaluates an expression for interactive check
+!p energy  ! defines the energy of the radiation
+!p eval    ! evaluates an expression for interactive check
 !p exit    ! terminates Fourier level
 !p help    ! help to Fourier commands (see main help level)
-!p hkl     ! Caclculate a list of Bragg reflection intensities
+!p hkl     ! calculate a list of Bragg reflection intensities
 !p layer   ! defines the layer in reciprocal space to be calculated
 !p ll      ! defines the lower left corner in reciprocal space
 !p lots    ! defines the crystal volume to be used for the Fourier transform
@@ -1740,14 +1739,14 @@
 !p scat    ! defines the scattering factor for an element
 !p set     ! sets Fourier mode
 !p show    ! shows the current settings for the Fourier transform
-!p stop    ! Stops execution of a macro (see main help level)
-!p system  ! Executes operating system command (see main help)
+!p stop    ! stops execution of a macro (see main help level)
+!p system  ! executes operating system command (see main help)
 !p temp    ! defines whether temperature coefficients are to be used
 !p tl      ! defines the top   left corner in reciprocal space
 !p top     ! defines the coordinate of the top axis
 !p ul      ! defines the upper left corner in reciprocal space
-!p wait    ! Waits for user input (see main help level)
-!p wvle    ! Defines the wave length to be used
+!p wait    ! waits for user input (see main help level)
+!p wvle    ! defines the wave length to be used
 !p xray    ! switches to X-ray calculation
 3  abs
 !b abs <switch>
@@ -1787,7 +1786,7 @@
 3  disp
 !b disp [<switch>]
 
-   switches anomalous dispersion on /off. If <switch> is "anom" anomalous
+   Switches anomalous dispersion on /off. If <switch> is "anom" anomalous
    dispersion will be calculated, if the switch is omitted, no anomalous 
    dispersion is calculated.
 3  electron
@@ -1810,9 +1809,9 @@
 3  layer
 !b layer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
-   sets the lower left, lower right and upper left corner of the
+   Sets the lower left, lower right and upper left corner of the
    Fourier plane to be calculated and sets the number of data
-   points along the horizontal and the vertical
+   points along the horizontal and the vertical.
 3  ll
 !b ll <e11> , <e12> , <e13>
 
@@ -1877,7 +1876,7 @@
 3  run
 !b run
 
-   starts the Fourier calculation. The user is given a rough
+   Starts the Fourier calculation. The user is given a rough
    estimate of the time it will take.
 3  scat
 !b scat { <name> | <number> },<a1>,<b1>,<a2>,<b2>,<a3>,<b3>,<a4>,<b4>,<c>
@@ -1942,7 +1941,7 @@
 3  temp
 !b temp <switch>
 
-   sets whether temperature coefficients are to be used or not.
+   Sets whether temperature coefficients are to be used or not.
    Valid values for <switch> are "use" and "ignore". The first
    two letters of the switch are sufficient.
 3  tl
@@ -1971,7 +1970,7 @@
 
    The following DISCUS specific functions exist. For a listing
    of general intrinsic functions see help entry 'functions' in
-   the 'command language' section of the online help.
+   the 'Command language' section of the online help.
 
 !p bang(u1,u2,u3,v1,v2,v3[,w1,w2,w3])
 !p                                 ! Returns the bond angle at the site v
@@ -2027,12 +2026,22 @@
 
    The arguments to any of these functions are any arithmetic expression.
 2  import
+!b import "cif",<file{".cif"]>
+!b import "cmaker",<file{".xyz"]>
 !b import "shelx",<file{".ins"]>
 !b import "rmcprofile",<file{".cssr"]>
 
    This command converts other crystal structure formats into a DISCUS 
    unit cell.
 
+3  cif
+!b "cif", <file{".cif"]>
+
+   Imports a CIF file into the corresponding discus "stru" file.
+3  cmaker
+!b "cif", <file{".xyz"]>
+
+   Imports a CrystalMaker file into the corresponding discus "stru" file.
 3  shelx
 !b "shelx",<file{".ins"]>
 
@@ -3104,7 +3113,7 @@
    pushed apart more strongly at shorter distances, yet at longer 
    distances the influence of this potential is less critical.
 
-   To push atoms far apart over the whole range of distances, shoose a 
+   To push atoms far apart over the whole range of distances, choose a 
    large value of <scale>.
 
    <energy> defaults to zero
@@ -3133,7 +3142,7 @@
 3  show
 !b show
 
-   This command lists all current settings for the MC simulation part
+   This command lists all current settings for the MMC simulation part
    of DISCUS on the screen.
 2  output
 !b output
@@ -3146,15 +3155,15 @@
 3  commands
 
 !p @       ! Execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
+!p =       ! Assigns the value to a variable (see main help)
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
 !p exit    ! Returns to the main discus level
 !p form    ! Defines the output format to be used
 !p help    ! Gives help for the output level (see main help)
-!p input   ! reads an old data file
-!p outfile ! sets name of output file
+!p input   ! Reads an old data file
+!p outfile ! Sets name of output file
 !p run     ! Starts writing of output
 !p show    ! Shows the current settings
 !p thre    ! Sets the thresholds used for bitmap output
@@ -3362,9 +3371,9 @@
 !p @       ! execute a macro file (see main help)
 !p =       ! assigns the value to a variable (see main help)
 !p abs     ! defines the coordinate of the abscissa
-!p continue! Continue a stopped macro (see main help level)
+!p continue! continue a stopped macro (see main help level)
 !p echo    ! echo a string (see main help)
-!p eval    ! Evaluates an expression for interactive check (see main help)
+!p eval    ! evaluates an expression for interactive check (see main help)
 !p exit    ! terminates Fourier level
 !p file    ! defines the input file name(s)
 !p form    ! defines the input file format
@@ -3387,13 +3396,13 @@
 !p scale   ! defines an overall scale factor
 !p set     ! sets various parameters
 !p show    ! shows the current settings for the inverse Fourier transform
-!p stat    ! Shows statistics on the normalized structure factor
-!p stop    ! Stops execution of a macro (see main help level)
-!p system  ! Executes operating system command (see main help)
+!p stat    ! shows statistics on the normalized structure factor
+!p stop    ! stops execution of a macro (see main help level)
+!p system  ! executes operating system command (see main help)
 !p type    ! defines the file type (intensity, amplitude ...)
 !p ul      ! defines the upper left corner in reciprocal space
-!p wilson  ! Calculates Wilson statistics
-!p wait    ! Waits for user input (see main help)
+!p wilson  ! calculates Wilson statistics
+!p wait    ! waits for user input (see main help)
 3  abs
 !b abs <switch>
 
@@ -3712,7 +3721,7 @@
    atom at the distance "r" from a given atom. Besides calculating
    G(r) from a given structure, the structure can be modified to
    match a observed G(r) via the RMC method. Note, that this sublevel
-   used many RMC commands and will overwrite possible settings made
+   uses many RMC commands and will overwrite possible settings made
    in the RMC segment. All commands are listed in the help entry
    'commands'. Only commands unique to this level are described
    below.
@@ -3723,7 +3732,7 @@
 !p @       ! Executes a macro (see main help)
 !p =       ! Algebra (see main help)
 !P calc    ! Calculates PDF for current structure
-!p data    ! reads observed PDF for RMC refinement
+!p data    ! Reads observed PDF for RMC refinement
 !p dese    ! Deselects used atomtypes (see RMC level)
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
@@ -3811,25 +3820,29 @@
 !p "bound"    : toggles the use of periodic boundaries
 !p "cycl"     : sets number of cycles to be calculated (see RMC level)
 !p "delta"    : sets quadratic correlation factor (Gaussian mode only)
+!p "corrquad" : sets quadratic correlation factor (Gaussian mode only)
 !p "density"  : sets rho0 value manually
 !p "diameter" : sets particle diameter for finite objects
 !p "disp"     : sets output interval (see RMC level)
 !p "finite"   : sets the correction type for 4Pi Rho for finite objects
 !p "frange"   : sets the range in r used for the refinement
 !p "gamma"    : sets linear correlation factor (Gaussian mode only)
+!p "corrquad" : sets linear correlation factor (Gaussian mode only)
 !p "mdis"     : sets minimal allowed distances between atoms (see RMC level)
 !p "mode"     : sets RMC mode (relaxation/switch atoms) (see RMC level)
 !p "move"     : sets sigma for generated RMC shifts (see RMC level)
 !p "partial"  : sets partial weights for PDF (use with MIXSCAT program)
 !p "poly"     : sets the background polynomial for finite objects
 !p "qalp"     : sets resolution broadening (Gaussian mode only)
+!p "qbroad"   : sets resolution broadening (Gaussian mode only)
 !p "qmax"     : sets maximal Q value used for termination correction
 !p "qsig"     : sets SIGMA Q for resolution correction
+!p "qdamp"    : sets SIGMA Q for resolution correction
 !p "rad"      : sets radiation used to calculate PDF
 !p "range"    : sets r range for PDF calculation 
 !p "rdensity" : sets rho0 correction factor manually (see "density")
 !p "scal"     : sets scale factor and refinement flag (see RMC level)
-!p "shape     : sets particle shape parameter for finite objects
+!p "shape"    : sets particle shape parameter for finite objects
 !p "sigm"     : sets SIGMA for CHI2 calculation (see RMC level)
 !p "srat"     : sets sharpening of low r peaks (Gaussian mode only)
 !p "therm"    : toggles the convolution with thermal Gaussian
@@ -3839,9 +3852,9 @@
 !b set "bound","crystal" [,{"quick" | "exact"}]
 
    This command allows the user to select whether periodic boundaries
-   should be applied or not. In case of "periodic" periodic boundaries
+   should be applied or not. In case of "periodic", periodic boundaries
    will be applied and the optional third parameter will determine
-   wheather periodic boundaries are applied in all directions ("3D")
+   whether periodic boundaries are applied in all directions ("3D")
    or only in those direction of the crystal that extends over more 
    than a single unit cell ("2D"). The default is "3D". Note that in
    case of periodic boundaries, the calculation mode is always unit
@@ -3921,7 +3934,7 @@
 
    "sphere",<diameter>
 
-   The effecto of this setting depend on the periodic boundary flag.
+   The effecto of this setting depends on the periodic boundary flag.
    If periodic boundaries are chosen, the 'periodic' g(r) is
    multiplied by the shape function of a sphere of diameter <diameter>.
    f = 1 - 3/2 r/diameter + 1/2 (r/diameter)**3
@@ -3982,7 +3995,7 @@
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
-   <alp> controlling tthe broadening which has the functional form
+   <alp> controling tthe broadening which has the functional form
    <alp>**2 * r**2.
    Identical to "qbroad"
 4  qbroad
@@ -3990,7 +4003,7 @@
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
-   <qbroad> controlling tthe broadening which has the functional form
+   <qbroad> controling tthe broadening which has the functional form
    <qbroad>**2 * r**2.
    Identical to "qalpha"
 4  qmax
@@ -4085,7 +4098,10 @@
 
    Switches to the structure plotting submenu. The structure can be 
    written in a format suitable for plotting by several structure plotting
-   programs such as KUPL, GNUPLOT.
+   programs such as KUPL, GNUPLOT, DIAMOND; ATOMS.
+
+   In particular a simplified CIF file can be written, which can be 
+   displayed by many different programs..
 
    Further help topics are:
 
@@ -4093,7 +4109,7 @@
    Valid commands at this sub level are:
 
 !p @       ! Executes a macro (see main help)
-!p =       ! assigns the value to a variable (see main help)
+!p =       ! Assigns the value to a variable (see main help)
 !p absc    ! Defines the abscissa of the plot
 !p asym    ! Lists the content of the asymmetric unit
 !p chem    ! Lists all type of atoms present in the crystal
@@ -4982,7 +4998,7 @@
    name or B value. This allows one to read large asymmetric units
    (e.g. from a protein) without creating that many different atom types.
 3  free
-!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma>i [,<name> | <number>]
+!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number>]
 
    No structure is read. The space group is set to "P1". The lattice
    constants are set to the optional values on the command line. 
@@ -4993,7 +5009,7 @@
    empty structure. The parameter may either be the space group name or
    the space group number. This has no effect on the current structure 
    or on atoms you may insert later. It does allow you to save this
-   structure and then to rad it as a unict cell file. It will then be
+   structure and then to read it as a unit cell file. It will then be
    expanded to a full unit cell content according to the space group
 3  stru
 !b stru <name>
@@ -9031,6 +9047,36 @@
    atom.
    If an emty file is intended, set the error handling to 'live'.
    See 'set error, live'
+4  -128
+   Could not add the new decoration
+4  -129
+   No decoration definition exists yet
+
+   DISCUS was instructed to start decorating the crystal, yet no
+   definitions for the decorations had been set. 
+   Use ==> 'add' to start a decoration type
+4  -130
+   No surface atoms found
+
+   DISCUS could not find any of the surface atoms specified for the 
+   decoration model. 
+   Plot the crystal and inspect its surface, use ==> 'chem' to 
+   check the composition. 
+4  -131
+   No surface sites for ligands found
+
+   DISCUS could not find any of the surface atoms specified for the 
+   decoration model. 
+   Plot the crystal and inspect its surface, use ==> 'chem' to 
+   check the composition. 
+4  -132
+   Mismatch between corners and increments
+
+   You used 'na', 'no', 'nt' to specify the number of data
+   points along an axis in reciprocal space. Thecorresponding
+   corners are, however, identical. 
+   Adjust the number of data points along this axis to "1"
+   or adjust the corners vie 'll', 'lr', 'ul', 'tl'.
 3  chem
    Errors at the chemistry level of DISCUS
 
@@ -9199,6 +9245,14 @@
    The index must be larger than 0.
 4  -29
    Atom type outside valid range
+4  -30
+   Multiple identical sites in unit cell
+
+   Several sitex exist within the unit cell with (almost) identical
+   coordinates. Thus DISCUS has a tough time to decide which of these
+   sites you have in mind. 
+   The symmetry expansion is carried out, but the results are written to 
+   file only. This gives you a better chance to sort them out manually.
 3  four
    These are the possible error messages related to the calculation
    of the Fourier Transform
@@ -9312,6 +9366,18 @@
    faults. 
    Under these circumstances you must use the exact mode in connection 
    with the ==> 'set bound' 
+4  -10
+   User Fit minimum outside data range
+
+   You specified a fit range via ==> 'frange' that is outside the 
+   distance range of the data set. Check your data set and the 'frange'
+   command and ensure consistency.
+4  -11
+   User Fit maximum outside data range
+
+   You specified a fit range via ==> 'frange' that is outside the 
+   distance range of the data set. Check your data set and the 'frange'
+   command and ensure consistency.
 3  rmc
    Errors at the Reverse Monte Carlo Level
 
