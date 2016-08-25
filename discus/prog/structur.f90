@@ -437,6 +437,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
+               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
+                               + mole_len (mole_num_mole)                
 !                                                                       
 !     ------Define initial crystal size in fractional coordinates       
 !                                                                       

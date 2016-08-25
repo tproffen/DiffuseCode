@@ -179,7 +179,22 @@ CONTAINS
    REAL                          :: r_fuzzy    ! and this molecule is of type i_type
    REAL                          :: r_dens     ! and this molecule is of type i_type
    REAL                          :: r_biso     ! and this molecule is of type i_type
+!
 
+   INTEGER                              :: temp_num_mole
+   INTEGER                              :: temp_num_type
+   INTEGER                              :: temp_num_atom
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_len
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_off
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_type
+   CHARACTER (LEN=200), DIMENSION(:  ), ALLOCATABLE :: temp_file
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_char
+   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
+   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
+   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
+   INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
+!
    LOGICAL                       :: need_alloc ! we need to allocate something
    LOGICAL                       :: new_type   ! Each atom is a new type
 !
@@ -258,6 +273,46 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
          RETURN
       ENDIF
    ENDIF
+!
+!  Allocate temporary space for molecule info
+! 
+      ALLOCATE(temp_len (0:n_mole))
+      ALLOCATE(temp_off (0:n_mole))
+      ALLOCATE(temp_type(0:n_mole))
+      ALLOCATE(temp_file(0:n_mole))
+      ALLOCATE(temp_char(0:n_mole))
+      ALLOCATE(temp_dens(0:n_mole))
+      ALLOCATE(temp_biso(0:n_mole))
+      ALLOCATE(temp_fuzz(0:n_mole))
+      ALLOCATE(temp_cont(0:natoms))
+      ALLOCATE(temp_look(0:natoms))
+      temp_len (0:n_mole) = 0
+      temp_off (0:n_mole) = 0
+      temp_type(0:n_mole) = 0
+      temp_file(0:n_mole) = ' '
+      temp_char(0:n_mole) = 0
+      temp_dens(0:n_mole) = 0.0
+      temp_biso(0:n_mole) = 0.0
+      temp_fuzz(0:n_mole) = 0.0
+      temp_cont(0:natoms) = 0
+      temp_look(0:natoms) = 0
+!
+!
+!  Now copy from internal crystal to local variables
+!
+      CALL read_temp%crystal%get_molecules_from_crystal(n_mole,       &
+              natoms, temp_num_mole, temp_num_type, &
+              temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
+              temp_file, temp_dens, temp_biso, temp_fuzz, temp_cont)
+!
+!  Build lookup table for original molecules
+!
+   DO i=1, temp_num_mole
+      DO j=1, temp_len(i)
+         ia = temp_cont(temp_off(i)+j)
+         temp_look(ia) = i            !atom(iatom) is in molecule i
+      ENDDO
+   ENDDO
    ENDIF found
 !
 !  Main loop over all atoms in the asymmetric unit   
@@ -270,6 +325,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
    mole_type = 0
    mole_cont = 0
    i_mole    = 0
+   mole_num_atom = 0
 !
 main: do ia = 1, natoms
       werte    = 0.0
@@ -279,24 +335,24 @@ main: do ia = 1, natoms
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso)
-!
-!
-in_mole: IF ( i_mole > 0 ) THEN                ! This atom belongs to a molecule
+in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molecule
             IF ( .not. mole_l_on ) THEN           ! Right now we are not in a molecule
                mole_l_on    = .true.              ! Turn molecule on
                mole_l_first = .true.              ! This is the first atom in the molecule
                mole_gene_n  = 0                   ! No molecule generators
                mole_symm_n  = 0                   ! no molecule symmetry
+               i_mole = mole_num_mole + 1         ! Need to work on a new (=next) molecule
+               mole_off  (i_mole) = mole_off(mole_num_mole)+mole_len(mole_num_mole) ! Set offset
+               mole_num_mole      = MAX(mole_num_mole, i_mole) ! Adjust no of molecules
+               mole_num_type      = MAX(mole_num_type, i_type) ! Adjust no of molecule types
+               mole_type (i_mole) = i_type        ! Set current molecule type
+               mole_char (i_mole) = i_char        ! Set current molecule character
+               mole_file (i_mole) = c_file        ! Set current molecule file
+               mole_fuzzy(i_mole) = r_fuzzy       ! Set current molecule Fuzzy distance
+               mole_dens (i_mole) = r_dens        ! Set current molecule density
+               mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
+               mole_num_curr      = i_mole        ! Set molecule no we are working on
             ENDIF
-            mole_num_mole      = MAX(mole_num_mole, i_mole) ! Adjust no of molecules
-            mole_num_type      = MAX(mole_num_type, i_type) ! Adjust no of molecule types
-            mole_type (i_mole) = i_type           ! Set curretn molecule type
-            mole_char (i_mole) = i_char           ! Set current molecule character
-            mole_file (i_mole) = c_file           ! Set current molecule file
-            mole_fuzzy(i_mole) = r_fuzzy          ! Set current molecule Fuzzy distance
-            mole_dens (i_mole) = r_dens           ! Set current molecule density
-            mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
-            mole_num_curr      = i_mole           ! Set molecule no we are working on
       ELSE  in_mole
          mole_l_on = .false.                      ! Next atom is not inside a molecule
       ENDIF in_mole
@@ -351,6 +407,21 @@ do_scat_dw: DO k = 1,cr_nscat
    ENDDO 
 !
    DEALLOCATE(read_temp, STAT = istatus )         ! Deallocate a temporary storage
+IF(n_mole > 0) THEN
+!
+!  Deallocate temporary space for molecule info
+! 
+   DEALLOCATE(temp_len )
+   DEALLOCATE(temp_off )
+   DEALLOCATE(temp_type)
+   DEALLOCATE(temp_file)
+   DEALLOCATE(temp_char)
+   DEALLOCATE(temp_dens)
+   DEALLOCATE(temp_biso)
+   DEALLOCATE(temp_fuzz)
+   DEALLOCATE(temp_cont)
+   DEALLOCATE(temp_look)
+ENDIF
 !
    END SUBROUTINE readcell_internal
 !*******************************************************************************

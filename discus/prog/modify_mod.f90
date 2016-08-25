@@ -1124,11 +1124,11 @@ CONTAINS
          ALLOCATE(new_biso(0:old_mole_num_mole))
          ALLOCATE(new_fuzz(0:old_mole_num_mole))
 !
-         new_mole = 0                 ! Initialise all arrays
-         new_len  = 0
-         new_type = 0
-         new_file = ' '
-         new_char = 0
+         new_mole(:,:) = 0                 ! Initialise all arrays
+         new_len (:)   = 0
+         new_type(:)   = 0
+         new_file(:)   = ' '
+         new_char(:)   = 0
 !
          DO ia=1, cr_natoms           ! Loop over all atoms
             IF(cr_mole(ia)/=0) THEN   ! Atom is in a molecule
@@ -1138,12 +1138,12 @@ CONTAINS
             ENDIF
          ENDDO
 !
-         new_type = mole_type         ! Copy all molecule properties
-         new_file = mole_file
-         new_char = mole_char
-         new_dens = mole_dens
-         new_biso = mole_biso
-         new_fuzz = mole_fuzzy
+         new_type(0:old_mole_num_mole) = mole_type(0:old_mole_num_mole)         ! Copy all molecule properties
+         new_file(0:old_mole_num_mole) = mole_file(0:old_mole_num_mole)
+         new_char(0:old_mole_num_mole) = mole_char(0:old_mole_num_mole)
+         new_dens(0:old_mole_num_mole) = mole_dens(0:old_mole_num_mole)
+         new_biso(0:old_mole_num_mole) = mole_biso(0:old_mole_num_mole)
+         new_fuzz(0:old_mole_num_mole) = mole_fuzzy(0:old_mole_num_mole)
 !
          mole_len  = 0               ! Clear old molecules
          mole_off  = 0
