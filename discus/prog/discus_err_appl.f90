@@ -17,7 +17,7 @@
      &  'Mismatch between corners and increments'  ,& !-132 ! discus
      &  'No surface sites for ligands found'       ,& !-131 ! discus
      &  'No surface atoms found                   ',& !-130 ! discus
-     &  'No decoration definition exists yes      ',& !-129 ! discus
+     &  'No decoration definition exists yet      ',& !-129 ! discus
      &  'Could not add the new decoration         ',& !-128 ! discus
      &  'Empty content file                       ',& !-127 ! discus
      &  'H-M symbol in CIF file is a question mark',& !-126 ! discus
