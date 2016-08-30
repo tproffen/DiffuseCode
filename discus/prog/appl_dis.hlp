@@ -4512,8 +4512,8 @@
 
    Switches to the powder diffraction sublevel of DISCUS. 
 
-   Two modes are used, the Debye algorithm and a complete integration 
-   of reciprocal space.
+   Two modes are used, the Debye scattering equation algorithm and a 
+   complete integration of reciprocal space.
 
    The Debye mode is best suited for nanoparticles, as size effects
    are automatically taken into account. It becomes quite slow for 
@@ -4583,7 +4583,7 @@
 !b set bragg, {"incl"|"excl"}
 
    This command applies to the full integration mode only. It 
-   allows you to include (=default) the Intensities of the Bragg
+   allows you to include (=default) the intensities of the Bragg
    reflections or to exclude these.
    Actually rarely used these days...
 4  calc
@@ -4741,7 +4741,7 @@
 4  scale
 !b set scale,<value>
 
-   Sets a scale factor. Thne calculated powder pattern will be 
+   Sets a scale factor. The calculated powder pattern will be 
    multiplied by this scale factor. Most useful in combination
    with the background mode ==>'set back'
 4  sh
@@ -4755,7 +4755,7 @@
    be integrated. If, for example, rods of diffuse intensity have to 
    be calculated that have a finite widh in reciprocal space in the 
    HK0 plane, then repeated calculations of the powder pattern with
-   shift_h = plus/minus small values can be used to cover this finit
+   shift_h = plus/minus small values can be used to cover this finite
    width, while dh can be set to 1.0
 4  sk
 !b set sk,<shift_k>
@@ -4779,7 +4779,7 @@
    This command applies to the Debye mode only. 
    The interatomic distances are binned to a histogram with stepwidt
    <value>. This defaults to 0.01 Angstroem at program start.
-   As the histogram arry is of fixed size, this limits the maximum
+   As the histogram array is of fixed size, this limits the maximum
    distance that debye can handle. See ==> 'show config' at the main
    DISCUS level for the Debye histogram size. The maximum interatomic
    distance is then 
@@ -4932,7 +4932,7 @@
             through the ==> 'domain' menu. Individual distances to the
             boundary can be set within the ==> 'domain' menu through
             the ==> 'domain/fuzzy' command.
-2  set/clear
+3  set/clear
 !b set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
 !b set   <flag>, "atoms"}, {"all" | <start>,<end>}
 !b clear <flag>, "types",  {"all" | <iscat> [, <iscat...]}
@@ -4963,7 +4963,7 @@
 
    Branches to reading level of DISCUS. At this level a new unit cell
    or structure may be read. The old structure is lost ! If necessary
-   save it with the --> "save" command.
+   save it with the --> 'save' command.
 
    Further help topics are:
 
@@ -5015,7 +5015,7 @@
 !b stru <name>
 
    reads a whole structure from file <name>.
-   The space group information is ignored, nor is a check for consistency
+   The space group information is ignored, nore is a check for consistency
    of space group and lattice constants performed.
 2  remove
 !b remove <start> [, <end> ]
@@ -5057,7 +5057,7 @@
    This command allows to replace atoms and molecules. The first two 
    variations operate on atoms. The first variation replaces the 
    atom at index <index> with atom name (or number) <at>. It the atom
-   typ does not already exist in the crystal, the temperature factor
+   type does not already exist in the crystal, the temperature factor
    <dbw> has to be given as additional parameter. 
    For this command variation, the atom no. <index> is replaced, no
    matter what its individual properties are and whether it fulfills
@@ -5101,21 +5101,21 @@
 !p =       ! Algebra (see main help)
 !p data    ! read experimental data for RMC fit
 !p dese    ! Deselects the atomtypes allowed for RMC moves/switches (-> sele)
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
 !p eval    ! Evaluates an expression (see main help)
 !p exit    ! Terminates the rmc sub level, returns to the main DISCUS level.
 !p help    ! Gives on-line help for 'rmc' (see main help)
 !p mdes    ! Deselects molecules
 !p msel    ! Selects molecules for RMC refinement
-!p rese    ! reset RMC settings (i.e. reset plane counter)
-!p run     ! start RMC fit
-!p save    ! saves structure or intensity to given file
-!p sele    ! selects the atomtypes allowed for RMC moves/switches (-> dese)
-!p set     ! sets most RMC parameters
-!p show    ! show current RMC settings
+!p rese    ! Reset RMC settings (i.e. reset plane counter)
+!p run     ! Start RMC fit
+!p save    ! Saves structure or intensity to given file
+!p sele    ! Selects the atomtypes allowed for RMC moves/switches (-> dese)
+!p set     ! Sets most RMC parameters
+!p show    ! Show current RMC settings
 !p stop    ! Stops execution of a macro (see main help level)
-!p system  ! executes operating system command (see main help)
+!p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  data
 !b data {"x-ray"|"neutron"},{<name>|<value>},<file>,<wic>,
@@ -7838,6 +7838,7 @@
 !p assign     ! Assigns size, character etc to the pseudoatoms
 !p inputfile  ! Defines the input file name
 !p mode       ! Defines the interpretation of the input file 
+!p reset      ! Set definitions back to system start
 !p run        ! Perform the actual replacement
 !p set        ! Sets various definitions
 !p show       ! Show current settings
@@ -8032,7 +8033,11 @@
    A general header like all DISCUS structure files followed by as many 
    domain descriptors as needed. Each domain descriptor is designed 
    similarly to the molecule and object descriptors:
+3  reset
+!b reset
 
+   Reset all definition back to the default values at system start. 
+   All current assignments are removed.
 3  run
 !b run
 
