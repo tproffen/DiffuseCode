@@ -1028,6 +1028,7 @@ CONTAINS
          ndel = 0 
 !                                                                       
          CALL do_check_purge (.true.) 
+         cr_ncatoms = 1       !Atom number disturbed, 1 atom per unit cell
       ENDIF 
 !                                                                       
       END SUBROUTINE do_purge_atoms                 
@@ -1147,7 +1148,12 @@ CONTAINS
 !
          mole_len  = 0               ! Clear old molecules
          mole_off  = 0
+         mole_type = 0
          mole_cont = 0
+         mole_char = 0
+         mole_dens = 0
+         mole_biso = 0
+         mole_file = ' '
 !
          inew = 0                    ! No new molecules yet
          DO im=1,mole_num_mole       ! Loop over all old molecules
@@ -1167,6 +1173,10 @@ CONTAINS
                ENDDO
             ENDIF
          ENDDO
+         mole_num_mole = inew   ! Update molecule (numbers, types, atom_number)
+         mole_num_type = MAXVAL(mole_type)
+         mole_num_atom = mole_off(inew) + mole_len(inew)
+         mole_num_unit = 1  ! Atom number disturbed, 1 mol per unit cell
 !
          DEALLOCATE(new_mole)    ! Free teporary memory
          DEALLOCATE(new_len )

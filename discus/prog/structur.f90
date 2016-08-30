@@ -180,11 +180,11 @@ CONTAINS
 internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         CALL readcell_internal(strucfile)
                      ELSE internalcell
-                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-                                         n_atom, -1 , .false.)
-                        IF (ier_num /= 0) THEN
-                           RETURN
-                        ENDIF
+!                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+!                                         n_atom, -1 , .false.)
+!                        IF (ier_num /= 0) THEN
+!                           RETURN
+!                        ENDIF
                         CALL readcell (strucfile) 
                      ENDIF internalcell
 !
@@ -3596,9 +3596,9 @@ header: DO
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) then 
                DO i = 1,ianz
-                   names(ntypes+i) = cpara(i)(1:lpara(i))
+                   names(nscattypes+i) = cpara(i)(1:lpara(i))
                ENDDO
-               nscattypes = ianz
+               nscattypes = nscattypes + ianz
             ELSE
                ier_num = -111
                ier_typ = ER_APPL
@@ -3611,9 +3611,9 @@ header: DO
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
                   DO i = 1,ianz
-                      bvals(ntypes+i) = werte(i)
+                      bvals(nadptypes+i) = werte(i)
                   ENDDO
-                  nadptypes = ianz
+                  nadptypes = nadptypes + ianz
                ELSE
                   ier_num = -111
                   ier_typ = ER_APPL
