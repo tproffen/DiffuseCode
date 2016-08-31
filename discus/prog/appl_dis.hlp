@@ -76,7 +76,8 @@
    the direction of a vector.
 
    DISCUS may now be interruted gracefully with a CTRL-c.
-   This will cause DISCUS to write the current structure,
+   This will cause DISCUS to write the current structure 
+   as a file called EMERGENCY.STRU.
 3  2016_May
 
    Added option to the save menu to utilize the atom properties.
@@ -1644,6 +1645,294 @@
    The difference Fourier can only be calculated from a "shelxl" type 
    file. The program calculates (Fobs-Fcalc) and then calculates the
    corresponding inverse Fourier.
+2  domain
+
+   This command branches to the domain menu level.
+
+   Domains are understood as any group of atoms which is to replace
+   part of the original structure. A domain may be encoded within the
+   file in two different ways:
+   A) A list of pseudoatoms
+   B) A list of explicit domains
+
+   The pseudoatom file structure is identical to any DISCUS structure 
+   file. The atoms are interpreted as positions of the domains within 
+   the host structure. Size, character, and orientation of the domain
+   can be set by the user via the 'assign' commands at the domain level.
+
+   The domain lists encode the size, character, and orientation within 
+   the file itself.
+
+   Valid commands at this sublevel are:
+3  commands
+
+!p assign     ! Assigns size, character etc to the pseudoatoms
+!p inputfile  ! Defines the input file name
+!p mode       ! Defines the interpretation of the input file 
+!p reset      ! Set definitions back to system start
+!p run        ! Perform the actual replacement
+!p set        ! Sets various definitions
+!p show       ! Show current settings
+
+3  Instructions on usage
+
+   These are some quick hints on how to use the domain level.
+
+   An explicit domain is encoded similar to a molecule:
+
+   domain
+   domain character,domain_fuzzy
+   domain file,domain_a.stru
+   domain fuzzy,0.8
+   posi      0.0000     0.0000    0.0000  0.000
+   xaxi      1.0000     0.0000    0.0000  1.000
+   yaxi      0.0000     1.0000    0.0000  1.000
+   zaxi      0.0000     0.0000    1.0000  1.000
+   cent      0.0000     0.0000    0.0000  0.000
+   xdim      1.0000     0.0000    0.0000  1.000
+   ydim      0.0000     1.0000    0.0000  1.000
+   zdim      0.0000     0.0000    1.0000  1.000
+   domain end
+
+   This encoding allows you to use all of the DISCUS tools to create a
+   distribution of domains within the host crystal. An alternative 
+   encoding is the use of "pseudoatoms". These are regular atoms, which are
+   interpreted by the domain level as positions of a domain.
+
+   See the ==> 'insert' command for instructions to insert a domain into
+   a dummy structure.
+
+   The domain character may be any of "domain_cube", "domain_cylinder",
+   "domain_fuzzy", or "domain_sphere". 
+   A "domain_cube" is a cube with dimensions given by the xdim, ydim,
+   and zdim dimensions. These values are elements of a distortion matrix
+   which allows you to rotate and distort the cube.
+   A "domain_cylinder" is a cylindrical domain. The initial rotation 
+   axis is parallel to the z-axis.
+   A "domain_fuzzy" domain has no predefined boundary. DISCUS reads all
+   corresponding atoms from the file and deletes all host atoms, that 
+   are less than the fuzzy separation away from any of the domain atoms.
+   A "domain_sphere" is an initially spherical domain.
+
+   A domain replaces all atoms that exist prior within the crystal. 
+   The exception are those atoms with special names that define a
+   domain or an object. These atoms are not replaced by a new domain.
+   This allows you to replace a structure in part with other domains,
+   where these domains remain intact, even if they overlap.
+
+
+   See the manual for full details.
+
+   The file contains the actual atoms that will be inserted into the 
+   host structure. You must make sure that the atoms from this file to
+   fill out the space freed by the domain.
+
+   The fuzzy value gives the minimum distance between domain atoms and
+   host atoms. Any atom closer than this separation is deleted for the
+   host structure.
+   If the fuzzy distance is set to zero or a negative value, the check
+   is not performed and all old host atoms remain in the structure.
+
+   The "posi" line is understood as the center of the domain atoms,
+   the following three lines as the transformation matrix. The actual
+   position onto which the domain atom is placed is calculated as:
+   (t11  t12  t13 ) (xcoordinate)   (posi(x))
+   (t21  t22  t23 ) (ycoordinate) + (posi(y))
+   (t31  t32  t33 ) (zcoordinate)   (posi(z))
+   
+   Each of the matrix elements is calculated as follows:
+   t11 = xaxi(x) - posi(x)
+   t12 = xaxi(y) - posi(y)
+   ..
+   t21 = yaxi(x) - posi(x)
+   ..
+   Thus the transformation matrix is actually encoded by adding the 
+   position to all matrix elements. This seemingly complication actually
+   allows you to modify the domain by all DISCUS elements like the 
+   generalized symmetry operation ==> 'symm'. A rotation for example will
+   thus actually leave the matrix nicely intact.
+
+   Likewise the next four lines are used to encode the transformation 
+   matrix used to define the domain shape. Again, the actual transformation
+   matrix is the difference between the lines "*dim" and the "cent" line.
+   By increasing the dimension, you increase the domain size. You can 
+   similaryl distort the domain shape. 
+
+   The generalized symmetry level ==> "symm" allows you to change the
+   position, orientation and shape of the domain and/or the atom transformation
+   matrix. 
+3  assign
+!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
+!b assign "content",<pseudoatom name>,<contentfile>
+!b assign "fuzzy",<pseudoatom name>,<radius>
+!b assign "orient",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
+!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
+
+   These commands allow you to assign extended properties to the pseudo
+   atoms. Since the pseudo atoms are identical to regular atoms, they can 
+   only encode the position and type of a domain. The character, size, and
+   orientation of the atoms with respect to the host structure may be 
+   assigned via these commands.
+
+!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
+
+   A domain may be any of four different principal shapes. 
+   The "cube" domain is a domain consisting of the six {100} faces. 
+   The default distance of each face from the center is one respective
+   unit cell. 
+   A "cylinder" domain has cylindrical geometry with the default cylinder axis
+   parallel to the c-axis. The radius is one b-axis length. Top and bottom
+   are terminated by the two {001} faces.
+   A "sphere" domain initially is spherical with radius one b-axis.
+
+   All host atoms that are within the domain are removed, the void is 
+   filled by the atoms from the corresponding <contentfile>. The size and
+   shape of these domains may be changed by adjusting the 
+   ==> ' assign shape' of the domain. 
+
+   The "fuzzy" domain follows a very different concept. It does not have
+   a predefined size or shape. Instead all atoms that are read from the 
+   <contentfile> replace host atoms that are close to their position.
+
+!b assign "content",<pseudoatom name>,<contentfile>
+
+   The <contentfile> contains a DISCUS type structure file with all the
+   atoms that are to be placed inside the host crystal. You need to make 
+   sure that the structure listed in the <contetnfile> is large enough
+   to fill the empty void created by the respective domain. 
+   The space group and unit cell dimensions of the domain structure and 
+   the host crystal must be identical.
+
+!b assign "fuzzy",<pseudoatom name>,<radius>
+
+   All host atoms that are closer than this <radius> to any of the 
+   domain atoms are removed from the original host structure. This holds 
+   for all domain character types.
+   If the <radius> is set to zero or any negative number, the check is
+   not performed for this domain type. Atoms of this domain type could
+   thus be right on top of an atomof the host structure! 
+
+!b assign "orient",<pseudoatom name>,<row_i>,<ti1>,<ti2>,<ti3>,<ti4>
+
+   The orientation provides you a transformation matrix that is applied 
+   to each domain atom prior to insertion into the host. 
+   To keep the input lines short, each of the three rows <row_i> must
+   be given separately.
+   Each atom is transformed by:
+   (t11  t12  t13 ) (xcoordinate)   (t14)   (posi(x))
+   (t21  t22  t23 ) (ycoordinate) + (t24) + (posi(y))
+   (t31  t32  t33 ) (zcoordinate)   (t34)   (posi(z))
+   The translational part <ti4> is added to the position of the 
+   pseudo atom.
+
+!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
+
+   The shape transformation matrix is used to determine the size and shape
+   of the domain. Default size at program start are +- one unit cell
+   along each axis. Enlarge the domain by increasing the elements <tii>
+   of the shape matrix, distort by changing the off-axis elements.
+   The shape is distorted by:
+   (t11  t12  t13 ) (xaxis)   (t14)   (posi(x))
+   (t21  t22  t23 ) (yaxis) + (t24) + (posi(y))
+   (t31  t32  t33 ) (zaxis)   (t34)   (posi(z))
+   The translational part <ti4> is added to the position of the
+   pseudo atom. The shape transformation works independent from the atom
+   transformation matrix.
+   If the character of the domain is "cube", "cylinder", or "sphere", 
+   DISCUS checks whether the position of the domain atom after its 
+   transformation fits into the domain shape. If true, it is inserted into
+   the guest structure.
+
+   The optional <sigma> allows for a size distribution of the domains.
+   the matrix part is multiplied by a factor (1 + gran(sigma)). 
+   Discus cuts the factor at 0.01, all large values are allowed.
+3  inputfile
+!b inputfile <inputfile>
+
+   DISCUS read the domain positions from the file <inputfile>. See the
+   ==> 'mode' command on how DISCUS interprets this file.
+3  mode
+!b mode {"domain" | "pseudoatoms"}
+
+   This command tells DISCUS how to interpret the input file. 
+   With the "pseudoatoms" option, DISCUS expects to find a standard
+   DISCUS structure file. Each "atom" in the file is interpreted as 
+   a domain position. See the ==> 'assign' commands for further details.
+
+   With the "domain" option DISCUS expects to read a file structured 
+   like:
+   A general header like all DISCUS structure files followed by as many 
+   domain descriptors as needed. Each domain descriptor is designed 
+   similarly to the molecule and object descriptors:
+3  reset
+!b reset
+
+   Reset all definition back to the default values at system start. 
+   All current assignments are removed.
+3  run
+!b run
+
+   This starts the actual incorporation of the domains into the host 
+   crystal. The positions, characters etc. for each domain are read
+   from file <inputfile>. The corresponding domain structure is used to
+   replace part of the host structure.
+3  set
+!b set
+
+   Set various definitions
+
+4  distance
+!b set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
+
+   Set the distances at wich an atom from the atom list shall be 
+   considered to be close to a surface.
+4  remove
+!b set remove {"strict" | "initial" | "trust" | "none"}
+
+   When DISCUS replaces (parts of) an old structure with the 
+   content of domains. it needs to remove the old atoms. You have 
+   three choices how this shall be done:
+
+   strict
+   Old atoms are removed EVERYTIME an individual domain is inserted
+   into the crystal. Old atoms are considered to be all atoms that 
+   were in the crystal just before this domain was inserted. This
+   includes domains that were inserted by the very same 'run' 
+   command. 
+   You need to do this, if you suspect or know that domains do
+   overlap. You must use this for example to simulate overgrowth of
+   domains on top of each other.
+
+   initial
+   This time only those atoms are removed that were in the crystal 
+   prior to the current 'run' command. The atoms that are inserted
+   during the current 'run' command are not tested. They may overlap
+   if you are not cereful. 
+
+   trust
+   OK, you trust that no domains overlap with each other and that you
+   know exactly which host atoms have to be removed. The removal is
+   performed after all domains have been inserted. DISCUS collects 
+   all fuzzy distances from the ==> assign commands and uses the 
+   maximum value of any assign command. This is necessary, since at this 
+   point the information from which domain type a new atom was taken
+   has been lost.
+   This removal is MUCH faster than  the previous two.
+
+   none
+   The ultimate trust! No host atoms are removed at all. You can do this,
+   if you read a crystal that consisted only of dummy atoms and each of 
+   these represents a domain. 
+   You should remove these dummy atoms after you leave the 'domain'
+   menu via a ==> replace dummy, void, all,1.0 command.
+   This combination is the fastest but be advised that you really need to
+   know where the dummy atoms and the inserted atoms are. Otherwise you
+   might end up with lots of strange overlapping atoms.
+3  show
+!b show
+
+   Shows the current settings.
+
 2  find
 !b find "env",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
 !b find "menv",{"all"|{<name>|<number>} [, ...]},x,y,z,min_radius,max_radius
@@ -5502,23 +5791,23 @@
    Valid commands at this level are
 
 !p @       ! Execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
+!p =       ! Assigns the value to a variable (see main help)
 !p asym    ! Shows asymmetric unit
 !p chem    ! Shows the atoms present in the crystal
 !p continue! Coninue a stopped macro (see main help level)
-!p des     ! deselects atoms
-!p echo    ! echo a string (see main help)
+!p des     ! Deselects atoms
+!p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
-!p exit    ! terminates 'save'
+!p exit    ! Terminates 'save'
 !p file    ! Defines the file name to which the structure is written
 !p format  ! Defines the format of the structure file
-!p help    ! gives on line help for saving the structure (see main help)
+!p help    ! Gives on line help for saving the structure (see main help)
 !p omit    ! Defines which information to omit from the file
 !p outf    ! Defines the name of the output file
 !p prop    ! Selects the atom properties, which will be checked
-!p run     ! starts the saving of the structure
-!p sel     ! selects atoms to be included in the structure file
-!p show    ! shows the current parameters
+!p run     ! Starts the saving of the structure
+!p sel     ! Selects atoms to be included in the structure file
+!p show    ! Shows the current parameters
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
@@ -5628,13 +5917,13 @@
    The unit cell transformation includes all atoms numbered <start> to <end>
    inclusively. All other atoms are ignored. 
    If, instead of explicit numbers, the parameter "all" is given, the
-   unit cell transformation will include all atoms of the crystal. This holds
+   save process will include all atoms of the crystal. This holds
    even, if at a later time you include further atoms in the crystal.
-   Thus, you can define a setup for the unit cell transformations early in a
+   Thus, you can define a setup for the save process early in a
    lengthy macro, then modify the crystal and just run the 
-   unit cell transformation later on.
+   save process later on.
    In addition you can define the atoms that are affected by the 
-   unit cell transformation operation with the ==>'sele' and 'dese' commands.
+   save process with the ==>'sele' and 'dese' commands.
 3  omit
 !b omit { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
 !b         "object" | "scat" | "adp" }
@@ -5684,14 +5973,13 @@
 3  run
 !b run
 
-   Starts the transformation operation.
+   Starts the writing to the output file.
 3  sel
 !b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
-   This command serves to select
-   those atoms that will be modified by the unit cell transformation.
+   This command serves to select those atoms that will be included
+   in the saving to the output file.
 
-   Defines which atoms are included in unit cell transformations.
    Possible values for the first mandatory parameter are mutually
    exclusively:
 
@@ -5709,12 +5997,13 @@
 3  show
 !b show
 
-   Shows the current parameters of the transformation operation.
+   Shows the current parameters of the save menu.
 3  write
 !b write { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
 !b         "object" | "domain" | "scat" | "adp" }
 
-   The keyword controlled format includes the mandatory lines :
+   The keyword controlled format includes the mandatory  and 
+   automatically included lines :
    title
    spcgrp
    cell
@@ -5832,7 +6121,7 @@
 
    In both cases, the eigenvector is normalized to unit length.
 
-   The ==> 'show' command displays the Eigenvectors, the determinant
+   The ==> 'show' command displays the eigenvectors, the determinant
    of the eigenvector matrix, and the angles between the 
    three eigenvectors. This allows you to verify that all three 
    vectors are normal to each other.
@@ -5857,7 +6146,7 @@
    of the (001) planes.
    All points are shifted by an amount parallel to the deformation vector
    that is proportional to their distance from the plane. Points at 
-   a distance equal to the length of 'uvw' are shifted by the vector, #
+   a distance equal to the length of 'uvw' are shifted by the vector,
    those twice as far away are shifted twice as much. Points on 
    opposite sides of the plane are shifed in opposite directions.
 3  incl
@@ -6279,19 +6568,19 @@
    Valid commands at this level are
 
 !p @       ! Execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
+!p =       ! Assigns the value to a variable (see main help)
 !p aver    ! Sets the intended average translation
 !p ccol    ! Reads a single column of the correlation matrix
 !p cele    ! Reads a single element of the correlation matrix
 !p continue! Coninue a stopped macro (see main help level)
-!p crea    ! Creates the list of layer origins
+!p create  ! Creates the list of layer origins
 !p crow    ! Reads a single row of the correlation matrix
 !p dist    ! Defines the distribution of layer types
-!p echo    ! echo a string (see main help)
+!p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
-!p exit    ! terminates 'stack' (see main help)
-!p four    ! calculates the Fourier transform in quick mode
-!p help    ! gives on line help for symmetry operations (see main help)
+!p exit    ! Terminates 'stack' (see main help)
+!p four    ! Calculates the Fourier transform in quick mode
+!p help    ! Gives on line help for symmetry operations (see main help)
 !p layer   ! Reads the name of a file that contains a layer
 !p modulus ! Reads the modulus vector of the translation
 !p number  ! Reads the number of layers to be created
@@ -6323,8 +6612,8 @@
 
    Reads the value <value> that is stored in element <i>,<j> of the
    correlation matrix.
-3  crea
-!b crea
+3  create
+!b create
 
    Creates the list of layer origins. No changes are done to the 
    actual structure, this is performed by the command ==> 'run'.
@@ -6350,7 +6639,7 @@
    Make sure this is a one-dimensional structure and that you have 
    written this file using the ==> 'save' options to write the
    explicit list of scattering types and atomic displacement parameters.
-   You can use the MonteCarlo section of DISCUS ==> 'mc' to create
+   You can use the MonteCarlo section of DISCUS ==> 'mmc' to create
    the list of layer types, which allows you to include nearest as well
    as next nearest etc neighbor correlations.
    Presently 'stack' ignores the atom positions found in the input file.
@@ -6707,37 +6996,37 @@
    Valid commands at this level are
 
 !p @       ! Execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
-!p angle   ! sets the angle of a rotation axis
+!p =       ! Assigns the value to a variable (see main help)
+!p angle   ! Sets the angle of a rotation axis
 !p asym    ! Shows asymmetric unit
 !p calc    ! Calculates the symmetry transformation for a single point
 !p chem    ! Shows the atoms present in the crystal
 !p continue! Coninue a stopped macro (see main help level)
-!p des     ! deselects atoms
-!p echo    ! echo a string (see main help)
+!p des     ! Deselects atoms
+!p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
-!p exit    ! terminates 'symm'
-!p help    ! gives on line help for symmetry operations (see main help)
-!p hkl     ! sets the symmetry axis in reciprocal space coordinates
-!p incl    ! sets the range of atoms to be included in the symmetry operation
-!p mdes    ! deselects molecules
-!p mincl   ! sets the range of molecules to be included in the 
-!p         ! symmetry operation
-!p mode    ! allows choice of creating a copy or replacing the atom
-!p msel    ! selects molecules to be included in the symmetry operations
-!p odes    ! deselects objects
-!p oincl   ! sets the range of objects to be included in the symmetry operation
-!p origin  ! sets the origin for the symmetry operation
-!p osel    ! selects objects to be included in the symmetry operations
-!p power   ! sets the power of the symmetry operation
-!p run     ! starts the calculation of the symmetry operations
-!p sel     ! selects atoms to be included in the symmetry operations
-!p show    ! shows the current parameters
+!p exit    ! Terminates 'symm'
+!p help    ! Gives on line help for symmetry operations (see main help)
+!p hkl     ! Sets the symmetry axis in reciprocal space coordinates
+!p incl    ! Sets the range of atoms to be included in the symmetry operation
+!p mdes    ! Deselects molecules
+!p mincl   ! Sets the range of molecules to be included in the 
+!p         ! Symmetry operation
+!p mode    ! Allows choice of creating a copy or replacing the atom
+!p msel    ! Selects molecules to be included in the symmetry operations
+!p odes    ! Deselects objects
+!p oincl   ! Sets the range of objects to be included in the symmetry operation
+!p origin  ! Sets the origin for the symmetry operation
+!p osel    ! Selects objects to be included in the symmetry operations
+!p power   ! Sets the power of the symmetry operation
+!p run     ! Starts the calculation of the symmetry operations
+!p sel     ! Selects atoms to be included in the symmetry operations
+!p show    ! Shows the current parameters
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
-!p trans   ! sets the translational part of the symmetry operation
+!p trans   ! Sets the translational part of the symmetry operation
 !p type    ! Allows choice between proper and improper rotations
-!p uvw     ! sets the symmetry axis in direct space coordinates
+!p uvw     ! Sets the symmetry axis in direct space coordinates
 !p wait    ! Waits for user input (see main help)
 3  angle
 !b angle <value>
@@ -7000,7 +7289,7 @@
    Alternatively you may specify the direction in reciprocal space by the
    ==> 'hkl" command.
 
-   terminates 'wave' returns to the normal discus prompt
+   Terminates the 'symmetry' menu and returns to the normal discus prompt.
 2  transform
 !b tran
 
@@ -7012,7 +7301,7 @@
    old ==> new and new ==> old.
 
    You can specify the relation ship between the two unit cells in any of
-   four possible options:
+   six possible options:
    define the new base vectors a,b,c in terms of the old base
    define the old base vectors a,b,c in terms of the new base
    define the new coordinates x,y,z in terms of the old coordinates
@@ -7035,38 +7324,38 @@
    Valid commands at this level are
 
 !p @       ! Execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
-!p anew    ! sets the new base vector "a" in terms of the old base
-!p aold    ! sets the old base vector "a" in terms of the new base
-!p asnew   ! sets the new reciprocal base vector "a" in terms of the old base
-!p asold   ! sets the old reciprocal base vector "a" in terms of the new base
+!p =       ! Assigns the value to a variable (see main help)
+!p anew    ! Sets the new base vector "a" in terms of the old base
+!p aold    ! Sets the old base vector "a" in terms of the new base
+!p asnew   ! Sets the new reciprocal base vector "a" in terms of the old base
+!p asold   ! Sets the old reciprocal base vector "a" in terms of the new base
 !p asym    ! Shows asymmetric unit
-!p bnew    ! sets the new base vector "b" in terms of the old base
-!p bold    ! sets the old base vector "b" in terms of the new base
-!p bsnew   ! sets the new reciprocal base vector "b" in terms of the old base
-!p bsold   ! sets the old reciprocal base vector "b" in terms of the new base
+!p bnew    ! Sets the new base vector "b" in terms of the old base
+!p bold    ! Sets the old base vector "b" in terms of the new base
+!p bsnew   ! Sets the new reciprocal base vector "b" in terms of the old base
+!p bsold   ! Sets the old reciprocal base vector "b" in terms of the new base
 !p c2new   ! Calculates the transformation to "new" for a single vector
 !p c2old   ! Calculates the transformation to "old" for a single vector
 !p chem    ! Shows the atoms present in the crystal
-!p cnew    ! sets the new base vector "c" in terms of the old base
-!p cold    ! sets the old base vector "c" in terms of the new base
-!p csnew   ! sets the new reciprocal base vector "c" in terms of the old base
-!p csold   ! sets the old reciprocal base vector "c" in terms of the new base
+!p cnew    ! Sets the new base vector "c" in terms of the old base
+!p cold    ! Sets the old base vector "c" in terms of the new base
+!p csnew   ! Sets the new reciprocal base vector "c" in terms of the old base
+!p csold   ! Sets the old reciprocal base vector "c" in terms of the new base
 !p continue! Coninue a stopped macro (see main help level)
-!p des     ! deselects atoms
-!p echo    ! echo a string (see main help)
+!p des     ! Deselects atoms
+!p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
-!p exit    ! terminates 'tran'
-!p help    ! gives on line help for unit cell transformations (see main help)
-!p h2new   ! transforms a list of reflections to the new base system
-!p h2old   ! transforms a list of reflections to the old base system
-!p incl    ! sets the range of atoms to be included in the transformation
-!p onew    ! sets the new origin in terms of the old base
-!p oold    ! sets the old origin in terms of the new base
-!p run     ! starts the transformation for the selected atoms
-!p sel     ! selects atoms to be included in the transformation
-!p set     ! sets parameters
-!p show    ! shows the current parameters
+!p exit    ! Terminates 'tran'
+!p help    ! Gives on line help for unit cell transformations (see main help)
+!p h2new   ! Transforms a list of reflections to the new base system
+!p h2old   ! Transforms a list of reflections to the old base system
+!p incl    ! Sets the range of atoms to be included in the transformation
+!p onew    ! Sets the new origin in terms of the old base
+!p oold    ! Sets the old origin in terms of the new base
+!p run     ! Starts the transformation for the selected atoms
+!p sel     ! Selects atoms to be included in the transformation
+!p set     ! Sets parameters
+!p show    ! Shows the current parameters
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
@@ -7814,293 +8103,6 @@
 !p   and the prompt status is ON if command line editing is used. 
 !p   Use 'set prompt,off' or 'set prompt,redirect' in the first
 !p   line of the file to be redirected to avoid the problem.
-2  domain
-
-   This command branches to the domain menu level.
-
-   Domains are understood as any group of atoms which is to replace
-   part of the original structure. A domain may be encoded within the
-   file in two different ways:
-   A) A list of pseudoatoms
-   B) A list of explicit domains
-
-   The pseudoatom file structure is identical to any DISCUS structure 
-   file. The atoms are interpreted as positions of the domains within 
-   the host structure. Size, character, and orientation of the domain
-   can be set by the user via the 'assign' commands at the domain level.
-
-   The domain lists encode the size, character, and orientation within 
-   the file itself.
-
-   Valid commands at this sublevel are:
-3  commands
-
-!p assign     ! Assigns size, character etc to the pseudoatoms
-!p inputfile  ! Defines the input file name
-!p mode       ! Defines the interpretation of the input file 
-!p reset      ! Set definitions back to system start
-!p run        ! Perform the actual replacement
-!p set        ! Sets various definitions
-!p show       ! Show current settings
-
-3  Instructions on usage
-
-   These are some quick hints on how to use the domain level.
-
-   An explicit domain is encoded similar to a molecule:
-
-   domain
-   domain character,domain_fuzzy
-   domain file,domain_a.stru
-   domain fuzzy,0.8
-   posi      0.0000     0.0000    0.0000  0.000
-   xaxi      1.0000     0.0000    0.0000  1.000
-   yaxi      0.0000     1.0000    0.0000  1.000
-   zaxi      0.0000     0.0000    1.0000  1.000
-   cent      0.0000     0.0000    0.0000  0.000
-   xdim      1.0000     0.0000    0.0000  1.000
-   ydim      0.0000     1.0000    0.0000  1.000
-   zdim      0.0000     0.0000    1.0000  1.000
-   domain end
-
-   This encoding allows you to use all of the DISCUS tools to create a
-   distribution of domains within the host crystal. An alternative 
-   encoding is the use of "pseudoatoms". These are regular atoms, which are
-   interpreted by the domain level as positions of a domain.
-
-   See the ==> 'insert' command for instructions to insert a domain into
-   a dummy structure.
-
-   The domain character may be any of "domain_cube", "domain_cylinder",
-   "domain_fuzzy", or "domain_sphere". 
-   A "domain_cube" is a cube with dimensions given by the xdim, ydim,
-   and zdim dimensions. These values are elements of a distortion matrix
-   which allows you to rotate and distort the cube.
-   A "domain_cylinder" is a cylindrical domain. The initial rotation 
-   axis is parallel to the z-axis.
-   A "domain_fuzzy" domain has no predefined boundary. DISCUS reads all
-   corresponding atoms from the file and deletes all host atoms, that 
-   are less than the fuzzy separation away from any of the domain atoms.
-   A "domain_sphere" is an initially spherical domain.
-
-   A domain replaces all atoms that exist prior within the crystal. 
-   The exception are those atoms with special names that define a
-   domain or an object. These atoms are not replaced by a new domain.
-   This allows you to replace a structure in part with other domains,
-   where these domains remain intact, even if they overlap.
-
-
-   See the manual for full details.
-
-   The file contains the actual atoms that will be inserted into the 
-   host structure. You must make sure that the atoms from this file to
-   fill out the space freed by the domain.
-
-   The fuzzy value gives the minimum distance between domain atoms and
-   host atoms. Any atom closer than this separation is deleted for the
-   host structure.
-   If the fuzzy distance is set to zero or a negative value, the check
-   is not performed and all old host atoms remain in the structure.
-
-   The "posi" line is understood as the center of the domain atoms,
-   the following three lines as the transformation matrix. The actual
-   position onto which the domain atom is placed is calculated as:
-   (t11  t12  t13 ) (xcoordinate)   (posi(x))
-   (t21  t22  t23 ) (ycoordinate) + (posi(y))
-   (t31  t32  t33 ) (zcoordinate)   (posi(z))
-   
-   Each of the matrix elements is calculated as follows:
-   t11 = xaxi(x) - posi(x)
-   t12 = xaxi(y) - posi(y)
-   ..
-   t21 = yaxi(x) - posi(x)
-   ..
-   Thus the transformation matrix is actually encoded by adding the 
-   position to all matrix elements. This seemingly complication actually
-   allows you to modify the domain by all DISCUS elements like the 
-   generalized symmetry operation ==> 'symm'. A rotation for example will
-   thus actually leave the matrix nicely intact.
-
-   Likewise the next four lines are used to encode the transformation 
-   matrix used to define the domain shape. Again, the actual transformation
-   matrix is the difference between the lines "*dim" and the "cent" line.
-   By increasing the dimension, you increase the domain size. You can 
-   similaryl distort the domain shape. 
-
-   The generalized symmetry level ==> "symm" allows you to change the
-   position, orientation and shape of the domain and/or the atom transformation
-   matrix. 
-3  assign
-!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
-!b assign "content",<pseudoatom name>,<contentfile>
-!b assign "fuzzy",<pseudoatom name>,<radius>
-!b assign "orient",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4>
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
-
-   These commands allow you to assign extended properties to the pseudo
-   atoms. Since the pseudo atoms are identical to regular atoms, they can 
-   only encode the position and type of a domain. The character, size, and
-   orientation of the atoms with respect to the host structure may be 
-   assigned via these commands.
-
-!b assign "character",<pseudoatom name>,{"cube"|"cylinder"|"fuzzy"|"sphere"}
-
-   A domain may be any of four different principal shapes. 
-   The "cube" domain is a domain consisting of the six {100} faces. 
-   The default distance of each face from the center is one respective
-   unit cell. 
-   A "cylinder" domain has cylindrical geometry with the default cylinder axis
-   parallel to the c-axis. The radius is one b-axis length. Top and bottom
-   are terminated by the two {001} faces.
-   A "sphere" domain initially is spherical with radius one b-axis.
-
-   All host atoms that are within the domain are removed, the void is 
-   filled by the atoms from the corresponding <contentfile>. The size and
-   shape of these domains may be changed by adjusting the 
-   ==> ' assign shape' of the domain. 
-
-   The "fuzzy" domain follows a very different concept. It does not have
-   a predefined size or shape. Instead all atoms that are read from the 
-   <contentfile> replace host atoms that are close to their position.
-
-!b assign "content",<pseudoatom name>,<contentfile>
-
-   The <contentfile> contains a DISCUS type structure file with all the
-   atoms that are to be placed inside the host crystal. You need to make 
-   sure that the structure listed in the <contetnfile> is large enough
-   to fill the empty void created by the respective domain. 
-   The space group and unit cell dimensions of the domain structure and 
-   the host crystal must be identical.
-
-!b assign "fuzzy",<pseudoatom name>,<radius>
-
-   All host atoms that are closer than this <radius> to any of the 
-   domain atoms are removed from the original host structure. This holds 
-   for all domain character types.
-   If the <radius> is set to zero or any negative number, the check is
-   not performed for this domain type. Atoms of this domain type could
-   thus be right on top of an atomof the host structure! 
-
-!b assign "orient",<pseudoatom name>,<row_i>,<ti1>,<ti2>,<ti3>,<ti4>
-
-   The orientation provides you a transformation matrix that is applied 
-   to each domain atom prior to insertion into the host. 
-   To keep the input lines short, each of the three rows <row_i> must
-   be given separately.
-   Each atom is transformed by:
-   (t11  t12  t13 ) (xcoordinate)   (t14)   (posi(x))
-   (t21  t22  t23 ) (ycoordinate) + (t24) + (posi(y))
-   (t31  t32  t33 ) (zcoordinate)   (t34)   (posi(z))
-   The translational part <ti4> is added to the position of the 
-   pseudo atom.
-
-!b assign "shape",<pseudoatom name>,<row>,<ti1>,<ti2>,<ti3>,<ti4> [, <sigma>]
-
-   The shape transformation matrix is used to determine the size and shape
-   of the domain. Default size at program start are +- one unit cell
-   along each axis. Enlarge the domain by increasing the elements <tii>
-   of the shape matrix, distort by changing the off-axis elements.
-   The shape is distorted by:
-   (t11  t12  t13 ) (xaxis)   (t14)   (posi(x))
-   (t21  t22  t23 ) (yaxis) + (t24) + (posi(y))
-   (t31  t32  t33 ) (zaxis)   (t34)   (posi(z))
-   The translational part <ti4> is added to the position of the
-   pseudo atom. The shape transformation works independent from the atom
-   transformation matrix.
-   If the character of the domain is "cube", "cylinder", or "sphere", 
-   DISCUS checks whether the position of the domain atom after its 
-   transformation fits into the domain shape. If true, it is inserted into
-   the guest structure.
-
-   The optional <sigma> allows for a size distribution of the domains.
-   the matrix part is multiplied by a factor (1 + gran(sigma)). 
-   Discus cuts the factor at 0.01, all large values are allowed.
-3  inputfile
-!b inputfile <inputfile>
-
-   DISCUS read the domain positions from the file <inputfile>. See the
-   ==> 'mode' command on how DISCUS interprets this file.
-3  mode
-!b mode {"domain" | "pseudoatoms"}
-
-   This command tells DISCUS how to interpret the input file. 
-   With the "pseudoatoms" option, DISCUS expects to find a standard
-   DISCUS structure file. Each "atom" in the file is interpreted as 
-   a domain position. See the ==> 'assign' commands for further details.
-
-   With the "domain" option DISCUS expects to read a file structured 
-   like:
-   A general header like all DISCUS structure files followed by as many 
-   domain descriptors as needed. Each domain descriptor is designed 
-   similarly to the molecule and object descriptors:
-3  reset
-!b reset
-
-   Reset all definition back to the default values at system start. 
-   All current assignments are removed.
-3  run
-!b run
-
-   This starts the actual incorporation of the domains into the host 
-   crystal. The positions, characters etc. for each domain are read
-   from file <inputfile>. The corresponding domain structure is used to
-   replace part of the host structure.
-3  set
-!b set
-
-   Set various definitions
-
-4  distance
-!b set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
-
-   Set the distances at wich an atom from the atom list shall be 
-   considered to be close to a surface.
-4  remove
-!b set remove {"strict" | "initial" | "trust" | "none"}
-
-   When DISCUS replaces (parts of) an old structure with the 
-   content of domains. it needs to remove the old atoms. You have 
-   three choices how this shall be done:
-
-   strict
-   Old atoms are removed EVERYTIME an individual domain is inserted
-   into the crystal. Old atoms are considered to be all atoms that 
-   were in the crystal just before this domain was inserted. This
-   includes domains that were inserted by the very same 'run' 
-   command. 
-   You need to do this, if you suspect or know that domains do
-   overlap. You must use this for example to simulate overgrowth of
-   domains on top of each other.
-
-   initial
-   This time only those atoms are removed that were in the crystal 
-   prior to the current 'run' command. The atoms that are inserted
-   during the current 'run' command are not tested. They may overlap
-   if you are not cereful. 
-
-   trust
-   OK, you trust that no domains overlap with each other and that you
-   know exactly which host atoms have to be removed. The removal is
-   performed after all domains have been inserted. DISCUS collects 
-   all fuzzy distances from the ==> assign commands and uses the 
-   maximum value of any assign command. This is necessary, since at this 
-   point the information from which domain type a new atom was taken
-   has been lost.
-   This removal is MUCH faster than  the previous two.
-
-   none
-   The ultimate trust! No host atoms are removed at all. You can do this,
-   if you read a crystal that consisted only of dummy atoms and each of 
-   these represents a domain. 
-   You should remove these dummy atoms after you leave the 'domain'
-   menu via a ==> replace dummy, void, all,1.0 command.
-   This combination is the fastest but be advised that you really need to
-   know where the dummy atoms and the inserted atoms are. Otherwise you
-   might end up with lots of strange overlapping atoms.
-3  show
-!b show
-
-   Shows the current settings.
 
 2  errors
 
