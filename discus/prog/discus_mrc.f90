@@ -34,6 +34,12 @@ CONTAINS
    INTEGER, PARAMETER :: nystart = 0
    INTEGER, PARAMETER :: nzstart = 0
 !
+   INTEGER, PARAMETER :: record   =    4   ! Record is four Byte long
+   INTEGER, PARAMETER :: base_hdr =  256   ! Standard header size in Words=1024 Byte
+   INTEGER, PARAMETER :: extend_b = 3072   ! = (1024 - 256)*4 extended in Bytes
+!                                          ! extend_b must be multiple of 4
+   INTEGER, PARAMETER :: extend_w = extend_b/record ! =(1024 - 256)   extended in Words
+!
    CHARACTER(LEN=1024) :: line
    CHARACTER(LEN=1024) :: message
    INTEGER            :: i, j,l, irec, ios
@@ -51,7 +57,7 @@ CONTAINS
    ENDIF
  
    OPEN(UNIT=IMRC,FILE=outfile,STATUS='unknown', &
-        FORM='unformatted', ACCESS='direct',RECL=4, &
+        FORM='unformatted', ACCESS='direct',RECL=record, &
         IOSTAT=ios,IOMSG=message)
    IF(ios/=0) THEN
       ier_num = -2
@@ -85,18 +91,21 @@ CONTAINS
    WRITE(IMRC,REC=21) 0.0        ! Maximum density
    WRITE(IMRC,REC=22) 0.0        ! Average density
    WRITE(IMRC,REC=23) 0          ! 0 = image
-   WRITE(IMRC,REC=24) 0          ! No extended header
+   WRITE(IMRC,REC=24) extend_b   ! Extended header length in Bytes
    DO I = 25,49
       WRITE(IMRC,REC= i) 0          ! 0
    ENDDO
    WRITE(IMRC,REC=50) 0.0        ! Origin
    WRITE(IMRC,REC=51) 0.0        ! Origin
    WRITE(IMRC,REC=52) 0.0        ! Origin
-   DO I = 53,256
-      WRITE(IMRC,REC= i) 0          ! 0
+   DO I = 53,base_hdr            ! No info in the rest of base header
+      WRITE(IMRC,REC= i) 0       ! 0
+   ENDDO
+   DO I = base_hdr+1,base_hdr+extend_w  ! No info in the extended header
+      WRITE(IMRC,REC= i) 0       ! 0
    ENDDO
 !
-   irec = 1024
+   irec = base_hdr + extend_w    ! Image is after base + extended header
    DO l = 1, out_inc(3)
       DO j = 1, out_inc(2)
          DO i = 1, out_inc(1)
