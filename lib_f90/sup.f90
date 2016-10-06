@@ -439,13 +439,14 @@ SUBROUTINE cmdline_args
       INTEGER maxpar 
       PARAMETER (maxpar = 2) 
 !                                                                       
-      CHARACTER ( * ) zei 
-      CHARACTER ( * ) bef 
+      CHARACTER (LEN=*) , INTENT(IN)    :: bef 
+      INTEGER           , INTENT(IN)    :: lbef 
+      CHARACTER (LEN=*) , INTENT(INOUT) :: zei 
+      INTEGER           , INTENT(INOUT) :: lc
       CHARACTER(1024) command 
       CHARACTER(1024) cpara (maxpar) 
       INTEGER lpara (maxpar) 
       INTEGER ianz 
-      INTEGER lc, lbef 
       REAL werte (maxpar) 
 !                                                                       
       LOGICAL str_comp 
@@ -1959,7 +1960,7 @@ SUBROUTINE cmdline_args
 !                                                                       
 !     --None foud, harmless echo                                        
 !                                                                       
-         WRITE ( *, 2010) zeile (1:lp) 
+         WRITE (output_io, 2010) zeile (1:lp) 
          WRITE (cstr, 2010) zeile (1:lp) 
          IF (lconn.and.lsocket) then 
             il = len_str (cstr) 
@@ -1972,9 +1973,9 @@ SUBROUTINE cmdline_args
             ENDIF
          ENDIF 
 !                                                                       
-         IF (output_status.eq.OUTPUT_FILE) then 
-            WRITE (output_io, 2010) zeile (1:lp) 
-         ENDIF 
+!        IF (output_status.eq.OUTPUT_FILE) then 
+!           WRITE (output_io, 2010) zeile (1:lp) 
+!        ENDIF 
       ELSE 
 !                                                                       
 !     --Look for matching ""                                            
@@ -2019,33 +2020,33 @@ SUBROUTINE cmdline_args
 !           omitted, all others retained as part of the echo            
 !                                                                       
                IF (ianz.eq.1) then 
-                  WRITE ( *, 2000) cpara (ianz) (1:lpara (ianz) ) 
+                  WRITE (output_io, 2000) cpara (ianz) (1:lpara (ianz) ) 
                   WRITE (cstr, 2000) cpara (ianz) (1:lpara (ianz) ) 
-                  IF (output_status.eq.OUTPUT_FILE) then 
-                     WRITE (output_io, 2000) cpara (ianz) (1:lpara (    &
-                     ianz) )                                            
-                  ENDIF 
+!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                    WRITE (output_io, 2000) cpara (ianz) (1:lpara (    &
+!                    ianz) )                                            
+!                 ENDIF 
                ELSEIF (ianz.eq.2) then 
-                  WRITE ( *, 2000) cpara (1) (1:lpara (1) ), cpara (    &
+                  WRITE (output_io, 2000) cpara (1) (1:lpara (1) ), cpara (    &
                   ianz) (1:lpara (ianz) )                               
                   WRITE (cstr, 2000) cpara (1) (1:lpara (1) ), cpara (  &
                   ianz) (1:lpara (ianz) )                               
-                  IF (output_status.eq.OUTPUT_FILE) then 
-                     WRITE (output_io, 2000) cpara (1) (1:lpara (1) ),  &
-                     cpara (ianz) (1:lpara (ianz) )                     
-                  ENDIF 
+!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                    WRITE (output_io, 2000) cpara (1) (1:lpara (1) ),  &
+!                    cpara (ianz) (1:lpara (ianz) )                     
+!                 ENDIF 
                ELSE 
-                  WRITE ( * , 2000) cpara (1) (1:lpara (1) ) , (cpara ( &
+                  WRITE (output_io, 2000) cpara (1) (1:lpara (1) ) , (cpara ( &
                   i) (1:lpara (i) ) , ',', i = 2, ianz - 1) , cpara (   &
                   ianz) (1:lpara (ianz) )                               
                   WRITE (cstr, 2000) cpara (1) (1:lpara (1) ) , (cpara (&
                   i) (1:lpara (i) ) , ',', i = 2, ianz - 1) , cpara (   &
                   ianz) (1:lpara (ianz) )                               
-                  IF (output_status.eq.OUTPUT_FILE) then 
-                     WRITE (output_io, 2000) cpara (1) (1:lpara (1) ) , &
-                     (cpara (i) (1:lpara (i) ) , ',', i = 2, ianz - 1) ,&
-                     cpara (ianz) (1:lpara (ianz) )                     
-                  ENDIF 
+!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                    WRITE (output_io, 2000) cpara (1) (1:lpara (1) ) , &
+!                    (cpara (i) (1:lpara (i) ) , ',', i = 2, ianz - 1) ,&
+!                    cpara (ianz) (1:lpara (ianz) )                     
+!                 ENDIF 
                ENDIF 
                IF (lconn.and.lsocket) then 
                   il = len_str (cstr) 
@@ -2313,7 +2314,7 @@ SUBROUTINE cmdline_args
 !     ----- sort the new variable name in descending length and         
 !           descending alphabetical order                               
 !                                                                       
-               i = 1 
+               i = var_sys + 1 
                DO while (l_temp.lt.var_l (i) .and.i.le.var_num) 
                i = i + 1 
                ENDDO 

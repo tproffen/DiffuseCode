@@ -190,6 +190,9 @@
 
    By providing the 'prog' parameter, PROG immediately interrupts all
    macros and returns to the normal prompt.
+   If you are in one of the sub sections "discus", "diffev", "kuplot", 
+   you can continue either with this subsection or go back to the main 
+   suite if you enter the program name as "suite".
 3  do
    Loops can be programmed with the 'do' command. The command may take
    the  following forms:

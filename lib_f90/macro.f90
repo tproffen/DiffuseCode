@@ -664,12 +664,13 @@ END SUBROUTINE macro_close_mpi
       IMPLICIT none
 !
 !
+      CHARACTER (LEN= * ), INTENT(INOUT) :: zeile
+      INTEGER            , INTENT(INOUT) :: lcomm
       INTEGER maxw
       PARAMETER (maxw = 1)
-      CHARACTER ( * ) zeile
       CHARACTER(1024) cpara (maxw)
       INTEGER lpara (maxw)
-      INTEGER ianz, lcomm
+      INTEGER ianz
 !
       INTEGER len_str
       LOGICAL str_comp
@@ -704,6 +705,14 @@ END SUBROUTINE macro_close_mpi
             CALL macro_close
             lblock_dbg = .false.
             lblock = .false.
+         ELSEIF(str_comp(cpara(1), 'suite', 3, lpara (1), 5)) THEN
+            CALL macro_close
+            lblock_dbg = .false.
+            lblock = .false.
+            IF(pname /= 'suite') THEN
+               zeile = 'EXIT'
+               lcomm = 4
+            ENDIF
          ELSE
             ier_num = - 6
             ier_typ = ER_COMM

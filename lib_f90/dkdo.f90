@@ -173,11 +173,15 @@ SUBROUTINE do_loop (line, lend, length)
                   CALL p_loop_mpi(prog_n, prog_l, mac_n, mac_l, &
                                outfile, out_l, repeat, nindiv)
                   IF(repeat) THEN
-                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205], i[206]'
-                     length_m = mac_l + 18
+!                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205], i[206]'
+!                     length_m = mac_l + 18
+                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., ref_kid, ref_indiv'
+                     length_m = mac_l + 22
                   ELSE
-                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205]'
-                     length_m = mac_l + 10
+!                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205]'
+!                     length_m = mac_l + 10
+                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., ref_kid'
+                     length_m = mac_l + 11
                   ENDIF
    
                   CALL file_kdo(zeile, length_m)

@@ -74,11 +74,12 @@
 !                                                                       
 !     variable.inc                                                      
 !                                                                       
-      var_num = 0 
+      CALL variable_init
+!     var_num = 0 
 !     DO i = 1, VAR_MAX 
-      var_name = ' ' 
-      var_l    = 0 
-      var_val  = 0.0 
+!     var_name = ' ' 
+!     var_l    = 0 
+!     var_val  = 0.0 
 !     ENDDO 
 !                                                                       
 !     Setup readline                                                    
