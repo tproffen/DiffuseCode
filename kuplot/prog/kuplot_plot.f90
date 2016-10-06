@@ -110,7 +110,7 @@
 !                                                                       
       CHARACTER ( * ) befehl, zeile 
       CHARACTER(1024) cpara (maxw), prnbef 
-      CHARACTER(80) filname, uname 
+      CHARACTER(256) filname, uname 
       REAL werte (maxw) 
       REAL x1, x2, y1, y2, width, ratio 
       INTEGER lpara (maxw) 
@@ -223,7 +223,7 @@
       dev_draw (iwin, 1) = 0.00 
       dev_draw (iwin, 2) = 0.00 
 !                                                                       
-      dev_id (iwin, idev) = PGOPEN (filname//dev_name (idev) ) 
+      dev_id (iwin, idev) = PGOPEN (filname(1:len_str(filname))//dev_name (idev) ) 
       IF (dev_id (iwin, idev) .le.0) stop 
 !                                                                       
       width = dev_sf (iwin, idev) * dev_width (iwin) 
