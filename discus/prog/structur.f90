@@ -2972,12 +2972,15 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !                                                                       
       CHARACTER(LEN= 1)     :: bravais= ' '
       CHARACTER(LEN=80)     :: title  = ' '
+      CHARACTER(LEN=80)     :: newtitle  = ' '
       CHARACTER(LEN=80)     :: spcgr  = ' '
       CHARACTER(LEN=80)     :: aniso_label  = ' '
       CHARACTER(LEN=80)     :: aniso_symb   = ' '
       CHARACTER(LEN=1024)   :: infile = ' '
       CHARACTER(LEN=1024)   :: ofile  = ' '
+      CHARACTER(LEN=1024)   :: wfile  = ' '
       CHARACTER(LEN=1024)                              :: line
+      CHARACTER(LEN=1024)                              :: line_cap
       CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: rawline
       CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: ccpara
       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
@@ -2988,8 +2991,8 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       LOGICAL               :: lread
       LOGICAL               :: lwrite
       LOGICAL, DIMENSION(7) :: header_done = .false.
-      INTEGER               :: line_no, line_sig
-      INTEGER               :: length
+      INTEGER               :: line_no, line_sig, data_no
+      INTEGER               :: length, length_cap
       INTEGER               :: is_cell
       INTEGER               :: is_loop
       INTEGER               :: is_spcgr
@@ -3027,6 +3030,8 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       INTEGER               :: spcgr_l
       INTEGER               :: nline
       INTEGER               :: nblank
+      LOGICAL               :: in_section
+      INTEGER               :: data_i
       REAL   , DIMENSION(6) :: latt! (6) 
       REAL   , DIMENSION(3) :: pos ! (6) 
       REAL   , DIMENSION(3) :: rlatt    ! (6) 
@@ -3081,10 +3086,6 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      CALL oeffne (iwr, ofile, 'unknown') 
-      IF (ier_num.ne.0) then 
-         RETURN 
-      ENDIF 
 !
       NULLIFY(head)
       NULLIFY(tail)
@@ -3093,12 +3094,18 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 ! As we do not know the length of the input file, lets read it once
 !
       line_no = 0
+      data_no = 0      ! Counter for individual "data_" sections
 countline: DO
          READ(ird, '(a)', IOSTAT=iostatus) line
          IF ( IS_IOSTAT_END(iostatus )) EXIT countline
          line_no = line_no + 1
          length  = len_str(line)
-         IF(length > 0 ) line_sig = line_no
+         IF(length > 0 ) THEN
+            line_sig = line_no
+            CALL rem_leading_bl(line,length)
+            CALL do_cap(line)
+            IF(line(1:5) == 'DATA_') data_no = data_no + 1
+         ENDIF
       ENDDO countline
       MAXLINES = line_sig
       ALLOCATE(rawline(1:MAXLINES))
@@ -3116,6 +3123,11 @@ getline: DO
       CLOSE(ird)
 !
       nline     = 0
+      in_section = .false.
+!
+!   Loop over all observed "data_" sections, write to separate files
+      data_i = 0
+data_entries: DO WHILE(data_i < data_no)
 !
 !   Run an loop over all input lines
 !
@@ -3124,12 +3136,33 @@ main: DO
          IF(nline==line_no) EXIT main   ! End of input
          line = rawline(nline)
          length = len_str(line)
+         length_cap = length
+         line_cap = line
+         CALL do_cap(line_cap)
          IF(length   == 0 ) CYCLE main
          IF(line(1:1)=='#') CYCLE main
 !
+!  Data statement
+!
+         IF(INDEX(line_cap(1:5),'DATA_')/=0) THEN        ! Found a "data_" line
+                  IF(length > 5) THEN
+                     newtitle = line(6:length)
+                  ENDIF
+            IF(in_section) THEN           ! invalid until we find first "data_" line
+               IF(data_i < data_no) THEN  ! For all but last branch out to write previous section
+                  EXIT main               ! End of previous "data_" section, write file
+               ELSE
+                  CONTINUE                ! Never reached, as last section has its "data_" read previously
+               ENDIF
+            ELSE                          ! At the first "data_" line
+               title = newtitle           ! immediately save title for write
+               in_section = .TRUE.        ! We are now in a "data_" section
+            ENDIF
+         ENDIF
+!
 !  Loop statement
 !
-         IF(INDEX(line,'loop_')/=0) THEN
+         IF(INDEX(line_cap,'LOOP_')/=0) THEN
             is_loop = nline                     ! Store line number of loop start
          ENDIF
 !
@@ -3321,6 +3354,7 @@ atoms:      DO                                 ! Get all atoms information
             j_anis = is_loop                 ! start in line after 'loop_'
          ENDIF
       ENDDO main
+!
 !  The main atom list did not contain isotropic U/B values, 
 !  obtain equivalent values from the anisotropic ADP's
 !
@@ -3467,6 +3501,24 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !
 !  Finally, write the structure to file
 !
+      IF(data_i > 0) THEN                    ! For all but first file append a number
+         WRITE(line(1:6),'(I6.6)'), data_i
+         wfile= ofile(1:len_str(ofile))//LINE(1:6)
+      ELSE                                   ! This is the first file
+         wfile = ofile
+      ENDIF
+      CALL oeffne (iwr, wfile, 'unknown') 
+      IF (ier_num.ne.0) then       ! Error opening file, clear memory structure
+         DO WHILE (ASSOCIATED(TAIL))
+            TAIL => TAIL%next
+            DEALLOCATE(TEMP)       ! Clean up the memory structure
+            TEMP => TAIL
+         ENDDO
+         NULLIFY(HEAD)
+         NULLIFY(TEMP)
+         NULLIFY(TAIL)
+         RETURN 
+      ENDIF 
       WRITE(iwr, 1000) title(1:len_str(title))
       IF(spcgr /= ' ') THEN
          WRITE(iwr, 1100) spcgr(1:len_str(spcgr))
@@ -3501,6 +3553,10 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 1400 FORMAT(a4, 4(F12.8,', '),'1'  )
 !
       CLOSE(iwr)
+!
+         data_i = data_i + 1      ! We wrote a data section, increment counter
+         title = newtitle         ! title will be written to the next file
+      ENDDO data_entries
 !
 ! clean up arrays
 !
