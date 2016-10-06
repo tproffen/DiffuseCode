@@ -1653,8 +1653,8 @@ CONTAINS
 !                                                                       
          DO i = 1, 3 
          iii (i) = int (x (i) - cr_dim0 (i, 1) ) + 1 
-         istart (i) = iii (i) - 1 - int (rmax / cr_a0 (i) ) 
-         iend (i) = iii (i) + 1 + int (rmax / cr_a0 (i) ) 
+         istart (i) = iii (i) - 1 - int (rmax / cr_a0 (i) )  -1
+         iend (i) = iii (i) + 1 + int (rmax / cr_a0 (i) )  + 1
          ENDDO 
 !                                                                       
          DO k = istart (3), iend (3) 
@@ -1689,6 +1689,9 @@ CONTAINS
          IF (fp (1) .or.fp (2) .or.fp (3) ) then 
             ier_num = - 16 
             ier_typ = ER_CHEM 
+            ier_msg(1) = 'Number of atoms in crystal is larger than'
+            ier_msg(2) = 'atoms_per_unit_cell*number_of_unit_cells'
+            ier_msg(3) = 'Use set crystal, 1, 1, 1,n[1] to correct'
             RETURN 
          ENDIF 
 !                                                                       
@@ -1706,6 +1709,9 @@ CONTAINS
          IF (fp (1) .or.fp (2) .or.fp (3) ) then 
             ier_num = - 16 
             ier_typ = ER_CHEM 
+            ier_msg(1) = 'Chem/exact mode is incompatible with '
+            ier_msg(2) = 'periodic boundary conditions'
+            ier_msg(3) = ' '
             RETURN 
          ENDIF 
 !                                                                       
@@ -3325,6 +3331,8 @@ CONTAINS
          ibit_nr = PROP_SURFACE_EXT
       ELSEIF(str_comp(cpara(1)(1:lpara(1)),'internal', 3, lpara(1), 8)) THEN
          ibit_nr = PROP_SURFACE_INT
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'ligand', 3, lpara(1), 6)) THEN
+         ibit_nr = PROP_LIGAND
       ENDIF
       IF(str_comp(cpara(2)(1:lpara(2)),'types', 3, lpara(2), 5)) THEN
          sel_mode = TYPES
@@ -3435,7 +3443,8 @@ CONTAINS
      &                   '   O = atom outside boundaries',/,            &
      &                   '   E = atom near ext. surface ',/,            &
      &                   '   I = atom near int. surface ',/,            &
-     &                   '                              : ','NMDOEI'/,  &
+     &                   '   L = atom in ligand molecule',/,            &
+     &                   '                              : ','NMDOEIL'/, &
      &                   '      absent=- ignored=.      : ',a)          
 !                                                                       
       END SUBROUTINE property_show                  
