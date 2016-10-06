@@ -294,18 +294,23 @@ CONTAINS
          IF(dc_temp_type == DC_NORMAL .AND. janz /= 1) THEN
             ier_num = -132
             ier_typ = ER_APPL
-            ier_msg(1) = 'For the NORMAL decoration we need one '
-            ier_msg(2) = 'exactly surface atom type '
+            ier_msg(1) = 'For the NORMAL decoration we need '
+            ier_msg(2) = 'exactly one surface atom type '
+         ELSEIF(dc_temp_type == DC_DOUBLE .AND. janz /= 1) THEN
+            ier_num = -132
+            ier_typ = ER_APPL
+            ier_msg(1) = 'For the DOUBLE decoration we need '
+            ier_msg(2) = 'exactly one surface atom type '
          ELSEIF(dc_temp_type == DC_BRIDGE .AND. janz /= 2) THEN
             ier_num = -132
             ier_typ = ER_APPL
             ier_msg(1) = 'For the BRIDGE decoration we need '
             ier_msg(2) = 'exactly two surface atom types'
-         ELSEIF(dc_temp_type == DC_DOUBLE .AND. janz <  3) THEN
-            ier_num = -132
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the MULTI decoration we need at least '
-            ier_msg(2) = 'three surface atom types '
+!        ELSEIF(dc_temp_type == DC_MULTIPLE .AND. janz <  3) THEN
+!           ier_num = -132
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the MULTI decoration we need at least '
+!           ier_msg(2) = 'three surface atom types '
          ELSE ! SUCCESS
             DO i=1,janz
                dc_temp_surf(i)  = NINT(werte(i))  ! Surface atom type
@@ -655,7 +660,6 @@ CONTAINS
    CALL property_select(line, length, sav_sel_prop)
    line       = 'absent, outside'      ! Force atom to be inside
    length     = 15
-write(*,*) ' ALL     ATOMS,             ', cr_natoms
    CALL property_select(line, length, sav_sel_prop)
    CALL save_internal(shellfile)
 !
@@ -977,6 +981,9 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
    INTEGER  :: n_mole           ! number of molecules
    INTEGER  :: n_type           ! number of molecule types
    INTEGER  :: n_atom           ! number of atoms in molecules
+   INTEGER  :: a_mole           ! allocate minimum number of molecules
+   INTEGER  :: a_type           ! allocate minimum number of molecule types
+   INTEGER  :: a_atom           ! allocate minimum number of atoms in molecules
    INTEGER  :: init   = -1      ! Initialize atom names/types
    INTEGER  :: itype            ! atom scattering type
    REAL, DIMENSION(3) :: posit  ! atom position
@@ -984,6 +991,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
    REAL, DIMENSION(4,4) :: rd_tran_f  ! transformation matrix to cartesian
    INTEGER  :: iprop            ! atom property 
    LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
+real, dimension(3) :: uvw_temp
 !
    ALLOCATE(m_name  (dc_n_molecules), STAT=istatus)
    ALLOCATE(m_lname (dc_n_molecules), STAT=istatus)
@@ -1002,7 +1010,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
-      CALL read_crystal ( dc_molecules(i), strufile )
+      CALL read_crystal ( dc_molecules(i), strufile, dc_temp_neig)
       CALL dc_molecules(i)%get_cryst_tran_f(rd_tran_f)  ! Get transformation matrix to cartesian
 !
       DO j=1, natoms
@@ -1058,7 +1066,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
 !
 !******************************************************************************
 !
-   SUBROUTINE read_crystal ( this, infile)
+   SUBROUTINE read_crystal ( this, infile, first_neig)
 !
 !  Read a crystal structure from file
 !  This procedure interfaces to the old "readtru" in "structur.f90"
@@ -1074,6 +1082,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
    LOGICAL, PARAMETER :: lout = .true.
    TYPE (cl_cryst)                  :: this   ! The current crystal
    CHARACTER (LEN=*   ), INTENT(IN)  :: infile ! Disk file
+   INTEGER             , INTENT(IN)  :: first_neig  ! Atom that is listed on bond command
    INTEGER                           :: inum   ! dummy index
    REAL   , DIMENSION(3)             :: posit  ! dummy position vector
    REAL   , DIMENSION(3)             :: uvw_out ! dummy position vector
@@ -1130,6 +1139,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
    rd_as_prop  (:) = 0
    rd_cr_natoms    = 0
    rd_cr_nscat     = 0
+   rd_as_natoms    = 0
 !
    CALL readstru (rd_NMAX, rd_MAXSCAT, rd_strucfile, rd_cr_name,        &
                rd_cr_spcgr, rd_cr_a0, rd_cr_win, rd_cr_natoms, rd_cr_nscat, rd_cr_dw,     &
@@ -1140,8 +1150,25 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
    CALL lattice (rd_cr_a0, rd_cr_ar, rd_cr_eps, rd_cr_gten, rd_cr_reps, rd_cr_rten,  &
                  rd_cr_win, rd_cr_wrez, rd_cr_vol, rd_cr_vr, lout,                   &
                  rd_tran_g, rd_tran_gi, rd_tran_f, rd_tran_fi)
+   uvw_out(:) = rd_cr_pos(:,first_neig) ! save position of molecule atom bonded to surface
+   do j=1, rd_nmax ! Shift the first neighbor to 0,0,0
+      rd_cr_pos(1,j) = rd_cr_pos(1,j) - uvw_out(1)
+      rd_cr_pos(2,j) = rd_cr_pos(2,j) - uvw_out(2)
+      rd_cr_pos(3,j) = rd_cr_pos(3,j) - uvw_out(3)
+   enddo
 !
+   rd_sav_scat  = .true.
+   rd_sav_adp   = .true.
+   rd_sav_gene  = .true.
+   rd_sav_symm  = .true.
+   rd_sav_w_ncell = .true.
+   rd_sav_obje  = .true.
+   rd_sav_doma  = .true.
+   rd_sav_mole  = .true.
+   rd_sav_prop  = .true.
+   rd_sav_sel_prop(:) = 1
    rd_n_latom = rd_MAXSCAT
+   rd_sav_latom   (:) = .true.
    CALL this%set_crystal_save_flags (rd_sav_scat, & 
             rd_sav_adp, rd_sav_gene, rd_sav_symm,                     &
             rd_sav_w_ncell, rd_sav_obje, rd_sav_doma, rd_sav_mole, rd_sav_prop, &
@@ -1261,8 +1288,9 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
                WRITE(line, 1000) atom_name, posit, dw1
                laenge = 60
                CALL do_ins(line, laenge)                  ! Insert into crystal
+               cr_prop (cr_natoms) = ibset (cr_prop (ia), PROP_LIGAND)
                CALL check_symm
-               sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
+               sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
             ENDDO atoms
 ! define rotation operation
             sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
@@ -1357,6 +1385,8 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
 !
    vnull(:) = 0.00
 !
+!DBG_GOLD
+!
 !  Find the other partners involved in the bridge 
    x(1)     = cr_pos(1,ia)
    x(2)     = cr_pos(2,ia)
@@ -1421,6 +1451,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
                WRITE(line, 1000) atom_name, posit, dw1
                laenge = 60
                CALL do_ins(line, laenge)
+               cr_prop (cr_natoms) = ibset (cr_prop (ia), PROP_LIGAND)
                CALL check_symm
                sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
             ENDDO
@@ -1556,6 +1587,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
          WRITE(line, 1000) atom_name, posit, dw1
          laenge = 60
          CALL do_ins(line, laenge)
+         cr_prop (cr_natoms) = ibset (cr_prop (ia), PROP_LIGAND)
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
       ENDDO insert
@@ -1826,6 +1858,7 @@ write(*,*) ' ALL     ATOMS,             ', cr_natoms
          WRITE(line, 1000) atom_name, posit, dw1
          laenge = 60
          CALL do_ins(line, laenge)
+         cr_prop (cr_natoms) = ibset (cr_prop (ia), PROP_LIGAND)
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
       ENDDO insert

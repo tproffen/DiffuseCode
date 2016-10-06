@@ -69,6 +69,22 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_Oct
+
+   The output of the "blen" and "bang" commands within "chemistry" 
+   is now written to kuplot directly, is the filename starts with 
+   "kuplot"
+
+   The data stored by ==> 'chemistry' ==> 'aver' have been changed in
+   a non-backwards compatible way. DISCUS now stores 9 values per
+   atom: 
+   the site number, the atom type on this site, the position, 
+   the standard deviation of the average position and the occupancy.
+
+   If DISCUS detects more than one "data_" sections in a CIF file,
+   the second etc sections are written to a separate file, augmented by
+   a number
+
 3  2016_June
 
    The mmc 'set move' command may now take a further parameter. This 
@@ -1044,8 +1060,13 @@
 
    This command allows to calculate the average structure of the current
    model crystal. The average position, the standard deviation and the
-   occupancy of every site within the unit cell is given. The average
-   positions and sigmas are stored in the variable array 'res'.
+   occupancy of every site within the unit cell is given. 
+
+   CHANGE as of Version 5.6.5 !!! Non-backwards compatible !!!
+   The site number, the atom type that occupies this site, the average
+   positions and sigmas and the occupancies are stored in the variable 
+   array 'res'. Per site and multiple atom type on a site nine numbers
+   are written to the result variable. 
 
    Without parameters or with parameter "one", all atoms on a site are
    treated as one type and a common average position is calculated.
@@ -1073,6 +1094,11 @@
    Allowed bond angle range, bondlength range, calculation mode and 
    sigmas for a neighbour matching criteria are given with the 
    'set' command.
+
+   If the first letters of the filename are "kuplot", the output
+   is transferred directly to the KUPLOT section. This is valid 
+   within the suite only, a standalone DISCUS program will write a
+   file that starts with the letters "kuplot".
 3  blen
 !b blen { "all" | <name> | <number> }, 
 !b      { "all" | <name> | <number> }, [<filename>]
@@ -1090,6 +1116,11 @@
    matching criteria are given with the 'set' command.
    The resulting distances, standard deviations and number of pairs
    of atoms are stored in the res[i] variables.
+
+   If the first letters of the filename are "kuplot", the output
+   is transferred directly to the KUPLOT section. This is valid 
+   within the suite only, a standalone DISCUS program will write a
+   file that starts with the letters "kuplot".
 3  bval
 !b bval "atom",<ia>,<radius>
 !b bval "site",<nx>,<ny>,<nz>,<site>,<radius>
@@ -2327,8 +2358,12 @@
 !b "cif", <file{".cif"]>
 
    Imports a CIF file into the corresponding discus "stru" file.
+
+   Multiple "data_" entries are written to separate files. 
+   Entries 2 etc have the corresponding number appended to the 
+   file name.
 3  cmaker
-!b "cif", <file{".xyz"]>
+!b "cmaker", <file{".xyz"]>
 
    Imports a CrystalMaker file into the corresponding discus "stru" file.
 3  shelx

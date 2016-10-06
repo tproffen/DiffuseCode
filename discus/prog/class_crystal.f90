@@ -794,7 +794,7 @@ CONTAINS
             ia = ia + 1
             iscat_table(i) = ia
             DO j=1,11
-               this%cr_scat(j,ia)     = rd_cr_scat(j,ia)
+               this%cr_scat(j,ia)     = rd_cr_scat(j,i)
             ENDDO
 !
             this%cr_delfr(ia)     = rd_cr_delfr(i)
@@ -922,7 +922,7 @@ CONTAINS
    END SUBROUTINE set_crystal_from_local
 !******************************************************************************
    SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_gene, sav_symm, &
-                                       sav_ncell, sav_obje, sav_doma, sav_mole, &
+                                       sav_w_ncell, sav_obje, sav_doma, sav_mole, &
                                        sav_prop,sav_sel_prop,n_latom,sav_latom)
 !
    USE crystal_mod
@@ -935,7 +935,7 @@ CONTAINS
    LOGICAL, INTENT(IN)              ::  sav_adp
    LOGICAL, INTENT(IN)              ::  sav_gene
    LOGICAL, INTENT(IN)              ::  sav_symm
-   LOGICAL, INTENT(IN)              ::  sav_ncell
+   LOGICAL, INTENT(IN)              ::  sav_w_ncell
    LOGICAL, INTENT(IN)              ::  sav_obje
    LOGICAL, INTENT(IN)              ::  sav_doma
    LOGICAL, INTENT(IN)              ::  sav_mole
@@ -950,13 +950,13 @@ CONTAINS
    this%cr_sav_adp   = sav_adp
    this%cr_sav_gene  = sav_gene
    this%cr_sav_symm  = sav_symm
-   this%cr_sav_ncell = sav_ncell
+   this%cr_sav_ncell = sav_w_ncell
    this%cr_sav_obje  = sav_obje
    this%cr_sav_doma  = sav_doma
    this%cr_sav_mole  = sav_mole
    this%cr_sav_prop  = sav_prop
    this%cr_sav_sel_prop(:)  = sav_sel_prop(:)
-   DO i = 0, cr_nscat
+   DO i = 0, n_latom
       this%cr_sav_atom(i) = sav_latom(i)
    ENDDO
 !

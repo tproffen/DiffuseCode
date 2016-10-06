@@ -895,16 +895,16 @@ SUBROUTINE save_struc (zeile, lcomm)
 !
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
-      CALL store_temp%crystal%alloc_arrays(cr_natoms,cr_nscat, &
+      CALL store_temp%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
            mole_max_mole, mole_max_atom           ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.
-      n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
+!     n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
       CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
            sav_w_adp, sav_w_gene, sav_w_symm,                     &
            sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
-           sav_sel_prop,n_latom,sav_latom)
+           sav_sel_prop,MAXSCAT,sav_latom)
 !
       CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !

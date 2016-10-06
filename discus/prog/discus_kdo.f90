@@ -35,6 +35,7 @@
       USE thermal_mod
       USE transform_menu
       USE waves_do_menu
+      USE discus_init_mod
 !
       USE errlist_mod 
       USE learn_mod 
@@ -314,6 +315,11 @@
 !           CALL mc 
          ELSEIF (str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
             CALL mmc 
+!
+!     reset discus to system start
+!
+         ELSEIF (str_comp(befehl, 'rese', 3, lbef, 4)) THEN
+            CALL discus_initarrays
 !                                                                       
 !     save structure to file 'save'                                     
 !                                                                       
@@ -384,6 +390,9 @@
 !                                                                       
          ELSE 
             CALL kdo_all (befehl, lbef, zeile, lcomm) 
+            IF(zeile == 'EXIT') THEN ! kdo_all detected "continue suite"
+               lend = .TRUE. 
+            ENDIF
          ENDIF 
       ENDIF 
 !                                                                       

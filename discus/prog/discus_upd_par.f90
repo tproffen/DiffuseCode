@@ -291,6 +291,25 @@
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+!                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'ref_para') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) then 
+                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
+                  ref_para (kpara)                                     
+                  zeile (ikl + 3:ikl + 3) = 'e' 
+               ELSE 
+                  ier_num = -133 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
          ELSE 
             ier_num = - 2 
             ier_typ = ER_FORT 

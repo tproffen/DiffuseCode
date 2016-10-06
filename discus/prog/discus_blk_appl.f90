@@ -28,6 +28,8 @@ CONTAINS
       USE shear_mod 
       USE spcgr_setup_mod
       USE stack_mod 
+      USE stack_rese_mod 
+      USE structur
       USE surface_mod 
       USE sym_add_mod 
       USE symm_mod 
@@ -173,6 +175,9 @@ CONTAINS
 !     offsq (i, j) = 0 
 !     ENDDO 
 !     ENDDO 
+!
+      CALL rese_cr
+      CALL do_stack_rese
 !
       END SUBROUTINE discus_initarrays                     
 !*****7*****************************************************************
