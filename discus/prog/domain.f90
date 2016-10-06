@@ -501,6 +501,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       CHARACTER(1024) infile 
       LOGICAL lend 
+      LOGICAL :: l_ok    ! the domain list file contains a correct input pseuodatom
       LOGICAL lread 
       LOGICAL lmetric 
       REAL mc_dimen (4, 4) 
@@ -564,38 +565,40 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       IF (clu_mode.eq.CLU_IN_PSEUDO) then 
          infile = ' '
-         CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
+         CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
          mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
          IF (ier_num.ne.0) THEN 
             CLOSE(imd)
             RETURN
          ENDIF
 !                                                                       
-         DO while (.not.lend) 
-         IF (mc_type  .lt.0) then 
-            CALL micro_read_atoms (infile, mc_idimen,         &
-            mc_matrix)                                                  
-         ENDIF 
-         IF (ier_num.ne.0) THEN 
-            CLOSE(imd)
-            RETURN
-         ENDIF
+read_domains: DO WHILE (.NOT.lend)
+pseudo_ok:  IF(l_ok) THEN
+               IF (mc_type  .lt.0) then 
+                  CALL micro_read_atoms (infile, mc_idimen,         &
+                  mc_matrix)                                                  
+               ENDIF 
+               IF (ier_num.ne.0) THEN 
+                  CLOSE(imd)
+                  RETURN
+               ENDIF
 !!!!!!!!!!!
-         IF ( clu_infile_internal ) THEN
-         CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
-         sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
-         mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
-         mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
-         ENDIF 
+               IF ( clu_infile_internal ) THEN
+                  CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
+                  mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
+                  sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+                  mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
+                  mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
+               ENDIF 
 !!!!!!!!!!!!!
-         CALL micro_read_simple (imd, lend, infile, mc_dimen, mc_idimen,&
-         mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
-         IF (ier_num.ne.0) THEN 
-            CLOSE(imd)
-            RETURN
-         ENDIF
-         ENDDO 
+            ENDIF  pseudo_ok
+            CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
+            mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
+            IF (ier_num.ne.0) THEN 
+               CLOSE(imd)
+               RETURN
+            ENDIF
+         ENDDO  read_domains 
 !
 !        if the user trusts that no domains overlap among each other, then
 !        old atoms are removed only here at the end
@@ -1033,7 +1036,7 @@ SUBROUTINE do_domain (line, lp)
       LOGICAL linside
       REAL d 
       REAL u (4), v (4), w (4) 
-      REAL vv (3) 
+      REAL vv (3) , ww(3)
       REAL radius (3) 
       REAL werte (maxw), dw1 
       REAL NULL (3) 
@@ -1066,15 +1069,32 @@ SUBROUTINE do_domain (line, lp)
       INTEGER             :: n_type
       INTEGER             :: n_atom
       INTEGER             :: n_read_atoms
+      LOGICAL             :: linternal
+      REAL :: d100, d010, d001
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
 !     REAL do_blen 
 !                                                                       
       DATA NULL / 0.0, 0.0, 0.0 / 
-!                                                                       
+!
+!     Define distances to domain surfaces
+!
+      v(:) = 0.0
+      v(1) = surf_in_dist(SURF_MAXSCAT)/cr_a0(1)
+      CALL trans (v, mc_idimen, w, idim4)
+      d100 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
+      v(:) = 0.0
+      v(2) = surf_in_dist(SURF_MAXSCAT)/cr_a0(2)
+      CALL trans (v, mc_idimen, w, idim4)
+      d010 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
+      v(:) = 0.0
+      v(3) = surf_in_dist(SURF_MAXSCAT)/cr_a0(3)
+      CALL trans (v, mc_idimen, w, idim4)
+      d001 = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3) )
+!
       n_read_atoms = 0
-      lspace = .true.
+      lspace  = .true.
       linside = .false.
       v (1) = 0.0 
       v (2) = 0.0 
@@ -1167,19 +1187,37 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             mk_dim (j, 1) = min (mk_dim (j, 1), v (j) ) 
             mk_dim (j, 2) = max (mk_dim (j, 2), v (j) ) 
             ENDDO 
+            linternal = .FALSE.
             IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
                d = do_blen (lspace, vv, NULL) 
                linside = (d.lt.radius (2) ) 
+               IF(linside) THEN
+                 linternal = (radius (2)-d <= surf_in_dist(SURF_MAXSCAT)/cr_a0(2))
+               ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_CUBE) then 
-               linside = abs (vv (1) ) .le.1.and.abs (vv (2) )          &
-               .le.1.and.abs (vv (3) ) .le.1                            
+               linside = ABS(vv(1)) <= 1. .AND. ABS(vv(2)) <= 1. .AND.   &
+                         ABS(vv(3)) <= 1.                            
+               IF(linside) THEN
+                 linternal = (ABS(-1.-vv(1)) <= d100 ) .OR. &
+                             (ABS( 1.-vv(1)) <= d100 ) .OR. &
+                             (ABS(-1.-vv(2)) <= d010 ) .OR. &
+                             (ABS( 1.-vv(2)) <= d010 ) .OR. &
+                             (ABS(-1.-vv(3)) <= d001 ) .OR. &
+                             (ABS( 1.-vv(3)) <= d001 )
+               ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_CYLINDER) then 
                linside = .false. 
                IF (abs (vv (3) ) .le.1) then 
-                  vv (3) = 0.0 
-                  d = do_blen (lspace, vv, NULL) 
+                  ww(:) = vv(:)
+                  ww (3) = 0.0 
+                  d = do_blen (lspace, ww, NULL) 
                   linside = d.lt.radius (2) 
                ENDIF 
+               IF(linside) THEN
+                 linternal = (radius (2)-d <= surf_in_dist(SURF_MAXSCAT)/cr_a0(2)) .or. &
+                             (ABS(-1.-vv(3)) <= d001 ) .or. &
+                             (ABS( 1.-vv(3)) <= d001 )
+               ENDIF
             ELSEIF (mc_type  .eq.MD_DOMAIN_FUZZY) then 
                linside = .true. 
             ENDIF 
@@ -1214,6 +1252,9 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      cr_prop (i) = 0 
                      cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                      cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
+                     IF(linternal) THEN
+                        cr_prop (i) = ibset (cr_prop (i), PROP_SURFACE_INT) 
+                     ENDIF
                      GOTO 11 
                   ENDIF 
                   ENDDO 
@@ -1239,6 +1280,9 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   cr_prop (i) = 0 
                   cr_prop (i) = ibset (cr_prop (i), PROP_NORMAL) 
                   cr_prop (i) = ibset (cr_prop (i), PROP_DOMAIN) 
+                  IF(linternal) THEN
+                     cr_prop (i) = ibset (cr_prop (i), PROP_SURFACE_INT) 
+                  ENDIF
                   cr_at_lis (cr_nscat) = line (1:ibl) 
                   cr_dw (cr_nscat) = dw1 
 !                                                                       
@@ -1407,7 +1451,7 @@ mole_int: IF(mk_infile_internal) THEN
  3200 FORMAT    ('Intended fuzzy distance   ',f12.4) 
       END SUBROUTINE micro_read_atom                
 !*****7*****************************************************************
-      SUBROUTINE micro_read_simple (imd, lend, infile, mc_dimen,        &
+      SUBROUTINE micro_read_simple (imd, lend, l_ok,infile, mc_dimen,  &
       mc_idimen, mc_matrix, MK_MAX_SCAT,mk_at_lis)                                             
 !
 !     Reads a single line from the input file. This should contain a 
@@ -1422,14 +1466,15 @@ mole_int: IF(mk_infile_internal) THEN
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) infile 
-      INTEGER imd 
-      LOGICAL lend 
-      REAL mc_dimen (4, 4) 
-      REAL mc_idimen (4, 4) 
-      REAL mc_matrix (4, 4) 
-      INTEGER, INTENT(IN)                                   :: MK_MAX_SCAT
-      CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN) :: mk_at_lis
+      INTEGER                                    , INTENT(IN)  :: imd 
+      LOGICAL                                    , INTENT(OUT) :: lend 
+      LOGICAL                                    , INTENT(OUT) :: l_ok 
+      CHARACTER (LEN=*)                          , INTENT(OUT) :: infile 
+      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_dimen
+      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_idimen
+      REAL             , DIMENSION(4,4)          , INTENT(OUT) :: mc_matrix
+      INTEGER                                    , INTENT(IN)  :: MK_MAX_SCAT
+      CHARACTER (LEN=*), DIMENSION(0:MK_MAX_SCAT), INTENT(IN)  :: mk_at_lis
 !                                                                       
       CHARACTER(1024) line
 !                                                                       
@@ -1453,6 +1498,7 @@ mole_int: IF(mk_infile_internal) THEN
 !       mc_matrix(i,i) = 1.0                                            
 !     ENDDO                                                             
 !                                                                       
+      l_ok = .false.                 ! Assume pseudoatom is incorrect
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
@@ -1508,6 +1554,7 @@ mole_int: IF(mk_infile_internal) THEN
          mc_matrix (4, i) = 1.0 
          CALL invmat4 (mc_idimen) 
          lend = .false. 
+         l_ok = .true.       ! Pseudoatom is fine
       ENDIF 
 !DBG                                                                    
 !DBG      do i=1,4                                                      
@@ -1556,7 +1603,7 @@ mole_int: IF(mk_infile_internal) THEN
       INTEGER i, j, k 
       LOGICAL lspace 
       REAL u (3), v (3)
-      REAL a, b, c 
+      REAL a, b, c , d
       REAL distance 
       REAL separation
 !                                                                       
@@ -1603,9 +1650,10 @@ mole_int: IF(mk_infile_internal) THEN
 !     Set up extra space around microdomain to allow for outside        
 !     influence of separation                                           
 !                                                                       
-      a = 1.5 * md_sep_fuz / cr_a0 (1) 
-      b = 1.5 * md_sep_fuz / cr_a0 (2) 
-      c = 1.5 * md_sep_fuz / cr_a0 (3) 
+      d = MAX(md_sep_fuz, MAXVAL(surf_in_dist))
+      a = 1.5 * d / cr_a0 (1) 
+      b = 1.5 * d / cr_a0 (2) 
+      c = 1.5 * d / cr_a0 (3) 
 !                                                                       
 !     Loop over all atoms previously inside the crystal                 
 !                                                                       
