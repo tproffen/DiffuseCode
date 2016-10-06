@@ -371,6 +371,7 @@ SUBROUTINE read_genfile
 !                                                                       
 USE population
 USE errlist_mod
+USE variable_mod
 !                                                                       
 IMPLICIT none 
 !
@@ -427,6 +428,7 @@ IF ( pop_dimx /= NINT (r4) ) THEN
    RETURN
 ENDIF
 pop_gen  = nint (r1) 
+var_val(var_ref+0) = pop_gen  ! Update global user variable
 !pop_n    = nint (r2) 
 !pop_c    = nint (r3) 
 !pop_dimx = nint (r4) 

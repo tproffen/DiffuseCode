@@ -701,6 +701,10 @@
    This command allows you to set, which of the variables are refined.
    If you give the parameter number as negative number, the corresponding
    parameter is not refined.
+
+   Currently you can only specify up to 20 variable numbers on 
+   one "refine" command line. If you need to specify the behaviour
+   for more than 20 variables, please use several "refine" commands.
 2  summary
 !b summary <filename>
 

@@ -59,6 +59,7 @@ CONTAINS
 !   Initializes the population
 !-                                                                      
 !
+   USE variable_mod
    IMPLICIT none 
 !                                                                 
    INTEGER        :: i, j 
@@ -69,6 +70,9 @@ CONTAINS
    pop_dimx  = 1 
    pop_best  = 1 
    pop_worst = 1 
+   var_val(var_ref+1) = pop_n     ! Update the global user variable
+   var_val(var_ref+2) = pop_c     ! Update the global user variable
+   var_val(var_ref+3) = pop_dimx  ! Update the global user variable
 !                                                                 
    pop_current = .false. 
 !                                                                 

@@ -509,6 +509,7 @@ ELSE
          ENDIF 
       ENDIF 
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
+      CALL do_read_values         ! We need to read values as this can be the first command after a continue
 !     IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
       IF (       run_mpi_active .and. run_mpi_numprocs < 2 ) THEN
          ier_num =  -24
@@ -530,6 +531,7 @@ ELSE
       IF (ier_num.eq.0) then 
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
+            run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
             run_mpi_senddata%prog   = cpara(1)(1:lpara(1))
             run_mpi_senddata%prog_l = lpara(1)
             run_mpi_senddata%mac    = cpara(2)(1:lpara(2))
@@ -641,6 +643,12 @@ ELSE
                ENDIF 
             ENDIF 
          ENDIF 
+      ELSE
+         IF(ier_num == -17) THEN  ! too many numbers in this line
+            ier_msg(1) = 'The refine command can only take 20 values.'
+            ier_msg(2) = 'Please use several refine command lines for'
+            ier_msg(3) = 'all these parameters.'
+         ENDIF
       ENDIF 
 !                                                                 
 !     -- set the selection mode 'selection'                       
@@ -755,6 +763,9 @@ ELSE
 !                                                                 
    ELSE 
       CALL kdo_all (befehl, lbef, zeile, lcomm) 
+      IF(zeile == 'EXIT') THEN ! kdo_all detected "continue suite"
+         lend = .TRUE.
+      ENDIF 
    ENDIF 
 ENDIF 
 !                                                                       

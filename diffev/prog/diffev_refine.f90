@@ -14,6 +14,7 @@ CONTAINS
    USE prompt_mod
    USE set_sub_generic_mod
    USE doexec_mod
+   USE variable_mod
 !
    IMPLICIT NONE
 !
@@ -50,17 +51,29 @@ CONTAINS
    inpara(202) = run_mpi_senddata%member
    inpara(203) = run_mpi_senddata%children
    inpara(204) = run_mpi_senddata%parameters
+   inpara(207) = run_mpi_senddata%nindiv    ! Needed if inside a do block
+!
+! Long term solution copy into specialized variables
+!
+   var_val( var_ref+0) = run_mpi_senddata%generation
+   var_val( var_ref+1) = run_mpi_senddata%member
+   var_val( var_ref+2) = run_mpi_senddata%children
+   var_val( var_ref+3) = run_mpi_senddata%parameters
+   var_val( var_ref+6) = run_mpi_senddata%nindiv  ! set variable: ref_nindiv
 !
    kids_loop: DO i=1,run_mpi_senddata%children
       run_mpi_senddata%kid = i
       DO j=1,run_mpi_senddata%parameters                          ! Encode current trial values
          run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
          rpara                  (200+  j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
+         ref_para               (      j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
       ENDDO
       indivs_loop: DO j=1,run_mpi_senddata%nindiv
          run_mpi_senddata%indiv = j
-         inpara(205) = run_mpi_senddata%kid       ! set i[205] = kid, i[206] = nindiv
+         inpara(205) = run_mpi_senddata%kid       ! set i[205] = kid, i[206] = indiv, i[707] = nindiv
          inpara(206) = run_mpi_senddata%indiv     ! Needed if inside a do block
+         var_val( var_ref+4) = run_mpi_senddata%kid     ! set variable: ref_kid 
+         var_val( var_ref+5) = run_mpi_senddata%indiv   ! set variable: ref_indiv
 !
          mpi_is_slave = .true.
          IF(flag_block .AND. .NOT. lstandalone) THEN

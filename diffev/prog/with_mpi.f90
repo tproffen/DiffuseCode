@@ -297,6 +297,7 @@ USE set_sub_generic_mod
 USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
+USE variable_mod
 !
 IMPLICIT none
 !

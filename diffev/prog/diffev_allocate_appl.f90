@@ -234,6 +234,7 @@ CONTAINS
 !     Allocate the number of members and parameters avaliable to DIFFEV
 !+
       USE population
+      USE variable_mod
 !
       IMPLICIT NONE
 !
@@ -355,6 +356,9 @@ CONTAINS
             pop_dimx      = 0
             pop_n         = 0
             pop_c         = 0
+            var_val(var_ref+1) = 0  ! Update global user variable
+            var_val(var_ref+2) = 0  ! Update global user variable
+            var_val(var_ref+3) = 0  ! Update global user variable
             ier_typ       = 1
             ier_num       = ER_COMM
             ier_msg(1)    = 'Population'
@@ -363,6 +367,9 @@ CONTAINS
          pop_dimx      =  0
          pop_n         =  0
          pop_c         =  0
+         var_val(var_ref+1) = 0  ! Update global user variable
+         var_val(var_ref+2) = 0  ! Update global user variable
+         var_val(var_ref+3) = 0  ! Update global user variable
          pop_size_of   =  0
          ier_num       = -2
          ier_typ       = ER_COMM

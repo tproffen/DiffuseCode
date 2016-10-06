@@ -468,6 +468,8 @@ CONTAINS
    USE create_trial_mod
    USE diff_evol
    USE population
+   USE lib_f90_allocate_mod
+   USE variable_mod
 !
    IMPLICIT none 
 !                                                                       
@@ -490,9 +492,10 @@ CONTAINS
 !                                                                       
    changed: IF ( pop_dimx_new ) THEN      ! Dimension has changed, patch parameter and summary file
       IF(pop_dimx.gt.MAXDIMX) THEN
-         CALL alloc_population(pop_c, pop_dimx)
+         CALL alloc_population(pop_c, pop_dimx)  ! Local DIFFEV Variables
+         CALL alloc_ref_para(pop_dimx)           ! Global refinement paramater variable
       ENDIF
-      call patch_para
+      CALL patch_para
       pop_dimx_new = .false.
    ENDIF changed
 !                                                                       
@@ -642,6 +645,7 @@ CONTAINS
    ENDDO 
 !                                                                       
    pop_gen = pop_gen + 1 
+   var_val(var_ref+0) = pop_gen ! Update global user variable
 !                                                                       
    CALL create_trial 
    CALL write_genfile 

@@ -444,6 +444,8 @@ USE diff_evol
 USE population
 USE errlist_mod 
 USE param_mod 
+USE lib_f90_allocate_mod
+USE variable_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -495,8 +497,10 @@ ELSEIF (ctype.eq.'pop_n') then
       ELSE 
          IF ( pop_gen == 0) THEN    ! We are still in generation zero
             pop_n = nint (wert) 
+            var_val(var_ref+1) = pop_n     ! Update global user variable
             IF(NINT(wert) > MAXPOP) THEN
                CALL alloc_population( pop_n, MAXDIMX )
+               CALL alloc_ref_para(MAXDIMX)
                IF(ier_num < 0) THEN
                   RETURN
                ENDIF
@@ -504,10 +508,12 @@ ELSEIF (ctype.eq.'pop_n') then
          ELSE                       ! During refinement 
             IF ( pop_n > nint (wert) ) THEN ! New population is smaller
                pop_n = nint (wert) 
+               var_val(var_ref+1) = pop_n     ! Update global user variable
                CALL write_genfile
             ELSE                    ! New population has increased, needs initialization
                IF(NINT(wert) > MAXPOP) THEN
                   CALL alloc_population( NINT(wert), MAXDIMX )
+                  CALL alloc_ref_para(MAXDIMX)
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
@@ -517,6 +523,7 @@ ELSEIF (ctype.eq.'pop_n') then
                parent_val(pop_n+1:pop_neu) = 10.*highest_r
                FORALL(i=pop_n+1:pop_neu) pop_x (:,i)     = pop_x (:,1)
                pop_n = pop_neu
+               var_val(var_ref+1) = pop_n     ! Update global user variable
                CALL write_genfile
             ENDIF 
          ENDIF 
@@ -537,8 +544,10 @@ ELSEIF (ctype.eq.'pop_c') then
       ELSE 
          IF ( pop_gen == 0) THEN    ! We are still in generation zero
             pop_c = nint (wert) 
+            var_val(var_ref+2) = pop_c     ! Update global user variable
             IF(NINT(wert) > MAXPOP) THEN
                CALL alloc_population( pop_c, MAXDIMX )
+               CALL alloc_ref_para(MAXDIMX)
                IF(ier_num < 0) THEN
                   RETURN
                ENDIF
@@ -546,16 +555,19 @@ ELSEIF (ctype.eq.'pop_c') then
          ELSE                       ! During refinement 
             IF ( pop_c > nint (wert) ) THEN ! New population is smaller
                pop_c = nint (wert) 
+               var_val(var_ref+2) = pop_c     ! Update global user variable
                CALL create_trial                 ! Make a new set
                CALL write_genfile
             ELSEIF ( pop_c < nint (wert) ) THEN  ! New population has increased, needs initialization
                IF(NINT(wert) > MAXPOP) THEN
                   CALL alloc_population( NINT(wert), MAXDIMX )
+                  CALL alloc_ref_para(MAXDIMX)
                   IF(ier_num < 0) THEN
                      RETURN
                   ENDIF
                ENDIF
                pop_c = nint (wert) 
+               var_val(var_ref+2) = pop_c     ! Update global user variable
                CALL create_trial                 ! Make a new set
                CALL write_genfile                ! Write the "GENERATION" file
             ENDIF 
@@ -599,6 +611,7 @@ ELSEIF (ctype.eq.'pop_dimx') then
          pop_dimx = nint (wert) 
          IF(pop_dimx  > MAXDIMX) THEN
             CALL alloc_population( MAXPOP, pop_dimx )
+            CALL alloc_ref_para(pop_dimx)
             IF(ier_num < 0) THEN
                RETURN
             ENDIF
@@ -616,6 +629,7 @@ ELSEIF (ctype.eq.'pop_gen') then
    IF (ianz.eq.1) then 
       IF (0.le.nint (wert) ) then 
          pop_gen = nint (wert) 
+         var_val(var_ref+0) = pop_gen   ! Update global user variable
       ELSE 
          ier_num = 1 
          ier_typ = ER_APPL 
