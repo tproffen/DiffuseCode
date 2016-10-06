@@ -5878,6 +5878,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
+!
+      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+      INTEGER                         :: all_status
 !     LOGICAL atom_allowed 
 !                                                                       
 !------ write output                                                    
@@ -5937,7 +5941,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDIF
 !                                                                       
       DO i = 0, cr_nscat 
+      IF(-1==NINT(werte(1))  .OR. i==NINT(werte(1))  ) THEN
       DO j = i, cr_nscat 
+      IF(-1==NINT(wwerte(1)) .OR. j==NINT(wwerte(1)) ) THEN
       IF (bl_anz (i, j) .ne.0.or.bl_anz (j, i) .ne.0) then 
          bl_ave = (bl_sum (i, j) + bl_sum (j, i) ) / (bl_anz (i, j)     &
          + bl_anz (j, i) )                                              
@@ -5976,28 +5982,39 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          ier_num = - 2 
          ier_typ = ER_CHEM 
       ENDIF 
+      ENDIF 
       ENDDO 
+      ENDIF 
       ENDDO 
 !                                                                       
       res_para (0) = l 
       WRITE (output_io, 1100) btottot 
 !                                                                       
-!------ write histogramm                                                
+!------ write histogramm Allow optional write into kuplot
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios, &
-            IOMSG=message) 
-      IF(ios/=0) THEN
-         ier_num = -2
-         ier_typ = ER_IO
-         ier_msg(1)(1:60) = chem_fname(1:60)
-         ier_msg(3) = message(1:80)
-         RETURN
-      ENDIF
-      DO i = 1, chem_bin 
-      WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
-      chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
-      ENDDO 
-      CLOSE (43) 
+      ALLOCATE(xwrt(1:chem_bin), stat=all_status)
+      ALLOCATE(ywrt(1:chem_bin), stat=all_status)
+      DO i = 1, chem_bin
+         xwrt(i) = chem_blen_cut(1) + (chem_blen_cut(2) -chem_blen_cut(1)) * (i-1)/chem_bin
+      ENDDO
+      ywrt(1:chem_bin) = chem_hist(1:chem_bin)
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      DEALLOCATE(xwrt, stat=all_status)
+      DEALLOCATE(ywrt, stat=all_status)
+!     OPEN (unit = 43, file = chem_fname, status = 'unknown',iostat=ios, &
+!           IOMSG=message) 
+!     IF(ios/=0) THEN
+!        ier_num = -2
+!        ier_typ = ER_IO
+!        ier_msg(1)(1:60) = chem_fname(1:60)
+!        ier_msg(3) = message(1:80)
+!        RETURN
+!     ENDIF
+!     DO i = 1, chem_bin 
+!     WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
+!     chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+!     ENDDO 
+!     CLOSE (43) 
 !                                                                       
   500 FORMAT (' Calculating bond-length distibution',/,                 &
      &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
@@ -6006,7 +6023,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
      &        '(Min =',F7.3,', Max =',F7.3,')',/,                       &
      &        49x,'(Pairs = ',i18,')')                                  
  1100 FORMAT (49x,'(Total = ',i18,')') 
- 5000 FORMAT (F8.3,I12) 
+!5000 FORMAT (F8.3,I12) 
       END SUBROUTINE chem_blen                      
 !*****7*****************************************************************
       SUBROUTINE chem_blen_cluster (iianz, jjanz, werte, wwerte, maxw) 
@@ -6031,6 +6048,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       INTEGER i, j, k, ibin , ios
       REAL u (3), v (3), dist 
+!
+      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+      INTEGER                         :: all_status
 !                                                                       
 !     LOGICAL atom_allowed 
 !     REAL do_blen 
@@ -6072,26 +6093,35 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown', &
-            IOSTAT=ios, IOMSG=message) 
-      IF(ios/=0) THEN
-         ier_num = -2
-         ier_typ = ER_IO
-         ier_msg(1)(1:60) = chem_fname(1:60)
-         ier_msg(3) = message(1:80)
-         RETURN
-      ENDIF
-      DO i = 1, chem_bin 
-      WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
-      chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
-      ENDDO 
-      CLOSE (43) 
+      ALLOCATE(xwrt(1:chem_bin), stat=all_status)
+      ALLOCATE(ywrt(1:chem_bin), stat=all_status)
+      DO i = 1, chem_bin
+         xwrt(i) = chem_blen_cut(1) + (chem_blen_cut(2) -chem_blen_cut(1)) * (i-1)/chem_bin
+      ENDDO
+      ywrt(1:chem_bin) = chem_hist(1:chem_bin)
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      DEALLOCATE(xwrt, stat=all_status)
+      DEALLOCATE(ywrt, stat=all_status)
+!     OPEN (unit = 43, file = chem_fname, status = 'unknown', &
+!           IOSTAT=ios, IOMSG=message) 
+!     IF(ios/=0) THEN
+!        ier_num = -2
+!        ier_typ = ER_IO
+!        ier_msg(1)(1:60) = chem_fname(1:60)
+!        ier_msg(3) = message(1:80)
+!        RETURN
+!     ENDIF
+!     DO i = 1, chem_bin 
+!     WRITE (43, 5000) chem_blen_cut (1) + (chem_blen_cut (2) -         &
+!     chem_blen_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+!     ENDDO 
+!     CLOSE (43) 
 !                                                                       
   400 FORMAT (/,' Calculating bond-length distibution (Mode: CLUSTER)') 
   500 FORMAT (' Calculating bond-length distibution',/,                 &
      &        '    Allowed range : ',F6.2,' A to ',F6.2,                &
      &        '  A / File : ',A12,' (',I4,' pts)',/)                    
- 5000 FORMAT (F8.3,I12) 
+!5000 FORMAT (F8.3,I12) 
       END SUBROUTINE chem_blen_cluster              
 !*****7*****************************************************************
       SUBROUTINE chem_bang (iianz, jjanz, kkanz, werte, wwerte, uwerte, &
@@ -6122,6 +6152,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ba_env (0:MAX_ATOM_ENV) 
       INTEGER :: ios
       LOGICAL lspace 
+!
+      REAL, DIMENSION(:), ALLOCATABLE :: xwrt
+      REAL, DIMENSION(:), ALLOCATABLE :: ywrt
+      INTEGER                         :: all_status
 !                                                                       
 !     von der relativen Reihenfolge der beiden Statements haengt es ab, 
 !     ob der zweite Nachbar gefunden wird oder nicht !?!?               
@@ -6250,20 +6284,29 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !------ write histogramm                                                
 !                                                                       
-      OPEN (unit = 43, file = chem_fname, status = 'unknown', &
-            IOSTAT=ios, IOMSG=message) 
-      IF(ios/=0) THEN
-         ier_num = -2
-         ier_typ = ER_IO
-         ier_msg(1)(1:60) = chem_fname(1:60)
-         ier_msg(3) = message(1:80)
-         RETURN
-      ENDIF
-      DO i = 1, chem_bin 
-      WRITE (43, 5000) chem_bang_cut (1) + (chem_bang_cut (2) -         &
-      chem_bang_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
-      ENDDO 
-      CLOSE (43) 
+      ALLOCATE(xwrt(1:chem_bin), stat=all_status)
+      ALLOCATE(ywrt(1:chem_bin), stat=all_status)
+      DO i = 1, chem_bin
+         xwrt(i) = chem_bang_cut(1) + (chem_bang_cut(2) -chem_bang_cut(1)) * (i-1)/chem_bin
+      ENDDO
+      ywrt(1:chem_bin) = chem_hist(1:chem_bin)
+      CALL output_save_file_1d( chem_fname, chem_bin, xwrt, ywrt )
+      DEALLOCATE(xwrt, stat=all_status)
+      DEALLOCATE(ywrt, stat=all_status)
+!     OPEN (unit = 43, file = chem_fname, status = 'unknown', &
+!           IOSTAT=ios, IOMSG=message) 
+!     IF(ios/=0) THEN
+!        ier_num = -2
+!        ier_typ = ER_IO
+!        ier_msg(1)(1:60) = chem_fname(1:60)
+!        ier_msg(3) = message(1:80)
+!        RETURN
+!     ENDIF
+!     DO i = 1, chem_bin 
+!     WRITE (43, 5000) chem_bang_cut (1) + (chem_bang_cut (2) -         &
+!     chem_bang_cut (1) ) * (i - 1) / chem_bin, chem_hist (i)           
+!     ENDDO 
+!     CLOSE (43) 
 !                                                                       
   500 FORMAT     (' Calculating bond-angle distibution',/,              &
      &        '    Allowed range : ',F6.2,'   to ',F6.2,' Degrees',/,   &
@@ -6271,7 +6314,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
      &        '  A / File : ',A12,' (',I4,' pts)',/)                    
  1000 FORMAT     ('    ',A9,'- ',A9,': a = ',F7.3,' +- ',F7.3,' Deg ',  &
      &                   '(Min = ',F7.3,', Max = ',F7.3,')')            
- 5000 FORMAT     (F8.3,I12) 
+!5000 FORMAT     (F8.3,I12) 
       END SUBROUTINE chem_bang                      
 !*****7*****************************************************************
       SUBROUTINE chem_mole (lout) 

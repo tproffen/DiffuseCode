@@ -134,6 +134,7 @@ ENDDO  loopk
 IF (lout) write (output_io, 1000) 
 ia = cr_icc (1) * cr_icc (2) * cr_icc (3) 
 IF(lsite) THEN           ! one pos for all types on a single site
+   nvalues = 0
    DO i = 1, cr_ncatoms 
       DO j = 1, 3 
          chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
@@ -151,27 +152,35 @@ IF(lsite) THEN           ! one pos for all types on a single site
             WRITE (output_io, 1100) i, at_name_i, (chem_ave_pos (ii, i),   &
             ii = 1, 3), (chem_ave_sig (ii, i), ii = 1, 3), chem_ave_bese ( &
             i, k) / ia                                                     
+            nvalues = nvalues + 1
          ENDDO 
       ENDIF 
    ENDDO 
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-   IF ( (6 * cr_ncatoms) .gt.MAXPAR_RES) then 
-      n_res = MAX(6 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+   IF ( (9 * nvalues) .gt.MAXPAR_RES) then 
+      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
 !     ier_typ = ER_CHEM 
 !     ier_num = - 2 
 !  ELSE 
    ENDIF 
-      res_para (0) = 6 * cr_ncatoms 
+      res_para (0) = 9 * nvalues 
+      ii = 0
       DO i = 1, cr_ncatoms 
+         DO k = 1, chem_ave_n (i) 
+         ii = ii + 1
+            res_para ( (ii - 1) * 9     + 1) = i
+            res_para ( (ii - 1) * 9     + 2) = chem_ave_iscat (i, k)
          DO j = 1, 3 
-            res_para ( (i - 1) * 6 + j) = chem_ave_pos (j, i) 
+            res_para ( (ii - 1) * 9 + j + 2) = chem_ave_pos (j, i) 
          ENDDO 
          DO j = 1, 3 
-            res_para ( (i - 1) * 6 + j + 3) = chem_ave_sig (j, i) 
+            res_para ( (ii - 1) * 9 + j + 5) = chem_ave_sig (j, i) 
+         ENDDO 
+            res_para ( (ii - 1) * 9     + 9) = chem_ave_bese(i, k)/ia
          ENDDO 
       ENDDO 
 !  ENDIF 
@@ -200,25 +209,28 @@ ELSE
 !                                                                       
 !------ store results in res_para                                       
 !                                                                       
-   IF ( (6 * nvalues) .gt.MAXPAR_RES) then 
-      n_res = MAX(6 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
+   IF ( (9 * nvalues) .gt.MAXPAR_RES) then 
+      n_res = MAX(9 * cr_ncatoms,MAXPAR_RES, CHEM_MAX_NEIG)
       CALL alloc_param(n_res)
       MAXPAR_RES = n_res
 !     ier_typ = ER_CHEM 
 !     ier_num = - 2 
 !  ELSE 
    ENDIF
-      res_para (0) = 6 * nvalues 
+      res_para (0) = 9 * nvalues 
       ii = 0
       DO i = 1, cr_ncatoms 
          DO k = 1, chem_ave_n (i) 
          ii = ii + 1
+            res_para ( (ii - 1) * 9     + 1) = i
+            res_para ( (ii - 1) * 9     + 2) = chem_ave_iscat (i, k)
          DO j = 1, 3 
-            res_para ( (ii - 1) * 6 + j)     = chem_ave_posit (j, i, k) 
+            res_para ( (ii - 1) * 9 + j + 2) = chem_ave_posit (j, i, k) 
          ENDDO 
          DO j = 1, 3 
-            res_para ( (ii - 1) * 6 + j + 3) = chem_ave_sigma (j, i, k) 
+            res_para ( (ii - 1) * 9 + j + 5) = chem_ave_sigma (j, i, k) 
          ENDDO 
+            res_para ( (ii - 1) * 9     + 9) = chem_ave_bese(i, k)/ia
          ENDDO 
       ENDDO 
 !  ENDIF 
