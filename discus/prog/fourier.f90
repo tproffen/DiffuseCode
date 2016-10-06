@@ -44,7 +44,8 @@ CONTAINS
       CHARACTER(1024) zeile
       CHARACTER(1024) line 
       CHARACTER(LEN=1024)  :: infile, calcfile
-      INTEGER :: i, j=1, k, ianz, lp, length 
+      CHARACTER(LEN=1024)  :: symbol
+      INTEGER :: i, j=1, k, ianz, lp, length , lsymbol
       INTEGER indxg, lbef 
       INTEGER              :: infile_l, outfile_l
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
@@ -755,18 +756,23 @@ CONTAINS
 !     set the wave length to be used 'wvle'                             
 !                                                                       
             ELSEIF (str_comp (befehl, 'wvle', 1, lbef, 4) ) then 
-               CALL do_cap (zeile) 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
-                  IF (ichar ('A') .le.ichar (cpara (1) (1:1) )          &
-                  .and.ichar (cpara (1) (1:1) ) .le.ichar ('Z') ) then  
-                     lambda = cpara (1) (1:lpara(1))
-                     l_energy = .false.
-                  ELSE 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  symbol  = cpara(1)
+                  lsymbol = lpara(1)
+                  CALL do_cap (symbol) 
+                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                  IF(ier_num == 0) THEN
                      rlambda = werte (1) 
                      lambda = ' ' 
                      l_energy = .false.
+                  ELSEIF (ICHAR ('A')  <= ICHAR (symbol    (1:1) ) .AND. &
+                          ICHAR (symbol    (1:1) )  <= ICHAR ('Z') ) THEN  
+                     lambda = symbol    (1:lsymbol   )
+                     l_energy = .false.
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
                   ENDIF 
                ELSE 
                   ier_num = - 6 

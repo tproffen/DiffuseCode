@@ -133,7 +133,7 @@ CONTAINS
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
-                     four_was_run = .true.
+                     IF(ier_num == 0) four_was_run = .true.
                   ENDIF 
 !                                                                       
 !     ----show current parameters 'show'                                
@@ -459,8 +459,10 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) cpara (MAXW) 
       CHARACTER ( * ) zeile 
+      CHARACTER (LEN=1024) :: symbol
       INTEGER lpara (MAXW) 
       INTEGER lcomm 
+      INTEGER :: lsymbol
       INTEGER ianz 
       INTEGER i 
       REAL werte (MAXW) 
@@ -557,7 +559,17 @@ CONTAINS
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
-                  pow_deltatth = werte (2) 
+                  IF(werte(2)<0.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta step must be positive!'
+                  ELSEIF(werte(2)>180.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta step must be less than 180degrees'
+                  ELSE
+                     pow_deltatth = werte (2) 
+                  ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -938,7 +950,17 @@ CONTAINS
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
-                  pow_tthmax = werte (2) 
+                  IF(werte(2)<0.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta max must be positive!'
+                  ELSEIF(werte(2)>180.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta max must be less than 180degrees'
+                  ELSE
+                     pow_tthmax = werte (2) 
+                  ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -951,7 +973,17 @@ CONTAINS
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
-                  pow_tthmin = werte (2) 
+                  IF(werte(2)<0.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta min must be positive!'
+                  ELSEIF(werte(2)>180.0) THEN
+                     ier_num = -107
+                     ier_typ = ER_APPL
+                     ier_msg(1) = '2Theta min must be less than 180degrees'
+                  ELSE
+                     pow_tthmin = werte (2) 
+                  ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -984,20 +1016,23 @@ CONTAINS
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'wvle', 1, lpara (1) , 4) ) then 
-            CALL do_cap (cpara (2) ) 
+         ELSEIF (str_comp (cpara (1) , 'wvle', 1, lpara (1) , 4) ) THEN 
             IF (ianz.eq.2) then 
-               IF (ichar ('A') .le.ichar (cpara (2) (1:1) ) .and.ichar (&
-               cpara (2) (1:1) ) .le.ichar ('Z') ) then                 
-                  lambda = cpara (2) (1:lpara(2))
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               symbol    = cpara(2)
+               lsymbol   = lpara(2)
+               CALL do_cap (symbol) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  rlambda = werte (2) 
+                  lambda = ' ' 
+               ELSEIF (ichar ('A') <=  ichar (symbol    (1:1) ) .AND.&
+                       ichar (symbol    (1:1) ) <= ichar ('Z') ) THEN                 
+                  lambda = symbol(1:lsymbol)  
                ELSE 
-                  cpara (1) = '0' 
-                  lpara (1) = 1 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
-                     rlambda = werte (2) 
-                     lambda = ' ' 
-                  ENDIF 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1074,6 +1109,14 @@ CONTAINS
          ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
             pow_ds_max = (pow_qmax+pow_deltaq)/zpi
             pow_ds_min = pow_qmin/zpi
+            IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
+               ier_num = -108
+               ier_typ = ER_APPL
+               ier_msg(1) = 'Qmax is too large for current wave length'
+               ier_msg(2) = 'Qmax*lambda/(4pi) is greater than one!'
+               ier_msg(3) = 'Reduce Qmax or the wave length'
+               RETURN
+            ENDIF
          ENDIF
          pow_hkl_max (1) = cr_a0 (1) * pow_ds_max 
          pow_hkl_max (2) = cr_a0 (2) * pow_ds_max 
