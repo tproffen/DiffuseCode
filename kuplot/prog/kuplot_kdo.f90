@@ -454,6 +454,9 @@
 !                                                                       
          ELSE 
             CALL kdo_all (bef, lbef, zei, lc) 
+            IF(zei == 'EXIT') THEN ! kdo_all detected "continue suite"
+               lend = .TRUE.
+            ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       
