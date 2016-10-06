@@ -21,6 +21,7 @@ USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
 USE param_mod
+USE variable_mod
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat
@@ -89,6 +90,8 @@ ELSE
    ENDIF
 ENDIF
 !
+! Interim solution up to 5.6.4 will be phased out
+!
 DO i=1,parameters
    rpara(200+i) = trial_v(i)
 ENDDO
@@ -97,6 +100,20 @@ inpara(201) = generation
 inpara(202) = member
 inpara(203) = children
 inpara(204) = parameters
+!
+! Long term solution copy into specialized variables
+!
+DO i=1,parameters            ! Trial parameters for this kid
+   ref_para(i) = trial_v(i)
+ENDDO
+!
+var_val( var_ref+0) = generation
+var_val( var_ref+1) = member
+var_val( var_ref+2) = children
+var_val( var_ref+3) = parameters
+var_val( var_ref+4) = kid
+var_val( var_ref+5) = indiv
+!var_val( var_ref+6) = nindiv
 !
 !  build macro line
 !
