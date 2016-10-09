@@ -684,6 +684,7 @@ CONTAINS
 !+                                                                      
       USE discus_config_mod 
       USE discus_allocate_appl_mod
+      USE chem_mod
       USE crystal_mod 
       USE prop_para_mod 
       USE errlist_mod 
@@ -766,6 +767,8 @@ CONTAINS
                cr_dim(l,1) = amin1(cr_dim(l,1), cr_pos(l,cr_natoms))                                                           
                cr_dim(l,2) = amax1(cr_dim(l,2), cr_pos(l,cr_natoms))                                                           
             ENDDO 
+            chem_period(:) = .FALSE.    ! Turn off periodic boundary
+            chem_quick     = .FALSE.    ! Turn off quick search mode
          ENDIF 
       ELSE 
          ier_num = - 10 
