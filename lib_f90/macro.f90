@@ -433,16 +433,6 @@ SUBROUTINE file_kdo(line, ilen)
          ndol = index (zeile (1:laenge) , '$')
          IF (ndol.gt.laenge) then
             ndol = 0
-         ELSE    ! Found a $, check if after an inline comment
-            nexcl = INDEX(zeile(1:laenge), '!')
-            IF(nexcl < ndol) THEN     ! "$" is behind a "!"
-               nquote1 = INDEX(zeile(1:laenge), '"')
-               IF(nquote1 == 0 .or. nquote1 > nexcl) THEN 
-                  ndol = 0            ! Within a comment
-               ENDIF
-            ELSE
-               ndol = 0
-            ENDIF
          ENDIF
 !
 !     Replace all '$'-parameters
