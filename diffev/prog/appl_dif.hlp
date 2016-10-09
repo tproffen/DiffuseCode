@@ -19,6 +19,19 @@
    Further help topics are:
 
 2  News
+3  2016_oct
+
+   Global variables have been introduced that use the same syntax as
+   user defined variables. This include just "pi" and variables related
+   to the refinement.
+   DIFFEV sets the value to these variables:
+   ref_generation  Current generation
+   ref_member      Current population size
+   ref_children    Current children size
+   ref_dimension   Number of parameters 
+   ref_kid         Current child Updated for DISCUS and KUPLOT only
+   ref_indiv       Current individuum Updated for DISCUS and KUPLOT only
+   ref_param[1..]  Current trial parameters for current child
 3  2016_june
 
    DIFFEV may now be interruted gracefully with a CTRL-c.
