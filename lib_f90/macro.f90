@@ -379,7 +379,7 @@ SUBROUTINE file_kdo(line, ilen)
 !
       CHARACTER(1024) zeile
       CHARACTER(1024) string
-      INTEGER ndol
+      INTEGER ndol, nexcl, nquote1, nquote2
       INTEGER lpar
       INTEGER n_par
       INTEGER laenge
@@ -417,13 +417,32 @@ SUBROUTINE file_kdo(line, ilen)
       ENDIF
 !
       nocomment: IF (line(1:1) /= '#' .and. line (1:1) /=  '!' .and. laenge /= 0) THEN
+         ndol    = 0
+         nexcl   = 0
+         nquote1 = 0
+         nquote2 = 0
+         zeile = line
+         nexcl   = INDEX(zeile (1:laenge) , '!', .TRUE.)   ! Find last '!'
+         nquote1 = INDEX(zeile (1:laenge) , '"', .TRUE.)   ! Find last '"'
+         IF(nexcl > 0 .AND. nexcl > nquote1) THEN
+            laenge = nexcl -1
+         ENDIF
 !
 !     If inside a macro, check for parameter substitution
 !
-         zeile = line
          ndol = index (zeile (1:laenge) , '$')
          IF (ndol.gt.laenge) then
             ndol = 0
+         ELSE    ! Found a $, check if after an inline comment
+            nexcl = INDEX(zeile(1:laenge), '!')
+            IF(nexcl < ndol) THEN     ! "$" is behind a "!"
+               nquote1 = INDEX(zeile(1:laenge), '"')
+               IF(nquote1 == 0 .or. nquote1 > nexcl) THEN 
+                  ndol = 0            ! Within a comment
+               ENDIF
+            ELSE
+               ndol = 0
+            ENDIF
          ENDIF
 !
 !     Replace all '$'-parameters
