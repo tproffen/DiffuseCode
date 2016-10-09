@@ -94,6 +94,7 @@ CONTAINS
                  run_mpi_senddata%out  , run_mpi_senddata%out_l,     &
                  run_mpi_senddata%generation, run_mpi_senddata%member,   &
                  run_mpi_senddata%children, run_mpi_senddata%parameters, &
+                                         run_mpi_senddata%nindiv  , &
                  run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                  ierr )
          ENDIF

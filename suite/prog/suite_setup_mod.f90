@@ -163,6 +163,7 @@ INTERFACE
                             output, output_l, &
                             generation, member, &
                             children, parameters, &
+                                    nindiv  , &
                             trial_v,  NTRIAL,     &
                             ierr )
 !
@@ -184,6 +185,7 @@ INTERFACE
    INTEGER                , INTENT(IN) :: member
    INTEGER                , INTENT(IN) :: children
    INTEGER                , INTENT(IN) :: parameters
+   INTEGER                , INTENT(IN) :: nindiv
    INTEGER                , INTENT(IN) :: NTRIAL
    REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
    INTEGER                , INTENT(OUT):: ierr 

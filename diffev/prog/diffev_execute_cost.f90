@@ -7,6 +7,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          output, output_l, &
                          generation, member, &
                          children, parameters, &
+                                 nindiv  , &
                          trial_values, NTRIAL, &
                          ierr )
 !
@@ -34,6 +35,7 @@ INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
 INTEGER                , INTENT(IN) :: children
 INTEGER                , INTENT(IN) :: parameters
+INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(OUT):: ierr 
 INTEGER                , INTENT(IN) :: NTRIAL
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values

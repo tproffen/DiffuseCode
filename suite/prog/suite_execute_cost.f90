@@ -7,6 +7,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          output, output_l, &
                          generation, member, &
                          children, parameters, &
+                                 nindiv  , &
                          trial_v, NTRIAL, &
                          ierr )
 !
@@ -22,6 +23,7 @@ USE mpi_slave_mod
 USE prompt_mod
 USE param_mod
 USE variable_mod
+USE lib_f90_allocate_mod
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat
@@ -41,6 +43,7 @@ INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
 INTEGER                , INTENT(IN) :: children
 INTEGER                , INTENT(IN) :: parameters
+INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(IN) :: NTRIAL
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
 INTEGER                , INTENT(OUT):: ierr
@@ -58,6 +61,8 @@ INTEGER             :: ios
 LOGICAL :: str_comp
 INTEGER :: len_str
 !
+CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directeory as passed from master
+!
 ! Store old program name and prompt status
 !
 ct_pname_old         = pname
@@ -69,15 +74,15 @@ IF(str_comp(output(1:output_l), '/dev/null', 9, output_l, 9)) THEN
    job_l =  21
    CALL do_set(line, job_l)
 ELSEIF(str_comp(output(1:output_l),'on',2,output_l,2)) THEN
-   prompt_status = PROMPT_REDIRECT
-   socket_status = PROMPT_REDIRECT
+!   prompt_status = PROMPT_REDIRECT
+!   socket_status = PROMPT_REDIRECT
    IF(output_IO==37) THEN
       CLOSE(OUTPUT_IO)
    ENDIF
    output_io = 6
 ELSE
-   prompt_status = PROMPT_REDIRECT
-   socket_status = PROMPT_REDIRECT
+!   prompt_status = PROMPT_REDIRECT
+!   socket_status = PROMPT_REDIRECT
    output_io = 37
    logfile   = output(1:output_l)
    OPEN(UNIT=output_IO, FILE=logfile, STATUS='unknown', IOSTAT=ios)
@@ -103,6 +108,10 @@ inpara(204) = parameters
 !
 ! Long term solution copy into specialized variables
 !
+IF(UBOUND(ref_para, 1) < parameters) THEN
+   CALL alloc_ref_para(parameters)
+   MAXPAR_REF = parameters
+ENDIF
 DO i=1,parameters            ! Trial parameters for this kid
    ref_para(i) = trial_v(i)
 ENDDO
@@ -113,7 +122,7 @@ var_val( var_ref+2) = children
 var_val( var_ref+3) = parameters
 var_val( var_ref+4) = kid
 var_val( var_ref+5) = indiv
-!var_val( var_ref+6) = nindiv
+var_val( var_ref+6) = nindiv
 !
 !  build macro line
 !
