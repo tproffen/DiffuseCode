@@ -1,7 +1,7 @@
 !*****7**************************************************************   
 !       Here are all the parameter setting routines ..                  
 !*****7*****************************************************************
-      SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
+SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       lnull)                                                            
 !+                                                                      
 !     Sets option value in integer arrays(nia:nie)                      
@@ -9,6 +9,7 @@
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE kuplot_words_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -34,6 +35,7 @@
          cdummy = 'kuplot '//bef 
          CALL do_hel (cdummy, - len_str (cdummy) ) 
       ELSEIF (ianz.eq.2) then 
+         CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
          ik = nint (werte (1) ) 
@@ -65,6 +67,7 @@
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE kuplot_words_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -89,6 +92,7 @@
          cdummy = 'kuplot '//befehl 
          CALL do_hel (cdummy, - len_str (cdummy) ) 
       ELSEIF (ianz.eq.3) then 
+         CALL get_words  (ianz, cpara, lpara, maxw, 2, befehl) 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
          ik = nint (werte (1) ) 
@@ -231,6 +235,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE kuplot_words_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -253,6 +258,8 @@
          CALL do_hel (cdummy, - len_str (cdummy) ) 
 !                                                                       
       ELSEIF (ianz.eq.3.or.ianz.eq.5.or.ianz.eq.7) then 
+         CALL get_words  (ianz, cpara, lpara, maxw, 2, 'fcol') 
+         CALL get_words  (ianz, cpara, lpara, maxw, 3, 'fill') 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          ik = nint (werte (1) ) 
          ic = nint (werte (2) ) 
@@ -469,11 +476,23 @@
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
       REAL werte (maxw) 
+!
+      LOGICAL :: str_comp
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
-      IF (ianz.eq.2) then 
+      IF (ianz == 3) THEN
+         CALL do_cap(cpara(3))
+         IF( str_comp(cpara(3), 'X', 1, lpara(3), 1)) THEN
+            cpara(3) = '-1'
+            lpara(3) = 2
+         ELSEIF( str_comp(cpara(3), 'Y', 1, lpara(3), 1)) THEN
+            cpara(3) = '-2'
+            lpara(3) = 2
+         ENDIF
+      ENDIF
+      IF (ianz.eq.2 .OR. ianz==3) then 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
          ik = nint (werte (1) ) 
@@ -483,6 +502,25 @@
             ier_num = - 4 
             ier_typ = ER_APPL 
          ENDIF 
+         IF(ianz==3) THEN
+            IF(NINT(werte(3)) < 0) THEN
+               rel_mark(iwin, iframe, ik) = NINT(werte (3))
+            ELSEIF(NINT(werte(3)) == 0) THEN
+               rel_mark(iwin, iframe, ik) = 0
+            ELSE
+               IF(len(ik) == len(NINT(werte(3)))) THEN
+                  rel_mark(iwin, iframe, ik) = NINT(werte (3))
+               ELSE
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+                  ier_msg(1) = 'The reference data set for markers '
+                  ier_msg(2) = ' and the current data set differ in length'
+                  rel_mark(iwin, iframe, ik) = 0
+               ENDIF
+            ENDIF
+         ELSE
+            rel_mark(iwin, iframe, ik) = 0
+         ENDIF
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -944,6 +982,7 @@
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE kuplot_words_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -952,6 +991,7 @@
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=4)  :: bef
       INTEGER lpara (maxw), lp 
       INTEGER ianz, icol, ifon, ifid 
       REAL werte (maxw) 
@@ -997,6 +1037,8 @@
          ELSEIF (str_comp (cpara (1) , 'color', 2, lpara (1) , 5) )     &
          then                                                           
             CALL del_params (1, ianz, cpara, lpara, maxw) 
+            bef = 'fcol'
+            CALL get_words  (ianz, cpara, lpara, maxw, 2, bef) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
             IF (ianz.eq.2) then 

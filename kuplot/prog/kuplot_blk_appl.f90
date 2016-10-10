@@ -238,6 +238,7 @@
       ilineart (iw, i, j) = 1 
       hlineart (iw, i, j) = 1 
       sizemark (iw, i, j) = 0.2 
+      rel_mark (iw, i, j) = 0
       infra (iw, i, j) = j 
       ENDDO 
                                                                         

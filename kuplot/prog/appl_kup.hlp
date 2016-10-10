@@ -321,7 +321,8 @@
 
    This command sets the error bar colour for the data set <ik>. 
    The colours are numbered like the pens on a HP7475 plotter. Allowed 
-   values for <c> are:
+   values for <c> are listed in the table, Alternatively you can use
+   the color name (without blanks i.e. darkblue etc.)
 
    The allowed default colour values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
@@ -336,10 +337,10 @@
    This command sets the typ of error bars to be use for the data
    set number <ik>. Allowed values for <p> are:
 
-!p   0 : no error bars are drawn
-!p   1 : only error bars in x-direction
-!p   2 : only error bars in y-direction
-!p   3 : error bars in both directions
+!p   0 : {"noerror"|"none"} : no error bars are drawn
+!p   1 :  "xbar"            : only error bars in x-direction
+!p   2 :  "ybar"            : only error bars in y-direction
+!p   3 :  "cross"           : error bars in both directions
 2  excl
 !b excl <ik>,<left>,<right>
 
@@ -359,10 +360,10 @@
    colour definitions). The following fill types <ft> are currently 
    supported:
 
-!p   1: solid fill          5: Fill type 1 plus border
-!p   2: hashed (/)          6: Fill type 2 plus border
-!p   3: hashed (\)          7: Fill type 3 plus border
-!p   4: cross hashed        8: Fill type 4 plus border
+!p   1: "solid"     : solid fill    5: "bsolid" : type 1 plus border
+!p   2: "slash"     : hashed (/)    6: "bslash" : type 2 plus border
+!p   3: "backslash" : hashed (\)    7: "bback"  : type 3 plus border
+!p   4: "cross"     : cross hashed  8: "bcross" : type 4 plus border
 
    The filled area is defined by the data points and a baseline,
    by default the connection between the end points of the current
@@ -710,6 +711,8 @@
 
    The allowed default colour values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
+   Alternatively you can use
+   the color name (without blanks i.e. darkblue etc.)
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
 !p   2 : green     6 : black        10 : dark magenta   14 : dark cyan
@@ -931,7 +934,8 @@
 
    This command sets the colour for contour line set <ic> for the data 
    set <ik>. The colours are numbered like the pens on a HP7475 plotter. 
-   Allowed values for <c> are:
+   Allowed values for <c> are listed in the table, Alternatively you 
+   can use the color name (without blanks i.e. darkblue etc.)
 
    The allowed default colour values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
@@ -972,14 +976,14 @@
 
    This command sets the line typ for contour line set <ic> for the data 
    set <ik>. The colours are numbered like the pens on a HP7475 plotter. 
-   Allowed values for <p> are:
+   Allowed values for <p> are (number or name):
 
-!p   0 :  no line 
-!p   1 :  solid line
-!p   2 :  ----   ----   ----   ----
-!p   3 :  - ---- - ---- - ---- - --
-!p   4 :  - - - - - - - - - - - - -
-!p   5 :  - - - ---- - - - ---- - -
+!p   0 : {"noline"|"none"} : no line 
+!p   1 :  "solid"          : solid line
+!p   2 :  "broken"         : ----   ----   ----   ----
+!p   3 :  "dashed"         : - ---- - ---- - ---- - --
+!p   4 :  "shortbroken"    : - - - - - - - - - - - - -
+!p   5 :  "shortdashed"    : - - - ---- - - - ---- - -
 2  ident
 !b ident [ {"on" | "off"} ]
 
@@ -1143,7 +1147,8 @@
    This command sets the line colour for the data set <ik>. If <ik> is
    0 the colour set is taken for the grid lines (-> grid "on" | "off").
    The colours are numbered like the pens on a HP7475 plotter. Allowed 
-   values for <c> are:
+   values for <c> are listed in the table, Alternatively you can use
+   the color name (without blanks i.e. darkblue etc.)
 
    The allowed default colour values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
@@ -1401,14 +1406,14 @@
 !b ltyp <ik>,<p>
 
    This command sets the line typ to be used for data set <ik>. The
-   allowed values for <p> are:
+   allowed values for <p> are (number or name):
 
-!p   0 :  no line 
-!p   1 :  solid line
-!p   2 :  ----   ----   ----   ----
-!p   3 :  - ---- - ---- - ---- - --
-!p   4 :  - - - - - - - - - - - - -
-!p   5 :  - - - ---- - - - ---- - -
+!p   0 : {"noline"|"none"} : no line 
+!p   1 : {"solid"}         : solid line
+!p   2 : {"broken"}        : ----   ----   ----   ----
+!p   3 : {"dashed"}        : - ---- - ---- - ---- - --
+!p   4 : {"shortbroken"}   : - - - - - - - - - - - - -
+!p   5 : {"shortdashed"}   : - - - ---- - - - ---- - -
 2  lwid
 !b lwid <ik>,<width>
 
@@ -1448,7 +1453,8 @@
 
    This command sets the marker colour for the data set <ik>. The colours
    are numbered like the pens on a HP7475 plotter. Allowed values for
-   <c> are:
+   <c> are: listed in the table, Alternatively you can use
+   the color name (without blanks i.e. darkblue etc.)
 
    The allowed default colour values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
@@ -1543,19 +1549,29 @@
    number (see users guide). A value of 118 for example will give the
    PGPLOT symbol 18, a filled star.
 
-!p   0 : no marker       5 : filled square    10 : line (/)
-!p   1 : dot             6 : empty triangle   11 : line (\)
-!p   2 : empty circle    7 : cross (x)        12 : line (-)
-!p   3 : filled circle   8 : cross (+)        13 : vertical line
-!p   4 : empty square    9 : line (|)              from y-axis
+   Allowed values for <p> are listed in the table. Alternatively
+   you can use the name (without blanks)
 
-!p  -1 : x-coordinate   -2 : y-coordinate     -3 : both
+!p   0 : no marker|none  5 : filled square    10 : slash (/)
+!p   1 : dot             6 : empty triangle   11 : backslash (\)
+!p   2 : circle empty    7 : times (x)        12 : minus (-)
+!p   3 : filled circle   8 : plus  (+)        13 : vertical line
+!p   4 : square empty    9 : bar  (|)              from y-axis
+
+!p  -1 : x_coordinate   -2 : y_coordinate     -3 : "xy": both
 2  msiz
-!b msiz <ik>,[<size>]
+!b msiz <ik>,[<size> [, {"x" | "y" | "0" | <data_set>}]]
 
    This command sets the marker size for data set <ik> to <size>.
    The marker size is given in cm (for our friends in the US:
    1 inch = 2.54 cm).
+
+   If the third parameter is given and not equal to "0", the marker
+   are scaled proportionally. 
+   x  The marker size is propertional to the value along the x-axis
+   y  The marker size is propertional to the value along the y-axis
+   <data_set> The marker size is proportional to the y-value of
+   data set <data_set>. 
 2  nexus
 
    Here is a list of the NeXus file related commands. You have to 
@@ -1630,11 +1646,14 @@
    PGPLOT marker number (see users guide). A value of 118 for example 
    will give the PGPLOT symbol 18, a filled star.
 
-!p   0 : no marker       5 : filled square    10 : line (/)
-!p   1 : dot             6 : empty triangle   11 : line (\)
-!p   2 : empty circle    7 : cross (x)        12 : line (-)
-!p   3 : filled circle   8 : cross (+)        13 : vertical line
-!p   4 : empty square    9 : line (|)              from y-axis
+   Allowed values for <p> are listed in the table. Alternatively
+   you can use the name (without blanks)
+
+!p   0 : no marker|none  5 : filled square    10 : slash (/)
+!p   1 : dot             6 : empty triangle   11 : backslash (\)
+!p   2 : empty circle    7 : times (x)        12 : minus (-)
+!p   3 : filled circle   8 : pluss (+)        13 : vertical line
+!p   4 : empty square    9 : bar  (|)              from y-axis
 
 !p  -1 : x-coordinate   -2 : y-coordinate     -3 : both
 2  rdef

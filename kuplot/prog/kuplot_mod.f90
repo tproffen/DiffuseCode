@@ -121,6 +121,7 @@ SAVE
 !------ Plotting style PARAMETERs
 !
       REAL sizemark(maxwin,maxframe,maxkurvtot)
+      INTEGER rel_mark(maxwin,maxframe,maxkurvtot)
       REAL linewid(maxwin,maxframe,0:maxkurvtot)
       REAL fonsize (maxwin,maxframe,nfon)
       REAL fonscal (maxwin,maxframe)

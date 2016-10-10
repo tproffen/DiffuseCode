@@ -3,7 +3,7 @@
 !     can be plotted as contour plots or bitmaps or both. All           
 !     settings are defined in 'kuplot.inc'.                             
 !*********************************************************************  
-      SUBROUTINE do_plot (lmenu) 
+SUBROUTINE do_plot (lmenu) 
 !                                                                       
 !     Main plotting routine                                             
 !                                                                       
@@ -840,6 +840,8 @@
       INTEGER ikurv, ipkt, npkt 
       INTEGER il, ima, ikr, iityp, iicol 
       LOGICAL k_in_f 
+      INTEGER :: jkurv
+      REAL    :: max_value, min_value, range, factor, sma
 !                                                                       
       INTEGER len_str 
       LOGICAL inrect 
@@ -888,6 +890,7 @@
       ELSE 
          IF (imarktyp (iwin, iframe, ikurv) .ne.0.and..not.lni (ikurv) )&
          then                                                           
+            IF(rel_mark(iwin, iframe, ikurv) == 0 ) THEN
             CALL draw_bonds (ikurv) 
             DO ipkt = 1, len (ikurv) 
             xma = x (offxy (ikurv - 1) + ipkt) 
@@ -896,6 +899,76 @@
             imarkcol (iwin, iframe, ikurv), sizemark (iwin, iframe,     &
             ikurv) )                                                    
             ENDDO 
+            ELSE    ! proportional marker sizes
+               IF(rel_mark(iwin, iframe, ikurv) == -1 ) THEN  ! x-scale
+                  max_value = ABS(x (offxy (ikurv - 1) + 1))
+                  min_value = ABS(x (offxy (ikurv - 1) + 1))
+                  range = 0.0
+                  DO ipkt = 1, len (ikurv)
+                     max_value = MAX(max_value, ABS(x (offxy (ikurv - 1) + ipkt)))
+                     min_value = MIN(min_value, ABS(x (offxy (ikurv - 1) + ipkt)))
+                  ENDDO
+                  IF(max_value==min_value) THEN
+                      range = 1.0
+                  ELSE
+                      range = (max_value-min_value)
+                  ENDIF
+                  DO ipkt = 1, len (ikurv)
+                     xma = x (offxy (ikurv - 1) + ipkt) 
+                     yma = y (offxy (ikurv - 1) + ipkt) 
+                     factor = 0.1+0.9*(ABS(x (offxy (ikurv - 1) + ipkt))-min_value)/range
+                     IF(factor==0.0) factor = 1.0
+                     sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
+                     CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
+                     imarkcol (iwin, iframe, ikurv), sma )
+                  ENDDO
+               ELSEIF(rel_mark(iwin, iframe, ikurv) == -2 ) THEN  ! y-scale
+                  max_value = ABS(y (offxy (ikurv - 1) + 1))
+                  min_value = ABS(y (offxy (ikurv - 1) + 1))
+                  range = 0.0
+                  DO ipkt = 1, len (ikurv)
+                     max_value = MAX(max_value, ABS(y (offxy (ikurv - 1) + ipkt)))
+                     min_value = MIN(min_value, ABS(y (offxy (ikurv - 1) + ipkt)))
+                  ENDDO
+                  IF(max_value==min_value) THEN
+                      range = 1.0
+                  ELSE
+                      range = (max_value-min_value)
+                  ENDIF
+                  DO ipkt = 1, len (ikurv)
+                     xma = x (offxy (ikurv - 1) + ipkt) 
+                     yma = y (offxy (ikurv - 1) + ipkt) 
+                     factor = 0.1+0.9*(ABS(y (offxy (ikurv - 1) + ipkt))-min_value)/range
+                     IF(factor==0.0) factor = 1.0
+                     sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
+                     CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
+                     imarkcol (iwin, iframe, ikurv), sma )
+                  ENDDO
+               ELSEIF(rel_mark(iwin, iframe, ikurv) >   0 ) THEN  ! scale by data set
+                  jkurv = rel_mark(iwin, iframe, ikurv)
+                  max_value = ABS(y (offxy (jkurv - 1) + 1))
+                  min_value = ABS(y (offxy (jkurv - 1) + 1))
+                  range = 0.0
+                  DO ipkt = 1, len (jkurv)
+                     max_value = MAX(max_value, ABS(y (offxy (jkurv - 1) + ipkt)))
+                     min_value = MIN(min_value, ABS(y (offxy (jkurv - 1) + ipkt)))
+                  ENDDO
+                  IF(max_value==min_value) THEN
+                      range = 1.0
+                  ELSE
+                      range = (max_value-min_value)
+                  ENDIF
+                  DO ipkt = 1, len (ikurv)
+                     xma = x (offxy (ikurv - 1) + ipkt) 
+                     yma = y (offxy (ikurv - 1) + ipkt) 
+                     factor = 0.1+0.9*(ABS(y (offxy (jkurv - 1) + ipkt))-min_value)/range
+                     IF(factor==0.0) factor = 1.0
+                     sma = MAX(0.01,sizemark (iwin, iframe,ikurv)*factor)
+                     CALL draw_marker (xma, yma, imarktyp (iwin, iframe, ikurv), &
+                     imarkcol (iwin, iframe, ikurv), sma )
+                  ENDDO
+               ENDIF 
+            ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       
