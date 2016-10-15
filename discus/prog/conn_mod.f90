@@ -4,6 +4,7 @@ USE conn_def_mod
 USE crystal_mod
 !
 USE errlist_mod
+USE random_mod
 !
 IMPLICIT none
 !
@@ -18,6 +19,10 @@ PUBLIC  create_connectivity    !  Create the actual list of neighbors around eac
 PUBLIC  conn_do_set            !  Set parameters for the connectivity definitions
 PUBLIC  conn_show              !  Main show routine
 PRIVATE conn_test              !  While developing, a routine to test functionality
+PRIVATE do_bond_switch         !  Perform a bond witching operation
+PRIVATE get_connect_pointed    !  Read out connectivity list return the pointer to list
+PRIVATE do_exchange            !  Helper to exchange atoms between connectivities
+PUBLIC  conn_update            !  Update the connectivity for an atom
 !
 INTEGER, PARAMETER              :: MAX_ATOM=10
 !
@@ -59,12 +64,14 @@ TYPE (main_list), DIMENSION(:), ALLOCATABLE :: at_conn
 !
 ! (temporary) pointers of TYPE NEIGHBORS. This allows to move along the 
 ! neighbors in an individual neighborhood.
-TYPE (NEIGHBORS), POINTER       :: head, tail, temp
+TYPE (NEIGHBORS), POINTER       :: head, tail, temp, sw_central, sw_second
 !
 ! (temporary) pointers of TYPE NEIGHBORHOOD. This allows to move along the 
 ! neighborhoods of an individual atom.
 TYPE (NEIGHBORHOOD), POINTER       :: hood_head
 TYPE (NEIGHBORHOOD), POINTER       :: hood_temp
+TYPE (NEIGHBORHOOD), POINTER       :: hood_central
+TYPE (NEIGHBORHOOD), POINTER       :: hood_second
 !
 LOGICAL                            :: conn_status = .false.
 !
@@ -615,7 +622,8 @@ CONTAINS
       INTEGER maxw 
 !                                                                       
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+!     CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(PROMPT)) :: orig_prompt 
       CHARACTER(1024) line, zeile
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
@@ -631,14 +639,16 @@ CONTAINS
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
+      REAL       :: ran1
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/conn' 
 !                                                                       
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/conn' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -783,6 +793,14 @@ CONTAINS
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
+!                                                                       
+!     ----Perform bond switching 'switch'                 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'switch', 2, lbef, 6) ) then 
+                  iatom  = INT(ran1(idum)*cr_natoms) + 1
+                  ino    = 1
+                  c_name = 'c_first'
+                  CALL do_bond_switch (iatom, ino, c_name) 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
@@ -794,18 +812,27 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in connectivity menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+      prompt = orig_prompt
 !                                                                       
    END SUBROUTINE conn_menu
 !
@@ -900,7 +927,7 @@ CONTAINS
 !
       INTEGER, INTENT(IN)  :: jatom   ! central atom number
       INTEGER, INTENT(IN)  :: is1     ! central atom type
-      INTEGER, INTENT(IN)  :: ino     ! Connectivity def. no.
+      INTEGER, INTENT(INOUT)  :: ino     ! Connectivity def. no.
       CHARACTER(LEN=256)   :: c_name  ! Connectivity name
       INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: c_list    ! Size of array c_list 
@@ -921,6 +948,8 @@ CONTAINS
              temp => hood_temp%nachbar                    ! point to the first neighbor within current neigborhood
              IF ( hood_temp%neigh_type == ino  .OR. &
                   hood_temp%conn_name  == c_name   ) THEN   ! This is the right neighborhood
+                ino    = hood_temp%neigh_type         ! Return actual number and name
+                c_name = hood_temp%conn_name
                 natoms = hood_temp%natoms
                 IF(ALLOCATED(c_list)) THEN
 !                  IF(UBOUND(c_list).lt.natoms) THEN
@@ -1011,6 +1040,7 @@ CONTAINS
       USE crystal_mod
       USE atom_name
       USE modify_mod
+      USE metric_mod
       USE param_mod 
       USE prompt_mod 
       USE lib_f90_allocate_mod
@@ -1018,7 +1048,7 @@ CONTAINS
 !                                                                       
 !
       INTEGER, INTENT(in)        :: iatom
-      INTEGER, INTENT(in)        :: idef
+      INTEGER, INTENT(INOUT)     :: idef
       LOGICAL, INTENT(in)        :: long
 !
       INTEGER, PARAMETER         :: maxw = 2000
@@ -1033,8 +1063,11 @@ CONTAINS
       INTEGER                    :: i, j
       INTEGER                    :: length
       INTEGER                    :: n_res
+      REAL   , DIMENSION(3)      :: u, v
+      REAL                       :: distance
 !
       is1 = cr_iscat(iatom)
+      u   = cr_pos(:,iatom)
       CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, c_offs, natoms )
 !
       WRITE(output_io,1000) iatom, is1
@@ -1061,7 +1094,9 @@ CONTAINS
             WRITE (output_io, 3010) at_name_d, cr_pos (1, i), cr_pos (2,&
             i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &
             length)
-            WRITE (output_io, 3020) c_offs(:,j)
+            v(:) = cr_pos(:,i) + c_offs(:,j)
+            distance = do_blen(.TRUE., u,v)
+            WRITE (output_io, 3020) c_offs(:,j), distance
          ENDDO
       ENDIF
 !
@@ -1073,7 +1108,383 @@ CONTAINS
 1100  FORMAT( '      Neighbors are        ',20(i6,2x))
 1200  FORMAT( '      Atom has no neighbours')
 3010  FORMAT(1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
-3020  FORMAT( 3x  ,3(8x,i6   )              ) 
+3020  FORMAT( 3x  ,3(8x,i6   ),9x,f12.6    ) 
 !
       END SUBROUTINE do_show_connectivity 
+!
+   SUBROUTINE do_bond_switch (jatom, ino, c_name)
+!-                                                                      
+!     Get the list of neighbors for central atom jatom of type is1
+!+                                                                      
+   USE discus_config_mod 
+   USE crystal_mod 
+!
+   IMPLICIT none 
+!
+   INTEGER           , INTENT(IN)     :: jatom   ! central atom number
+   INTEGER           , INTENT(INOUT)  :: ino     ! Connectivity def. no.
+   CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
+!
+   INTEGER                              :: maxw    ! Size of array c_list 
+   INTEGER, DIMENSION(:),   ALLOCATABLE :: c_list  ! List of all neighbors 
+   INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs  ! Offsets from periodic boundary
+   INTEGER, DIMENSION(:),   ALLOCATABLE :: s_list  ! List of all neighbors 
+   INTEGER, DIMENSION(:,:), ALLOCATABLE :: s_offs  ! Offsets from periodic boundary
+   INTEGER, DIMENSION(:),   ALLOCATABLE :: j_list  ! List of all neighbors 
+   INTEGER, DIMENSION(:,:), ALLOCATABLE :: j_offs  ! Offsets from periodic boundary
+   INTEGER, DIMENSION(:),   ALLOCATABLE :: k_list  ! List of all neighbors 
+   INTEGER, DIMENSION(:,:), ALLOCATABLE :: k_offs  ! Offsets from periodic boundary
+   INTEGER                              :: c_natoms  ! number of atoms in connectivity list
+   INTEGER                              :: s_natoms  ! number of atoms in connectivity list
+   INTEGER                              :: j_natoms  ! number of atoms in connectivity list
+   INTEGER                              :: k_natoms  ! number of atoms in connectivity list
+   INTEGER, DIMENSION(:)  , ALLOCATABLE :: temp_list !ffsets from periodic boundary
+!
+   TYPE (NEIGHBORHOOD), POINTER       :: hood_j
+   TYPE (NEIGHBORHOOD), POINTER       :: hood_k
+   INTEGER    :: c_neig, s_neig, c_ex, s_ex
+   INTEGER, DIMENSION(3) :: t_offs, in_offs
+   INTEGER               :: t_ex, in_ex, in_ref
+   INTEGER    :: katom, j_ex, k_ex
+   INTEGER    :: i,k
+   INTEGER :: j_in_j, k_in_k
+   LOGICAL :: j_ex_in_s_list
+   LOGICAL :: k_ex_in_c_list
+   REAL       :: ran1
+!
+   NULLIFY(hood_j)
+   NULLIFY(hood_k)
+   c_natoms = 0
+!
+!
+   IF ( ALLOCATED(at_conn) ) THEN
+      CALL get_connect_pointed(hood_central, jatom, ino, c_name, c_list, c_offs, c_natoms)
+! We should have found a central atom and its connectivity list.
+! Randomly pick a neighbor atom
+      c_neig = INT(ran1(idum)*c_natoms) + 1
+      katom  = c_list(c_neig) 
+      CALL get_connect_pointed(hood_second, katom, ino, c_name, s_list, s_offs, s_natoms)
+!
+      s_neig = 0                                          ! Central not yet found
+search_c: DO i=1, s_natoms
+         IF(s_list(i) == jatom) THEN
+            s_neig = i
+            EXIT search_c
+         ENDIF
+      ENDDO search_c
+      IF(s_neig == 0) THEN
+         write(*,*) ' CENTRAL atom is NOT a neighbor to second', jatom, c_list(c_neig)
+!        ier_num = -6
+!        ier_typ = ER_FORT
+!write(*,*) ' Neigbors central ',jatom         , c_neig, (c_list(i),i=1,c_natoms)
+!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (s_list(i),i=1,s_natoms)
+         DEALLOCATE(s_list)
+         DEALLOCATE(c_list)
+         DEALLOCATE(s_offs)
+         DEALLOCATE(c_offs)
+         RETURN
+      ENDIF
+!
+!write(*,*) ' Neigbors central ',jatom         , c_neig, (c_list(i),i=1,c_natoms)
+!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (s_list(i),i=1,s_natoms)
+      c_ex = MOD(INT(ran1(idum)*(c_natoms-1)) + (c_neig), c_natoms ) + 1
+      s_ex = MOD(INT(ran1(idum)*(s_natoms-1)) + (s_neig), s_natoms ) + 1
+      j_ex = c_list(c_ex)
+      k_ex = s_list(s_ex)
+!
+      j_ex_in_s_list = .FALSE.
+      DO i=1, s_natoms
+         IF(s_list(i) == j_ex) THEN
+            j_ex_in_s_list = .TRUE.
+         ENDIF
+      ENDDO
+      k_ex_in_c_list = .FALSE.
+      DO i=1, c_natoms
+         IF(c_list(i) == k_ex) THEN
+            k_ex_in_c_list = .TRUE.
+         ENDIF
+      ENDDO
+if(j_ex_in_s_list .OR. k_ex_in_c_list) THEN
+   write(*,*) 'EXCHANGE WOULD PRODUCE DOUBLE PARTNER '
+!ier_num = -6
+!ier_typ = ER_FORT
+!         DEALLOCATE(s_list)
+!         DEALLOCATE(c_list)
+!         DEALLOCATE(s_offs)
+!         DEALLOCATE(c_offs)
+!         RETURN
+ENDIF
+if(j_ex == k_ex) then
+write(*,*) 'Trying to exchange identical neighbors'
+!ier_num = -6
+!ier_typ = ER_FORT
+!         DEALLOCATE(s_list)
+!         DEALLOCATE(c_list)
+!         DEALLOCATE(s_offs)
+!         DEALLOCATE(c_offs)
+!         RETURN
+ENDIF
+
+      IF(.NOT.(j_ex_in_s_list .OR. k_ex_in_c_list .OR. j_ex == k_ex )) THEN ! SUCCESS
+!write(*,*) ' Exchange central ', c_ex, c_list(c_ex)
+!write(*,*) ' Exchange second  ', s_ex, s_list(s_ex)
+!
+!     Get neighbors for the atoms that will be exchanged
+      CALL get_connect_pointed(hood_j, j_ex, ino, c_name, j_list, j_offs, j_natoms)
+      CALL get_connect_pointed(hood_k, k_ex, ino, c_name, k_list, k_offs, k_natoms)
+      j_in_j = 0                                          ! Central not yet found
+search_k: DO i=1, j_natoms
+         IF(j_list(i) == jatom) THEN
+            j_in_j = i
+            EXIT search_k
+         ENDIF
+      ENDDO search_k
+      k_in_k = 0                                          ! Central not yet found
+search_j: DO i=1, k_natoms
+         IF(k_list(i) == katom) THEN
+            k_in_k = i
+            EXIT search_j
+         ENDIF
+      ENDDO search_j
+!write(*,*) ' JATOM IS nei.no ', jatom, j_in_j
+!write(*,*) ' KATOM IS nei.no ', katom, k_in_k
+!
+! now do the exchange
+!
+      in_ref     = s_list(s_ex)    ! Find this partner
+      in_ex      = c_list(c_ex)    ! store this atom number instead of old
+      in_offs(:) = c_offs(:,c_ex)  ! store this offset instead of old
+      CALL do_exchange(hood_second%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+      in_ref     = c_list(c_ex)    ! Find this partner
+      in_ex      = t_ex            ! store this atom number instead of old
+      in_offs(:) = t_offs(:)       ! store this offset instead of old
+      CALL do_exchange(hood_central%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+      in_ref     = jatom           ! Find this partner
+      in_ex      = katom           ! store this atom number instead of old
+      in_offs(:) = k_offs(:,k_in_k)! store this offset instead of old
+      CALL do_exchange(hood_j%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+      in_ref     = katom           ! Find this partner
+      in_ex      = jatom           ! store this atom number instead of old
+      in_offs(:) = j_offs(:,j_in_j)! store this offset instead of old
+      CALL do_exchange(hood_k%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+!
+! JUST TO DEBUG TEST NEIGHBORHOODS
+!      allocate(temp_list(c_natoms))
+!!DBG
+!      sw_central => hood_central%nachbar       ! point to the first neighbor within current neigborhood
+!      temp_list(:) = 0
+!      k = 0
+! check_c_ex: DO WHILE(ASSOCIATED(sw_central))
+!         k = k + 1
+!         temp_list(k) = sw_central%atom_number
+!         sw_central => sw_central%next                         ! Point to next neighbor
+!      ENDDO  check_c_ex
+!write(*,*) ' Neigbors central ',jatom         , c_neig, (temp_list(i),i=1,c_natoms)
+!      sw_second => hood_second%nachbar       ! point to the first neighbor within current neigborhood
+!      temp_list(:) = 0
+!      k = 0
+! check_s_ex: DO WHILE(ASSOCIATED(sw_second))
+!         k = k + 1
+!         temp_list(k) = sw_second%atom_number
+!         sw_second => sw_second%next                         ! Point to next neighbor
+!      ENDDO  check_s_ex
+!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (temp_list(i),i=1,s_natoms)
+!      sw_second => hood_j%nachbar       ! point to the first neighbor within current neigborhood
+!      temp_list(:) = 0
+!      k = 0
+! check_j_ex: DO WHILE(ASSOCIATED(sw_second))
+!         k = k + 1
+!         temp_list(k) = sw_second%atom_number
+!         sw_second => sw_second%next                         ! Point to next neighbor
+!      ENDDO  check_j_ex
+!write(*,*) ' Neigbors exch 1  ',j_ex          , j_in_j, (temp_list(i),i=1,s_natoms)
+!      sw_second => hood_k%nachbar       ! point to the first neighbor within current neigborhood
+!      temp_list(:) = 0
+!      k = 0
+! check_k_ex: DO WHILE(ASSOCIATED(sw_second))
+!         k = k + 1
+!         temp_list(k) = sw_second%atom_number
+!         sw_second => sw_second%next                         ! Point to next neighbor
+!      ENDDO  check_k_ex
+!write(*,*) ' Neigbors exch 2  ',k_ex          , k_in_k, (temp_list(i),i=1,s_natoms)
+!
+!
+      ENDIF
+   ENDIF
+   DEALLOCATE(s_list)
+   DEALLOCATE(c_list)
+   DEALLOCATE(s_offs)
+   DEALLOCATE(c_offs)
+   NULLIFY(hood_j)
+   NULLIFY(hood_k)
+!
+   END SUBROUTINE do_bond_switch
+!
+   SUBROUTINE get_connect_pointed(hood_p, jatom, ino, c_name, c_list, c_offs, c_natoms)
+!
+   IMPLICIT NONE
+!
+!
+   TYPE (NEIGHBORHOOD)    , POINTER                  :: hood_p
+   INTEGER                             , INTENT(IN)  :: jatom   ! central atom number
+   INTEGER                             , INTENT(INOUT)  :: ino     ! Connectivity def. no.
+   CHARACTER(LEN=256)                  , INTENT(INOUT)  :: c_name  ! Connectivity name
+   INTEGER, DIMENSION(:),   ALLOCATABLE, INTENT(OUT) :: c_list  ! List of all neighbors 
+   INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: c_offs  ! Offsets from periodic boundary
+   INTEGER                             , INTENT(OUT) :: c_natoms  ! number of neigbor atoms
+!
+   TYPE (NEIGHBORS), POINTER  :: p_atoms
+   INTEGER :: i, k
+!
+   i = jatom
+   IF(ASSOCIATED(at_conn(i)%liste)) THEN
+      hood_p => at_conn(i)%liste                 ! point to the first neighborhood
+search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neighborhood
+         p_atoms => hood_p%nachbar               ! point to the first neighbor within current neigborhood
+         IF ( hood_p%neigh_type == ino  .OR. &
+            hood_p%conn_name  == c_name   ) THEN ! This is the right neighborhood
+            ino    = hood_p%neigh_type           ! Return actual number and name
+            c_name = hood_p%conn_name
+            c_natoms = hood_p%natoms             ! Store number of neigboring atoms
+            IF(ALLOCATED(c_list)) THEN           ! Just in case, if the list exists already
+               DEALLOCATE(c_list)
+               ALLOCATE(c_list(1:c_natoms))
+            ELSE
+               ALLOCATE(c_list(1:c_natoms))
+            ENDIF
+            IF(ALLOCATED(c_offs)) THEN
+               DEALLOCATE(c_offs)
+               ALLOCATE(c_offs(1:3,1:c_natoms))
+            ELSE
+               ALLOCATE(c_offs(1:3,1:c_natoms))
+            ENDIF
+            c_list = 0                           ! clear connectivity list
+            k = 0
+            DO WHILE ( ASSOCIATED(p_atoms) )     ! While there are further neighbors
+               k         = k+ 1
+               c_list(k) = p_atoms%atom_number   ! Add atoms
+               c_offs(1,k) = p_atoms%offset(1)   ! and relative offsets
+               c_offs(2,k) = p_atoms%offset(2)
+               c_offs(3,k) = p_atoms%offset(3)
+               p_atoms => p_atoms%next           ! Point to next neighbor
+            END DO
+            EXIT search1                         ! End of connectivity list
+         ENDIF
+         hood_p => hood_p%next_neighborhood      ! Point to next neighborhood
+      END DO search1                             ! end of search central atom
+   ENDIF
+!
+   END SUBROUTINE get_connect_pointed
+!
+   SUBROUTINE  do_exchange(hood_start, in_ref, in_ex, in_offs, t_ex, t_offs)
+!
+   IMPLICIT NONE
+   TYPE (NEIGHBORS), POINTER                    :: hood_start
+   INTEGER                        , INTENT(IN ) :: in_ref  ! Reference atom
+   INTEGER                        , INTENT(IN ) :: in_ex   ! input exchange partner
+   INTEGER, DIMENSION(3         ) , INTENT(IN ) :: in_offs ! Input offsets from periodic boundary
+   INTEGER                        , INTENT(OUT) :: t_ex    ! Output echange partner
+   INTEGER, DIMENSION(3         ) , INTENT(OUT) :: t_offs  ! Output offsets from periodic boundary
+!
+   TYPE (NEIGHBORS), POINTER  :: p_atoms
+!
+   p_atoms => hood_start               ! point to the first neighbor within current neigborhood
+search_s_ex: DO WHILE(ASSOCIATED(p_atoms))
+      IF(p_atoms%atom_number == in_ref      ) THEN ! Found second exchange partner
+         t_ex                = p_atoms%atom_number
+         t_offs(:)           = p_atoms%offset(:)
+         p_atoms%atom_number = in_ex
+         p_atoms%offset(:)   = in_offs(:)
+         EXIT search_s_ex
+      ENDIF
+      p_atoms => p_atoms%next           ! Point to next neighborhood
+   ENDDO search_s_ex
+   NULLIFY(p_atoms)
+   END SUBROUTINE  do_exchange
+!
+SUBROUTINE conn_update(isel, shift)
+!
+IMPLICIT NONE
+!
+INTEGER              , INTENT(IN) :: isel
+REAL   , DIMENSION(3), INTENT(IN) :: shift
+!
+CHARACTER(LEN=256)                   :: c_name  ! Connectivity name
+INTEGER, DIMENSION(:),   ALLOCATABLE :: c_list  ! List of all neighbors 
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs  ! Offsets from periodic boundary
+CHARACTER(LEN=256)                   :: j_name  ! Connectivity name
+INTEGER, DIMENSION(:),   ALLOCATABLE :: j_list  ! List of all neighbors 
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: j_offs  ! Offsets from periodic boundary
+INTEGER :: c_natoms
+INTEGER :: j_natoms
+INTEGER :: ino
+INTEGER :: i, j
+INTEGER :: iatom
+INTEGER :: is
+TYPE (NEIGHBORHOOD), POINTER         :: hood_c
+TYPE (NEIGHBORHOOD), POINTER         :: hood_j
+   TYPE (NEIGHBORS), POINTER         :: p_atoms
+!
+NULLIFY(hood_c)
+NULLIFY(hood_j)
+!
+ino = 0
+IF(ASSOCIATED(at_conn(isel)%liste)) THEN     ! A connectivity list has been created
+   is = cr_iscat(isel) 
+   IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
+      def_temp => def_main(is)%def_liste
+search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
+         c_name = def_temp%def_name(1:def_temp%def_name_l)
+         CALL get_connect_pointed(hood_c, isel, ino, c_name, c_list, c_offs, c_natoms)
+         DO i=1,c_natoms                          ! Update all offsets
+            c_offs(:,i) = c_offs(:,i) + shift(:)
+         ENDDO
+         p_atoms => hood_c%nachbar
+         i = 1
+         DO WHILE(ASSOCIATED(p_atoms))            ! Place into structure
+            IF(p_atoms%atom_number == c_list(i)) THEN
+               p_atoms%offset(:) = c_offs(:,i)
+            ENDIF
+            i = i + 1
+            p_atoms => p_atoms%next
+         ENDDO
+         def_temp => def_temp%def_next
+      ENDDO search_defs
+   ENDIF
+!
+!  Loop over all atoms, and find out if atom isel is a neighbor to any, if so update
+!  Might have to be replaced by a connectivity list that indicates for a given atom
+!  which other atoms have this listed as neighbor....
+   DO iatom = 1, cr_natoms
+      IF(ASSOCIATED(at_conn(iatom)%liste)) THEN     ! A connectivity list has been created
+         is = cr_iscat(iatom) 
+         IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
+            def_temp => def_main(is)%def_liste
+search_def2:DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
+               j_name = def_temp%def_name(1:def_temp%def_name_l)
+               CALL get_connect_pointed(hood_j, iatom, ino, j_name, j_list, j_offs, j_natoms)
+               p_atoms => hood_j%nachbar
+search_neig:   DO WHILE(ASSOCIATED(p_atoms))            ! Place into structure
+                  IF(p_atoms%atom_number == isel     ) THEN
+                     p_atoms%offset(:) = p_atoms%offset(:) -shift(:)
+                     EXIT search_neig
+                  ENDIF
+                  p_atoms => p_atoms%next
+               ENDDO search_neig
+               def_temp => def_temp%def_next
+            ENDDO search_def2
+         ENDIF
+      ENDIF
+   ENDDO
+ENDIF
+IF(ALLOCATED(c_list)) DEALLOCATE(c_list)
+IF(ALLOCATED(c_offs)) DEALLOCATE(c_offs)
+IF(ALLOCATED(j_list)) DEALLOCATE(j_list)
+IF(ALLOCATED(j_offs)) DEALLOCATE(j_offs)
+NULLIFY(hood_c)
+NULLIFY(hood_j)
+!
+!
+END SUBROUTINE conn_update
+!
 END MODULE conn_mod
