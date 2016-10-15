@@ -1,7 +1,7 @@
 !*****7***************************************************************  
 !                                                                       
 !                                                                       
-      SUBROUTINE appl_env (standalone)
+      SUBROUTINE appl_env (standalone, local_mpi_myid)
 !-                                                                      
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
@@ -11,6 +11,7 @@
       IMPLICIT none 
 !                                                                       
       LOGICAL, INTENT(IN) :: standalone
+      INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
       CHARACTER(255) cdummy
       INTEGER ico, ice, iii, i, j
@@ -114,7 +115,7 @@
       current_dir   = start_dir
       current_dir_l = start_dir_l
 !                                                                       
-      IF(standalone) THEN
+      IF(standalone .AND. local_mpi_myid==0) THEN
          WRITE ( *, 1000) umac_dir (1:umac_dir_l) 
          WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
          WRITE ( *, 1200) start_dir (1:start_dir_l) 

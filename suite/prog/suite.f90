@@ -32,8 +32,8 @@ run_mpi_myid      = 0
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
-CALL setup_suite     ! Define initial parameter, array values
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
+CALL setup_suite     ! Define initial parameter, array values
 CALL suite_set_sub   ! Point to specific subroutines
 CALL SIGNAL(2, suite_sigint)
 !

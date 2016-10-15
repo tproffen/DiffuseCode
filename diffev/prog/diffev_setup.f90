@@ -11,6 +11,7 @@ USE diffev_allocate_appl
 USE diffev_blk_appl
 USE constraint
 USE population
+USE run_mpi_mod
 !
 USE prompt_mod 
 USE lib_f90_default_mod
@@ -52,7 +53,7 @@ IF(standalone) CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (lstandalone)
+CALL appl_env (lstandalone, run_mpi_myid)
 !                                                                       
 !     try to read default file                                          
 !                                                                       
@@ -70,7 +71,7 @@ ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-IF(standalone) CALL cmdline_args
+IF(standalone) CALL cmdline_args(run_mpi_myid)
 !
 lsetup_done = .true.
 !                                                                       

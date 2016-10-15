@@ -36,9 +36,9 @@ CONTAINS
       IF(standalone) CALL lib_alloc_default
       CALL kuplot_initarrays 
       IF(standalone) CALL init_sysarrays 
-      CALL appl_env (lstandalone)
+      CALL appl_env (lstandalone,0)
       CALL kuplot_auto_def 
-      IF(standalone) CALL cmdline_args 
+      IF(standalone) CALL cmdline_args (0)
       CALL no_error
 !
       lsetup_done = .true.

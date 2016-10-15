@@ -47,7 +47,7 @@ IF(standalone) CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (lstandalone)
+CALL appl_env (lstandalone, 0)
 !                                                                       
 !     try to read default file                                          
 !                                                                       
@@ -55,7 +55,7 @@ CALL discus_autodef
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-IF(standalone) CALL cmdline_args 
+IF(standalone) CALL cmdline_args(0) 
 !
 CALL no_error
 lsetup_done = .true.

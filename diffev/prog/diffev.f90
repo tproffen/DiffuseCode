@@ -24,8 +24,8 @@ EXTERNAL :: diffev_sigint
 !
 run_mpi_myid      = 0
 !
-CALL diffev_setup(standalone)
 CALL run_mpi_init
+CALL diffev_setup(standalone)
 CALL diffev_set_sub
 CALL diffev_set_sub_cost
 CALL SIGNAL(2, diffev_sigint)

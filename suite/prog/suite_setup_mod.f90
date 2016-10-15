@@ -10,6 +10,7 @@ SUBROUTINE setup_suite
 !USE allocate_appl
 !USE blk_appl
 !
+USE run_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod
 !
@@ -27,11 +28,13 @@ prompt_status     = PROMPT_ON
 prompt_status_old = PROMPT_ON
 !                                                                       
 CALL ini_ran (0)
+IF(run_mpi_myid==0) THEN
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
 version   = aktuell
 WRITE ( *, 1000) version, cdate
+ENDIF
 !
 !     Call initial default allocation
 !
@@ -44,7 +47,7 @@ CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (.TRUE.)
+CALL appl_env (.TRUE., run_mpi_myid)
 !                                                                       
 !     try to read default file                                          
 !                                                                       
@@ -52,7 +55,7 @@ CALL appl_env (.TRUE.)
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-CALL cmdline_args
+CALL cmdline_args(run_mpi_myid)
 !                                                                       
 lsetup_done = .true.
 !                                                                       

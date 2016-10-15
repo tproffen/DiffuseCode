@@ -98,7 +98,7 @@ PROGRAM mixsca
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-      CALL appl_env (.TRUE.)
+      CALL appl_env (.TRUE.,0)
 !                                                                       
 !     try to read default file                                          
 !                                                                       
@@ -106,7 +106,7 @@ PROGRAM mixsca
 !                                                                       
 !     try to read command line arguments                                
 !                                                                       
-      CALL cmdline_args 
+      CALL cmdline_args (0)
 !                                                                       
  1000 FORMAT   (/,10x,59('*'),/,10x,'*',15x,                            &
      &            'M I X S C A T   Version ',                           &
