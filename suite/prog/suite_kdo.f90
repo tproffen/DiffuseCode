@@ -14,6 +14,7 @@ USE discus_loop_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 USE suite_init_mod
+USE suite_parallel_mod
 USE suite_setup_mod
 !
 USE charact_mod 
@@ -109,7 +110,7 @@ ELSE
 !                                                                 
 !     -- branch to DIFFEV
 !
-   ELSEIF (str_comp (befehl, 'diffev', 6, lbef, 6) ) then
+   ELSEIF (str_comp (befehl, 'diffev', 3, lbef, 6) ) then
        IF(suite_diffev_init) then
           pname     = 'diffev'
           pname_cap = 'DIFFEV'
@@ -133,7 +134,7 @@ ELSE
 !                                                                 
 !     -- branch to DISCUS
 !
-   ELSEIF (str_comp (befehl, 'discus', 6, lbef, 6) ) then
+   ELSEIF (str_comp (befehl, 'discus', 3, lbef, 6) ) then
        IF(suite_discus_init) then
           pname     = 'discus'
           pname_cap = 'DISCUS'
@@ -157,7 +158,7 @@ ELSE
 !                                                                 
 !     -- branch to KUPLOT
 !
-   ELSEIF (str_comp (befehl, 'kuplot', 6, lbef, 6) ) then
+   ELSEIF (str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
        IF(suite_kuplot_init) then
           pname     = 'kuplot'
           pname_cap = 'KUPLOT'
@@ -178,6 +179,11 @@ ELSE
        oprompt   = pname
        CALL suite_set_sub
        CALL program_files ()
+!                                                                 
+!     -- Run a parallel version of discus_suite
+!
+   ELSEIF (str_comp (befehl, 'parallel', 3, lbef, 8) ) then
+         CALL suite_do_parallel (zeile, lcomm)
 !!!      CALL do_deallocate_appl (zeile, lcomm)
 !                                                                 
 !------   Try general commands                                    

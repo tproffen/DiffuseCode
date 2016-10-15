@@ -20,6 +20,10 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2016_Oct
+
+   A new command 'parallel' has been added to the Windows version
+   This allows to execute a macro in parallel.
 
 3  2016_June
 
@@ -86,3 +90,20 @@
  
    Within the kuplot section you can use the command
    'branch discus' to switch to the discus branch.
+2  parallel
+!b parallel {<numprocs>, },<macro.mac> {, <para_1...}
+
+   Starts an MPI driven parallel calculation. See the diffev help
+   on a full explanation of parallel processing.
+
+   The parallel refinement will execute file <macro.mac>, which 
+   must reside in the current directory. Make sure you have used
+   cd <path> to change to the proper directory prior to the use 
+   of the 'parallel' command. The macro name must be given in 
+   full, including the ".mac" extension. If the macro requires
+   parameters you must specify these following the macro name.
+
+   Optionally you can place the number or processes that MPI shall
+   start prior tot he macro name. The numebr defaults to the value
+   of the SHELL variable NUMBER_OF_PROCESSORS on your system. If this
+   variable is not set, discus_suite will start 4 processes.
