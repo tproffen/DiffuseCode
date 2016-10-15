@@ -32,7 +32,7 @@ INTEGER, PARAMETER :: MIN_PARA =  20 ! A command requires at least these no of p
 INTEGER            :: maxw           ! Array size for cpara, lpara, werte
 !                                                                       
 CHARACTER(LEN=5)    :: befehl 
-CHARACTER(LEN=50)   :: prom 
+CHARACTER(LEN=LEN(prompt)) :: orig_prompt
 CHARACTER(LEN=40)   :: cdummy 
 CHARACTER(LEN=1024) :: line, zeile 
 INTEGER             :: lp, length 
@@ -53,12 +53,13 @@ n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
 n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
 ! call alloc_chem ! NEEDS WORK
 call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/mmc' 
 !
    10 CONTINUE 
 !                                                                       
       CALL no_error 
-      prom = prompt (1:len_str (prompt) ) //'/mmc' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) GOTO 10
@@ -189,12 +190,20 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in mmc menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
@@ -203,6 +212,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       GOTO 10 
 !                                                                       
  9999 CONTINUE 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE mmc                            
 !*****7*****************************************************************
@@ -2276,6 +2287,12 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   iscat = cr_prop (isel (2) ) 
                   cr_prop (isel (2) ) = cr_prop (isel (1) ) 
                   cr_prop (isel (1) ) = iscat 
+               ENDIF 
+            ELSE     ! Move accepted check periodic bounday conditions
+               IF(.NOT.chem_quick .AND.                                 &
+                  (chem_period(1).OR.chem_period(2).OR.chem_period(3))) THEN
+!                 normal and periodic mode
+                  CALL chem_apply_period(iselz, .TRUE.)
                ENDIF 
             ENDIF 
          ENDIF 
