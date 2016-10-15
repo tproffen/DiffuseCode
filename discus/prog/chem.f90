@@ -34,7 +34,7 @@ SUBROUTINE chem
       PARAMETER (maxw = 20) 
 !                                                                       
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile, cpara (maxw) 
       REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
       REAL uwerte (maxw) 
@@ -48,11 +48,12 @@ SUBROUTINE chem
       LOGICAL str_comp 
 !                                                                       
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/chem' 
 !                                                                       
    10 CONTINUE 
 !                                                                       
-      prom = prompt (1:len_str (prompt) ) //'/chem' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) GOTO 10
@@ -407,12 +408,21 @@ SUBROUTINE chem
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in chemistry menu'
+                  prompt_status = PROMPT_ON 
+                  RETURN 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
@@ -421,6 +431,7 @@ SUBROUTINE chem
       GOTO 10 
 !                                                                       
  9999 CONTINUE 
+      prompt = orig_prompt
       END SUBROUTINE chem                           
 !*****7*****************************************************************
       SUBROUTINE chem_show (cmd) 
@@ -6463,5 +6474,47 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
  3000 FORMAT    (' Atomindex ',I6,' : Unitcell ',3(I4,1X),              &
      &                  ' / site ',I2)                                  
       END SUBROUTINE chem_trans
+!
+SUBROUTINE chem_apply_period(isel,lupdate_conn)
+!
+!  Applies periodic boundary conditions to the atom position of 
+!  atom number isel.
+!  If the connectivity mode is choosen, then the offsets to
+!  and from the neighbors are updated.
+!
+USE crystal_mod
+USE conn_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: isel          ! selected atom number
+LOGICAL, INTENT(IN) :: lupdate_conn  ! update the connectivity, if true
+!
+REAL   , PARAMETER  :: DELTA = 0.1
+!
+INTEGER               :: i
+LOGICAL               :: lshift
+REAL   , DIMENSION(3) :: shift
+!
+lshift   = .FALSE.
+DO i=1,3
+   shift(i) = 0.0
+   IF(    cr_pos(i,isel) < NINT(cr_dim(i,1))          -DELTA) THEN
+      shift(i) =  cr_icc(i)
+      lshift   = .TRUE.
+   ELSEIF(cr_pos(i,isel) > NINT(cr_dim(i,1))+cr_icc(i)+DELTA) THEN
+      shift(i) = -cr_icc(i)
+      lshift   = .TRUE.
+   ENDIF
+ENDDO
+!
+IF(lshift) THEN   ! Periodic boundary conditions were applied
+   cr_pos(:,isel) = cr_pos(:,isel) + shift(:)
+   IF(lupdate_conn) THEN
+      CALL conn_update(isel, shift)
+   ENDIF
+ENDIF
+!
+END SUBROUTINE chem_apply_period
 !*****7***************************************************************  
 END MODULE chem_menu
