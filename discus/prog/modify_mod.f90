@@ -1635,6 +1635,7 @@ CONTAINS
       LOGICAL fq, fp (3) 
 !                                                                       
       INTEGER i, j, k, ii 
+      INTEGER :: ix, iy, iz
       INTEGER istart (3), iend (3), iii (3), cell (3), iatom 
       REAL offset (3), nooffset (3) 
       LOGICAL ltype 
@@ -1709,20 +1710,29 @@ CONTAINS
 !                                                                       
 !     --exact: loop over all atoms in crystal                           
 !                                                                       
-         IF (fp (1) .or.fp (2) .or.fp (3) ) then 
-            ier_num = - 16 
-            ier_typ = ER_CHEM 
-            ier_msg(1) = 'Chem/exact mode is incompatible with '
-            ier_msg(2) = 'periodic boundary conditions'
-            ier_msg(3) = ' '
-            RETURN 
-         ENDIF 
+!!!      IF (fp (1) .or.fp (2) .or.fp (3) ) then 
+!!!         ier_num = - 16 
+!!!         ier_typ = ER_CHEM 
+!!!         ier_msg(1) = 'Chem/exact mode is incompatible with '
+!!!!        ier_msg(2) = 'periodic boundary conditions'
+!!!         ier_msg(3) = ' '
+!!!         RETURN 
+!!!      ENDIF 
 !                                                                       
          DO i = 1, cr_natoms 
          ltype = atom_allowed (i, werte, ianz, maxw)                    &
          .and.check_select_status (.true., cr_prop (i), cr_sel_prop)    
          IF (ltype) then 
-            CALL check_blen (x, i, rmin, rmax, nooffset) 
+            DO ix = -1,1,1
+               offset(1) = ix*cr_icc(1)
+            DO iy = -1,1,1
+               offset(2) = iy*cr_icc(2) 
+            DO iz = -1,1,1
+               offset(3) = iz*cr_icc(3)
+            CALL check_blen (x, i, rmin, rmax, offset) 
+            ENDDO
+            ENDDO
+            ENDDO
             IF (ier_num.ne.0) return 
          ENDIF 
          ENDDO 
@@ -2773,7 +2783,7 @@ CONTAINS
       INTEGER maxw 
 !                                                                       
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg
@@ -2785,10 +2795,11 @@ CONTAINS
       maxw = MAXSCAT
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/surf' 
 !                                                                       
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/surf' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line.ne.' '.and.line (1:1) .ne.'#') then 
 !                                                                       
@@ -2887,18 +2898,28 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in surface menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE surface_menu                   
 !*****7*****************************************************************
@@ -3158,7 +3179,7 @@ CONTAINS
       INTEGER maxw 
 !                                                                       
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg
@@ -3170,10 +3191,11 @@ CONTAINS
       maxw = MAXSCAT
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/prop' 
 !                                                                       
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/prop' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line.ne.' '.and.line (1:1) .ne.'#') then 
 !                                                                       
@@ -3278,18 +3300,28 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in property menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE property_menu                  
 !*****7*****************************************************************
