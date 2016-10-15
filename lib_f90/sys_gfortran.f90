@@ -111,7 +111,7 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) cwd 
+      CHARACTER(LEN=*) cwd 
       INTEGER dummy 
       INTEGER  :: getcwd
 !                                                                       
@@ -123,8 +123,8 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) request 
-      CHARACTER(1024) answer 
+      CHARACTER(LEN=*) request 
+      CHARACTER(LEN=*) answer 
       INTEGER length 
       INTEGER len_str
 !                                                                       
@@ -160,7 +160,7 @@
       IMPLICIT none 
 !                                                                       
       INTEGER narg, iarg, i 
-      CHARACTER ( * ) arg (narg) 
+      CHARACTER (LEN=*) arg (narg) 
 !                                                                       
 !     iarg = iargc () 
       iarg = COMMAND_ARGUMENT_COUNT()
@@ -185,7 +185,7 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) command 
+      CHARACTER (LEN=*), INTENT(IN) :: command 
 !
       INTEGER length
 !                                                                       
@@ -222,7 +222,7 @@
 !                                                                       
       INTEGER MAXW 
       PARAMETER (MAXW = 20) 
-      CHARACTER ( * ) dir 
+      CHARACTER (LEN=*) dir 
       CHARACTER(1024) cwd 
       CHARACTER(1024) cpara (MAXW) 
       INTEGER lpara (MAXW) 
@@ -279,7 +279,7 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) dir 
+      CHARACTER (LEN=*) dir 
       CHARACTER(1024) cwd 
       INTEGER ld, dummy 
 !                                                                       
@@ -300,7 +300,7 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) name 
+      CHARACTER (LEN=*) name 
       CHARACTER(1024) command 
       INTEGER len_str, laenge 
 !                                                                       
@@ -336,7 +336,7 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) nameold, namenew 
+      CHARACTER (LEN=*) nameold, namenew 
       CHARACTER(80) command 
       INTEGER len_str, lo, ln 
 !                                                                       
@@ -529,7 +529,7 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) datei, stat 
+      CHARACTER (LEN=*) datei, stat 
       CHARACTER(1024) line 
       CHARACTER(LEN=1024) message 
       INTEGER inum, ios 
@@ -621,7 +621,7 @@
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*) zeile 
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
