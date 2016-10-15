@@ -39,7 +39,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !
       CHARACTER ( LEN=* ) zeile 
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
       CHARACTER(1024) line
       CHARACTER(LEN=32) :: c_property
       INTEGER lp, length, lbef 
@@ -104,10 +104,11 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/save' 
 !                                                                       
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/save' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) THEN 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -502,18 +503,28 @@ SUBROUTINE save_struc (zeile, lcomm)
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) THEN 
             IF (lmakro) THEN 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in save menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
  3000 FORMAT(20x,'    Data written to structure file '/                 &
      &       20x,' ===================================='//              &
@@ -709,7 +720,7 @@ SUBROUTINE save_struc (zeile, lcomm)
          ENDDO 
       ENDIF 
       IF (sav_w_ncell) THEN 
-         WRITE (ist, 3030) cr_icc, cr_ncatoms 
+         WRITE (ist, 3030) cr_icc, cr_ncatoms , cr_natoms
       ENDIF 
       WRITE (ist, 3900) 
 !
@@ -815,7 +826,7 @@ SUBROUTINE save_struc (zeile, lcomm)
  3020 FORMAT    ('cell  ',5(f10.6,2x ),f10.6) 
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 
- 3030 FORMAT    ('ncell ',3(i8,','),i10) 
+ 3030 FORMAT    ('ncell ',3(i8,','),i10,',',i12) 
  3110 FORMAT    (('scat  ', a4,6(',',5x,a4))) 
  3111 FORMAT    (('scat  ', a4)) 
  3120 FORMAT    (('adp   ', f9.6,6(',',5x,f9.6))) 
