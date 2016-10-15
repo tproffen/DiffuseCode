@@ -37,6 +37,9 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER   len_str
 !
       is_stored = .false.                     ! assume macro does not exist in storage
+      IF(macro_level==0 .AND. .NOT.lmakro) THEN
+         sprompt = prompt                     ! Store prompt at top macro level start
+      ENDIF
       macro_level = macro_level + 1
       CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
 !

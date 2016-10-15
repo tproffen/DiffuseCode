@@ -61,18 +61,24 @@ CONTAINS
                CALL no_error 
             ENDIF 
          ELSE
-              IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
-                  ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
-                  CALL errlist                     ! but get error message
-                  ier_sta = ER_S_EXIT              ! Signal EXIT back to SUITE
-                  ier_num = -9                     ! Signal error condition to SUITE
-                  ier_typ = ER_COMM
-                  EXIT main                        ! Now terminate program gracefully
-               ENDIF
-               CALL errlist
-               ier_num = -9
+            IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
+               ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
+               CALL errlist                     ! but get error message
+               ier_sta = ER_S_EXIT              ! Signal EXIT back to SUITE
+               ier_num = -9                     ! Signal error condition to SUITE
                ier_typ = ER_COMM
-               EXIT main
+               EXIT main                        ! Now terminate program gracefully
+            ENDIF
+            CALL errlist
+            IF (ier_sta.ne.ER_S_LIVE) then 
+               IF (lmakro) then 
+                  IF(sprompt /= 'kuplot') THEN
+                     ier_num = -9
+                     ier_typ = ER_COMM
+                     EXIT main
+                  ENDIF 
+               ENDIF 
+            ENDIF 
          ENDIF 
       ENDIF  fehler
       ENDDO main

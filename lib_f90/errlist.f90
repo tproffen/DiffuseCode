@@ -163,7 +163,7 @@
      &  ' ',                                        & !-13  ! command
      &  ' ',                                        & !-12  ! command
      &  'Error in subroutine',                      & !-11  ! command
-     &  ' ',                                        & !-10  ! command
+     &  'Sub menu returned with error',             & !-10  ! command
      &  'Program section returned with error',      & ! -9  ! command
      &  'Unknown command',                          & ! -8  ! command
      &  'Branch is active within suite only ',      & ! -7  ! command

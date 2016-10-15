@@ -31,7 +31,7 @@ CONTAINS
 !                                                                       
       CHARACTER(LEN=5)                  :: befehl 
       CHARACTER(LEN=8), DIMENSION(-1:1) :: ctype
-      CHARACTER(LEN=50)                 :: prom 
+      CHARACTER(LEN=LEN(prompt))        :: orig_prompt
       CHARACTER(LEN=1024)               :: line
       CHARACTER(LEN=1024)               :: zeile
       CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara (MAXW) 
@@ -48,10 +48,11 @@ CONTAINS
 !                                                                       
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
 !                                                                       
-      prom = prompt (1:len_str (prompt) ) //'/insert'//'/'//ctype (itype)
+      prompt = prompt (1:len_str (prompt) ) //'/insert'//'/'//ctype (itype)
       DO while (.not.lend) 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -549,18 +550,28 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in insert menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE insert                         
 !*****7*****************************************************************

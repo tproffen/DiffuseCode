@@ -31,7 +31,7 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) zeile, cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER i, j, ianz, laenge, lbef 
@@ -61,11 +61,12 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
 !     BEGIN OF new domain code                                          
 !                                                                       
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/domain' 
 !                                                                       
       DO while (.not.lend) 
       CALL no_error 
-      prom = prompt (1:len_str (prompt) ) //'/domain' 
-      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -358,18 +359,28 @@ SUBROUTINE do_domain (line, lp)
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in domain menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE do_domain                      
 !*****7*****************************************************************

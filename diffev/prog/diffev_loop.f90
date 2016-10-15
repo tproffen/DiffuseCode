@@ -89,9 +89,15 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                   EXIT main                        ! Now terminate program gracefully
                ENDIF
                CALL errlist
-               ier_num = -9
-               ier_typ = ER_COMM
-               EXIT main
+               IF (ier_sta.ne.ER_S_LIVE) then 
+                  IF (lmakro) then 
+                     IF(sprompt /= 'diffev') THEN
+                        ier_num = -9
+                        ier_typ = ER_COMM
+                        EXIT main
+                     ENDIF 
+                  ENDIF 
+               ENDIF 
             ENDIF
          ENDIF 
       ENDDO main

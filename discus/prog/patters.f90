@@ -39,7 +39,7 @@ CONTAINS
       CHARACTER(1) extr_achs (0:3) 
       CHARACTER(1) rho_extr_achs (0:3) 
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(14) cvalue (0:6) 
       CHARACTER(15) cgraphik (0:5) 
       CHARACTER(1024) zeile
@@ -80,6 +80,15 @@ CONTAINS
       ELSEIF (patt_scale.eq.0) then 
          patt_scale = 1.0 
       ENDIF 
+!
+      orig_prompt = prompt
+      IF (inverse_type.eq.INV_INV) then 
+         prompt = prompt (1:len_str (prompt) ) //'/inverse' 
+      ELSEIF (inverse_type.eq.INV_DIFF) then 
+         prompt = prompt (1:len_str (prompt) ) //'/diff-four' 
+      ELSEIF (inverse_type.eq.INV_PATT) then 
+         prompt = prompt (1:len_str (prompt) ) //'/patterson' 
+      ENDIF 
 !                                                                       
    10 CONTINUE 
 !                                                                       
@@ -90,14 +99,7 @@ CONTAINS
       rho_divis (1) = float (max (1, rho_inc (1) - 1) ) 
       rho_divis (2) = float (max (1, rho_inc (2) - 1) ) 
 !                                                                       
-      IF (inverse_type.eq.INV_INV) then 
-         prom = prompt (1:len_str (prompt) ) //'/inverse' 
-      ELSEIF (inverse_type.eq.INV_DIFF) then 
-         prom = prompt (1:len_str (prompt) ) //'/diff-four' 
-      ELSEIF (inverse_type.eq.INV_PATT) then 
-         prom = prompt (1:len_str (prompt) ) //'/patterson' 
-      ENDIF 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) GOTO 10
@@ -1129,12 +1131,20 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in '//prompt(8:LEN_TRIM(prompt))
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
@@ -1142,6 +1152,9 @@ CONTAINS
       ENDIF 
       GOTO 10 
  9999 CONTINUE 
+!
+      prompt = orig_prompt
+!
  3060 FORMAT    (/' reciprocal layer    :'/                             &
      &                  ' lower left  corner  : ',3(2x,f9.4)/           &
      &                  ' lower right corner  : ',3(2x,f9.4)/           &

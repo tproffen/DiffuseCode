@@ -30,7 +30,7 @@ CONTAINS
       INTEGER, PARAMETER :: MAXW = 2
 !                                                                       
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(40) cdummy 
       CHARACTER(1024) line, zeile
       CHARACTER(LEN=1024) :: cpara(MAXW) !  (MAXSCAT) 
@@ -48,12 +48,14 @@ CONTAINS
             RETURN
          ENDIF
       ENDIF
+!
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/rmc' 
 !                                                                       
    10 CONTINUE 
 !                                                                       
       CALL no_error 
-      prom = prompt (1:len_str (prompt) ) //'/rmc' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) GOTO 10
@@ -210,12 +212,20 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in rmc menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
@@ -224,6 +234,8 @@ CONTAINS
       GOTO 10 
 !                                                                       
  9999 CONTINUE 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE rmc                            
 !*****7*****************************************************************

@@ -22,7 +22,7 @@
       CHARACTER ( * ) zei 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) line, zeile 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=40         ) :: orig_prompt 
       CHARACTER(40) cdummy 
       CHARACTER(4) befehl 
       INTEGER lpara (maxw) 
@@ -133,13 +133,14 @@
          ikcal = fit_ikcal (ikfit) 
          ikdif = fit_ikdif (ikfit) 
       ENDIF 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/fit' 
 !                                                                       
 !------ here starts sublevel fit                                        
 !                                                                       
    10 CONTINUE 
 !                                                                       
-      prom = prompt (1:len_str (prompt) ) //'/fit' 
-      CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line.eq.' '.or.line (1:1) .eq.'#') goto 10 
 !                                                                       
@@ -368,18 +369,27 @@
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro.and.ier_sta.ne.ER_S_LIVE) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       GOTO 10 
+!
+      prompt = orig_prompt
 !                                                                       
  9999 CONTINUE 
 !                                                                       

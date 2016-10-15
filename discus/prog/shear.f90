@@ -48,7 +48,7 @@ CONTAINS
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
       CHARACTER(5) befehl 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i, j, k 
@@ -71,6 +71,8 @@ CONTAINS
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
       CALL no_error 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/shear' 
 !
       IF( cr_nscat > SHEAR_MAXSCAT .or. mole_num_type > SHEAR_MAXSCAT) THEN
          nscat = max ( cr_nscat, mole_num_type)
@@ -81,8 +83,7 @@ CONTAINS
       ENDIF
 !                                                                       
       DO while (.not.lend) 
-      prom = prompt (1:len_str (prompt) ) //'/shear' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -637,18 +638,28 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in shear menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
       ENDDO 
+!
+      prompt = orig_prompt
 !                                                                       
       END SUBROUTINE shear_menue                          
 !*****7*****************************************************************

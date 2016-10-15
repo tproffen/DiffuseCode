@@ -425,7 +425,7 @@
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) zeile, line 
       CHARACTER(1024) filname 
-      CHARACTER(11) prom 
+      CHARACTER(LEN=40         ) :: orig_prompt
       CHARACTER(4) befehl, czeile 
       CHARACTER(2) form, cdummy 
       INTEGER lpara (maxw), lp, lbef 
@@ -463,12 +463,14 @@
             CALL check_form (form, iianz, wwerte, maxw) 
             pgmlow = zmin (ik) 
             pgmhigh = zmax (ik) 
+!
+            orig_prompt = prompt
+            prompt = pname//'/ksav' 
 !                                                                       
 !------ --- here starts the sublevel loop                               
 !                                                                       
    10       CONTINUE 
-            prom = pname//'/ksav' 
-            CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+            CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
             IF (ier_num.eq.0) then 
                IF (line.eq.' '.or.line (1:1) .eq.'#') goto 10 
 !                                                                       
@@ -650,12 +652,20 @@
                CALL errlist 
                IF (ier_sta.ne.ER_S_LIVE) then 
                   IF (lmakro) then 
-                     CALL macro_close 
-                     prompt_status = PROMPT_ON 
+                     IF(sprompt /= prompt) THEN
+                        ier_num = -10
+                        ier_typ = ER_COMM
+                        prompt_status = PROMPT_ON 
+                        RETURN 
+                     ELSE
+                        CALL macro_close 
+                        prompt_status = PROMPT_ON 
+                     ENDIF 
                   ENDIF 
                   IF (lblock) then 
                      ier_num = - 11 
                      ier_typ = ER_COMM 
+                     prompt_status = PROMPT_ON 
                      RETURN 
                   ENDIF 
                   CALL no_error 
@@ -666,6 +676,7 @@
 !------ --- here ends the sublevel loop                                 
 !                                                                       
    20       CONTINUE 
+            prompt = orig_prompt
          ELSE 
             ier_num = - 4 
             ier_typ = ER_APPL 

@@ -49,7 +49,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) line, zeile, cpara (maxw) 
       CHARACTER(1024) strucfile 
-      CHARACTER(50) prom 
+      CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(5) befehl 
       INTEGER lpara (maxw), lp, length 
       INTEGER ce_natoms, lstr, i, j, k, iatom 
@@ -78,8 +78,9 @@ CONTAINS
       cr_icc (2) = 1 
       cr_icc (3) = 1 
 !                                                                       
-      prom = prompt (1:len_str (prompt) ) //'/read' 
-      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      orig_prompt = prompt
+      prompt = prompt (1:len_str (prompt) ) //'/read' 
+      CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
 !                                                                       
       IF (ier_num.ne.0) return 
       IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
@@ -507,12 +508,20 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) then 
                IF (lmakro) then 
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(sprompt /= prompt) THEN
+                     ier_num = -10
+                     ier_typ = ER_COMM
+                     ier_msg(1) = ' Error occured in read menu'
+                     prompt_status = PROMPT_ON 
+                  ELSE
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
                IF (lblock) then 
                   ier_num = - 11 
                   ier_typ = ER_COMM 
+                  prompt_status = PROMPT_ON 
                   RETURN 
                ENDIF 
                CALL no_error 
@@ -521,6 +530,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
       ENDIF 
 !                                                                       
  9999 CONTINUE 
+!
+      prompt = orig_prompt
 !                                                                       
  1000 FORMAT    (1x,a16,i5) 
       END SUBROUTINE read_struc                     

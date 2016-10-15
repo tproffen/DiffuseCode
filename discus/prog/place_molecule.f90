@@ -25,7 +25,7 @@ CONTAINS
 !
 !
    CHARACTER (LEN=5)                       :: befehl! command on input line
-   CHARACTER (LEN=50)                      :: prom  ! Menu prompt
+   CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
    CHARACTER (LEN=1024)                    :: line  ! input line
    CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
    INTEGER                                 :: indxg ! location of "="
@@ -53,10 +53,12 @@ CONTAINS
       CALL alloc_deco(MAXSCAT)
    ENDIF
 !
+   orig_prompt = prompt
+   prompt = prompt (1:len_str (prompt) ) //'/deco'
+!
    main_loop: do
       CALL no_error
-      prom = prompt (1:len_str (prompt) ) //'/deco'
-      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prom)
+      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
       no_err: IF (ier_num.eq.0) THEN
          no_com: IF (line /= ' '      .and. line(1:1) /= '#' .and.      &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -200,15 +202,25 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro) then 
-               CALL macro_close 
-               prompt_status = PROMPT_ON 
+               IF(sprompt /= prompt) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in decorate menu'
+                  prompt_status = PROMPT_ON 
+               ELSE
+                  CALL macro_close 
+                  prompt_status = PROMPT_ON 
+               ENDIF 
             ENDIF 
             IF (lblock) then 
+               prompt_status = PROMPT_ON 
                RETURN 
             ENDIF 
             CALL no_error 
          ENDIF 
       ENDIF 
+!
+      prompt = orig_prompt
 !
    ENDDO main_loop     ! END DO main loop of menu 
 !
