@@ -4,7 +4,7 @@
 !     handling and other common support routines.                       
 !                                                                       
 !*****7*****************************************************************
-SUBROUTINE cmdline_args 
+SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !     This routine checks for command line arguments and                
 !     executes given macros ..                                          
@@ -14,6 +14,7 @@ SUBROUTINE cmdline_args
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
       INTEGER marg 
       PARAMETER (marg = 20) 
@@ -45,7 +46,7 @@ SUBROUTINE cmdline_args
                      ilen = ilen + 1
                   ENDIF
                ENDDO
-               WRITE ( *, 1000) line (1:ilen)
+               IF(local_mpi_myid==0) WRITE ( *, 1000) line (1:ilen)
                CALL file_kdo(line(1:ilen), ilen) ! Execute macro and return to normal prompt
             ENDIF
          ELSE ! all other command line arguments
@@ -58,13 +59,13 @@ SUBROUTINE cmdline_args
             ELSEIF (index (arg (i) , '-access') .ne.0) then 
                s_ipallowed = arg (i) (index (arg(i),'=')+1:len_str(arg(i)))
             ELSEIF (index (arg (i) , '-help') .ne.0) then 
-               WRITE ( *, 2000) pname (1:len_str (pname) ) 
+               IF(local_mpi_myid==0) WRITE ( *, 2000) pname (1:len_str (pname) ) 
             ELSEIF (index (arg (i) , '-debug') .ne.0) then 
-               WRITE ( *, 1500) 
+               IF(local_mpi_myid==0) WRITE ( *, 1500) 
                dbg = .true. 
             ELSE         ! several macros WITHOUT parameters
                ilen = len_str (arg (i) ) 
-               WRITE ( *, 1000) arg (i) (1:ilen) 
+               IF(local_mpi_myid==0) WRITE ( *, 1000) arg (i) (1:ilen) 
                CALL file_kdo (arg (i) (1:ilen), ilen) 
             ENDIF 
             ENDDO 
