@@ -2873,10 +2873,11 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
       INTEGER            :: natoms ! Number of actual actoms in connectivity list
 !                                                                       
-      INTEGER i,j
+      INTEGER i,j, ino
       REAL ran1 
 !                                                                       
       j = 0
+      ino = 1
    10 CONTINUE 
       j = j + 1
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
@@ -2884,7 +2885,7 @@ loop_plane: DO ip = 1, rmc_nplane
       IF(.NOT.local_rmc_allowed(cr_iscat(isel(1)))) GOTO 10
 !
       IF (imode == rmc_local_conn) THEN   ! Choose second atom from connectivity
-         CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), 1, MAXW, c_list, c_offs, natoms)
+         CALL get_connectivity_list(isel(1), cr_iscat(isel(1)), ino, MAXW, c_list, c_offs, natoms)
          IF(natoms == 0) GOTO 10
          isel(2) = c_list(INT(ran1(idum)*natoms) + 1)
       ELSE
