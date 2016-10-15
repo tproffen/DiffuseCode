@@ -179,9 +179,12 @@ CONTAINS
 !                                                                       
       REAL usym (4), ures (4) 
       REAL werte (5) 
+      REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+!
+      offset(4) = 0.0
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -196,18 +199,23 @@ CONTAINS
 !     Apply symmetry operation to all atoms within selected range       
 !                                                                       
       DO l = i_start, i_end 
-      i = l 
-      IF (sym_incl.eq.'env ') i = atom_env (l) 
+        i = l 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
       IF (sym_latom (cr_iscat (i) ) ) then 
+        IF (sym_incl.eq.'env ') THEN 
+           i = atom_env (l) 
+           offset(1:3) = atom_pos(1:3,l) - cr_pos(1:3,i)
+        ELSE
+           offset(1:3) = 0.0
+        ENDIF
 !                                                                       
-!     ----Subtract origin                                               
+!     ----Subtract origin and possible offset due to periodic boundary
 !                                                                       
          DO j = 1, 3 
-         usym (j) = cr_pos (j, i) - sym_orig (j) 
+         usym (j) = cr_pos (j, i) - sym_orig (j)  + offset(j)
          ENDDO 
 !                                                                       
 !-----      ----Apply symmetry operation                                
@@ -219,7 +227,7 @@ CONTAINS
 !     ----Add origin                                                    
 !                                                                       
          DO j = 1, 3 
-         werte (j + 1) = ures (j) + sym_orig (j) 
+         werte (j + 1) = ures (j) + sym_orig (j) - offset(j)
          ENDDO 
 !                                                                       
 !     ----Insert copy of atom or replace original atom by its image     
@@ -265,9 +273,12 @@ CONTAINS
       INTEGER i_start, i_end 
       REAL usym (4), ures (4) 
       REAL werte (5) 
+      REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+!
+      offset(4) = 0.0
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -282,18 +293,24 @@ CONTAINS
 !     Apply symmetry operation to all atoms within selected range       
 !                                                                       
       DO l = i_start, i_end 
-      i = l 
-      IF (sym_incl.eq.'env ') i = atom_env (l) 
+        i = l 
+        IF (sym_incl.eq.'env ') i = atom_env (l) 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
 !                                                                       
-      IF (sym_latom (cr_iscat (i) ) ) then 
+        IF (sym_latom (cr_iscat (i) ) ) then 
+          IF (sym_incl.eq.'env ') THEN 
+             i = atom_env (l) 
+             offset(1:3) = atom_pos(1:3,l) - cr_pos(1:3,i)
+          ELSE
+             offset(1:3) = 0.0
+          ENDIF
 !                                                                       
 !     ----Subtract origin                                               
 !                                                                       
          DO j = 1, 3 
-         usym (j) = cr_pos (j, i) - sym_orig (j) 
+         usym (j) = cr_pos (j, i) - sym_orig (j) + offset(j)
          ENDDO 
 !                                                                       
 !-----      ----Apply symmetry operation                                
@@ -304,7 +321,7 @@ CONTAINS
 !     ----Add origin                                                    
 !                                                                       
          DO j = 1, 3 
-         werte (j + 1) = ures (j) + sym_orig (j) 
+         werte (j + 1) = ures (j) + sym_orig (j) -offset(j)
          ENDDO 
 !                                                                       
 !     ----Insert copy of atom or replace original atom by its image     
