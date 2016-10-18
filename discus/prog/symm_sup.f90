@@ -217,6 +217,7 @@ CONTAINS
 !                                                                       
       DO l = i_start, i_end 
         i = l 
+        IF (sym_incl.eq.'env ') i = atom_env (l) 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
@@ -260,6 +261,9 @@ CONTAINS
             DO j = 1, 3 
             cr_pos (j, i) = werte (j + 1) 
             ENDDO 
+            IF (sym_incl.eq.'env ') THEN  ! Update the environment
+               atom_pos(1:3,l) = cr_pos(1:3,i) + offset(1:3)
+            ENDIF 
          ENDIF 
          DO j = 1, 3 
          usym (j) = ures (j) 
@@ -354,6 +358,9 @@ CONTAINS
             DO j = 1, 3 
             cr_pos (j, i) = werte (j + 1) 
             ENDDO 
+            IF (sym_incl.eq.'env ') THEN  ! Update the environment
+               atom_pos(1:3,l) = cr_pos(1:3,i) + offset(1:3)
+            ENDIF 
          ENDIF 
       ENDIF 
       ENDDO 

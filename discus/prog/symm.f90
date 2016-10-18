@@ -459,6 +459,7 @@ CONTAINS
                            ier_typ = ER_COMM 
                         ENDIF 
                      ELSEIF ((ianz.eq.3.or.ianz.eq.4) ) THEN 
+                        sym_orig_mol = .FALSE.
                      IF (ianz.eq.4) then 
                         sym_orig_mol = str_comp (cpara (4) , 'mol', 1,  &
                         lpara (4) , 3)                                  
