@@ -364,6 +364,7 @@ SUBROUTINE do_domain (line, lp)
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in domain menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
@@ -705,7 +706,7 @@ pseudo_ok:  IF(l_ok) THEN
       line = ' ' 
       READ (imd, 2000, end = 2, err = 999) line 
       lline = len_str (line) 
-      DO while (line.eq.' '.or.line (1:1) .eq.'#'.or.line.eq.char (13) ) 
+      DO while (line.eq.' '.or.line (1:1) .eq.'#'.OR.line(1:1)=='!'.or.line.eq.char (13) ) 
       READ (imd, 2000, end = 2, err = 999) line 
       lline = len_str (line) 
       ENDDO 
@@ -1161,7 +1162,7 @@ pseudo_ok:  IF(l_ok) THEN
       ELSE
          READ (ist, 2000, end = 2, err = 999) line 
       ENDIF
-blank1: IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13) ) then
+blank1: IF (line.ne.' '.and.line (1:1) .ne.'#'.AND.line(1:1)/='!'.and.line.ne.char (13) ) then
          i_count = i_count + 1 
          ibl = index (line, ' ') + 1 
          lbef = 10 
@@ -1525,7 +1526,7 @@ mole_int: IF(mk_infile_internal) THEN
       ELSE
         READ (imd, '(a)', end = 999) line 
       ENDIF
-      IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13) )    &
+      IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char (13) )    &
       then                                                              
          ii = 0 
          DO i = 1, clu_number 
