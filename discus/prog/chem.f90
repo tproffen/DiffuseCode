@@ -4726,8 +4726,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
 !                                                                       
       ELSE 
-         ier_num = - 8 
-         ier_typ = ER_CHEM 
+         IF (lout) WRITE (output_io, 1200) ic
+!         ier_num = - 8 
+!         ier_typ = ER_CHEM 
       ENDIF 
       IF (ier_num.ne.0) return 
       ENDDO 
@@ -4754,6 +4755,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
      &         4x,'Neig.',5x,'AA',9x,'AB',9x,'BB',9x,                   &
      &         '# pairs    correlation',/,4x,65('-'))                   
  1100 FORMAT (5x,i3,3x,3(f6.2,' % ',2x),1x,i8,6x,f7.4) 
+ 1200 FORMAT (5x,i3,4x,'No pairs in this neighborhood')
 !                                                                       
       END SUBROUTINE chem_corr_occ                  
 !*****7*****************************************************************
@@ -4896,8 +4898,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
 !                                                                       
       ELSE 
-         ier_num = - 19 
-         ier_typ = ER_CHEM 
+         IF (lout) WRITE (output_io, 1200) ic
+!         ier_num = - 19 
+!         ier_typ = ER_CHEM 
       ENDIF 
       IF (ier_num.ne.0) return 
       ENDDO 
@@ -4924,6 +4927,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
      &      4x,'Neig.',5x,'AA',9x,'AB',9x,'BB',9x,                      &
      &      '# pairs    correlation',/,4x,65('-'))                      
  1100 FORMAT (5x,i3,3x,3(f6.2,' % ',2x),1x,i8,6x,f7.4) 
+ 1200 FORMAT (5x,i3,4x,'No pairs in this neighborhood')
 !                                                                       
       END SUBROUTINE chem_corr_occ_mol              
 !*****7*****************************************************************
@@ -5511,7 +5515,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             IF (cr_iscat(jatom).eq.chem_ccon (1, iv) ) then ! Central has correct type
                is1 = chem_ccon (1, iv)              ! central atom type
                ino = chem_ccon (2, iv)              ! connectivity number
-               CALL get_connectivity_list ( jatom, is1, ino, maxw, c_list, c_offs, natoms )
+               CALL get_connectivity_list ( jatom, is1, ino, c_list, c_offs, natoms )
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)
