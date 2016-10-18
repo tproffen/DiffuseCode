@@ -108,6 +108,15 @@
    ref_kid         Current child Updated for DISCUS and KUPLOT only
    ref_indiv       Current individuum Updated for DISCUS and KUPLOT only
    ref_param[1..]  Current trial parameters for current child
+
+   All colors can be referenced by their respective names as well as by 
+   their traditional numbers. See 'lcol', 'hcol', 'mcol' 'ecol'
+
+   All line types can be referenced by descriptive names as well as by
+   their traditional numbers. See 'ltyp', 'htyp'
+
+   All marker types can be referenced by descriptive names as well as by
+   their traditional numbers. See 'etyp', 'mtyp', 'ptyp'
 3  2016_Feb
 
    Minor upgrade, added a threshold function to ==> 'ccal'
