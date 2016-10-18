@@ -686,7 +686,7 @@ main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          ENDIF
          lline = len_str (line) 
 !23456789 123456789 123456789 123456789 123456789 123456789 123456789 12
-empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13)) THEN
+empty:   IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!' .AND. line.ne.char (13)) THEN
             need_alloc = .false.
             new_nmax   = NMAX
             new_nscat  = MAXSCAT
@@ -1501,8 +1501,8 @@ check_calc: DO j = 1, ianz
 !     ----Commentary                                                    
 !                                                                       
                                                                         
-         IF (line.eq.' '.or.line (1:1) .eq.'#'.or.line.eq.char (13) )   &
-         then                                                           
+         IF (line.eq.' '.or.line (1:1) .eq.'#'.or. line(1:1) == '!' .OR. &
+             line.eq.char (13) ) THEN
             CONTINUE 
 !                                                                       
 !     ----Space group symbol                                            
@@ -1839,8 +1839,8 @@ check_calc: DO j = 1, ianz
       line = ' ' 
       READ (ist, 2000, end = 2, err = 999) line 
       lline = len_str (line) 
-      IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line.ne.char (13) )    &
-      then                                                              
+      IF (line.ne.' '.and.line (1:1) .ne.'#'.and. line(1:1) /= '!' .AND. &
+          line.ne.char (13) )  THEN
          ibl = index (line (1:lline) , ' ') + 1 
          lbef = 10 
          befehl = ' ' 
