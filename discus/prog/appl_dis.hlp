@@ -99,6 +99,16 @@
 
    Insertion of a new atom will automatically turn off the periodic
    boundary conditions.
+
+   Periodic boundary conditions in combination with the exact search mode 
+   have been enabled.
+
+   A new menu is introduced that allows to group atoms into a molecule.
+
+   The symmetry commands 'uvw' and 'orient' have been improved to allow
+   to specify a pair, respectively one atom to define the axis/origin
+
+   The symmetry command can now rotate partial molecule groups
 3  2016_June
 
    The mmc 'set move' command may now take a further parameter. This 
@@ -1489,6 +1499,14 @@
 
    This command just defines the settings of this connectivity. The 
    actual list is created via ==> 'create'.
+
+   Keep in mind that many different atom types may exist, even if 
+   the names ant ADP of two or more atoms in the cell file were 
+   identical. If you read the structure with the "cell" command 
+   all atoms within this aasymmetric unit are treted as individual 
+   atom types! Use the atom type number instead of the atom name
+   for a clear distinction.
+   Alternatively read the structure with the "lcell" command
 3  create
 
    Creates the actual connectivity list. 
@@ -7168,7 +7186,7 @@
 
    More than one molecule type may be deselected at once.
 3  mincl
-!b mincl {<start>,<end> | "all" }
+!b mincl {<start>,<end> | "all" } [ , "group", <first> [, <excl1>...]]
 
    The symmetry operation includes all molecules numbered <start> to <end>
    inclusively. All other molecules are ignored. 
@@ -7180,6 +7198,21 @@
    operation later on.
    In addition you can define the molecules that are affected by the 
    symmetry operation with the ==>'msele' and 'mdese' commands.
+
+   The optional parameters specify that a partial molecule group 
+   shall be rotated. The group starts at the atom number <first>
+   within the current molecule. DISCUS uses the connectivity to
+   build this group. Thus you must have specified a connectivity
+   for all atoms within the molecule. Atoms <excl1> etc and their
+   respective connectivity are excluded from the group. 
+   This allows you to rotate part of a molecule with respect to 
+   the rest of the molecule.
+   Beware that you must have specified a proper connectivity list!
+   This list must contain a connectivity definition for all atom 
+   types within the molecule. If you read the structure with the 
+   "cell" command, different atom types will exist even is the 
+   name and the ADP of two atoms in the cell file were identical. 
+   
 3  mode
 !b mode { "copy" | "repl" } [ , { "new" | "old" } ]
 
@@ -7237,6 +7270,7 @@
    symmetry operation with the ==>'osele' and 'odese' commands.
 3  origin
 !b origin <x>,<y>,<z> [, { "mol" | "cryst" } ]
+!b origin "atom", <number> [, { "molecule" | "crystal" } ]
 
    Specifies the origin of the symmetry operation in direct space coordinates.
    The symmetry axis intersects this point and has the direction specified
@@ -7247,6 +7281,16 @@
    specifies if the given origin is relative to the origin of the
    molecule ("mol") or the crystal ("cryst"). Note that the first
    atom within a molecule has to be on the molecules origin (see manual).
+
+   With the second form, the origin is specified as the coordinates of 
+   the atom number <number>.
+   The last optional parameter tells DISCUS if the atom number is 
+   absolute within the crystal, or a relative atom number within a 
+   molecule content. 
+   In the second case, an atom number "2" for example would be the second
+   atom within a chosen molecule. If several molecules are included in the
+   symmetry operation, the origin is adapted for each individual molecule.
+
 3  osel
 !b osel { "all" | <number> } [ , <number> ...]
 
@@ -7334,10 +7378,21 @@
    and an improper rotation.
 3  uvw
 !b uvw <h>,<k>,<l>
+!b uvw "atoms", <from>, <to> [ ,{"crystal"|"molecule"}]
 
    Specifies the direction of the symmetry axis in direct space
    coordinates. The corresponding reciprocal space coordinates are calculated 
    by the program.
+
+   With the second form, the axis is specified as the direction from 
+   the atom number <from> to atom number <to>. 
+   The last optional parameter tells DISCUS if the atom numbers are
+   absolute within the crystal, or relative atom numbers within a molecule
+   content. 
+   In the second case, an atom number "2" for example would be the second
+   atom within a chosen molecule. If several molecules are included in the
+   symmetry operation, the axis is adapted for each individual molecule.
+
    Alternatively you may specify the direction in reciprocal space by the
    ==> 'hkl" command.
 

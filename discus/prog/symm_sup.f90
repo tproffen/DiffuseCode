@@ -52,6 +52,23 @@ CONTAINS
          ctheta = cosd (sym_angle * sym_power) 
          stheta = sind (sym_angle * sym_power) 
       ENDIF 
+!
+!     symmetry origin is specified as absolute coordinates, or
+!     via atom (from crystal or molecule)
+!
+      IF(sym_orig_type == 1) THEN       ! Origin defined by atom
+         sym_orig(:) = cr_pos(:,sym_orig_atom)
+      ENDIF
+!
+!     symmetry axis is specified as absolute coordinates, or 
+!     via atom pair (from crystal or molecule)
+!
+      IF(sym_axis_type == 1) THEN       ! axis defined by atom pair
+         DO i=1, 3
+            sym_uvw(i) = cr_pos(i,sym_axis_atoms(2)) - cr_pos(i,sym_axis_atoms(1))
+         ENDDO
+         CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+      ENDIF
 !                                                                       
 !     Create vectors of unit length in direct and reciprocal space      
 !                                                                       
@@ -353,6 +370,7 @@ CONTAINS
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       USE trafo_mod
@@ -365,12 +383,18 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, l, ii 
       INTEGER i_start, i_end 
+      INTEGER  :: at_start, at_end 
       INTEGER :: imole, imole_s, imole_t=1
+      INTEGER  :: i1, i2
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
       INTEGER  :: n_type   ! Number of molecule types
       INTEGER  :: n_atom   ! Number of atoms in molecules
+      INTEGER  :: n_sub    ! Number of atoms in sub-molecules
+      INTEGER  :: jatom    ! First atom in sub-molecule
+      INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: excl
 !                                                                       
       REAL usym (4), ures (4), use_orig (3) 
       REAL werte (5) 
@@ -429,8 +453,47 @@ CONTAINS
 !                                                                       
 !     ----Loop over all atoms in the molecule                           
 !                                                                       
-         DO ii = 1, mole_len (l) 
-         i = mole_cont (mole_off (l) + ii) 
+         IF(sym_sel_sub) THEN   ! Select a sub range of the molecule
+            IF(ALLOCATED(sub_list)) DEALLOCATE(sub_list)
+            ALLOCATE(sub_list(1:mole_len(l)))
+            sub_list(:) = 0
+            jatom = mole_cont (mole_off (l) +sym_sub_start)
+            ALLOCATE(excl(1:sym_n_excl))
+            DO i=1, sym_n_excl
+               excl(i) = mole_cont(mole_off(l) + sym_excl(i))
+            ENDDO
+!write(*,*) ' MOLECULE NR ', l, ' jatom ', jatom,' Excl ',sym_n_excl,' : ', excl(:)
+            CALL molecularize_sub(jatom,sym_n_excl,excl,mole_len(l),n_sub, sub_list)
+            DEALLOCATE(excl)
+            at_start = 1
+            at_end   = n_sub
+!write(*,*) ' MOLECULE NR ', l, ' Range ', at_start, at_end
+         ELSE                   ! Select all atoms of molecule
+            at_start = 1
+            at_end   = mole_len(l)
+         ENDIF
+         IF(sym_axis_type == -1 .OR. sym_orig_type == -1) THEN  ! Need new setup
+            IF(sym_axis_type == -1) THEN       ! axis defined by atom pair within molecule
+               DO i=1, 3
+                  i1 = mole_cont(mole_off(l)+sym_axis_atoms(1))
+                  i2 = mole_cont(mole_off(l)+sym_axis_atoms(2))
+                  sym_uvw(i) = cr_pos(i,i2) - cr_pos(i,i1)
+               ENDDO
+               CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+            ENDIF
+            IF(sym_orig_type == -1) THEN       ! origin defined by atom within molecule
+               i1 = mole_cont(mole_off(l)+sym_orig_atom)
+               sym_orig(:) = cr_pos(:,i1)
+               use_orig(:) = sym_orig(:) 
+            ENDIF
+            CALL symm_setup
+         ENDIF
+         DO ii = at_start, at_end
+            IF(sym_sel_sub) THEN   ! Select a sub range of the molecule
+               i = sub_list(ii)
+            ELSE
+               i = mole_cont (mole_off (l) + ii) 
+            ENDIF
 !                                                                       
 !     ----- Subtract origin                                             
 !                                                                       
@@ -511,6 +574,7 @@ CONTAINS
       USE crystal_mod 
       USE modify_mod
       USE molecule_mod 
+      USE molecule_func_mod 
       USE spcgr_apply, ONLY: mole_insert_current
       USE symm_mod 
       USE trafo_mod
@@ -522,12 +586,18 @@ CONTAINS
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
       INTEGER i_start, i_end 
+      INTEGER  :: at_start, at_end 
       INTEGER ::imole, imole_s, imole_t=1
+      INTEGER  :: i1, i2
       INTEGER  :: n_gene   ! Number of molecule generators
       INTEGER  :: n_symm   ! Number of molecule symmetry operators
       INTEGER  :: n_mole   ! Number of molecules
       INTEGER  :: n_type   ! Number of molecule types
       INTEGER  :: n_atom   ! Number of atoms in molecules
+      INTEGER  :: n_sub    ! Number of atoms in sub-molecules
+      INTEGER  :: jatom    ! First atom in sub-molecule
+      INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
+      INTEGER, DIMENSION(:), ALLOCATABLE :: excl
       REAL usym (4), ures (4) 
       REAL werte (5), use_orig (3) 
 !                                                                       
@@ -585,8 +655,44 @@ CONTAINS
 !                                                                       
 !     ----Loop over all atoms in the molecule                           
 !                                                                       
-         DO ii = 1, mole_len (l) 
-         i = mole_cont (mole_off (l) + ii) 
+         IF(sym_sel_sub) THEN   ! Select a sub range of the molecule
+            IF(ALLOCATED(sub_list)) DEALLOCATE(sub_list)
+            ALLOCATE(sub_list(1:mole_len(l)))
+            sub_list(:) = 0
+            jatom = mole_cont (mole_off (l) +sym_sub_start)
+            ALLOCATE(excl(1:sym_n_excl))
+            DO i=1, sym_n_excl
+               excl(i) = mole_cont(mole_off(l) + sym_excl(i))
+            ENDDO
+            CALL molecularize_sub(jatom,sym_n_excl,excl,mole_len(l),n_sub, sub_list)
+            DEALLOCATE(excl)
+            at_start = 1
+            at_end   = n_sub
+         ELSE                   ! Select all atoms of molecule
+            at_start = 1
+            at_end   = mole_len(l)
+         ENDIF
+         IF(sym_axis_type == -1 .OR. sym_orig_type == -1) THEN  ! Need new setup
+            IF(sym_axis_type == -1) THEN       ! axis defined by atom pair within molecule
+               DO i=1, 3
+                  i1 = mole_cont(mole_off(l)+sym_axis_atoms(1))
+                  i2 = mole_cont(mole_off(l)+sym_axis_atoms(2))
+                  sym_uvw(i) = cr_pos(i,i2) - cr_pos(i,i1)
+               ENDDO
+               CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+            ENDIF
+            IF(sym_orig_type == -1) THEN       ! origin defined by atom within molecule
+               i1 = mole_cont(mole_off(l)+sym_orig_atom)
+               sym_orig(:) = cr_pos(:,i1)
+            ENDIF
+            CALL symm_setup
+         ENDIF
+         DO ii = at_start, at_end
+            IF(sym_sel_sub) THEN   ! Select a sub range of the molecule
+               i = sub_list(ii)
+            ELSE
+               i = mole_cont (mole_off (l) + ii) 
+            ENDIF
 !                                                                       
 !     ----- Subtract origin                                             
 !                                                                       

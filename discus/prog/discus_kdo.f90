@@ -18,6 +18,7 @@
       USE interpret_menu
       USE inverse_mod 
       USE modify_mod
+      USE molecule_func_mod
       USE mole_surf_mod
       USE output_menu
       USE patters_menu
@@ -244,6 +245,11 @@
          ELSEIF (str_comp (befehl, 'kick', 2, lbef, 4) ) then 
             lkick = .true. 
             CALL do_app (zeile, lcomm, lkick) 
+!                                                                       
+!     group atoms into a molecule 'molecularize'
+!                                                                       
+         ELSEIF (str_comp (befehl, 'molec', 2, lbef, 5) ) then 
+            CALL do_molecularize (zeile, lcomm)
 !                                                                       
 !     Output routines 'outp'                                            
 !                                                                       

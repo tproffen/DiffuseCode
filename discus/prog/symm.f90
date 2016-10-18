@@ -47,7 +47,7 @@ CONTAINS
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile
       INTEGER lp, length, lbef 
-      INTEGER indxg, ianz, i 
+      INTEGER indxg, ianz, i , iianz
       INTEGER indxc 
       INTEGER         :: nscat
       LOGICAL lend, lspace 
@@ -272,6 +272,7 @@ CONTAINS
                         sym_hkl (i) = werte (i) 
                         ENDDO 
                         CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
+                        sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
                      ELSE 
                         ier_num = - 6 
@@ -322,32 +323,70 @@ CONTAINS
 !     ----Select range of molecules within crystal to be included       
 !         'mincl'                                                       
 !                                                                       
-               ELSEIF (str_comp (befehl, 'mincl', 3, lbef, 5)           &
-               .or.str_comp (befehl, 'oincl', 3, lbef, 5) ) then        
+               ELSEIF (str_comp (befehl, 'mincl', 3, lbef, 5) .OR.      &
+                       str_comp (befehl, 'oincl', 3, lbef, 5) ) THEN
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.2) then 
-                        CALL ber_params (ianz, cpara, lpara, werte,     &
-                        maxw)                                           
-                        IF (ier_num.eq.0) then 
-                           sym_sel_atom = .false. 
-                           sym_start = nint (werte (1) ) 
-                           sym_end = nint (werte (2) ) 
-                        ENDIF 
-                     ELSEIF (ianz.eq.1) then 
-                        IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
-                        3) ) then                                       
-                           sym_sel_atom = .false. 
-                           sym_start = 1 
-                           sym_end = - 1 
+                  IF (ier_num.eq.0) THEN
+                     sym_sel_sub  = .FALSE.
+                     IF (str_comp(cpara(1),'all', 1, lpara(1), 3)) THEN
+                        sym_sel_atom = .false. 
+                        sym_start =  1                  ! Select all molecule numbers
+                        sym_end   = -1 
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                     ELSE
+                        iianz = 2
+                        CALL ber_params(iianz, cpara, lpara, werte, maxw)
+                        IF (ier_num.eq.0) THEN
+                           sym_sel_atom = .false.
+                           sym_start = nint (werte (1) )  ! Select limited molecule
+                           sym_end   = nint (werte (2) )  !        range
+                           CALL del_params (2, ianz, cpara, lpara, maxw)
+                        ENDIF
+                     ENDIF 
+                     IF(ier_num == 0 .AND. ianz > 0 ) THEN
+                        IF (str_comp(cpara(1),'group', 1, lpara(1), 5)) THEN
+                           sym_sel_sub  = .TRUE.
+                           CALL del_params (1, ianz, cpara, lpara, maxw) 
+                           CALL ber_params(ianz, cpara, lpara, werte, maxw)                                           
+                           IF (ier_num.eq.0) then 
+                              sym_sub_start = nint (werte (1) ) 
+                              IF(ianz > 1) THEN    ! We have excluded atoms
+                                 IF(ALLOCATED(sym_excl)) DEALLOCATE(sym_excl)
+                                 sym_n_excl = ianz-1
+                                 ALLOCATE(sym_excl(1:sym_n_excl))
+                                 DO i=2,ianz
+                                    sym_excl(i-1) = NINT(werte(i))
+                                 ENDDO
+                              ENDIF
+                           ENDIF 
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF 
-                     ELSE 
-                        ier_num = - 6 
-                        ier_typ = ER_COMM 
                      ENDIF 
+                        
+!                     IF (ianz.eq.2) then 
+!!                        CALL ber_params (ianz, cpara, lpara, werte,     &
+!                        maxw)                                           
+!                        IF (ier_num.eq.0) then 
+!                           sym_sel_atom = .false. 
+!                           sym_start = nint (werte (1) ) 
+!                           sym_end = nint (werte (2) ) 
+!                        ENDIF 
+!                     ELSEIF (ianz.eq.1) then 
+!                        IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
+!                        3) ) then                                       
+!                           sym_sel_atom = .false. 
+!                           sym_start = 1 
+!                           sym_end = - 1 
+!                        ELSE 
+!                           ier_num = - 6 
+!                           ier_typ = ER_COMM 
+!                        ENDIF 
+!                     ELSE 
+!                        ier_num = - 6 
+!                        ier_typ = ER_COMM 
+!                     ENDIF 
                   ENDIF 
 !                                                                       
 !     ----Select the mode of symmetry operation 'mode'                  
@@ -401,9 +440,25 @@ CONTAINS
 !                                                                       
 !     ----Select the origin of the symmetry operation  'origin'         
 !                                                                       
-               ELSEIF (str_comp (befehl, 'origin', 1, lbef, 6) ) then 
+               ELSEIF (str_comp (befehl, 'origin', 1, lbef, 6) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and. (ianz.eq.3.or.ianz.eq.4) ) then 
+                  IF (ier_num.eq.0) THEN
+                     IF(str_comp(cpara(1), 'atom', 1, lpara(1), 4)) THEN
+                        sym_orig (:)  = 0.0
+                        sym_orig_type = 1
+                        sym_orig_mol  = str_comp(cpara(ianz), 'molecule', 1, lpara(ianz), 8)
+                        IF(sym_orig_mol) sym_orig_type = -1
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                        ianz = 1
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        IF (ier_num.eq.0) THEN 
+                           sym_orig_atom = NINT(werte(1))
+                           l_need_setup = .true. 
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF 
+                     ELSEIF ((ianz.eq.3.or.ianz.eq.4) ) THEN 
                      IF (ianz.eq.4) then 
                         sym_orig_mol = str_comp (cpara (4) , 'mol', 1,  &
                         lpara (4) , 3)                                  
@@ -411,11 +466,16 @@ CONTAINS
                      ENDIF 
 !                                                                       
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         DO i = 1, 3 
                         sym_orig (i) = werte (i) 
                         ENDDO 
+                        sym_orig_type = 0
                         l_need_setup = .true. 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -556,17 +616,47 @@ CONTAINS
 !                                                                       
                ELSEIF (str_comp (befehl, 'uvw ', 1, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num.eq.0) THEN
+                     IF(str_comp(cpara(1), 'atoms', 1, lpara(1), 5)) THEN
+                        IF(str_comp(cpara(ianz), 'crystal', 1, lpara(ianz), 7)) THEN
+                           sym_axis_type = 1
+                           l_need_setup = .true. 
+                           CALL del_params (1, ianz, cpara, lpara, maxw) 
+                           ianz = ianz - 1
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                           DO i=1,ianz
+                              sym_axis_atoms(i) = NINT(werte(i))
+                           ENDDO
+                           sym_uvw(:) = 0.0
+                           sym_uvw(3) = 1.0
+                        ELSEIF(str_comp(cpara(ianz), 'molecule', 1, lpara(ianz), 8)) THEN
+                           sym_axis_type = -1
+                           l_need_setup = .true. 
+                           CALL del_params (1, ianz, cpara, lpara, maxw) 
+                           ianz = ianz - 1
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                           DO i=1,ianz
+                              sym_axis_atoms(i) = NINT(werte(i))
+                           ENDDO
+                           sym_uvw(:) = 0.0
+                           sym_uvw(3) = 1.0
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF
+                     ELSEIF(ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
                         DO i = 1, 3 
                         sym_uvw (i) = werte (i) 
                         ENDDO 
                         CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
+                        sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
+                     ENDIF 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
@@ -603,6 +693,8 @@ CONTAINS
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in symmetry menu'
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
