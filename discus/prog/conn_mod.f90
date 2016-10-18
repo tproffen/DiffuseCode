@@ -12,6 +12,7 @@ PRIVATE
 PUBLIC  conn_menu              !  Main menu to interact with user
 PUBLIC  get_connectivity_list  !  Read out the actual list of atoms around a central atom
 PUBLIC  get_connectivity_identity ! Identify a connectivity definition
+PUBLIC  get_connectivity_numbers  ! Read out number of connectivities for atom type
 PUBLIC  do_show_connectivity   !  Show the current definitions
 PRIVATE allocate_conn_list     !  Allocate memory for the connectivity
 PRIVATE deallocate_conn        !  Free memory
@@ -817,6 +818,7 @@ CONTAINS
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in connectivity menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
@@ -917,7 +919,7 @@ CONTAINS
    END SUBROUTINE conn_test
 !
 !
-   SUBROUTINE get_connectivity_list (jatom, is1, ino, maxw, c_list, c_offs, natoms )
+   SUBROUTINE get_connectivity_list (jatom, is1, ino, c_list, c_offs, natoms )
 !-                                                                      
 !     Get the list of neighbors for central atom jatom of type is1
 !+                                                                      
@@ -929,7 +931,6 @@ CONTAINS
       INTEGER, INTENT(IN)  :: is1     ! central atom type
       INTEGER, INTENT(INOUT)  :: ino     ! Connectivity def. no.
       CHARACTER(LEN=256)   :: c_name  ! Connectivity name
-      INTEGER, INTENT(IN)  :: maxw    ! Size of array c_list 
       INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: c_list    ! Size of array c_list 
       INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: c_offs ! Offsets from periodic boundary
       INTEGER, INTENT(OUT) :: natoms  ! number of atoms in connectivity list
@@ -1033,6 +1034,33 @@ CONTAINS
    END SUBROUTINE get_connectivity_identity
 !
 !
+   INTEGER FUNCTION get_connectivity_numbers (is1)
+!-                                                                      
+!     Return the number of connectivities defined for an atom type
+!+                                                                      
+      USE discus_config_mod 
+      USE crystal_mod 
+      IMPLICIT none 
+!
+      INTEGER,            INTENT(IN)      :: is1        ! central atom type
+!
+      INTEGER :: numbers
+!
+      numbers = 0
+      IF ( ALLOCATED(def_main) ) THEN
+         is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
+            numbers = def_main(is1)%def_number
+         ENDIF is_there
+      ELSE
+         ier_num = -110
+         ier_typ = ER_APPL
+      ENDIF
+!
+      get_connectivity_numbers = numbers   ! assign return value
+!
+   END FUNCTION get_connectivity_numbers
+!
+!
    SUBROUTINE do_show_connectivity ( iatom, idef, long )
 !-                                                                      
 !     Shows the connectivity no. idef around atom no iatom
@@ -1068,7 +1096,7 @@ CONTAINS
 !
       is1 = cr_iscat(iatom)
       u   = cr_pos(:,iatom)
-      CALL get_connectivity_list (iatom, is1, idef, maxw, c_list, c_offs, natoms )
+      CALL get_connectivity_list (iatom, is1, idef, c_list, c_offs, natoms )
 !
       WRITE(output_io,1000) iatom, is1
       IF ( natoms > 0 ) THEN
