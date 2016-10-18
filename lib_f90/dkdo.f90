@@ -2917,6 +2917,10 @@ END FUNCTION len_str
          lpara (i - ndel) = lpara (i) 
          ENDDO 
          ianz = ianz - ndel 
+      ELSEIF(ndel==ianz) THEN
+         cpara(:) = ' '
+         lpara(:) = 1
+         ianz = 0
       ENDIF 
 !                                                                       
       END SUBROUTINE del_params                     
