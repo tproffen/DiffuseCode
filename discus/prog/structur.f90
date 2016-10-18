@@ -1678,7 +1678,7 @@ check_calc: DO j = 1, ianz
          ELSEIF (str_comp (befehl, 'ncell', 1, lbef, 5) ) then 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             IF (ier_num.eq.0) then 
-               IF (ianz.eq.4) then 
+               IF (ianz.eq.4 .or. ianz==5) then    ! allow for number of atoms on ncell command
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) then 
                      DO j = 1, 3 
