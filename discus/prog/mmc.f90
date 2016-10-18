@@ -297,7 +297,8 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
             DO j = i, cr_nscat 
             at_name_i = at_name (i) 
             at_name_j = at_name (j) 
-            IF (mmc_target_corr (k, MC_OCC, i, j) .ne.0.0) then 
+!           IF (mmc_target_corr (k, MC_OCC, i, j) .ne.0.0) then 
+            IF (mmc_pair        (k, MC_OCC, i, j) .ne.0.0) then 
                WRITE (output_io, 7300) at_name_i, at_name_j, k,         &
                mmc_target_corr (k, MC_OCC, i, j),                       &
                mmc_depth (k, MC_OCC,i, j)
@@ -309,7 +310,8 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
             DO k = 1, chem_ncor 
             DO i = 1, mole_num_type 
             DO j = i, mole_num_type 
-            IF (mmc_target_corr (k, MC_OCC, i, j) .ne.0.0) then 
+!           IF (mmc_target_corr (k, MC_OCC, i, j) .ne.0.0) then 
+            IF (mmc_pair        (k, MC_OCC, i, j) .ne.0.0) then 
                WRITE (output_io, 4200) i, j, k,         &
                      mmc_target_corr (k,MC_OCC, i, j),  &
                      mmc_depth (k, MC_OCC, i, j)
@@ -327,7 +329,8 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
             DO j = i, cr_nscat 
             at_name_i = at_name (i) 
             at_name_j = at_name (j) 
-            IF (mmc_target_corr (k, MC_DISP, i, j) .ne.0.0) then 
+!           IF (mmc_target_corr (k, MC_DISP, i, j) .ne.0.0) then 
+            IF (mmc_pair        (k, MC_DISP, i, j) .ne.0.0) then 
                WRITE (output_io, 7300) at_name_i, at_name_j, k,         &
                mmc_target_corr (k, MC_DISP, i, j),                      &
                mmc_depth (k,MC_DISP, i, j)
@@ -339,7 +342,8 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
             DO k = 1, chem_ncor 
             DO i = 1, mole_num_type 
             DO j = i, mole_num_type 
-            IF (mmc_target_corr (k, MC_DISP, i, j) .ne.0.0) then 
+!           IF (mmc_target_corr (k, MC_DISP, i, j) .ne.0.0) then 
+            IF (mmc_pair        (k, MC_DISP, i, j) .ne.0.0) then 
                WRITE (output_io, 4200) i, j, k,                   &
                mmc_target_corr (k,MC_DISP, i, j),                 &
                mmc_depth (k, MC_DISP, i, j)
