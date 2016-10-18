@@ -2903,6 +2903,7 @@ CONTAINS
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in surface menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
@@ -3305,6 +3306,7 @@ CONTAINS
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in property menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 

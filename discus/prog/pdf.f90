@@ -252,6 +252,7 @@ SUBROUTINE pdf
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in pdf menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 

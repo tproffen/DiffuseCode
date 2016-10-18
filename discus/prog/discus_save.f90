@@ -508,6 +508,7 @@ SUBROUTINE save_struc (zeile, lcomm)
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in save menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
