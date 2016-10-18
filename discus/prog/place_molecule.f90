@@ -207,6 +207,7 @@ CONTAINS
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in decorate menu'
                   prompt_status = PROMPT_ON 
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
@@ -836,7 +837,7 @@ CONTAINS
               is     = cr_iscat(ia)                  ! get scattering type central
               xyz(:) = cr_pos(:,ia)                  ! Get atom position
               idef   = dc_use_conn(is)               ! use this connectivity list for surface
-              CALL get_connectivity_list (ia, is, idef, maxw, c_list, c_offs, natoms )
+              CALL get_connectivity_list (ia, is, idef, c_list, c_offs, natoms )
 !             Go through all definitions
               dc_def_temp => dc_def_head        
               defs: DO WHILE(ASSOCIATED(dc_def_temp))
