@@ -56,6 +56,7 @@ SUBROUTINE file_kdo(line, ilen)
 !           IF(ASSOCIATED(mac_tree_root)) DEALLOCATE(mac_tree_root) !WARNING MEMORY LEAK
 !           IF(ASSOCIATED(mac_tree_active)) DEALLOCATE(mac_tree_active) !WARNING MEMORY LEAK
             lmakro = .false.
+            lmakro_error = .FALSE.            ! Start with macro termination error off
             oprompt = prompt
             CALL macro_close
             RETURN
@@ -183,6 +184,7 @@ SUBROUTINE file_kdo(line, ilen)
          mac_tree_active  => mac_tree_temp       ! Point to currently active macro
          mac_tree_tail    => mac_tree_temp       ! Point to last macro
          lmakro = .true.
+         lmakro_error = .FALSE.                  ! Start with macro termination error off
       ELSE
          mac_tree_active%kid  => mac_tree_temp   ! Store new macro as kid of active macro
          mac_tree_temp%parent => mac_tree_active ! Store parent of current macro
@@ -550,6 +552,7 @@ SUBROUTINE file_kdo(line, ilen)
          then
             WRITE ( *, 2000) char (7)
             lmakro = .false.
+            lmakro_error = .false.    ! Macro termination error off
             line = '#'
             il = 1
          ENDIF
@@ -574,6 +577,7 @@ SUBROUTINE macro_close
       USE class_macro_internal
       USE macro_mod
       USE mpi_slave_mod
+      USE errlist_mod
       USE prompt_mod
       IMPLICIT none
 !
@@ -588,6 +592,7 @@ IF(prompt_status/=PROMPT_OFF) THEN
 ENDIF
 !     
       lmakro = .false.
+      IF(ier_num/=0) lmakro_error = .TRUE.     ! Macro terminated with error
       prompt = oprompt
 !     mac_level = 0
       macro_level = 0
@@ -636,6 +641,7 @@ SUBROUTINE macro_close_mpi(first_mac, mac_l)
 !
 USE class_macro_internal
 USE macro_mod
+USE errlist_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -660,6 +666,7 @@ ELSE
    DEALLOCATE(mac_tree_active)
    lmakro = .false.
    macro_level = 0
+   IF(ier_num/=0) lmakro_error = .TRUE.     ! Macro terminated with error
 ENDIF
 END SUBROUTINE macro_close_mpi
 !*****7*****************************************************************
@@ -698,6 +705,7 @@ END SUBROUTINE macro_close_mpi
 !        IF (mac_level.gt.0) then
          IF (macro_level.gt.0) then
             lmakro = .true.
+            lmakro_error = .FALSE.
             IF (prompt.ne.'macro ') oprompt = prompt
             prompt = 'macro '
          ENDIF

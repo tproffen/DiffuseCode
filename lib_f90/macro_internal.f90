@@ -10,7 +10,7 @@ PUBLIC  :: macro_root, macro_temp, macro_read_temp
 PUBLIC  :: macro_add_node, macro_find_node, macro_write_node
 PUBLIC  :: mac_tree_root, mac_tree_temp, mac_tree_active, mac_tree_tail
 PUBLIC  :: macro_level
-PUBLIC  :: lmakro
+PUBLIC  :: lmakro, lmakro_error
 PUBLIC  :: sprompt
 !
 
@@ -44,6 +44,7 @@ TYPE(macro_tree), POINTER            :: mac_tree_tail   ! temporary pointer that
 !
 INTEGER                              :: macro_level = 0 ! Current macro depth
 LOGICAL                              :: lmakro = .false.! Macro status is on/off
+LOGICAL                              :: lmakro_error = .false.! Macro termination with status is off
 CHARACTER(LEN=40)                    :: sprompt         ! Prompt at macro start
 !
 CONTAINS

@@ -497,8 +497,8 @@ SUBROUTINE waves_menu
       IF (ier_num.ne.0) then 
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro) then 
-               IF(sprompt /= prompt) THEN
+            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+               IF(sprompt /= prompt .OR. lmakro_error) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in waves menu'
@@ -516,6 +516,7 @@ SUBROUTINE waves_menu
                RETURN 
             ENDIF 
             CALL no_error 
+            sprompt = ' '
          ENDIF 
       ENDIF 
       ENDDO 
