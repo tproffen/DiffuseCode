@@ -102,7 +102,7 @@ CONTAINS
                c_name_l = 1
             ENDIF
             CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
-            CALL do_show_connectivity ( iatom, ino, long)
+            CALL do_show_connectivity ( iatom, ino, c_name, long)
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
 !                                                                       

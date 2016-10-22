@@ -263,6 +263,168 @@ CONTAINS
 !
    END SUBROUTINE create_connectivity
 !
+   SUBROUTINE recreate_connectivity(itype, ino, c_name)
+!
+!  Performs a loop over all atoms and creates the individual connectivities
+!
+   USE chem_mod
+   USE crystal_mod
+   USE atom_env_mod
+   USE modify_mod
+!
+   IMPLICIT NONE
+!
+   INTEGER           , INTENT(IN)     :: itype   ! Atom type
+   INTEGER           , INTENT(INOUT)  :: ino     ! Connectivity def. no.
+   CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
+!
+!  INTEGER, INTENT(IN)  :: i
+!
+   INTEGER, PARAMETER  :: MIN_PARA = 1
+   INTEGER             :: maxw
+!
+   REAL   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
+!
+   INTEGER              :: j,i
+   INTEGER              :: is  ! dummies for scattering types
+   INTEGER              :: ianz
+   INTEGER              :: n_neig      ! Actual number of neighboring atoms
+   LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
+   LOGICAL              :: fq    ! quick search algorithm
+   LOGICAL              :: found_def   ! Found correct neiborhood def to replace
+   LOGICAL              :: found       ! Found correct neiborhood to replace
+   REAL                 :: rmin        ! Minimum bond length
+   REAL                 :: rmax        ! Maximum bond length
+   REAL   , DIMENSION(3)     :: x      ! Atom position
+!
+   maxw = MAX(MIN_PARA, MAXSCAT+1)
+!
+!  CALL deallocate_conn(conn_nmax)                     ! Deallocate old connectivity
+   conn_nmax = cr_natoms                               ! Remember current atom number
+   IF ( .NOT.ALLOCATED(at_conn)) THEN                 ! No previous NEIGHBORHOOD exists
+      CALL allocate_conn_list(conn_nmax)               ! Allocate connectivity
+   ENDIF
+!
+   fp (1) = chem_period (1)
+   fp (2) = chem_period (2)
+   fp (3) = chem_period (3)
+   fq     = chem_quick
+!
+   atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
+      is   = cr_iscat(i)                                    ! Keep atom type
+      IF(is/=itype) CYCLE atome
+      x(1) = cr_pos(1,i)
+      x(2) = cr_pos(2,i)
+      x(3) = cr_pos(3,i)
+      ianz = 1
+      allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
+         def_temp => def_main(is)%def_liste
+         found_def = .FALSE.
+         neighs: DO
+            IF(.NOT.(ino==def_temp%valid_id .OR. c_name==def_temp%def_name)) THEN
+               def_temp => def_temp%def_next                ! not the right definition,
+               CYCLE neighs                                 ! go to next definition
+            ENDIF
+            found_def = .TRUE.
+            werte(1:def_temp%valid_no) =      &
+               def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
+            ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
+            rmin     = def_temp%def_rmin                    ! Copy distance limits
+            rmax     = def_temp%def_rmax
+            CALL do_find_env (ianz, werte, maxw, x, rmin,rmax, fq, fp)
+            at_conn(i)%number = i                           ! Just set atom no
+!
+            IF ( atom_env(0) > 0) THEN                      ! The atom has neighbors
+!
+!              Properly set the pointer hood_temp
+!
+               found = .FALSE.
+               IF ( ASSOCIATED(at_conn(i)%liste)) THEN      ! A previous NEIGHBORHOOD exists
+                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
+find_hood:        DO WHILE(ASSOCIATED(hood_temp))
+                     IF(ino==hood_temp%neigh_type .OR. &
+                        c_name==hood_temp%conn_name   ) THEN ! Found the correct neighborhood
+                        found = .TRUE.
+                        EXIT find_hood
+                     ENDIF
+                     hood_temp => hood_temp%next_neighborhood  ! Point to the next NEIGHBORHOOD
+                  ENDDO find_hood
+                  IF(found) THEN                            ! We are at correct neighborhood
+                     CONTINUE                               ! Deallocate old neighbors
+                     temp => hood_temp%nachbar              ! point to the first neighbor within current neigborhood
+                     head => hood_temp%nachbar
+                     DO WHILE ( ASSOCIATED(temp) )          ! While there are further neighbors
+                       temp => temp%next                    ! Point to next neighbor
+                       IF(ASSOCIATED(head)) THEN
+                          DEALLOCATE ( head )               ! deallocate previous neighbor
+                       ENDIF
+                       head => temp                         ! also point to next neighbor
+                     END DO
+                  ELSE                                      ! No neighborood found thus:
+                     ALLOCATE(hood_temp%next_neighborhood)     ! Create one NEIGHBORHOOD
+                     hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
+                  ENDIF
+               ELSE
+                  ALLOCATE (at_conn(i)%liste)               ! Create one NEIGHBORHOOD
+                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
+                  NULLIFY (hood_temp%next_neighborhood)     ! No further NEIGHBORHOODs
+               ENDIF
+!
+!           Now we set parameters of current NEIGHBORHOOD
+!
+               IF(def_temp%intend_no == -1) THEN
+                  n_neig = atom_env(0)
+               ELSE
+                  n_neig = MIN(atom_env(0),def_temp%intend_no)
+               ENDIF
+               hood_temp%central_number = i                 ! Just set central atom no.
+               hood_temp%central_type   = cr_iscat(i)
+               hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
+               hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
+               hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
+               hood_temp%natoms         = n_neig              ! Set number of neighbors
+               NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
+!
+               ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
+               j = 1
+               tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
+               tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
+               tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+               tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+               tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+               NULLIFY (tail%next)                          ! No further neighbors
+!
+               DO j = 2, n_neig                             ! Add all (intended) neighbors to list
+                  ALLOCATE (tail%next)                      ! create a further NEIGHBOR
+                  tail => tail%next                         ! reassign tail to new end of list
+                  tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
+                  tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+                  tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+                  tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+                  NULLIFY (tail%next)                       ! No further neighbors
+               ENDDO
+            ENDIF
+            IF(found) CYCLE atome
+            IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
+               CYCLE atome
+            ENDIF
+            def_temp => def_temp%def_next
+         ENDDO neighs                                       ! Loop over def.s
+            IF(.NOT.found_def) THEN                             ! found no correct definition
+               ier_num = -109
+               ier_typ = ER_APPL
+               ier_msg(1) = 'None of the connectivity definitions for the'
+               ier_msg(2) = 'atom type to be renewed matches the number or name'
+               RETURN
+            ENDIF
+      ENDIF allowed                                         ! Atom has def.s
+   ENDDO atome                                              ! Loop over all atoms in structure
+!
+   conn_status = .true.
+!
+   END SUBROUTINE recreate_connectivity
+!
+!
    SUBROUTINE conn_do_set ( code, zeile, length)
 !-                                                                      
 !     Set the parameters for the connectivity
@@ -611,6 +773,7 @@ CONTAINS
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE modify_mod
 !
       USE doact_mod 
       USE learn_mod 
@@ -632,9 +795,11 @@ CONTAINS
       INTEGER              :: c_name_l ! connectivity name length
       INTEGER              :: ino      ! connectivity no
       INTEGER              :: iatom    ! atoms no for show
+      INTEGER              :: itype    ! atomR type for recreate
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, iianz
       LOGICAL              :: long     ! make long output
+      LOGICAL              :: lnew     ! Do not make new atom type
       LOGICAL lend
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
 !                                                                       
@@ -745,6 +910,37 @@ CONTAINS
                ELSEIF (str_comp (befehl, 'remove', 3, lbef, 6) ) then 
                   CALL conn_do_set (code_del,zeile, lp) 
 !                                                                       
+!     ----recreate a connectivity list 'recreate'                                     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'recreate', 3, lbef, 8) ) then 
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+                  IF(ier_num==0) THEN
+                     itype  = 0
+                     ino    = 0
+                     c_name = ' '
+                     IF(ianz==2) THEN
+                        iianz = 1
+                        lnew  = .false.
+                        CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew)
+                        IF(ier_num==0) THEN
+                           itype = NINT(werte(1))
+                           CALL del_params (1, ianz, cpara, lpara, maxw)
+                           c_name = cpara(1)(1:lpara(1))
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                           IF(ier_num==0) THEN
+                              ino = NINT(werte(1))
+                              c_name = ' '
+                           ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
+                              CALL no_error   ! assume 
+                           ENDIF
+                           CALL recreate_connectivity(itype, ino, c_name)
+                        ENDIF
+                     ELSE
+                        ier_num = -6
+                        ier_typ = ER_COMM
+                     ENDIF
+                  ENDIF
+!                                                                       
 !     ----reset to no      connectivity definition 'reset'                 
 !                                                                       
                ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
@@ -788,7 +984,7 @@ CONTAINS
                            c_name_l = 1
                         ENDIF
                         CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
-                        CALL do_show_connectivity ( iatom, ino, long)
+                        CALL do_show_connectivity ( iatom, ino, c_name, long)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -809,28 +1005,31 @@ CONTAINS
             ENDIF 
          ENDIF 
       ENDIF 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
             IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt .OR. lmakro_error) THEN
+               IF(sprompt /= prompt ) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in connectivity menu'
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
                   RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
                ENDIF 
             ENDIF 
-            IF (lblock) then 
+            IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
                prompt_status = PROMPT_ON 
+               prompt = orig_prompt
                RETURN 
             ENDIF 
             CALL no_error 
+            lmakro_error = .FALSE.
             sprompt = ' '
          ENDIF 
       ENDIF 
@@ -1062,7 +1261,7 @@ CONTAINS
    END FUNCTION get_connectivity_numbers
 !
 !
-   SUBROUTINE do_show_connectivity ( iatom, idef, long )
+   SUBROUTINE do_show_connectivity ( iatom, idef, c_name, long )
 !-                                                                      
 !     Shows the connectivity no. idef around atom no iatom
 !+                                                                      
@@ -1076,9 +1275,10 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !
-      INTEGER, INTENT(in)        :: iatom
-      INTEGER, INTENT(INOUT)     :: idef
-      LOGICAL, INTENT(in)        :: long
+      INTEGER          , INTENT(IN)    :: iatom
+      INTEGER          , INTENT(INOUT) :: idef
+      CHARACTER(LEN=*) , INTENT(IN)    :: c_name
+      LOGICAL          , INTENT(IN)    :: long
 !
       INTEGER, PARAMETER         :: maxw = 2000
 !
@@ -1099,9 +1299,11 @@ CONTAINS
       u   = cr_pos(:,iatom)
       CALL get_connectivity_list (iatom, is1, idef, c_list, c_offs, natoms )
 !
-      WRITE(output_io,1000) iatom, is1
+      WRITE(output_io,1000) iatom, at_name(is1), idef,c_name(1:LEN_TRIM(c_name)), natoms
       IF ( natoms > 0 ) THEN
-        WRITE(output_io, 1100) (c_list(i),i=1,natoms)
+        DO j=1,(natoms-1)/6+1
+           WRITE(output_io, 1100) (c_list(i),i=(j-1)*6+1, MIN((j-1)*6 + 6,natoms))
+        ENDDO
       ELSE
          WRITE(output_io, 1200)
       ENDIF
@@ -1133,8 +1335,10 @@ CONTAINS
          DEALLOCATE(c_list)
       ENDIF
 !
-1000  FORMAT( ' Connectivity for atom No. ',I6,' of type ',i4)
-1100  FORMAT( '      Neighbors are        ',20(i6,2x))
+1000  FORMAT( ' Connectivity for atom No. ',I6,' of type ', &
+             a9,' No : ',i4,1x,a,/,                         &
+              '      Neighbor number:', i3)
+1100  FORMAT( '      Neighbors are        ',20(i6:,2x))
 1200  FORMAT( '      Atom has no neighbours')
 3010  FORMAT(1x,a9,3(2x,f12.6),4x,f10.6,2x,a) 
 3020  FORMAT( 3x  ,3(8x,i6   ),9x,f12.6    ) 
