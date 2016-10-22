@@ -25,6 +25,7 @@
       CHARACTER(LEN=40         ) :: orig_prompt 
       CHARACTER(40) cdummy 
       CHARACTER(4) befehl 
+      CHARACTER(LEN=1) :: empty 
       INTEGER lpara (maxw) 
       INTEGER ll, lp 
       INTEGER ianz, indxg, lbef 
@@ -35,6 +36,7 @@
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
+      empty = ' '
       CALL no_error 
       sel_func = ftyp (1:4) .ne.'NONE' 
 !                                                                       
@@ -279,6 +281,9 @@
                ier_num = - 25 
                ier_typ = ER_APPL 
             ELSE 
+               IF(ex(iwin,iframe,1)==ex(iwin,iframe,2)) THEN
+                  CALL set_skal(empty,0)
+               ENDIF
                IF (lni (ikfit) ) then 
                   CALL do_fit_z 
                ELSE 
@@ -365,33 +370,39 @@
 !                                                                       
 !------ any errors ?                                                    
 !                                                                       
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro.and.ier_sta.ne.ER_S_LIVE) then 
-               IF(sprompt /= prompt) THEN
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
+            IF (lmakro .OR. lmakro_error) THEN 
+               IF(sprompt /= prompt ) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in fit menu'
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
+                  RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
                ENDIF 
             ENDIF 
-            IF (lblock) then 
+            IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
                prompt_status = PROMPT_ON 
+               prompt = orig_prompt
                RETURN 
             ENDIF 
             CALL no_error 
+            lmakro_error = .FALSE.
+            sprompt = ' '
          ENDIF 
       ENDIF 
       GOTO 10 
-!
-      prompt = orig_prompt
 !                                                                       
  9999 CONTINUE 
+!
+      prompt = orig_prompt
 !                                                                       
  2000 FORMAT     (a) 
  2100 FORMAT     (1x,'Refinement mode: ',a) 
