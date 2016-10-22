@@ -24,33 +24,13 @@ CONTAINS
    SUBROUTINE variable_init
 !
    INTEGER :: i
-!
-   i = 1
-   var_name( i) = 'pi'
-   var_char( i) = ' '
-   var_l   ( i) = 2
-   var_type( i) = 1
-   var_val ( i) = 3.1415926535897932384626433832795028841971693993751D0
+   i = 0
 !
    i = i + 1
    var_ref      = i                ! Store first refinement variable entry number
    var_name( i) = 'ref_generation'
    var_char( i) = ' '
    var_l   ( i) = 14
-   var_type( i) = 0
-   var_val ( i) = 0
-!
-   i = i + 1
-   var_name( i) = 'ref_member'
-   var_char( i) = ' '
-   var_l   ( i) = 10
-   var_type( i) = 0
-   var_val ( i) = 0
-!
-   i = i + 1
-   var_name( i) = 'ref_children'
-   var_char( i) = ' '
-   var_l   ( i) = 12
    var_type( i) = 0
    var_val ( i) = 0
 !
@@ -62,9 +42,23 @@ CONTAINS
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_kid'
+   var_name( i) = 'ref_children'
    var_char( i) = ' '
-   var_l   ( i) =  7
+   var_l   ( i) = 12
+   var_type( i) = 0
+   var_val ( i) = 0
+!
+   i = i + 1
+   var_name( i) = 'ref_member'
+   var_char( i) = ' '
+   var_l   ( i) = 10
+   var_type( i) = 0
+   var_val ( i) = 0
+!
+   i = i + 1
+   var_name( i) = 'ref_nindiv'
+   var_char( i) = ' '
+   var_l   ( i) = 10
    var_type( i) = 0
    var_val ( i) = 0
 !
@@ -76,15 +70,22 @@ CONTAINS
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_nindiv'
+   var_name( i) = 'ref_kid'
    var_char( i) = ' '
-   var_l   ( i) = 10
+   var_l   ( i) =  7
    var_type( i) = 0
    var_val ( i) = 0
 !
+   i = i + 1
+   var_name( i) = 'pi'
+   var_char( i) = ' '
+   var_l   ( i) = 2
+   var_type( i) = 1
+   var_val ( i) = 3.1415926535897932384626433832795028841971693993751D0
+!
 !
    var_num      = i
-   var_sys      = i
+   var_sys      = 0
 !
    END SUBROUTINE variable_init
 !

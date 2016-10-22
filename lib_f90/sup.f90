@@ -2315,7 +2315,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     ----- sort the new variable name in descending length and         
 !           descending alphabetical order                               
 !                                                                       
-               i = var_sys + 1 
+               i = 1 ! var_sys + 1 
                DO while (l_temp.lt.var_l (i) .and.i.le.var_num) 
                i = i + 1 
                ENDDO 
