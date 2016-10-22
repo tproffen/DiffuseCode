@@ -87,11 +87,16 @@ fehler: IF (ier_num.ne.0) then
          ENDIF
          CALL errlist
          IF (ier_sta /= ER_S_LIVE) THEN 
-            IF (lmakro) THEN 
+            IF (lmakro .OR.  lmakro_error) THEN 
                IF(sprompt /= 'discus') THEN
                  ier_num = -9
                  ier_typ = ER_COMM
                  EXIT main
+               ELSE
+                  CALL macro_close
+                  lmakro_error = .FALSE.
+                  PROMPT_STATUS = PROMPT_ON
+                  sprompt = ' '
                ENDIF
             ENDIF
          ENDIF 

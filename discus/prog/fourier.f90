@@ -838,10 +838,10 @@ CONTAINS
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
             IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt .OR. lmakro_error) THEN
+               IF(sprompt /= prompt ) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in domain menu'
+                  ier_msg(1) = ' Error occured in fourier menu'
                   prompt = orig_prompt
                   prompt_status = PROMPT_ON 
                   RETURN 
@@ -858,6 +858,7 @@ CONTAINS
                RETURN 
             ENDIF 
             CALL no_error 
+            lmakro_error = .FALSE.
             sprompt = ' '
          ENDIF 
       ENDIF 

@@ -90,11 +90,16 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                ENDIF
                CALL errlist
                IF (ier_sta.ne.ER_S_LIVE) then 
-                  IF (lmakro) then 
+                  IF (lmakro .OR. lmakro_error) then 
                      IF(sprompt /= 'diffev') THEN
                         ier_num = -9
                         ier_typ = ER_COMM
                         EXIT main
+                     ELSE
+                        CALL macro_close
+                        lmakro_error = .FALSE.
+                        PROMPT_STATUS = PROMPT_ON
+                        sprompt = ' '
                      ENDIF 
                   ENDIF 
                ENDIF 
