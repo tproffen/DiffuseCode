@@ -109,6 +109,9 @@
    to specify a pair, respectively one atom to define the axis/origin
 
    The symmetry command can now rotate partial molecule groups
+
+   A new 'recreate' command allows to rebuild the connectivity list 
+   for a specific atom type while leaving the remainder intact.
 3  2016_June
 
    The mmc 'set move' command may now take a further parameter. This 
@@ -1477,6 +1480,7 @@
 !p add     ! Adds a new definition 
 !p create  ! Creates the actual connectivity list for each atom
 !p delete  ! Deletes the connectivity list
+!p recreate  ! Recreates the actual connectivity list for each atom
 !p remove  ! Removes an individual connectivity definition
 !p reset   ! Resets to program start, removes all def.s and the connectivity list
 !p set     ! Sets an individual definition
@@ -1521,6 +1525,15 @@
 3  delete
 
    Deletes the current connectivity list.
+3  recreate
+!b recreate <central_atom_type>, {<def.no.>| <def_name>}
+
+   Recreates the connectivity list for the specified atom type and 
+   connectivity definition.
+   All neighbors to a central atom of this type are redetermined. 
+   The previous entry in the connectivity list is completely lost.
+
+   All other connectivities are not affected by this command.
 3  remove
 !b remove <central_atom_type>, {<def.no.>| <def_name>}
 
