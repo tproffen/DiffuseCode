@@ -593,7 +593,7 @@ ENDIF
 !     
       lmakro = .false.
       IF(ier_num/=0) lmakro_error = .TRUE.     ! Macro terminated with error
-      prompt = oprompt
+      IF(ier_num==0) prompt = sprompt
 !     mac_level = 0
       macro_level = 0
 IF(ASSOCIATED(mac_tree_root)) THEN

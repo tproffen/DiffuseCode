@@ -198,26 +198,31 @@ CONTAINS
         ENDIF no_com       ! END IF BLOCK no comment
       ENDIF no_err         ! END IF BLOCK no error reading input
 !
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
             IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt .OR. lmakro_error) THEN
+               IF(sprompt /= prompt ) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in decorate menu'
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
                   RETURN
                ELSE
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
                ENDIF 
             ENDIF 
-            IF (lblock) then 
+            IF (lblock) THEN 
+               ier_num = - 11
+               ier_typ = ER_COMM
                prompt_status = PROMPT_ON 
+               prompt = orig_prompt
                RETURN 
             ENDIF 
             CALL no_error 
+            lmakro_error = .FALSE.
             sprompt = ' '
          ENDIF 
       ENDIF 

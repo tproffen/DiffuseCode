@@ -506,25 +506,29 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             ENDIF
          ELSE 
             CALL errlist 
-            IF (ier_sta.ne.ER_S_LIVE) then 
+            IF (ier_sta.ne.ER_S_LIVE) THEN 
                IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-                  IF(sprompt /= prompt .OR. lmakro_error) THEN
+                  IF(sprompt /= prompt ) THEN
                      ier_num = -10
                      ier_typ = ER_COMM
                      ier_msg(1) = ' Error occured in read menu'
                      prompt_status = PROMPT_ON 
+                     prompt = orig_prompt
+                     RETURN
                   ELSE
                      CALL macro_close 
                      prompt_status = PROMPT_ON 
                   ENDIF 
                ENDIF 
-               IF (lblock) then 
+               IF (lblock) THEN 
                   ier_num = - 11 
                   ier_typ = ER_COMM 
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
                   RETURN 
                ENDIF 
                CALL no_error 
+               lmakro_error = .FALSE.
                sprompt = ' '
             ENDIF 
          ENDIF 

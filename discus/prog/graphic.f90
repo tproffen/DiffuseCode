@@ -514,11 +514,12 @@ SUBROUTINE do_niplps (linverse)
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) THEN 
             IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt .OR. lmakro_error) THEN
+               IF(sprompt /= prompt ) THEN
                   ier_num = -10
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error occured in output menu'
                   prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
                   RETURN
                ELSE
                   CALL macro_close 
@@ -528,9 +529,12 @@ SUBROUTINE do_niplps (linverse)
             IF (lblock) THEN 
                ier_num = - 11 
                ier_typ = ER_COMM 
+               prompt_status = PROMPT_ON 
+               prompt = orig_prompt
                RETURN 
             ENDIF 
             CALL no_error 
+            lmakro_error = .FALSE.
             sprompt = ' '
          ENDIF 
       ENDIF 

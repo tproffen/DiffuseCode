@@ -58,6 +58,7 @@
 !       Resets error variables
 !-
        USE errlist_mod 
+       USE class_macro_internal
        IMPLICIT       none
 !
 !

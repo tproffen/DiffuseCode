@@ -76,6 +76,11 @@ CONTAINS
                      ier_num = -9
                      ier_typ = ER_COMM
                      EXIT main
+                  ELSE
+                     CALL macro_close
+                     lmakro_error = .FALSE.
+                     PROMPT_STATUS = PROMPT_ON
+                     sprompt = ' '
                   ENDIF 
                ENDIF 
             ENDIF 
