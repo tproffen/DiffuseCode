@@ -2315,7 +2315,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     ----- sort the new variable name in descending length and         
 !           descending alphabetical order                               
 !                                                                       
-               i = 1 ! var_sys + 1 
+               i = var_sys + 1 
                DO while (l_temp.lt.var_l (i) .and.i.le.var_num) 
                i = i + 1 
                ENDDO 
@@ -2428,9 +2428,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER,           INTENT(IN) :: lp 
 !                                                                       
       INTEGER reserved_n 
-      PARAMETER (reserved_n = 47) 
+      PARAMETER (reserved_n = 55) 
                                                                         
-      CHARACTER(12) reserved (reserved_n) 
+      CHARACTER(LEN=14) reserved (reserved_n) 
       INTEGER i, ii 
       LOGICAL lok 
 !                                                                       
@@ -2439,7 +2439,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',   &
       'nint', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif',     &
       'endif', 'else', 'while', 'until', 'lt', 'le', 'gt', 'ge', 'eq',  &
-      'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew' /                             
+      'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew', 'REF_GENERATION',  &
+      'REF_MEMBER', 'REF_CHILDREN', 'REF_DIMENSION', 'REF_KID',         &
+      'REF_INDIV', 'REF_NINDIV','PI'/                             
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 

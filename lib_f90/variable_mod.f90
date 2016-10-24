@@ -28,56 +28,56 @@ CONTAINS
 !
    i = i + 1
    var_ref      = i                ! Store first refinement variable entry number
-   var_name( i) = 'ref_generation'
+   var_name( i) = 'REF_GENERATION'
    var_char( i) = ' '
    var_l   ( i) = 14
    var_type( i) = 0
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_dimension'
+   var_name( i) = 'REF_MEMBER'
    var_char( i) = ' '
-   var_l   ( i) = 13
+   var_l   ( i) = 10
    var_type( i) = 0
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_children'
+   var_name( i) = 'REF_CHILDREN'
    var_char( i) = ' '
    var_l   ( i) = 12
    var_type( i) = 0
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_member'
+   var_name( i) = 'REF_DIMENSION'
    var_char( i) = ' '
-   var_l   ( i) = 10
+   var_l   ( i) = 13
    var_type( i) = 0
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'ref_nindiv'
-   var_char( i) = ' '
-   var_l   ( i) = 10
-   var_type( i) = 0
-   var_val ( i) = 0
-!
-   i = i + 1
-   var_name( i) = 'ref_indiv'
-   var_char( i) = ' '
-   var_l   ( i) =  9
-   var_type( i) = 0
-   var_val ( i) = 0
-!
-   i = i + 1
-   var_name( i) = 'ref_kid'
+   var_name( i) = 'REF_KID'
    var_char( i) = ' '
    var_l   ( i) =  7
    var_type( i) = 0
    var_val ( i) = 0
 !
    i = i + 1
-   var_name( i) = 'pi'
+   var_name( i) = 'REF_INDIV'
+   var_char( i) = ' '
+   var_l   ( i) =  9
+   var_type( i) = 0
+   var_val ( i) = 0
+!
+   i = i + 1
+   var_name( i) = 'REF_NINDIV'
+   var_char( i) = ' '
+   var_l   ( i) = 10
+   var_type( i) = 0
+   var_val ( i) = 0
+!
+   i = i + 1
+   var_name( i) = 'PI'
    var_char( i) = ' '
    var_l   ( i) = 2
    var_type( i) = 1
@@ -85,7 +85,7 @@ CONTAINS
 !
 !
    var_num      = i
-   var_sys      = 0
+   var_sys      = 7
 !
    END SUBROUTINE variable_init
 !

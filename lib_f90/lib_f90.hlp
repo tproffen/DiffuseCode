@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_October
+
+   New system variables have been introduced. They can be used like any
+   other user defined variable. System variables are in capital letters.
 3  2014November
 
    A new random number "gskew" has been added, which returns a 
