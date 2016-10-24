@@ -9,11 +9,14 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-133,IO=4)
+      PARAMETER    (IU=-136,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'Connectivity name does not match',         & !-136 ! discus
+     &  'Did not find a connectivity for this atom',& !-135 ! discus
+     &  'Connectivity list has not been created ',  & !-134 ! discus
      &  'Refinement param index outside limits  ',  & !-133 ! discus
      &  'Mismatch between corners and increments'  ,& !-132 ! discus
      &  'No surface sites for ligands found'       ,& !-131 ! discus

@@ -1564,7 +1564,32 @@
    been found using definition number <def.no.> for the scattering
    type of atom no. <atom_no.>
    The list of atom numbers is copied into the result variable "res".
+3  switche
+!b switch
+!b switch <is>, {<conn_number>|<conn_name>}
+!b switch <iatom>,<is>, {<conn_number>|<conn_name>}
 
+   Switch the connectivity between a pair of atoms. 
+   DISCUS will find a random atom A and randomly choose a neighbor
+   atom B among the selected connectivity. For atom A a further 
+   neighbor C and for atom B a further neighbor D is chosen among 
+   the respective connectivities. Atom C is then connected to 
+   atom B and atom D to atom A:
+
+   prior     afterwards
+   A ==> B   A ==> B
+   A ==> C   A ==> D
+   B ==> A   B ==> A
+   B ==> D   B ==> C
+   
+   With no parameters any atom with any atom type is selected and
+   the connectivity is the connectivity number one.
+
+   With two parameters, an atom of type <is> is chosen and the
+   connectivity must be specified.
+   With three parameters, atom number <iatom> is chosen and the
+   scattering type <is> must match this atom, and the 
+   connectivity must be specified.
 2  copy
 !b copy <s> , < n> , <x> , <y> , <z>
 

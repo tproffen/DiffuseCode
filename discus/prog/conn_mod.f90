@@ -20,6 +20,7 @@ PUBLIC  create_connectivity    !  Create the actual list of neighbors around eac
 PUBLIC  conn_do_set            !  Set parameters for the connectivity definitions
 PUBLIC  conn_show              !  Main show routine
 PRIVATE conn_test              !  While developing, a routine to test functionality
+PRIVATE bond_switch_para       !  Define  a bond witching operation
 PRIVATE do_bond_switch         !  Perform a bond witching operation
 PRIVATE get_connect_pointed    !  Read out connectivity list return the pointer to list
 PRIVATE do_exchange            !  Helper to exchange atoms between connectivities
@@ -805,7 +806,6 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
-      REAL       :: ran1
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -994,10 +994,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !     ----Perform bond switching 'switch'                 
 !                                                                       
                ELSEIF (str_comp (befehl, 'switch', 2, lbef, 6) ) then 
-                  iatom  = INT(ran1(idum)*cr_natoms) + 1
-                  ino    = 1
-                  c_name = 'c_first'
-                  CALL do_bond_switch (iatom, ino, c_name) 
+                  CALL bond_switch_para(zeile,lp)
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
@@ -1345,7 +1342,146 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
       END SUBROUTINE do_show_connectivity 
 !
-   SUBROUTINE do_bond_switch (jatom, ino, c_name)
+!
+   SUBROUTINE bond_switch_para(zeile,length)
+!
+   USE discus_config_mod 
+   USE crystal_mod 
+   USE chem_aver_mod
+   USE errlist_mod 
+   USE param_mod 
+!
+   IMPLICIT NONE
+!
+   CHARACTER (LEN=*), INTENT(INOUT) :: zeile
+   INTEGER          , INTENT(INOUT) :: length
+!
+   INTEGER, PARAMETER                   :: MAXW = 3
+   CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+   INTEGER            , DIMENSION(MAXW) :: lpara
+   REAL               , DIMENSION(MAXW) :: werte
+   INTEGER                                 :: ianz , iianz
+!
+   INTEGER                            :: iatom   ! Selected atom number
+   INTEGER                            :: natom   ! Dummy atom number
+   INTEGER                            :: i       ! Dummy atom number
+   INTEGER                            :: iscat   ! Selected atom type
+   INTEGER                            :: success ! Selected atom type
+   INTEGER                            :: ino     ! Connectivity def. no.
+   CHARACTER(LEN=256)                 :: c_name  ! Connectivity name
+!
+   REAL       :: ran1
+!
+   iscat  = 0
+   ino    = 0
+   c_name = ' '
+   CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+   IF ( ianz==0) THEN
+!
+!     No parameters, choose any atom, use connectivity number one
+!
+      iatom  = INT(ran1(idum)*cr_natoms) + 1
+      iscat  = cr_iscat(iatom)
+      ino    = 1
+      c_name = ' '
+   ELSE
+      iianz = 1
+      CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+      IF(ier_num==0) THEN
+         IF(ianz==2) THEN   ! Atom type is specified 
+            iscat = NINT(werte(1))             ! use this ytom type
+            res_para(:) = 0
+            CALL chem_elem(.FALSE.)            ! Check if any atoms are present
+            IF(iscat<0) THEN
+               ier_num = -27
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+            IF(res_para(iscat+1)>0.0) THEN     ! Do we have atoms iscat?
+               natom = INT(ran1(idum)*cr_natoms*res_para(iscat+1))+1 ! random choice
+               iatom = 0
+search:        DO i=1, cr_natoms               ! loop until we find the natoms atom
+                  IF(cr_iscat(i)==iscat) THEN  !      of type iscat
+                     iatom = iatom + 1
+                     IF(iatom==natom) THEN
+                        iatom = i              ! Found, this is the abolute atom number
+                        EXIT search
+                     ENDIF
+                  ENDIF
+               ENDDO search
+            ELSE
+               ier_num = -27
+               ier_typ = ER_APPL
+               RETURN
+            ENDIF
+         ELSEIF(IANZ==3) THEN
+            iatom = NINT(werte(1))
+            IF(iatom<1 .OR.iatom>cr_natoms) THEN
+               ier_num = -19
+               ier_typ = ER_APPL
+               ier_msg(1) = 'atom number must be > 0 and < n[1]'
+               RETURN
+            ENDIF
+            CALL del_params (1, ianz, cpara, lpara, maxw)
+            CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+            IF(ier_num/=0) THEN
+               ier_num = -6
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+            iscat = NINT(werte(1))
+            IF(cr_iscat(iatom)/= iscat) THEN
+               ier_num = -6
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Atom type does not match selected atom'
+               RETURN
+            ENDIF
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'Switch command needs 2 or 3 parameters'
+            RETURN
+         ENDIF
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF(ier_num/=0) THEN
+            c_name   = cpara(1)(1:lpara(1))
+            ino      = 0
+            CALL no_error
+         ELSE                                               ! Success set to value
+            ino = nint (werte (1) ) 
+            IF(ino < 0 ) THEN
+               ier_num = -6
+               ier_typ = ER_COMM
+               ier_msg(1) = 'Connectivity number needs to be positive'
+               RETURN
+            ENDIF
+            c_name   = ' '
+         ENDIF
+      ENDIF
+   ENDIF
+   IF(ier_num == 0) THEN
+      IF(iatom > 0 .AND. (ino>0.OR.c_name/=' ')) THEN
+         CALL do_bond_switch (iatom, ino, c_name, success) 
+         IF(success == 0) THEN
+            CALL no_error
+         ELSEIF(success == -1) THEN
+            ier_num = -134
+            ier_typ = ER_APPL
+         ELSEIF(success == -2) THEN
+            ier_num = -135
+            ier_typ = ER_APPL
+         ELSEIF(success == -3) THEN
+            ier_num = -136
+            ier_typ = ER_APPL
+         ENDIF
+      ENDIF
+   ENDIF
+!
+   END SUBROUTINE bond_switch_para
+!
+!
+   SUBROUTINE do_bond_switch (jatom, ino, c_name, success)
 !-                                                                      
 !     Get the list of neighbors for central atom jatom of type is1
 !+                                                                      
@@ -1357,6 +1493,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
    INTEGER           , INTENT(IN)     :: jatom   ! central atom number
    INTEGER           , INTENT(INOUT)  :: ino     ! Connectivity def. no.
    CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
+   INTEGER           , INTENT(OUT)    :: success
 !
    INTEGER                              :: maxw    ! Size of array c_list 
    INTEGER, DIMENSION(:),   ALLOCATABLE :: c_list  ! List of all neighbors 
@@ -1377,6 +1514,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
    TYPE (NEIGHBORHOOD), POINTER       :: hood_k
    INTEGER    :: c_neig, s_neig, c_ex, s_ex
    INTEGER, DIMENSION(3) :: t_offs, in_offs
+   INTEGER, DIMENSION(3) :: c2ex_old_offs, s2ex_old_offs
+   INTEGER, DIMENSION(3) :: c2ex_new_offs, s2ex_new_offs
    INTEGER               :: t_ex, in_ex, in_ref
    INTEGER    :: katom, j_ex, k_ex
    INTEGER    :: i,k
@@ -1391,12 +1530,14 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
 !
    IF ( ALLOCATED(at_conn) ) THEN
-      CALL get_connect_pointed(hood_central, jatom, ino, c_name, c_list, c_offs, c_natoms)
+      CALL get_connect_pointed(hood_central, jatom, ino, c_name, c_list, c_offs, c_natoms, success)
+      IF(success/=0) RETURN
 ! We should have found a central atom and its connectivity list.
 ! Randomly pick a neighbor atom
       c_neig = INT(ran1(idum)*c_natoms) + 1
       katom  = c_list(c_neig) 
-      CALL get_connect_pointed(hood_second, katom, ino, c_name, s_list, s_offs, s_natoms)
+      CALL get_connect_pointed(hood_second, katom, ino, c_name, s_list, s_offs, s_natoms, success)
+      IF(success/=0) RETURN
 !
       s_neig = 0                                          ! Central not yet found
 search_c: DO i=1, s_natoms
@@ -1406,11 +1547,9 @@ search_c: DO i=1, s_natoms
          ENDIF
       ENDDO search_c
       IF(s_neig == 0) THEN
-         write(*,*) ' CENTRAL atom is NOT a neighbor to second', jatom, c_list(c_neig)
+!        write(output_io,*) ' CENTRAL atom is NOT a neighbor to second', jatom, c_list(c_neig)
 !        ier_num = -6
 !        ier_typ = ER_FORT
-!write(*,*) ' Neigbors central ',jatom         , c_neig, (c_list(i),i=1,c_natoms)
-!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (s_list(i),i=1,s_natoms)
          DEALLOCATE(s_list)
          DEALLOCATE(c_list)
          DEALLOCATE(s_offs)
@@ -1418,8 +1557,6 @@ search_c: DO i=1, s_natoms
          RETURN
       ENDIF
 !
-!write(*,*) ' Neigbors central ',jatom         , c_neig, (c_list(i),i=1,c_natoms)
-!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (s_list(i),i=1,s_natoms)
       c_ex = MOD(INT(ran1(idum)*(c_natoms-1)) + (c_neig), c_natoms ) + 1
       s_ex = MOD(INT(ran1(idum)*(s_natoms-1)) + (s_neig), s_natoms ) + 1
       j_ex = c_list(c_ex)
@@ -1437,109 +1574,75 @@ search_c: DO i=1, s_natoms
             k_ex_in_c_list = .TRUE.
          ENDIF
       ENDDO
-if(j_ex_in_s_list .OR. k_ex_in_c_list) THEN
-   write(*,*) 'EXCHANGE WOULD PRODUCE DOUBLE PARTNER '
+      if(j_ex_in_s_list .OR. k_ex_in_c_list) THEN
+!        write(output_io,*) 'EXCHANGE WOULD PRODUCE DOUBLE PARTNER '
 !ier_num = -6
 !ier_typ = ER_FORT
-!         DEALLOCATE(s_list)
-!         DEALLOCATE(c_list)
-!         DEALLOCATE(s_offs)
-!         DEALLOCATE(c_offs)
-!         RETURN
-ENDIF
-if(j_ex == k_ex) then
-write(*,*) 'Trying to exchange identical neighbors'
+         DEALLOCATE(s_list)
+         DEALLOCATE(c_list)
+         DEALLOCATE(s_offs)
+         DEALLOCATE(c_offs)
+         RETURN
+      ENDIF
+      if(j_ex == k_ex) then
+!write(*,*) 'Trying to exchange identical neighbors'
 !ier_num = -6
 !ier_typ = ER_FORT
-!         DEALLOCATE(s_list)
-!         DEALLOCATE(c_list)
-!         DEALLOCATE(s_offs)
-!         DEALLOCATE(c_offs)
-!         RETURN
-ENDIF
+         DEALLOCATE(s_list)
+         DEALLOCATE(c_list)
+         DEALLOCATE(s_offs)
+         DEALLOCATE(c_offs)
+         RETURN
+      ENDIF
 
       IF(.NOT.(j_ex_in_s_list .OR. k_ex_in_c_list .OR. j_ex == k_ex )) THEN ! SUCCESS
-!write(*,*) ' Exchange central ', c_ex, c_list(c_ex)
-!write(*,*) ' Exchange second  ', s_ex, s_list(s_ex)
 !
 !     Get neighbors for the atoms that will be exchanged
-      CALL get_connect_pointed(hood_j, j_ex, ino, c_name, j_list, j_offs, j_natoms)
-      CALL get_connect_pointed(hood_k, k_ex, ino, c_name, k_list, k_offs, k_natoms)
-      j_in_j = 0                                          ! Central not yet found
+         CALL get_connect_pointed(hood_j, j_ex, ino, c_name, j_list, j_offs, j_natoms, success)
+         IF(success/=0) RETURN
+         CALL get_connect_pointed(hood_k, k_ex, ino, c_name, k_list, k_offs, k_natoms, success)
+         IF(success/=0) RETURN
+         j_in_j = 0                                          ! Central not yet found
 search_k: DO i=1, j_natoms
-         IF(j_list(i) == jatom) THEN
-            j_in_j = i
-            EXIT search_k
-         ENDIF
-      ENDDO search_k
-      k_in_k = 0                                          ! Central not yet found
+           IF(j_list(i) == jatom) THEN
+              j_in_j = i
+              EXIT search_k
+           ENDIF
+         ENDDO search_k
+         k_in_k = 0                                          ! Central not yet found
 search_j: DO i=1, k_natoms
-         IF(k_list(i) == katom) THEN
-            k_in_k = i
-            EXIT search_j
-         ENDIF
-      ENDDO search_j
-!write(*,*) ' JATOM IS nei.no ', jatom, j_in_j
-!write(*,*) ' KATOM IS nei.no ', katom, k_in_k
+            IF(k_list(i) == katom) THEN
+               k_in_k = i
+               EXIT search_j
+            ENDIF
+         ENDDO search_j
 !
 ! now do the exchange
 !
-      in_ref     = s_list(s_ex)    ! Find this partner
-      in_ex      = c_list(c_ex)    ! store this atom number instead of old
-      in_offs(:) = c_offs(:,c_ex)  ! store this offset instead of old
-      CALL do_exchange(hood_second%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
-      in_ref     = c_list(c_ex)    ! Find this partner
-      in_ex      = t_ex            ! store this atom number instead of old
-      in_offs(:) = t_offs(:)       ! store this offset instead of old
-      CALL do_exchange(hood_central%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
-      in_ref     = jatom           ! Find this partner
-      in_ex      = katom           ! store this atom number instead of old
-      in_offs(:) = k_offs(:,k_in_k)! store this offset instead of old
-      CALL do_exchange(hood_j%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
-      in_ref     = katom           ! Find this partner
-      in_ex      = jatom           ! store this atom number instead of old
-      in_offs(:) = j_offs(:,j_in_j)! store this offset instead of old
-      CALL do_exchange(hood_k%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
-!
-! JUST TO DEBUG TEST NEIGHBORHOODS
-!      allocate(temp_list(c_natoms))
-!!DBG
-!      sw_central => hood_central%nachbar       ! point to the first neighbor within current neigborhood
-!      temp_list(:) = 0
-!      k = 0
-! check_c_ex: DO WHILE(ASSOCIATED(sw_central))
-!         k = k + 1
-!         temp_list(k) = sw_central%atom_number
-!         sw_central => sw_central%next                         ! Point to next neighbor
-!      ENDDO  check_c_ex
-!write(*,*) ' Neigbors central ',jatom         , c_neig, (temp_list(i),i=1,c_natoms)
-!      sw_second => hood_second%nachbar       ! point to the first neighbor within current neigborhood
-!      temp_list(:) = 0
-!      k = 0
-! check_s_ex: DO WHILE(ASSOCIATED(sw_second))
-!         k = k + 1
-!         temp_list(k) = sw_second%atom_number
-!         sw_second => sw_second%next                         ! Point to next neighbor
-!      ENDDO  check_s_ex
-!write(*,*) ' Neigbors second  ',c_list(c_neig), s_neig, (temp_list(i),i=1,s_natoms)
-!      sw_second => hood_j%nachbar       ! point to the first neighbor within current neigborhood
-!      temp_list(:) = 0
-!      k = 0
-! check_j_ex: DO WHILE(ASSOCIATED(sw_second))
-!         k = k + 1
-!         temp_list(k) = sw_second%atom_number
-!         sw_second => sw_second%next                         ! Point to next neighbor
-!      ENDDO  check_j_ex
-!write(*,*) ' Neigbors exch 1  ',j_ex          , j_in_j, (temp_list(i),i=1,s_natoms)
-!      sw_second => hood_k%nachbar       ! point to the first neighbor within current neigborhood
-!      temp_list(:) = 0
-!      k = 0
-! check_k_ex: DO WHILE(ASSOCIATED(sw_second))
-!         k = k + 1
-!         temp_list(k) = sw_second%atom_number
-!         sw_second => sw_second%next                         ! Point to next neighbor
-!      ENDDO  check_k_ex
-!write(*,*) ' Neigbors exch 2  ',k_ex          , k_in_k, (temp_list(i),i=1,s_natoms)
+         c2ex_old_offs(:) = c_offs(:,c_ex)   ! offset central to original neig
+         s2ex_old_offs(:) = s_offs(:,s_ex)   ! offset second  to original neig
+         c2ex_new_offs(:) = c_offs(:,c_neig) + s2ex_old_offs(:) ! offs central to new
+         s2ex_new_offs(:) = s_offs(:,s_neig) + c2ex_old_offs(:) ! offs second  to new
+!     Modify second atom
+         in_ref     = s_list(s_ex)    ! Find this partner
+         in_ex      = c_list(c_ex)    ! store this atom number instead of old
+         in_offs(:) = s2ex_new_offs(:)  ! store this offset instead of old
+         CALL do_exchange(hood_second%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+!     Modify central atom
+         in_ref     = c_list(c_ex)    ! Find this partner
+         in_ex      = t_ex            ! store this atom number instead of old
+         in_offs(:) = c2ex_new_offs(:)   ! store this offset instead of old
+!     Modify new neig to second atom
+         CALL do_exchange(hood_central%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+         in_ref     = jatom           ! Find this partner
+         in_ex      = katom           ! store this atom number instead of old
+         in_offs(:) = -s2ex_new_offs(:)! store this offset instead of old
+         CALL do_exchange(hood_j%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
+!     Modify new neig to central atom
+         in_ref     = katom           ! Find this partner
+         in_ex      = jatom           ! store this atom number instead of old
+         in_offs(:) = -c2ex_new_offs(:)! store this offset instead of old
+         CALL do_exchange(hood_k%nachbar, in_ref, in_ex, in_offs, t_ex, t_offs)
 !
 !
       ENDIF
@@ -1553,7 +1656,7 @@ search_j: DO i=1, k_natoms
 !
    END SUBROUTINE do_bond_switch
 !
-   SUBROUTINE get_connect_pointed(hood_p, jatom, ino, c_name, c_list, c_offs, c_natoms)
+   SUBROUTINE get_connect_pointed(hood_p, jatom, ino, c_name, c_list, c_offs, c_natoms, success)
 !
    IMPLICIT NONE
 !
@@ -1565,15 +1668,19 @@ search_j: DO i=1, k_natoms
    INTEGER, DIMENSION(:),   ALLOCATABLE, INTENT(OUT) :: c_list  ! List of all neighbors 
    INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: c_offs  ! Offsets from periodic boundary
    INTEGER                             , INTENT(OUT) :: c_natoms  ! number of neigbor atoms
+   INTEGER                             , INTENT(out) :: success   ! sucess flag
 !
    TYPE (NEIGHBORS), POINTER  :: p_atoms
    INTEGER :: i, k
 !
    i = jatom
+   success = -1                                  ! No connectivity list exists
    IF(ASSOCIATED(at_conn(i)%liste)) THEN
       hood_p => at_conn(i)%liste                 ! point to the first neighborhood
+      success = -2                               ! No neighborhood exists
 search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neighborhood
          p_atoms => hood_p%nachbar               ! point to the first neighbor within current neigborhood
+         success = -2                            ! No connectivity matches
          IF ( hood_p%neigh_type == ino  .OR. &
             hood_p%conn_name  == c_name   ) THEN ! This is the right neighborhood
             ino    = hood_p%neigh_type           ! Return actual number and name
@@ -1601,6 +1708,7 @@ search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neigh
                c_offs(3,k) = p_atoms%offset(3)
                p_atoms => p_atoms%next           ! Point to next neighbor
             END DO
+            success =  0                         ! Finally, success
             EXIT search1                         ! End of connectivity list
          ENDIF
          hood_p => hood_p%next_neighborhood      ! Point to next neighborhood
@@ -1651,7 +1759,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: j_offs  ! Offsets from periodic boundary
 INTEGER :: c_natoms
 INTEGER :: j_natoms
 INTEGER :: ino
-INTEGER :: i, j
+INTEGER :: i, j, success
 INTEGER :: iatom
 INTEGER :: is
 TYPE (NEIGHBORHOOD), POINTER         :: hood_c
@@ -1668,7 +1776,9 @@ IF(ASSOCIATED(at_conn(isel)%liste)) THEN     ! A connectivity list has been crea
       def_temp => def_main(is)%def_liste
 search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
          c_name = def_temp%def_name(1:def_temp%def_name_l)
-         CALL get_connect_pointed(hood_c, isel, ino, c_name, c_list, c_offs, c_natoms)
+         ino = 0
+         CALL get_connect_pointed(hood_c, isel, ino, c_name, c_list, c_offs, c_natoms, success)
+         IF(success/=0) RETURN
          DO i=1,c_natoms                          ! Update all offsets
             c_offs(:,i) = c_offs(:,i) + shift(:)
          ENDDO
@@ -1684,6 +1794,8 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
          def_temp => def_temp%def_next
       ENDDO search_defs
    ENDIF
+!DBG_PERIOD j= 1
+!DBG_PERIOD call do_show_connectivity ( isel, j, c_name, .TRUE. )
 !
 !  Loop over all atoms, and find out if atom isel is a neighbor to any, if so update
 !  Might have to be replaced by a connectivity list that indicates for a given atom
@@ -1695,7 +1807,9 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
             def_temp => def_main(is)%def_liste
 search_def2:DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
                j_name = def_temp%def_name(1:def_temp%def_name_l)
-               CALL get_connect_pointed(hood_j, iatom, ino, j_name, j_list, j_offs, j_natoms)
+               ino = 0
+               CALL get_connect_pointed(hood_j, iatom, ino, j_name, j_list, j_offs, j_natoms, success)
+               IF(success/=0) RETURN
                p_atoms => hood_j%nachbar
 search_neig:   DO WHILE(ASSOCIATED(p_atoms))            ! Place into structure
                   IF(p_atoms%atom_number == isel     ) THEN
