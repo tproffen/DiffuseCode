@@ -131,7 +131,7 @@ CONTAINS
 !                                                                       
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
          IF (ier_num.ne.0) then 
-            RETURN 
+            GOTO 8888              ! Jump to handle error messages, amd macro conditions
          ENDIF 
          IF (ianz.ge.1) then 
 !                                                                       
@@ -139,7 +139,7 @@ CONTAINS
 !                                                                       
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.ne.0) then 
-               RETURN 
+               GOTO 8888              ! Jump to handle error messages, amd macro conditions
             ENDIF 
          ENDIF 
 !                                                                       
@@ -198,7 +198,9 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         * cr_natoms                                     
                         IF (iatom.gt.nmax) then 
                            CALL alloc_crystal ( MAXSCAT, INT(iatom * 1.1))
-                           IF (ier_num < 0 ) RETURN
+                           IF (ier_num < 0 ) THEN
+                              GOTO 8888              ! Jump to handle error messages, amd macro conditions
+                           ENDIF
                         ENDIF
 !
 !                          ier_num = - 10 
@@ -294,7 +296,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                            ELSE 
                               ier_num = - 65 
                               ier_typ = ER_APPL 
-                              RETURN 
+                              GOTO 8888              ! Jump to handle error messages, amd macro conditions
                            ENDIF 
                         ENDIF 
 !                                                                       
@@ -370,14 +372,14 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   ier_num = - 93 
                   ier_typ = ER_APPL 
                   ier_msg (1) = 'Error reading unit cell parameters' 
-                  RETURN 
+                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF 
                werte(1)=1
                CALL spcgr_no(1,maxw,werte)
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
-               RETURN 
+               GOTO 8888              ! Jump to handle error messages, amd macro conditions
             ENDIF 
             cr_icc (1) = 1 
             cr_icc (2) = 1 
@@ -406,7 +408,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
                              n_atom, -1 , .false.)
                IF (ier_num /= 0) THEN
-                  RETURN
+                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF
                need_alloc = .false.
                IF(natoms > NMAX) THEN
@@ -419,7 +421,9 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                ENDIF
                IF ( need_alloc ) THEN
                   CALL alloc_crystal (nscats, natoms)
-                  IF ( ier_num /= 0 ) RETURN
+                  IF ( ier_num /= 0 ) THEN
+                     GOTO 8888              ! Jump to handle error messages, amd macro conditions
+                  ENDIF
                ENDIF
                IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
                   n_atom>MOLE_MAX_ATOM                          ) THEN
@@ -427,7 +431,9 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
                   n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
                   CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-                  IF ( ier_num /= 0 ) RETURN
+                  IF ( ier_num /= 0 )  THEN
+                     GOTO 8888              ! Jump to handle error messages, amd macro conditions
+                  ENDIF
                ENDIF
 !
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
@@ -436,7 +442,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
                sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
                IF (ier_num.ne.0) then 
-                  RETURN 
+                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF 
                mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
                                + mole_len (mole_num_mole)                
@@ -492,6 +498,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             ier_typ = ER_COMM 
             GOTO 9999 
          ENDIF 
+8888     CONTINUE    ! Target for errors, in order to handle these properly
          IF (ier_num.eq.0) then 
             WRITE (output_io, 1000) cr_spcgr, cr_spcgrno 
 !.......calculate metric and reciprocal metric tensor,reciprocal lattice

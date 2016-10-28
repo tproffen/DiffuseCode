@@ -71,7 +71,7 @@ CONTAINS
             ENDIF
             CALL errlist
             IF (ier_sta.ne.ER_S_LIVE) then 
-               IF (lmakro) then 
+               IF (lmakro .OR. lmakro_error) then 
                   IF(sprompt /= 'kuplot') THEN
                      ier_num = -9
                      ier_typ = ER_COMM

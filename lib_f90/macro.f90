@@ -688,6 +688,7 @@ END SUBROUTINE macro_close_mpi
       INTEGER maxw
       PARAMETER (maxw = 1)
       CHARACTER(1024) cpara (maxw)
+      CHARACTER(LEN=40)  :: cprompt
       INTEGER lpara (maxw)
       INTEGER ianz
 !
@@ -722,7 +723,10 @@ END SUBROUTINE macro_close_mpi
       ELSEIF (ianz.eq.1) then
          IF (str_comp (cpara (1), pname, 3, lpara (1), len_str (pname) )&
          ) then
+            cprompt = prompt   ! Remember current prompt, as macro close 
+                               ! goes all the way back....
             CALL macro_close
+            prompt = cprompt   ! Set current prompt as active prompt
             lblock_dbg = .false.
             lblock = .false.
          ELSEIF(str_comp(cpara(1), 'suite', 3, lpara (1), 5)) THEN
