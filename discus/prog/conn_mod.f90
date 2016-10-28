@@ -1487,6 +1487,7 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
 !+                                                                      
    USE discus_config_mod 
    USE crystal_mod 
+   USE metric_mod
 !
    IMPLICIT none 
 !
@@ -1504,6 +1505,8 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: j_offs  ! Offsets from periodic boundary
    INTEGER, DIMENSION(:),   ALLOCATABLE :: k_list  ! List of all neighbors 
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: k_offs  ! Offsets from periodic boundary
+   REAL   , DIMENSION(:,:), ALLOCATABLE :: test_par  ! Test for parallel vectors to the neighbors
+   INTEGER, DIMENSION(2)                :: test_max  ! Location ov the maximum scalar product
    INTEGER                              :: c_natoms  ! number of atoms in connectivity list
    INTEGER                              :: s_natoms  ! number of atoms in connectivity list
    INTEGER                              :: j_natoms  ! number of atoms in connectivity list
@@ -1516,6 +1519,8 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    INTEGER, DIMENSION(3) :: t_offs, in_offs
    INTEGER, DIMENSION(3) :: c2ex_old_offs, s2ex_old_offs
    INTEGER, DIMENSION(3) :: c2ex_new_offs, s2ex_new_offs
+   REAL   , DIMENSION(3) :: u,v, un, vn
+   REAL                  :: distance, unn, vnn
    INTEGER               :: t_ex, in_ex, in_ref
    INTEGER    :: katom, j_ex, k_ex
    INTEGER    :: i,k
@@ -1539,6 +1544,16 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
       CALL get_connect_pointed(hood_second, katom, ino, c_name, s_list, s_offs, s_natoms, success)
       IF(success/=0) RETURN
 !
+      u(:) = cr_pos(:,jatom)
+      v(:) = cr_pos(:,katom) + c_offs(:,c_neig)
+      distance = do_blen(.TRUE., u,v)
+      IF(distance > 2.0) THEN       !   DEVELOPMENT !! MUST BE A USER DEFINED VALUE  !!
+!do i=1, 100
+!write(*,'(a,2i4,f8.3)') ' ATOMS far apart ', jatom, katom, distance
+!ENDDO
+         RETURN
+      ENDIF
+!
       s_neig = 0                                          ! Central not yet found
 search_c: DO i=1, s_natoms
          IF(s_list(i) == jatom) THEN
@@ -1557,10 +1572,62 @@ search_c: DO i=1, s_natoms
          RETURN
       ENDIF
 !
-      c_ex = MOD(INT(ran1(idum)*(c_natoms-1)) + (c_neig), c_natoms ) + 1
-      s_ex = MOD(INT(ran1(idum)*(s_natoms-1)) + (s_neig), s_natoms ) + 1
+! Test for parallel
+!
+!write(*,'(a,i5,3f6.2,2x, 3f6.2,i5)') ' jatom, pos', jatom, cr_pos(:,jatom), u, c_neig
+!write(*,'(a,i5,3f6.2,2x, 3f6.2,i5)') ' katom, pos', katom, cr_pos(:,katom), v, s_neig
+!i=1
+!c_name = 'c_first'
+!call do_show_connectivity ( jatom, i, c_name, .true. )
+!call do_show_connectivity ( katom, i, c_name, .true. )
+      ALLOCATE(test_par(1:c_natoms-1,1:s_natoms-1))
+      test_par(:,:) = 0.0
+      DO i=1, c_natoms-1
+         c_ex  = MOD(i+c_neig-1, c_natoms)+1
+         un(:) = cr_pos(:,c_list(c_ex)) + c_offs(:,c_ex)  -  u(:)  ! Vector jatom ==> neig
+         unn   = sqrt (skalpro (un, un, cr_gten) )
+         DO k=1, s_natoms-1
+            s_ex  = MOD(k+s_neig-1, s_natoms)+1
+            vn(:) = v(:) - c_offs(:, c_neig) - cr_pos(:,s_list(s_ex)) - s_offs(:,s_ex) ! Vector neig ==> katom
+            vnn   = sqrt (skalpro (vn, vn, cr_gten) )
+            test_par(i,k) =  skalpro (un, vn, cr_gten)/(unn*vnn)
+!write(*,'(4i4,3f6.2,2x,3f6.2)') c_list(c_ex), s_list(s_ex), c_ex, s_ex, &
+!   cr_pos(:,c_list(c_ex)) + c_offs(:,c_ex),                             &
+!   cr_pos(:,s_list(s_ex)) + s_offs(:,s_ex)
+!write(*,'(16x,3f6.2,2x, 3f6.2,2x, f6.2)') un, vn, test_par(i,k)
+         ENDDO
+      ENDDO
+!
+!     Choose the pair that is as parallel as possible
+!
+      test_max = MAXLOC(test_par)
+      i= test_max(1)
+      k= test_max(2)
+      c_ex = MOD(i+c_neig-1, c_natoms ) + 1
+      s_ex = MOD(k+s_neig-1, s_natoms ) + 1
+      DEALLOCATE(test_par)
+!write(*,'(a,2i5,4i4,2i5)') ' jatom, katom', jatom, katom, test_max, c_ex, s_ex, c_list(c_ex), s_list(s_ex)
+!
+!     c_ex = MOD(INT(ran1(idum)*(c_natoms-1)) + (c_neig), c_natoms ) + 1
+!     s_ex = MOD(INT(ran1(idum)*(s_natoms-1)) + (s_neig), s_natoms ) + 1
       j_ex = c_list(c_ex)
       k_ex = s_list(s_ex)
+!
+!     TEST for distance original to new partner and second to new partner
+!
+      vn(:) = cr_pos(:, k_ex) + c_offs(:,c_neig) + s_offs(:,s_ex)
+      distance = do_blen(.TRUE., u, vn)
+      IF(distance .GT. 3.00) THEN       !   DEVELOPMENT !! MUST BE A USER DEFINED VALUE  !! 
+!write(*,'(a,3f6.2,2x,3f6.2, 2x, f6.2)') ' Neighbor to A far apart rejected',u,vn, distance
+         RETURN
+      ENDIF
+      un(:) = cr_pos(:, j_ex) + c_offs(:,c_ex)  !+ s_offs(:,s_neig) !+ c_offs(:,c_ex)
+      distance = do_blen(.TRUE., v, un)
+      IF(distance .GT. 3.00) THEN       !   DEVELOPMENT !! MUST BE A USER DEFINED VALUE  !! 
+!write(*,'(a,3f6.2,2x,3f6.2, 2x, f6.2)') ' Neighbor to B far apart rejected',v,un, distance
+         RETURN
+      ENDIF
+!return
 !
       j_ex_in_s_list = .FALSE.
       DO i=1, s_natoms
