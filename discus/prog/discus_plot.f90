@@ -55,8 +55,9 @@ CONTAINS
 !
 !     Allocate the necessary arrays
 !
-      IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT) THEN
-         nscat = max ( cr_nscat, mole_num_type)
+      IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
+           MAXSCAT > PL_MAXSCAT ) THEN
+         nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
          CALL alloc_plot ( nscat )
          IF(ier_num < 0) THEN
            RETURN
