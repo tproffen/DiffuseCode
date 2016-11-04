@@ -16,6 +16,7 @@ MODULE prompt_mod
    INTEGER, PARAMETER :: OUTPUT_FILE     = 3
 !
    CHARACTER(LEN= 1024) :: blank
+   CHARACTER(LEN= 1024) :: input_gui
    CHARACTER(LEN= 80  ) :: s_ipallowed
    CHARACTER(LEN= 40  ) :: prompt
    CHARACTER(LEN= 40  ) :: oprompt
@@ -38,5 +39,6 @@ MODULE prompt_mod
    LOGICAL              :: lremote           = .false.
    LOGICAL              :: lsetup_done       = .false.
    LOGICAL              :: lstandalone       = .true.
+   LOGICAL              :: linteractive      = .true.
 !
 END MODULE prompt_mod

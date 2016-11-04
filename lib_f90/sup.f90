@@ -732,6 +732,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !        On old Red Hat systems uses of readline for the first input
 !        line caused problems. Seems not to be an issue any longer
+         IF(linteractive) THEN
          first_input = .false.
          IF (prompt_status.eq.PROMPT_ON.and..not.first_input) then 
             bprom = ' '//prom (1:len_str(prom)) //' > ' 
@@ -747,6 +748,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             CALL do_prompt (prom) 
             READ ( *, 2000, end = 990, err = 995) input 
             first_input = .FALSE. 
+         ENDIF 
+         ELSE 
+            input = input_gui
          ENDIF 
 !                                                                       
          ll = len_str (input) 
