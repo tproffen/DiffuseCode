@@ -49,7 +49,7 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -g")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -g -Warray-bounds")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
@@ -72,3 +72,4 @@ add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
 add_subdirectory(suite/prog)
+add_subdirectory(python)
