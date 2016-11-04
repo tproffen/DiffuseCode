@@ -117,44 +117,44 @@ add_custom_target(discushlp
 
 # Numpy ?
 
-if (NUMPY_FOUND AND DIFFUSE_PYTHON)
-  add_custom_command (
-    OUTPUT lib_discus.so
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/set_sub_generic_mod.mod       ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
-    COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
-    COMMAND f2py -c -m lib_discus 
-            ${DIFFUSE_LIBS}
-            ${LIBS_OPT}
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
-            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
-            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
-            ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
-            ${SOURCES_LOCAL}
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/set_sub_generic_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/class_macro_internal.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/send_get.f90
-    )
-  add_custom_target (discus_python DEPENDS lib_discus.so)
-  add_dependencies  (discus_python discus_all lib_f90c  )
-
-  add_dependencies(discus discushlp discus_python)
-
-else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
+#if (NUMPY_FOUND AND  DISCUS_PYTHON)
+#  add_custom_command (
+#    OUTPUT lib_discus.so
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/set_sub_generic_mod.mod       ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/discus/prog/
+#    COMMAND cp ${DIFFUSE_SOURCE_DIR}/discus/prog/discus_py.f90  ${DIFFUSE_BINARY_DIR}/discus/prog
+#    COMMAND f2py -c -m lib_discus 
+#            ${DIFFUSE_LIBS}
+#            ${LIBS_OPT}
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+#            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
+#            -L${DIFFUSE_BINARY_DIR}/discus/prog -ldiscus_all 
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+#            ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+#            ${SOURCES_LOCAL}
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/errlist_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/prompt_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/param_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/set_sub_generic_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/class_macro_internal.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/discus_py.f90
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/discus/prog/send_get.f90
+#    )
+#  add_custom_target (discus_python DEPENDS lib_discus.so)
+#  add_dependencies  (discus_python discus_all lib_f90c  )
+#
+#  add_dependencies(discus discushlp discus_python)
+#
+#else  (NUMPY_FOUND AND  DISCUS_PYTHON)
 
   add_dependencies(discus discushlp)
 
-endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
+#endif (NUMPY_FOUND AND  DISCUS_PYTHON)
 
 
 

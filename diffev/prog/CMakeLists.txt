@@ -48,44 +48,44 @@ add_custom_target(diffevhlp
                ${DIFFUSE_SOURCE_DIR}/lib_f90/lib_f90.hlp > 
                ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp)
 
-if (NUMPY_FOUND AND DIFFUSE_PYTHON)
-  add_custom_command (
-    OUTPUT lib_diffev.so
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/set_sub_generic_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
-    COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
-    COMMAND f2py -c -m lib_diffev 
-            ${DIFFUSE_LIBS}
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
-            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
-            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
-            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
-            ${LIBS_OPT}
-            ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/class_macro_internal.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/param_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/prompt_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/set_sub_generic_mod.mod
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
-    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/send_get.f90
-    )
-
-  add_custom_target (diffev_python DEPENDS lib_diffev.so )
-  add_dependencies  (diffev_python diffev_all lib_f90c)
-
-  add_dependencies(diffev diffevhlp diffev_python)
-
-else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
+#if (NUMPY_FOUND AND DIFFUSE_PYTHON)
+#  add_custom_command (
+#    OUTPUT lib_diffev.so
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/prompt_mod.mod     ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/errlist_mod.mod    ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/class_macro_internal.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/param_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_BINARY_DIR}/lib_f90/set_sub_generic_mod.mod      ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_SOURCE_DIR}/lib_f90/send_get.f90       ${DIFFUSE_BINARY_DIR}/diffev/prog/
+#    COMMAND cp ${DIFFUSE_SOURCE_DIR}/diffev/prog/diffev_py.f90  ${DIFFUSE_BINARY_DIR}/diffev/prog
+#    COMMAND f2py -c -m lib_diffev 
+#            ${DIFFUSE_LIBS}
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+#            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90 
+#            -L${DIFFUSE_BINARY_DIR}/diffev/prog -ldiffev_all 
+#            -L${DIFFUSE_BINARY_DIR}/lib_f90 -llib_f90c 
+#            ${LIBS_OPT}
+#            ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/errlist_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/class_macro_internal.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/param_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/prompt_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/set_sub_generic_mod.mod
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev_py.f90
+#    COMMAND rm ${DIFFUSE_BINARY_DIR}/diffev/prog/send_get.f90
+#    )
+#
+#  add_custom_target (diffev_python DEPENDS lib_diffev.so )
+#  add_dependencies  (diffev_python diffev_all lib_f90c)
+#
+#  add_dependencies(diffev diffevhlp diffev_python)
+#
+#else  (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
   add_dependencies(diffev diffevhlp)
 
-endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
+#endif (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
 install (TARGETS diffev DESTINATION bin)
 install (FILES ${DIFFUSE_BINARY_DIR}/diffev/prog/diffev.hlp DESTINATION share)
