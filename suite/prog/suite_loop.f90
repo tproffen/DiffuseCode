@@ -31,7 +31,8 @@ CHARACTER (LEN=4)              :: befehl
 LOGICAL                        :: lend    = .false.
 INTEGER                        :: laenge, lp, lbef 
 !
-      CALL no_error 
+CALL no_error 
+lend = .FALSE.
 !                                                                       
 !------ This is the main loop: reading commands ..                      
 !                                                                       
