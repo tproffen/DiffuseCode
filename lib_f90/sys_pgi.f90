@@ -622,7 +622,7 @@
 !                                                                       
       END SUBROUTINE do_sleep                       
 !*****7***********************************************************      
-      SUBROUTINE do_fexist (zeile, lp) 
+      SUBROUTINE do_fexist (zeile, lp, lout) 
 !                                                                       
       USE errlist_mod 
       USE param_mod 
@@ -633,10 +633,13 @@
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER , INTENT(INOUT)::lp 
+      LOGICAL , INTENT(IN)   ::lout
+!
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz 
       LOGICAL lexist 
 !                                                                       
@@ -649,11 +652,11 @@
          IF (lexist) then 
             res_para (0) = 1 
             res_para (1) = 1 
-            WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
+            IF(lout) WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
          ELSE 
             res_para (0) = 1 
             res_para (1) = 0 
-            WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
+            IF(lout) WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
          ENDIF 
       ELSE 
          ier_num = - 6 

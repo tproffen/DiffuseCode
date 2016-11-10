@@ -1,12 +1,13 @@
 !*****7***************************************************************  
 !                                                                       
 !                                                                       
-      SUBROUTINE appl_env (standalone, local_mpi_myid)
+SUBROUTINE appl_env (standalone, local_mpi_myid)
 !-                                                                      
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
 !+                                                                      
       USE envir_mod 
+      USE param_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -59,14 +60,68 @@
 !        appl_dir = '.' 
 !     ENDIF 
 !
+!     Try to find the correct share/ folder
+!         Start with environment variable PNAME_CAP
+!         Else try from process name
+!         Else assume /usr/local/bin
       IF(standalone) THEN
-         CALL get_environment_variable ('_', cdummy) 
-         iii=index(cdummy,pname,.true.)
-         i  = INDEX(cdummy,'/',.TRUE.)
-         j  = INDEX(cdummy,'\',.TRUE.)
-         iii = MAX(i,j)
-         appl_dir=cdummy(1:iii  )
-         appl_dir_l = len_str (appl_dir) 
+!
+!        Environment variable
+!
+         appl_dir = ' ' 
+         CALL get_environment_variable (pname_cap, appl_dir) 
+         IF (appl_dir.eq.' ') then 
+            appl_dir = '.' 
+         ENDIF 
+         appl_dir_l = LEN_TRIM(appl_dir)
+         IF(appl_dir(appl_dir_l:appl_dir_l) /= '/') THEN
+            appl_dir   = appl_dir(1:appl_dir_l)//'/'
+            appl_dir_l = appl_dir_l+ 1
+         ENDIF
+         hlpdir    = ' ' 
+         hlpdir(1:appl_dir_l+9)=appl_dir(1:appl_dir_l)//'../share/'
+         hlp_dir_l = appl_dir_l+9
+         hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
+         hlpfile_l = LEN(TRIM (hlpfile) )
+         CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+         IF(res_para(1)==0) THEN   ! hlpdir does not exist
+!
+!           Try /usr/local/bin
+!
+            appl_dir   = '/usr/local/bin/'
+            appl_dir_l = 15
+            hlpdir    = ' ' 
+            hlpdir(1:appl_dir_l+9) = appl_dir(1:appl_dir_l)//'../share/'
+            hlp_dir_l = appl_dir_l+9
+            hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
+            hlpfile_l = LEN(TRIM (hlpfile) )
+            CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+            IF(res_para(1)==0) THEN   ! hlpfile does not exist
+!
+!              Process folder
+!
+               CALL GET_ENVIRONMENT_VARIABLE ('_', cdummy) 
+               iii = INDEX(cdummy,pname,.true.)
+               i   = INDEX(cdummy,'/',.TRUE.)
+               j   = INDEX(cdummy,'\',.TRUE.)
+               iii = MAX(i,j)
+               appl_dir   = cdummy(1:iii  )
+               appl_dir_l = len_str (appl_dir) 
+               hlpdir    = ' ' 
+               hlpdir(1:appl_dir_l+9) = appl_dir(1:appl_dir_l)//'../share/'
+               hlp_dir_l = appl_dir_l+9
+               hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:pname_l)//'.hlp'
+               hlpfile_l = LEN(TRIM (hlpfile) )
+               CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+               IF(res_para(1)==0) THEN   ! hlpfile does not exist
+!
+!                 last resort, take home dir
+!
+                  appl_dir   = home_dir
+                  appl_dir_l = home_dir_l
+               ENDIF
+            ENDIF
+         ENDIF
       ENDIF
 !                                                                       
       deffile = '.'//pname (1:pname_l) 

@@ -485,7 +485,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ELSEIF (str_comp (bef, 'fend', 2, lbef, 4) ) then 
          CALL do_fend (zei, lc) 
       ELSEIF (str_comp (bef, 'fexist', 2, lbef, 6) ) then 
-         CALL do_fexist (zei, lc) 
+         CALL do_fexist (zei, lc,.TRUE.) 
       ELSEIF (str_comp (bef, 'fget', 2, lbef, 4) ) then 
          CALL do_fget (zei, lc) 
       ELSEIF (str_comp (bef, 'fput', 2, lbef, 4) ) then 
