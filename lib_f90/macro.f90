@@ -11,7 +11,7 @@ SUBROUTINE file_kdo(line, ilen)
 !
       INTEGER, PARAMETER ::  maxw = MAC_MAX_PARA + 1
 !
-      CHARACTER (LEN=*),  INTENT(INOUT) ::  line
+      CHARACTER (LEN=*),  INTENT(INOUT) :: line
       INTEGER          ,  INTENT(INOUT) :: ilen
 !
       CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
@@ -749,3 +749,116 @@ END SUBROUTINE macro_close_mpi
       ENDIF
 !
       END SUBROUTINE macro_continue
+!
+!
+SUBROUTINE test_macro(line,ilen, numpar)
+!
+!  Tests how many macro parameters a macro needs
+!
+USE charact_mod
+USE errlist_mod
+USE macro_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN)  :: line
+INTEGER         , INTENT(IN)  :: ilen
+INTEGER         , INTENT(OUT) :: numpar
+!
+INTEGER, PARAMETER ::  maxw = MAC_MAX_PARA + 1
+INTEGER, PARAMETER ::  imc  = 63
+!
+!
+CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
+CHARACTER (LEN=1024)                    :: filename, string, zeile
+!
+INTEGER             , DIMENSION(1:MAXW) :: lpara
+INTEGER                                 :: ianz, i, length
+INTEGER                                 :: ndol, nexcl, nquote1,nquote2, nx, lx, x
+INTEGER                                 :: lstring
+LOGICAL                                 :: lnum
+INTEGER                                 :: iseof
+LOGICAL                                 :: fileda
+REAL                , DIMENSION(1:MAXW) :: werte
+REAL                                    :: r_par
+!
+numpar = 0                                 ! Assume no parameters are required
+CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
+CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
+IF(fileda) THEN
+   CALL oeffne(imc, filename, 'old')
+   readcont: DO                            ! Read all lines from macro
+      READ(IMC,'(a)',IOSTAT=iseof) string
+      IF ( IS_IOSTAT_END(iseof) ) EXIT readcont
+      length = LEN_TRIM(string)
+!
+      nocomment: IF (string(1:1) /= '#' .and. string (1:1) /=  '!' .and. length /= 0) THEN
+         ndol    = 0
+         nexcl   = 0
+         nquote1 = 0
+         nquote2 = 0
+         zeile   = string
+         nexcl   = INDEX(zeile (1:length) , '!', .TRUE.)   ! Find last '!'
+         nquote1 = INDEX(zeile (1:length) , '"', .TRUE.)   ! Find last '"'
+         IF(nexcl > 0 .AND. nexcl > nquote1) THEN
+            length = nexcl -1
+         ENDIF
+!
+!     If inside a macro, check for parameter substitution
+!
+         ndol = index (zeile (1:length) , '$')
+         IF (ndol.gt.length) then
+            ndol = 0
+         ENDIF
+!
+!     Replace all '$'-parameters
+!
+         sub_param: DO WHILE (ndol.ne.0)
+!
+!------ --Determine length of the numerical parameter string
+!       i.e.: '1', '12'
+!
+            lx   = 0
+            nx   = ndol + lx + 1
+            x    = iachar (zeile (nx:nx) )
+            lnum = zero.le.x.and.x.le.nine
+            DO WHILE (lnum.and.nx.lt.length)
+               lx   = lx + 1
+               nx   = ndol + lx + 1
+               x    = iachar (zeile (nx:nx) )
+               lnum = zero.le.x.and.x.le.nine
+            ENDDO
+            IF (nx.lt.length) then
+               nx = nx - 1
+            ELSEIF (nx.eq.length.and..not.lnum) then
+               nx = nx - 1
+            ENDIF
+!
+!     --Read parameter number and substitute rest of string
+!
+            IF (nx.ge.ndol + 1) then
+               string = zeile (ndol + 1:nx)
+               lstring = nx - (ndol + 1) + 1
+               CALL ber_params (1, string, lstring, r_par, 1)
+            ELSE
+               ier_num = - 12
+               ier_typ = ER_FORT
+            ENDIF
+!DBG        read(zeile(ndol+1:nx),*) n_par
+            IF (ier_num.eq.0) then
+               numpar = MAX(numpar, NINT(r_par))
+            ENDIF
+            IF(nx+1 > length) EXIT sub_param
+            zeile = zeile(nx+1:length)
+            length=LEN_TRIM(zeile)
+            ndol = index (zeile (1:length) , '$')
+         ENDDO sub_param
+      ENDIF  nocomment
+   ENDDO readcont                            ! Read all lines from macro
+ELSE
+   ier_num = - 12
+   ier_typ = ER_MAC
+ENDIF
+CLOSE(IMC)
+!
+END SUBROUTINE test_macro
