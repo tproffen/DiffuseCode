@@ -105,6 +105,10 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                ENDIF 
             ENDIF
          ENDIF 
+!
+!        If loop was run from a non interactive remote and we
+!        are no longer inside a makro, return after this command
+         IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
       ENDDO main
 !                                                                       
 !

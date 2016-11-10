@@ -102,6 +102,10 @@ fehler: IF (ier_num.ne.0) then
          ENDIF 
       ENDIF 
    ENDIF fehler
+!
+!  If loop was run from a non interactive remote and we
+!  are no longer inside a makro, return after this command
+   IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
 ENDDO main
 !                                                                       
 IF ( lstandalone ) THEN
