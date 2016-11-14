@@ -149,7 +149,7 @@
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
-         ELSEIF (str_comp (bef, 'fit', 3, lbef, 3) ) then 
+         ELSEIF (linteractive .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
             CALL do_fit (zei, lc) 
 !                                                                       
 !-------  Plot filenames on plot                                        
@@ -262,7 +262,7 @@
 !                                                                       
 !-------  Activate mouse menu                                           
 !                                                                       
-         ELSEIF (str_comp (bef, 'mouse', 3, lbef, 5) ) then 
+         ELSEIF (linteractive .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
             CALL do_mouse (zei, lc) 
 !                                                                       
 !-------  Calculate averages, ..                                        
@@ -447,7 +447,7 @@
 !                                                                       
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF (str_comp (bef, 'branch', 2, lbef, 6) ) then 
+         ELSEIF (linteractive .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zei, lc) 
 !                                                                       
 !-------  Check for generic command                                     

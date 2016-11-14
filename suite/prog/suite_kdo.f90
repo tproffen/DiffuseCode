@@ -110,7 +110,7 @@ ELSE
 !                                                                 
 !     -- branch to DIFFEV
 !
-   ELSEIF (str_comp (befehl, 'diffev', 3, lbef, 6) ) then
+   ELSEIF (linteractive .AND. str_comp (befehl, 'diffev', 3, lbef, 6) ) then
        IF(suite_diffev_init) then
           pname     = 'diffev'
           pname_cap = 'DIFFEV'
@@ -134,7 +134,7 @@ ELSE
 !                                                                 
 !     -- branch to DISCUS
 !
-   ELSEIF (str_comp (befehl, 'discus', 3, lbef, 6) ) then
+   ELSEIF (linteractive .AND. str_comp (befehl, 'discus', 3, lbef, 6) ) then
        IF(suite_discus_init) then
           pname     = 'discus'
           pname_cap = 'DISCUS'
@@ -158,7 +158,7 @@ ELSE
 !                                                                 
 !     -- branch to KUPLOT
 !
-   ELSEIF (str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
+   ELSEIF (linteractive .AND. str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
        IF(suite_kuplot_init) then
           pname     = 'kuplot'
           pname_cap = 'KUPLOT'

@@ -497,8 +497,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ Online help                                                     
 !                                                                       
-      ELSEIF (str_comp (bef, 'help', 2, lbef, 4) .or.str_comp (bef, '?  &
-     & ', 1, lbef, 4) ) then                                            
+      ELSEIF (linteractive .AND. str_comp (bef, 'help', 2, lbef, 4) .OR.   &
+                                 str_comp (bef, '?   ', 1, lbef, 4) ) THEN                                            
          IF (lc.gt.0) then 
             lc = lc + 7 
             WRITE (command, 1000) pname, zei (1:lc) 

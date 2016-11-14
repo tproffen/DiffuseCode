@@ -40,6 +40,7 @@
 !
       USE errlist_mod 
       USE learn_mod 
+      USE prompt_mod
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
@@ -149,12 +150,12 @@
 !                                                                       
 !-------show the atoms present in the crystal 'chem'                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'chem', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'chem', 3, lbef, 4) ) then 
             CALL chem 
 !                                                                       
 !-------go to the connectivity menue  'connectivity'                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'connectivity', 3, lbef, 12) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'connectivity', 3, lbef, 12) ) then 
             CALL conn_menu 
 !                                                                       
 !-------Define some DISCUS parameters 'define'                          
@@ -164,12 +165,12 @@
 !                                                                       
 !-------Decorate a surface by molecules 'decorate'                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
             CALL do_place_molecule
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'domain', 3, lbef, 6) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'domain', 3, lbef, 6) ) then 
             CALL do_domain (zeile, lcomm) 
 !                                                                       
 !-------copy an atom 'copy'                                             
@@ -184,7 +185,7 @@
 !                                                                       
 !     Difference  Fourier 'diff'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'diff', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'diff', 2, lbef, 4) ) then 
             inverse_type = INV_DIFF 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -201,7 +202,7 @@
 !                                                                       
 !-------Fourier transform 'four'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'four', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'four', 2, lbef, 4) ) then 
             lout_rho = .false. 
             CALL fourier 
 !                                                                       
@@ -235,7 +236,7 @@
 !                                                                       
 !     inverse Fourier 'inverse'                                         
 !                                                                       
-         ELSEIF (str_comp (befehl, 'inve', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'inve', 3, lbef, 4) ) then 
             inverse_type = INV_INV 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -253,29 +254,29 @@
 !                                                                       
 !     Output routines 'outp'                                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'outp', 1, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'outp', 1, lbef, 4) ) then 
             CALL do_niplps (lout_rho) 
 !                                                                       
 !     Patterson 'patterson'                                             
 !                                                                       
-         ELSEIF (str_comp (befehl, 'patt', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'patt', 2, lbef, 4) ) then 
             inverse_type = INV_PATT 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
 !                                                                       
 !     PDF calculation and analysis                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'pdf', 2, lbef, 3) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'pdf', 2, lbef, 3) ) then 
             CALL pdf 
 !                                                                       
 !     Plot the crystal 'plot'                                           
 !                                                                       
-         ELSEIF (str_comp (befehl, 'plot', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'plot', 2, lbef, 4) ) then 
             CALL plot 
 !                                                                       
 !     Calculate Powder pattern                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'powder', 2, lbef, 6) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'powder', 2, lbef, 6) ) then 
             CALL do_powder 
 !                                                                       
 !     Project a vector onto another and onto a plane 'proj'             
@@ -285,7 +286,7 @@
 !                                                                       
 !     Go to property menu 'property'                                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'property', 4, lbef, 8) ) then 
             CALL property_menu 
 !                                                                       
 !     Purge the list of atoms 'purg'                                    
@@ -300,7 +301,7 @@
 !                                                                       
 !-------Einlesen einer Struktur/Zelle 'read'                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'read', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'read', 3, lbef, 4) ) then 
             CALL read_struc 
 !                                                                       
 !     Remove a single atom 'remo'                                       
@@ -315,11 +316,11 @@
 !                                                                       
 !     Do Monte Carlo simulations 'rmc', 'mc', 'mmc' and 'amc'           
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rmc', 2, lbef, 3) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'rmc', 2, lbef, 3) ) then 
             CALL rmc 
 !        ELSEIF (str_comp (befehl, 'mc', 2, lbef, 2) ) then 
 !           CALL mc 
-         ELSEIF (str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
             CALL mmc 
 !
 !     reset discus to system start
@@ -329,12 +330,12 @@
 !                                                                       
 !     save structure to file 'save'                                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'save', 2, lbef, 4) ) then 
             CALL save_struc (zeile, lcomm) 
 !                                                                       
 !     generalized shear operation 'shear'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'shear', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'shear', 3, lbef, 4) ) then 
             CALL shear_menue
 !                                                                       
 !     Show something                                 'show'             
@@ -344,12 +345,12 @@
 !                                                                       
 !     Go to stacking fault menu 'stack'                                 
 !                                                                       
-         ELSEIF (str_comp (befehl, 'stac', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'stac', 2, lbef, 4) ) then 
             CALL stack 
 !                                                                       
 !     Go to surface menu 'surface'                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'surface', 2, lbef, 8) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'surface', 2, lbef, 8) ) then 
             CALL surface_menu 
 !                                                                       
 !     switch two atoms 'swit'                                           
@@ -359,7 +360,7 @@
 !                                                                       
 !     generalized symmetry operation 'symm'                             
 !                                                                       
-         ELSEIF (str_comp (befehl, 'symm', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'symm', 3, lbef, 4) ) then 
             CALL symm 
 !                                                                       
 !     Thermal displacement of all atoms 'ther'                          
@@ -369,7 +370,7 @@
 !                                                                       
 !     unit cell transformations      'tran'                             
 !                                                                       
-         ELSEIF (str_comp (befehl, 'tran', 2, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'tran', 2, lbef, 4) ) then 
             CALL transform 
 !                                                                       
 !       Vector Product 'vprod'                                          
@@ -379,7 +380,7 @@
 !                                                                       
 !------   Waves traveling through the crystal 'wave'                    
 !                                                                       
-         ELSEIF (str_comp (befehl, 'wave', 3, lbef, 4) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'wave', 3, lbef, 4) ) then 
             CALL waves_menu
 !                                                                       
 !       Determine Wyckoff symmetry                                      
@@ -389,7 +390,7 @@
 !                                                                       
 !       Branch to KUPLOT (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) then 
+         ELSEIF (linteractive .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zeile, lcomm) 
 !                                                                       
 !------   Try general commands                                          
