@@ -13,12 +13,14 @@ PUBLIC initialize_suite    ! Initialize the discus_suite as if started directly
 PUBLIC interactive         ! start an interactive suite session
 PUBLIC execute_macro       ! Execute a macro at suite, discus, diffev, kuplot
 PUBLIC execute_help        ! Execute the help
+PUBLIC execute_command     ! Execute a single command
 PUBLIC test_macro_param    ! Test a macro for the number of parameters required by the macro
 PUBLIC send_i              ! Send an integer array to the suite
 PUBLIC send_r              ! Send a real valued array to the suite
 PUBLIC get_i               ! Get an integer valued array from the suite
 PUBLIC get_r               ! Get a real valued array from the suite
-PUBLIC py_read_structure   ! Use discus/read to read a structure or unit cell
+PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
+PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
 CONTAINS
 !
@@ -69,6 +71,7 @@ ELSE
    CALL suite_set_sub
 ENDIF
 lstandalone = .false.
+WRITE(output_io,'(a)') 'Contol turned to GUI ...'
 !
 END SUBROUTINE initialize_suite
 !
@@ -204,6 +207,45 @@ END SUBROUTINE execute_help
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+SUBROUTINE execute_command(prog,line)
+!
+!   Executes a single command as given on line
+!   Returns to the GUI immediately
+!
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: prog
+CHARACTER(LEN=*), INTENT(IN) :: line
+INTEGER                      :: length
+LOGICAL                      :: lend
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+length = LEN_TRIM(line)
+lend   = .FALSE.
+linteractive = .FALSE.
+section: SELECT CASE (prog)
+   CASE ('suite')
+      CALL suite_prae
+      CALL suite_mache_kdo (line, lend, length)
+   CASE ('discus')
+      CALL discus_prae
+      CALL discus_mache_kdo (line, lend, length)
+   CASE ('diffev')
+      CALL diffev_prae
+      CALL diffev_mache_kdo (line, lend, length)
+   CASE ('kuplot')
+      CALL kuplot_prae
+      CALL kuplot_mache_kdo (line, lend, length)
+END SELECT section
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE execute_command
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 INTEGER FUNCTION test_macro_param(line)
 !
 CHARACTER(LEN=*), INTENT(IN) :: line
@@ -326,7 +368,7 @@ END SUBROUTINE get_r
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE py_read_structure(line)
+SUBROUTINE discus_read_structure(line)
 !
 !  A first interface that allows to read a structre from python via
 !  suite.read_cell( python_string )
@@ -351,6 +393,33 @@ CALL read_struc         ! Call the actual task at hand
 CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
-END SUBROUTINE py_read_structure
+END SUBROUTINE discus_read_structure
 !
+!________KUPLOT_________________________________________________________________
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE kuplot_load(line)
+!
+!  A first interface that allows to load a data file from python via
+!  suite.kuplot_load( python_string )
+!  where python string is any of: 
+!       load xy, filename
+!
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+INTEGER                      :: length
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL kuplot_prae        ! Switch to discus section
+length = LEN_TRIM(line)
+CALL do_load(line, length) ! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE kuplot_load
 END MODULE suite
