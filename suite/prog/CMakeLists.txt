@@ -91,7 +91,7 @@ add_dependencies ( discus_suite_all diffev_all discus_all kuplot_all lib_f90 sui
 set (LIBS ${LIBS} discus_suite_all diffev_all discus_all kuplot_all ${LIBS_GRAPHIC} ${LIBS} ${LIBS_OPT} discus_suite_all )
 
 add_library (discus_suite_full ${SOURCES_ALL} ${SOURCES_LOCAL})
-add_dependencies ( discus_suite_full ${LIBS} )
+add_dependencies ( discus_suite_full  discus_suite_all diffev_all discus_all kuplot_all lib_f90  suitehlp)
 
 add_executable(discus_suite ${SOURCE_MAIN} ${SOURCES_LOCAL} )
 target_link_libraries (discus_suite ${LIBS})
