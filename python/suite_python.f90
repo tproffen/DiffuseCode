@@ -212,6 +212,10 @@ SUBROUTINE execute_command(prog,line)
 !   Executes a single command as given on line
 !   Returns to the GUI immediately
 !
+USE discus_loop_mod
+USE diffev_loop_mod
+USE kuplot_loop_mod
+USE suite_loop_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -225,19 +229,20 @@ IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
 length = LEN_TRIM(line)
 lend   = .FALSE.
 linteractive = .FALSE.
+input_gui = line
 section: SELECT CASE (prog)
    CASE ('suite')
       CALL suite_prae
-      CALL suite_mache_kdo (line, lend, length)
+      CALL suite_loop
    CASE ('discus')
       CALL discus_prae
-      CALL discus_mache_kdo (line, lend, length)
+      CALL discus_loop
    CASE ('diffev')
       CALL diffev_prae
-      CALL diffev_mache_kdo (line, lend, length)
+      CALL diffev_loop
    CASE ('kuplot')
       CALL kuplot_prae
-      CALL kuplot_mache_kdo (line, lend, length)
+      CALL kuplot_loop
 END SELECT section
 CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
