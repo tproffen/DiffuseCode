@@ -13,6 +13,7 @@ MODULE doexec_mod
    INTEGER                                            :: level
    INTEGER             , DIMENSION(         0:MAXLEV) :: nlevel   ! (0:MAXLEV)
    INTEGER             , DIMENSION(         0:MAXLEV) :: ilevel   ! (0:MAXLEV)
+   INTEGER             , DIMENSION(         0:MAXLEV) :: jlevel   ! (0:MAXLEV)
    INTEGER             , DIMENSION(         0:MAXLEV) :: jump     ! (0:MAXLEV)
    LOGICAL             , DIMENSION(         0:MAXLEV) :: ltest    ! (0:MAXLEV)
 !

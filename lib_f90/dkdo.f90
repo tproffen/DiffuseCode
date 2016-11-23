@@ -14,48 +14,74 @@ SUBROUTINE do_loop (line, lend, length)
 !-                                                                      
       USE doact_mod 
       USE doexec_mod 
-      USE doloop_mod 
       USE errlist_mod 
-      USE learn_mod 
       USE class_macro_internal 
-      USE prompt_mod 
-      USE set_sub_generic_mod
-      USE mpi_slave_mod
 !                                                                       
       IMPLICIT none 
 !
-      INTEGER, PARAMETER :: MAXW = 5
-!
-      CHARACTER(1024) line 
-      CHARACTER(1024) zeile 
-      CHARACTER(20) prom 
-      CHARACTER(4) befehl 
-      CHARACTER(3) cprom (0:3) 
-      CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-      INTEGER            , DIMENSION(MAXW) :: lpara
-      REAL               , DIMENSION(MAXW) :: werte
-      INTEGER                              :: ianz
-      INTEGER jlevel (0:maxlev) 
-      INTEGER i, length, lp, lbef 
-      INTEGER         :: indxm
-      INTEGER         :: length_m
-      LOGICAL lend, lreg 
-!
-      CHARACTER (LEN=1024) :: outfile
-      CHARACTER (LEN=1024) :: mac_n
-      CHARACTER (LEN=1024) :: prog_n
-      INTEGER              :: out_l
-      INTEGER              :: prog_l
-      INTEGER              :: mac_l
-      INTEGER              :: nindiv
-      LOGICAL              :: repeat
-!                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
-!                                                                       
-      DATA cprom / '/do', '/if', '/do', '/do' / 
+      CHARACTER(LEN=*), INTENT(INOUT) :: line 
+      LOGICAL         , INTENT(INOUT) :: lend
+      INTEGER         , INTENT(INOUT) :: length
+!     INTEGER jlevel (0:maxlev) 
 !                                                                       
 !-----      read first block structure command                          
+!                                                                       
+      CALL do_do_init(line, lend, length)
+!                                                                       
+!.....read all commands                                                 
+!                                                                       
+      lblock_read = .true. 
+      DO WHILE (level.gt. - 1) 
+         CALL do_insert_line!(jlevel) ! Moved to separate subroutine
+         IF(ier_num /= 0) GOTO 999
+      ENDDO 
+      lblock_read = .false. 
+      ier_num = 0 
+      ier_typ = ER_NONE 
+!                                                                       
+!-----      execute the block structure                                 
+!                                                                       
+      CALL do_execute_block(lend)
+!
+!                                                                       
+  999 CONTINUE 
+      lblock = .false. 
+      IF (ier_num.ne.0) THEN 
+         IF(lmakro) THEN
+            CALL macro_close
+         ENDIF 
+      ENDIF 
+!                                                                       
+!                                                                       
+!2000 FORMAT    (a1) 
+ 3000 FORMAT    ('Erroneous line in block structure') 
+ 3100 FORMAT    (a41) 
+      END SUBROUTINE do_loop                        
+!
+SUBROUTINE do_do_init(line, lend, length)
+!                                                                       
+!-----      read first block structure command                          
+!                                                                       
+USE doact_mod 
+USE doexec_mod 
+!
+USE errlist_mod 
+USE class_macro_internal 
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+LOGICAL         , INTENT(INOUT) :: lend 
+INTEGER         , INTENT(INOUT) :: length
+! 
+CHARACTER(LEN=20) :: prom 
+CHARACTER(LEN=3)  :: cprom (0:3) 
+INTEGER :: i
+!
+INTEGER :: len_str
+!
+DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
       IF (line (1:2) .eq.'do'.and.index (line, '=') .ne.0) then 
          jlevel (0) = 0 
@@ -77,6 +103,8 @@ SUBROUTINE do_loop (line, lend, length)
       ELSE 
          ier_num = - 31 
          ier_typ = ER_FORT 
+         WRITE (ier_msg (1), 3000) 
+         WRITE (ier_msg (2), 3100) line (1:41) 
          GOTO 999 
       ENDIF 
       prom = prompt (1:len_str (prompt) ) //cprom (jlevel (0) ) 
@@ -87,22 +115,82 @@ SUBROUTINE do_loop (line, lend, length)
       nlevel (level) = 0 
       do_comm (0, 0) = line 
       do_leng (0, 0) = length 
+      lblock_read = .TRUE. 
+!
+999 CONTINUE
+IF (ier_num.ne.0) then 
+   lblock_read = .FALSE. 
+   lblock      = .FALSE. 
+   IF(lmakro) THEN
+      CALL macro_close
+   ENDIF 
+ENDIF 
+!
+ 3000 FORMAT    ('Erroneous line in block structure') 
+ 3100 FORMAT    (a41) 
+!
+END SUBROUTINE do_do_init
+!
+SUBROUTINE do_insert_line!(jlevel)
+!
+! Inserts an individual line into the array
+!
+USE doact_mod 
+USE doexec_mod 
+USE errlist_mod 
+USE learn_mod 
+USE class_macro_internal 
+USE prompt_mod 
+USE set_sub_generic_mod
+USE mpi_slave_mod
+!
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: MAXW = 5
+!
+CHARACTER(LEN=1024)                  :: zeile 
+CHARACTER(LEN=1024)                  :: line 
+CHARACTER(LEN=1024)                  :: outfile
+CHARACTER(LEN=20)                    :: prom 
+CHARACTER(LEN=4)                     :: befehl 
+CHARACTER(LEN=3)                     :: cprom (0:3) 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER (LEN=1024)                 :: prog_n
+CHARACTER (LEN=1024)                 :: mac_n
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL               , DIMENSION(MAXW) :: werte
+INTEGER                              :: ianz
+INTEGER                              :: i, length, lbef, lp
+INTEGER                              :: indxm
+INTEGER                              :: length_m
+INTEGER                              :: out_l
+INTEGER                              :: prog_l
+INTEGER                              :: mac_l
+INTEGER                              :: nindiv
+!INTEGER, DIMENSION(0:maxlev)         :: jlevel ! (0:maxlev) 
+LOGICAL                              :: repeat
+!
+INTEGER :: len_str
+character(len=1) :: a
+!
+DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
-!.....read all commands                                                 
+lblock_read = .true. 
+nlevel (level) = nlevel (level) + 1 
+IF (nlevel (level) .gt.maxcom) then 
+   ier_num = - 15 
+   ier_typ = ER_FORT 
+   GOTO 999 
+ENDIF 
 !                                                                       
-      DO while (level.gt. - 1) 
-      lblock_read = .true. 
-      nlevel (level) = nlevel (level) + 1 
-      IF (nlevel (level) .gt.maxcom) then 
-         ier_num = - 15 
-         ier_typ = ER_FORT 
-         GOTO 999 
-      ENDIF 
-!                                                                       
-   10 CONTINUE 
+10 CONTINUE 
 !                                                                       
       prom = prompt (1:len_str (prompt) ) //cprom (jlevel (level) ) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom) 
+      IF(length==0) THEN
+          nlevel (level) = nlevel (level) - 1 
+          GOTO 999
+      ENDIF
       IF (line (1:2) .eq.'do'.and.index (line, '=') .ne.0) then 
          i = length - 3 
          CALL rem_bl (line (4:length), i) 
@@ -127,6 +215,7 @@ SUBROUTINE do_loop (line, lend, length)
          ELSE 
             ier_num = - 13 
             ier_typ = ER_MAC 
+            GOTO 999
          ENDIF 
          GOTO 10 
       ELSEIF(line(1:6)=='branch') THEN
@@ -249,96 +338,131 @@ SUBROUTINE do_loop (line, lend, length)
             GOTO 999 
          ENDIF 
       ENDIF 
-      ENDDO 
-      lblock_read = .false. 
-      ier_num = 0 
-      ier_typ = ER_NONE 
+!
+999 CONTINUE
+IF (ier_num.ne.0) then 
+   WRITE (ier_msg (1), 3000) 
+   WRITE (ier_msg (2), 3100) line (1:41) 
+   IF(lmakro) THEN
+      CALL macro_close
+   ENDIF 
+ENDIF 
+ 3000 FORMAT    ('Erroneous line in block structure') 
+ 3100 FORMAT    (a41) 
+!
+END SUBROUTINE do_insert_line
+!
+SUBROUTINE do_execute_block(lend)
+!
+!  Runs through all commands stored in the block array and executes the loop/if
+!
+USE doact_mod 
+USE doexec_mod 
+USE doloop_mod 
+USE errlist_mod 
+USE learn_mod 
+USE class_macro_internal 
+USE prompt_mod 
+USE set_sub_generic_mod
+USE mpi_slave_mod
 !                                                                       
-!-----      execute the block structure                                 
+IMPLICIT none 
 !                                                                       
-      DO i = 0, maxlev 
-      ilevel (i) = - 1 
-      ltest (i) = .false. 
-      ldostart (i) = .true. 
-      ENDDO 
-      level = 0 
-      lblock = .true. 
+LOGICAL, INTENT(OUT) :: lend
+!                                                                       
+CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=1024)                  :: zeile 
+CHARACTER(LEN=20)                    :: prom 
+CHARACTER(LEN=4)                     :: befehl 
+INTEGER :: i, length, lp, lbef
+LOGICAL :: lreg 
+!
+LOGICAL :: str_comp 
+!
+!      DO i = 0, maxlev 
+ilevel   (0:maxlev) = - 1 
+ltest    (0:maxlev) = .false. 
+ldostart (0:maxlev) = .true. 
+!     ENDDO 
+level = 0 
+lblock = .true. 
 !                                                                       
 !-----      as long as there are commands and no error ...              
 !                                                                       
-      DO while (level.gt. - 1.and. (                                    &
+main: DO WHILE (level.gt. - 1.and. (                                    &
       ier_num.eq.0.or.ier_num.ne.0.and.ier_sta.eq.ER_S_LIVE) )          
 !                                                                       
 !     increment the command array, follow up with block commands        
 !                                                                       
-      CALL do_execute (lreg, line, length) 
-      IF (ier_num.ne.0.and.ier_sta.ne.ER_S_LIVE) then 
-         GOTO 999 
-      ELSEIF (ier_num.ne.0.and.ier_sta.eq.ER_S_LIVE) then 
-         CALL errlist 
-      ENDIF 
+   CALL do_execute (lreg, line, length) 
+   IF (ier_num.ne.0.AND.ier_sta.ne.ER_S_LIVE) THEN 
+      EXIT main               ! Error finish loop
+   ELSEIF (ier_num.ne.0.AND.ier_sta.eq.ER_S_LIVE) THEN 
+      CALL errlist 
+   ENDIF 
 !                                                                       
-!     Regular command, call mach_kdo or file_kdo                        
+!  Regular command, call mach_kdo or file_kdo                        
 !                                                                       
-      IF (lreg) then 
-         IF (.not. (level.eq.0.and.ilevel (level) .eq.0) ) then 
-            IF (str_comp (line (1:4) , 'stop', 4, length, 4) ) then 
-               WRITE (output_io, 2000) achar (7) 
-               lblock_dbg = .true. 
-               lblock = .false. 
-               line = '#' 
-               length = 1 
+   IF (lreg) then 
+      IF (.NOT. (level.eq.0.AND.ilevel (level) .eq.0) ) THEN 
+         IF (str_comp (line (1:4) , 'stop', 4, length, 4) ) THEN 
+            WRITE (output_io, 2000) achar (7) 
+            lblock_dbg = .true. 
+            lblock = .false. 
+            line = '#' 
+            length = 1 
 !                                                                       
 !     ----Continuous loop until debug mode is switched off              
 !                                                                       
-               DO while (lblock_dbg) 
+            DO WHILE (lblock_dbg) 
                CALL get_cmd (line, length, befehl, lbef, zeile, lp, prom)
-               IF (line (1:1) .eq.'@') then 
+               IF (line (1:1) .eq.'@') THEN 
                   CALL file_kdo (line (2:length), length - 1) 
                ELSE 
                   CALL p_mache_kdo (line, lend, length) 
                ENDIF 
-               IF (ier_num.ne.0.and.ier_sta.ne.ER_S_LIVE) then 
-                  GOTO 999 
-               ELSEIF (ier_num.ne.0.and.ier_sta.eq.ER_S_LIVE) then 
+               IF (ier_num.ne.0.AND.ier_sta.ne.ER_S_LIVE) THEN 
+                  EXIT main               ! Error finish loop
+               ELSEIF (ier_num.ne.0.AND.ier_sta.eq.ER_S_LIVE) THEN 
                   CALL errlist 
                ENDIF 
-               ENDDO 
-               IF (.not.lblock) then 
-                  GOTO 999 
-               ENDIF 
-               line = '#' 
-               length = 1 
+            ENDDO 
+            IF (.NOT.lblock) THEN 
+               EXIT main               ! Error finish loop
             ENDIF 
-            IF (line (1:1) .eq.'@') then 
-               CALL file_kdo (line (2:length), length - 1) 
-            ELSE 
-               CALL p_mache_kdo (line, lend, length) 
-            ENDIF 
-            IF (ier_num.ne.0.and.ier_sta.ne.ER_S_LIVE) then 
-               GOTO 999 
-            ELSEIF (ier_num.ne.0.and.ier_sta.eq.ER_S_LIVE) then 
-               CALL errlist 
-            ENDIF 
+            line = '#' 
+            length = 1 
+         ENDIF 
+         IF (line (1:1) .eq.'@') THEN 
+            CALL file_kdo (line (2:length), length - 1) 
+         ELSE 
+            CALL p_mache_kdo (line, lend, length) 
+         ENDIF 
+         IF (ier_num.ne.0.AND.ier_sta.ne.ER_S_LIVE) THEN 
+            EXIT main               ! Error finish loop
+         ELSEIF (ier_num.ne.0.AND.ier_sta.eq.ER_S_LIVE) THEN 
+            CALL errlist 
          ENDIF 
       ENDIF 
-      ENDDO 
-!                                                                       
-  999 CONTINUE 
-      lblock = .false. 
-      IF (ier_num.ne.0) then 
-         WRITE (ier_msg (1), 3000) 
-         WRITE (ier_msg (2), 3100) line (1:41) 
-         IF(lmakro) THEN
-            CALL macro_close
-         ENDIF 
-      ENDIF 
+   ENDIF 
+ENDDO main
+!
+999 CONTINUE
+!
+IF (ier_num.ne.0) then 
+   WRITE (ier_msg (1), 3000) 
+   WRITE (ier_msg (2), 3100) line (1:41) 
+   IF(lmakro) THEN
+      CALL macro_close
+   ENDIF 
+ENDIF 
 !                                                                       
 !                                                                       
  2000 FORMAT    (a1) 
  3000 FORMAT    ('Erroneous line in block structure') 
  3100 FORMAT    (a41) 
-      END SUBROUTINE do_loop                        
+!
+END SUBROUTINE do_execute_block
 !*****7**************************************************************** 
       SUBROUTINE do_execute (lreg, line, laenge) 
 !-                                                                      
