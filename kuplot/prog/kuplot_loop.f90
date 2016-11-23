@@ -35,7 +35,7 @@ CONTAINS
 !------ --- Execute command                                             
 !                                                                       
          IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') then 
-            CALL do_loop (line, lend, ll, kuplot_mache_kdo) 
+            CALL do_loop (line, lend, ll) !, kuplot_mache_kdo) 
          ELSE 
             CALL kuplot_mache_kdo (line, lend, ll) 
          ENDIF 
