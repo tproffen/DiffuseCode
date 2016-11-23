@@ -2,12 +2,13 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !*****7*****************************************************************
-      SUBROUTINE kuplot_mache_kdo (line, lend, length) 
+SUBROUTINE kuplot_mache_kdo (line, lend, length) 
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
       USE nexus_kuplot
 !
+      USE doact_mod
       USE errlist_mod 
       USE learn_mod 
       USE prompt_mod 
@@ -149,7 +150,7 @@
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
-         ELSEIF (linteractive .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
+         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
             CALL do_fit (zei, lc) 
 !                                                                       
 !-------  Plot filenames on plot                                        
@@ -262,7 +263,7 @@
 !                                                                       
 !-------  Activate mouse menu                                           
 !                                                                       
-         ELSEIF (linteractive .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
+         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
             CALL do_mouse (zei, lc) 
 !                                                                       
 !-------  Calculate averages, ..                                        
@@ -447,7 +448,7 @@
 !                                                                       
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF (linteractive .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zei, lc) 
 !                                                                       
 !-------  Check for generic command                                     
