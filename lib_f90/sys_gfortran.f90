@@ -1,56 +1,7 @@
 !                                                                       
 !     This file contains subroutines for:                               
 !     Compiler specific routines GNU gfortran version                   
-!                                                                       
-!*****7**************************************************************** 
-      FUNCTION sind (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      sind = sin (arg * rad) 
-      END FUNCTION sind                             
-!*****7**************************************************************** 
-      FUNCTION cosd (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      cosd = cos (arg * rad) 
-      END FUNCTION cosd                             
-!*****7**************************************************************** 
-      FUNCTION tand (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      tand = tan (arg * rad) 
-      END FUNCTION tand                             
-!*****7**************************************************************** 
-      FUNCTION asind (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      asind = asin (arg) / rad 
-      END FUNCTION asind                            
-!*****7**************************************************************** 
-      FUNCTION acosd (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      acosd = acos (arg) / rad 
-      END FUNCTION acosd                            
-!*****7**************************************************************** 
-      FUNCTION atand (arg) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      atand = atan (arg) / rad 
-      END FUNCTION atand                            
-!*****7**************************************************************** 
-      FUNCTION atan2d (arg1, arg2) 
-!                                                                       
-      USE wink_mod
-!                                                                       
-      atan2d = atan2 (arg1, arg2) / rad 
-      END FUNCTION atan2d                           
+!
 !*****7**************************************************************** 
       SUBROUTINE datum () 
 !                                                                       

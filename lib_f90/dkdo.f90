@@ -171,7 +171,6 @@ INTEGER                              :: nindiv
 LOGICAL                              :: repeat
 !
 INTEGER :: len_str
-character(len=1) :: a
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
@@ -2278,6 +2277,7 @@ END SUBROUTINE do_execute_block
       USE random_mod
       USE wink_mod
       USE times_mod
+      USE trig_degree_mod
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
@@ -2295,8 +2295,8 @@ END SUBROUTINE do_execute_block
       INTEGER dummy 
       REAL fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
       REAL werte (maxw), ww, a , skew
-      REAL sind, cosd, tand, asind, acosd, atand 
-      REAL atan2, atan2d 
+!     REAL sind, cosd, tand, asind, acosd, atand 
+!     REAL atan2, atan2d 
 !                                                                       
       INTEGER length_com 
       INTEGER len_str 
