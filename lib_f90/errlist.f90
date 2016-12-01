@@ -76,6 +76,7 @@
 !       Displays the error messages 
 !+
        USE errlist_mod 
+       USE terminal_mod
        USE prompt_mod
        IMPLICIT      none
 !
@@ -90,33 +91,33 @@
 !
        if(iu.le.ier_num .and. ier_num.le.io) THEN
          IF(    error(ier_num).ne.' ') then
-            write(output_io,1000) typ,error(ier_num),ier_num,char(7)
-            IF(output_io/=6) write(*        ,1000) typ,error(ier_num),ier_num,char(7)
-            write(ier_out,1500) typ,error(ier_num)
+            write(output_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,char(7)
+            IF(output_io/=6) write(*        ,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg),char(7)
+!           write(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
             do i=1,3
               if (ier_msg(i)     .ne.' ')               &
-     &                write(*,1500) typ,ier_msg(i),ier_num
+     &                write(*,1500) TRIM(color_err),typ,ier_msg(i),ier_num,TRIM(color_fg)
             ENDDO
          else
-           write(output_io,2000) ier_num,typ,char(7)
-           IF(output_io/=6) write(*,2000) ier_num,typ,char(7)
+           write(output_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
+           IF(output_io/=6) write(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
          endif
        else
-         write(output_io,2000) ier_num,typ,char(7)
-         IF(output_io/=6) write(*,2000) ier_num,typ,char(7)
+         write(output_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
+         IF(output_io/=6) write(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
        endif
 !
        if (lconn .and. lsocket) then
-         write(estr,1500) typ,error(ier_num),ier_num
+         write(estr,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_bg)
          le=len_str(estr)
          call socket_send(s_conid,estr,le)
        endif
 !
-1000  format(' ***',a,'*** ',a45,' ***',i4,' ***',a1)
-1500  format(' ***',a,'*** ',a45,' ***',i4,' ***')
-2000  format(' !!!! No error message for error no.:',I8,' !!!!'/        &
-     &       '      Error type:    ',a,'            '/                  &
-     &       '      Please document and report to the author',a1)
+1000  format(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)
+1500  format(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)
+2000  format(a,' !!!! No error message for error no.:',I8,' !!!!'/        &
+     &         '      Error type:    ',a,'            '/                  &
+     &         '      Please document and report to the author',a,a1)
        end
 !*****7****************************************************************
        SUBROUTINE errlist_none

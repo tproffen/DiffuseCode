@@ -29,11 +29,6 @@ LOGICAL, INTENT(IN) :: standalone
       prompt_status_old = PROMPT_ON
 !                                                                       
 CALL ini_ran (0) 
-!                                                                       
-!------ Write starting screen                                           
-!                                                                       
-version = aktuell 
-IF(standalone) WRITE ( *, 1000) version, cdate 
 !
 !     Call initial default allocation
 IF(standalone) CALL lib_alloc_default
@@ -52,6 +47,14 @@ CALL appl_env (lstandalone, 0)
 !     try to read default file                                          
 !                                                                       
 CALL discus_autodef 
+!                                                                       
+!------ Write starting screen                                           
+!                                                                       
+version = aktuell 
+IF(standalone) THEN
+   WRITE ( *, 1000) version, cdate 
+   CALL write_appl_env (lstandalone, 0)
+ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       

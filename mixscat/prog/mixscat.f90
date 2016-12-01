@@ -86,11 +86,6 @@ PROGRAM mixsca
 !                                                                       
       CALL ini_ran (0) 
 !                                                                       
-!------ Write starting screen                                           
-!                                                                       
-      version=aktuell
-      WRITE ( *, 1000) version, cdate 
-!                                                                       
 !     Call initialization routine                                       
 !                                                                       
       CALL mixscat_initarrays 
@@ -99,6 +94,12 @@ PROGRAM mixsca
 !     get envirmonment information                                      
 !                                                                       
       CALL appl_env (.TRUE.,0)
+!                                                                       
+!------ Write starting screen                                           
+!                                                                       
+      version=aktuell
+      WRITE ( *, 1000) version, cdate 
+      CALL write_appl_env (.TRUE.,0)
 !                                                                       
 !     try to read default file                                          
 !                                                                       

@@ -26,17 +26,20 @@ CONTAINS
 !                                                                       
       CALL ini_ran (0) 
 !                                                                       
-!------ Write starting screen                                           
-!                                                                       
-      version = aktuell 
-      IF(standalone) WRITE ( *, 1000) version, cdate 
-!                                                                       
 !     Call initialization routines                                      
 !                                                                       
       IF(standalone) CALL lib_alloc_default
       CALL kuplot_initarrays 
       IF(standalone) CALL init_sysarrays 
       CALL appl_env (lstandalone,0)
+!                                                                       
+!------ Write starting screen                                           
+!                                                                       
+      version = aktuell 
+      IF(standalone) THEN
+         WRITE ( *, 1000) version, cdate 
+         CALL write_appl_env (lstandalone,0)
+      ENDIF
       CALL kuplot_auto_def 
       IF(standalone) CALL cmdline_args (0)
       CALL no_error

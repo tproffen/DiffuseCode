@@ -6,7 +6,9 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
 !     Reads environment variables, sets path for helpfile               
 !     UNIX version ..                                                   
 !+                                                                      
+      USE errlist_mod
       USE envir_mod 
+      USE terminal_mod
       USE param_mod
       USE prompt_mod 
       IMPLICIT none 
@@ -14,14 +16,52 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       LOGICAL, INTENT(IN) :: standalone
       INTEGER, INTENT(IN) :: local_mpi_myid
 !                                                                       
+      INTEGER, PARAMETER :: idef = 68
+!
       CHARACTER(255) cdummy
-      INTEGER ico, ice, iii, i, j
+      CHARACTER(LEN=1024) :: line, color
+      INTEGER ico, ice, iii, i, j, length
+      INTEGER :: ios ! I/O status
       INTEGER len_str 
       INTEGER pname_l 
+      LOGICAL lpresent
 !                                                                       
       operating = ' ' 
       CALL get_environment_variable ('OS', operating) 
+      IF(operating == '') THEN
+         CALL get_environment_variable ('OSTYPE', operating) 
+      ENDIF
 !
+      INQUIRE(FILE='/etc/os-release',EXIST=lpresent)
+      IF(lpresent) THEN
+         CALL oeffne(idef, '/etc/os-release', 'old')
+         i=0
+         name_search: DO
+            READ(idef,'(a)',IOSTAT = ios) line 
+            IF(IS_IOSTAT_END(ios)) EXIT name_search
+            i=i+1
+            IF(i.gt.100) EXIT name_search
+            CALL do_cap(line)
+            IF(INDEX(line,'SUSE') > 0) THEN
+               operating   = 'Linux'
+               color_theme = THEME_LGHTYL_BLACK
+               EXIT name_search
+            ELSEIF(INDEX(line,'UBUNTU') > 0) THEN
+               operating   = 'Linux'
+               color_theme = THEME_DEFAULT
+               EXIT name_search
+            ELSEIF(INDEX(line,'DEBIAN') > 0) THEN
+               operating   = 'Linux'
+               color_theme = THEME_DEFAULT
+               EXIT name_search
+            ELSEIF(INDEX(line,'CYGWIN') > 0) THEN
+               operating   = 'Windows'
+               color_theme = THEME_LGHTYL_BLACK
+               EXIT name_search
+            ENDIF
+         ENDDO name_search
+         CLOSE(idef)
+      ENDIF
       pname_l = len_str (pname) 
       home_dir = ' ' 
       lines = 42 
@@ -169,17 +209,220 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       ENDIF
       current_dir   = start_dir
       current_dir_l = start_dir_l
+!
+!     Define terminal color scheme
+!
+      CALL color_set_scheme (standalone, local_mpi_myid)
 !                                                                       
-      IF(standalone .AND. local_mpi_myid==0) THEN
-         WRITE ( *, 1000) umac_dir (1:umac_dir_l) 
-         WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
-         WRITE ( *, 1200) start_dir (1:start_dir_l) 
-      ENDIF
+      END SUBROUTINE appl_env                       
+!
+SUBROUTINE write_appl_env (standalone, local_mpi_myid)
+!
+USE envir_mod
+USE terminal_mod
+IMPLICIT NONE
+!                                                                       
+LOGICAL, INTENT(IN) :: standalone
+INTEGER, INTENT(IN) :: local_mpi_myid
+!
+IF(standalone .AND. local_mpi_myid==0) THEN
+   IF(term_scheme_exists) THEN
+      WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:umac_dir_l),   TRIM(color_fg)
+      WRITE ( *, 2100)                TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
+      WRITE ( *, 2200)                TRIM(color_info),start_dir (1:start_dir_l) ,TRIM(color_fg)
+   ELSE
+      WRITE ( *, 1000) umac_dir (1:umac_dir_l) 
+      WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
+      WRITE ( *, 1200) start_dir (1:start_dir_l) 
+   ENDIF
+ENDIF
 !                                                                       
  1000 FORMAT     (1x,'User macros in   : ',a) 
  1100 FORMAT     (1x,'System macros in : ',a) 
  1200 FORMAT     (1x,'Start directory  : ',a) 
-      END SUBROUTINE appl_env                       
+ 2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
+ 2100 FORMAT     (1x,  'System macros in : ',a,a,a) 
+ 2200 FORMAT     (1x,  'Start directory  : ',a,a,a) 
+!
+END SUBROUTINE write_appl_env                       
+!
+SUBROUTINE color_set_scheme (standalone, local_mpi_myid)
+!
+!  Set the terminal color scheme 
+!  If the file share/discus.term.scheme exists it is used
+!  Else we try a default color scheme according to the
+!  Operating system
+!
+USE terminal_mod
+USE envir_mod
+USE param_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+LOGICAL, INTENT(IN) :: standalone
+INTEGER, INTENT(IN) :: local_mpi_myid
+!
+INTEGER, PARAMETER :: idef = 68
+CHARACTER(LEN=1024) :: line, color
+INTEGER :: ios ! I/O status
+INTEGER :: i, icolon, length
+!
+term_scheme_file = appl_dir(1:appl_dir_l)//'../share/discus.term.scheme'
+CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+IF(res_para(1)==0) THEN   ! discus.term.scheme does not exist
+   term_scheme_exists = .FALSE.
+   IF(color_theme == THEME_DEFAULT) THEN  ! Use default foreground and background
+      color_fg   = COLOR_FG_DEFAULT
+      color_bg   = COLOR_BG_DEFAULT
+      color_err  = COLOR_FG_RED   ! Lets hope the background is NOT red...
+      color_info = COLOR_FG_BLUE  ! Lets hope the background is NOT blue...
+   ELSEIF(color_theme == THEME_LGHTYL_BLACK) THEN  ! Use default foreground and background
+      color_fg   = COLOR_FG_BLACK
+      color_bg   = COLOR_BG_LIGHT_YELLOW
+      color_err  = COLOR_FG_RED   ! Lets hope the background is NOT red...
+      color_info = COLOR_FG_BLUE  ! Lets hope the background is NOT blue...
+   ELSEIF(color_theme == THEME_BLACK_WHITE ) THEN  ! Use default foreground and background
+      color_fg   = COLOR_FG_BLACK
+      color_bg   = COLOR_BG_WHITE
+      color_err  = COLOR_FG_RED   ! Lets hope the background is NOT red...
+      color_info = COLOR_FG_BLUE  ! Lets hope the background is NOT blue...
+   ENDIF
+ELSE
+   color_fg   = COLOR_FG_DEFAULT  ! Set a sensible default anyway
+   color_bg   = COLOR_BG_DEFAULT  ! Set a sensible default anyway
+   color_err  = COLOR_FG_RED      ! Lets hope the background is NOT red...
+   color_info = COLOR_FG_BLUE     ! Lets hope the background is NOT blue...
+   color_theme = THEME_USER
+   term_scheme_exists = .TRUE.
+   CALL oeffne(idef, term_scheme_file, 'old')
+   i=0
+   color_search: DO
+      READ(idef,'(a)',IOSTAT = ios) line
+      IF(IS_IOSTAT_END(ios)) EXIT color_search
+      i=i+1
+      IF(i.gt.100) EXIT color_search
+      CALL do_cap(line)
+      icolon = INDEX(line, ':')
+      color  = line(icolon+1:LEN_TRIM(line))
+      length = LEN_TRIM(line)
+      CALL rem_leading_bl(color,length)
+      CALL color_set_fg(line,icolon,'FOREGROUND:', color, color_fg)
+      CALL color_set_fg(line,icolon,'ERROR:',      color, color_err)
+      CALL color_set_fg(line,icolon,'HIGHLIGHT:',  color, color_high)
+      CALL color_set_fg(line,icolon,'INFORMATION:',color, color_info)
+      CALL color_set_bg(line,icolon,'BACKGROUND:', color, color_bg)
+   END DO color_search
+   CLOSE(idef)
+ENDIF
+IF(standalone.AND.local_mpi_myid==0) THEN  ! set standard Background and Foreground
+   WRITE(*,'(a)') TRIM(color_bg)
+   WRITE(*,'(a)') TRIM(color_fg)
+ENDIF
+END SUBROUTINE color_set_scheme
+!
+SUBROUTINE color_set_fg(line,icolon,color_type , color_string, color_color)
+!
+USE errlist_mod
+USE terminal_mod
+IMPLICIT NONE
+!
+CHARACTER (LEN=*) , INTENT(IN)  :: line          ! == 'FORGROUND:' or similar
+INTEGER           , INTENT(IN)  :: icolon        ! Position of colon
+CHARACTER (LEN=*) , INTENT(IN)  :: color_type    ! String for comparison
+CHARACTER (LEN=*) , INTENT(IN)  :: color_string  ! User color name/value
+CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
+!
+CHARACTER (LEN=1024) :: string
+CHARACTER (LEN=   3) :: zeile
+INTEGER              :: ianz
+INTEGER, PARAMETER                 :: MAXW = 1
+CHARACTER (LEN=1024), DIMENSION(1) :: cpara
+INTEGER             , DIMENSION(1) :: lpara
+REAL                , DIMENSION(1) :: werte
+!
+IF(line(1:icolon) == color_type) THEN
+   IF(color_string=='BLACK') THEN
+      color_color = COLOR_FG_BLACK
+   ELSEIF(color_string=='RED') THEN
+      color_color = COLOR_FG_RED
+   ELSEIF(color_string=='GREEN') THEN
+      color_color = COLOR_FG_GREEN
+   ELSEIF(color_string=='YELLOW') THEN
+      color_color = COLOR_FG_YELLOW
+   ELSEIF(color_string=='BLUE') THEN
+      color_color = COLOR_FG_BLUE
+   ELSEIF(color_string=='MAGENTA') THEN
+      color_color = COLOR_FG_MAGENTA
+   ELSEIF(color_string=='CYAN') THEN
+      color_color = COLOR_FG_CYAN
+   ELSEIF(color_string=='WHITE') THEN
+      color_color = COLOR_FG_WHITE
+   ELSE
+      cpara(1) = color_string
+      lpara(1) = LEN_TRIM(color_string)
+      ianz   = 1
+      CALL ber_params ( ianz, cpara, lpara, werte, MAXW)
+      IF(ier_num == 0 .AND. 0<=NINT(werte(1)) .AND. NINT(WERTE(1))<=255) THEN
+         WRITE(zeile,'(I3.3)') NINT(werte(1))
+         color_color = ESC//'[38;5;'//zeile(1:3)//'m'
+      ELSE
+         color_color = COLOR_FG_DEFAULT
+      ENDIF
+   ENDIF
+ENDIF
+END SUBROUTINE color_set_fg
+!
+SUBROUTINE color_set_bg(line,icolon,color_type , color_string, color_color)
+!
+USE errlist_mod
+USE terminal_mod
+IMPLICIT NONE
+!
+CHARACTER (LEN=*) , INTENT(IN)  :: line          ! == 'FORGROUND:' or similar
+INTEGER           , INTENT(IN)  :: icolon        ! Position of colon
+CHARACTER (LEN=*) , INTENT(IN)  :: color_type    ! String for comparison
+CHARACTER (LEN=*) , INTENT(IN)  :: color_string  ! User color name/value
+CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
+!
+CHARACTER (LEN=1024) :: string
+CHARACTER (LEN=   3) :: zeile
+INTEGER              :: ianz
+INTEGER, PARAMETER                 :: MAXW = 1
+CHARACTER (LEN=1024), DIMENSION(1) :: cpara
+INTEGER             , DIMENSION(1) :: lpara
+REAL                , DIMENSION(1) :: werte
+!
+IF(line(1:icolon) == color_type) THEN
+   IF(color_string=='BLACK') THEN
+      color_color = COLOR_FG_BLACK
+   ELSEIF(color_string=='RED') THEN
+      color_color = COLOR_BG_RED
+   ELSEIF(color_string=='GREEN') THEN
+      color_color = COLOR_BG_LIGHT_YELLOW
+   ELSEIF(color_string=='LIGHT_YELLOW') THEN
+      color_color = COLOR_BG_LIGHT_YELLOW
+   ELSEIF(color_string=='YELLOW') THEN
+      color_color = COLOR_BG_YELLOW
+   ELSEIF(color_string=='BLUE') THEN
+      color_color = COLOR_BG_BLUE
+   ELSEIF(color_string=='WHITE') THEN
+      color_color = COLOR_BG_WHITE
+   ELSE
+      cpara(1) = color_string
+      lpara(1) = LEN_TRIM(color_string)
+      ianz   = 1
+      CALL ber_params ( ianz, cpara, lpara, werte, MAXW)
+      IF(ier_num == 0 .AND. 0<=NINT(werte(1)) .AND. NINT(WERTE(1))<=255) THEN
+         WRITE(zeile,'(I3.3)') NINT(werte(1))
+         color_color = ESC//'[48;5;'//zeile(1:3)//'m'
+      ELSE
+         color_color = COLOR_BG_DEFAULT
+      ENDIF
+   ENDIF
+ENDIF
+!
+END SUBROUTINE color_set_bg
 !
       SUBROUTINE  program_files
 !-                                                                      

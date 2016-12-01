@@ -6,7 +6,7 @@ MODULE charact_mod
    PUBLIC
    SAVE
 !
-   CHARACTER(len=1), PARAMETER :: TAB = ACHAR(9)
+   CHARACTER(LEN=1), PARAMETER :: TAB = ACHAR(9)
 !
    INTEGER, PARAMETER ::  a      = IACHAR('a')
    INTEGER, PARAMETER ::  z      = IACHAR('z')

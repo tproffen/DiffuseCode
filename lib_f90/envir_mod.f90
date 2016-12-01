@@ -14,6 +14,7 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: current_dir
    CHARACTER(LEN= 256) :: operating
    CHARACTER(LEN= 256) :: user_profile
+   CHARACTER(LEN= 256) :: term_scheme_file
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
    CHARACTER(LEN= 80 ) :: hlpdir
@@ -21,6 +22,7 @@ MODULE envir_mod
    CHARACTER(LEN= 80 ) :: nullfile
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
+   INTEGER             :: term_scheme_file_l
    INTEGER             :: deffile_l
    INTEGER             :: hlpfile_l
    INTEGER             :: hlp_dir_l
@@ -30,5 +32,6 @@ MODULE envir_mod
    INTEGER             :: start_dir_l
    INTEGER             :: current_dir_l
    INTEGER             :: lines
+   LOGICAL             :: term_scheme_exists = .FALSE.
 !
 END MODULE envir_mod

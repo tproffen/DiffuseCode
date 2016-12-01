@@ -392,6 +392,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       USE errlist_mod 
       USE prompt_mod 
       USE operating_mod
+      USE terminal_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -424,6 +425,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       lsetup_done = .false.
 !
       CALL operating_exit   ! Exit for operating system
+      write(*,'(a,a)') COLOR_BG_DEFAULT, COLOR_FG_DEFAULT
 !                                                                       
       END SUBROUTINE exit_all                       
 !*****7*****************************************************************

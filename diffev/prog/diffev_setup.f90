@@ -32,11 +32,6 @@ prompt_status     = PROMPT_ON
 prompt_status_old = PROMPT_ON 
 !                                                                       
 CALL ini_ran (0) 
-!                                                                       
-!------ Write starting screen                                           
-!                                                                       
-version   = aktuell 
-IF(standalone) WRITE ( *, 1000) version, cdate
 !
 !     Call initial default allocation
 !
@@ -54,6 +49,15 @@ IF(standalone) CALL init_sysarrays
 !     get envirmonment information                                      
 !                                                                       
 CALL appl_env (lstandalone, run_mpi_myid)
+!                                                                       
+!------ Write starting screen                                           
+!                                                                       
+IF(standalone) THEN
+   WRITE ( *, 1000) version, cdate
+   CALL write_appl_env (lstandalone, run_mpi_myid)
+ENDIF
+!
+version   = aktuell 
 !                                                                       
 !     try to read default file                                          
 !                                                                       
