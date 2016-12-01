@@ -15,6 +15,8 @@ PUBLIC execute_macro       ! Execute a macro at suite, discus, diffev, kuplot
 PUBLIC execute_help        ! Execute the help
 PUBLIC execute_command     ! Execute a single command
 PUBLIC test_macro_param    ! Test a macro for the number of parameters required by the macro
+PUBLIC gui_do_init         ! Initialize a Do/IF block
+PUBLIC gui_do_insert       ! Read Commands into a Do/If block and execute once finished
 PUBLIC send_i              ! Send an integer array to the suite
 PUBLIC send_r              ! Send a real valued array to the suite
 PUBLIC get_i               ! Get an integer valued array from the suite
@@ -37,6 +39,7 @@ USE diffev_setup_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 !
+USE charact_mod
 USE prompt_mod
 USE envir_mod
 !
@@ -71,7 +74,7 @@ ELSE
    CALL suite_set_sub
 ENDIF
 lstandalone = .false.
-WRITE(output_io,'(a)') 'Contol turned to GUI ...'
+WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control turned to GUI ...',COLOR_FG_DEF
 !
 END SUBROUTINE initialize_suite
 !
@@ -110,6 +113,7 @@ section: SELECT CASE (prog)
 END SELECT section
 lsetup_done = .TRUE.
 WRITE(output_io,'(a)') 'Contol returned to GUI ...'
+CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE interactive
 !
@@ -126,6 +130,7 @@ USE discus_loop_mod
 USE diffev_loop_mod
 USE kuplot_loop_mod
 !
+USE charact_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -153,6 +158,7 @@ IF(line(1:1) == '@' ) THEN
    length = length - 1
 ENDIF
 !
+WRITE(output_io,'(a5,''@''a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEF
 CALL file_kdo(line,length)
 exec: SELECT CASE (prog)
    CASE ('suite')
@@ -167,6 +173,7 @@ END SELECT exec
 !
 linteractive = .TRUE.
 WRITE(output_io,'(a)') 'Contol returned to GUI ...'
+CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE execute_macro
 !
@@ -177,6 +184,7 @@ SUBROUTINE execute_help(prog)
 !  Execute the help for the section defined by prog
 !
 !
+USE charact_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -201,7 +209,8 @@ length = LEN_TRIM(prog)
 CALL do_hel(prog, length)
 !
 linteractive = .TRUE.
-WRITE(output_io,'(a)') 'Contol returned to GUI ...'
+WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control returned to GUI ...',COLOR_FG_DEF
+CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE execute_help
 !
@@ -216,6 +225,7 @@ USE discus_loop_mod
 USE diffev_loop_mod
 USE kuplot_loop_mod
 USE suite_loop_mod
+USE charact_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -230,6 +240,7 @@ length = LEN_TRIM(line)
 lend   = .FALSE.
 linteractive = .FALSE.
 input_gui = line
+WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEF
 section: SELECT CASE (prog)
    CASE ('suite')
       CALL suite_prae
@@ -246,6 +257,7 @@ section: SELECT CASE (prog)
 END SELECT section
 CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE execute_command
 !
@@ -263,6 +275,103 @@ CALL test_macro(line,length, numpar)
 test_macro_param = numpar
 !
 END FUNCTION test_macro_param
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE gui_do_init(prog,line)
+!
+USE charact_mod
+USE doact_mod
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: prog
+CHARACTER(LEN=*), INTENT(IN) :: line
+INTEGER                      :: length
+LOGICAL                      :: lend
+!
+linteractive = .FALSE.
+section: SELECT CASE (prog)
+   CASE ('suite')
+      CALL suite_prae
+   CASE ('discus')
+      CALL discus_prae
+   CASE ('diffev')
+      CALL diffev_prae
+   CASE ('kuplot')
+      CALL kuplot_prae
+END SELECT section
+!
+length = LEN_TRIM(line)
+WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length), COLOR_FG_DEF
+IF(.NOT.lblock_read) THEN   ! This is the first DO/IF statement
+   CALL do_do_init (line, lend, length)
+ELSE
+   input_gui = line
+   CALL do_insert_line
+ENDIF
+CALL back_to_suite      ! Go back to the suite
+!
+length = LEN_TRIM(prog)
+END SUBROUTINE gui_do_init
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE gui_do_insert(prog,line)
+!
+USE charact_mod
+USE doact_mod
+USE doexec_mod
+USE errlist_mod
+USE class_macro_internal
+USE prompt_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: prog
+CHARACTER(LEN=*), INTENT(IN) :: line
+LOGICAL                      :: lend
+!
+IF(lblock_read) THEN    ! Only if we are reading into a Do/If block
+   linteractive = .FALSE.
+   section: SELECT CASE (prog)
+   CASE ('suite')
+         CALL suite_prae
+      CASE ('discus')
+         CALL discus_prae
+      CASE ('diffev')
+         CALL diffev_prae
+      CASE ('kuplot')
+         CALL kuplot_prae
+   END SELECT section
+!
+   insert: DO
+      IF(level > -1) THEN
+         WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:LEN_TRIM(line)), COLOR_FG_DEF
+         input_gui = line
+         CALL do_insert_line
+      ELSE
+         EXIT insert
+      ENDIF
+      IF(.NOT.lmakro) EXIT insert
+   ENDDO insert
+   IF(level < 0) THEN   ! Reached last enddo/endif, execute block
+      lblock_read = .FALSE.
+      CALL do_execute_block(lend)
+      lblock = .false.
+   ENDIF
+!
+   IF(ier_num /= 0) THEN
+      CALL errlist
+   ENDIF
+!
+   CALL back_to_suite      ! Go back to the suite
+!
+ENDIF
+!
+!
+END SUBROUTINE gui_do_insert
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
