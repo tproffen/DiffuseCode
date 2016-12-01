@@ -18,7 +18,7 @@ run_mpi_active   = .false.
 ier_num  = 0
 ier_typ  = ER_NONE
 !
-write(*,*) 'MPI is not active '
+!write(*,*) 'MPI is not active '
 !
 END SUBROUTINE RUN_MPI_INIT
 !
