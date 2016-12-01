@@ -1467,6 +1467,7 @@
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1486,7 +1487,7 @@
       INTEGER k, ib, itmp, ll 
 !                                                                       
       INTEGER len_str 
-      REAL sind 
+!     REAL sind 
 !                                                                       
       CALL oeffne (12, iname, 'old') 
       IF (ier_num.ne.0) return 
@@ -2174,6 +2175,7 @@
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+      USE trig_degree_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2190,7 +2192,7 @@
       REAL dgdfw, dldfw 
       INTEGER j, ind, na, nu, np, nl, nlauf 
 !                                                                       
-      REAL tand 
+!     REAL tand 
 !                                                                       
       DO ind = 1, maxpara 
       df (ind) = 0.0 

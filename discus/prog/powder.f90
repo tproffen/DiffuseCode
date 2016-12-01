@@ -222,6 +222,7 @@ CONTAINS
       USE diffuse_mod 
       USE metric_mod
       USE powder_mod 
+      USE trig_degree_mod
       USE wink_mod
 !
       USE prompt_mod 
@@ -242,8 +243,8 @@ CONTAINS
       REAL del_tth_max (3) 
 !                                                                       
 !     REAL skalpro 
-      REAL asind 
-      REAL sind 
+!     REAL asind 
+!     REAL sind 
 !                                                                       
       DATA cfour / 'normal Fourier', 'Stacking fault' / 
       DATA ccalc / 'rez. space integration      ', 'Debye formula       &
@@ -467,6 +468,7 @@ CONTAINS
       USE debye_mod 
       USE diffuse_mod 
       USE powder_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       INTEGER MAXW 
@@ -484,7 +486,7 @@ CONTAINS
       REAL werte (MAXW) 
 !                                                                       
       LOGICAL str_comp 
-      REAL cosd 
+!     REAL cosd 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
       IF (ier_num.eq.0) then 
@@ -1075,6 +1077,7 @@ CONTAINS
       USE discus_plot_mod
       USE discus_plot_init_mod
       USE powder_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -1084,7 +1087,7 @@ CONTAINS
       INTEGER                 :: powder_nmol ! Number of look up dimensions molecules
       REAL   , DIMENSION(1:3) :: u
 !                                                                       
-      REAL sind 
+!     REAL sind 
 !
       u = 0.0
 !                                                                       
@@ -1194,6 +1197,7 @@ CONTAINS
       USE param_mod 
       USE prompt_mod 
       USE precision_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN)  :: cr_nscat_temp
@@ -1234,7 +1238,7 @@ CONTAINS
 !                                                                       
 !      REAL calc_preferred 
 !     REAL skalpro 
-      REAL asind 
+!     REAL asind 
       REAL seknds 
 !
       n_qxy   = 1
@@ -1785,6 +1789,7 @@ CONTAINS
 !                                                                       
       USE prompt_mod 
       USE precision_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
@@ -1812,7 +1817,7 @@ CONTAINS
       INTEGER IAND 
 !     REAL skalpro 
 !     REAL do_blen, sind 
-      REAL sind 
+!     REAL sind 
       REAL seknds 
 !                                                                       
       n_qxy   = 1
@@ -2103,6 +2108,7 @@ CONTAINS
 !                                                                       
       USE prompt_mod 
       USE precision_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       REAL,    INTENT(IN)  :: udist(3)
@@ -2135,7 +2141,7 @@ CONTAINS
       REAL (KIND=PREC_DP) :: arg 
 !                                                                       
       INTEGER IAND 
-      REAL sind 
+!     REAL sind 
       REAL seknds 
 !                                                                       
       n_qxy   = 1
@@ -2744,6 +2750,7 @@ CONTAINS
 !     from array 'xat' is computed.                                     
 !-                                                                      
       USE metric_mod
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       REAL w (3) 
@@ -2759,8 +2766,8 @@ CONTAINS
       REAL :: alpha   = 0.0
       REAL :: alpha2  = 0.0
 !     REAL do_bang 
-      REAL sind 
-      REAL cosd 
+!     REAL sind 
+!     REAL cosd 
 !                                                                       
       null (1) = 0.0 
       null (2) = 0.0 

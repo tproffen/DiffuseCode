@@ -1135,6 +1135,7 @@
                                                                         
 !CALLING ARGUMENTS:                                                     
                                                                         
+      USE trig_degree_mod
       REAL DTT 
       REAL TTHETA 
       REAL SL, HL 

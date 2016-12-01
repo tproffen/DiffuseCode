@@ -121,6 +121,7 @@ CONTAINS
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -136,7 +137,7 @@ CONTAINS
       REAL sf, sfstart 
 !                                                                       
 !     REAL skalpro 
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
@@ -185,6 +186,7 @@ CONTAINS
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -201,7 +203,7 @@ CONTAINS
       REAL cartesian (3, 3) 
 !                                                                       
 !     REAL skalpro 
-      REAL cosd, sind 
+!     REAL cosd, sind 
       REAL bessj1 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
@@ -265,6 +267,7 @@ CONTAINS
       USE metric_mod
       USE molecule_mod 
       USE errlist_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -283,7 +286,7 @@ CONTAINS
       REAL cartesian (3, 3) 
 !                                                                       
 !     REAL skalpro 
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !                                                                       
       DATA cartesian / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
@@ -335,6 +338,7 @@ CONTAINS
       USE molecule_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -352,7 +356,7 @@ CONTAINS
       REAL hmin (3) 
 !                                                                       
 !     REAL skalpro 
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !DBG_RBN                                                                
       hmin (1) = 0.0 
       hmin (2) = 0.0 

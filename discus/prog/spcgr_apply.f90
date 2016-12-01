@@ -2086,6 +2086,7 @@ CONTAINS
       USE discus_plot_init_mod
       USE errlist_mod 
       USE prompt_mod 
+      USE trig_degree_mod
       USE wink_mod
 !
       IMPLICIT none 
@@ -2101,7 +2102,7 @@ CONTAINS
       REAL reps (3, 3, 3), rten (3, 3) 
       REAL win (3), wrez (3), vol, vr 
       REAL cosa, cosb, cosg, cos1, cos2, sin1, sin2 
-      REAL cosi, sind, cosd, acosd 
+      REAL cosi!, sind, cosd, acosd 
 !                                                                       
       cosa = cosd (win (1) ) 
       cosb = cosd (win (2) ) 
@@ -2191,13 +2192,14 @@ CONTAINS
 !     Calculates the metric tensor. Works both for direct and           
 !     reciprocal metric tensor.                                         
 !-                                                                      
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       INTEGER idim 
       PARAMETER (idim = 3) 
 !                                                                       
       REAL ten (idim, idim), vec (idim), win (idim) 
-      REAL cosd 
+!     REAL cosd 
       INTEGER i, j 
 !                                                                       
       DO i = 1, idim 

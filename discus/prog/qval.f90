@@ -24,6 +24,7 @@ CONTAINS
       USE diffuse_mod 
       USE output_mod 
       USE random_mod
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -40,7 +41,7 @@ CONTAINS
       REAL      :: faver2 = 0.0
       REAL      :: f2aver = 0.0
 !                                                                       
-      REAL atan2d 
+!     REAL atan2d 
       REAL ran1 
       LOGICAL laver 
       qval   = 0.0

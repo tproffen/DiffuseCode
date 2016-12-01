@@ -14,6 +14,7 @@ CONTAINS
       USE tensors_mod
       USE trafo_mod
       USE errlist_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
        
@@ -29,7 +30,7 @@ CONTAINS
       REAL a (3, 3) 
       REAL b (3, 3) 
 !                                                                       
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !     REAL skalpro 
 !                                                                       
 !                                                                       

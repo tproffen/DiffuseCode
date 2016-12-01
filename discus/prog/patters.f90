@@ -1668,6 +1668,7 @@ CONTAINS
 !+                                                                      
       USE intens_mod 
       USE inverse_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
@@ -1681,7 +1682,7 @@ CONTAINS
 !                                                                       
       INTEGER i
 !                                                                       
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !                                                                       
       l_incl = .true. 
       IF (inverse_type.eq.INV_INV) then 
@@ -1756,6 +1757,7 @@ CONTAINS
 !+                                                                      
       USE intens_mod 
       USE inverse_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
@@ -1764,7 +1766,7 @@ CONTAINS
       REAL zz1, zz2, zz3 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       
-      REAL cosd, sind 
+!     REAL cosd, sind 
 !                                                                       
       IF (inverse_type.eq.INV_INV) then 
          IF (rho_type (1) .eq.AMPLITUDE) then 

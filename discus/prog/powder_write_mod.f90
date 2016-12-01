@@ -20,6 +20,7 @@ CONTAINS
       USE powder_tables_mod
       USE wink_mod
       USE precision_mod
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
@@ -57,7 +58,7 @@ CONTAINS
 !                                                                       
 !      REAL lorentz 
 !      REAL polarisation 
-      REAL sind, asind 
+!      REAL sind, asind 
 !
 !
       IF(.NOT. (value == 1 .or. value == 7 .or. value == 8 .or. &
@@ -218,7 +219,7 @@ CONTAINS
                q      = xpos
                dstar  = q / zpi
                stl    = q / zpi / 2.
-               ttheta = 2.*asind ( q / 2. /zpi *rlambda )
+               ttheta = 2.*asind ( REAL(q / 2. /zpi *rlambda ))
             ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
                ttheta = xpos
                stl    =            sind (ttheta * 0.5) / rlambda 
@@ -496,6 +497,7 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod 
       USE powder_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -503,7 +505,7 @@ CONTAINS
       INTEGER, INTENT(IN) :: flag_fq
 !                                                                       
 !
-      REAL sind
+!     REAL sind
 !                                                                       
       lorentz = 1.0
       
@@ -527,18 +529,19 @@ CONTAINS
 !                                                                       
       END FUNCTION lorentz                          
 !*****7*****************************************************************
-      REAL function polarisation (ttheta) 
+      REAL FUNCTION polarisation (ttheta) 
 !+                                                                      
 !-                                                                      
       USE discus_config_mod 
       USE powder_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       REAL ttheta 
 !
 !
-      REAL cosd 
+!     REAL cosd 
 !                                                                       
       polarisation = 1.0
       
@@ -561,12 +564,13 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod 
       USE powder_mod 
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       REAL ttheta 
 !                                                                       
-      REAL sind, cosd 
+!     REAL sind, cosd 
 !                                                                       
       IF (pow_four_type.eq.POW_DEBYE) THEN 
          lorentz_pol = 1.0 
@@ -704,6 +708,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
       USE discus_config_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -731,7 +736,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !      REAL pseudovoigt 
 !      REAL profile_asymmetry 
-      REAL tand
+!      REAL tand
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
@@ -788,6 +793,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !     FWHM = sqrt ( U*tan**2(Theta) + V*tan(Theta) + W)                 
 !+                                                                      
       USE discus_config_mod 
+      USE trig_degree_mod
       USE wink_mod
       IMPLICIT none 
 !                                                                       
@@ -818,7 +824,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !                                                                       
 !      REAL pseudovoigt 
 !      REAL profile_asymmetry 
-      REAL tand, sind, asind 
+!     REAL tand, sind, asind 
 !                                                                       
 !------ Now convolute                                                   
 !                                                                       
@@ -904,6 +910,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !-                                                                      
 !     calculates the asymmetry parameter for the profile function       
 !                                                                       
+      USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
       REAL, INTENT(IN) :: tth 
@@ -914,7 +921,7 @@ END SUBROUTINE powder_conv_psvgt_fix
       REAL :: zz 
       REAL :: fa, fb 
 !                                                                       
-      REAL :: tand 
+!     REAL :: tand 
 !                                                                       
       zz = dtth / fwhm 
 !                                                                       
