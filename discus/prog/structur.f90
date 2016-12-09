@@ -3532,6 +3532,8 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       ENDIF
       CALL oeffne (iwr, wfile, 'unknown') 
       IF (ier_num.ne.0) then       ! Error opening file, clear memory structure
+         TAIL => HEAD
+         TEMP => HEAD
          DO WHILE (ASSOCIATED(TAIL))
             TAIL => TAIL%next
             DEALLOCATE(TEMP)       ! Clean up the memory structure
