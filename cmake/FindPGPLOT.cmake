@@ -33,13 +33,22 @@ MESSAGE( STATUS "Looking for PGPLOT: " )
 ####################################################################################################
 #### SEARCH PACKAGE COMPONENTS
 ####################################################################################################
-SET( PGPLOT_DIR "" CACHE PATH "Path to an PGPLOT installation" )
+SET( PGPLOT_DIR "/usr/local/pgplot" CACHE PATH "Path to an PGPLOT installation" )
+#SET( PGPLOT_DIR "" CACHE PATH "Path to an PGPLOT installation" )
+
+FIND_PATH( PGPLOT_DIR cpgplot.h
+	PATHS   /usr/local/pgplot
+		${PGPLOT_DIR}
+		${DEFAULT_PACKAGE_DIRS}
+		${DEFAULT_INCLUDE_DIRS}
+)
+	MESSAGE( STATUS "Looking for PGPLOT: directory (${PGPLOT_DIR})" )
 
 SET( PGPLOT_LIBRARY_SEARCH_DIRS
+        /usr/local/pgplot
 	${PGPLOT_DIR}
 	${DEFAULT_PACKAGE_DIRS}
 	${DEFAULT_LIBRARY_DIRS}
-        /usr/local/pgplot
 )
 
 #MESSAGE( STATUS "Looking for PGPLOT: tcl library" )
@@ -104,10 +113,10 @@ SET( PGPLOT_LIBRARY_SEARCH_DIRS
 MESSAGE( STATUS "Looking for PGPLOT: include directory" )
 FIND_PATH( PGPLOT_INCLUDE_DIR cpgplot.h
 	PATHS
+                /usr/local/pgplot
 		${PGPLOT_DIR}
 		${DEFAULT_PACKAGE_DIRS}
 		${DEFAULT_INCLUDE_DIRS}
-                /usr/local/pgplot
 	PATH_SUFFIXES include INCLUDE
 )
 	MESSAGE( STATUS "Looking for PGPLOT: include directory (${PGPLOT_INCLUDE_DIR})" )
