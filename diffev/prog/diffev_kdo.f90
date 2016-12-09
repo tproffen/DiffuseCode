@@ -24,6 +24,7 @@ USE learn_mod
 USE macro_mod
 USE prompt_mod
 USE set_sub_generic_mod
+USE variable_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -40,6 +41,7 @@ INTEGER                               :: indxb, indxg, lcomm, lbef, indxt
 INTEGER                               :: i, j, ii , nb
 INTEGER                               :: n_pop  ! dummy for allocation
 INTEGER                               :: lb,ub
+INTEGER                               :: kid, indiv, nindiv
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
 INTEGER                               :: lpara (maxw) 
@@ -748,6 +750,28 @@ ELSE
             CALL write_current                ! Update the Current parameter file
          ELSE IF (str_comp (cpara (1) , 'generation', 3, lpara (1) ,10)) then
             CALL write_genfile                ! Write the "GENERATION" file
+         ELSE IF (str_comp (cpara (1) , 'kid', 3, lpara (1) ,3)) then
+            cpara(1) = '0'
+            lpara(1) = 1
+            kid    = 1
+            indiv  = 1
+            nindiv = 1
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            kid = NINT(werte(2))
+            IF(ianz==3) THEN
+               indiv  = NINT(werte(3))
+            ENDIF
+            IF(ianz==4) THEN
+               nindiv = NINT(werte(4))
+            ENDIF
+            var_val( var_ref+0) = pop_gen
+            var_val( var_ref+1) = pop_n
+            var_val( var_ref+2) = pop_c
+            var_val( var_ref+3) = pop_dimx
+            var_val( var_ref+4) = kid
+            var_val( var_ref+5) = indiv
+            var_val( var_ref+6) = nindiv
+            CALL write_trial(kid)             ! Update the Current parameter file
          ELSE
             ier_num = - 6
             ier_typ = ER_COMM

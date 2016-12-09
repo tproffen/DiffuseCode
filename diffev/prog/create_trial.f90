@@ -302,10 +302,14 @@ ENDIF nlok
 END SUBROUTINE create_single                  
 !*****7**************************************************************** 
 SUBROUTINE write_trial (jt) 
+!
+! Writes the trial file of just one kid, and updates the ref_para array
 !                                                                       
 USE diff_evol
 USE population
 USE support_diffev_mod
+USE param_mod
+USE variable_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -318,6 +322,11 @@ CHARACTER (LEN=7)              :: stat  = 'unknown'
 INTEGER                        :: i
 INTEGER                        :: len_file 
 !                                                                       
+DO i = 1, pop_dimx 
+   ref_para(i) = pop_t (i, jt)
+ENDDO 
+var_val( var_ref+4) = jt
+!
 IF(pop_trial_file_wrt) THEN
    len_file = pop_ltrialfile 
    CALL make_file (pop_trialfile, len_file, 4, jt) 
