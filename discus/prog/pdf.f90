@@ -1430,7 +1430,8 @@ main:    DO
                  pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
                  pdf_ndat  = MAX(pdf_ndat , nn      , PDF_MAXDAT)
                  pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
-                 CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+!                There is no need to call alloc at this point, is done in  setup
+!                CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
                pdf_bin = nn 
             ELSE 
                ier_num = - 6 
@@ -2338,7 +2339,7 @@ laccept = .false.
       IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
          pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
          nlook     > UBOUND(pdf_temp,4)      ) THEN
-         pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)
+         pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)*1.20  
          IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
          ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
       ENDIF
@@ -2458,7 +2459,7 @@ laccept = .false.
       INTEGER :: jpdf_bin
 !     REAL ppp (MAXDAT) 
 !      REAL, DIMENSION(PDF_MAXDAT   ) :: ppp ! (MAXDAT) 
-      REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
+!     REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: ppp ! (MAXDAT) 
       REAL norm, r, r0 
       REAL rr 
       REAL :: factor,fac4
@@ -2466,7 +2467,7 @@ laccept = .false.
 !     INTEGER (SELECTED_INT_KIND(9)) :: isign = 1
 !                                                                       
       rr = 0.0
-      ALLOCATE(ppp(1:SIZE(pdf_calc)))
+!     ALLOCATE(ppp(1:SIZE(pdf_calc)))
       ncc = cr_icc (1) * cr_icc (2) * cr_icc (3) 
       IF (.not.pdf_lrho0) then 
          IF (pdf_lrho0_rel) then 
@@ -2555,15 +2556,15 @@ laccept = .false.
 !         ENDDO 
 !         ENDDO 
 !                                                                       
-         ppp = 0.0d0
-         CALL CONVLV_SUB(SIZE(pdf_calc), SIZE(pdf_sincc),ppp,pdf_calc, pdf_sincc, 1)
+         pdf_ppp = 0.0d0
+         CALL CONVLV_SUB(SIZE(pdf_calc), SIZE(pdf_sincc),pdf_ppp,pdf_calc, pdf_sincc, 1)
          factor = pdf_deltar / zpi * 2.
          DO i = 1, pdf_bin 
-            pdf_calc (i) = ppp (i) * factor
-!           pdf_calc (i) = ppp (i) * pdf_deltar / zpi * 2.0 
+            pdf_calc (i) = pdf_ppp (i) * factor
+!           pdf_calc (i) = pdf_ppp (i) * pdf_deltar / zpi * 2.0 
          ENDDO 
       ENDIF 
-      DEALLOCATE(ppp)
+!     DEALLOCATE(ppp)
 !                                                                       
       END SUBROUTINE pdf_convert                    
 !*****7*****************************************************************

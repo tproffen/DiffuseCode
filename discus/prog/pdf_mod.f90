@@ -32,6 +32,7 @@ INTEGER             ::  pdf_nbnd  = 1
 INTEGER             ::  pdf_ntemp = 1
 !
 REAL(PREC_DP) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_calc   ! (MAXDAT)
+REAL(PREC_DP) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_ppp    ! (MAXDAT)
 REAL(PREC_DP) , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_corr   ! (MAXDAT)
 INTEGER, DIMENSION(:,:,:,:),ALLOCATABLE  ::  pdf_temp   ! (MAXTEMP,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :  ),ALLOCATABLE  ::  pdf_obs    ! (MAXDAT)
