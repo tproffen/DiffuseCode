@@ -621,6 +621,7 @@ CONTAINS
    USE mmc_mod
    USE modify_mod
    USE modify_func_mod
+   USE molecule_mod
    USE prop_para_mod
    USE read_internal_mod
    USE structur , ONLY: rese_cr
@@ -658,6 +659,7 @@ CONTAINS
    INTEGER   :: n_corr                 ! Dummy maximum correlation number
    INTEGER   :: nscat_old              ! maximum scattering types prior to modifying anchors
    INTEGER   :: n_repl                 ! counter for anchor aatoms
+   INTEGER   :: m_type_old             ! Molecule types in original crystal
    REAL                    :: r_anch   ! relative amount of anchor atoms
    REAL                    :: prob     ! Probability to replace by non_anchor dummy
    REAL   , DIMENSION(1:3) :: xyz
@@ -665,6 +667,8 @@ CONTAINS
    REAL ran1
 !
 !  Section for automatic distribution of all surface anchors
+!
+   m_type_old = mole_num_type          ! Remember molecule type in original crystal
 !
    CALL save_store_setting             ! Backup user "save" setting
    CALL save_default_setting           ! Default to full saving
@@ -860,7 +864,7 @@ CONTAINS
                           CASE ( DC_NORMAL )                 ! Molecule in normal position
                              IF(ncon == 1) THEN
                                 CALL deco_place_normal(dc_def_temp, ia, is, xyz, &
-                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_axis, m_type_old, mole_name, mole_length, &
                                   dc_temp_surf, dc_temp_neig, dc_temp_dist)
                              ELSE
                                 ier_num = -1118
@@ -870,7 +874,7 @@ CONTAINS
                           CASE ( DC_BRIDGE )                 ! Molecule in bridge position
                              IF(ncon == 1) THEN
                              CALL deco_place_bridge(dc_def_temp, ia, is, xyz, &
-                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_axis, m_type_old, mole_name, mole_length,       &
                                   dc_temp_surf, dc_temp_neig, dc_temp_dist)
                              ELSE
                                 ier_num = -1118
@@ -880,7 +884,7 @@ CONTAINS
                           CASE ( DC_DOUBLE   )               ! Molecule in double   connection position
                              IF(ncon >  1) THEN
                              CALL deco_place_double(dc_def_temp, ia, is, xyz, &
-                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_axis, m_type_old, mole_name, mole_length,       &
                                   dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
                                 EXIT cons
                              ELSE
@@ -891,7 +895,7 @@ CONTAINS
                           CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
                              IF(ncon >  1) THEN
                              CALL deco_place_multi(dc_def_temp, ia, is, xyz, &
-                                  dc_temp_axis, mole_name, mole_length,       &
+                                  dc_temp_axis, m_type_old, mole_name, mole_length,       &
                                   dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
                                 EXIT cons
                              ELSE
@@ -1233,12 +1237,14 @@ real, dimension(3) :: uvw_temp
 !******************************************************************************
 !
    SUBROUTINE deco_place_normal(dc_def_temp, ia, ia_scat, xyz, &
-                            mole_axis, mole_name, mole_length, &
+                            mole_axis, m_type_old, mole_name, mole_length, &
                             surf, neig, dist)
 !
    USE chem_mod
    USE metric_mod
    USE modify_mod
+   USE molecule_mod
+   USE molecule_func_mod
    USE prop_para_mod
    USE symm_menu
    USE symm_mod
@@ -1253,6 +1259,7 @@ real, dimension(3) :: uvw_temp
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
    INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
    REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
+   INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
@@ -1267,6 +1274,8 @@ real, dimension(3) :: uvw_temp
    INTEGER :: i, im, laenge
    INTEGER :: itype
    INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
+   INTEGER            :: nold   ! atom number previous to current molecule
+   INTEGER            :: m_type_new   ! new molecule types 
    REAL   , DIMENSION(1:3) :: surf_normal
    REAL, DIMENSION(3) :: posit
    REAL, DIMENSION(3) :: vnull
@@ -1276,14 +1285,23 @@ real, dimension(3) :: uvw_temp
    INTEGER :: iprop
    LOGICAL, PARAMETER :: lspace = .true.
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
+   INTEGER             :: i_m_mole
+   INTEGER             :: i_m_type
+   INTEGER             :: i_m_char
+   CHARACTER (LEN=200) :: c_m_file
+   REAL                :: r_m_fuzzy
+   REAL                :: r_m_dens
+   REAL                :: r_m_biso
 !
    vnull(:) = 0.00
 !
+!write(*,'(a,3i6)') ' NORMAL', cr_natoms, cr_nscat, cr_ncatoms
    CALL find_surface_character(ia,surf_char, surf_normal)
 !  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
 !
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+            nold = cr_natoms
             im = mole_axis(2)                             ! Make mole axis from spcified atoms
             CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
             axis_ligand(1) = posit(1)
@@ -1343,6 +1361,10 @@ real, dimension(3) :: uvw_temp
                cr_iscat(ia) = 0
                cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
             ENDIF
+            CALL dc_molecules(i)%get_cryst_mole( 1, i_m_mole, i_m_type, i_m_char, &
+                               c_m_file, r_m_fuzzy, r_m_dens, r_m_biso)
+            m_type_new = m_type_old  + i 
+            CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
          ENDIF
       ENDDO moles
 !   ENDIF
@@ -1356,13 +1378,14 @@ real, dimension(3) :: uvw_temp
 !*******************************************************************************
 !
    SUBROUTINE deco_place_bridge(dc_def_temp, ia, ia_scat, xyz, &
-                            mole_axis, mole_name, mole_length, &
+                            mole_axis, m_type_old, mole_name, mole_length, &
                             surf, neig, dist)
 !
    USE atom_env_mod
    USE chem_mod
    USE metric_mod
    USE modify_mod
+   USE molecule_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -1376,6 +1399,7 @@ real, dimension(3) :: uvw_temp
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
    INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
    REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
+   INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
@@ -1393,6 +1417,7 @@ real, dimension(3) :: uvw_temp
    INTEGER                                 :: i,j, im, laenge
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
+   INTEGER                                 :: nold   ! atom number previous to current molecule
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
@@ -1401,6 +1426,14 @@ real, dimension(3) :: uvw_temp
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
    REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
+   INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: i_m_mole
+   INTEGER             :: i_m_type
+   INTEGER             :: i_m_char
+   CHARACTER (LEN=200) :: c_m_file
+   REAL                :: r_m_fuzzy
+   REAL                :: r_m_dens
+   REAL                :: r_m_biso
 !
    vnull(:) = 0.00
 !
@@ -1445,6 +1478,7 @@ real, dimension(3) :: uvw_temp
       surf_normal(:) = res_para(1:3)
       moles: DO i=1, dc_n_molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+            nold = cr_natoms                             ! Remember old atom number
             im = mole_axis(2)
             CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
             axis_ligand(1) = posit(1)
@@ -1502,6 +1536,10 @@ real, dimension(3) :: uvw_temp
 !              CALL symm_show
                CALL symm_op_single
             ENDIF
+            CALL dc_molecules(i)%get_cryst_mole( 1, i_m_mole, i_m_type, i_m_char, &
+                               c_m_file, r_m_fuzzy, r_m_dens, r_m_biso)
+            m_type_new = m_type_old  + i 
+            CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
          ENDIF
       ENDDO moles
    ENDIF
@@ -1517,7 +1555,7 @@ real, dimension(3) :: uvw_temp
 !*******************************************************************************
 !
    SUBROUTINE deco_place_double(dc_def_temp, ia, ia_scat, xyz, &
-                            mole_axis, mole_name, mole_length, &
+                            mole_axis, m_type_old, mole_name, mole_length, &
                             surf, neig, dist,ncon)
 !
 !  The molecule is bound by two of its atoms to two different surfae atoms.
@@ -1533,6 +1571,7 @@ real, dimension(3) :: uvw_temp
    USE chem_mod
    USE metric_mod
    USE modify_mod
+   USE molecule_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -1548,6 +1587,7 @@ real, dimension(3) :: uvw_temp
    INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
    REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
    INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
@@ -1586,6 +1626,15 @@ real, dimension(3) :: uvw_temp
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
    REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
+   INTEGER             :: nold         ! atom number previous to current molecule
+   INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: i_m_mole
+   INTEGER             :: i_m_type
+   INTEGER             :: i_m_char
+   CHARACTER (LEN=200) :: c_m_file
+   REAL                :: r_m_fuzzy
+   REAL                :: r_m_dens
+   REAL                :: r_m_biso
 !
    vnull(:) = 0.00
    success = -1
@@ -1595,6 +1644,7 @@ real, dimension(3) :: uvw_temp
    n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
    moles: DO i=1, dc_n_molecules
       IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+         nold = cr_natoms                           ! Remember original atom number
       im = mole_axis(2)
       CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
       origin(:) = 0.0                               ! initially place at 0,0,0
@@ -1610,6 +1660,10 @@ real, dimension(3) :: uvw_temp
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
       ENDDO insert
+            CALL dc_molecules(i)%get_cryst_mole( 1, i_m_mole, i_m_type, i_m_char, &
+                               c_m_file, r_m_fuzzy, r_m_dens, r_m_biso)
+            m_type_new = m_type_old  + i 
+            CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
       ENDIF
    ENDDO moles
 !
@@ -1789,7 +1843,7 @@ real, dimension(3) :: uvw_temp
 !*****7*****************************************************************
 !
    SUBROUTINE deco_place_multi(dc_def_temp, ia, ia_scat, xyz, &
-                            mole_axis, mole_name, mole_length, &
+                            mole_axis, m_type_old, mole_name, mole_length, &
                             surf, neig, dist,ncon)
 !
 !  Places a molecule that has multiple bonds to the surface.
@@ -1803,6 +1857,7 @@ real, dimension(3) :: uvw_temp
    USE chem_mod
    USE metric_mod
    USE modify_mod
+   USE molecule_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -1818,6 +1873,7 @@ real, dimension(3) :: uvw_temp
    INTEGER,                 INTENT(IN) :: ia_scat         ! Scattering type of surface atom
    REAL   , DIMENSION(1:3), INTENT(IN) :: xyz             ! Position of surface atom
    INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_length     ! Molecule file name length
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
@@ -1856,6 +1912,15 @@ real, dimension(3) :: uvw_temp
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
    REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
+   INTEGER             :: nold         ! atom number previous to current molecule
+   INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: i_m_mole
+   INTEGER             :: i_m_type
+   INTEGER             :: i_m_char
+   CHARACTER (LEN=200) :: c_m_file
+   REAL                :: r_m_fuzzy
+   REAL                :: r_m_dens
+   REAL                :: r_m_biso
 !
 !
    vnull(:) = 0.00
@@ -1866,6 +1931,7 @@ real, dimension(3) :: uvw_temp
    n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
    moles: DO i=1, dc_n_molecules
       IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
+         nold = cr_natoms                           ! Remember original atom number
       im = mole_axis(2)
       CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop)
       origin(:) = 0.0                               ! initially place at 0,0,0
@@ -1881,6 +1947,10 @@ real, dimension(3) :: uvw_temp
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
       ENDDO insert
+         CALL dc_molecules(i)%get_cryst_mole( 1, i_m_mole, i_m_type, i_m_char, &
+                            c_m_file, r_m_fuzzy, r_m_dens, r_m_biso)
+         m_type_new = m_type_old  + i 
+         CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
       ENDIF
    ENDDO moles
 !
@@ -1901,7 +1971,11 @@ real, dimension(3) :: uvw_temp
    dc_con_temp => dc_def_temp%dc_def_con
    CALL dc_get_con(dc_con_temp, surface, neighbor, distance)
    n1 = n_atoms_orig +     neighbor   
-   CALL deco_find_anchor(surface(0), surface, distance, ia, surf_normal, posit, base)
+   CALL deco_find_anchor(surface(0), surface, distance, ia,  &
+                         surf_normal, posit, base, success)
+   IF(success/=0) THEN ! DID not find a suitable anchor, flag error
+      GOTO 9999
+   ENDIF
 !
 !   Move molecule to anchor position
 !
@@ -2057,7 +2131,8 @@ real, dimension(3) :: uvw_temp
    END SUBROUTINE deco_place_multi
 !
 !*****7*****************************************************************
-   SUBROUTINE deco_find_anchor(MAXAT,surface, distance, ia, normal, posit, base)
+   SUBROUTINE deco_find_anchor(MAXAT,surface, distance, ia, normal, posit, &
+                               base, ierror)
 !-                                                                      
 !  Find a common point around MAXAT atom types in surface
 !  ia is the first surface atom number
@@ -2078,6 +2153,7 @@ real, dimension(3) :: uvw_temp
    REAL   , DIMENSION(1:3)    , INTENT(IN)  :: normal
    REAL   , DIMENSION(1:3)    , INTENT(OUT) :: posit
    REAL   , DIMENSION(1:3)    , INTENT(OUT) :: base
+   INTEGER                    , INTENT(INOUT) :: ierror
 !
    INTEGER, PARAMETER         :: MAXW = 3
    LOGICAL, PARAMETER         :: lspace = .true. 
@@ -2096,10 +2172,12 @@ real, dimension(3) :: uvw_temp
    REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
    REAL                    :: tx,ty, tz        ! Cartesion coordinates of target position
    REAL                    :: g2x, g2y         ! Cartesion coordinates of atom 3
+   REAL                    :: arg
    REAL     , DIMENSION(1:3)               :: vnull
 !
    vnull(:) = 0.00
 !
+   ierror    = 0
    neig(:,:) = 0
    rmin     = 0.0                  ! Minimum distance between surface atoms
    radius   = 2.0 * distance       ! Maximum distance between surface atoms
@@ -2149,7 +2227,12 @@ real, dimension(3) :: uvw_temp
                w(:) = cr_pos(:,neig(k,3)) - cr_pos(:,neig(l,2)) ! Difference vector neigh to neighbor
                w_l  = SQRT(skalpro(w,w,cr_gten))         ! Calculate length neigh to neighbor
                av   = (u_l+v_l+w_l)/3.
-               sig  = SQRT((u_l-av)**2+(v_l-av)**2+(w_l-av)**2)/3
+               arg  =     ((u_l-av)**2+(v_l-av)**2+(w_l-av)**2)
+               IF(arg<=0) THEN                     ! Negative arg, no solution return with error status
+                  ierror = -1 
+                  RETURN
+               ENDIF
+               sig  = SQRT(arg                                )/3
                IF(sig < sig_min) THEN
                   lgood = l
                   kgood = k
@@ -2164,6 +2247,10 @@ real, dimension(3) :: uvw_temp
    good3 = neig(kgood,3)                  ! Atoms definex x-y plane in cartesian space
    u (:) = cr_pos(:,good2) - cr_pos(:,good1)  ! Cartesian x-axis
    u_l  = SQRT(skalpro(u ,u ,cr_gten))
+   IF(u_l<=0) THEN                        ! Negative arg, no solution return with error status
+      ierror = -2 
+      RETURN
+   ENDIF
    e1(:) = u (:) / u_l                    ! Normalize to 1 angstroem
    v (:) = cr_pos(:,good3) - cr_pos(:,good1)  ! Temporary vector
    WRITE(line,1100) e1,v                         ! Do vector product (e1) x (atom good 3)
@@ -2171,6 +2258,10 @@ real, dimension(3) :: uvw_temp
    CALL vprod(line, laenge)
    e3(:) =  res_para(1:3)                 ! Result is cartesian z-axis
    v_l  = SQRT(skalpro(e3,e3,cr_gten))
+   IF(v_l<=0) THEN                        ! Negative arg, no solution return with error status
+      ierror = -2 
+      RETURN
+   ENDIF
    IF(do_bang(lspace, e3, vnull, normal) <= 90) THEN
       e3(:) =  e3(:) / v_l                ! Normalize to 1 angstroem
    ELSE
@@ -2181,13 +2272,22 @@ real, dimension(3) :: uvw_temp
    CALL vprod(line, laenge)
    e2(:) =  res_para(1:3)                 ! Result is cartesian y-axis
    v_l  = SQRT(skalpro(e2,e2,cr_gten))    ! cartesian x-coordinate of atom 2
+   IF(v_l<=0) THEN                        ! Negative arg, no solution return with error status
+      ierror = -2 
+      RETURN
+   ENDIF
    e2(:) = e2(:) / v_l                    ! Normalize to 1 angstroem
    g2x =     (skalpro(v,e1,cr_gten))      ! cartesian x-coordinate of atom 3
    g2y =     (skalpro(v,e2,cr_gten))      ! cartesian y-coordinate of atom 3
 !  Calculate target coordinates from trilateration
    tx = 0.5 * u_l
    ty = 0.5 * (g2x**2+g2y**2)/g2y - g2x/g2y*tx
-   tz = sqrt(distance**2-tx**2 - ty**2)
+   arg =     (distance**2-tx**2 - ty**2)
+   IF(arg<=0) THEN                     ! Negative arg, no solution return with error status
+      ierror = -1 
+      RETURN
+   ENDIF
+   tz = sqrt(arg)
    posit(:) = cr_pos(:,good1) + tx*e1(:) + ty*e2(:) + tz*e3(:)
    
    base(:) = (cr_pos(:,neig(lgood,2))+ cr_pos(:,neig(kgood,3)))*0.5
