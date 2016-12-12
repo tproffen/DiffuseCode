@@ -114,52 +114,52 @@ CONTAINS
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') none
+       WRITE(cpara(item),'(i3)') none
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'RED', 2, lpara(item) , 3)) THEN
-       write(cpara(item),'(i3)') red
+       WRITE(cpara(item),'(i3)') red
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'GREEN', 3, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') green
+       WRITE(cpara(item),'(i3)') green
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BLUE' , 3, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') blue
+       WRITE(cpara(item),'(i3)') blue
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'MAGENTA', 2, lpara(item) , 7)) THEN
-       write(cpara(item),'(i3)') magenta
+       WRITE(cpara(item),'(i3)') magenta
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'YELLOW', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') yellow
+       WRITE(cpara(item),'(i3)') yellow
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BLACK', 3, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') black
+       WRITE(cpara(item),'(i3)') black
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKRED', 5, lpara(item) , 7)) THEN
-       write(cpara(item),'(i3)') dark_red
+       WRITE(cpara(item),'(i3)') dark_red
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKGREEN', 5, lpara(item) , 9)) THEN
-       write(cpara(item),'(i3)') dark_green
+       WRITE(cpara(item),'(i3)') dark_green
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKBLUE', 5, lpara(item) , 8)) THEN
-       write(cpara(item),'(i3)') dark_blue
+       WRITE(cpara(item),'(i3)') dark_blue
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKMAGENTA', 5, lpara(item) ,11)) THEN
-       write(cpara(item),'(i3)') dark_magenta
+       WRITE(cpara(item),'(i3)') dark_magenta
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKYELLOW', 5, lpara(item) ,10)) THEN
-       write(cpara(item),'(i3)') dark_yellow
+       WRITE(cpara(item),'(i3)') dark_yellow
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'GRAY', 3, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') gray
+       WRITE(cpara(item),'(i3)') gray
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'CYAN', 2, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') cyan
+       WRITE(cpara(item),'(i3)') cyan
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DARKCYAN', 5, lpara(item) , 8)) THEN
-       write(cpara(item),'(i3)') dark_cyan
+       WRITE(cpara(item),'(i3)') dark_cyan
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'WHITE', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') white
+       WRITE(cpara(item),'(i3)') white
        lpara(item) = 3
    ENDIF
    END SUBROUTINE get_colors
@@ -180,61 +180,59 @@ CONTAINS
    LOGICAL :: str_comp
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
-write(*,*) 'CPARA()', cpara(item)(1:lpara(item))
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
       str_comp (cpara(item), 'NOMARKER', 2, lpara(item) , 8)) THEN
-       write(cpara(item),'(i3)') nomarker
+       WRITE(cpara(item),'(i3)') nomarker
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DOT'   , 2, lpara(item) , 3)) THEN
-       write(cpara(item),'(i3)') dot
+       WRITE(cpara(item),'(i3)') dot
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'CIRCLE', 3, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') circle
+       WRITE(cpara(item),'(i3)') circle
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'FILLEDCIRCLE' , 7, lpara(item) ,12)) THEN
-       write(cpara(item),'(i3)') filled_circle
+       WRITE(cpara(item),'(i3)') filled_circle
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SQUARE', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') square 
+       WRITE(cpara(item),'(i3)') square 
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'FILLEDSQUARE', 7, lpara(item) ,12)) THEN
-       write(cpara(item),'(i3)') filled_square
+       WRITE(cpara(item),'(i3)') filled_square
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'TRIANGLE', 2, lpara(item) , 8)) THEN
-       write(cpara(item),'(i3)') triangle
+       WRITE(cpara(item),'(i3)') triangle
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'TIMES', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') times
+       WRITE(cpara(item),'(i3)') times
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'PLUS', 2, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') plus
+       WRITE(cpara(item),'(i3)') plus
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BAR', 3, lpara(item) , 3)) THEN
-       write(cpara(item),'(i3)') bar
+       WRITE(cpara(item),'(i3)') bar
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SLASH', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') slash
+       WRITE(cpara(item),'(i3)') slash
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BACKSLASH', 3, lpara(item) , 9)) THEN
-       write(cpara(item),'(i3)') backslash
+       WRITE(cpara(item),'(i3)') backslash
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'MINUS', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') minus
+       WRITE(cpara(item),'(i3)') minus
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'VERTICAL', 2, lpara(item) , 8)) THEN
-       write(cpara(item),'(i3)') vertical
+       WRITE(cpara(item),'(i3)') vertical
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'X_COORD' , 2, lpara(item) , 7)) THEN
-       write(cpara(item),'(i2)') x_coord 
+       WRITE(cpara(item),'(i2)') x_coord 
        lpara(item) = 2
    ELSEIF(str_comp (cpara(item), 'Y_COORD' , 2, lpara(item) , 7)) THEN
-       write(cpara(item),'(i2)') y_coord 
+       WRITE(cpara(item),'(i2)') y_coord 
        lpara(item) = 2
    ELSEIF(str_comp (cpara(item), 'XY'      , 2, lpara(item) , 2)) THEN
-       write(cpara(item),'(i2)') xy_coord 
+       WRITE(cpara(item),'(i2)') xy_coord 
        lpara(item) = 2
    ENDIF
-write(*,*) 'CPARA()', cpara(item)(1:lpara(item))
    END SUBROUTINE get_marker
 !
    SUBROUTINE get_linetype (ianz, cpara, lpara, maxw, item)
@@ -255,22 +253,22 @@ write(*,*) 'CPARA()', cpara(item)(1:lpara(item))
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
       str_comp (cpara(item),   'NOLINE', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') noline
+       WRITE(cpara(item),'(i3)') noline
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SOLID'   , 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') solid
+       WRITE(cpara(item),'(i3)') solid
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BROKEN', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') broken
+       WRITE(cpara(item),'(i3)') broken
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'DASHED', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') dashed
+       WRITE(cpara(item),'(i3)') dashed
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SHORTBROKEN' , 7, lpara(item) ,11)) THEN
-       write(cpara(item),'(i3)') short_broken
+       WRITE(cpara(item),'(i3)') short_broken
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SHORTDASHED', 7, lpara(item) ,11)) THEN
-       write(cpara(item),'(i3)') short_dashed
+       WRITE(cpara(item),'(i3)') short_dashed
        lpara(item) = 3
    ENDIF
    END SUBROUTINE get_linetype
@@ -293,16 +291,16 @@ write(*,*) 'CPARA()', cpara(item)(1:lpara(item))
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
    IF(str_comp (cpara(item),     'NONE', 2, lpara(item) , 4) .OR.  &
       str_comp (cpara(item),  'NOERROR', 2, lpara(item) , 7)) THEN
-       write(cpara(item),'(i3)') noline
+       WRITE(cpara(item),'(i3)') noline
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'XBAR', 2, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') xbar
+       WRITE(cpara(item),'(i3)') xbar
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'YBAR', 2, lpara(item) , 4)) THEN
-       write(cpara(item),'(i3)') ybar
+       WRITE(cpara(item),'(i3)') ybar
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'CROSS', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') cross
+       WRITE(cpara(item),'(i3)') cross
        lpara(item) = 3
    ENDIF
    END SUBROUTINE get_err_type
@@ -324,28 +322,28 @@ write(*,*) 'CPARA()', cpara(item)(1:lpara(item))
 !
    CALL do_cap(cpara(item))   ! Lets not worry about capitalization
        IF(str_comp (cpara(item), 'SOLID', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') fill_solid
+       WRITE(cpara(item),'(i3)') fill_solid
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'SLASH', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') fill_slash
+       WRITE(cpara(item),'(i3)') fill_slash
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BACKSLASH', 2, lpara(item) , 9)) THEN
-       write(cpara(item),'(i3)') fill_back
+       WRITE(cpara(item),'(i3)') fill_back
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'CROSS', 2, lpara(item) , 5)) THEN
-       write(cpara(item),'(i3)') fill_cross
+       WRITE(cpara(item),'(i3)') fill_cross
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BSOLID', 3, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') b_fill_solid
+       WRITE(cpara(item),'(i3)') b_fill_solid
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BSLASH', 3, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') b_fill_slash
+       WRITE(cpara(item),'(i3)') b_fill_slash
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BBACKSLASH', 2, lpara(item) ,10)) THEN
-       write(cpara(item),'(i3)') b_fill_back
+       WRITE(cpara(item),'(i3)') b_fill_back
        lpara(item) = 3
    ELSEIF(str_comp (cpara(item), 'BCROSS', 2, lpara(item) , 6)) THEN
-       write(cpara(item),'(i3)') b_fill_cross
+       WRITE(cpara(item),'(i3)') b_fill_cross
        lpara(item) = 3
    ENDIF
    END SUBROUTINE get_filltype
