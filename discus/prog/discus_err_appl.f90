@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-136,IO=4)
+      PARAMETER    (IU=-138,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'Atom is already inside a molecule',        & !-138 ! discus
+     &  'Atom number is outside crystal',           & !-137 ! discus
      &  'Connectivity name does not match',         & !-136 ! discus
      &  'Did not find a connectivity for this atom',& !-135 ! discus
      &  'Connectivity list has not been created ',  & !-134 ! discus

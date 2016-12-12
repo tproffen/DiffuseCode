@@ -3541,6 +3541,23 @@
 
    This command lists all current settings for the MMC simulation part
    of DISCUS on the screen.
+2  molecularize
+!b molecularize "conn", <central> [, <exclude> ...]
+!b molecularize "range", <from>, <to>, <type> [, <Biso>]
+
+   This command allows to group a set of atoms into a molecule.
+
+   The first version requires that for atom <central> and all other
+   atoms in the molecule a suitable connectivity list has been prepared,
+   at the connectivity menu, see ==> 'conn' for further details. 
+   You can list  one or more excluded atoms. They and the connectivity 
+   behind these atoms is excluded from the molecule. This in turn 
+   allows you to group a sub section of a full molecule.
+   Internally this algorithm is used within the symmetry menu to
+   rotate a partial molecule.
+
+   The second version places the consecutive range of atoms into 
+   a molecule. DISCUS will not check how close these atoms are.
 2  output
 !b output
 
@@ -9229,6 +9246,46 @@
    corners are, however, identical. 
    Adjust the number of data points along this axis to "1"
    or adjust the corners vie 'll', 'lr', 'ul', 'tl'.
+4  -133
+   Refinement param index outside limits
+
+   You used a refinement parameter "ref_para[<index>]" with an
+   index outside the dimension defined in the diffev section.
+   Has DIFFEV been initialized properly?
+   Did you use the DIFFEV command "run_mpi"?
+   DID you use the DIFFEV "write kid" command ? 
+4  -134
+   Connectivity list has not been created
+
+   A connectivity list was referenced, but has never been 
+   created. Use the ==> 'connectivity' command "create" first.
+4  -135
+   Did not find a connectivity for this atom
+
+   A connectivity list was referenced for an atom, but 
+   has never been created. Use the ==> 'connectivity' 
+   command "create" first.
+4  -136
+   Connectivity name does not match
+
+   A connectivity list was referenced by its name but 
+   does not seem to exist. Use the ==> 'connectivity' 
+   command "create" first.
+   Check for typing mismatched between the cration and usage.
+4  -137
+   Atom number is outside crystal
+
+   An atom number was referenced that is either zero or 
+   negative or higher that the current number of atoms 
+   in the structure. 
+   Check for typing errors in the expression that is used
+   to calculate the atom.
+4  -138
+   Atom is already inside a molecule
+
+   The molecularizer detected that an atom is already part 
+   of a valid molecule. Currently any given Atom may be part
+   of a single molecule only.
 3  chem
    Errors at the chemistry level of DISCUS
 
