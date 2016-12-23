@@ -28,17 +28,19 @@ INCLUDE( DefaultSearchPaths )
 INCLUDE( FindPackageHandleStandardArgs )
 
 FIND_PACKAGE( PNG REQUIRED )
-MESSAGE( STATUS "Looking for PGPLOT: " )
+MESSAGE( STATUS "Looking for PGPLOT:")
 
 ####################################################################################################
 #### SEARCH PACKAGE COMPONENTS
 ####################################################################################################
-SET( PGPLOT_DIR "/usr/local/pgplot" CACHE PATH "Path to an PGPLOT installation" )
+#SET( PGPLOT_DIR "/usr/local/pgplot" CACHE PATH "Path to an PGPLOT installation" )
 #SET( PGPLOT_DIR "" CACHE PATH "Path to an PGPLOT installation" )
+FILE(GLOB PGPLOT_SEARCH_PATHS "/usr/local/pgplot*" "/usr/share/pgplot*" 
+                              "/usr/local/share/pgplot*")
 
 FIND_PATH( PGPLOT_DIR cpgplot.h
-	PATHS   /usr/local/pgplot
-		${PGPLOT_DIR}
+	PATHS   ${PGPLOT_DIR}
+		${PGPLOT_SEARCH_PATHS}
 		${DEFAULT_PACKAGE_DIRS}
 		${DEFAULT_INCLUDE_DIRS}
 )
