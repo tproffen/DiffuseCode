@@ -531,6 +531,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       ELSEIF (str_comp (bef, 'set', 3, lbef, 3) ) then 
          CALL do_set (zei, lc) 
+!     elseif(str_comp(bef,'memory',3,lbef,6)) then
+!        CALL get_params (zei, ianz, cpara, lpara, maxpar, lc) 
+!        CALL ber_params (ianz, cpara, lpara, werte, maxpar) 
+!        if(ier_num == 0) THEN
+!        write(cpara(1),'(I10)') NINT(werte(1))
+!        ENDIF
+!        call memory_message(cpara(1)(1:20))
 !                                                                       
 !------ Sleep fo a while 'sleep'                                        
 !                                                                       

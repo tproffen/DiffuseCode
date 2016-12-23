@@ -32,6 +32,7 @@ MODULE envir_mod
    INTEGER             :: start_dir_l
    INTEGER             :: current_dir_l
    INTEGER             :: lines
+   INTEGER             :: PID
    LOGICAL             :: term_scheme_exists = .FALSE.
 !
 END MODULE envir_mod
