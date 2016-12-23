@@ -42,6 +42,7 @@ USE run_mpi_mod
 USE charact_mod
 USE prompt_mod
 USE envir_mod
+USE terminal_mod
 !
 IMPLICIT NONE
 !
@@ -74,7 +75,7 @@ ELSE
    CALL suite_set_sub
 ENDIF
 lstandalone = .false.
-WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control turned to GUI ...',COLOR_FG_DEF
+WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control turned to GUI ...',COLOR_FG_DEFAULT
 !
 END SUBROUTINE initialize_suite
 !
@@ -132,6 +133,7 @@ USE kuplot_loop_mod
 !
 USE charact_mod
 USE prompt_mod
+USE terminal_mod
 !
 IMPLICIT NONE
 !
@@ -158,7 +160,7 @@ IF(line(1:1) == '@' ) THEN
    length = length - 1
 ENDIF
 !
-WRITE(output_io,'(a5,''@''a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEF
+WRITE(output_io,'(a5,''@''a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEFAULT
 CALL file_kdo(line,length)
 exec: SELECT CASE (prog)
    CASE ('suite')
@@ -186,6 +188,7 @@ SUBROUTINE execute_help(prog)
 !
 USE charact_mod
 USE prompt_mod
+USE terminal_mod
 !
 IMPLICIT NONE
 !
@@ -209,7 +212,7 @@ length = LEN_TRIM(prog)
 CALL do_hel(prog, length)
 !
 linteractive = .TRUE.
-WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control returned to GUI ...',COLOR_FG_DEF
+WRITE(output_io,'(a5,a,a5)') COLOR_HIGH,'Control returned to GUI ...',COLOR_FG_DEFAULT
 CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE execute_help
@@ -227,6 +230,7 @@ USE kuplot_loop_mod
 USE suite_loop_mod
 USE charact_mod
 USE prompt_mod
+USE terminal_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: prog
@@ -240,7 +244,7 @@ length = LEN_TRIM(line)
 lend   = .FALSE.
 linteractive = .FALSE.
 input_gui = line
-WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEF
+WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length),COLOR_FG_DEFAULT
 section: SELECT CASE (prog)
    CASE ('suite')
       CALL suite_prae
@@ -283,6 +287,7 @@ SUBROUTINE gui_do_init(prog,line)
 USE charact_mod
 USE doact_mod
 USE prompt_mod
+USE terminal_mod
 !
 IMPLICIT NONE
 !
@@ -304,7 +309,7 @@ section: SELECT CASE (prog)
 END SELECT section
 !
 length = LEN_TRIM(line)
-WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length), COLOR_FG_DEF
+WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length), COLOR_FG_DEFAULT
 IF(.NOT.lblock_read) THEN   ! This is the first DO/IF statement
    CALL do_do_init (line, lend, length)
 ELSE
@@ -326,6 +331,7 @@ USE doexec_mod
 USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
+USE terminal_mod
 !
 IMPLICIT NONE
 !
@@ -348,7 +354,7 @@ IF(lblock_read) THEN    ! Only if we are reading into a Do/If block
 !
    insert: DO
       IF(level > -1) THEN
-         WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:LEN_TRIM(line)), COLOR_FG_DEF
+         WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:LEN_TRIM(line)), COLOR_FG_DEFAULT
          input_gui = line
          CALL do_insert_line
       ELSE
