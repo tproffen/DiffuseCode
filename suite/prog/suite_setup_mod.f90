@@ -62,11 +62,11 @@ CALL cmdline_args(run_mpi_myid)
 !                                                                       
 lsetup_done = .true.
 !
-write(fname,2000) run_mpi_myid
-2000 format('MEMORY.',I4.4) 
-open(101,file=fname, status='unknown')
-write(101,'(a))') '#INFO            vmpeak     vmsize     vmhwm    vmrss    vmpte'
-write(101,'(a))') '#'
+!write(fname,2000) run_mpi_myid
+!2000 format('MEMORY.',I4.4) 
+!open(101,file=fname, status='unknown')
+!write(101,'(a)') '#INFO            vmpeak     vmsize     vmhwm    vmrss    vmpte'
+!write(101,'(a)') '#'
 !                                                                       
 1000 FORMAT (/,                                                              &
      10x,59('*'),/,                                                          &
