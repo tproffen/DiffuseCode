@@ -95,6 +95,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2016_Dec
+
+   At a few select points colors are introduced into the output.
+   Currently these are just the error messages.
+
 3  2016_Oct
 
    Global variables have been introduced that use the same syntax as

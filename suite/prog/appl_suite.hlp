@@ -20,6 +20,10 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2016_Dec
+
+   At a few select points colors are introduced into the output.
+   Currently these are just the error messages.
 3  2016_Oct
 
    A new command 'parallel' has been added to the Windows version

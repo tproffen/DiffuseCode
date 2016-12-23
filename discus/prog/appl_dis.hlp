@@ -69,6 +69,12 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2016_Dec
+
+   At a few select points colors are introduced into the output.
+   Currently these are just the error messages.
+
+   The new "molecularize" command allows to group atoms into molecules
 3  2016_Oct
 
    The output of the "blen" and "bang" commands within "chemistry" 

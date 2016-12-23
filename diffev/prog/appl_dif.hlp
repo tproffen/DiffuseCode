@@ -19,6 +19,11 @@
    Further help topics are:
 
 2  News
+3  2016_Dec
+
+   At a few select points colors are introduced into the output.
+   Currently these are just the error messages.
+
 3  2016_oct
 
    Global variables have been introduced that use the same syntax as
