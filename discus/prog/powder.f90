@@ -1865,7 +1865,7 @@ CONTAINS
       n_qxy    = num (1) * num (2) + 1
       distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
       n_hist   = nint(distance/pow_del_hist) + 2
-      n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+!     n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
       n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
       n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
       IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
