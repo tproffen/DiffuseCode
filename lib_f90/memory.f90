@@ -1,6 +1,8 @@
 !
 subroutine memory_message(cpara)
 !
+! debug routine to find memory leak, currently offline
+!
 use mpi_slave_mod
 IMPLICIT NONE
 character(Len=*), intent(IN) :: cpara
@@ -23,7 +25,8 @@ integer::vmexe = 0
 integer::vmlib = 0
 integer::vmpte = 0
 integer::vmswap = 0
-my_pid=getpid()
+my_pid=12345678
+!my_pid=getpid()  Works for gfortran only 
 write(pid_char,'(I8)') my_pid
 pid_status = '/proc/'//TRIM(ADJUSTL(pid_char))//'/status'
 open(unit=100,file=pid_status,action='read')
