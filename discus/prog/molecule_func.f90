@@ -253,6 +253,7 @@ ktype = cr_iscat(katom)
 ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 DO ino = 1, ino_max                        ! Loop over all connectivity types
    CALL get_connectivity_list(katom, ktype, ino, c_list, c_offs, c_natoms)
+   IF(c_natoms>0) THEN
    DO i=1,c_natoms                         ! Loop over all neighbors
       IF(.NOT.t_list(c_list(i))) THEN      ! Not yet in the molecule
          t_list(c_list(i)) = .TRUE.        ! Add to temporary list
@@ -267,6 +268,7 @@ DO ino = 1, ino_max                        ! Loop over all connectivity types
    ENDDO
    DEALLOCATE(c_list)                      ! Remove temporary list of atoms
    DEALLOCATE(c_offs)                      ! Remove temporary offsets
+   ENDIF
 ENDDO
 END SUBROUTINE mol_add_conn
 !
