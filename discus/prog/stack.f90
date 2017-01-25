@@ -262,6 +262,32 @@ SUBROUTINE stack
                ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
                   lend = .true. 
 !                                                                       
+!     ----Determine type of first layer 'first' 'random'| <number>      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'firs', 1, lbef, 4) ) then 
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  IF (ier_num.eq.0) then 
+                     IF (ianz.eq.1) then 
+                        IF(str_comp(cpara(1),'random', 3, lpara(1), 6)) THEN
+                           st_first = 0
+                        ELSE
+                           CALL ber_params(ianz,cpara,lpara,werte,maxw)                                           
+                           IF (ier_num.eq.0) then 
+                              IF(nint(werte(1)) > 0) THEN
+                                 st_first = nint (werte (1) ) 
+                              ELSE 
+                                 ier_num = -139 
+                                 ier_typ = ER_APPL 
+                                 ier_msg(1)='Layer type must be >= 1'
+                              ENDIF 
+                           ENDIF 
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                  ENDIF 
+!                                                                       
 !      ---Calculate the Fourier transform of the decorated              
 !           s.f. 'fourier'                                              
 !                                                                       
@@ -1017,12 +1043,24 @@ SUBROUTINE stack
 !                                                                       
          lprev = .false. 
          i = 1 
-         CALL stack_prob (ptot_n, prob, prob_n, lprev, i) 
-         CALL stack_type (prob, i) 
-         st_origin (1, 1) = 0.0 
-         st_origin (2, 1) = 0.0 
-         st_origin (3, 1) = 0.0 
-         st_number (st_type (1) ) = 1 
+         IF(st_first==0) THEN  ! determin first layer from random
+            CALL stack_prob (ptot_n, prob, prob_n, lprev, i) 
+            CALL stack_type (prob, i) 
+            st_origin (1, 1) = 0.0 
+            st_origin (2, 1) = 0.0 
+            st_origin (3, 1) = 0.0 
+            st_number (st_type (1) ) = 1 
+         ELSE
+            IF(st_first>0 .AND. st_first<=st_ntypes) THEN
+               st_type (i) = st_first
+            ELSE 
+               ier_num = -139 
+               ier_typ = ER_APPL 
+               ier_msg(1)='The first layer type must be >= 1 and'
+               ier_msg(2)='less or equal to the number of layer types'
+               RETURN
+            ENDIF
+         ENDIF
       ELSEIF (st_distr.eq.ST_DIST_FILE.or.st_distr.eq.ST_DIST_LIST) THEN
 !                                                                       
 !     --Stacking fault origins are read from file                       

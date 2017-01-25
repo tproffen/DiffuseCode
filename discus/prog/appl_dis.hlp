@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_Jan
+
+   A new command 'first' was added to 'stack' that allows to determine
+   the first layer type
 3  2016_Dec
 
    At a few select points colors are introduced into the output.
@@ -6710,6 +6714,7 @@
 !p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
 !p exit    ! Terminates 'stack' (see main help)
+!first     ! Deter mines the first layer type
 !p four    ! Calculates the Fourier transform in quick mode
 !p help    ! Gives on line help for symmetry operations (see main help)
 !p layer   ! Reads the name of a file that contains a layer
@@ -6786,6 +6791,15 @@
    domains throughout the crystal. In combination with the stacking fault
    fourier option, very fast Fourier transformations of molecular
    crystals can be calculated.
+3  first
+!b first {"random" | <type_number>}
+
+   Determines the type of the first layer type. 
+   with the paremeter "random", the first layer type is determined by
+   a weighted random choice calculated from the correlation matrix.
+   This is the default behaviour.
+   Alternatively a <type number> fixes the first layer type to this 
+   particular type.
 3  four
 !b four
 

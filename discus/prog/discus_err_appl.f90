@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-138,IO=4)
+      PARAMETER    (IU=-139,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'Layer type outside limits',                & !-139 ! discus
      &  'Atom is already inside a molecule',        & !-138 ! discus
      &  'Atom number is outside crystal',           & !-137 ! discus
      &  'Connectivity name does not match',         & !-136 ! discus

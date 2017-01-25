@@ -55,6 +55,7 @@ INTEGER                                    :: st_infile_l      = 1
 INTEGER                                    :: st_nlayer        = 0
 INTEGER                                    :: st_ntypes        = 0
 INTEGER                                    :: st_nchem         = 0
+INTEGER                                    :: st_first         = 0
 LOGICAL                                    :: st_mod_sta       = .false.
 LOGICAL                                    :: st_tra_aver      = .false.
 LOGICAL                                    :: st_rot_mode      = .false.
