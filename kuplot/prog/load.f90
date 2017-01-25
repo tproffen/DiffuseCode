@@ -561,6 +561,8 @@
          CALL read_gsas (ifil, ianz, cpara, lpara, werte, maxw) 
       ELSEIF (unter.eq.'SM') then 
          CALL read_simref (ifil) 
+      ELSEIF (unter.eq.'CSV') then 
+         CALL read_csv(ifil)
       ELSE 
          ier_num = - 2 
          ier_typ = ER_APPL 
@@ -3210,6 +3212,64 @@
  9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_xy                        
+!*****7**************************************************************** 
+      SUBROUTINE read_csv (ifil)
+!+                                                                      
+!     Load CSV Files generated from PANAlytical files                   
+!-                                                                      
+      USE errlist_mod 
+      USE prompt_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+!                                                                       
+      IMPLICIT none 
+!
+      INTEGER, INTENT(in) :: ifil
+!
+      CHARACTER(LEN=1024) :: line
+      CHARACTER(LEN=1   ) :: sep
+      INTEGER             :: ios
+      INTEGER             :: isep
+      INTEGER             :: length
+      INTEGER             :: nr
+      INTEGER             :: maxpp
+!
+      header: DO
+         READ(ifil, '(a)', IOSTAT=ios) line
+         IF(ios/=0) RETURN
+         IF(line(1:5) == 'Angle') THEN
+            sep = line(6:6)
+            EXIT header
+         ENDIF
+      ENDDO header
+!
+      nr = 1
+      maxpp = maxarray - offxy (iz - 1) 
+      body: DO
+         READ(ifil, '(a)', IOSTAT=ios) line
+         IF(ios/=0) EXIT body
+         isep = INDEX(line,sep)
+         length = LEN_TRIM(line)
+         READ(line(1:isep-1),*,IOSTAT=ios)      x (offxy (iz - 1) + nr)
+         READ(line(isep+1:length),*,IOSTAT=ios) y (offxy (iz - 1) + nr)
+         dx(offxy (iz - 1) + nr) = 0.0
+         dy(offxy (iz - 1) + nr) = 0.0
+         nr = nr + 1
+         IF (nr.gt.maxpp) then 
+            ier_num = - 6 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+      ENDDO body
+!
+      len (iz) = nr - 1 
+      offxy (iz) = offxy (iz - 1) + len (iz) 
+      offz (iz) = offz (iz - 1) 
+      iz = iz + 1 
+!                                                                       
+      CALL show_data (iz - 1) 
+!                                                                       
+      END SUBROUTINE read_csv
 !*****7**************************************************************** 
       SUBROUTINE read_mca_single (ifil, ianz, werte, maxw) 
 !+                                                                      

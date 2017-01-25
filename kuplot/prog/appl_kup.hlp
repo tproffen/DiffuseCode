@@ -95,6 +95,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2017_Jan
+
+   Added the option to read CSV files to 'load' command.
 3  2016_Dec
 
    At a few select points colors are introduced into the output.
@@ -464,7 +467,7 @@
 !p p[6] Asymmetry
 
    A Gaussian function with linear background is used as:
-   p[1] + p[2]*r[0] + p[3]*exp(-4 ln(2)*(r[0]-p[4])**2/p[5])
+   p[1] + p[2]*r[0] + p[3]*exp(-4*ln(2)*(r[0]-p[4])**2/p[5]**2)
    Note that the peak height rather than the integral intensity
    is refined.
 4  lore
@@ -1210,6 +1213,11 @@
    to the size set with -> 'msiz'. The first atom is plotted with the
    full size set with 'msiz' whereas the second atom is only 75% of
    that size.
+3  csv
+!  load xy,<file>
+
+   Reads a csv type file that has been extracted from PANAlytical
+   powder data.  
 3  de
 !b load de,<file>,<gridx>,<gridy>
 
