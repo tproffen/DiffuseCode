@@ -3546,6 +3546,12 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       ENDIF 
       WRITE(iwr, 1000) title(1:len_str(title))
       IF(spcgr /= ' ') THEN
+         length = LEN_TRIM(spcgr)
+         IF(length > 2) THEN
+            IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
+               spcgr = spcgr(1:1) // spcgr(3:length-1)
+            ENDIF
+         ENDIF
          WRITE(iwr, 1100) spcgr(1:len_str(spcgr))
          IF(spcgr(1:1) == '?') THEN  !'HM is a '?', flag error but finish writing
             ier_num = -126
