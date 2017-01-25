@@ -22,6 +22,7 @@ PUBLIC send_r              ! Send a real valued array to the suite
 PUBLIC get_i               ! Get an integer valued array from the suite
 PUBLIC get_r               ! Get a real valued array from the suite
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
+PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
 CONTAINS
@@ -514,6 +515,31 @@ CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
 END SUBROUTINE discus_read_structure
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_calc_fourier(line)
+!
+!  A first interface that allows to calculate a Fourier from python via
+!  suite.fourier( python_string )
+!  where python string is any Fourier command.
+!
+USE fourier_menu
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+CALL fourier            ! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_calc_fourier
 !
 !________KUPLOT_________________________________________________________________
 !
