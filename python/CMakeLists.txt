@@ -1,3 +1,4 @@
+find_package(NumPy  REQUIRED)
 
 if (NUMPY_FOUND AND DIFFUSE_PYTHON)
 
