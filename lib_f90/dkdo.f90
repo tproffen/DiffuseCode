@@ -263,12 +263,12 @@ ENDIF
                   IF(repeat) THEN
 !                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205], i[206]'
 !                     length_m = mac_l + 18
-                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., ref_kid, ref_indiv'
+                      WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., REF_KID, REF_INDIV'
                      length_m = mac_l + 22
                   ELSE
 !                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., i[205]'
 !                     length_m = mac_l + 10
-                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., ref_kid'
+                     WRITE(zeile,'(a,a)') mac_n(1:mac_l),' ., REF_KID'
                      length_m = mac_l + 11
                   ENDIF
    
