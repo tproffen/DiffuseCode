@@ -4,8 +4,10 @@ MODULE element_data_mod
 !
 !  PRIVATE PER_MAXELEMENT, PER_MAX_WAVE, per_symwl, per_wavel
    PRIVATE
+   PUBLIC PER_MAX_WAVE   ! Number of wave length symbols
    PUBLIC symbf          ! Translate Atom name into index in per_name etc
    PUBLIC get_wave       ! Get wavelength in Angstroem
+   PUBLIC get_sym_length ! Get Wave length symbols and wavelength table
    PUBLIC get_scat_xray  ! Get X-ray scattering parameters
    PUBLIC get_scat_ano   ! Get anomalous parameters for special wave lengths
    PUBLIC get_scat_neut  ! Get neutron scattering parameters
@@ -1101,9 +1103,9 @@ MODULE element_data_mod
           1.540510,  1.544330,  1.392170,  1.541800,&  ! Cu
           0.709260,  0.713543,  0.632253,  0.710700,&  ! Mo
           0.559363,  0.563775,  0.497010,  0.560800,&  ! Ag
-          0.215484,  0.220290,  0.190076,  0.560800,&  ! Ta
-          0.208992,  0.213813,  0.184363,  0.560800,&  ! W 
-          0.180185,  0.185064,  0.158971,  0.560800 &  ! Au
+          0.215484,  0.220290,  0.190076,  0.217090,&  ! Ta
+          0.208992,  0.213813,  0.184363,  0.210600,&  ! W 
+          0.180185,  0.185064,  0.158971,  0.181800 &  ! Au
         /)
 !
    CONTAINS
@@ -1189,6 +1191,18 @@ MODULE element_data_mod
          ENDIF
       ENDIF
       END SUBROUTINE get_wave
+!
+      SUBROUTINE get_sym_length(i, symbols, wavelengths)
+!
+      IMPLICIT NONE
+      INTEGER           , INTENT(IN)  :: i
+      CHARACTER  (LEN=4), INTENT(OUT) :: symbols
+      REAL              , INTENT(OUT) :: wavelengths
+!
+      symbols     = per_symwl(i)
+      wavelengths = per_wavel(i)
+!
+      END SUBROUTINE get_sym_length
 !
       SUBROUTINE get_scat_xray ( j,temp_scat )
 !
