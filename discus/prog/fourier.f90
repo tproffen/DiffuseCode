@@ -777,6 +777,7 @@ CONTAINS
                           ICHAR (symbol    (1:1) )  <= ICHAR ('Z') ) THEN  
                      lambda = symbol    (1:lsymbol   )
                      l_energy = .false.
+                     CALL no_error
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
