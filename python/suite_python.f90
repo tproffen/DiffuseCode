@@ -21,8 +21,12 @@ PUBLIC send_i              ! Send an integer array to the suite
 PUBLIC send_r              ! Send a real valued array to the suite
 PUBLIC get_i               ! Get an integer valued array from the suite
 PUBLIC get_r               ! Get a real valued array from the suite
+PUBLIC discus_get_wave_number  ! Interface to get number of wave length symbols
+PUBLIC discus_get_wave_symbol  ! Interface to get wave length symbols and values
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
 PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
+PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
+PUBLIC discus_set_fourier      ! Interface to set Fourier menu items to   DISCUS
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
 CONTAINS
@@ -489,6 +493,35 @@ END SUBROUTINE get_r
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+SUBROUTINE discus_get_wave_number(nwave)
+!
+USE element_data_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: nwave
+!
+nwave = PER_MAX_WAVE
+!
+END SUBROUTINE discus_get_wave_number
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_wave_symbol(i,symbols, wavelengths)
+!
+USE element_data_mod
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: MAX_WAVE = 40
+INTEGER           , INTENT(IN ) :: i
+CHARACTER  (LEN=4), INTENT(OUT) :: symbols
+REAL              , INTENT(OUT) :: wavelengths
+!
+CALL get_sym_length(i,symbols, wavelengths)  ! Get names and values from element module
+!
+END SUBROUTINE discus_get_wave_symbol
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 SUBROUTINE discus_read_structure(line)
 !
 !  A first interface that allows to read a structre from python via
@@ -540,6 +573,103 @@ CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
 END SUBROUTINE discus_calc_fourier
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_fourier(corners, increment, radiation, element, wavelength, &
+           energy, use_adp, use_ano, lot_type, lot_numb, lot_dim, lot_per)
+!
+!  Interface to get all Fourier Menu items from DISCUS to Python
+!
+USE ISO_C_BINDING
+USE element_data_mod
+USE diffuse_mod
+USE fourier_sup
+IMPLICIT NONE
+!
+REAL (8), DIMENSION(1:4, 1:3), INTENT(OUT) :: corners
+INTEGER,  DIMENSION(1:3)     , INTENT(OUT) :: increment
+INTEGER                      , INTENT(OUT) :: radiation
+CHARACTER (LEN=4)            , INTENT(OUT) :: element
+REAL (8)                     , INTENT(OUT) :: wavelength
+REAL (8)                     , INTENT(OUT) :: energy
+INTEGER                      , INTENT(OUT) :: use_adp
+INTEGER                      , INTENT(OUT) :: use_ano
+INTEGER                      , INTENT(OUT) :: lot_type
+INTEGER                      , INTENT(OUT) :: lot_numb
+INTEGER, DIMENSION(1:3)      , INTENT(OUT) :: lot_dim
+INTEGER                      , INTENT(OUT) :: lot_per
+!
+CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+            diff_radiation, diff_power) 
+corners    = TRANSPOSE(eck)
+increment  = inc
+radiation  = diff_radiation - 1   ! Python counts 0 to 2
+element    = lambda
+wavelength = rlambda
+energy     = renergy
+IF(ldbw) THEN
+   use_adp = 1
+ELSE
+   use_adp = 0
+ENDIF
+IF(ano) THEN
+   use_ano = 1
+ELSE
+   use_ano = 0
+ENDIF
+lot_type = ilots - 1
+lot_numb = nlots
+lot_dim(:)  = ls_xyz(:)
+IF(lperiod) THEN
+   lot_per = 1
+ELSE
+   lot_per = 0
+ENDIF
+
+!
+END SUBROUTINE discus_get_fourier
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_set_fourier(corners, increment, radiation, wavelength, &
+           energy, use_adp, use_ano, lot_type, lot_numb, lot_dim, lot_per)
+!
+!  Interface to set all Fourier Menu items in DISCUS from PYTHON
+!
+USE ISO_C_BINDING
+USE diffuse_mod
+USE fourier_sup
+IMPLICIT NONE
+!
+REAL (8), DIMENSION(1:4, 1:3), INTENT(IN) :: corners
+INTEGER,  DIMENSION(1:3)     , INTENT(IN) :: increment
+INTEGER                      , INTENT(IN) :: radiation
+REAL (8)                     , INTENT(IN) :: wavelength
+REAL (8)                     , INTENT(IN) :: energy
+INTEGER                      , INTENT(IN) :: use_adp
+INTEGER                      , INTENT(IN) :: use_ano
+INTEGER                      , INTENT(IN) :: lot_type
+INTEGER                      , INTENT(IN) :: lot_numb
+INTEGER, DIMENSION(1:3)      , INTENT(IN) :: lot_dim
+INTEGER                      , INTENT(IN) :: lot_per
+!
+!CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+!            diff_radiation, diff_power) 
+eck        = REAL(TRANSPOSE(corners))
+inc        = increment(:)
+diff_radiation  = radiation + 1   ! Python counts 0 to 2
+rlambda    = REAL(wavelength)
+renergy    = REAL(energy)
+ldbw       = use_adp==1
+ano        = use_ano==1
+ilots      = lot_type +1          ! Python counts 0 to 2
+nlots      = lot_numb
+ls_xyz     = lot_dim(:)
+lperiod    = lot_per==1
+
+!
+END SUBROUTINE discus_set_fourier
 !
 !________KUPLOT_________________________________________________________________
 !
