@@ -98,6 +98,11 @@
 3  2017_Jan
 
    Added the option to read CSV files to 'load' command.
+
+   An unfortunate typing error in News/2016_oct regaring the new
+   refinement variable 
+   ref_para[1...]   ( was misspelled as ref_param[1...] )
+   is corrected in the  on-line help.
 3  2016_Dec
 
    At a few select points colors are introduced into the output.
@@ -115,7 +120,7 @@
    ref_dimension   Number of parameters 
    ref_kid         Current child Updated for DISCUS and KUPLOT only
    ref_indiv       Current individuum Updated for DISCUS and KUPLOT only
-   ref_param[1..]  Current trial parameters for current child
+   ref_para[1..]   Current trial parameters for current child
 
    All colors can be referenced by their respective names as well as by 
    their traditional numbers. See 'lcol', 'hcol', 'mcol' 'ecol'

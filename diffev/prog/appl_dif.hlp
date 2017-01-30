@@ -19,6 +19,15 @@
    Further help topics are:
 
 2  News
+3  2017_Jan
+   An unfortunate typing error in News/2016_oct regaring the new
+   refinement variable 
+   ref_para[1...]   ( was misspelled as ref_param[1...] )
+   is corrected in the  on-line help.
+
+   Another typing error caused a an error in the macro parameters 
+   transferred with a NON MPI command: run_mpi, making these 
+   not backward compatible. This has been fixed.
 3  2016_Dec
 
    At a few select points colors are introduced into the output.
@@ -36,8 +45,8 @@
    REF_DIMENSION   Number of parameters 
    REF_KID         Current child Updated for DISCUS and KUPLOT only
    REF_INDIV       Current individuum Updated for DISCUS and KUPLOT only
-   REF_NINDIV      NUmber of individual repetitions
-   ref_param[1..]  Current trial parameters for current child
+   REF_NINDIV      Number of individual repetitions
+   ref_para[1..]   Current trial parameters for current child
 3  2016_june
 
    DIFFEV may now be interruted gracefully with a CTRL-c.
@@ -760,7 +769,7 @@
 
    This command starts the processing of the slave program <program_name>.
    If the program has been compiled with MPI and started with mpiexec,
-   a prallel computation is started. Otherwise the slave program is
+   a parallel computation is started. Otherwise the slave program is
    executed in a serial loop over all children and individual repatitions.
 
    This command starts parallel processing of program <program_name>.
@@ -779,13 +788,44 @@
 
    NON MPI option:
    Regardless of the value of <output_base>, the output is displayed
-   at the screen. The usual options for the ==> 'set promot,' command
+   at the screen. The usual options for the ==> 'set prompt,' command
    do hold.
+
+   Starting with version 5.7 the communication between the diffev section
+   and the discus or kuplot section is done via internal variables.
+   These are:
+   REF_GENERATION  : the current generation number
+   REF_MEMBER      : the number of members in the population
+   REF_CHILDREN    : the number of children in the population
+   REF_DIMENSION   : the number of parameters defined in DIFFEV
+   REF_KID         : the current child
+   REF_INDIV       : the current repetition for the current child REF_KID
+   REF_NINDIV      : the intended total number of repetitions
+
+   The actual parameters are transferred to DISCUS/KUPLOT via variables
+   ref_para[...]   : Indices from 1 to REF_DIMENSION
+
+   The capitalization of the refinement variables is intended to 
+   distinguish these from user variables. other than that they should be
+   used just as any user defined variable, with no square brackets:
+   kid = REF_KID
+
+   IN a similar fashion, the KUPLOT rvalue command transfers its 
+   result back to DIFFEV internally. See 'resfile silent'
+
+   Essentially, DIFFEV branches to the section, executes the macro file
+   and returns to DIFFEV. As the communication is done via the internal
+   variables, the need for the macro parameters included in previous
+   version 5.5 and earlier has ceased. You are encouraged not to rely
+   on macro parameters but to use the refinement variables.
+
 
    If the last optional parameter is "socket", the program will be
    started via a socket connection, else via a single "system" call.
 
    system == non-socket option:
+
+   Relevant for older verions (5.6 an earleir only):
 
    The actual line that starts the program has syntax:
    "program_name" -macro <macro.name> <cwd> <child> <indiv> > <output>

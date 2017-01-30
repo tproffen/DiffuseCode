@@ -73,6 +73,11 @@
 
    A new command 'first' was added to 'stack' that allows to determine
    the first layer type
+
+   An unfortunate typing error in News/2016_oct regaring the new
+   refinement variable 
+   ref_para[1...]   ( was misspelled as ref_param[1...] )
+   is corrected in the  on-line help.
 3  2016_Dec
 
    At a few select points colors are introduced into the output.
@@ -105,7 +110,7 @@
    REF_DIMENSION   Number of parameters 
    REF_KID         Current child Updated for DISCUS and KUPLOT only
    REF_INDIV       Current individuum Updated for DISCUS and KUPLOT only
-   ref_param[1..]  Current trial parameters for current child
+   ref_para[1..]   Current trial parameters for current child
 
    Insertion of a new atom will automatically turn off the periodic
    boundary conditions.
