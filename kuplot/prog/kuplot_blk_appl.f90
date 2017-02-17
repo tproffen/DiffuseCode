@@ -131,9 +131,9 @@
       colour (iw, 14, 2) = 0.6 
       colour (iw, 14, 3) = 0.6 
 !                                                                       
-      colour (iw, 15, 1) = 0.0 
-      colour (iw, 15, 2) = 0.0 
-      colour (iw, 15, 3) = 0.0 
+      colour (iw, 15, 1) = 1.0 
+      colour (iw, 15, 2) = 1.0 
+      colour (iw, 15, 3) = 1.0 
 !                                                                       
       ENDDO 
 !                                                                       
