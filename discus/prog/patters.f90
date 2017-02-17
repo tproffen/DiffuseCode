@@ -717,6 +717,12 @@ CONTAINS
                         CALL do_patters (inverse_type, ltwo_files,      &
                         cr_vr, cr_acentric)                             
                         four_was_run = .true.
+                        ! Specify the fourier type that was calculated
+                        four_last = 0
+                        IF(inc(1)>1) four_last = four_last + 1
+                        IF(inc(2)>1) four_last = four_last + 1
+                        IF(inc(3)>1) four_last = four_last + 1
+                        four_last = four_last + 4  ! Patt    N-Dim
                      ENDIF 
                   ELSE 
                      ier_num = - 71 

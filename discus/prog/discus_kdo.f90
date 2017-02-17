@@ -40,6 +40,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !
       USE doact_mod
       USE errlist_mod 
+      USE class_macro_internal
       USE learn_mod 
       USE prompt_mod
       USE set_sub_generic_mod
@@ -152,12 +153,12 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !-------show the atoms present in the crystal 'chem'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'chem', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'chem', 3, lbef, 4) ) then 
             CALL chem 
 !                                                                       
 !-------go to the connectivity menue  'connectivity'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'connectivity', 3, lbef, 12) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'connectivity', 3, lbef, 12) ) then 
             CALL conn_menu 
 !                                                                       
 !-------Define some DISCUS parameters 'define'                          
@@ -167,12 +168,12 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !-------Decorate a surface by molecules 'decorate'                      
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
             CALL do_place_molecule
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'domain', 3, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'domain', 3, lbef, 6) ) then 
             CALL do_domain (zeile, lcomm) 
 !                                                                       
 !-------copy an atom 'copy'                                             
@@ -187,7 +188,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     Difference  Fourier 'diff'                                        
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'diff', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'diff', 2, lbef, 4) ) then 
             inverse_type = INV_DIFF 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -204,7 +205,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !-------Fourier transform 'four'                                        
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'four', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'four', 2, lbef, 4) ) then 
             lout_rho = .false. 
             CALL fourier 
 !                                                                       
@@ -238,7 +239,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     inverse Fourier 'inverse'                                         
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'inve', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'inve', 3, lbef, 4) ) then 
             inverse_type = INV_INV 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
@@ -256,29 +257,29 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     Output routines 'outp'                                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'outp', 1, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'outp', 1, lbef, 4) ) then 
             CALL do_niplps (lout_rho) 
 !                                                                       
 !     Patterson 'patterson'                                             
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'patt', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'patt', 2, lbef, 4) ) then 
             inverse_type = INV_PATT 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
 !                                                                       
 !     PDF calculation and analysis                                      
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'pdf', 2, lbef, 3) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'pdf', 2, lbef, 3) ) then 
             CALL pdf 
 !                                                                       
 !     Plot the crystal 'plot'                                           
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'plot', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'plot', 2, lbef, 4) ) then 
             CALL plot 
 !                                                                       
 !     Calculate Powder pattern                                          
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'powder', 2, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'powder', 2, lbef, 6) ) then 
             CALL do_powder 
 !                                                                       
 !     Project a vector onto another and onto a plane 'proj'             
@@ -288,7 +289,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     Go to property menu 'property'                                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'property', 4, lbef, 8) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'property', 4, lbef, 8) ) then 
             CALL property_menu 
 !                                                                       
 !     Purge the list of atoms 'purg'                                    
@@ -303,7 +304,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !-------Einlesen einer Struktur/Zelle 'read'                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'read', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'read', 3, lbef, 4) ) then 
             CALL read_struc 
 !                                                                       
 !     Remove a single atom 'remo'                                       
@@ -318,11 +319,11 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     Do Monte Carlo simulations 'rmc', 'mc', 'mmc' and 'amc'           
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'rmc', 2, lbef, 3) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'rmc', 2, lbef, 3) ) then 
             CALL rmc 
 !        ELSEIF (str_comp (befehl, 'mc', 2, lbef, 2) ) then 
 !           CALL mc 
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'mmc', 2, lbef, 3) ) then 
             CALL mmc 
 !
 !     reset discus to system start
@@ -332,12 +333,12 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     save structure to file 'save'                                     
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'save', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'save', 2, lbef, 4) ) then 
             CALL save_struc (zeile, lcomm) 
 !                                                                       
 !     generalized shear operation 'shear'                               
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'shear', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'shear', 3, lbef, 4) ) then 
             CALL shear_menue
 !                                                                       
 !     Show something                                 'show'             
@@ -347,12 +348,12 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     Go to stacking fault menu 'stack'                                 
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'stac', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'stac', 2, lbef, 4) ) then 
             CALL stack 
 !                                                                       
 !     Go to surface menu 'surface'                                      
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'surface', 2, lbef, 8) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'surface', 2, lbef, 8) ) then 
             CALL surface_menu 
 !                                                                       
 !     switch two atoms 'swit'                                           
@@ -362,7 +363,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     generalized symmetry operation 'symm'                             
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'symm', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'symm', 3, lbef, 4) ) then 
             CALL symm 
 !                                                                       
 !     Thermal displacement of all atoms 'ther'                          
@@ -372,7 +373,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !     unit cell transformations      'tran'                             
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'tran', 2, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'tran', 2, lbef, 4) ) then 
             CALL transform 
 !                                                                       
 !       Vector Product 'vprod'                                          
@@ -382,7 +383,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !------   Waves traveling through the crystal 'wave'                    
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'wave', 3, lbef, 4) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'wave', 3, lbef, 4) ) then 
             CALL waves_menu
 !                                                                       
 !       Determine Wyckoff symmetry                                      
@@ -392,7 +393,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !       Branch to KUPLOT (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zeile, lcomm) 
 !                                                                       
 !------   Try general commands                                          

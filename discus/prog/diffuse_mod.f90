@@ -23,6 +23,21 @@ INTEGER , PARAMETER  :: RAD_XRAY = 1
 INTEGER , PARAMETER  :: RAD_NEUT = 2
 INTEGER , PARAMETER  :: RAD_ELEC = 3
 !
+INTEGER , PARAMETER  :: FOUR_ZL  = -4  ! Zone Axis with lots
+INTEGER , PARAMETER  :: FOUR_3L  = -3  ! 3D Fourier with lots
+INTEGER , PARAMETER  :: FOUR_2L  = -2  ! 2D Fourier with lots
+INTEGER , PARAMETER  :: FOUR_1L  = -1  ! 1D Fourier with lots
+INTEGER , PARAMETER  :: FOUR_NN  =  0  ! None calculated
+INTEGER , PARAMETER  :: FOUR_1D  =  1
+INTEGER , PARAMETER  :: FOUR_2D  =  2
+INTEGER , PARAMETER  :: FOUR_3D  =  3
+INTEGER , PARAMETER  :: FOUR_ZA  =  4
+INTEGER , PARAMETER  :: PATT_1D  =  5
+INTEGER , PARAMETER  :: PATT_2D  =  6
+INTEGER , PARAMETER  :: PATT_3D  =  7
+INTEGER , PARAMETER  :: POWD_CO  =  8  ! Powder pattern complete 
+INTEGER , PARAMETER  :: POWD_DY  =  9  ! Powder pattern Debye Algorithm
+!
 INTEGER                                 ::  DIF_MAXAT    ! current size of array at
 INTEGER                                 ::  DIF_MAXSCAT  ! current size of array at
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:, :), ALLOCATABLE  ::  cfact        ! (0:CFPKT, 1:MAXSCAT)
@@ -88,5 +103,7 @@ REAL   , DIMENSION(1:3)                 ::  zone_uvw
 REAL   , DIMENSION(1:3)                 ::  zone_ewald 
 REAL                                    ::  zone_res 
 REAL                                    ::  zone_delta_d = 0.015
+!
+INTEGER                                 ::  four_last = FOUR_NN  ! No Fourier calculated yet
 !
 END MODULE diffuse_mod

@@ -22,6 +22,7 @@ USE charact_mod
 !
 USE doact_mod
 USE errlist_mod 
+USE class_macro_internal
 USE learn_mod 
 USE prompt_mod
 USE envir_mod
@@ -111,7 +112,7 @@ ELSE
 !                                                                 
 !     -- branch to DIFFEV
 !
-   ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'diffev', 3, lbef, 6) ) then
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'diffev', 3, lbef, 6) ) then
        IF(suite_diffev_init) then
           pname     = 'diffev'
           pname_cap = 'DIFFEV'
@@ -135,7 +136,7 @@ ELSE
 !                                                                 
 !     -- branch to DISCUS
 !
-   ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'discus', 3, lbef, 6) ) then
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'discus', 3, lbef, 6) ) then
        IF(suite_discus_init) then
           pname     = 'discus'
           pname_cap = 'DISCUS'
@@ -159,7 +160,7 @@ ELSE
 !                                                                 
 !     -- branch to KUPLOT
 !
-   ELSEIF ((linteractive.OR.lblock) .AND. str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'kuplot', 3, lbef, 6) ) then
        IF(suite_kuplot_init) then
           pname     = 'kuplot'
           pname_cap = 'KUPLOT'

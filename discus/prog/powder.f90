@@ -16,6 +16,7 @@ CONTAINS
 !     Main menu for powder diffraction pattern                          
 !+                                                                      
       USE discus_config_mod 
+      USE diffuse_mod 
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
@@ -44,7 +45,7 @@ CONTAINS
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/powd' 
 !                                                                       
-      DO while (.not.lend) 
+main: DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
@@ -134,7 +135,14 @@ CONTAINS
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
                      CALL powder_run 
-                     IF(ier_num == 0) four_was_run = .true.
+                     IF(ier_num == 0) THEN
+                        four_was_run = .true.
+                        IF (pow_four_type.eq.POW_HIST) THEN 
+                           four_last = POWD_DY
+                        ELSE
+                           four_last = POWD_CO
+                        ENDIF 
+                     ENDIF 
                   ENDIF 
 !                                                                       
 !     ----show current parameters 'show'                                
@@ -207,7 +215,12 @@ CONTAINS
             sprompt = ' '
          ENDIF 
       ENDIF 
-      ENDDO 
+         IF(linteractive .OR. lmakro) THEN
+               CYCLE main
+         ELSE
+               EXIT main
+         ENDIF 
+      ENDDO  main
 !
       prompt = orig_prompt
 !                                                                       
@@ -261,7 +274,11 @@ CONTAINS
 !     IF (lxray) radiation = 'x-ray' 
       radiation = c_rad(diff_radiation)
       IF (lambda.eq.' ') then 
-         WRITE (output_io, 1200) radiation, rlambda 
+         IF(diff_radiation==2) THEN
+            WRITE (output_io, 1201) radiation, rlambda , renergy
+         ELSE 
+            WRITE (output_io, 1200) radiation, rlambda , renergy
+         ENDIF 
       ELSE 
          WRITE (output_io, 1210) radiation, lambda, rlambda 
       ENDIF 
@@ -364,6 +381,7 @@ CONTAINS
       ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          WRITE (output_io, 1290) pow_qmin, pow_qmax 
          WRITE (output_io, 1291) pow_deltaq 
+         WRITE (output_io, 2100) cprofile (pow_profile) 
          IF (pow_profile.eq.0) then 
             CONTINUE 
          ELSEIF (pow_profile.eq.POW_PROFILE_GAUSS) then 
@@ -419,8 +437,10 @@ CONTAINS
 !                                                                       
  1000 FORMAT    ( ' Settings for Powder Diffraction segment :') 
  1200 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
-     &                         F7.4,' A')                               
- 1210 FORMAT( '   Radiation               : ',A,', wavelength = ',A4,   &
+     &          F7.4,' A == ', F8.4,'keV')                               
+ 1201 FORMAT    ( '   Radiation               : ',A,', wavelength = ',  &
+     &          F7.4,' A == ', F8.4,'meV')
+ 1210 FORMAT    ( '   Radiation               : ',A,', wavelength = ',A4,   &
      &                    ' = ',F7.4,' A')                              
  1211 FORMAT    ( '   Calculations for axis   : ',a) 
  1220 FORMAT    ( '   TTHmin, TTHmax          : ',f10.5,2x,f10.5) 
@@ -641,6 +661,22 @@ CONTAINS
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
+!                                                                       
+!     set the energy of the radiation to be used 'energy'                             
+!                                                                       
+         ELSEIF (str_comp (cpara(1), 'energy', 2, lpara(1), 6) ) then 
+            IF (ianz.eq.2) then 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               renergy  = werte (2) 
+               lambda   = ' ' 
+               l_energy = .true.
+            ELSE 
+               ier_num = -6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!
          ELSEIF (str_comp (cpara (1) , 'pref', 2, lpara (1) , 4) ) then 
             IF (ianz.ge.2) then 
                cpara (1) = '0' 
@@ -1045,9 +1081,12 @@ CONTAINS
                IF (ier_num.eq.0) then 
                   rlambda = werte (2) 
                   lambda = ' ' 
+                  l_energy = .false.
                ELSEIF (ichar ('A') <=  ichar (symbol    (1:1) ) .AND.&
                        ichar (symbol    (1:1) ) <= ichar ('Z') ) THEN                 
                   lambda = symbol(1:lsymbol)  
+                  l_energy = .false.
+                  CALL no_error
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 

@@ -26,6 +26,7 @@ CONTAINS
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE chem_mod 
+      USE diffuse_mod
       USE molecule_mod 
       USE prop_para_mod 
       USE read_internal_mod
@@ -328,6 +329,8 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ------reset microdomain status                                    
 !                                                                       
                CALL do_stack_rese 
+!              Flag that no Fourier has been calculated yet
+               four_last = FOUR_NN
             ENDIF 
 !                                                                       
 !     Free style editing of a structure 'free'                          
@@ -393,6 +396,8 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ----reset microdomain status                                      
 !                                                                       
             CALL do_stack_rese 
+!           Flag that no Fourier has been calculated yet
+            four_last = FOUR_NN
 !                                                                       
 !     read an old structure 'stru'                                      
 !                                                                       
@@ -401,10 +406,10 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                CALL rese_cr 
                sav_r_ncell = .false. 
                strucfile = cpara (1)
-internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
+internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
-               ELSE internal
+               ELSE internals
                CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
                              n_atom, -1 , .false.)
                IF (ier_num /= 0) THEN
@@ -481,7 +486,7 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                      chem_quick     = .false.
                   ENDIF
                ENDIF 
-               ENDIF internal
+               ENDIF internals
 !                                                                       
             ELSE 
                ier_num = - 6 
@@ -492,6 +497,8 @@ internal:      IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ------reset microdomain status                                    
 !                                                                       
                CALL do_stack_rese 
+!              Flag that no Fourier has been calculated yet
+               four_last = FOUR_NN
             ENDIF 
          ELSE 
             ier_num = - 6 

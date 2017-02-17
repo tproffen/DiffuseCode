@@ -51,6 +51,7 @@ CONTAINS
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
       INTEGER              :: n_nscat  ! required no of atom types right now
       INTEGER              :: n_natoms ! required no of atoms
+      INTEGER              :: four_dim ! Dimension of Fourier that was calculated
       LOGICAL              :: ldim 
       LOGICAL              :: ltop = .false. ! the top left corner has been defined
       REAL   , DIMENSION(3)::  divis
@@ -77,7 +78,7 @@ CONTAINS
       IF (ier_num.eq.0) then 
          IF (line (1:1)  == ' '.or.line (1:1)  == '#' .or.   & 
              line == char(13) .or. line(1:1) == '!'  ) THEN
-            IF(linteractive) THEN
+            IF(linteractive .OR. lmakro) THEN
                GOTO 10
             ELSE
                RETURN
@@ -578,6 +579,17 @@ CONTAINS
                   ENDIF 
                   IF(l_zone) CALL zone_project   ! Project zone axis pattern
                   four_was_run = .true.
+                  ! Specify the fourier type that was calculated
+                  four_dim = 0
+                  IF(inc(1)>1) four_dim = four_dim + 1
+                  IF(inc(2)>1) four_dim = four_dim + 1
+                  IF(inc(3)>1) four_dim = four_dim + 1
+                  IF(l_zone) THEN
+                     four_last = FOUR_ZA   ! Zone axis pattern
+                  ELSE
+                     four_last = four_dim  ! Fourier N-Dim
+                  ENDIF 
+                  IF(ilots>1) four_last = -four_last  ! Lots were used
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_APPL 
@@ -869,7 +881,7 @@ CONTAINS
             sprompt = ' '
          ENDIF 
       ENDIF 
-      IF(linteractive) THEN
+      IF(linteractive .OR. lmakro) THEN
          GOTO 10
       ELSE
          RETURN

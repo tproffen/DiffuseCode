@@ -10,6 +10,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !
       USE doact_mod
       USE errlist_mod 
+      USE class_macro_internal
       USE learn_mod 
       USE prompt_mod 
 !                                                                       
@@ -150,7 +151,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
             CALL do_fit (zei, lc) 
 !                                                                       
 !-------  Plot filenames on plot                                        
@@ -263,7 +264,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
 !-------  Activate mouse menu                                           
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'mouse', 3, lbef, 5) ) then 
             CALL do_mouse (zei, lc) 
 !                                                                       
 !-------  Calculate averages, ..                                        
@@ -448,7 +449,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
             CALL p_branch (zei, lc) 
 !                                                                       
 !-------  Check for generic command                                     
