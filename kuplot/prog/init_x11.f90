@@ -18,7 +18,7 @@
 !                                                                       
 !------ X11 device definitions for PGPLOT                               
 !                                                                       
-      dev_name (x11) = '/XSERV' 
+      dev_name (x11) = '/XSERVE' 
       dev_prn (x11) = ' ' 
       dev_name (ps) = '/CPS' 
       dev_name (vps) = '/VCPS' 
