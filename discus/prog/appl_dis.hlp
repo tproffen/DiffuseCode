@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_Feb
+
+   Within the powder menue, the energy of the radiation may also 
+   be specified via ==> 'set energy, <value>'
 3  2017_Jan
 
    A new command 'first' was added to 'stack' that allows to determine
@@ -5062,6 +5066,12 @@
 
    The calculation is carried out in reciprocal space intervals of
    <value> long the 00l direction.
+4  energy
+!b energy <value>
+
+   Defines the energy of the radiation. 
+   For X-rays and electrons the value is to be given in units of keV,
+   for neutrons in units of meV.
 4  four
 !b set four,{"four"|"stack"}
 
