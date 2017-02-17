@@ -21,12 +21,17 @@ PUBLIC send_i              ! Send an integer array to the suite
 PUBLIC send_r              ! Send a real valued array to the suite
 PUBLIC get_i               ! Get an integer valued array from the suite
 PUBLIC get_r               ! Get a real valued array from the suite
+PUBLIC suite_learn         ! Transfer a line for learning
 PUBLIC discus_get_wave_number  ! Interface to get number of wave length symbols
 PUBLIC discus_get_wave_symbol  ! Interface to get wave length symbols and values
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
 PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
 PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
+PUBLIC discus_get_four_last    ! Interface to get last Fourier type
 PUBLIC discus_set_fourier      ! Interface to set Fourier menu items to   DISCUS
+PUBLIC discus_get_powder       ! Interface to get Powder  menu items from DISCUS
+PUBLIC discus_calc_powder      ! Use discus/fourier to calculate a Powder
+PUBLIC discus_output           ! Interface to run OUTPUT
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
 CONTAINS
@@ -118,7 +123,7 @@ section: SELECT CASE (prog)
       CALL kuplot_loop     ! Perform the normal discus loop
 END SELECT section
 lsetup_done = .TRUE.
-WRITE(output_io,'(a)') 'Contol returned to GUI ...'
+WRITE(output_io,'(a)') 'Control returned to GUI ...'
 CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE interactive
@@ -179,7 +184,7 @@ exec: SELECT CASE (prog)
 END SELECT exec
 !
 linteractive = .TRUE.
-WRITE(output_io,'(a)') 'Contol returned to GUI ...'
+WRITE(output_io,'(a)') 'Control returned to GUI ...'
 CALL back_to_suite      ! Go back to the suite
 !
 END SUBROUTINE execute_macro
@@ -493,6 +498,24 @@ END SUBROUTINE get_r
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+SUBROUTINE suite_learn(line)
+!
+!  This subroutine is called every time the GUI starts a menu in order 
+!  to save the relevant menu changing command to a learn sequence. 
+!
+USE learn_mod
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+!
+IF(llearn) THEN
+   IF(LEN_TRIM(line)>0) THEN
+      WRITE(33, '(a)') line(1:LEN_TRIM(LINE))
+   ENDIF
+ENDIF
+END SUBROUTINE suite_learn
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 SUBROUTINE discus_get_wave_number(nwave)
 !
 USE element_data_mod
@@ -577,7 +600,7 @@ END SUBROUTINE discus_calc_fourier
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE discus_get_fourier(corners, increment, radiation, element, wavelength, &
-           energy, use_adp, use_ano, lot_type, lot_numb, lot_dim, lot_per)
+           energy, use_adp, use_ano, percent, lot_type, lot_numb, lot_dim, lot_per)
 !
 !  Interface to get all Fourier Menu items from DISCUS to Python
 !
@@ -595,6 +618,7 @@ REAL (8)                     , INTENT(OUT) :: wavelength
 REAL (8)                     , INTENT(OUT) :: energy
 INTEGER                      , INTENT(OUT) :: use_adp
 INTEGER                      , INTENT(OUT) :: use_ano
+REAL (8)                     , INTENT(OUT) :: percent
 INTEGER                      , INTENT(OUT) :: lot_type
 INTEGER                      , INTENT(OUT) :: lot_numb
 INTEGER, DIMENSION(1:3)      , INTENT(OUT) :: lot_dim
@@ -618,6 +642,7 @@ IF(ano) THEN
 ELSE
    use_ano = 0
 ENDIF
+percent  = fave
 lot_type = ilots - 1
 lot_numb = nlots
 lot_dim(:)  = ls_xyz(:)
@@ -629,6 +654,22 @@ ENDIF
 
 !
 END SUBROUTINE discus_get_fourier
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_four_last(last_type)
+!
+!  Interface to get the last Fourier type calculated
+!
+USE ISO_C_BINDING
+USE diffuse_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: last_type
+!
+last_type = four_last
+!
+END SUBROUTINE discus_get_four_last
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -670,6 +711,170 @@ lperiod    = lot_per==1
 
 !
 END SUBROUTINE discus_set_fourier
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_powder(calc_mode, axis, radiation, element, wavelength, &
+           energy, use_adp, use_ano, theta, qvalues, dhkl, shkl,  &
+           profile, profile_eta, profile_uvw, profile_asy, profile_width, &
+           profile_delta, preferred, pref_dp, pref_pt, pref_hkl, &
+           lp, lp_ang, lp_fac )
+!
+!  Interface to get all Powder Menu items from DISCUS to Python
+!
+USE ISO_C_BINDING
+USE element_data_mod
+USE diffuse_mod
+USE powder_mod
+USE fourier_sup
+IMPLICIT NONE
+!
+INTEGER                      , INTENT(OUT) :: calc_mode
+INTEGER                      , INTENT(OUT) :: axis
+INTEGER                      , INTENT(OUT) :: radiation
+CHARACTER (LEN=4)            , INTENT(OUT) :: element
+REAL (8)                     , INTENT(OUT) :: wavelength
+REAL (8)                     , INTENT(OUT) :: energy
+INTEGER                      , INTENT(OUT) :: use_adp
+INTEGER                      , INTENT(OUT) :: use_ano
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: theta
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: qvalues
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: dhkl
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: shkl
+INTEGER                      , INTENT(OUT) :: profile
+REAL (8)                     , INTENT(OUT) :: profile_eta
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: profile_uvw
+REAL (8), DIMENSION(1:4)     , INTENT(OUT) :: profile_asy
+REAL (8)                     , INTENT(OUT) :: profile_width
+REAL (8)                     , INTENT(OUT) :: profile_delta
+INTEGER                      , INTENT(OUT) :: preferred
+REAL (8)                     , INTENT(OUT) :: pref_dp
+REAL (8)                     , INTENT(OUT) :: pref_pt
+REAL (8), DIMENSION(1:3)     , INTENT(OUT) :: pref_hkl
+INTEGER                      , INTENT(OUT) :: lp
+REAL (8)                     , INTENT(OUT) :: lp_fac
+REAL (8)                     , INTENT(OUT) :: lp_ang
+!
+IF(pow_four_type==POW_HIST) THEN
+   calc_mode  = 0
+ELSE
+   calc_mode = 1
+ENDIF
+IF(pow_axis==POW_AXIS_Q) THEN
+   axis       = 0
+ELSEIF(pow_axis==POW_AXIS_TTH) THEN
+   axis       = 1
+ENDIF
+CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+            diff_radiation, diff_power) 
+radiation  = diff_radiation - 1   ! Python counts 0 to 2
+element    = lambda
+wavelength = rlambda
+energy     = renergy
+IF(ldbw) THEN
+   use_adp = 1
+ELSE
+   use_adp = 0
+ENDIF
+IF(ano) THEN
+   use_ano = 1
+ELSE
+   use_ano = 0
+ENDIF
+theta(1)   = pow_tthmin
+theta(2)   = pow_tthmax
+theta(3)   = pow_deltatth
+qvalues(1) = pow_qmin
+qvalues(2) = pow_qmax
+qvalues(3) = pow_deltaq
+!
+dhkl(:)        = pow_hkl_del(:)
+shkl(:)        = pow_hkl_shift(:)
+!
+profile        = pow_profile
+profile_eta    = pow_eta
+profile_uvw(1) = pow_u
+profile_uvw(2) = pow_v
+profile_uvw(3) = pow_w
+profile_asy(1) = pow_p1
+profile_asy(2) = pow_p2
+profile_asy(3) = pow_p3
+profile_asy(4) = pow_p4
+profile_width  = pow_width
+profile_delta  = pow_delta
+IF(pow_pref) THEN
+   preferred   = pow_pref_type
+ELSE
+   preferred   = 0
+ENDIF
+pref_dp        = pow_pref_g1
+pref_pt        = pow_pref_g2
+pref_hkl(:)    = pow_pref_hkl(:)
+#
+lp             = pow_lp
+lp_ang         = pow_lp_ang
+lp_fac         = pow_lp_fac
+!
+END SUBROUTINE discus_get_powder
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_calc_powder(line)
+!
+!  A first interface that allows to calculate a Powder from python via
+!  suite.fourier( python_string )
+!  where python string is any Powder command.
+!
+USE powder
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+CALL do_powder          ! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_calc_powder
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_output(line, four_last_type)
+!
+!  A first interface that allows to write the Fourier output 
+!  suite.discus_output( python_string )
+!  where python string is any Output command.
+!
+USE diffuse_mod
+USE output_menu
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+INTEGER         , INTENT(IN) :: four_last_type
+!
+LOGICAL :: linverse
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+linverse=.FALSE.
+IF(four_last_type==PATT_1D .or. &
+   four_last_type==PATT_2D .or. &
+   four_last_type==PATT_3D     ) THEN
+   linverse=.TRUE.
+ENDIF
+CALL do_niplps(linverse)! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_output
 !
 !________KUPLOT_________________________________________________________________
 !
