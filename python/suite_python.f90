@@ -30,7 +30,9 @@ PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
 PUBLIC discus_get_four_last    ! Interface to get last Fourier type
 PUBLIC discus_set_fourier      ! Interface to set Fourier menu items to   DISCUS
 PUBLIC discus_get_powder       ! Interface to get Powder  menu items from DISCUS
-PUBLIC discus_calc_powder      ! Use discus/fourier to calculate a Powder
+PUBLIC discus_calc_powder      ! Use discus/do_powder to calculate a Powder
+PUBLIC discus_get_pdf          ! Interface to get PDF     menu items from DISCUS
+PUBLIC discus_calc_pdf         ! Use discus/pdf to calculate a PDF
 PUBLIC discus_output           ! Interface to run OUTPUT
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
@@ -816,6 +818,72 @@ lp_ang         = pow_lp_ang
 lp_fac         = pow_lp_fac
 !
 END SUBROUTINE discus_get_powder
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_pdf(radiation, use_adp, r_max, r_step, lrho0, rho0, &
+           corr_lin, corr_quad, period, exact, weight, finite, diameter,  &
+           qmax, qbroad, &
+           qdamp )
+!
+USE ISO_C_BINDING
+USE diffuse_mod
+USE pdf_mod
+USE fourier_sup
+USE chem_mod
+!
+INTEGER                      , INTENT(OUT) :: radiation
+INTEGER                      , INTENT(OUT) :: use_adp
+REAL (8)                     , INTENT(OUT) :: r_max
+REAL (8)                     , INTENT(OUT) :: r_step
+INTEGER                      , INTENT(OUT) :: lrho0
+REAL (8)                     , INTENT(OUT) :: rho0
+REAL (8)                     , INTENT(OUT) :: corr_lin
+REAL (8)                     , INTENT(OUT) :: corr_quad
+INTEGER                      , INTENT(OUT) :: period
+INTEGER                      , INTENT(OUT) :: exact
+REAL (8)                     , INTENT(OUT) :: weight
+INTEGER                      , INTENT(OUT) :: finite
+REAL (8)                     , INTENT(OUT) :: diameter
+REAL (8)                     , INTENT(OUT) :: qmax
+REAL (8)                     , INTENT(OUT) :: qbroad
+REAL (8)                     , INTENT(OUT) :: qdamp
+!
+CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+            diff_radiation, diff_power) 
+radiation  = pdf_radiation - 1   ! Python counts 0 to 2
+IF(pdf_gauss) THEN
+   use_adp = 1
+ELSE
+   use_adp = 0
+ENDIF
+r_max  = pdf_rmax
+r_step = pdf_deltaru
+lrho0   = 0
+IF(pdf_lrho0) lrho0 = 1
+rho0   = pdf_rho0
+corr_lin  = pdf_gamma
+corr_quad = pdf_delta
+IF(chem_period(1)) THEN
+   period = 1
+ELSE
+   period = 0
+ENDIF
+IF(pdf_lexact) THEN
+   exact = 1
+ELSE
+   exact = 0
+ENDIF
+weight   = pdf_scale
+finite   = pdf_finite
+diameter = pdf_sphere
+!
+qmax = pdf_qmax
+qbroad = pdf_qalpha
+qdamp  = pdf_qdamp
+!
+END SUBROUTINE discus_get_pdf
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE discus_calc_powder(line)
@@ -840,6 +908,31 @@ CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
 END SUBROUTINE discus_calc_powder
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_calc_pdf(line)
+!
+!  A first interface that allows to calculate a Powder from python via
+!  suite.fourier( python_string )
+!  where python string is any Powder command.
+!
+USE pdf_menu
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+CALL pdf                ! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_calc_pdf
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
