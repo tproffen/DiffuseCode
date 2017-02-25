@@ -9,11 +9,12 @@
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-27,IO=0)
+      PARAMETER    (IU=-28,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Fixed parameter has non-zero distribution',                    & !-28  ! diffev
      &  'Silent mode within discus_suite only',                         & !-27  ! diffev
      &  'MPI TERMINATED due to slave error ',                           & !-26  ! diffev
      &  'Parameter could not be initialized',                           & !-25  ! diffev

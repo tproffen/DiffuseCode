@@ -205,6 +205,17 @@ CONTAINS
                write(ier_msg(3),'(a,i5)') 'Parameter ',i
                RETURN
             ENDIF
+            IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
+               IF(pop_xmin(i) /= pop_xmax(i) .OR. &
+                  MINVAL(pop_t(i,:)) /= MAXVAL(pop_t(i,:))) THEN
+                  ier_num = -28
+                  ier_typ = ER_APPL
+                  write(ier_msg(1),'(a,i4,a)') 'Parameter no.: ',i,' is fixed but'
+                  ier_msg(2) = 'Limits pop_xmin/pop_xmax are not identical'
+                  ier_msg(3) = 'or trial parameters are not identical'
+                  RETURN
+               ENDIF
+            ENDIF
             IF (pop_type (i) .eq.POP_INTEGER) THEN 
                pop_x (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
             ELSE 
