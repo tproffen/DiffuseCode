@@ -12,6 +12,7 @@
       USE param_mod 
       USE prompt_mod 
       USE variable_mod
+      USE iso_fortran_env
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -69,7 +70,8 @@
 !                                                                       
       output_status = OUTPUT_SCREEN 
       output_status_old = OUTPUT_SCREEN 
-      output_io = 6 
+      output_io = OUTPUT_UNIT
+      error_io  = ERROR_UNIT
       first_input = .TRUE. 
 !                                                                       
 !     variable.inc                                                      

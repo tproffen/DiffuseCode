@@ -1,4 +1,4 @@
-       SUBROUTINE errlist
+SUBROUTINE errlist
 !*****7****************************************************************
 !
 !       Distributes the error codes into the special error routines.
@@ -10,38 +10,38 @@
        USE param_mod 
        USE prompt_mod 
        USE set_sub_generic_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
        IF(mpi_is_slave .AND. ier_num /= 0) THEN
           mpi_slave_error = ier_num   ! Transfer error for MPI to signal
        ENDIF
 !
-       if    (ier_typ.eq.ER_NONE) then
-         call errlist_none
-       elseif(ier_typ.eq.ER_COMM) then
-         call errlist_comm
-       elseif(ier_typ.eq.ER_FORT) then
-         call errlist_fort
-       elseif(ier_typ.eq.ER_IO  ) then
-         call errlist_io
-       elseif(ier_typ.eq.ER_MAC ) then
-         call errlist_mac
-       elseif(ier_typ.eq.ER_MATH) then
-         call errlist_math
-       else
-         call p_errlist_appl
-       endif
+       IF    (ier_typ == ER_NONE) THEN
+         CALL errlist_none
+       ELSEIF(ier_typ == ER_COMM) THEN
+         CALL errlist_comm
+       ELSEIF(ier_typ == ER_FORT) THEN
+         CALL errlist_fort
+       ELSEIF(ier_typ == ER_IO  ) THEN
+         CALL errlist_io
+       ELSEIF(ier_typ == ER_MAC ) THEN
+         CALL errlist_mac
+       ELSEIF(ier_typ == ER_MATH) THEN
+         CALL errlist_math
+       ELSE
+         CALL p_errlist_appl
+       ENDIF
 !
 !------       Terminate program if an error occured and the 
 !       error status is set to ER_S_EXIT
 !
-       IF(ier_num.lt.0 .and. ier_sta.eq.ER_S_EXIT .AND. &
+       IF(ier_num.lt.0 .AND. ier_sta == ER_S_EXIT .AND. &
           .NOT. mpi_is_slave ) THEN
-         WRITE(output_io,1000) char(7)
-         IF(output_io/=6) write(*,1000) char(7)
+         WRITE( error_io,1000) CHAR(7)
+         IF(error_io /=0 ) WRITE(*,1000) CHAR(7)
          STOP
-       ELSEIF(ier_num.lt.0 .and. ier_sta.eq.ER_S_CONT .or.              &
-     &        ier_sta.eq.ER_S_LIVE                  ) then
+       ELSEIF(ier_num.lt.0 .AND. ier_sta == ER_S_CONT .OR.              &
+     &        ier_sta == ER_S_LIVE                  ) THEN
          res_para(0) = -1
          res_para(1) = ier_num
          res_para(2) = ier_typ
@@ -49,9 +49,9 @@
 !
        CALL no_error
 !
-1000  format(' ****EXIT**** Program terminated by error status',        &
+1000  FORMAT(' ****EXIT**** Program terminated by error status',        &
      &       '        ****',a1/)
-       end
+       END
 !*****7****************************************************************
        SUBROUTINE no_error
 !+
@@ -59,7 +59,7 @@
 !-
        USE errlist_mod 
        USE class_macro_internal
-       IMPLICIT       none
+       IMPLICIT       NONE
 !
 !
        ier_num = 0
@@ -69,7 +69,7 @@
        ier_msg(2) = ' '
        ier_msg(3) = ' '
 !
-       end
+       END
 !*****7****************************************************************
        SUBROUTINE disp_error (typ,error,iu,io)
 !-
@@ -78,60 +78,64 @@
        USE errlist_mod 
        USE terminal_mod
        USE prompt_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       i,iu,io
-       CHARACTER(LEN=80)  estr
-       CHARACTER(LEN=45)  error(iu:io)
-       CHARACTER(LEN=4)   typ
-       integer             le
+       INTEGER          , INTENT(IN) :: iu
+       INTEGER          , INTENT(IN) :: io
+       CHARACTER(LEN=45), INTENT(IN) :: error(iu:io)
+       CHARACTER(LEN=4) , INTENT(IN) :: typ
 !
-       integer       len_str
+       INTEGER            :: i
+       CHARACTER(LEN=80)  :: estr
+       INTEGER            :: le
 !
-       if(iu.le.ier_num .and. ier_num.le.io) THEN
-         IF(    error(ier_num).ne.' ') then
-            write(output_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,char(7)
-            IF(output_io/=6) write(*        ,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg),char(7)
-!           write(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
-            do i=1,3
-              if (ier_msg(i)     .ne.' ')               &
-     &                write(*,1500) TRIM(color_err),typ,ier_msg(i),ier_num,TRIM(color_fg)
+       INTEGER       len_str
+!
+       IF(iu <= ier_num .AND. ier_num <= io) THEN
+         IF(    error(ier_num).ne.' ') THEN
+            WRITE(error_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
+            IF(error_io/=0) &
+               WRITE(*    ,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg),CHAR(7)
+!           WRITE(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
+            DO i=1,3
+              IF (ier_msg(i) /= ' ')  &
+     &                WRITE(*,1500) TRIM(color_err),typ,ier_msg(i),ier_num,TRIM(color_fg)
             ENDDO
-         else
-           write(output_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
-           IF(output_io/=6) write(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
-         endif
-       else
-         write(output_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
-         IF(output_io/=6) write(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),char(7)
-       endif
+         ELSE
+           WRITE(error_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+           IF(error_io /= 0) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+         ENDIF
+       ELSE
+         WRITE(error_io,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+         IF(error_io /=0 ) WRITE(*,2000) TRIM(color_err),ier_num,typ,TRIM(color_fg),CHAR(7)
+       ENDIF
 !
-       if (lconn .and. lsocket) then
-         write(estr,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_bg)
+       IF (lconn .AND. lsocket) THEN
+         WRITE(estr,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_bg)
          le=len_str(estr)
-         call socket_send(s_conid,estr,le)
-       endif
+         CALL socket_send(s_conid,estr,le)
+       ENDIF
 !
-1000  format(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)
-1500  format(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)
-2000  format(a,' !!!! No error message for error no.:',I8,' !!!!'/        &
+1000  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)
+1500  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)
+2000  FORMAT(a,' !!!! No error message for error no.:',I8,' !!!!'/        &
      &         '      Error type:    ',a,'            '/                  &
      &         '      Please document and report to the author',a,a1)
-       end
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_none
 !-
 !       Displays error Messages for the error type NONE
 !+
        USE errlist_mod 
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (iu=0,io=3)
+       INTEGER, PARAMETER :: iu = 0
+       INTEGER, PARAMETER :: io = 3
 !
-       CHARACTER(LEN=45)  error(iu:io)
+       CHARACTER(LEN=45)  :: error(iu:io)
 !
        DATA ERROR (  0:  3) /                         &
      &  'No error',                                 & !  0  ! command
@@ -140,8 +144,8 @@
      &  'Task aborted'                              & !  3  ! command
      &       /
 !
-       call disp_error ('NONE',error,iu,io)
-       end
+       CALL disp_error ('NONE',error,iu,io)
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_comm
 !-
@@ -149,11 +153,11 @@
 !+
        USE errlist_mod 
        USE prompt_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (IU=-17,IO=0)
+       INTEGER, PARAMETER :: iu = -17
+       INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  error(IU:IO)
 !
@@ -171,7 +175,7 @@
      &  'Branch is active within suite only ',      & ! -7  ! command
      &  'Missing or wrong parameters for command',  & ! -6  ! command,fortran
      &  'Error in operating system command',        & ! -5  ! command
-     &  'Right quotation mark missing in format',   & ! -4  ! command
+     &  'Right quotation mark missing in FORMAT',   & ! -4  ! command
      &  'Could not allocate arrays',                & ! -3  ! command
      &  'Command parameter has zero length ',       & ! -2  ! io
      &  '       directory not defined '             & ! -1  ! io
@@ -182,19 +186,19 @@
 !
        ERROR(-1)(1:6) = pname_cap(1:6)
 !
-       call disp_error ('COMM',error,iu,io)
-       end
+       CALL disp_error ('COMM',error,iu,io)
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_fort
 !-
 !       Displays error Messages for the error type FORTran
 !+
        USE errlist_mod 
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (IU=-37,IO=1)
+       INTEGER, PARAMETER :: iu = -37
+       INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
@@ -206,7 +210,7 @@
      &  'Variable in use; cannot initialize value', & !-33  ! fortran
      &  'Variable name is already defined',         & !-32  ! fortran
      &  'Incomplete (do,if) statement          ',   & !-31  ! fortran
-     &  'Right quotation mark missing in format',   & !-30  ! fortran
+     &  'Right quotation mark missing in FORMAT',   & !-30  ! fortran
      &  'Character substring out of bounds',        & !-29  ! fortran
      &  'Too deeply leveled break command',         & !-28  ! fortran
      &  'Function with wrong number of arguments ', & !-27  ! fortran
@@ -244,19 +248,19 @@
      &  'Variable name is already defined'          & !  1  ! fortran
      &       /
 !
-       call disp_error ('FORT',error,iu,io)
-       end
+       CALL disp_error ('FORT',error,iu,io)
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_io
 !-
 !       Displays error Messages for the error type IO
 !+
        USE errlist_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (IU= -29,IO=0)
+       INTEGER, PARAMETER :: iu = -29
+       INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
@@ -297,19 +301,19 @@
      &  ' '                                         & !  0  ! command
      &       /
 !
-       call disp_error ('I/O ',error,iu,io)
-       end
+       CALL disp_error ('I/O ',error,iu,io)
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_mac
 !-
 !       Displays error Messages for the error type MACros
 !+
        USE errlist_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (IU=-41,IO=3)
+       INTEGER, PARAMETER :: iu = -41
+       INTEGER, PARAMETER :: io =   3
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
@@ -365,19 +369,19 @@
      &  ' '                                         & !  3  ! command
      &       /
 !
-       call disp_error ('MAC ',error,iu,io)
-       end
+       CALL disp_error ('MAC ',error,iu,io)
+       END
 !*****7****************************************************************
        SUBROUTINE errlist_math
 !-
 !       Displays error Messages for the error type MATHematical errors
 !+
        USE errlist_mod
-       IMPLICIT      none
+       IMPLICIT      NONE
 !
 !
-       integer       iu,io
-       parameter    (IU= -1,IO=0)
+       INTEGER, PARAMETER :: iu =  -1
+       INTEGER, PARAMETER :: io =   0
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
@@ -386,6 +390,6 @@
      &  ' '                                         & !  0  ! command
      &       /
 !
-       call disp_error ('MATH',error,iu,io)
-       end
+       CALL disp_error ('MATH',error,iu,io)
+       END
 !*****7****************************************************************
