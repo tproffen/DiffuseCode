@@ -24,6 +24,8 @@ PUBLIC get_r               ! Get a real valued array from the suite
 PUBLIC suite_learn         ! Transfer a line for learning
 PUBLIC discus_get_wave_number  ! Interface to get number of wave length symbols
 PUBLIC discus_get_wave_symbol  ! Interface to get wave length symbols and values
+PUBLIC discus_get_spcgr_number ! Interface to get number of wave length symbols
+PUBLIC discus_get_spcgr_symbol ! Interface to get wave length symbols and values
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
 PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
 PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
@@ -544,6 +546,34 @@ REAL              , INTENT(OUT) :: wavelengths
 CALL get_sym_length(i,symbols, wavelengths)  ! Get names and values from element module
 !
 END SUBROUTINE discus_get_wave_symbol
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_spcgr_number(nspcgr)
+!
+USE spcgr_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: nspcgr
+!
+nspcgr = SPCGR_MAX
+!
+END SUBROUTINE discus_get_spcgr_number
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_spcgr_symbol(i,get_spcgr_name, get_spcgr_syst)
+!
+USE spcgr_mod
+IMPLICIT NONE
+INTEGER          , INTENT(IN)  :: i
+CHARACTER(LEN=16), INTENT(OUT) :: get_spcgr_name
+INTEGER          , INTENT(OUT) :: get_spcgr_syst
+!
+get_spcgr_name = spcgr_name(i)
+get_spcgr_syst = spcgr_syst(i)
+!
+END SUBROUTINE discus_get_spcgr_symbol
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
