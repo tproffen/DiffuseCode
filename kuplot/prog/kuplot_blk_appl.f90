@@ -47,6 +47,8 @@
       dev_id (iw, pic) = - 1 
       dev_sf (iw, vpic) = 0.7 
       dev_id (iw, vpic) = - 1 
+      dev_sf (iw, png ) = 1.0 
+      dev_id (iw, png ) = - 1 
       ENDDO 
 !                                                                       
 !------ common /errors/                                                 
