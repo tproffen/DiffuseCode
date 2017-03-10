@@ -2,6 +2,7 @@ MODULE spcgr_mod
 !+
 !     Variables needed for the spacegroups
 !-
+PUBLIC
 SAVE
 !
 INTEGER, PARAMETER  ::  SPCGR_MAX  =  309

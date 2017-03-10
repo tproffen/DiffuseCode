@@ -57,7 +57,7 @@ CONTAINS
       INTEGER ianz, l, n, lbef , iianz
       INTEGER    :: natoms,nscats
       LOGICAL lout 
-      REAL werte (maxw) 
+      REAL werte (maxw) , wwerte(maxw)
       INTEGER          :: ncells
       INTEGER          :: n_gene
       INTEGER          :: n_symm
@@ -343,25 +343,38 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
             cr_spcgr (3:16) = '              ' 
             cr_spcgrno = 1 
             cr_syst = 1 
+            spcgr_para = 1
             CALL get_symmetry_matrices 
             IF (ianz.eq.0) then 
                DO i = 1, 3 
                cr_a0 (i) = 1.0 
                cr_win (i) = 90.0 
                ENDDO 
-            ELSEIF (ianz.eq.6.or. ianz.eq.7) then 
+            ELSEIF (ianz.eq.6.or. ianz.eq.7 .or. ianz==8) then 
                iianz = 6
                CALL ber_params (iianz, cpara, lpara, werte, maxw) 
                CALL del_params (6, ianz, cpara, lpara, maxw) 
-               IF(ianz.eq.1) THEN
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF(ianz.eq.1 .OR. ianz==2) THEN
+                  iianz = 1
+                  CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
                   IF(ier_num==0) THEN
-                     cr_spcgrno = NINT(werte(1))
+                     cr_spcgrno = NINT(wwerte(1))
                      cr_spcgr   = spcgr_name (cr_spcgrno) 
                   ELSE
                      cr_spcgr = cpara(1)(1:lpara(1))
                   ENDIF
                   CALL no_error
+                  CALL del_params (1, ianz, cpara, lpara, maxw) 
+                  IF(ianz == 1) THEN
+                     CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+                     IF(ier_num==0) THEN
+                        spcgr_para = nint (wwerte (1) ) 
+                     ELSE
+                        ier_num = - 93
+                        ier_typ = ER_APPL 
+                        ier_msg (1) = 'Error reading origin choice indicator'
+                     ENDIF
+                  ENDIF
                ENDIF
                DO i = 1, 3 
                cr_a0 (i) = werte (i) 
@@ -377,7 +390,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   ier_msg (1) = 'Error reading unit cell parameters' 
                   GOTO 8888              ! Jump to handle error messages, amd macro conditions
                ENDIF 
-               werte(1)=1
+               werte(1)=spcgr_para
                CALL spcgr_no(1,maxw,werte)
             ELSE 
                ier_num = - 6 

@@ -5437,7 +5437,7 @@
    name or B value. This allows one to read large asymmetric units
    (e.g. from a protein) without creating that many different atom types.
 3  free
-!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number>]
+!b free [<a>,<b>,<c>,<alpha>,<beta>,<gamma> [,<name> | <number> [, "2"]]
 
    No structure is read. The space group is set to "P1". The lattice
    constants are set to the optional values on the command line. 
@@ -5450,6 +5450,9 @@
    or on atoms you may insert later. It does allow you to save this
    structure and then to read it as a unit cell file. It will then be
    expanded to a full unit cell content according to the space group
+   For those space groups where a second origin choice is allowed, 
+   the optional eighth parameter may be set to "2" to indicate the 
+   alternative origin choice.
 3  stru
 !b stru <name>
 
