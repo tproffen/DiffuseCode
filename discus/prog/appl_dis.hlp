@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_March
+
+   The 'read' ==> 'cell' and 'stru' commands have been changed to
+   accept CIF, CMAKER and RMCprofile formats as well. 
 3  2017_Feb
 
    Within the powder menue, the energy of the radiation may also 
@@ -5429,6 +5433,11 @@
    from -nx/2 to +nx/2 etc.
    After the unit cell has been read the program returns to the main
    DISCUS level.
+
+   If the file ends in 'cell', 'stru', 'CELL', 'STRU' the standard
+   DISCUS file format is assumed.
+   If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
+   If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
 3  lcell
 !b lcell <name> [,<nx> [,<ny> [,<nz>]]]
 
@@ -5459,6 +5468,12 @@
    reads a whole structure from file <name>.
    The space group information is ignored, nore is a check for consistency
    of space group and lattice constants performed.
+
+   If the file ends in 'cell', 'stru', 'CELL', 'STRU' the standard
+   DISCUS file format is assumed.
+   If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
+   If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
+   If the file ends in 'cssr', 'CSSR', a RMCprofile-file format is assumed.
 2  remove
 !b remove <start> [, <end> ]
 !b remove <start> [, <end> ] , "mole" [ ,"type", <t_start> [, <t_end>]]

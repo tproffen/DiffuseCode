@@ -48,8 +48,9 @@ CONTAINS
       INTEGER maxw 
       PARAMETER (maxw = 11) 
 !                                                                       
-      CHARACTER(1024) line, zeile, cpara (maxw) 
-      CHARACTER(1024) strucfile 
+      CHARACTER(LEN=1024) :: line, zeile, cpara (maxw) 
+      CHARACTER(LEN=1024) :: strucfile 
+      CHARACTER(LEN=1024) :: outfile 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(5) befehl 
       INTEGER lpara (maxw), lp, length 
@@ -187,7 +188,11 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                        IF (ier_num /= 0) THEN
 !                           RETURN
 !                        ENDIF
-                        CALL readcell (strucfile) 
+                        CALL import_test(0, strucfile, outfile)
+                        IF(ier_num == 0) THEN
+                           strucfile = outfile
+                           CALL readcell (strucfile) 
+                        ENDIF
                      ENDIF internalcell
 !
                      IF (ier_num.eq.0) then 
@@ -423,6 +428,12 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
                ELSE internals
+                  CALL import_test(0, strucfile, outfile)
+                  IF(ier_num == 0) THEN
+                     strucfile = outfile
+                  ELSE
+                     GOTO 8888
+                  ENDIF
                CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
                              n_atom, -1 , .false.)
                IF (ier_num /= 0) THEN
@@ -2200,6 +2211,65 @@ check_calc: DO j = 1, ianz
       sav_r_ncell = .false. 
 !                                                                       
       END SUBROUTINE rese_cr                        
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE import_test(mode, strufile, outfile)
+!
+! Tests if the ending of a file corresponds to a known format, tries to 
+! import this file
+!
+USE errlist_mod
+INTEGER         , INTENT(IN)  :: mode
+CHARACTER(LEN=*), INTENT(IN)  :: strufile
+CHARACTER(LEN=*), INTENT(OUT) ::  outfile
+!
+INTEGER, PARAMETER :: MD_CELL = 0
+INTEGER, PARAMETER :: MD_STRU = 1
+!
+CHARACTER(LEN=LEN_TRIM(strufile))   :: temp
+CHARACTER(LEN=LEN_TRIM(strufile)+8) :: line
+INTEGER :: length
+INTEGER :: laenge
+!
+length = LEN_TRIM(strufile)
+!
+IF(strufile(length-4:length) == '.cell' .OR. strufile(length-4:length) == '.CELL' .OR. &
+   strufile(length-4:length) == '.stru' .OR. strufile(length-4:length) == '.STRU' ) THEN
+   CALL no_error
+   outfile = strufile
+ELSEIF(strufile(length-3:length) == '.cif' .OR. strufile(length-3:length) == '.CIF') THEN
+   line = 'cif, '//strufile
+   laenge = 5 + length
+   CALL do_import(line, laenge)
+   IF(ier_num == 0) THEN
+      outfile = strufile(1:length-3) // 'stru'
+   ENDIF
+ELSEIF(strufile(length-3:length) == '.txt' .OR. strufile(length-3:length) == '.TXT') THEN
+   line = 'cmaker, '//strufile
+   laenge = 8 + length
+   CALL do_import(line, laenge)
+   IF(ier_num == 0) THEN
+      outfile = strufile(1:length-3) // 'stru'
+   ENDIF
+ELSEIF(strufile(length-4:length) == '.cssr' .OR. strufile(length-4:length) == '.CSSR') THEN
+   IF(mode==MD_STRU ) THEN
+      line = 'rmc, '//strufile
+      laenge = 5 + length
+      CALL do_import(line, laenge)
+      IF(ier_num == 0) THEN
+         outfile = strufile(1:length-4) // 'stru'
+      ENDIF
+   ELSE
+      ier_num = -140
+      ier_typ = ER_APPL
+      ier_msg(1) = 'RMCprofile files usually contain more than'
+      ier_msg(2) = 'one unit cell'
+      ier_msg(3) = 'import first and convert the unit cell size'
+   ENDIF
+ENDIF
+!
+END SUBROUTINE import_test
 !*****7**************************************************************** 
       SUBROUTINE do_import (zeile, lp) 
 !-                                                                      

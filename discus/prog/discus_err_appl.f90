@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-139,IO=4)
+      PARAMETER    (IU=-140,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -121) /                     &
+     &  'CSSR file not allowed for read cell',      & !-140 ! discus
      &  'Layer type outside limits',                & !-139 ! discus
      &  'Atom is already inside a molecule',        & !-138 ! discus
      &  'Atom number is outside crystal',           & !-137 ! discus
