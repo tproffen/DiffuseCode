@@ -164,4 +164,36 @@ CALL program_files ()
 !
 END SUBROUTINE back_to_suite
 !
+INTEGER FUNCTION log2int(log_string)
+!
+IMPLICIT NONE
+!
+LOGICAL, INTENT(IN) :: log_string
+!
+IF(log_string) THEN
+    log2int = 1
+ELSE
+   log2int = 0
+ENDIF
+!
+END FUNCTION log2int
+!
+INTEGER FUNCTION prop2int(property,i)
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(0:1), INTENT(IN) :: property
+INTEGER                , INTENT(IN) :: i
+!
+IF(         btest(property(1),i).AND.btest(property(0),i)) THEN
+   prop2int = 1
+ELSEIF(.NOT.btest(property(1),i).AND.btest(property(0),i)) THEN
+   prop2int = 2
+ELSE
+   prop2int = 0
+ENDIF
+!
+END FUNCTION prop2int
+!
+!
 END MODULE suite_python_support

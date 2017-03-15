@@ -26,6 +26,8 @@ PUBLIC discus_get_wave_number  ! Interface to get number of wave length symbols
 PUBLIC discus_get_wave_symbol  ! Interface to get wave length symbols and values
 PUBLIC discus_get_spcgr_number ! Interface to get number of wave length symbols
 PUBLIC discus_get_spcgr_symbol ! Interface to get wave length symbols and values
+PUBLIC discus_get_nscat_number  ! Interface to get number of wave length symbols
+PUBLIC discus_get_scat_symbol  ! Interface to get wave length symbols and values
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
 PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
 PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
@@ -35,6 +37,8 @@ PUBLIC discus_get_powder       ! Interface to get Powder  menu items from DISCUS
 PUBLIC discus_calc_powder      ! Use discus/do_powder to calculate a Powder
 PUBLIC discus_get_pdf          ! Interface to get PDF     menu items from DISCUS
 PUBLIC discus_calc_pdf         ! Use discus/pdf to calculate a PDF
+PUBLIC discus_get_save         ! Use discus/pdf to save a crystal structure
+PUBLIC discus_run_save         ! Use discus/pdf to save a crystal structure
 PUBLIC discus_output           ! Interface to run OUTPUT
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
@@ -577,6 +581,32 @@ END SUBROUTINE discus_get_spcgr_symbol
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+SUBROUTINE discus_get_nscat_number(nscat)
+!
+USE crystal_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: nscat
+!
+nscat = cr_nscat
+!
+END SUBROUTINE discus_get_nscat_number
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_scat_symbol(i,at_list)
+!
+USE crystal_mod
+IMPLICIT NONE
+INTEGER          , INTENT(IN)  :: i
+CHARACTER(LEN= 4), INTENT(OUT) :: at_list
+!
+at_list = cr_at_lis(i)
+!
+END SUBROUTINE discus_get_scat_symbol
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 SUBROUTINE discus_read_structure(line)
 !
 !  A first interface that allows to read a structre from python via
@@ -842,7 +872,7 @@ ENDIF
 pref_dp        = pow_pref_g1
 pref_pt        = pow_pref_g2
 pref_hkl(:)    = pow_pref_hkl(:)
-#
+!
 lp             = pow_lp
 lp_ang         = pow_lp_ang
 lp_fac         = pow_lp_fac
@@ -909,8 +939,8 @@ finite   = pdf_finite
 diameter = pdf_sphere
 !
 qmax = pdf_qmax
-qbroad = pdf_qalpha
-qdamp  = pdf_qdamp
+qbroad = pdf_qalp
+qdamp  = pdf_sigmaq
 !
 END SUBROUTINE discus_get_pdf
 !
@@ -963,6 +993,90 @@ CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
 END SUBROUTINE discus_calc_pdf
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_run_save(line)
+!
+!  A first interface that allows to save a structure   from python via
+!  suite.save( python_string )
+!  where python string is any Save command.
+!
+USE save_menu
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+CHARACTER(LEN=1) :: zeile
+INTEGER          :: length 
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+zeile = ' '
+length = 0
+CALL save_struc(zeile,length)! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_run_save
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_get_save(savefile, file_length, sel_atom, w_scat, w_ncell, &
+     w_mol, &
+     w_dom, w_obj, w_gen, w_sym, w_start, w_end, p_all, p_nor, p_mol,  &
+     p_dom, p_out, p_ext, p_int, p_lig)
+!
+USE ISO_C_BINDING
+USE discus_save_mod
+!
+IMPLICIT NONE
+!
+CHARACTER (LEN=200), INTENT(OUT) :: savefile
+INTEGER          , INTENT(OUT) :: file_length
+INTEGER          , INTENT(OUT) :: sel_atom
+INTEGER          , INTENT(OUT) :: w_scat
+INTEGER          , INTENT(OUT) :: w_ncell
+INTEGER          , INTENT(OUT) :: w_mol
+INTEGER          , INTENT(OUT) :: w_dom
+INTEGER          , INTENT(OUT) :: w_obj
+INTEGER          , INTENT(OUT) :: w_gen
+INTEGER          , INTENT(OUT) :: w_sym
+INTEGER          , INTENT(OUT) :: w_start
+INTEGER          , INTENT(OUT) :: w_end
+INTEGER          , INTENT(OUT) :: p_all
+INTEGER          , INTENT(OUT) :: p_nor
+INTEGER          , INTENT(OUT) :: p_mol
+INTEGER          , INTENT(OUT) :: p_dom
+INTEGER          , INTENT(OUT) :: p_out
+INTEGER          , INTENT(OUT) :: p_ext
+INTEGER          , INTENT(OUT) :: p_int
+INTEGER          , INTENT(OUT) :: p_lig
+!
+savefile = sav_file
+file_length = LEN_TRIM(savefile)
+sel_atom = log2int(sav_sel_atom)
+w_scat   = log2int(sav_w_scat)
+w_ncell  = log2int(sav_w_ncell)
+w_mol    = log2int(sav_w_mole )
+w_dom    = log2int(sav_w_doma )
+w_obj    = log2int(sav_w_obje )
+w_gen    = log2int(sav_w_gene )
+w_sym    = log2int(sav_w_symm )
+w_start  = sav_start
+w_end    = sav_end
+p_nor    = prop2int(sav_sel_prop,0)
+p_mol    = prop2int(sav_sel_prop,0)
+p_dom    = prop2int(sav_sel_prop,0)
+p_out    = prop2int(sav_sel_prop,0)
+p_ext    = prop2int(sav_sel_prop,0)
+p_int    = prop2int(sav_sel_prop,0)
+p_lig    = prop2int(sav_sel_prop,0)
+!
+END SUBROUTINE discus_get_save
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
