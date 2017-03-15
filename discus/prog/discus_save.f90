@@ -10,7 +10,7 @@ CONTAINS
 !     In this case, the format is taken from the current settings.      
 !                                                                       
 !*****7*****************************************************************
-SUBROUTINE save_struc (zeile, lcomm) 
+SUBROUTINE save_struc (string, lcomm) 
 !-                                                                      
 !     Main menu for generalized transformation operations               
 !+                                                                      
@@ -37,7 +37,8 @@ SUBROUTINE save_struc (zeile, lcomm)
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
-      CHARACTER ( LEN=* ) zeile 
+      CHARACTER ( LEN=*    ) string 
+      CHARACTER ( LEN=1024 ) zeile 
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
       CHARACTER(1024) line
@@ -65,7 +66,7 @@ SUBROUTINE save_struc (zeile, lcomm)
 !                                                                       
 !     Interpret parameters used by 'save' command                       
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
+      CALL get_params (string, ianz, cpara, lpara, maxw, lcomm) 
       IF (ier_num.eq.0) THEN 
          IF (ianz.gt.0) THEN 
 !                                                                       
@@ -107,7 +108,7 @@ SUBROUTINE save_struc (zeile, lcomm)
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/save' 
 !                                                                       
-      DO while (.not.lend) 
+main: DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) THEN 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
@@ -527,7 +528,12 @@ SUBROUTINE save_struc (zeile, lcomm)
             sprompt = ' '
          ENDIF 
       ENDIF 
-      ENDDO 
+         IF(linteractive .OR. lmakro) THEN
+            CYCLE main
+         ELSE
+            EXIT main
+         ENDIF
+      ENDDO  main
 !
       prompt = orig_prompt
 !                                                                       
