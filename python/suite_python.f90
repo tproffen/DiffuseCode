@@ -28,6 +28,7 @@ PUBLIC discus_get_spcgr_number ! Interface to get number of wave length symbols
 PUBLIC discus_get_spcgr_symbol ! Interface to get wave length symbols and values
 PUBLIC discus_get_nscat_number  ! Interface to get number of wave length symbols
 PUBLIC discus_get_scat_symbol  ! Interface to get wave length symbols and values
+PUBLIC discus_get_natoms       ! Interface to get number of atoms in the structure
 PUBLIC discus_read_structure   ! Use discus/read to read a structure or unit cell
 PUBLIC discus_calc_fourier     ! Use discus/fourier to calculate a Fourier
 PUBLIC discus_get_fourier      ! Interface to get Fourier menu items from DISCUS
@@ -40,6 +41,7 @@ PUBLIC discus_calc_pdf         ! Use discus/pdf to calculate a PDF
 PUBLIC discus_get_save         ! Use discus/pdf to save a crystal structure
 PUBLIC discus_run_save         ! Use discus/pdf to save a crystal structure
 PUBLIC discus_output           ! Interface to run OUTPUT
+PUBLIC discus_run_sro          ! Interface to run SRO
 PUBLIC kuplot_load             ! Use kuplot/load to load a data set
 !
 CONTAINS
@@ -607,6 +609,19 @@ END SUBROUTINE discus_get_scat_symbol
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
+SUBROUTINE discus_get_natoms(natoms)
+!
+USE crystal_mod
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: natoms
+!
+natoms = cr_natoms
+!
+END SUBROUTINE discus_get_natoms
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 SUBROUTINE discus_read_structure(line)
 !
 !  A first interface that allows to read a structre from python via
@@ -1112,6 +1127,31 @@ CALL back_to_suite      ! Go back to the suite
 linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
 !
 END SUBROUTINE discus_output
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus_run_sro(line)
+!
+!  A first interface that allows to save a structure   from python via
+!  suite.save( python_string )
+!  where python string is any Save command.
+!
+USE mmc_menu
+USE prompt_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: line
+!
+IF( .NOT. lsetup_done) CALL initialize_suite   ! Do we need to initialize?
+!
+linteractive=.FALSE.    ! Tell get_cmd to get input from input_gui
+CALL discus_prae        ! Switch to discus section
+input_gui = line        ! copy the input line to the automatic command line
+CALL mmc()              ! Call the actual task at hand
+CALL back_to_suite      ! Go back to the suite
+linteractive=.TRUE.     ! Tell get_cmd to read input from standard I/O
+!
+END SUBROUTINE discus_run_sro
 !
 !________KUPLOT_________________________________________________________________
 !
