@@ -483,11 +483,15 @@ slave: DO
       mpi_slave_error = 0
 !             Execute the "generic" cost function calculation
       CALL p_execute_cost( run_mpi_senddata%repeat,                          &
+                           LEN(run_mpi_senddata%prog),                       &
                            run_mpi_senddata%prog , run_mpi_senddata%prog_l , &
+                           LEN(run_mpi_senddata%mac),                        &
                            run_mpi_senddata%mac  , run_mpi_senddata%mac_l  , &
+                           LEN(run_mpi_senddata%direc),                      &
                            run_mpi_senddata%direc, run_mpi_senddata%direc_l, &
                            run_mpi_senddata%kid  , run_mpi_senddata%indiv  , &
                            run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
+                           LEN(output),                                      &
                            output                , output_l ,                      &
                            run_mpi_senddata%generation, run_mpi_senddata%member,   &
                            run_mpi_senddata%children, run_mpi_senddata%parameters, &
@@ -496,7 +500,7 @@ slave: DO
                            ierr )
    ENDIF use_socket
 !
-!  Answer back to master
+!  Answer back to master)
 !
    run_mpi_senddata%ierr     = ierr
    run_mpi_senddata%s_remote = s_remote

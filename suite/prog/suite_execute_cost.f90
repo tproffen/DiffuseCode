@@ -1,9 +1,13 @@
 SUBROUTINE suite_execute_cost( repeat,           &
+                         prog_len,         &
                          prog  ,  prog_l , &
+                         mac_len,          &
                          mac   ,  mac_l  , &
+                         direc_len,        &
                          direc ,  direc_l, &
                          kid   ,  indiv  , &
                          rvalue, l_rvalue, &
+                         output_len,       &
                          output, output_l, &
                          generation, member, &
                          children, parameters, &
@@ -27,16 +31,20 @@ USE lib_f90_allocate_mod
 !
 IMPLICIT NONE
 LOGICAL                , INTENT(IN) :: repeat
+INTEGER                , INTENT(IN) :: prog_len
 INTEGER                , INTENT(IN) :: prog_l
+INTEGER                , INTENT(IN) :: mac_len
 INTEGER                , INTENT(IN) :: mac_l
+INTEGER                , INTENT(IN) :: direc_len
 INTEGER                , INTENT(IN) :: direc_l
+INTEGER                , INTENT(IN) :: output_len
 INTEGER                , INTENT(IN) :: output_l
-CHARACTER(LEN=prog_l  ), INTENT(IN) :: prog  
-CHARACTER(LEN=mac_l   ), INTENT(IN) :: mac   
-CHARACTER(LEN=direc_l ), INTENT(IN) :: direc 
+CHARACTER(LEN=prog_len), INTENT(IN) :: prog  
+CHARACTER(LEN=mac_len ), INTENT(IN) :: mac   
+CHARACTER(LEN=direc_len), INTENT(IN) :: direc 
 INTEGER                , INTENT(IN) :: kid   
 INTEGER                , INTENT(IN) :: indiv
-CHARACTER(LEN=output_l), INTENT(IN) :: output
+CHARACTER(LEN=output_len), INTENT(IN) :: output
 REAL                   , INTENT(OUT):: rvalue
 LOGICAL                , INTENT(OUT):: l_rvalue
 INTEGER                , INTENT(IN) :: generation
