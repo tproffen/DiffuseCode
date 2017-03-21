@@ -3370,13 +3370,13 @@ CONTAINS
 !
       CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
       IF (ier_num.ne.0) return 
-      IF(str_comp(cpara(1)(1:lpara(1)),'domain', 3, lpara(1), 7)) THEN
+      IF(str_comp(cpara(1)(1:lpara(1)),'domain', 3, lpara(1), 6)) THEN
          ibit_nr = PROP_DOMAIN
-      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'outside', 3, lpara(1), 8)) THEN
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'outside', 3, lpara(1), 7)) THEN
          ibit_nr = PROP_OUTSIDE
-      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'external', 3, lpara(1), 8)) THEN
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'external', 3, lpara(1), 7)) THEN
          ibit_nr = PROP_SURFACE_EXT
-      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'internal', 3, lpara(1), 8)) THEN
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'internal', 3, lpara(1), 7)) THEN
          ibit_nr = PROP_SURFACE_INT
       ELSEIF(str_comp(cpara(1)(1:lpara(1)),'ligand', 3, lpara(1), 6)) THEN
          ibit_nr = PROP_LIGAND
