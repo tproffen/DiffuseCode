@@ -2234,11 +2234,7 @@ INTEGER :: laenge
 !
 length = LEN_TRIM(strufile)
 !
-IF(strufile(length-4:length) == '.cell' .OR. strufile(length-4:length) == '.CELL' .OR. &
-   strufile(length-4:length) == '.stru' .OR. strufile(length-4:length) == '.STRU' ) THEN
-   CALL no_error
-   outfile = strufile
-ELSEIF(strufile(length-3:length) == '.cif' .OR. strufile(length-3:length) == '.CIF') THEN
+IF(strufile(length-3:length) == '.cif' .OR. strufile(length-3:length) == '.CIF') THEN
    line = 'cif, '//strufile
    laenge = 5 + length
    CALL do_import(line, laenge)
@@ -2267,6 +2263,9 @@ ELSEIF(strufile(length-4:length) == '.cssr' .OR. strufile(length-4:length) == '.
       ier_msg(2) = 'one unit cell'
       ier_msg(3) = 'import first and convert the unit cell size'
    ENDIF
+ELSE
+    CALL no_error
+    outfile = strufile
 ENDIF
 !
 END SUBROUTINE import_test
