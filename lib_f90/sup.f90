@@ -2450,7 +2450,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
       INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER, PARAMETER :: reserved_n = 56
+      INTEGER, PARAMETER :: reserved_n = 87
 !
       CHARACTER(LEN=14), DIMENSION(reserved_n) :: reserved
       INTEGER i, ii 
@@ -2459,12 +2459,16 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       DATA reserved / 'asin', 'acos', 'atan', 'asind', 'acosd', 'atand',&
       'sin', 'cos', 'tan', 'sind', 'cosd', 'tand', 'sinh', 'cosh',      &
       'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',   &
-      'nint', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif',     &
+      'nint', 'frac', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif', &
       'endif', 'else', 'then', 'while', 'until', 'lt', 'le', 'gt', 'ge',&
-      'eq', 'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew',              &
+      'eq', 'and', 'or', 'xor', 'break', 'continue', 'stop', 'exit',    &
+      'echo', 'eval', 'fopen', 'fclose', 'fformat', 'fexist', 'fend',   &
+      'fput', 'fget', 'fsub', 'help', 'learn', 'lend', 'seed', 'set',   &
+      'show', 'system', 'wait', 'variable', 'cd', 'getcwd', 'geetenv',  &
+      'i', 'r', 'res' , 'gskew', 'pois', 'date', 'fdate', 'fmodt',      &
       'REF_GENERATION',                                                 &
       'REF_MEMBER', 'REF_CHILDREN', 'REF_DIMENSION', 'REF_KID',         &
-      'REF_INDIV', 'REF_NINDIV','PI'/                             
+      'REF_INDIV', 'REF_NINDIV','PI'/
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
