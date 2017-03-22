@@ -26,9 +26,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER len_str 
 !                                                                       
       CALL do_getargs (iarg, arg, marg) 
-      IF (iarg.gt.0) then 
+      IF (iarg.gt.0) THEN 
          IF (index (arg (1) , '-macro') .ne. 0) THEN ! execute a macro with optional parameters
-            IF (iarg.gt.1) then 
+            IF (iarg.gt.1) THEN 
                ilena = len_str(arg(2)) ! arg2 is the actual macro name
                IF(iarg > 2) THEN       ! There are macro parameter(s)
                   line  = arg(2)(1:ilena) // ' '
@@ -51,16 +51,16 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             ENDIF
          ELSE ! all other command line arguments
             DO i = 1, iarg 
-            IF (index (arg (i) , '-remote') .ne.0) then 
+            IF (index (arg (i) , '-remote') .ne.0) THEN 
                lsocket = .true. 
-            ELSEIF (index (arg (i) , '-port') .ne.0) then 
+            ELSEIF (index (arg (i) , '-port') .ne.0) THEN 
                str = arg (i) (index (arg (i) , '=') + 1:len_str (arg (i) ))
                READ (str, * ) s_port 
-            ELSEIF (index (arg (i) , '-access') .ne.0) then 
+            ELSEIF (index (arg (i) , '-access') .ne.0) THEN 
                s_ipallowed = arg (i) (index (arg(i),'=')+1:len_str(arg(i)))
-            ELSEIF (index (arg (i) , '-help') .ne.0) then 
+            ELSEIF (index (arg (i) , '-help') .ne.0) THEN 
                IF(local_mpi_myid==0) WRITE ( *, 2000) pname (1:len_str (pname) ) 
-            ELSEIF (index (arg (i) , '-debug') .ne.0) then 
+            ELSEIF (index (arg (i) , '-debug') .ne.0) THEN 
                IF(local_mpi_myid==0) WRITE ( *, 1500) 
                dbg = .true. 
             ELSE         ! several macros WITHOUT parameters
@@ -141,12 +141,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     Get parameters                                                    
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, - lcomm) 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 
 !                                                                       
       IF (.not.str_comp (cpara (1) , 'open', 2, lpara (1) , 4)          &
-      .and..not.lremote) then                                           
+          .and..not.lremote) THEN                                           
          ier_num = - 15 
          ier_typ = ER_IO 
          RETURN 
@@ -154,8 +154,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !     This initializes the remote communication via SOCKETS             
 !                                                                       
-      IF (str_comp (cpara (1) , 'open', 2, lpara (1) , 4) ) then 
-         IF (ianz.eq.3) then 
+      IF (str_comp (cpara (1) , 'open', 2, lpara (1) , 4) ) THEN 
+         IF (ianz.eq.3) THEN 
             port = nint (berechne (cpara (3), lpara (3) ) ) 
             CALL rem_bl (cpara (2), lpara (2) ) 
             ier_num = socket_connect (s_remote, cpara (2), lpara (2), port)
@@ -186,7 +186,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !       Close the socket connection. The server keeps running           
 !                                                                       
-      ELSEIF (str_comp (cpara (1) , 'close', 2, lpara (1) , 5) ) then 
+      ELSEIF (str_comp (cpara (1) , 'close', 2, lpara (1) , 5) ) THEN 
          ier_num = socket_send (s_remote, 'bye', 3) 
          IF(ier_num < 0) THEN
             ier_num = -19
@@ -200,7 +200,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !       Shut down the server                                            
 !                                                                       
-      ELSEIF (str_comp (cpara (1) , 'exit', 2, lpara (1) , 4) ) then 
+      ELSEIF (str_comp (cpara (1) , 'exit', 2, lpara (1) , 4) ) THEN 
          ier_num = socket_send (s_remote, cpara (1), lpara (1) ) 
          IF(ier_num < 0) THEN
             ier_num = -19
@@ -217,14 +217,14 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !       <cpara(2)> = <value> is send to the server                      
 !                                                                       
       ELSEIF (str_comp (cpara (1) , 'transfer', 2, lpara (1) , 8) )     &
-      then                                                              
-         IF (ianz.eq.3) then 
+      THEN                                                              
+         IF (ianz.eq.3) THEN 
             i = lpara (3) 
             zeile = '('//cpara (3) (1:i) //')' 
             i = i + 2 
             wert = berechne (zeile, i) 
 !                                                                       
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                zeile (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
                WRITE (zeile (lpara (2) + 1:lpara (2) + 16), 4000) wert 
                lcomm = lpara (2) + 16 
@@ -248,8 +248,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                ENDIF
             ENDIF 
 !                                                                       
-         ELSEIF (ianz.gt.3) then 
-            IF (index (cpara (3) , '"') .gt.0) then 
+         ELSEIF (ianz.gt.3) THEN 
+            IF (index (cpara (3) , '"') .gt.0) THEN 
                zeile = cpara (4) (1:lpara (4) ) //',' 
                i = lpara (4) + 1 
                DO j = 5, ianz 
@@ -293,7 +293,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !     socket send subcommand, send the rest of the line as is           
 !                                                                       
-      ELSEIF (str_comp (cpara (1) , 'send', 2, lpara (1) , 4) ) then 
+      ELSEIF (str_comp (cpara (1) , 'send', 2, lpara (1) , 4) ) THEN 
          ier_num = socket_send (s_remote, cpara (2), lpara (2) ) 
          IF(ier_num < 0) THEN
             ier_num = -19
@@ -354,32 +354,32 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       il = 0 
       icr = 0 
 !                                                                       
-      DO while (.not.str_comp (line, 'ready', 5, il, 5) ) 
-      ier_num = socket_get (s_remote, line, il) 
-      IF( ier_num /= 0 ) THEN
-         ier_typ = ER_IO
-         RETURN
-      ENDIF
-      DO i = 1, il 
-      IF (iachar (line (i:i) ) .eq.10.or.iachar (line (i:i) ) .eq.13) icr=i
-      ENDDO 
-      IF (icr.ne.0) then 
-         IF(socket_status == PROMPT_ON) THEN
-         IF(line/='ready') THEN
-           WRITE (output_io, 3000) line (1:icr - 1)
+      DO WHILE (.not.str_comp (line, 'ready', 5, il, 5) ) 
+         ier_num = socket_get (s_remote, line, il) 
+         IF( ier_num /= 0 ) THEN
+            ier_typ = ER_IO
+            RETURN
+         ENDIF
+         DO i = 1, il 
+            IF (iachar (line (i:i) ) .eq.10.or.iachar (line (i:i) ) .eq.13) icr=i
+         ENDDO 
+         IF (icr.ne.0) THEN 
+            IF(socket_status == PROMPT_ON) THEN
+               IF(line/='ready') THEN
+                 WRITE (output_io, 3000) line (1:icr - 1)
+               ENDIF 
+            ENDIF 
+            cstr = line (icr + 1:il) 
+            line = '' 
+            il = len_str (cstr) 
+            line = cstr (1:il) 
+         ELSE 
+            IF(socket_status == PROMPT_ON) THEN
+               IF(line/='ready') THEN
+                 WRITE (output_io, 3000) line (1:il)
+               ENDIF 
+            ENDIF 
          ENDIF 
-         ENDIF 
-         cstr = line (icr + 1:il) 
-         line = '' 
-         il = len_str (cstr) 
-         line = cstr (1:il) 
-      ELSE 
-         IF(socket_status == PROMPT_ON) THEN
-         IF(line/='ready') THEN
-           WRITE (output_io, 3000) line (1:il)
-         ENDIF 
-         ENDIF 
-      ENDIF 
       ENDDO 
 !                                                                       
  3000 FORMAT    (1x,'Server : ',a) 
@@ -398,24 +398,24 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !
       INTEGER socket_send
 !                                                                       
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          CALL errlist 
       ENDIF 
 !                                                                       
 !------ Close output file                                               
 !                                                                       
-      IF (output_status.ne.OUTPUT_SCREEN) then 
+      IF (output_status.ne.OUTPUT_SCREEN) THEN 
          CLOSE (output_io) 
       ENDIF 
 !                                                                       
 !------ Close sockets                                                   
 !                                                                       
-      IF (lremote) then 
+      IF (lremote) THEN 
          ier_num =  socket_send (s_remote, 'bye', 3) 
          CALL socket_close (s_remote) 
       ENDIF 
 !                                                                       
-      IF (lsocket) then 
+      IF (lsocket) THEN 
          CALL socket_close (s_conid) 
          CALL socket_close (s_sock) 
       ENDIF 
@@ -456,55 +456,54 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !     change working directory                                          
 !                                                                       
-      IF (str_comp (bef, 'cd', 2, lbef, 2) ) then 
+      IF (str_comp (bef, 'cd', 2, lbef, 2) ) THEN 
          CALL do_chdir (zei, lc, .true.) 
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
-      ELSEIF (str_comp (bef, 'continue', 2, lbef, 8) ) then 
+      ELSEIF (str_comp (bef, 'continue', 2, lbef, 8) ) THEN 
          CALL macro_continue (zei, lc) 
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
-      ELSEIF (str_comp (bef, 'echo', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'echo', 2, lbef, 4) ) THEN 
          CALL echo (zei, lc) 
 !                                                                       
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
-      ELSEIF (str_comp (bef, 'eval', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'eval', 2, lbef, 4) ) THEN 
          CALL do_eval (zei, lc) 
 !                                                                       
 !------ IO commands                                                     
 !                                                                       
-      ELSEIF (str_comp (bef, 'bye', 2, lbef, 3) .and.lconn) then 
+      ELSEIF (str_comp (bef, 'bye', 2, lbef, 3) .and.lconn) THEN 
          CALL socket_close (s_conid) 
          lconn = .false. 
 !                                                                       
-      ELSEIF (str_comp (bef, 'fopen', 2, lbef, 5) ) then 
+      ELSEIF (str_comp (bef, 'fopen', 2, lbef, 5) ) THEN 
          CALL do_fopen (zei, lc) 
-      ELSEIF (str_comp (bef, 'fclose', 2, lbef, 6) ) then 
+      ELSEIF (str_comp (bef, 'fclose', 2, lbef, 6) ) THEN 
          CALL do_fclose (zei, lc) 
-      ELSEIF (str_comp (bef, 'fend', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'fend', 2, lbef, 4) ) THEN 
          CALL do_fend (zei, lc) 
-      ELSEIF (str_comp (bef, 'fexist', 2, lbef, 6) ) then 
+      ELSEIF (str_comp (bef, 'fexist', 2, lbef, 6) ) THEN 
          CALL do_fexist (zei, lc,.TRUE.) 
-      ELSEIF (str_comp (bef, 'fget', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'fget', 2, lbef, 4) ) THEN 
          CALL do_fget (zei, lc) 
-      ELSEIF (str_comp (bef, 'fput', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'fput', 2, lbef, 4) ) THEN 
          CALL do_fput (zei, lc) 
-      ELSEIF (str_comp (bef, 'fsub', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'fsub', 2, lbef, 4) ) THEN 
          CALL do_fgetsub (zei, lc) 
-      ELSEIF (str_comp (bef, 'fformat', 2, lbef, 7) ) then 
+      ELSEIF (str_comp (bef, 'fformat', 2, lbef, 7) ) THEN 
          CALL do_fformat (zei, lc) 
 !                                                                       
 !------ Online help                                                     
 !                                                                       
       ELSEIF (linteractive .AND. str_comp (bef, 'help', 2, lbef, 4) .OR.   &
                                  str_comp (bef, '?   ', 1, lbef, 4) ) THEN                                            
-         IF (lc.gt.0) then 
+         IF (lc.gt.0) THEN 
             lc = lc + 7 
-            WRITE (command, 1000) pname, zei (1:lc) 
- 1000 FORMAT        (a6,1x,a) 
+            WRITE (command, '(a6,1x,a)') pname, zei (1:lc) 
          ELSE 
             lc = 7 
             command = pname 
@@ -513,25 +512,25 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ start learning a macro 'learn'                                  
 !                                                                       
-      ELSEIF (str_comp (bef, 'lear', 3, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'lear', 3, lbef, 4) ) THEN 
          CALL start_learn (zei, lc) 
 !                                                                       
 !------ end learning a macro 'lend'                                     
 !                                                                       
-      ELSEIF (str_comp (bef, 'lend', 3, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'lend', 3, lbef, 4) ) THEN 
          CALL ende_learn 
 !                                                                       
 !     Reset the seed for the random number generator 'seed'             
 !                                                                       
-      ELSEIF (str_comp (bef, 'seed', 3, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'seed', 3, lbef, 4) ) THEN 
          CALL do_seed (zei, lc) 
 !                                                                       
 !                                                                       
 !------ Various settings 'set'                                          
 !                                                                       
-      ELSEIF (str_comp (bef, 'set', 3, lbef, 3) ) then 
+      ELSEIF (str_comp (bef, 'set', 3, lbef, 3) ) THEN 
          CALL do_set (zei, lc) 
-!     elseif(str_comp(bef,'memory',3,lbef,6)) then
+!     elseif(str_comp(bef,'memory',3,lbef,6)) THEN
 !        CALL get_params (zei, ianz, cpara, lpara, maxpar, lc) 
 !        CALL ber_params (ianz, cpara, lpara, werte, maxpar) 
 !        if(ier_num == 0) THEN
@@ -541,12 +540,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ Sleep fo a while 'sleep'                                        
 !                                                                       
-      ELSEIF (str_comp (bef, 'sleep', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'sleep', 2, lbef, 4) ) THEN 
          CALL get_params (zei, ianz, cpara, lpara, maxpar, lc) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             CALL ber_params (ianz, cpara, lpara, werte, maxpar) 
-            IF (ier_num.eq.0) then 
-               IF (nint (werte (1) ) .gt.0) then 
+            IF (ier_num.eq.0) THEN 
+               IF (nint (werte (1) ) .gt.0) THEN 
                   CALL do_sleep (nint (werte (1) ) ) 
                ELSE 
                   ier_num = - 6 
@@ -557,14 +556,14 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ Handling a scocket connection                                   
 !                                                                       
-      ELSEIF (str_comp (bef, 'socket', 3, lbef, 6) ) then 
+      ELSEIF (str_comp (bef, 'socket', 3, lbef, 6) ) THEN 
          CALL do_socket (zei, lc) 
 !                                                                       
 !------ Operating System Kommandos 'syst'                               
 !                                                                       
-      ELSEIF (str_comp (bef, 'syst', 2, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'syst', 2, lbef, 4) ) THEN 
          command = ' ' 
-         IF (zei.ne.' ') then 
+         IF (zei.ne.' ') THEN 
             command (1:lc) = zei (1:lc) 
             CALL do_operating (command, lc) 
          ELSE 
@@ -574,12 +573,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ definition of variables                                         
 !                                                                       
-      ELSEIF (str_comp (bef, 'var', 3, lbef, 3) ) then 
+      ELSEIF (str_comp (bef, 'var', 3, lbef, 3) ) THEN 
          CALL define_variable (zei, lc) 
 !                                                                       
 !------ Wait for user input 'wait'                                      
 !                                                                       
-      ELSEIF (str_comp (bef, 'wait', 3, lbef, 4) ) then 
+      ELSEIF (str_comp (bef, 'wait', 3, lbef, 4) ) THEN 
          CALL do_input (zei, lc) 
 !                                                                       
 !------ Unknown command                                                 
@@ -603,7 +602,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       DO i = 1, len (str) 
          IF (iachar (str (i:i) ) .ge.iachar ('a') .and. &
-             iachar (str (i:i) ) .le.iachar ('z')       ) then                                            
+             iachar (str (i:i) ) .le.iachar ('z')       ) THEN                                            
             str(i:i) = achar(iachar(str(i:i)) - iachar('a') + iachar('A'))                                                         
          ENDIF 
       ENDDO 
@@ -621,7 +620,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       DO i = 1, len (str) 
          IF (iachar (str (i:i) ) .ge.iachar ('A') .and. &
-             iachar (str (i:i) ) .le.iachar ('Z')       ) then                                            
+             iachar (str (i:i) ) .le.iachar ('Z')       ) THEN                                            
             str(i:i) = achar(iachar(str(i:i)) - iachar('A') + iachar('a'))                                                         
          ENDIF 
       ENDDO 
@@ -634,9 +633,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER iflag 
+      INTEGER, INTENT(IN) :: iflag 
 !                                                                       
-      IF (iflag.ge.0) then 
+      IF (iflag.ge.0) THEN 
          CALL datum_intrinsic () 
          idum = - midnight 
       ELSE 
@@ -663,11 +662,17 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) line, befehl, zeile, prom 
+      CHARACTER (LEN=*), INTENT(INOUT) :: line
+      INTEGER          , INTENT(OUT)   :: ll
+      CHARACTER (LEN=*), INTENT(OUT)   :: befehl
+      CHARACTER (LEN=*), INTENT(OUT)   :: zeile
+      INTEGER          , INTENT(OUT)   :: lp
+      CHARACTER (LEN=*), INTENT(OUT)   :: prom 
+!
       CHARACTER(1024) input
       CHARACTER(60) bprom 
       CHARACTER(10) cready 
-      INTEGER lbef, lp, ll, indxb 
+      INTEGER lbef, indxb 
       INTEGER il, jl, lcready 
       LOGICAL lreg 
       LOGICAL str_comp 
@@ -688,21 +693,21 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ier_num = 0
       ier_typ = ER_NONE 
 !                                                                       
-      IF (lblock) then 
+      IF (lblock) THEN 
          CALL do_execute (lreg, input, ll) 
-         IF (ier_num.ne.0.or..not.lreg) return 
+         IF (ier_num.ne.0.or..not.lreg) RETURN 
 !                                                                       
-      ELSEIF (lmakro.and..not.lblock_dbg) then 
+      ELSEIF (lmakro.and..not.lblock_dbg) THEN 
          CALL do_prompt (prom) 
          CALL macro_read (input, ll) 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
 !                                                                       
-      ELSEIF (lsocket) then 
+      ELSEIF (lsocket) THEN 
 !                                                                       
 !------ -- Here we get commands via a SOCKET for remote control         
 !------ -- Send ready message first                                     
 !                                                                       
-         IF (.not.lconn) then 
+         IF (.not.lconn) THEN 
             il = len_str (s_ipallowed) 
             ier_num = socket_accept (s_sock, s_conid, s_ipallowed, il,       &
             s_port)                                                     
@@ -742,29 +747,29 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !        On old Red Hat systems uses of readline for the first input
 !        line caused problems. Seems not to be an issue any longer
          IF(linteractive) THEN
-         first_input = .false.
-         IF (prompt_status.eq.PROMPT_ON.and..not.first_input) then 
-            bprom = ' '//prom (1:len_str(prom)) //' > ' 
+            first_input = .false.
+            IF (prompt_status.eq.PROMPT_ON.and..not.first_input) THEN 
+               bprom = ' '//prom (1:len_str(prom)) //' > ' 
 !                                                                       
 !     ----call the c-routine that enables command history & line editing
 !                                                                       
-            CALL iso_readline (input,bprom) 
-            ll=len_str(input)
+               CALL iso_readline (input,bprom) 
+               ll=len_str(input)
 !                                                                       
 !------ --otherwise use normal READ                                     
 !                                                                       
-         ELSE 
-            CALL do_prompt (prom) 
-            READ ( *, 2000, end = 990, err = 995) input 
-            first_input = .FALSE. 
-         ENDIF 
+            ELSE 
+               CALL do_prompt (prom) 
+               READ ( *, 2000, end = 990, err = 995) input 
+               first_input = .FALSE. 
+            ENDIF 
          ELSE 
             input = input_gui
          ENDIF 
 !                                                                       
          ll = len_str (input) 
-         IF (prompt_status.eq.PROMPT_REDIRECT) then 
-            IF (ll.gt.0) then 
+         IF (prompt_status.eq.PROMPT_REDIRECT) THEN 
+            IF (ll.gt.0) THEN 
                WRITE (output_io, 2000) input (1:ll) 
             ELSE 
                WRITE (output_io, 2000) 
@@ -776,8 +781,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     blanks, get the command.                                          
 !     Return comment lines "# ..." unchanged.                           
 !                                                                       
-      IF (ll.ne.0) then 
-         IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') then 
+      IF (ll.ne.0) THEN 
+         IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') THEN 
             ll = len_str (input) 
             CALL remove_comment (input, ll) 
 !                                                                       
@@ -786,8 +791,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             il = 1 
             jl = len_str (input) 
             DO while ( (input (il:il) .eq.' '.or.input (il:il) .eq.TAB) &
-            .and.il.le.jl)                                              
-            il = il + 1 
+                       .and.il.le.jl)                                              
+               il = il + 1 
             ENDDO 
             line = input (il:jl) 
             ll = len_str (line) 
@@ -803,7 +808,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     - command parameters start at the first character following       
 !------ - the blank                                                     
 !                                                                       
-            IF (indxb + 1.le.ll) then 
+            IF (indxb + 1.le.ll) THEN 
                zeile = line (indxb + 1:ll) 
                lp = ll - indxb 
             ENDIF 
@@ -811,9 +816,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     - Learn command for learn sequence                                
 !                                                                       
             IF (llearn.and..not.str_comp (befehl, 'lend', 3, lbef, 4)   &
-            .and..not.str_comp (befehl, 'mouse', 3, lbef, 5)            &
-            .and..not.lmakro) then                                      
-               IF (ll.gt.0) then 
+                      .and..not.str_comp (befehl, 'mouse', 3, lbef, 5)  &
+                      .and..not.lmakro) THEN
+               IF (ll.gt.0) THEN 
                   WRITE (33, 2000) input (1:len_str (input) ) 
                ELSE 
                   WRITE (33, 2000) 
@@ -866,17 +871,17 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       search = .true. 
       DO i = 1, ll 
-      quote = line (i:i) .eq.'"'.or.line (i:i) .eq.'''' 
-      IF (quote) then 
-         search = .not.search 
-      ENDIF 
-      IF (search) then 
-         IF (line (i:i) .eq.'#'.or.line (i:i) .eq.'!') then 
-            line (i:ll) = ' ' 
-            ll = i - 1 
-            RETURN 
+         quote = line (i:i) .eq.'"'.or.line (i:i) .eq.'''' 
+         IF (quote) THEN 
+            search = .not.search 
          ENDIF 
-      ENDIF 
+         IF (search) THEN 
+            IF (line (i:i) .eq.'#'.or.line (i:i) .eq.'!') THEN 
+               line (i:ll) = ' ' 
+               ll = i - 1 
+               RETURN 
+            ENDIF 
+         ENDIF 
       ENDDO 
 !                                                                       
       RETURN 
@@ -905,7 +910,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     Find any "" which would mean that we need parameter substitution  
 !                                                                       
       iqo = index (zeile (1:lp) , '"') 
-      IF (iqo.eq.0) then 
+      IF (iqo.eq.0) THEN 
 !                                                                       
 !     --None foud, harmless echo                                        
 !                                                                       
@@ -915,7 +920,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     --Look for matching ""                                            
 !                                                                       
          iqo2 = index (zeile (iqo + 1:lp) , '"') 
-         IF (iqo2.eq.0) then 
+         IF (iqo2.eq.0) THEN 
             ier_num = -  4 
             ier_typ = ER_COMM 
             RETURN 
@@ -926,7 +931,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
          iqo2 = iqo2 + iqo 
          iko = index (zeile (iqo2 + 1:lp) , ',') 
-         IF (iko.ne.0) then 
+         IF (iko.ne.0) THEN 
             string = zeile (iqo2 + iko + 1:lp) 
             lstring = - (lp - iqo2 - iko) 
          ELSE 
@@ -937,7 +942,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     --get all other parameters                                        
 !                                                                       
          CALL get_params (string, ianz, cpara, lpara, maxp, lstring) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             DO i = ianz, 1, - 1 
             cpara (i + 1) = cpara (i) 
             lpara (i + 1) = lpara (i) 
@@ -946,15 +951,15 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             lpara (1) = iqo2 
             ianz = ianz + 1 
             CALL do_build_name (ianz, cpara, lpara, werte, maxp, 1) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
 !                                                                       
 !     ------The first comma that follows the quotation marks must be    
 !           omitted, all others retained as part of the echo            
 !                                                                       
-               IF (ianz.eq.1) then 
+               IF (ianz.eq.1) THEN 
                   string = cpara (ianz) (1:lpara (ianz) ) 
                   lstring = lpara (ianz) 
-               ELSEIF (ianz.eq.2) then 
+               ELSEIF (ianz.eq.2) THEN 
                   string = cpara (1) (1:lpara (1) ) //cpara (ianz)      &
                   (1:lpara (ianz) )                                     
                   lstring = lpara (1) + lpara (2) 
@@ -985,11 +990,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+      INTEGER          , INTENT(IN) :: lp 
+!
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(LEN=1024) :: message
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER :: ios
       INTEGER ianz, ianzz 
       INTEGER ii 
@@ -1001,47 +1008,47 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ianzz = 1 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.ge.1) then 
+      IF (ianz.ge.1) THEN 
          CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         IF (ianz.eq.1) then 
+         IF (ier_num.ne.0) RETURN 
+         IF (ianz.eq.1) THEN 
             ianz = 0 
          ELSE 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
          ENDIF 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
          ii = nint (werte (1) ) 
-         IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+         IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
             ier_num = - 13 
             ier_typ = ER_IO 
             RETURN 
          ENDIF 
 !                                                                       
-         IF (ianz.ge.1) then 
-            IF (io_open (ii) ) then 
+         IF (ianz.ge.1) THEN 
+            IF (io_open (ii) ) THEN 
                ier_num = - 10 
                ier_typ = ER_IO 
                RETURN 
             ENDIF 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                lappend = str_comp (cpara (2) , 'append', 1, lpara (2) , &
                6)                                                       
             ELSE 
                lappend = .false. 
             ENDIF 
-            IF (lappend) then 
+            IF (lappend) THEN 
                CALL oeffne_append (io_unit (ii) , cpara (1) , 'unknown')
-               IF (ier_num.ne.0) return 
+               IF (ier_num.ne.0) RETURN 
 !DBG            open (unit=io_unit(ii),file=cpara(1),status='unknown',  
 !DBG     &                       access='append',err=999)               
 !DBG95     &                       access='sequential',err=999)         
                WRITE (output_io, 1000) cpara (1) (1:lpara (1) ) 
             ELSE 
-               OPEN (unit = io_unit (ii) , file = cpara (1) , status =  &
-               'unknown', IOSTAT=ios,IOMSG=message)                                    
+               OPEN (unit = io_unit (ii) , file = cpara (1) , &
+                     status = 'unknown', IOSTAT=ios,IOMSG=message)                                    
                IF(ios/=0) THEN
                   ier_num = -2
                   ier_typ = ER_IO
@@ -1054,7 +1061,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             io_open (ii) = .true. 
             io_file (ii) = cpara (1) (1:lpara (1) ) 
          ELSE 
-            IF (io_open (ii) ) then 
+            IF (io_open (ii) ) THEN 
                WRITE (output_io, 2000) ii, io_file (ii) 
             ELSE 
                WRITE (output_io, 2010) 
@@ -1063,12 +1070,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ELSE 
          one_open = .false. 
          DO ii = 1, MAC_MAX_IO 
-         IF (io_open (ii) ) then 
+         IF (io_open (ii) ) THEN 
             WRITE (output_io, 2000) ii, io_file (ii) 
             one_open = .true. 
          ENDIF 
          ENDDO 
-         IF (.not.one_open) then 
+         IF (.not.one_open) THEN 
             WRITE (output_io, 2010) 
          ENDIF 
       ENDIF 
@@ -1094,36 +1101,38 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER maxw 
       PARAMETER (maxw = 25) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+      INTEGER          , INTENT(IN) :: lp 
+!
       CHARACTER(1024) cpara (maxw)
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ii 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.1) then 
-         IF (str_comp (cpara (1) , 'all', 2, lpara (1) , 3) ) then 
+      IF (ianz.eq.1) THEN 
+         IF (str_comp (cpara (1) , 'all', 2, lpara (1) , 3) ) THEN 
             DO ii = 1, MAC_MAX_IO 
-            IF (io_open (ii) ) then 
+            IF (io_open (ii) ) THEN 
                CLOSE (io_unit (ii) ) 
                io_open (ii) = .false. 
             ENDIF 
             ENDDO 
          ELSE 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.ne.0) return 
+            IF (ier_num.ne.0) RETURN 
 !                                                                       
             ii = nint (werte (1) ) 
-            IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+            IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
                ier_num = - 13 
                ier_typ = ER_IO 
                RETURN 
             ENDIF 
-            IF (io_open (ii) ) then 
+            IF (io_open (ii) ) THEN 
                CLOSE (io_unit (ii) ) 
                io_open (ii) = .false. 
             ELSE 
@@ -1145,13 +1154,14 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
+      INTEGER, PARAMETER :: maxw = 10 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
+      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+      INTEGER          , INTENT(IN) :: lp 
+!
+      CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ianzz 
       INTEGER ii 
 !                                                                       
@@ -1160,29 +1170,28 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ianzz = 1 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.ge.1) then 
+      IF (ianz.ge.1) THEN 
          CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         IF (ianz.eq.1) then 
+         IF (ier_num.ne.0) RETURN 
+         IF (ianz.eq.1) THEN 
             ianz = 0 
          ELSE 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
          ENDIF 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
          ii = nint (werte (1) ) 
-         IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+         IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
             ier_num = - 13 
             ier_typ = ER_IO 
             RETURN 
          ENDIF 
 !                                                                       
-         IF (ianz.ge.1) then 
-            IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) then 
+         IF (ianz.ge.1) THEN 
+            IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) THEN
                io_eof (ii) = .false. 
-            ELSEIF (str_comp (cpara (1) , 'continue', 2, lpara (1) , 8) &
-            ) then                                                      
+            ELSEIF (str_comp(cpara(1), 'continue', 2, lpara(1), 8)) THEN
                io_eof (ii) = .true. 
             ELSE 
                ier_num = - 6 
@@ -1211,11 +1220,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER maxw 
       PARAMETER (maxw = 25) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+      INTEGER          , INTENT(INOUT) :: lp 
+!
       CHARACTER(1024) cpara (maxw), line, cstr , bstr
       CHARACTER(2048) string 
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lstr, lp 
+      INTEGER lpara (maxw), lstr
       INTEGER ianz, i, igl, ii, ianzz 
       INTEGER ia, ie, itab , ll
 !                                                                       
@@ -1224,41 +1235,41 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ianzz = 1 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) return 
-      IF (ianz.eq.1) then 
+      IF (ier_num.ne.0) RETURN 
+      IF (ianz.eq.1) THEN 
          ianz = 0 
       ELSE 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
       ENDIF 
       ii = nint (werte (1) ) 
-      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
          ier_num = - 13 
          ier_typ = ER_IO 
          RETURN 
       ENDIF 
 !                                                                       
-      IF (.not.io_open (ii) ) then 
+      IF (.not.io_open (ii) ) THEN 
          ier_num = - 11 
          ier_typ = ER_IO 
          RETURN 
       ENDIF 
 !                                                                       
-      IF (ianz.gt.0) then 
+      IF (ianz.gt.0) THEN 
          READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
          DO while (string (1:1) .eq.'#') 
-         READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
+            READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
          ENDDO 
          lstr = len_str (string) 
          itab = index (string, TAB) 
          DO while (itab.gt.0) 
-         string (itab:itab) = ' ' 
-         itab = index (string, TAB) 
+            string (itab:itab) = ' ' 
+            itab = index (string, TAB) 
          ENDDO 
          ia = max (1, io_get_sub (ii, 1) ) 
-         IF (io_get_sub (ii, 2) .eq. - 1) then 
+         IF (io_get_sub (ii, 2) .eq. - 1) THEN 
             ie = lstr 
          ELSE 
             ie = min (lstr, io_get_sub (ii, 2) ) 
@@ -1275,38 +1286,38 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !RBN          if (ier_num.ne.0) return                                  
 !RBN        ENDDO                                                       
          loop_para: DO i = 1, ianz 
-         line = cpara (i) (1:lpara (i) ) //'=' 
-         lp = lpara (i) + 1 
-         igl = index (line, '=') 
-         cstr (1:1) = string (ia:ia) 
+            line = cpara (i) (1:lpara (i) ) //'=' 
+            lp = lpara (i) + 1 
+            igl = index (line, '=') 
+            cstr (1:1) = string (ia:ia) 
 !                                                                       
 !     ---Remove leading blanks or leading ","                           
 !                                                                       
-         DO while (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') 
-         ia = ia + 1 
-         IF (ia.gt.ie) then 
-            GOTO 998 
-         ENDIF 
-         cstr (1:1) = string (ia:ia) 
-         ENDDO 
+            DO while (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') 
+               ia = ia + 1 
+               IF (ia.gt.ie) THEN 
+                  GOTO 998 
+               ENDIF 
+               cstr (1:1) = string (ia:ia) 
+            ENDDO 
 !                                                                       
 !     ---Copy the characters into the line, until a blank or ","        
 !                                                                       
-         ll = 0
-         bstr = ' '
-         DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
-            ll = ll + 1
-         lp = lp + 1 
-         line (lp:lp) = cstr (1:1) 
-         bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
-         ia = ia + 1 
-         IF (ia.gt.ie) then 
-            GOTO 997 
-         ENDIF 
-         cstr (1:1) = string (ia:ia) 
-         ENDDO 
-  997    CONTINUE 
-         CALL do_math (line, igl, lp) 
+            ll = 0
+            bstr = ' '
+            DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
+               ll = ll + 1
+               lp = lp + 1 
+               line (lp:lp) = cstr (1:1) 
+               bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
+               ia = ia + 1 
+               IF (ia.gt.ie) THEN 
+                  GOTO 997 
+               ENDIF 
+               cstr (1:1) = string (ia:ia) 
+            ENDDO 
+  997       CONTINUE 
+            CALL do_math (line, igl, lp) 
             IF(ier_num /= 0) THEN    ! Error in math assum string 
                line = cpara(i)(1:lpara(i)) //' = '''// bstr(1:LEN_TRIM(bstr))//''''  
                igl = lpara(i) + 2
@@ -1327,7 +1338,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       RETURN 
 !                                                                       
   999 CONTINUE 
-      IF (io_eof (ii) ) then 
+      IF (io_eof (ii) ) THEN 
          res_para (0) = - 1 
       ELSE 
          ier_num = - 6 
@@ -1358,22 +1369,21 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          WRITE (output_io, 1000) 
          DO ii = 1, MAC_MAX_FORM, 6 
-         WRITE (output_io, 1100) (ii + iii, iii = 0, min (5,            &
-         MAC_MAX_FORM - ii) )                                           
-         WRITE (output_io, 1200) (io_out_format (ii + iii) (2:min (     &
-         len_str (io_out_format (ii + iii) ) - 1, 8) ), iii = 0, min (5,&
-         MAC_MAX_FORM - ii) )                                           
+            WRITE (output_io, 1100) (ii + iii, iii = 0, MIN (5, MAC_MAX_FORM - ii) )
+            WRITE (output_io, 1200) (io_out_format (ii + iii)          &
+                  (2:MIN(len_str(io_out_format(ii+iii))-1, 8)), iii=0, &
+                  MIN (5, MAC_MAX_FORM - ii) )                                           
          ENDDO 
-      ELSEIF (ianz.eq.2) then 
+      ELSEIF (ianz.eq.2) THEN 
          CALL ber_params (1, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
-         ii = nint (werte (1) ) 
-         IF (ii.gt.0.and.ii.le.MAC_MAX_FORM) then 
+         IF (ier_num.ne.0) RETURN 
+         ii = NINT (werte (1) ) 
+         IF (ii.gt.0.and.ii.le.MAC_MAX_FORM) THEN 
             io_out_format (ii) = '('//cpara (2) (1:lpara (2) ) //')' 
          ELSE 
             ier_num = - 28
@@ -1410,32 +1420,32 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       REAL werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       iii = 1 
       CALL ber_params (iii, cpara, lpara, werte, maxw) 
-      IF (ianz.eq.1) then 
+      IF (ianz.eq.1) THEN 
          ianz = 0 
       ELSE 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
       ENDIF 
       ii = nint (werte (1) ) 
-      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
          ier_num = - 13 
          ier_typ = ER_IO 
          RETURN 
       ENDIF 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          io_get_sub (ii, 1) = 1 
          io_get_sub (ii, 2) = - 1 
-      ELSEIF (ianz.eq.2) then 
+      ELSEIF (ianz.eq.2) THEN 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
          io_get_sub (ii, 1) = nint (werte (1) ) 
          io_get_sub (ii, 2) = nint (werte (2) ) 
          IF (io_get_sub (ii, 2) .ne. - 1.and.io_get_sub (ii, 1)         &
-         .gt.io_get_sub (ii, 2) ) then                                  
+         .gt.io_get_sub (ii, 2) ) THEN                                  
             ier_num = - 26 
             ier_typ = ER_IO 
          ENDIF 
@@ -1476,38 +1486,38 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ianzz = 1 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, - lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) return 
-      IF (ianz.eq.1) then 
+      IF (ier_num.ne.0) RETURN 
+      IF (ianz.eq.1) THEN 
          ianz = 0 
       ELSE 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
       ENDIF 
       ii = nint (werte (1) ) 
-      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) then 
+      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
          ier_num = - 13 
          ier_typ = ER_IO 
          RETURN 
       ENDIF 
 !                                                                       
-      IF (.not.io_open (ii) ) then 
+      IF (.not.io_open (ii) ) THEN 
          ier_num = - 11 
          ier_typ = ER_IO 
          RETURN 
       ENDIF 
 !                                                                       
-      IF (ianz.ge.1) then 
+      IF (ianz.ge.1) THEN 
          ie = 0 
          CALL rem_leading_bl(cpara(1),lpara(1))
-         IF (cpara (1) (1:1) .eq.'"') then 
+         IF (cpara (1) (1:1) .eq.'"') THEN 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             line = cpara (1) 
             ie = lpara (1) 
          ELSE 
             DO i = 1, ianz 
-            IF (index (cpara (i) (1:lpara (i) ), quote) .ne.0) then 
+            IF (index (cpara (i) (1:lpara (i) ), quote) .ne.0) THEN 
                line (ie+1:ie+lpara (i) - 2) = cpara (i) (2:lpara (i)    &
                - 1)                                                     
                ie = ie+lpara (i) - 2 
@@ -1516,14 +1526,14 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                lstr = lpara (i) + 2 
                CALL rem_bl (cstr, lstr) 
                wert = berechne (cstr, lstr) 
-               IF (ier_num.ne.0) return 
-               IF (io_out_format (i) .eq.'(*)') then 
+               IF (ier_num.ne.0) RETURN 
+               IF (io_out_format (i) .eq.'(*)') THEN 
                   WRITE (cstr, *, err = 999) wert 
                ELSE 
                   IF (index (io_out_format (i) , 'i') .ne.0.or.index (  &
                   io_out_format (i) , 'I') .ne.0.or.index (             &
                   io_out_format (i) , 'z') .ne.0.or.index (             &
-                  io_out_format (i) , 'Z') .ne.0) then                  
+                  io_out_format (i) , 'Z') .ne.0) THEN                  
                      WRITE (cstr, io_out_format (i), err = 999) nint (  &
                      wert)                                              
                   ELSE 
@@ -1575,29 +1585,29 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       lp = - lp 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          WRITE ( *, 1000,advance='no') 
          READ ( *, 5000, err = 50, end = 50) cdummy 
-      ELSEIF (ianz.eq.1.or.ianz.eq.2) then 
-         IF (str_comp (cpara (1) , 'return', 1, lpara (1) , 6) ) then 
+      ELSEIF (ianz.eq.1.or.ianz.eq.2) THEN 
+         IF (str_comp (cpara (1) , 'return', 1, lpara (1) , 6) ) THEN 
             WRITE ( *, 1000,advance='no') 
             READ ( *, 5000, err = 50, end = 50) cdummy 
          ELSEIF (str_comp (cpara (1) , 'input', 1, lpara (1) , 5) )     &
-         then                                                           
-            IF (ianz.eq.1) then 
+         THEN                                                           
+            IF (ianz.eq.1) THEN 
                WRITE ( *, 1500,advance='no') 
-            ELSEIF (ianz.eq.2) then 
+            ELSEIF (ianz.eq.2) THEN 
                WRITE ( *, 1600,advance='no') cpara (2) (1:lpara (2) ) 
             ENDIF 
             READ ( *, 5000, err = 50, end = 50) line 
             lp = len_str (line) 
             CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.le.maxw) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.le.maxw) THEN 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      res_para (0) = float (ianz) 
                      DO i = 1, ianz 
                      res_para (i) = werte (i) 
@@ -1643,12 +1653,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER ianz, iflag 
       REAL werte (maxw) 
 !                                                                       
-      IF (zeile.ne.' ') then 
+      IF (zeile.ne.' ') THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-         IF (ier_num.eq.0) then 
-            IF (ianz.eq.1) then 
+         IF (ier_num.eq.0) THEN 
+            IF (ianz.eq.1) THEN 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   iflag = - iabs (nint (werte (1) ) ) 
                   CALL ini_ran (iflag) 
                ENDIF 
@@ -1675,7 +1685,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       IF (                                                              &
       prompt_status.eq.PROMPT_ON.or.prompt_status.eq.PROMPT_REDIRECT)   &
-      then                                                              
+      THEN                                                              
          WRITE (output_io, '(1X,A,'' > '')',advance='no') prom (1:len_str (prom) ) 
       ENDIF 
 !                                                                       
@@ -1691,21 +1701,21 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       CHARACTER ( * ) a, b 
       INTEGER i, j, la, lb, ia, ib 
 !                                                                       
-      IF (la.eq.0.or.lb.eq.0) then 
+      IF (la.eq.0.or.lb.eq.0) THEN 
          str_comp = .false. 
       ELSE 
          ia = min (index (a, ' ') , la) 
          ib = min (index (b, ' ') , lb) 
-         IF (ia.eq.0) then 
+         IF (ia.eq.0) THEN 
             ia = la 
          ENDIF 
-         IF (ib.eq.0) then 
+         IF (ib.eq.0) THEN 
             ib = lb 
          ENDIF 
          i = min (ia, ib) 
          i = min (i, la) 
          i = min (i, lb) 
-         IF (i.lt.j) then 
+         IF (i.lt.j) THEN 
             str_comp = .false. 
          ELSE 
             str_comp = a (1:i) .eq.b (1:i) 
@@ -1740,22 +1750,22 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       LOGICAL str_comp 
       INTEGER len_str 
 !                                                                       
-      IF (zeile.ne.' ') then 
+      IF (zeile.ne.' ') THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
 !                                                                       
 !----- ---- set error                                                   
 !                                                                       
-            IF (str_comp (cpara (1) , 'error', 1, lpara (1) , 5) ) then 
-               IF (ianz.eq.2) then 
+            IF (str_comp (cpara (1) , 'error', 1, lpara (1) , 5) ) THEN 
+               IF (ianz.eq.2) THEN 
                   IF (str_comp (cpara (2) , 'cont', 2, lpara (2) , 4) ) &
-                  then                                                  
+                  THEN                                                  
                      ier_sta = ER_S_CONT 
                   ELSEIF (str_comp (cpara (2) , 'exit', 2, lpara (2) ,  &
-                  4) ) then                                             
+                  4) ) THEN                                             
                      ier_sta = ER_S_EXIT 
                   ELSEIF (str_comp (cpara (2) , 'live', 2, lpara (2) ,  &
-                  4) ) then                                             
+                  4) ) THEN                                             
                      ier_sta = ER_S_LIVE 
                   ELSE 
                      ier_num = - 6 
@@ -1769,12 +1779,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !----- ---- set prompt                                                  
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'prompt', 1, lpara (1) , 6) ) &
-            then                                                        
-               IF (ianz.ge.2) then 
+            THEN                                                        
+               IF (ianz.ge.2) THEN 
 !                                                                       
 !------ ------- Third+1  optional parameter: save previous setting      
 !                                                                       
-                  IF (ianz.eq.4) then 
+                  IF (ianz.eq.4) THEN 
                      prompt_status_old = prompt_status 
                      output_status_old = output_status 
                   ENDIF 
@@ -1782,31 +1792,31 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !------ ------- First+1 parameter PROMPT                                
 !                                                                       
                   IF (str_comp (cpara (2) , 'on', 2, lpara (2) , 2) )   &
-                  then                                                  
+                  THEN                                                  
                      prompt_status = PROMPT_ON 
                      socket_status = PROMPT_ON 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'off', 2, lpara (2) , 2)&
-                  ) then                                                
+                  ) THEN                                                
                      prompt_status = PROMPT_OFF 
                      socket_status = PROMPT_OFF 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'redirect', 1, lpara (2)&
-                  , 8) ) then                                           
+                  , 8) ) THEN                                           
                      prompt_status = PROMPT_REDIRECT 
                      socket_status = PROMPT_REDIRECT 
 !                                                                       
                   ELSEIF (str_comp (cpara (2) , 'old', 1, lpara (2) , 3)&
-                  ) then                                                
-                     IF (output_status.ne.OUTPUT_SCREEN) then 
+                  ) THEN                                                
+                     IF (output_status.ne.OUTPUT_SCREEN) THEN 
                         CLOSE (output_io) 
                      ENDIF 
                      output_status = output_status_old 
                      prompt_status = prompt_status_old 
                      socket_status = socket_status_old 
-                     IF (output_status.eq.OUTPUT_SCREEN) then 
+                     IF (output_status.eq.OUTPUT_SCREEN) THEN 
                         output_io = 6 
-                     ELSEIF (output_status.eq.OUTPUT_NONE) then 
+                     ELSEIF (output_status.eq.OUTPUT_NONE) THEN 
                         output_io = 37 
                         OPEN (unit = output_io, file = nullfile, status &
                         = 'unknown',IOSTAT=ios,IOMSG=message)                                    
@@ -1817,13 +1827,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                            ier_msg(2) = message
                            RETURN
                         ENDIF
-                     ELSEIF (output_status.eq.OUTPUT_FILE) then 
+                     ELSEIF (output_status.eq.OUTPUT_FILE) THEN 
                         output_io = 37 
                         logfile = pname (1:len_str (pname) ) //'.log' 
                         INQUIRE (file = logfile, exist = llog) 
-                        IF (llog) then 
+                        IF (llog) THEN 
                            CALL oeffne_append (output_io, logfile, 'old')
-                           IF (ier_num.ne.0) return 
+                           IF (ier_num.ne.0) RETURN 
 !DBG                    open(unit=output_io,file=logfile,               
 !DBG     &                   status='old',access='append')              
 !DBG95     &                 status='old',access='sequential')          
@@ -1847,18 +1857,18 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ ------- Second+1 optional parameter general output              
 !                                                                       
-                  IF (ianz.ge.3) then 
+                  IF (ianz.ge.3) THEN 
                      IF (str_comp (cpara (3) , 'on', 2, lpara (3) , 2) )&
-                     then                                               
-                        IF (output_status.ne.OUTPUT_SCREEN) then 
+                     THEN                                               
+                        IF (output_status.ne.OUTPUT_SCREEN) THEN 
                            CLOSE (output_io) 
                         ENDIF 
                         output_status = OUTPUT_SCREEN 
                         output_io = 6 
 !                                                                       
                      ELSEIF (str_comp (cpara (3) , 'off', 2, lpara (3) ,&
-                     3) ) then                                          
-                        IF (output_status.ne.OUTPUT_SCREEN) then 
+                     3) ) THEN                                          
+                        IF (output_status.ne.OUTPUT_SCREEN) THEN 
                            CLOSE (output_io) 
                         ENDIF 
                         output_status = OUTPUT_NONE 
@@ -1875,17 +1885,17 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                         ENDIF
 !                                                                       
                      ELSEIF (str_comp (cpara (3) , 'file', 2, lpara (3) &
-                     , 4) ) then                                        
-                        IF (output_status.ne.OUTPUT_SCREEN) then 
+                     , 4) ) THEN                                        
+                        IF (output_status.ne.OUTPUT_SCREEN) THEN 
                            CLOSE (output_io) 
                         ENDIF 
                         output_status = OUTPUT_FILE 
                         output_io = 37 
                         logfile = pname (1:len_str (pname) ) //'.log' 
                         INQUIRE (file = logfile, exist = llog) 
-                        IF (llog) then 
+                        IF (llog) THEN 
                            CALL oeffne_append (output_io, logfile, 'old')
-                           IF (ier_num.ne.0) return 
+                           IF (ier_num.ne.0) RETURN 
 !DBG                    open(unit=output_io,file=logfile,               
 !DBG     &                   status='old',access='append')              
 !DBG95     &                 status='old',access='sequential')          
@@ -1908,7 +1918,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                   ENDIF 
                   WRITE (output_io, * ) 
 !                                                                       
-                  IF (dbg) then 
+                  IF (dbg) THEN 
                      WRITE ( *, 5000) prompt_status, prompt_status_old 
                      WRITE ( *, 5010) output_status, output_status_old 
                   ENDIF 
@@ -1920,8 +1930,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !----- ---- set debug                                                   
 !                                                                       
             ELSEIF (str_comp (cpara (1) , 'debug', 2, lpara (1) , 5) )  &
-            then                                                        
-               IF (ianz.eq.2) then 
+            THEN                                                        
+               IF (ianz.eq.2) THEN 
                   dbg = (cpara (2) (1:2) .eq.'on') 
                ELSE 
                   ier_num = - 6 
@@ -1970,13 +1980,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     Find any "" which would mean that we need parameter substitution  
 !                                                                       
       iqo = index (zeile (1:lp) , '"') 
-      IF (iqo.eq.0) then 
+      IF (iqo.eq.0) THEN 
 !                                                                       
 !     --None foud, harmless echo                                        
 !                                                                       
          WRITE (output_io, 2010) zeile (1:lp) 
          WRITE (cstr, 2010) zeile (1:lp) 
-         IF (lconn.and.lsocket) then 
+         IF (lconn.and.lsocket) THEN 
             il = len_str (cstr) 
             ier_num = socket_send (s_conid, cstr, il) 
             IF(ier_num < 0) THEN
@@ -1987,7 +1997,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             ENDIF
          ENDIF 
 !                                                                       
-!        IF (output_status.eq.OUTPUT_FILE) then 
+!        IF (output_status.eq.OUTPUT_FILE) THEN 
 !           WRITE (output_io, 2010) zeile (1:lp) 
 !        ENDIF 
       ELSE 
@@ -1995,7 +2005,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     --Look for matching ""                                            
 !                                                                       
          iqo2 = index (zeile (iqo + 1:lp) , '"') 
-         IF (iqo2.eq.0) then 
+         IF (iqo2.eq.0) THEN 
             ier_num = -  4 
             ier_typ = ER_COMM 
             RETURN 
@@ -2006,7 +2016,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
          iqo2 = iqo2 + iqo 
          iko = index (zeile (iqo2 + 1:lp) , ',') 
-         IF (iko.ne.0) then 
+         IF (iko.ne.0) THEN 
             string = zeile (iqo2 + iko + 1:lp) 
             lstring = - (lp - iqo2 - iko) 
 !                                                                       
@@ -2019,7 +2029,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             ianz = 0 
          ENDIF 
 !                                                                       
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             DO i = ianz, 1, - 1 
             cpara (i + 1) = cpara (i) 
             lpara (i + 1) = lpara (i) 
@@ -2028,24 +2038,24 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             lpara (1) = iqo2 
             ianz = ianz + 1 
             CALL do_build_name (ianz, cpara, lpara, werte, maxp, 1) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
 !                                                                       
 !     ------The first comma that follows the quotation marks must be    
 !           omitted, all others retained as part of the echo            
 !                                                                       
-               IF (ianz.eq.1) then 
+               IF (ianz.eq.1) THEN 
                   WRITE (output_io, 2000) cpara (ianz) (1:lpara (ianz) ) 
                   WRITE (cstr, 2000) cpara (ianz) (1:lpara (ianz) ) 
-!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                 IF (output_status.eq.OUTPUT_FILE) THEN 
 !                    WRITE (output_io, 2000) cpara (ianz) (1:lpara (    &
 !                    ianz) )                                            
 !                 ENDIF 
-               ELSEIF (ianz.eq.2) then 
+               ELSEIF (ianz.eq.2) THEN 
                   WRITE (output_io, 2000) cpara (1) (1:lpara (1) ), cpara (    &
                   ianz) (1:lpara (ianz) )                               
                   WRITE (cstr, 2000) cpara (1) (1:lpara (1) ), cpara (  &
                   ianz) (1:lpara (ianz) )                               
-!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                 IF (output_status.eq.OUTPUT_FILE) THEN 
 !                    WRITE (output_io, 2000) cpara (1) (1:lpara (1) ),  &
 !                    cpara (ianz) (1:lpara (ianz) )                     
 !                 ENDIF 
@@ -2056,13 +2066,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                   WRITE (cstr, 2000) cpara (1) (1:lpara (1) ) , (cpara (&
                   i) (1:lpara (i) ) , ',', i = 2, ianz - 1) , cpara (   &
                   ianz) (1:lpara (ianz) )                               
-!                 IF (output_status.eq.OUTPUT_FILE) then 
+!                 IF (output_status.eq.OUTPUT_FILE) THEN 
 !                    WRITE (output_io, 2000) cpara (1) (1:lpara (1) ) , &
 !                    (cpara (i) (1:lpara (i) ) , ',', i = 2, ianz - 1) ,&
 !                    cpara (ianz) (1:lpara (ianz) )                     
 !                 ENDIF 
                ENDIF 
-               IF (lconn.and.lsocket) then 
+               IF (lconn.and.lsocket) THEN 
                   il = len_str (cstr) 
                   ier_num = socket_send (s_conid, cstr, il) 
                   IF(ier_num < 0) THEN
@@ -2117,7 +2127,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !     --If an apostrophe is found, ignore the string                    
 !                                                                       
-      IF (max (index (string, '''') , index (string, '"') ) .gt.0) then 
+      IF (max (index (string, '''') , index (string, '"') ) .gt.0) THEN 
          RETURN 
       ENDIF 
       DO i = 1, var_num 
@@ -2126,7 +2136,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
       IF (ianf.gt.1) zeile (1:ianf - 1) = string (1:ianf - 1) 
-      IF (var_type (i) .eq.VAR_TYPE_REAL) then 
+      IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
                                                                         
          WRITE (dummy (1:15) , '(e15.8e2)') var_val (i) 
          dummy (12:12) = 'e' 
@@ -2134,13 +2144,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
-      ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) then 
+      ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
          WRITE (dummy (1:15) , '(i15)') nint (var_val (i) ) 
          ll = 15 
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
-      ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) then 
+      ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
 !DBG_RBN            ll = len_str(var_char(i))                           
 !DBG_RBN            zeile(ianf:ianf+ll-1)= var_char(i)(1:ll)            
 !DBG_RBN            linsert = ll                                        
@@ -2159,7 +2169,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       string = zeile 
       laenge = ll 
 !DBG_RBN      write(*,*) ' ZEILE >',zeile(1:ll)                         
-      IF (max (index (string, '''') , index (string, '"') ) .gt.0) then 
+      IF (max (index (string, '''') , index (string, '"') ) .gt.0) THEN 
          RETURN 
       ENDIF 
       ianf = index (string, var_name (i) (1:var_l (i) ) ) 
@@ -2195,12 +2205,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     loop over all variable names. Strict equality is required         
 !                                                                       
       DO i = 1, var_num 
-      IF (string (1:laenge) .eq.var_name (i) (1:var_l (i) ) ) then 
-         IF (var_type (i) .eq.VAR_TYPE_REAL) then 
+      IF (string (1:laenge) .eq.var_name (i) (1:var_l (i) ) ) THEN 
+         IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
             var_val (i) = wert 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) then 
+         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
             var_val (i) = nint (wert) 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) then 
+         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
             var_char (i) = dummy (1:length) 
          ENDIF 
          ier_num = 0 
@@ -2251,22 +2261,22 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       IF (str_comp (cpara (1) , 'real', 2, lpara (1) , 4) .or.str_comp (&
       cpara (1) , 'inte', 2, lpara (1) , 4) .or.str_comp (cpara (1) ,   &
-      'char', 2, lpara (1) , 4) ) then                                  
+      'char', 2, lpara (1) , 4) ) THEN                                  
 !                                                                       
 !     --A new variable is being defined                                 
 !                                                                       
-         IF (ianz.eq.2.or.ianz.eq.3) then 
-            IF (var_num.lt.VAR_MAX) then 
+         IF (ianz.eq.2.or.ianz.eq.3) THEN 
+            IF (var_num.lt.VAR_MAX) THEN 
 !                                                                       
 !     ----- If a free slot is available validate the name against       
 !     ----- illegal names like "cos", "sin" etc.                        
 !                                                                       
                CALL validate_variable (cpara (2), lpara (2) ) 
-               IF (ier_num.ne.0) return 
+               IF (ier_num.ne.0) RETURN 
 !                                                                       
 !     ----- temporarily store the variable type and name and evaluate   
 !     ----- the optional initialising parameter                         
@@ -2276,19 +2286,19 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                c_temp (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
                l_temp = lpara (2) 
                werte (1) = 0.0 
-               IF (str_comp (c_type, 'real', 2, l_type, 4) ) then 
+               IF (str_comp (c_type, 'real', 2, l_type, 4) ) THEN 
                   ccc_type = VAR_TYPE_REAL 
-               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) then 
+               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
                   ccc_type = VAR_TYPE_INTE 
-               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) then 
+               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
                   ccc_type = VAR_TYPE_CHAR 
                ENDIF 
                l_init = .false. 
                c_init = ' ' 
-               IF (ianz.eq.3) then 
+               IF (ianz.eq.3) THEN 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
-                  IF (ier_num.ne.0) return 
-                  IF (ccc_type.eq.VAR_TYPE_CHAR) then 
+                  IF (ier_num.ne.0) RETURN 
+                  IF (ccc_type.eq.VAR_TYPE_CHAR) THEN 
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
                      c_init = cpara (1) (1:lpara (1) ) 
@@ -2296,7 +2306,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   ENDIF 
                   l_init = .true. 
-                  IF (ier_num.ne.0) return 
+                  IF (ier_num.ne.0) RETURN 
                ENDIF 
 !                                                                       
 !     ----- Make sure the variable name has not yet been defined as     
@@ -2306,12 +2316,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                ier_num = 0 
                ier_typ = ER_NONE 
                DO i = 1, var_num 
-               IF (c_temp (1:l_temp) .eq.var_name (i) ) then 
-                  IF (ccc_type.ne.var_type (i) ) then 
+               IF (c_temp (1:l_temp) .eq.var_name (i) ) THEN 
+                  IF (ccc_type.ne.var_type (i) ) THEN 
                      ier_num = - 32 
                      ier_typ = ER_FORT 
                   ELSE 
-                     IF (l_init) then 
+                     IF (l_init) THEN 
                         ier_num = - 33 
                         ier_typ = ER_FORT 
                      ELSE 
@@ -2320,7 +2330,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                   ENDIF 
                ENDIF 
                ENDDO 
-               IF (ier_num.ne.0) then 
+               IF (ier_num.ne.0) THEN 
                   CALL errlist 
                   RETURN 
                ENDIF 
@@ -2349,13 +2359,13 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                var_num = var_num + 1 
                var_name (i) (1:l_temp) = c_temp 
                var_l (i) = l_temp 
-               IF (str_comp (c_type, 'real', 2, l_type, 4) ) then 
+               IF (str_comp (c_type, 'real', 2, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_REAL 
                   var_val (i) = werte (1) 
-               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) then 
+               ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_INTE 
                   var_val (i) = nint (werte (1) ) 
-               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) then 
+               ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_CHAR 
                   var_val (i) = 0.0 
                   var_char (i) = c_init (1:len(var_char))
@@ -2368,7 +2378,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
-      ELSEIF (str_comp (cpara (1) , 'show', 2, lpara (1) , 4) ) then 
+      ELSEIF (str_comp (cpara (1) , 'show', 2, lpara (1) , 4) ) THEN 
          CALL show_variables 
       ELSE 
          ier_num = - 6 
@@ -2390,19 +2400,19 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       INTEGER len_str 
 !                                                                       
-      IF (var_num.gt.0) then 
+      IF (var_num.gt.0) THEN 
          WRITE (output_io, 2000) var_num, VAR_MAX 
          DO i = 1, var_num 
-         IF (var_type (i) .eq.VAR_TYPE_REAL) then 
+         IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
             IF (abs (var_val (i) ) .lt.1e-5.or.abs (var_val (i) )       &
-            .ge.1e6) then                                               
+            .ge.1e6) THEN                                               
                WRITE (output_io, 2100) var_name (i), var_val (i) 
             ELSE 
                WRITE (output_io, 2150) var_name (i), var_val (i) 
             ENDIF 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) then 
+         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
             WRITE (output_io, 2200) var_name (i), nint (var_val (i) ) 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) then 
+         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
             WRITE (output_io, 2300) var_name (i), var_char (i) (1:      &
             len_str (var_char (i) ) )                                   
          ENDIF 
@@ -2440,10 +2450,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
       INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER reserved_n 
-      PARAMETER (reserved_n = 55) 
-                                                                        
-      CHARACTER(LEN=14) reserved (reserved_n) 
+      INTEGER, PARAMETER :: reserved_n = 56
+!
+      CHARACTER(LEN=14), DIMENSION(reserved_n) :: reserved
       INTEGER i, ii 
       LOGICAL lok 
 !                                                                       
@@ -2451,8 +2460,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       'sin', 'cos', 'tan', 'sind', 'cosd', 'tand', 'sinh', 'cosh',      &
       'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',   &
       'nint', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif',     &
-      'endif', 'else', 'while', 'until', 'lt', 'le', 'gt', 'ge', 'eq',  &
-      'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew', 'REF_GENERATION',  &
+      'endif', 'else', 'then', 'while', 'until', 'lt', 'le', 'gt', 'ge',&
+      'eq', 'and', 'or', 'xor', 'i', 'r', 'res' , 'gskew',              &
+      'REF_GENERATION',                                                 &
       'REF_MEMBER', 'REF_CHILDREN', 'REF_DIMENSION', 'REF_KID',         &
       'REF_INDIV', 'REF_NINDIV','PI'/                             
 !                                                                       
@@ -2460,28 +2470,28 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ier_typ = ER_NONE 
 !                                                                       
       DO i = 1, reserved_n 
-      IF (index (reserved (i), zeile (1:lp) ) .ne.0) then 
-         ier_num = - 25 
-         ier_typ = ER_FORT 
-      ENDIF 
+         IF (index (reserved (i), zeile (1:lp) ) .NE.0) THEN 
+            ier_num = - 25 
+            ier_typ = ER_FORT 
+         ENDIF 
       ENDDO 
 !                                                                       
 !     Check against variables/functions of the main program             
 !                                                                       
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          CALL p_validate_var_spec (zeile, lp) 
       ENDIF 
 !                                                                       
 !     Check that the name contains only letters, Numbers and the "_"    
 !                                                                       
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          lok = .true. 
          DO i = 1, lp 
-         ii = iachar (zeile (i:i) ) 
-      lok = lok.and. (zero.le.ii.and.ii.le.nine.or.aa.le.ii.and.ii.le.zz&
-     &.or.u.eq.ii.or.a.le.ii.and.ii.le.z)                               
+            ii = iachar (zeile (i:i) ) 
+            lok = lok.and. (zero.le.ii.and.ii.le.nine.or.aa.le.ii.and. & 
+                            ii.le.zz .or.u.eq.ii.or.a.le.ii.and.ii.le.z)                               
          ENDDO 
-         IF (.not.lok) then 
+         IF (.not.lok) THEN 
             ier_num = - 26 
             ier_typ = ER_FORT 
          ENDIF 
@@ -2502,18 +2512,18 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
-      IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) then 
+      IF (str_comp (cpara (1) , 'error', 2, lpara (1) , 5) ) THEN 
          CALL do_show_error 
 !                                                                       
 !     ----Show result array                'result'                     
 !                                                                       
-      ELSEIF (str_comp (cpara (1) , 'res', 1, lpara (1) , 3) ) then 
+      ELSEIF (str_comp (cpara (1) , 'res', 1, lpara (1) , 3) ) THEN 
          CALL do_show_res 
 !                                                                       
 !     ----Show variables                   'variables'                  
 !                                                                       
       ELSEIF (str_comp (cpara (1) , 'variables', 1, lpara (1) , 9) )    &
-      then                                                              
+      THEN                                                              
          CALL show_variables 
       ELSE 
          ier_num = - 6 
@@ -2534,12 +2544,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
-      IF (nint (res_para (0) ) .eq.0) then 
+      IF (nint (res_para (0) ) .eq.0) THEN 
          WRITE (output_io, * ) 'Result array is empty' 
       ELSE 
          WRITE (output_io, 2000) nint (res_para (0) ) 
          j = nint (res_para (0) ) / 5 
-         IF (mod (nint (res_para (0) ), 5) .eq.0) then 
+         IF (mod (nint (res_para (0) ), 5) .eq.0) THEN 
             j = j - 1 
          ENDIF 
          DO i = 0, j 
@@ -2564,7 +2574,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !------ - Error status setting                                          
 !                                                                       
-      IF (ier_sta.eq.ER_S_CONT) then 
+      IF (ier_sta.eq.ER_S_CONT) THEN 
          WRITE (output_io, 2100) 
       ELSE 
          WRITE (output_io, 2105) 
