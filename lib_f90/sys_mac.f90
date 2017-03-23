@@ -58,3 +58,11 @@ END FUNCTION IS_IOSTAT_END
  1100 FORMAT     (' ------ > File ',a,' does NOT exist ...') 
       END SUBROUTINE do_fexist                      
 !*****7***********************************************************      
+      LOGICAL FUNCTION is_nan(x)
+!
+      REAL, INTENT(IN) :: x
+!
+      is_nan = isnan(x)
+!
+      END FUNCTION is_nan
+!*****7***********************************************************      
