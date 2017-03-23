@@ -1636,6 +1636,7 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, ii 
       INTEGER :: ix, iy, iz
+      INTEGER :: ix1, ix2, iy1,iy2, iz1,iz2
       INTEGER istart (3), iend (3), iii (3), cell (3), iatom 
       REAL offset (3), nooffset (3) 
       LOGICAL ltype 
@@ -1719,15 +1720,36 @@ CONTAINS
 !!!         RETURN 
 !!!      ENDIF 
 !                                                                       
+         IF(fp(1)) THEN
+            ix1 = -1
+            ix2 = 1
+         ELSE
+            ix1 = 0
+            ix2 = 0
+         ENDIF
+         IF(fp(2)) THEN
+            iy1 = -1
+            iy2 = 1
+         ELSE
+            iy1 = 0
+            iy2 = 0
+         ENDIF
+         IF(fp(3)) THEN
+            iz1 = -1
+            iz2 = 1
+         ELSE
+            iz1 = 0
+            iz2 = 0
+         ENDIF
          DO i = 1, cr_natoms 
          ltype = atom_allowed (i, werte, ianz, maxw)                    &
          .and.check_select_status (.true., cr_prop (i), cr_sel_prop)    
          IF (ltype) then 
-            DO ix = -1,1,1
+            DO ix = ix1, ix2, 1
                offset(1) = ix*cr_icc(1)
-            DO iy = -1,1,1
+            DO iy = iy1, iy2, 1
                offset(2) = iy*cr_icc(2) 
-            DO iz = -1,1,1
+            DO iz = iz1, iz2, 1
                offset(3) = iz*cr_icc(3)
             CALL check_blen (x, i, rmin, rmax, offset) 
             ENDDO
