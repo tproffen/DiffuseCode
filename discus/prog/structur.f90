@@ -3731,6 +3731,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !
       INTEGER, EXTERNAL :: len_str
       LOGICAL, EXTERNAL :: str_comp
+      LOGICAL           :: is_nan
       LOGICAL           :: IS_IOSTAT_END
 !
       natoms     = 0
@@ -3802,6 +3803,26 @@ header: DO
                CLOSE(99)
                RETURN
             ENDIF
+        ELSEIF (line(1:4) == 'CELL' ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0 .AND. ianz == 6) then 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num /= 0) then 
+                  ier_num = -48
+                  ier_typ = ER_APPL
+                  CLOSE(99)
+                  RETURN
+               ENDIF
+            ELSE
+               READ(zeile,*,IOSTAT=ios) (werte(i),i=1,6)
+               IF(ios /=0 .OR. is_nan(werte(1)) .OR. is_nan(werte(2)) .OR. is_nan(werte(3)) &
+                          .OR. is_nan(werte(4)) .OR. is_nan(werte(5)) .OR. is_nan(werte(6))) THEN
+                  ier_num = -48
+                  ier_typ = ER_APPL
+                  CLOSE(99)
+                  RETURN
+               ENDIF
+            ENDIF
         ENDIF
         IF (line(1:4) == 'ATOM') EXIT header
       ENDDO header
@@ -3860,6 +3881,9 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
            ENDIF
         ELSE ismole
            READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
+           IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
+              ios = -1
+           ENDIF
 isatom:    IF ( ios == 0 ) THEN
               natoms = natoms + 1
               IF ( in_mole ) THEN
@@ -3882,6 +3906,13 @@ types:        DO i=1,ntypes
                  names(ntypes) = line(1:4)
                  bvals(ntypes) = bval
               ENDIF
+           ELSE isatom
+              ier_num = -49
+              ier_typ = ER_APPL
+              ier_msg(1) = line(1:46)
+              WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+              CLOSE(99)
+              RETURN
            ENDIF isatom
         ENDIF ismole
       ENDDO main
