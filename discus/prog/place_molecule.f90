@@ -625,7 +625,7 @@ CONTAINS
    USE prop_para_mod
    USE read_internal_mod
    USE structur , ONLY: rese_cr
-   USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting
+   USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
 !
    USE param_mod
    USE random_mod
@@ -655,6 +655,7 @@ CONTAINS
    INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
    INTEGER   :: natoms                 ! number of atoms in connectivity
+   INTEGER   :: natoms_prior           ! number of atoms in shell prior to decoration
    INTEGER   :: n_scat                 ! Dummy maximum scattering types
    INTEGER   :: n_corr                 ! Dummy maximum correlation number
    INTEGER   :: nscat_old              ! maximum scattering types prior to modifying anchors
@@ -674,6 +675,7 @@ CONTAINS
    CALL save_default_setting           ! Default to full saving
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
    CALL save_internal(corefile)        !     thus this file name is unique
+!call save_struc('core.stru',  9)
    shellfile  = 'internal.decoshell'   
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
@@ -685,6 +687,7 @@ CONTAINS
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
    CALL save_internal(shellfile)
+!call save_struc('shell.stru', 10)
 !
 !  Make single atom "structure" for domain list file 
    CALL rese_cr
@@ -705,11 +708,13 @@ CONTAINS
 !
    CALL readstru_internal(shellfile)   ! Read shell file
    IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
+      IF(ASSOCIATED(dc_def_head)) THEN
 !
 !     Now sort those surface atoms that are anchors to the ligand
 !
       dc_def_temp => dc_def_head
       CALL dc_get_dens(dc_def_temp, dc_temp_dens)    ! Get density for surface coverage 
+      dc_con_temp => dc_def_temp%dc_def_con
       CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
       CALL chem_elem(.false.)             ! get composition
       r_anch = res_para(dc_temp_surf(1)+1)           ! Fractional composition of the anchoring atoms
@@ -725,7 +730,7 @@ CONTAINS
       cr_dw    (nscat_old + 1) = cr_dw(dc_temp_surf(1))
       cr_nscat = nscat_old + 1
       n_repl = 0
-!     As surface atom number is bound to be small try several tims unit we get sufficient anchors
+!     As surface atom number is bound to be small try several times until we get sufficient anchors
       i = 0
       replace: DO i=1, cr_natoms 
          DO ia = 1, cr_natoms                        ! Loop to replace
@@ -739,6 +744,7 @@ CONTAINS
             ENDIF
          ENDDO
       ENDDO replace
+!call save_struc('shell.deco', 10)
       IF(n_repl > 0 ) THEN                        ! Need at least one anchor
 !
 !        Prepare a connectivity 
@@ -825,11 +831,18 @@ CONTAINS
 
 !        Change Anchors back to their original names, keep property flag
 !
+!ia =  84
+!cr_iscat(ia) = nscat_old + 1       
+!cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
+!call save_struc('shell.dist', 10)
          DO ia = 1, cr_natoms
             IF(cr_at_lis(cr_iscat(ia))=='AN01') THEN
                cr_iscat(ia) = dc_temp_surf(1)
             ENDIF
          ENDDO
+!ia =  84
+!cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
+!cr_iscat(ia) = dc_temp_surf(1)
          cr_nscat = nscat_old                                 ! Set number of atom types back
          cr_at_lis(nscat_old+1) = ' '                         ! Have atom type disappear
 !
@@ -840,6 +853,9 @@ CONTAINS
 !
          istart = 1
          iend   = cr_natoms
+!istart= 84
+!iend =  84
+         natoms_prior = cr_natoms
          ier_num = 0
          main_loop: DO ia=istart,iend
            is_sel: IF(check_select_status (dc_latom (cr_iscat (ia) ), cr_prop (ia),   &
@@ -889,7 +905,7 @@ CONTAINS
                                 EXIT cons
                              ELSE
                                 ier_num = -1118
-                                ier_msg(1) = 'The mult   connection requires > one bond'
+                                ier_msg(1) = 'The double connection requires > one bond'
                                 EXIT main_loop
                              ENDIF
                           CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
@@ -911,6 +927,15 @@ CONTAINS
               ENDDO defs
            ENDIF is_sel ! END IF BLOCK is selected
          ENDDO main_loop   ! END DO main loop over all atoms
+!
+         IF(cr_natoms == natoms_prior) THEN    ! No atoms added Failure
+           CALL readstru_internal(corefile)   ! Read core file
+           ier_num = -131
+           ier_typ = ER_APPL
+           ier_msg(1) = 'Is the surface very small, just a few atoms?'
+           ier_msg(2) = 'Is the coverage too small? '
+           ier_msg(3) = 'Check the set ligand command'
+         ENDIF
 !
          IF(ier_num == 0)  THEN       ! Success in main_loop
 !
@@ -949,9 +974,22 @@ CONTAINS
             ENDDO
             CALL do_purge
          ELSE     ! Error in main_loop
-           CALL readstru_internal(shellfile)   ! Read shell file
+           CALL readstru_internal(corefile)   ! Read core file
+           ier_num = -131
+           ier_typ = ER_APPL
+           ier_msg(1) = 'Is the surface very small, just a few atoms?'
+           ier_msg(2) = 'Is the coverage too small? '
+           ier_msg(3) = 'Check the set ligand command'
          ENDIF
       ELSE     ! n_repl > 0   !! No anchor atoms found
+        CALL readstru_internal( corefile)   ! Read  core file
+        ier_num = -131
+        ier_typ = ER_APPL
+        ier_msg(1) = 'Is the surface very small, just a few atoms?'
+        ier_msg(2) = 'Is the coverage too small? '
+        ier_msg(3) = 'Check the set ligand command'
+      ENDIF
+      ELSE     ! associated header
         CALL readstru_internal( corefile)   ! Read  core file
         ier_num = -131
         ier_typ = ER_APPL
@@ -1295,7 +1333,6 @@ real, dimension(3) :: uvw_temp
 !
    vnull(:) = 0.00
 !
-!write(*,'(a,3i6)') ' NORMAL', cr_natoms, cr_nscat, cr_ncatoms
    CALL find_surface_character(ia,surf_char, surf_normal)
 !  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
 !
@@ -1447,8 +1484,9 @@ real, dimension(3) :: uvw_temp
    radius   = dist*2.0
    ianz     = 1
    werte(1) = surf(2)
-   fp (:)   = chem_period (:)
-   fq       = chem_quick
+   fp (:)   = .FALSE. !chem_period (:)
+   fq       = .FALSE. !chem_quick
+   nold     = 0
    CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
    IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
      j = 0
@@ -1465,6 +1503,7 @@ real, dimension(3) :: uvw_temp
       bridge(1) = (cr_pos(1,ia)-cr_pos(1,atom_env(j)))   ! Calculate vector along bridge
       bridge(2) = (cr_pos(2,ia)-cr_pos(2,atom_env(j)))
       bridge(3) = (cr_pos(3,ia)-cr_pos(3,atom_env(j)))
+      b_l = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
       x(1) = (cr_pos(1,ia)+cr_pos(1,atom_env(j)))*0.5    ! Calculate midpoint
       x(2) = (cr_pos(2,ia)+cr_pos(2,atom_env(j)))*0.5
       x(3) = (cr_pos(3,ia)+cr_pos(3,atom_env(j)))*0.5
@@ -1622,6 +1661,7 @@ real, dimension(3) :: uvw_temp
    LOGICAL, PARAMETER :: lspace = .true.
    REAL                                    :: rmin, radius, dw1, b_l, t_l
    REAL                                    :: alpha, beta
+   REAL                                    :: arg            ! argument for acos
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w, u
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
    REAL     , DIMENSION(1:3)               :: surf_normal
@@ -1724,7 +1764,6 @@ real, dimension(3) :: uvw_temp
 !  Determine rotation axis for surface vector
    tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
    t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
-   WRITE(*   ,1100) tangent, surf_normal                  ! Calculate rotation axis
    WRITE(line,1100) tangent, surf_normal                  ! Calculate rotation axis
    laenge = 81
    CALL vprod(line, laenge)
@@ -1754,8 +1793,10 @@ real, dimension(3) :: uvw_temp
    ENDDO
 !
 !  Calculate angle in second trapezoid corner
-   sym_angle  = ACOS(-(all_distance(1)**2-all_distance(2)**2-(t_l-b_l)**2)/ &
-                      (2.*all_distance(2)*(t_l-b_l))) /rad
+   arg        = (-(all_distance(1)**2-all_distance(2)**2-(t_l-b_l)**2)/ &
+                  (2.*all_distance(2)*(t_l-b_l)))
+   IF(ABS(arg) > 1.00) GOTO 9999              ! No solution is found skip
+   sym_angle  = ACOS(arg)/rad
 !
    sym_trans(:)   = 0.0                       ! No translation needed
    sym_orig(:)    = 0.0                       ! Define origin in 0,0,0
@@ -1907,6 +1948,7 @@ real, dimension(3) :: uvw_temp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
    REAL                                    :: rmin, radius, dw1, b_l
+   REAL                                    :: arg
    REAL                                    :: alpha, beta, d1,d2, v_l
    REAL     , DIMENSION(1:3)               :: x, bridge, base, origin, posit, v, w, u
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
@@ -1983,7 +2025,7 @@ real, dimension(3) :: uvw_temp
    DO i=n_atoms_orig+1,cr_natoms
       cr_pos(:,i) = cr_pos(:,i) + shift(:)
    ENDDO
-   success = 0
+   success = 1                                     ! Start with error flag
 !
    IF(ncon == 2) THEN                            ! We have the second connection
       dc_con_temp => dc_def_temp%dc_def_con%next   ! Point to second connectivity
@@ -2041,6 +2083,8 @@ real, dimension(3) :: uvw_temp
    sym_uvw(:) =  res_para(1:3)
    d1 = all_distance(1)
    d2 = all_distance(2)
+   arg = (d1**2 + d2**2 - b_l**2)/(2.*d1*d2)
+   IF(ABS(arg)> 1.0) GOTO 9999                ! No suitable solution
    sym_angle  = acos( (d1**2 + d2**2 - b_l**2)/(2.*d1*d2))/rad
    v(:) = v(:) *d2/v_l                        ! Scale vector 1st surface to 1st mole to distance2
 !
@@ -2057,6 +2101,7 @@ real, dimension(3) :: uvw_temp
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_ca_single (v, .true., .false.)
+   IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
    posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
 !
 ! next step rotate molecule for 2nd mole to fall onto target posit
@@ -2072,6 +2117,7 @@ real, dimension(3) :: uvw_temp
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_op_single                        ! Perform the operation
+   IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
 !
 !   Rotate molecule up to straighten molecule axis out
    sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
@@ -2115,6 +2161,7 @@ real, dimension(3) :: uvw_temp
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
+   success = 0                                   ! Clear error flag
 !
 9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
    DEALLOCATE(all_surface)
@@ -2228,7 +2275,7 @@ real, dimension(3) :: uvw_temp
                w_l  = SQRT(skalpro(w,w,cr_gten))         ! Calculate length neigh to neighbor
                av   = (u_l+v_l+w_l)/3.
                arg  =     ((u_l-av)**2+(v_l-av)**2+(w_l-av)**2)
-               IF(arg<=0) THEN                     ! Negative arg, no solution return with error status
+               IF(arg<0) THEN                     ! Negative arg, no solution return with error status
                   ierror = -1 
                   RETURN
                ENDIF
