@@ -71,7 +71,7 @@ IF(ier_num == 0) THEN
          mfile = cpara(1)
          INQUIRE(FILE=mfile, EXIST=lexist)
          IF(lexist) THEN
-            WRITE(line, '(3a,i6,4a)'), 'mpiexec --prefix ',mpi_path(1:LEN_TRIM(mpi_path)), &
+            WRITE(line, '(3a,i6,4a)')  'mpiexec --prefix ',mpi_path(1:LEN_TRIM(mpi_path)), &
             ' -n ',numproc, ' ',discus_path(1:LEN_TRIM(discus_path)), &
             discus_name(1:LEN_TRIM(discus_name)),' -macro'
             DO I=1, ianz
