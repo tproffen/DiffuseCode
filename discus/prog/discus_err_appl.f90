@@ -9,11 +9,14 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-140,IO=4)
+      PARAMETER    (IU=-141,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR ( IU : -121) /                     &
+      DATA ERROR ( IU : -141) /                     &
+     &  'Atoms are too close to each other  '       & !-141 ! discus
+     &  /
+      DATA ERROR (-140: -121) /                     &
      &  'CSSR file not allowed for read cell',      & !-140 ! discus
      &  'Layer type outside limits',                & !-139 ! discus
      &  'Atom is already inside a molecule',        & !-138 ! discus
