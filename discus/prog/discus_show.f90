@@ -446,7 +446,7 @@ CONTAINS
       ENDIF 
 !                                                                       
  3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',3x,'Molecule Property') 
- 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,x,2(i10,1x),a) 
+ 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a) 
  3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
       END SUBROUTINE do_show_atom                   
 !*****7*****************************************************************

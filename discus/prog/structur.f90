@@ -875,6 +875,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                ENDIF  typus
             ENDIF empty
       ENDDO main 
+!
+      CALL test_identical    ! Test if atoms are too close
 !                                                                       
     2    CONTINUE 
          IF (ier_num.eq. -49) then 
@@ -3614,7 +3616,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !  Finally, write the structure to file
 !
       IF(data_i > 0) THEN                    ! For all but first file append a number
-         WRITE(line(1:6),'(I6.6)'), data_i
+         WRITE(line(1:6),'(I6.6)')  data_i
          wfile= ofile(1:len_str(ofile))//LINE(1:6)
       ELSE                                   ! This is the first file
          wfile = ofile
@@ -3850,6 +3852,7 @@ main: DO
         indxb = MIN(indxb,indxt)
         lbef = min (indxb - 1, 5)
         bef  = line (1:lbef)
+        IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
 !
 ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
              str_comp(line, 'DOMAIN'  , 3, lbef, 6) .or. &
@@ -3923,5 +3926,34 @@ types:        DO i=1,ntypes
 1000  FORMAT(a)
 !
       END SUBROUTINE test_file
+!
 !*******************************************************************************
+!
+SUBROUTINE test_identical
+!
+USE crystal_mod
+USE errlist_mod
+IMPLICIT NONE
+!
+REAL, PARAMETER :: eps = 1.0E-5
+INTEGER :: i, j
+!
+main: DO i=1, cr_natoms-1
+   DO j=i+1,cr_natoms
+      IF(ABS(cr_pos(1,i)-cr_pos(1,j)) < eps .AND.  &
+         ABS(cr_pos(2,i)-cr_pos(2,j)) < eps .AND.  &
+         ABS(cr_pos(3,i)-cr_pos(3,j)) < eps ) THEN
+         ier_num = -141
+         ier_typ = ER_APPL
+         WRITE(ier_msg(1),'(a,i6, a, i6,a)') 'Atoms ',i,',',j, &
+                          ' are at identical positions' 
+         ier_msg(2) = 'Atoms might be separated by integer unit cells'
+         ier_msg(3) = 'If intended, use: set error,live'
+         EXIT main
+      ENDIF
+   ENDDO
+ENDDO main
+END SUBROUTINE test_identical
+!*******************************************************************************
+!
 END MODULE structur
