@@ -629,7 +629,7 @@ CONTAINS
    END SUBROUTINE set_crystal_from_standard
 !******************************************************************************
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
-                                         rd_NMAX, rd_MAXSCAT, rd_cr_name,      &
+            rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
             rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,                                 &
@@ -664,6 +664,9 @@ CONTAINS
    CHARACTER (LEN=  80)                         , INTENT(IN) :: rd_cr_name 
    INTEGER                                      , INTENT(IN) :: rd_cr_natoms 
    INTEGER                                      , INTENT(IN) :: rd_cr_ncatoms 
+   INTEGER                                      , INTENT(IN) :: rd_n_mole      ! Molecule number in this crystal
+   INTEGER                                      , INTENT(IN) :: rd_n_mole_type ! Molecule number in this crystal
+   INTEGER                                      , INTENT(IN) :: rd_n_atom      ! Atoms in molecule in this crystal 
    INTEGER                                      , INTENT(IN) :: rd_cr_n_REAL_atoms 
    INTEGER                                      , INTENT(IN) :: rd_cr_spcgrno 
    CHARACTER (LEN=  16)                         , INTENT(IN) :: rd_cr_spcgr 
@@ -879,17 +882,17 @@ CONTAINS
    DEALLOCATE(iscat_table, STAT=istatus)
 
 !
-   IF(this%cr_sav_mole .or. this%cr_sav_doma .or. this%cr_sav_obje) THEN
-      this%cr_mole_max_mole = mole_max_mole
-      this%cr_mole_max_type = mole_max_type
+   IF(this%cr_sav_mole .or. this%cr_sav_doma .or. this%cr_sav_obje .AND. rd_n_mole > 0) THEN
+      this%cr_mole_max_mole = rd_n_mole
+      this%cr_mole_max_type = rd_n_mole_type
       this%cr_mole_max_atom = mole_max_atom
-      this%cr_num_mole      = mole_num_mole
-      this%cr_num_type      = mole_num_type
-      this%cr_num_atom      = mole_num_atom
-      FORALL ( i=0:mole_num_type)
+      this%cr_num_mole      = rd_n_mole
+      this%cr_num_type      = rd_n_mole_type
+      this%cr_num_atom      = rd_n_atom
+      FORALL ( i=0:rd_n_mole_type)
          this%cr_mole_biso (i) = mole_biso (i)
       END FORALL
-      FORALL ( i=0:mole_num_mole)
+      FORALL ( i=0:rd_n_mole)
          this%cr_mole_len  (i) = mole_len  (i)
          this%cr_mole_off  (i) = mole_off  (i)
          this%cr_mole_type (i) = mole_type (i)
@@ -898,7 +901,7 @@ CONTAINS
          this%cr_mole_dens (i) = mole_dens (i)
          this%cr_mole_fuzzy(i) = mole_fuzzy(i)
       END FORALL
-      FORALL ( i=0:mole_num_atom)
+      FORALL ( i=0:rd_n_atom)
          this%cr_mole_cont (i) = mole_cont (i)
       END FORALL
    ELSE

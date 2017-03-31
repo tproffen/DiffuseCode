@@ -227,6 +227,7 @@ CONTAINS
                this%dc_def_axis(1), this%dc_def_axis(2)
          ENDIF
       ENDIF
+      WRITE(output_io, 1500 ) this%dc_def_dens
       WRITE(output_io, 1400 ) this%dc_def_ncon
       CALL dc_show_con(this%dc_def_con)
       IF ( ASSOCIATED(this%next)) THEN
@@ -239,6 +240,7 @@ CONTAINS
 1300 FORMAT('   Connection type :     ',i4,' ',a8)
 1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to last')
 1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to ',i4 )
+1500 FORMAT('   Surface density :     ',f6.3,' Ligands/A^2')
 1400 FORMAT('   No. of Connect. :     ',i4)
    END SUBROUTINE dc_show_def
 !

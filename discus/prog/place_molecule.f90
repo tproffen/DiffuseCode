@@ -144,7 +144,7 @@ CONTAINS
                      IF(ier_num == 0) ladd = .false.   ! exclude new add command
                   ELSE
                      ier_num = -128
-                     ier_typ = ER_COMM
+                     ier_typ = ER_APPL
                      ier_msg(1) = 'Currently only one decoration definition'
                      ier_msg(2) = 'can be used. Run the calculation or reset.'
                   ENDIF
@@ -227,9 +227,10 @@ CONTAINS
          ENDIF 
       ENDIF 
 !
-      prompt = orig_prompt
 !
    ENDDO main_loop     ! END DO main loop of menu 
+!
+   prompt = orig_prompt
 !
    END SUBROUTINE do_place_molecule
 !
@@ -469,6 +470,7 @@ CONTAINS
       ELSE
          ier_num = -128
          ier_typ = ER_APPL
+         ier_msg(1) = 'Failure in dc_find_def'
       ENDIF
    ELSE
       ier_num = -6
@@ -675,7 +677,6 @@ CONTAINS
    CALL save_default_setting           ! Default to full saving
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
    CALL save_internal(corefile)        !     thus this file name is unique
-!call save_struc('core.stru',  9)
    shellfile  = 'internal.decoshell'   
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
@@ -687,7 +688,6 @@ CONTAINS
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
    CALL save_internal(shellfile)
-!call save_struc('shell.stru', 10)
 !
 !  Make single atom "structure" for domain list file 
    CALL rese_cr
@@ -703,6 +703,7 @@ CONTAINS
 !     Load the molecules into temporary structures to reduce disk I/O
 !
    CALL deco_get_molecules
+   IF(ier_num /=0) RETURN
 !
    CALL rese_cr
 !
@@ -744,18 +745,17 @@ CONTAINS
             ENDIF
          ENDDO
       ENDDO replace
-!call save_struc('shell.deco', 10)
       IF(n_repl > 0 ) THEN                        ! Need at least one anchor
 !
 !        Prepare a connectivity 
 !
-         WRITE(line,1000), 'AN01','AN01', cr_at_lis(dc_temp_surf(1)), 'deco_0001'
-1000 FORMAT(3(a4,','),' 0.5, 18.0, ',a9)
+         WRITE(line,'(i4,a1,i4,a1,a4,a)') nscat_old+1,',',nscat_old+1,',', cr_at_lis(dc_temp_surf(1)), &
+                                          ', 0.5, 18.0, deco_0001'
          length = 36
          CALL conn_do_set (code_add,line, length)          ! Add connectivity around "AN01"
-         WRITE(line,1000),cr_at_lis(dc_temp_surf(1)),'AN01', cr_at_lis(dc_temp_surf(1)), 'deco_0002'
+         WRITE(line,'(a4,a1,i4,a1,a4,a)') cr_at_lis(dc_temp_surf(1)),',',nscat_old+1,',', &
+                                          cr_at_lis(dc_temp_surf(1)), ', deco_0002'
          CALL conn_do_set (code_add,line, length)          ! Add connectivity around  other surface atoms
-!        CALL conn_show
          CALL create_connectivity                             ! Create actual connecitivity list
 !
 !        SORT ATOMS WITH MMC REPULSIVE
@@ -773,6 +773,7 @@ CONTAINS
          cpara(1) = '1'                                       ! Prepare "set con, 1, AN01, deco_0001"
          lpara(1) = 1
          cpara(2) = 'AN01'
+         WRITE(cpara(2),'(i4)')  nscat_old+1
          lpara(2) = 4
          cpara(3) = 'deco_0001'
          lpara(3) = 9
@@ -826,7 +827,6 @@ CONTAINS
          mo_feed =   5*cr_natoms                              ! Define feedback
          mo_kt   =   2.5                                      ! Define Temperature
 !
-!        CALL mmc_show
          CALL mmc_run_multi                                   ! Run actual sorting
 
 !        Change Anchors back to their original names, keep property flag
@@ -840,7 +840,13 @@ CONTAINS
                cr_iscat(ia) = dc_temp_surf(1)
             ENDIF
          ENDDO
-!ia =  84
+!ttt: do ia =1,cr_natoms
+!if(abs(cr_pos(1,ia)-0.0) < 0.1 .and. &
+!   abs(cr_pos(2,ia)-0.5) < 0.1 .and. &  
+!   abs(cr_pos(3,ia)-0.5) < 0.1) exit ttt
+!enddo ttt
+!ia = 137
+!write(*,*) ' ATOM AT : ', ia, cr_pos(:,ia)
 !cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
 !cr_iscat(ia) = dc_temp_surf(1)
          cr_nscat = nscat_old                                 ! Set number of atom types back
@@ -853,8 +859,6 @@ CONTAINS
 !
          istart = 1
          iend   = cr_natoms
-!istart= 84
-!iend =  84
          natoms_prior = cr_natoms
          ier_num = 0
          main_loop: DO ia=istart,iend
@@ -1066,12 +1070,25 @@ real, dimension(3) :: uvw_temp
    m_ntypes(:) = 0
    m_length(:) = 0
 !
-   DO i=1,dc_n_molecules        ! load all molecules
+main:   DO i=1,dc_n_molecules        ! load all molecules
       strufile = dc_input(i)
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
+      IF(ier_num /=0) THEN
+         ier_msg(1) = ' Error reading the ligand file(s) '
+         ier_msg(2) = ' Check if file names are correct   '
+         ier_msg(3) = ' Check file content '
+         RETURN
+      ENDIF
+!     IF(natoms < dc_def_axis(2) ) THEN
+!        ier_msg(1) = ' Ligand file has less atoms than axis command'
+!        ier_msg(2) = ' Check file content '
+!        RETURN
+!     ENDIF
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
-      CALL read_crystal ( dc_molecules(i), strufile, dc_temp_neig)
+      CALL read_crystal ( dc_molecules(i), strufile, dc_temp_neig, &
+           natoms, ntypes, n_mole, n_type, n_atom)
+      IF(ier_num /=0) EXIT main
       CALL dc_molecules(i)%get_cryst_tran_f(rd_tran_f)  ! Get transformation matrix to cartesian
 !
       DO j=1, natoms
@@ -1084,7 +1101,7 @@ real, dimension(3) :: uvw_temp
       m_ntypes(i) = ntypes
       m_lname(i)  = LEN_TRIM(strufile)
       m_name(i)   = strufile(1:m_lname(i))
-   ENDDO
+   ENDDO main
 !
    END SUBROUTINE deco_get_molecules
 !
@@ -1127,7 +1144,7 @@ real, dimension(3) :: uvw_temp
 !
 !******************************************************************************
 !
-   SUBROUTINE read_crystal ( this, infile, first_neig)
+   SUBROUTINE read_crystal ( this, infile, first_neig, natoms, ntypes, n_mole, n_type, n_atom)
 !
 !  Read a crystal structure from file
 !  This procedure interfaces to the old "readtru" in "structur.f90"
@@ -1144,12 +1161,16 @@ real, dimension(3) :: uvw_temp
    TYPE (cl_cryst)                  :: this   ! The current crystal
    CHARACTER (LEN=*   ), INTENT(IN)  :: infile ! Disk file
    INTEGER             , INTENT(IN)  :: first_neig  ! Atom that is listed on bond command
+   INTEGER             , INTENT(IN)  :: natoms      ! Number of atoms from testfile
+   INTEGER             , INTENT(IN)  :: ntypes      ! Number of atom types from testfile
+   INTEGER             , INTENT(IN)  :: n_mole      ! Number of molecules from testfile
+   INTEGER             , INTENT(IN)  :: n_type      ! Number of molecule types from testfile
+   INTEGER             , INTENT(IN)  :: n_atom      ! Number of atoms in molecules from testfile
    INTEGER                           :: inum   ! dummy index
    REAL   , DIMENSION(3)             :: posit  ! dummy position vector
    REAL   , DIMENSION(3)             :: uvw_out ! dummy position vector
    INTEGER                           :: istat  ! status variable
    integer :: i,j
-   
 !
    rd_strucfile = infile
    rd_NMAX      = this%get_natoms() ! cr_natoms
@@ -1235,7 +1256,7 @@ real, dimension(3) :: uvw_temp
             rd_sav_w_ncell, rd_sav_obje, rd_sav_doma, rd_sav_mole, rd_sav_prop, &
             rd_sav_sel_prop,rd_n_latom,rd_sav_latom)
    CALL this%set_crystal_from_local   ( rd_strucfile, &
-                                         rd_NMAX, rd_MAXSCAT, rd_cr_name,      &
+                          rd_NMAX, rd_MAXSCAT, n_mole, n_type, n_atom, rd_cr_name,      &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
             rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,                                 &
@@ -1249,6 +1270,7 @@ real, dimension(3) :: uvw_temp
             rd_cr_pos, rd_cr_iscat, rd_cr_prop                                          &
             )
 !
+   istat = 0
    DEALLOCATE ( rd_cr_dw    , STAT = istat )
    DEALLOCATE ( rd_cr_at_lis, STAT = istat )
    DEALLOCATE ( rd_cr_as_lis, STAT = istat )
@@ -1333,7 +1355,9 @@ real, dimension(3) :: uvw_temp
 !
    vnull(:) = 0.00
 !
+!write(*,*) ' IN PLACE_NORMAL ', ia
    CALL find_surface_character(ia,surf_char, surf_normal)
+!write(*,*) ' surf_normal', surf_normal, surf_normal
 !  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
 !
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
@@ -1964,6 +1988,7 @@ real, dimension(3) :: uvw_temp
    REAL                :: r_m_dens
    REAL                :: r_m_biso
 !
+!write(*,*) ' IN PLACE_MULTI ', ia
 !
    vnull(:) = 0.00
    success = -1
