@@ -3409,12 +3409,20 @@ atoms:      DO                                 ! Get all atoms information
                   uiso = 0.0
                   biso = 0.0
                   IF(j_uiso > 0) THEN
-                     IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
-                     READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
-                     biso = uiso * eightpi2
+                     IF(ccpara(j_uiso)(1:1)=='?') THEN
+                       biso = 0.000
+                     ELSE
+                        IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
+                        READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
+                        biso = uiso * eightpi2
+                     ENDIF
                   ELSEIF(j_biso > 0) THEN
-                     IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
-                     READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                     IF(ccpara(j_uiso)(1:1)=='?') THEN
+                       biso = 0.000
+                     ELSE
+                        IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
+                        READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                     ENDIF
                   ENDIF
                   ALLOCATE(TEMP)
                   TEMP%at_name   = ' '
