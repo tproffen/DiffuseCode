@@ -8,7 +8,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               doloop_mod.f90 envir_mod.f90 errlist_mod.f90 learn_mod.f90
               terminal_mod.f90 mpi_slave_mod.f90 dummy_loop_mpi.f90
               class_macro.f90 macro_internal.f90 macro_mod.f90 
-              trig_degree_mod.f90
+              math_sup.f90 trig_degree_mod.f90
               param_mod.f90 prompt_mod.f90 random_mod.f90 sorting.f90 
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               memory.f90 )
