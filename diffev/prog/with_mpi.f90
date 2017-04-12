@@ -526,7 +526,7 @@ END SUBROUTINE run_mpi_slave
 !
 !*****7***************************************************************
 !
-SUBROUTINE run_mpi_finalize
+RECURSIVE SUBROUTINE run_mpi_finalize
 !
 USE mpi
 USE run_mpi_mod
