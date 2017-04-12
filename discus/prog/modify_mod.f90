@@ -2536,6 +2536,395 @@ CONTAINS
       ENDIF 
 !                                                                       
       END SUBROUTINE boundarize_atom                
+!
+!*****7*****************************************************************
+!
+SUBROUTINE do_surface_char(zeile, lp)
+!
+USE param_mod
+USE prompt_mod
+USE errlist_mod
+IMPLICIT NONE
+CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
+INTEGER          , INTENT(INOUT) :: lp
+!
+INTEGER, PARAMETER :: MAXW = 2
+CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+INTEGER            , DIMENSION(1:MAXW) :: lpara
+REAL               , DIMENSION(1:MAXW) :: werte
+INTEGER               :: surf_char
+LOGICAL               :: lshow
+INTEGER                 :: i, j
+INTEGER, DIMENSION(3,6) :: surf_normal
+INTEGER, DIMENSION(3)   :: surf_kante
+INTEGER, DIMENSION(6)   :: surf_weight
+!
+INTEGER :: ianz, iatom
+!
+LOGICAL str_comp
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF(ier_num/=0) RETURN
+!
+! Check if output is desired
+!
+lshow = .FALSE.
+IF (str_comp (cpara (2) , 'show', 2, lpara (1) , 4) ) then 
+  lshow = .TRUE.
+  cpara(2) = ' '
+  lpara(2) = 1
+  ianz = 1
+ENDIF
+!
+! calculate atom number
+!
+CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+IF(ier_num/=0) RETURN
+!
+iatom = NINT(werte(1))
+CALL surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight)
+!
+res_para(0) = 1
+res_para(1) = surf_char
+IF(surf_char==1) THEN                 ! Planar surface
+   res_para(0) = 4
+   res_para(2:4) = surf_normal(1:3,1)
+ELSEIF(surf_char==2) THEN             ! An edge
+   res_para(0)   = 10
+   res_para(2:4) = surf_normal(1:3,1)
+   res_para(5:7) = surf_normal(1:3,2)
+   res_para(8:10)= surf_kante(1:3)
+ELSEIF(surf_char==3) THEN             ! A corner
+   i = 0
+   fill: DO
+      IF(surf_weight(i+1) == 0) EXIT fill
+      i = i+1
+      res_para((i-1)*3+2:(i-1)*3+4) = surf_normal(1:3,i)
+   ENDDO fill
+   res_para(0) = 3*i+1
+ENDIF
+IF(lshow) THEN
+   IF(surf_char==0) THEN
+      WRITE(output_io, 2000) 
+   ELSEIF(surf_char==1) THEN
+      WRITE(output_io, 2100) surf_normal(:,1)
+   ELSEIF(surf_char==2) THEN
+      WRITE(output_io, 2200) surf_kante, surf_normal(:,1), surf_weight(1)
+      WRITE(output_io, 2250)             surf_normal(:,2), surf_weight(2)
+   ELSEIF(surf_char==3) THEN
+      WRITE(output_io, 2300) surf_normal(:,1), surf_weight(1)
+      DO j=2, i
+         WRITE(output_io, 2350)             surf_normal(:,j), surf_weight(j)
+      ENDDO
+   ENDIF
+ENDIF
+!
+2000 FORMAT(' Surface character could not be determined')
+2100 FORMAT(' Planar surface, normal: ',3(I4,2x))
+2200 FORMAT(' Edge   surface, Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
+2250 FORMAT('                      secondary normal: ',20x         , 3(I4,2x), ':', I4)
+2300 FORMAT(' Corner surface, dominant normal: ',3(I4,2x), ':', I4)
+2350 FORMAT('                secondary normal: ',3(I4,2x), ':', I4)
+END SUBROUTINE do_surface_char
+!
+!*****7*****************************************************************
+!
+SUBROUTINE surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight)
+!
+USE atom_env_mod
+USE chem_mod
+USE crystal_mod
+USE metric_mod
+USE prop_para_mod
+!
+USE param_mod
+USE prompt_mod
+USE math_sup
+!
+IMPLICIT NONE
+INTEGER,                 INTENT(IN)  :: iatom
+INTEGER,                 INTENT(out) :: surf_char
+INTEGER, DIMENSION(3,6), INTENT(OUT) :: surf_normal
+INTEGER, DIMENSION(3)  , INTENT(OUT) :: surf_kante
+INTEGER, DIMENSION(6)  , INTENT(OUT) :: surf_weight
+!
+INTEGER, PARAMETER :: SURF_IN_PLANE  = -1
+INTEGER, PARAMETER :: SURF_NONE   =  0
+INTEGER, PARAMETER :: SURF_PLANE  =  1
+INTEGER, PARAMETER :: SURF_EDGE   =  2
+INTEGER, PARAMETER :: SURF_CORNER =  3
+!
+INTEGER, PARAMETER                     :: MAXW = 1
+LOGICAL, PARAMETER :: LNEW = .false.
+REAL   , PARAMETER                     :: RADIUS_MIN  = 1.51
+REAL   , PARAMETER                     :: RADIUS_STEP = 1.50
+REAL   , PARAMETER , DIMENSION(3)      :: NULL        = 0.0
+REAL   , PARAMETER                     :: IS_OUTSIDE  = 80.0
+REAL   , PARAMETER                     :: IS_PARALLEL = 15.0
+!
+CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+INTEGER            , DIMENSION(1:MAXW) :: lpara
+REAL               , DIMENSION(1:MAXW) :: werte
+!
+CHARACTER(LEN=1024)     :: line
+INTEGER  , DIMENSION(:), ALLOCATABLE :: neigh
+INTEGER  , DIMENSION(:), ALLOCATABLE :: angles
+INTEGER  , DIMENSION(:), ALLOCATABLE :: sorted
+INTEGER  , DIMENSION(:,:), ALLOCATABLE :: surfaces
+INTEGER                 :: nsurface
+INTEGER                 :: i,j,k,l,ia, ianz
+INTEGER                 :: counter
+INTEGER                 :: laenge
+INTEGER                 :: neigsurf
+INTEGER                 :: divisor
+LOGICAL  , DIMENSION(3) :: fp
+LOGICAL                 :: fq
+LOGICAL                 :: lspace
+LOGICAL                 :: isfound
+LOGICAL                 :: isfirst
+REAL                    :: rmin, radius
+REAL                    :: alpha, beta
+REAL                    :: dstar
+REAL     , DIMENSION(3) :: x         ! Vector from center to atom
+INTEGER  , DIMENSION(3) :: rough     ! rough normal 
+REAL     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
+INTEGER  , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
+REAL     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
+!
+surf_char = SURF_NONE
+surf_normal = 0
+surf_kante  = 0
+surf_weight = 0
+fp (1) = chem_period (1)
+fp (2) = chem_period (2)
+fp (3) = chem_period (3)
+fq = chem_quick
+rmin = 0.5
+nsurface = 0
+isfirst = .TRUE.
+!
+IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+   IBITS(cr_prop(iatom),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+   cpara(1) = 'all'
+   lpara(1) = 3
+   ianz     = 1
+   x(1)     = cr_pos(1,iatom)              ! Vector from center to atom
+   x(2)     = cr_pos(2,iatom)
+   x(3)     = cr_pos(3,iatom)
+   WRITE(line,'(2(G16.8E3,a1),G16.8E3)') x(1), ',', x(2), ',', x(3)
+   lspace = .TRUE.
+   laenge = 50
+   CALL d2r(line, laenge, lspace)
+   rough(1:3) = INT(res_para(1:3))      ! Rough normal 
+!
+   radius   = RADIUS_MIN
+   counter = 0                          ! Prevent infinit loop
+   grand: DO                            ! increase search radius if character is not yet found
+      counter  = counter + 1
+      radius   = radius + RADIUS_STEP
+      ianz     = 1
+      werte(1) = -1                     ! Find all atom types
+!
+      CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)
+      ALLOCATE(neigh(0:atom_env(0)))
+      neigsurf = 0
+      DO i=1, atom_env(0)               ! Pick out surface atom types only
+         IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+            IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+            neigsurf = neigsurf + 1
+            neigh(neigsurf) = atom_env(i)
+         ENDIF
+      ENDDO
+!
+      IF(neigsurf >= 3 ) THEN             ! Found three surface atoms as neighbors
+!                                         ! Make space for all possible surfaces
+         ALLOCATE(surfaces(0:3,neigsurf*neigsurf/2))
+         nsurface      = 0
+         surfaces(:,:) = 0
+         indented: DO i=1, neigsurf-1               ! Loop over all neigbor pairs
+            u(:) = cr_pos(:,neigh(i))-x(:)
+            inner: DO j=i+1, neigsurf
+               v(:) = cr_pos(:,neigh(j))-x(:)
+               WRITE(line,2000) u,v
+2000 FORMAT(6(G16.8E3,','),'ddr')
+               laenge = 105
+               CALL vprod(line, laenge)
+               tempsurf(:) = NINT(res_para(1:3))  ! Normal to atom triplet
+                                                  ! If necessary invert direction
+               lspace = .FALSE.
+               IF(do_blen(lspace, NULL, FLOAT(tempsurf))>0) THEN
+               lspace = .FALSE.
+               IF(do_bang(lspace, FLOAT(rough), NULL, FLOAT(tempsurf)) > 90.0) tempsurf(:) = -tempsurf(:)
+               WRITE(line,2010) tempsurf(:)
+               laenge = 50
+               lspace = .FALSE.
+               CALL d2r(line, laenge, lspace)     ! Calculate direction in real space
+2010 FORMAT(2(G16.8E3,','),G16.8E3) 
+               realsurf(:) = res_para(1:3)
+!              Test to see if any neighbor is further away than central atom
+!
+               DO k=1, neigsurf
+                  v(:) = cr_pos(:,neigh(k))-x(:)
+                  lspace = .TRUE.
+                  IF(do_bang(lspace, realsurf, NULL, v)<IS_OUTSIDE) CYCLE inner ! proceed to next pair
+               ENDDO
+!              Not an indented surface, proceed to sort
+               isfound = .FALSE.
+               lspace = .FALSE.
+               DO k=1, nsurface                  ! Loop over all previous surfaces
+                  alpha = do_bang(lspace, FLOAT(tempsurf), NULL, FLOAT(surfaces(1:3,k)) )
+                  IF(alpha>90.) alpha = 180.-alpha
+!
+                  IF(alpha<IS_PARALLEL) THEN
+                     surfaces(0,k) = surfaces(0,k) + 1   ! increment count of triplets with identical normal
+                     isfound = .TRUE.
+                  ENDIF
+               ENDDO
+!
+               IF(.NOT.isfound) THEN            ! New surface normal
+                  nsurface = nsurface + 1
+                  surfaces(0,nsurface) = 1
+                  surfaces(1:3,nsurface) = tempsurf
+               ENDIF
+               ENDIF
+            ENDDO inner
+         ENDDO indented
+!        If only one surface, test if neighbors are on all sides
+         IF(nsurface==1) THEN
+            ALLOCATE(angles(1:neigsurf+1))
+            ALLOCATE(sorted(1:neigsurf+1))
+            angles(:) = 0.0
+            sorted(:) = 0.0
+            WRITE(line,2020) cr_pos(:,neigh(1))-x(:), surfaces(1:3,1)
+            laenge = 106
+2020 FORMAT(6(G16.8E3,','),'drdd') 
+            CALL do_proj(line, laenge)
+            u(:) = res_para(4:6)
+            angles(1) = 0
+            angles(neigsurf+1) = 360.0
+            lspace = .TRUE.
+            DO k=2,neigsurf
+               WRITE(line,2020) cr_pos(:,neigh(k))-x(:), surfaces(1:3,1)
+               laenge = 106
+               CALL do_proj(line, laenge)
+               v(:) = res_para(4:6)
+               alpha = do_bang(lspace, u, NULL, v)
+               WRITE(line,2000) u,v
+               laenge = 105
+               CALL vprod(line, laenge)
+               w(:) = res_para(1:3)
+               IF(do_blen(lspace, NULL, w) > 0.0001) THEN
+                  beta = do_bang(lspace, w, NULL, realsurf)
+                  IF(beta.gt.90) alpha = 360. - alpha
+               ENDIF
+               angles(k) = alpha
+            ENDDO
+            sorted(1) =   0.0
+            angles(1) = 400.
+            sorted(neigsurf+1) = 360.0
+            angles(neigsurf+1) = 400.
+            DO k=2,neigsurf
+               i=MINLOC(angles,1)
+               sorted(k) = angles(i)
+               angles(i) = 400.0
+            ENDDO
+            alpha = 0.0
+            DO k=2, neigsurf+1
+               beta = sorted(k) - sorted(k-1)
+               IF(beta > alpha) alpha = beta
+            ENDDO
+            DEALLOCATE(angles)
+            DEALLOCATE(sorted)
+            IF(alpha > 190) THEN       ! Current atom is at the corner of plane!
+               nsurface = 3
+            ELSEIF(alpha > 170) THEN   ! Current atom is at the edge of plane!
+               nsurface = 2
+            ENDIF
+         ENDIF
+         IF(nsurface>2 .AND. isfirst) THEN
+            isfirst = .FALSE.
+            DEALLOCATE(neigh)
+            DEALLOCATE(surfaces)
+            CYCLE grand
+         ENDIF
+         IF(nsurface>0) EXIT grand
+         DEALLOCATE(neigh)
+         DEALLOCATE(surfaces)
+      ELSE                             ! Found less than three neigbors
+!         radius = radius + RADIUS_STEP ! Increment search radius
+         DEALLOCATE(neigh)
+         IF(ALLOCATED(surfaces)) DEALLOCATE(surfaces)
+      ENDIF
+      IF(counter == 4) THEN 
+         EXIT grand   ! Too many trials, give up
+      ENDIF
+   ENDDO grand
+ENDIF
+! Normalize
+lspace = .false.
+DO i=1, nsurface
+   dstar=do_blen(lspace, NULL, FLOAT(surfaces(1:3,i)))
+   IF(dstar > 0) THEN
+      surfaces(1:3,i) = NINT(FLOAT(surfaces(1:3,i))*10./dstar)
+      divisor = gcd(surfaces(1,i),surfaces(2,i),surfaces(3,i))
+      surfaces(1:3,i) = surfaces(1:3,i)/divisor
+   ENDIF
+   surf_weight(i) = surfaces(0,i)
+ENDDO
+!
+IF(nsurface == 0) THEN
+   surf_char = SURF_NONE
+ELSEIF(nsurface == 1) THEN
+   surf_char        = SURF_PLANE
+   surf_normal(:,1) = surfaces(1:3,1)
+   surf_kante(:)    = 0
+ELSEIF(nsurface == 2) THEN
+   surf_char = SURF_EDGE
+   i = MAXLOC(surf_weight,1)
+   surf_normal(:,1) = surfaces(1:3,i)
+   i = 3-i                          !Choose the other normal
+   surf_normal(:,2) = surfaces(1:3,i)
+   WRITE(line,2000) surfaces(1:3,1),surfaces(1:3,2)
+   laenge = 105
+   CALL vprod(line, laenge)
+   surf_kante(:) = res_para(1:3)*100
+   dstar=do_blen(lspace, NULL, FLOAT(surf_kante(1:3)))
+   surf_kante(1:3) = NINT(FLOAT(surf_kante(1:3))*10./dstar)
+ELSEIF(nsurface >  2) THEN
+   surf_char = SURF_CORNER
+   fill:DO l = 1,6
+      i = 1
+      k=surfaces(0,1)
+      DO j=2,nsurface
+         IF(surfaces(0,j) > k ) THEN
+            i = j
+            k = surfaces(0,j)
+         ENDIF
+      ENDDO
+      IF(k==0) EXIT fill
+      surf_normal(:,l) = surfaces(1:3,i)
+      surfaces(0,i) = -1
+   ENDDO fill
+   surf_kante(:)  = 0
+ELSE
+   surf_char = SURF_NONE
+ENDIF
+!
+! Divide by greatest common divisor
+!
+k = 0
+DO i=1,3
+   k = MAX(k, IABS(surf_kante(i)))
+ENDDO
+IF(k>0) THEN
+   divisor = gcd(surf_kante(1), surf_kante(2),surf_kante(3))
+   surf_kante(:) = surf_kante(:)/divisor
+ENDIF
+IF(ALLOCATED(neigh)) DEALLOCATE(neigh)
+IF(ALLOCATED(surfaces)) DEALLOCATE(surfaces)
+!
+END SUBROUTINE surface_character
+!
 !*****7*****************************************************************
       SUBROUTINE do_change (line, laenge) 
 !-                                                                      
@@ -2900,6 +3289,11 @@ CONTAINS
 !                                                                       
                ELSEIF (str_comp (befehl, 'boundary', 2, lbef, 8) ) then 
                   CALL boundary (zeile, lp) 
+!                                                                       
+!     ----Test the boundary character of an atom                        
+!                                                                       
+               ELSEIF (str_comp (befehl, 'character', 2, lbef, 9) ) then 
+                  CALL do_surface_char(zeile, lp)
 !                                                                       
 !     ----define various surface related settings 'set'                 
 !                                                                       

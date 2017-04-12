@@ -69,10 +69,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_April
+
+   The surface menu received a new command "char" that determines
+   the surface character of an atom.
 3  2017_March
 
    The 'read' ==> 'cell' and 'stru' commands have been changed to
    accept CIF, CMAKER and RMCprofile formats as well. 
+
+   The molecularize command will add atoms to a previous molecule, if
+   the first atom is inside a molecule.
 3  2017_Feb
 
    Within the powder menue, the energy of the radiation may also 
@@ -7097,6 +7104,27 @@
           are inside the sphere.
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
+3  character
+!b char <atom_no> [, "show"]
+
+   Determines the surface character of atom number <atom_no>.
+   The result can be:
+   0: Ill defined surface character, atom is probably slightly below
+          the surrounding atoms
+   1: planar surface
+   2: edge
+   3: corner
+
+   The optional "show" tells DISCUS to write the character and 
+   the resulting normal to screen. 
+   Values are always saved into "res[]":
+   Unknown: res[1] = 0
+   Plane  : res[1] = 1, res[2:4]   Surface normal
+   Edge   : res[1] = 2, res[2:4]   Edge vector,
+                        res[5:7]   1st. Surface normal
+                        res[8:10]  2nd. Surface normal
+   Corner : res[1] = 3, res[2:4]   1st. Surface normal
+                        res[8:...] 2nd. and further Surface normals
 3  set
 
    Make various setting related to surfaces
