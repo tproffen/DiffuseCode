@@ -66,10 +66,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
    CHARACTER (LEN=*)                 , INTENT(IN)    :: bef
 !
@@ -104,10 +104,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
 !
    LOGICAL :: str_comp
@@ -171,10 +171,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
 !
    LOGICAL :: str_comp
@@ -242,10 +242,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
 !
    LOGICAL :: str_comp
@@ -280,10 +280,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
 !
    LOGICAL :: str_comp
@@ -312,10 +312,10 @@ CONTAINS
 !  a numerical value
    IMPLICIT NONE
 !
+   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: ianz
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    INTEGER          , DIMENSION(maxw), INTENT(INOUT) :: lpara
-   INTEGER                           , INTENT(IN)    :: maxw
    INTEGER                           , INTENT(IN)    :: item
 !
    LOGICAL :: str_comp
