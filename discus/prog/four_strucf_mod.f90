@@ -22,6 +22,7 @@ CONTAINS
       REAL(PREC_DP)        ::        oincu, oincv , oincw
       INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
       INTEGER (KIND=PREC_INT_LARGE)   ::                              jincu, jincv, jincw
+      INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
 !
       INTEGER IAND, ISHFT 
 !
@@ -67,7 +68,7 @@ CONTAINS
                 iarg = iarg0 + iincu*j + iincv*i 
                 DO h = 1, num (3) 
                    ii       = ii + 1 
-                   tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg,-6), MASK) )
+                   tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
                    iarg     = iarg + iincw
                 ENDDO 
              ENDDO 
