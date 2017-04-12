@@ -23,8 +23,8 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
-set (DIFFUSE_VERSION_MINOR 9)
-set (DIFFUSE_VERSION_PATCH 1)
+set (DIFFUSE_VERSION_MINOR 10)
+set (DIFFUSE_VERSION_PATCH 0)
 
 # Readline required for all programs
 
@@ -49,7 +49,7 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
 set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fbounds-check -g -Warray-bounds")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -fbacktrace -Warray-bounds -pedantic")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
