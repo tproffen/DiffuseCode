@@ -141,7 +141,7 @@ CONTAINS
               ELSEIF (str_comp (befehl, 'add', 3, lbef, 3)) THEN
                   IF(ladd) THEN
                      CALL deco_add (zeile, lp)
-                     IF(ier_num == 0) ladd = .false.   ! exclude new add command
+!                    IF(ier_num == 0) ladd = .false.   ! exclude new add command
                   ELSE
                      ier_num = -128
                      ier_typ = ER_APPL
@@ -467,6 +467,7 @@ CONTAINS
       CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
       IF(success==0) THEN  ! set the type
          CALL dc_set_type(dc_def_temp, dc_temp_type)
+         dc_def_number = dc_def_number + 1
       ELSE
          ier_num = -128
          ier_typ = ER_APPL
@@ -532,24 +533,24 @@ CONTAINS
 !
 !   atomloop: DO ia=istart,iend
 !
-     IF(IBITS(cr_prop(ia),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
-        IBITS(cr_prop(ia),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
-        cpara(1) = 'all'
-        lpara(1) = 3
-        ianz     = 1
-        x(1)     = cr_pos(1,ia)
-        x(2)     = cr_pos(2,ia)
-        x(3)     = cr_pos(3,ia)
-        rmin     = 0.0
-        radius   = 6.5
-        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
-        ianz = 1
-        werte(1) = -1                                              ! Find all atom types
-        CALL do_find_env (ianz, werte, maxw, x, rmin,&
-                          radius, fq, fp)
-        IF(atom_env(0) > 3 ) THEN
-        direct = 0.0
-        vector = 0.0
+   IF(IBITS(cr_prop(ia),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+      IBITS(cr_prop(ia),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+      cpara(1) = 'all'
+      lpara(1) = 3
+      ianz     = 1
+      x(1)     = cr_pos(1,ia)
+      x(2)     = cr_pos(2,ia)
+      x(3)     = cr_pos(3,ia)
+      rmin     = 0.0
+      radius   = 6.5
+      CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
+      ianz = 1
+      werte(1) = -1                                              ! Find all atom types
+      CALL do_find_env (ianz, werte, maxw, x, rmin,&
+                        radius, fq, fp)
+      IF(atom_env(0) > 3 ) THEN
+        direct(:,:) = 0.0
+        vector(:)   = 0.0
         DO ib = 1, atom_env(0) 
            IF(IBITS(cr_prop(atom_env(ib)),PROP_SURFACE_EXT,1).eq.1 ) THEN          ! real Atom is near surface
            direct(1,1) = direct(1,1) + atom_pos(1,ib)**2             ! Accumulate x^2 etc
@@ -589,7 +590,7 @@ CONTAINS
 !
 !       Atom is not in plane, try a row
 !
-     ENDIF
+   ENDIF
 !
 !  ENDDO atomloop
 !
@@ -645,14 +646,15 @@ CONTAINS
    INTEGER            , DIMENSION(MAXW) :: lpara      ! a string
    REAL               , DIMENSION(MAXW) :: werte      ! a string
    INTEGER   :: istatus          ! status
-   INTEGER   :: i  ! dummy index
-   INTEGER   :: ia ! dummy index
+   INTEGER   :: i,j  ! dummy index
+   INTEGER   :: ia   ! dummy index
    INTEGER   :: ianz ! dummy number of parameters
    INTEGER   :: length ! dummy length
    INTEGER   :: mole_length ! length of molecule file name
    INTEGER   :: istart,iend ! dummy index
    INTEGER   :: is ! scattering number of surface atom
    INTEGER   :: idef ! connectivity definition number
+   INTEGER   :: jdef ! connectivity definition number
    INTEGER   :: ncon ! number of connections defined
    INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
@@ -663,7 +665,11 @@ CONTAINS
    INTEGER   :: nscat_old              ! maximum scattering types prior to modifying anchors
    INTEGER   :: n_repl                 ! counter for anchor aatoms
    INTEGER   :: m_type_old             ! Molecule types in original crystal
+   REAL   , DIMENSION(:), ALLOCATABLE :: temp_prob ! Relative probabilities for a definition
    REAL                    :: r_anch   ! relative amount of anchor atoms
+   REAL                    :: temp_grand ! sum of all definition probabilities
+   REAL                    :: temp_choose ! Actual random number for definition choice
+   REAL                    :: density  ! Average ligand density
    REAL                    :: prob     ! Probability to replace by non_anchor dummy
    REAL   , DIMENSION(1:3) :: xyz
 !
@@ -705,6 +711,40 @@ CONTAINS
    CALL deco_get_molecules
    IF(ier_num /=0) RETURN
 !
+!     Determine average density
+!
+   IF(dc_def_number > 0) ALLOCATE(temp_prob(0:dc_def_number))
+   temp_prob(:) = 0.0
+   density      = 0.0
+   i            = 0
+   IF(ASSOCIATED(dc_def_head)) THEN
+      dc_def_temp => dc_def_head
+      DO WHILE (ASSOCIATED(dc_def_temp))
+         CALL dc_get_dens(dc_def_temp, dc_temp_dens)    ! Get density for surface coverage 
+         i = i+1
+         density = density + dc_temp_dens
+         temp_prob(i) = temp_prob(i-1) + dc_temp_dens
+         temp_grand   = temp_grand + dc_temp_dens
+!RBNDBGwrite(*,*) 'PROB ', i, dc_temp_dens, density, temp_prob(i), temp_grand
+         dc_def_temp => dc_def_temp%next
+      ENDDO
+      IF(i>0) THEN
+         density = density/FLOAT(i)
+         DO j=1, dc_def_number
+            temp_prob(j) = temp_prob(j)/temp_grand
+         ENDDO
+      ENDIF
+      temp_prob(dc_def_number) = 1.0      ! Ensure upperlimit is exactly 1.00
+   ELSE
+      CALL readstru_internal( corefile)   ! Read  core file
+      ier_num = -131
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Is the surface very small, just a few atoms?'
+      ier_msg(2) = 'Is the coverage too small? '
+      ier_msg(3) = 'Check the set ligand command'
+   ENDIF
+!RBNDBGwrite(*,*) ' PROBABILITIES ', temp_prob(:), density
+!
    CALL rese_cr
 !
    CALL readstru_internal(shellfile)   ! Read shell file
@@ -717,9 +757,9 @@ CONTAINS
       CALL dc_get_dens(dc_def_temp, dc_temp_dens)    ! Get density for surface coverage 
       dc_con_temp => dc_def_temp%dc_def_con
       CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
-      CALL chem_elem(.false.)             ! get composition
+      CALL chem_elem(.false.)                        ! get composition
       r_anch = res_para(dc_temp_surf(1)+1)           ! Fractional composition of the anchoring atoms
-      prob   = MAX(0.0,MIN(1.0,DC_AREA*dc_temp_dens/r_anch)) ! replacement probability
+      prob   = MAX(0.0,MIN(1.0,DC_AREA*density/r_anch)) ! replacement probability
 !     Replace anchors by a new atom type
       nscat_old = cr_nscat
       IF(cr_nscat == MAXSCAT) THEN                   ! Number of scattering types increased
@@ -736,16 +776,16 @@ CONTAINS
       replace: DO i=1, cr_natoms 
          DO ia = 1, cr_natoms                        ! Loop to replace
             IF(cr_iscat(ia)==dc_temp_surf(1)) THEN   ! Got a surface atom of correct type
-            IF(ran1(idum) < prob) THEN            ! Randomly pick a fraction
+            IF(ran1(idum) < prob) THEN               ! Randomly pick a fraction
                   cr_iscat(ia) = nscat_old + 1       
-                  cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
+                  cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
                   n_repl       = n_repl  + 1         ! Increment replaced atoms
                   IF(n_repl == NINT(cr_natoms*r_anch*prob)) EXIT replace   ! got enough anchors
                ENDIF
             ENDIF
          ENDDO
       ENDDO replace
-      IF(n_repl > 0 ) THEN                        ! Need at least one anchor
+      IF(n_repl > 0 ) THEN                           ! Need at least one anchor
 !
 !        Prepare a connectivity 
 !
@@ -870,9 +910,16 @@ CONTAINS
               CALL get_connectivity_list (ia, is, idef, c_list, c_offs, natoms )
 !             Go through all definitions
               dc_def_temp => dc_def_head        
+              jdef = 0
+              temp_choose = ran1(idum)
               defs: DO WHILE(ASSOCIATED(dc_def_temp))
                  dc_con_temp => dc_def_temp%dc_def_con
+                 jdef = jdef + 1
                  cons: DO WHILE(ASSOCIATED(dc_con_temp))           ! A connectivity exists
+                    IF(temp_choose > temp_prob(jdef)) THEN
+                       dc_con_temp => dc_con_temp%next
+                       CYCLE cons      ! Random choice pointed to a different one
+                    ENDIF
                     CALL dc_get_con(dc_con_temp, dc_temp_surf, dc_temp_neig, dc_temp_dist)
                     IF(cr_iscat(ia) == dc_temp_surf(1).AND.        &
                        BTEST(cr_prop(ia),PROP_DECO_ANCHOR) ) THEN    ! Matching atom in current definition
@@ -888,7 +935,7 @@ CONTAINS
                                   dc_temp_surf, dc_temp_neig, dc_temp_dist)
                              ELSE
                                 ier_num = -1118
-                                ier_msg(1) = 'The bridge connection requires one bond'
+                                ier_msg(1) = 'The normal connection requires one bond'
                                 EXIT main_loop
                              ENDIF
                           CASE ( DC_BRIDGE )                 ! Molecule in bridge position
@@ -920,12 +967,13 @@ CONTAINS
                                 EXIT cons
                              ELSE
                                 ier_num = -1118
-                                ier_msg(1) = 'The mult   connection requires > one bond'
+                                ier_msg(1) = 'The multiple connection requires > one bond'
                                 EXIT main_loop
                              ENDIF
                        END SELECT
                     ENDIF
-                    dc_con_temp => dc_con_temp%next
+!                    dc_con_temp => dc_con_temp%next
+                    CYCLE main_loop
                  ENDDO cons
                  dc_def_temp => dc_def_temp%next
               ENDDO defs
