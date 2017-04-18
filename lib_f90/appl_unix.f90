@@ -269,7 +269,8 @@ INTEGER :: ios ! I/O status
 INTEGER :: i, icolon, length
 !
 term_scheme_file = appl_dir(1:appl_dir_l)//'../share/discus.term.scheme'
-CALL do_fexist(hlpfile,hlpfile_l,.FALSE.)
+term_scheme_file_l = LEN_TRIM(term_scheme_file)
+CALL do_fexist(term_scheme_file,term_scheme_file_l,.FALSE.)
 IF(res_para(1)==0) THEN   ! discus.term.scheme does not exist
    term_scheme_exists = .FALSE.
    IF(color_theme == THEME_DEFAULT) THEN  ! Use default foreground and background
