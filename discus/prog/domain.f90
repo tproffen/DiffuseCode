@@ -500,13 +500,15 @@ SUBROUTINE do_domain (line, lp)
       SUBROUTINE micro_filereading 
 !                                                                       
       USE discus_config_mod 
+      USE discus_allocate_appl_mod
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 
       USE micro_mod 
+      USE molecule_mod
       USE read_internal_mod
       USE discus_save_mod 
-      USE structur, ONLY: stru_readheader
+      USE structur, ONLY: stru_readheader, test_file
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -524,6 +526,11 @@ SUBROUTINE do_domain (line, lp)
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
       integer natoms_old
+      INTEGER  :: natoms  ! Number of atoms in the input file
+      INTEGER  :: nscats  ! NUmber of atom types in the input file
+      INTEGER  :: n_mole  ! Number of molecules in the input file
+      INTEGER  :: n_type  ! Number of molecule types  in the input file
+      INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
       real    shortest
       real    vv(3)
 !
@@ -538,6 +545,22 @@ SUBROUTINE do_domain (line, lp)
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          clu_iatom = 0
       ELSE
+         CALL test_file ( clu_infile, natoms, nscats, n_mole, n_type, &
+                             n_atom, -1 , .false.)
+         IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
+            nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
+            n_mole > MOLE_MAX_MOLE             .or. &
+            n_type > MOLE_MAX_TYPE             .or. &
+            n_atom > MOLE_MAX_ATOM                   ) THEN   
+            natoms = MAX(natoms, MK_MAX_ATOM, NMAX)
+            nscats = MAX(nscats, MK_MAX_SCAT, MAXSCAT)
+            n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+            n_type = MAX(n_type, MOLE_MAX_TYPE)
+            n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+            CALL alloc_micro  ( nscats, natoms)
+            MK_MAX_ATOM = natoms
+            MK_MAX_SCAT = nscats
+         ENDIF
          CALL oeffne (imd, clu_infile, 'old') 
          IF (ier_num.ne.0) THEN 
             CLOSE(imd)
