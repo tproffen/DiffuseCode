@@ -1,4 +1,4 @@
-SUBROUTINE suite_branch(zeile, length)
+RECURSIVE SUBROUTINE suite_branch(zeile, length)
 !
 !  Specific DISCUS Version of a branch subroutine
 !  Call KUPLOT via system
