@@ -7916,6 +7916,8 @@
 
 !p "at_name[<i>]" is a character variable that holds the name of
 !p          of atom number <i>
+!p "at_type[<i>]" is a character variable that holds the name of
+!p          of atom type <i>
 
 !p "m[<i>]" is the number of the scattering curve for atom <i>.
 
