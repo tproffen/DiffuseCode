@@ -1073,11 +1073,12 @@ main:       DO
                IF(IS_IOSTAT_END(iostatus)) EXIT main
                indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
                wert = REAL(csf(indx)*CONJG(csf(indx)))
+               sint = SQRT(ABS(wert))
                WRITE(iwr,1000) ih,ik,il, scale*wert, scale*sint 
             END DO main
          ENDIF 
       ENDIF 
-1000  FORMAT(3I4,2x, F8.2,F8.2)
+1000  FORMAT(3I4,F8.2,F8.2)
       CLOSE(ird)
       CLOSE(iwr)
       END SUBROUTINE calc_hkl
