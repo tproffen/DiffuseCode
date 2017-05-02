@@ -8,6 +8,7 @@ SUBROUTINE suite_do_parallel ( zeile, length)
 !
 USE errlist_mod
 USE operating_mod
+USE prompt_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile
@@ -41,6 +42,7 @@ IF(mpi_path==' ') THEN
    ier_msg(3) = 'mpiexec -n PROCESSES discus_suite -macro name.mac'
    RETURN
 ENDIF
+WRITE(output_io,*) 'MPI startup at WINDOWS might be very slow...'
 CALL get_discus_path(discus_path, discus_name)
 CALL holeenv(env_num_proc, cnumproc)
 READ(cnumproc,*    ,IOSTAT=ios) numproc
