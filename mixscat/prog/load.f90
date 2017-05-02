@@ -33,7 +33,7 @@
 !                                                                       
          IF (str_comp (cpara (1) , 'data', 2, lpara (1) , 4) ) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
-            CALL do_read_data (ianz, cpara, lpara, werte, maxw, .false.) 
+            CALL do_read_data (ianz, cpara, lpara, werte, maxw)
 !                                                                       
 !-----    Unknown command                                               
 !                                                                       
