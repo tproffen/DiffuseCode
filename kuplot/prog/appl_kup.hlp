@@ -95,6 +95,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2017_May
+
+   The 'save' command can now save graphics as a PDF file
 3  2017_Jan
 
    Added the option to read CSV files to 'load' command.
@@ -1735,11 +1738,18 @@
 2  save
 !b save <dev>, [<filename>]
 
+   <dev> : "ps", "png", "pic", "pdf"
    This command allows to save the current view graph. The output
-   device type <dev> can be given as first parameter. The two 
-   choices for <dev> are 'ps' for POSTSCRIPT and 'pic' for a GIF
-   graphics file of the plot. The hardcopy and graphics file format
-   can be changed in the file 'blk_appl.f' of the KUPLOT source code
+   device type <dev> can be given as first parameter. The
+   choices for <dev> are:
+   "ps" for POSTSCRIPT 
+   "pic" or "png" for a PNG 
+   "pdf" for a PDF file format
+
+   If "pdf" is chosen, a postscript file and a pdf file will be generated.
+
+   The hardcopy and graphics file format
+   can be changed in the file 'blk_appl.f90' of the KUPLOT source code
    to any device that is supported by PGPLOT.
 2  sdef
 !b sdef [<fname>]

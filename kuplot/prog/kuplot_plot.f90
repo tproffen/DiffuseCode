@@ -109,13 +109,14 @@ SUBROUTINE do_plot (lmenu)
       PARAMETER (maxw = 10) 
 !                                                                       
       CHARACTER ( * ) befehl, zeile 
-      CHARACTER(1024) cpara (maxw), prnbef 
+      CHARACTER(1024) cpara (maxw), prnbef , line
       CHARACTER(256) filname, uname 
       REAL werte (maxw) 
       REAL x1, x2, y1, y2, width, ratio 
       INTEGER lpara (maxw) 
-      INTEGER ianz, ii, ik, idev, lbef, lp 
+      INTEGER ianz, ii, ik, idev, lbef, lp ,i
       LOGICAL k_in_f, tfr, lrena, lmenu 
+      LOGICAL :: l_pdf
 !                                                                       
       INTEGER len_str 
       INTEGER PGOPEN 
@@ -152,6 +153,7 @@ SUBROUTINE do_plot (lmenu)
                ELSE 
                   idev = vps 
                ENDIF 
+               l_pdf = .FALSE.
             ELSEIF (cpara (1) (1:2) .eq.'PI') then 
                filname = 'kuplot.pic' 
                IF (orient (iwin) ) then 
@@ -159,12 +161,22 @@ SUBROUTINE do_plot (lmenu)
                ELSE 
                   idev = vpic 
                ENDIF 
+               l_pdf = .FALSE.
 !DBG                                                                    
 !DBG      Temporary solution, while gif is having trouble...            
                idev = png 
             ELSEIF (cpara (1) (1:2) .eq.'PN') then 
                filname = 'kuplot.png' 
                idev = png 
+               l_pdf = .FALSE.
+            ELSEIF (cpara (1) (1:2) .eq.'PD') then 
+               filname = 'kuplot.ps' 
+               l_pdf = .TRUE.
+               IF (orient (iwin) ) then 
+                  idev = ps 
+               ELSE 
+                  idev = vps 
+               ENDIF 
             ELSE 
                ier_num = - 11 
                ier_typ = ER_APPL 
@@ -249,7 +261,18 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
 !------ check if we need to rename ouputfile                            
 !                                                                       
+      IF(l_PDF) THEN  !temporarily change extension  to ps
+          i = LEN_TRIM(uname)
+          IF(uname(i-3:i)=='.pdf' .or. uname(i-3:i)=='.PDF') THEN
+             uname(i-3:i) = '.ps '
+          ENDIF
+      ENDIF
       IF (lrena) call do_rename_file (filname, uname) 
+      IF(l_PDF) THEN
+          i = LEN_TRIM(uname)
+          WRITE(line,'(a,a)') 'ps2pdf14 ', uname
+          CALL system(line, ier_num)
+      ENDIF
 !                                                                       
 !------ if the command was print we print                               
 !                                                                       
