@@ -165,10 +165,11 @@ SUBROUTINE do_domain (line, lp)
                         clu_index = 0 
                         CALL do_cap (cpara (2) ) 
                         DO i = 1, clu_number 
-                        IF (str_comp (cpara (2), clu_name (i), 2, lpara &
-                        (2), 4) ) then                                  
-                           clu_index = i 
-                        ENDIF 
+!                       IF (str_comp(cpara (2), clu_name (i), 2, lpara &
+!                       (2), 4) ) then                                  
+                           IF(cpara(2)(1:4)==clu_name(i)(1:4)) THEN
+                              clu_index = i 
+                           ENDIF 
                         ENDDO 
                         IF (clu_index.eq.0) then 
 !
