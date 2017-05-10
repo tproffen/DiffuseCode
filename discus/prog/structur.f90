@@ -3770,7 +3770,7 @@ header: DO
            CLOSE ( 99 )
            RETURN
         ENDIF
-        CALL do_cap (line)
+        CALL do_cap (line(1:4))
         laenge = len_str(line)
         IF ( laenge .gt. 4 ) then
            zeile = line(5:laenge)
@@ -3849,7 +3849,6 @@ header: DO
 main: DO
         READ (99,1000, IOSTAT=ios) line
         IF ( IS_IOSTAT_END(ios) ) EXIT main
-        CALL do_cap (line)
         laenge = len_str(line)
 !
         bef   = '    '
@@ -3858,8 +3857,9 @@ main: DO
         indxb = index (line, ' ')       ! find a blank
         IF(indxb==0) indxb = laenge + 1
         indxb = MIN(indxb,indxt)
-        lbef = min (indxb - 1, 5)
+        lbef = min (indxb - 1, 8)
         bef  = line (1:lbef)
+        CALL do_cap (line(1:lbef))
         IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
 !
 ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
