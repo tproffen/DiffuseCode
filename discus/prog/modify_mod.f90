@@ -2606,24 +2606,6 @@ form_cyl:      DO i = 1, cr_natoms
             CALL plot_ini_trans (1.0,                          &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
-
-write(*,*) 'TRANSMATRIX '
-write(*,*) ' ROW 1 ', pl_tran_f(1,1:3)
-write(*,*) ' ROW 2 ', pl_tran_f(2,1:3)
-write(*,*) ' ROW 3 ', pl_tran_f(3,1:3)
-v = 0
-v(1) = 1.0
-                  v = MATMUL(pl_tran_f(1:3,1:3), v)
-write(*,*) ' 1,0,0 ', v
-v = 0
-v(2) = 1.0
-                  v = MATMUL(pl_tran_f(1:3,1:3), v)
-write(*,*) ' 0,1,0 ', v
-v = 0
-v(3) = 1.0
-                  v = MATMUL(pl_tran_f(1:3,1:3), v)
-write(*,*) ' 0,0,1 ', v
-
 form_ell:      DO i = 1, cr_natoms 
                   IF(cr_iscat(i)==0) cycle form_ell
                   v(:) = cr_pos(:, i)
