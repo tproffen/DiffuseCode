@@ -69,6 +69,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_May
+
+   The boundary command at the top level menu and inside the surface
+   menu can now create a polyhedron from a form of symmetrically 
+   equivalent hkl planes as well as a triaxial ellipsoid.
+   The command at the main discus level is depreciated and you are 
+   encouraged to use the (identical) command at the surface menu.
 3  2017_April
 
    The surface menu received a new command "char" that determines
@@ -961,44 +968,11 @@
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
 2  boundary
-!b boundary "hkl",h,k,l [,distance] [,{"inside"}|{"outside"}]
-!b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
-!b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
 
-   You are encouraged to use this command from within the new 
-   ==> 'surface' menu.
-
-   This commands removes all atoms that are outside a boundary surrounding
-   the crystal. 
-   "hkl"  The surface is defined as a plane through the Miller indices 
-          <h>,<k>,<l>. The optional <distance> determines the distance 
-          between 0,0,0 and the boundary surface. Without this parameter,
-          the distance is automatically calculated from the user supplied
-          <h>,<k>,<l> as 1./dstar(h,k,l).
-          The optional last parameter determines which atoms remain.
-          If the parameter is "inside" or omitted, all atoms remain that
-          are on the same side of the plane as is the origin. 
-          If the parameter is "outside", those atoms remain that are on 
-          the other side of the plane as the origin.
-   "sphere" The boundary is defined as a sphere at the origin of direct
-          space. The size of the sphere is defined by its radius in Angstroem.
-          The optional last parameter determines which atoms remain.
-          If the parameter is "inside" or omitted, all atoms remain that
-          are inside the sphere.
-          If the parameter is "outside", those atoms remain that are on 
-          the outside of the sphere.
-   "cylinder"  The boundary is defined as a cylinder of radius <radius>
-          and half-height <height>, both measures are in Angstroem. The 
-          cylinder axis is always along the c-axis. The top and bottom
-          planes are parallel to the (001) plane. If the a- and b-axes are
-          not at 90 degrees to the c-axis, the top will be tilted 
-          accordingly. If necessary, transform into an orthogonal cell
-          prior to the application of the boundary command.
-          The optional last parameter determines which atoms remain.
-          If the parameter is "inside" or omitted, all atoms remain that
-          are inside the sphere.
-          If the parameter is "outside", those atoms remain that are on 
-          the outside of the sphere.
+   The boundary command at the main discus level is depreciated.
+   Please use the ==> 'boundary' command at the ==>'surface' menu,
+   further options beyond a simple removal of outside atoms are available
+   through the 'surface' menu.
 2  branch
 !b branch kuplot [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
 !b branch diffev [, "-macro" <macro_name> [ <par1> [ , <par2> ...]]]
@@ -7070,7 +7044,9 @@
 !p show       ! Show the current surface related settings
 3  boundary
 !b boundary "hkl",h,k,l [,distance] [,{"inside"}|{"outside"}]
+!b boundary "form",h,k,l [,distance] [,{"inside"}|{"outside"}]
 !b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
+!b boundary "ellipsoid",<radius_a>, <radius_b>, <radius_c> [,{"inside"}|{"outside"}]
 !b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
 
    This commands removes all atoms that are outside a boundary surrounding
@@ -7085,6 +7061,8 @@
           are on the same side of the plane as is the origin. 
           If the parameter is "outside", those atoms remain that are on 
           the other side of the plane as the origin.
+   "form" Same as "hkl", except that DISCUS will create all symmetrically
+          equivalent forms of h,k,l and apply them to shape the crystal
    "sphere" The boundary is defined as a sphere at the origin of direct
           space. The size of the sphere is defined by its radius in Angstroem.
           The optional last parameter determines which atoms remain.
@@ -7092,6 +7070,22 @@
           are inside the sphere.
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
+   "ellipsoid" The boundary is defined as a triaxial ellipsoid with user
+          defined diameters along the three orthogonal main axes. 
+          The ellipsoid is in fixed orientation with respect to the lattice.
+          Generally the axes are parallel to the base vectors except for the
+          non-orthogonal crystal systems. The axis are:
+          cubic           a       b      c
+          tetragonal      a       b      c
+          orthorhombic    a       b      c
+          hexagonal       a*      b      c
+          trigonal        a*      b      c
+          rhombohedral   (bxc*)   b      c*
+          monoclinic     (bxc*)   b      c*
+          triclinic      (bxc*)   b      c*
+          If a differently oriented shape is required, you must use the 
+          ==> 'symmetry' menu to rotate the crystal as a whole prior to
+          the removal of atoms outside the boundary.
    "cylinder"  The boundary is defined as a cylinder of radius <radius>
           and half-height <height>, both measures are in Angstroem. The 
           cylinder axis is always along the c-axis. The top and bottom

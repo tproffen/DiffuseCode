@@ -2281,6 +2281,9 @@ CONTAINS
       USE metric_mod
       USE discus_config_mod 
       USE crystal_mod 
+      USE discus_plot_mod
+      USE discus_plot_init_mod
+      USE wyckoff_mod 
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -2292,16 +2295,29 @@ CONTAINS
       CHARACTER ( * ) zeile 
       INTEGER lp 
 !                                                                       
+      REAL, PARAMETER :: EPS = 0.000001
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER i, ianz 
+      INTEGER i, j, k, ianz 
+      INTEGER :: special_form
+      INTEGER :: special_n
       LOGICAL lspace 
       LOGICAL linside 
       LOGICAL l_plane 
       LOGICAL l_sphere 
+      LOGICAL l_form 
       LOGICAL l_cyl 
+      LOGICAL l_ell 
+      LOGICAL l_special 
+      LOGICAL l_new 
       REAL h (3), d, dstar, radius, height 
+      REAL :: hkl(4), hklw(4)
+      REAL, DIMENSION(3, 2) :: special_hkl
+      REAL, DIMENSION(3,48) :: point_hkl
+      INTEGER               :: point_n
+      REAL, DIMENSION(3)    :: radius_ell
       REAL v (3) 
+      REAL, DIMENSION(3,1) :: col_vec
       REAL null (3) 
       REAL werte (maxw) 
 !                                                                       
@@ -2321,20 +2337,36 @@ CONTAINS
       linside = .true. 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
-         IF (str_comp (cpara (1) , 'hkl', 3, lpara (1) , 3) ) then 
+         IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
+             str_comp (cpara (1) , 'form', 3, lpara (1) , 4) ) THEN 
+           l_form = str_comp (cpara (1) , 'form', 3, lpara (1) , 4)
 !                                                                       
-!     ----Crystal is limited by a plane                                 
+!     ----Crystal is limited by a plane or by a form of symmetrically equivalent planes
 !                                                                       
-            IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)&
-            ) then                                                      
+            IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN                                                      
                linside = .false. 
                ianz = ianz - 1 
-            ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz) ,&
-            6) ) then                                                   
+            ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz), 6) ) THEN
                linside = .true. 
                ianz = ianz - 1 
             ENDIF 
             lspace = .false. 
+            l_special = .FALSE.
+            IF(str_comp(cpara(2),'cubeoct',7,lpara(2),7)) THEN
+               cpara(5) = cpara(3)
+               lpara(5) = lpara(3)
+               cpara(2) = '1.0'
+               cpara(3) = '0.0'
+               cpara(4) = '0.0'
+               lpara(2) = 3
+               lpara(3) = 3
+               lpara(4) = 3
+               ianz = 5
+!              l_special = .TRUE.
+               special_form = 1
+            ELSE
+               special_form = 0
+            ENDIF
             IF (ianz.ge.4) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
@@ -2367,20 +2399,35 @@ CONTAINS
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-            l_plane = .true. 
+            l_plane  = .true. 
             l_sphere = .false. 
-            l_cyl = .false. 
-         ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) )    &
-         then                                                           
+            l_cyl    = .false. 
+            l_ell    = .false. 
+            IF(l_form) THEN
+               l_plane= .FALSE.
+               l_form = .TRUE.
+            ENDIF
+            IF(special_form == 0) THEN
+               special_hkl(:,1) = h(:)
+               special_n = 1
+            ELSEIF(special_form == 1) THEN            ! CUBEOCTAHEDRON h= 1,0,0
+               special_hkl(:,1) = h(:)
+               special_hkl(1,2) = h(1) / 2.!/sqrt(3.)
+               special_hkl(2,2) = h(1) / 2.!/sqrt(3.)
+               special_hkl(3,2) = h(1) / 2.!/sqrt(3.)
+               special_n = 2
+            ENDIF
+!do i=1, special_n
+!write(*,*) ' SPECIAL ', i, special_hkl(:,i)
+!enddo
+         ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
 !     ----Crystal is limited by a sphere                                
 !                                                                       
-            IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)&
-            ) then                                                      
+            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
                linside = .false. 
                ianz = ianz - 1 
-            ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz) ,&
-            6) ) then                                                   
+            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
                linside = .true. 
                ianz = ianz - 1 
             ENDIF 
@@ -2401,20 +2448,19 @@ CONTAINS
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-            l_plane = .false. 
+            l_plane  = .false. 
+            l_form   = .false. 
             l_sphere = .true. 
-            l_cyl = .false. 
-         ELSEIF (str_comp (cpara (1) , 'cylinder', 3, lpara (1) , 8) )  &
-         then                                                           
+            l_cyl    = .false. 
+            l_ell    = .false. 
+         ELSEIF(str_comp(cpara(1), 'cylinder', 3, lpara(1), 8)) THEN
 !                                                                       
 !     ----Crystal is limited by a cylinder                              
 !                                                                       
-            IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)&
-            ) then                                                      
+            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
                linside = .false. 
                ianz = ianz - 1 
-            ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz) ,&
-            6) ) then                                                   
+            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
                linside = .true. 
                ianz = ianz - 1 
             ENDIF 
@@ -2436,9 +2482,39 @@ CONTAINS
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-            l_plane = .false. 
+            l_plane  = .false. 
+            l_form   = .false. 
             l_sphere = .false. 
-            l_cyl = .true. 
+            l_cyl    = .true. 
+            l_ell    = .false. 
+         ELSEIF(str_comp(cpara(1), 'ellipsoid', 3, lpara(1), 9)) THEN
+!                                                                       
+!     ----Crystal is limited by a standardized ellipsoid
+!                                                                       
+            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
+               linside = .false. 
+               ianz = ianz - 1 
+            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
+               linside = .true. 
+               ianz = ianz - 1 
+            ENDIF 
+            lspace = .false. 
+            IF (ianz.eq.4) then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               IF (ier_num.ne.0) return 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.ne.0) return 
+               radius_ell(1:3) = werte(1:3)*0.5  ! User provides diameters
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+            l_plane  = .false. 
+            l_form   = .false. 
+            l_sphere = .false. 
+            l_cyl    = .false. 
+            l_ell    = .true. 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
@@ -2446,45 +2522,117 @@ CONTAINS
 !                                                                       
          IF (ier_num.eq.0) then 
             IF (l_plane) then 
-               DO i = 1, cr_natoms 
-               d = 1.0 - cr_pos (1, i) * h (1) - cr_pos (2, i) * h (2)  &
-               - cr_pos (3, i) * h (3)                                  
-               d = d / dstar 
-               CALL boundarize_atom (d, i, linside) 
-               ENDDO 
+form_plane:    DO i = 1, cr_natoms 
+                  IF(cr_iscat(i)==0) cycle form_plane
+                  d = 1.0 - cr_pos (1, i) * h (1) - cr_pos (2, i) * h (2)  &
+                          - cr_pos (3, i) * h (3)                                  
+                  d = d / dstar 
+                  CALL boundarize_atom (d, i, linside) 
+               ENDDO form_plane
+            ELSEIF (l_form) then 
+               hkl(1:3) = special_hkl(:,1)
+               hkl(4)   = 0
+               point_n = 1
+               point_hkl(:,point_n) = hkl(1:3)
+               DO k = 1,special_n
+                  hkl(1:3) = special_hkl(:,k)
+                  hkl(4)   = 0
+matrix_set:    DO j=1, spc_n
+                  hklw = MATMUL(hkl,spc_mat(:,:,j))
+                  hklw(4) = 0
+                  l_new = .TRUE.
+search:           DO i=1, point_n
+                     IF(ABS(point_hkl(1,i)-hklw(1)).lt.EPS .AND.   &
+                        ABS(point_hkl(2,i)-hklw(2)).lt.EPS .AND.   &
+                        ABS(point_hkl(3,i)-hklw(3)).lt.EPS ) THEN
+                        l_new = .FALSE.
+                        EXIT search
+                     ENDIF
+                  ENDDO search
+                  IF(l_new) THEN
+                     point_n = point_n + 1
+                     point_hkl(:,point_n) = hklw(1:3)
+                  ENDIF
+               ENDDO matrix_set
+               ENDDO
+form_loop:     DO i = 1, cr_natoms 
+                  IF(cr_iscat(i)==0) cycle form_loop
+                  DO j=1,point_n
+                      d = 1.0 - cr_pos (1, i) * point_hkl (1,j) - cr_pos (2, i) * point_hkl (2,j)  &
+                              - cr_pos (3, i) * point_hkl (3,j)                                  
+                      d = d / dstar 
+                      CALL boundarize_atom (d, i, linside) 
+                  ENDDO 
+               ENDDO form_loop
             ELSEIF (l_sphere) then 
-               DO i = 1, cr_natoms 
-               v (1) = cr_pos (1, i) 
-               v (2) = cr_pos (2, i) 
-               v (3) = cr_pos (3, i) 
-               d = radius - sqrt (v (1) * v (1) * cr_gten (1, 1)        &
-               + v (2) * v (2) * cr_gten (2, 2) + v (3) * v (3) *       &
-               cr_gten (3, 3) + 2 * v (1) * v (2) * cr_gten (1, 2)      &
-               + 2 * v (1) * v (3) * cr_gten (1, 3) + 2 * v (2) * v (3) &
-               * cr_gten (2, 3) )                                       
-               CALL boundarize_atom (d, i, linside) 
-               ENDDO 
+form_sphere:   DO i = 1, cr_natoms 
+                  IF(cr_iscat(i)==0) cycle form_sphere
+                  v (1) = cr_pos (1, i) 
+                  v (2) = cr_pos (2, i) 
+                  v (3) = cr_pos (3, i) 
+                  d = radius - sqrt (v(1) * v(1) * cr_gten(1, 1)        &
+                     +     v(2) * v(2) * cr_gten(2, 2)    &
+                     +     v(3) * v(3) * cr_gten(3, 3)    &
+                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+                     + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+                  CALL boundarize_atom (d, i, linside) 
+               ENDDO form_sphere
             ELSEIF (l_cyl) then 
-               DO i = 1, cr_natoms 
-               v (1) = cr_pos (1, i) 
-               v (2) = cr_pos (2, i) 
-               v (3) = 0.0 
-               d = radius - sqrt (v (1) * v (1) * cr_gten (1, 1)        &
-               + v (2) * v (2) * cr_gten (2, 2) + v (3) * v (3) *       &
-               cr_gten (3, 3) + 2 * v (1) * v (2) * cr_gten (1, 2)      &
-               + 2 * v (1) * v (3) * cr_gten (1, 3) + 2 * v (2) * v (3) &
-               * cr_gten (2, 3) )                                       
-               CALL boundarize_atom (d, i, linside) 
-               v (1) = 0.0 
-               v (2) = 0.0 
-               v (3) = cr_pos (3, i) 
-               d = height - sqrt (v (1) * v (1) * cr_gten (1, 1)        &
-               + v (2) * v (2) * cr_gten (2, 2) + v (3) * v (3) *       &
-               cr_gten (3, 3) + 2 * v (1) * v (2) * cr_gten (1, 2)      &
-               + 2 * v (1) * v (3) * cr_gten (1, 3) + 2 * v (2) * v (3) &
-               * cr_gten (2, 3) )                                       
-               CALL boundarize_atom (d, i, linside) 
-               ENDDO 
+form_cyl:      DO i = 1, cr_natoms 
+                  IF(cr_iscat(i)==0) cycle form_cyl
+                  v (1) = cr_pos (1, i) 
+                  v (2) = cr_pos (2, i) 
+                  v (3) = 0.0 
+                  d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+                     +     v(2) * v(2) * cr_gten(2, 2)    &
+                     +     v(3) * v(3) * cr_gten(3, 3)    &
+                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+                     + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+                  CALL boundarize_atom (d, i, linside) 
+                  v (1) = 0.0 
+                  v (2) = 0.0 
+                  v (3) = cr_pos (3, i) 
+                  d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+                     +     v(2) * v(2) * cr_gten(2, 2)    & 
+                     +     v(3) * v(3) * cr_gten(3, 3)    & 
+                     + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+                     + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
+                     + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
+                  CALL boundarize_atom (d, i, linside) 
+               ENDDO form_cyl
+            ELSEIF (l_ell) then 
+            CALL plot_ini_trans (1.0,                          &
+                 pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+                 cr_gten, cr_rten, cr_eps)
+
+write(*,*) 'TRANSMATRIX '
+write(*,*) ' ROW 1 ', pl_tran_f(1,1:3)
+write(*,*) ' ROW 2 ', pl_tran_f(2,1:3)
+write(*,*) ' ROW 3 ', pl_tran_f(3,1:3)
+v = 0
+v(1) = 1.0
+                  v = MATMUL(pl_tran_f(1:3,1:3), v)
+write(*,*) ' 1,0,0 ', v
+v = 0
+v(2) = 1.0
+                  v = MATMUL(pl_tran_f(1:3,1:3), v)
+write(*,*) ' 0,1,0 ', v
+v = 0
+v(3) = 1.0
+                  v = MATMUL(pl_tran_f(1:3,1:3), v)
+write(*,*) ' 0,0,1 ', v
+
+form_ell:      DO i = 1, cr_natoms 
+                  IF(cr_iscat(i)==0) cycle form_ell
+                  v(:) = cr_pos(:, i)
+                  v = MATMUL(pl_tran_f(1:3,1:3), v)
+                  d = 1. - sqrt((v(1)/radius_ell(1))**2   &
+                               +(v(2)/radius_ell(2))**2   &
+                               +(v(3)/radius_ell(3))**2   )
+                  CALL boundarize_atom (d, i, linside) 
+               ENDDO form_ell
             ENDIF 
          ENDIF 
       ENDIF 

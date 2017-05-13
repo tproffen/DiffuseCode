@@ -1250,9 +1250,9 @@ CONTAINS
 !     LOGICAL check_select_status 
 !     REAL skalpro 
 !                                                                       
-      scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+1)
-      scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+1)
-      scalef(3) = MAX(cr_icc(3), INT((cr_dim(3,2)-cr_dim(3,1)))+1)
+      scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+2)
+      scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+2)
+      scalef(3) = MAX(cr_icc(3), INT((cr_dim(3,2)-cr_dim(3,1)))+2)
       WRITE (iff, 500) 
       WRITE (iff, 510) (cr_a0 (i) * scalef (i), i = 1, 3),  &
                        (cr_win (i), i = 1, 3)
@@ -1308,7 +1308,7 @@ CONTAINS
 !     ------write atom position or projection onto abscissa/ordinate    
 !                                                                       
                DO j = 1, 3 
-               v (j) = cr_pos (j, i) 
+               v (j) = cr_pos (j, i) + 0.01
                ENDDO 
 !                                                                       
 !     ------Write atom position in desired sequence of coordinates      
