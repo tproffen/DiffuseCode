@@ -2283,6 +2283,7 @@ CONTAINS
       USE crystal_mod 
       USE discus_plot_mod
       USE discus_plot_init_mod
+      USE prop_para_mod 
       USE wyckoff_mod 
       USE errlist_mod 
       IMPLICIT none 
@@ -2522,13 +2523,13 @@ CONTAINS
 !                                                                       
          IF (ier_num.eq.0) then 
             IF (l_plane) then 
-form_plane:    DO i = 1, cr_natoms 
-                  IF(cr_iscat(i)==0) cycle form_plane
+plane_loop:    DO i = 1, cr_natoms 
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle plane_loop 
                   d = 1.0 - cr_pos (1, i) * h (1) - cr_pos (2, i) * h (2)  &
                           - cr_pos (3, i) * h (3)                                  
                   d = d / dstar 
                   CALL boundarize_atom (d, i, linside) 
-               ENDDO form_plane
+               ENDDO plane_loop
             ELSEIF (l_form) then 
                hkl(1:3) = special_hkl(:,1)
                hkl(4)   = 0
@@ -2556,7 +2557,7 @@ search:           DO i=1, point_n
                ENDDO matrix_set
                ENDDO
 form_loop:     DO i = 1, cr_natoms 
-                  IF(cr_iscat(i)==0) cycle form_loop
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
                   DO j=1,point_n
                       d = 1.0 - cr_pos (1, i) * point_hkl (1,j) - cr_pos (2, i) * point_hkl (2,j)  &
                               - cr_pos (3, i) * point_hkl (3,j)                                  
@@ -2565,8 +2566,8 @@ form_loop:     DO i = 1, cr_natoms
                   ENDDO 
                ENDDO form_loop
             ELSEIF (l_sphere) then 
-form_sphere:   DO i = 1, cr_natoms 
-                  IF(cr_iscat(i)==0) cycle form_sphere
+sphere_loop:   DO i = 1, cr_natoms 
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
                   v (1) = cr_pos (1, i) 
                   v (2) = cr_pos (2, i) 
                   v (3) = cr_pos (3, i) 
@@ -2577,10 +2578,10 @@ form_sphere:   DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   CALL boundarize_atom (d, i, linside) 
-               ENDDO form_sphere
+               ENDDO sphere_loop
             ELSEIF (l_cyl) then 
-form_cyl:      DO i = 1, cr_natoms 
-                  IF(cr_iscat(i)==0) cycle form_cyl
+cyl_loop:      DO i = 1, cr_natoms 
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
                   v (1) = cr_pos (1, i) 
                   v (2) = cr_pos (2, i) 
                   v (3) = 0.0 
@@ -2591,6 +2592,7 @@ form_cyl:      DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   CALL boundarize_atom (d, i, linside) 
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
                   v (1) = 0.0 
                   v (2) = 0.0 
                   v (3) = cr_pos (3, i) 
@@ -2601,20 +2603,21 @@ form_cyl:      DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   CALL boundarize_atom (d, i, linside) 
-               ENDDO form_cyl
+               ENDDO cyl_loop
             ELSEIF (l_ell) then 
-            CALL plot_ini_trans (1.0,                          &
+               CALL plot_ini_trans (1.0,                          &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
                  cr_gten, cr_rten, cr_eps)
-form_ell:      DO i = 1, cr_natoms 
-                  IF(cr_iscat(i)==0) cycle form_ell
+               radius = (radius_ell(1)*radius_ell(2)*radius_ell(3))**(1./3.)
+ell_loop:      DO i = 1, cr_natoms 
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle ell_loop 
                   v(:) = cr_pos(:, i)
                   v = MATMUL(pl_tran_f(1:3,1:3), v)
-                  d = 1. - sqrt((v(1)/radius_ell(1))**2   &
-                               +(v(2)/radius_ell(2))**2   &
-                               +(v(3)/radius_ell(3))**2   )
+                  d = (1. - sqrt((v(1)/radius_ell(1))**2   &
+                                +(v(2)/radius_ell(2))**2   &
+                                +(v(3)/radius_ell(3))**2   ))* radius
                   CALL boundarize_atom (d, i, linside) 
-               ENDDO form_ell
+               ENDDO ell_loop
             ENDIF 
          ENDIF 
       ENDIF 
