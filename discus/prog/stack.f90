@@ -1869,18 +1869,18 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !
 !                 ALLOCATE the fourier part of stacking faults
 !
-      IF ( num (1) * num (2) .gt. ST_MAXQXY .or.            &
-           num (1) * num (2) .gt.    MAXQXY      ) THEN
-         i = num(1)*num(2)
+      IF ( num(1)*num(2)*num(3) .gt. ST_MAXQXY .or.            &
+           num(1)*num(2)*num(3) .gt.    MAXQXY      ) THEN
+         i = num(1)*num(2)*num(3)
          CALL alloc_stack (ST_MAXTYPE, ST_MAXLAYER, i     , st_rot_status )
       ENDIF
 !                                                                       
 !     Now start calculation if sufficient space                         
 !                                                                       
-      IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
+      IF (num(1)*num(2)*num(3) .gt. MAXQXY  .OR.          &
           cr_nscat>DIF_MAXSCAT           .OR.          &
           MAX(cr_natoms,st_nlayer)>DIF_MAXAT   ) THEN
-        n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
+        n_qxy   = MAX(n_qxy,num(1)*num(2)*num(3),MAXQXY)
         n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
         n_atoms = MAX(cr_natoms,st_nlayer,DIF_MAXAT)
         CALL alloc_diffuse (n_qxy, cr_nscat, n_atoms)
@@ -1888,11 +1888,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
           RETURN
         ENDIF
       ENDIF
-      IF (num (1) * num (2) .le.ST_MAXQXY) then 
+      IF (num(1)*num(2)*num(3) .le.ST_MAXQXY) then 
 !                                                                       
 !------ --zero some arrays                                              
 !                                                                       
-         DO i = 1, num (1) * num (2) 
+         DO i = 1, num (1) * num (2) *num(3)
 !           st_csf(i) = cmplx(0.0d0,0.0d0)                                
             csf (i) = cmplx (0.0D0, 0.0D0) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
@@ -1973,7 +1973,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     ------copy structure factor to temporary place                    
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num(1)*num(2)*num(3)
                acsf (i) = tcsf (i) 
             ENDDO 
             n_layers = nxat
@@ -2054,7 +2054,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !------ ------zero some arrays                                          
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2) *num(3)
                st_csf (i) = cmplx (0.0D0, 0.0D0) 
             ENDDO 
 !                                                                       
@@ -2066,7 +2066,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !------ --------Add this part of the structur factor to the total       
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2) *num(3)
                st_csf (i) = st_csf (i) + tcsf (i) 
             ENDDO 
             IF (four_log) then 
@@ -2097,7 +2097,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     ------Add product of acsf und st_csf to csf                       
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2) *num(3)
                csf (i) = csf (i) + st_csf (i) * acsf (i) 
             ENDDO 
          ENDIF 
@@ -2106,7 +2106,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     --Calculate average scattering and subtract                       
 !                                                                       
          CALL st_fourier_aver 
-         DO i = 1, num (1) * num (2) 
+         DO i = 1, num (1) * num (2) *num(3)
             csf (i) = csf (i) - acsf (i) 
          ENDDO 
       ELSE 
@@ -2116,7 +2116,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     Compute intensity                                                 
 !                                                                       
-      DO i = 1, num (1) * num (2) 
+      DO i = 1, num (1) * num (2) *num(3)
          dsi (i) = DBLE (csf (i) * conjg (csf (i) ) ) 
       ENDDO 
 !                                                                       
@@ -2179,7 +2179,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     Now start calculation if sufficient space                         
 !                                                                       
-      IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
+      IF (num (1) * num (2)*num(3) .gt. MAXQXY  .OR.          &
           cr_nscat>DIF_MAXSCAT           .OR.          &
           MAX(cr_natoms,st_nlayer) > DIF_MAXAT ) THEN
         n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY)
@@ -2190,11 +2190,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
           RETURN
         ENDIF
       ENDIF
-      IF (num (1) * num (2) .le.MAXQXY) then 
+      IF (num (1) * num (2)*num(3) .le.MAXQXY) then 
 !                                                                       
 !------ --zero some arrays                                              
 !                                                                       
-         DO i = 1, num (1) * num (2) 
+         DO i = 1, num (1) * num (2)*num(3) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
          acsf (i) = cmplx (0.0D0, 0.0D0) 
          ENDDO 
@@ -2311,13 +2311,13 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     ----copy structure factor to temporary place                      
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2)*num(3) 
             acsf (i) = tcsf (i) 
             ENDDO 
 !                                                                       
 !------ ----zero some arrays                                            
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2)*num(3) 
             st_csf (i) = cmplx (0.0D0, 0.0D0) 
             ENDDO 
 !                                                                       
@@ -2398,7 +2398,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ --------Add this part of the structur factor to the total       
 !             Wheighted by the relative amount of layers of this type   
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2)*num(3) 
             st_csf (i) = st_csf (i) + tcsf (i) * DBLE (st_number (l) ) &
             / DBLE (st_nlayer)                                         
             ENDDO 
@@ -2408,7 +2408,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
 !     ----Save product of acsf und st_csf to acsf                       
 !                                                                       
-            DO i = 1, num (1) * num (2) 
+            DO i = 1, num (1) * num (2)*num(3) 
             acsf (i) = st_csf (i) * acsf (i) 
             ENDDO 
          ENDIF 
