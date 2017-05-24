@@ -77,7 +77,7 @@ befehl = line (1:lbef)
 !                                                                 
 zeile = ' ' 
 lcomm = 0 
-IF (indxb + 1.le.length) then 
+IF (indxb + 1.le.length) THEN 
    zeile = line (indxb + 1:length) 
    lcomm = length - indxb 
    call rem_leading_bl(zeile, lcomm)
@@ -92,7 +92,7 @@ IF (indxg.ne.0.and.                                              &
     &    .not. (str_comp (befehl, 'fput',  2, lbef, 4) ) .and.   &
     &    .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
     &    .not. (str_comp (befehl, 'help',  2, lbef, 4) .or.      &
-    &     str_comp (befehl, '?   ',  2, lbef, 4) )      ) then      
+    &     str_comp (befehl, '?   ',  2, lbef, 4) )      ) THEN      
 !                                                                 
 !-------Zuweisung eines Funktionswertes                           
 !                                                                 
@@ -101,8 +101,8 @@ ELSE
 !                                                                 
 !     --execute a macro file                                      
 !                                                                 
-   IF (befehl (1:1) .eq.'@') then 
-      IF (length.ge.2) then 
+   IF (befehl (1:1) .eq.'@') THEN 
+      IF (length.ge.2) THEN 
           CALL file_kdo (line(2:length), length -1)
 !         CALL file_kdo (line (2:length), length - 1) 
       ELSE 
@@ -112,7 +112,7 @@ ELSE
 !                                                                 
 !-------Terminate DIFFEV 'exit'                                   
 !                                                                 
-   ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
       LEND = .TRUE. 
 !                                                                 
 !     ----Start of DIFFEV special commands                        
@@ -120,21 +120,21 @@ ELSE
 
 !     -- Allocate array sizes
 !
-   ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) then
+   ELSEIF (str_comp (befehl, 'allocate', 3, lbef,  8) ) THEN
       CALL diffev_do_allocate_appl (zeile, lcomm)
 !
 !     -- Deallocate array sizes
 !
-   ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) then
+   ELSEIF (str_comp (befehl, 'deallocate', 3, lbef, 10) ) THEN
       CALL diffev_do_deallocate_appl (zeile, lcomm)
 !                                                                 
 !     -- define adaptation of sigmas 'adapt'                      
 !                                                                 
-   ELSEIF (str_comp (befehl, 'adapt', 3, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'adapt', 3, lbef, 5) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.eq.2.or.ianz.eq.3) then 
-            IF (str_comp (cpara(1),'sigma',3,lpara (1) , 5) ) then
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.eq.2.or.ianz.eq.3) THEN 
+            IF (str_comp (cpara(1),'sigma',3,lpara (1) , 5) ) THEN
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                iianz = 1 
                CALL ber_params (iianz, cpara, lpara, werte, maxw) 
@@ -144,14 +144,14 @@ ELSE
                  ier_typ = ER_APPL
                  RETURN
                ENDIF
-               IF (ianz.eq.1.or.str_comp (cpara (2) , 'yes', 1, lpara (1) , 3) ) then
+               IF (ianz.eq.1.or.str_comp (cpara (2) , 'yes', 1, lpara (1) , 3) ) THEN
                   pop_ad_sigma (ii) = .true. 
-               ELSEIF (ianz.eq.2.and.str_comp (cpara (2) , 'no', 2, lpara (2) , 2) ) then
+               ELSEIF (ianz.eq.2.and.str_comp (cpara (2) , 'no', 2, lpara (2) , 2) ) THEN
                   pop_ad_sigma (ii) = .false. 
                ELSE 
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte,maxw)
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      pop_ad_sigma (ii) = .true. 
                      pop_sig_ad (ii) = werte (1) 
                   ELSE 
@@ -159,7 +159,7 @@ ELSE
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
-            ELSEIF (str_comp (cpara(1),'lsig', 3, lpara(1),4))then
+            ELSEIF (str_comp (cpara(1),'lsig', 3, lpara(1),4)) THEN
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                iianz = 1 
                CALL ber_params (iianz, cpara, lpara, werte, maxw) 
@@ -169,14 +169,14 @@ ELSE
                  ier_typ = ER_APPL
                  RETURN
                ENDIF
-               IF (ianz.eq.1.or.str_comp (cpara (2) , 'yes', 1, lpara (1) , 3) ) then
+               IF (ianz.eq.1.or.str_comp (cpara (2) , 'yes', 1, lpara (1) , 3) ) THEN
                   pop_ad_lsigma (ii) = .true. 
-               ELSEIF (ianz.eq.2.and.str_comp (cpara (2) , 'no', 2, lpara (2) , 2) ) then
+               ELSEIF (ianz.eq.2.and.str_comp (cpara (2) , 'no', 2, lpara (2) , 2) ) THEN
                   pop_ad_lsigma (ii) = .false. 
                ELSE 
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte,maxw)
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      pop_ad_lsigma (ii) = .true. 
                      pop_lsig_ad (ii) = werte (1) 
                   ELSE 
@@ -196,9 +196,9 @@ ELSE
 !                                                                 
 !     -- set backup option 
 !                                                                 
-   ELSEIF (str_comp (befehl, 'backup', 3, lbef, 6) ) then 
+   ELSEIF (str_comp (befehl, 'backup', 3, lbef, 6) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF(cpara(1)=='NONE') THEN
             pop_backup = .false.
          ELSE
@@ -240,9 +240,9 @@ ELSE
 !                                                                 
 !     -- compare the trial results to the last generation         
 !                                                                 
-   ELSEIF (str_comp (befehl, 'comp', 3, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'comp', 3, lbef, 4) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF (ianz.eq.0) THEN
             pop_result_file_rd = .true.
          ELSEIF (ianz.eq.1) THEN
@@ -269,14 +269,14 @@ ELSE
 !                                                                 
 !     -- Define a hard constraint 'constraint'                    
 !                                                                 
-   ELSEIF (str_comp (befehl, 'const', 3, lbef, 5) ) then 
+   ELSEIF (str_comp (befehl, 'const', 3, lbef, 5) ) THEN 
       IF(constr_number >= MAX_CONSTR) THEN
          CALL alloc_constraint ( constr_number + 1)
-         IF(ier_num < 0) then
+         IF(ier_num < 0) THEN
             RETURN
          ENDIF
       ENDIF
-      IF (constr_number.lt.MAX_CONSTR) then 
+      IF (constr_number.lt.MAX_CONSTR) THEN 
          constr_number = constr_number + 1 
          constr_line (constr_number) = zeile (1:length) 
          constr_length (constr_number) = length 
@@ -288,19 +288,19 @@ ELSE
 !                                                                 
 !     -- initialise the sequence                                  
 !                                                                 
-   ELSEIF (str_comp (befehl, 'dismiss', 3, lbef, 7) ) then 
-      IF (pop_n.gt.3) then
+   ELSEIF (str_comp (befehl, 'dismiss', 3, lbef, 7) ) THEN 
+      IF (pop_n.gt.3) THEN
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             IF (ianz.eq.0 .or.  &
-                str_comp (cpara(1), 'all',3, lpara(1), 3)) then 
+                str_comp (cpara(1), 'all',3, lpara(1), 3)) THEN 
                lb = 1
                ub = pop_n
                CALL do_dismiss  (lb, ub)
             ELSE
                CALL ber_params (ianz, cpara, lpara, werte, maxw)
-               IF (ier_num.eq.0) then
-                  IF (ianz.eq.1) then 
+               IF (ier_num.eq.0) THEN
+                  IF (ianz.eq.1) THEN 
                      lb = pop_n + 1 - nint(werte(1))
                      ub = pop_n
                   ELSE
@@ -326,13 +326,13 @@ ELSE
 !                                                                 
 !     -- set the donor type                                       
 !                                                                 
-   ELSEIF (str_comp (befehl, 'donor', 4, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'donor', 4, lbef, 4) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.eq.1) then 
-            IF (str_comp (cpara(1),'best',3,lpara(1),4) ) then
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.eq.1) THEN 
+            IF (str_comp (cpara(1),'best',3,lpara(1),4) ) THEN
                diff_donor_mode = ADD_TO_BEST 
-            ELSEIF (str_comp(cpara(1),'random',3,lpara(1),6)) then
+            ELSEIF (str_comp(cpara(1),'random',3,lpara(1),6)) THEN
                diff_donor_mode = ADD_TO_RANDOM 
             ENDIF 
          ENDIF 
@@ -340,17 +340,17 @@ ELSE
 !                                                                 
 !     -- fix a parameter at a value                               
 !                                                                 
-   ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) then 
-      IF (pop_n.gt.3) then
+   ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) THEN 
+      IF (pop_n.gt.3) THEN
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-         IF (ier_num == 0) then 
-            IF (ianz == 2) then 
+         IF (ier_num == 0) THEN 
+            IF (ianz == 2) THEN 
                lbest = .false.
-               IF (str_comp (cpara(2), 'best', 3, lpara(2), 4) ) then 
+               IF (str_comp (cpara(2), 'best', 3, lpara(2), 4) ) THEN 
                   lbest = .true.
                   ianz  = ianz - 1
                   CALL ber_params (ianz, cpara, lpara, werte, maxw)
-                  IF (ier_num.eq.0) then
+                  IF (ier_num.eq.0) THEN
                      lb = nint(werte(1))
                   ELSE
                      ier_num = -6
@@ -359,7 +359,7 @@ ELSE
                   ENDIF 
                ELSE
                   CALL ber_params (ianz, cpara, lpara, werte, maxw)
-                  IF (ier_num.eq.0) then
+                  IF (ier_num.eq.0) THEN
                      lb = nint(werte(1))
                   ELSE
                      ier_num = -6
@@ -390,16 +390,16 @@ ELSE
 !                                                                 
 !     -- initialise the sequence                                  
 !                                                                 
-   ELSEIF (str_comp (befehl, 'init', 3, lbef, 4) ) then 
-      IF (pop_n.gt.3) then
+   ELSEIF (str_comp (befehl, 'init', 3, lbef, 4) ) THEN 
+      IF (pop_n.gt.3) THEN
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-         IF (ier_num.eq.0) then 
-            IF (ianz.eq.0) then 
+         IF (ier_num.eq.0) THEN 
+            IF (ianz.eq.0) THEN 
                pop_trial_file_wrt = .true.
                l_init_x = .true.
                CALL do_initialise (l_init_x)
             ELSE
-               IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
+               IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6).AND. ianz==1) THEN
                   IF(lstandalone) THEN 
                      ier_num = -27
                      ier_typ = ER_APPL
@@ -410,7 +410,7 @@ ELSE
                      l_init_x = .true.
                      CALL do_initialise (l_init_x)
                   ENDIF
-               ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7)) THEN
+               ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1) THEN
                   l_init_x = .false.
                   CALL read_par_values              ! Make sure parent values are set
                   CALL create_trial                 ! Make a new set
@@ -421,43 +421,50 @@ ELSE
                      CALL write_parents             ! Add the current scan to the parameter files
                   ENDIF
                ELSE
-               IF (ianz ==  0) then 
+!
+!                 If last parameter is 'silent' trun trial files off, else leave current status
+!
+                  IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
+                     pop_trial_file_wrt = .false.
+                     ianz = ianz -1
+                  ENDIF
+                  IF (ianz == 1 .OR. ianz ==2) THEN 
 !               CALL read_genfile ! init,<i> works only in generations > 0
 !               IF(ier_num /= 0) RETURN
-               IF (pop_gen <= 0 ) THEN
-                  ier_num = -20
-                  ier_typ = ER_APPL
-                  ier_msg(1) = 'A single parameter can only be '
-                  ier_msg(2) = 'initialized in generations > 0 '
-                  ier_msg(3) = 'Run at least one compare       '
-                  RETURN
-               ENDIF
-               CALL ber_params (ianz, cpara, lpara, werte, maxw)
-               IF (ier_num.eq.0) then
-                  IF (ianz.eq.1) then 
-                     lb = nint(werte(1))
-                     ub = nint(werte(1))
-                  ELSEIF (ianz.eq.2 ) THEN
-                     lb = nint(werte(1))
-                     ub = nint(werte(2))
-                  ELSE
-                     ier_num = -6
-                     ier_typ = ER_COMM
-                     RETURN 
+                     IF (pop_gen <= 0 ) THEN
+                        ier_num = -20
+                        ier_typ = ER_APPL
+                        ier_msg(1) = 'A single parameter can only be '
+                        ier_msg(2) = 'initialized in generations > 0 '
+                        ier_msg(3) = 'Run at least one compare       '
+                        RETURN
+                     ENDIF
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw)
+                     IF (ier_num.eq.0) THEN
+                        IF (ianz.eq.1) THEN 
+                           lb = nint(werte(1))
+                           ub = nint(werte(1))
+                        ELSEIF (ianz.eq.2 ) THEN
+                           lb = nint(werte(1))
+                           ub = nint(werte(2))
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN 
+                        ENDIF 
+                        IF ( 0<lb .and. lb<=ub .and. ub<=pop_dimx) THEN
+                           CALL do_read_values   ! Read values from logfile
+                           IF( ier_num /= 0) RETURN
+                           CALL init_x ( lb,ub)  ! Initialize parameter range
+                           IF( ier_num /= 0) RETURN
+                           CALL write_genfile    ! Write the "GENERATION" file
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN 
+                        ENDIF 
+                     ENDIF 
                   ENDIF 
-                  IF ( 0<lb .and. lb<=ub .and. ub<=pop_dimx) THEN
-                     CALL do_read_values   ! Read values from logfile
-                     IF( ier_num /= 0) RETURN
-                     CALL init_x ( lb,ub)  ! Initialize parameter range
-                     IF( ier_num /= 0) RETURN
-                     CALL write_genfile    ! Write the "GENERATION" file
-                  ELSE
-                     ier_num = -6
-                     ier_typ = ER_COMM
-                     RETURN 
-                  ENDIF 
-               ENDIF 
-               ENDIF 
                ENDIF
             ENDIF 
          ENDIF 
@@ -469,11 +476,11 @@ ELSE
 !                                                                 
 !     -- set the logfile file                                     
 !                                                                 
-   ELSEIF (str_comp (befehl, 'logfile', 3, lbef, 7) ) then 
+   ELSEIF (str_comp (befehl, 'logfile', 3, lbef, 7) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             parent_results = cpara (1)(1:lpara(1)) 
             lparent_results = lpara (1) 
          ENDIF 
@@ -481,11 +488,11 @@ ELSE
 !                                                                 
 !     -- set the current file                                     
 !                                                                 
-   ELSEIF (str_comp (befehl, 'lastfile', 3, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'lastfile', 3, lbef, 8) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             parent_current = cpara (1)(1:lpara(1)) 
             lparent_current = lpara (1) 
          ENDIF 
@@ -493,12 +500,12 @@ ELSE
 !                                                                 
 !     -- set the name of a refinement parameter                   
 !                                                                 
-   ELSEIF (str_comp (befehl, 'pop_name', 3, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'pop_name', 3, lbef, 8) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          iianz = 1 
          CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             IF (nint(werte(1)) >  0       .and.         &
                 nint(werte(1)) <= MAXDIMX .and.         &
                 nint(werte(1)) <= pop_dimx     ) THEN
@@ -543,7 +550,7 @@ ELSE
          ENDIF
       ENDDO
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
             run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
@@ -581,7 +588,7 @@ ELSE
                CALL del_params (2, ianz, cpara, lpara, maxw) 
                ianz = 1
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   IF ( nint(werte(1)) > 0 ) THEN
                      run_mpi_senddata%repeat = .true.             ! repeat = false means no repetition
                   ENDIF 
@@ -610,16 +617,16 @@ ELSE
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
-   ELSEIF (str_comp (befehl, 'show', 3, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'show', 3, lbef, 4) ) THEN 
       CALL diffev_do_show (zeile, lcomm) 
 !                                                                 
 !     -- set the average information file                         
 !                                                                 
-   ELSEIF (str_comp (befehl, 'summaryfile', 3, lbef, 11) ) then 
+   ELSEIF (str_comp (befehl, 'summaryfile', 3, lbef, 11) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-         IF (ier_num.eq.0) then 
+         IF (ier_num.eq.0) THEN 
             parent_summary = cpara (1)(1:lpara(1)) 
             lparent_summary = lpara (1) 
          ENDIF 
@@ -627,21 +634,21 @@ ELSE
 !                                                                 
 !     -- define the refine status of each gene                    
 !                                                                 
-   ELSEIF (str_comp (befehl, 'refine', 2, lbef, 6) ) then 
+   ELSEIF (str_comp (befehl, 'refine', 2, lbef, 6) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.ge.1) then 
-            IF (str_comp (cpara(1),'all',1, lpara (1) , 3) ) then
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.ge.1) THEN 
+            IF (str_comp (cpara(1),'all',1, lpara (1) , 3) ) THEN
                DO i = 1, MAXDIMX 
                pop_refine (i) = .true. 
                ENDDO 
-            ELSEIF (str_comp (cpara(1),'none',1,lpara(1),3) ) then
+            ELSEIF (str_comp (cpara(1),'none',1,lpara(1),3) ) THEN
                DO i = 1, MAXDIMX 
                pop_refine (i) = .false. 
                ENDDO 
             ELSE 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   DO i = 1, ianz 
                   j = nint (werte (i) ) 
                   IF(j==0 .or. j>pop_dimx .or. j>MAXDIMX) THEN
@@ -649,9 +656,9 @@ ELSE
                     ier_typ = ER_APPL
                     RETURN
                   ENDIF
-                  IF (j.gt.0) then 
+                  IF (j.gt.0) THEN 
                      pop_refine (j) = .true. 
-                  ELSEIF (j.lt.0) then 
+                  ELSEIF (j.lt.0) THEN 
                      pop_refine (abs (j) ) = .false. 
                   ENDIF 
                   ENDDO 
@@ -668,17 +675,17 @@ ELSE
 !                                                                 
 !     -- set the selection mode 'selection'                       
 !                                                                 
-   ELSEIF (str_comp (befehl, 'selection', 2, lbef, 9) ) then 
+   ELSEIF (str_comp (befehl, 'selection', 2, lbef, 9) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.ge.1) then 
-            IF (str_comp (cpara(1),'best',3,lpara(1),4)) then
-               IF (str_comp (cpara(2),'all',3,lpara(2), 3) ) then
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.ge.1) THEN 
+            IF (str_comp (cpara(1),'best',3,lpara(1),4)) THEN
+               IF (str_comp (cpara(2),'all',3,lpara(2), 3) ) THEN
                   diff_sel_mode = SEL_BEST_ALL 
-               ELSEIF (str_comp(cpara(2),'children',3,lpara(2), 8) ) then
+               ELSEIF (str_comp(cpara(2),'children',3,lpara(2), 8) ) THEN
                   diff_sel_mode = SEL_BEST_CHILD 
                ENDIF 
-            ELSEIF (str_comp(cpara(1),'compare',3,lpara(1),7)) then
+            ELSEIF (str_comp(cpara(1),'compare',3,lpara(1),7)) THEN
                diff_sel_mode = SEL_COMP 
             ENDIF 
          ENDIF 
@@ -686,9 +693,9 @@ ELSE
 !                                                                 
 !     -- set the trial file                                       
 !                                                                 
-   ELSEIF (str_comp (befehl, 'trialfile', 3, lbef, 9) ) then 
+   ELSEIF (str_comp (befehl, 'trialfile', 3, lbef, 9) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
             IF(lstandalone) THEN 
                ier_num = -27
@@ -700,7 +707,7 @@ ELSE
          ELSE
             pop_trial_file_wrt = .true.
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                pop_trialfile = cpara (1)(1:lpara(1)) 
                pop_ltrialfile = lpara (1) 
             ENDIF 
@@ -709,20 +716,20 @@ ELSE
 !                                                                 
 !     -- set the parameter type                                   
 !                                                                 
-   ELSEIF (str_comp (befehl, 'type', 4, lbef, 4) ) then 
+   ELSEIF (str_comp (befehl, 'type', 4, lbef, 4) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
-         IF (ianz.eq.2) then 
-            IF (str_comp(cpara(1),'integer', 3, lpara (1) , 7)) then
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.eq.2) THEN 
+            IF (str_comp(cpara(1),'integer', 3, lpara (1) , 7)) THEN
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pop_type (nint (werte (1) ) ) = POP_INTEGER 
                ENDIF 
-            ELSEIF (str_comp(cpara(1),'real',3,lpara(1),4) ) then
+            ELSEIF (str_comp(cpara(1),'real',3,lpara(1),4) ) THEN
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
+               IF (ier_num.eq.0) THEN 
                   pop_type (nint (werte (1) ) ) = POP_REAL 
                ENDIF 
             ENDIF 
@@ -731,9 +738,9 @@ ELSE
 !                                                                 
 !     -- set the result file                                      
 !                                                                 
-   ELSEIF (str_comp (befehl, 'restrial', 3, lbef, 8) ) then 
+   ELSEIF (str_comp (befehl, 'restrial', 3, lbef, 8) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
             IF(lstandalone) THEN 
                ier_num = -27
@@ -744,7 +751,7 @@ ELSE
             ENDIF 
          ELSE
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                trial_results = cpara (1)(1:lpara(1)) 
                ltrial_results = lpara (1) 
             ENDIF 
@@ -753,17 +760,17 @@ ELSE
 !
 !     -- Write a new set of children for the current generation
 !
-   ELSEIF (str_comp (befehl, 'write', 3, lbef, 5) ) then
+   ELSEIF (str_comp (befehl, 'write', 3, lbef, 5) ) THEN
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm)
-      IF (ier_num.eq.0) then
-         IF (str_comp (cpara (1) , 'children', 3, lpara (1) , 8)) then
+      IF (ier_num.eq.0) THEN
+         IF (str_comp (cpara (1) , 'children', 3, lpara (1) , 8)) THEN
             CALL read_par_values              ! Make sure parent values are set
             CALL create_trial                 ! Make a new set
             CALL write_genfile                ! Write the "GENERATION" file
             CALL write_current                ! Update the Current parameter file
-         ELSE IF (str_comp (cpara (1) , 'generation', 3, lpara (1) ,10)) then
+         ELSE IF (str_comp (cpara (1) , 'generation', 3, lpara (1) ,10)) THEN
             CALL write_genfile                ! Write the "GENERATION" file
-         ELSE IF (str_comp (cpara (1) , 'kid', 3, lpara (1) ,3)) then
+         ELSE IF (str_comp (cpara (1) , 'kid', 3, lpara (1) ,3)) THEN
             cpara(1) = '0'
             lpara(1) = 1
             kid    = 1
@@ -793,7 +800,7 @@ ELSE
 !                                                                       
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
 !                                                                       
-         ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) then
+         ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN
             CALL p_branch (zeile, lcomm)
 !                                                                 
 !------   Try general commands                                    
