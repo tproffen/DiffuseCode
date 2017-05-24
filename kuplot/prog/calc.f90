@@ -638,7 +638,7 @@
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      PARAMETER (maxw = 45) 
+      PARAMETER (maxw = MAXKURVTOT) 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
