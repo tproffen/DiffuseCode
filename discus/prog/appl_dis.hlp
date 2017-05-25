@@ -7043,8 +7043,9 @@
 !p set        ! Make settings related to surfaces
 !p show       ! Show the current surface related settings
 3  boundary
-!b boundary "hkl",h,k,l [,distance] [,{"inside"}|{"outside"}]
-!b boundary "form",h,k,l [,distance] [,{"inside"}|{"outside"}]
+!b boundary "hkl",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
+!b boundary "form",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
+!b boundary "form","cubeoct",<distance> [,{"inside"}|{"outside"}]
 !b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
 !b boundary "ellipsoid",<radius_a>, <radius_b>, <radius_c> [,{"inside"}|{"outside"}]
 !b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
@@ -7063,6 +7064,13 @@
           the other side of the plane as the origin.
    "form" Same as "hkl", except that DISCUS will create all symmetrically
           equivalent forms of h,k,l and apply them to shape the crystal
+
+          With the word "cubeoct" as second parameter, a combination of 
+          {100} and {111} faces is created that will build a cubeoctahedron 
+          in a cubic system. The <distance> is the distance of the {100} 
+          faces from the origin. 
+          If the crystal system is not cubic, an error message is 
+          displayed and the boundary is not applied.
    "sphere" The boundary is defined as a sphere at the origin of direct
           space. The size of the sphere is defined by its radius in Angstroem.
           The optional last parameter determines which atoms remain.

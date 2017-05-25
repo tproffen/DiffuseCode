@@ -2290,11 +2290,10 @@ CONTAINS
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 6) 
+      INTEGER, PARAMETER :: maxw = 6
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lp 
+      CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
+      INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
       REAL, PARAMETER :: EPS = 0.000001
       CHARACTER(1024) cpara (maxw) 
@@ -2354,17 +2353,26 @@ CONTAINS
             lspace = .false. 
             l_special = .FALSE.
             IF(str_comp(cpara(2),'cubeoct',7,lpara(2),7)) THEN
-               cpara(5) = cpara(3)
-               lpara(5) = lpara(3)
-               cpara(2) = '1.0'
-               cpara(3) = '0.0'
-               cpara(4) = '0.0'
-               lpara(2) = 3
-               lpara(3) = 3
-               lpara(4) = 3
-               ianz = 5
-!              l_special = .TRUE.
-               special_form = 1
+               IF(cr_syst==CR_CUBIC) THEN
+                  cpara(5) = cpara(3)
+                  lpara(5) = lpara(3)
+                  cpara(2) = '1.0'
+                  cpara(3) = '0.0'
+                  cpara(4) = '0.0'
+                  lpara(2) = 3
+                  lpara(3) = 3
+                  lpara(4) = 3
+                  ianz = 5
+!                 l_special = .TRUE.
+                  special_form = 1
+               ELSE
+                  ier_num = -142
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'Unpredictable forms would result in non-cubic'
+                  ier_msg(2) = 'systems. Use explicit forms and combinations'
+                  ier_msg(3) = 'in non-cubic systems.'
+                  RETURN
+               ENDIF
             ELSE
                special_form = 0
             ENDIF
