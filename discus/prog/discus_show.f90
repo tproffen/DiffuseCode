@@ -671,9 +671,15 @@ CONTAINS
 !                                                                       
       CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                   diff_radiation, diff_power) 
+      IF(ier_num /= 0) THEN
+         ier_msg(1) = 'At least one of the element names is not an'
+         ier_msg(2) = 'internal DISCUS atom name. Check with:'
+         ier_msg(3) = 'show atom, all and compare to help atom_names'
+         RETURN
+      endif
 !                                                                       
       DO i = 0, cr_nscat 
-      latom (i) = .false. 
+      latom (i) = .false.   
       ENDDO 
       CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
       IF (ier_num.eq.0) then 

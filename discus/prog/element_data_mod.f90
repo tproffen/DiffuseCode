@@ -20,7 +20,7 @@ MODULE element_data_mod
 !
    CHARACTER  (LEN=4), DIMENSION(1:PER_MAXELEMENT), PARAMETER :: per_name = (/ &
         'VOID','H   ','H.  ','H1- ','D   ','D1- ','HE  ','LI  ','LI1+','BE  ','BE2+','B   ','C   ','C.  ',&
-        'N   ','O   ','O1- ','O2- ','F   ','F1- ','NE  ','NA  ','NA1+','MG  ','MG2+','AL  ','A13+','SI  ',&
+        'N   ','O   ','O1- ','O2- ','F   ','F1- ','NE  ','NA  ','NA1+','MG  ','MG2+','AL  ','AL3+','SI  ',&
         'SI. ','SI4+','P   ','S   ','CL  ','CL1-','AR  ','K   ','K1+ ','CA  ','CA2+','SC  ','SC3+','TI  ',&
         'TI2+','TI3+','TI4+','V   ','V2+ ','V3+ ','V5+ ','CR  ','CR2+','CR3+','MN  ','MN2+','MN3+','MN4+',&
         'FE  ','FE2+','FE3+','CO  ','CO2+','CO3+','NI  ','NI2+','NI3+','CU  ','CU1+','CU2+','ZN  ','ZN2+',&

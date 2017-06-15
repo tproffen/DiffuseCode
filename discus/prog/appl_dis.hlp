@@ -69,6 +69,12 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_June
+
+   Atom "AL3+" had been misspelled internally.
+
+   The 'hkl' command in 'fourier' can now handle format strings for
+   the file name.
 3  2017_May
 
    The boundary command at the top level menu and inside the surface
@@ -9981,7 +9987,7 @@
 !p GD3+ TB   TB3+ DY   DY3+ HO   HO3+ ER   ER3+ TM   TM3+ YB   YB2+ YB3+ 
 !p LU   LU3+ HF   HF4+ TA   TA5+ W    W6+  RE   OS   OS4+ IR   IR3+ IR4+ 
 !p PT   PT2+ PT4+ AU   AU1+ AU3+ HG   HG1+ HG2+ TL   TL1+ TL3+ PB   PB2+ 
-!p PB4+ BI   BI3+ BI5+ PO   AT   RN   FR   RA   RA2+ AC   AC3+ THE   TH4+ 
+!p PB4+ BI   BI3+ BI5+ PO   AT   RN   FR   RA   RA2+ AC   AC3+ TH   TH4+ 
 !p PA   U    U3+  U4+  U6+  NP   NP3+ NP4+ NP6+ PU   PU3+ PU4+ PU6+ AM   
 !p CM   BK   CF   
 
