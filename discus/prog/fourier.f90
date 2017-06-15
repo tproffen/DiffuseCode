@@ -299,7 +299,7 @@ CONTAINS
             ELSEIF (str_comp (befehl, 'hkl', 2, lbef, 3) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ier_num.eq.0) then 
-                  IF (ianz.eq.4) then 
+                  IF (ianz >= 4) then 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      infile   = cpara(1)
                      infile_l = lpara(1)

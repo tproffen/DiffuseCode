@@ -1074,7 +1074,7 @@ main:       DO
                indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
                wert = REAL(csf(indx)*CONJG(csf(indx)))
                sint = SQRT(ABS(wert))
-               WRITE(iwr,1000) ih,ik,il, scale*wert, scale*sint 
+               WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
             END DO main
          ENDIF 
       ENDIF 
