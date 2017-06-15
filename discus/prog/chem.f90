@@ -1928,7 +1928,7 @@ ENDIF
          at_name_i = at_name (cr_iscat (atom_env (ianz) ) ) 
          CALL indextocell (atom_env (ianz), icell, isite) 
          WRITE (output_io, 1400) ianz, atom_env (ianz), at_name_i,      &
-         res_para (ianz), (cr_pos (i, atom_env (ianz) ), i = 1, 3),     &
+         atom_dis (ianz), (cr_pos (i, atom_env (ianz) ), i = 1, 3),     &
          icell, isite                                                   
          res_para (ianz) = float (atom_env (ianz) ) 
          ENDDO 
