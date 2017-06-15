@@ -1645,7 +1645,7 @@
       ik = nint (werte (1) ) 
       il = nint (werte (2) ) 
 !                                                                       
-      CALL del_params (1, ianz, cpara, lpara, maxw) 
+!      CALL del_params (1, ianz, cpara, lpara, maxw) 
       iweight = W_ONE 
       IF (ianz.eq.0.or.str_comp (cpara (1) , 'one', 1, lpara (1) , 3) ) &
       then                                                              
