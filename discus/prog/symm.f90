@@ -658,6 +658,9 @@ CONTAINS
                         ier_num = - 6 
                         ier_typ = ER_COMM 
                      ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
                      ENDIF 
                   ELSE 
                      ier_num = - 6 
