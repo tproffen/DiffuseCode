@@ -69,6 +69,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_July
+
+   The decoration of ligands onto surfaces can now be resticted to
+   specific faces.
+
+   The ==> 'therm' command erroneously used too large a displacement.
+   The average <u^2> were actually 3 times too large. 
 3  2017_June
 
    Atom "AL3+" had been misspelled internally.
@@ -1679,6 +1686,7 @@
 !b set <name>, "ligand", <file>, <density>
 !b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
+!b set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
 
    This command allows to set the detailed definitions needed to decorate the
    surface.
@@ -1707,6 +1715,17 @@
        For the types "double" and "multi" the orienation of the molecule is
        partially defined by the bonds. The axis is placed into a plane parallel
        to the local surface normal.
+
+   set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
+       Allows to define a restricted placement of the ligands onto one or
+       several surface faces or complete forms.
+       With "hkl" the restriction applies to a single face <h>, <k>, <l>,
+       with "form" the Miller indices <h>, <k>, <l> are expanded to the 
+       complete form for the current crystal system. 
+       You can use several commands to combine more than one restriction.
+       DISCUS calculates the local surface normal and applies a strict
+       adherence to the specified Miller indices.
+       If the last parameter is "none", all restrictions are removed.
 3  show
 !b show
    Show all current definitions
@@ -7884,6 +7903,10 @@
 2  ther
 !b ther [{"all" | "2d"}]
 !b ther "mol",[{"all" | "2d"}]
+   Error notice: 
+   Previous to Version 5.13.0
+   the ==> 'therm' command erroneously used too large a displacement.
+   The average <u^2> were actually 3 times too large. 
 
    Randomly displaces all atoms according to their respective isotropic
    thermal coefficient. The directions of the displacements are distributed
