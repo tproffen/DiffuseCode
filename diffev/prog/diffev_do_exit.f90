@@ -5,12 +5,14 @@ CONTAINS
 SUBROUTINE diffev_do_exit 
 !                                                                       
 USE diffev_allocate_appl
+USE diffev_random
 USE prompt_mod 
 !+                                                                      
 !           Clean exit from the program DIFFEV ;-)                      
 !-                                                                      
 IMPLICIT none 
 !                                                                       
+CALL diffev_best_macro             ! Make a macro to recreate best parameters
 !                                                                       
 CALL diffev_do_deallocate_appl ( 'all',3)
 CALL exit_all
@@ -47,4 +49,7 @@ CALL run_mpi_finalize
 !
 !
 END SUBROUTINE diffev_emergency_mpi
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 END MODULE diffev_do_exit_mod

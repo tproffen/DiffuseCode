@@ -13,6 +13,9 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          children, parameters, &
                                  nindiv  , &
                          trial_values, NTRIAL, &
+                         l_get_random_state,     &
+                         rd_idum,rd_iff,         &
+                         rd_ix1, rd_ix2, rd_ix3, &
                          ierr )
 !
 ! specific funtion to execute the cost function from diffev
@@ -46,6 +49,12 @@ INTEGER                , INTENT(IN) :: parameters
 INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(OUT):: ierr 
 INTEGER                , INTENT(IN) :: NTRIAL
+LOGICAL                , INTENT(IN)  :: l_get_random_state
+INTEGER                , INTENT(OUT) :: rd_idum
+INTEGER                , INTENT(OUT) :: rd_iff
+INTEGER                , INTENT(OUT) :: rd_ix1
+INTEGER                , INTENT(OUT) :: rd_ix2
+INTEGER                , INTENT(OUT) :: rd_ix3
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 !
 CHARACTER(LEN=2048) :: line
@@ -54,6 +63,16 @@ INTEGER             :: job_l
 INTEGER             :: len_str
 INTEGER             :: system
 !
+! If instructed, get state of random number generator
+! As there is no connection to slave program set all to zero
+!
+IF(l_get_random_state) THEN
+   rd_idum = 0
+   rd_iff  = 0
+   rd_ix1  = 0
+   rd_ix2  = 0
+   rd_ix3  = 0
+ENDIF
 !
 IF ( repeat ) THEN       ! NINDIV calculations needed
    WRITE(line,2000) prog (1:prog_l ), &

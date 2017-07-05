@@ -11,6 +11,7 @@ USE errlist_mod
 USE learn_mod 
 USE class_macro_internal 
 USE mpi_slave_mod
+USE diffev_random
 USE prompt_mod 
 USE set_sub_generic_mod
 !                                                                       
@@ -111,6 +112,9 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
          IF(.NOT. linteractive .AND. .NOT. lmakro) RETURN
       ENDDO main
 !                                                                       
+      IF(lend) THEN
+         CALL diffev_best_macro
+      ENDIF
 !
    ELSEIF(run_mpi_active) THEN  master_slave
 !      IF(.NOT. lstandalone) THEN

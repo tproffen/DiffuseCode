@@ -19,8 +19,14 @@
    Further help topics are:
 
 2  News
+3  2017_July
+   DIFFEV has been modified to log the status of the random number generator 
+   at the beginning of each slave calculation. This status is documented 
+   internally for the current best member of the population. Once an 'exit'
+   command is executed, DIFFEV will write a macro called "diffev_best.mac" 
+   that can be used to recreate the current best solution.
 3  2017_Jan
-   An unfortunate typing error in News/2016_oct regaring the new
+   An unfortunate typing error in News/2016_Oct regaring the new
    refinement variable 
    ref_para[1...]   ( was misspelled as ref_param[1...] )
    is corrected in the  on-line help.
@@ -33,7 +39,7 @@
    At a few select points colors are introduced into the output.
    Currently these are just the error messages.
 
-3  2016_oct
+3  2016_Oct
 
    Global variables have been introduced that use the same syntax as
    user defined variables. This include just "pi" and variables related

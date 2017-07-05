@@ -18,6 +18,7 @@ USE initialise
 USE run_mpi_mod
 USE diffev_show_mod
 USE diffev_refine
+USE diffev_random
 !
 USE errlist_mod 
 USE learn_mod 
@@ -266,6 +267,10 @@ ELSE
          RETURN 
       ENDIF
       CALL do_compare 
+!
+!     Turn random state log ON
+!
+      CALL diffev_random_on
 !                                                                 
 !     -- Define a hard constraint 'constraint'                    
 !                                                                 
@@ -467,6 +472,10 @@ ELSE
                   ENDIF 
                ENDIF
             ENDIF 
+!
+!           Turn random state log ON
+!
+            CALL diffev_random_on
          ENDIF 
       ELSE 
          ier_num = - 3 
@@ -551,6 +560,7 @@ ELSE
       ENDDO
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
+         run_mpi_senddata%l_get_state = l_get_random_state   ! Log random number state
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
             run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
@@ -614,6 +624,15 @@ ELSE
          ENDIF 
          ENDIF 
       ENDIF 
+!
+!     Turn random state log OFF, and documentation ON
+!
+      IF(diffev_random_status()) CALL diffev_random_write_on( &
+                                    run_mpi_senddata%prog,    &
+                                    run_mpi_senddata%prog_l,  &
+                                    run_mpi_senddata%mac,     &
+                                    run_mpi_senddata%mac_l)
+      CALL diffev_random_off
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 

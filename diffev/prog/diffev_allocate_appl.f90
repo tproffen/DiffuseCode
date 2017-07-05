@@ -347,6 +347,10 @@ CONTAINS
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !
+      CALL alloc_arr ( pop_random ,1,5, 1,n_pop , all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pop_size_of = pop_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          MAXDIMX       = n_dimx
          MAXPOP        = n_pop

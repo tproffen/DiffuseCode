@@ -137,6 +137,7 @@ SUBROUTINE run_mpi_master
 !  sends them to run_mpi_numprocs -1 slaves
 !
 USE diffev_allocate_appl
+USE diffev_random
 USE mpi
 USE population
 USE run_mpi_mod
@@ -207,6 +208,8 @@ run_mpi_senddata%direc   = send_direc(1:MIN(send_direc_l,200))
 run_mpi_numsent = 0                             ! No jobs sent yet
 run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
 !
+run_mpi_senddata%l_get_state = l_get_random_state  ! Inquire random number status
+!
 !  Start initial jobs
 !
 DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
@@ -250,6 +253,13 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
        port_id  (run_mpi_senddata%prog_num,sender) = run_mpi_senddata%port  ! Store port info in data base
    ENDIF
 !
+   IF(l_get_random_state) THEN             ! Update random number status
+      pop_random(1,run_mpi_senddata%kid) = run_mpi_senddata%idum
+      pop_random(2,run_mpi_senddata%kid) = run_mpi_senddata%iff
+      pop_random(3,run_mpi_senddata%kid) = run_mpi_senddata%ix1
+      pop_random(4,run_mpi_senddata%kid) = run_mpi_senddata%ix2
+      pop_random(5,run_mpi_senddata%kid) = run_mpi_senddata%ix3
+   ENDIF
    IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
       trial_val(run_mpi_senddata%kid) = run_mpi_senddata%rvalue
    ENDIF
@@ -497,6 +507,10 @@ slave: DO
                            run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                                    run_mpi_senddata%nindiv  , &
                            run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
+                           run_mpi_senddata%l_get_state,                           &
+                           run_mpi_senddata%idum, run_mpi_senddata%iff,            &
+                           run_mpi_senddata%ix1 , run_mpi_senddata%ix2,            &
+                           run_mpi_senddata%ix3 ,                                  &
                            ierr )
    ENDIF use_socket
 !

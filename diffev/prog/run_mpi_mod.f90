@@ -25,32 +25,40 @@ INTEGER                  :: run_mpi_nprog       = 0
 LOGICAL                  :: run_mpi_active      = .false. ! With/without MPI?
 !
 TYPE run_mpi_type                          ! MPI with types does not work yet
-   INTEGER               :: generation !  2  !  1
-   INTEGER               :: member     !  3  !  2
-   INTEGER               :: children   !  4  !  3
-   INTEGER               :: parameters !  5  !  4
-   INTEGER               :: nindiv     !  6  !  5
-   INTEGER               :: kid        !  7  !  6
-   INTEGER               :: indiv      !  8  !  7
-   INTEGER               :: ierr       !  9  !  8
-   INTEGER               :: direc_l    ! 10  !  9
-   INTEGER               :: prog_l     ! 11  ! 10
-   INTEGER               :: mac_l      ! 12  ! 11
-   INTEGER               :: out_l      ! 13  ! 12
-   INTEGER               :: prog_num   ! 15  ! 13
-   INTEGER               :: s_remote   ! 17  ! 14
-   INTEGER               :: port       ! 18  ! 15
-   INTEGER               :: spacer     ! 18  ! 15
-   LOGICAL               :: repeat     !  1  ! 16
-   LOGICAL               :: use_socket ! 14  ! 17
-   LOGICAL               :: prog_start ! 16  ! 18
-   LOGICAL               :: l_rvalue   ! 19  ! 19
-   CHARACTER (LEN=240)   :: direc      ! 21 : 260
-   CHARACTER (LEN=100)   :: prog       !261 : 360
-   CHARACTER (LEN=100)   :: mac        !361 : 460
-   CHARACTER (LEN=100)   :: out        !461 : 560
-   REAL                  :: rvalue     !561 : 580
-   REAL                  :: rvalue2    !561 : 580
+   INTEGER               :: generation !  1  !  1
+   INTEGER               :: member     !  2  !  2
+   INTEGER               :: children   !  3  !  3
+   INTEGER               :: parameters !  4  !  4
+   INTEGER               :: nindiv     !  5  !  5
+   INTEGER               :: kid        !  6  !  6
+   INTEGER               :: indiv      !  7  !  7
+   INTEGER               :: ierr       !  8  !  8
+   INTEGER               :: direc_l    !  9  !  9
+   INTEGER               :: prog_l     ! 10  ! 10
+   INTEGER               :: mac_l      ! 11  ! 11
+   INTEGER               :: out_l      ! 12  ! 12
+   INTEGER               :: prog_num   ! 13  ! 13
+   INTEGER               :: s_remote   ! 14  ! 14
+   INTEGER               :: port       ! 15  ! 15
+   INTEGER               :: idum       ! 16  ! 16
+   INTEGER               :: iff        ! 17  ! 17
+   INTEGER               :: ix1        ! 18  ! 18
+   INTEGER               :: ix2        ! 19  ! 19
+   INTEGER               :: ix3        ! 20  ! 20
+   LOGICAL               :: repeat     ! 21  ! 21
+   LOGICAL               :: use_socket ! 22  ! 22
+   LOGICAL               :: prog_start ! 23  ! 23
+   LOGICAL               :: l_rvalue   ! 24  ! 24
+   LOGICAL               :: l_get_state! 25  ! 25
+   LOGICAL               :: spacer1    ! 26  ! 26
+   LOGICAL               :: spacer2    ! 27  ! 27
+   LOGICAL               :: spacer3    ! 28  ! 28
+   CHARACTER (LEN=240)   :: direc      ! 29 : 268
+   CHARACTER (LEN=100)   :: prog       !269 : 368
+   CHARACTER (LEN=100)   :: mac        !369 : 468
+   CHARACTER (LEN=100)   :: out        !469 : 568
+   REAL                  :: rvalue     !569 : 569
+   REAL                  :: rvalue2    !570 : 570
    REAL,DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
 END TYPE run_mpi_type
 !

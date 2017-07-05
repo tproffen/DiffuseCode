@@ -42,6 +42,7 @@ INTEGER                 :: pop_back_number = 0
 LOGICAL                 :: pop_backup = .false.
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_type       !  (MAXDIMX)
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_lname      !  (MAXDIMX)
+INTEGER ,DIMENSION(:,:), ALLOCATABLE :: pop_random     !  (MAXPOP )
 !
 LOGICAL                              :: pop_current       = .false.
 LOGICAL                              :: pop_current_trial = .false.

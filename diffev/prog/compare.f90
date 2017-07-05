@@ -38,6 +38,7 @@ CONTAINS
 ! compares all children to their immediate parent
 !
    USE diff_evol
+   USE diffev_random
    USE population
 !                                                                       
    IMPLICIT none 
@@ -111,6 +112,10 @@ CONTAINS
          pop_worst = j 
       ENDIF 
    ENDDO 
+!
+!  Archive random state for best member
+!
+   CALL diffev_random_save(pop_random(:,pop_best))
 !                                                                       
 !------ write the parameters and the results for the current generation 
 !------ Copy current child into parent parameters and create new trial  
@@ -127,6 +132,7 @@ CONTAINS
 ! compares all children to the combined group of (parent + children)
 !
    USE diff_evol
+   USE diffev_random
    USE population
    USE random_mod
 !
@@ -202,6 +208,14 @@ CONTAINS
                ENDDO
             ENDIF
          ENDDO
+         k = 1
+         IF (.NOT.(list_index (k) .le.pop_n)) THEN 
+!
+!        This is a new "best", update random state
+!
+            ii = list_index (k) - pop_n 
+            CALL diffev_random_save(pop_random(:,ii))
+         ENDIF
       ENDIF bck_during
       DO k = 1, pop_n 
          IF (list_index (k) .le.pop_n) THEN 
@@ -236,6 +250,7 @@ CONTAINS
                CALL do_operating_comm(string)
             ENDDO
          ENDDO
+         CALL diffev_random_save(pop_random(:,1))
       ENDIF bck_prior
       DO k = 1, pop_n 
          ii = list_index (k) 

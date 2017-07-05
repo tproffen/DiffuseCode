@@ -12,6 +12,7 @@ CONTAINS
    USE mpi_slave_mod
    USE param_mod
    USE prompt_mod
+   USE random_state_mod
    USE set_sub_generic_mod
    USE doexec_mod
    USE variable_mod
@@ -80,6 +81,18 @@ CONTAINS
             level = level_mpi
             ilevel(level) = nlevel_mpi
             rvalue_yes = .FALSE.
+            IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
+               CALL random_current(run_mpi_senddata%idum, &
+                                   run_mpi_senddata%iff,  &
+                                   run_mpi_senddata%ix1,  &
+                                   run_mpi_senddata%ix2,  &
+                                   run_mpi_senddata%ix3  ) 
+               pop_random(1,i) = run_mpi_senddata%idum
+               pop_random(2,i) = run_mpi_senddata%iff
+               pop_random(3,i) = run_mpi_senddata%ix1
+               pop_random(4,i) = run_mpi_senddata%ix2
+               pop_random(5,i) = run_mpi_senddata%ix3
+            ENDIF
             CALL p_branch(zeile, lzeile)
             IF(rvalue_yes) THEN
                trial_val(run_mpi_senddata%kid) = rvalues(2)
@@ -100,7 +113,18 @@ CONTAINS
                  run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                          run_mpi_senddata%nindiv  , &
                  run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
+                 run_mpi_senddata%l_get_state,                           &
+                 run_mpi_senddata%idum, run_mpi_senddata%iff,            &
+                 run_mpi_senddata%ix1 , run_mpi_senddata%ix2,            &
+                 run_mpi_senddata%ix3 ,                                  &
                  ierr )
+            IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
+               pop_random(1,i) = run_mpi_senddata%idum
+               pop_random(2,i) = run_mpi_senddata%iff
+               pop_random(3,i) = run_mpi_senddata%ix1
+               pop_random(4,i) = run_mpi_senddata%ix2
+               pop_random(5,i) = run_mpi_senddata%ix3
+            ENDIF
          ENDIF
          mpi_is_slave = .false.
          IF(ierr/=0) THEN

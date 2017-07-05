@@ -7,6 +7,7 @@ SUBROUTINE diffev_loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, n
 !  into the senddata structure.
 !
 USE population
+USE diffev_random
 USE run_mpi_mod
 !
 IMPLICIT NONE
@@ -34,5 +35,7 @@ run_mpi_senddata%member     = pop_n      ! Number of members
 run_mpi_senddata%children   = pop_c      ! Number of children
 run_mpi_senddata%parameters = pop_dimx   ! Number of parameters
 run_mpi_senddata%use_socket = .false.
+!
+run_mpi_senddata%l_get_state = l_get_random_state
 !
 END SUBROUTINE diffev_loop_mpi
