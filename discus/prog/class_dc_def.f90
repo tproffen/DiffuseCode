@@ -19,19 +19,24 @@ END TYPE dc_con
 !
 !  This is the basic definition TYPE:
 TYPE dc_def
-   INTEGER                :: dc_def_index    ! Current definition number
-   INTEGER                :: dc_def_lname    ! Length of the definition name
-   CHARACTER(LEN=1024)    :: dc_def_name     ! the definition name
-   INTEGER                :: dc_def_lfile    ! Length of the molecule file name
-   CHARACTER(LEN=1024)    :: dc_def_file     ! the molecule file name
-   INTEGER                :: dc_def_type     ! Connection type (NORMAL, BRIDGE, ...)
-   CHARACTER(LEN=8)       :: dc_def_ntype    ! Connection type name (NORMAL, BRIDGE, ...)
-   INTEGER                :: dc_def_ltype    ! Connection type name length (NORMAL, BRIDGE, ...)
-   INTEGER,DIMENSION(1:2) :: dc_def_axis     ! Molecule axis defined by two atoms
-   REAL                   :: dc_def_dens     ! Molecule density per square Angstroem
-   INTEGER                :: dc_def_ncon     ! number of connections defined
-   TYPE (dc_con), POINTER :: dc_def_con      ! Chain of Connections associated to this definition
-   TYPE (dc_def), POINTER :: next            ! next definition entry
+   INTEGER                  :: dc_def_index    ! Current definition number
+   INTEGER                  :: dc_def_lname    ! Length of the definition name
+   CHARACTER(LEN=1024)      :: dc_def_name     ! the definition name
+   INTEGER                  :: dc_def_lfile    ! Length of the molecule file name
+   CHARACTER(LEN=1024)      :: dc_def_file     ! the molecule file name
+   INTEGER                  :: dc_def_type     = 1       ! Connection type (NORMAL, BRIDGE, ...)
+   CHARACTER(LEN=8)         :: dc_def_ntype    = 'NORMAL'! Connection type name (NORMAL, BRIDGE, ...)
+   INTEGER                  :: dc_def_ltype    = 6       ! Connection type name length (NORMAL, BRIDGE, ...)
+   INTEGER,DIMENSION(1:2)   :: dc_def_axis     ! Molecule axis defined by two atoms
+   REAL                     :: dc_def_dens     = 0.100   ! Molecule density per square Angstroem
+   LOGICAL                  :: dc_def_restrict = .FALSE. ! Restriction yes / no
+   LOGICAL                  :: dc_def_l_form   = .FALSE. ! Single hkl or form
+   INTEGER                  :: dc_def_n_hkl    = 0 ! Number of hkls that make special form
+!  INTEGER,DIMENSION(1:3,2) :: dc_def_hkl      = 0 ! Surface restrictions
+   INTEGER,ALLOCATABLE,DIMENSION(:,:) :: dc_def_hkl! Surface restrictions
+   INTEGER                  :: dc_def_ncon     = 0 ! number of connections defined
+   TYPE (dc_con), POINTER   :: dc_def_con      ! Chain of Connections associated to this definition
+   TYPE (dc_def), POINTER   :: next            ! next definition entry
 !
 END TYPE dc_def
 !
@@ -190,6 +195,45 @@ CONTAINS
 !
 !*******************************************************************************
 !
+   SUBROUTINE dc_set_hkl(this, dc_temp_restrict, dc_temp_n_hkl, dc_temp_hkl, l_form)
+!
+   TYPE (dc_def), POINTER :: this
+   LOGICAL                   , INTENT(IN) :: dc_temp_restrict
+   INTEGER                   , INTENT(IN) :: dc_temp_n_hkl
+   INTEGER, DIMENSION(:,:)   , INTENT(IN) :: dc_temp_hkl
+   LOGICAL                   , INTENT(IN) :: l_form
+   INTEGER, ALLOCATABLE, DIMENSION(:,:) :: temp_hkl
+   INTEGER :: nold
+!
+   nold = 0
+   IF(ASSOCIATED(this)) THEN
+      IF(ALLOCATED(this%dc_def_hkl)) THEN
+         nold = UBOUND(this%dc_def_hkl,2)
+         IF(UBOUND(this%dc_def_hkl,2)<dc_temp_n_hkl) THEN
+            ALLOCATE(temp_hkl(1:3,1:dc_temp_n_hkl + 5))
+            temp_hkl = 0
+            temp_hkl(:,1:this%dc_def_n_hkl) = this%dc_def_hkl(:,1:this%dc_def_n_hkl)
+            DEALLOCATE(this%dc_def_hkl)
+            ALLOCATE  (this%dc_def_hkl(1:3,1:dc_temp_n_hkl + 5))
+            this%dc_def_hkl(:,:) = temp_hkl(:,:)
+            DEALLOCATE(temp_hkl)
+         ENDIF
+      ELSE
+         ALLOCATE(this%dc_def_hkl(1:3,1:dc_temp_n_hkl + 5))
+         this%dc_def_hkl = 0
+      ENDIF
+      this%dc_def_restrict   = dc_temp_restrict
+      this%dc_def_l_form     = l_form
+      this%dc_def_n_hkl      = dc_temp_n_hkl
+      this%dc_def_hkl(:,nold+1:dc_temp_n_hkl) = dc_temp_hkl(:,nold+1:dc_temp_n_hkl)
+   ELSE
+      write(*,*) ' SET HKL, NODE NOT associated!'
+   ENDIF
+!
+   END SUBROUTINE dc_set_hkl
+!
+!*******************************************************************************
+!
    SUBROUTINE dc_set_connection(this)
 !
    TYPE (dc_def), POINTER :: this
@@ -209,6 +253,7 @@ CONTAINS
 !
    TYPE (dc_def), POINTER :: this
    INTEGER, INTENT(OUT)   :: ier_num
+   INTEGER :: i
 !
    IF ( ASSOCIATED(this)) THEN
       WRITE(output_io,*)
@@ -226,6 +271,18 @@ CONTAINS
                this%dc_def_ntype(1:this%dc_def_ltype),  &
                this%dc_def_axis(1), this%dc_def_axis(2)
          ENDIF
+         IF(.NOT.this%dc_def_restrict) THEN
+            WRITE(output_io, 1330)
+         ELSE
+            IF(this%dc_def_l_form) THEN
+               WRITE(output_io, 1340)
+            ELSE
+               WRITE(output_io, 1345)
+            ENDIF
+            DO i=1, this%dc_def_n_hkl
+               WRITE(output_io, 1350) this%dc_def_hkl(:,i)
+            ENDDO
+         ENDIF
       ENDIF
       WRITE(output_io, 1500 ) this%dc_def_dens
       WRITE(output_io, 1400 ) this%dc_def_ncon
@@ -240,6 +297,10 @@ CONTAINS
 1300 FORMAT('   Connection type :     ',i4,' ',a8)
 1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to last')
 1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to ',i4 )
+1330 FORMAT('   Connection open to all surfaces')
+1340 FORMAT('   Connection restricted to following forms')
+1345 FORMAT('   Connection restricted to following surfaces')
+1350 FORMAT('              H K L:     ',2(i4,2x),i4) 
 1500 FORMAT('   Surface density :     ',f6.3,' Ligands/A^2')
 1400 FORMAT('   No. of Connect. :     ',i4)
    END SUBROUTINE dc_show_def
@@ -296,6 +357,10 @@ CONTAINS
    this%dc_con_surf(1)  = -1
    this%dc_con_mole  =  0
    this%dc_con_dist  = -1.0
+!  this%dc_con_restrict = .FALSE.
+!  this%dc_con_l_form   = .FALSE.
+!  this%dc_con_n_hkl    = 1
+!  this%dc_con_hkl      = 0
    NULLIFY(this%next)
 !
    END SUBROUTINE dc_set_con_default

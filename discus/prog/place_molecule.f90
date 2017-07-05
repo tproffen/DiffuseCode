@@ -243,6 +243,7 @@ CONTAINS
    USE atom_env_mod
    USE chem_mod
    USE modify_mod
+   USE point_grp
 !
    IMPLICIT NONE
 !
@@ -255,8 +256,11 @@ CONTAINS
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAXW) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
+   INTEGER             , DIMENSION(:,:), ALLOCATABLE :: temp_hkl
+   INTEGER             , DIMENSION(1:4)    :: hkl
    INTEGER              :: ianz, janz, success,i, ncon
    LOGICAL              :: lnew, lnew_mole = .false.
+   LOGICAL              :: l_form
    REAL   , DIMENSION(1:MAXW) :: werte
    REAL   , DIMENSION(1:2   ) :: wwerte
 !
@@ -402,6 +406,64 @@ CONTAINS
          ier_typ = ER_COMM
          ier_msg(1) = 'set ligand command needs four parameters'
       ENDIF
+   ELSEIF ( str_comp(cpara(2),'hkl',3,lpara(2),3) .OR.    &
+            str_comp(cpara(2),'form',4,lpara(2),4) ) THEN
+      l_form = str_comp(cpara(2),'form',4,lpara(2),4)
+      IF ( ianz == 3 ) THEN
+         IF( str_comp(cpara(3),'none',4,lpara(2),4) ) THEN
+            dc_temp_restrict = .FALSE.
+            dc_temp_n_hkl    = 0
+            IF(ALLOCATED(dc_temp_hkl)) DEALLOCATE(dc_temp_hkl)
+!           dc_temp_hkl      = 0
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'set hkl command needs four parameters'
+            ier_msg(2) = 'or must be                           '
+            ier_msg(2) = 'set hkl, none                        '
+         ENDIF
+      ELSEIF ( ianz == 5 ) THEN
+         CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         CALL ber_params (ianz, cpara, lpara, werte, maxw)
+         IF( ier_num==0) THEN
+            IF(ALLOCATED(dc_temp_hkl)) THEN
+               IF(UBOUND(dc_temp_hkl,2)<=dc_temp_n_hkl) THEN
+                  ALLOCATE(temp_hkl(1:3,1:dc_temp_n_hkl+5))
+                  temp_hkl(:,1:dc_temp_n_hkl) = dc_temp_hkl(:,1:dc_temp_n_hkl)
+                  DEALLOCATE(dc_temp_hkl)
+                  ALLOCATE(  dc_temp_hkl(1:3,dc_temp_n_hkl+5))
+                  dc_temp_hkl(:,1:dc_temp_n_hkl) = temp_hkl(:,1:dc_temp_n_hkl)
+                  DEALLOCATE(temp_hkl)
+               ENDIF
+            ELSE
+               ALLOCATE(  dc_temp_hkl(1:3,dc_temp_n_hkl+5))
+            ENDIF
+!           IF(dc_temp_n_hkl<48) THEN
+               dc_temp_n_hkl = dc_temp_n_hkl + 1
+               dc_temp_hkl(:,dc_temp_n_hkl) = NINT(werte(1:3))
+               dc_temp_restrict = .TRUE.
+!           ELSE
+!              ier_num = -6
+!              ier_typ = ER_COMM
+!              ier_msg(1) = 'No more space for further forms        '
+!           ENDIF
+         ENDIF
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+         ier_msg(1) = 'set hkl command needs 3 or 5 parameters'
+      ENDIF
+      IF(ier_num==0) then
+         IF(l_form) THEN    ! If necessary expand form to symmetrically equivalent hkl
+            hkl(1:3) = dc_temp_hkl(1:3,dc_temp_n_hkl)
+            hkl(4)   = 0
+            CALL point_set(hkl, dc_temp_hkl, dc_temp_n_hkl)
+         ENDIF
+         CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
+         IF(success==0) THEN
+            CALL dc_set_hkl(dc_def_temp, dc_temp_restrict, dc_temp_n_hkl, dc_temp_hkl, l_form)
+         ENDIF
+      ENDIF
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
@@ -462,6 +524,12 @@ CONTAINS
          NULLIFY(dc_def_temp) ! => dc_def_head
          RETURN
       ENDIF
+      dc_temp_restrict = .FALSE.
+      dc_temp_l_form   = .FALSE.
+      dc_temp_n_hkl    = 0
+      IF(ALLOCATED(dc_temp_hkl)) DEALLOCATE(dc_temp_hkl)
+      ALLOCATE(dc_temp_hkl(1:3,1:5))
+      dc_temp_hkl      = 0
       lnew          = .true.
       NULLIFY(dc_def_temp) ! => dc_def_head
       CALL dc_find_def(dc_def_head,dc_def_temp, dc_temp_lname, dc_temp_name,dc_temp_id,lnew,success)
@@ -1353,6 +1421,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    USE modify_mod
    USE molecule_mod
    USE molecule_func_mod
+   USE point_grp
    USE prop_para_mod
    USE symm_menu
    USE symm_mod
@@ -1381,10 +1450,15 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    CHARACTER (LEN=1024) :: line
    INTEGER :: i, im, laenge
    INTEGER :: itype
-   INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
+!  INTEGER   :: surf_char 
    INTEGER            :: nold   ! atom number previous to current molecule
    INTEGER            :: m_type_new   ! new molecule types 
-   REAL   , DIMENSION(1:3) :: surf_normal
+   INTEGER                 :: surf_char    ! Surface character, plane, edge, corner, ...
+   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+   INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
+   INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
+!
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
    REAL, DIMENSION(3) :: posit
    REAL, DIMENSION(3) :: vnull
    REAL, DIMENSION(3) :: origin
@@ -1400,12 +1474,23 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    REAL                :: r_m_fuzzy
    REAL                :: r_m_dens
    REAL                :: r_m_biso
+   INTEGER, DIMENSION(4) :: hkl
 !
    vnull(:) = 0.00
 !
-!write(*,*) ' IN PLACE_NORMAL ', ia
-   CALL find_surface_character(ia,surf_char, surf_normal)
-!write(*,*) ' surf_normal', surf_normal, surf_normal
+!  Determine surface character, if growth is restricted check if we're at proper surface
+!
+   hkl(4) = 0.0
+   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight)
+   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   hkl(1:3) = surface_normal(:,1)
+   IF(dc_def_temp%dc_def_restrict) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, dc_def_temp%dc_def_l_form) ) THEN
+         RETURN
+      ENDIF
+   ENDIF
+!
+   surf_normal = FLOAT(surface_normal(:,1))
 !  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
 !
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
@@ -1495,6 +1580,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
+   USE point_grp
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -1515,6 +1601,12 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
+   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+   INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
+   INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
+!
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
 !
    REAL, PARAMETER :: EPS = 1.0E-6
    INTEGER, PARAMETER                      :: MAXW = 2
@@ -1527,13 +1619,13 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER                                 :: nold   ! atom number previous to current molecule
+   INTEGER  , DIMENSION(1:4)               :: hkl
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
    REAL                                    :: rmin, radius, normal_l, dw1, b_l, b_n
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
-   REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: i_m_mole
@@ -1545,6 +1637,18 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    REAL                :: r_m_biso
 !
    vnull(:) = 0.00
+!
+!  Determine surface character, if growth is restricted check if we're at proper surface
+!
+   hkl(4) = 0.0
+   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight)
+   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   hkl(1:3) = surface_normal(:,1)
+   IF(dc_def_temp%dc_def_restrict) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, dc_def_temp%dc_def_l_form) ) THEN
+         RETURN
+      ENDIF
+   ENDIF
 !
 !DBG_GOLD
 !
@@ -1683,6 +1787,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
+   USE point_grp
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -1713,7 +1818,6 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    CHARACTER (LEN=4) :: atom_name
    CHARACTER (LEN=1024)                    :: line
-   INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(0:4)             :: surface         ! Surface atom type
    INTEGER                             :: neighbor        ! Connected to this neighbor in mole
    REAL                                :: distance        ! distance to ligand molecule
@@ -1728,6 +1832,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
    INTEGER                                 :: success        ! Everything went fine
+   INTEGER  , DIMENSION(1:4)               :: hkl
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
@@ -1736,8 +1841,14 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    REAL                                    :: arg            ! argument for acos
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w, u
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
-   REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
+   INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
+   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+   INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
+   INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
+!
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+!
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: i_m_mole
@@ -1750,6 +1861,18 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    vnull(:) = 0.00
    success = -1
+!
+!  Determine surface character, if growth is restricted check if we're at proper surface
+!
+   hkl(4) = 0.0
+   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight)
+   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   hkl(1:3) = surface_normal(:,1)
+   IF(dc_def_temp%dc_def_restrict) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, dc_def_temp%dc_def_l_form) ) THEN
+         RETURN
+      ENDIF
+   ENDIF
 !
 !  Load the molecule into the crystal structure
 !
@@ -1832,7 +1955,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
       ENDIF  ! 
    ENDDO search
 !  Find surface character and local normal
-   CALL find_surface_character(ia, surf_char, surf_normal)
+!  CALL find_surface_character(ia, surf_char, surf_normal)
 !  Determine rotation axis for surface vector
    tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
    t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
@@ -1971,6 +2094,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
+   USE point_grp
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -2016,6 +2140,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
    INTEGER                                 :: success        ! Everything went fine
+   INTEGER  , DIMENSION(1:4)               :: hkl
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
@@ -2026,6 +2151,9 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
    REAL     , DIMENSION(1:3)               :: surf_normal
    REAL     , DIMENSION(1:3)               :: vnull
+   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+   INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
+   INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: i_m_mole
@@ -2040,6 +2168,18 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    vnull(:) = 0.00
    success = -1
+!
+!  Determine surface character, if growth is restricted check if we're at proper surface
+!
+   hkl(4) = 0.0
+   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight)
+   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   hkl(1:3) = surface_normal(:,1)
+   IF(dc_def_temp%dc_def_restrict) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, dc_def_temp%dc_def_l_form) ) THEN
+         RETURN
+      ENDIF
+   ENDIF
 !
 !  Load the molecule into the crystal structure
 !
@@ -2081,7 +2221,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    all_distance(1) = dist
 !
 !  Find surface character and local normal
-   CALL find_surface_character(ia, surf_char, surf_normal)
+!  CALL find_surface_character(ia, surf_char, surf_normal)
 !  Find the other surface atoms involved in this bond
    dc_con_temp => dc_def_temp%dc_def_con
    CALL dc_get_con(dc_con_temp, surface, neighbor, distance)

@@ -2283,6 +2283,7 @@ CONTAINS
       USE crystal_mod 
       USE discus_plot_mod
       USE discus_plot_init_mod
+      USE point_grp
       USE prop_para_mod 
       USE wyckoff_mod 
       USE errlist_mod 
@@ -2313,7 +2314,7 @@ CONTAINS
       REAL h (3), d, dstar, radius, height 
       REAL :: hkl(4), hklw(4)
       REAL, DIMENSION(3, 2) :: special_hkl
-      REAL, DIMENSION(3,48) :: point_hkl
+      REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
       INTEGER               :: point_n
       REAL, DIMENSION(3)    :: radius_ell
       REAL v (3) 
@@ -2529,8 +2530,8 @@ CONTAINS
             ier_typ = ER_COMM 
          ENDIF 
 !                                                                       
-         IF (ier_num.eq.0) then 
-            IF (l_plane) then 
+         IF (ier_num.eq.0) THEN
+            IF (l_plane) THEN
 plane_loop:    DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle plane_loop 
                   d = 1.0 - cr_pos (1, i) * h (1) - cr_pos (2, i) * h (2)  &
@@ -2538,31 +2539,33 @@ plane_loop:    DO i = 1, cr_natoms
                   d = d / dstar 
                   CALL boundarize_atom (d, i, linside) 
                ENDDO plane_loop
-            ELSEIF (l_form) then 
+            ELSEIF (l_form) THEN
                hkl(1:3) = special_hkl(:,1)
                hkl(4)   = 0
-               point_n = 1
-               point_hkl(:,point_n) = hkl(1:3)
+               CALL point_init(hkl, point_hkl, point_n)
+!              point_n = 1
+!              point_hkl(:,point_n) = hkl(1:3)
                DO k = 1,special_n
                   hkl(1:3) = special_hkl(:,k)
                   hkl(4)   = 0
-matrix_set:    DO j=1, spc_n
-                  hklw = MATMUL(hkl,spc_mat(:,:,j))
-                  hklw(4) = 0
-                  l_new = .TRUE.
-search:           DO i=1, point_n
-                     IF(ABS(point_hkl(1,i)-hklw(1)).lt.EPS .AND.   &
-                        ABS(point_hkl(2,i)-hklw(2)).lt.EPS .AND.   &
-                        ABS(point_hkl(3,i)-hklw(3)).lt.EPS ) THEN
-                        l_new = .FALSE.
-                        EXIT search
-                     ENDIF
-                  ENDDO search
-                  IF(l_new) THEN
-                     point_n = point_n + 1
-                     point_hkl(:,point_n) = hklw(1:3)
-                  ENDIF
-               ENDDO matrix_set
+                  CALL point_set(hkl, point_hkl, point_n)
+!matrix_set:    DO j=1, spc_n
+!                  hklw = MATMUL(hkl,spc_mat(:,:,j))
+!                  hklw(4) = 0
+!                  l_new = .TRUE.
+!search:           DO i=1, point_n
+!                     IF(ABS(point_hkl(1,i)-hklw(1)).lt.EPS .AND.   &
+!                        ABS(point_hkl(2,i)-hklw(2)).lt.EPS .AND.   &
+!                        ABS(point_hkl(3,i)-hklw(3)).lt.EPS ) THEN
+!                        l_new = .FALSE.
+!                        EXIT search
+!                     ENDIF
+!                  ENDDO search
+!                  IF(l_new) THEN
+!                     point_n = point_n + 1
+!                     point_hkl(:,point_n) = hklw(1:3)
+!                  ENDIF
+!               ENDDO matrix_set
                ENDDO
 form_loop:     DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
@@ -2784,7 +2787,7 @@ USE math_sup
 !
 IMPLICIT NONE
 INTEGER,                 INTENT(IN)  :: iatom
-INTEGER,                 INTENT(out) :: surf_char
+INTEGER,                 INTENT(OUT) :: surf_char
 INTEGER, DIMENSION(3,6), INTENT(OUT) :: surf_normal
 INTEGER, DIMENSION(3)  , INTENT(OUT) :: surf_kante
 INTEGER, DIMENSION(6)  , INTENT(OUT) :: surf_weight

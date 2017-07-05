@@ -44,6 +44,11 @@ INTEGER                                   :: dc_temp_neig    ! Temporary neighbo
 INTEGER, DIMENSION(1:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
 REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
 REAL                                      :: dc_temp_dens    ! Temporary ligand density       for input
+LOGICAL                                   :: dc_temp_restrict = .FALSE. ! Restriction yes / no
+LOGICAL                                   :: dc_temp_l_form   = .FALSE. ! Single hkl or form
+INTEGER                                   :: dc_temp_n_hkl    = 0       ! Number of hkls that make special form
+INTEGER,DIMENSION(:,:), ALLOCATABLE       :: dc_temp_hkl     ! Surface restrictions
+!INTEGER,DIMENSION(1:3,48)                 :: dc_temp_hkl      = 0       ! Surface restrictions
 !
 TYPE (dc_def), POINTER                    :: dc_def_head => NULL()
 !TYPE (dc_def), POINTER                    :: dc_def_tail => NULL()
