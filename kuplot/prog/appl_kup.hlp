@@ -1709,9 +1709,16 @@
    will reset KUPLOT back to the initial state including titles, colors,
    labels and so on.
 2  rval
-!b rval <ik>,<ij>[,{"ONE"|"INV"}]
+!b rval <ik>,<ij>[,<weight>]
 
    Calculates the residual between curves <ik> and <ij>.
+   The last parameter defines the weighting scheme to be used for 
+   the calculation. The valid values for <weight> are:
+
+!p   "one"  : w(y) = 1.0              "sqa"  : w(y) = y**2
+!p   "sqrt" : w(y) = SQRT(y)          "inv"  : w(y) = 1/y
+!p   "log"  : w(y) = LOG(y)           "isq"  : w(y) = 1/SQRT(y)
+!p   "lin"  : w(y) = y                "dat"  : w(y) = 1/DY (error data set) 
 2  sann
 !b sann <ia>,"OFF"
 !b sann <ia>,<text>,<x>,<y> [,{"l"|"c"|"r"}] [,<angle>] [,<xp>,<yp>]
