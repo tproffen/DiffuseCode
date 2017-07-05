@@ -13,6 +13,9 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          children, parameters, &
                                  nindiv  , &
                          trial_v, NTRIAL, &
+                         l_get_random_state,     &
+                         rd_idum,rd_iff,         &
+                         rd_ix1, rd_ix2, rd_ix3, &
                          ierr )
 !
 USE diffev_setup_mod
@@ -26,6 +29,7 @@ USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
 USE param_mod
+USE random_state_mod
 USE variable_mod
 USE lib_f90_allocate_mod
 !
@@ -54,6 +58,12 @@ INTEGER                , INTENT(IN) :: parameters
 INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(IN) :: NTRIAL
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+LOGICAL                , INTENT(IN)  :: l_get_random_state
+INTEGER                , INTENT(OUT) :: rd_idum
+INTEGER                , INTENT(OUT) :: rd_iff
+INTEGER                , INTENT(OUT) :: rd_ix1
+INTEGER                , INTENT(OUT) :: rd_ix2
+INTEGER                , INTENT(OUT) :: rd_ix3
 INTEGER                , INTENT(OUT):: ierr
 !
 CHARACTER(LEN=2048) :: line
@@ -70,6 +80,12 @@ LOGICAL :: str_comp
 INTEGER :: len_str
 !
 CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directeory as passed from master
+!
+! If instructed, get state of random number generator
+!
+IF(l_get_random_state) THEN
+   CALL random_current(rd_idum, rd_iff, rd_ix1, rd_ix2, rd_ix3)
+ENDIF
 !
 ! Store old program name and prompt status
 !
