@@ -1336,6 +1336,7 @@
       ikc = nint (werte (2) ) 
 !                                                                       
       CALL del_params (2, ianz, cpara, lpara, maxw) 
+      CALL do_low(cpara(1)(1:lpara(1)))
       iweight = W_ONE 
       IF (ianz.eq.0.or.str_comp (cpara (1) , 'one', 1, lpara (1) , 3) ) &
       then                                                              
@@ -1356,6 +1357,10 @@
          iweight = W_DAT 
       ELSEIF (str_comp (cpara (1) , 'bck', 1, lpara (1) , 3) ) then 
          iweight = W_BCK 
+      ELSE
+         ier_num = -27
+         ier_typ = ER_APPL 
+         RETURN 
       ENDIF 
 !                                                                       
       IF (iko.lt.1.or.iko.gt.iz.or.ikc.lt.1.or.ikc.gt.iz.or.iko.eq.ikc) &
@@ -1646,6 +1651,7 @@
       il = nint (werte (2) ) 
 !                                                                       
 !      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      CALL do_low(cpara(1)(1:lpara(1)))
       iweight = W_ONE 
       IF (ianz.eq.0.or.str_comp (cpara (1) , 'one', 1, lpara (1) , 3) ) &
       then                                                              
@@ -1666,6 +1672,10 @@
          iweight = W_DAT 
       ELSEIF (str_comp (cpara (1) , 'bck', 1, lpara (1) , 3) ) then 
          iweight = W_BCK 
+      ELSE
+         ier_num = -27
+         ier_typ = ER_APPL 
+         RETURN 
       ENDIF 
 !                                                                       
       IF (ik.gt.0.and.ik.lt.iz.and.il.gt.0.and.il.lt.iz) then 
