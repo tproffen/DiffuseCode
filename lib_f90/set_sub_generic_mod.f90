@@ -93,6 +93,9 @@ INTERFACE
                             children, parameters, &
                                     nindiv  , &
                             trial_v, NTRIAL, &
+                            l_get_random_state,     &
+                            rd_idum,rd_iff,         &
+                            rd_ix1, rd_ix2, rd_ix3, &
                             ierr )
 !
    IMPLICIT NONE
@@ -120,6 +123,12 @@ INTERFACE
    INTEGER                , INTENT(IN) :: nindiv
    INTEGER                , INTENT(IN) :: NTRIAL
    REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
+   LOGICAL                , INTENT(IN)  :: l_get_random_state
+   INTEGER                , INTENT(OUT) :: rd_idum
+   INTEGER                , INTENT(OUT) :: rd_iff
+   INTEGER                , INTENT(OUT) :: rd_ix1
+   INTEGER                , INTENT(OUT) :: rd_ix2
+   INTEGER                , INTENT(OUT) :: rd_ix3
    INTEGER                , INTENT(OUT):: ierr
 !
    END SUBROUTINE execute_cost

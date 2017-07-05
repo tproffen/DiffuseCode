@@ -1641,11 +1641,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       SUBROUTINE do_seed (zeile, lp) 
 !                                                                       
       USE errlist_mod 
+      USE random_state_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw 
-      PARAMETER (maxw = 1) 
+      PARAMETER (maxw = 3) 
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
@@ -1661,6 +1662,11 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                IF (ier_num.eq.0) THEN 
                   iflag = - iabs (nint (werte (1) ) ) 
                   CALL ini_ran (iflag) 
+               ENDIF 
+            ELSEIF (ianz.eq.3) THEN 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) THEN 
+                  CALL ini_ran_ix(3, werte)
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -2186,7 +2192,9 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE lib_f90_allocate_mod
       USE errlist_mod 
+      USE param_mod
       USE variable_mod
       IMPLICIT none 
 !                                                                       
@@ -2213,6 +2221,11 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
             var_char (i) = dummy (1:length) 
          ENDIF 
+         IF(string (1:laenge) == 'REF_DIMENSION') THEN
+            IF(var_val (i)>UBOUND(ref_para,1)) THEN
+               CALL alloc_ref_para(NINT(wert))
+            ENDIF
+         ENDIF
          ier_num = 0 
          ier_typ = ER_NONE 
       ENDIF 

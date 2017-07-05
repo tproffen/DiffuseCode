@@ -24,6 +24,9 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_July
+   
+   Predefined variables REF_* are now read/write. See ==> variable
 3  2016_October
 
    New system variables have been introduced. They can be used like any
@@ -948,6 +951,16 @@
    inverse alphabetical order. This sorting has no serious consequence
    for the user other than finding the variable in the printed list
    when using the 'variable show' command. 
+
+   A few predefined variables exist, their names are capitalized:
+   PI  3.1415...
+   REF_GENERATION  Current generation number as set by DIFFEV
+   REF_MEMBER      Current population size   as set by DIFFEV
+   REF_CHILDREN    Current child population size as set by DIFFEV
+   REF_DIMENSION   Current Number of parameters a set by DIFFEV
+                   If the value is changed, you can store more
+                   values in ref_para[], but this does NOT change
+                   the actual dimension pop_dimx that DIFFEV uses.
 3  errors
 
    The program has been written such that it should handle almost
