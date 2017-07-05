@@ -1555,7 +1555,8 @@ mole_int: IF(mk_infile_internal) THEN
         READ (imd, '(a)', end = 999) line 
       ENDIF
       IF (line.ne.' '.and.line (1:1) .ne.'#'.and.line(1:1)/='!'.AND.line.ne.char (13) )    &
-      then                                                              
+      THEN                                                              
+         CALL do_cap(line(1:4))
          ii = 0 
          DO i = 1, clu_number 
          IF (str_comp (line (1:4), clu_name (i), 2, 4, 4) ) then 
