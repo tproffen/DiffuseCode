@@ -846,6 +846,19 @@
             ier_num = - 13 
             ier_typ = ER_FORT 
          ENDIF 
+      ELSEIF (ctype.eq.'ref_para') THEN
+         IF (ianz.eq.1) then 
+            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_REF) then 
+               ref_para (ww (1) ) = wert 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
       ELSE 
          ier_num = - 2 
          ier_typ = ER_FORT 

@@ -13,6 +13,7 @@
       USE pdf_mod
       USE errlist_mod 
       USE param_mod 
+      USE random_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER,                    INTENT(IN   ) :: ikl
@@ -440,6 +441,16 @@
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'seed') then 
+            IF (ianz.eq.1) then 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+      WRITE (zeile (ikl - 4:ikl + 13) , '(i15    )') idum
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'rvol') then 
             IF (ianz.eq.1) then 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
@@ -774,6 +785,19 @@
          IF (ianz.eq.1) then 
             IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
                atom_env (ww (1) ) = int (wert) 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'ref_para') THEN
+         IF (ianz.eq.1) then 
+            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_REF) then 
+               ref_para (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
