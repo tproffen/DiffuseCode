@@ -122,12 +122,12 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#@'
    WRITE(IWR,'(a)') '#@ END'
    WRITE(IWR,'(a)') '#'
-   WRITE(IWR,'(a,i12)') 'POP_GENERATION = ',pop_gen
-   WRITE(IWR,'(a,i12)') 'POP_MEMBER     = ',pop_n
-   WRITE(IWR,'(a,i12)') 'POP_CHILDREN   = ',pop_c
-   WRITE(IWR,'(a,i12)') 'POP_DIMENSION  = ',pop_dimx
-   WRITE(IWR,'(a,i12)') 'POP_KID        = ',9999
-   WRITE(IWR,'(a,i12)') 'POP_INDIV      = ',9999
+   WRITE(IWR,'(a,i12)') 'REF_GENERATION = ',pop_gen
+   WRITE(IWR,'(a,i12)') 'REF_MEMBER     = ',pop_n
+   WRITE(IWR,'(a,i12)') 'REF_CHILDREN   = ',pop_c
+   WRITE(IWR,'(a,i12)') 'REF_DIMENSION  = ',pop_dimx
+   WRITE(IWR,'(a,i12)') 'REF_KID        = ',9999
+   WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',9999
    DO i=1,pop_dimx
       WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
@@ -137,7 +137,7 @@ IF(write_random_state) THEN
       WRITE(IWR,'(4(a,i12))') 'seed ',random_best(3), ', ',random_best(4), ', ',random_best(5)
    ENDIF
    WRITE(IWR,'(a)') '#'
-   WRITE(IWR,'(a1,a)') '@',random_macro(1:LEN_TRIM(random_macro))
+   WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a)') 'exit'
 !
