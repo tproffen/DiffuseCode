@@ -66,21 +66,25 @@ CONTAINS
    TYPE(internal_storage), POINTER :: search  ! The structure file to be found
    INTEGER, INTENT(INOUT)          :: ier_typ
 !
-   IF ( LLT(search%strucfile, ptr%strucfile )) THEN
-      IF ( ASSOCIATED(ptr%before) ) THEN
-         CALL store_find_node ( ptr%before, search, ier_typ )
+   IF ( ASSOCIATED(ptr)) THEN
+      IF ( LLT(search%strucfile, ptr%strucfile )) THEN
+         IF ( ASSOCIATED(ptr%before) ) THEN
+            CALL store_find_node ( ptr%before, search, ier_typ )
+         ELSE
+            ier_typ = -113
+         ENDIF
+      ELSEIF ( search%strucfile == ptr%strucfile ) THEN
+         search  = ptr
+         ier_typ = 0
       ELSE
-         ier_typ = -113
+         IF ( ASSOCIATED(ptr%after) ) THEN
+            CALL store_find_node ( ptr%after, search, ier_typ )
+         ELSE
+            ier_typ = -113
+         ENDIF
       ENDIF
-   ELSEIF ( search%strucfile == ptr%strucfile ) THEN
-      search  = ptr
-      ier_typ = 0
    ELSE
-      IF ( ASSOCIATED(ptr%after) ) THEN
-         CALL store_find_node ( ptr%after, search, ier_typ )
-      ELSE
-         ier_typ = -113
-      ENDIF
+      ier_typ = -113
    ENDIF
    END SUBROUTINE store_find_node
 !*******************************************************************************
