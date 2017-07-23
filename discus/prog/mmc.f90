@@ -146,7 +146,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !------ command 'run'                                                   
 !                                                                       
          ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
-            CALL mmc_run_multi 
+            CALL mmc_run_multi (.TRUE.)
 !                                                                       
 !------ command 'save'                                                  
 !                                                                       
@@ -1639,6 +1639,8 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
                mmc_local (imode) = rmc_local_locsite 
             ELSEIF (cpara (2) (1:2) .eq.'SI') then 
                mmc_local (imode) = rmc_local_site 
+            ELSEIF (cpara (2) (1:2) .eq.'CO') then 
+               mmc_local (imode) = rmc_local_conn 
             ELSE 
                ier_typ = ER_RMC 
                ier_num = - 9 
@@ -1689,7 +1691,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !                                                                       
       END SUBROUTINE mmc_set_mode                   
 !*****7*****************************************************************
-      SUBROUTINE mmc_run_multi 
+      SUBROUTINE mmc_run_multi (lout_feed)
 !+                                                                      
 !     This is the MC routine for multiple energy calculations           
 !-                                                                      
@@ -1714,6 +1716,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
+      LOGICAL, INTENT(IN) :: lout_feed
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = DEF_MAXSCAT) 
@@ -1752,7 +1755,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
       LOGICAL loop, laccept, done 
       LOGICAL valid_e 
       LOGICAL :: valid_all = .false.
-      LOGICAL lout 
+      LOGICAL :: lout
 !                                                                       
       REAL v (3) 
       REAL z 
@@ -2332,13 +2335,13 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !                                                                       
       IF (mod (itry, mo_feed) .eq.0.and..not.done.and.loop) then 
          done = .true. 
-         WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
+         IF(lout_feed) WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
 !                                                                       
 !     ----New mmc_correlations for all energies                         
 !                                                                       
-         lout = .true. 
+!        lout = .true. 
          rel_cycl = float(itry)/float(mo_cyc)
-         CALL mmc_correlations (lout, rel_cycl)
+         CALL mmc_correlations (lout_feed, rel_cycl)
                                                                         
 !        IF (mmc_cor_energy (0, MC_VECTOR) ) then 
 !                                                                       
@@ -2377,10 +2380,12 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !------ Loop finished                                                   
 !                                                                       
 !                                                                       
-      WRITE (output_io, 3000) 
-      WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
-      lout = .true. 
-      CALL mmc_correlations (lout, 1.0) 
+      IF(lout_feed) THEN
+         WRITE (output_io, 3000) 
+         WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
+      ENDIF
+!     lout = .true. 
+      CALL mmc_correlations (lout_feed, 1.0) 
 !     IF (mmc_cor_energy (0, MC_VECTOR) ) then 
 !                                                                       
 !     --VECTOR  energy was selected, give feedback                      
@@ -2414,7 +2419,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !                                                                       
 !     Give average energy changes for the different energy terms        
 !                                                                       
-      WRITE ( output_io, 5000) 
+      IF(lout_feed) WRITE ( output_io, 5000) 
       DO i = 1, MC_N_ENERGY 
       IF (n_e_av_p (i) .gt.0) then 
          e_aver_p (i) = e_aver_p (i) / float (n_e_av_p (i) ) 
@@ -2422,7 +2427,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
       IF (n_e_av_m (i) .gt.0) then 
          e_aver_m (i) = e_aver_m (i) / float (n_e_av_m (i) ) 
       ENDIF 
-      WRITE ( output_io, 5010) c_energy (i), n_e_av_m (i), e_aver_m (i),        &
+      IF(lout_feed) WRITE ( output_io, 5010) c_energy (i), n_e_av_m (i), e_aver_m (i),        &
       n_e_av_z (i), n_e_av_p (i), e_aver_p (i)                          
       n_e_av_p (i) = 0 
       n_e_av_m (i) = 0 
@@ -2433,11 +2438,13 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !                                                                       
 !------ Write timing results                                            
 !                                                                       
-      zeit = seknds (start) 
-      zh = int (zeit / 3600.) 
-      zm = int ( (zeit - zh * 3600.) / 60.) 
-      zs = int (zeit - zh * 3600 - zm * 60.) 
-      WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
+      IF(lout_feed) THEN
+         zeit = seknds (start) 
+         zh = int (zeit / 3600.) 
+         zm = int ( (zeit - zh * 3600.) / 60.) 
+         zs = int (zeit - zh * 3600 - zm * 60.) 
+         WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
+      ENDIF
 !                                                                       
  2000 FORMAT (/,' Gen: ',I8,' try: ',I8,' acc: (good/bad): ',I7,        &
      &          ' / ',I7,'  MC moves ')                                 
@@ -3176,6 +3183,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
                in_a = 1 
                in_e = natom (icent) 
                is = cr_iscat (iatom (0, icent) ) 
+!write(*,*) 'CENT ', isel(ia), cr_iscat(isel(ia)), (cr_iscat(iatom(i, icent)),i=1, natom(icent))
             ELSE 
 !                                                                       
 !     The selcted atom is a neighbour, use this atom only               
