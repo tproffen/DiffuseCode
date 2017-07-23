@@ -2876,7 +2876,8 @@ loop_plane: DO ip = 1, rmc_nplane
       REAL ran1 
 !                                                                       
       j = 0
-      ino = 1
+      ino = 1      ! RMC SELECT ALWAYS uses the FIRST connectivity defined for an atom
+!                  ! Changing this will have side effects on decoration and and and
    10 CONTINUE 
       j = j + 1
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
