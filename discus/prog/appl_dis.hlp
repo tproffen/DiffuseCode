@@ -1703,9 +1703,17 @@
        <atom_type> and atom number <ligand atom no> of the ligand. 
        The number of surface atom types depends on the type of decoration that
        is defined by the "add" command.
-       For the "normal" and "double" type exactly one surface type must be given.
-       For the "bridge" type exactly two surface types must be given.
-       For the "multi" type exactly three surface types must be given.
+       For the "normal" and "double" type exactly one surface type 
+           parameter must be given.
+       For the "bridge" type exactly two surface type 
+           parameters must be given.
+       For the "multi" type exactly three surface type
+           parameters must be given.
+
+       The surface types can be given as type number or as type name. 
+       If the type number is given, this atom type will act as anchor. 
+       If the type name is given, all atom types with this atom name will act
+       as anchors.
 
    set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
        Defines the ligand molecule axis. This axis is placed normal to the local
