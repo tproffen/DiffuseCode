@@ -205,10 +205,10 @@ CONTAINS
    INTEGER, ALLOCATABLE, DIMENSION(:,:) :: temp_hkl
    INTEGER :: nold
 !
-   nold = 0
+   nold = MIN(0,this%dc_def_n_hkl)
    IF(ASSOCIATED(this)) THEN
       IF(ALLOCATED(this%dc_def_hkl)) THEN
-         nold = UBOUND(this%dc_def_hkl,2)
+         nold = MIN(this%dc_def_n_hkl, UBOUND(this%dc_def_hkl,2))
          IF(UBOUND(this%dc_def_hkl,2)<dc_temp_n_hkl) THEN
             ALLOCATE(temp_hkl(1:3,1:dc_temp_n_hkl + 5))
             temp_hkl = 0
@@ -319,6 +319,7 @@ CONTAINS
          IF(ASSOCIATED(this%next)) CALL dc_reset_def( this%next)
          connection => this%dc_def_con
          CALL dc_reset_con(connection)
+         IF(ALLOCATED(this%dc_def_hkl)) DEALLOCATE(this%dc_def_hkl)
          DEALLOCATE(this)
       ELSE
          EXIT reset_loop
@@ -337,6 +338,7 @@ CONTAINS
    reset_loop: DO 
       IF ( ASSOCIATED(this)) THEN
          IF(ASSOCIATED(this%next)) CALL dc_reset_con( this%next)
+         IF(ALLOCATED(this%dc_con_surf)) DEALLOCATE(this%dc_con_surf)
          DEALLOCATE(this)
       ELSE
          EXIT reset_loop
@@ -450,6 +452,7 @@ CONTAINS
       DO i= 0,this%dc_con_surf(0)
          surf(i) = this%dc_con_surf(i)
       ENDDO
+      surf(0) = this%dc_con_surf(0)
       mole = this%dc_con_mole
       dist = this%dc_con_dist
    ENDIF
