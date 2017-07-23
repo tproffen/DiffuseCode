@@ -105,8 +105,8 @@ CONTAINS
    IF ( n_mole > MOLE_MAX_MOLE .or. n_type > MOLE_MAX_TYPE .or. &
         n_atom > MOLE_MAX_MOLE                                ) THEN  ! If molecules were present in internal file
       n_mole = MAX(n_mole, MOLE_MAX_MOLE)
-      n_type = MAX(n_type, MOLE_MAX_MOLE)
-      n_atom = MAX(n_atom, MOLE_MAX_MOLE)
+      n_type = MAX(n_type, MOLE_MAX_TYPE)
+      n_atom = MAX(n_atom, MOLE_MAX_ATOM)
       CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
       IF ( ier_num /= 0 ) THEN
          ier_num = -114
@@ -336,7 +336,7 @@ mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso)
 in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molecule
-            IF ( .not. mole_l_on ) THEN           ! Right now we are not in a molecule
+            IF ( .not. mole_l_on .OR. temp_look(ia)> mole_num_curr ) THEN  ! Right now we are not in a molecule
                mole_l_on    = .true.              ! Turn molecule on
                mole_l_first = .true.              ! This is the first atom in the molecule
                mole_gene_n  = 0                   ! No molecule generators
