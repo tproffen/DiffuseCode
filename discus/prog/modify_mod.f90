@@ -1162,7 +1162,7 @@ CONTAINS
          DO im=1,mole_num_mole       ! Loop over all old molecules
             IF(new_len(im)>0) THEN   ! This molecule still has atoms
                inew = inew + 1
-               mole_len  (inew) = new_len (im)  ! Cope molecule properties
+               mole_len  (inew) = new_len (im)  ! Copy molecule properties
                mole_type (inew) = new_type(im)
                mole_file (inew) = new_file(im)
                mole_char (inew) = new_char(im)
@@ -2726,7 +2726,7 @@ CALL ber_params (ianz, cpara, lpara, werte, maxw)
 IF(ier_num/=0) RETURN
 !
 iatom = NINT(werte(1))
-CALL surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight)
+CALL surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight, .TRUE.)
 !
 res_para(0) = 1
 res_para(1) = surf_char
@@ -2773,8 +2773,9 @@ END SUBROUTINE do_surface_char
 !
 !*****7*****************************************************************
 !
-SUBROUTINE surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight)
+SUBROUTINE surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight, equal)
 !
+use atom_name
 USE atom_env_mod
 USE chem_mod
 USE crystal_mod
@@ -2791,6 +2792,7 @@ INTEGER,                 INTENT(OUT) :: surf_char
 INTEGER, DIMENSION(3,6), INTENT(OUT) :: surf_normal
 INTEGER, DIMENSION(3)  , INTENT(OUT) :: surf_kante
 INTEGER, DIMENSION(6)  , INTENT(OUT) :: surf_weight
+LOGICAL,                 INTENT(IN)  :: equal
 !
 INTEGER, PARAMETER :: SURF_IN_PLANE  = -1
 INTEGER, PARAMETER :: SURF_NONE   =  0
@@ -2835,6 +2837,8 @@ REAL     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
 INTEGER  , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
 REAL     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
 !
+CHARACTER(9) at_name_d
+!
 surf_char = SURF_NONE
 surf_normal = 0
 surf_kante  = 0
@@ -2875,8 +2879,10 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
       DO i=1, atom_env(0)               ! Pick out surface atom types only
          IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
             IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
-            neigsurf = neigsurf + 1
-            neigh(neigsurf) = atom_env(i)
+            IF(.NOT.equal .OR. (equal .AND. cr_iscat(atom_env(i))==cr_iscat(iatom)) ) THEN
+               neigsurf = neigsurf + 1
+               neigh(neigsurf) = atom_env(i)
+            ENDIF
          ENDIF
       ENDDO
 !
@@ -2910,7 +2916,9 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                DO k=1, neigsurf
                   v(:) = cr_pos(:,neigh(k))-x(:)
                   lspace = .TRUE.
-                  IF(do_bang(lspace, realsurf, NULL, v)<IS_OUTSIDE) CYCLE inner ! proceed to next pair
+                  IF(do_bang(lspace, realsurf, NULL, v)<IS_OUTSIDE) THEN
+                     CYCLE inner ! proceed to next pair
+                  ENDIF
                ENDDO
 !              Not an indented surface, proceed to sort
                isfound = .FALSE.
