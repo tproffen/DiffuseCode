@@ -45,6 +45,8 @@ TYPE :: NEIGHBORHOOD
    INTEGER                      :: neigh_type         ! this neighbors belongs to this definition
    CHARACTER (LEN=256)          :: conn_name          ! Connectivity name
    INTEGER                      :: conn_name_l        ! Connectivity name length
+   INTEGER                      :: mmc_sel            ! This connectivity may be used by mmc to select
+   INTEGER                      :: mmc_ene            ! This connectivity may be used by mmc energy
    REAL                         :: distance_min       ! minimum distance to neighbors
    REAL                         :: distance_max       ! maximum distance to neighbors
    INTEGER                      :: natoms             ! number of neighbors
@@ -75,7 +77,12 @@ TYPE (NEIGHBORHOOD), POINTER       :: hood_temp
 TYPE (NEIGHBORHOOD), POINTER       :: hood_central
 TYPE (NEIGHBORHOOD), POINTER       :: hood_second
 !
-LOGICAL                            :: conn_status = .false.
+INTEGER, PARAMETER                 :: STATUS_ON  =  1
+INTEGER, PARAMETER                 :: STATUS_OFF = -1
+INTEGER, PARAMETER                 :: STATUS_IGN =  0
+LOGICAL                            :: conn_status = .FALSE.
+INTEGER                            :: conn_mmc_sel = STATUS_IGN ! For later use 
+INTEGER                            :: conn_mmc_ene = STATUS_IGN ! For later use 
 !
 CONTAINS
 !
@@ -230,6 +237,8 @@ CONTAINS
                hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
                hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
                hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
+               hood_temp%mmc_sel        = def_temp%mmc_sel    ! Copy mmc selection mode
+               hood_temp%mmc_ene        = def_temp%mmc_ene    ! Copy mmc energy    mode
                hood_temp%natoms         = n_neig              ! Set number of neighbors
                NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
 !
@@ -383,6 +392,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
                hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
                hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
+               hood_temp%mmc_sel        = def_temp%mmc_sel    ! Copy mmc selection mode
+               hood_temp%mmc_ene        = def_temp%mmc_ene    ! Copy mmc energy    mode
                hood_temp%natoms         = n_neig              ! Set number of neighbors
                NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
 !
@@ -435,6 +446,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE crystal_mod 
       USE modify_mod
       USE variable_test
+      USE errlist_mod
 !
       IMPLICIT none
 !
@@ -472,6 +484,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !
+      LOGICAL :: str_comp 
       REAL :: berechne
 !                                                                       
       rmin = 0.0
@@ -501,6 +514,36 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 
+!
+!     Set mmc behaviour
+!
+!     IF( str_comp (cpara(1), 'mmc',    2, lpara(1), 3) ) THEN
+!        IF( str_comp (cpara(2), 'select', 2, lpara(2), 6) ) THEN
+!           IF( str_comp (cpara(3), 'on', 2, lpara(3), 2) ) THEN
+!              conn_mmc_sel =  STATUS_ON
+!           ELSEIF( str_comp (cpara(3), 'off', 2, lpara(3), 3) ) THEN
+!              conn_mmc_sel =  STATUS_OFF
+!           ELSEIF( str_comp (cpara(3), 'ignore', 2, lpara(3), 6) ) THEN
+!              conn_mmc_sel =  STATUS_IGN
+!           ELSE
+!              ier_num = -6
+!              ier_typ = ER_FORT
+!           ENDIF
+!           RETURN
+!        ELSEIF( str_comp (cpara(2), 'energy', 2, lpara(2), 6) ) THEN
+!           IF( str_comp (cpara(3), 'on', 2, lpara(3), 2) ) THEN
+!              conn_mmc_ene = STATUS_ON
+!           ELSEIF( str_comp (cpara(3), 'off', 2, lpara(3), 3) ) THEN
+!              conn_mmc_ene = STATUS_OFF
+!           ELSEIF( str_comp (cpara(3), 'ignore', 2, lpara(3), 6) ) THEN
+!              conn_mmc_ene = STATUS_IGN
+!           ELSE
+!              ier_num = -6
+!              ier_typ = ER_FORT
+!           ENDIF
+!           RETURN
+!        ENDIF
+!     ENDIF
 !
 !     Remove all definitions 
 !
@@ -722,6 +765,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%valid_id   = temp_id + 1                 ! Set number of neighb or types
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
+            def_temp%mmc_sel    = conn_mmc_sel                ! Set mmc selection type
+            def_temp%mmc_ene    = conn_mmc_ene                ! Set mmc energy    type
             def_temp%valid_no   = ianz                        ! Set number of neighb or types
             def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
             def_temp%def_rmin   = rmin                        ! Set bond length limits
@@ -756,6 +801,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%valid_id   = 1                           ! Set number of neighb or types
             def_temp%def_name   = work_name                   ! Set definition name
             def_temp%def_name_l = work_name_l                 ! Set definition name length
+            def_temp%mmc_sel    = conn_mmc_sel                ! Set mmc selection type
+            def_temp%mmc_ene    = conn_mmc_ene                ! Set mmc energy    type
             def_temp%valid_no   = ianz                        ! Set number of neighb or types
             def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
             def_temp%def_rmin   = rmin                        ! Set bond length limits
@@ -1048,6 +1095,20 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER   :: is
       INTEGER   :: i
 !
+!     IF(conn_mmc_sel == STATUS_ON) THEN
+!        WRITE(output_io, 3000) 'selection', 'on'
+!     ELSEIF(conn_mmc_sel == STATUS_OFF) THEN
+!        WRITE(output_io, 3000) 'selection', 'off'
+!     ELSE
+!        WRITE(output_io, 3000) 'selection', 'ignore'
+!     ENDIF
+!     IF(conn_mmc_ene == STATUS_ON) THEN
+!        WRITE(output_io, 3000) 'energy', 'on'
+!     ELSEIF(conn_mmc_ene == STATUS_OFF) THEN
+!        WRITE(output_io, 3000) 'energy', 'off'
+!     ELSE
+!        WRITE(output_io, 3000) 'energy', 'ignore'
+!     ENDIF
       exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
         scats: DO is=0,maxscat                     ! Loop over all atom types
            IF ( .NOT. ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has no def.s
@@ -1066,6 +1127,20 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !                            def_temp%valid_types(i) ,i=1,def_temp%valid_no)
               WRITE(output_io, 2300) def_temp%intend_no,def_temp%def_rmin,&
                                                         def_temp%def_rmax
+!             IF(def_temp%mmc_sel==STATUS_ON) THEN
+!                WRITE(output_io, 4000) 'selection', 'on'
+!             ELSEIF(def_temp%mmc_sel==STATUS_OFF) THEN
+!                WRITE(output_io, 4000) 'selection', 'off'
+!             ELSE
+!                WRITE(output_io, 4000) 'selection', 'ignore'
+!             ENDIF
+!             IF(def_temp%mmc_ene==STATUS_ON) THEN
+!                WRITE(output_io, 4000), 'energy', 'on'
+!             ELSEIF(def_temp%mmc_ene==STATUS_OFF) THEN
+!                WRITE(output_io, 4000), 'energy', 'off'
+!             ELSE
+!                WRITE(output_io, 4000), 'energy', 'ignore'
+!             ENDIF
               def_temp => def_temp%def_next
            ENDDO
         ENDDO scats
@@ -1073,11 +1148,13 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
          WRITE(output_io, 7000) 
       ENDIF exist_def
 !
+3000  FORMAT(' MMC ',a9,   ' mode is   : ',a)
 1000  FORMAT(' Central atom type       : ',a9)
 2000  FORMAT('     Def.no; Name; No.of.types; Types : ',i4,1x, a,1x,i4,1x, &
              ': ',20(a9:,',',2x))
 !            20(a4,'(',i4,')',2x))
 2300  FORMAT('     Max neig, Bond length range', 4x,i8,2x,f8.4, 2x, f8.4)
+4000  FORMAT('     MMC ',a9,   ' mode is   : ',a)
 7000  FORMAT(' No connectivity definitions set')
 !
    END SUBROUTINE conn_show
