@@ -9,12 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-142,IO=4)
+      PARAMETER    (IU=-143,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
-     &  'Cubeoctahedron only allowed in cubic systems.', & !-141 ! discus
+     &  'Wrong parameters for this bond type ',          & !-143 ! discus
+     &  'Cubeoctahedron only allowed in cubic systems.', & !-142 ! discus
      &  'Atoms are too close to each other  '            & !-141 ! discus
      &  /
       DATA ERROR (-140: -121) /                          &
