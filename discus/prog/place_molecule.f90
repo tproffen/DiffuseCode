@@ -1019,7 +1019,6 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
          mo_kt   =   2.5                                      ! Define Temperature
 !
          CALL mmc_run_multi(.FALSE.)                          ! Run actual sorting
-
 !        Change Anchors back to their original names, keep property flag
 !
          DO ia = 1, cr_natoms
@@ -1370,7 +1369,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    REAL   , DIMENSION(3)             :: posit  ! dummy position vector
    REAL   , DIMENSION(3)             :: uvw_out ! dummy position vector
    INTEGER                           :: istat  ! status variable
-   integer :: i,j
+   INTEGER                           :: j
 !
    rd_strucfile = infile
    rd_NMAX      = this%get_natoms() ! cr_natoms
@@ -1953,7 +1952,6 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    hkl(4) = 0.0
    CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
-!RBNDBGwrite(*,*) ' ATOM ', ia, cr_iscat(ia), surf_normal(1:3)
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
       IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, .TRUE.                   ) ) THEN
@@ -2040,12 +2038,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
          all_surface (l) = atom_env(j)
          all_neighbor(l) = neighbor
          all_distance(l) = distance
-!RBNDBG!RBNDBGwrite(*,*) ' found nei', rmin, radius, surface(:)
-!RBNDBGwrite(*,*) ' ATOM ', ia, cr_iscat(ia),x
       ELSE
-!RBNDBGwrite(*,*) ' FAILURE 1', rmin, radius, surface(:)
-!RBNDBGwrite(*,*) ' ATOM ', ia, cr_iscat(ia),x
-!RBNDBGread(*,*) j
          GOTO 9999
       ENDIF  ! 
    ENDDO search
@@ -2106,6 +2099,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    laenge = 81
    CALL vprod(line, laenge)
    sym_uvw(:) = res_para(1:3)
+   IF(res_para(1)**2+res_para(2)**2+res_para(3)**2 >  1e-5) THEN !Non-zero axis
    sym_trans(:)   = 0.0                       ! No translation needed
    sym_angle  = do_bang(lspace, v1, vnull, v2)  ! Calculate rotation angle = < (v1,v2)
    sym_start  =  n_atoms_orig + 1             ! set range of atoms numbers
@@ -2113,6 +2107,9 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
+   ELSE
+      GOTO 9999
+   ENDIF
 !
 !   Rotate molecule up to straighten molecule axis out
    sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
@@ -2156,8 +2153,8 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
+   cr_prop (all_surface(2)) = IBCLR (cr_prop (all_surface(2)), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
    success = 0 
-
 !
 9999 CONTINUE                                             ! Jump here from errors to ensure dealloc
    DEALLOCATE(all_surface)
@@ -2474,6 +2471,9 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
+   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+   cr_prop (n1) = IBCLR (cr_prop (n1), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+   cr_prop (n2) = IBCLR (cr_prop (n2), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
    success = 0                                   ! Clear error flag
 !
 9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
