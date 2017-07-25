@@ -27,6 +27,9 @@
 3  2017_July
    
    Predefined variables REF_* are now read/write. See ==> variable
+
+   Introduced new intrinsic character functions: index and length
+   See help under functions for details.
 3  2016_October
 
    New system variables have been introduced. They can be used like any
@@ -612,6 +615,28 @@
 !p                                   character string
 !p getenv('name')                  ! Returns the value of the environment
 !p                                   variable <name>
+!p index(<line>, <substring> [,"BACK"]) ! Returns the location of the
+!p                                   substring within the line.
+!p                                   If the optional keyword "BACK" is present,
+!p                                   index returns the last occurence.
+!p                                   Both, the line and the substrings may be
+!p                                   given as simple strings in single quotations
+!p                                   or as a variable with with a preceeding
+!p                                   format specifier, Examples:
+!p                                   line ='Discus'
+!p                                   index('Discus','s')
+!p                                   index('Discus','s', BACK)
+!p                                   index("%",'Discus',"%",'s')
+!p                                   index("%",line    ,"%",'s')
+!p                                   index("%c",getcwd(0), '/')
+!p length(<line>)                    !Returns the length of string <line>
+!p                                   The line may be
+!p                                   given as simple strings in single quotations
+!p                                   or as a variable with with a preceeding
+!p                                   format specifier, Examples:
+!p                                   length('Discus')
+!p                                   length("%c",line)
+!p                                   index("%c",getcwd(0), '/')
 3  help
 !b help [<command> [, <subcommand>] ]
 

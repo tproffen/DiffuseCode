@@ -1568,19 +1568,26 @@ END SUBROUTINE do_execute_block
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
+      INTEGER, PARAMETER :: maxw= 10 
 !                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(1024) zeile, cpara (maxw) 
-      CHARACTER(1024) string 
+      CHARACTER (LEN= * ), INTENT(INOUT) :: line 
+      INTEGER            , INTENT(IN)    :: indxg
+      INTEGER            , INTENT(INOUT) :: length
+!
+      CHARACTER(LEN=1024)                  :: zeile
+      CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
+      CHARACTER(LEN=1024)                  :: string
 !                                                                       
-      INTEGER lpara (maxw) 
-      INTEGER indxg, i, ikk, iii (maxw), ianz, lll 
-      INTEGER ising 
-      INTEGER length, l_string 
+      INTEGER, DIMENSION(maxw)   :: lpara (maxw) 
+      INTEGER                    :: i, ikk, ianz, lll 
+      INTEGER, DIMENSION(1:maxw) :: iii = 0
+      INTEGER                    :: ising , indx_ind, indx_len, indx_env, indx_cwd
+      INTEGER                    :: l_string 
+      INTEGER                    :: ikl, iklz, ll, laenge
+      INTEGER                    :: ios  ! I/O error status
 !                                                                       
-      REAL wert, werte (maxw) 
+      REAL                  :: wert
+      REAL, DIMENSION(maxw) :: werte
 !                                                                       
 !     for flexibility                                                   
 !                                                                       
@@ -1601,14 +1608,43 @@ END SUBROUTINE do_execute_block
          ier_typ = ER_COMM 
          RETURN 
       ENDIF 
+!     locate first ""
+      ising=INDEX(line (indxg + 1:length),'"')
+      indx_ind=INDEX(line (indxg + 1:length),'index')   ! locate index function
+      indx_len=INDEX(line (indxg + 1:length),'length')  ! locate length function
+      indx_env=INDEX(line (indxg + 1:length),'getenv')  ! locate length function
+      indx_cwd=INDEX(line (indxg + 1:length),'getcwd')  ! locate length function
+!
+      IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a fucntion of a string argument
+         (indx_len>0 .AND. indx_len<ising)) THEN   ! We got a fucntion of a string argument
+         string = line (indxg + 1:length)
+         laenge = length - indxg
+         ikl = INDEX(string,'(')
+         iklz= INDEX(string,')',.TRUE.)
+         zeile = string (ikl + 1:iklz - 1) 
+         ll = iklz - ikl - 1 
+         CALL calc_intr (string, zeile, ikl, iklz, laenge, ll) 
+         READ(string(1:LEN_TRIM(string)),*,IOSTAT=ios) wert
+         IF(ios/=0) THEN
+            ier_msg(1) = string(1:42)
+            ier_num = -6
+            ier_typ = ER_FORT
+            RETURN
+         ENDIF
+      ELSE
 !                                                                       
-!     Construct the string                                              
+!     Construct the regular string, not a function
 !                                                                       
-      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      string = cpara (1) (1:lpara (1) ) 
-      l_string = lpara (1) 
-      res_para (0) = 1 
-      res_para (1) = lpara (1) 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+         string = cpara (1) (1:lpara (1) ) 
+         l_string = lpara (1) 
+         res_para (0) = 1 
+         res_para (1) = lpara (1) 
+      ENDIF
+      IF(indxg==0) THEN
+         line = string
+         RETURN
+      ENDIF
       IF (ier_num.eq.0) then 
 !                                                                       
 !-----evaluate the index of the variable                                
@@ -1680,6 +1716,7 @@ END SUBROUTINE do_execute_block
       INTEGER lpara (maxw) 
       INTEGER i, ianz, il 
       INTEGER length 
+      INTEGER :: indxg = 0
       REAL werte (maxw) 
 !                                                                       
       INTEGER len_str 
@@ -1689,6 +1726,14 @@ END SUBROUTINE do_execute_block
          ier_typ = ER_COMM 
          RETURN 
       ELSE 
+!                                                                       
+!     String substitution???                                            
+!                                                                       
+      IF (index (line, '"') .gt.0.or.index (line, '''') .gt.0) then 
+         CALL do_string_alloc (line, indxg, i) 
+         WRITE (output_io, 3000) line(1:LEN_TRIM(line))
+         RETURN 
+      ENDIF 
 !                                                                       
 !     --Non blank line. Make length negative to avoid removing blanks   
 !                                                                       
@@ -1717,6 +1762,7 @@ END SUBROUTINE do_execute_block
       ENDIF 
 !                                                                       
  2222 FORMAT    (' Value of ',a,' = ',g15.8) 
+3000  FORMAT(' Value is ',a)
       END SUBROUTINE do_eval                        
 !****7***************************************************************** 
       REAL FUNCTION berechne (string, laenge) 
@@ -2287,12 +2333,13 @@ END SUBROUTINE do_execute_block
       CHARACTER ( * ) string, line 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) zeile 
-      CHARACTER(1024) answer 
+      CHARACTER(1024) answer , search
       INTEGER lpara (maxw) 
       INTEGER lp, lll, ikom, ikl, iklz, i, ianz 
       INTEGER lcom 
       INTEGER ihyp 
       INTEGER dummy 
+      LOGICAL :: BACK   ! FLAG for index intrinsic
       REAL fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
       REAL werte (maxw), ww, a , skew
 !     REAL sind, cosd, tand, asind, acosd, atand 
@@ -2326,9 +2373,30 @@ END SUBROUTINE do_execute_block
             CALL ersetzc (string, ikl, iklz, zeile, i, 6, lll) 
          ELSEIF (string (ikl - 6:ikl - 1) .eq.'getenv') then 
             zeile = line (2:lp - 1) 
-            CALL holeenv (zeile, answer) 
-            i = len_str (answer) 
-            CALL ersetzc (string, ikl, iklz, answer, i, 6, lll) 
+            IF(line /= ' ' .AND. lp>2) THEN
+               CALL holeenv (zeile, answer) 
+               i = len_str (answer) 
+               CALL ersetzc (string, ikl, iklz, answer, i, 6, lll) 
+            ELSE
+               ier_num = -6
+               ier_typ = ER_FORT
+            ENDIF
+         ELSEIF (string (ikl - 6:ikl - 1) .eq.'length') then 
+            zeile = line (2:lp - 1)
+            i = lp - 2
+            IF(zeile(1:1)=='''' .and. zeile(i:i)=='''') THEN
+               ww = float (i-2) 
+               CALL ersetz2 (string, ikl, iklz, ww, 6, lll) 
+            ELSE
+               CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
+               IF(ier_num==0) THEN
+                  CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+                     IF(ier_num==0) THEN
+                     ww = lpara(1)
+                  CALL ersetz2 (string, ikl, iklz, ww, 6, lll) 
+                  ENDIF
+               ENDIF
+            ENDIF
          ELSE 
             CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
@@ -2423,6 +2491,58 @@ END SUBROUTINE do_execute_block
          ELSEIF (string (ikl - 5:ikl - 1) .eq.'fdate') then 
             CALL datum 
             CALL ersetzc (string, ikl, iklz, f_date, 24, 5, lll) 
+         ELSEIF (string (ikl - 5:ikl - 1) .eq.'index') then 
+            CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
+            IF(ier_num==0) THEN
+               IF(ianz > 1) THEN
+                  BACK = .FALSE.
+                  IF(cpara(ianz)(1:lpara(ianz))=='BACK') THEN
+                     BACK = .TRUE.
+                     ianz = ianz -1
+                  ENDIF
+                  IF(ianz > 1) THEN
+                     CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+                     IF(ier_num==0) THEN
+                        IF(cpara(1)(1:1)=='''' .AND.               &
+                           cpara(1)(lpara(1):lpara(1))=='''') THEN
+                           zeile = cpara(1)(2:lpara(1)-1)
+                        ELSE
+                           zeile = cpara(1)(1:lpara(1))
+                        ENDIF
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                        IF(ier_num==0) THEN
+                           IF(ianz >= 1) THEN
+                              CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+                              IF(ier_num==0) THEN
+                                 IF(cpara(1)(1:1)=='''' .AND.               &
+                                    cpara(1)(lpara(1):lpara(1))=='''') THEN
+                                    search= cpara(1)(2:lpara(1)-1)
+                                 ELSE
+                                    search= cpara(1)(1:lpara(1))
+                                 ENDIF
+                                 ww = FLOAT(INDEX(zeile (1:LEN_TRIM(ZEILE )), &
+                                                  search(1:LEN_TRIM(search)), &
+                                                  BACK ))
+                                 CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
+                              ENDIF
+                           ELSE 
+                              ier_num = - 6 
+                              ier_typ = ER_FORT 
+                              RETURN 
+                           ENDIF
+                        ENDIF
+                     ENDIF
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_FORT 
+                     RETURN 
+                  ENDIF
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_FORT 
+                  RETURN 
+               ENDIF 
+            ENDIF
          ELSE 
             CALL p_calc_intr_spec (string, line, ikl, iklz, ww, lll, lp) 
          ENDIF 
