@@ -545,6 +545,7 @@ END SUBROUTINE do_execute_block
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
+         CALL rem_insig_bl (line, laenge) 
          IF (ltest (level) ) then 
 !........... previous block of the current if-elseif had been true      
             ltest (level) = .false. 
