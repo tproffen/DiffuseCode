@@ -1615,8 +1615,10 @@ END SUBROUTINE do_execute_block
       indx_env=INDEX(line (indxg + 1:length),'getenv')  ! locate length function
       indx_cwd=INDEX(line (indxg + 1:length),'getcwd')  ! locate length function
 !
-      IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a fucntion of a string argument
-         (indx_len>0 .AND. indx_len<ising)) THEN   ! We got a fucntion of a string argument
+      IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a function of a string argument
+         (indx_len>0 .AND. indx_len<ising)  .OR. & ! We got a function of a string argument
+         (indx_env>0 .AND. indx_env<ising)  .OR. & ! We got a function of a string argument
+         (indx_cwd>0 .AND. indx_cwd<ising)) THEN
          string = line (indxg + 1:length)
          laenge = length - indxg
          ikl = INDEX(string,'(')
@@ -1729,7 +1731,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      IF (index (line, '"') .gt.0.or.index (line, '''') .gt.0) then 
+      IF (index (line, '"') .gt.0.or.index (line, '''') .gt.0 ) THEN
          CALL do_string_alloc (line, indxg, i) 
          WRITE (output_io, 3000) line(1:LEN_TRIM(line))
          RETURN 
@@ -2384,7 +2386,8 @@ END SUBROUTINE do_execute_block
          ELSEIF (string (ikl - 6:ikl - 1) .eq.'length') then 
             zeile = line (2:lp - 1)
             i = lp - 2
-            IF(zeile(1:1)=='''' .and. zeile(i:i)=='''') THEN
+            IF(zeile(1:1)=='''' .and. zeile(i:i)=='''' .OR. & !) THEN
+               zeile(1:1)=='"'  .and. zeile(i:i)=='"' ) THEN
                ww = float (i-2) 
                CALL ersetz2 (string, ikl, iklz, ww, 6, lll) 
             ELSE
@@ -3943,6 +3946,7 @@ main: DO i=1, laenge
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
+         string(laenge+1:LEN(STRING)) = ' '
          IF ( (number (1:1) .eq.''''.or.number (1:1) .eq.'"') .and.  &
               (number (lwert:lwert) .eq.''''.or.                     &
                number (lwert:lwert) .eq.'"') ) then
