@@ -70,17 +70,12 @@ IF(np==1 .AND. IABS(NINT(werte(1)))==0) THEN
          seed_val(i) = INT(midnight*r) + 1
       ENDDO
       CALL RANDOM_SEED(PUT=seed_val)
-   iff  = 0
 ELSE                                 ! more than one value or non-zero value
    DO i=1, MIN(np,nseeds)            ! Loop over all seeds or all provided values
       seed_val(i) = IABS(NINT(werte(i)))
    ENDDO
    CALL RANDOM_SEED(PUT=seed_val)
 !  idum = 0                      ! User provided three numbers
-!  iff  = 1
-!  ix1  = NINT(werte(1))         ! Set points within sequence
-!  ix2  = NINT(werte(2))         !
-!  ix3  = NINT(werte(3))         !
 ENDIF
 !
 END SUBROUTINE ini_ran_ix
