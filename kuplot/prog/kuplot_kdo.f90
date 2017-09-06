@@ -27,7 +27,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       INTEGER maxw 
       PARAMETER (maxw = 1) 
 !                                                                       
-      CHARACTER(1024) zei, command 
+      CHARACTER(1024) zei
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(4) bef 
       REAL dummy 
@@ -37,8 +37,6 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       LOGICAL ldummy 
 !                                                                       
       LOGICAL str_comp 
-!                                                                       
-      SAVE command 
 !                                                                       
       CALL no_error 
 !                                                                       

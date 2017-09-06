@@ -29,9 +29,12 @@
 ! for the use                                                           
 ! of this software.                                                     
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !PSEUDOCODE:                                                            
                                                                         
 !CALLING ARGUMENTS:                                                     
+INTEGER, INTENT(IN) :: NMAX
                                                                         
                               !Histogram type                           
       CHARACTER(4) HTYPE 
@@ -51,6 +54,7 @@
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
+REAL :: DEXDS, dh1dy, dh2dy, dy1ds, dy2ds, s2sg, sq2pi
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -197,6 +201,8 @@
                                                                         
 !PURPOSE:                                                               
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta T for profile point      
@@ -269,6 +275,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Peak coeffs.                   
@@ -366,6 +374,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta TOF in micro secs.       
@@ -386,6 +396,11 @@
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
+REAL :: A1, A2, A3, A4, AMD, APD, C0, C1, C2, C3, C4, C1R
+REAL :: D1DQ, D2DV, D3DU, D4DP, DEDS, DEDT, DFDB1, DFDB2
+REAL :: DK, DKM, DKP, DKSQ, DPDS, DQDS, DUDS, DVDS
+REAL :: EX, RSQ2PI, SQ2, SQPI, SQSG
+REAL :: TS, X, XYZ, Y, Z, ZP, ZQ, ZU, ZV
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -494,6 +509,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta TOF in musec             
@@ -514,7 +531,13 @@
                                                                         
 !INCLUDE STATEMENTS:                                                    
                                                                         
-!LOCAL VARIABLES:                                                       
+!LOCAL VARIABLES:                     
+REAL :: AMD, APD
+REAL :: C0, C1, C1R, CX, CY, CZ, DDT, DGT, DK, DKM, DKP                                  
+REAL :: DKSQ
+REAL :: FIX, FIY, FIZ, FRX, FRY, FRZ, GAM, PI, SI, SR
+REAL :: X, XY, XYZ, XZ, Y, YZ, Z
+REAL :: ZFIX, ZFIY, ZFIZ, ZFRX, ZFRY, ZFRZ, ZSR, ZSI
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -612,6 +635,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                 !Real & imaginary parts of argument z   
@@ -729,6 +754,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta-TOF from center          
@@ -902,6 +929,8 @@
                                                                         
 !PURPOSE:                                                               
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta 2-theta                  
@@ -988,6 +1017,8 @@
                                                                         
 !PURPOSE:                                                               
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta 2-theta                  
@@ -1073,6 +1104,8 @@
 !PURPOSE:Calculate Lorentzian function & derivatives                    
                                                                         
 !PSEUDOCODE:                                                            
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
                                                                         
 !CALLING ARGUMENTS:                                                     
                                                                         
@@ -1090,6 +1123,7 @@
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
+REAL :: PI, FNORM, DENOM
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -1133,9 +1167,11 @@
 ! coded 11/95 by B. H. Toby (NIST). revised version                     
 ! parameterized as asym1=S/L asym2=H/L                                  
                                                                         
+      USE trig_degree_mod
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
-      USE trig_degree_mod
       REAL DTT 
       REAL TTHETA 
       REAL SL, HL 
@@ -1489,6 +1525,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta-x from center            
@@ -1508,7 +1546,11 @@
                                                                         
 !INCLUDE STATEMENTS:                                                    
                                                                         
-!LOCAL VARIABLES:                                                       
+!LOCAL VARIABLES
+INTEGER :: ITRM, ITYPE                                                       
+REAL DEDF, DFRDG, DFWDG, DFWDL, DSDG, DSDL
+REAL :: DTLDFW, DTLDT, ETA, EX, FRAC, FWHG, FWHM, PF, PGL
+REAL :: SIGP, SQSG, SQ2PI, STOFW, SUMHM, TG, TL, TS
                                                                         
                                         !Linear combination coeffs      
       REAL COFG (6), COFL (6) 
@@ -1590,7 +1632,8 @@
 !  containing the abscissas and weights of the Gauss-Legendre N-point   
 !  quadrature formula.                                                  
 !                                                                       
-      IMPLICIT real (a - h, o - z) 
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
       REAL X1, X2, X (N), W (N) 
       PARAMETER (eps = 3.e-7) 
 !                                                                       
@@ -1626,6 +1669,8 @@
                                                                         
 !PURPOSE:                                                               
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Delta KEV                      
@@ -1642,6 +1687,7 @@
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
+REAL :: EX, GNORM, SIG, SQ2PI, T
                                                                         
 !FUNCTION DEFINITIONS:                                                  
                                                                         
@@ -1671,6 +1717,8 @@
                                                                         
 !PSEUDOCODE:                                                            
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
                                         !Arguments                      
@@ -1685,6 +1733,7 @@
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
+REAL :: T, T1, CONST, CONS2
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -1826,8 +1875,11 @@
                                                                         
 !PURPOSE: Convert TOF profile coeff. to single peak coeff.              
                                                                         
+IMPLICIT INTEGER (i-n)
+IMPLICIT REAL (a - h, o - z) 
 !CALLING ARGUMENTS:                                                     
                                                                         
+INTEGER, INTENT(IN) :: MAXFIT
                                         !Function type                  
       INTEGER PTYPE 
                                         !Input profile coeff            

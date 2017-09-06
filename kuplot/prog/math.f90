@@ -1330,6 +1330,8 @@
       END SUBROUTINE extract_subarray               
 !********************************************************************   
       SUBROUTINE polin2 (x1a, x2a, ya, m, n, x1, x2, y, dy,ier) 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       PARAMETER (nmax = 50, mmax = 50) 
       DIMENSION x1a (m), x2a (n), ya (m, n), yntmp (nmax), ymtmp (mmax) 
       INTEGER :: ier
@@ -1346,6 +1348,8 @@
       END SUBROUTINE polin2                         
 !                                                                       
       SUBROUTINE polint (xa, ya, n, x, y, dy, ier) 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       PARAMETER (nmax = 50) 
       DIMENSION xa (n), ya (n), c (nmax), d (nmax) 
       INTEGER :: ier
@@ -1390,6 +1394,8 @@
 !                                                                       
       SUBROUTINE spline (x, y, n, yp1, ypn, y2) 
       USE kuplot_config 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       PARAMETER (nmax = maxarray) 
       DIMENSION x (n), y (n), y2 (n), u (nmax) 
       IF (yp1.gt..99e30) then 
@@ -1424,6 +1430,8 @@
       END SUBROUTINE spline                         
 !                                                                       
       SUBROUTINE splint (xa, ya, y2a, n, x, y, ier) 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       DIMENSION xa (n), ya (n), y2a (n) 
       INTEGER :: ier
       klo = 1 
@@ -1451,6 +1459,8 @@
                                                                         
       SUBROUTINE SAVGOL (c, np, nl, nr, ld, m) 
       USE errlist_mod 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       INTEGER ld, m, nl, np, nr, MMAX 
       REAL c (np) 
       PARAMETER (MMAX = 6) 
@@ -1505,6 +1515,8 @@
       END SUBROUTINE SAVGOL                         
                                                                         
       SUBROUTINE LUBKSB (A, N, NP, INDX, B) 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       DIMENSION A (NP, NP), INDX (N), B (N) 
       II = 0 
       DO 12 I = 1, N 
@@ -1532,6 +1544,8 @@
       RETURN 
       END SUBROUTINE LUBKSB                         
       SUBROUTINE LUDCMP (A, N, NP, INDX, D, ier) 
+IMPLICIT integer(i-n)
+IMPLICIT REAL (a-h, o-z)
       PARAMETER (NMAX = 100, TINY = 1.0E-20) 
       DIMENSION A (NP, NP), INDX (N), VV (NMAX) 
       INTEGER  , INTENT(OUT) :: ier
