@@ -626,22 +626,29 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ENDDO 
       END SUBROUTINE do_low
 !*****7***********************************************************      
-      SUBROUTINE ini_ran (iflag) 
+      SUBROUTINE ini_ran (np, werte) 
 !                                                                       
       USE random_mod
+      USE random_state_mod
       USE times_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, INTENT(IN) :: iflag 
+!     INTEGER, INTENT(IN) :: iflag 
+!
+      INTEGER            , INTENT(IN) :: np
+      REAL, DIMENSION(np), INTENT(IN) :: werte
 !                                                                       
-      IF (iflag.ge.0) THEN 
-         CALL datum_intrinsic () 
-         idum = - midnight 
-      ELSE 
-         idum = iflag 
-      ENDIF 
-      iset = 0 
+!     IF (iflag.ge.0) THEN 
+!        CALL datum_intrinsic () 
+!        idum = - midnight 
+!     ELSE 
+!        idum = iflag 
+!     ENDIF 
+!     iset = 0 
+!     np = 1
+!     werte(1) = IABS(iflag)
+      CALL ini_ran_ix(np, werte)
       END SUBROUTINE ini_ran                        
 !*****7***********************************************************      
       SUBROUTINE get_cmd (line, ll, befehl, lbef, zeile, lp, prom) 
@@ -1053,7 +1060,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                   ier_num = -2
                   ier_typ = ER_IO
                   ier_msg(1) ='Could not open the NULL file'
-                  ier_msg(2) = message
+                  ier_msg(2) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
                   RETURN
                ENDIF
                WRITE (output_io, 1100) cpara (1) (1:lpara (1) ) 
@@ -1081,7 +1088,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ENDIF 
       RETURN 
 !                                                                       
-  999 CONTINUE 
+! 999 CONTINUE 
       ier_num = - 2 
       ier_typ = ER_IO 
 !                                                                       
@@ -1645,36 +1652,47 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
+      INTEGER, PARAMETER :: maxw = 12 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      CHARACTER(1024) cpara (maxw) 
-      INTEGER lpara (maxw), lp 
-      INTEGER ianz, iflag 
-      REAL werte (maxw) 
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp
+!
+      CHARACTER(LEN=1024), DIMENSION(MAXW) ::  cpara !(maxw) 
+      INTEGER            , DIMENSION(MAXW) ::  lpara !(maxw)
+      INTEGER  :: ianz, np
+      REAL               , DIMENSION(MAXW) ::  werte !(maxw) 
 !                                                                       
+      werte(:) = 0.0
       IF (zeile.ne.' ') THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-         IF (ier_num.eq.0) THEN 
-            IF (ianz.eq.1) THEN 
+         IF (ier_num == 0) THEN 
+            IF (ianz <= MAXW) THEN 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  iflag = - iabs (nint (werte (1) ) ) 
-                  CALL ini_ran (iflag) 
+               IF (ier_num == 0) THEN 
+                  np = ianz
+                  CALL ini_ran_ix(np, werte)
                ENDIF 
-            ELSEIF (ianz.eq.3) THEN 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) THEN 
-                  CALL ini_ran_ix(3, werte)
-               ENDIF 
+!           IF (ianz.eq.1) THEN 
+!              CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!              IF (ier_num.eq.0) THEN 
+!                 iflag = - iabs (nint (werte (1) ) ) 
+!                 CALL ini_ran (iflag) 
+!              ENDIF 
+!           ELSEIF (ianz.eq.3) THEN 
+!              CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!              IF (ier_num.eq.0) THEN 
+!                 CALL ini_ran_ix(3, werte)
+!              ENDIF 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
             ENDIF 
          ENDIF 
       ELSE 
-         CALL ini_ran (0) 
+         np = 1
+         werte(1) = 0.0
+         CALL ini_ran_ix(np, werte)
+!        CALL ini_ran (0) 
       ENDIF 
       END SUBROUTINE do_seed                        
 !*****7***********************************************************      
@@ -1830,7 +1848,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                            ier_num = -2
                            ier_typ = ER_IO
                            ier_msg(1) ='Could not open the NULL file'
-                           ier_msg(2) = message
+                           ier_msg(2) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
                            RETURN
                         ENDIF
                      ELSEIF (output_status.eq.OUTPUT_FILE) THEN 
@@ -1851,7 +1869,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                               ier_typ = ER_IO
                               ier_msg(1) ='Could not open the logfile'
                               ier_msg(2) = logfile
-                              ier_msg(3) = message
+                              ier_msg(3) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
                               RETURN
                            ENDIF
                         ENDIF 
@@ -1886,7 +1904,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                            ier_typ = ER_IO
                            ier_msg(1) ='Could not open the logfile'
                            ier_msg(2) = logfile
-                           ier_msg(3) = message
+                           ier_msg(3) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
                            RETURN
                         ENDIF
 !                                                                       
@@ -1913,7 +1931,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                               ier_typ = ER_IO
                               ier_msg(1) ='Could not open the logfile'
                               ier_msg(2) = logfile
-                              ier_msg(3) = message
+                              ier_msg(3) = message(1:MAX(1,MIN(80,LEN_TRIM(message))))
                               RETURN
                            ENDIF
                         ENDIF 
