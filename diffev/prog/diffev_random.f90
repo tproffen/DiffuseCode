@@ -12,7 +12,8 @@ CHARACTER(LEN=100) :: random_prog
 LOGICAL :: write_random_state = .FALSE.
 LOGICAL :: l_get_random_state = .TRUE.
 !INTEGER, DIMENSION(:,:), ALLOCATABLE :: random_state  ! Status for current members
-INTEGER, DIMENSION(5  )              :: random_best   ! Status for best    member
+INTEGER                              :: random_nseed
+INTEGER, DIMENSION(12 )              :: random_best   ! Status for best    member
 !
 CONTAINS
 !
@@ -79,9 +80,10 @@ SUBROUTINE diffev_random_save(new)
 !
 IMPLICIT NONE
 !
-INTEGER, DIMENSION(5), INTENT(IN) :: new
+INTEGER, DIMENSION(12), INTENT(IN) :: new
 !
 random_best(:) = new(:)
+random_nseed   = 12
 !
 END SUBROUTINE diffev_random_save
 !
@@ -97,8 +99,10 @@ IMPLICIT NONE
 INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
-INTEGER :: i
+CHARACTER(LEN=1024) :: line
+INTEGER :: i, i1
 !
+random_nseed   = 12   !  to be debugged depend on compiler ???
 IF(write_random_state) THEN
    CALL oeffne(IWR, macro_file, 'unknown')
 !
@@ -131,10 +135,18 @@ IF(write_random_state) THEN
    DO i=1,pop_dimx
       WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
-   IF(random_best(1) <= 0) THEN
-      WRITE(IWR,'(a,i12)') 'seed ',random_best(1)
-   ELSE
-      WRITE(IWR,'(4(a,i12))') 'seed ',random_best(3), ', ',random_best(4), ', ',random_best(5)
+!
+   IF(random_nseed>0) THEN
+      line = ' '
+      line(1:5) = 'seed '
+      DO i=1, random_nseed - 1
+         i1 = 6 + (i-1)*10
+         WRITE(line(i1:i1+9),'(I8,A2)') random_best(i),', '
+      ENDDO
+      i = random_nseed
+      i1 = 6 + (i-1)*10
+      WRITE(line(i1:i1+7),'(I8)') random_best(i)
+      WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'

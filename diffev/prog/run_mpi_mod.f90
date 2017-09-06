@@ -12,6 +12,7 @@ INTEGER, PARAMETER       :: RUN_MPI_COUNT_LOGICAL   =   4
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_CHARACTER = 540
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_REAL      =   2
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_TRIAL     = 200
+INTEGER, PARAMETER       :: RUN_MPI_NSEEDS          =  12 !Number of seeds for random
 INTEGER                  :: RUN_MPI_MAXPROG         = 1
 INTEGER, DIMENSION(0:4)  :: run_mpi_oldtypes
 INTEGER, DIMENSION(0:4)  :: run_mpi_blockcounts
@@ -40,11 +41,8 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    INTEGER               :: prog_num   ! 13  ! 13
    INTEGER               :: s_remote   ! 14  ! 14
    INTEGER               :: port       ! 15  ! 15
-   INTEGER               :: idum       ! 16  ! 16
-   INTEGER               :: iff        ! 17  ! 17
-   INTEGER               :: ix1        ! 18  ! 18
-   INTEGER               :: ix2        ! 19  ! 19
-   INTEGER               :: ix3        ! 20  ! 20
+   INTEGER               :: nseeds     ! 16  ! 16
+   INTEGER,DIMENSION(1:RUN_MPI_NSEEDS) :: seeds   !  (nseeds)
    LOGICAL               :: repeat     ! 21  ! 21
    LOGICAL               :: use_socket ! 22  ! 22
    LOGICAL               :: prog_start ! 23  ! 23

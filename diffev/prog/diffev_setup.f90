@@ -19,6 +19,9 @@ USE lib_f90_default_mod
 IMPLICIT none 
 !
 LOGICAL, INTENT(IN) :: standalone
+!
+INTEGER, PARAMETER  :: np = 1
+REAL, DIMENSION(np) :: werte = 0.0
 !                                                                       
       include'date.inc' 
 LOGICAL                        :: lend 
@@ -31,7 +34,7 @@ prompt            = pname
 prompt_status     = PROMPT_ON 
 prompt_status_old = PROMPT_ON 
 !                                                                       
-CALL ini_ran (0) 
+CALL ini_ran (np, werte) 
 !
 !     Call initial default allocation
 !
@@ -218,8 +221,7 @@ INTERFACE
                                     nindiv  , &
                             trial_v, NTRIAL, &
                             l_get_random_state,     &
-                            rd_idum,rd_iff,         &
-                            rd_ix1, rd_ix2, rd_ix3, &
+                            rd_nseeds,rd_seeds,     &
                             ierr )
 !
    IMPLICIT NONE
@@ -248,11 +250,8 @@ INTERFACE
    INTEGER                , INTENT(IN) :: NTRIAL
    REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
    LOGICAL                , INTENT(IN)  :: l_get_random_state
-   INTEGER                , INTENT(OUT) :: rd_idum
-   INTEGER                , INTENT(OUT) :: rd_iff
-   INTEGER                , INTENT(OUT) :: rd_ix1
-   INTEGER                , INTENT(OUT) :: rd_ix2
-   INTEGER                , INTENT(OUT) :: rd_ix3
+   INTEGER                , INTENT(OUT) :: rd_nseeds
+   INTEGER, DIMENSION(12) , INTENT(OUT) :: rd_seeds
    INTEGER                , INTENT(OUT):: ierr 
 !
    END SUBROUTINE diffev_execute_cost

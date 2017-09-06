@@ -17,7 +17,7 @@ USE diffev_config
 USE errlist_mod 
 !
 PRIVATE
-PUBLIC  :: diffev_alloc_appl          ! Generic interface for all allocations
+!PUBLIC  :: diffev_alloc_appl          ! Generic interface for all allocations
 PUBLIC  :: diffev_do_allocate_appl
 PUBLIC  :: diffev_do_deallocate_appl
 PUBLIC  :: diffev_alloc_default
@@ -234,6 +234,7 @@ CONTAINS
 !     Allocate the number of members and parameters avaliable to DIFFEV
 !+
       USE population
+      USE random_state_mod
       USE variable_mod
 !
       IMPLICIT NONE
@@ -243,6 +244,7 @@ CONTAINS
       INTEGER, INTENT(IN)  :: n_dimx
 !
       INTEGER              :: all_status
+      INTEGER              :: nseeds
       LOGICAL              :: lstat
       INTEGER              :: size_of
 !
@@ -347,7 +349,9 @@ CONTAINS
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( pop_random ,1,5, 1,n_pop , all_status, 0  , size_of)
+!     nseeds = random_nseeds()                ! too be improved for different compilers
+      nseeds = 12
+      CALL alloc_arr ( pop_random ,1,nseeds, 1,n_pop , all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !

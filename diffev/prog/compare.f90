@@ -43,9 +43,6 @@ CONTAINS
 !                                                                       
    IMPLICIT none 
 !
-!                                                                       
-   INTEGER, PARAMETER             :: maxw = 2 
-!                                                                       
    CHARACTER(LEN=600)             :: string 
    INTEGER                        :: i, j , nb
    REAL                           ::  best, worst 

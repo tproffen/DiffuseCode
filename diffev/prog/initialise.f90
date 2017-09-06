@@ -35,8 +35,6 @@ CONTAINS
 !                                                                       
    LOGICAL, INTENT(IN)  :: l_init_x     ! Shall parameter be initialised?
 !                                                                       
-   INTEGER, PARAMETER   :: maxw = 2
-!                                                                       
    INTEGER, PARAMETER   :: iwr = 7
 !                                                                       
    CHARACTER (LEN=2048) :: line 

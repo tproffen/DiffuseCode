@@ -25,8 +25,11 @@ CONTAINS
    CHARACTER (LEN=1024)  :: zeile         ! dummy line
    INTEGER               :: send_direc_l  ! working directory length
    INTEGER               :: lzeile        ! working directory length
+   INTEGER               :: nseeds        ! number of seeds for random nuber generator
+!  INTEGER, DIMENSION(:), ALLOCATABLE :: seeds ! Actual seeds
+   INTEGER, DIMENSION(12)             :: seeds ! Actual seeds
 
-   INTEGER  :: i, j, k
+   INTEGER  :: i, j, k,l
 !
    INTEGER                 :: ierr
 !
@@ -82,16 +85,11 @@ CONTAINS
             ilevel(level) = nlevel_mpi
             rvalue_yes = .FALSE.
             IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
-               CALL random_current(run_mpi_senddata%idum, &
-                                   run_mpi_senddata%iff,  &
-                                   run_mpi_senddata%ix1,  &
-                                   run_mpi_senddata%ix2,  &
-                                   run_mpi_senddata%ix3  ) 
-               pop_random(1,i) = run_mpi_senddata%idum
-               pop_random(2,i) = run_mpi_senddata%iff
-               pop_random(3,i) = run_mpi_senddata%ix1
-               pop_random(4,i) = run_mpi_senddata%ix2
-               pop_random(5,i) = run_mpi_senddata%ix3
+               CALL random_current(nseeds, seeds)
+               pop_random(:,i) = 0
+               l = MIN(nseeds, RUN_MPI_NSEEDS)
+               pop_random(1:l,i) = seeds(1:l)
+               run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
             CALL p_branch(zeile, lzeile)
             IF(rvalue_yes) THEN
@@ -114,16 +112,12 @@ CONTAINS
                                          run_mpi_senddata%nindiv  , &
                  run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                  run_mpi_senddata%l_get_state,                           &
-                 run_mpi_senddata%idum, run_mpi_senddata%iff,            &
-                 run_mpi_senddata%ix1 , run_mpi_senddata%ix2,            &
-                 run_mpi_senddata%ix3 ,                                  &
+                 run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                  ierr )
             IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
-               pop_random(1,i) = run_mpi_senddata%idum
-               pop_random(2,i) = run_mpi_senddata%iff
-               pop_random(3,i) = run_mpi_senddata%ix1
-               pop_random(4,i) = run_mpi_senddata%ix2
-               pop_random(5,i) = run_mpi_senddata%ix3
+               l = MIN(nseeds, RUN_MPI_NSEEDS)
+               pop_random(1:l,i) = seeds(1:l)
+               run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
          ENDIF
          mpi_is_slave = .false.

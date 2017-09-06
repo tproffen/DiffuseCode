@@ -34,7 +34,6 @@ USE prompt_mod
 !
 IMPLICIT none
 !
-INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
 INTEGER                        :: run_mpi_integer_extent
 INTEGER                        :: run_mpi_logical_extent
 INTEGER                        :: run_mpi_charact_extent
@@ -152,6 +151,7 @@ CHARACTER (LEN=2048)  :: send_direc    ! working directory
 INTEGER               :: send_direc_l  ! working directory length
 INTEGER               :: sender        ! Id of slave that answered
 INTEGER               :: i,j
+INTEGER               :: nseeds        ! Number of seeds for randum numbers
 INTEGER               :: run_mpi_numsent  ! Number of jobs sent out
 INTEGER               :: run_mpi_numjobs  ! Number of initial jobs
 INTEGER               :: nprog         ! number of different program/mac combinations
@@ -254,11 +254,10 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
    ENDIF
 !
    IF(l_get_random_state) THEN             ! Update random number status
-      pop_random(1,run_mpi_senddata%kid) = run_mpi_senddata%idum
-      pop_random(2,run_mpi_senddata%kid) = run_mpi_senddata%iff
-      pop_random(3,run_mpi_senddata%kid) = run_mpi_senddata%ix1
-      pop_random(4,run_mpi_senddata%kid) = run_mpi_senddata%ix2
-      pop_random(5,run_mpi_senddata%kid) = run_mpi_senddata%ix3
+      pop_random(:,run_mpi_senddata%kid) = 0
+      nseeds = run_mpi_senddata%nseeds
+      j = MIN(nseeds, RUN_MPI_NSEEDS)
+      pop_random(1:j,run_mpi_senddata%kid) = run_mpi_senddata%seeds(1:j)
    ENDIF
    IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
       trial_val(run_mpi_senddata%kid) = run_mpi_senddata%rvalue
@@ -508,9 +507,7 @@ slave: DO
                                                    run_mpi_senddata%nindiv  , &
                            run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                            run_mpi_senddata%l_get_state,                           &
-                           run_mpi_senddata%idum, run_mpi_senddata%iff,            &
-                           run_mpi_senddata%ix1 , run_mpi_senddata%ix2,            &
-                           run_mpi_senddata%ix3 ,                                  &
+                           run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                            ierr )
    ENDIF use_socket
 !
