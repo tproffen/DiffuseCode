@@ -8,36 +8,31 @@ IMPLICIT NONE
 PUBLIC
 SAVE
 !
-INTEGER  ::    iff = 0
-INTEGER  ::    ix1 = 0
-INTEGER  ::    ix2 = 0
-INTEGER  ::    ix3 = 0
 !
 CONTAINS
 !
-SUBROUTINE random_current(idum_out, iff_out, ix1_out, ix2_out, ix3_out)
+INTEGER FUNCTION random_nseeds()
 !
-USE random_mod
+IMPLICIT NONE
 !
-INTEGER, INTENT(OUT)  :: idum_out
-INTEGER, INTENT(OUT)  :: iff_out
-INTEGER, INTENT(OUT)  :: ix1_out
-INTEGER, INTENT(OUT)  :: ix2_out
-INTEGER, INTENT(OUT)  :: ix3_out
+INTEGER :: nseeds
+CALL RANDOM_SEED(SIZE=nseeds)        ! Get seed size
+random_nseeds = nseeds
 !
-IF(idum < 0 .OR. iff==0) THEN
-   idum_out = idum
-   iff_out  = iff
-   ix1_out  = 0
-   ix2_out  = 0
-   ix3_out  = 0
-ELSE
-   idum_out  = idum
-   iff_out   = iff
-   ix1_out   = ix1
-   ix2_out   = ix2
-   ix3_out   = ix3
-ENDIF
+END FUNCTION random_nseeds
+!
+SUBROUTINE random_current(nseeds, seed_val)
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(OUT) :: nseeds
+INTEGER, DIMENSION(12),INTENT(OUT) :: seed_val
+!NTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: seed_val
+!
+CALL RANDOM_SEED(SIZE=nseeds)        ! Get seed size 
+!IF(ALLOCATED(seed_val)) DEALLOCATE(seed_val)
+!ALLOCATE(seed_val(1:nseeds))
+CALL RANDOM_SEED(GET=seed_val)
 !
 END SUBROUTINE random_current
 !
@@ -53,19 +48,39 @@ IMPLICIT NONE
 INTEGER           , INTENT(IN) :: np
 REAL, DIMENSION(:), INTENT(IN) :: werte
 !
-IF(np==1) THEN
-   idum = NINT(werte(1))         ! Get user value
-   IF(idum==0) THEN              ! If negative initialize randomly
-      CALL  datum_intrinsic ()   !    by getting time since midnight
-      idum = - midnight
-   ENDIF
+INTEGER  :: i
+INTEGER  :: nseeds
+!INTEGER, DIMENSION(:), ALLOCATABLE :: seed_val
+INTEGER, DIMENSION(12)              :: seed_val
+REAL     :: r
+!
+CALL RANDOM_SEED()                   ! Set at default value
+CALL RANDOM_SEED(SIZE=nseeds)        ! Get seed size 
+!ALLOCATE(seed_val(1:nseeds))
+!
+! If one value == 0 initialize automatically
+! Else take user values
+IF(np==1 .AND. IABS(NINT(werte(1)))==0) THEN
+      CALL  datum_intrinsic ()       ! get time since midnight
+      idum =   midnight              ! idum is preserved for backwards compatibility
+      seed_val(:) = midnight         ! Set all seeds
+      CALL RANDOM_SEED(PUT=seed_val) 
+      DO i=1,nseeds                  ! "randomly" populate all seeds
+         CALL RANDOM_NUMBER(r)
+         seed_val(i) = INT(midnight*r) + 1
+      ENDDO
+      CALL RANDOM_SEED(PUT=seed_val)
    iff  = 0
-ELSE
-   idum = 0                      ! User provided three numbers
-   iff  = 1
-   ix1  = NINT(werte(1))         ! Set points within sequence
-   ix2  = NINT(werte(2))         !
-   ix3  = NINT(werte(3))         !
+ELSE                                 ! more than one value or non-zero value
+   DO i=1, MIN(np,nseeds)            ! Loop over all seeds or all provided values
+      seed_val(i) = IABS(NINT(werte(i)))
+   ENDDO
+   CALL RANDOM_SEED(PUT=seed_val)
+!  idum = 0                      ! User provided three numbers
+!  iff  = 1
+!  ix1  = NINT(werte(1))         ! Set points within sequence
+!  ix2  = NINT(werte(2))         !
+!  ix3  = NINT(werte(3))         !
 ENDIF
 !
 END SUBROUTINE ini_ran_ix

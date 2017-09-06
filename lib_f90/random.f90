@@ -56,79 +56,93 @@
 !
       END FUNCTION gasskew                           
 !*****7*****************************************************************
-      REAL FUNCTION ran1 (idum) 
-!                                                                       
-      USE random_state_mod
-      USE times_mod
+      REAL FUNCTION ran1 (idum)
 !
-      IMPLICIT NONE 
-      INTEGER, INTENT(INOUT) :: idum
+!     kept for backwards compatibility, replaces old ran1 from Numerical recipes
+!
+      USE random_state_mod
+!
+      INTEGER, INTENT(IN) :: idum   ! not needed, ...
+!
+      REAL :: r
+      CALL RANDOM_NUMBER(r)
+      ran1 = r
+!
+      END FUNCTION ran1                             
+!*****7*****************************************************************
+!     REAL FUNCTION ran1 (idum) 
 !                                                                       
-      INTEGER m1, m2, m3, ia1, ia2, ia3, ic1, ic2, ic3 
-      INTEGER                           j 
+!     USE random_state_mod
+!     USE times_mod
+!
+!     IMPLICIT NONE 
+!     INTEGER, INTENT(INOUT) :: idum
+!                                                                       
+!     INTEGER m1, m2, m3, ia1, ia2, ia3, ic1, ic2, ic3 
+!     INTEGER                           j 
 !     INTEGER iff, idum, ix1, ix2, ix3, j 
-      REAL rm1, rm2, r (97) 
+!     REAL rm1, rm2, r (97) 
 !                                                                       
 !     save         m1,m2,m3,ia1,ia2,ia3,ic1,ic2,ic3,ix1,ix2,ix3,iff     
 !     SAVE ix1, ix2, ix3, iff 
-      SAVE r 
+!     SAVE r 
 !                                                                       
 !       dimension r(97)                                                 
 !                                                                       
-      PARAMETER (m1 = 259200, ia1 = 7141, ic1 = 54773, rm1 = 3.8580247e-6)
-      PARAMETER (m2 = 134456, ia2 = 8121, ic2 = 28411, rm2 = 7.4373773e-6)
-      PARAMETER (m3 = 243000, ia3 = 4561, ic3 = 51349)
+!     PARAMETER (m1 = 259200, ia1 = 7141, ic1 = 54773, rm1 = 3.8580247e-6)
+!     PARAMETER (m2 = 134456, ia2 = 8121, ic2 = 28411, rm2 = 7.4373773e-6)
+!     PARAMETER (m3 = 243000, ia3 = 4561, ic3 = 51349)
 !                                                                       
 !     DATA iff / 0 / 
 !                                                                       
-      IF (idum.lt.0.or.iff.eq.0) then 
-         iff = 1 
-         ix1 = mod (ic1 - idum, m1) 
-         ix1 = mod (ia1 * ix1 + ic1, m1) 
-         ix2 = mod (ix1, m2) 
-         ix1 = mod (ia1 * ix1 + ic1, m1) 
-         ix3 = mod (ix1, m3) 
-         DO 11 j = 1, 97 
-            ix1 = mod (ia1 * ix1 + ic1, m1) 
-            ix2 = mod (ia2 * ix2 + ic2, m2) 
-            r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
-   11    END DO 
-         idum = 1 
-      ENDIF 
-      ix1 = mod (ia1 * ix1 + ic1, m1) 
-      ix2 = mod (ia2 * ix2 + ic2, m2) 
-      ix3 = mod (ia3 * ix3 + ic3, m3) 
-      j = 1 + (97 * ix3) / m3 
-      IF (j.gt.97.or.j.lt.1) then 
+!     IF (idum.lt.0.or.iff.eq.0) then 
+!        iff = 1 
+!        ix1 = mod (ic1 - idum, m1) 
+!        ix1 = mod (ia1 * ix1 + ic1, m1) 
+!        ix2 = mod (ix1, m2) 
+!        ix1 = mod (ia1 * ix1 + ic1, m1) 
+!        ix3 = mod (ix1, m3) 
+!        DO 11 j = 1, 97 
+!           ix1 = mod (ia1 * ix1 + ic1, m1) 
+!           ix2 = mod (ia2 * ix2 + ic2, m2) 
+!           r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
+!  11    END DO 
+!        idum = 1 
+!     ENDIF 
+!     ix1 = mod (ia1 * ix1 + ic1, m1) 
+!     ix2 = mod (ia2 * ix2 + ic2, m2) 
+!     ix3 = mod (ia3 * ix3 + ic3, m3) 
+!     j = 1 + (97 * ix3) / m3 
+!     IF (j.gt.97.or.j.lt.1) then 
 !
 !        User probably provided erroneoous ix1, ix2, ix3, initialize
 !
-         CALL  datum_intrinsic ()   !    by getting time since midnight
-         idum = - midnight
-         iff = 1 
-         ix1 = mod (ic1 - idum, m1) 
-         ix1 = mod (ia1 * ix1 + ic1, m1) 
-         ix2 = mod (ix1, m2) 
-         ix1 = mod (ia1 * ix1 + ic1, m1) 
-         ix3 = mod (ix1, m3) 
-         DO j = 1, 97 
-            ix1 = mod (ia1 * ix1 + ic1, m1) 
-            ix2 = mod (ia2 * ix2 + ic2, m2) 
-            r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
-         ENDDO 
-         idum = 1 
-         ix1 = mod (ia1 * ix1 + ic1, m1) 
-         ix2 = mod (ia2 * ix2 + ic2, m2) 
-         ix3 = mod (ia3 * ix3 + ic3, m3) 
-         j = 1 + (97 * ix3) / m3 
+!        CALL  datum_intrinsic ()   !    by getting time since midnight
+!        idum = - midnight
+!        iff = 1 
+!        ix1 = mod (ic1 - idum, m1) 
+!        ix1 = mod (ia1 * ix1 + ic1, m1) 
+!        ix2 = mod (ix1, m2) 
+!        ix1 = mod (ia1 * ix1 + ic1, m1) 
+!        ix3 = mod (ix1, m3) 
+!        DO j = 1, 97 
+!           ix1 = mod (ia1 * ix1 + ic1, m1) 
+!           ix2 = mod (ia2 * ix2 + ic2, m2) 
+!           r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
+!        ENDDO 
+!        idum = 1 
+!        ix1 = mod (ia1 * ix1 + ic1, m1) 
+!        ix2 = mod (ia2 * ix2 + ic2, m2) 
+!        ix3 = mod (ia3 * ix3 + ic3, m3) 
+!        j = 1 + (97 * ix3) / m3 
 !
 !         WRITE ( *, * ) j, idum, iff 
 !         WRITE ( *, * ) ix1, ix2, ix3 
 !         STOP 
-      ENDIF 
-      ran1 = r (j) 
-      r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
-      END FUNCTION ran1                             
+!     ENDIF 
+!     ran1 = r (j) 
+!     r (j) = (float (ix1) + float (ix2) * rm2) * rm1 
+!     END FUNCTION ran1                             
 !*****7*****************************************************************
       REAL FUNCTION bessj1 (x) 
 !                                                                       
