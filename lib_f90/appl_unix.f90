@@ -19,8 +19,8 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       INTEGER, PARAMETER :: idef = 68
 !
       CHARACTER(255) cdummy
-      CHARACTER(LEN=1024) :: line, color
-      INTEGER ico, ice, iii, i, j, length
+      CHARACTER(LEN=1024) :: line
+      INTEGER ico, ice, iii, i, j
       INTEGER :: ios ! I/O status
       INTEGER len_str 
       INTEGER pname_l 
@@ -334,7 +334,6 @@ CHARACTER (LEN=*) , INTENT(IN)  :: color_type    ! String for comparison
 CHARACTER (LEN=*) , INTENT(IN)  :: color_string  ! User color name/value
 CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
 !
-CHARACTER (LEN=1024) :: string
 CHARACTER (LEN=   3) :: zeile
 INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1
@@ -386,7 +385,6 @@ CHARACTER (LEN=*) , INTENT(IN)  :: color_type    ! String for comparison
 CHARACTER (LEN=*) , INTENT(IN)  :: color_string  ! User color name/value
 CHARACTER (LEN=*) , INTENT(OUT) :: color_color   ! Intended output color string
 !
-CHARACTER (LEN=1024) :: string
 CHARACTER (LEN=   3) :: zeile
 INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1

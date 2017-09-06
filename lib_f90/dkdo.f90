@@ -26,7 +26,7 @@ SUBROUTINE do_loop (line, lend, length)
 !                                                                       
 !-----      read first block structure command                          
 !                                                                       
-      CALL do_do_init(line, lend, length)
+      CALL do_do_init(line, length)
 !                                                                       
 !.....read all commands                                                 
 !                                                                       
@@ -54,11 +54,11 @@ SUBROUTINE do_loop (line, lend, length)
 !                                                                       
 !                                                                       
 !2000 FORMAT    (a1) 
- 3000 FORMAT    ('Erroneous line in block structure') 
- 3100 FORMAT    (a41) 
+!3000 FORMAT    ('Erroneous line in block structure') 
+!3100 FORMAT    (a41) 
       END SUBROUTINE do_loop                        
 !
-SUBROUTINE do_do_init(line, lend, length)
+SUBROUTINE do_do_init(line, length)
 !                                                                       
 !-----      read first block structure command                          
 !                                                                       
@@ -72,7 +72,7 @@ USE prompt_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line 
-LOGICAL         , INTENT(INOUT) :: lend 
+!OGICAL         , INTENT(INOUT) :: lend 
 INTEGER         , INTENT(INOUT) :: length
 ! 
 CHARACTER(LEN=20) :: prom 
@@ -373,7 +373,7 @@ CHARACTER(LEN=1024) :: line
 CHARACTER(LEN=1024)                  :: zeile 
 CHARACTER(LEN=20)                    :: prom 
 CHARACTER(LEN=4)                     :: befehl 
-INTEGER :: i, length, lp, lbef
+INTEGER :: length, lp, lbef
 LOGICAL :: lreg 
 !
 LOGICAL :: str_comp 
@@ -446,7 +446,7 @@ main: DO WHILE (level.gt. - 1.and. (                                    &
    ENDIF 
 ENDDO main
 !
-999 CONTINUE
+!999 CONTINUE
 !
 IF (ier_num.ne.0) then 
    WRITE (ier_msg (1), 3000) 
@@ -3367,6 +3367,7 @@ END FUNCTION len_str
       INTEGER :: i,j,k
       LOGICAL :: no_par
 !
+      cpara(:) = ' '
       j = 0
       k = 0
       no_par = .true.
