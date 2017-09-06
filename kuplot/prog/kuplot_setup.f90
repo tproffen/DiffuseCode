@@ -13,6 +13,9 @@ CONTAINS
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: standalone
+!
+      INTEGER, PARAMETER  :: np = 1
+      REAL, DIMENSION(np) :: werte = 0.0
 !                                                                       
       include'date.inc' 
 !                                                                       
@@ -24,7 +27,7 @@ CONTAINS
       prompt_status = PROMPT_ON 
       prompt_status_old = PROMPT_ON 
 !                                                                       
-      CALL ini_ran (0) 
+      CALL ini_ran (np, werte) 
 !                                                                       
 !     Call initialization routines                                      
 !                                                                       
