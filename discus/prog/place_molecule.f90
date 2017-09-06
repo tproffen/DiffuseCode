@@ -781,7 +781,10 @@ CONTAINS
 !     Load the molecules into temporary structures to reduce disk I/O
 !
    CALL deco_get_molecules
-   IF(ier_num /=0) RETURN
+   IF(ier_num /=0) THEN
+      CALL readstru_internal( corefile)   ! Read  core file
+      RETURN
+   ENDIF
 !
 !     Determine average density
 !
@@ -1274,7 +1277,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
       CALL test_file(strufile, natoms, ntypes, n_mole, n_type, &
                      n_atom, init, lcell)
       IF(ier_num /=0) THEN
-         ier_msg(1) = ' Error reading the ligand file(s) '
+         ier_msg(1) = ' Error testing the ligand file(s) '
          ier_msg(2) = ' Check if file names are correct   '
          ier_msg(3) = ' Check file content '
          RETURN
@@ -1287,7 +1290,12 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
       CALL dc_molecules(i)%alloc_arrays(natoms, ntypes, n_mole, n_atom)
       CALL read_crystal ( dc_molecules(i), strufile, dc_temp_neig, &
            natoms, ntypes, n_mole, n_type, n_atom)
-      IF(ier_num /=0) EXIT main
+      IF(ier_num /=0) THEN
+         ier_msg(1) = ' Error reading the ligand file(s) '
+         ier_msg(2) = ' Check if file names are correct   '
+         ier_msg(3) = ' Check file content '
+         EXIT main
+      ENDIF
       CALL dc_molecules(i)%get_cryst_tran_f(rd_tran_f)  ! Get transformation matrix to cartesian
 !
       DO j=1, natoms
