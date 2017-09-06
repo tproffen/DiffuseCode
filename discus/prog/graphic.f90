@@ -809,12 +809,15 @@ SUBROUTINE do_niplps (linverse)
 !+                                                                      
 !     This routine sets the pseudo color color map                      
 !-                                                                      
-      INTEGER maxcol 
-      PARAMETER (maxcol = 256) 
+      IMPLICIT NONE
+!
+      INTEGER, PARAMETER ::maxcol = 256 
 !                                                                       
-      CHARACTER ( * ) cfarb (maxcol) 
-      CHARACTER(20) ccc (256) 
-      INTEGER rgb (3) 
+      CHARACTER (LEN=*),DIMENSION(maxcol) :: cfarb !(maxcol) 
+      CHARACTER(LEN=20),DIMENSION(maxcol) :: ccc   ! (256) 
+      INTEGER,          DIMENSION(3)      :: rgb (3) 
+      INTEGER                             :: i,ii,j,ifarb
+      REAL                                :: rh, rp, rq, rt, rf
 !                                                                       
       cfarb (1) = '000000' 
 !                                                                       
