@@ -82,27 +82,28 @@ CONTAINS
    ENDIF
    END SUBROUTINE macro_add_node
 !*******************************************************************************
-   RECURSIVE SUBROUTINE macro_find_node ( ptr, search, ier_typ )
+   RECURSIVE SUBROUTINE macro_find_node ( ptr, macrofile, search, ier_typ )
 !
    IMPLICIT NONE
 !
    TYPE(macro_internal), POINTER :: ptr     ! Pointer to current position in tree
+   CHARACTER(LEN=*)             , INTENT(IN) :: macrofile
    TYPE(macro_internal), POINTER :: search  ! The structure file to be found
    INTEGER, INTENT(INOUT)        :: ier_typ
 !
 
-   IF ( LLT(search%macrofile, ptr%macrofile )) THEN
+   IF ( LLT(macrofile, ptr%macrofile )) THEN
       IF ( ASSOCIATED(ptr%before) ) THEN
-         CALL macro_find_node ( ptr%before, search, ier_typ )
+         CALL macro_find_node ( ptr%before, macrofile, search, ier_typ )
       ELSE
          ier_typ = -113
       ENDIF
-   ELSEIF ( search%macrofile == ptr%macrofile ) THEN
-      search  = ptr
+   ELSEIF ( macrofile == ptr%macrofile ) THEN
+      search  => ptr
       ier_typ = 0
    ELSE
       IF ( ASSOCIATED(ptr%after) ) THEN
-         CALL macro_find_node ( ptr%after, search, ier_typ )
+         CALL macro_find_node ( ptr%after, macrofile, search, ier_typ )
       ELSE
          ier_typ = -113
       ENDIF

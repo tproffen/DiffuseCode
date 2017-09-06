@@ -27,6 +27,7 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER, PARAMETER :: imc   = 63
 !
       CHARACTER (LEN=1024), DIMENSION(:), ALLOCATABLE  :: content
+      CHARACTER (LEN=1024)  :: macrofile
       INTEGER               :: length, file_length
       INTEGER               :: iline
       INTEGER               :: iseof
@@ -45,65 +46,79 @@ SUBROUTINE file_kdo(line, ilen)
 !
 !     Build a temporary storage
 !
-         ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
-         NULLIFY(macro_temp%before)            ! None before and after
-         NULLIFY(macro_temp%after)
-         IF ( istatus /= 0) THEN
-            ier_num = -114
-            ier_typ = ER_MAC
-            macro_level = 0
+!XXX     ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
+!XXX     NULLIFY(macro_temp%before)            ! None before and after
+!XXX     NULLIFY(macro_temp%after)
+!        IF ( istatus /= 0) THEN
+!           ier_num = -114
+!           ier_typ = ER_MAC
+!           macro_level = 0
 !           THIS should be a routine "destroy tree"
 !           IF(ASSOCIATED(mac_tree_root)) DEALLOCATE(mac_tree_root) !WARNING MEMORY LEAK
 !           IF(ASSOCIATED(mac_tree_active)) DEALLOCATE(mac_tree_active) !WARNING MEMORY LEAK
-            lmakro = .false.
-            lmakro_error = .FALSE.            ! Start with macro termination error off
-            oprompt = prompt
-            CALL macro_close
-            RETURN
-         ENDIF
+!           lmakro = .false.
+!           lmakro_error = .FALSE.            ! Start with macro termination error off
+!           oprompt = prompt
+!           CALL macro_close
+!           RETURN
+!        ENDIF
 !
 !  Copy filename, if no '/' within prepend with current directory
 !
          lslash = index ( filename , '/' )
+         macrofile = ' '
          IF ( lslash == 0 ) THEN       ! No slash in filename
-            macro_temp%macrofile = current_dir(1:current_dir_l) // filename       ! Copy filename
+            macrofile = current_dir(1:current_dir_l) // filename(1:LEN_TRIM(filename)) ! Copy filename
          ELSE
-            macro_temp%macrofile = filename       ! Copy filename
+            macrofile = filename       ! Copy filename
          ENDIF
 !
 !  Let's first test if macro is stored internally
 !
          IF(ASSOCIATED(macro_root)) THEN       ! We do have macros in storage, test for existence
-            CALL macro_find_node(macro_root, macro_temp, ier_num)
+            CALL macro_find_node(macro_root, macrofile, macro_temp, ier_num)
             IF(ier_num == 0 ) THEN             ! Found the macro file in storage
                is_stored = .true.
             ELSE
-               length = len_str(macro_temp%macrofile)
+               length = len_str(macrofile)
 !
 !              File not found, test with appended mac
 !
-               IF(macro_temp%macrofile(length-3:length) /= '.mac' ) THEN
-                  macro_temp%macrofile = macro_temp%macrofile(1:length) // '.mac'
-                  CALL macro_find_node(macro_root, macro_temp, ier_num)
+               IF(macrofile(length-3:length) /= '.mac' ) THEN
+!                 macrofile = macro_temp%macrofile(1:length) // '.mac'
+                  macrofile =            macrofile(1:length) // '.mac'
+                  CALL macro_find_node(macro_root, macrofile, macro_temp, ier_num)
                   IF(ier_num == 0 ) THEN             ! Found the macro file in storage
                      is_stored = .true.
                   ELSE
+                     ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
+                     NULLIFY(macro_temp%before)            ! None before and after
+                     NULLIFY(macro_temp%after)
+                     macro_temp%macrofile = macrofile
                      CALL macro_add_node(macro_root, macro_temp)  ! Add to storage
                      ALLOCATE(macro_temp%macros,STAT=istatus)
                      macro_temp%macros%macro_length = 0
                      macro_temp%macros%lmacro       = .false.
                   ENDIF
                ELSE    ! Macro ends on '.mac' but was not found
+                  ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
+                  NULLIFY(macro_temp%before)            ! None before and after
+                  NULLIFY(macro_temp%after)
+                  macro_temp%macrofile = macrofile
                   CALL macro_add_node(macro_root, macro_temp)     ! Add to storage
                   ALLOCATE(macro_temp%macros,STAT=istatus)
                   macro_temp%macros%macro_length = 0
                   macro_temp%macros%lmacro       = .false.
                ENDIF
             ENDIF
-         ELSE           ! No internal storage yes, make new storage, and add
+         ELSE           ! No internal storage yet, make new storage, and add
             CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
             file_length = len_str(filename)
             IF(fileda) THEN   ! FILE EXISTS make storage
+               ALLOCATE(macro_temp, STAT=istatus)    ! Allocate a temporary macro storage
+               NULLIFY(macro_temp%before)            ! None before and after
+               NULLIFY(macro_temp%after)
+               macro_temp%macrofile = macrofile
                CALL macro_add_node(macro_root, macro_temp)
                ALLOCATE(macro_temp%macros,STAT=istatus)
                macro_temp%macros%macro_length = 0
@@ -161,6 +176,13 @@ SUBROUTINE file_kdo(line, ilen)
          RETURN
       ENDIF file_exist
          ELSE is_new
+!write(output_io,*) ' MACRO DID EXIST ALREADY ', &
+!ASSOCIATED(macro_temp), &
+!ASSOCIATED(macro_temp%macros), &
+!ASSOCIATED(macro_temp%before), &
+!ASSOCIATED(macro_temp%after), &
+!ALLOCATED(macro_temp%macros%macro_line), &
+!filename(1:len_trim(filename))
          ENDIF is_new
 !
       ALLOCATE(mac_tree_temp, STAT=istatus)      ! Allocate next node
@@ -176,9 +198,24 @@ SUBROUTINE file_kdo(line, ilen)
       mac_tree_temp%nparams = ianz - 1           ! Store number of parameters
       mac_tree_temp%current = 0                  ! Currently in line 0
       mac_tree_temp%level   = macro_level        ! Currently at depth macro_level
+!if(associated(mac_tree_temp%active)) then
+!write(output_io,*) ' POS 1  mac_tree_temp%active is associated '
+!endif
       mac_tree_temp%active => macro_temp         ! active macro is currently loaded macro
 !
       IF(macro_level == 1 ) THEN                 ! Top level, start execution tree
+!if(associated(mac_tree_temp%parent)) then
+!write(output_io,*) ' POS 2  mac_tree_temp%parent is associated '
+!endif
+!if(associated(mac_tree_root)) then
+!write(output_io,*) ' POS 3  mac_tree_roor is associated '
+!endif
+!if(associated(mac_tree_active)) then
+!write(output_io,*) ' POS 4  mac_tree_active is associated '
+!endif
+!if(associated(mac_tree_tail)) then
+!write(output_io,*) ' POS 5  mac_tree_tail is associated '
+!endif
          NULLIFY(mac_tree_temp%parent)           ! This one has no parent, as top level
          mac_tree_root    => mac_tree_temp       ! root points to current
          mac_tree_active  => mac_tree_temp       ! Point to currently active macro
@@ -186,6 +223,18 @@ SUBROUTINE file_kdo(line, ilen)
          lmakro = .true.
          lmakro_error = .FALSE.                  ! Start with macro termination error off
       ELSE
+!if(associated(mac_tree_temp%kid)) then
+!write(output_io,*) ' POS 6  mac_tree_temp%kid is associated '
+!endif
+!if(associated(mac_tree_temp%parent)) then
+!write(output_io,*) ' POS 7  mac_tree_temp%parent is associated '
+!endif
+!if(associated(mac_tree_active)) then
+!write(output_io,*) ' POS 8  mac_tree_active is associated '
+!endif
+!if(associated(mac_tree_tail)) then
+!write(output_io,*) ' POS 9  mac_tree_tail is associated '
+!endif
          mac_tree_active%kid  => mac_tree_temp   ! Store new macro as kid of active macro
          mac_tree_temp%parent => mac_tree_active ! Store parent of current macro
          mac_tree_active      => mac_tree_temp   ! Point to currently active macro
@@ -219,13 +268,15 @@ SUBROUTINE file_kdo(line, ilen)
 !
       CHARACTER(LEN=1024)      :: string
       INTEGER                  :: ip
+      INTEGER                  :: length
 !
 !     --Get filename from command line and string for parameters
 !
       string = line
       ip = index (string, ' ')
       string (ip:ip) = ','
-      CALL get_params (string, ianz, cpara, lpara, maxw, ilen)
+      length = -IABS(ilen)
+      CALL get_params (string, ianz, cpara, lpara, maxw, length)
 !
 !     --Try to build filename
 !
@@ -584,6 +635,7 @@ SUBROUTINE macro_close
       INTEGER :: all_status
 !
 IF(mpi_is_slave) THEN
+!write(*,*) ' IGNORING CLOSE AS MPI SLAVE '
    RETURN
 ENDIF
 !
@@ -612,6 +664,7 @@ IF(ASSOCIATED(mac_tree_root)) THEN
    DEALLOCATE(mac_tree_active)                 ! Finally remove current node
    NULLIFY(mac_tree_root)                      ! Clear pointer status
    NULLIFY(mac_tree_temp)
+   NULLIFY(mac_tree_tail)
 ENDIF
 !
 !!!IF(prompt_status/=PROMPT_REDIRECT) THEN        ! Assume an interactive session
@@ -620,15 +673,18 @@ ENDIF
    ENDIF
 !
    IF(ASSOCIATED(macro_temp)) THEN             ! There are some macros
+!write(*,*) ' CLEARING UP ???'
       DO WHILE(ASSOCIATED(macro_temp%after))   ! There are more macros in the list
       macro_temp => macro_temp%after           ! Point to next macro
          IF(ASSOCIATED(macro_temp%before)) THEN
             DEALLOCATE(macro_temp%before)      ! Remove previous macro
          ENDIF
       ENDDO
+!write(*,*) ' ASSOCIATED ?? ', associated(macro_temp%macros)
       DEALLOCATE(macro_temp)                   ! Finally remove current node
       NULLIFY(macro_root)                      ! Clear pointer status
       NULLIFY(macro_temp)
+      NULLIFY(mac_tree_tail)
    ENDIF
 !!!ENDIF
 !
@@ -650,6 +706,7 @@ CHARACTER (LEN=*), INTENT(IN) :: first_mac
 INTEGER          , INTENT(IN) :: mac_l
 INTEGER :: indx
 !
+!write(*,*) ' CLOSING MACRO MPI TREE '
 mac_tree_active => mac_tree_tail   ! start at tail 
 indx = INDEX(mac_tree_active%active%macrofile,first_mac(1:mac_l))
 
