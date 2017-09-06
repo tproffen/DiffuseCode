@@ -2296,12 +2296,12 @@ CONTAINS
       CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
       INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
-      REAL, PARAMETER :: EPS = 0.000001
+!      REAL, PARAMETER :: EPS = 0.000001
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER i, j, k, ianz 
       INTEGER :: special_form
-      INTEGER :: special_n
+      INTEGER :: special_n = 0
       LOGICAL lspace 
       LOGICAL linside 
       LOGICAL l_plane 
@@ -2310,15 +2310,15 @@ CONTAINS
       LOGICAL l_cyl 
       LOGICAL l_ell 
       LOGICAL l_special 
-      LOGICAL l_new 
+!      LOGICAL l_new 
       REAL h (3), d, dstar, radius, height 
-      REAL :: hkl(4), hklw(4)
+      REAL :: hkl(4)!, hklw(4)
       REAL, DIMENSION(3, 2) :: special_hkl
       REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
       INTEGER               :: point_n
       REAL, DIMENSION(3)    :: radius_ell
       REAL v (3) 
-      REAL, DIMENSION(3,1) :: col_vec
+!      REAL, DIMENSION(3,1) :: col_vec
       REAL null (3) 
       REAL werte (maxw) 
 !                                                                       
@@ -2335,7 +2335,14 @@ CONTAINS
          RETURN 
       ENDIF 
 !                                                                       
-      linside = .true. 
+      l_plane  = .false. 
+      l_form   = .false. 
+      l_sphere = .false. 
+      l_cyl    = .false. 
+      l_ell    = .false. 
+      linside  = .true. 
+      radius   = 0.0
+      height   = 0.0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
@@ -2403,6 +2410,11 @@ CONTAINS
                      ENDDO 
                      dstar = do_blen (lspace, h, null) 
                   ENDIF 
+               ENDIF 
+               IF (dstar.le.0.0) then 
+                  ier_num = - 32 
+                  ier_typ = ER_APPL 
+                  RETURN 
                ENDIF 
             ELSE 
                ier_num = - 6 
@@ -2528,6 +2540,7 @@ CONTAINS
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
+            RETURN
          ENDIF 
 !                                                                       
          IF (ier_num.eq.0) THEN
@@ -2794,14 +2807,14 @@ INTEGER, DIMENSION(3)  , INTENT(OUT) :: surf_kante
 INTEGER, DIMENSION(6)  , INTENT(OUT) :: surf_weight
 LOGICAL,                 INTENT(IN)  :: equal
 !
-INTEGER, PARAMETER :: SURF_IN_PLANE  = -1
+!INTEGER, PARAMETER :: SURF_IN_PLANE  = -1
 INTEGER, PARAMETER :: SURF_NONE   =  0
 INTEGER, PARAMETER :: SURF_PLANE  =  1
 INTEGER, PARAMETER :: SURF_EDGE   =  2
 INTEGER, PARAMETER :: SURF_CORNER =  3
 !
 INTEGER, PARAMETER                     :: MAXW = 1
-LOGICAL, PARAMETER :: LNEW = .false.
+!LOGICAL, PARAMETER :: LNEW = .false.
 REAL   , PARAMETER                     :: RADIUS_MIN  = 1.51
 REAL   , PARAMETER                     :: RADIUS_STEP = 1.50
 REAL   , PARAMETER , DIMENSION(3)      :: NULL        = 0.0
@@ -2814,11 +2827,11 @@ REAL               , DIMENSION(1:MAXW) :: werte
 !
 CHARACTER(LEN=1024)     :: line
 INTEGER  , DIMENSION(:), ALLOCATABLE :: neigh
-INTEGER  , DIMENSION(:), ALLOCATABLE :: angles
-INTEGER  , DIMENSION(:), ALLOCATABLE :: sorted
+REAL     , DIMENSION(:), ALLOCATABLE :: angles
+REAL     , DIMENSION(:), ALLOCATABLE :: sorted
 INTEGER  , DIMENSION(:,:), ALLOCATABLE :: surfaces
 INTEGER                 :: nsurface
-INTEGER                 :: i,j,k,l,ia, ianz
+INTEGER                 :: i,j,k,l, ianz
 INTEGER                 :: counter
 INTEGER                 :: laenge
 INTEGER                 :: neigsurf
@@ -2836,8 +2849,6 @@ INTEGER  , DIMENSION(3) :: rough     ! rough normal
 REAL     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
 INTEGER  , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
 REAL     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
-!
-CHARACTER(9) at_name_d
 !
 surf_char = SURF_NONE
 surf_normal = 0
@@ -3014,7 +3025,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
 ENDIF
 ! Normalize
 lspace = .false.
-DO i=1, nsurface
+DO i=1, MIN(nsurface, UBOUND(surf_weight,1))
    dstar=do_blen(lspace, NULL, FLOAT(surfaces(1:3,i)))
    IF(dstar > 0) THEN
       surfaces(1:3,i) = NINT(FLOAT(surfaces(1:3,i))*10./dstar)
@@ -3039,7 +3050,7 @@ ELSEIF(nsurface == 2) THEN
    WRITE(line,2000) surfaces(1:3,1),surfaces(1:3,2)
    laenge = 105
    CALL vprod(line, laenge)
-   surf_kante(:) = res_para(1:3)*100
+   surf_kante(:) = NINT(res_para(1:3)*100)
    dstar=do_blen(lspace, NULL, FLOAT(surf_kante(1:3)))
    surf_kante(1:3) = NINT(FLOAT(surf_kante(1:3))*10./dstar)
 ELSEIF(nsurface >  2) THEN
