@@ -31,6 +31,8 @@ CONTAINS
        
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 21  ! A command requires at least these no of parameters
+      INTEGER, PARAMETER :: HKLF4 = 4
+      INTEGER, PARAMETER :: CIF   = 1
       INTEGER maxw 
       LOGICAL lold 
       PARAMETER (lold = .false.) 
@@ -52,6 +54,7 @@ CONTAINS
       INTEGER              :: n_nscat  ! required no of atom types right now
       INTEGER              :: n_natoms ! required no of atoms
       INTEGER              :: four_dim ! Dimension of Fourier that was calculated
+      INTEGER              :: istyle   ! Stype of hkl file at 'hkl'
       LOGICAL              :: ldim 
       LOGICAL              :: ltop = .false. ! the top left corner has been defined
       REAL   , DIMENSION(3)::  divis
@@ -305,11 +308,27 @@ CONTAINS
                      infile_l = lpara(1)
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
-                    calcfile   = cpara(1)
+                     calcfile   = cpara(1)
                      outfile_l = lpara(1)
                      CALL del_params (1, ianz, cpara, lpara, maxw) 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     CALL calc_hkl(infile,infile_l, calcfile, outfile_l, werte(1),NINT(werte(2)))
+                     IF(ianz == 2 ) THEN   ! Style is given
+                        IF(str_comp (cpara(ianz), 'hklf4', 5, lpara(ianz), 5)) THEN
+                           istyle = HKLF4
+                           ianz   = ianz - 1
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        ELSEIF(str_comp (cpara(ianz), 'cif', 3, lpara(ianz), 3)) THEN
+                           istyle = CIF
+                           ianz   = ianz - 1
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        ELSE
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                           istyle = NINT(werte(2))
+                        ENDIF
+                     ELSE
+                        istyle = HKLF4
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     ENDIF
+                     CALL calc_hkl(infile,infile_l, calcfile, outfile_l, werte(1),istyle )
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 

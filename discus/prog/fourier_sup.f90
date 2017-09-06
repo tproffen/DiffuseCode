@@ -991,7 +991,11 @@ CONTAINS
       INTEGER, PARAMETER :: ird = 54
       INTEGER, PARAMETER :: iwr = 55
       INTEGER, PARAMETER :: HKLF4 = 4
+      INTEGER, PARAMETER :: CIF   = 1
 !
+      CHARACTER(LEN=1024) :: line
+      CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE   :: ccpara
+      INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
       INTEGER            :: n_qxy, n_natoms,n_nscat
       INTEGER            :: iostatus
       INTEGER            :: ih,ik,il
@@ -999,7 +1003,22 @@ CONTAINS
       INTEGER            :: ih_max,ik_max,il_max
       INTEGER            :: n_refl
       INTEGER            :: indx
+      INTEGER            :: startline
+      INTEGER            :: j
+      INTEGER            :: nentries
+      INTEGER            :: length, ianz
+      INTEGER            ::   j_h      = 0
+      INTEGER            ::   j_k      = 0
+      INTEGER            ::   j_l      = 0
+      INTEGER            ::   j_iobs   = 0
+      INTEGER            ::   j_icalc  = 0
+      INTEGER            ::   j_sigi   = 0
+      INTEGER            ::   j_fobs   = 0
+      INTEGER            ::   j_fcalc  = 0
+      INTEGER            ::   j_sigf   = 0
+      INTEGER            ::   j_flag   = 0
       REAL               :: rint, sint, wert
+      REAL, DIMENSION(7) :: values
       REAL, DIMENSION(3) :: rhkl
 !
       n_qxy    = 1
@@ -1017,17 +1036,100 @@ CONTAINS
       il_min  = 0
       il_max  = 0
       n_refl  = 0
-check:DO     ! First read, get size and extrema
-         READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
-         IF(IS_IOSTAT_END(iostatus)) EXIT check
-         ih_min = MIN(ih_min,ih)
-         ih_max = MAX(ih_max,ih)
-         ik_min = MIN(ik_min,ik)
-         ik_max = MAX(ik_max,ik)
-         il_min = MIN(il_min,il)
-         il_max = MAX(il_max,il)
-         n_refl = n_refl + 1
-      ENDDO check
+      startline = 0
+      IF(style==HKLF4) THEN
+         startline = 1
+check:   DO     ! First read, get size and extrema
+            READ(ird,'(a)', IOSTAT=iostatus) line
+            IF(IS_IOSTAT_END(iostatus)) EXIT check
+            IF(line(1:1)=='#' .OR. line(1:1)=='!' .OR. line(1:1)=='d') THEN
+               ier_num = -9999
+               ier_typ = ER_APPL
+               CLOSE(ird) 
+               RETURN
+            ENDIF
+            READ(line,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
+            ih_min = MIN(ih_min,ih)
+            ih_max = MAX(ih_max,ih)
+            ik_min = MIN(ik_min,ik)
+            ik_max = MAX(ik_max,ik)
+            il_min = MIN(il_min,il)
+            il_max = MAX(il_max,il)
+            n_refl = n_refl + 1
+         ENDDO check
+      ELSEIF(style==CIF) THEN
+find:    DO
+            READ(ird,'(a)', IOSTAT=iostatus) line
+            IF(IS_IOSTAT_END(iostatus)) THEN
+               ier_num = -9999
+               ier_typ = ER_APPL
+               CLOSE(ird) 
+               RETURN
+            ENDIF
+            startline = startline + 1
+            IF(line(1:14) == '_refln_index_h') EXIT find
+         ENDDO find
+         nentries = 0
+         j_h      = 0
+         j_k      = 0
+         j_l      = 0
+         j_iobs   = 0
+         j_icalc  = 0
+         j_sigi   = 0
+         j_fobs   = 0
+         j_fcalc  = 0
+         j_sigf   = 0
+         j_flag   = 0
+         j = 1
+entries: DO
+            IF(line(1:1)=='#' .or. line == ' ') THEN
+            startline = startline + 1
+               CYCLE entries
+            ENDIF
+            IF(line(1:14) == '_refln_index_h')         j_h = j
+            IF(line(1:14) == '_refln_index_k')         j_k = j
+            IF(line(1:14) == '_refln_index_l')         j_l = j
+            IF(line(1:21) == '_refln_F_squared_calc')  j_icalc = j
+            IF(line(1:21) == '_refln_F_squared_meas')  j_iobs  = j
+            IF(line(1:22) == '_refln_F_squared_sigma') j_sigi  = j
+            IF(line(1:22) == '_refln_observed_status') j_flag  = j
+            IF(line(1:7) /= '_refln_') EXIT entries
+            nentries = nentries + 1
+            READ(ird,'(a)', IOSTAT=iostatus) line
+            IF(IS_IOSTAT_END(iostatus)) THEN
+               ier_num = -9999
+               ier_typ = ER_APPL
+               CLOSE(ird) 
+               RETURN
+            ENDIF
+            j = j + 1
+            startline = startline + 1
+         ENDDO entries
+         ALLOCATE(ccpara(1:nentries))
+         ccpara(:) = ' '
+         ALLOCATE(llpara(1:nentries))
+         length = LEN_TRIM(line)
+check2:  DO
+            CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+            READ(ccpara(j_h)(1:llpara(j_h)),*) ih 
+            READ(ccpara(j_k)(1:llpara(j_k)),*) ik 
+            READ(ccpara(j_l)(1:llpara(j_l)),*) il 
+            ih_min = MIN(ih_min,ih)
+            ih_max = MAX(ih_max,ih)
+            ik_min = MIN(ik_min,ik)
+            ik_max = MAX(ik_max,ik)
+            il_min = MIN(il_min,il)
+            il_max = MAX(il_max,il)
+            n_refl = n_refl + 1
+            READ(ird,'(a)', IOSTAT=iostatus) line
+!        READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+            IF(IS_IOSTAT_END(iostatus)) EXIT check2
+            length = LEN_TRIM(line)
+         ENDDO check2
+      ELSE
+         write(*,*) ' WRONG STYLE ', style
+         return
+      ENDIF
       vi(:,:) = 0
       vi(1,1) = 1.0
       vi(2,2) = 1.0
@@ -1066,23 +1168,47 @@ check:DO     ! First read, get size and extrema
          rhkl (1) =  0. 
          rhkl (2) =  0. 
          rhkl (3) =  0. 
-         IF(style==HKLF4) THEN
-            REWIND(ird)
-main:       DO
+         REWIND(ird)
+         DO j=1,startline -1 
+            READ(ird,'(a)') line
+         ENDDO
+main:    DO
+            IF(style==HKLF4) THEN
                READ(ird,1000, IOSTAT=iostatus) ih,ik,il, rint, sint
-               IF(IS_IOSTAT_END(iostatus)) EXIT main
-               indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
-               wert = REAL(csf(indx)*CONJG(csf(indx)))
-               sint = SQRT(ABS(wert))
-               IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
-                  WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
-               ELSE
+            ELSEIF(style==CIF) THEN
+               READ(ird,'(a)',IOSTAT=iostatus) line
+               length = LEN_TRIM(line)
+               CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
+               DO j=1,nentries-1
+                  READ(ccpara(j)(1:llpara(j)),*) values(j)
+               ENDDO
+               ih = NINT(values(1))
+               ik = NINT(values(2))
+               il = NINT(values(3))
+!              READ(ird,*   , IOSTAT=iostatus) ih,ik,il, rint, sint
+            ENDIF
+            IF(IS_IOSTAT_END(iostatus)) EXIT main
+            indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
+            wert = REAL(csf(indx)*CONJG(csf(indx)))
+            sint = SQRT(ABS(wert))
+            IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
+               WRITE(iwr,1000) ih,ik,il, 0.00, 0.00
+            ELSE
+               IF(style==HKLF4) THEN
                   WRITE(iwr,1000) ih,ik,il, scale*wert, sqrt(scale)*sint 
+               ELSEIF(style==CIF) THEN
+                  IF(j_icalc/=0) THEN
+                     values(j_icalc) = scale*wert
+                  ENDIF
+                  WRITE(iwr, 2000) ih,ik,il, (values(j),j=4, nentries-1)
                ENDIF
-            END DO main
-         ENDIF 
+            ENDIF
+         END DO main
       ENDIF 
+      IF(ALLOCATED(ccpara))   DEALLOCATE(ccpara)
+      IF(ALLOCATED(llpara))   DEALLOCATE(llpara)
 1000  FORMAT(3I4,F8.2,F8.2)
+2000  FORMAT(3I4,F12.2,F12.2, F12.2)
       CLOSE(ird)
       CLOSE(iwr)
       END SUBROUTINE calc_hkl
