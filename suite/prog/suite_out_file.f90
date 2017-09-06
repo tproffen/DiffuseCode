@@ -96,10 +96,8 @@ INTEGER            :: i, j
 !
 INTEGER   :: lname
 LOGICAL   :: lkuplot
-INTEGER   :: nr
 INTEGER   :: maxpkt
 INTEGER   :: maxzz
-INTEGER   :: ik 
 REAL      :: dxx, dyy
 !
 INTEGER   :: len_str

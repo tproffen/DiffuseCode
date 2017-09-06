@@ -58,7 +58,7 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
    DO i = nmi, nma, nmd                   ! Write all data points
       r = float (i) * pdf_deltar 
       x (offxy (iz - 1) + nr) = r
-      y (offxy (iz - 1) + nr) = pdf_calc(i)
+      y (offxy (iz - 1) + nr) = REAL(pdf_calc(i))
       dx (offxy (iz - 1) + nr) = 0.0
       dy (offxy (iz - 1) + nr) = 1.0
       nr = nr + 1

@@ -30,9 +30,6 @@ USE envir_mod
 !
 IMPLICIT none 
 !                                                                       
-!                                                                       
-INTEGER, PARAMETER   :: maxw = 20
-!                                                                       
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
