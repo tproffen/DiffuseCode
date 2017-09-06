@@ -207,8 +207,8 @@
                ld  = ld + 1
             ENDIF
             IF(echo) WRITE (output_io, 1000) cwd (1:ld)
-            current_dir   = cwd
-            current_dir_l = ld
+            current_dir   = cwd(1:LEN(current_dir))
+            current_dir_l = MIN(ld, LEN(current_dir))
          ELSE 
             WRITE ( *, 2000) ier_num 
             ier_num = - 5 

@@ -32,7 +32,7 @@ USE wink_mod
 IMPLICIT NONE
 REAL, INTENT(IN) :: arg
 !
-sind_real = sin (arg * rad) 
+sind_real = REAL(sin (arg * rad) )
 END FUNCTION sind_real
 !*****7**************************************************************** 
 REAL FUNCTION cosd_real (arg) 
@@ -40,7 +40,7 @@ REAL FUNCTION cosd_real (arg)
 USE wink_mod
 REAL, INTENT(IN) :: arg
 !
-cosd_real = cos (arg * rad) 
+cosd_real = REAL(cos (arg * rad) )
 END FUNCTION cosd_real
 !*****7**************************************************************** 
 REAL FUNCTION tand_real (arg) 
@@ -48,7 +48,7 @@ REAL FUNCTION tand_real (arg)
 USE wink_mod
 REAL, INTENT(IN) :: arg
 !
-tand_real = tan (arg * rad) 
+tand_real = REAL(tan (arg * rad) )
 END FUNCTION tand_real
 !*****7**************************************************************** 
 REAL FUNCTION asind_real (arg) 
@@ -56,7 +56,7 @@ REAL FUNCTION asind_real (arg)
 USE wink_mod
 REAL, INTENT(IN) :: arg
 !
-asind_real = asin (arg) / rad 
+asind_real = REAL(asin (arg) / rad )
 END FUNCTION asind_real                            
 !*****7**************************************************************** 
 REAL FUNCTION acosd_real (arg) 
@@ -64,7 +64,7 @@ REAL FUNCTION acosd_real (arg)
 USE wink_mod
 REAL, INTENT(IN) :: arg
 !
-acosd_real = acos (arg) / rad 
+acosd_real = REAL(acos (arg) / rad )
 END FUNCTION acosd_real                            
 !*****7**************************************************************** 
 REAL FUNCTION atand_real(arg) 
@@ -72,7 +72,7 @@ REAL FUNCTION atand_real(arg)
 USE wink_mod
 REAL, INTENT(IN) :: arg
 !
-atand_real = atan (arg) / rad 
+atand_real = REAL(atan (arg) / rad )
 END FUNCTION atand_real                            
 !*****7**************************************************************** 
 REAL FUNCTION atan2d_real (arg1, arg2) 
@@ -80,7 +80,7 @@ REAL FUNCTION atan2d_real (arg1, arg2)
 USE wink_mod
 REAL, INTENT(IN) :: arg1, arg2
 !
-atan2d_real = atan2 (arg1, arg2) / rad 
+atan2d_real = REAL(atan2 (arg1, arg2) / rad )
 END FUNCTION atan2d_real
 !*****7**************************************************************** 
 !*****7**************************************************************** 
