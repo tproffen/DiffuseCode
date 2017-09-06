@@ -17,6 +17,9 @@ SUBROUTINE discus_setup (standalone)
 IMPLICIT none 
 !
 LOGICAL, INTENT(IN) :: standalone
+!
+INTEGER, PARAMETER  :: np = 1
+REAL, DIMENSION(np) :: werte = 0.0
 !                                                                       
       include'date.inc' 
 !
@@ -28,7 +31,7 @@ LOGICAL, INTENT(IN) :: standalone
       prompt_status = PROMPT_ON
       prompt_status_old = PROMPT_ON
 !                                                                       
-CALL ini_ran (0) 
+CALL ini_ran (np,werte) 
 !
 !     Call initial default allocation
 IF(standalone) CALL lib_alloc_default
