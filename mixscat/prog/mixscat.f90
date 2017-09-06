@@ -81,10 +81,13 @@ PROGRAM mixsca
 !                                                                       
       USE prompt_mod 
       IMPLICIT none 
+!
+      INTEGER, PARAMETER  :: np = 1
+      REAL, DIMENSION(np) :: werte = 0.0
 !                                                                       
       include'date.inc' 
 !                                                                       
-      CALL ini_ran (0) 
+      CALL ini_ran (np, werte) 
 !                                                                       
 !     Call initialization routine                                       
 !                                                                       
