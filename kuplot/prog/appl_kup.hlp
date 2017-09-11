@@ -95,6 +95,10 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2017_Sep
+
+   Throughout the program the internal calculation of random numbers 
+   was changed to the FORTRAN 90 intrinsic function. 
 3  2017_May
 
    The 'save' command can now save graphics as a PDF file

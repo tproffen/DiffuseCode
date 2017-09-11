@@ -69,6 +69,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_Sep
+
+   Throughout the program the internal calculation of random numbers 
+   was changed to the FORTRAN 90 intrinsic function. 
 3  2017_July
 
    The decoration of ligands onto surfaces can now be resticted to

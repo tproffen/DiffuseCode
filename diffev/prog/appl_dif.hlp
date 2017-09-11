@@ -19,6 +19,10 @@
    Further help topics are:
 
 2  News
+3  2017_Sep
+
+   Throughout the program the internal calculation of random numbers 
+   was changed to the FORTRAN 90 intrinsic function. 
 3  2017_July
    DIFFEV has been modified to log the status of the random number generator 
    at the beginning of each slave calculation. This status is documented 

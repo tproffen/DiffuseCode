@@ -23,8 +23,8 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
-set (DIFFUSE_VERSION_MINOR 13)
-set (DIFFUSE_VERSION_PATCH 1)
+set (DIFFUSE_VERSION_MINOR 14)
+set (DIFFUSE_VERSION_PATCH 0)
 
 # Readline required for all programs
 
@@ -73,4 +73,4 @@ add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
 add_subdirectory(suite/prog)
-add_subdirectory(python)
+#add_subdirectory(python)
