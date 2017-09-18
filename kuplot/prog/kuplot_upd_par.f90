@@ -237,8 +237,12 @@
          ELSEIF (string (ikl - 2:ikl - 1) .eq.'nx') then 
             IF (ianz.eq.1) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1) ) then 
-                  WRITE (zeile (ikl - 2:ikl + 13) , '(i15)') nx (kpara (&
-                  1) )                                                  
+                  IF (lni (kpara (1) ) ) then 
+                     WRITE(zeile(ikl-2:ikl+13),'(i15)') nx(kpara(1))
+                  ELSE
+                     ier_num = -62 
+                     ier_typ = ER_APPL 
+                  ENDIF 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -251,8 +255,12 @@
          ELSEIF (string (ikl - 2:ikl - 1) .eq.'ny') then 
             IF (ianz.eq.1) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1) ) then 
-                  WRITE (zeile (ikl - 2:ikl + 13) , '(i15)') ny (kpara (&
-                  1) )                                                  
+                  IF (lni (kpara (1) ) ) then 
+                     WRITE(zeile(ikl-2:ikl+13),'(i15)') ny(kpara(1))
+                  ELSE
+                     ier_num = -62 
+                     ier_typ = ER_APPL 
+                  ENDIF 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -265,8 +273,11 @@
          ELSEIF (string (ikl - 2:ikl - 1) .eq.'np') then 
             IF (ianz.eq.1) then 
                IF (1.le.kpara (1) .and.kpara (1) .le. (iz - 1) ) then 
-                  WRITE (zeile (ikl - 2:ikl + 13) , '(i15)') len (kpara &
-                  (1) )                                                 
+                  IF (lni (kpara (1) ) ) then 
+                     WRITE(zeile(ikl-2:ikl+13),'(i15)') ny(kpara(1))*ny(kpara(1))
+                  ELSE
+                     WRITE(zeile(ikl-2:ikl+13),'(i15)') len(kpara(1))
+                  ENDIF 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 

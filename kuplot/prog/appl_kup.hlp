@@ -99,6 +99,9 @@
 
    Throughout the program the internal calculation of random numbers 
    was changed to the FORTRAN 90 intrinsic function. 
+
+   Added error messages for variable nx, ny, modified variable np to
+   yiled the total number of data points for 2D dat sets as well.
 3  2017_May
 
    The 'save' command can now save graphics as a PDF file
@@ -1943,7 +1946,8 @@
 !p "nx[<ik>]"         : # points in x-direction of data set <ik>. (RO) 
 !p "ny[<ik>]"         : # points in y-direction of data set <ik>. (RO) 
 !p "ni[<ik>]"         : data set <ik> is 2D (=0) or 3D (=1).      (RO) 
-!p "np[<ik>]"         : # points of 2D data set <ik>.             (RO)
+!p "np[<ik>]"         : # points of 1D data set <ik>,             (RO)
+                      : # or nx[<ik>*ny[<ik>] for 2D set <ik>.    (RO)
 
 !p "xmin[<ik>]"       : minimum x-value of data set <ik>          (RO)
 !p "xmax[<ik>]"       : maximum x-value of data set <ik>          (RO)

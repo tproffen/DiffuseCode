@@ -8,11 +8,12 @@
 !
 !
       integer       iu,io
-      parameter    (iu=-61,io=0)
+      parameter    (iu=-62,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
-      data error (-61: -61) /                      &
+      data error ( iu: -61) /                      &
+     &  'Data set is not 2D',                      &! -62  ! kupl
      &  'Singular matrix in Savitzky calculation ' &! -61  ! kupl
      &  /
       data error (-60: -41) /                      &
