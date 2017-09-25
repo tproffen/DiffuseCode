@@ -1210,9 +1210,9 @@ ENDDO loop_anchor
             clu_index           = 1
             clu_number          = 1
 !
-write(*,*) ' cr_natoms prior ', cr_natoms
+!write(*,*) ' cr_natoms prior ', cr_natoms
 !           CALL micro_filereading
-write(*,*) ' cr_natoms after ', cr_natoms
+!write(*,*) ' cr_natoms after ', cr_natoms
             DO ia=istart, iend
                cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
             ENDDO
@@ -1618,15 +1618,15 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
-      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, .TRUE.                   ) ) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, .TRUE.) ) THEN
          RETURN
       ENDIF
    ENDIF
 !
    surf_normal = FLOAT(surface_normal(:,1))
    IF(surf_char >  0          ) THEN                      ! Surface atoms only
-write(*,*) ' atom, normal ',ia, hkl (1:3), istart, iend, surf_char, dc_n_molecules
-write(*,*) ' mole_name    ', mole_name(1:mole_length),'  ',m_name(1)(1:m_lname(1)), m_length(1)
+!rite(*,*) ' atom, normal ',ia, hkl (1:3), istart, iend, surf_char, dc_n_molecules
+!rite(*,*) ' mole_name    ', mole_name(1:mole_length),'  ',m_name(1)(1:m_lname(1)), m_length(1)
 !
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
@@ -1660,7 +1660,7 @@ write(*,*) ' mole_name    ', mole_name(1:mole_length),'  ',m_name(1)(1:m_lname(1
             ENDDO atoms
 ! define rotation operation
             sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
-write(*,*) ' angle ligand ',sym_angle, axis_ligand, EPS
+!rite(*,*) ' angle ligand ',sym_angle, axis_ligand, EPS
             IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
                sym_orig(:)    = origin(:)                    ! Define origin
                sym_trans(:)   = 0.0                          ! No translation needed
@@ -2331,7 +2331,7 @@ write(*,*) ' angle ligand ',sym_angle, axis_ligand, EPS
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
-      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, .TRUE.                   ) ) THEN
+      IF(.NOT.point_test(hkl, dc_def_temp%dc_def_hkl, dc_def_temp%dc_def_n_hkl, .TRUE.) ) THEN
          RETURN
       ENDIF
    ENDIF
