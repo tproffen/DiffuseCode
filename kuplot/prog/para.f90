@@ -573,7 +573,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
                ilegend (iwin, iframe, ik) = 1 
-               clegend (iwin, iframe, ik) = cpara (1) 
+               clegend (iwin, iframe, ik) = cpara (1)(1:MIN(40,LEN_TRIM(cpara(1))))
                IF (ianz.eq.3) then 
                   CALL del_params (1, ianz, cpara, lpara, maxw) 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -634,7 +634,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
-               antext (iwin, iframe, ik) = cpara (1) 
+               antext (iwin, iframe, ik) = cpara (1) (1:MIN(40,LEN_TRIM(cpara(1))))
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ianz.eq.2.or.ianz.eq.3.or.ianz.eq.4.or.ianz.eq.6)    &
                then                                                     
@@ -1129,7 +1129,6 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
       LOGICAL str_comp 
       INTEGER iw, i, j 
 !                                                                       

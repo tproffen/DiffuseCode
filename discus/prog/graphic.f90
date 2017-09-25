@@ -264,10 +264,10 @@ SUBROUTINE do_niplps (linverse)
                      READ (1, * ) (dsi ( (ix - 1) * out_inc (2) + iy),  &
                      ix = 1, out_inc (1) )                              
                      DO ix = 1, out_inc (1) 
-                     zmax = max (zmax, dsi ( (ix - 1) * out_inc (2)     &
-                     + iy) )                                            
-                     zmin = min (zmin, dsi ( (ix - 1) * out_inc (2)     &
-                     + iy) )                                            
+                     zmax = max (zmax, REAL(dsi ( (ix - 1) * out_inc (2)     &
+                     + iy) ))                                            
+                     zmin = min (zmin, REAL(dsi ( (ix - 1) * out_inc (2)     &
+                     + iy)) )                                            
                      ENDDO 
                      ENDDO 
                      WRITE (output_io, 1015, advance='no') zmin, zmax 
@@ -318,7 +318,7 @@ SUBROUTINE do_niplps (linverse)
                   ELSEIF (ityp.eq.10) THEN 
                      CALL nexus_write (value, laver) 
                   ELSEIF (ityp.eq.11) THEN
-                     CALL vtk_write (value, laver)
+                     CALL vtk_write ()
                   ELSEIF (ityp.eq.12) THEN
                      CALL mrc_write (value, laver)
                   ELSE 
@@ -935,6 +935,7 @@ SUBROUTINE do_niplps (linverse)
 !     REAL qval 
       INTEGER  len_str
       factor = 0.0
+      npkt3  = 1
 !                                                                       
 !     If output type is shelx, calculate qval(000) for scaling          
 !                                                                       
@@ -950,9 +951,9 @@ SUBROUTINE do_niplps (linverse)
          shel_vi (i, j) = vi (i, j) 
          ENDDO 
          ENDDO 
-         shel_tcsf = csf (1) 
-         shel_acsf = acsf (1) 
-         shel_dsi = dsi (1) 
+         shel_tcsf = CMPLX(csf (1),KIND=KIND(0.0)) 
+         shel_acsf = CMPLX(acsf (1),KIND=KIND(0.0)) 
+         shel_dsi = REAL(dsi (1)) 
          inc (1) = 1 
          inc (2) = 1 
          inc (3) = 1 
@@ -970,7 +971,7 @@ SUBROUTINE do_niplps (linverse)
             value = 2 
          ENDIF 
          CALL four_run 
-         shel_csf = csf (1) 
+         shel_csf = CMPLX(csf (1), KIND=KIND(0.0))
          shel_000 = qval (1, value, 1, 1, laver) 
          qq = qval (1, value, 1, 1, laver) / cr_icc (1) / cr_icc (2)    &
          / cr_icc (3)                                                   

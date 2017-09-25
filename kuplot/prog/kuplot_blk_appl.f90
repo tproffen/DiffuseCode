@@ -349,7 +349,7 @@
       ELSE 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.ne.0) return 
-         cdummy = cpara (1) 
+         cdummy = cpara (1)(1:MIN(80,LEN_TRIM(cpara(1))))
       ENDIF 
 !                                                                       
       CALL oeffne (idef, cdummy, 'old') 
@@ -391,7 +391,7 @@
       ELSE 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          IF (ier_num.ne.0) return 
-         cdummy = cpara (1) 
+         cdummy = cpara (1)(1:MIN(80,LEN_TRIM(cpara(1))))
       ENDIF 
 !                                                                       
       CALL oeffne (idef, cdummy, 'unknown') 
@@ -540,7 +540,6 @@
  1900 FORMAT    (40(l1,1x)) 
  9997 FORMAT    (10(a1,a,a1,2x)) 
  9998 FORMAT    ('# ',a) 
- 9999 FORMAT    (a) 
       END SUBROUTINE write_def                      
 !*****7*****************************************************************
       SUBROUTINE read_def (idef) 

@@ -934,7 +934,6 @@
       CHARACTER(12) reserved (reserved_n) 
       INTEGER i 
 !                                                                       
-      LOGICAL str_comp 
       DATA reserved / 'x', 'y', 'z', 'dx', 'dy', 'nx', 'ny', 'ni', 'np',&
       'xmin', 'xmax', 'ymin', 'ymax', 'zmin', 'zman', 'n', 'p', 'axis', &
       'pwin', 'cmap', 'cmax', 'size' /                                  

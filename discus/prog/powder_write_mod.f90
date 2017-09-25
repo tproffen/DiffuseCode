@@ -170,7 +170,7 @@ CONTAINS
             IF (pow_four_type.eq.POW_DEBYE) THEN 
                IF (npkt    .le.POW_MAXPKT) THEN 
                   DO j = 1, npkt    
-                     pow_tmp (j) = REAL (csf (j) )    ! Double precision no longer needed
+                     pow_tmp (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
                   ENDDO 
                ENDIF 
             ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
@@ -217,14 +217,14 @@ CONTAINS
             xpos = ii * xdel + xmin 
             IF (pow_axis.eq.POW_AXIS_Q) THEN 
                q      = xpos
-               dstar  = q / zpi
-               stl    = q / zpi / 2.
-               ttheta = 2.*asind ( REAL(q / 2. /zpi *rlambda ))
+               dstar  = q / REAL(zpi)
+               stl    = q / REAL(zpi) / 2.
+               ttheta = 2.*asind ( REAL(q / 2. /REAL(zpi) *rlambda ))
             ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
                ttheta = xpos
-               stl    =            sind (ttheta * 0.5) / rlambda 
-               dstar  = 2. *       sind (ttheta * 0.5) / rlambda 
-               q      = 2. * zpi * sind (ttheta * 0.5) / rlambda 
+               stl    =                  sind (ttheta * 0.5) / rlambda 
+               dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
+               q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
             ENDIF 
             IF(value == 7 .or. value == 8)  THEN
                lp = lorentz(ttheta,1)
@@ -249,10 +249,10 @@ CONTAINS
       ELSEIF (pow_four_type.eq.POW_HIST) THEN 
          IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
          ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-            xm(1)  = pow_qmin / zpi 
-            ss     = pow_qmax / zpi 
-            st     = (pow_qmax - pow_deltaq) / zpi 
-            uin(1) = pow_deltaq / zpi 
+            xm(1)  = pow_qmin / REAL(zpi) 
+            ss     = pow_qmax / REAL(zpi) 
+            st     = (pow_qmax - pow_deltaq) / REAL(zpi) 
+            uin(1) = pow_deltaq / REAL(zpi) 
          ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
             xm(1)  = 2 * sind (0.5 * pow_tthmin) / rlambda 
             ss     = 2 * sind (0.5 * pow_tthmax) / rlambda 
@@ -260,9 +260,9 @@ CONTAINS
             uin(1) = (ss - st) / 2. 
          ENDIF 
          DO ii = 1, npkt    
-            dstar = (xm (1) + (ii - 1) * uin (1) ) 
-            stl = .5 * (xm (1) + (ii - 1) * uin (1) ) 
-            q = zpi * (xm (1) + (ii - 1) * uin (1) ) 
+            dstar = REAL(xm (1) + (ii - 1) * uin (1) ) 
+            stl = REAL(0.5D0 * (xm (1) + (ii - 1) * uin (1) ) )
+            q = REAL(zpi) * REAL(xm (1) + (ii - 1) * uin (1) ) 
             ttheta = 2. * asind (dstar * rlambda / 2.) 
 !
             IF(value == 7 .or. value == 8) THEN
@@ -336,9 +336,9 @@ CONTAINS
                pow_deltatth = out_user_values(3)
             ELSE                                          ! Convert q limits
                IF ( pow_axis == POW_AXIS_Q) THEN             ! Convert q limits to 2Theta
-                  arg        = xmin/zpi * rlambda / 2.       ! Directly with arg in asind()
+                  arg        = xmin/REAL(zpi) * rlambda / 2. ! Directly with arg in asind()
                   pow_tthmin = 2.*asind(arg)                 ! results in error ??????????
-                  arg        = xmax/zpi * rlambda / 2.
+                  arg        = xmax/REAL(zpi) * rlambda / 2.
                   pow_tthmax = 2.*asind(arg)
                   pow_deltatth = xpl(2)-xpl(1)
                ENDIF
@@ -400,8 +400,8 @@ CONTAINS
                pow_deltaq = out_user_values(3)
             ELSE                                          ! Convert q limits
                IF(pow_axis      == POW_AXIS_TTH) THEN
-                  pow_qmin   = zpi*2/rlambda*sind(xmin)
-                  pow_qmax   = zpi*2/rlambda*sind(xmax)
+                  pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
+                  pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
                   pow_deltaq = xpl(npkt)-xpl(npkt-1)
                ENDIF
             ENDIF
@@ -482,7 +482,7 @@ CONTAINS
 !
 !     Finally write the pattern
 !
-      CALL powder_do_write (outfile, npkt_wrt, POW_MAXPKT, xwrt, ywrt)
+      CALL powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 !
       DEALLOCATE( pow_tmp, stat = all_status)
       DEALLOCATE( ypl, stat = all_status)
@@ -605,8 +605,7 @@ CONTAINS
       max_ps = int( (10.0 * delta) / dtth )
       DO i = 0, max_ps 
       tth = i * dtth 
-      gauss (i) = 1.0 / sqrt (pi) / delta * exp ( - (tth**2 / delta**2) &
-      )                                                                 
+      gauss (i) = 1.0 / sqrt (REAL(pi)) / delta * exp ( - (tth**2 / delta**2))  
       ENDDO 
 !                                                                       
       DO i = max_ps + 1, 2 * POW_MAXPKT 
@@ -837,12 +836,12 @@ END SUBROUTINE powder_conv_psvgt_fix
       fwhm = sqrt (max (abs (u * tantth**2 + v * tantth + w), 0.00001) ) 
       fwhm1 = fwhm 
       IF (pow_axis.eq.POW_AXIS_Q) THEN 
-         atheta = asind (tth * rlambda / fpi) 
+         atheta = asind (tth * rlambda / REAL(fpi)) 
          tantth = tand (atheta) 
          fwhm1 = sqrt (max (abs (u * tantth**2 + v * tantth + w),       &
          0.00001) )                                                     
-         fwhm = 0.500 * (fpi * sind (atheta + 0.5 * fwhm1) / rlambda -  &
-         fpi * sind (atheta - 0.5 * fwhm1) / rlambda)                   
+         fwhm = 0.500 * (REAL(fpi) * sind (atheta + 0.5 * fwhm1) / rlambda -  &
+         REAL(fpi) * sind (atheta - 0.5 * fwhm1) / rlambda)                   
       ENDIF 
       max_ps = int( (pow_width * fwhm) / dtth )
       eta = min (1.0, max (0.0, eta0 + etax * tth) ) 
@@ -890,7 +889,6 @@ END SUBROUTINE powder_conv_psvgt_fix
       REAL, INTENT(IN) :: eta 
       REAL, INTENT(IN) :: fwhm 
 !                                                                       
-      REAL, PARAMETER :: pi        = 3.141592654
       REAL, PARAMETER :: four_ln2  = 2.772588722
       REAL, PARAMETER :: sq4ln2_pi = 0.939437279
       REAL, PARAMETER :: two_pi    = 0.636619772
@@ -1069,7 +1067,7 @@ END SUBROUTINE powder_conv_psvgt_fix
          pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
       ENDDO
       pow_faver2(:) = pow_faver2(:)**2
-      pow_u2aver    = pow_u2aver /8./pi**2
+      pow_u2aver    = pow_u2aver /8./REAL(pi)**2
       DEALLOCATE(natom)
 !
 !

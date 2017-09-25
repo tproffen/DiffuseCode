@@ -706,6 +706,7 @@ CONTAINS
    IMPLICIT none
 !
    INTEGER, PARAMETER         :: MAXW = 200  ! not ideal, should be dynamic ....
+   REAL   , PARAMETER         :: EPS = 0.00001 ! Accruracy to locate anchor
 !
    CHARACTER(LEN=1024) :: line      ! a string
    CHARACTER(LEN=1024) :: mole_name ! molecule file name
@@ -727,7 +728,8 @@ CONTAINS
    INTEGER   :: jdef ! connectivity definition number
    INTEGER   :: ncon ! number of connections defined
    INTEGER, DIMENSION(:), ALLOCATABLE :: c_list
-   INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs ! Result of connectivity search
+   INTEGER, DIMENSION(:), ALLOCATABLE :: temp_iscat  ! temporary storage for anchor types
+   REAL   , DIMENSION(:,:), ALLOCATABLE :: temp_pos !temporary storage for anchor positions
    INTEGER   :: natoms                 ! number of atoms in connectivity
    INTEGER   :: natoms_prior           ! number of atoms in shell prior to decoration
    INTEGER   :: n_scat                 ! Dummy maximum scattering types
@@ -746,6 +748,8 @@ CONTAINS
    REAL   , DIMENSION(1:3) :: xyz
 !
    REAL ran1
+!
+   temp_grand = 1.0
 !
 !  Section for automatic distribution of all surface anchors
 !
@@ -776,7 +780,12 @@ CONTAINS
    cr_iscat(1)  = 1
    cr_at_lis(1) = 'CORE'
    corelist     = 'internal.core.list'
+   line       = 'ignore, all'          ! Ignore all properties
+   length     = 11
+   CALL property_select(line, length, sav_sel_prop)
    CALL save_internal(corelist)        ! Save the core list
+!CALL readstru_internal( corelist)   ! Read  core file
+!write(*,*) 'CORELIST ', cr_natoms
 !
 !     Load the molecules into temporary structures to reduce disk I/O
 !
@@ -1024,18 +1033,45 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
          CALL mmc_run_multi(.FALSE.)                          ! Run actual sorting
 !        Change Anchors back to their original names, keep property flag
 !
+!        Copy anchor types and positions into temporary array
+!
+!write(*,*) ' N_repl ', n_repl
+         ALLOCATE(temp_iscat(    1:n_repl))
+         ALLOCATE(temp_pos  (1:3,1:n_repl))
+         j = 0
          DO ia = 1, cr_natoms
             DO k=1, dc_temp_surf(0)
                IF(cr_iscat(ia)==nscat_old + k     ) THEN
                   cr_iscat(ia) = dc_temp_surf(k)
+!write(*,*) 'ia, iscat, idef ', ia, cr_iscat(ia), dc_use_conn(cr_iscat(ia))
+                  j = j + 1
+                  temp_iscat(j) = dc_temp_surf(k)
+                  temp_pos(:,j) = cr_pos(:, ia)
                ENDIF
             ENDDO
          ENDDO
+!write(*,*) ' jjjjjj ', j
 !
          cr_nscat = nscat_old                                 ! Set number of atom types back
          DO k=1, dc_temp_surf(0)
             cr_at_lis(nscat_old+k) = ' '                      ! Have atom type disappear
          ENDDO
+!
+CALL rese_cr
+CALL readstru_internal( corefile)   ! Read  original core file
+!write(*,*) 'CORELIST ', cr_natoms
+loop_anchor: DO j=1,n_repl
+find_atom: DO ia=1,cr_natoms
+IF(ABS(temp_pos(1,j)-cr_pos(1,ia))<EPS .AND. &
+   ABS(temp_pos(2,j)-cr_pos(2,ia))<EPS .AND. &
+   ABS(temp_pos(3,j)-cr_pos(3,ia))<EPS      ) THEN  ! Found correct position
+cr_iscat(ia) = temp_iscat(j)  ! Set to correct chemistry
+cr_prop (ia) = IBSET (cr_prop (ia), PROP_DECO_ANCHOR)    ! FLAG THIS ATOM AS SURFACE ANCHOR
+ENDIF
+ENDDO find_atom
+ENDDO loop_anchor
+         DEALLOCATE(temp_iscat)
+         DEALLOCATE(temp_pos  )
 !
 !  Transform atom coordinates into cartesian space to ease computations
 !
@@ -1052,7 +1088,7 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
               is     = cr_iscat(ia)                  ! get scattering type central
               xyz(:) = cr_pos(:,ia)                  ! Get atom position
               idef   = dc_use_conn(is)               ! use this connectivity list for surface
-              CALL get_connectivity_list (ia, is, idef, c_list, c_offs, natoms )
+!             CALL get_connectivity_list (ia, is, idef, c_list, c_offs, natoms )
 !             Go through all definitions
               dc_def_temp => dc_def_head        
               jdef = 0
@@ -1082,7 +1118,8 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
                              IF(ncon == 1) THEN
                                 CALL deco_place_normal(dc_def_temp, ia, is, xyz, &
                                   dc_temp_axis, m_type_old, mole_name, mole_length, &
-                                  dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist,      &
+                                  istart, iend)
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The normal connection requires one bond'
@@ -1092,7 +1129,8 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
                              IF(ncon == 1) THEN
                              CALL deco_place_bridge(dc_def_temp, ia, is, xyz, &
                                   dc_temp_axis, m_type_old, mole_name, mole_length,       &
-                                  dc_temp_surf, dc_temp_neig, dc_temp_dist)
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, &
+                                  istart, iend)
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The bridge connection requires one bond'
@@ -1102,7 +1140,8 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
                              IF(ncon >  1) THEN
                              CALL deco_place_double(dc_def_temp, ia, is, xyz, &
                                   dc_temp_axis, m_type_old, mole_name, mole_length,       &
-                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon, &
+                                  istart, iend)
                                 EXIT cons
                              ELSE
                                 ier_num = -1118
@@ -1113,7 +1152,8 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
                              IF(ncon >  1) THEN
                              CALL deco_place_multi(dc_def_temp, ia, is, xyz, &
                                   dc_temp_axis, m_type_old, mole_name, mole_length,       &
-                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon)
+                                  dc_temp_surf, dc_temp_neig, dc_temp_dist, ncon, &
+                                  istart, iend)
                                 EXIT cons
                              ELSE
                                 ier_num = -1118
@@ -1170,7 +1210,9 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
             clu_index           = 1
             clu_number          = 1
 !
-            CALL micro_filereading
+write(*,*) ' cr_natoms prior ', cr_natoms
+!           CALL micro_filereading
+write(*,*) ' cr_natoms after ', cr_natoms
             DO ia=istart, iend
                cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! FLAG THIS ATOM AS SURFACE ANCHOR
             ENDDO
@@ -1220,7 +1262,7 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
    DEALLOCATE(dc_molecules)
    DEALLOCATE(m_ntypes, STAT=istatus)
    DEALLOCATE(m_length, STAT=istatus)
-   DEALLOCATE(c_list  , STAT=istatus)
+if(allocated(c_list))   DEALLOCATE(c_list  , STAT=istatus)
    DEALLOCATE(temp_prob, STAT=istatus)
    line   = ' '
    length = 1
@@ -1241,24 +1283,21 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
 !
    CHARACTER (LEN=1024)                :: strufile
 !
-   INTEGER  :: i,j,k            ! dummy index
+   INTEGER  :: i,j              ! dummy index
    INTEGER  :: istatus          ! status
    INTEGER  :: natoms           ! number of atoms in file
    INTEGER  :: ntypes           ! number of atom types in file
    INTEGER  :: n_mole           ! number of molecules
    INTEGER  :: n_type           ! number of molecule types
    INTEGER  :: n_atom           ! number of atoms in molecules
-   INTEGER  :: a_mole           ! allocate minimum number of molecules
-   INTEGER  :: a_type           ! allocate minimum number of molecule types
-   INTEGER  :: a_atom           ! allocate minimum number of atoms in molecules
    INTEGER  :: init   = -1      ! Initialize atom names/types
    INTEGER  :: itype            ! atom scattering type
    REAL, DIMENSION(3) :: posit  ! atom position
-   REAL, DIMENSION(3) :: uvw    ! atom position
+   REAL, DIMENSION(4) :: posit4 ! atom position
+   REAL, DIMENSION(4) :: uvw4   ! atom position
    REAL, DIMENSION(4,4) :: rd_tran_f  ! transformation matrix to cartesian
    INTEGER  :: iprop            ! atom property 
    LOGICAL  :: lcell  = .true.  ! Treat atoms with equal name and B as one type
-real, dimension(3) :: uvw_temp
 !
    ALLOCATE(m_name  (dc_n_molecules), STAT=istatus)
    ALLOCATE(m_lname (dc_n_molecules), STAT=istatus)
@@ -1300,8 +1339,11 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
       DO j=1, natoms
          CALL dc_molecules(i)%get_cryst_atom ( j, itype, posit, iprop)
-         CALL trans(posit,rd_tran_f ,uvw, 4)       ! Transform mol to cartesian
-         CALL trans(uvw  ,cr_tran_fi,posit, 4)     ! Transfrom cartesian to crystal
+         posit4(1:3) = posit(1:3)
+         posit4(4)   = 1.0
+         CALL trans(posit4,rd_tran_f ,uvw4, 4)       ! Transform mol to cartesian
+         CALL trans(uvw4  ,cr_tran_fi,posit4, 4)     ! Transform cartesian to crystal
+         posit(1:3) = posit4(1:3)
          CALL dc_molecules(i)%set_cryst_atom ( j, itype, posit, iprop)
       ENDDO
       m_length(i) = natoms
@@ -1373,8 +1415,6 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER             , INTENT(IN)  :: n_mole      ! Number of molecules from testfile
    INTEGER             , INTENT(IN)  :: n_type      ! Number of molecule types from testfile
    INTEGER             , INTENT(IN)  :: n_atom      ! Number of atoms in molecules from testfile
-   INTEGER                           :: inum   ! dummy index
-   REAL   , DIMENSION(3)             :: posit  ! dummy position vector
    REAL   , DIMENSION(3)             :: uvw_out ! dummy position vector
    INTEGER                           :: istat  ! status variable
    INTEGER                           :: j
@@ -1505,7 +1545,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    SUBROUTINE deco_place_normal(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, m_type_old, mole_name, mole_length, &
-                            surf, neig, dist)
+                            surf, neig, dist, istart, iend)
 !
    USE chem_mod
    USE metric_mod
@@ -1534,6 +1574,8 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
+   INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 !
    REAL, PARAMETER :: EPS = 1.0E-6
 !
@@ -1571,8 +1613,8 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
-   hkl(4) = 0.0
-   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+   hkl(4) = 0
+   CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
@@ -1582,7 +1624,9 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    ENDIF
 !
    surf_normal = FLOAT(surface_normal(:,1))
-!  IF(surf_char == SURF_PLANE ) THEN                      ! Ignore other than planar surfaces
+   IF(surf_char >  0          ) THEN                      ! Surface atoms only
+write(*,*) ' atom, normal ',ia, hkl (1:3), istart, iend, surf_char, dc_n_molecules
+write(*,*) ' mole_name    ', mole_name(1:mole_length),'  ',m_name(1)(1:m_lname(1)), m_length(1)
 !
       moles: DO i=1, dc_n_molecules                       ! Loop over all loaded molecules
          IF(mole_name(1:mole_length) == m_name(i)(1:m_lname(i))) THEN
@@ -1616,6 +1660,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
             ENDDO atoms
 ! define rotation operation
             sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
+write(*,*) ' angle ligand ',sym_angle, axis_ligand, EPS
             IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
                sym_orig(:)    = origin(:)                    ! Define origin
                sym_trans(:)   = 0.0                          ! No translation needed
@@ -1652,7 +1697,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
             CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
          ENDIF
       ENDDO moles
-!   ENDIF
+   ENDIF
 !
    chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
    chem_quick     = .false.                         ! turn of quick search
@@ -1664,7 +1709,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    SUBROUTINE deco_place_bridge(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, m_type_old, mole_name, mole_length, &
-                            surf, neig, dist)
+                            surf, neig, dist, istart, iend)
 !
    USE atom_env_mod
    USE chem_mod
@@ -1692,6 +1737,8 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
+   INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
+   INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
@@ -1731,8 +1778,8 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
-   hkl(4) = 0.0
-   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+   hkl(4) = 0
+   CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
@@ -1862,7 +1909,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    SUBROUTINE deco_place_double(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, m_type_old, mole_name, mole_length, &
-                            surf, neig, dist,ncon)
+                            surf, neig, dist,ncon, istart, iend)
 !
 !  The molecule is bound by two of its atoms to two different surfae atoms.
 !  The molecule is placed such that:
@@ -1901,9 +1948,10 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
+   INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
+   INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 !
    TYPE (dc_con), POINTER              :: dc_con_temp     ! A connectivity definition to be used
-   REAL, PARAMETER :: EPS = 1.0E-6
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
    REAL                , DIMENSION(1:MAX(MINPARA,surf(0))) :: werte
@@ -1954,11 +2002,14 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    maxw     = MAX(MINPARA,surf(0))
    vnull(:) = 0.00
    success = -1
+   n1 = 1
+   n2 = 1
+   b_l = 0.0
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
-   hkl(4) = 0.0
-   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+   hkl(4) = 0
+   CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
@@ -2061,7 +2112,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    sym_uvw(:) = res_para(1:3)
 !  Calculate angle in first trapezoid corner
    sym_angle  = ACOS(-(all_distance(2)**2-all_distance(1)**2-(t_l-b_l)**2)/ &
-                      (2.*all_distance(1)*(t_l-b_l))) /rad
+                      (2.*all_distance(1)*(t_l-b_l))) /REAL(rad)
 !
    sym_orig(:)    = 0.0                       ! Define origin at 0,0,0
    sym_trans(:)   = 0.0                       ! No translation needed
@@ -2089,7 +2140,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    IF(ABS(arg) > 1.00) THEN
       GOTO 9999                               ! No solution is found skip
    ENDIF
-   sym_angle  = ACOS(arg)/rad
+   sym_angle  = ACOS(arg)/REAL(rad)
 !
    sym_trans(:)   = 0.0                       ! No translation needed
    sym_orig(:)    = 0.0                       ! Define origin in 0,0,0
@@ -2182,7 +2233,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    SUBROUTINE deco_place_multi(dc_def_temp, ia, ia_scat, xyz, &
                             mole_axis, m_type_old, mole_name, mole_length, &
-                            surf, neig, dist,ncon)
+                            surf, neig, dist,ncon, istart, iend)
 !
 !  Places a molecule that has multiple bonds to the surface.
 !  The first bond should be the one that carries multiple connections to
@@ -2219,9 +2270,10 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
+   INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
+   INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 !
    TYPE (dc_con), POINTER              :: dc_con_temp     ! A connectivity definition to be used
-   REAL, PARAMETER :: EPS = 1.0E-6
    INTEGER, PARAMETER                      :: MAXW = 2
    REAL                , DIMENSION(1:MAXW) :: werte
 !
@@ -2270,11 +2322,12 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
 !
    vnull(:) = 0.00
    success = -1
+   n2 = 1
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
-   hkl(4) = 0.0
-   CALL surface_character(ia, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+   hkl(4) = 0
+   CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3) = surface_normal(:,1)
    IF(dc_def_temp%dc_def_restrict) THEN
@@ -2403,7 +2456,7 @@ main:   DO i=1,dc_n_molecules        ! load all molecules
    d2 = all_distance(2)
    arg = (d1**2 + d2**2 - b_l**2)/(2.*d1*d2)
    IF(ABS(arg)> 1.0) GOTO 9999                ! No suitable solution
-   sym_angle  = acos( (d1**2 + d2**2 - b_l**2)/(2.*d1*d2))/rad
+   sym_angle  = acos( (d1**2 + d2**2 - b_l**2)/(2.*d1*d2))/REAL(rad)
    v(:) = v(:) *d2/v_l                        ! Scale vector 1st surface to 1st mole to distance2
 !
    sym_orig(:)    = 0.0                       ! Define origin at 0,0,0

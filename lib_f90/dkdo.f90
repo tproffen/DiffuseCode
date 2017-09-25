@@ -831,6 +831,10 @@ END SUBROUTINE do_execute_block
       ier_num = 0 
       ier_typ = ER_NONE 
       oldstr = string 
+      w1 = 0
+      w2 = 0
+      lstring1 = .FALSE.
+      lstring2 = .FALSE.
 !     CALL rem_bl (string, laenge) 
       if_test = .false. 
       IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
@@ -2631,9 +2635,9 @@ END SUBROUTINE do_execute_block
                ENDIF 
                ENDDO 
 !           Determine relative size of exponentials and box             
-               fl1 = 0.5 * werte (1) * sqrt (zpi) 
+               fl1 = REAL(0.5D0 * REAL(werte (1), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
                fl2 = werte (2) 
-               fl3 = 0.5 * werte (3) * sqrt (zpi) 
+               fl3 = REAL(0.5D0 * REAL(werte (3), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
 !           Normalize to 1                                              
                gbox_k = 1. / (fl1 + fl2 + fl3) 
                gbox_w = 1. - (fl1 + fl3) * gbox_k 

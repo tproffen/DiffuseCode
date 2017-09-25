@@ -404,7 +404,6 @@
 !
       prompt = orig_prompt
 !                                                                       
- 2000 FORMAT     (a) 
  2100 FORMAT     (1x,'Refinement mode: ',a) 
       END SUBROUTINE do_fit                         
 !*****7*****************************************************************
@@ -426,7 +425,7 @@
       CHARACTER(80) iname 
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
-      INTEGER ianz, i 
+      INTEGER ianz
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -637,7 +636,7 @@
       INTEGER ianz 
       INTEGER len_str 
 !                                                                       
-      filname = fname (ikfit) 
+      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit))))
       filname = filname (1:len_str (filname) ) //'.erg' 
 !                                                                       
       CALL oeffne (77, filname, 'unknown') 
@@ -1041,7 +1040,7 @@
       len (ikdif) = len (ikfit) 
       fform (ikcal) = fform (ikfit) 
       fform (ikdif) = fform (ikfit) 
-      filname = fname (ikfit) 
+      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
       fname (ikcal) = filname (1:len_str (filname) ) //'.fit' 
       fname (ikdif) = filname (1:len_str (filname) ) //'.dif' 
       CALL get_extrema 
@@ -1097,7 +1096,7 @@
       fform (ikcal) = fform (ikfit) 
       fform (ikdif) = fform (ikfit) 
 !                                                                       
-      filname = fname (ikfit) 
+      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
       fname (ikcal) = filname (1:len_str (filname) ) //'.fit' 
       fname (ikdif) = filname (1:len_str (filname) ) //'.dif' 
       CALL get_extrema 
@@ -1471,8 +1470,6 @@
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER nbank 
-!                                                                       
       CHARACTER ( * ) iname 
       REAL pcoff (maxpara) 
       REAL stheta, dspace, tof 
@@ -1535,7 +1532,6 @@
 !                                                                       
       RETURN 
 !                                                                       
-  997 CONTINUE 
       ier_num = - 46 
       ier_typ = ER_APPL 
       CLOSE (12) 
@@ -1640,10 +1636,10 @@
       + 4)                                                              
 !---------integral berechnen                                            
       zz = p (iii + 3) / p (iii + 4) + p (iii + 3) * p (iii + 4) 
-      sint = p (iii + 1) * zpi * zz 
+      sint = p (iii + 1) * REAL(zpi) * zz 
       ds0 = zpi * zz 
-      ds2 = p (iii + 1) * zpi * (1.0 / p (iii + 4) + p (iii + 4) ) 
-      ds3 = p (iii + 1) * zpi * ( - p (iii + 3) / p (iii + 4) **2 + p ( &
+      ds2 = p (iii + 1) * REAL(zpi) * (1.0 / p (iii + 4) + p (iii + 4) ) 
+      ds3 = p (iii + 1) * REAL(zpi) * ( - p (iii + 3) / p (iii + 4) **2 + p ( &
       iii + 3) )                                                        
       dsint = dp (iii + 1) * ds0 + dp (iii + 3) * ds2 + dp (iii + 4)    &
       * ds3                                                             
@@ -1824,7 +1820,7 @@
       INTEGER idout, i, iii 
 !                                                                       
       o = sqrt (4.0 * alog (2.0) ) 
-      sqpio = sqrt (pi) / o * 0.5 
+      sqpio = sqrt (REAL(pi)) / o * 0.5 
 !                                                                       
       WRITE (idout, 1000) np1 
       WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
@@ -2022,7 +2018,6 @@
       IMPLICIT none 
 !                                                                       
       INTEGER idout, i, iii 
-      REAL zz, sint, ds0, ds2, ds3, dsint 
 !                                                                       
       WRITE (idout, 1000) np1 
       DO i = 1, n_backgrd 
@@ -2051,10 +2046,10 @@
  1000 FORMAT     (1x,'Fitted',i3,' Pseudo-Voigt(s) : '/) 
  1100 FORMAT     (3x,'p(',i2,') : backgr. ',i1,' : ',g12.6,' +- ',      &
      &                   g12.6,4x,'pinc : ',f2.0)                       
- 1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
-     &                   4x,'pinc : ',f2.0)                             
- 1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g12.6,' +- ',g12.6,     &
-     &                   4x,'pinc : ',f2.0)                             
+!1200 FORMAT     (3x,'p(',i2,') : backgr. 2 : ',g12.6,' +- ',g12.6,     &
+!    &                   4x,'pinc : ',f2.0)                             
+!1210 FORMAT     (3x,'p(',i2,') : backgr. 3 : ',g12.6,' +- ',g12.6,     &
+!    &                   4x,'pinc : ',f2.0)                             
  1300 FORMAT     (/,1x,'Pseudo-Voigt : ',i3,/) 
  1400 FORMAT     (3x,'p(',i2,') : eta       : ',g12.6,' +- ',g12.6,     &
      &                   4x,'pinc : ',f2.0)                             
@@ -2289,7 +2284,7 @@
       INTEGER idout, i, iii 
 !                                                                       
       o = sqrt (4.0 * alog (2.0) ) 
-      sqpio = sqrt (pi) / o * 0.5 
+      sqpio = sqrt (REAL(pi)) / o * 0.5 
       sqpio2 = sqpio * sqpio 
 !                                                                       
       WRITE (idout, 1000) np1 
@@ -2483,8 +2478,8 @@
       DO nlauf = 1, ng 
       na = nu + (nlauf - 1) * np + 1 
 !---------sinus und cosinus berechnen                                   
-      cosp = cos (rad * p (na + 5) ) 
-      sinp = sin (rad * p (na + 5) ) 
+      cosp = cos (REAL(rad) * p (na + 5) ) 
+      sinp = sin (REAL(rad) * p (na + 5) ) 
 !---------transformation in hautachsensystem                            
       rxs = cosp * (rx - p (na + 1) ) + sinp * (ry - p (na + 2) ) 
       rys = - sinp * (rx - p (na + 1) ) + cosp * (ry - p (na + 2) ) 
@@ -2519,8 +2514,8 @@
          IF (pinc (na + 4) .ne.0) df (na + 4) = p (na) * eyy * exx *    &
          (2 * rys**2 * o1 * fwfy / (fwy**3) )                           
          IF (pinc (na + 5) .ne.0) df (na + 5) = ( - (rx - p (na + 1) )  &
-         * sinp + (ry - p (na + 2) ) * cosp) * dfxs * rad+ ( - (rx - p (&
-         na + 1) ) * cosp - (ry - p (na + 2) ) * sinp) * dfys * rad     
+         * sinp + (ry - p (na + 2) ) * cosp) * dfxs * REAL(rad)+ ( - (rx - p (&
+         na + 1) ) * cosp - (ry - p (na + 2) ) * sinp) * dfys * REAL(rad)     
          IF (pinc (na + 6) .ne.0) then 
             IF (rxs.le.0.0) then 
                df (na + 6) = - p (na) * eyy * exx * (2 * rxs**2 * o1 /  &
@@ -2914,7 +2909,7 @@
 !
       IMPLICIT NONE
 !
-      INTEGER :: i, j, k,l, ll, l1, nl   ! Loop indices
+      INTEGER :: i, j, k,l, l1, nl   ! Loop indices
       INTEGER :: m, n, nf
       INTEGER :: iiw, iix
       REAL :: f
@@ -3161,6 +3156,7 @@
       INTEGER i, j 
       REAL errt, fac, hh, a (ntab, ntab) 
 !                                                                       
+      dfridr = 0.0
 !     IF (h.eq.0.) pause 'h must be nonzero in dfridr'   ! h is checked before
       hh = h 
       a (1, 1) = (func (x + hh) - func (x - hh) ) / (2.0 * hh) 

@@ -2226,10 +2226,9 @@ INTEGER         , INTENT(IN)  :: mode
 CHARACTER(LEN=*), INTENT(IN)  :: strufile
 CHARACTER(LEN=*), INTENT(OUT) ::  outfile
 !
-INTEGER, PARAMETER :: MD_CELL = 0
+!INTEGER, PARAMETER :: MD_CELL = 0
 INTEGER, PARAMETER :: MD_STRU = 1
 !
-CHARACTER(LEN=LEN_TRIM(strufile))   :: temp
 CHARACTER(LEN=LEN_TRIM(strufile)+8) :: line
 INTEGER :: length
 INTEGER :: laenge
@@ -3171,6 +3170,8 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       TYPE(atom_list), POINTER :: temp
 !
       INTEGER len_str 
+!
+      is_loop = 0
 !                                                                       
 !     Create input / output file name
 !
@@ -3207,6 +3208,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !
 ! As we do not know the length of the input file, lets read it once
 !
+      line_sig= 0
       line_no = 0
       data_no = 0      ! Counter for individual "data_" sections
 countline: DO
@@ -3514,9 +3516,9 @@ analyze_anis: DO
          gten(1,1) = latt(1)**2
          gten(2,2) = latt(2)**2
          gten(3,3) = latt(3)**2
-         gten(1,2) = latt(1)*latt(2)*cos(rad*latt(6))
-         gten(1,3) = latt(1)*latt(3)*cos(rad*latt(5))
-         gten(2,3) = latt(2)*latt(3)*cos(rad*latt(4))
+         gten(1,2) = latt(1)*latt(2)*cos(REAL(rad)*latt(6))
+         gten(1,3) = latt(1)*latt(3)*cos(REAL(rad)*latt(5))
+         gten(2,3) = latt(2)*latt(3)*cos(REAL(rad)*latt(4))
          gten(2,1) = gten(1,2)
          gten(3,1) = gten(1,3)
          gten(2,3) = gten(3,2)
@@ -3845,6 +3847,7 @@ header: DO
       ENDIF
 !
       ntypes = MAX(ntypes,nscattypes)
+      l_type = .FALSE.
 !
 main: DO
         READ (99,1000, IOSTAT=ios) line

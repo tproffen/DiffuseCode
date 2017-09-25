@@ -19,7 +19,6 @@
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), ianz 
-      REAL werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -64,7 +63,7 @@
       IMPLICIT none 
 !                                                                       
       CHARACTER(1) ch 
-      REAL xb, xt, yt, mx, my 
+      REAL mx, my 
       INTEGER ini 
       LOGICAL lw, lend 
 !                                                                       
@@ -178,8 +177,6 @@
 !                                                                       
 !------ Finish off                                                      
 !                                                                       
- 9999 CONTINUE 
-                                                                        
 !                                                                       
  1000 FORMAT    (' ------ > Click on EXIT MENU to return to ',          &
      &                            'command mode ...')                   
@@ -194,8 +191,6 @@
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
-!                                                                       
-      REAL xpl (2), ypl (2) 
 !                                                                       
       CALL PGSVP (0.0, 0.999, 0.0, 0.999) 
       CALL PGSWIN (0.0, 1.0, 0.0, 1.0) 
@@ -921,6 +916,7 @@
       LOGICAL l2d, k_in_f 
 !                                                                       
       zeile = ' ' 
+      ini = 1
 !                                                                       
       l2d = .false. 
       DO i = 1, iz - 1 
@@ -969,8 +965,6 @@
       CALL frame_menu 
       CALL draw_tframe (' ', ' ', ' ') 
 !                                                                       
- 1200 FORMAT    (1x,2(g12.6,1x)) 
- 1210 FORMAT    (1x,3(g12.6,1x)) 
  2200 FORMAT    ('(x,y) = ',2(g12.6,1x)) 
  2210 FORMAT    ('(x,y,z) = ',3(g12.6,1x)) 
 !                                                                       
@@ -995,6 +989,7 @@
       INTEGER nxx, nyy 
       LOGICAL l2d, k_in_f 
 !                                                                       
+      ini = 1
       CALL do_plot (lgui (iwin) ) 
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -1049,7 +1044,6 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(80) zeile (2) 
       CHARACTER(1) key 
       REAL wx1, wy1, wx2, wy2 
       INTEGER ikey, imode 
@@ -1106,7 +1100,7 @@
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0) then 
          wx = wx - (wy - ey (iwin, iframe, 1) ) * yskal (iwin, iframe)  &
-         / tan (rad * shear (iwin, iframe) )                            
+         / tan (REAL(rad) * shear (iwin, iframe) )
       ENDIF 
 !                                                                       
       IF (lachse (iwin, iframe, 1) ) wx = exp (wx * log (10.0) ) 

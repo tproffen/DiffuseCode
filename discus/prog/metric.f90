@@ -73,7 +73,7 @@ CONTAINS
       IF (xx.gt.0.and.yy.gt.0) then 
          arg = xy / (xx * yy) 
          IF (abs (arg) .lt.1.0) then 
-            do_bang = acos (arg) / rad 
+            do_bang = acos (arg) / REAL(rad )
          ELSEIF (arg.ge.1.0) then 
             do_bang = 0.0 
          ELSEIF (arg.le. - 1.0) then 
@@ -481,7 +481,7 @@ CONTAINS
                ENDIF 
                arg = uv / sqrt (uu * vv) 
                IF (abs (arg) .lt.1.0) then 
-                  res_para (7) = acos (arg) / rad 
+                  res_para (7) = acos (arg) / REAL(rad )
                ELSEIF (arg.ge.1.0) then 
                   res_para (7) = 0.0 
                ELSEIF (arg.le. - 1.0) then 

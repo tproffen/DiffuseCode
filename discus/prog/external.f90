@@ -34,8 +34,8 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0, 0.0) 
-      acsf (i) = cmplx (0.0, 0.0) 
+      csf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
+      acsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
       dsi (i) = 0.0d0 
       ENDDO 
 !                                                                       
@@ -73,7 +73,7 @@ CONTAINS
 !DBG    write (*,3000) 'Final Matrix ',((exte_rmat (i,j),j=1,4),i=1,3)  
 !WORK          call external_header(mole_type(l))                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0, 0.0) 
+      tcsf (i) = cmplx (0.0, 0.0, KIND=KIND(0.0D0)) 
       ENDDO 
 !                                                                       
 !     -- Call the specialised subroutines for standard shapes           
@@ -147,7 +147,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) 
+      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -164,7 +164,7 @@ CONTAINS
       sf = sfstart 
       DO ii = 1, 3 
       IF (hh (ii) .ne.0) then 
-         sf = sf * sin (zpi * hh (ii) ) / (zpi * hh (ii) ) 
+         sf = sf * sin (REAL(zpi) * hh (ii) ) / (REAL(zpi) * hh (ii) ) 
       ENDIF 
       ENDDO 
       tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase), sf * sind (     &
@@ -210,13 +210,13 @@ CONTAINS
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
-      sfstart = zpi * cr_v * abs (det) * mole_dens (number) 
+      sfstart = REAL(zpi) * cr_v * abs (det) * mole_dens (number) 
       ij = 0 
       DO i = 1, num (1) 
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) 
+      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -238,8 +238,8 @@ CONTAINS
 !                                                                       
       dz = sqrt (skalpro (z, z, cartesian) ) 
       dr = sqrt (skalpro (r, r, cartesian) ) 
-      qz = zpi * dz 
-      qr = zpi * dr 
+      qz = REAL(zpi) * dz 
+      qr = REAL(zpi) * dr 
       sf = sfstart 
       IF (dr.gt.2e-3) then 
          sf = sf * 2. * bessj1 (qr) / qr 
@@ -292,13 +292,13 @@ CONTAINS
 !                                                                       
 !      -- Loop over all points in reciprocal space                      
 !                                                                       
-      sfstart = 4. / 3. * pi * cr_v * abs (det) * mole_dens (number) 
+      sfstart = 4. / 3. * REAL(pi) * cr_v * abs (det) * mole_dens (number) 
       ij = 0 
       DO i = 1, num (1) 
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) 
+      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -314,7 +314,7 @@ CONTAINS
 !                                                                       
       ds = sqrt (skalpro (hh, hh, cartesian) ) 
       sf = sfstart 
-      qr = zpi * ds 
+      qr = REAL(zpi) * ds 
       IF (ds.gt.2e-3) then 
          sf = sfstart * 3 * (sin (qr) - qr * cos (qr) ) / (qr) **3 
       ENDIF 
@@ -371,7 +371,7 @@ CONTAINS
       DO i = 1, 2 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = uin (k) * float (2 - i) + vin (k) * float ( - 1 + i) 
+      h (k) = REAL(uin (k) * float (2 - i) + vin (k) * float ( - 1 + i) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -390,7 +390,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) 
+      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -411,7 +411,7 @@ CONTAINS
          sf = 0.0 
       ELSE 
          IF (abs (hh (3) ) .gt.hmin (3) * 1.5) then 
-            sf = - sf / (zpi * hh (3) ) 
+            sf = - sf / (REAL(zpi) * hh (3) ) 
             tcsf (ij) = tcsf (ij) + cmplx (sf * cosd (phase+90),        &
             sf * sind (phase+90) )                                      
             WRITE ( output_io, * ) ' calculating line' 

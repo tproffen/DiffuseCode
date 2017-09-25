@@ -23,7 +23,6 @@ SUBROUTINE file_kdo(line, ilen)
       REAL                , DIMENSION(1:MAXW) :: werte
 !
 !
-      LOGICAL, PARAMETER :: lread = .true.
       INTEGER, PARAMETER :: imc   = 63
 !
       CHARACTER (LEN=1024), DIMENSION(:), ALLOCATABLE  :: content
@@ -42,7 +41,7 @@ SUBROUTINE file_kdo(line, ilen)
          sprompt = prompt                     ! Store prompt at top macro level start
       ENDIF
       macro_level = macro_level + 1
-      CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
+      CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
 !
 !     Build a temporary storage
 !
@@ -247,7 +246,7 @@ SUBROUTINE file_kdo(line, ilen)
 !
       END SUBROUTINE file_kdo
 !*****7*****************************************************************
-      SUBROUTINE build_macro_name(line, ilen, fileda, filename, MAXW, &
+      SUBROUTINE build_macro_name(line, ilen, filename, MAXW, &
                  ianz, cpara, lpara, werte)
 !
       USE envir_mod
@@ -258,7 +257,6 @@ SUBROUTINE file_kdo(line, ilen)
 !
       CHARACTER (LEN=*), INTENT(IN   )  :: line
       INTEGER          , INTENT(IN   )  :: ilen
-      LOGICAL          , INTENT(OUT  )  :: fileda
       CHARACTER (LEN=*), INTENT(OUT  )  :: filename
       INTEGER          , INTENT(IN   )  :: MAXW
       INTEGER          , INTENT(OUT  )  :: ianz
@@ -830,7 +828,7 @@ CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
 CHARACTER (LEN=1024)                    :: filename, string, zeile
 !
 INTEGER             , DIMENSION(1:MAXW) :: lpara
-INTEGER                                 :: ianz, i, length
+INTEGER                                 :: ianz, length
 INTEGER                                 :: ndol, nexcl, nquote1,nquote2, nx, lx, x
 INTEGER                                 :: lstring
 LOGICAL                                 :: lnum
@@ -840,7 +838,7 @@ REAL                , DIMENSION(1:MAXW) :: werte
 REAL                                    :: r_par
 !
 numpar = 0                                 ! Assume no parameters are required
-CALL build_macro_name(line, ilen, fileda, filename, MAXW, ianz, cpara, lpara, werte)
+CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
 CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the disk
 IF(fileda) THEN
    CALL oeffne(imc, filename, 'old')

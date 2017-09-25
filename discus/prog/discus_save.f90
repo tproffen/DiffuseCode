@@ -875,7 +875,6 @@ main: DO while (.not.lend)
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
       LOGICAL                         :: lsave
-      INTEGER                         :: n_latom
       INTEGER                         :: i
       INTEGER                         :: istatus
 !

@@ -2311,7 +2311,7 @@ CONTAINS
       LOGICAL l_ell 
       LOGICAL l_special 
 !      LOGICAL l_new 
-      REAL h (3), d, dstar, radius, height 
+      REAL h (3), d, dstar, radius, height , dshort
       REAL :: hkl(4)!, hklw(4)
       REAL, DIMENSION(3, 2) :: special_hkl
       REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
@@ -2343,6 +2343,7 @@ CONTAINS
       linside  = .true. 
       radius   = 0.0
       height   = 0.0
+      dstar    = 1.0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.eq.0) then 
          IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
@@ -2542,7 +2543,8 @@ CONTAINS
             ier_typ = ER_COMM 
             RETURN
          ENDIF 
-!                                                                       
+!
+!
          IF (ier_num.eq.0) THEN
             IF (l_plane) THEN
 plane_loop:    DO i = 1, cr_natoms 
@@ -2582,12 +2584,26 @@ plane_loop:    DO i = 1, cr_natoms
                ENDDO
 form_loop:     DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
-                  DO j=1,point_n
-                      d = 1.0 - cr_pos (1, i) * point_hkl (1,j) - cr_pos (2, i) * point_hkl (2,j)  &
-                              - cr_pos (3, i) * point_hkl (3,j)                                  
-                      d = d / dstar 
-                      CALL boundarize_atom (d, i, linside) 
-                  ENDDO 
+                  IF(linside) THEN
+                     DO j=1,point_n
+                         d = 1.0 - cr_pos (1, i) * point_hkl (1,j) &
+                                 - cr_pos (2, i) * point_hkl (2,j)  &
+                                 - cr_pos (3, i) * point_hkl (3,j)                                  
+                         d = d / dstar 
+                         CALL boundarize_atom (d, i, linside) 
+                     ENDDO 
+                  ELSE
+                     dshort = 1.E8
+                     DO j=1,point_n
+                         d = 1.0 - cr_pos (1, i) * point_hkl (1,j) &
+                                 - cr_pos (2, i) * point_hkl (2,j)  &
+                                 - cr_pos (3, i) * point_hkl (3,j)                                  
+                         d = d / dstar 
+!                        IF(d<0) CYCLE form_loop    ! Keep atom
+                         dshort = MIN(dshort, d)
+                     ENDDO 
+                     CALL boundarize_atom (dshort, i, linside) 
+                  ENDIF
                ENDDO form_loop
             ELSEIF (l_sphere) then 
 sphere_loop:   DO i = 1, cr_natoms 
@@ -2698,6 +2714,7 @@ ell_loop:      DO i = 1, cr_natoms
 !
 SUBROUTINE do_surface_char(zeile, lp)
 !
+USE crystal_mod 
 USE param_mod
 USE prompt_mod
 USE errlist_mod
@@ -2705,12 +2722,12 @@ IMPLICIT NONE
 CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
 !
-INTEGER, PARAMETER :: MAXW = 2
+INTEGER, PARAMETER :: MAXW = 3
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL               , DIMENSION(1:MAXW) :: werte
 INTEGER               :: surf_char
-LOGICAL               :: lshow
+LOGICAL               :: lshow, lequal
 INTEGER                 :: i, j
 INTEGER, DIMENSION(3,6) :: surf_normal
 INTEGER, DIMENSION(3)   :: surf_kante
@@ -2720,17 +2737,34 @@ INTEGER :: ianz, iatom
 !
 LOGICAL str_comp
 !
+cpara(:) = ' '
+lpara(:) = 1
 CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 IF(ier_num/=0) RETURN
 !
 ! Check if output is desired
 !
 lshow = .FALSE.
-IF (str_comp (cpara (2) , 'show', 2, lpara (1) , 4) ) then 
+IF (str_comp (cpara (ianz) , 'show', 2, lpara (1) , 4) ) then 
   lshow = .TRUE.
+  cpara(ianz) = ' '
+  lpara(ianz) = 1
+  ianz = ianz - 1
+ENDIF
+!
+! Check if Atoms are restricted to equal or any atom tpye
+!
+lequal = .TRUE.
+IF (str_comp (cpara (2) , 'equal', 2, lpara (1) , 5) ) then 
+  lequal = .TRUE.
   cpara(2) = ' '
   lpara(2) = 1
-  ianz = 1
+  ianz = ianz - 1
+ELSEIF (str_comp (cpara (2) , 'any', 2, lpara (1) , 3) ) then 
+  lequal = .FALSE.
+  cpara(2) = ' '
+  lpara(2) = 1
+  ianz = ianz - 1
 ENDIF
 !
 ! calculate atom number
@@ -2739,8 +2773,9 @@ CALL ber_params (ianz, cpara, lpara, werte, maxw)
 IF(ier_num/=0) RETURN
 !
 iatom = NINT(werte(1))
-CALL surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight, .TRUE.)
+CALL surface_character(iatom, 1, cr_natoms, surf_char, surf_normal, surf_kante, surf_weight, lequal)
 !
+i = 0
 res_para(0) = 1
 res_para(1) = surf_char
 IF(surf_char==1) THEN                 ! Planar surface
@@ -2773,20 +2808,34 @@ IF(lshow) THEN
       DO j=2, i
          WRITE(output_io, 2350)             surf_normal(:,j), surf_weight(j)
       ENDDO
+   ELSEIF(surf_char==-1) THEN
+      WRITE(output_io, 3100) surf_normal(:,1)
+   ELSEIF(surf_char==-2) THEN
+      WRITE(output_io, 3200) surf_kante, surf_normal(:,1), surf_weight(1)
+      WRITE(output_io, 2250)             surf_normal(:,2), surf_weight(2)
+   ELSEIF(surf_char==-3) THEN
+      WRITE(output_io, 3300) surf_normal(:,1), surf_weight(1)
+      DO j=2, i
+         WRITE(output_io, 2350)             surf_normal(:,j), surf_weight(j)
+      ENDDO
    ENDIF
 ENDIF
 !
 2000 FORMAT(' Surface character could not be determined')
-2100 FORMAT(' Planar surface, normal: ',3(I4,2x))
-2200 FORMAT(' Edge   surface, Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
-2250 FORMAT('                      secondary normal: ',20x         , 3(I4,2x), ':', I4)
-2300 FORMAT(' Corner surface, dominant normal: ',3(I4,2x), ':', I4)
-2350 FORMAT('                secondary normal: ',3(I4,2x), ':', I4)
+2100 FORMAT(' Planar surface,  normal: ',3(I4,2x))
+2200 FORMAT(' Edge   surface,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
+2250 FORMAT('                       secondary normal: ',20x         , 3(I4,2x), ':', I4)
+2300 FORMAT(' Corner surface,  dominant normal: ',3(I4,2x), ':', I4)
+2350 FORMAT('                 secondary normal: ',3(I4,2x), ':', I4)
+3100 FORMAT(' Indented plane,  normal: ',3(I4,2x))
+3200 FORMAT(' Indented edge ,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
+3300 FORMAT(' Indented corner, dominant normal: ',3(I4,2x), ':', I4)
 END SUBROUTINE do_surface_char
 !
 !*****7*****************************************************************
 !
-SUBROUTINE surface_character(iatom, surf_char, surf_normal, surf_kante, surf_weight, equal)
+SUBROUTINE surface_character(iatom, jstart, jend, surf_char, surf_normal,  &
+                             surf_kante, surf_weight, equal)
 !
 use atom_name
 USE atom_env_mod
@@ -2801,6 +2850,8 @@ USE math_sup
 !
 IMPLICIT NONE
 INTEGER,                 INTENT(IN)  :: iatom
+INTEGER,                 INTENT(IN)  :: jstart
+INTEGER,                 INTENT(IN)  :: jend
 INTEGER,                 INTENT(OUT) :: surf_char
 INTEGER, DIMENSION(3,6), INTENT(OUT) :: surf_normal
 INTEGER, DIMENSION(3)  , INTENT(OUT) :: surf_kante
@@ -2844,12 +2895,18 @@ LOGICAL                 :: isfirst
 REAL                    :: rmin, radius
 REAL                    :: alpha, beta
 REAL                    :: dstar
+REAL                    :: dist, dmin
 REAL     , DIMENSION(3) :: x         ! Vector from center to atom
+REAL     , DIMENSION(3) :: center    ! Average position of neighboring atoms
 INTEGER  , DIMENSION(3) :: rough     ! rough normal 
 REAL     , DIMENSION(3) :: u,v,w     ! Vectors from central atom to neighbors
 INTEGER  , DIMENSION(3) :: tempsurf  ! Vectors from central atom to neighbors
 REAL     , DIMENSION(3) :: realsurf  ! Vectors from central atom to neighbors
 !
+INTEGER, DIMENSION(0:1) :: temp_sel_prop = 0
+!
+temp_sel_prop(:) = cr_sel_prop(:)   ! save user settings for property select
+cr_sel_prop(:)   = 0                ! Ignore all property selection rules 
 surf_char = SURF_NONE
 surf_normal = 0
 surf_kante  = 0
@@ -2884,6 +2941,18 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
       ianz     = 1
       werte(1) = -1                     ! Find all atom types
 !
+!     Determine a local center of mass with a larger search radius
+!
+      center(:) = 0.0
+      CALL do_find_env (ianz, werte, maxw, x, rmin, radius+RADIUS_STEP, fq, fp)
+      DO i=1, atom_env(0)               ! Pick out surface atom types only
+         IF(jstart<=atom_env(i) .AND. atom_env(i)<=jend)  &
+               center(:) = center(:) + cr_pos(:,atom_env(i))
+      ENDDO
+      center(:) = center(:) / atom_env(0)
+!
+!     Find local environment to construct the surface normal
+!
       CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)
       ALLOCATE(neigh(0:atom_env(0)))
       neigsurf = 0
@@ -2898,6 +2967,12 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
       ENDDO
 !
       IF(neigsurf >= 3 ) THEN             ! Found three surface atoms as neighbors
+!        Determine rough surface as vector from center of mass to actual atom
+         WRITE(line,'(2(G16.8E3,a1),G16.8E3)') x(1)-center(1), ',', x(2)-center(2), ',', x(3)-center(3)
+         lspace = .TRUE.
+         laenge = 50
+         CALL d2r(line, laenge, lspace)
+         rough(1:3) = INT(10*res_para(1:3))      ! Rough local normal 
 !                                         ! Make space for all possible surfaces
          ALLOCATE(surfaces(0:3,neigsurf*neigsurf/2))
          nsurface      = 0
@@ -3018,7 +3093,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
          DEALLOCATE(neigh)
          IF(ALLOCATED(surfaces)) DEALLOCATE(surfaces)
       ENDIF
-      IF(counter == 4) THEN 
+      IF(counter == 3) THEN 
          EXIT grand   ! Too many trials, give up
       ENDIF
    ENDDO grand
@@ -3029,12 +3104,30 @@ DO i=1, MIN(nsurface, UBOUND(surf_weight,1))
    dstar=do_blen(lspace, NULL, FLOAT(surfaces(1:3,i)))
    IF(dstar > 0) THEN
       surfaces(1:3,i) = NINT(FLOAT(surfaces(1:3,i))*10./dstar)
-      divisor = gcd(surfaces(1,i),surfaces(2,i),surfaces(3,i))
+      divisor = IABS(gcd(surfaces(1,i),surfaces(2,i),surfaces(3,i)))
       surfaces(1:3,i) = surfaces(1:3,i)/divisor
    ENDIF
    surf_weight(i) = surfaces(0,i)
 ENDDO
 !
+! might be used to differentiate external from internal surfaces ???
+!
+!w(1:3)=surfaces(1:3,1)
+!beta = do_bang(lspace, w, NULL, x)
+!write(*,*) ' normal, coord, angle ', w,x, beta
+!
+ianz = -1
+CALL do_find_env (ianz, werte, maxw, x, rmin, RADIUS+RADIUS_STEP, fq, fp)
+dmin = 1
+DO i=1, nsurface
+   DO k=1, atom_env(0)
+   
+      dist  = 1.0 - (cr_pos (1, atom_env(k))-x(1)) * surfaces (1,i) &
+                  - (cr_pos (2, atom_env(k))-x(2)) * surfaces (2,i)  &
+                  - (cr_pos (3, atom_env(k))-x(3)) * surfaces (3,i)
+      dmin = MIN(dmin, dist)
+   ENDDO
+ENDDO
 IF(nsurface == 0) THEN
    surf_char = SURF_NONE
 ELSEIF(nsurface == 1) THEN
@@ -3072,6 +3165,7 @@ ELSEIF(nsurface >  2) THEN
 ELSE
    surf_char = SURF_NONE
 ENDIF
+IF(dmin < 0) surf_char = -surf_char   ! Indented surface, return negative character
 !
 ! Divide by greatest common divisor
 !
@@ -3085,6 +3179,7 @@ IF(k>0) THEN
 ENDIF
 IF(ALLOCATED(neigh)) DEALLOCATE(neigh)
 IF(ALLOCATED(surfaces)) DEALLOCATE(surfaces)
+cr_sel_prop(:) = temp_sel_prop(:)   ! restore user settings for property select
 !
 END SUBROUTINE surface_character
 !

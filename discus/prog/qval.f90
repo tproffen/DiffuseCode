@@ -32,10 +32,15 @@ CONTAINS
       PARAMETER (DELTA = 0.000001) 
 !                                                                       
 !                                                                       
-      INTEGER i, value, ix, iy 
+      INTEGER, INTENT(IN) :: i
+      INTEGER, INTENT(IN) :: value
+      INTEGER, INTENT(IN) :: ix
+      INTEGER, INTENT(IN) :: iy 
+      LOGICAL, INTENT(IN) :: laver
+! 
       INTEGER k 
 !                                                                       
-      COMPLEX f 
+      COMPLEX(KIND=KIND(0.0D0)) :: f 
       REAL h (3) 
       REAL      :: q2     = 0.0
       REAL      :: faver2 = 0.0
@@ -43,14 +48,13 @@ CONTAINS
 !                                                                       
 !     REAL atan2d 
       REAL ran1 
-      LOGICAL laver 
       qval   = 0.0
       f2aver = 0.0
       faver2 = 0.0
 !                                                                       
 !------ Get values of F or <F>                                          
 !                                                                       
-      IF (laver) then 
+      IF (laver) THEN 
          f = acsf (i) 
       ELSE 
          f = csf (i) 
@@ -62,51 +66,51 @@ CONTAINS
 !------ used, csf() will only contain the values for the                
 !------ last lot !!                                                     
 !                                                                       
-      IF (value == val_inten) then 
-         IF (laver) then 
-            qval = real (f * conjg (f) ) 
+      IF (value == val_inten) THEN 
+         IF (laver) THEN 
+            qval = REAL (f * CONJG (f) , KIND=KIND(1.0E0)) 
          ELSE 
-            qval = dsi (i) 
+            qval = REAL(dsi (i),KIND=KIND(0.0E0)) 
          ENDIF 
 !                                                                       
 !     Calculate amplitude 'amplitude'                                   
 !                                                                       
-      ELSEIF (value == val_ampli) then 
-         qval = sqrt (real (f * conjg (f) ) ) 
+      ELSEIF (value == val_ampli) THEN 
+         qval = SQRT (REAL (f * CONJG (f) , KIND=KIND(1.0E0) )) 
 !                                                                       
 !     Calculate phase 'phase'                                           
 !                                                                       
-      ELSEIF (value == val_phase) then 
-         IF (f.eq. (0, 0) ) then 
+      ELSEIF (value == val_phase) THEN 
+         IF (f.eq. (0, 0) ) THEN 
             qval = 0.0 
          ELSE 
-            qval = atan2d (aimag (f), real (f) ) 
+            qval = REAL(atan2d (AIMAG (f), REAL (f) ) )
          ENDIF 
 !                                                                       
 !     Calculate real part 'real'                                        
 !                                                                       
-      ELSEIF (value == val_real) then 
-         qval = real (f) 
+      ELSEIF (value == val_real) THEN 
+         qval = REAL (f, KIND=KIND(1.0E0)) 
 !                                                                       
 !     Calculate imaginary part 'imaginary'                              
 !                                                                       
-      ELSEIF (value == val_imag) then 
-         qval = aimag (f) 
+      ELSEIF (value == val_imag) THEN 
+         qval = REAL(AIMAG (f))
 !                                                                       
 !     Calculate phase 'phase', random, except for integer hkl           
 !                                                                       
-      ELSEIF (value == val_ranph) then 
+      ELSEIF (value == val_ranph) THEN 
          DO k = 1, 3 
-         h (k) = out_eck (k, 1) + out_vi (k, 1) * float (ix - 1)        &
-         + out_vi (k, 2) * float (iy - 1)                               
+            h (k) = out_eck (k, 1) + out_vi (k, 1) * FLOAT (ix - 1)     &
+                                   + out_vi (k, 2) * FLOAT (iy - 1)
          ENDDO 
-         IF (abs (h (1) - nint (h (1) ) ) .lt.DELTA.and.abs (h (2)      &
-         - nint (h (2) ) ) .lt.DELTA.and.abs (h (3) - nint (h (3) ) )   &
-         .lt.DELTA) then                                                
-            IF (f.eq. (0, 0) ) then 
+         IF (ABS (h (1) - NINT (h (1) ) ) .lt.DELTA.AND. &
+             ABS (h (2) - NINT (h (2) ) ) .lt.DELTA.AND. &
+             ABS (h (3) - NINT (h (3) ) ) .lt.DELTA) THEN                                                
+            IF (f.eq. (0, 0) ) THEN 
                qval = 0.0 
             ELSE 
-               qval = atan2d (aimag (f), real (f) ) 
+               qval = REAL(atan2d (AIMAG (f), REAL (f) ) )
             ENDIF 
          ELSE 
             qval = (ran1 (idum) - 0.5) * 360. 
@@ -114,56 +118,56 @@ CONTAINS
 !
 !     Calculate S(Q) = I/<f>^2/N + 1-e^(q^2*u^2) normalized intensity plus inelastic part 
 !
-      ELSEIF (value == val_sq) then
-         IF (laver) then 
-            qval = real (f * conjg (f) ) 
+      ELSEIF (value == val_sq) THEN
+         IF (laver) THEN 
+            qval = REAL (f * CONJG (f), KIND=KIND(0.0E0) ) 
          ELSE 
-            qval = dsi (i) 
+            qval = REAL(dsi (i) , KIND=KIND(1.0E0))
          ENDIF 
          DO k=1,cr_nscat
-            faver2 = faver2 + (REAL(cfact_pure(istl(i),k)))*cr_amount(k)
+            faver2 = faver2 + (REAL(cfact_pure(istl(i),k), KIND=KIND(0.0E0)))*cr_amount(k)
          ENDDO
          faver2 = faver2**2
-         q2   = zpi**2*(2*istl(i)*CFINC)**2
+         q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0D0))*CFINC)**2)
          qval = qval /faver2/ cr_n_real_atoms &
-                +1.0 - exp(-q2*cr_u2aver)
+                +1.0 - EXP(-q2*cr_u2aver)
 !
 !     Calculate E(Q) = I/<f^2>/N normalized intensity 
 !
-      ELSEIF (value == val_norm) then
-         IF (laver) then 
-            qval = real (f * conjg (f) ) 
+      ELSEIF (value == val_norm) THEN
+         IF (laver) THEN 
+            qval = REAL (f * CONJG (f),KIND=KIND(0.0E0) ) 
          ELSE 
-            qval = dsi (i) 
+            qval = REAL(dsi (i), KIND=KIND(0.0E0))
          ENDIF 
          DO k=1,cr_nscat
-            f2aver = f2aver + (REAL(cfact_pure(istl(i),k)))**2*cr_amount(k)
+            f2aver = f2aver + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
          ENDDO
-         q2   = zpi**2*(2*istl(i)*CFINC)**2
+         q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
          qval = qval /f2aver/ cr_n_real_atoms 
 !
 !     Calculate average squared atomic form factor <f**2>
 !
-      ELSEIF (value == val_f2aver) then
+      ELSEIF (value == val_f2aver) THEN
          DO k=1,cr_nscat
-            qval = qval + (REAL(cfact_pure(istl(i),k)))**2*cr_amount(k)
+            qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
          ENDDO
          qval = qval / cr_n_real_atoms
 !
 !     Calculate average atomic form factor squared <f>**2
 !
-      ELSEIF (value == val_faver2) then
+      ELSEIF (value == val_faver2) THEN
          DO k=1,cr_nscat
-            qval = qval + REAL(cfact_pure(istl(i),k))*cr_amount(k)
+            qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
          ENDDO
          qval = qval / cr_n_real_atoms
          qval = qval**2
 !
 !     Calculate average atomic form factor <f>
 !
-      ELSEIF (value == val_faver) then
+      ELSEIF (value == val_faver) THEN
          DO k=1,cr_nscat
-            qval = qval + REAL(cfact_pure(istl(i),k))*cr_amount(k)
+            qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
          ENDDO
          qval = qval / cr_n_real_atoms
       ENDIF 

@@ -14,8 +14,8 @@ SUBROUTINE do_plot (lmenu)
       IMPLICIT none 
 !                                                                       
       REAL x1, x2, y1, y2, width, ratio, dev_sf_old 
-      INTEGER ii, ik, idev, irtn 
-      LOGICAL k_in_f, tfr, lmenu 
+      INTEGER ii
+      LOGICAL tfr, lmenu 
 !                                                                       
       INTEGER PGOPEN 
 !                                                                       
@@ -112,16 +112,18 @@ SUBROUTINE do_plot (lmenu)
       CHARACTER(1024) cpara (maxw), prnbef , line
       CHARACTER(256) filname, uname 
       REAL werte (maxw) 
-      REAL x1, x2, y1, y2, width, ratio 
+      REAL width, ratio 
       INTEGER lpara (maxw) 
-      INTEGER ianz, ii, ik, idev, lbef, lp ,i
-      LOGICAL k_in_f, tfr, lrena, lmenu 
+      INTEGER ianz, ii, idev, lbef, lp ,i
+      LOGICAL tfr, lrena, lmenu 
       LOGICAL :: l_pdf
 !                                                                       
       INTEGER len_str 
       INTEGER PGOPEN 
 !                                                                       
       lmenu = .false. 
+      lrena = .false. 
+      l_pdf = .false. 
 !                                                                       
 !------ see if there are data at all                                    
 !                                                                       
@@ -185,7 +187,7 @@ SUBROUTINE do_plot (lmenu)
             IF (ianz.ge.2) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-               uname = cpara (1) 
+               uname = cpara (1) (1:MIN(256,LEN_TRIM(cpara(1))))
                lrena = .true. 
             ELSE 
                uname = filname 
@@ -203,6 +205,7 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
       ELSEIF (befehl (1:2) .eq.'PR') then 
          filname = 'kuplot.plt' 
+         idev = ps 
          IF (orient (iwin) ) then 
             idev = ps 
          ELSE 
@@ -401,7 +404,7 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL wxmi, wxma, wymi, wyma 
+!     REAL wxmi, wxma, wymi, wyma 
       REAL xx, yy, x1, x2, y1, y2, vl, vr, vb, vt, yf, off 
 !                                                                       
 !------ Set viewport for current frame                                  
@@ -430,7 +433,7 @@ SUBROUTINE do_plot (lmenu)
          yskal_u (iwin, iframe) = 1.0 
       ENDIF 
 !                                                                       
-      yf = sin (rad * shear (iwin, iframe) ) 
+      yf = sin (REAL(rad) * shear (iwin, iframe) ) 
       IF (lyskal (iwin, iframe) ) then 
          yskal (iwin, iframe) = yskal_u (iwin, iframe) * yf 
          xx = pex (iwin, iframe, 2) - pex (iwin, iframe, 1) 
@@ -473,9 +476,6 @@ SUBROUTINE do_plot (lmenu)
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 10) 
 !                                                                       
       INTEGER ik, ii, iframe_old 
       LOGICAL k_in_f, lmenu 
@@ -577,7 +577,7 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
       CHARACTER(2) cal, car, cax 
       CHARACTER(1) clx, cly 
-      REAL ax1, ay1, ax2, ay2, off, off0, adis 
+      REAL ax1, ay1, off, off0, adis 
       REAL rj, xt, yt, ltx, lty 
       REAL xpl (2), ypl (2) 
       REAL xh (5), yh (5) 
@@ -1052,7 +1052,7 @@ SUBROUTINE do_plot (lmenu)
 !-------- Filenames                                                     
 !                                                                       
       IF (ifname (iwin, iframe) ) then 
-         text = fname (ikurv) 
+         text = fname (ikurv) (1:MIN(80,LEN_TRIM(fname(ikurv))))
          il = len_str (text) 
          IF (il.gt.0) then 
             ikr = ikr + 1 
@@ -1628,7 +1628,7 @@ SUBROUTINE do_plot (lmenu)
       tr (6) = rdy 
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0) then 
-         yf = yskal (iwin, iframe) / tan (rad * shear (iwin, iframe) ) 
+         yf = yskal (iwin, iframe) / tan (REAL(rad) * shear (iwin, iframe) ) 
          tr (1) = tr (1) + yf * (tr (4) - ey (iwin, iframe, 1) ) 
          tr (3) = rdy * yf 
 !                                                                       
@@ -1697,7 +1697,7 @@ SUBROUTINE do_plot (lmenu)
       CHARACTER(25) label 
       REAL zpl (maxz, maxz), tr (6) 
       REAL rdx, rdy, zm, zi, h, log10, yf 
-      INTEGER i, il, ic, ik, ix, iy, ikk, ihp, ihl, lmi, lin 
+      INTEGER il, ic, ik, ix, iy, ikk, ihp, ihl, lmi, lin 
       INTEGER nx_min, nx_max, ny_min, ny_max 
 !                                                                       
       rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
@@ -1744,7 +1744,7 @@ SUBROUTINE do_plot (lmenu)
       tr (6) = rdy 
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0) then 
-         yf = yskal (iwin, iframe) / tan (rad * shear (iwin, iframe) ) 
+         yf = yskal (iwin, iframe) / tan (REAL(rad) * shear (iwin, iframe) ) 
          tr (1) = tr (1) + yf * (tr (4) - ey (iwin, iframe, 1) ) 
          tr (3) = rdy * yf 
       ENDIF 

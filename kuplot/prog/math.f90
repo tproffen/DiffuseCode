@@ -255,7 +255,7 @@
 !------ Calculating the Fourier Transform                               
 !                                                                       
       IF (lpi) then 
-         fc = zpi 
+         fc = REAL(zpi) 
       ELSE 
          fc = 1. 
       ENDIF 
@@ -276,7 +276,7 @@
       f (1) = dxx * f (1) 
       f (2) = dxx * f (2) 
       f (3) = sqrt (f (1) **2 + f (2) **2) 
-      f (4) = atan2(f (2) , f (1) ) / rad 
+      f (4) = atan2(f (2) , f (1) ) / REAL(rad) 
       kk = kk + 1 
 !                                                                       
       DO i = 1, 4 
@@ -373,7 +373,7 @@
       WRITE (output_io, 1000) ik 
 !                                                                       
       IF (lpi) then 
-         fc = zpi 
+         fc = REAL(zpi) 
       ELSE 
          fc = 1. 
       ENDIF 
@@ -403,7 +403,7 @@
       f (1) = dxx * dyy * f (1) 
       f (2) = dxx * dyy * f (2) 
       f (3) = sqrt (f (1) **2 + f (2) **2) 
-      f (4) = atan2(f (2) , f (1) ) / rad 
+      f (4) = atan2(f (2) , f (1) ) / REAL(rad) 
 !                                                                       
       DO i = 1, 4 
       IF (fo (i) ) then 
@@ -670,7 +670,6 @@
  2100 FORMAT    (' Integration result for data set ',i3,' :',/          &
      &                  3x,'x-range    : ',g12.4,' to ',g12.4,/         &
      &         3x,'Integral   : ',g12.4,' +- ',g12.4,'  (',i7,' pkt)')  
- 5000 FORMAT    (a) 
 !                                                                       
       END SUBROUTINE do_inte                        
 !**7******************************************************************* 
@@ -841,7 +840,6 @@
      &                  3x,'# points  : ',i7//                          &
      &         3x,'Average x : ',g12.4,' sigma :  ',g12.4,/             &
      &         3x,'Average y : ',g12.4,' sigma :  ',g12.4)              
- 5000 FORMAT    (a) 
 !                                                                       
       END SUBROUTINE do_mean                        
 !**7******************************************************************* 
@@ -889,7 +887,7 @@
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
                ifil = 66 
-               cdummy = cpara (1) 
+               cdummy = cpara (1) (1:MIN(80,LEN_TRIM(cpara(1))))
                CALL oeffne (ifil, cdummy, 'unknown') 
                IF (ier_num.ne.0) return 
                WRITE (output_io, 900) cdummy (1:len_str (cdummy) ) 
@@ -1116,7 +1114,6 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      REAL a (maxarray) 
       REAL ymi, yma 
       INTEGER i, ip 
 !                                                                       

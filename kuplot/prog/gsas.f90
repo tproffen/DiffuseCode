@@ -54,7 +54,7 @@ INTEGER, INTENT(IN) :: NMAX
 !INCLUDE STATEMENTS:                                                    
                                                                         
 !LOCAL VARIABLES:                                                       
-REAL :: DEXDS, dh1dy, dh2dy, dy1ds, dy2ds, s2sg, sq2pi
+!REAL :: DEXDS, dh1dy, dh2dy, dy1ds, dy2ds, s2sg, sq2pi
                                                                         
 !SUBROUTINES CALLED:                                                    
                                                                         
@@ -220,7 +220,7 @@ IMPLICIT REAL (a - h, o - z)
                                                                         
 !LOCAL VARIABLES:                                                       
                                                                         
-      REAL TJ1, TJ2, NORM, SQSG, T1, T2, Y1, Y2, H1, H2, EX, EX1 
+      REAL TJ1, TJ2, NORM, SQSG, Y1, Y2, H1, H2, EX, EX1 
                               !Intermediate values                      
                                                                         
 !FUNCTION DEFINITIONS:                                                  
@@ -653,8 +653,8 @@ IMPLICIT REAL (a - h, o - z)
       REAL TEMX, TEMY 
       REAL SUBX, SUBY 
       REAL EULERX 
-      REAL ZANSX, ZANSY 
-      REAL DEDZX, DEDZY 
+!     REAL ZANSX, ZANSY 
+!     REAL DEDZX, DEDZY 
       REAL RATX, RATY 
       REAL ADDX, ADDY 
                                                                         
@@ -786,10 +786,10 @@ IMPLICIT REAL (a - h, o - z)
 !LOCAL VARIABLES:                                                       
                                                                         
                                         !Linear combination coeffs      
-      REAL COFG (6), COFL (6) 
-      REAL ACOFG (7), ACOFL (7) 
+!     REAL COFG (6), COFL (6) 
+!     REAL ACOFG (7), ACOFL (7) 
                                         !Gaussian Normalization constant
-      REAL GNORM 
+!     REAL GNORM 
       REAL COFT (6), COFN (3) 
                                         !Normalization constant         
       REAL NORM 
@@ -1264,7 +1264,7 @@ IMPLICIT REAL (a - h, o - z)
                                         ! intermediates                 
       REAL TMP, TMP1, TMP2 
                                         ! Miscellaneous loop variables  
-      INTEGER I, K, IT 
+      INTEGER K, IT 
 !                                                                       
 !       Local Variables for Gaussian Integration                        
 !                                                                       
@@ -1297,8 +1297,8 @@ IMPLICIT REAL (a - h, o - z)
       REAL XPT (1000) 
                                         !temporary Gaussian weights     
       REAL WPT (1000) 
-      REAL STOFW 
-      PARAMETER (STOFW = 2.35482005) 
+!     REAL STOFW 
+!     PARAMETER (STOFW = 2.35482005) 
       REAL TODEG 
       PARAMETER (todeg = 57.2957795) 
                                        !Values to be saved across calls 
@@ -1553,10 +1553,7 @@ REAL :: DTLDFW, DTLDT, ETA, EX, FRAC, FWHG, FWHM, PF, PGL
 REAL :: SIGP, SQSG, SQ2PI, STOFW, SUMHM, TG, TL, TS
                                                                         
                                         !Linear combination coeffs      
-      REAL COFG (6), COFL (6) 
-      REAL ACOFG (7), ACOFL (7) 
                                         !Gaussian Normalization constant
-      REAL GNORM 
       REAL COFT (6), COFN (3) 
                                                                         
 !SUBROUTINES CALLED:                                                    
@@ -1637,6 +1634,7 @@ IMPLICIT REAL (a - h, o - z)
       REAL X1, X2, X (N), W (N) 
       PARAMETER (eps = 3.e-7) 
 !                                                                       
+      pp = 1.0
       m = (n + 1) / 2 
       xm = 0.5 * (x2 + x1) 
       xl = 0.5 * (x2 - x1) 

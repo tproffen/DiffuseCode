@@ -84,7 +84,7 @@ IF(ier_num == 0) THEN
             ier_num = -12
             ier_typ = ER_MAC
             ier_msg(1) ='Parallel command did not find the macro file:'
-            ier_msg(2) = mfile
+            ier_msg(2) = mfile(1:MIN(LEN(ier_msg),LEN_TRIM(mfile)))
             ier_msg(3) = 'Check the value/string, see help'
          ENDIF
       ENDIF

@@ -1165,8 +1165,8 @@ main: DO while (.not.lend)
             pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
             pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
          ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
-            pow_ds_max = (pow_qmax+pow_deltaq)/zpi
-            pow_ds_min = pow_qmin/zpi
+            pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
+            pow_ds_min = pow_qmin/REAL(zpi)
             IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
                ier_num = -108
                ier_typ = ER_APPL
@@ -1181,9 +1181,9 @@ main: DO while (.not.lend)
          pow_hkl_max (3) = cr_a0 (3) * pow_ds_max 
 !                                                                       
          IF (pow_four_type.eq.POW_COMPL) THEN 
-            CALL powder_complete (cr_nscat)
+            CALL powder_complete ()
          ELSEIF (pow_four_type.eq.POW_NEW) THEN 
-            CALL powder_complete (cr_nscat)
+            CALL powder_complete ()
          ELSEIF (pow_four_type.eq.POW_HIST) then 
             CALL plot_ini_trans (1.0,                          &
                  pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
@@ -1211,14 +1211,14 @@ main: DO while (.not.lend)
             ELSE
                CALL powder_debye_hist_cart      (u, cr_nscat)
             ENDIF
-!           CALL alloc_debye (       1,      1,   MAXDQXY, 1, MASK )
+!           CALL alloc_debye (       1,      1,   MAXDQXY, MASK )
             CALL powder_trans_atoms_fromcart 
          ENDIF 
       ENDIF 
 !                                                                       
       END SUBROUTINE powder_run                     
 !*****7*****************************************************************
-      SUBROUTINE powder_complete (cr_nscat_temp)
+      SUBROUTINE powder_complete ()
 !-                                                                      
 !     Calculate global parameters and start the individual modes        
 !+                                                                      
@@ -1239,7 +1239,7 @@ main: DO while (.not.lend)
       USE trig_degree_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER, INTENT(IN)  :: cr_nscat_temp
+!     INTEGER, INTENT(IN)  :: cr_nscat_temp
 !                                                                       
       CHARACTER(1024) line 
       INTEGER laenge 
@@ -1653,7 +1653,7 @@ main: DO while (.not.lend)
                   ENDIF 
                ENDIF 
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
-                     q = zpi * dstar
+                     q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
@@ -1746,7 +1746,7 @@ main: DO while (.not.lend)
                      ENDIF 
                   ENDIF 
                   ELSEIF(pow_axis==POW_AXIS_Q  ) THEN
-                     q = zpi * dstar
+                     q = REAL(zpi) * dstar
                      IF( pow_qmin <= q .AND. q <= (pow_qmax+pow_deltaq) ) THEN
                         itth = int( (q - pow_qmin) / pow_deltaq )
                         inten = DBLE (csf (i) * conjg (csf (i) ) ) 
@@ -1783,7 +1783,7 @@ main: DO while (.not.lend)
             pow_faver2(i) = pow_faver2(i) / DBLE(pow_nreal)
          ENDDO
          pow_faver2(:) = pow_faver2(:)**2
-         pow_u2aver = pow_u2aver / pow_nreal /8./pi**2
+         pow_u2aver = pow_u2aver / pow_nreal /8./REAL(pi**2)
       ENDIF
 !                                                                       
       CALL dealloc_powder_nmax ! was allocated in powder_getatoms
@@ -1838,7 +1838,7 @@ main: DO while (.not.lend)
       INTEGER ibin 
       INTEGER j, k, l 
       INTEGER i, iscat, jscat 
-      INTEGER iarg, iadd 
+      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
       INTEGER                :: n_hist
       INTEGER                :: n_qxy   = 1
       INTEGER                :: n_nscat = 1
@@ -1880,10 +1880,10 @@ main: DO while (.not.lend)
          CONTINUE 
       ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          u (1) = 1.00 
-         xm (1) = pow_qmin / zpi 
-         ss = pow_qmax / zpi 
-         st = (pow_qmax - pow_deltaq) / zpi 
-         uin (1) = pow_deltaq / zpi 
+         xm (1) = pow_qmin / REAL(zpi)
+         ss = pow_qmax / REAL(zpi) 
+         st = (pow_qmax - pow_deltaq) / REAL(zpi )
+         uin (1) = pow_deltaq / REAL(zpi )
          num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
       ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
          u (1) = 1.00 
@@ -1912,7 +1912,7 @@ main: DO while (.not.lend)
           cr_nscat>DIF_MAXSCAT              ) THEN
          CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
-      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, 0, MASK )
+      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !     IF(pow_axis == POW_AXIS_Q ) THEN
 !        n_qxy = NINT((pow_qmax  -pow_qmin  )/pow_deltaq  ) + 1
 !     ELSEIF(pow_axis == POW_AXIS_TTH ) THEN
@@ -2159,7 +2159,7 @@ main: DO while (.not.lend)
       INTEGER ibin 
       INTEGER j, k, l , il
       INTEGER i, iscat, jscat 
-      INTEGER iarg, iadd 
+      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
       INTEGER                :: n_hist
       INTEGER                :: n_qxy   = 1
       INTEGER                :: n_nscat = 1
@@ -2203,10 +2203,10 @@ main: DO while (.not.lend)
          CONTINUE 
       ELSEIF (pow_axis.eq.POW_AXIS_Q) then 
          u (1) = 1.00 
-         xm (1) = pow_qmin / zpi 
-         ss = pow_qmax / zpi 
-         st = (pow_qmax - pow_deltaq) / zpi 
-         uin (1) = pow_deltaq / zpi 
+         xm (1) = pow_qmin / REAL(zpi) 
+         ss = pow_qmax / REAL(zpi) 
+         st = (pow_qmax - pow_deltaq) / REAL(zpi) 
+         uin (1) = pow_deltaq / REAL(zpi) 
          num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
       ELSEIF (pow_axis.eq.POW_AXIS_TTH) then 
          u (1) = 1.00 
@@ -2256,14 +2256,14 @@ main: DO while (.not.lend)
           cr_nscat>DIF_MAXSCAT              ) THEN
          CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
       ENDIF
-      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, nlook_mol, MASK )
+      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
       CALL alloc_powder (n_qxy                   )
       IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
       ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
       pow_dw = 1.0
       IF(do_mol) THEN   ! If necessary calc Debye Waller terms for molecules
-        CALL powder_dwmoltab (n_qxy, nlook_mol, pow_dw, powder_bvalue_mole)
+        CALL powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
       ENDIF
 !                                                                       
 !     prepare loopuptable for atom types
@@ -2375,7 +2375,7 @@ main: DO while (.not.lend)
          arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
          iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
-         partial(k,i,il) = partial(k,i,il) + DBLE(histogram(j,i,il)) * sinetab(iadd)/arg
+         partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
          ENDDO 
          ENDIF 
          ENDDO 
@@ -2431,7 +2431,8 @@ main: DO while (.not.lend)
 !                                                                       
       REAL(PREC_DP) xarg0, xincu, twopi 
       INTEGER iscat 
-      INTEGER i, ii, j, k, iarg, iarg0, iincu, iadd 
+      INTEGER i, ii, j, k 
+      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iadd 
       LOGICAL lform 
 !                                                                       
       INTEGER IAND, ISHFT 
@@ -2441,7 +2442,7 @@ main: DO while (.not.lend)
 !------ zero fourier array                                              
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      tcsf (i) = cmplx (0.0D0, 0.0D0) 
+         tcsf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -2505,7 +2506,7 @@ main: DO while (.not.lend)
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
-      xt = 1.0d0 / float (I2PI) 
+      xt = 1.0d0 / REAL (I2PI, KIND=KIND(0.0D0)) 
       twopi = 8.0d0 * datan (1.0d0) 
 !                                                                       
 !DBG      open(9,file='CEX.DAT',status='unknown')                       
@@ -2646,7 +2647,7 @@ main: DO while (.not.lend)
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) 
-      csf (i) = cmplx (0.0D0, 0.0D0) 
+         csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
 !DBG        acsf(i) = cmplx(0.0d0,0.0d0)                                
 !DBG         dsi(i) = 0.0d0                                             
       ENDDO 
@@ -2722,7 +2723,8 @@ main: DO while (.not.lend)
 !                                                                       
       REAL(PREC_DP) xarg0, xincu, xincv 
       INTEGER iscat 
-      INTEGER i, ii, j, k, iarg, iarg0, iincu, iincv, iadd 
+      INTEGER i, ii, j, k
+      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
       LOGICAL lform 
 !                                                                       
       INTEGER IAND, ISHFT 
@@ -2731,7 +2733,7 @@ main: DO while (.not.lend)
 !                                                                       
 !DBGXXX      do i=1,num(1)*num(2)                                       
       DO i = 1, num (1) 
-      tcsf (i) = cmplx (0.0D0, 0.0D0) 
+         tcsf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
       ENDDO 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
@@ -2964,7 +2966,7 @@ main: DO while (.not.lend)
 !                                                                       
       END SUBROUTINE powder_trans_atoms_fromcart    
 !*****7*****************************************************************
-      SUBROUTINE powder_dwmoltab (n_qxy, nlook_mol, pow_dw, powder_bvalue_mole)
+      SUBROUTINE powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
 !+                                                                      
 !     This routine sets up the complex formfactor lookup table          
 !     for all atom types. The range in sin(theta)/lambda is             
@@ -2978,7 +2980,6 @@ main: DO while (.not.lend)
       USE prompt_mod 
       IMPLICIT none 
 !
-      INTEGER,                                 INTENT(IN)  :: n_qxy
       INTEGER,                                 INTENT(IN)  :: nlook_mol
       REAL   , DIMENSION(0:CFPKT,0:nlook_mol), INTENT(OUT) :: pow_dw
       REAL   , DIMENSION(0:nlook_mol)        , INTENT(IN ) :: powder_bvalue_mole
@@ -2992,7 +2993,7 @@ main: DO while (.not.lend)
 !                                                                       
       DO iscat = 0, nlook_mol 
          DO iq = 0, CFPKT 
-            q2 = (float (iq) * CFINC) **2 
+            q2 = (float (iq) * REAL(CFINC)) **2 
 !
             IF (powder_bvalue_mole(iscat)>0.0) then 
                pow_dw (iq, iscat) = exp ( - powder_bvalue_mole ( iscat ) * q2) 

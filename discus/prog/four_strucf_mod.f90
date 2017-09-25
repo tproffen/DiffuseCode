@@ -18,7 +18,7 @@ CONTAINS
       INTEGER, INTENT(IN) :: iscat 
       LOGICAL, INTENT(IN) :: lform 
 !                                                                       
-      REAL(PREC_DP)        :: xarg0, xincu, xincv , xincw
+      REAL(PREC_DP)        ::        xincu, xincv , xincw
       REAL(PREC_DP)        ::        oincu, oincv , oincw
       INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
       INTEGER (KIND=PREC_INT_LARGE)   ::                              jincu, jincv, jincw
@@ -28,7 +28,7 @@ CONTAINS
 !
 !------ zero fourier array                                              
 !                                                                       
-      tcsf = cmplx (0.0D0, 0.0D0) 
+      tcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
 !                                                                       
 !------ Loop over all atoms in 'xat'                                    
 !                                                                       

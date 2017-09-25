@@ -263,7 +263,9 @@ MODULE discus_allocate_appl_mod
     SUBROUTINE discus_alloc_default
 !
       USE discus_config_mod
+      USE precision_mod
       IMPLICIT NONE
+      INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
 !
       CALL alloc_chem_ang ( 1,  CHEM_MAX_COR        )
       CALL alloc_chem_aver( 1,  1        )
@@ -272,7 +274,7 @@ MODULE discus_allocate_appl_mod
       CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
       CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
       CALL alloc_crystal  ( 1,  1        )
-      CALL alloc_debye    ( 1,  1,  1, 1, 1 )
+      CALL alloc_debye    ( 1,  1,  1, ONE )
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
@@ -891,11 +893,12 @@ MODULE discus_allocate_appl_mod
     END SUBROUTINE alloc_crystal
 !
 !
-    SUBROUTINE alloc_debye ( n_scat, n_hist, n_qxy, nlook_mol, MASK )
+    SUBROUTINE alloc_debye ( n_scat, n_hist, n_qxy, MASK )
 !-
 !     Allocate the arrays needed by DEBYE
 !+
       USE debye_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -903,8 +906,7 @@ MODULE discus_allocate_appl_mod
       INTEGER, INTENT(IN)  :: n_scat
       INTEGER, INTENT(IN)  :: n_hist
       INTEGER, INTENT(IN)  :: n_qxy
-      INTEGER, INTENT(IN)  :: nlook_mol
-      INTEGER, INTENT(IN)  :: MASK
+      INTEGER(KIND=PREC_INT_LARGE), INTENT(IN)  :: MASK
 !
       INTEGER              :: n_look
       INTEGER              :: all_status
@@ -919,7 +921,7 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       deb_size_of = deb_size_of + size_of
 !
-      CALL alloc_arr ( sinetab ,0,MASK   ,  all_status, 0.0D0, size_of )
+      CALL alloc_arr ( sinetab ,0,INT(MASK)   ,  all_status, 0.0D0, size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       deb_size_of = deb_size_of + size_of
 !
@@ -928,7 +930,7 @@ MODULE discus_allocate_appl_mod
          MAXHIST       = n_hist
          MAXDSCAT      = n_scat
          MAXDQXY       = n_qxy
-         DEB_MAXMASK   = MASK
+         DEB_MAXMASK   = INT(MASK)
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -992,6 +994,7 @@ MODULE discus_allocate_appl_mod
 !     Allocate the arrays needed by DIFFUSE
 !+
       USE diffuse_mod
+      USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -1006,7 +1009,7 @@ MODULE discus_allocate_appl_mod
       INTEGER              :: size_of
 !
       lstat     = .TRUE.
-      def_value = CMPLX(0.0D0,0.0D0)
+      def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       dif_size_of = 0
 !
        CALL alloc_arr ( csf     ,1,n_qxy  ,  all_status, def_value, size_of)
@@ -2153,7 +2156,7 @@ MODULE discus_allocate_appl_mod
 !
       COMPLEX (KIND=PREC_DP) :: def_value
 !
-      def_value = CMPLX(0.0D0,0.0D0)
+      def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       lstat     = .TRUE.
       rmc_size_of = 0
 !
@@ -2205,7 +2208,7 @@ MODULE discus_allocate_appl_mod
 !
       COMPLEX (KIND=PREC_DP) :: def_value
 !
-      def_value = CMPLX(0.0D0,0.0D0)
+      def_value = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
       lstat     = .TRUE.
       rmc_size_of = 0
 !
@@ -2483,7 +2486,7 @@ MODULE discus_allocate_appl_mod
 !
       lstat      = .TRUE.
       st_size_of = 0
-      def_value  = CMPLX(0.0D0,0.0D0)
+      def_value  = CMPLX(0.0D0,0.0D0,KIND=PREC_DP)
 !
       CALL alloc_arr (  st_layer    ,0,n_types  ,  all_status, ' '      , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
@@ -2910,9 +2913,11 @@ MODULE discus_allocate_appl_mod
 !     To avoid possible pitfals with old code, the arrays are simply
 !     reallocated to a size of 1.
 !+
+      USE precision_mod
       IMPLICIT NONE
 !
-      CALL alloc_debye ( 1, 1, 1, 1, 1 )
+      INTEGER(KIND=PREC_INT_LARGE), PARAMETER :: ONE=1
+      CALL alloc_debye ( 1, 1, 1, ONE )
 !
     END SUBROUTINE dealloc_debye
 !

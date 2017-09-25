@@ -2,14 +2,13 @@
 ! Version for stand alone DISCUS
 ! The file is always written to hard disk
 !
-SUBROUTINE powder_do_write (outfile, npkt_wrt, POW_MAXPKT, xwrt, ywrt)
+SUBROUTINE powder_do_write (outfile, npkt_wrt, xwrt, ywrt)
 !
 USE errlist_mod
 IMPLICIT NONE
 !
 CHARACTER (LEN=*)                , INTENT(IN) :: outfile
 INTEGER                          , INTENT(IN) :: npkt_wrt
-INTEGER                          , INTENT(IN) :: POW_MAXPKT
 REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: xwrt
 REAL   , DIMENSION(0:npkt_wrt  ) , INTENT(IN) :: ywrt
 !

@@ -125,10 +125,9 @@ INTEGER            :: i,j
 LOGICAL            :: l_new
 INTEGER, DIMENSION(4) :: hklw
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: temp_hkl
-INTEGER :: nold
 !
 matrix_set: DO j=1, spc_n
-   hklw = MATMUL(hkl,spc_mat(:,:,j))
+   hklw = INT(MATMUL(hkl,spc_mat(:,:,j)))
    hklw(4) = 0
    l_new = .TRUE.
    search: DO i=1, point_n

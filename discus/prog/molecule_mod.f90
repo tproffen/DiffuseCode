@@ -2,8 +2,6 @@ MODULE molecule_mod
 !-
 !     Variables needed to describe molecules. 
 !+
-INTEGER, PRIVATE    ::  ik
-INTEGER, PRIVATE    ::  il
 INTEGER             ::  MOLE_MAX_MOLE  =       1
 INTEGER             ::  MOLE_MAX_TYPE  =       1
 INTEGER             ::  MOLE_MAX_GENE  =       1

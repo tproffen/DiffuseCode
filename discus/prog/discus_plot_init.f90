@@ -28,7 +28,6 @@ CONTAINS
       REAL, DIMENSION(3,3)  , INTENT(IN ) :: cr_rten
       REAL, DIMENSION(3,3,3), INTENT(IN ) :: cr_eps
 !                                                                       
-      LOGICAL, PARAMETER    :: lspace  = .true.
       INTEGER               :: i, j 
       REAL                  :: dwert 
       REAL   , DIMENSION(3) :: u, v ,w , null 

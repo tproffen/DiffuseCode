@@ -23,14 +23,14 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER npkt, i 
+      INTEGER npkt
       REAL xa       , ya
 !                                                                       
       IF (shear (iwin, iframe) .ne.90.0.and.sfl (iwin, iframe) ) then 
 !        DO i = 1, npkt 
          IF (ya     .gt.pey (iwin, iframe, 1) ) then 
             xa     = xa     + (ya     - pey (iwin, iframe, 1) ) * yskal &
-            (iwin, iframe) / tan (rad * shear (iwin, iframe) )          
+            (iwin, iframe) / tan (REAL(rad) * shear (iwin, iframe) )          
          ELSE 
             xa     = xa     
          ENDIF 
@@ -54,7 +54,7 @@ CONTAINS
          DO i = 1, npkt 
          IF (ya (i) .gt.pey (iwin, iframe, 1) ) then 
             xa (i) = xa (i) + (ya (i) - pey (iwin, iframe, 1) ) * yskal &
-            (iwin, iframe) / tan (rad * shear (iwin, iframe) )          
+            (iwin, iframe) / tan (REAL(rad) * shear (iwin, iframe) )          
          ELSE 
             xa (i) = xa (i) 
          ENDIF 
@@ -71,7 +71,7 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER npkt, i 
+      INTEGER npkt
       REAL xa       , ya
       REAL log10 
 !                                                                       

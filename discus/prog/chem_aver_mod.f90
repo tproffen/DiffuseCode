@@ -318,7 +318,7 @@ DO i = 0, cr_nscat
       ier_num = - 2 
    ENDIF 
 ENDDO 
-cr_u2aver = cr_u2aver/cr_n_real_atoms/8./pi**2
+cr_u2aver = cr_u2aver/cr_n_real_atoms/8./REAL(pi**2)
 !                                                                       
  1000 FORMAT     (' Size of the crystal (unit cells) : ',2(I4,' x '),I4) 
  1100 FORMAT     (' Total number of atoms            : ',I9,/           &

@@ -379,7 +379,7 @@
 !                                                                       
       INTEGER i, ik, ipkt, iclose 
       REAL xdist_old, xdist_new 
-      REAL xvalue, xdist 
+      REAL xvalue
 !                                                                       
       xdist_old = abs (xvalue-x (offxy (ik - 1) + 1) ) 
       iclose = 1 
@@ -1029,7 +1029,7 @@
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
-      REAL dr1, dr2, ysum, start, eps 
+      REAL dr1, dr2, ysum, start
       INTEGER lpara (maxw), lp, maxpp 
       INTEGER ianz, ik1, ik2, ii, i, j 
 !                                                                       
@@ -1530,9 +1530,11 @@
 !                                                                       
       a = 0.0 
       b = 0.0 
+      aa = 0.0 
       ao = 0.0 
       bo = 0.0 
       ab = 0.0 
+      bb = 0.0 
 !                                                                       
       DO ip = 1, len (iko) 
       iik = offxy (iz - 1) + ip 
@@ -1605,7 +1607,7 @@
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
-      INTEGER ianz, ilen, ik, il 
+      INTEGER ianz, ik, il 
       INTEGER iianz 
       INTEGER iweight 
       REAL rval 
@@ -1696,7 +1698,7 @@
             ENDIF 
          ELSEIF (.not.lni (ik) .and..not.lni (il) ) then 
             IF (len (ik) .eq.len (il) ) then 
-               CALL rvalue_y (y, dy, len (ik), len (il), ik, il,        &
+               CALL rvalue_y (y, dy, len(ik), ik, il,        &
                iweight, rval, wrval)                                    
                res_para (0) = 2 
                res_para (1) = rval 
@@ -1771,7 +1773,7 @@
 !                                                                       
       END SUBROUTINE rvalue_z                       
 !*****7*****************************************************************
-      SUBROUTINE rvalue_y (a, da, klen, llen, ik, il, iweight, rval,    &
+      SUBROUTINE rvalue_y (a, da, klen, ik, il, iweight, rval,    &
       wrval)                                                            
 !+                                                                      
 !     berechnungen fuer y feld                                          
@@ -1782,7 +1784,7 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER klen, llen, ik, il, i, j, ikk, ikl 
+      INTEGER klen, ik, il, i, ikk, ikl 
       INTEGER iweight 
       REAL a (maxarray) 
       REAL da (maxarray) 
@@ -1841,6 +1843,8 @@
       PARAMETER (W_DAT = 7) 
       PARAMETER (W_BCK = 8) 
 !                                                                       
+         
+      r_wichtung = 0.0 
       IF (iweight.eq.W_ONE) then 
          r_wichtung = 1.0 
       ELSEIF (iweight.eq.W_SQUA) then 

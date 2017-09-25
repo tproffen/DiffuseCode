@@ -48,6 +48,7 @@ rj(:) = 0.0
 ri(4) = 1.0
 rj(4) = 1.0
 lout = .false.
+iv_max = 0
 !
 CALL chem_aver(.false., .false.)        ! Ensure we have the average structure
 !

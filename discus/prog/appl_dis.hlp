@@ -7144,7 +7144,7 @@
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
 3  character
-!b char <atom_no> [, "show"]
+!b char <atom_no> [,{"equal"}|{any}] [, "show"]
 
    Determines the surface character of atom number <atom_no>.
    The result can be:
@@ -7155,7 +7155,16 @@
    3: corner
 
    The optional "show" tells DISCUS to write the character and 
-   the resulting normal to screen. 
+   the resulting normal to screen.
+
+   The optional parameter {"equal"|"any"} tells DISCUS to look either
+   for equal atom types only or to include all atom types surrounding
+   the central atom. If the crystal structure consits of many different
+   sites a more precise result will be obtained by restricting the 
+   surface to atoms equal in type to the central atom. If, however, 
+   there is a mixed occupancy on a given site in the unit cell, all
+   atom types need to be included in order to find the local surface.
+
    Values are always saved into "res[]":
    Unknown: res[1] = 0
    Plane  : res[1] = 1, res[2:4]   Surface normal

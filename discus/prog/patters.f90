@@ -778,6 +778,7 @@ CONTAINS
                      ELSE 
                         ier_num = - 41 
                         ier_typ = ER_APPL 
+                        RETURN
                      ENDIF 
                      IF (ier_num.eq.0) then 
                         IF (str_comp (cpara (2) , 'inten', 2, lpara (2) &
@@ -1272,7 +1273,7 @@ CONTAINS
          DO i = 1, rho_inc (1) 
          DO j = 1, rho_inc (2) 
          ii = ii + 1 
-         csf (ii) = cmplx (0.0D0, 0.0D0) 
+         csf (ii) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
          ENDDO 
          ENDDO 
       ENDIF 
@@ -1628,7 +1629,7 @@ CONTAINS
       REAL h (3) 
 !                                                                       
       REAL(PREC_DP) xarg0, xincu, xincv 
-      INTEGER iarg, iarg0, iincu, iincv, iadd 
+      INTEGER (KIND=PREC_INT_LARGE) :: iarg, iarg0, iincu, iincv, iadd 
       INTEGER i, j, ii 
       COMPLEX (KIND=KIND(0.0D0)) ::a_b 
 !                                                                       

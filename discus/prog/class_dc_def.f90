@@ -88,7 +88,7 @@ CONTAINS
                this%next%dc_def_type  = 0
                this%next%dc_def_lfile  = 0
                this%next%dc_def_file   = ' '
-               this%next%dc_def_axis(:)=-1.0
+               this%next%dc_def_axis(:)= -1
                NULLIFY(this%next%next)
                NULLIFY(this%next%dc_def_con)
                this%next%dc_def_ncon = 0
@@ -113,7 +113,7 @@ CONTAINS
          this%dc_def_type   = 0
          this%dc_def_lfile  = 0
          this%dc_def_file   = ' '
-         this%dc_def_axis(:)=-1.0
+         this%dc_def_axis(:)= -1
          NULLIFY(this%next)
          NULLIFY(this%dc_def_con)
          this%dc_def_ncon = 0
@@ -415,7 +415,6 @@ CONTAINS
 !
    TYPE (dc_con), POINTER :: this
 !
-   CHARACTER(9) at_name_d
    CHARACTER(LEN=1024) :: line
    INTEGER             :: i
 !
@@ -443,8 +442,6 @@ CONTAINS
    INTEGER, DIMENSION(0:4), INTENT(OUT) :: surf
    INTEGER, INTENT(OUT)   :: mole
    REAL   , INTENT(OUT)   :: dist
-!
-   REAL, PARAMETER        :: EPS = 1.E-6
 !
    INTEGER                :: i
 !

@@ -114,7 +114,6 @@ INTEGER, DIMENSION(1:natom),              INTENT(IN)  :: iatoms
 !
 INTEGER   :: jatom
 !
-INTEGER   :: katom
 INTEGER   :: n_new,n_atom, n_type, n_mole
 INTEGER   :: i, j
 INTEGER   :: imole
@@ -275,7 +274,6 @@ INTEGER   :: ktype
 INTEGER   :: ino_max  ! Number of connectivities around central atom
 INTEGER   :: ino
 INTEGER                              :: c_natoms  ! Number of atoms connected
-CHARACTER(LEN=256)                   :: c_name    ! Connectivity name
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
 !
@@ -320,7 +318,6 @@ INTEGER   :: ktype
 INTEGER   :: ino_max  ! Number of connectivities around central atom
 INTEGER   :: ino
 INTEGER                              :: c_natoms  ! Number of atoms connected
-CHARACTER(LEN=256)                   :: c_name    ! Connectivity name
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
 !
@@ -380,7 +377,6 @@ REAL   , INTENT(IN)  :: biso
 !
 INTEGER   :: n_new,n_atom, n_type, n_mole
 INTEGER   :: i, j
-character(len=1):: dummy
 !
 IF(istart  < 1 .OR. istart  > cr_natoms .OR.  &
    ifinish < 1 .OR. ifinish > cr_natoms     ) THEN

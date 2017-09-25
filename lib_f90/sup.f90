@@ -2141,6 +2141,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       INTEGER len_str 
 !                                                                       
+      linsert = 0
       ll = laenge 
 !                                                                       
 !     Loop over all defined variables and search for coincidences       
@@ -2291,6 +2292,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
+      ccc_type = 0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
 !                                                                       

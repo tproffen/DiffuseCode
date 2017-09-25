@@ -37,6 +37,7 @@
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
+      lcfkt = 1
 !                                                                       
       maxpkt = maxarray - offxy (iz - 1) 
       maxzz = maxarray - offz (iz - 1) 
@@ -278,7 +279,7 @@
          RETURN 
       ENDIF 
                                                                         
-      cdummy = cpara (1) 
+      cdummy = cpara (1) (1:MIN(40,LEN_TRIM(cpara(1))))
       CALL del_params (1, ianz, cpara, lpara, maxw) 
 !                                                                       
 !------ 1D data set                                                     
@@ -488,7 +489,7 @@
 !                                                                       
 !------ - Check file format                                             
 !                                                                       
-      fform (iz) = unter 
+      fform (iz) = unter (1:2)
       IF (unter.eq.'XY') then 
          CALL read_xy (ifil, ianz, werte, maxw) 
       ELSEIF (unter.eq.'XX') then 
@@ -574,7 +575,6 @@
       CALL freefiles 
       RETURN 
 !                                                                       
- 9000 CONTINUE 
       CLOSE (ifil) 
       IF (istr.eq.2) close (iwgb) 
 !                                                                       
@@ -600,7 +600,7 @@
       INTEGER ifil 
 !                                                                       
       CHARACTER(1024) line 
-      INTEGER is, ie 
+      INTEGER is
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -766,7 +766,7 @@
       DO iyy = 1, ny (iz) 
       izeig = offz (iz - 1) + (ixx - 1) * ny (iz) + iyy 
       z (izeig) = 0.0 
-      np (izeig) = 0.0 
+      np (izeig) = 0
       ENDDO 
       ENDDO 
 !                                                                       
@@ -788,7 +788,6 @@
          ENDIF 
       ENDIF 
       ENDDO 
-   40 CONTINUE 
 !                                                                       
 !------ normalise Z                                                     
 !                                                                       
@@ -917,7 +916,7 @@
       DO iyy = 1, ny (iz) 
       izeig = offz (iz - 1) + (ixx - 1) * ny (iz) + iyy 
       z (izeig) = 0.0 
-      np (izeig) = 0.0 
+      np (izeig) = 0
       ENDDO 
       ENDDO 
 !                                                                       
@@ -1173,8 +1172,7 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER mrect, maxw 
-      PARAMETER (maxw = 20) 
+      INTEGER mrect
       PARAMETER (mrect = 50) 
 !                                                                       
       CHARACTER(1024) line 
@@ -1362,7 +1360,7 @@
       INTEGER counts (8192) 
       INTEGER lpara (maxw), icell (5) 
       INTEGER ifil, ianz, iianz, il, ipt 
-      INTEGER icol, iscan, istart, iend, i, j 
+      INTEGER iscan, istart, iend, i, j 
       INTEGER nscan, nr, nf, maxpp 
       INTEGER nmca 
       INTEGER nscans 
@@ -1382,6 +1380,8 @@
 !                                                                       
       lend = .false. 
       yes_limits = .false.
+      nr = 0
+      lkev = .FALSE.
 !                                                                       
 !------ No further parameters -> list scans in file                     
 !                                                                       
@@ -1527,7 +1527,7 @@
                   ENDIF
                ENDIF 
                IF (iscan.eq.nscan.or.lall) then 
-                  tit = mine 
+                  tit = mine (1:MIN(200,LEN_TRIM(mine)))
    33             CONTINUE 
                   READ (ifil, 9999, end = 4) mine 
                   IF (mine (1:2) .eq.'#D') then 
@@ -1539,7 +1539,6 @@
                      GOTO 4 
                   ENDIF 
                   GOTO 33 
-   44             CONTINUE 
                ENDIF 
             ENDIF 
             GOTO 3 
@@ -1818,7 +1817,6 @@
       LOGICAL lall, lend 
 !                                                                       
       INTEGER len_str 
-      LOGICAL str_comp 
 !                                                                       
       date = 'none' 
       energy = 'none' 
@@ -1966,7 +1964,7 @@
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ipos, ianz 
+      INTEGER ipos
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -2240,7 +2238,7 @@
          IF (iscan.lt.iend.and..not.lend) then 
             BACKSPACE (ifil) 
             iscan = iscan + 1 
-            fname (iz) = filename 
+            fname (iz) = filename (1:MIN(200,LEN_TRIM(filename)))
             GOTO 1111 
          ENDIF 
 !                                                                       
@@ -2454,13 +2452,13 @@
          IF (units.eq.'D') then 
             IF (difa.ne.0.0) then 
                DO j = 1, ndat 
-               t = xval (j) - tzero 
+               t = REAL(REAL(xval (j),KIND=KIND(0.0D0)) - tzero) 
                secondterm = dsqrt (4.0 * difa * t + difc * difc) 
-               xval (j) = ( - difc + secondterm) / 2. / difa 
+               xval (j) = REAL(( - difc + secondterm) / 2.D0 / difa)
                ENDDO 
             ELSE 
                DO j = 1, ndat 
-               xval (j) = (xval (j) - tzero) / difc 
+               xval (j) = REAL((REAL(xval (j),KIND=KIND(0.0D0)) - tzero) / difc )
                ENDDO 
             ENDIF 
 !                                                                       
@@ -2468,17 +2466,17 @@
 !------ - Use l = 2d sin(theta)                                         
 !                                                                       
          ELSEIF (units.eq.'L') then 
-            tsint = 2. * sin (abs (tth * pi) / 360.) 
+            tsint = 2. * sin (abs (tth * REAL(pi)) / 360.) 
             IF (difa.ne.0.0) then 
                DO j = 1, ndat 
-               t = xval (j) - tzero 
-               secondterm = dsqrt (4.0 * difa * t + difc * difc) 
-               d = ( - difc + secondterm) / 2. / difa 
+               t = REAL(REAL(xval (j),KIND=KIND(0.0D0)) - tzero) 
+               secondterm = dsqrt (4.0D0 * difa * REAL(t,KIND=KIND(0.0D0)) + difc * difc) 
+               d = REAL(( - difc + secondterm) / 2.D0 / difa) 
                xval (j) = d * tsint 
                ENDDO 
             ELSE 
                DO j = 1, ndat 
-               d = (xval (j) - tzero) / difc 
+               d = REAL((REAL(xval (j),KIND=KIND(0.0D0)) - tzero) / difc) 
                xval (j) = d * tsint 
                ENDDO 
             ENDIF 
@@ -2489,15 +2487,15 @@
          ELSEIF (units.eq.'Q') then 
             IF (difa.ne.0.0) then 
                DO j = 1, ndat 
-               t = xval (j) - tzero 
-               secondterm = dsqrt (4.0 * difa * t + difc * difc) 
-               d = ( - difc + secondterm) / 2. / difa 
-               xval (j) = 2 * pi / d 
+               t = REAL(REAL(xval (j),KIND=KIND(0.0D0)) - tzero) 
+               secondterm = dsqrt (4.0 * difa * REAL(t,KIND=KIND(0.0D0)) + difc * difc) 
+               d = REAL(( - difc + secondterm) / 2.D0 / difa )
+               xval (j) = 2 * REAL(pi) / d 
                ENDDO 
             ELSE 
                DO j = 1, ndat 
-               d = (xval (j) - tzero) / difc 
-               xval (j) = 2 * pi / d 
+               d = REAL((REAL(xval (j),KIND=KIND(0.0D0)) - tzero) / difc) 
+               xval (j) = 2 * REAL(pi) / d 
                ENDDO 
             ENDIF 
 !                                                                       
@@ -2523,7 +2521,7 @@
 !                                                                       
          IF (units.eq.'Q') then 
             DO j = 1, ndat 
-            xval (j) = 2 * pi / xval (j) 
+            xval (j) = 2 * REAL(pi) / xval (j) 
             ENDDO 
 !                                                                       
             CALL reverse_array (xval, ndat) 
@@ -2547,7 +2545,7 @@
 !                                                                       
          IF (units.eq.'D') then 
             DO j = 1, ndat 
-            xval (j) = 2 * pi / xval (j) 
+            xval (j) = 2 * REAL(pi) / xval (j) 
             ENDDO 
 !                                                                       
             CALL reverse_array (xval, ndat) 
@@ -3067,6 +3065,7 @@
       INTEGER len_str 
 !                                                                       
       ibank = 0 
+      gsas_no_banks = 0
    10 CONTINUE 
       READ (ifil, '(a)', end = 20) line 
       IF (line (1:5) .eq.'BANK ') then 
@@ -3281,10 +3280,9 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) line 
       INTEGER maxw 
       REAL werte (maxw), xold, xnew, ynew 
-      INTEGER i, nr, ifil, ianz, iscan, nscan, maxpp 
+      INTEGER nr, ifil, ianz, iscan, nscan, maxpp 
 !                                                                       
 !------ check parameters                                                
 !                                                                       
@@ -3351,7 +3349,6 @@
       ier_typ = ER_APPL 
 !                                                                       
  1000 FORMAT     ('MCA spectrum #',i5) 
- 9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_mca_single                
 !*****7**************************************************************** 
@@ -3365,11 +3362,9 @@
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 4) 
 !                                                                       
       INTEGER ifil, nr 
-      INTEGER ianz, i, maxpp 
+      INTEGER maxpp 
 !                                                                       
       nr = 1 
       maxpp = maxarray - offxy (iz - 1) 
@@ -3436,8 +3431,6 @@
       iz = iz + 1 
 !                                                                       
       CALL show_data (iz - 1) 
-!                                                                       
- 9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_crystal                   
 !*****7**************************************************************** 
@@ -3582,6 +3575,7 @@
       INTEGER len_str 
 !                                                                       
       nf = 0 
+      ia = 1
       ein = .false. 
 !                                                                       
       is = 1 
@@ -3626,7 +3620,6 @@
       INTEGER ianz, i, maxpp 
       REAL tth_anf, tth_del, tth_end, temp 
 !                                                                       
-      INTEGER len_str 
 !                                                                       
 !------ space left for additional data set ?                            
 !                                                                       

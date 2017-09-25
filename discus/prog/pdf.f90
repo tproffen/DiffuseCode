@@ -2349,7 +2349,7 @@ laccept = .false.
       IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
          pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
          nlook     > UBOUND(pdf_temp,4)      ) THEN
-         pdf_ntemp  = MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)*1.20  
+         pdf_ntemp  = INT(MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)*1.20)
          IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
          ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
       ENDIF
@@ -2498,9 +2498,9 @@ laccept = .false.
       DO i = 1, pdf_bin 
       r = float (i) * pdf_deltar 
       IF (pdf_finite.eq.PDF_BACK_PERIOD) then 
-         rr = 2.0 * zpi * r * r0 * pdf_dnorm 
+         rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
       ELSEIF (pdf_finite.eq.PDF_BACK_POLY) then 
-         rr = 2.0 * zpi * r * r0 * pdf_dnorm 
+         rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
          IF (r.lt.pdf_diam_poly) then 
             DO k = 1, pdf_poly_n 
                rr = rr - pdf_poly (k) * r**k 
@@ -2510,7 +2510,7 @@ laccept = .false.
             rr = 0.0 
          ENDIF 
       ELSEIF (pdf_finite.eq.PDF_BACK_SPHERE) then 
-         rr = 2.0 * zpi * r * r0 * pdf_dnorm 
+         rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
          IF (r.lt.pdf_sphere) then 
             rr = rr * (1. - 1.5 * (r / pdf_sphere) + .5 * (r /          &
             pdf_sphere) **3)                                            
@@ -2518,7 +2518,7 @@ laccept = .false.
             rr = 0.0 
          ENDIF 
       ELSEIF (pdf_finite.eq.PDF_BACK_TANH) then 
-         rr = max (0.0, - 2.0 * zpi * r * r0 * pdf_dnorm * tanh (       &
+         rr = max (0.0, - 2.0 * REAL(zpi) * r * r0 * pdf_dnorm * tanh (       &
          pdf_shape * (r - pdf_diam) ) )                                 
       ENDIF 
       IF (chem_period (1) ) then 
@@ -2568,7 +2568,7 @@ laccept = .false.
 !                                                                       
          pdf_ppp = 0.0d0
          CALL CONVLV_SUB(SIZE(pdf_calc), SIZE(pdf_sincc),pdf_ppp,pdf_calc, pdf_sincc, 1)
-         factor = pdf_deltar / zpi * 2.
+         factor = pdf_deltar / REAL(zpi) * 2.
          DO i = 1, pdf_bin 
             pdf_calc (i) = pdf_ppp (i) * factor
 !           pdf_calc (i) = pdf_ppp (i) * pdf_deltar / zpi * 2.0 
@@ -2610,7 +2610,7 @@ laccept = .false.
       REAL sigma, fac , factor, fac4
       REAL dd (3), d (3), offset (3) 
 !                                                                       
-      fac = 1.0 / (2.0 * zpi**2) 
+      fac = 1.0 / (2.0 * REAL(zpi)**2) 
 !                                                                       
       is = cr_iscat (ia) 
       IF (pdf_allowed_i (is) .or.pdf_allowed_j (is) ) then 
@@ -2707,7 +2707,7 @@ laccept = .false.
                   ELSE 
                      factor = REAL(pdf_deltar/pdf_gauss_step/sigma)
                      fac4   = pdf_deltar/dist
-                     gnorm = 1.0 / (sqrt (zpi) * sigma) 
+                     gnorm = 1.0 / (sqrt (REAL(zpi)) * sigma) 
 !                                                                       
                      jgaus = MIN(igaus, IABS(INT(UBOUND(pdf_exp,1)/factor+1)))
                      DO ig = - jgaus, jgaus 
@@ -3181,8 +3181,8 @@ inner:      DO iatom = ia+1, cr_natoms
       REAL sigma, fac , factor, fac4
       REAL :: sqrt_zpi
 !                                                                       
-      fac = 1.0 / (2.0 * zpi**2) 
-      sqrt_zpi =1.0/sqrt(zpi)
+      fac = 1.0 / (2.0 * REAL(zpi)**2) 
+      sqrt_zpi =1.0/sqrt(REAL(zpi))
       DO is = 1, cr_nscat 
       DO js = 1, cr_nscat 
       IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. &

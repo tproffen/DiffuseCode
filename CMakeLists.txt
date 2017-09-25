@@ -48,9 +48,9 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3")
 #set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -fwhole-file -fimplicit-none  -pedantic")
+set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -fwhole-file -fimplicit-none  -pedantic")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
@@ -68,7 +68,7 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-add_subdirectory(mixscat/prog)
+#add_subdirectory(mixscat/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)

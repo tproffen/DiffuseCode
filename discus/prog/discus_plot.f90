@@ -1023,7 +1023,7 @@ CONTAINS
       WRITE (iff, 530) 
 !                                                                       
       latom = .false. 
-      fac = 1.0 / (8.0 * pi**2) 
+      fac = 1.0 / (8.0 * REAL(pi)**2) 
 !                                                                       
       IF (pl_hkl(1) .eq.0.and.pl_hkl(2) .eq.0.and.pl_hkl(3) .eq.0) then
          lno_slice = .true. 
@@ -1136,7 +1136,7 @@ CONTAINS
       WRITE (iff, 531) 
 !                                                                       
       latom = .false. 
-      fac = 1.0 / (8.0 * pi**2) 
+      fac = 1.0 / (8.0 * REAL(pi)**2) 
 !                                                                       
       IF (pl_hkl(1) .eq.0.and.pl_hkl(2) .eq.0.and.pl_hkl(3) .eq.0) then
          lno_slice = .true. 

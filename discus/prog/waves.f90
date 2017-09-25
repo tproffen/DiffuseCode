@@ -1151,8 +1151,8 @@ ELSE wave_type
 !                                                                       
       REAL amp, arg, amp0 
 !                                                                       
-      arg = arg * zpi 
-      sinus = amp * cos (arg) + amp0 
+!     arg = arg * zpi 
+      sinus = amp * cos (REAL(zpi)*arg) + amp0 
 !                                                                       
       END FUNCTION sinus                            
 !*****7*********************************************************        

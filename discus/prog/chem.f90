@@ -2814,6 +2814,7 @@ ENDIF
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
+         RETURN
       ENDIF 
 !                                                                       
       IF (ier_num.ne.0) return 
@@ -5879,14 +5880,12 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024) :: message
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
 !                                                                       
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
-      INTEGER :: ios
       INTEGER :: n_res
       REAL u (3) 
       REAL bl_min (0:maxscat, 0:maxscat) 
@@ -6060,12 +6059,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024) :: message
 !                                                                       
       INTEGER maxw, iianz, jjanz 
       REAL werte (maxw), wwerte (maxw) 
 !                                                                       
-      INTEGER i, j, k, ibin , ios
+      INTEGER i, j, k, ibin
       REAL u (3), v (3), dist 
 !
       REAL, DIMENSION(:), ALLOCATABLE :: xwrt
@@ -6161,7 +6159,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024) :: message 
 !                                                                       
       INTEGER maxw, iianz, jjanz, kkanz 
       REAL werte (maxw), wwerte (maxw), uwerte (maxw) 
@@ -6169,7 +6166,6 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
       INTEGER ba_env (0:MAX_ATOM_ENV) 
-      INTEGER :: ios
       LOGICAL lspace 
 !
       REAL, DIMENSION(:), ALLOCATABLE :: xwrt

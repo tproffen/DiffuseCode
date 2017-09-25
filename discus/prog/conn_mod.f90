@@ -68,7 +68,7 @@ TYPE (main_list), DIMENSION(:), ALLOCATABLE :: at_conn
 !
 ! (temporary) pointers of TYPE NEIGHBORS. This allows to move along the 
 ! neighbors in an individual neighborhood.
-TYPE (NEIGHBORS), POINTER       :: head, tail, temp, sw_central, sw_second
+TYPE (NEIGHBORS), POINTER       :: head, tail, temp
 !
 ! (temporary) pointers of TYPE NEIGHBORHOOD. This allows to move along the 
 ! neighborhoods of an individual atom.
@@ -308,6 +308,7 @@ CONTAINS
    REAL   , DIMENSION(3)     :: x      ! Atom position
 !
    maxw = MAX(MIN_PARA, MAXSCAT+1)
+   found = .FALSE.
 !
 !  CALL deallocate_conn(conn_nmax)                     ! Deallocate old connectivity
    conn_nmax = cr_natoms                               ! Remember current atom number
@@ -484,12 +485,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !
-      LOGICAL :: str_comp 
       REAL :: berechne
 !                                                                       
       rmin = 0.0
       rmax = 0.5
       maxw = MAX(MIN_PARA, MAXSCAT+5)     ! (MAXSCAT+ void) + 4 Parameters  
+      temp_number = -1
 !                                                                       
 !     Check definitions array
 !
@@ -1148,13 +1149,11 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
          WRITE(output_io, 7000) 
       ENDIF exist_def
 !
-3000  FORMAT(' MMC ',a9,   ' mode is   : ',a)
 1000  FORMAT(' Central atom type       : ',a9)
 2000  FORMAT('     Def.no; Name; No.of.types; Types : ',i4,1x, a,1x,i4,1x, &
              ': ',20(a9:,',',2x))
 !            20(a4,'(',i4,')',2x))
 2300  FORMAT('     Max neig, Bond length range', 4x,i8,2x,f8.4, 2x, f8.4)
-4000  FORMAT('     MMC ',a9,   ' mode is   : ',a)
 7000  FORMAT(' No connectivity definitions set')
 !
    END SUBROUTINE conn_show
@@ -1353,8 +1352,6 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER          , INTENT(INOUT) :: idef
       CHARACTER(LEN=*) , INTENT(IN)    :: c_name
       LOGICAL          , INTENT(IN)    :: long
-!
-      INTEGER, PARAMETER         :: maxw = 2000
 !
       CHARACTER (LEN=9)          :: at_name_d
       CHARACTER (LEN=32)         :: c_property
@@ -1573,7 +1570,6 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
    INTEGER           , INTENT(OUT)    :: success
 !
-   INTEGER                              :: maxw    ! Size of array c_list 
    INTEGER, DIMENSION(:),   ALLOCATABLE :: c_list  ! List of all neighbors 
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs  ! Offsets from periodic boundary
    INTEGER, DIMENSION(:),   ALLOCATABLE :: s_list  ! List of all neighbors 
@@ -1588,7 +1584,6 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
    INTEGER                              :: s_natoms  ! number of atoms in connectivity list
    INTEGER                              :: j_natoms  ! number of atoms in connectivity list
    INTEGER                              :: k_natoms  ! number of atoms in connectivity list
-   INTEGER, DIMENSION(:)  , ALLOCATABLE :: temp_list !ffsets from periodic boundary
 !
    TYPE (NEIGHBORHOOD), POINTER       :: hood_j
    TYPE (NEIGHBORHOOD), POINTER       :: hood_k
@@ -1903,7 +1898,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: j_offs  ! Offsets from periodic boundary
 INTEGER :: c_natoms
 INTEGER :: j_natoms
 INTEGER :: ino
-INTEGER :: i, j, success
+INTEGER :: i, success
 INTEGER :: iatom
 INTEGER :: is
 TYPE (NEIGHBORHOOD), POINTER         :: hood_c
@@ -1924,7 +1919,7 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
          CALL get_connect_pointed(hood_c, isel, ino, c_name, c_list, c_offs, c_natoms, success)
          IF(success/=0) RETURN
          DO i=1,c_natoms                          ! Update all offsets
-            c_offs(:,i) = c_offs(:,i) + shift(:)
+            c_offs(:,i) = c_offs(:,i) + INT(shift(:))
          ENDDO
          p_atoms => hood_c%nachbar
          i = 1
@@ -1957,7 +1952,7 @@ search_def2:DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to
                p_atoms => hood_j%nachbar
 search_neig:   DO WHILE(ASSOCIATED(p_atoms))            ! Place into structure
                   IF(p_atoms%atom_number == isel     ) THEN
-                     p_atoms%offset(:) = p_atoms%offset(:) -shift(:)
+                     p_atoms%offset(:) = p_atoms%offset(:) - INT(shift(:))
                      EXIT search_neig
                   ENDIF
                   p_atoms => p_atoms%next

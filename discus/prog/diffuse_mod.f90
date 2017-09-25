@@ -3,6 +3,7 @@ MODULE diffuse_mod
 !     Contains all variables for Fourier transform
 !-
 USE discus_config_mod
+USE precision_mod
 !
 SAVE
 !
@@ -16,8 +17,8 @@ INTEGER , PARAMETER  :: RECIPR   = 1
 INTEGER , PARAMETER  :: EXTERNAL = 0
 INTEGER , PARAMETER  :: INTERNAL = 1
 !
-INTEGER , PARAMETER  :: I2PI     = 2**16
-INTEGER , PARAMETER  :: MASK     = I2PI-1
+INTEGER(KIND=PREC_INT_LARGE) , PARAMETER  :: I2PI     = 2**16
+INTEGER(KIND=PREC_INT_LARGE) , PARAMETER  :: MASK     = I2PI-1
 !
 INTEGER , PARAMETER  :: RAD_XRAY = 1
 INTEGER , PARAMETER  :: RAD_NEUT = 2

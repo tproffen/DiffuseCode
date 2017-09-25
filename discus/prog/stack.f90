@@ -1894,7 +1894,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2) *num(3)
 !           st_csf(i) = cmplx(0.0d0,0.0d0)                                
-            csf (i) = cmplx (0.0D0, 0.0D0) 
+            csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
 !           acsf(i) = cmplx(0.0d0,0.0d0)                                
          ENDDO 
 !                                                                       
@@ -2055,7 +2055,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ------zero some arrays                                          
 !                                                                       
             DO i = 1, num (1) * num (2) *num(3)
-               st_csf (i) = cmplx (0.0D0, 0.0D0) 
+               st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
             ENDDO 
 !                                                                       
 !------ ------loop over all different atom types                        
@@ -2077,8 +2077,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !
                IF(calc_f2aver) THEN
 ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q) during first calculation
-                  xstart = pow_qmin  /zpi
-                  xdelta = pow_deltaq/zpi
+                  xstart = pow_qmin  /REAL(zpi)
+                  xdelta = pow_deltaq/REAL(zpi)
 !                 CALL powder_stltab(pow_npkt,xstart,xdelta)  
                   DO i = 1, pow_npkt         ! Always over all points in powder pattern!
                      pow_f2aver (i) = pow_f2aver (i)  + &
@@ -2196,7 +2196,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
          DO i = 1, num (1) * num (2)*num(3) 
 !         st_csf(i) = cmplx(0.0d0,0.0d0)                                
-         acsf (i) = cmplx (0.0D0, 0.0D0) 
+         acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
          ENDDO 
 !                                                                       
 !     --Calculation is only performed if average is needed              
@@ -2318,7 +2318,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ ----zero some arrays                                            
 !                                                                       
             DO i = 1, num (1) * num (2)*num(3) 
-            st_csf (i) = cmplx (0.0D0, 0.0D0) 
+            st_csf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
             ENDDO 
 !                                                                       
 !     ----Loop over all layer types                                     

@@ -563,7 +563,7 @@ CONTAINS
       REAL    :: sump
 !                                                                       
       IF (ianz.ge.1) then 
-         CALL do_cap (cpara (1) ) 
+         CALL do_cap (cpara (1)(1:lpara(1)) ) 
          IF (cpara (1) (1:3) .eq.'SHI') then 
             imode = rmc_mode_shift 
          ELSEIF (cpara (1) (1:3) .eq.'SWD') then 
@@ -575,10 +575,11 @@ CONTAINS
          ELSE 
             ier_typ = ER_RMC 
             ier_num = - 9 
+            RETURN
          ENDIF 
 !                                                                       
          IF (ianz.eq.2) then 
-            CALL do_cap (cpara (2) ) 
+            CALL do_cap (cpara(2)(1:lpara(2)) ) 
             IF (cpara (2) (1:1) .eq.'A') then 
                rmc_move_local(imode) = rmc_local_all 
             ELSEIF (cpara (2) (1:1) .eq.'L') then 
@@ -592,6 +593,7 @@ CONTAINS
             ELSE 
                ier_typ = ER_RMC 
                ier_num = - 9 
+               RETURN
             ENDIF 
          ELSE 
             rmc_move_local(imode) = rmc_local_all 
@@ -695,7 +697,7 @@ CONTAINS
       sumd = 0.0 
       CALL rmc_inten (ip, is, .false.) 
       DO iq = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-      cint = rmc_back (ip) + rmc_skal (ip) * dsi (iq) 
+      cint = rmc_back (ip) + REAL(REAL(rmc_skal (ip),KIND=KIND(0.0D0)) * dsi (iq)) 
       dint = rmc_int (offq (ip) + iq) - cint 
       oo = rmc_wic (offq (ip) + iq) * rmc_int (offq (ip) + iq) **2 
       dd = rmc_wic (offq (ip) + iq) * dint**2 
@@ -1190,7 +1192,7 @@ CONTAINS
       INTEGER ianz, nsym, rsym 
       INTEGER ip, nx, ny, wx, wy 
       INTEGER i, j, k 
-      REAL werte (maxw), d 
+      REAL werte (maxw), d1, d2, d3, d4
       REAL e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
       REAL qmin, qmax 
       REAL ee1 (4, max_sym) 
@@ -1338,7 +1340,7 @@ CONTAINS
          READ (17, *, end = 99, err = 999) (rmc_xy (j, ip), j = 1, 4) 
          IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
             READ (18, *, end = 99, err = 999) wx, wy 
-            READ (18, *, end = 99, err = 999) d, d, d, d 
+            READ (18, *, end = 99, err = 999) d1, d2, d3, d4 
             IF (wx.ne.nx.or.wy.ne.ny) then 
                ier_num = - 17 
                ier_typ = ER_RMC 
@@ -1375,7 +1377,7 @@ CONTAINS
          CALL rmc_pgmheader (17, nx, ny, rmc_xy (1, ip), rmc_xy (2, ip),&
          rmc_xy (3, ip), rmc_xy (4, ip) )                               
          IF (rmc_wic_typ (ip) .eq.rmc_wic_dat) then 
-            CALL rmc_pgmheader (18, wx, wy, d, d, d, d) 
+            CALL rmc_pgmheader (18, wx, wy, d1, d2, d3, d4) 
             IF (wx.ne.nx.or.wy.ne.ny) then 
                ier_num = - 17 
                ier_typ = ER_RMC 
@@ -1519,11 +1521,11 @@ CONTAINS
       CALL rmc_layer (1, ip) 
       CALL rmc_stltab (1, ip, .true.) 
 !                                                                       
-      qmin = ristl (offsq (ip, 1) + 1) * CFINC 
-      qmax = ristl (offsq (ip, 1) + 1) * CFINC 
+      qmin = REAL(REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
+      qmax = REAL(REAL(ristl (offsq (ip, 1) + 1),KIND=KIND(0.0D0)) * CFINC )
       DO i = 2, rmc_num (1, ip) * rmc_num (2, ip) 
-      qmin = min (qmin, ristl (offsq (ip, 1) + i) * CFINC) 
-      qmax = max (qmax, ristl (offsq (ip, 1) + i) * CFINC) 
+      qmin = min (qmin, REAL(REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
+      qmax = max (qmax, REAL(REAL(ristl (offsq (ip, 1) + i),KIND=KIND(0.0D0)) * CFINC) )
       ENDDO 
 !                                                                       
       rmc_qmin = min (rmc_qmin, qmin) 
@@ -2063,7 +2065,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
          loop_sym: DO k = 1, isym (ip) 
             DO i = 1, rmc_num (1, ip) * rmc_num (2, ip) 
-               acsf (i) = cmplx (0.0D0, 0.0D0) 
+               acsf (i) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
             ENDDO 
 !                                                                       
             CALL rmc_layer (k, ip) 
@@ -2486,7 +2488,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       DO ip = 1, rmc_max_sq 
       DO il = 1, rmc_nlots 
-      rmc_csf (ip, il) = cmplx (0.0D0, 0.0D0) 
+      rmc_csf (ip, il) = cmplx (0.0D0, 0.0D0,KIND=KIND(0.0D0)) 
       ENDDO 
       ENDDO 
 !                                                                       

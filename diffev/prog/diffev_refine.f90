@@ -29,7 +29,7 @@ CONTAINS
 !  INTEGER, DIMENSION(:), ALLOCATABLE :: seeds ! Actual seeds
    INTEGER, DIMENSION(12)             :: seeds ! Actual seeds
 
-   INTEGER  :: i, j, k,l
+   INTEGER  :: i, j, l
 !
    INTEGER                 :: ierr
 !

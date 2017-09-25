@@ -92,8 +92,6 @@ USE errlist_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER             :: maxw = 2
-!                                                                       
 INTEGER,         INTENT(IN   ) :: j
 INTEGER,         INTENT(IN   ) :: jt
 !

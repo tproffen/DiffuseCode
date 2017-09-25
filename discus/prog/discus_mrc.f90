@@ -52,8 +52,9 @@ CONTAINS
 !
    l_datei = len_str (outfile)
    IF (outfile (1:1) .eq.'~') THEN 
+      line = ' '
       line = home_dir (1:home_dir_l) //outfile (2:l_datei)
-      outfile = line
+      outfile = line(1:200)
    ENDIF
  
    OPEN(UNIT=IMRC,FILE=outfile,STATUS='unknown', &

@@ -36,8 +36,8 @@ CONTAINS
 !------ zero some arrays                                                
 !                                                                       
       DO i = 1, num (1) * num (2) * num(3)
-         csf (i) = cmplx (0.0D0, 0.0D0) 
-         acsf(i) = cmplx (0.0D0, 0.0D0) 
+         csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+         acsf(i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
          dsi (i) = 0.0d0 
       ENDDO 
 !                                                                       
@@ -55,7 +55,7 @@ CONTAINS
 !                                                                       
       loop_lots: DO nlot = 1, nlots 
          DO i = 1, num (1) * num (2) * num(3)
-            csf (i) = cmplx (0.0D0, 0.0D0) 
+            csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
          ENDDO 
 !                                                                       
          CALL four_ranloc (csize, lbeg) 
@@ -207,7 +207,7 @@ CONTAINS
             ier_msg(2) = 'Increase the percentage for >set aver<'
          ENDIF
          DO j = 1, num (1) * num (2) * num (3)
-            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0) 
+            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0)) 
          ENDDO 
 !                                                                       
 !------ - write how much of the crystal we actually used                
@@ -545,7 +545,7 @@ CONTAINS
          DO i = 0, MASK 
             xmult   = (dble (i) * 1.0d0) / dble (I2PI) 
             xarg    = zpi * xmult 
-            cex (i) = cmplx (DBLE( COS (xarg)), DBLE( SIN (xarg)) ) 
+            cex (i) = CMPLX (DBLE( COS (xarg)), DBLE( SIN (xarg)), KIND=KIND(0.0D0) ) 
          ENDDO 
          ffour = .true. 
       ENDIF 
@@ -578,8 +578,9 @@ CONTAINS
       DO j = 1, num (2) 
       DO i = 1, num (1) 
       DO k = 1, 3 
-      h (k) = xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) &
-                     + win (k) * float (l - 1)
+      h (k) = REAL(xm (k) + uin (k) * REAL (i - 1, KIND=KIND(0.0D0)) &
+                          + vin (k) * REAL (j - 1, KIND=KIND(0.0D0)) &
+                          + win (k) * REAL (l - 1, KIND=KIND(0.0D0)))
       ENDDO 
       q2 = quad (h, h, cr_rten) / 4.0 
 !     k  = (i - 1) * num (2) + j 
@@ -630,7 +631,7 @@ CONTAINS
 !                                                                       
       DO iscat = 1, cr_nscat 
       DO iq = 0, CFPKT 
-      q2 = (float (iq) * CFINC) **2 
+      q2 = REAL((REAL (iq, KIND=KIND(0.0D0)) * CFINC) **2 , KIND=KIND(0.0E0))
       sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
 !                                                                       
       IF (ano) then 
@@ -647,8 +648,8 @@ CONTAINS
          sb = 1.0D0
       ENDIF 
 !                                                                       
-      cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp) 
-      cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp) 
+      cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 
+      cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
       ENDDO 
       ENDDO 
 !                                                                       
@@ -949,8 +950,8 @@ CONTAINS
 !
       four_log = .false. 
       CALL four_run 
-      res_para (1) = REAL (csf (1) ) 
-      res_para (2) = AIMAG(csf (1) ) 
+      res_para (1) =      REAL (csf (1) , KIND=KIND(0.0E0) ) 
+      res_para (2) = REAL(AIMAG(csf (1)), KIND=KIND(0.0E0) ) 
       res_para (3) = res_para (1) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (4) = res_para (2) / cr_icc (1) / cr_icc (2) / cr_icc (3) 
       res_para (0) = 4 
@@ -1025,8 +1026,8 @@ CONTAINS
       n_natoms = 1
       n_nscat  = 1
 !
-      CALL oeffne(ird, infile,   'old') 
-      CALL oeffne(iwr, calcfile, 'unknown') 
+      CALL oeffne(ird, infile(1:infile_l),   'old') 
+      CALL oeffne(iwr, calcfile(1:calcfile_l), 'unknown') 
       inc(:) = 1
 !
       ih_min  = 0
@@ -1189,7 +1190,7 @@ main:    DO
             ENDIF
             IF(IS_IOSTAT_END(iostatus)) EXIT main
             indx = (ih-ih_min)*inc(3)*inc(2) + (ik-ik_min)*inc(3) + (il-il_min)  + 1
-            wert = REAL(csf(indx)*CONJG(csf(indx)))
+            wert = REAL(csf(indx)*CONJG(csf(indx)),KIND=KIND(0.0E0))
             sint = SQRT(ABS(wert))
             IF(ih==0 .AND. ik==0 .AND. IL==0) THEN
                WRITE(iwr,1000) ih,ik,il, 0.00, 0.00

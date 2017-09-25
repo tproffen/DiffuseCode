@@ -22,7 +22,6 @@
       REAL werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
-      INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
 !                                                                       
@@ -87,7 +86,6 @@
       INTEGER ikurv, ip 
 !                                                                       
       LOGICAL k_in_f 
-      INTEGER len_str 
 !                                                                       
       CALL oeffne (ifil, filname, 'unknown') 
       IF (ier_num.ne.0) return 
@@ -212,9 +210,9 @@
       REAL delt 
       INTEGER tmap (MAXGSAS) 
       INTEGER tof (MAXGSAS) 
-      INTEGER ig, ii, il, ixx 
-      INTEGER j, k, ibeg, ifin, is, imap, ioff, itof 
-      INTEGER ntmap, nrec, isum, irec, itot 
+      INTEGER ig, il, ixx 
+      INTEGER j, k, ibeg, ifin, imap, ioff, itof 
+      INTEGER ntmap, nrec, irec
       LOGICAL lfile, lnew 
 !                                                                       
       INTEGER len_str 
@@ -321,7 +319,6 @@
       ENDDO 
       ENDDO 
 !                                                                       
-   20 CONTINUE 
       CLOSE (ifil) 
       RETURN 
 !                                                                       
@@ -517,7 +514,7 @@
 !                                                                       
                ELSEIF (str_comp (befehl, 'form', 2, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  cdummy = cpara (1) 
+                  cdummy = cpara (1) (1:2)
                   IF(cdummy=='xy') THEN
                      l_two_col = .false.
                      IF(str_comp(cpara(ianz), 'two',3, lpara(ianz), 3)) THEN
@@ -696,7 +693,6 @@
  1100 FORMAT    (3x,'Format            : ',a2) 
  1200 FORMAT    (3x,'Parameters        : ',5(g11.5,2x)) 
  1300 FORMAT    (3x,'Z range -> 0..255 : ',2(g11.5,2x)) 
- 2000 FORMAT    (a) 
       END SUBROUTINE do_ksav                        
 !*****7************************************************************     
       SUBROUTINE check_form (form, ianz, werte, maxw) 

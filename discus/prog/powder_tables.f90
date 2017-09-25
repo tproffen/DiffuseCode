@@ -28,12 +28,12 @@ CONTAINS
 !                                                                       
       WRITE (output_io, 1000) 
 !                                                                       
-      xt = 1.0d0 / float (I2PI) 
+      xt = 1.0d0 / REAL (I2PI, KIND=KIND(0.0D0)) 
       twopi = 8.0d0 * datan (1.0d0) 
 !                                                                       
 !DBG      open(9,file='SINETAB.DAT',status='unknown')                   
       DO i = 0, MASK 
-         xmult       = float (i) * xt 
+         xmult       = REAL (i, KIND=KIND(0.0D0)) * xt 
          xarg        = twopi * xmult 
          sinetab (i) = DBLE( dsin (xarg) )
 !DBG      write(9,*) xarg,real(sinetab(i))                              
@@ -93,7 +93,7 @@ CONTAINS
       powder_istl(:) = 0
 !
       DO i = 1, n_points
-         q2 = ( (xstart + xdelta  * float (i - 1) ) **2) / 4.0 
+         q2 = REAL(( (xstart + xdelta  * REAL  (i - 1,KIND=KIND(0.0D0)) ) **2) / 4.0D0 )
          istl (i) = nint (sqrt (q2) * (1.0 / CFINC) ) 
 !DBG                                                                    
 !DBG      if(i.eq.150) then                                             
