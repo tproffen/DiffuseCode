@@ -1205,6 +1205,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       INTEGER i 
       REAL dummy_x (2), dummy_y (2) 
       REAL ymi, yma 
+      REAL     :: delta
       LOGICAL k_in_f 
 !                                                                       
 !------ get data set extrema                                            
@@ -1242,10 +1243,31 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       ENDIF 
 !                                                                       
       IF (ey (iwin, iframe, 2) .eq.ey (iwin, iframe, 1) ) then 
-         ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - 0.2 * ey (iwin,  &
-         iframe, 1)                                                     
-         ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + 0.2 * ey (iwin,  &
-         iframe, 2)                                                     
+         IF(ABS(ey(iwin, iframe, 1)) > 0.0) THEN
+            delta = 0.2*ABS(ey(iwin, iframe, 1))
+         ELSE
+            delta = 1.0
+         ENDIF
+         ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - delta
+         ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + delta
+!        ey (iwin, iframe, 1) = ey (iwin, iframe, 1) - 0.2 * ey (iwin,  &
+!        iframe, 1)                                                     
+!        ey (iwin, iframe, 2) = ey (iwin, iframe, 2) + 0.2 * ey (iwin,  &
+!        iframe, 2)                                                     
+      ENDIF 
+!                                                                       
+      IF (ex (iwin, iframe, 2) .eq.ex (iwin, iframe, 1) ) then 
+         IF(ABS(ex(iwin, iframe, 1)) > 0.0) THEN
+            delta = 0.2*ABS(ex(iwin, iframe, 1))
+         ELSE
+            delta = 1.0
+         ENDIF
+         ex (iwin, iframe, 1) = ex (iwin, iframe, 1) - delta
+         ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + delta
+!        ex (iwin, iframe, 1) = ex (iwin, iframe, 1) - 0.2 * ex (iwin,  &
+!        iframe, 1)                                                     
+!        ex (iwin, iframe, 2) = ex (iwin, iframe, 2) + 0.2 * ex (iwin,  &
+!        iframe, 2)                                                     
       ENDIF 
 !                                                                       
 !------ set tick marks                                                  
