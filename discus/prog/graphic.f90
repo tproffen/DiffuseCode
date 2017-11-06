@@ -886,6 +886,7 @@ SUBROUTINE do_niplps (linverse)
       USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE discus_nipl_header
       USE fourier_sup
       USE output_mod 
       USE qval_mod
@@ -931,6 +932,9 @@ SUBROUTINE do_niplps (linverse)
       REAL   , DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
+!
+      CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
+      INTEGER :: nheader
 !                                                                       
 !     REAL qval 
       INTEGER  len_str
@@ -1081,11 +1085,15 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
                          value,  i, j, laver))
          ENDDO 
       ENDDO 
-      CALL output_save_file_2d(outfile, ranges, npkt1, npkt2, zwrt)
+      CALL write_discus_nipl_header(header_lines, nheader, l)
+      CALL output_save_file_2d(outfile, ranges, npkt1, npkt2, zwrt,       &
+                               header_lines, nheader)
+      DEALLOCATE(header_lines)
       DEALLOCATE(zwrt)
    ELSEIF(is_dim==3) THEN                       ! 3D output into standard slices
       ALLOCATE(zwrt(1:npkt1,1:npkt2), STAT=all_status)  ! Allocate z-table
       DO l = 1, npkt3                           ! For all layers along 3rd axis
+         CALL write_discus_nipl_header(header_lines, nheader, l)
          WRITE(dummy_file, 7777) outfile(1:len_str(outfile)),l  ! Modify file name
 7777 FORMAT(a,'.PART_',i4.4)
          DO j = 1, npkt2                        ! Loop over points in 2D
@@ -1095,7 +1103,9 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
                             value,  i, j, laver))
             ENDDO 
          ENDDO 
-         CALL output_save_file_2d(dummy_file, ranges, npkt1, npkt2, zwrt)
+         CALL output_save_file_2d(dummy_file, ranges, npkt1, npkt2, zwrt,    &
+                                  header_lines, nheader)
+         DEALLOCATE(header_lines)
       ENDDO 
       DEALLOCATE(zwrt)
    ENDIF
