@@ -97,6 +97,7 @@
 !                                                                       
       INTEGER ifile 
       INTEGER buff (13) 
+      CHARACTER :: ctime
 !
       CALL fstat (ifile, buff, ier_num) 
       IF (ier_num.ne.0) return 
