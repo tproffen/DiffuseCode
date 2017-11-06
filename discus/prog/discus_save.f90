@@ -46,7 +46,6 @@ SUBROUTINE save_struc (string, lcomm)
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, i 
       INTEGER lcomm, sav_flen 
-      INTEGER                      :: n_nscat
       LOGICAL lend 
 !      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
 !                                                                       
@@ -56,13 +55,11 @@ SUBROUTINE save_struc (string, lcomm)
       DATA sav_flen / 1 / 
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
-      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
-         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
-         CALL alloc_save (  n_nscat )
+!
+      CALL save_check_alloc()
          IF ( ier_num < 0 ) THEN
             RETURN
          ENDIF
-      ENDIF
 !                                                                       
 !     Interpret parameters used by 'save' command                       
 !                                                                       
@@ -569,6 +566,27 @@ main: DO while (.not.lend)
  3092 FORMAT(20x,2(4x,i2,1x,a4)) 
 !                                                                       
       END SUBROUTINE save_struc                     
+!
+!*****7*****************************************************************
+!
+      SUBROUTINE save_check_alloc()
+!
+      USE crystal_mod
+      USE discus_allocate_appl_mod
+      USE discus_save_mod 
+      USE errlist_mod
+!
+      INTEGER                      :: n_nscat
+!
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+         CALL alloc_save (  n_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!
+      END SUBROUTINE save_check_alloc
 !*****7*****************************************************************
       SUBROUTINE save_nokeyword (strucfile) 
 !+                                                                      
@@ -877,6 +895,11 @@ main: DO while (.not.lend)
       LOGICAL                         :: lsave
       INTEGER                         :: i
       INTEGER                         :: istatus
+!
+      CALL save_check_alloc()
+      IF ( ier_num < 0 ) THEN
+         RETURN
+      ENDIF
 !
 !     Test if any atom type is selected for write
 !
