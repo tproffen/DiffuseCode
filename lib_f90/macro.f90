@@ -265,6 +265,7 @@ SUBROUTINE file_kdo(line, ilen)
       REAL             , DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
 !
       CHARACTER(LEN=1024)      :: string
+      INTEGER                  :: i
       INTEGER                  :: ip
       INTEGER                  :: length
 !
@@ -281,6 +282,9 @@ SUBROUTINE file_kdo(line, ilen)
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
       build: IF (ier_num == 0) then
          filename = cpara(1)(1:lpara(1))
+         DO i=1, ianz
+            lpara(i) = LEN_TRIM(cpara(i))   ! Remove trailing blanks from parameters
+         ENDDO
       ELSE build
 !       ungueltiges MAKRO
          ier_num = - 13
