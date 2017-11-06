@@ -34,7 +34,7 @@ IF(ALLOCATED(point_hkl)) DEALLOCATE(point_hkl)
 ALLOCATE(point_hkl(1:3, 1:96))
 point_hkl = 0.0
 point_n   = 1
-point_hkl(:,point_n) = NINT(hkl(1:3))
+point_hkl(:,point_n) = hkl(1:3)
 !
 END SUBROUTINE point_init_real
 !
