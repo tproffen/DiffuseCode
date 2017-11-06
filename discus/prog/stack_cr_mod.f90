@@ -40,6 +40,7 @@ INTEGER                              :: st_nscat
 INTEGER                              :: sa_nscat
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_iscat  ! (1:ST_MMAX)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_mole   ! (1:ST_MMAX)
+INTEGER , DIMENSION(:,:), ALLOCATABLE:: st_surf   ! (1:ST_MMAX)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: st_prop   ! (1:ST_MMAX)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: sa_iscat  ! (1:ST_MAX_SCAT)
 INTEGER , DIMENSION(:), ALLOCATABLE  :: sa_prop   ! (1:ST_MAX_SCAT)
