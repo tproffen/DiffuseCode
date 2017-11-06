@@ -69,7 +69,7 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
-2  2017_Oct
+3  2017_Oct
 
    Space Groups
      Added the space groups 
@@ -1543,12 +1543,13 @@
 !p show    ! Shows the current definitions
 3  add
 !b add <central_atom_type>, <neigh types>, <rmin>, <rmax> 
-       [,<max_neig], <def_name>, ["scope:"{"crystal"|"molecule"}]
+       [,<max_neig], <def_name>, 
+       ["molescope:"{"ignore"|"within"|"outside"}]
 
    Add a new connectivity definition. 
-   For the atom type <central_atom_type> a new definition is added. Atoms
-   of types <neigh types> that are in a distance shell from <rmin> to <rmax> 
-   are entered into this definition. 
+   For the atom type <central_atom_type> a new definition is 
+   added. Atoms of types <neigh types> that are in a distance shell 
+   from <rmin> to <rmax> are entered into this definition. 
 
    If <rmin> is set to zero, all neighbors, even at infinitely small
    distances are included in the connectivity. The central atom itself
@@ -1560,12 +1561,26 @@
 
    The last but one parameter is optional and can be used to limit the 
    number of neighbors in the connectivity. If present, it takes the
-   form: "first_1" or "first_2" etc. The string "first_" is mandatory
+   form: "first:1" or "first:2" etc. The string "first:" is mandatory
    and is followed by the actual number of neighbors. If DISCUS finds 
    less than these neighbors, the connectivity is of course less than
    the intended number of neighbors.
 
    The last parameter is a name for this definition. 
+
+   As of version 5.14 a new optional parameter allows you to restrict
+   the scope of the connectivity to atoms that are within the same
+   molecule as the central atom. This parameter takes the form:
+   "molescope:"{"ignore"|"within"|"outside"}
+      Choice "ignore" signals that conectivity will ignore if the
+      central atoms and any of its neighbors are within a molecule
+      or not.
+      Choice "within" creates a connectivity between a central atom
+      that must be within a molecule and other atoms within the
+      very same molecule.
+      Choice "outside" creates a conectivity for a central atom
+      that must be within a molecule and other atoms that are 
+      not part of this molecule.
 
    This command just defines the settings of this connectivity. The 
    actual list is created via ==> 'create'.
