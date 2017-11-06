@@ -612,6 +612,26 @@ CONTAINS
                                                                         
       spcgr_name (309)  = 'Ibmm            ' 
       spcgr_syst (309) = ORTHORHOMBIC 
+
+      spcgr_name (310)  = 'Aem2            ' 
+      spcgr_num (310, 1) =  39 
+      spcgr_syst (310) = ORTHORHOMBIC 
+
+      spcgr_name (311)  = 'Aea2            ' 
+      spcgr_num (311, 1) =  41 
+      spcgr_syst (311) = ORTHORHOMBIC 
+
+      spcgr_name (312)  = 'Cmce            ' 
+      spcgr_num (312, 1) =  64 
+      spcgr_syst (312) = ORTHORHOMBIC 
+
+      spcgr_name (313)  = 'Cmme            ' 
+      spcgr_num (313, 1) =  67 
+      spcgr_syst (313) = ORTHORHOMBIC 
+
+      spcgr_name (314)  = 'Ccce            ' 
+      spcgr_num (314, 1) =  68 
+      spcgr_syst (314) = ORTHORHOMBIC 
                                                                         
       END SUBROUTINE spcgr_setup                    
 END MODULE spcgr_setup_mod
