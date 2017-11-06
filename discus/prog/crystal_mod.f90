@@ -84,6 +84,7 @@ USE discus_config_mod
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_iscat  ! (  1:NMAX)  !Atom type 0 to cr_nscat
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_prop   ! (  1:NMAX)  !Property flag
    INTEGER, DIMENSION(  :), ALLOCATABLE ::  cr_mole   ! (  1:NMAX)  !Atom is in this molecule
+   INTEGER, DIMENSION(:,:), ALLOCATABLE ::  cr_surf   ! (  1:NMAX)  !Atom is on this surface 
 !
    REAL   , DIMENSION(:,:), ALLOCATABLE ::  cr_pos    ! (3,1:NMAX)  !Atom coordinates
 !

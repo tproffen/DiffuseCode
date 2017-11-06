@@ -1084,6 +1084,7 @@ pseudo_ok:  IF(l_ok) THEN
       REAL, DIMENSION(3)  :: xyz ! Atom position
       INTEGER             :: dummy_iscat ! Atom type
       INTEGER             :: dummy_prop ! Atom property
+      INTEGER, DIMENSION(0:3)  :: dummy_surf
       INTEGER             :: natoms ! Number of molecules
       INTEGER             :: nscat  ! Number of molecule types
       INTEGER             :: TEMP_MAX_MOLE ! Number of molecules
@@ -1179,7 +1180,7 @@ pseudo_ok:  IF(l_ok) THEN
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
-              xyz, dummy_iscat, dummy_prop )
+              xyz, dummy_iscat, dummy_prop, dummy_surf )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
@@ -1523,6 +1524,7 @@ mole_int: IF(mk_infile_internal) THEN
       REAL     :: size_sigma
       INTEGER  :: dummy_iscat
       INTEGER  :: dummy_prop
+      INTEGER, DIMENSION(0:3)  :: dummy_surf
 !                                                                       
       LOGICAL str_comp 
       REAL    gasdev
@@ -1542,7 +1544,7 @@ mole_int: IF(mk_infile_internal) THEN
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
-              xyz, dummy_iscat, dummy_prop )
+              xyz, dummy_iscat, dummy_prop, dummy_surf )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             lend    = .true.
             ier_num = 0

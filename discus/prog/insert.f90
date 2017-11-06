@@ -798,11 +798,14 @@ CONTAINS
                j)                                                       
                ENDDO 
 !                                                                       
-               DO j = 1, 3 
+               DO j = 1, 4 
                cr_prop (cr_natoms + j) = 0 
                cr_prop (cr_natoms + j) = ibset (cr_prop (cr_natoms + j),&
                PROP_NORMAL)                                             
                ENDDO 
+               DO j=1,4
+                  cr_surf(:,cr_natoms + j) = 0
+               ENDDO
 !                                                                       
 !     ------ Set the atom types and names                               
 !                                                                       
@@ -1019,6 +1022,9 @@ CONTAINS
                   cr_prop (cr_natoms + k) = 0 
                   cr_prop (cr_natoms + k) = ibset (cr_prop (cr_natoms + k),PROP_NORMAL)
                ENDDO 
+               DO j=1,8
+                  cr_surf(:,cr_natoms + j) = 0
+               ENDDO
 !                                                                       
 !     ------ Set the atom types and names                               
 !                                                                       
