@@ -27,6 +27,7 @@ SUBROUTINE do_loop (line, lend, length)
 !-----      read first block structure command                          
 !                                                                       
       CALL do_do_init(line, length)
+      IF(ier_num /=0 ) GOTO 999
 !                                                                       
 !.....read all commands                                                 
 !                                                                       
@@ -837,8 +838,11 @@ END SUBROUTINE do_execute_block
       lstring2 = .FALSE.
 !     CALL rem_bl (string, laenge) 
       if_test = .false. 
-      IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
-         CONTINUE 
+!     IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
+      IF (laenge <= 2.or.string.eq.' '.or.ier_num.ne.0) then 
+         ier_num = -12
+         ier_typ = ER_FORT
+         WRITE (ier_msg (2), '(a41)') line (1:41) 
       ELSE 
          icom = max (index (string, '.lt.') , index (string, '.le.') ,  &
                      index (string, '.gt.') , index (string, '.ge.') ,  &
@@ -3272,6 +3276,14 @@ END FUNCTION len_str
          lpara (i) = lll 
          ENDDO 
       ENDIF 
+!
+!     remove trailing blanks if length was given positive
+!
+      IF(rmblk) THEN
+         DO i=1,ianz
+            lpara(i) = LEN_TRIM(cpara(i))
+         ENDDO
+      ENDIF
 !                                                                       
 !      Check parameter length to catch things like ...,,...             
 !      ianz is decremented until ALL get_parameter calls do             
