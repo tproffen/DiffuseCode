@@ -1205,8 +1205,20 @@
 !------ read main data                                                  
 !------ NIPL file format                                                
 !                                                                       
-      IF (.not.pgm) then 
-         READ (ifil, *, end = 50, err = 55) nx (iz), ny (iz) 
+      IF (.not.pgm) THEN
+!
+!        A header consisting of lines with a first '#' are ignored
+         READ(ifil, '(a)', END=50, ERR=55) line
+         DO WHILE(line(1:1)=='#')
+            READ(ifil, '(a)', END=50, ERR=55) line
+!           IF(line(1:18)=='# FOURIER : angles') READ(line(30:41),*) shear (1, 1)
+!           IF(line(1:16)=='# FOURIER : aver'  ) THEN
+!              READ(line(30:41),*) yskal_u (1, 1)
+!              lyskal(1,1) = .TRUE.
+!           ENDIF
+         ENDDO
+         READ (line, *, end = 50, err = 55) nx (iz), ny (iz) 
+!        READ (ifil, *, end = 50, err = 55) nx (iz), ny (iz) 
 !                                                                       
 !------ - check array size                                              
 !                                                                       
