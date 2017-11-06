@@ -69,13 +69,48 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+2  2017_Oct
+
+   Space Groups
+     Added the space groups 
+     Aem2=Abm2 (39)
+     Aea2=Aba2 (41)
+     Cmca=Cmce (64)
+     Cmma=Cmme (67)
+     Ccca=Ccce (68)
+
+   Atom names 
+     Instead of atom names or numbers, the user can specify a 
+     user defined variable.
+     variable character, string
+     string = 'Si'
+     ...
+     sel  Al, string, O
+     ...
+     replace Al,string,...
+
+   connectivity
+     New optional parameters allows to specify if the connectivity is to
+     be restricted to the same molecule as the central atom.
+
+   stack
+     The number of layers for each type is recorded into 
+     the result variable.
+
+   surface 
+     The boundaries have improved and corrected behavior for internal
+     hollow spaces created by the "outside" flag.
+
+     The boundary commands create a new variable that reflects the 
+     surface character and the direction of the normal to the local
+     surface. 
 3  2017_Sep
 
    Throughout the program the internal calculation of random numbers 
    was changed to the FORTRAN 90 intrinsic function. 
 3  2017_July
 
-   The decoration of ligands onto surfaces can now be resticted to
+   The decoration of ligands onto surfaces can now be restricted to
    specific faces.
 
    The ==> 'therm' command erroneously used too large a displacement.
@@ -106,14 +141,14 @@
    the first atom is inside a molecule.
 3  2017_Feb
 
-   Within the powder menue, the energy of the radiation may also 
+   Within the powder menu, the energy of the radiation may also 
    be specified via ==> 'set energy, <value>'
 3  2017_Jan
 
    A new command 'first' was added to 'stack' that allows to determine
    the first layer type
 
-   An unfortunate typing error in News/2016_oct regaring the new
+   An unfortunate typing error in News/2016_Oct regarding the new
    refinement variable 
    ref_para[1...]   ( was misspelled as ref_param[1...] )
    is corrected in the  on-line help.
@@ -126,7 +161,7 @@
 3  2016_Oct
 
    The output of the "blen" and "bang" commands within "chemistry" 
-   is now written to kuplot directly, if the filename starts with 
+   is now written to KUPLOT directly, if the filename starts with 
    "kuplot"
 
    The data stored by ==> 'chemistry' ==> 'aver' have been changed in
@@ -172,7 +207,7 @@
    will actually restrict the movement of the specified atom along
    the direction of a vector.
 
-   DISCUS may now be interruted gracefully with a CTRL-c.
+   DISCUS may now be interrupted gracefully with a CTRL-c.
    This will cause DISCUS to write the current structure 
    as a file called EMERGENCY.STRU.
 3  2016_May
@@ -188,7 +223,7 @@
 
    Fourier can calculate the intensities for a SHELXL file
 
-   The 'find env' command will now return the neigbors sorted by distance.
+   The 'find env' command will now return the neighbors sorted by distance.
 
    2D and 2D images can be written in MRC file format
 
@@ -197,7 +232,7 @@
    closest N atoms. 
 3  2015_Dec
 
-   Added a command 'apply_symmetry' to the chemistry and mmc menues.
+   Added a command 'apply_symmetry' to the chemistry and mmc menus.
    These allow to generate symmetry equivalent correlation vectors.
    See mmc and chem ==> set vec; set neig; apply_symmetry for more help
 
@@ -255,13 +290,13 @@
    Atom form factors are taken from Table 4.3.2.3 Int. table Vol C (2006)
    respectively. from Peng, Ren, Dudarev, Whelan Acta Cryst A52 (1996), 257
 
-   Electron diffraction works in all menues where you could switch between
+   Electron diffraction works in all menus where you could switch between
    X-ray and neutrons i.e.: fourier, powder, rmc, pdf
 4  internal_storage
 
    DISCUS now offers an internal storage of crystal structures.
    Simply start the file name with the string "internal" and
-   DISCUS will write the crystal structure into a dynymically
+   DISCUS will write the crystal structure into a dynamically
    allocated internal data structure, instead of onto the hard disk.
    If a structure was written into an "internal" file, it can be read
    as well with ==> 'read'.
@@ -299,10 +334,10 @@
    personal taste.
 4  waves
 
-   The 'mrepl' and 'repl' commands were augmented by a "viceversa"
+   The 'mrepl' and 'repl' commands were augmented by a "vice versa"
    option that will cause atoms/molecules to be replaced by each other 
    rather than only in one way.
-3  2010sep
+3  2010Sep
 4  property
 
    A major upgrade of DISCUS adds properties to atoms. These can be
@@ -330,7 +365,7 @@
 
    The default was changed to plot the entire crystal, even if the
    'ext' or 'thick' commands had not been used.
-3  2010aug
+3  2010_Aug
 4  atom_coordinates
 
    The user may now specify the fractional coordinates in a unit cell
@@ -359,7 +394,7 @@
    sensible value.
 
    To use this feature, it is mandatory, that the unit cell dimensions 
-   are seperated by a comma.
+   are separated by a comma.
 
 
    The old style is still possible.
@@ -382,7 +417,7 @@
    symmetry operations for centered space groups as given in the 
    International Tables. Currently the old sequence is still the 
    default, this will be reversed in future releases. Presently
-   the seqence can be defined by ==> 
+   the sequence can be defined by ==> 
 !p define generator, {"center" | "symmetry"}
    which defines which group of generators comes first.
 4  molecules
@@ -404,7 +439,7 @@
    command does. The "set" command at the main menu level is reserved
    for general settings, common to all programs in the DIFFUSE suite.
    "define" is specific to the individual program.
-3  2008april
+3  2008_Apr
 4  formfactors
    Within the "fourier" menu, you can define your own values for
    the atomic form factors as well as anomalous dispersion correction
@@ -482,7 +517,7 @@
    encouraged. Only with this format, can you use a variable instead
    of fixed unit cell values.
 
-   Alternaticely, the lattice constants are read in free format 
+   Alternatively, the lattice constants are read in free format 
    <a b c alpha beta gamma>
    All six constants must be given.
 
@@ -499,7 +534,7 @@
    The property flag is optional. This is, however, automatically
    written to a saved structure file.
 
-   The name (in capital characters) must be leftbound in the first four
+   The name (in capital characters) must be left bound in the first four
    columns. 
    The fractional coordinates and the B value can be in free format, if the
    lines contains no comma. In this case the property flag must be omitted.
@@ -529,7 +564,7 @@
    start with a "#". The content of these lines is ignored.
 
 4  title
-!b title <titel string>
+!b title <title string>
    The string used as title can be any character string up to 80 characters
    long
 4  spcgrp
@@ -556,7 +591,7 @@
 4  scat
 !b scat <name> [,<name>...]
 
-   By explicitely listing the atom names on a 'scat' command line, you
+   By explicitly listing the atom names on a 'scat' command line, you
    can define a specific sequence of scattering curves that is independent
    of the sequence of atoms found in the structure file.
 
@@ -586,7 +621,7 @@
 4  adp
 !b adp <B-value> [,<B-value>...]
 
-   By explicitely listing the atomic displacement parameters (adp) on a
+   By explicitly listing the atomic displacement parameters (adp) on a
    'adp' command line, you can define a specific sequence of scattering
    curves that is independent of the sequence of atoms found in the
    structure file.
@@ -684,11 +719,11 @@
 !p cell  <a>,  <b>,  <c>, <alpha>,  <beta>,  <gamma>
 !p cell  <a>   <b>   <c>  <alpha>   <beta>   <gamma>
 
-   The first form with comma seperating the lattice constants is 
+   The first form with comma separating the lattice constants is 
    encouraged. Only with this format, can you use a variable or 
    an arithmetic expression instead of fixed unit cell values.
 
-   Alternaticely, the lattice constants are read in free format 
+   Alternatively, the lattice constants are read in free format 
    <a b c alpha beta gamma>
    All six constants must be given.
 
@@ -726,7 +761,7 @@
    The property flag is optional. This is, however, automatically
    written to a saves structure file.
 
-   The name (in capital characters) must be leftbound in the first four
+   The name (in capital characters) must be left bound in the first four
    columns. 
    The fractional coordinates and the B value can be in free format, if the
    lines contains no comma. In this case the property flag must be omitted.
@@ -752,10 +787,10 @@
            a group. The do not have to form a molecule in strict chemical
            sense but are just a group of atoms linked for convenience.
    Objects define a three dimensional object used to simulate small angle
-           scattering. The pseudoatoms within the "object" describe the
+           scattering. The pseudo atoms within the "object" describe the
            position, orientation, and distortion of the "object".
    Domains are representations of domain origins ==> 'domain'. They
-           allow you to manipluate just the positions, shape, and size of
+           allow you to manipulate just the positions, shape, and size of
            the domains.  Once the positions are fixed, you can insert
            the structure represented by the domain into the host
            crystal.
@@ -818,21 +853,21 @@
    internal structure. The boundary is a step function, i.e. outside
    there is nothing, inside is continuous matter of constant density.
    Their Fourier transform is calculated using analytical expressions. 
-   For each of the available characters, a specific Fourier transfromation
+   For each of the available characters, a specific Fourier transformation
    is calculated. Each object must consist of four pseudo atoms.
    The first atom defines the atoms, which represent the matter and
    defines the location of the object within space.
    The next three atoms represent the orientation and lengths of the
-   axes of the object. If these are not cartesian, the object will not
+   axes of the object. If these are not Cartesian, the object will not
    be the ideal object reflected by its name but a distorted object.
    Each of the axes is the 'half' axis of the object, i.e. half the
    edge length of a cube, radius and half the length of a cylinder,
    and the radius of a sphere.
 
    Each axis is represented by the difference vector between the 
-   position of the corresponding pseudoatom ((Numbers two to four) and
+   position of the corresponding pseudo atom ((Numbers two to four) and
    the first atom. This allows you to apply all DISCUS commands to 
-   the individual pseudoatoms, thereby changing the size of the object.
+   the individual pseudo atoms, thereby changing the size of the object.
 
    The axes refer to the base system you used in the ==> 'cell' 
    keyword of the unit cell file, or set using the ==> 'free' command
@@ -850,7 +885,7 @@
    molecule end
 
    
-   Usefull commands to shift objects are the ==> 'symm' menu,
+   Useful commands to shift objects are the ==> 'symm' menu,
    to deform an object, use the ==>'shear' menu.
    New objects can be added to the structure with the ==> 'insert' menu.
 5  content
@@ -871,7 +906,7 @@
 !b molecule biso, <value>
 
    This keyword sets an isotropic displacement parameter for the molecule.
-   All intramolecular distances in a PDF and powder pattern only use
+   All intra-molecular distances in a PDF and powder pattern only use
    the atomic displacement parameters, while intermolecular distances
    use this molecular isotropic displacement factor as well.
 5  density
@@ -999,7 +1034,7 @@
    Branches to the "kuplot" or "diffev" section.
 
    Within this section any standard KUPLOT command can be
-   given. The behaviour of "kuplot" is essentially the same
+   given. The behavior of "kuplot" is essentially the same
    as in the stand alone version. Likewise for DIFFEV.
   
    The main use will branch to KUPLOT while the discus section
@@ -1022,14 +1057,14 @@
 2  chemistry
 !b chemistry
 
-   Enters the 'chem' sublevel. Here all kind of statistics about the
+   Enters the 'chem' sub level. Here all kind of statistics about the
    model crystal can be obtained like relative amount of elements,
    distribution of bond-lengths, ...
 
-   NOTE: The MMC and CHEM sublevel share some variables which define
-         neighbours etc. and settings made in this sublevel might be
-         altered when using the other sublevel. It is always save to
-         repeat settings when entering this sublevel if both levels
+   NOTE: The MMC and CHEM sub level share some variables which define
+         neighbors etc. and settings made in this sub level might be
+         altered when using the other sub level. It is always save to
+         repeat settings when entering this sub level if both levels
          are used. 
 
    Further information is available for commands
@@ -1039,37 +1074,37 @@
 
 !p @       ! Executes a macro (see main help level)
 !p =       ! Algebra (see main help level)
-!p angl    ! Calculate average bond angles for given neighbours
+!p angl    ! Calculate average bond angles for given neighbors
 !p apply_symmetry ! Use the space group symmetry to generate vectors
 !p aver    ! Calculates average structure and occupancies
 !p bang    ! Calculates distribution of bond angles
 !p blen    ! Calculates distribution of bond lengths
 !p bval    ! Calculates the bond valence sum for given atom
 !p continue! Continue a stopped macro (see main help level)
-!p corr    ! Calculates neighbour frequencies/correlations
-!p disp    ! Calculated average distances for given neighbours
+!p corr    ! Calculates neighbor frequencies/correlations
+!p disp    ! Calculated average distances for given neighbors
 !p echo    ! Echos a string (see main help level)
 !p elem    ! Show rel. abundances of elements in crystal
-!p env     ! Find neighbours around atom/site or position
+!p env     ! Find neighbors around atom/site or position
 !p eval    ! Evaluate an expression (see main help level)
-!p exit    ! Terminates the chem sublevel.
+!p exit    ! Terminates the chem sub level.
 !p field   ! Calculates a correlation field
 !p help    ! Gives on-line help for 'chem' (see main help level)
 !p homo    ! Calculate concentration/correlation distributions
 !p mode    ! Toggles between atoms and molecules mode
-!p neig    ! Show neighbours for given neighbour definition
+!p neig    ! Show neighbors for given neighbor definition
 !p set     ! Change settings of 'chem' parameters
 !p show    ! Show current parameters
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
-!p trans   ! Transforms between atomindex and unitcell/site
+!p trans   ! Transforms between atom-index and unit-cell/site
 !p wait    ! Waits for user input (see main help level)
 3  angl
 !b angl { <name>|<number>|"all"},{<name>|<number>|"all" },
 !b      {<name>|<number>|"all" } [,<file>]
 
    This command calculates the average bond angles and sigmas for the
-   specified triplets of atom types for the given neighbours. The neighbour
+   specified triplets of atom types for the given neighbors. The neighbor
    determination parameters are set via the commands -> 'set neig' and
    -> 'set ang'. The first atom on the 'angl' command forms the center of
    the bond angle. If an additional parameter <file> is given, all position 
@@ -1080,8 +1115,8 @@
 
    This command applies the space group symmetry to generate the 
    symmetrically equivalent vectors. You must have defined one or
-   several vectros with the ==> 'set vec' command and grouped 
-   these into neighborhods via ==> 'set neigh'.
+   several vectors with the ==> 'set vec' command and grouped 
+   these into neighborhoods via ==> 'set neigh'.
 
    The general concept assumes that you have defined the vector
    correlations for the position x,y,z within the asymmetric unit
@@ -1092,7 +1127,7 @@
    set vec, 1,  1, 2, 0,0,0
    set neig, vec, 1
    apply_symmetry
-   This would generate the correspondig vector correlations for 
+   This would generate the corresponding vector correlations for 
    the other atoms in the unit cell that are symmetrically
    equivalent to xyz.
 
@@ -1136,16 +1171,16 @@
    histogram is given by 'set bin,<ip>'. The calculation mode
    can be switched between "quick" and "exact". The mode "exact"
    calculates the bond angle for EVERY atom pair within the crystal
-   whereas the mode "quick" only looks at neighbouring unit cells.
+   whereas the mode "quick" only looks at neighboring unit cells.
    BUT in the "quick" mode errors can occur due to using the "purge"
    command or appending atoms to the structure. 
    Allowed bond angle range, bondlength range, calculation mode and 
-   sigmas for a neighbour matching criteria are given with the 
+   sigmas for a neighbor matching criteria are given with the 
    'set' command.
 
    If the first letters of the filename are "kuplot", the output
    is transferred directly to the KUPLOT section. This is valid 
-   within the suite only, a standalone DISCUS program will write a
+   within the suite only, a stand-alone DISCUS program will write a
    file that starts with the letters "kuplot".
 3  blen
 !b blen { "all" | <name> | <number> }, 
@@ -1157,17 +1192,17 @@
    histogram is given by 'set bin,<ip>'. The calculation mode
    can be switched between "quick" and "exact". The mode "exact"
    calculates the bond length for EVERY atom pair within the crystal
-   whereas the mode "quick" only looks at neighbouring unit cells.
+   whereas the mode "quick" only looks at neighboring unit cells.
    BUT in the "quick" mode errors can occur due to using the "purge"
    command or appending atoms to the structure. 
-   Allowed bond length range, calculation mode and sigmas for a neighbour
+   Allowed bond length range, calculation mode and sigmas for a neighbor
    matching criteria are given with the 'set' command.
    The resulting distances, standard deviations and number of pairs
    of atoms are stored in the res[i] variables.
 
    If the first letters of the filename are "kuplot", the output
    is transferred directly to the KUPLOT section. This is valid 
-   within the suite only, a standalone DISCUS program will write a
+   within the suite only, a stand-alone DISCUS program will write a
    file that starts with the letters "kuplot".
 3  bval
 !b bval "atom",<ia>,<radius>
@@ -1177,7 +1212,7 @@
    parameters are identical to those of the command -> env. The atom
    can either be specified by its index ("atom") or unit cell and 
    site number ("site"). The radius specifies the maximum distance 
-   for the function to search for neighbours. The radius is given in
+   for the function to search for neighbors. The radius is given in
    Angstroems. Note that bond valence parameters are only available
    for certain pairs of atoms in a specific oxidation state. It is
    also required to use the corresponding atom names, e.g. Zr4+ rather
@@ -1192,15 +1227,15 @@
    displacement ("dis") correlations within the crystal. The occ.
    correlations require the name or number of two DIFFERENT atom
    types to be given. The displacement correlation calculations
-   requires atom names or "all" to use all atom types. The neighbour
+   requires atom names or "all" to use all atom types. The neighbor
    determination parameters are set via the commands -> 'set neig' and
    -> 'set vec'. The displacement directions used to calculate disp.
    correlations are set using the -> 'set dir' command.  Correlation
    values can be :
 
-!p correlation > 0 : preferred same neighbours / displacement
+!p correlation > 0 : preferred same neighbors / displacement
 !p correlation = 0 : random distribution 
-!p correlation < 0 : preferred different neighbours / displacements
+!p correlation < 0 : preferred different neighbors / displacements
 
    The correlations are calculated according to the following 
    equations:
@@ -1216,13 +1251,13 @@
 !p
    The resulting correlations are stored in the variables res[<i>] 
    with <i> being the number of the corresponding definition for
-   neighbouring distances or vectors. The variable res[0] contains as 
+   neighboring distances or vectors. The variable res[0] contains as 
    usual the number of variables returned by the command.
 3  disp
 !b disp { <name>|<number>|"all"},{<name>|<number>|"all" } [,<file>]
 
    This command calculates the average distances and sigmas for the
-   specified pairs of atom types for the given neighbours. The neighbour
+   specified pairs of atom types for the given neighbors. The neighbor
    determination parameters are set via the commands -> 'set neig' and
    -> 'set vec'. If an additional parameter <file> is given, all difference
    vectors (in lattice units) are written to the corresponding file
@@ -1244,11 +1279,11 @@
    a distance of <radius> A around the given positions. This position
    can be given by an atom index <ia> ("atom"), a unit cell <nx>,<ny>,
    <nz> and site <site> ("site") or as absolute position <x>,<y>,<z>
-   in lattice units ("pos"). The neighbour determination mode and
+   in lattice units ("pos"). The neighbor determination mode and
    possible periodic boundaries can be defined using the command 
-   -> 'set mode'. The atom indices of the neighbouring atoms are 
+   -> 'set mode'. The atom indices of the neighboring atoms are 
    stored in the variable res[i]. The variable res[0] contains the
-   number of neighbours that were found.
+   number of neighbors that were found.
 3  field
 !b field {"occ" | "disp"},<a1>,<a2>,<file>,<xmin>,<xmax> [,<ymin>,<ymax>]
 
@@ -1260,10 +1295,10 @@
    can be read by the plot program KUPLOT. The last parameters define
    the range in x- and y-direction. If no y-values are given, only
    a 1-dimensional field is calculated. The values of <xmin>, <xmax>,
-   <ymin> and <ymax> are multiples of the neighbour vectors defined.
+   <ymin> and <ymax> are multiples of the neighbor vectors defined.
    
    The following example will compute the correlation field along <100> 
-   up to the 20th neighbour:
+   up to the 20th neighbor:
 
 !p discus/chem> set vec,1,1, 1,0,0
 !p discus/chem> set neig,vec,1
@@ -1282,13 +1317,13 @@
    computed. The resulting histogram is written to the file named
    <file>. 
 
-   "cor": Here the correlation distribution for all defined neighbours
-   is computed. The third parameter determines wether occupational 
+   "cor": Here the correlation distribution for all defined neighbors
+   is computed. The third parameter determines whether occupational 
    or displacement correlations are computed. The next two parameters
    specify the atom types and the last parameter the filename for
-   the histogram output. Note that *all* defined neighbours will be
+   the histogram output. Note that *all* defined neighbors will be
    written to the file. To get a specific correlation distribution 
-   use a single neighbour definition.
+   use a single neighbor definition.
 3  mode
 !b mode [ { "atom" | "mole" } ]
 
@@ -1300,14 +1335,14 @@
 3  neig
 !b neig <index>,<ic>
 
-   This command determines and displays the neighbouring atoms or
+   This command determines and displays the neighboring atoms or
    molecules around a given atom or molecule given by <index> for 
-   the neighbour definition <ic> (-> 'set neig').
+   the neighbor definition <ic> (-> 'set neig').
 
-   The resulting atom or molecule indices of the determined neighbours
+   The resulting atom or molecule indices of the determined neighbors
    are stored in the variable res[i] where i is the number of the
-   neighbour. The variable res[0] contains the number of found
-   neighbours.
+   neighbor. The variable res[0] contains the number of found
+   neighbors.
 3  set
 !b set <subcommand>,...
 
@@ -1333,7 +1368,7 @@
    variable <is1> gives the number of the crystal site at the center of the
    angle. Variables <is2> and <is3> give the number of the crystal site at each
    end of the angle. The values of <dx*>,<dy*> and <dz*> define relative 
-   position of the neighbors in the same or adjacent unit cells. Neighbours
+   position of the neighbors in the same or adjacent unit cells. Neighbors
    within one unit cell have <dx*>,<dy*> and <dz*> set to zero. If you want
    to define angles crossing the unit cell boundaries set <dx*>,<dy*> and
    <dy*> accordingly.
@@ -1370,11 +1405,11 @@
 !b set "mode",{"quick"|"exact"} [, {"period" | "normal"}] [,<axes>]
 
    This command switches the calculation mode between "quick" and "exact".
-   In the "quick" mode only the neighbouring unit cells around a certain
+   In the "quick" mode only the neighboring unit cells around a certain
    atom are taken into account. If the command 'purge' is performed or a
    structure is read where the atoms are not listed in the DISCUS order
    this mode might fail, because the calculation of the index of an atom
-   in a neighouring unit cell can be wrong. In this case the "exact" mode
+   in a neighboring unit cell can be wrong. In this case the "exact" mode
    should be used which taken ALL other atoms into account. 
 
    The second optional parameter determines if periodic boundaries are
@@ -1388,15 +1423,15 @@
 
    This command determines how DISCUS calculates the correlation value
    using the command 'corr'. These settings might be overwritten when
-   using the MMC sublevel. The following subcommands are valid:
+   using the MMC sub level. The following subcommands are valid:
 
 5  commands
-!p "ang"  : Defines neighbours via given angles
+!p "ang"  : Defines neighbors via given angles
 !p "add"  : Adds current definition to list of correlations
-!p "dis"  : Defines neighbours via distance criteria
+!p "dis"  : Defines neighbors via distance criteria
 !p "dir"  : Defines directions for displacement correlation calculations
-!p "rese" : Resets list of defined neighbours
-!p "vec"  : Defines neighbours via given vectors
+!p "rese" : Resets list of defined neighbors
+!p "vec"  : Defines neighbors via given vectors
 5  ang
 !b set "neig","ang",<iv1> [,<iv2>,..]
 !b set "neig","ang",<iv1> ,<iv2>, "range"
@@ -1409,7 +1444,7 @@
 5  add
 !b set "neig","add"
    
-   "Add" adds the current neighbour definition to the list of
+   "Add" adds the current neighbor definition to the list of
    definitions executed later by the -> 'corr' command. Use 'show'
    to get a list of defined correlation vectors/distances. DISCUS saves
    actually a copy so that no "add" is needed after the last definition
@@ -1417,17 +1452,17 @@
 5  dis
 !b set "neig","dis",<u>,<v>,<w>,<fsig> [, <wsig>] [, {"sym" | "nosym"}]
 
-   "Dis" causes DISCUS to determine the neighbours used for the 
+   "Dis" causes DISCUS to determine the neighbors used for the 
    calculation of the correlations using the given distance and 
    direction (optional). Those neighbors having a distance corresponding
    to the vector <u>,<v>,<w> given in unit cell units are taken into
    account for the calculation. The parameter <fsig> sets the allowed
    difference of the observed distance to the theoretical value
    (+- <fsig>/2). The next optional parameter gives the allowed deviation 
-   from the neighbouring direction given by <u>,<v>,<w>. The last 
+   from the neighboring direction given by <u>,<v>,<w>. The last 
    parameter determines if symmetrically equivalent directions to 
    <u>,<v>,<w> should be used as well. If this parameter is omitted ALL
-   neighbours with the correct distance are valid.
+   neighbors with the correct distance are valid.
 5  dir
 !b set "neig","dir",<x1>,<y1>,<z1> [,<x2>,<y2>,<z2>]
 !b set "neig","dir","all"
@@ -1436,12 +1471,12 @@
    calculation of displacement correlations. The parameter "all" will
    calculate the displacement correlations for displacements in all
    directions, i.e. the resulting correlation gives the correlation
-   of displacements of two neighbouring atoms regardless of the direction
+   of displacements of two neighboring atoms regardless of the direction
    of the displacement itself. One can also give specific directions,
    e.g. if one wants to determine the correlations of displacements 
    in  z-direction of site i with the ones in x direction of site j 
    one would enter the command 'set dir,0,0,1,1,0,0'. Note that the 
-   neighbouring vector between sites i and j is set by the command 
+   neighboring vector between sites i and j is set by the command 
    'set neig'. If <x2>,<y2>,<z2> are not given their values are set to 
    those of <x1>,<y1>,<z1>.
 5  rese
@@ -1507,12 +1542,22 @@
 !p set     ! Sets an individual definition
 !p show    ! Shows the current definitions
 3  add
-!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> [,<max_neig], <def_name>
+!b add <central_atom_type>, <neigh types>, <rmin>, <rmax> 
+       [,<max_neig], <def_name>, ["scope:"{"crystal"|"molecule"}]
 
    Add a new connectivity definition. 
    For the atom type <central_atom_type> a new definition is added. Atoms
    of types <neigh types> that are in a distance shell from <rmin> to <rmax> 
    are entered into this definition. 
+
+   If <rmin> is set to zero, all neighbors, even at infinitely small
+   distances are included in the connectivity. The central atom itself
+   is excluded from the list. 
+   Keep in mind that the central atom number may appear in the 
+   connectivity list, if periodic boundary conditions are included.
+   This will be the case if <rmax> is large enough to wrap around 
+   the complete crystal. 
+
    The last but one parameter is optional and can be used to limit the 
    number of neighbors in the connectivity. If present, it takes the
    form: "first_1" or "first_2" etc. The string "first_" is mandatory
@@ -1526,9 +1571,9 @@
    actual list is created via ==> 'create'.
 
    Keep in mind that many different atom types may exist, even if 
-   the names ant ADP of two or more atoms in the cell file were 
+   the names and ADP of two or more atoms in the cell file were 
    identical. If you read the structure with the "cell" command 
-   all atoms within this aasymmetric unit are treted as individual 
+   all atoms within this asymmetric unit are treated as individual 
    atom types! Use the atom type number instead of the atom name
    for a clear distinction.
    Alternatively read the structure with the "lcell" command
@@ -1585,7 +1630,7 @@
    been found using definition number <def.no.> for the scattering
    type of atom no. <atom_no.>
    The list of atom numbers is copied into the result variable "res".
-3  switche
+3  switch
 !b switch
 !b switch <is>, {<conn_number>|<conn_name>}
 !b switch <iatom>,<is>, {<conn_number>|<conn_name>}
@@ -1641,9 +1686,9 @@
    potential to distribute the anchors evenly and to avoid close anchor-anchor
    distances. Eventually the internally saved core is placed back into the 
    surface shell via the 'domain' concept. These steps overwrite previous user
-   settings within the connectivity, mmc, and domain menues.
+   settings within the connectivity, mmc, and domain menu's.
    The ligands are read from their structure files
-   and automatically transformed to the metric of the host structure. Theres is
+   and automatically transformed to the metric of the host structure. There is
    no need to transform the ligand metric to that of the host structure prior
    to being used. As the ligand molecules need to be rotated anyway to fit the 
    local surface, the orientational relationship between the ligand metric and 
@@ -1660,7 +1705,7 @@
 !b add <name>, <type>
    Adds a new definition, called <name> of type <type>.
    The definition is referenced by its name in the details on the 'set' command.
-   Valid tpyes are:
+   Valid types are:
    "normal"   The ligand molecule is place on top of a single surface atom. 
               A single ligand atom is bonded to the surface atoms. 
               The orientation of the molecule is defined by its axis which is
@@ -1670,7 +1715,7 @@
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
    "double"   The ligand molecule is bonded with individual bonds to two surface
-              atoms. Each bond connects a signle surface atom to a single
+              atoms. Each bond connects a single surface atom to a single
               ligand atom.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
@@ -1691,6 +1736,7 @@
 !b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
 !b set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
+!b set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
 
    This command allows to set the detailed definitions needed to decorate the
    surface.
@@ -1724,7 +1770,7 @@
        surface, in as much as the decoration type allows. 
        For the types "normal" and "bridge" the axis is placed parallel to the
        normal by an appropriate rotation of the ligand. 
-       For the types "double" and "multi" the orienation of the molecule is
+       For the types "double" and "multi" the orientation of the molecule is
        partially defined by the bonds. The axis is placed into a plane parallel
        to the local surface normal.
 
@@ -1738,6 +1784,12 @@
        DISCUS calculates the local surface normal and applies a strict
        adherence to the specified Miller indices.
        If the last parameter is "none", all restrictions are removed.
+
+   set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
+       Allows to define, which ligand atom numbers will be flagged as
+       new surface atom types. All these molecule atoms will inherit the
+       surface properties from the site to which this molecule as bonded
+       to.  
 3  show
 !b show
    Show all current definitions
@@ -1768,7 +1820,7 @@
    generators are applied after all other generators. Under this new mode,
    all atoms are in the sequence as printed in the International Tables.
    For centered space groups, this block of atom is followed by a
-   corresonping block of atoms that is simply translated by the centering
+   corresponding block of atoms that is simply translated by the centering
    vector.
 
    define generator,symmetry
@@ -1794,10 +1846,10 @@
    Domains are understood as any group of atoms which is to replace
    part of the original structure. A domain may be encoded within the
    file in two different ways:
-   A) A list of pseudoatoms
+   A) A list of pseudo-atoms
    B) A list of explicit domains
 
-   The pseudoatom file structure is identical to any DISCUS structure 
+   The pseudo-atom file structure is identical to any DISCUS structure 
    file. The atoms are interpreted as positions of the domains within 
    the host structure. Size, character, and orientation of the domain
    can be set by the user via the 'assign' commands at the domain level.
@@ -1805,10 +1857,10 @@
    The domain lists encode the size, character, and orientation within 
    the file itself.
 
-   Valid commands at this sublevel are:
+   Valid commands at this sub level are:
 3  commands
 
-!p assign     ! Assigns size, character etc to the pseudoatoms
+!p assign     ! Assigns size, character etc to the pseudo-atoms
 !p inputfile  ! Defines the input file name
 !p mode       ! Defines the interpretation of the input file 
 !p reset      ! Set definitions back to system start
@@ -1838,7 +1890,7 @@
 
    This encoding allows you to use all of the DISCUS tools to create a
    distribution of domains within the host crystal. An alternative 
-   encoding is the use of "pseudoatoms". These are regular atoms, which are
+   encoding is the use of "pseudo-atoms". These are regular atoms, which are
    interpreted by the domain level as positions of a domain.
 
    See the ==> 'insert' command for instructions to insert a domain into
@@ -1898,7 +1950,7 @@
    matrix used to define the domain shape. Again, the actual transformation
    matrix is the difference between the lines "*dim" and the "cent" line.
    By increasing the dimension, you increase the domain size. You can 
-   similaryl distort the domain shape. 
+   similarly distort the domain shape. 
 
    The generalized symmetry level ==> "symm" allows you to change the
    position, orientation and shape of the domain and/or the atom transformation
@@ -1952,7 +2004,7 @@
    for all domain character types.
    If the <radius> is set to zero or any negative number, the check is
    not performed for this domain type. Atoms of this domain type could
-   thus be right on top of an atomof the host structure! 
+   thus be right on top of an atom of the host structure! 
 
 !b assign "orient",<pseudoatom name>,<row_i>,<ti1>,<ti2>,<ti3>,<ti4>
 
@@ -2026,7 +2078,7 @@
 4  distance
 !b set distance, {"external" | "internal" |"all" }, <at_list>, <distance>
 
-   Set the distances at wich an atom from the atom list shall be 
+   Set the distances at which an atom from the atom list shall be 
    considered to be close to a surface.
 4  remove
 !b set remove {"strict" | "initial" | "trust" | "none"}
@@ -2049,7 +2101,7 @@
    This time only those atoms are removed that were in the crystal 
    prior to the current 'run' command. The atoms that are inserted
    during the current 'run' command are not tested. They may overlap
-   if you are not cereful. 
+   if you are not careful. 
 
    trust
    OK, you trust that no domains overlap with each other and that you
@@ -2093,7 +2145,7 @@
    of all molecules that are closer than the given distance.
 
    The last two parameters define the minimum and maximum radii of the
-   shell within DISCUS will search for neighbours.
+   shell within DISCUS will search for neighbors.
    The three parameters immediately prior to the radii define the 
    central position whose environment is to be found.
    The second to last but five parameter(s) define which of the 
@@ -2102,7 +2154,7 @@
    else only those atoms specified by <name> or <number> of the 
    scattering curve.
 
-   The number of neighbouring atoms is stored in "env[0]", the indices
+   The number of neighboring atoms is stored in "env[0]", the indices
    are stored in the next <env[0]> elements of "env". The resulting bond
    lengths are stored in the first <env[0]> elements of "res". "res[0]"
    is set to the same value as "env[0]". Thus, for example, it is possible 
@@ -2125,7 +2177,7 @@
 2  fourier
 !b fourier
 
-   This sublevel of DISCUS calculates the Fourier transform of the given 
+   This sub level of DISCUS calculates the Fourier transform of the given 
    crystal structure. The algorithm to speed up the explicit Fourier is 
    based on the program 'diffuse' by B.D. Butler. See also: B.D. Butler & 
    T.R. Welberry, (1992).  J. Appl. Cryst. 25, 391-399.
@@ -2262,7 +2314,7 @@
    specified: First the lot shape. The choices are "box" or 
    "ellipsoid". Usually the first letter of the parameter is sufficient.
    The following parameters <lx>,<ly> and <lz> describe the size of
-   the subvolumes in unit cells. The parameter <n> specifies the number
+   the sub-volumes in unit cells. The parameter <n> specifies the number
    of such volumes to be averaged. The last parameter can be "yes"
    or "no" and selects if periodic boundary conditions should be
    applied.
@@ -2329,7 +2381,7 @@
    scat O1,O  
    would set the scattering factor of O1 to those values of oxygen. The 
    second parameter must be a valid atom name. See the entry "atom names"
-   for a list of vaild names.
+   for a list of valid names.
 
 !b scat { <name> | <number> | "all" }, "internal"
 
@@ -2363,7 +2415,7 @@
    set this mode by typing "set internal".
    As of version 3.4.2 DISCUS can handle extended objects such as 
    cubes, cylinders, and spheres. Their Fourier transform is calculated
-   using the approprate anayltical expression. In order to activate
+   using the appropriate analytical expression. In order to activate
    this state, you must set the Fourier to "external".
 3  show
 !b show
@@ -2541,10 +2593,10 @@
 
    Objects are special molecules, that represent extended objects.
    DISCUS treats these objects as uniformly and continuously filled 
-   matter. Depending on the shape of the object, specialised 
+   matter. Depending on the shape of the object, specialized 
    Fourier transformations are calculated.
    Objects consist of four pseudo atoms with special names, that
-   characterise the location, shape and orientation of the object.
+   characterize the location, shape and orientation of the object.
 
    Domain are special molecules as well, which are used to represent 
    a guest structure within a host.
@@ -2560,7 +2612,7 @@
 !p fuzzy      ! Defines the distance between domain atoms and host atoms
 !p origin     ! Places the origin of the object/domain in real space coordinates
 !p run        ! Does the actual insertion
-!p show       ! Show the current paramters
+!p show       ! Show the current parameters
 !p type       ! Defines the object type number
 !p xaxis      ! Gives a deformation/scaling of the X-axis
 !p yaxis      ! Gives a deformation/scaling of the Y-axis
@@ -2601,7 +2653,7 @@
 3  density
 !b density <value>
 
-   Defines the scattering density of the objecti type. The scattering
+   Defines the scattering density of the object type. The scattering
    factor calculated for objects of this type is multiplied by this
    density. This allows to simulated objects of identical volume yet 
    different scattering density like bubbles of a denser material
@@ -2625,7 +2677,7 @@
 
    Each object/molecule is assigned a type number and you may use this
    to perform the same operation on objects/molecules of identical 
-   type (like ==> symetry, shear, plot).
+   type (like ==> symmetry, shear, plot).
 
    If <number> is given as a positive integer, the object/molecule will
    receive this number, which must correspond to an existing type.
@@ -2863,7 +2915,7 @@
    Every time you enter "inverse" the scale factor is calculated to be
    number of atoms in crystal / number of atoms in one unit cell. If you
    use experimental data, you MUST specify the scale factor every time you 
-   enter the "inverse" submenu.
+   enter the "inverse" sub menu.
 3  set
 !b set "accu",{"init"|"add"}
 !b set "excl",{none"|<value>}
@@ -2980,7 +3032,7 @@
    enddo
    This loop inserts up to 10 Al atoms in the x,y range 0 to 1 at
    z=0.5 with a minimum distance of 2.4 Angstrom. Since i[0], the 
-   value for <na> is initialla at n[1]+1, all previously inserted
+   value for <na> is initially at n[1]+1, all previously inserted
    atoms are not affected. Since i[0] remains fixed within the loop,
    each new al atom affects all al atoms previously inserted within
    this loop.
@@ -2995,15 +3047,15 @@
    The "mc" level has been removed in this version of the program.
 
 
-   Enter "Monte Carlo" section of DISCUS. This sublevel allows to create
+   Enter "Monte Carlo" section of DISCUS. This sub level allows to create
    disordered structures with given correlations and/or displacements
    using MC simulations. See help entry 'commands' for a complete list
-   of commands available in this sublevel. 
+   of commands available in this sub level. 
 
-   NOTE: The MC and CHEM sublevel share some variables which define
-         neighbours etc. and settings made in this sublevel might be
-         altered when using the other sublevel. It is always save to
-         repeat settings when entering this sublevel if both levels
+   NOTE: The MC and CHEM sub level share some variables which define
+         neighbours etc. and settings made in this sub level might be
+         altered when using the other sub level. It is always save to
+         repeat settings when entering this sub level if both levels
          are used. 
  
 3  commands
@@ -3046,7 +3098,7 @@
 !p mode    : Setting of MC mode (crystal modification)
 !p mole    : Setting molecule types for MC simulation
 !p move    : Setting size of generated SHIFT moves
-!p neig    : Setting of the neighbour definitions
+!p neig    : Setting of the neighbor definitions
 !p target  : Setting of correlations values to be achieved
 !p temp    : Setting of MC simulation temperature
 !p vec     : Definition of interaction vectors
@@ -3071,7 +3123,7 @@
 !b set "const",<ic>,<const> [,<fac>]
 
    The introduction of certain correlations depend on a given set of
-   near neighbour interactions. These values are initially unknown and
+   near neighbor interactions. These values are initially unknown and
    are adjusted using a feedback method (-> set feed). This command
    allows the user to set initial interaction parameters <const> for
    the corresponding interaction/correlation <ic>. The optional last
@@ -3089,7 +3141,7 @@
 !b set "energy",{"angle" | "cocc" | "cdis" | "disp"}
 
    This command selects the type of MC energy to be used for the
-   simulation. The MC sublevel of DISCUS currently allows to 
+   simulation. The MC sub level of DISCUS currently allows to 
    introduce occupational correlations ("cocc"), displacement 
    correlations ("cdis"), distortions ("disp") and angles ("angle").
    The energy for the correlation modes is based on an Ising model
@@ -3126,7 +3178,7 @@
    subcommand 'ang' uses an angle at a site, defined by (-> set ang). The
    subcommands 'add' and 'rese' allow the storage and reset of the 
    list of definitions. The details of these commands are given in the
-   online help for the same command 'set neig' in the CHEM sublevel.
+   online help for the same command 'set neig' in the CHEM sub level.
 4  mole
 !b set "mole",<typ1>,<typ2>
 
@@ -3149,7 +3201,7 @@
 !b                   {<number> | <name> | "all"}, <dist>
 
    The first  command sets the desired correlation value <value> for 
-   modes "cocc" and "cdis" for the neighbour definition <ic>.
+   modes "cocc" and "cdis" for the neighbor definition <ic>.
 
    The second version of the command sets the desired distance 
    between the given atom types to <dist> A. This setting is used
@@ -3178,18 +3230,18 @@
 2  mmc
 !b mmc
 
-   Enter "Multi Energy Monte Carlo" section of DISCUS. This sublevel
+   Enter "Multi Energy Monte Carlo" section of DISCUS. This sub level
    allows to create disordered structures with given correlations and/or
    displacements using Monte-Carlo simulations. Several different 
    "energies" can be minimized simultaneously.
 
    See help entry 'commands' for a complete list
-   of commands available in this sublevel. 
+   of commands available in this sub level. 
 
-   NOTE: The MMC, MC and CHEM sublevel share some variables which define
-         neighbours etc. and settings made in this sublevel might be
-         altered when using the other sublevel. It is always save to
-         repeat settings when entering this sublevel if both levels
+   NOTE: The MMC, MC and CHEM sub level share some variables which define
+         neighbours etc. and settings made in this sub level might be
+         altered when using the other sub level. It is always save to
+         repeat settings when entering this sub level if both levels
          are used. 
 
    NOTE: Many of the commands of the MMC mode are at first sight
@@ -3225,7 +3277,7 @@
    This command applies the space group symmetry to generate the 
    symmetrically equivalent vectors. You must have defined one or
    several vectros with the ==> 'set vec' command and grouped 
-   these into neighborhods via ==> 'set neigh'.
+   these into neighborhoods via ==> 'set neigh'.
 
    The general concept assumes that you have defined the vector
    correlations for the position x,y,z within the asymmetric unit
@@ -3236,8 +3288,8 @@
    set vec, 1,  1, 2, 0,0,0
    set neig, vec, 1
    apply_symmetry
-   This would generate the correspondig vector correlations for 
-   the otehr atoms in the unit cell that are symmetrically
+   This would generate the corresponding vector correlations for 
+   the other atoms in the unit cell that are symmetrically
    equivalent to xyz.
 
    If an atom is on a special position, like a mirror plane, the 
@@ -3276,8 +3328,8 @@
 !p limit   : Setting of a limited atom range
 !p mode    : Setting of MMC mode (crystal modification)
 !p move    : Setting size of generated SHIFT moves
-!p neig    : Setting of the neighbour definitions
-!p range   : Setting of the neighbouring ranges
+!p neig    : Setting of the neighbor definitions
+!p range   : Setting of the neighboring ranges
 !p target  : Setting of correlations values to be achieved
 !p temp    : Setting of MMC simulation temperature
 !p vec     : Definition of interaction vectors
@@ -3384,7 +3436,7 @@
 
    This command determines the type of MMC move used for modifying
    the crystal. You can simultaneously use any of the moves. The 
-   user defined values of the probablities <prob> are internally 
+   user defined values of the probabilities <prob> are internally 
    scaled to add up to one and give the probability for each type
    of move. The settings are explained in the RMC section under
    -> set mode.
@@ -3420,7 +3472,7 @@
    subcommand 'ang' uses an angle at a site, defined by (-> set ang). The
    subcommands 'add' and 'rese' allow the storage and reset of the 
    list of definitions. The details of these commands are given in the
-   online help for the same command 'set neig' in the CHEM sublevel.
+   online help for the same command 'set neig' in the CHEM sub level.
 
    If the last parameter is "range", and exactly two arguments 
    <iv1>,<iv2> are given, then the range of correlations from
@@ -3473,12 +3525,12 @@
 !b
 
    The target command sets the desired correlation values for each of
-   the defined interaction neighbourhoods <ic> (-> set neigh).
+   the defined interaction neighborhoods <ic> (-> set neigh).
 
-   Depending on the neighbourhood type you must specify exactly one
-   or several target energy types for each <ic>. The neighbourhoods 
+   Depending on the neighborhood type you must specify exactly one
+   or several target energy types for each <ic>. The neighborhoods 
    "vector", <cor>, and "angle" require one energy type, while the
-   neighbourhood "environment" may take several different energies.
+   neighborhood "environment" may take several different energies.
    For each interaction <ic> you may specify several targets for different 
    atom combinations.
 
@@ -3493,7 +3545,7 @@
    The last keyword defines how the target shall be achieved. 
    With "CORR", you want to achieve the target <correlation>.
    DISCUS uses the feedback loop to adjust the value of the
-   Ising Energy in order to achive the desired correlation.
+   Ising Energy in order to achieve the desired correlation.
    With "ENER", you fix the value of the Ising energy to the 
    value of <energy>. For negative <energy> values like atoms 
    will tend to be neighbors, while a positive <energy> favors
@@ -3513,8 +3565,8 @@
    in round brackets. In this case a positive correlation will 
    lead to clusters that consist of any atom of the first group to be
    neighbor to another atom of the first group and likewise at a 
-   different place in teh crystal for the second group. A negative 
-   correlation will give you a crystal in wich an atom of the first 
+   different place in the crystal for the second group. A negative 
+   correlation will give you a crystal in which an atom of the first 
    group has an atom of the second group as neighbor.
 
 
@@ -3584,7 +3636,7 @@
    of DISCUS on the screen.
 2  molecularize
 !b molecularize "conn", <central> [, <exclude> ...]
-!b molecularize "range", <from>, <to>, <type> [, <Biso>]
+!b molecularize "range", <from>, <to>, <molecule_type> , <molecule_Biso>
 
    This command allows to group a set of atoms into a molecule.
 
@@ -3598,7 +3650,8 @@
    rotate a partial molecule.
 
    The second version places the consecutive range of atoms into 
-   a molecule. DISCUS will not check how close these atoms are.
+   a molecule of type <molecule_type>. 
+   DISCUS will not check how close these atoms are.
 2  output
 !b output
 
@@ -3676,8 +3729,8 @@
 !b "powder" [,{"dst"|"tth"|"stl"|"q"} [,<min>,<max>,<step>] ] 
    Sets the output format to powder. You must have calculated a 
    powder diffraction pattern using the ==> 'powder' menu of DISCUS.
-   DISCUS writes a two collumn output, with the intensity
-   in the second collumn. The value in the first column is set by the
+   DISCUS writes a two column output, with the intensity
+   in the second column. The value in the first column is set by the
    optional second parameter and may be:
    "dst" : dstar = 1./d(hkl) = 2* sin(theta)/lambda
    "tth" : 2-Theta
@@ -3723,7 +3776,7 @@
    Sets the output to standard file format, which is used by KUPLOT. 
    The output file contains two initial lines and then a block for each 
    data line separated by an empty line. The first line contains the 
-   number of data points along the abszissa and the ordinate, the 
+   number of data points along the abscissa and the ordinate, the 
    second line the minimum and maximum value of the indices in reciprocal
    space along the abscissa and ordinate respectively.
 !b "vtk"
@@ -3928,7 +3981,7 @@
 
    If the optional parameter "all" is given, DISCUS will not expand
    the reflections by the reciprocal space symmetry operations. This is
-   usefull, if you have a data set that represents all of reciprocal 
+   useful, if you have a data set that represents all of reciprocal 
    space and has not been merged to the asymmetric unit in reciprocal space.
 
    If you use this option, DISCUS automatically assumes that a
@@ -4017,7 +4070,7 @@
    Every time you enter "patterson" the scale factor is calculated to be
    number of atoms in crystal / number of atoms in one unit cell. If you
    use experimental data, you MUST specify the scale factor every time you 
-   enter the "patterson" submenu.
+   enter the "patterson" sub menu.
 3  set
 !b set "accu",{"init"|"add"}
 !b set "excl",{"none"|<value>}
@@ -4132,11 +4185,11 @@
 
    It requires the input file to be a SHELX HKLF4 file.
    The results are written to screen only or optionally into the 
-   outputfiles:
+   output files:
    <outputfile>.ehkl   Normalized structure factors for all input reflections
    <outputfile>.statistics  Statistical values for the E
    <outputfile>.short	    Short summary of statistical values
-   <outputfile>.histogramm  Number of E versus |E| for plotting 
+   <outputfile>.histogram   Number of E versus |E| for plotting 
 
    The input file must have been defined by ==> "file a,<infile>",
    For the statistics to be correct, the correct unit cell must have been
@@ -4175,20 +4228,20 @@
    The value of "rho(r)" is the probability density of finding an
    atom at the distance "r" from a given atom. Besides calculating
    G(r) from a given structure, the structure can be modified to
-   match a observed G(r) via the RMC method. Note, that this sublevel
+   match a observed G(r) via the RMC method. Note, that this sub level
    uses many RMC commands and will overwrite possible settings made
    in the RMC segment. All commands are listed in the help entry
    'commands'. Only commands unique to this level are described
    below.
 
 3  commands
-   Valid commands at this sublevel are :
+   Valid commands at this sub level are :
 
 !p @       ! Executes a macro (see main help)
 !p =       ! Algebra (see main help)
 !P calc    ! Calculates PDF for current structure
 !p data    ! Reads observed PDF for RMC refinement
-!p dese    ! Deselects used atomtypes (see RMC level)
+!p dese    ! Deselects used atom types (see RMC level)
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
 !p eval    ! Evaluates an expression (see main help)
@@ -4201,7 +4254,7 @@
 !p reset   ! Reset PDF module
 !p run     ! Start PDF refinement (see RMC level)
 !p save    ! Saves structure or PDF to given file
-!p sele    ! Selects used atomtypes (see RMC level)
+!p sele    ! Selects used atom types (see RMC level)
 !p set     ! Sets most PDF parameters
 !p show    ! Show current PDF settings
 !p stop    ! Stops execution of a macro (see main help level)
@@ -4389,7 +4442,7 @@
 
    "sphere",<diameter>
 
-   The effecto of this setting depends on the periodic boundary flag.
+   The effect of this setting depends on the periodic boundary flag.
    If periodic boundaries are chosen, the 'periodic' g(r) is
    multiplied by the shape function of a sphere of diameter <diameter>.
    f = 1 - 3/2 r/diameter + 1/2 (r/diameter)**3
@@ -4428,8 +4481,8 @@
 !b set "partial",<a1>,<a2>,<w>
 
    This command allows one to specify the weight <w> for each partial
-   from atoms <a1> and <a2>. This can be used in conjuction with the
-   program MIXSCAT to calculate the correctly weighted differntial 
+   from atoms <a1> and <a2>. This can be used in conjunction with the
+   program MIXSCAT to calculate the correctly weighted differential 
    PDFs from a model. If the second parameter is "internal", the weights
    are calculated from the scattering lengths of the elements (default).
 4  poly
@@ -4450,7 +4503,7 @@
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
-   <alp> controling tthe broadening which has the functional form
+   <alp> controlling the broadening which has the functional form
    <alp>**2 * r**2.
    Identical to "qbroad"
 4  qbroad
@@ -4458,7 +4511,7 @@
 
    PDF peaks are broadened at large values of r due to the instrument
    resolution of the measurement. This command sets the parameter
-   <qbroad> controling tthe broadening which has the functional form
+   <qbroad> controlling the broadening which has the functional form
    <qbroad>**2 * r**2.
    Identical to "qalpha"
 4  qmax
@@ -4551,7 +4604,7 @@
 2  plot
 !b plot
 
-   Switches to the structure plotting submenu. The structure can be 
+   Switches to the structure plotting sub menu. The structure can be 
    written in a format suitable for plotting by several structure plotting
    programs such as KUPL, GNUPLOT, DIAMOND; ATOMS.
 
@@ -4569,7 +4622,7 @@
 !p asym    ! Lists the content of the asymmetric unit
 !p chem    ! Lists all type of atoms present in the crystal
 !p col     ! Defines the sequence in which the xy and z coordinates are written.
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p des     ! Deselects atoms 
 !p echo    ! Echos a string, just for interactive check (see main help)
 !p exit    ! Terminates the plot sub level, returns to the main DISCUS level.
@@ -4620,7 +4673,7 @@
    Defines which bonds the plotting program XBS will draw. This 
    command does not affect the other plotting programs.
    Choose the pairs of atoms to be connected by bonds. Bonds that
-   fall into the intervall <rmin> to <rmax> are plotted. The thickness
+   fall into the interval <rmin> to <rmax> are plotted. The thickness
    of the bond is set to <diameter>. You can specify the bond color
    as either a gray value in the range [0 - 1] or an RGB triplet.
 3  chem
@@ -4756,21 +4809,21 @@
 !p            plotted. The file contains the typ, color and size code set
 !p            with the ==> 'set' command. Use 'load cr,<file>' to read the
 !p            file with KUPLOT.
-!p "atoms"    The coodinates are written in a format that can be imported
+!p "atoms"    The coordinates are written in a format that can be imported
 !p            in ATOMS using the 'import - free format' option. In order
 !p            to trick ATOMS into displaying the complete crystal, a 
 !p            new unit cell with the size of the crystal is used and the
 !p            space group is set to P1.
 !p "xbs"      The coordinates are written in the input format for XBS.
-!p            All atoms are automaticaly transformed into cartesian
+!p            All atoms are automatically transformed into Cartesian
 !p            space. Cartesian b axis is parallel to the crystal b axis,
-!p            the cartesian c axis is parallel to the crystal c* axis,
-!p            and the cartesian a axis is normal to b and c*, righthanded.
+!p            the Cartesian c axis is parallel to the crystal c* axis,
+!p            and the Cartesian a axis is normal to b and c*, right-handed.
 !p            The atom color are set with ==> 'set', the bonds that 
 !p            will be plotted are set with ==> 'bonds'.
-!p            The scale ist set automatically, the initial viewing
+!p            The scale is set automatically, the initial viewing
 !p            direction is along the ==> 'uvw' or 'hkl', the 
-!p            initial abszissa is along ==> 'abs'. The abszissa you 
+!p            initial abscissa is along ==> 'abs'. The abscissa you 
 !p            specify is projected into the plane normal to the 'uvw'
 !p            direction. You do not have to worry about the angle,
 !p            as long as it is not equal to zero degrees.
@@ -4786,9 +4839,9 @@
 !p            exist, it is created. 
 !p "diamond"  The coordinates are written as the DIAMOND XYZ file type.
 !p            space. Cartesian b axis is parallel to the crystal b axis,
-!p            the cartesian c axis is parallel to the crystal c* axis,
-!p            and the cartesian a axis is normal to b and c*, righthanded.
-!p            All atoms are automaticaly transformed into cartesian
+!p            the Cartesian c axis is parallel to the crystal c* axis,
+!p            and the Cartesian a axis is normal to b and c*, right-handed.
+!p            All atoms are automatically transformed into Cartesian
 !p            space. Import the file into DIAMOND by opening the file
 !p            under the 'file' menu. Use file type 'XYZ'. Display all 
 !p            atoms using the "Add all Atoms" switch in the "Structure"
@@ -4797,9 +4850,9 @@
 !p            of atoms is currently wrong. Use a "cif" format instead.
 !p "jmol"     The coordinates are written as the JMOL XYZ file type.
 !p            space. Cartesian b axis is parallel to the crystal b axis,
-!p            the cartesian c axis is parallel to the crystal c* axis,
-!p            and the cartesian a axis is normal to b and c*, righthanded.
-!p            All atoms are automaticaly transformed into cartesian
+!p            the Cartesian c axis is parallel to the crystal c* axis,
+!p            and the Cartesian a axis is normal to b and c*, right-handed.
+!p            All atoms are automatically transformed into Cartesian
 !p            space. Import the file into JMOL by opening the file
 !p            under the 'file' menu. Use file type 'XYZ'. Display all 
 !p            atoms using the "Add all Atoms" switch in the "Structure"
@@ -4818,7 +4871,7 @@
 
    "ignore"
    The properties listed will be ignored. An atom will be included in
-   the plot regardles, whether it has the properties or not, 
+   the plot regardless, whether it has the properties or not, 
    "present"
    An atom must have the properties listed, to be included in the plot
    "absent"
@@ -4893,7 +4946,7 @@
 
    The possible values for the colors <col> are:
 
-   The allowed colour values <icol> are:
+   The allowed color values <icol> are:
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
 !p   2 : green     6 : black        10 : dark magenta   14 : dark cyan
@@ -4910,7 +4963,7 @@
 
    If you are using the XBS program, the color can be represented 
    as an RGB triplet. If you give one value only, it is interpreted
-   as gray shade in teh range [0-1].
+   as gray shade in the range [0-1].
 3  show
 !b show
 
@@ -4927,7 +4980,7 @@
 3  title
 !p title <title>
 
-   A string is read, wich is used as title for the current frame of an
+   A string is read, which is used as title for the current frame of an
    XBS ==> 'prog frame' frame series.
 3  uvw
 !b uvw <u>,<v>,<w>
@@ -4965,7 +5018,7 @@
    the ==> 'sel' and the ==> 'exte' commands.
 2  powder
 
-   Switches to the powder diffraction sublevel of DISCUS. 
+   Switches to the powder diffraction sub level of DISCUS. 
 
    Two modes are used, the Debye scattering equation algorithm and a 
    complete integration of reciprocal space.
@@ -4984,7 +5037,7 @@
 !p =       ! assigns the value to a variable (see main help)
 !p asym    ! Lists the content of the asymmetric unit
 !p chem    ! Lists all type of atoms present in the crystal
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check (see main help)
 !p exit    ! Terminates the plot sub level, returns to the main DISCUS level.
 !p help    ! Gives on-line help for 'plot' (see main help)
@@ -5033,7 +5086,7 @@
 4  back
 !b set back, <p0> [, <p1> [,...]]
 
-   Set paramaters for a background polynomial.
+   Set parameters for a background polynomial.
 4  bragg
 !b set bragg, {"incl"|"excl"}
 
@@ -5137,11 +5190,11 @@
    space is used, see ==> 'set calc'
 
    "rietveld"
-   Preferred orientation effects are calulated according to the equation:
+   Preferred orientation effects are calculated according to the equation:
    P(h) = portion + (1-portion)*exp(damping*alpha**2)
 
    "march"
-   Preferred orientation effects are calulated according to the 
+   Preferred orientation effects are calculated according to the 
    modified March equation:
    P(h) = portion + (1-portion)*((damping*cos(alpha))**2+sin**2(alpha)/damping)**(3/2)
 
@@ -5171,7 +5224,7 @@
    The powder pattern is convoluted by this profile function.
 
    "off"
-   No convolution by an instrumental profil function is performed. 
+   No convolution by an instrumental profile function is performed. 
    A side effect, the parameter of ==> 'set delta' is set to zero.
 
    "gauss"
@@ -5211,10 +5264,10 @@
    This command applies to the full integration mode only. 
    It sets a shift of the grid on which intensities are calculated by 
    <shift_h>.
-   This will allow a substantial gain in computational spped for 
+   This will allow a substantial gain in computational speed for 
    situations in which only a part of reciprocal space has to 
    be integrated. If, for example, rods of diffuse intensity have to 
-   be calculated that have a finite widh in reciprocal space in the 
+   be calculated that have a finite width in reciprocal space in the 
    HK0 plane, then repeated calculations of the powder pattern with
    shift_h = plus/minus small values can be used to cover this finite
    width, while dh can be set to 1.0
@@ -5238,7 +5291,7 @@
 !b set stepr,<value>
 
    This command applies to the Debye mode only. 
-   The interatomic distances are binned to a histogram with stepwidt
+   The interatomic distances are binned to a histogram with step width
    <value>. This defaults to 0.01 Angstroem at program start.
    As the histogram array is of fixed size, this limits the maximum
    distance that debye can handle. See ==> 'show config' at the main
@@ -5343,7 +5396,7 @@
        The respective operations for these commands are carried out only
        if the selected atom fulfils the property selection criteria.
 
-   Local property selection rules are used in the menues:
+   Local property selection rules are used in the menus:
        'plot', 
        To apply these, use the local 'property' command within the menu.
        The local property selection criteria are valid within the menu
@@ -5362,7 +5415,7 @@
 
    "ignore"
             The properties listed will be ignored. An atom will be included in
-            the plot regardles, whether it has the properties or not, 
+            the plot regardless, whether it has the properties or not, 
    "present"
             An atom must have the properties listed, to be included in the plot
    "absent"
@@ -5399,7 +5452,7 @@
 !b clear <flag>, "types",  {"all" | <iscat> [, <iscat...]}
 !b clear <flag>, "atoms"}, {"all" | <start>,<end>}
 
-   Set or clear the property bit for atoms of selcted type or 
+   Set or clear the property bit for atoms of selected type or 
    for a range of atom numbers.
 
    The flag can be any of "domain", "outside", "external", "internal"
@@ -5435,7 +5488,7 @@
 !p cell    ! reads a unit cell from file
 !p lcell   ! reads a unit cell from file (large cells)
 !p echo    ! Echo a string (see main help)
-!p exit    ! Exits read sublevel
+!p exit    ! Exits read sub level
 !p free    ! Allow free modification of a structure.
 !p help    ! help to read (see main help)
 !p stru    ! reads a file containing a whole crystal
@@ -5484,7 +5537,7 @@
 !b stru <name>
 
    reads a whole structure from file <name>.
-   The space group information is ignored, nore is a check for consistency
+   The space group information is ignored, nor is a check for consistency
    of space group and lattice constants performed.
 
    If the file ends in 'cell', 'stru', 'CELL', 'STRU' the standard
@@ -5575,7 +5628,7 @@
 !p @       ! Executes a macro (see main help)
 !p =       ! Algebra (see main help)
 !p data    ! read experimental data for RMC fit
-!p dese    ! Deselects the atomtypes allowed for RMC moves/switches (-> sele)
+!p dese    ! Deselects the atom types allowed for RMC moves/switches (-> sele)
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
 !p eval    ! Evaluates an expression (see main help)
@@ -5586,7 +5639,7 @@
 !p rese    ! Reset RMC settings (i.e. reset plane counter)
 !p run     ! Start RMC fit
 !p save    ! Saves structure or intensity to given file
-!p sele    ! Selects the atomtypes allowed for RMC moves/switches (-> dese)
+!p sele    ! Selects the atom types allowed for RMC moves/switches (-> dese)
 !p set     ! Sets most RMC parameters
 !p show    ! Show current RMC settings
 !p stop    ! Stops execution of a macro (see main help level)
@@ -5626,8 +5679,8 @@
 3  dese
 !b dese { "all" | <name> | <number> }, [ ... ]
 
-   This command deselects atomtypes given either by <name> or <number> 
-   for the RMC moves, i.e. 'dese' those atomtypes which should not be
+   This command deselects atom-types given either by <name> or <number> 
+   for the RMC moves, i.e. 'dese' those atom-types which should not be
    moved or switched.
 3  msel
 !b msel { "all" | <number> } [ , <number> ...]
@@ -5697,8 +5750,8 @@
 3  sele
 !b sele { "all" | <name> | <number> }, [ ... ]
 
-   This command selects atomtypes given either by <name> or <number> 
-   for the RMC moves, i.e. 'sele' those atomtypes which should be
+   This command selects atom-types given either by <name> or <number> 
+   for the RMC moves, i.e. 'sele' those atom-types which should be
    moved or switched during the RMC cycles.
 3  set
 !b set "subcommand"
@@ -5842,8 +5895,8 @@
    This command sets the minimal allowed distance between two atom types
    to the value of <dist> A. A generated move will only be accepted
    if the moved atom is not closer than <dist> to the others. The 
-   atomtypes to be selected can be specified by either name or number or
-   all atomtypes can be selected by typing "all".
+   atom-types to be selected can be specified by either name or number or
+   all atom-types can be selected by typing "all".
 4  mode
 !b set "mode",<prob>,
 !b            { "shi[ft]" | "swc[hem]" | "swd[isp]" | "ext[ernal]" },
@@ -5980,7 +6033,7 @@
 !p =       ! Assigns the value to a variable (see main help)
 !p asym    ! Shows asymmetric unit
 !p chem    ! Shows the atoms present in the crystal
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p des     ! Deselects atoms
 !p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
@@ -6045,7 +6098,7 @@
 
    "ignore"
    The properties listed will be ignored. An atom will be included in
-   the saved file regardles, whether it has the properties or not, 
+   the saved file regardless, whether it has the properties or not, 
    "present"
    An atom must have the properties listed, to be included in the file
    "absent"
@@ -6265,7 +6318,7 @@
 !p msel    ! Select molecule types
 !p mode    ! Set the input mode (matrix, plane, eigenvectors)
 !p oincl   ! Include a range of objects
-!p origin  ! Define the orgin for the deformation 
+!p origin  ! Define the origin for the deformation 
 !p osel    ! Select the object types
 !p odes    ! Deselect the object types
 !p run     ! Perform the actual deformation
@@ -6326,7 +6379,7 @@
    If the optional last parameter is given, the length of the normal
    ==> 'uvw' to the plane is normalized to this length, otherwise the 
    normal is taken as is. This parameter helps you e.q. in a monoclinic
-   space, to aply a shift parallel to the (001) plane by specifying
+   space, to apply a shift parallel to the (001) plane by specifying
    the ==> 'hkl' 0,0,1 and then giving a distance from this plane at
    which the shear vector ==> 'vector' is to act, e.g. the d-spacing 
    of the (001) planes.
@@ -6334,7 +6387,7 @@
    that is proportional to their distance from the plane. Points at 
    a distance equal to the length of 'uvw' are shifted by the vector,
    those twice as far away are shifted twice as much. Points on 
-   opposite sides of the plane are shifed in opposite directions.
+   opposite sides of the plane are shifted in opposite directions.
 3  incl
 !b incl {<start>,<end> | "all" | "envi" }
 
@@ -6354,7 +6407,7 @@
 3  matrix
 !b matrix <11>,<12>,<13>,<21>,<22>,<23>,<31>,<32>,<33>
 
-   This command defines explicitely the deformation tensor. All
+   This command defines explicitly the deformation tensor. All
    nine elements must be given.
 3  mincl
 !b mincl {<start>,<end> | "all" }
@@ -6406,7 +6459,7 @@
    You can tell DISCUS which input you intend to use for the 
    definition of the deformation tensor. The commands ==> 'uvw', 'hkl'
    'vector', 'matrix', rmatrix', and 'eigen' will automatically set 
-   this flag as well. The last of these commands type befor the final
+   this flag as well. The last of these commands type before the final
    ==> 'run' determines the actual input mode that is assumed.
 3  odes
 !b odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
@@ -6438,13 +6491,13 @@
    This commands sets the origin to which the shear operation refers to.
 
    If you selected atoms by ==> 'sel', the last optional parameter will
-   alway default to an origin with respect to the crystal base system.
+   always default to an origin with respect to the crystal base system.
    The specified origin is subtracted from each atom position prior to the
    shear operation.
 
    If you selected molecules ==> 'msel' or objects ==> 'osel', the last
    optional parameter will be interpreted. 
-   If it is set to "molecule", the origin is considerd to be at vector
+   If it is set to "molecule", the origin is considered to be at vector
    <x>,<y>,<z> relative to the origin of each individual molecule or
    object. All distances within the molecule or object are sheared 
    accordingly.
@@ -6518,7 +6571,7 @@
    If the optional last parameter is given, the length of the normal
    ==> 'uvw' to the plane is normalized to this length, otherwise the 
    normal is taken as is. This parameter helps you e.q. in a monoclinic
-   space, to aply a shift parallel to the (001) plane by specifying
+   space, to apply a shift parallel to the (001) plane by specifying
    the ==> 'hkl' 0,0,1 and then giving a distance from this plane at
    which the shear vector ==> 'vector' is to act, e.g. the d-spacing 
    of the (001) planes.
@@ -6526,7 +6579,7 @@
    that is proportional to their distance from the plane. Points at 
    a distance equal to the length of 'uvw' are shifted by the vector, #
    those twice as far away are shifted twice as much. Points on 
-   opposite sides of the plane are shifed in opposite directions.
+   opposite sides of the plane are shifted in opposite directions.
 3  vector
 !b vector <x>,<y>,<z>
 
@@ -6541,7 +6594,7 @@
    that is proportional to their distance from the plane. Points at 
    a distance equal to the length of 'uvw' are shifted by the vector, #
    those twice as far away are shifted twice as much. Points on 
-   opposite sides of the plane are shifed in opposite directions.
+   opposite sides of the plane are shifted in opposite directions.
 2  show
 !b show <subcommand>,..
 
@@ -6613,7 +6666,7 @@
    Show the list of neighbors around atom no. <atom_no.>, which have
    been found using definition number <def.no.> for the scattering
    type of atom no. <atom_no.>
-   The list of atom numbers is coppied into the result variable "res".
+   The list of atom numbers is copied into the result variable "res".
 3  envi
 !b show "environment"
 
@@ -6717,7 +6770,7 @@
 2  stack
 !b stack
 
-   Switches to the stacking fault submenu of DISCUS. 
+   Switches to the stacking fault sub menu of DISCUS. 
    At this sub menu you create a crystal containing stacking faults.
    Several types of layers can be stacked on top of each other. At present
    these layers are read from file. In future releases you will be able to
@@ -6758,7 +6811,7 @@
 !p aver    ! Sets the intended average translation
 !p ccol    ! Reads a single column of the correlation matrix
 !p cele    ! Reads a single element of the correlation matrix
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p create  ! Creates the list of layer origins
 !p crow    ! Reads a single row of the correlation matrix
 !p dist    ! Defines the distribution of layer types
@@ -6846,9 +6899,9 @@
 !b first {"random" | <type_number>}
 
    Determines the type of the first layer type. 
-   with the paremeter "random", the first layer type is determined by
+   with the parameter "random", the first layer type is determined by
    a weighted random choice calculated from the correlation matrix.
-   This is the default behaviour.
+   This is the default behavior.
    Alternatively a <type number> fixes the first layer type to this 
    particular type.
 3  four
@@ -6897,7 +6950,7 @@
 3  modulus
 !b modulus <x1>,<y1>,<z1>, <x2>,<y2>,<z2>
 
-   Sets the two moduli vectors that are used to restrict the origins to
+   Sets the two modulo vectors that are used to restrict the origins to
    a finite volume around the average translation vector. The plane
    defined by these two vectors need not to be normal to the average
    translation.
@@ -6919,7 +6972,7 @@
    equal to zero, the corresponding coordinate of the origin is taken modulo
    this parameter. 
 
-   DISCUS does NOT check whether the moduli vectors are translation vectors
+   DISCUS does NOT check whether the modulo vectors are translation vectors
    of the current space group!
 3  number
 !b number <n>
@@ -6935,7 +6988,7 @@
    are chosen according to the overall probabilities for each layer type.
    The next layer is then shifted by the corresponding translation vector
    between the resulting neighbors. In addition a random fraction of the 
-   two moduli vectors is added, which results in a random distribution
+   two modulo vectors is added, which results in a random distribution
    of the next layer origin.
 
 !b random prob,<value>
@@ -7037,11 +7090,11 @@
    vectors weighted by the corresponding probability as stored in
    the correlation matrix.
    If the modulus is set "on", each origin is calculated as above. The
-   origin is then expressed as multiples of the two moduli vectors and
+   origin is then expressed as multiples of the two modulo vectors and
    the average translation. If any of the two multipliers corresponding
-   to the two moduli vectors is larger than |1|, the moduli vector is
+   to the two modulo vectors is larger than |1|, the modulo vector is
    subtracted from the origin. This has the effect that all origins are
-   no further than the moduli vectors from the average translation.
+   no further than the modulo vectors from the average translation.
    Even though all translation vectors might point in one direction,
    you can restrict the crystal to any arbitrary direction by defining
    the average vector ==> 'set trans', ==> 'aver'.
@@ -7084,8 +7137,15 @@
 !b boundary "form",h,k,l [,<distance>] [,{"inside"}|{"outside"}]
 !b boundary "form","cubeoct",<distance> [,{"inside"}|{"outside"}]
 !b boundary "sphere",<radius> [,{"inside"}|{"outside"}]
-!b boundary "ellipsoid",<radius_a>, <radius_b>, <radius_c> [,{"inside"}|{"outside"}]
+!b boundary "ellipsoid",<diam_a>, <diam_b>, <diam_c> [,{"inside"}|{"outside"}]
 !b boundary "cylinder",<radius>,<half-height> [,{"inside"}|{"outside"}]
+            Optional parameters for all forms are:
+            "centx:"<center_x>   The central location for the 
+            "centy:"<center_y>   boundary is at this point
+            "centz:"<center_z>   Defaults to (0, 0, 0)
+
+            "keep:"{"inside"}|{"outside"}  Keep atoms on the inside or
+                                           outside of boundary
 
    This commands removes all atoms that are outside a boundary surrounding
    the crystal. 
@@ -7159,7 +7219,7 @@
 
    The optional parameter {"equal"|"any"} tells DISCUS to look either
    for equal atom types only or to include all atom types surrounding
-   the central atom. If the crystal structure consits of many different
+   the central atom. If the crystal structure consist of many different
    sites a more precise result will be obtained by restricting the 
    surface to atoms equal in type to the central atom. If, however, 
    there is a mixed occupancy on a given site in the unit cell, all
@@ -7205,7 +7265,7 @@
    Distance in Angstroem between an atom and the surface. If set to
    zero, the flag is not set.
 
-   Instead of the aom list, the values can be set for all atoms to:
+   Instead of the atom list, the values can be set for all atoms to:
 
    "default"
    A default value of 2.55 Angstroem for all atoms.
@@ -7231,7 +7291,7 @@
 2  symmetry
 !b symmetry
 
-   Switches to the symmetry submenu of DISCUS. You can define a general 
+   Switches to the symmetry sub menu of DISCUS. You can define a general 
    symmetry operation in triclinic space such as a rotation around a 
    general axis by a general angle. DISCUS performs a symmetry operation 
    in general triclinic space according to the matrix notation:
@@ -7255,7 +7315,7 @@
 !p asym    ! Shows asymmetric unit
 !p calc    ! Calculates the symmetry transformation for a single point
 !p chem    ! Shows the atoms present in the crystal
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p des     ! Deselects atoms
 !p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
@@ -7584,8 +7644,8 @@
 2  transform
 !b tran
 
-   Switches to the unit cell transformation submenu of DISCUS. 
-   At this sublevel you can define the relationship between an old and a
+   Switches to the unit cell transformation sub menu of DISCUS. 
+   At this sub level you can define the relationship between an old and a
    new unit cell and perform the transformation of the atoms in the crystal.
    An interactive transformation allows to calculate the result for any 
    single real and reciprocal space vector in both directions:
@@ -7632,7 +7692,7 @@
 !p cold    ! Sets the old base vector "c" in terms of the new base
 !p csnew   ! Sets the new reciprocal base vector "c" in terms of the old base
 !p csold   ! Sets the old reciprocal base vector "c" in terms of the new base
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p des     ! Deselects atoms
 !p echo    ! Echo a string (see main help)
 !p eval    ! Evaluates an expression for interactive check (see main help)
@@ -8001,11 +8061,11 @@
 !p "vol[1]"    Unit cell volume in A**3
 !p "rvol[1]"   Reciprocal unit cell volume in A**(-3)
 
-!p "env[<i>]"      Index of neighbouring atoms as found by 
+!p "env[<i>]"      Index of neighboring atoms as found by 
 !p                 ==> "find"
 !p                 "env[0]" is the number of neighbours.
 
-!p "menv[<i>]"      Index of neighbouring molecules as found by 
+!p "menv[<i>]"      Index of neighboring molecules as found by 
 !p                 ==> "find"
 !p                 "menv[0]" is the number of neighbours.
 
@@ -8069,7 +8129,7 @@
 2  waves
 !b wave
 
-   displaces the atoms along a wave. It generates sublevel with prompt
+   displaces the atoms along a wave. It generates sub level with prompt
    "discus/wave >".
 
    Further help topics are:
@@ -8083,7 +8143,7 @@
 !p amp     ! Sets the amplitude in Angstrom
 !p asym    ! Shows asymmetric unit
 !p chem    ! Shows the atoms present in the crystal
-!p continue! Coninue a stopped macro (see main help level)
+!p continue! Continue a stopped macro (see main help level)
 !p dens    ! Sets the wave type to density wave
 !p des     ! Deselects atoms
 !p echo    ! Echo a string (see main help)
@@ -8414,7 +8474,7 @@
    specific commands are described here and are grouped as follows:
 
 !p APPL   Errors specific to DISCUS usage
-!p CHEM   Errors at the chemistry sublevel
+!p CHEM   Errors at the chemistry sub level
 !p FOUR   Errors related to Fourier Transform
 !p MMC    Errors at the Monte Carlo level
 !p PDF    Errors at the PDF level
@@ -8438,9 +8498,9 @@
    operating system.
    If you are a bit more daring, you can use the "live" error setting.
    With this setting, DISCUS will continue to run a macro after an 
-   error has occured. This is helpful if you attempt to read a file
+   error has occurred. This is helpful if you attempt to read a file
    of unknown length with ==> 'fget' and need to catch the EOF signal.
-   Oter than that be careful!
+   Other than that be careful!
 
 3  appl
 
@@ -8471,7 +8531,7 @@
    command to select individual atom types or to select all atoms present 
    in the crystal. 
 4  -4
-   Extend of plotspace is zero
+   Extend of plot space is zero
 
    The dimensions of the space from which atoms are to be plotted is zero. 
    Check the values displayed by the plot 'show' command and use the 
@@ -8725,7 +8785,7 @@
    An attempt was made to write output to or read from a file without 
    defining a file name. DISCUS does not provide default names for the
    output of the 'plot' command or the input filenames. Check the
-   'outfile' command at sublevels 'output' and 'plot' or the 'content'
+   'outfile' command at sublevel 'output' and 'plot' or the 'content'
    command at sublevel 'microdomains'. 
 4  -38
    Unsuitable file types for Patterson
@@ -8855,11 +8915,11 @@
    met the conditions imposed by the correlation matrix. Check the
    correlation matrix for proper values.
 4  -56
-   Av. Transl. in plane of moduli vectors
+   Av. Transl. in plane of modulo vectors
 
    The average translation vector, - calculated from the matrix of
    translation vectors and the correlation matrix or read via the 'aver'
-   command is in the plane defined by the two moduli vector that were
+   command is in the plane defined by the two modulo vector that were
    read using the 'modu' command. 
    Use the 'show' command to check the values of the vectors. Correct
    the vectors by the 'aver', 'modu' commands.
@@ -8969,7 +9029,7 @@
 4  -72
    Too many atom types in file
 
-   The nunmber of different atom types in the structure file is too
+   The number of different atom types in the structure file is too
    large. Note that DISCUS treats atoms of the same name but with 
    different B values as different atom types. The maximum value
    is defined in the variable MAXSCAT in 'config.inc'. If necessary 
@@ -9008,7 +9068,7 @@
 
    You used a wave length symbol unknown to DISCUS. Check for a typing
    error and consult the list of allowed wave length symbols in the help
-   file through "help wavelength". The wave length of nonlisted radiations
+   file through "help wavelength". The wave length of non listed radiations
    must be explicitly given as real value in Angstroem. 
 4  -78
    Wrong optional parameter for HKLF4 format
@@ -9020,9 +9080,9 @@
    Alternatively increase the size of the variable "MAXPAR_RES" in file
    "param.inc"
 4  -80
-   Angle between Normal and Abszissa is 0
+   Angle between Normal and Abscissa is 0
 
-   The angle between the normal and the abszissa of the plot is 
+   The angle between the normal and the abscissa of the plot is 
    zero degrees. Check the values you selected with the ==> 'uvw', 'hkl'
    and ==> 'abs' commands, and verify the angle in the ==> 'show'
    output.
@@ -9068,7 +9128,7 @@
    constants are different from those of the host crystal. 
    Check the header of the domain file and the host structure for 
    different metric. 
-   If necessary, ==> 'transform' the domain strucure into the unit cell
+   If necessary, ==> 'transform' the domain structure into the unit cell
    metric of the host crystal prior to the insertion.
 4  -88
    Bravais types differ
@@ -9077,7 +9137,7 @@
    lattice type is different from that of the host crystal. 
    Check the header of the domain file and the host structure for 
    different space group symbols
-   If necessary, ==> 'transform' the domain strucure into the unit cell
+   If necessary, ==> 'transform' the domain structure into the unit cell
    metric of the host crystal prior to the insertion.
 4  -89
    Unknown keyword in unit cell file
@@ -9107,7 +9167,7 @@
    Error reading generators from structure
 
    DISCUS was reading a structure file which contained a "generator" 
-   key word when the error occured.
+   key word when the error occurred.
 
    Check that there are all 13 required parameters, that there are no
    alphabetic characters etc.
@@ -9121,7 +9181,7 @@
 4  -94
    Invalid domain descriptor in input file
 
-   This error occured while reading the file that contains descriptions 
+   This error occurred while reading the file that contains descriptions 
    of domains. The file name was set by ==> 'input' within the 
    ==> 'domain' menu.
    The first parameter of the "domain" keywords in this file must be
@@ -9130,7 +9190,7 @@
 4  -95
    First domain keyword has parameters
 
-   This error occured while reading the file that contains descriptions 
+   This error occurred while reading the file that contains descriptions 
    of domains. The file name was set by ==> 'input' within the 
    ==> 'domain' menu.
    The first "domain" keyword must not have any parameters, and must 
@@ -9139,13 +9199,13 @@
 4  -96
    Illegal keyword in domain input file
 
-   This error occured while reading the file that contains descriptions 
+   This error occurred while reading the file that contains descriptions 
    of domains. The file name was set by ==> 'input' within the 
    ==> 'domain' menu.
    
    After the standard header, a domain input file may contain only 
    domain descriptors. These start with a "domain" keyword and end
-   with a "domain end" keyword". Valid specifyers within a domain are 
+   with a "domain end" keyword". Valid specifiers within a domain are 
    "POSI", "XAXI", "YAXI, "ZAXI", "CENT", "XDIM", "YDIM", "ZDIM"
 4  -97
    Atom type outside proper limits
@@ -9188,7 +9248,7 @@
    Property value outside defined range
 
    While reading a cell file or structure, DISCUS encountered a property
-   flag that is either zero or lareger than currently defined. 
+   flag that is either zero or larger than currently defined. 
    May be the input file was edited manually? Set the property flag to
    1 to define the questionable atom as a standard atom type.
 4  -103
@@ -9330,7 +9390,7 @@
 4  -123
    Atoms are at identical positions
 
-   While calculation a powder patterin DISCUS found a pair of atoms
+   While calculation a powder pattern DISCUS found a pair of atoms
    on identical positions. 
 4  -124
    Powder output type wrong /= I, S(Q), F(Q)
@@ -9346,10 +9406,10 @@
 4  -127
    Empty content file
 
-   One of the daomin content files does not contain any atoms. 
+   One of the domain content files does not contain any atoms. 
    Check the files to ensure that they all contain at least one
    atom.
-   If an emty file is intended, set the error handling to 'live'.
+   If an empty file is intended, set the error handling to 'live'.
    See 'set error, live'
 4  -128
    Could not add the new decoration
@@ -9377,7 +9437,7 @@
    Mismatch between corners and increments
 
    You used 'na', 'no', 'nt' to specify the number of data
-   points along an axis in reciprocal space. Thecorresponding
+   points along an axis in reciprocal space. The corresponding
    corners are, however, identical. 
    Adjust the number of data points along this axis to "1"
    or adjust the corners vie 'll', 'lr', 'ul', 'tl'.
@@ -9406,7 +9466,7 @@
    A connectivity list was referenced by its name but 
    does not seem to exist. Use the ==> 'connectivity' 
    command "create" first.
-   Check for typing mismatched between the cration and usage.
+   Check for typing mismatched between the creation and usage.
 4  -137
    Atom number is outside crystal
 
@@ -9421,6 +9481,62 @@
    The molecularizer detected that an atom is already part 
    of a valid molecule. Currently any given Atom may be part
    of a single molecule only.
+4  -139
+   Layer type outside limits
+
+   The ==> 'first' command in the stack menu allows to specify 
+   the type of the first layer. By default it is randomly
+   chosen from all layer types. If you specify a number on the
+   'first' command, this number must be in the range 
+   [1: number_of_layers_specified]
+   Check the number of ==> 'layer' commands and the value of
+   the number on the 'first' command line. 
+4  -140
+   CSSR file not allowed for read cell
+
+   The RMCprofile cssr file will in all likelihood contain 
+   atoms from several unit cells. You have to read this as 
+   a "structure". If the file does indeed contain atoms 
+   just from a asymmetric unit, read the file as "structure"
+   then save it as a "cell" file and expand this file to a 
+   full unit cell.
+4  -141
+   Atoms are too close to each other
+
+   During a read/cell, DISCUS discovered that atoms are at 
+   identical places in a unit cell. 
+   Check the values for the atom coordinates in the cell file.
+   There might be two atoms in the file that are separated 
+   by integer unit cell vectors.
+4  -142
+   Cubeoctahedron only allowed in cubic systems.
+
+   A cobeoctahedron was specified as the form on the boundary
+   command for a crystal that is not cubic. The
+   cubeoctahedron is a special form for cubic crystals only.
+   Impredictable forms would result for other crystal systems.
+4  -143
+   Wrong parameters for this bond type
+
+   The various bond models require a specific number of
+   anchor atom types for the surface. 
+   normal   1 surface atom
+   bridge   2 surface atom
+   double   1 surface atom for each bond
+   acceptor 1 surface atom
+   donor    1 surface atom
+
+   Check if the current environment is properly named
+   on the ==> "add" command within the decoration menu.
+   Check the parameters on the 'bond' command.
+4  -144
+   Too few atoms in ligand molecule 
+
+   The bond or axis instruction within the decoration menu
+   contained an atom number for the ligand molecule that is
+   outside the range of atoms in the molecule. Check if an 
+   atom is missing in the ligand structure file or if the 
+   atom number on the bond/axis command is erroneous.
 3  chem
    Errors at the chemistry level of DISCUS
 
@@ -9469,9 +9585,9 @@
    If you know that there are no other atom types in the given direction, 
    set the second atom type to "void".
 4  -8
-   No neighbouring atoms found
+   No neighboring atoms found
 
-   The 'freq' command found no neighbouring atoms for the given distance
+   The 'freq' command found no neighboring atoms for the given distance
    and direction. Check the online help for more information on 'neig'.
 4  -9
    Invalid correlation vector index given
@@ -9520,20 +9636,20 @@
 4  -17
    Correlation fields require same mode
 
-   To calculate correlation fields, all neighbour definitions must be
+   To calculate correlation fields, all neighbor definitions must be
    made using the same mode, i.e. 'dist' or 'vec'. Redefine the neighbours
    to be used via the command 'set neig'. This condition is only valid 
    for 2-dimensional correlation fields.
 4  -18
    Correlation fields require same # vectors
 
-   If working with neighbouring vector definitions to determine a
+   If working with neighboring vector definitions to determine a
    2D correlation field, the number of vectors must be the same for both
    directions.
 4  -19
-   No neighbouring molecules found
+   No neighboring molecules found
 
-   For the current neighbour definitions no neighbouring molecules were
+   For the current neighbor definitions no neighboring molecules were
    found. Check your input.
 4  -20
    No molecules present in crystal
@@ -9552,10 +9668,10 @@
    mode. Switch to 'atoms' mode using the command 'mode atom' and 
    reenter the desired command.
 4  -23
-   Too many neighbouring atoms/molecules
+   Too many neighboring atoms/molecules
 
-   The current operation has found too many neighbouring atoms or molecules.
-   Either restrict the neighbour definitions of adjust the variable
+   The current operation has found too many neighboring atoms or molecules.
+   Either restrict the neighbor definitions of adjust the variable
    CHEM_MAX_NEIG in the file 'config.inc' and recompile DISCUS. 
 4  -24
    Invalid correlation angle index given
@@ -9565,7 +9681,7 @@
    has not been defined. Check the list of defined environments and 
    the values of parameters in the current command line.
 4  -25
-   Invalid range for bond-angle histogramm
+   Invalid range for bond-angle histogram
 
    The upper and lower limits of the bond angle histogram are invalid.
    Check that none is lower than 0 degrees or larger than 180 degrees,
@@ -9592,7 +9708,7 @@
 4  -30
    Multiple identical sites in unit cell
 
-   Several sitex exist within the unit cell with (almost) identical
+   Several sites exist within the unit cell with (almost) identical
    coordinates. Thus DISCUS has a tough time to decide which of these
    sites you have in mind. 
    The symmetry expansion is carried out, but the results are written to 
@@ -9647,9 +9763,9 @@
    Check the parameters on the last ==> 'set cycle' command, 
    check that a ==> 'set cycle' command was used at all.
 4  -5
-   Number of feedback intervalls is zero
+   Number of feedback intervals is zero
 
-   The feedback intervall must be at least equal to one. 
+   The feedback interval must be at least equal to one. 
    Check the parameters on the last ==> 'set feed' command. 
    check that a ==> 'set feed' command was used at all.
 3  pdf
@@ -9855,15 +9971,15 @@
 !p #  24 : I212121     #  25 : Pmm2        #  26 : Pmc21       #  27 : Pcc2
 !p #  28 : Pma2        #  29 : Pca21       #  30 : Pnc2        #  31 : Pmn21
 !p #  32 : Pba2        #  33 : Pna21       #  34 : Pnn2        #  35 : Cmm2
-!p #  36 : Cmc21       #  37 : Ccc2        #  38 : Amm2        #  39 : Abm2
-!p #  40 : Ama2        #  41 : Aba2        #  42 : Fmm2        #  43 : Fdd2
+!p #  36 : Cmc21       #  37 : Ccc2        #  38 : Amm2        #  39 : Abm2=Aem2
+!p #  40 : Ama2        #  41 : Aba2=Aea2   #  42 : Fmm2        #  43 : Fdd2
 !p #  44 : Imm2        #  45 : Iba2        #  46 : Ima2        #  47 : Pmmm
 !p #  48 : Pnnn        #  49 : Pccm        #  50 : Pban        #  51 : Pmma
 !p #  52 : Pnna        #  53 : Pmna        #  54 : Pcca        #  55 : Pbam
 !p #  56 : Pccn        #  57 : Pbcm        #  58 : Pnnm        #  59 : Pmmn
 !p #  60 : Pbcn        #  61 : Pbca        #  62 : Pnma        #  63 : Cmcm
-!p #  64 : Cmca        #  65 : Cmmm        #  66 : Cccm        #  67 : Cmma
-!p #  68 : Ccca        #  69 : Fmmm        #  70 : Fddd        #  71 : Immm
+!p #  64 : Cmca=Cmce   #  65 : Cmmm        #  66 : Cccm        #  67 : Cmma=Cmme
+!p #  68 : Ccca=Ccce   #  69 : Fmmm        #  70 : Fddd        #  71 : Immm
 !p #  72 : Ibam        #  73 : Ibca        #  74 : Imma
 
 !p #  75 : P4          #  76 : P41         #  77 : P42         #  78 : P43
