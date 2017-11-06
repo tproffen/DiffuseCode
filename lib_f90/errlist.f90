@@ -166,8 +166,8 @@ SUBROUTINE errlist
      &  ' ',                                        & !-16  ! command
      &  ' ',                                        & !-15  ! command
      &  ' ',                                        & !-14  ! command
-     &  ' ',                                        & !-13  ! command
-     &  ' ',                                        & !-12  ! command
+     &  'Optional parameter value not recognized',  & !-13  ! command
+     &  'Optional parameter name not recognized',   & !-12  ! command
      &  'Error in subroutine',                      & !-11  ! command
      &  'Sub menu returned with error',             & !-10  ! command
      &  'Program section returned with error',      & ! -9  ! command
@@ -223,7 +223,7 @@ SUBROUTINE errlist
      &   /
        DATA ERROR (-20:-01) /                       &
      &  'Illegal argument for ln(x) function',      & !-20  ! fortran
-     &  'Illegal nesting of controll commands',     & !-19  ! fortran
+     &  'Illegal nesting of control commands',      & !-19  ! fortran
      &  'Unresolvable condition',                   & !-18  ! fortran
      &  'Too many indizes for DO-loop counter',     & !-17  ! fortran
      &  'Too deeply leveled (do,if) construction',  & !-16  ! fortran
