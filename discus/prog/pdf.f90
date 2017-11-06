@@ -3225,6 +3225,14 @@ inner:      DO iatom = ia+1, cr_natoms
                factor = REAL(pdf_deltar/pdf_gauss_step/(sigma))
                fac4   = REAL(pdf_deltar/dist)
                jgaus = MIN(igaus, IABS(INT(UBOUND(pdf_exp,1)/factor+0)))
+!if(jgaus>UBOUND(gaus,1) ) then
+!   write(*,*) ' ELEMENTS ', is, js
+!   write(*,*) ' sigma    ', sigma
+!   write(*,*) ' igaus    ', igaus
+!   write(*,*) ' jgaus    ', jgaus
+!   write(*,*) ' factor   ', factor
+!   write(*,*) ' PDF_EXP  ', UBOUND(pdf_exp,1)
+!endif
                DO ig = - jgaus, jgaus 
 !                 rg = (ig - 1) * pdf_deltar 
 !                 asym = 1.0 + rg / dist 
