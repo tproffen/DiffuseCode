@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-143,IO=4)
+      PARAMETER    (IU=-145,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'Decoration name not recognized      ',          & !-145 ! discus
+     &  'Too few atoms in ligand molecule    ',          & !-144 ! discus
      &  'Wrong parameters for this bond type ',          & !-143 ! discus
      &  'Cubeoctahedron only allowed in cubic systems.', & !-142 ! discus
      &  'Atoms are too close to each other  '            & !-141 ! discus
