@@ -56,7 +56,6 @@ CONTAINS
       INTEGER lpara (maxw), lp, length 
       INTEGER ce_natoms, lstr, i, j, k, iatom 
       INTEGER ianz, l, n, lbef , iianz
-      INTEGER    :: natoms,nscats
       LOGICAL lout 
       REAL werte (maxw) , wwerte(maxw)
       INTEGER          :: ncells
@@ -239,8 +238,9 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         j - 1)                                          
                         cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( &
                         k - 1)                                          
-                        cr_mole (cr_natoms) = cr_mole (n) 
-                        cr_prop (cr_natoms) = cr_prop (n) 
+                        cr_mole (cr_natoms) = cr_mole (n)
+                        cr_prop (cr_natoms) = cr_prop (n)
+                        cr_surf(:,cr_natoms) = cr_surf(:,n)
                         ENDDO 
                         ENDDO 
                         ENDDO 
@@ -424,93 +424,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                CALL rese_cr 
                sav_r_ncell = .false. 
                strucfile = cpara (1)
-internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-                  CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
-!                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
-               ELSE internals
-                  CALL import_test(0, strucfile, outfile)
-                  IF(ier_num == 0) THEN
-                     strucfile = outfile
-                  ELSE
-                     GOTO 8888
-                  ENDIF
-               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-                             n_atom, -1 , .false.)
-               IF (ier_num /= 0) THEN
-                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
-               ENDIF
-               need_alloc = .false.
-               IF(natoms > NMAX) THEN
-                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
-                  need_alloc = .true.
-               ENDIF
-               IF(nscats > MAXSCAT) THEN
-                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
-                  need_alloc = .true.
-               ENDIF
-               IF ( need_alloc ) THEN
-                  CALL alloc_crystal (nscats, natoms)
-                  IF ( ier_num /= 0 ) THEN
-                     GOTO 8888              ! Jump to handle error messages, amd macro conditions
-                  ENDIF
-               ENDIF
-               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
-                  n_atom>MOLE_MAX_ATOM                          ) THEN
-                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
-                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
-                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
-                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
-                  IF ( ier_num /= 0 )  THEN
-                     GOTO 8888              ! Jump to handle error messages, amd macro conditions
-                  ENDIF
-               ENDIF
-!
-               CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
-               cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
-               cr_at_lis, cr_pos, cr_mole, cr_iscat, cr_prop, cr_dim, as_natoms, &
-               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
-               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
-               IF (ier_num.ne.0) then 
-                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
-               ENDIF 
-               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
-                               + mole_len (mole_num_mole)                
-!                                                                       
-!     ------Define initial crystal size in fractional coordinates       
-!                                                                       
-               DO l = 1, 3 
-               cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
-               cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
-               ENDDO 
-!                                                                       
-!     ------The crystal size was read from the structure file           
-!                                                                       
-               IF (sav_r_ncell) then 
-                  DO i = 1, 3 
-                     cr_icc (i) = sav_ncell (i) 
-                  ENDDO 
-                  cr_ncatoms = sav_ncatoms 
-                  cr_ncreal  = sav_ncatoms 
-               ELSE 
-!                                                                       
-!     ------Define initial crystal size in number of unit cells         
-!                                                                       
-                  DO i = 1, 3 
-                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
-                  ENDDO 
-!                                                                       
-!     ------Define (average) number of atoms per unit cell              
-!                                                                       
-                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
-                                                * cr_icc (3) ))
-                  cr_ncatoms = cr_ncatoms
-                               cr_ncatoms = cr_ncatoms
-                  IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
-                     chem_period(:) = .false.
-                     chem_quick     = .false.
-                  ENDIF
-               ENDIF 
-               ENDIF internals
+               CALL do_readstru(strucfile)
 !                                                                       
             ELSE 
                ier_num = - 6 
@@ -578,6 +492,126 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
  1000 FORMAT    (1x,a16,i5) 
       END SUBROUTINE read_struc                     
+!
+!*******************************************************************************
+!
+SUBROUTINE do_readstru(strucfile)
+!
+! Do the full job for a 'read stru ' command
+!
+USE crystal_mod 
+USE chem_mod 
+USE discus_allocate_appl_mod
+USE discus_save_mod 
+USE molecule_mod 
+USE read_internal_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: strucfile
+!
+CHARACTER(LEN=1024) :: outfile 
+INTEGER             :: natoms
+INTEGER             :: nscats
+INTEGER             :: n_mole
+INTEGER             :: n_type
+INTEGER             :: n_atom
+INTEGER             :: i,l
+LOGICAL             :: need_alloc
+!
+LOGICAL             :: str_comp
+!
+internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
+                  CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
+!                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
+               ELSE internals
+                  CALL import_test(0, strucfile, outfile)
+                  IF(ier_num == 0) THEN
+                     strucfile = outfile
+                  ELSE
+                     RETURN
+                  ENDIF
+               CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+                             n_atom, -1 , .false.)
+               IF (ier_num /= 0) THEN
+                  RETURN                 ! Jump to handle error messages, amd macro conditions
+               ENDIF
+               need_alloc = .false.
+               IF(natoms > NMAX) THEN
+                  natoms = MAX(INT(natoms * 1.1), natoms + 10,NMAX)
+                  need_alloc = .true.
+               ENDIF
+               IF(nscats > MAXSCAT) THEN
+                  nscats = MAX(INT(nscats * 1.1), nscats + 2, MAXSCAT)
+                  need_alloc = .true.
+               ENDIF
+               IF ( need_alloc ) THEN
+                  CALL alloc_crystal (nscats, natoms)
+                  IF ( ier_num /= 0 ) THEN
+                     RETURN                 ! Jump to handle error messages, amd macro conditions
+                  ENDIF
+               ENDIF
+               IF(n_mole>MOLE_MAX_MOLE .or. n_type>MOLE_MAX_TYPE .or.   &
+                  n_atom>MOLE_MAX_ATOM                          ) THEN
+                  n_mole = MAX(n_mole +20 ,MOLE_MAX_MOLE)
+                  n_type = MAX(n_type +10 ,MOLE_MAX_TYPE)
+                  n_atom = MAX(n_atom +200,MOLE_MAX_ATOM)
+                  CALL alloc_molecule(1, 1,n_mole,n_type,n_atom)
+                  IF ( ier_num /= 0 )  THEN
+                     RETURN                 ! Jump to handle error messages, amd macro conditions
+                  ENDIF
+               ENDIF
+!
+               CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
+               cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
+               cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
+               as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
+               sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
+               IF (ier_num.ne.0) then 
+                  RETURN                 ! Jump to handle error messages, amd macro conditions
+               ENDIF 
+               mole_num_atom = mole_off (mole_num_mole)  &  !Update number of atoms in molecules
+                               + mole_len (mole_num_mole)                
+!                                                                       
+!     ------Define initial crystal size in fractional coordinates       
+!                                                                       
+               DO l = 1, 3 
+               cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
+               cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+               ENDDO 
+!                                                                       
+!     ------The crystal size was read from the structure file           
+!                                                                       
+               IF (sav_r_ncell) then 
+                  DO i = 1, 3 
+                     cr_icc (i) = sav_ncell (i) 
+                  ENDDO 
+                  cr_ncatoms = sav_ncatoms 
+                  cr_ncreal  = sav_ncatoms 
+               ELSE 
+!                                                                       
+!     ------Define initial crystal size in number of unit cells         
+!                                                                       
+                  DO i = 1, 3 
+                     cr_icc(i) = MAX(1,INT(cr_dim(i,2) - cr_dim(i,1) + 1. ) )                                                
+                  ENDDO 
+!                                                                       
+!     ------Define (average) number of atoms per unit cell              
+!                                                                       
+                  cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
+                                                * cr_icc (3) ))
+                  cr_ncatoms = cr_ncatoms
+                               cr_ncatoms = cr_ncatoms
+                  IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+                     chem_period(:) = .false.
+                     chem_quick     = .false.
+                  ENDIF
+               ENDIF 
+               ENDIF internals
+!
+END SUBROUTINE do_readstru
 !********************************************************************** 
       SUBROUTINE readcell (strucfile) 
 !-                                                                      
@@ -807,6 +841,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_mole(i) = 0
                   ENDIF
                   cr_prop (i) = nint (werte (5) ) 
+                  cr_surf(:,i) = 0                      ! Currently no save nor read for surface
 !                                                                       
                   IF (line (1:4) .ne.'    ') then 
                      ibl = ibl - 1 
@@ -1348,7 +1383,7 @@ check_calc: DO j = 1, ianz
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,     &
-      cr_mole,                                                          &
+      cr_mole, cr_surf,                                                 &
       cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
       spcgr_ianz, spcgr_para)                                           
@@ -1364,6 +1399,7 @@ check_calc: DO j = 1, ianz
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
+      INTEGER, DIMENSION(0:3,1:NMAX),INTENT(INOUT)  :: cr_surf
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
       REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
 !                                                                       
@@ -1418,7 +1454,7 @@ check_calc: DO j = 1, ianz
          IF (ier_num.eq.0) then 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_prop, cr_dim, &
+            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim, &
             as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)     
          ENDIF 
       ENDIF 
@@ -1823,7 +1859,7 @@ check_calc: DO j = 1, ianz
       END SUBROUTINE stru_readheader                
 !********************************************************************** 
       SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-      cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_prop, cr_dim,     &
+      cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,     &
       as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
@@ -1846,6 +1882,7 @@ check_calc: DO j = 1, ianz
       REAL            , DIMENSION(1:3,1:NMAX),INTENT(INOUT) :: cr_pos
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_iscat
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_mole 
+      INTEGER         , DIMENSION(0:3,1:NMAX),INTENT(INOUT) :: cr_surf
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_prop
       REAL            , DIMENSION(3, 2)      ,INTENT(INOUT) :: cr_dim      ! (3, 2) 
       INTEGER                                ,INTENT(INOUT) :: as_natoms 
@@ -2023,6 +2060,8 @@ check_calc: DO j = 1, ianz
          CALL no_error 
       ENDIF 
 !
+      cr_surf(:,:) = 0    ! Currently no surface save nor read
+!
       CLOSE (ist) 
 !                                                                       
  2000 FORMAT    (a) 
@@ -2194,6 +2233,7 @@ check_calc: DO j = 1, ianz
       ENDDO 
 !
       cr_mole = 0
+      cr_surf(:,:) = 0
 !                                                                       
       DO i = 0, MOLE_MAX_MOLE 
       mole_len (i) = 0 
@@ -3772,6 +3812,8 @@ header: DO
            CLOSE ( 99 )
            RETURN
         ENDIF
+        IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
+            line == CHAR (13) )  CYCLE header
         CALL do_cap (line(1:4))
         laenge = len_str(line)
         IF ( laenge .gt. 4 ) then
@@ -3852,6 +3894,8 @@ header: DO
 main: DO
         READ (99,1000, IOSTAT=ios) line
         IF ( IS_IOSTAT_END(ios) ) EXIT main
+        IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
+            line == CHAR (13) )  CYCLE main
         laenge = len_str(line)
 !
         bef   = '    '
