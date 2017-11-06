@@ -49,6 +49,7 @@ REAL                , DIMENSION(:,:), ALLOCATABLE :: rd_cr_pos    ! (1:3,1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_iscat  ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_prop   ! (1:NMAX)
 INTEGER             , DIMENSION(:),   ALLOCATABLE :: rd_cr_mole   ! (1:NMAX)
+INTEGER             , DIMENSION(:,:), ALLOCATABLE :: rd_cr_surf   ! (1:NMAX)
 REAL                , DIMENSION(3,2)  :: rd_cr_dim
 REAL                , DIMENSION(3,2)  :: rd_cr_dim0
 INTEGER                               :: rd_as_natoms 
