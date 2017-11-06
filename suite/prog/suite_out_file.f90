@@ -77,7 +77,8 @@ END SUBROUTINE output_save_file_1d
 !
 !  2D output file
 !
-SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt)
+SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt,&
+           header_lines, nheader)
 !
 USE kuplot_config
 USE kuplot_mod
@@ -90,6 +91,8 @@ REAL   , DIMENSION(1:4),     INTENT(IN) :: ranges
 INTEGER,                     INTENT(IN) :: npkt1
 INTEGER,                     INTENT(IN) :: npkt2
 REAL   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
+INTEGER,                                 INTENT(IN) :: nheader! number of lines in header
+CHARACTER (LEN=160), DIMENSION(nheader), INTENT(IN) :: header_lines
 !
 INTEGER, PARAMETER :: IFF = 2
 INTEGER            :: i, j
@@ -153,6 +156,10 @@ ELSE
 !
    CALL oeffne(IFF, outfile, 'unknown')
    IF(ier_num == 0) THEN
+!!!!!!!!!!!!!!!!!!!      CALL write_discus_nipl_header(iff)
+      DO i=1, nheader
+         WRITE(iff, '(a)') header_lines(i)(1:LEN_TRIM(header_lines(i)))
+      ENDDO
       WRITE(iff, 1000) npkt1, npkt2
       WRITE(iff, 1100) ranges
       DO j=1, npkt2
