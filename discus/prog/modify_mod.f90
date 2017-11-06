@@ -19,6 +19,7 @@ CONTAINS
       USE update_cr_dim_mod
       USE errlist_mod 
       USE random_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -303,6 +304,7 @@ CONTAINS
       INTEGER idest, isource, ityp, i, k, ii, jj, is, js, i0, j0 
       INTEGER  :: im, jm    ! molecule number 
       INTEGER  :: ip, jp    ! property values
+      INTEGER, DIMENSION(0:3) :: iis, jjs ! Surface values
       REAL i0pos (3), j0pos (3), ipos (3) 
       LOGICAL lswap 
 !                                                                       
@@ -337,11 +339,14 @@ CONTAINS
       js = cr_iscat (jj) 
       im = cr_mole (ii) 
       jm = cr_mole (jj) 
+      iis(:) = cr_surf (:,ii)
+      jjs(:) = cr_surf (:,jj)
       ip = cr_prop (ii) 
       jp = cr_prop (jj) 
 !                                                                       
       cr_iscat (ii) = js 
       cr_mole (ii) = jm 
+      cr_surf(:,ii)= jjs(:)
       cr_prop (ii) = jp 
       DO i = 1, 3 
       ipos (i) = cr_pos (i, ii) 
@@ -351,6 +356,7 @@ CONTAINS
       IF (lswap) then 
          cr_iscat (jj) = is 
          cr_mole (jj) = im 
+         cr_surf(:,jj)= iis(:)
          cr_prop (jj) = ip 
          DO i = 1, 3 
          cr_pos (i, jj) = ipos (i) - i0pos (i) + j0pos (i) 
@@ -761,6 +767,7 @@ CONTAINS
             cr_pos (2, cr_natoms) = werte (3) 
             cr_pos (3, cr_natoms) = werte (4) 
             cr_mole (cr_natoms) = 0 
+            cr_surf (:,cr_natoms) = 0
             cr_prop (cr_natoms) = 0 
             cr_prop (cr_natoms)  = ibset (cr_prop (cr_natoms),  PROP_NORMAL) 
             DO l = 1, 3 
@@ -934,6 +941,7 @@ CONTAINS
                         cr_iscat (mole_cont (mole_off (i) + j) )        &
                         = 0                                             
                         cr_mole (mole_cont (mole_off (i) + j) ) = 0
+                        cr_surf(:,mole_cont (mole_off (i) + j) ) = 0
                         cr_prop (mole_cont (mole_off (i) + j) ) = ibclr &
                         (cr_prop (mole_cont (mole_off (i) + j) ),       &
                         PROP_NORMAL)                                    
@@ -980,15 +988,17 @@ CONTAINS
 !+                                                                      
       USE discus_config_mod 
       USE molecule_mod 
+      USE update_cr_dim_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      IF (mole_num_mole.eq.0) then 
+      IF (mole_num_mole == 0) THEN 
          CALL do_purge_atoms 
-      ELSEIF (mole_num_mole.gt.0) then 
+      ELSEIF (mole_num_mole >  0) THEN 
          CALL do_purge_molecules_new
       ENDIF 
+      CALL update_cr_dim
 !                                                                       
       END SUBROUTINE do_purge                       
 !*****7**************************************************************** 
@@ -1025,6 +1035,7 @@ CONTAINS
          cr_pos (3, i) = cr_pos (3, ii) 
          cr_iscat (i) = cr_iscat (ii) 
          cr_mole (i) = cr_mole (ii) 
+         cr_surf(:,i)= cr_surf(:,ii) 
          cr_prop (i) = cr_prop (ii) 
          ENDDO 
          cr_natoms = cr_natoms - ndel 
@@ -1255,6 +1266,7 @@ CONTAINS
             cr_pos (3, ii) = cr_pos (3, ii + 1) 
             cr_iscat (ii) = cr_iscat (ii + 1) 
             cr_mole (ii) = cr_mole (ii + 1) 
+            cr_surf(:,ii)= cr_surf (:,ii + 1) 
             cr_prop (ii) = cr_prop (ii + 1) 
             ENDDO 
             idel = idel + 1 
@@ -1413,6 +1425,7 @@ CONTAINS
       REAL werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER i, j, ianz, lp, is 
+      INTEGER, DIMENSION(0:3) :: iis
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1457,6 +1470,9 @@ CONTAINS
             is           = cr_mole (i) 
             cr_mole (i)  = cr_mole (j) 
             cr_mole (j)  = is 
+            iis(:)         = cr_surf (:,i)
+            cr_surf (:,i)  = cr_surf (:,j)
+            cr_surf (:,j)  = iis(:)
          ELSE 
             ier_num = - 19 
             ier_typ = ER_APPL 
@@ -1720,45 +1736,63 @@ CONTAINS
 !!!         RETURN 
 !!!      ENDIF 
 !                                                                       
+!        IF(fp(1)) THEN
+!           ix1 = -1
+!           ix2 = 1
+!        ELSE
+!           ix1 = 0
+!           ix2 = 0
+!        ENDIF
+!        IF(fp(2)) THEN
+!           iy1 = -1
+!           iy2 = 1
+!        ELSE
+!           iy1 = 0
+!           iy2 = 0
+!        ENDIF
+!        IF(fp(3)) THEN
+!           iz1 = -1
+!           iz2 = 1
+!        ELSE
+!           iz1 = 0
+!           iz2 = 0
+!        ENDIF
+         ix1 = 0
+         ix2 = 0
+         iy1 = 0
+         iy2 = 0
+         iz1 = 0
+         iz2 = 0
          IF(fp(1)) THEN
-            ix1 = -1
-            ix2 = 1
-         ELSE
-            ix1 = 0
-            ix2 = 0
+            IF(x(1)       -cr_dim(1,1) < rmax*1.5) ix1 = -1
+            IF(cr_dim(1,2)-x(1)        < rmax*1.5) ix2 =  1
          ENDIF
          IF(fp(2)) THEN
-            iy1 = -1
-            iy2 = 1
-         ELSE
-            iy1 = 0
-            iy2 = 0
+            IF(x(2)       -cr_dim(2,1) < rmax*1.5) iy1 = -1
+            IF(cr_dim(2,2)-x(2)        < rmax*1.5) iy2 =  1
          ENDIF
          IF(fp(3)) THEN
-            iz1 = -1
-            iz2 = 1
-         ELSE
-            iz1 = 0
-            iz2 = 0
+            IF(x(3)       -cr_dim(3,1) < rmax*1.5) iz1 = -1
+            IF(cr_dim(3,2)-x(3)        < rmax*1.5) iz2 =  1
          ENDIF
-         DO i = 1, cr_natoms 
-         ltype = atom_allowed (i, werte, ianz, maxw)                    &
-         .and.check_select_status (.true., cr_prop (i), cr_sel_prop)    
-         IF (ltype) then 
-            DO ix = ix1, ix2, 1
-               offset(1) = ix*cr_icc(1)
+   DO i = 1, cr_natoms 
+      ltype = atom_allowed (i, werte, ianz, maxw)                    &
+             .and.check_select_status (.true., cr_prop (i), cr_sel_prop)    
+      IF (ltype) then 
+         DO ix = ix1, ix2, 1
+            offset(1) = ix*cr_icc(1)
             DO iy = iy1, iy2, 1
                offset(2) = iy*cr_icc(2) 
-            DO iz = iz1, iz2, 1
-               offset(3) = iz*cr_icc(3)
-            CALL check_blen (x, i, rmin, rmax, offset) 
+               DO iz = iz1, iz2, 1
+                     offset(3) = iz*cr_icc(3)
+                  CALL check_blen (x, i, rmin, rmax, offset) 
+               ENDDO
             ENDDO
-            ENDDO
-            ENDDO
-            IF (ier_num.ne.0) return 
-         ENDIF 
-         ENDDO 
+         ENDDO
+         IF (ier_num /= 0) RETURN
       ENDIF 
+   ENDDO 
+ENDIF 
 !
 !     Sort neighbors according to distance
 !
@@ -2285,23 +2319,36 @@ CONTAINS
       USE discus_plot_init_mod
       USE point_grp
       USE prop_para_mod 
+      USE surface_mod
       USE wyckoff_mod 
       USE errlist_mod 
+      USE take_param_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 6
+      INTEGER, PARAMETER :: maxw = 9
+      INTEGER, PARAMETER :: NOPTIONAL = 4
 !                                                                       
       CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
       INTEGER           , INTENT(INOUT) :: lp 
 !                                                                       
 !      REAL, PARAMETER :: EPS = 0.000001
       CHARACTER(1024) cpara (maxw) 
+      CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+!      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate 
       INTEGER lpara (maxw) 
       INTEGER i, j, k, ianz 
       INTEGER :: special_form
       INTEGER :: special_n = 0
+      INTEGER :: nplanes       ! number of planes that at atom is close to
+      INTEGER :: iplane        ! Rindex of plane  that at atom is closest to
       LOGICAL lspace 
       LOGICAL linside 
       LOGICAL l_plane 
@@ -2310,9 +2357,14 @@ CONTAINS
       LOGICAL l_cyl 
       LOGICAL l_ell 
       LOGICAL l_special 
+      LOGICAL lwall           ! True if atom is close to cylinder wall
+      LOGICAL ltop            ! True if atom is close to cylinder top
 !      LOGICAL l_new 
+      REAL, DIMENSION(3) :: wall  !local normal at cylinder wall
+      REAL, DIMENSION(3) :: top   !local normal at cylinder top
       REAL h (3), d, dstar, radius, height , dshort
       REAL :: hkl(4)!, hklw(4)
+      REAL, DIMENSION(3)    :: center       ! center of the shape
       REAL, DIMENSION(3, 2) :: special_hkl
       REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
       INTEGER               :: point_n
@@ -2326,12 +2378,17 @@ CONTAINS
 !     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
+      DATA oname  / 'centx', 'centy', 'centz',  'keep'   /
+      DATA loname /  5,       5,       5,        4       /
+      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6       /)
+      owerte =  (/  0.0,      0.0,      0.0    ,  0.0     /)
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
          ier_typ = ER_APPL 
          ier_msg (1) = 'A proper unit cell must be defined' 
-      ier_msg (2)  = 'for this command to operate       ' 
+         ier_msg (2) = 'for this command to operate       ' 
          RETURN 
       ENDIF 
 !                                                                       
@@ -2344,21 +2401,40 @@ CONTAINS
       radius   = 0.0
       height   = 0.0
       dstar    = 1.0
+      center(:) = 0.0     ! Default center to 0.0, 0.0, 0.0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.eq.0) then 
+      IF(ier_num /= 0) RETURN
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, owerte)
+!do i= 1, ianz
+!write(*,*) 'PAR ', i, cpara(i)(1:lpara(i))
+!enddo
+!do i=1,NOPTIONAL
+!write(*,*) 'OPT ',i, opara(i)(1:MAX(1,lopara(i))), owerte(i)
+!enddo
+      IF(ier_num /= 0) RETURN
+!     Handle optional and global parameters
+!     IF (ier_num.eq.0) then 
+         center(1:3) = owerte(1:3)   ! As defaults are always provided, we can take it take blindly here
+         IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN
+            linside = .false.
+            ianz = ianz - 1
+         ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz), 6) ) THEN
+            linside = .true.
+            ianz = ianz - 1
+         ELSE     ! Test optional parameter form
+            IF (str_comp (opara(4) , 'outside', 3, lopara(4) , 7)) THEN
+               linside = .false.
+            ELSEIF (str_comp (opara(4) , 'inside', 3, lopara(4), 6) ) THEN
+               linside = .true.
+            ENDIF
+         ENDIF
          IF (str_comp (cpara (1) , 'hkl',  3, lpara (1) , 3)  .OR.  &
              str_comp (cpara (1) , 'form', 3, lpara (1) , 4) ) THEN 
            l_form = str_comp (cpara (1) , 'form', 3, lpara (1) , 4)
 !                                                                       
 !     ----Crystal is limited by a plane or by a form of symmetrically equivalent planes
 !                                                                       
-            IF (str_comp (cpara (ianz) , 'outside', 3, lpara (ianz) , 7)) THEN                                                      
-               linside = .false. 
-               ianz = ianz - 1 
-            ELSEIF (str_comp (cpara (ianz) , 'inside', 3, lpara (ianz), 6) ) THEN
-               linside = .true. 
-               ianz = ianz - 1 
-            ENDIF 
             lspace = .false. 
             l_special = .FALSE.
             IF(str_comp(cpara(2),'cubeoct',7,lpara(2),7)) THEN
@@ -2440,21 +2516,10 @@ CONTAINS
                special_hkl(3,2) = h(1) / 2.!/sqrt(3.)
                special_n = 2
             ENDIF
-!do i=1, special_n
-!write(*,*) ' SPECIAL ', i, special_hkl(:,i)
-!enddo
          ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
 !     ----Crystal is limited by a sphere                                
 !                                                                       
-            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
-               linside = .false. 
-               ianz = ianz - 1 
-            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
-               linside = .true. 
-               ianz = ianz - 1 
-            ENDIF 
-            lspace = .false. 
             IF (ianz.eq.2) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
@@ -2480,14 +2545,6 @@ CONTAINS
 !                                                                       
 !     ----Crystal is limited by a cylinder                              
 !                                                                       
-            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
-               linside = .false. 
-               ianz = ianz - 1 
-            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
-               linside = .true. 
-               ianz = ianz - 1 
-            ENDIF 
-            lspace = .false. 
             IF (ianz.eq.3) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
@@ -2514,14 +2571,6 @@ CONTAINS
 !                                                                       
 !     ----Crystal is limited by a standardized ellipsoid
 !                                                                       
-            IF(str_comp(cpara(ianz), 'outside', 3, lpara(ianz), 7)) THEN
-               linside = .false. 
-               ianz = ianz - 1 
-            ELSEIF(str_comp(cpara(ianz), 'inside', 3, lpara(ianz), 6)) THEN
-               linside = .true. 
-               ianz = ianz - 1 
-            ENDIF 
-            lspace = .false. 
             IF (ianz.eq.4) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
@@ -2545,14 +2594,16 @@ CONTAINS
          ENDIF 
 !
 !
-         IF (ier_num.eq.0) THEN
+         IF (ier_num /= 0) RETURN
+!        IF (ier_num.eq.0) THEN
             IF (l_plane) THEN
 plane_loop:    DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle plane_loop 
-                  d = 1.0 - cr_pos (1, i) * h (1) - cr_pos (2, i) * h (2)  &
-                          - cr_pos (3, i) * h (3)                                  
+                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle plane_loop
+                  d = 1.0 - (cr_pos (1, i)-center(1)) * h (1) &
+                          - (cr_pos (2, i)-center(2)) * h (2)  &
+                          - (cr_pos (3, i)-center(3)) * h (3)
                   d = d / dstar 
-                  CALL boundarize_atom (d, i, linside) 
+                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h)
                ENDDO plane_loop
             ELSEIF (l_form) THEN
                hkl(1:3) = special_hkl(:,1)
@@ -2586,63 +2637,131 @@ form_loop:     DO i = 1, cr_natoms
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
                   IF(linside) THEN
                      DO j=1,point_n
-                         d = 1.0 - cr_pos (1, i) * point_hkl (1,j) &
-                                 - cr_pos (2, i) * point_hkl (2,j)  &
-                                 - cr_pos (3, i) * point_hkl (3,j)                                  
+                         d = 1.0 - (cr_pos (1, i)-center(1)) * point_hkl (1,j) &
+                                 - (cr_pos (2, i)-center(2)) * point_hkl (2,j) &
+                                 - (cr_pos (3, i)-center(3)) * point_hkl (3,j) 
                          d = d / dstar 
-                         CALL boundarize_atom (d, i, linside) 
+                         h(:) = point_hkl (:,j)
+                         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h) 
                      ENDDO 
                   ELSE
                      dshort = 1.E8
+                     nplanes = 0
+                     iplane  = 0 
                      DO j=1,point_n
-                         d = 1.0 - cr_pos (1, i) * point_hkl (1,j) &
-                                 - cr_pos (2, i) * point_hkl (2,j)  &
-                                 - cr_pos (3, i) * point_hkl (3,j)                                  
+                         d = 1.0 - (cr_pos (1, i)-center(1)) * point_hkl (1,j) &
+                                 - (cr_pos (2, i)-center(2)) * point_hkl (2,j) &
+                                 - (cr_pos (3, i)-center(3)) * point_hkl (3,j)
                          d = d / dstar 
+                         IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+                            nplanes = nplanes + 1
+                            iplane  = j
+                         ENDIF
 !                        IF(d<0) CYCLE form_loop    ! Keep atom
                          dshort = MIN(dshort, d)
                      ENDDO 
-                     CALL boundarize_atom (dshort, i, linside) 
+                     IF(nplanes>2) THEN            ! Atom is at a corner
+                        h(:) = NINT(100*cr_pos(:,i))
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h) 
+                     ELSEIF(nplanes==2) THEN            ! Atom is at an edge 
+                        h(:) = NINT(100*cr_pos(:,i))
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h) 
+                     ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
+                        h(:) = point_hkl (:,iplane)        !WRONG NEEDS WORK
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h) 
+                     ELSE
+                        h(:) = NINT(100*cr_pos(:,i))
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h) 
+                     ENDIF
                   ENDIF
                ENDDO form_loop
             ELSEIF (l_sphere) then 
 sphere_loop:   DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
-                  v (1) = cr_pos (1, i) 
-                  v (2) = cr_pos (2, i) 
-                  v (3) = cr_pos (3, i) 
+                  v (1) = cr_pos (1, i)-center(1)
+                  v (2) = cr_pos (2, i)-center(2)
+                  v (3) = cr_pos (3, i)-center(3)
                   d = radius - sqrt (v(1) * v(1) * cr_gten(1, 1)        &
                      +     v(2) * v(2) * cr_gten(2, 2)    &
                      +     v(3) * v(3) * cr_gten(3, 3)    &
                      + 2 * v(1) * v(2) * cr_gten(1, 2)    &
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  CALL boundarize_atom (d, i, linside) 
+                  h(:) = v(:)
+                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h)
                ENDDO sphere_loop
-            ELSEIF (l_cyl) then 
+            ELSEIF (l_cyl) THEN
 cyl_loop:      DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                  v (1) = cr_pos (1, i) 
-                  v (2) = cr_pos (2, i) 
-                  v (3) = 0.0 
+                  IF(linside) THEN
+                  v (1) = cr_pos (1, i)-center(1)
+                  v (2) = cr_pos (2, i)-center(2)
+                  v (3) = 0.0          -center(3)
                   d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
                      +     v(2) * v(2) * cr_gten(2, 2)    &
                      +     v(3) * v(3) * cr_gten(3, 3)    &
                      + 2 * v(1) * v(2) * cr_gten(1, 2)    &
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  CALL boundarize_atom (d, i, linside) 
+                  h(:) = v(:)
+                  CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h) 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                  v (1) = 0.0 
-                  v (2) = 0.0 
-                  v (3) = cr_pos (3, i) 
+                  v (1) = 0.0          -center(1)
+                  v (2) = 0.0          -center(2)
+                  v (3) = cr_pos (3, i)-center(3)
                   d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
                      +     v(2) * v(2) * cr_gten(2, 2)    & 
                      +     v(3) * v(3) * cr_gten(3, 3)    & 
                      + 2 * v(1) * v(2) * cr_gten(1, 2)    &
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
-                  CALL boundarize_atom (d, i, linside) 
+                  h(:) = v(:)
+                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h) 
+                  ELSE                             ! 
+                     dshort = 1.E8
+                     lwall =.FALSE.
+                     ltop  =.FALSE.
+                     v (1) = cr_pos (1, i)-center(1)
+                     v (2) = cr_pos (2, i)-center(2)
+                     v (3) = 0.0          -center(3)
+                     d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+                        +     v(2) * v(2) * cr_gten(2, 2)    &
+                        +     v(3) * v(3) * cr_gten(3, 3)    &
+                        + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+                        + 2 * v(1) * v(3) * cr_gten(1, 3)    &
+                        + 2 * v(2) * v(3) * cr_gten(2, 3)    )
+                     wall(:) = v(:)
+                     IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+                        lwall = .TRUE.               ! Atom is close to wall
+                     ENDIF
+                     dshort = MIN(dshort, d)
+                     IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
+                     v (1) = 0.0          -center(1)
+                     v (2) = 0.0          -center(2)
+                     v (3) = cr_pos (3, i)-center(3)
+                     d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
+                        +     v(2) * v(2) * cr_gten(2, 2)    & 
+                        +     v(3) * v(3) * cr_gten(3, 3)    & 
+                        + 2 * v(1) * v(2) * cr_gten(1, 2)    &
+                        + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
+                        + 2 * v(2) * v(3) * cr_gten(2, 3)    )
+                     top(:) = v(:)
+                     IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+                        ltop  = .TRUE.               ! Atom is close to wall
+                     ENDIF
+                     dshort = MIN(dshort, d)
+                     IF(lwall .AND. .NOT.ltop) THEN   ! Atom is at wall only
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall) 
+                     ELSEIF(.NOT.lwall .AND. ltop) THEN   ! Atom is at top  only
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top) 
+                     ELSEIF(lwall .AND. ltop) THEN   ! Atom is at edge
+                        h(:) = cr_pos(:,i)
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h) 
+                     ELSE
+                        h(:) = cr_pos(:,i)
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h) 
+                     ENDIF
+                  ENDIF
                ENDDO cyl_loop
             ELSEIF (l_ell) then 
                CALL plot_ini_trans (1.0,                          &
@@ -2651,20 +2770,22 @@ cyl_loop:      DO i = 1, cr_natoms
                radius = (radius_ell(1)*radius_ell(2)*radius_ell(3))**(1./3.)
 ell_loop:      DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle ell_loop 
-                  v(:) = cr_pos(:, i)
+                  v(:) = cr_pos(:, i)-center(:)
                   v = MATMUL(pl_tran_f(1:3,1:3), v)
                   d = (1. - sqrt((v(1)/radius_ell(1))**2   &
                                 +(v(2)/radius_ell(2))**2   &
                                 +(v(3)/radius_ell(3))**2   ))* radius
-                  CALL boundarize_atom (d, i, linside) 
+                  h(:) = v(:)
+                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h)
                ENDDO ell_loop
             ENDIF 
-         ENDIF 
-      ENDIF 
+!        ENDIF 
+!     ENDIF 
 !                                                                       
       END SUBROUTINE boundary                       
 !*****7*****************************************************************
-      SUBROUTINE boundarize_atom (distance, iatom, linside) 
+      SUBROUTINE boundarize_atom (center, distance, iatom, linside, &
+                                  surface_type, normal) 
 !-                                                                      
 !     This subroutine sets the boundary property of the atom            
 !                                                                       
@@ -2676,16 +2797,30 @@ ell_loop:      DO i = 1, cr_natoms
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE metric_mod
       USE prop_para_mod 
       USE surface_mod 
       USE errlist_mod 
+      USE math_sup
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL distance 
-      INTEGER iatom 
-      LOGICAL linside 
+      REAL   , DIMENSION(3), INTENT(IN) :: center 
+      REAL                 , INTENT(IN) :: distance 
+      INTEGER              , INTENT(IN) :: iatom 
+      LOGICAL              , INTENT(IN) :: linside 
+      INTEGER              , INTENT(IN) :: surface_type
+      REAL   , DIMENSION(3), INTENT(IN) :: normal
+!
+      REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /)
+      REAL              , PARAMETER :: TOLERANCE = 5.0   ! Accept a 5 degree tilt for same surface
+      LOGICAL           , PARAMETER :: LSPACE = .FALSE.
+!
+      INTEGER               :: idiv      ! Largest common divisor for the normal
+      INTEGER, DIMENSION(3) :: hkl
+      REAL   , DIMENSION(3) :: rhkl, u
+      REAL                  :: angle
 !                                                                       
       IF( cr_nscat > SURF_MAXSCAT) THEN
          CALL alloc_surf ( cr_nscat )
@@ -2694,27 +2829,83 @@ ell_loop:      DO i = 1, cr_natoms
          ENDIF
       ENDIF
 !
-      IF ( (linside.and.distance.lt.0) .or. (                           &
-      .not.linside.and.distance.gt.0) ) then                            
+      IF((     linside.AND.distance <  0) .OR.  &
+         (.not.linside.AND.distance >  0)      ) THEN                            
          cr_iscat (iatom) = 0 
          cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
          cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
          IF (abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) ) ) then 
             cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
          ENDIF 
+         cr_surf (:,iatom) = 0
       ELSE 
          IF (abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) ) ) then 
             cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
+            IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
+               cr_surf(0,   iatom) = surface_type 
+               cr_surf(1:3, iatom) = NINT(10.0*normal(:))
+            ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
+               IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
+                  u(:) = cr_pos(:,iatom) - center(:)
+                  CALL pos2hkl(u, cr_gten, hkl)
+                  cr_surf(0,   iatom) = SURF_CORNER
+                  cr_surf(1:3, iatom)  = hkl(1:3)
+               ELSEIF(surface_type > SURF_NONE) THEN      ! Should be all other cases
+                  rhkl(:) = cr_surf(1:3, iatom)           ! get old normal
+                  angle = do_bang(LSPACE, rhkl, VNULL, normal)
+                  IF(angle>TOLERANCE) THEN
+                      u(:) = cr_pos(:,iatom) - center(:)
+                      CALL pos2hkl(u, cr_gten, hkl)
+                      cr_surf(0,   iatom) = SURF_EDGE
+                      cr_surf(1:3, iatom)  = hkl(1:3)
+                  ENDIF
+               ENDIF
+            ELSE                                          ! Atom was at edge or corner
+               u(:) = cr_pos(:,iatom) - center(:)
+               CALL pos2hkl(u, cr_gten, hkl)
+               cr_surf(0,   iatom) = SURF_CORNER
+               cr_surf(1:3, iatom)  = hkl(1:3)
+            ENDIF
+            IF(.NOT.linside) cr_surf(:, iatom) = -cr_surf(:, iatom)  !invert for inside pointing surface
          ENDIF 
       ENDIF 
+      IF(cr_surf(0, iatom) /= 0) THEN
+         idiv = gcd(cr_surf(1, iatom), cr_surf(2, iatom), cr_surf(3, iatom))
+         IF(idiv /= 0) THEN
+             cr_surf(1:3, iatom) = cr_surf(1:3, iatom)/IABS(idiv)
+         ENDIF
+      ENDIF
 !                                                                       
       END SUBROUTINE boundarize_atom                
+!
+!*****7*****************************************************************
+!
+      SUBROUTINE pos2hkl(u, gten, hkl)
+!
+      USE trafo_mod
+!
+      IMPLICIT NONE
+!
+      REAL   , DIMENSION(3)  , INTENT(INOUT) :: u
+      REAL   , DIMENSION(3,3), INTENT(IN )   :: gten
+      INTEGER, DIMENSION(3)  , INTENT(OUT)   :: hkl
+!
+      REAL   , DIMENSION(3) :: v
+      REAL :: uu
+!
+      uu = SQRT(u(1)**2 + u(2)**2 + u(3)**2)  ! Really rough length
+      u(:) = u(:)/uu
+      CALL trans (u, gten, v, 3)              ! Transform into reciprocal space
+      hkl(1:3) = NINT(10.*v(1:3))             ! Make an approximate integer vector
+!
+      END SUBROUTINE pos2hkl
 !
 !*****7*****************************************************************
 !
 SUBROUTINE do_surface_char(zeile, lp)
 !
 USE crystal_mod 
+USE prop_para_mod
 USE param_mod
 USE prompt_mod
 USE errlist_mod
@@ -2728,7 +2919,7 @@ INTEGER            , DIMENSION(1:MAXW) :: lpara
 REAL               , DIMENSION(1:MAXW) :: werte
 INTEGER               :: surf_char
 LOGICAL               :: lshow, lequal
-INTEGER                 :: i, j
+INTEGER                 :: i
 INTEGER, DIMENSION(3,6) :: surf_normal
 INTEGER, DIMENSION(3)   :: surf_kante
 INTEGER, DIMENSION(6)   :: surf_weight
@@ -2778,58 +2969,65 @@ CALL surface_character(iatom, 1, cr_natoms, surf_char, surf_normal, surf_kante, 
 i = 0
 res_para(0) = 1
 res_para(1) = surf_char
-IF(surf_char==1) THEN                 ! Planar surface
-   res_para(0) = 4
-   res_para(2:4) = surf_normal(1:3,1)
-ELSEIF(surf_char==2) THEN             ! An edge
-   res_para(0)   = 10
-   res_para(2:4) = surf_normal(1:3,1)
-   res_para(5:7) = surf_normal(1:3,2)
-   res_para(8:10)= surf_kante(1:3)
-ELSEIF(surf_char==3) THEN             ! A corner
-   i = 0
-   fill: DO
-      IF(surf_weight(i+1) == 0) EXIT fill
-      i = i+1
-      res_para((i-1)*3+2:(i-1)*3+4) = surf_normal(1:3,i)
-   ENDDO fill
-   res_para(0) = 3*i+1
-ENDIF
+res_para(2:4) = surf_normal(1:3,1)
+!IF(surf_char==1) THEN                 ! Planar surface
+!   res_para(0) = 4
+!   res_para(2:4) = surf_normal(1:3,1)
+!ELSEIF(surf_char==2) THEN             ! An edge
+!   res_para(0)   = 10
+!   res_para(2:4) = surf_normal(1:3,1)
+!   res_para(5:7) = surf_normal(1:3,2)
+!   res_para(8:10)= surf_kante(1:3)
+!ELSEIF(surf_char==3) THEN             ! A corner
+!   i = 0
+!   fill: DO
+!      IF(surf_weight(i+1) == 0) EXIT fill
+!      i = i+1
+!      res_para((i-1)*3+2:(i-1)*3+4) = surf_normal(1:3,i)
+!   ENDDO fill
+!   res_para(0) = 3*i+1
+!ENDIF
 IF(lshow) THEN
    IF(surf_char==0) THEN
-      WRITE(output_io, 2000) 
+      IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+         IBITS(cr_prop(iatom),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+         WRITE(output_io, 2000) 
+      ELSE
+         WRITE(output_io, 2050)
+      ENDIF
    ELSEIF(surf_char==1) THEN
-      WRITE(output_io, 2100) surf_normal(:,1)
+      WRITE(output_io, 2100) 'Planar      outside face ',surf_normal(:,1)
    ELSEIF(surf_char==2) THEN
-      WRITE(output_io, 2200) surf_kante, surf_normal(:,1), surf_weight(1)
-      WRITE(output_io, 2250)             surf_normal(:,2), surf_weight(2)
+      WRITE(output_io, 2100) 'Spherical   outside face ',surf_normal(:,1)
    ELSEIF(surf_char==3) THEN
-      WRITE(output_io, 2300) surf_normal(:,1), surf_weight(1)
-      DO j=2, i
-         WRITE(output_io, 2350)             surf_normal(:,j), surf_weight(j)
-      ENDDO
+      WRITE(output_io, 2100) 'Cylindrical outside face ',surf_normal(:,1)
+   ELSEIF(surf_char==4) THEN
+      WRITE(output_io, 2100) 'Outside edge,  normal is ',surf_normal(:,1)
+   ELSEIF(surf_char==5) THEN
+      WRITE(output_io, 2100) 'Outside corner,normal is ',surf_normal(:,1)
    ELSEIF(surf_char==-1) THEN
-      WRITE(output_io, 3100) surf_normal(:,1)
+      WRITE(output_io, 2100) 'Planar       inside face ',surf_normal(:,1)
    ELSEIF(surf_char==-2) THEN
-      WRITE(output_io, 3200) surf_kante, surf_normal(:,1), surf_weight(1)
-      WRITE(output_io, 2250)             surf_normal(:,2), surf_weight(2)
+      WRITE(output_io, 2100) 'Spherical    inside face ',surf_normal(:,1)
    ELSEIF(surf_char==-3) THEN
-      WRITE(output_io, 3300) surf_normal(:,1), surf_weight(1)
-      DO j=2, i
-         WRITE(output_io, 2350)             surf_normal(:,j), surf_weight(j)
-      ENDDO
+      WRITE(output_io, 2100) 'Cylindrical  inside face ',surf_normal(:,1)
+   ELSEIF(surf_char==-4) THEN
+      WRITE(output_io, 2100) ' Inside edge,  normal is ',surf_normal(:,1)
+   ELSEIF(surf_char==-5) THEN
+      WRITE(output_io, 2100) ' Inside corner,normal is ',surf_normal(:,1)
    ENDIF
 ENDIF
 !
 2000 FORMAT(' Surface character could not be determined')
-2100 FORMAT(' Planar surface,  normal: ',3(I4,2x))
-2200 FORMAT(' Edge   surface,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
-2250 FORMAT('                       secondary normal: ',20x         , 3(I4,2x), ':', I4)
-2300 FORMAT(' Corner surface,  dominant normal: ',3(I4,2x), ':', I4)
-2350 FORMAT('                 secondary normal: ',3(I4,2x), ':', I4)
-3100 FORMAT(' Indented plane,  normal: ',3(I4,2x))
-3200 FORMAT(' Indented edge ,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
-3300 FORMAT(' Indented corner, dominant normal: ',3(I4,2x), ':', I4)
+2050 FORMAT(' Atom is not close to a surface')
+2100 FORMAT(a,3(I4,2x))
+!2200 FORMAT(' Edge   surface,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
+!2250 FORMAT('                       secondary normal: ',20x         , 3(I4,2x), ':', I4)
+!2300 FORMAT(' Corner surface,  dominant normal: ',3(I4,2x), ':', I4)
+!2350 FORMAT('                 secondary normal: ',3(I4,2x), ':', I4)
+!3100 FORMAT(' Indented plane,  normal: ',3(I4,2x))
+!3200 FORMAT(' Indented edge ,  Edge, dominant normal: ',3(I4,2x), 2x, 3(I4,2x), ':', I4)
+!3300 FORMAT(' Indented corner, dominant normal: ',3(I4,2x), ':', I4)
 END SUBROUTINE do_surface_char
 !
 !*****7*****************************************************************
@@ -2918,6 +3116,24 @@ fq = chem_quick
 rmin = 0.5
 nsurface = 0
 isfirst = .TRUE.
+!
+IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+   IBITS(cr_prop(iatom),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+   IF(cr_surf(0,iatom)/=0) THEN     ! Atom has surface character set
+      surf_char = cr_surf(0, iatom)
+      surf_normal(:, 1) = cr_surf(1:3, iatom)
+      surf_kante(:)     = 0
+      surf_weight(:)    = 0
+      surf_weight(1)    = 1
+      RETURN                        ! Success go back
+   ELSE
+      RETURN
+   ENDIF
+ELSE
+   RETURN
+ENDIF
+!OLD CODE TO BE WORKED ON
+!
 !
 IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
    IBITS(cr_prop(iatom),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
@@ -4255,6 +4471,22 @@ END SUBROUTINE surface_character
 !                                                                       
 !     ----Select which atoms are included in the wave                   
 !                                                                       
+!
+!     Attempt to replace a string from a variable
+!
+      DO i=1, ianz
+         zeile = ' '
+         zeile = cpara(i)(1:lpara(i))
+         j     = lpara(1)
+         CALL ersetz_variable (zeile, j)
+         jj = LEN_TRIM(zeile)
+         IF(ier_num == 0 .AND. jj>2 .AND. zeile(1:1)=='''' .AND. &
+            zeile(jj:jj) == ''''                                ) THEN
+            cpara(i) = ' '
+            cpara(i)(1:jj-2) = zeile(2:jj-1)
+         ENDIF
+      ENDDO
+!
       ier_num = 0 
       ier_typ = ER_NONE 
       DO i = 1, maxw 
