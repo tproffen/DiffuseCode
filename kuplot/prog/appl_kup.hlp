@@ -27,44 +27,44 @@
 !p alloc         : Allocate space for data set without loading one
 !p angl          : Set angle between x- and y-axis
 !p aver          : Set ratio between units on y and x-axis
-!p branch        : Switch to discsu SUITE version only
+!p branch        : Switch to discus, SUITE version only
 !p buff          : Set reserved space outside of plotting frame
 !p ccal          : Perform calculations with single data set
-!p color         : Set pen colours
+!p color         : Set pen colors
 !p conv          : Calculate convolution of two data sets
-!p cmap          : Select colourmap
+!p cmap          : Select color map
 !p deriv         : Calculate the derivative
-!p ecol          : Set colour of error bars
+!p ecol          : Set color of error bars
 !p etyp          : Set type of error bars
 !p eval          : Evaluate expression
 !p excl          : Exclude regions from 1D files
 !p fill          : Set filling style
-!p fit           : Enter least square fit sublevel
+!p fit           : Enter least square fit sub level
 !p fnam          : Toggle plot of filenames in upper left corner
-!p font          : Set font size, type and colour
+!p font          : Set font size, type and color
 !p fset          : Set type of plot frame (axis, tick marks, ..)
 !p frames        : More information about the use of frames
 !p func          : Create data set from given function
 !p glat          : Smooth data set (sliding average)
 !p grid          : Toggle plotting of a grid at main marker points
 !p hart          : Set type for 2D plots (bitmap, contours, ..)
-!p hcol          : Set colour of contour lines
-!p hlab          : Labelling of contour lines
+!p hcol          : Set color of contour lines
+!p hlab          : Labeling of contour lines
 !p hlin          : Set contour line parameters (also for bitmap)
 !p hpak          : Set number of contour line packages
 !p htyp          : Set line type for contour lines
-!p iden          : Toogle plotting of user, data and time information
+!p iden          : Toggle plotting of user, data and time information
 !p inte          : Integrate data set
 !p ksav          : Save data set in various formats
 !p kcal          : Perform calculations with two data sets (add, ..)
 !p lart          : Set type for 1D plot (line, steps, spline)
-!p lcol          : Set line colour
+!p lcol          : Set line color
 !p load          : Read data set
 !p ltyp          : Set line type
 !p lwid          : Set line width
 !p mark          : Set tick mark interval
 !p match         : Calculate scale and offset to get best match bw. data
-!p mcol          : Set marker colour
+!p mcol          : Set marker color
 !p mean          : Calculate average and stand. deviation for data set
 !p merge         : Merge data sets (2D only)
 !p mouse         : Activate the mouse
@@ -95,13 +95,17 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2017_Cct
+
+   The 'ni' format may now have a leading header that consists of
+   lines that start with a '#' in the first column
 3  2017_Sep
 
    Throughout the program the internal calculation of random numbers 
    was changed to the FORTRAN 90 intrinsic function. 
 
    Added error messages for variable nx, ny, modified variable np to
-   yiled the total number of data points for 2D dat sets as well.
+   yield the total number of data points for 2D data sets as well.
 3  2017_May
 
    The 'save' command can now save graphics as a PDF file
@@ -109,7 +113,7 @@
 
    Added the option to read CSV files to 'load' command.
 
-   An unfortunate typing error in News/2016_oct regaring the new
+   An unfortunate typing error in News/2016_oct regarding the new
    refinement variable 
    ref_para[1...]   ( was misspelled as ref_param[1...] )
    is corrected in the  on-line help.
@@ -220,7 +224,7 @@
    are optional. The value <sig> sets the allowed relative deviation 
    from the given distance, e.g. a value of 0.1 will allow distances
    of +- 10% of the given value. The parameters <ic>, <it> and <iw>
-   set the line colour, line type and line width of the connecting
+   set the line color, line type and line width of the connecting
    line, respectively (-> lcol, ltyp, lwid). 
 
    In order to disable the plotting of a defined bond, just specify
@@ -234,7 +238,7 @@
    Branches to the "discus" or "diffev" section.
 
    Within this section any standard DISCUS command can be
-   given. The behaviour of "discus" is essentially the same
+   given. The behavior of "discus" is essentially the same
    as in the stand alone version. Likewise for DIFFEV.
   
    The main use will branch to DISCUS while the discus section
@@ -261,7 +265,7 @@
    Branches to the "discus" section.
 
    Within this section any standard DISCUS command can be
-   given. The behaviour of "discus" is essentially the same
+   given. The behavior of "discus" is essentially the same
    as in the stand alone version.
 2  ccal
 !b ccal <oper>,<field>,<ik> [,<value>]
@@ -296,7 +300,7 @@
 2  color
 !b color <ic>,<r>,<g>,<b>
 
-   This command allows the user to change the colour settings for
+   This command allows the user to change the color settings for
    the different pens. The parameter <ic> gives the pen number
    (0 for background) and <r>,<g>,<b> are the red, green and blue
    values to be uses ranging from 0.0 to 1.0. If no parameters are
@@ -312,18 +316,18 @@
 !b cmap { "read" | "write"}, <fname>
 !b cmap "invert"
 
-   This command allows to choose the colourmap to be used for printing
-   bitmaps (see 'hart' command). The three build in colourmaps are 
-   "gray", "fire" and "kupl" (the previous default colourmap). Colourmaps
+   This command allows to choose the color map to be used for printing
+   bitmaps (see 'hart' command). The three build in color map are 
+   "gray", "fire" and "kupl" (the previous default color map). Color maps
    can also be read from a file using the command 'cmap read,<fname>'.
-   The format is of the form '#RRGGBB' for each colourmap entry on a
+   The format is of the form '#RRGGBB' for each color map entry on a
    new line and 'RR', 'GG' and 'BB' are the 'red', 'green' and 'blue'
    values given in hexadecimal ranging from 00 to FF. The current 
-   colourmap can be saved to a file using the command 'cmap write,<fname>'.
-   Finally 'cmap invert' will simply invert the current colourmap.
+   color map can be saved to a file using the command 'cmap write,<fname>'.
+   Finally 'cmap invert' will simply invert the current color map.
 
-   The RGB values of the current colourmap can be shown using the
-   command 'show color'. The colourmap entries can also be altered
+   The RGB values of the current color map can be shown using the
+   command 'show color'. The color map entries can also be altered
    using the variable 'cmap [<ic>,3]'.
 2  deriv
 !b deriv <ik> [,<order>]
@@ -347,16 +351,16 @@
 
    The parameter "merge" will save a xyz-type file from all the 
    loaded data sets with the following condition x=x, y=data set
-   number and z=y. This can then be loaded using loa zz, ..
+   number and z=y. This can then be loaded using load zz, ..
 2  ecol
 !b ecol <ik>,<c>
 
-   This command sets the error bar colour for the data set <ik>. 
-   The colours are numbered like the pens on a HP7475 plotter. Allowed 
+   This command sets the error bar color for the data set <ik>. 
+   The colors are numbered like the pens on a HP7475 plotter. Allowed 
    values for <c> are listed in the table, Alternatively you can use
    the color name (without blanks i.e. darkblue etc.)
 
-   The allowed default colour values <icol> are listed below. Note
+   The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
@@ -366,7 +370,7 @@
 2  etyp
 !b etyp <ik>,<p>
 
-   This command sets the typ of error bars to be use for the data
+   This command sets the type of error bars to be use for the data
    set number <ik>. Allowed values for <p> are:
 
 !p   0 : {"noerror"|"none"} : no error bars are drawn
@@ -388,8 +392,8 @@
 
    This command sets the filling style for data set <ik>. The data
    set is treated as a polygon and is filled between the data and 
-   the baseline. The fill colour is defined by <fc> (see lcol for
-   colour definitions). The following fill types <ft> are currently 
+   the baseline. The fill color is defined by <fc> (see lcol for
+   color definitions). The following fill types <ft> are currently 
    supported:
 
 !p   1: "solid"     : solid fill    5: "bsolid" : type 1 plus border
@@ -404,25 +408,25 @@
 2  fit
 !b fit <ik>
 
-   This command enters the fit sublevel and data set <ik> is taken
+   This command enters the fit sub level and data set <ik> is taken
    as target data set. For an easy start, select a fit function 
    with 'func' and start the fit using the 'run' command. The result
    can be displayed with 'plot' and saved with 'save'. For more 
    detailed information see the list of commands below:
 
 3  commands
-!b Valid commands in this sublevel are:
+!b Valid commands in this sub level are:
 
 !p @      : Executes a macro (see general help)
 !p =      : Algebra (see general help)
 !p cycle  : Sets maximum number of fit cycles
-!p echo   : Echos a string on the screen (see general help)
+!p echo   : Echoes a string on the screen (see general help)
 !p eval   : Evaluates an expression  (see general help)
-!p exit   : Exits fit sublevel
+!p exit   : Exits fit sub level
 !p func   : Sets fit function
-!p help   : Gives on-line help for 'fit' sublevel (see general help)
+!p help   : Gives on-line help for 'fit' sub level (see general help)
 !p macro  : Writes current fit parameters to a macro file
-!p mark   : Sets intervall for tick marks
+!p mark   : Sets interval for tick marks
 !p mfen   : Sets parameter for maxima determination (fit start values)
 !p output : Toggles fit screen output on/off
 !p para   : Sets/modifies fit parameters
@@ -454,8 +458,8 @@
 
 !p function   2d   3d   what            <par>
 !p -----------------------------------------------------------
-!p  "poly"    yes  no   polynom         order of the polynom
-!p  "cheb"    yes  no   Chebyshev poly. order of the polynom
+!p  "poly"    yes  no   polynomial         order of the polynomial
+!p  "cheb"    yes  no   Chebyshev poly. order of the polynomial
 !p  "gaus"    yes  yes  Gaussian        number of Gaussians
 !p  "lore"    yes  no   Lorentzian      number of Lorentzians
 !p  "pseudo"  yes  no   Pseudo-Voigt    number of Pseudo-Voigts
@@ -463,7 +467,7 @@
 !p  "back"    yes  no   Background      # of background parameters
 !p  "gsas"    yes  no   TOF profile     see text
 
-   Select a fit finction from the list below for more information:
+   Select a fit function from the list below for more information:
 4  poly
 !b func "poly" [,<par>]
 
@@ -581,21 +585,21 @@
 !p y(dataset) = scale*y(dataset icalc) + SUM xx**parameter
 
    Thus KUPLOT takes the data set <icalc> as input values, which are 
-   scaled and to which a polynominal function is added. This sum is 
+   scaled and to which a polynomial function is added. This sum is 
    fitted to the current dataset which was selected by the 'fit' command.
 
    The scale parameter is p[1], all higher parameters act as exponents
-   to the background polynominal. Thus p[2] is a constant background,
-   p[3] a linear background etc. The xx argument of the polynominal
+   to the background polynomial. Thus p[2] is a constant background,
+   p[3] a linear background etc. The xx argument of the polynomial
    is calculated as (x - xmin), where x is the x-value of each given
    data point and xmin the minimum x-value. Thus, the values of the
-   background polynominal change if you fit to a changed x-range!
+   background polynomial change if you fit to a changed x-range!
 
 !p <par>  effect
 !p 1      scale factor only
 !p 2      scale factor + constant background
 !p 3      scale factor + constant + linear background
-!p N      scale factor + background polynominal of oder (N-2)
+!p N      scale factor + background polynomial of oder (N-2)
 
 3  help
 !b help <command>
@@ -607,7 +611,7 @@
 
    This command saves the current parameters in a KUPLOT macro file.
    This allows to set the parameter values in a later session using
-   @<filename> from the FIT sublevel.
+   @<filename> from the FIT sub level.
 3  mfen
 !b mfen <if>
 
@@ -646,7 +650,7 @@
    for the refinement. If set to "all", all data are used. If set to
    "plot" only the data shown on the current plot window are used.
    This is useful if one wants to refine e.g. just a single Gaussian
-   in a data set without haveing to manupulate the data set itself.
+   in a data set without having to manipulate the data set itself.
 3  run
 !b run
 
@@ -733,7 +737,7 @@
 3  color
 !b font "color",<id>,<icol>
 
-   This command allows to alter the colour of the font used to label the
+   This command allows to alter the color of the font used to label the
    graph. The default is black for all fonts. The different types of
    text given by their <id> parameter are listed below:
 
@@ -741,7 +745,7 @@
 !p   3 : axis labels                   4: numbers at axis
 !p   5 : text in text frame            6: filename & caption
 
-   The allowed default colour values <icol> are listed below. Note
+   The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
    Alternatively you can use
    the color name (without blanks i.e. darkblue etc.)
@@ -759,7 +763,7 @@
 !b font "size",<id>,<size>
 !b font "size",<scale>
 
-   This command sets the font size for text typ <id> to <size> points.
+   This command sets the font size for text type <id> to <size> points.
    If a specified font size is not available, a fixed font will be used
    instead. The allowed <id> parameters are:
 
@@ -769,7 +773,7 @@
 
    Alternatively if only one parameter is given after "size", all fonts
    will be scaled by the given factor <scale>, i.e. a value of 0.5 will
-   set all font sizes to half their spacified original size.
+   set all font sizes to half their specified original size.
 3  typ
 !b font "typ",<id>,<typ>
 
@@ -818,7 +822,7 @@
    given by <Qmin> and <Qmax> and the step size is <deltaQ>. If the
    parameters are omitted, the range in Fourier space is fixed
    from -1/2D .. 1/2D with D being the grid size in real space. Note,
-   that the range can only be explicetly specified for 1D data sets. The
+   that the range can only be explicitly specified for 1D data sets. The
    optional parameter <code> determines how much output will be 
    created. The parameter <code> is made up of any combination of the
    following four letters:
@@ -846,7 +850,7 @@
 !b List of commands:
 
 !p afra : sets the active frame for user input
-!p bfra : sets background colour for specified frame
+!p bfra : sets background color for specified frame
 !p cfra : copy frame parameters
 !p fram : defines if a border is plotted around each frame
 !p kfra : define contents of frames (data sets or text)
@@ -862,14 +866,14 @@
 3  bfra
 !b bfra <if>,<r>,<g>,<b>
 
-   This command sets the background colour for frame <if>. The colour is
+   This command sets the background color for frame <if>. The color is
    given as RGB (red,green,blue) value ranging from 0.0 to 1.0. The
    default is a white background (1.0 1.0 1.0). 
 
-   If the background colour is changed frequently, the X-window server
-   might be unable to allocate additional colours if bitmaps are used. 
-   To free the used colours reenter the command 'cmap' which will create 
-   a new colourmap.
+   If the background color is changed frequently, the X-window server
+   might be unable to allocate additional colors if bitmaps are used. 
+   To free the used colors reenter the command 'cmap' which will create 
+   a new color map.
 3  cfra
 !b cfra <ifr>,<i1> [,<i2>,<i3>,...]
 
@@ -958,18 +962,18 @@
 !p   2 : bitmap 
 !p   3 : contour map & bitmap 
 
-   The z-range of the values to be converted to the colour range of the
+   The z-range of the values to be converted to the color range of the
    bitmap is determined by the setting of the first contour line range
-   (see command hlin). The colourmap is defined by the 'cmap' command.
+   (see command hlin). The color map is defined by the 'cmap' command.
 2  hcol
 !b hcol <ik>,<ic>,<c>
 
-   This command sets the colour for contour line set <ic> for the data 
-   set <ik>. The colours are numbered like the pens on a HP7475 plotter. 
+   This command sets the color for contour line set <ic> for the data 
+   set <ik>. The colors are numbered like the pens on a HP7475 plotter. 
    Allowed values for <c> are listed in the table, Alternatively you 
    can use the color name (without blanks i.e. darkblue etc.)
 
-   The allowed default colour values <icol> are listed below. Note
+   The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
@@ -979,10 +983,10 @@
 2  hlab
 !b hlab <ik>,<int>
 
-   This command controls optional labelling of the contour lines of
+   This command controls optional labeling of the contour lines of
    data set <ik>. If the parameter <int> is set to zero (default), no
    labels are drawn. Otherwise every <int> contour level starting at
-   the base level is labelled. The font characteristics of the axes
+   the base level is labeled. The font characteristics of the axes
    labels are used, only the font size is reduced by 75%.
 2  hlin
 !b hlin <ic>,<min>,<inc>,<n> [, { "abs" | "%" }]
@@ -1007,7 +1011,7 @@
 !b htyp <ik>,<ic>,<p>
 
    This command sets the line typ for contour line set <ic> for the data 
-   set <ik>. The colours are numbered like the pens on a HP7475 plotter. 
+   set <ik>. The colors are numbered like the pens on a HP7475 plotter. 
    Allowed values for <p> are (number or name):
 
 !p   0 : {"noline"|"none"} : no line 
@@ -1019,7 +1023,7 @@
 2  ident
 !b ident [ {"on" | "off"} ]
 
-   This command determines whether username, date and time of the plot
+   This command determines whether user name, date and time of the plot
    are written on the bottom of the view graph.
 2  inte
 !b inte <ik> [,<xmin>,<xmax>]
@@ -1049,11 +1053,11 @@
    commands in the 'ksav' level are:
 
 3  commands
-   Here is a list of valid commands in the KSAV sublevel:
+   Here is a list of valid commands in the KSAV sub level:
 
-!p exit    : Leaves KSAV sublevel without saving the file
+!p exit    : Leaves KSAV sub level without saving the file
 !p form    : Sets output file format
-!p help    : Displays online help (see general help)
+!p help    : Displays on-line help (see general help)
 !p m999    : Treatment of excluded data points
 !p outfile : Specifies the output filename
 !p run     : Saves file and leaves KSAV level 
@@ -1110,7 +1114,7 @@
 3  outfile
 !b outfile <fname>
 
-   This command specifies the name of the outputfile. See entry 'filenames'
+   This command specifies the name of the output file. See entry 'filenames'
    for more information about the building of filenames.
 3  run
 !b run
@@ -1176,13 +1180,13 @@
 2  lcol
 !b lcol <ik>,<c>
 
-   This command sets the line colour for the data set <ik>. If <ik> is
-   0 the colour set is taken for the grid lines (-> grid "on" | "off").
-   The colours are numbered like the pens on a HP7475 plotter. Allowed 
+   This command sets the line color for the data set <ik>. If <ik> is
+   0 the color set is taken for the grid lines (-> grid "on" | "off").
+   The colors are numbered like the pens on a HP7475 plotter. Allowed 
    values for <c> are listed in the table, Alternatively you can use
    the color name (without blanks i.e. darkblue etc.)
 
-   The allowed default colour values <icol> are listed below. Note
+   The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
@@ -1214,8 +1218,8 @@
 !b load cr,<file>
 
    Reads a "crystal" file format which contains coordinates for
-   the atoms and typ, colour and size for the marker for the specific
-   atom. Those code numbers for typ, colour and size are the same used
+   the atoms and typ, color and size for the marker for the specific
+   atom. Those code numbers for typ, color and size are the same used
    with the 'mtyp', 'mcol' and 'msiz' commands. The points are plotted
    in the xy plane, i.e. projected along z.
 
@@ -1287,7 +1291,7 @@
 
    Here is finally a universal 3d data file format known by KUPLOT,
    PGM files (from netpbm library). The current KUPLOT version can
-   only read ascii PGM files which have the code P2 in the first
+   only read ASCII PGM files which have the code P2 in the first
    line of the program.
 3  sc/st
 !b load sc,<file> [,<iscan>] [,<cx>,<cy>] [,<cN>] [,<cdx>] [,<cdy>]
@@ -1311,17 +1315,17 @@
    With no further parameters again KUPLOT lists information about the 
    given scan an descriptions of the columns in that scan. The next 
    two parameters <cx> and <cy> specify the columns to be associated 
-   with x and y. These parameters can either be numbers (positiv numbers 
+   with x and y. These parameters can either be numbers (positive numbers 
    are counted from the left, negative from the right) or the EXACT 
    column title. The last optional parameters defines which column KUPLOT 
-   will use for normalisation of the y-data. If the subcommand 'sc' is 
+   will use for normalization of the y-data. If the subcommand 'sc' is 
    used, KUPLOT calculates the standard deviation 'dy' as SQRT(y). If 
    'st' is entered, no errors are calculated.  Columns <cdx> and <cdy> 
    correspond to the errors of <cx> and <cy> allowing the user to read 
    sigma values from any column of the file. The fields have to be 
    specified in the given order, for used field enter "0". 
-   The scan infor that KUPLOT derives from the file is in part stored
-   into the result varialbe ==> 'res[]'. The entries are:
+   The scan info that KUPLOT derives from the file is in part stored
+   into the result variable ==> 'res[]'. The entries are:
    0  number of values stored in res
    1  number of scans
    2  number of MCA points
@@ -1454,8 +1458,8 @@
 2  lwid
 !b lwid <ik>,<width>
 
-   This command sets the linewidth <width> in cm for the data set <ik>.
-   If <ik> is zero, the linewidth for the frame itself is set. The
+   This command sets the line width <width> in cm for the data set <ik>.
+   If <ik> is zero, the line width for the frame itself is set. The
    current settings can be displayed using the 'show style' command.
 2  mark
 !b mark [<inx>] [,<iny>]
@@ -1488,12 +1492,12 @@
 2  mcol
 !b mcol <ik>,<c>
 
-   This command sets the marker colour for the data set <ik>. The colours
+   This command sets the marker color for the data set <ik>. The colors
    are numbered like the pens on a HP7475 plotter. Allowed values for
    <c> are: listed in the table, Alternatively you can use
    the color name (without blanks i.e. darkblue etc.)
 
-   The allowed default colour values <icol> are listed below. Note
+   The allowed default color values <icol> are listed below. Note
    that they can be changed by the user via the command 'color'.
 
 !p   1 : red       5 : yellow        9 : dark blue      13 : cyan
@@ -1546,7 +1550,7 @@
 !b mouse
 !b mouse {"point" | "line" | "rect" | "xrange" | "yrange" }
 
-   When the command is given without an addiotnal parameter, KUPLOT
+   When the command is given without an additional parameter, KUPLOT
    redraws the plot with a button area and enters the interactive 
    'mouse mode'. Use the 'EXIT' button to return to the normal command 
    mode. The command 'mouse point' allows the user to select a point
@@ -1605,8 +1609,8 @@
 
    If the third parameter is given and not equal to "0", the marker
    are scaled proportionally. 
-   x  The marker size is propertional to the value along the x-axis
-   y  The marker size is propertional to the value along the y-axis
+   x  The marker size is proportional to the value along the x-axis
+   y  The marker size is proportional to the value along the y-axis
    <data_set> The marker size is proportional to the y-value of
    data set <data_set>. 
 2  nexus
@@ -1745,7 +1749,7 @@
    to the head of an arrow drawn from the text position to this
    point. If omitted, no arrow is drawn.
 
-   Font type, size and colour is similar to the settings for
+   Font type, size and color is similar to the settings for
    filenames and caption (-> font). Call 'sann' without parameters
    or use 'show annotation' to get a list of the currently set
    annotations.
@@ -1783,13 +1787,13 @@
 3  color
 !b show "color"
 
-   This commands shows the list of current colour settings for the
+   This commands shows the list of current color settings for the
    background and pens. These settings might be altered using the
    command 'col'.
 3  cmap
 !b show "cmap"
 
-   This command shows the RGB values of the current colourmap used
+   This command shows the RGB values of the current color map used
    to print bitmaps (only POSTSCRIPT output and X11).
 3  config
 !b show config
@@ -1833,7 +1837,7 @@
 3  style
 !b show "style"
 
-   This command shows plotting style setting like line colour, line
+   This command shows plotting style setting like line color, line
    style etc. are displayed on the screen.
 2  sleg
 !b sleg <ik>, ["off", <text>] [,<ox>, <oy>]
@@ -1870,7 +1874,7 @@
 
    This command smoothes the data set number <ik> over <ip> points.
    The number <ip> should be a positive odd number. KUPLOT uses the
-   Savitzky-Golay algorithm. The order of the smoothing polynom defaults
+   Savitzky-Golay algorithm. The order of the smoothing polynomial defaults
    to two. Alternatively the user can give a higher order (4,6) via
    the optional parameter <o>. Within limits this algorithm allows
    smoothing without resolution (see section 14.8. in Numerical Recipes).
@@ -1917,7 +1921,7 @@
 
    This command allows the user to select a graphics output window.
    The first window has <id> of 1, the second window 2 and so on. 
-   The window command allows to create and toogle between graphics
+   The window command allows to create and toggle between graphics
    windows (provided you use the default \XSERV device). Note that
    print and save command will use the content of the currently 
    active window. Optionally the windows can be scaled using the 
@@ -1926,7 +1930,7 @@
 
    The program KUPLOT recognizes various variables. The contents of a
    variable can be displayed using the 'eval' command. Some variables
-   are READONLY (RO) and can not be changed. 
+   are READ ONLY (RO) and can not be changed. 
 
 !p Free variables :
    ----------------
@@ -1974,8 +1978,8 @@
 !p "pwin[i]"          : Current plotting dimensions 
 !p                      (1:xmin,2:xmax,3:ymin,4:ymax)             (RO)
 
-!p "cmap[<ic>,3]"     : colour map entry RGB for colour <ic> 
-!p "cmax[1]"          : maximum number of bitmap colours          (RO)
+!p "cmap[<ic>,3]"     : color map entry RGB for color <ic> 
+!p "cmax[1]"          : maximum number of bitmap colors          (RO)
 
 !p "size[i]"          : scale factor for output (1=x11,2=ps,3=pic)
 
@@ -1985,7 +1989,7 @@
 !p "res[<n>]"          : Result of several calculations that return more 
 !p                       than one value.  res[0] contains the number of 
 !p                       values returned, res[1] to res[res[0]] contain the 
-!p                       actual values.  The values of "res" change everytime, 
+!p                       actual values.  The values of "res" change every time, 
 !p                       a command is applied that returns more than one 
 !p                       value. The old values are lost !
 2  errors
@@ -1996,7 +2000,7 @@
    that result from calculation with erroneous data. When an error
    is found an error message is displayed that should get you back
    on track. Command language specific errors can be found in the
-   'command language' section of the online help.
+   'command language' section of the on-line help.
 
    The error messages are grouped in the following categories:
 
@@ -2024,10 +2028,10 @@
    data sets is defined by MAXKURVTOT in 'kuplot.inc'. In order to
    change this setting you have to recompile the program.
 4  -2
-   Unkown file format
+   Unknown file format
 
    The given file format with the 'load' command is unknown. Check
-   the online help for 'load' for a list of valid file formats.
+   the on-line help for 'load' for a list of valid file formats.
 4  -3
    Maximum number of data points exceeded
 
@@ -2055,8 +2059,8 @@
 4  -7
    Invalid parameter value entered
 
-   The given parameter value like colour, line typ or font id is invalid.
-   Check the online help for the corresponding command for valid 
+   The given parameter value like color, line typ or font id is invalid.
+   Check the on-line help for the corresponding command for valid 
    parameters.
 4  -8
    Use only if NO data set is loaded
@@ -2077,7 +2081,7 @@
 4  -11
    Invalid plot device selected
 
-   The output device selected is invalid. Check the online help for 
+   The output device selected is invalid. Check the on-line help for 
    supported output device types.
 4  -12
    No data present to plot
@@ -2109,9 +2113,9 @@
    more frames, change the setting of MAXFRAME in 'config.inc' and re-
    compile the program.
 4  -18
-   Invalid RGB colour found
+   Invalid RGB color found
 
-   RGB colours must have values between 0.0 and 1.0. The entered value
+   RGB colors must have values between 0.0 and 1.0. The entered value
    is invalid.
 4  -19
    Invalid peak number found
@@ -2220,5 +2224,5 @@
    Invalid smoothing size specified
 
    An invalid smoothing size was given. Valid numbers are odd 
-   integers. The mimimum value for a smoothing polynom of the
+   integers. The minimum value for a smoothing polynomial of the
    order of 2 is 5, for 4th order 7.
