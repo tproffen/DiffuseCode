@@ -63,7 +63,14 @@ INTEGER, INTENT(IN) :: i3
 INTEGER             :: divisor
 !
 divisor   = gcd_two(i1, i2)
-gcd_three = gcd_two(divisor, i3)
+IF(divisor>1) THEN
+   gcd_three = gcd_two(divisor, i3)
+ELSE
+   gcd_three = 1
+   IF(i1==0 .AND. I2==0 .AND. IABS(I3)>0) THEN
+      gcd_three = IABS(i3)
+   ENDIF
+ENDIF
 !
 END FUNCTION gcd_three
 END MODULE math_sup
