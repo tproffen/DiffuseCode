@@ -29,7 +29,8 @@ END SUBROUTINE output_save_file_1d
 !
 !  2D output file
 !
-SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt)
+SUBROUTINE output_save_file_2d( outfile, ranges, npkt1, npkt2, zwrt, &
+           header_lines, nheader)
 !
 USE errlist_mod
 IMPLICIT NONE
@@ -39,6 +40,9 @@ REAL   , DIMENSION(1:4),     INTENT(IN) :: ranges
 INTEGER,                     INTENT(IN) :: npkt1
 INTEGER,                     INTENT(IN) :: npkt2
 REAL   , DIMENSION(1:npkt1, 1:npkt2), INTENT(IN) :: zwrt
+CHARACTER (LEN=160), DIMENSION(:), INTENT(IN) :: header_lines
+INTEGER,                           INTENT(IN) :: nheader! number of lines in header
+
 !
 INTEGER, PARAMETER :: IFF = 2
 INTEGER            :: i, j
