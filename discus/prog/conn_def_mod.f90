@@ -11,6 +11,10 @@ INTEGER, PARAMETER  :: code_del   = -1                ! Remove one existing defi
 INTEGER, PARAMETER  :: code_add   =  1                ! Add a new definition
 INTEGER, PARAMETER  :: code_set   =  2                ! Set one existing definition
 !
+INTEGER, PARAMETER  :: MOLE_SCOPE_IGN  =  0
+INTEGER, PARAMETER  :: MOLE_SCOPE_WITH =  1
+INTEGER, PARAMETER  :: MOLE_SCOPE_OUT  = -1
+!
 !!!!!!!!!
 TYPE :: CONN_DEFS
    INTEGER                            :: valid_id     ! ID = no of current definition
@@ -21,6 +25,7 @@ TYPE :: CONN_DEFS
    INTEGER                            :: valid_no     ! Number of valid atom types
    INTEGER                            :: intend_no    ! Intended number of neighbors
    INTEGER, DIMENSION(:), ALLOCATABLE :: valid_types  ! Valid atom types in current definition
+   INTEGER                            :: mole_scope   ! Scope is limited to a molecule
    REAL                               :: def_rmin     ! minimum distance for current definition
    REAL                               :: def_rmax     ! maximum distance for current definition
    TYPE(CONN_DEFS), POINTER           :: def_next     ! next definition

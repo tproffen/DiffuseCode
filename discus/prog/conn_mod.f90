@@ -178,6 +178,7 @@ CONTAINS
    INTEGER              :: is  ! dummies for scattering types
    INTEGER              :: ianz
    INTEGER              :: n_neig      ! Actual number of neighboring atoms
+   INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig  ! Valid neigbors under the scope
    LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
    LOGICAL              :: fq    ! quick search algorithm
    REAL                 :: rmin        ! Minimum bond length
@@ -214,6 +215,29 @@ CONTAINS
 !
             IF ( atom_env(0) > 0) THEN                      ! The atom has neighbors
 !
+!              FIND valid neighbors
+               ALLOCATE(valid_neig(1:atom_env(0)))
+               n_neig = 0
+               list: DO j = 1, atom_env(0)                  ! Add all (intended) neighbors to list
+                  ! Add current atom if scope matches the intended conditions
+                  IF( def_temp%mole_scope==MOLE_SCOPE_IGN                   .OR. &
+                     (def_temp%mole_scope==MOLE_SCOPE_WITH  .AND.                &
+                       cr_mole(i)/=0 .AND. cr_mole(i)==cr_mole(atom_env(j))).OR. &
+                     (def_temp%mole_scope==MOLE_SCOPE_OUT   .AND.                &
+                       cr_mole(i)/=0 .AND. cr_mole(i)/=cr_mole(atom_env(j)))     &
+                    ) THEN
+                    IF(i==atom_env(j)) THEN
+                       IF(NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))==0 .AND.  &
+                          NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))==0 .AND.  &
+                          NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))==0       ) THEN
+                          CYCLE list         ! got identical atom without offset
+                       ENDIF
+                    ENDIF
+                    n_neig = n_neig + 1
+                    valid_neig(n_neig) = atom_env(j)
+                  ENDIF
+               ENDDO list
+!
 !              Properly set the pointer hood_temp
 !
                IF ( ASSOCIATED(at_conn(i)%liste)) THEN      ! A previous NEIGHBORHOOD exists
@@ -226,10 +250,13 @@ CONTAINS
 !
 !           Now we set parameters of current NEIGHBORHOOD
 !
-               IF(def_temp%intend_no == -1) THEN
-                  n_neig = atom_env(0)
-               ELSE
-                  n_neig = MIN(atom_env(0),def_temp%intend_no)
+!              IF(def_temp%intend_no == -1) THEN
+!                 n_neig = atom_env(0)
+!              ELSE
+!                 n_neig = MIN(atom_env(0),def_temp%intend_no)
+!              ENDIF
+               IF(def_temp%intend_no /= -1) THEN
+                  n_neig = MIN(n_neig     ,def_temp%intend_no)
                ENDIF
                NULLIFY (hood_temp%next_neighborhood)        ! No further NEIGHBORHOODs
                hood_temp%central_number = i                 ! Just set central atom no.
@@ -245,21 +272,23 @@ CONTAINS
                ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
                j = 1
                tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
-               tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
+!              tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
+               tail%atom_number = valid_neig(j)             ! I store the atom_no of the neighbor
                tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
                tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
                tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
                NULLIFY (tail%next)                          ! No further neighbors
 !
                DO j = 2, n_neig                             ! Add all (intended) neighbors to list
-                  ALLOCATE (tail%next)                      ! create a further NEIGHBOR
-                  tail => tail%next                         ! reassign tail to new end of list
-                  tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
-                  tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
-                  tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
-                  tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
-                  NULLIFY (tail%next)                       ! No further neighbors
+                     ALLOCATE (tail%next)                      ! create a further NEIGHBOR
+                     tail => tail%next                         ! reassign tail to new end of list
+                     tail%atom_number = valid_neig(j)          ! I store the atom_no of the neighbor
+                     tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+                     tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+                     tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+                     NULLIFY (tail%next)                       ! No further neighbors
                ENDDO
+               DEALLOCATE(valid_neig)
             ENDIF
             IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
                CYCLE atome
@@ -448,6 +477,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE modify_mod
       USE variable_test
       USE errlist_mod
+      USE take_param_mod
 !
       IMPLICIT none
 !
@@ -459,6 +489,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER, PARAMETER  :: MIN_PARA = 5
       INTEGER             :: maxw
       INTEGER, PARAMETER  :: maxw2 = 2
+      INTEGER, PARAMETER  :: NOPTIONAL = 2
 !
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
@@ -482,15 +513,31 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       LOGICAL             :: l_type       ! Unused DUMMY argument
       INTEGER             :: is_no        ! Unused DUMMY argument
       INTEGER             :: all_status   ! Allocation status
+      INTEGER             :: mole_scope   ! Scope is limited to a molecule
       REAL                :: rmin         ! minimum bond distance
       REAL                :: rmax         ! maximum bond distance
 !
-      REAL :: berechne
+      CHARACTER(LEN=   9), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
+      LOGICAL :: str_comp
+      REAL    :: berechne
+!
+      DATA oname  / 'first', 'molescope' /
+      DATA loname /  5     ,  9          /
+      opara  =  (/ '-1     ', 'ignore ' /)   ! Always provide fresh default values
+      lopara =  (/  7       ,  7        /)
+      owerte =  (/  -1.0    ,  0.0      /)
+!
 !                                                                       
       rmin = 0.0
       rmax = 0.5
       maxw = MAX(MIN_PARA, MAXSCAT+5)     ! (MAXSCAT+ void) + 4 Parameters  
-      temp_number = -1
+      temp_number = NINT(owerte(1))       ! Take default from optional parameter list
 !                                                                       
 !     Check definitions array
 !
@@ -515,6 +562,26 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.ne.0) return 
+!
+!     Sort optional parameters
+!
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, owerte)
+      IF(     str_comp(opara(2), 'ignore',  2, lopara(2), 6) ) THEN
+         mole_scope = MOLE_SCOPE_IGN
+      ELSEIF( str_comp(opara(2), 'within',  2, lopara(2), 6) ) THEN
+         mole_scope = MOLE_SCOPE_WITH
+      ELSEIF( str_comp(opara(2), 'outside', 2, lopara(2), 7) ) THEN
+         mole_scope = MOLE_SCOPE_OUT
+      ELSE
+         ier_num = -13
+         ier_typ = ER_COMM
+         ier_msg(1) = 'Offending parameter'
+         ier_msg(2) = oname(2)(1:MIN(43,loname(2)))
+         ier_msg(3) = opara(2)(1:MIN(43,lopara(2)))
+         RETURN
+      ENDIF
+
 !
 !     Set mmc behaviour
 !
@@ -630,7 +697,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
             ianz        = ianz - 1
          ELSE
-            temp_number = -1
+            temp_number = NINT(owerte(1))  ! Take default from optional parameter list
          ENDIF
       ENDIF
 !
@@ -697,10 +764,11 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                DO is2 = 1, ianz                                  ! Set all neighbor types
                   def_temp%valid_types(is2) = NINT(werte(is2))
                ENDDO
-               def_temp%valid_no  = ianz                         ! Set number of neighb or types
-               def_temp%intend_no = temp_number                  ! Set intended number of neighbor atoms
-               def_temp%def_rmin  = rmin                         ! Set bond length limits
-               def_temp%def_rmax  = rmax                         ! Set bond length limits
+               def_temp%valid_no   = ianz                        ! Set number of neighb or types
+               def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
+               def_temp%mole_scope = mole_scope                  ! Set scope
+               def_temp%def_rmin   = rmin                        ! Set bond length limits
+               def_temp%def_rmax   = rmax                        ! Set bond length limits
             ELSEIF ( code == code_del ) THEN                     ! Remove this definition
                IF ( ASSOCIATED(def_temp%def_next) ) THEN         ! A further definition exists
                   IF ( work_id == 1 ) THEN                       ! This is the first def.
@@ -768,8 +836,9 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%def_name_l = work_name_l                 ! Set definition name length
             def_temp%mmc_sel    = conn_mmc_sel                ! Set mmc selection type
             def_temp%mmc_ene    = conn_mmc_ene                ! Set mmc energy    type
-            def_temp%valid_no   = ianz                        ! Set number of neighb or types
+            def_temp%valid_no   = ianz                        ! Set number of neighbor types
             def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
+            def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
@@ -806,6 +875,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%mmc_ene    = conn_mmc_ene                ! Set mmc energy    type
             def_temp%valid_no   = ianz                        ! Set number of neighb or types
             def_temp%intend_no  = temp_number                 ! Set intended number of neighbor atoms
+            def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
             NULLIFY(def_temp%def_next)                        ! No further definition
@@ -1228,20 +1298,22 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                 IF(ALLOCATED(c_list)) THEN
 !                  IF(UBOUND(c_list).lt.natoms) THEN
                       DEALLOCATE(c_list)
-                      ALLOCATE(c_list(1:natoms))
+                      ALLOCATE(c_list(0:natoms))
 !                  ENDIF
                 ELSE
-                   ALLOCATE(c_list(1:natoms))
+                   ALLOCATE(c_list(0:natoms))
                 ENDIF
                 IF(ALLOCATED(c_offs)) THEN
 !                  IF(UBOUND(c_offs).lt.natoms) THEN
                       DEALLOCATE(c_offs)
-                      ALLOCATE(c_offs(1:3,1:natoms))
+                      ALLOCATE(c_offs(1:3,0:natoms))
 !                  ENDIF
                 ELSE
-                   ALLOCATE(c_offs(1:3,1:natoms))
+                   ALLOCATE(c_offs(1:3,0:natoms))
                 ENDIF
-                c_list = 0   ! clear connectivity list
+                c_list(:)   = 0   ! clear connectivity list
+                c_offs(:,:) = 0
+                IF(natoms == 0) RETURN                      ! Empty list
                 k = 0
                 DO WHILE ( ASSOCIATED(temp) )               ! While there are further neighbors
                     k         = k+ 1
@@ -1383,7 +1455,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
         CALL alloc_param(n_res)
         MAXPAR_RES = n_res
       ENDIF
-      IF ( natoms <= MAXPAR_RES ) THEN
+      IF ( natoms>0 .AND. natoms <= MAXPAR_RES ) THEN
          res_para(0) = FLOAT(natoms)
          res_para(1:natoms) = FLOAT(c_list(1:natoms))
       ENDIF
@@ -1825,17 +1897,21 @@ search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neigh
             ino    = hood_p%neigh_type           ! Return actual number and name
             c_name = hood_p%conn_name
             c_natoms = hood_p%natoms             ! Store number of neigboring atoms
+            IF(c_natoms==0) THEN
+               success = -3                      ! List is empty
+               RETURN
+            ENDIF
             IF(ALLOCATED(c_list)) THEN           ! Just in case, if the list exists already
                DEALLOCATE(c_list)
-               ALLOCATE(c_list(1:c_natoms))
+               ALLOCATE(c_list(0:c_natoms))
             ELSE
-               ALLOCATE(c_list(1:c_natoms))
+               ALLOCATE(c_list(0:c_natoms))
             ENDIF
             IF(ALLOCATED(c_offs)) THEN
                DEALLOCATE(c_offs)
-               ALLOCATE(c_offs(1:3,1:c_natoms))
+               ALLOCATE(c_offs(1:3,0:c_natoms))
             ELSE
-               ALLOCATE(c_offs(1:3,1:c_natoms))
+               ALLOCATE(c_offs(1:3,0:c_natoms))
             ENDIF
             c_list = 0                           ! clear connectivity list
             k = 0
