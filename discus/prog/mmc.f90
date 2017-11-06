@@ -241,6 +241,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
       USE atom_name
       USE chem_mod 
       USE chem_menu
+      USE discus_allocate_appl_mod
       USE mc_mod 
       USE mmc_mod 
       USE molecule_mod 
@@ -268,14 +269,21 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
             'switch displacement ', &
             'shift atom          ', &
             'inverse displacement' /)
-      CHARACTER (LEN=20), DIMENSION(4)            :: c_site = & !(4) 
+      CHARACTER (LEN=20), DIMENSION(5)            :: c_site = & !(4) 
          (/ 'all                 ', &
             'local +- 1 unit cell', &
             'local, same site    ', &
-            'all,   same site    ' /)
+            'all,   same site    ', &
+            'connectivity        ' /)
       CHARACTER(9) at_name_i, at_name_j 
       INTEGER i, j, k
+INTEGER :: n_corr
+INTEGER :: n_scat
 !                                                                       
+n_corr = MAX(CHEM_MAX_COR,MMC_MAX_CORR)
+n_scat = MAX(MAXSCAT, MMC_MAX_SCAT)
+! call alloc_chem ! NEEDS WORK
+call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       IF (mo_sel_atom) then 
          WRITE (output_io, 1105) 'atoms' 
@@ -2150,11 +2158,11 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !     ----Loop over all modified atoms                                  
 !                                                                       
             DO ia = 1, natoms 
-            DO i = 1, 3 
-            v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
-            - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
-            v (i) = v (i) - disp (i, 0, ia) 
-            ENDDO 
+!DBG_DECO   DO i = 1, 3 
+!DBG_DECO   v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
+!DBG_DECO   - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
+!DBG_DECO   v (i) = v (i) - disp (i, 0, ia) 
+!DBG_DECO   ENDDO 
 !                                                                       
 !     ------Loop over all defined neighbour interactions                
 !                                                                       
@@ -2180,6 +2188,11 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !     ------- Displacement correlation                                  
 !                                                                       
                IF (mmc_cor_energy (ic, MC_DISP) ) then 
+            DO i = 1, 3 
+            v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
+            - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
+            v (i) = v (i) - disp (i, 0, ia) 
+            ENDDO 
                   IF (chem_ldall (ic) ) then 
                      DO i = 1, 3 
                      jdir (i) = v (i) 
@@ -3701,6 +3714,7 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
       REAL xij (0:maxscat, 0:maxscat) 
       REAL xi2 (0:maxscat, 0:maxscat) 
       REAL xj2 (0:maxscat, 0:maxscat) 
+!
 !                                                                       
 !     REAL do_blen 
 !     REAL do_bang 
@@ -3723,9 +3737,11 @@ prompt = prompt (1:len_str (prompt) ) //'/mmc'
 !                                                                       
 !     Get the average structure for the distance energies               
 !                                                                       
-      IF (mmc_cor_energy (0, MC_DISP)    .or.mmc_cor_energy (0, MC_SPRING) &
-      .or.mmc_cor_energy (0, MC_LENNARD) .or.mmc_cor_energy (0, MC_BUCKING)&
-      .or.mmc_cor_energy (0,MC_REPULSIVE) ) then                                                
+!     IF (mmc_cor_energy (0, MC_DISP)    .or.mmc_cor_energy (0, MC_SPRING) &
+!     .or.mmc_cor_energy (0, MC_LENNARD) .or.mmc_cor_energy (0, MC_BUCKING)&
+!     .or.mmc_cor_energy (0,MC_REPULSIVE) ) then                                                
+      IF (mmc_cor_energy (0, MC_DISP)                                      &
+         ) THEN
          CALL chem_aver (.false., .true.) 
       ENDIF 
 !                                                                       
@@ -3790,6 +3806,9 @@ main_atoms:         DO i = 1, cr_natoms
             is = cr_iscat (i) 
             CALL chem_neighbour_multi (i, ic, iatom, patom, natom, ncent,     &
             maxatom)                                                          
+!!if(ic==3) then
+!write(*,*) (cr_iscat (iatom (kkk, icent) ), kkk=1,natom (1))
+!endif
             IF (ier_num.ne.0) return 
 !                                                                       
 !------ ---- In case of Displacement correlation, calculate             
@@ -3856,6 +3875,9 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
                v (k) = patom (k, j, icent) 
                d (k) = v (k) - u (k) 
                ENDDO 
+!if(ic==3) then
+!write(*,*) ' should add for atom pair is,js', i,is,js
+!endif
                dist = do_blen (.true., u, v) 
                js   = cr_iscat (iatom (j, icent) ) 
                bl_sum (is, js) = bl_sum (is, js) + dist 
@@ -4169,6 +4191,7 @@ lenn_pair: DO is = 0, cr_nscat
 repu_pair: DO is = 0, cr_nscat 
       DO js = is, cr_nscat 
       IF (mmc_pair (ic, MC_REPULSIVE, is, js) == -1 ) then 
+!write(*,*) is,js,ic, mmc_pair (ic, MC_REPULSIVE, is, js), bl_anz (is, js), bl_anz (js, is)
          je = MC_REPULSIVE 
 !                                                                       
 !     ----- REPULSIVE                                                     

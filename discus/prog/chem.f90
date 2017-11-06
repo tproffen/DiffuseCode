@@ -988,7 +988,10 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
 !                                                                       
    CHARACTER (LEN=256)  :: c_name   ! Connectivity name
    INTEGER              :: c_name_l ! connectivity name length
-   INTEGER     :: is1, ino, iv, iianz
+   INTEGER     :: is1, ino, iianz, j
+   INTEGER     :: iv = 0 ! con number in chemistry
+   INTEGER     :: is     ! Loop over atom types
+   INTEGER     :: j_con  ! Number of connectivities for an atom type
    INTEGER     :: n_con  ! Dummy for allocations
    INTEGER     :: n_cor  ! Dummy for allocations
    LOGICAL     :: lold   ! Atom types have to be present
@@ -1000,9 +1003,33 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
       chem_ccon           =     0 ! all elements (i,j)
       chem_ccon    (1, :) = -9999 ! column (1,*)
       chem_use_con        =     1 ! all elements (i,j)
+      iv = 0                      ! no more con's
       RETURN 
    ENDIF 
 !                                                                       
+   IF(str_comp (cpara (1) , 'all', 2, lpara (1) , 3) ) THEN  ! Use all connectivities
+      atom_types: DO is = 1, cr_nscat                    ! Loop over all atom types
+         j_con = get_connectivity_numbers(is)            ! How many conns does this type have?
+         connecs: DO j=1, j_con                          ! Loop over all connectivities 
+            ino = j                                      ! identity may change ino
+            c_name   = ' '                               ! Force search by number
+            c_name_l = 1
+            CALL get_connectivity_identity( is, ino, c_name, c_name_l)
+            iv = iv + 1                                  ! autoincrement con.nr.
+            IF (iv > CHEM_MAX_CON) THEN
+               n_con = CHEM_MAX_CON + 10                 ! Increment size by 10
+               n_cor = CHEM_MAX_COR
+               CALL alloc_chem_con ( n_con , n_cor )
+               IF (ier_num /= 0) RETURN
+            ENDIF
+            chem_ccon (1, iv) = is
+            chem_ccon (2, iv) = ino
+            chem_cname  (iv)  = c_name
+            chem_cname_l(iv)  = c_name_l
+         ENDDO connecs
+      ENDDO atom_types
+      continue
+   ELSE                                                  ! use all connectivities ???
    iianz = 1
    CALL ber_params (iianz, cpara, lpara, werte, maxw) 
    IF (ier_num.ne.0) return 
@@ -1059,6 +1086,7 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
       ier_num = - 6 
       ier_typ = ER_COMM 
    ENDIF nparams
+   ENDIF                              ! use all connectivities ???
 !
 !                                                                       
 END SUBROUTINE chem_set_con                   
@@ -1503,11 +1531,13 @@ ENDIF
       INTEGER lpara (maxw) 
       INTEGER ianz 
 !                                                                       
-      INTEGER i, j, iv 
+      INTEGER i, j, iv , ii
       REAL u (3), v (3) 
       REAL uvw (4, max_uvw) 
       REAL uvw_mat (4, 4, max_uvw) 
       LOGICAL lacentric, csym 
+      LOGICAL :: success = .TRUE.
+      LOGICAL :: grand   = .FALSE.
 !                                                                       
 !     REAL do_blen 
 !                                                                       
@@ -1558,6 +1588,28 @@ ENDIF
 !------ set neig,con : Define neighbour via connectivity                     
 !                                                                       
       ELSEIF (cpara (1) (1:2) .eq.'CO'.and.ianz.gt.1) then 
+!                                           ! Try if params match connectivity names
+         grand = .TRUE.
+         search: DO ii=2, ianz              ! Loop over all params
+            i = ii-1                        ! need to subtract 1 as names start in cpara(2)
+            success = .FALSE.
+            cons: DO j = 1, CHEM_MAX_CON    ! Have do do the full loop exit if -9999 is found
+               IF(chem_ccon(1,j)==-9999) EXIT cons   ! no more cons
+               IF(cpara(ii)==chem_cname(j)) THEN   ! need exact match
+                  iv = j                    ! lets use same variable name as in old style
+                  chem_use_con (i, chem_ncor) = iv 
+                  success = .TRUE.          ! Found a match for current parameter
+                  EXIT cons                 ! we are done for this parameter
+               ENDIF
+            ENDDO cons
+            grand = grand .AND. success
+         ENDDO search
+         IF(grand) THEN 
+            chem_ncon (chem_ncor) = ianz -1
+            chem_ctyp (chem_ncor) = CHEM_CON 
+            RETURN
+         ELSE
+!                                           ! try old style
          CALL chem_set_nei_range (ianz, cpara, lpara, werte, maxw) 
          IF (ier_num.ne.0) return 
          DO i = 1, ianz 
@@ -1577,6 +1629,7 @@ ENDIF
          IF (ier_num.ne.0) return 
          chem_ncon (chem_ncor) = ianz 
          chem_ctyp (chem_ncor) = CHEM_CON 
+         ENDIF 
 !                                                                       
 !------ set neig,ran : Define neighbour via ranges                      
 !                                                                       
@@ -6487,6 +6540,8 @@ SUBROUTINE chem_apply_period(isel,lupdate_conn)
 !  and from the neighbors are updated.
 !
 USE crystal_mod
+USE chem_mod
+USE molecule_mod
 USE conn_mod
 !
 IMPLICIT NONE
@@ -6496,13 +6551,14 @@ LOGICAL, INTENT(IN) :: lupdate_conn  ! update the connectivity, if true
 !
 REAL   , PARAMETER  :: DELTA = 0.1
 !
-INTEGER               :: i
+INTEGER               :: i, j, k, imole
 LOGICAL               :: lshift
 REAL   , DIMENSION(3) :: shift
 !
 lshift   = .FALSE.
 DO i=1,3
    shift(i) = 0.0
+   IF(chem_period(i)) THEN
    IF(    cr_pos(i,isel) < NINT(cr_dim(i,1))          -DELTA) THEN
       shift(i) =  cr_icc(i)
       lshift   = .TRUE.
@@ -6510,13 +6566,28 @@ DO i=1,3
       shift(i) = -cr_icc(i)
       lshift   = .TRUE.
    ENDIF
+   ENDIF
 ENDDO
 !
 IF(lshift) THEN   ! Periodic boundary conditions were applied
-   cr_pos(:,isel) = cr_pos(:,isel) + shift(:)
-   IF(lupdate_conn) THEN
-      CALL conn_update(isel, shift)
+   IF(cr_mole(isel)==0) THEN    ! Single atom
+      cr_pos(:,isel) = cr_pos(:,isel) + shift(:)
+      IF(lupdate_conn) THEN
+         CALL conn_update(isel, shift)
+      ENDIF
+   ELSE
+      imole = cr_mole(isel)
+      DO j=1, mole_len(imole)
+         k = mole_cont(mole_off(imole)+j)
+         cr_pos(:,k) = cr_pos(:,k) + shift(:)
+         IF(lupdate_conn) THEN
+            CALL conn_update(k, shift)
+         ENDIF
+      ENDDO
    ENDIF
+!  IF(lupdate_conn) THEN
+!     CALL conn_update(isel, shift)
+!  ENDIF
 ENDIF
 !
 END SUBROUTINE chem_apply_period
