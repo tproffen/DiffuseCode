@@ -56,6 +56,35 @@
 !
       END FUNCTION gasskew                           
 !*****7*****************************************************************
+!
+      REAL FUNCTION gaslim(sig,factor)
+!
+!     Calculates a gaussian distributed number, limited to +- factor*sig
+!
+      REAL, INTENT(IN) :: sig    ! Sigma of Gaussian distribution
+      REAL, INTENT(IN) :: factor ! iLimit in multiples of sigma
+!
+      REAL    :: x
+      INTEGER :: counter
+!
+      REAL :: gasdev
+!
+      x = 0.0
+      counter = 0
+      main: DO 
+         x = gasdev(sig)
+         counter = counter + 1
+         IF(ABS(x) <= factor*sig) EXIT main
+         IF(counter>1000) THEN                ! Prevent infinite loop
+            CALL RANDOM_NUMBER(x)
+            x = (-2.0 + 4.*x) * sig   ! place into +-2*sigma interval
+            EXIT main
+         ENDIF
+      ENDDO main
+      gaslim = x
+!
+      END FUNCTION gaslim
+!*****7*****************************************************************
       REAL FUNCTION ran1 (idum)
 !
 !     kept for backwards compatibility, replaces old ran1 from Numerical recipes
