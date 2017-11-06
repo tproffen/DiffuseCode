@@ -274,6 +274,7 @@ MODULE discus_allocate_appl_mod
       CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
       CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
       CALL alloc_crystal  ( 1,  1        )
+      CALL alloc_deco     ( 1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
@@ -788,6 +789,16 @@ MODULE discus_allocate_appl_mod
       lstat  = .TRUE.
       cry_size_of = 0
 !
+!     CALL alloc_arr ( cr_at_lis,      0,n_scat,  all_status, ' ', size_of)
+!     lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!write(*,*) ' lstat, all_status ', lstat, all_status
+!write(*,*) 'AT_LIS ', allocated(cr_at_lis)
+!write(*,*) 'AT_LIS ', lbound(cr_at_lis),ubound(cr_at_lis)
+!write(*,*) ' AT_LIS 1>',cr_at_lis(1),'<<'
+!write(*,*) ' AT_LIS 0>',cr_at_lis(0),'<<'
+!     cr_at_lis(0) = 'VOID'
+!     cry_size_of = cry_size_of + size_of
+!
       CALL alloc_arr ( cr_iscat      ,1,n_max ,  all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
@@ -867,6 +878,10 @@ MODULE discus_allocate_appl_mod
       cry_size_of = cry_size_of + size_of
 !
       CALL alloc_arr ( cr_amount,      0,n_scat,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      cry_size_of = cry_size_of + size_of
+!
+      CALL alloc_arr ( cr_surf,0,3   ,1,n_max ,  all_status, 0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       cry_size_of = cry_size_of + size_of
 !
@@ -953,7 +968,7 @@ MODULE discus_allocate_appl_mod
     END SUBROUTINE alloc_debye
 !
 !
-    SUBROUTINE alloc_deco ( n_scat )
+    SUBROUTINE alloc_deco ( n_scat, n_deco, n_anch, n_hkl, n_new, m_scat)
 !-
 !     Allocate the arrays needed by DECORATE
 !+
@@ -963,6 +978,11 @@ MODULE discus_allocate_appl_mod
 !
 !      
       INTEGER, INTENT(IN)  :: n_scat
+      INTEGER, INTENT(IN)  :: n_deco
+      INTEGER, INTENT(IN)  :: n_anch
+      INTEGER, INTENT(IN)  :: n_hkl
+      INTEGER, INTENT(IN)  :: n_new
+      INTEGER, INTENT(IN)  :: m_scat
 !
       INTEGER              :: all_status
       LOGICAL              :: lstat
@@ -973,7 +993,71 @@ MODULE discus_allocate_appl_mod
        CALL alloc_arr ( dc_latom       ,0,n_scat  ,  all_status, .false.  , size_of )
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_name,1,n_deco ,  all_status, ' '  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_file,1,n_deco ,  all_status, ' '  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_natoms,1,n_deco, all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_atom_name,0,m_scat, 1,n_deco, all_status, ' '  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_adp      ,0,m_scat, 1,n_deco, all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_biso,1,n_deco ,  all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_mole_type,1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_type,1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_lname,1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_lfile,1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_surf  ,0,2,0,n_anch,1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_neig,0,2,           1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_secnd,              1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_axis,0,2,           1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_lrestrict,          1,n_deco ,  all_status, .FALSE., size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_lform,              1,n_deco ,  all_status, .FALSE., size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_hkl ,1,3, 0,n_hkl,  1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_surfnew,0,n_new,    1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_dens,               1,n_deco ,  all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_dist,1,2,           1,n_deco ,  all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       IF( lstat ) THEN                        ! Success
+         DCC_MAXNUM    = n_deco
+         DCC_MAXANCH   = n_anch
+         DCC_MAXHKL    = n_hkl
+         DCC_MAXNEW    = n_new
          ier_typ       = 0
          ier_num       = 0
          IF ( all_status == 1 ) THEN
@@ -2643,6 +2727,10 @@ MODULE discus_allocate_appl_mod
       st_cr_size_of = st_cr_size_of + size_of
 !
       CALL alloc_arr ( st_mole ,       1,n_scat,  all_status, 0  , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      st_cr_size_of = st_cr_size_of + size_of
+!
+      CALL alloc_arr ( st_surf ,0, 3,  1,n_scat,  all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
