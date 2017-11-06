@@ -1237,7 +1237,7 @@ CONTAINS
       USE wink_mod
       IMPLICIT none 
 !                                                                       
-      REAL   , PARAMETER   :: eightpisq = 8.*3.14159265
+      REAL   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 !                                                                       
        
 !                                                                       
@@ -1250,9 +1250,12 @@ CONTAINS
 !     LOGICAL check_select_status 
 !     REAL skalpro 
 !                                                                       
-      scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+2)
-      scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+2)
-      scalef(3) = MAX(cr_icc(3), INT((cr_dim(3,2)-cr_dim(3,1)))+2)
+!     scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+2)
+!     scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+2)
+!     scalef(3) = MAX(cr_icc(3), INT((cr_dim(3,2)-cr_dim(3,1)))+2)
+      scalef(1) =                INT((cr_dim(1,2)-cr_dim(1,1)))+2
+      scalef(2) =                INT((cr_dim(2,2)-cr_dim(2,1)))+2
+      scalef(3) =                INT((cr_dim(3,2)-cr_dim(3,1)))+2
       WRITE (iff, 500) 
       WRITE (iff, 510) (cr_a0 (i) * scalef (i), i = 1, 3),  &
                        (cr_win (i), i = 1, 3)
