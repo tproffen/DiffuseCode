@@ -8,7 +8,7 @@ USE errlist_mod
 !
 IMPLICIT NONE
 !
-!PUBLIC dc_def
+INTEGER, PARAMETER        :: DC_MAXMODE  = 6  ! We have six decoration modes
 !
 TYPE dc_con
    INTEGER, DIMENSION(:), ALLOCATABLE :: dc_con_surf   ! Surface atom type that is connected to molecule
@@ -24,10 +24,12 @@ TYPE dc_def
    CHARACTER(LEN=1024)      :: dc_def_name     ! the definition name
    INTEGER                  :: dc_def_lfile    ! Length of the molecule file name
    CHARACTER(LEN=1024)      :: dc_def_file     ! the molecule file name
+   INTEGER                  :: dc_def_molnum   = 0       ! This molecule in dc_molecules belongs to me
    INTEGER                  :: dc_def_type     = 1       ! Connection type (NORMAL, BRIDGE, ...)
    CHARACTER(LEN=8)         :: dc_def_ntype    = 'NORMAL'! Connection type name (NORMAL, BRIDGE, ...)
    INTEGER                  :: dc_def_ltype    = 6       ! Connection type name length (NORMAL, BRIDGE, ...)
    INTEGER,DIMENSION(1:2)   :: dc_def_axis     ! Molecule axis defined by two atoms
+   INTEGER,DIMENSION(1:20)  :: dc_def_surfnew  ! Molecule surface atoms
    REAL                     :: dc_def_dens     = 0.100   ! Molecule density per square Angstroem
    LOGICAL                  :: dc_def_restrict = .FALSE. ! Restriction yes / no
    LOGICAL                  :: dc_def_l_form   = .FALSE. ! Single hkl or form
@@ -41,10 +43,10 @@ TYPE dc_def
 END TYPE dc_def
 !
 !
-CHARACTER (LEN=8), DIMENSION(0:4) :: type_name
-INTEGER          , DIMENSION(0:4) :: type_length
-DATA type_name /'none def','normal  ','bridge  ','double','multiple'/
-DATA type_length /8,6,6,6,8/
+CHARACTER (LEN=8), DIMENSION(0:DC_MAXMODE) :: type_name
+INTEGER          , DIMENSION(0:DC_MAXMODE) :: type_length
+DATA type_name /'none def','normal  ','bridge  ','double','multiple','acceptor', 'donor'/
+DATA type_length /8,6,6,6,8,8,5/
 PUBLIC dc_find_def
 PUBLIC dc_set_file
 !
@@ -89,6 +91,7 @@ CONTAINS
                this%next%dc_def_lfile  = 0
                this%next%dc_def_file   = ' '
                this%next%dc_def_axis(:)= -1
+               this%next%dc_def_surfnew(:)= 0
                NULLIFY(this%next%next)
                NULLIFY(this%next%dc_def_con)
                this%next%dc_def_ncon = 0
@@ -114,6 +117,7 @@ CONTAINS
          this%dc_def_lfile  = 0
          this%dc_def_file   = ' '
          this%dc_def_axis(:)= -1
+         this%dc_def_surfnew(:)= 0
          NULLIFY(this%next)
          NULLIFY(this%dc_def_con)
          this%dc_def_ncon = 0
@@ -160,6 +164,36 @@ CONTAINS
    ENDIF
 !
    END SUBROUTINE dc_set_axis
+!
+!*******************************************************************************
+!
+   SUBROUTINE dc_set_surfnew(this, dc_temp_surfnew)
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, DIMENSION(1:20), INTENT(IN) :: dc_temp_surfnew
+!
+   IF(ASSOCIATED(this)) THEN
+      this%dc_def_surfnew(:)  = dc_temp_surfnew(:)
+   ELSE
+      write(*,*) ' SET SURFNEW, NODE NOT associated!'
+   ENDIF
+!
+   END SUBROUTINE dc_set_surfnew
+!
+!*******************************************************************************
+!
+   SUBROUTINE dc_set_molnum(this, dc_temp_molnum)
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, INTENT(IN)    :: dc_temp_molnum
+!
+   IF(ASSOCIATED(this)) THEN
+      this%dc_def_molnum  = dc_temp_molnum
+   ELSE
+      write(*,*) ' SET molnum, NODE NOT associated!'
+   ENDIF
+!
+   END SUBROUTINE dc_set_molnum
 !
 !*******************************************************************************
 !
@@ -458,6 +492,19 @@ CONTAINS
 !
 !*******************************************************************************
 !
+   SUBROUTINE dc_get_id(this, dc_temp_id)
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, INTENT(OUT)   :: dc_temp_id
+!
+   dc_temp_id = this%dc_def_index
+!
+   END SUBROUTINE dc_get_id
+!
+!*******************************************************************************
+!
    SUBROUTINE dc_get_dens(this, dc_temp_dens)
 !
    IMPLICIT NONE
@@ -468,6 +515,17 @@ CONTAINS
    dc_temp_dens = this%dc_def_dens 
 !
    END SUBROUTINE dc_get_dens
+!
+!*******************************************************************************
+!
+   SUBROUTINE dc_get_molnum(this, dc_temp_molnum)
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, INTENT(OUT)   :: dc_temp_molnum
+!
+   dc_temp_molnum = this%dc_def_molnum
+!
+   END SUBROUTINE dc_get_molnum
 !
 !*******************************************************************************
 !
@@ -494,6 +552,19 @@ CONTAINS
    axis(:) = this%dc_def_axis(:) 
 !
    END SUBROUTINE dc_get_axis
+!
+!*******************************************************************************
+!
+   SUBROUTINE dc_get_surfnew(this, surfnew)
+!
+   IMPLICIT NONE
+!
+   TYPE (dc_def), POINTER :: this
+   INTEGER, DIMENSION(1:20), INTENT(OUT) :: surfnew
+!
+   surfnew(:) = this%dc_def_surfnew(:) 
+!
+   END SUBROUTINE dc_get_surfnew
 !
 !*******************************************************************************
 !
