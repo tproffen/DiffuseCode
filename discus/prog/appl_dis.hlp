@@ -1780,14 +1780,26 @@
        If the type name is given, all atom types with this atom name will act
        as anchors.
 
+   set <name>, "axis", "auto"
    set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
        Defines the ligand molecule axis. This axis is placed normal to the local
        surface, in as much as the decoration type allows. 
+       The two atom numbers define the ligand axis. 
+
+       For the default mode "auto", DISCUS searchest for the furthest molecule
+       atom that is not involved in a bond. The axis is then defined by
+       the first bonding atom and this furthest atom.
+       If a molecule consists of just one atom or just of the two atoms
+       involved in the "double" or "multiple" bonds, the "auto" mode will
+       flag an internal message not to rotate the molecule at all.
+
        For the types "normal" and "bridge" the axis is placed parallel to the
        normal by an appropriate rotation of the ligand. 
        For the types "double" and "multi" the orientation of the molecule is
-       partially defined by the bonds. The axis is placed into a plane parallel
-       to the local surface normal.
+       partially defined by the bonds. The remaining freedom is to rotate
+       the molecule around the axis defined by the two atoms involved in the
+       two bonds. The molecule is rotated to place the axis into a 
+       plane that is parallel to the local surface normal.
 
    set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
        Allows to define a restricted placement of the ligands onto one or
@@ -7161,6 +7173,18 @@
 
             "keep:"{"inside"}|{"outside"}  Keep atoms on the inside or
                                            outside of boundary
+                                           Defaults to "inside"
+
+            Optional parameters for the "hkl" and "form" style are:
+            "accum:"{"init"|"add"}  Initialize the accumulation of
+                                    surfaces or add another surface
+                                    Defaults to "init"
+                                    See description below
+            "exec:"{"run"|"hold"}   Execute the actual cut == "run"
+                                    or hold the cut for another 
+                                    surface
+                                    Defaults to "run"
+                                    See description below
 
    This commands removes all atoms that are outside a boundary surrounding
    the crystal. 
@@ -7218,6 +7242,21 @@
           are inside the sphere.
           If the parameter is "outside", those atoms remain that are on 
           the outside of the sphere.
+
+   The optional parameters "accum" and "exec" apply to planar surfaces
+   only. Their main purpose is to create interior closed surfaces
+   in combination with the "keep:outside" parameter. 
+   In low symmetry crystal systems, a closed hollow space has to be
+   created by a combination of several symmetrically non-equivalent
+   faces or forms.. Use the combination:
+   "accum:init, exec:hold" For the first face/form
+   "accum:add, exec:hold"  For further faces and forms
+   "accum:add, exec:run"   For the last face.
+   As long as the "exec:hold" parameter is given, the faces are
+   accumulated. With the "exec:run" the actual removal of atoms
+   is started. 
+   After a "exec:run" parameter, the list of faces is automatically
+   reset.
 3  character
 !b char <atom_no> [,{"equal"}|{any}] [, "show"]
 

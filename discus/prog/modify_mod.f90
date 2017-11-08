@@ -2329,7 +2329,7 @@ ENDIF
        
 !                                                                       
       INTEGER, PARAMETER :: maxw = 9
-      INTEGER, PARAMETER :: NOPTIONAL = 4
+      INTEGER, PARAMETER :: NOPTIONAL = 6
 !                                                                       
       CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
       INTEGER           , INTENT(INOUT) :: lp 
@@ -2367,7 +2367,10 @@ ENDIF
       REAL, DIMENSION(3)    :: center       ! center of the shape
       REAL, DIMENSION(3, 2) :: special_hkl
       REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
+      REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
+      REAL, DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
       INTEGER               :: point_n
+      INTEGER, SAVE         :: accum_n
       REAL, DIMENSION(3)    :: radius_ell
       REAL v (3) 
 !      REAL, DIMENSION(3,1) :: col_vec
@@ -2378,11 +2381,11 @@ ENDIF
 !     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
-      DATA oname  / 'centx', 'centy', 'centz',  'keep'   /
-      DATA loname /  5,       5,       5,        4       /
-      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6       /)
-      owerte =  (/  0.0,      0.0,      0.0    ,  0.0     /)
+      DATA oname  / 'centx', 'centy', 'centz',  'keep ',  'accum', 'exec '/
+      DATA loname /  5,       5,       5,        4     ,   5     ,  4    /
+      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6      ,  4      ,  3 /)
+      owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0 /)
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -2406,12 +2409,6 @@ ENDIF
       IF(ier_num /= 0) RETURN
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
-!do i= 1, ianz
-!write(*,*) 'PAR ', i, cpara(i)(1:lpara(i))
-!enddo
-!do i=1,NOPTIONAL
-!write(*,*) 'OPT ',i, opara(i)(1:MAX(1,lopara(i))), owerte(i)
-!enddo
       IF(ier_num /= 0) RETURN
 !     Handle optional and global parameters
 !     IF (ier_num.eq.0) then 
@@ -2516,6 +2513,41 @@ ENDIF
                special_hkl(3,2) = h(1) / 2.!/sqrt(3.)
                special_n = 2
             ENDIF
+!
+!           Handle accumulation of flat surfaces
+!
+            IF(str_comp(opara(5), 'init', 4, lopara(5),4)) THEN
+               IF(ALLOCATED(accum_hkl)) DEALLOCATE(accum_hkl)
+               accum_n = 0
+            ENDIF
+            hkl(1:3) = special_hkl(:,1)
+            hkl(4)   = 0
+            CALL point_init(hkl, point_hkl, point_n)
+            IF(l_form) THEN
+               DO k = 1,special_n
+                  hkl(1:3) = special_hkl(:,k)
+                  hkl(4)   = 0
+                  CALL point_set(hkl, point_hkl, point_n)
+               ENDDO
+            ENDIF
+            IF(.NOT.ALLOCATED(accum_hkl)) THEN
+               ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+               accum_n = 0
+            ELSE
+            IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
+               IF(ALLOCATED(accum_hkl)) THEN
+                  temp_hkl = accum_hkl
+                  DEALLOCATE(accum_hkl)
+                  ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+                  accum_hkl(1:3,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
+                  DEALLOCATE(temp_hkl)
+               ELSE
+                  ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+               ENDIF
+            ENDIF
+            ENDIF
+            accum_hkl(1:3,accum_n+1:accum_n+point_n) = point_hkl(1:3,1:point_n)
+            accum_n = accum_n + point_n
          ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
 !     ----Crystal is limited by a sphere                                
@@ -2595,69 +2627,31 @@ ENDIF
 !
 !
          IF (ier_num /= 0) RETURN
-!        IF (ier_num.eq.0) THEN
-            IF (l_plane) THEN
-plane_loop:    DO i = 1, cr_natoms 
-                  IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle plane_loop
-                  d = 1.0 - (cr_pos (1, i)-center(1)) * h (1) &
-                          - (cr_pos (2, i)-center(2)) * h (2)  &
-                          - (cr_pos (3, i)-center(3)) * h (3)
-                  d = d / dstar 
-                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h)
-               ENDDO plane_loop
-            ELSEIF (l_form) THEN
-               hkl(1:3) = special_hkl(:,1)
-               hkl(4)   = 0
-               CALL point_init(hkl, point_hkl, point_n)
-!              point_n = 1
-!              point_hkl(:,point_n) = hkl(1:3)
-               DO k = 1,special_n
-                  hkl(1:3) = special_hkl(:,k)
-                  hkl(4)   = 0
-                  CALL point_set(hkl, point_hkl, point_n)
-!matrix_set:    DO j=1, spc_n
-!                  hklw = MATMUL(hkl,spc_mat(:,:,j))
-!                  hklw(4) = 0
-!                  l_new = .TRUE.
-!search:           DO i=1, point_n
-!                     IF(ABS(point_hkl(1,i)-hklw(1)).lt.EPS .AND.   &
-!                        ABS(point_hkl(2,i)-hklw(2)).lt.EPS .AND.   &
-!                        ABS(point_hkl(3,i)-hklw(3)).lt.EPS ) THEN
-!                        l_new = .FALSE.
-!                        EXIT search
-!                     ENDIF
-!                  ENDDO search
-!                  IF(l_new) THEN
-!                     point_n = point_n + 1
-!                     point_hkl(:,point_n) = hklw(1:3)
-!                  ENDIF
-!               ENDDO matrix_set
-               ENDDO
+            IF ((l_plane .OR. l_form) .AND. str_comp (opara(6) , 'run', 3, lopara(6) , 3)) THEN
 form_loop:     DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
                   IF(linside) THEN
-                     DO j=1,point_n
-                         d = 1.0 - (cr_pos (1, i)-center(1)) * point_hkl (1,j) &
-                                 - (cr_pos (2, i)-center(2)) * point_hkl (2,j) &
-                                 - (cr_pos (3, i)-center(3)) * point_hkl (3,j) 
+                     DO j=1,accum_n
+                         d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
+                                 - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
+                                 - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
                          d = d / dstar 
-                         h(:) = point_hkl (:,j)
+                         h(:) = accum_hkl (:,j)
                          CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h) 
                      ENDDO 
                   ELSE
                      dshort = 1.E8
                      nplanes = 0
                      iplane  = 0 
-                     DO j=1,point_n
-                         d = 1.0 - (cr_pos (1, i)-center(1)) * point_hkl (1,j) &
-                                 - (cr_pos (2, i)-center(2)) * point_hkl (2,j) &
-                                 - (cr_pos (3, i)-center(3)) * point_hkl (3,j)
+                     DO j=1,accum_n
+                         d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
+                                 - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
+                                 - (cr_pos (3, i)-center(3)) * accum_hkl (3,j)
                          d = d / dstar 
                          IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
                             nplanes = nplanes + 1
                             iplane  = j
                          ENDIF
-!                        IF(d<0) CYCLE form_loop    ! Keep atom
                          dshort = MIN(dshort, d)
                      ENDDO 
                      IF(nplanes>2) THEN            ! Atom is at a corner
@@ -2667,7 +2661,7 @@ form_loop:     DO i = 1, cr_natoms
                         h(:) = NINT(100*cr_pos(:,i))
                         CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h) 
                      ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
-                        h(:) = point_hkl (:,iplane)        !WRONG NEEDS WORK
+                        h(:) = accum_hkl (:,iplane)        !WRONG NEEDS WORK
                         CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h) 
                      ELSE
                         h(:) = NINT(100*cr_pos(:,i))
@@ -2675,6 +2669,8 @@ form_loop:     DO i = 1, cr_natoms
                      ENDIF
                   ENDIF
                ENDDO form_loop
+               DEALLOCATE  (accum_hkl)      ! reset the accumulation list
+               accum_n = 0                  ! reset the accumulation list
             ELSEIF (l_sphere) then 
 sphere_loop:   DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
