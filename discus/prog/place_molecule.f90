@@ -155,6 +155,7 @@ USE errlist_mod
                         ELSE
                            RETURN
                         ENDIF
+                     dcc_axis(0,  dcc_num) = -1     ! Set axis default as auto
                      CALL deco_add (zeile, lp)
 !                    IF(ier_num == 0) ladd = .false.   ! exclude new add command
                   ELSE
@@ -326,6 +327,17 @@ USE errlist_mod
             dcc_axis(0,dcc_num) = 2
             dcc_axis(1,dcc_num) = NINT(werte(1))
             dcc_axis(2,dcc_num) = NINT(werte(2))
+         ENDIF
+      ELSEIF ( ianz == 3 ) THEN
+         CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         IF( str_comp(cpara(1),'auto',4,lpara(1),4)) THEN
+            dcc_axis(0,  dcc_num) = -1
+            dcc_axis(1:2,dcc_num) =  0
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+            ier_msg(1) = 'set axis command needs parameters:'
+            ier_msg(2) = '''auto'' or two atom numbers '
          ENDIF
       ELSE
          ier_num = -6
@@ -564,6 +576,7 @@ USE errlist_mod
       dcc_neig   (:,  dcc_num) = 0
       dcc_secnd  (    dcc_num) = 0
       dcc_axis   (:,  dcc_num) = 0
+      dcc_axis   (0,  dcc_num) = -1
       dcc_lform  (    dcc_num) = .FALSE.
       dcc_hkl    (:,:,dcc_num) = 0
       dcc_surfnew(:,  dcc_num) = 0
@@ -1047,7 +1060,7 @@ anchor = 0
                     ENDDO
                     IF(l_correct) THEN                               ! Matching atom in current definition
            dc_temp_type = dcc_type(dc_temp_id)
-           dc_temp_axis(1:2) = dcc_axis(1:2, dc_temp_id)
+           dc_temp_axis(0:2) = dcc_axis(0:2, dc_temp_id)
            dc_temp_neig      = dcc_neig(1,dc_temp_id)
            dc_temp_natoms    = dcc_natoms(dc_temp_id)
               temp_lrestrict = dcc_lrestrict(dc_temp_id)
@@ -1302,9 +1315,11 @@ CHARACTER (LEN=1024)                :: line
    REAL                    :: temp_dist
 !
 INTEGER               :: n_mscat     ! temporary number of molecule scattering types
+INTEGER               :: lll         ! Dummy index
 LOGICAL, PARAMETER    :: lout = .FALSE.
 REAL                  :: dist
 REAL                  :: shortest
+REAL                  :: longest
 REAL, DIMENSION(3)    :: uvw_out
 REAL, DIMENSION(3)    :: w
 !
@@ -1368,6 +1383,8 @@ main: DO i=1, dcc_num
 !  Determine closest neighbor to first atom
    dcc_secnd(i) = 0
    shortest     = 1.0E8
+   longest      = 0.0
+   lll          = 0
    DO j=1, cr_natoms
       w(:) = cr_pos(:,j)
       dist = skalpro (w, w, cr_gten) 
@@ -1375,7 +1392,25 @@ main: DO i=1, dcc_num
          dcc_secnd(i) = j                           ! store as dcc_secnd
          shortest = dist
       ENDIF
+!
+!     FIND longest distance for axis = AUTO mode
+!
+      IF(j/=dcc_neig(1,i) .AND. j/=dcc_neig(2,i)) THEN  ! Ignore neigbor atoms
+         IF(dist>0.0 .AND. dist>longest ) THEN  ! Found new longest neighbor
+            lll = j                             ! store as lll
+            longest = dist
+         ENDIF
+      ENDIF
    ENDDO
+   IF(dcc_axis(0,i) == -1) THEN ! We have axis == auto mode
+      IF(lll > 1) THEN          ! A proper second neighbor exists 
+         dcc_axis(1,i) = 1
+         dcc_axis(2,i) = lll
+         dcc_axis(0,i) = 2      ! set to normal mode
+      ELSE
+         dcc_axis(:,i) = 0      ! Flag to axis = none mode
+      ENDIF
+   ENDIF
 !
 ! Transform molecule geometry into host geometry
    DO j=1, cr_natoms
@@ -1426,6 +1461,8 @@ ENDDO main
       WRITE(output_io,1200) dcc_file(i)(1:dcc_lfile(i))
       IF(dcc_axis(0,i) == 0) THEN
          WRITE(output_io,1300) dcc_type(i),dcc_ctype(dcc_type(i))
+      ELSEIF(dcc_axis(0,i) == -1) THEN
+         WRITE(output_io,1305) dcc_type(i),dcc_ctype(dcc_type(i))
       ELSEIF(dcc_axis(2,i) == -1) THEN
          WRITE(output_io,1310) dcc_type(i),dcc_ctype(dcc_type(i)), dcc_axis(1,i)
       ELSE
@@ -1457,7 +1494,8 @@ ENDDO main
 !
 1100 FORMAT(' Definition        :',i4,' ',4a)
 1200 FORMAT('   Molecule file   :     ',a)
-1300 FORMAT('   Connection type :     ',i4,' ',a8)
+1300 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : NONE')
+1305 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : AUTO')
 1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to last')
 1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to ',i4 )
 1330 FORMAT('   Connection open to all surfaces')
@@ -1496,6 +1534,7 @@ dcc_num = 0
       dcc_neig      (:,  :) = 0
       dcc_secnd     (    :) = 0
       dcc_axis      (:,  :) = 0
+      dcc_axis      (0,  :) = -1
       dcc_lrestrict (    :) = .FALSE.
       dcc_lform     (    :) = .FALSE.
       dcc_hkl       (:,:,:) = 0
@@ -1542,7 +1581,7 @@ USE crystal_mod
    INTEGER,                 INTENT(IN) ::    temp_id      ! The definition to be used
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
-   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
@@ -1608,6 +1647,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !
       nold = cr_natoms
+      IF(mole_axis(0)==2) THEN
       im = mole_axis(2)                                ! Make mole axis from spcified atoms
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
       axis_ligand(1) = posit(1)
@@ -1619,6 +1659,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
       axis_ligand(1) = axis_ligand(1) - posit(1)       ! this is mole axis
       axis_ligand(2) = axis_ligand(2) - posit(2)
       axis_ligand(3) = axis_ligand(3) - posit(3)
+      ENDIF
 !     Insert molecule atoms into crystal at correct origin in initial orientation
       normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
       CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface)
@@ -1641,6 +1682,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
          sym_latom(cr_iscat(cr_natoms)) = .true.       ! Select atom type for rotation
       ENDDO atoms
 !
+      IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 ! define rotation operation
       sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
       IF(ABS(sym_angle) > EPS ) THEN                   ! Rotate if not zero degrees
@@ -1669,6 +1711,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
 !        CALL symm_show                                ! Show only in debug
          CALL symm_op_single                           ! Perform the operation
       ENDIF  ! Rotate if not zero degrees
+      ENDIF
       IF(ABS(dist) < EPS ) THEN                        ! Remove surface atom
          cr_iscat(ia) = 0
          cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
@@ -1728,7 +1771,7 @@ USE prop_para_mod
    INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
-   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
@@ -1837,6 +1880,7 @@ IF(lrestrict) THEN
       surf_normal(:) = res_para(1:3)
 !
       nold = cr_natoms                                   ! Remember old atom number
+      IF(mole_axis(0)==2) THEN
       im   = mole_axis(2)
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
       axis_ligand(1) = posit(1)
@@ -1848,6 +1892,7 @@ IF(lrestrict) THEN
       axis_ligand(1) = axis_ligand(1) - posit(1)
       axis_ligand(2) = axis_ligand(2) - posit(2)
       axis_ligand(3) = axis_ligand(3) - posit(3)
+      ENDIF
 !     Insert molecule atoms into crystal at correct origin in initial orientation
       normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
       b_l = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
@@ -1872,6 +1917,7 @@ IF(lrestrict) THEN
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
       ENDDO
+      IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 ! define rotation operation
       sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
       IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
@@ -1899,6 +1945,7 @@ IF(lrestrict) THEN
          CALL symm_setup
 !        CALL symm_show
          CALL symm_op_single
+      ENDIF
       ENDIF
       m_type_new = m_type_old  + temp_id
 !
@@ -1965,7 +2012,7 @@ USE prop_para_mod
 !
    INTEGER,                 INTENT(IN) ::    temp_id      ! The definition to be used
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
-   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
@@ -2177,47 +2224,49 @@ ELSE
    GOTO 9999
 ENDIF
 !
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 !   Rotate molecule up to straighten molecule axis out
-sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)      ! Rotation axis
-a1 = n_atoms_orig + mole_axis(1)              ! Absolute number for axis atom 1
-a2 = n_atoms_orig + mole_axis(2)              ! Absolute number for axis atom 2
-v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
-WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
-laenge = 82                                   !   plane normal to the 
-CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
-v3(:) = res_para(4:6)                         ! This is the projection
-WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
-laenge = 81                                   !   vector between connected molecule atoms
-CALL vprod(line, laenge)                      !   and surface normal
-w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
-WRITE(line,1200) v3, w                        ! Prepare projection
-laenge = 82
-CALL do_proj(line, laenge)                    ! Project axis into plane 
-v2(:) = res_para(4:6)                         ! This is the projection
-alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
-WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
-laenge = 81
-CALL vprod(line, laenge)
-u(:) =  res_para(1:3)
-beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
-IF(beta < 90) THEN                            ! Need to invert rotation axis
-   IF(alpha < 90) THEN
-      sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+   sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)      ! Rotation axis
+   a1 = n_atoms_orig + mole_axis(1)              ! Absolute number for axis atom 1
+   a2 = n_atoms_orig + mole_axis(2)              ! Absolute number for axis atom 2
+   v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
+   WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
+   laenge = 82                                   !   plane normal to the 
+   CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
+   v3(:) = res_para(4:6)                         ! This is the projection
+   WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
+   laenge = 81                                   !   vector between connected molecule atoms
+   CALL vprod(line, laenge)                      !   and surface normal
+   w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
+   WRITE(line,1200) v3, w                        ! Prepare projection
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project axis into plane 
+   v2(:) = res_para(4:6)                         ! This is the projection
+   alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
+   WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
+   laenge = 81
+   CALL vprod(line, laenge)
+   u(:) =  res_para(1:3)
+   beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   IF(beta < 90) THEN                            ! Need to invert rotation axis
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ENDIF
    ELSE
-      sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      sym_uvw(:) = -sym_uvw(:)
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
+      ENDIF
    ENDIF
-ELSE
-   sym_uvw(:) = -sym_uvw(:)
-   IF(alpha < 90) THEN
-      sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
-   ELSE
-      sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
-   ENDIF
+   sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                           ! Perform the operation
 ENDIF
-sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
-CALL symm_setup
-CALL symm_op_single                           ! Perform the operation
 cr_prop (all_surface(2)) = IBCLR (cr_prop (all_surface(2)), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 !
 m_type_new = m_type_old  + temp_id
@@ -2285,7 +2334,7 @@ USE read_internal_mod
 !
    INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
-   INTEGER, DIMENSION(1:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
@@ -2496,47 +2545,49 @@ CALL symm_setup
 CALL symm_op_single                        ! Perform the operation
 IF(ier_num /= 0) GOTO 9999                 ! Rotation is erroneous, |Axis| = 0 or similar 
 !
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 !   Rotate molecule up to straighten molecule axis out
-sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
-a1 = n_atoms_orig + mole_axis(1)  ! dc_temp_axis(1)
-a2 = n_atoms_orig + mole_axis(2)  ! dc_temp_axis(2)
-v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
-WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
-laenge = 82                                   !   plane normal to the 
-CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
-v3(:) = res_para(4:6)                         ! This is the projection
-WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
-laenge = 81                                   !   vector between connected molecule atoms
-CALL vprod(line, laenge)                      !   and surface normal
-w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
-WRITE(line,1200) v3, w                        ! Prepare projection
-laenge = 82
-CALL do_proj(line, laenge)                    ! Project axis into plane 
-v2(:) = res_para(4:6)                         ! This is the projection
-alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
-WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
-laenge = 81
-CALL vprod(line, laenge)
-u(:) =  res_para(1:3)
-beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
-IF(beta < 90) THEN                            ! Need to invert rotation axis
-   IF(alpha < 90) THEN
-      sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+   sym_uvw(:) = cr_pos(:,n2) - cr_pos(:,n1)       ! Rotation axis
+   a1 = n_atoms_orig + mole_axis(1)  ! dc_temp_axis(1)
+   a2 = n_atoms_orig + mole_axis(2)  ! dc_temp_axis(2)
+   v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
+   WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
+   laenge = 82                                   !   plane normal to the 
+   CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
+   v3(:) = res_para(4:6)                         ! This is the projection
+   WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
+   laenge = 81                                   !   vector between connected molecule atoms
+   CALL vprod(line, laenge)                      !   and surface normal
+   w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
+   WRITE(line,1200) v3, w                        ! Prepare projection
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project axis into plane 
+   v2(:) = res_para(4:6)                         ! This is the projection
+   alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
+   WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
+   laenge = 81
+   CALL vprod(line, laenge)
+   u(:) =  res_para(1:3)
+   beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+   IF(beta < 90) THEN                            ! Need to invert rotation axis
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ENDIF
    ELSE
-      sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      sym_uvw(:) = -sym_uvw(:)
+      IF(alpha < 90) THEN
+         sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSE
+         sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
+      ENDIF
    ENDIF
-ELSE
-   sym_uvw(:) = -sym_uvw(:)
-   IF(alpha < 90) THEN
-      sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
-   ELSE
-      sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
-   ENDIF
+   sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup
+   CALL symm_op_single                           ! Perform the operation
 ENDIF
-sym_orig(:) = cr_pos(:,n1)                    ! Origin in 1st bonded atom
-CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
-CALL symm_setup
-CALL symm_op_single                           ! Perform the operation
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n1) = IBCLR (cr_prop (n1), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n2) = IBCLR (cr_prop (n2), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR

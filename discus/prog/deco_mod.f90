@@ -80,7 +80,7 @@ INTEGER                                   :: dc_temp_type = DC_NONE   ! Temporar
 INTEGER, DIMENSION(0:4)                   :: dc_temp_surf = 0! Temporary surface atom type for input
 INTEGER                                   :: dc_temp_maxsurf ! Maximum number of surface atom typers
 INTEGER                                   :: dc_temp_neig    ! Temporary neighbor atom number for input
-INTEGER, DIMENSION(1:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
+INTEGER, DIMENSION(0:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
 INTEGER, DIMENSION(1:20)                  :: dc_temp_surfnew=0 ! Temporary list of new surface atoms
 REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
 REAL                                      :: dc_temp_dens    ! Temporary ligand density       for input
