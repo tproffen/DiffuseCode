@@ -1053,6 +1053,9 @@ MODULE discus_allocate_appl_mod
       CALL alloc_arr ( dcc_dist,1,2,           1,n_deco ,  all_status, 0.0  , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_angle,              1,n_deco ,  all_status, 170.0, size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       IF( lstat ) THEN                        ! Success
          DCC_MAXNUM    = n_deco
          DCC_MAXANCH   = n_anch

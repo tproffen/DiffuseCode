@@ -264,6 +264,8 @@ USE errlist_mod
    USE modify_mod
    USE point_grp
 !
+   USE take_param_mod
+!
    IMPLICIT NONE
 !
 !
@@ -271,10 +273,20 @@ USE errlist_mod
    INTEGER          , INTENT(INOUT) :: lp
 !
    INTEGER, PARAMETER   :: MAXW = 20
+   INTEGER, PARAMETER :: NOPTIONAL = 1
    CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAXW) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
+!
+   CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+   CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+   INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+   INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+   REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+   INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
+
+!
    INTEGER             , DIMENSION(:,:), ALLOCATABLE :: temp_hkl
 !  INTEGER             , DIMENSION(:,:), ALLOCATABLE :: temp_hkl_new
 !  INTEGER             , DIMENSION(1:4)    :: hkl
@@ -293,6 +305,12 @@ USE errlist_mod
 !
    LOGICAL str_comp
 !
+   DATA oname  / 'angle' /
+   DATA loname /  5 /
+   opara  =  (/ '170.00'/)    ! Always provide fresh default values
+   lopara =  (/  6      /)
+   owerte =  (/  170.00 /)
+!
    CALL get_params(zeile, ianz, cpara, lpara, maxw, lp)
    IF ( ier_num /= 0 ) RETURN              ! Error reading parameters
    IF ( ianz <  3 ) THEN                   ! All commands need three parameters
@@ -302,6 +320,12 @@ USE errlist_mod
       ier_msg(2) = 'parameters'
       RETURN
    ENDIF
+!
+!  Get optional parameters
+!
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, owerte)
+   IF(ier_num /= 0) RETURN
    success       = 1
    temp_num      = 0
    locate:DO j=1,dcc_num
@@ -411,6 +435,10 @@ USE errlist_mod
             ENDDO
             dcc_surf(j,0,temp_num) = janz               ! Number of surface atom types
             dcc_maxsurf = MAX(dcc_maxsurf, dcc_surf(j,0,temp_num)) ! Keep maximum number
+!
+!  Interpret optional values, as default values are provided, we can take it blindly
+!
+            dcc_angle(temp_num) = owerte(1)
 !
          ENDIF
       ELSE
@@ -667,6 +695,7 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    INTEGER   :: temp_secnd             ! Second neighbor in the molecule
    LOGICAL   :: l_correct              ! A dummy for logical comparisons
    LOGICAL   :: temp_lrestrict         ! Local copy of dcc_lrestict
+   REAL      :: temp_angle             ! Local copy of dcc_angle
 INTEGER :: nanch
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
    REAL   , DIMENSION(:), ALLOCATABLE :: temp_prob ! Relative probabilities for a definition
@@ -1072,6 +1101,7 @@ anchor = 0
            mole_length = 14+dcc_lfile(dc_temp_id)
            ncon = dcc_surf(0,0, dc_temp_id)
            anchor(:,:) =dcc_surf(1:2,:,dc_temp_id)
+           temp_angle = dcc_angle(dc_temp_id)
                        SELECT CASE(dc_temp_type)
                           CASE ( DC_NORMAL )                 ! Molecule in normal position
                              IF(ncon == 1) THEN
@@ -1156,7 +1186,7 @@ CYCLE main_loop
                           CASE ( DC_ACCEPTOR )                 ! Molecule in normal position
                              IF(ncon == 1) THEN
                                 CALL deco_place_acceptor(dc_temp_id, temp_iatom(ia), &
-                                  dc_temp_surfnew,                &
+                                  dc_temp_axis, dc_temp_surfnew,                &
                                   m_type_old, mole_name, dc_temp_natoms, &
                                   UBOUND(dcc_atom_name,1), &
                                   dcc_atom_name(:,dc_temp_id),    &
@@ -1165,7 +1195,8 @@ CYCLE main_loop
                                   dc_temp_neig, dc_temp_dist, temp_secnd, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  temp_angle)
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The acceptor connection requires one bond'
@@ -1174,7 +1205,7 @@ CYCLE main_loop
                           CASE ( DC_DONOR )                 ! Molecule in normal position
                              IF(ncon == 1) THEN
                                 CALL deco_place_donor(dc_temp_id, temp_iatom(ia), &
-                                  dc_temp_surfnew,                &
+                                  dc_temp_axis, dc_temp_surfnew,                &
                                   m_type_old, mole_name, dc_temp_natoms, &
                                   UBOUND(dcc_atom_name,1), &
                                   dcc_atom_name(:,dc_temp_id),    &
@@ -1183,7 +1214,8 @@ CYCLE main_loop
                                   dc_temp_neig, dc_temp_dist,      &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  temp_angle)
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The donor connection requires one bond'
@@ -1242,13 +1274,13 @@ CYCLE main_loop
 !
 !  Clean up temporary arrays
 !
-   DEALLOCATE(temp_prob, STAT=istatus)
-   DEALLOCATE(anch_id)
-   DEALLOCATE(temp_ident)
-   DEALLOCATE(temp_iscat)
-   DEALLOCATE(temp_iatom)
-   DEALLOCATE(temp_pos  )
-DEALLOCATE(anchor)
+   IF(ALLOCATED(temp_prob )) DEALLOCATE(temp_prob, STAT=istatus)
+   IF(ALLOCATED(anch_id   )) DEALLOCATE(anch_id)
+   IF(ALLOCATED(temp_ident)) DEALLOCATE(temp_ident)
+   IF(ALLOCATED(temp_iscat)) DEALLOCATE(temp_iscat)
+   IF(ALLOCATED(temp_iatom)) DEALLOCATE(temp_iatom)
+   IF(ALLOCATED(temp_pos  )) DEALLOCATE(temp_pos  )
+IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
    line   = ' '
    length = 1
    CALL conn_do_set (code_res,line, length) ! Reset connectivities
@@ -2622,11 +2654,11 @@ success = 0                                   ! Clear error flag
 !******************************************************************************
 !
    SUBROUTINE deco_place_acceptor(temp_id, ia, &
-                            mole_surfnew,          &
+                            mole_axis, mole_surfnew,          &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
-                            neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl)
+                            neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
 !
 !  Place molecules via a hydrogen bond onto the surface acceptor atom
 !
@@ -2651,6 +2683,7 @@ USE prop_para_mod
    INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
    INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
    INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
+   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
    INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
    CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
    INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
@@ -2665,7 +2698,8 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
-   INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+   INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
+   REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 !
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
@@ -2675,6 +2709,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=1024)    :: line
    INTEGER                 ::    j, im, laenge  ! Dummy index
+   INTEGER                 :: n1, n2         ! Atoms that define molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    INTEGER                 :: nold           ! atom number previous to current molecule
@@ -2686,19 +2721,15 @@ INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
    REAL                    :: normal_l       ! length of normal vector
    REAL                    :: hbond          ! actual hydrogen bond A..H
+   REAL                    :: angle          ! Temporary angle
+   REAL                    :: solution_1, solution_2 ! Temporary angles
    REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
-   REAL   , DIMENSION(3)   :: u,v            ! Temporary vectors
+   REAL   , DIMENSION(3)   :: u,v,w,up,wp,p, prot  ! Temporary vectors
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
-!  INTEGER             :: i_m_mole
-!   INTEGER             :: i_m_type
-!  INTEGER             :: i_m_char
-!  CHARACTER (LEN=200) :: c_m_file
-!  REAL                :: r_m_fuzzy
-!  REAL                :: r_m_dens
 !
    REAL :: gaslim, ran1
 !
@@ -2754,7 +2785,8 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             laenge = 81
             CALL vprod(line, laenge)
             sym_uvw(:)     =  res_para(1:3)
-            sym_angle      = ANGLE_A_H_D - do_bang(lspace, u, VNULL, v) &
+!           sym_angle      = ANGLE_A_H_D - do_bang(lspace, u, VNULL, v) &
+            sym_angle      = dha_angle   - do_bang(lspace, u, VNULL, v) &
                                          + gaslim(SIGMA_A_H_D, 2.0)! 
             sym_orig(:)    = cr_pos(:,nold+neig)          ! Rotate in Hydrogen
             sym_trans(:)   = 0.0                          ! No translation needed
@@ -2784,6 +2816,67 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             CALL symm_op_single                           ! Perform the operation
 !           Group molecule
             m_type_new = m_type_old  + temp_id 
+!
+!  Rotate molecule around the H-O vector to align molecule axis along the surface normal
+!
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
+!   Rotate molecule up to straighten molecule axis out
+   n1 = nold + mole_axis(1)                      ! First atom on molecule axis
+   n2 = nold + mole_axis(2)                      ! Second atom on molecule axis
+   v(:) = cr_pos(:, nold+neig) - cr_pos(:,nold+temp_secnd)  ! Vector Hydrogen to Neighbor in ligand
+   w(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)               ! Vector anchor to Hydrogen
+   u(:) = cr_pos(:,n2) - cr_pos(:,n1)                       ! Current molecule axis
+   WRITE(line,1200) w, v                         ! Prepare projection normal onto H=>O vector
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project normal into plane normal to H=> O vector
+   wp(:) =  res_para(4:6)                        ! Normal projected into plane normal to H=>O vector
+   WRITE(line,1200) u, v                         ! Prepare projection axis   onto H=>O vector
+   laenge = 82
+   CALL do_proj(line, laenge)                    ! Project axis into plane normal to H=> O vector
+   up(:) =  res_para(4:6)                        ! Axis projected into plane normal to H=>O vector
+   angle = do_bang(lspace, wp, VNULL, up)        ! angle between the two projections
+!
+!  Two rotations will move the second axis atom into the plane defined by surface normal and
+!  H==>O vector, a rotation by alpha and (180-alpha) We have to test which of these creates the 
+!  smaller angle between the normal and the resulting axis.
+   sym_uvw(:) = cr_pos(:, nold+neig) - cr_pos(:,nold+temp_secnd)  ! Rotation axis: Vector Hydrogen to Neighbor in ligand
+   sym_angle     = angle
+   sym_orig(:)    = cr_pos(:,nold+temp_secnd)    ! Rotate in Oxygen
+   sym_trans(:)   = 0.0                          ! No translation needed
+   sym_sel_atom   = .true.                       ! Select atoms
+   sym_new        = .false.                      ! No new types
+   sym_power      =  1                           ! Just need one operation
+   sym_type       = .true.                       ! Proper rotation
+   sym_mode       = .false.                      ! Move atom to new position
+   sym_orig_mol   = .false.                      ! Origin at crystal
+   sym_power_mult = .false.                      ! No multiple copies
+   sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+   sym_end        =  cr_natoms
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup                               ! Symmetry setup defines matrix
+!
+   p(:) = cr_pos(:,n2)                           ! absolute position of axis atom number two
+   CALL symm_ca_single(p,lspace,.FALSE.)
+   prot(:) = res_para(1:3) - cr_pos(:,n1)        ! Resulting rotated axis solution 1
+   solution_1 = do_bang(lspace, w, VNULL, prot)
+!
+   sym_angle = 180.-angle
+   CALL symm_setup                               ! Symmetry setup defines matrix
+   p(:) = cr_pos(:,n2)                           ! absolute position of axis atom number two
+   CALL symm_ca_single(p,lspace,.FALSE.)
+   prot(:) = res_para(1:3) - cr_pos(:,n1)        ! Resulting rotated axis solution 2
+   solution_2 = do_bang(lspace, w, VNULL, prot)
+   IF( solution_1 <= solution_2) THEN
+      sym_angle = angle
+   ELSE
+      sym_angle = 180.0 - angle
+   ENDIF
+   CALL symm_setup                               ! Symmetry setup defines matrix
+   CALL symm_op_single                           ! Perform the operation on the whole molecule
+   
+ENDIF
+!
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
    flagsurf: DO j=1,20
       IF(mole_surfnew(j)>0) THEN
@@ -2802,17 +2895,18 @@ cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)  ! Anchor is no longer at 
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
+1200 FORMAT(6(F12.6,', '),'dddd')
 !
 END SUBROUTINE deco_place_acceptor
 !
 !******************************************************************************
 !
 SUBROUTINE deco_place_donor(temp_id, ia, &
-                            mole_surfnew,          &
+                            mole_axis, mole_surfnew,          &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
-                            neig, dist, istart, iend, lrestrict, nhkl, rhkl)
+                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
 !
 !  Place molecules via a hydrogn bond onto the surface donor atom
 !
@@ -2832,12 +2926,14 @@ USE symm_sup_mod
 USE trafo_mod
 !
 USE param_mod
+USE random_mod
 !
 IMPLICIT NONE
 !
 INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
 INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
 INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
+INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
 INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
 CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
 INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the molecule
@@ -2851,11 +2947,13 @@ INTEGER,                 INTENT(IN) :: istart          ! First atom for surface 
 INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
 LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
 INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
-INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl         ! actual faces for the restriction
+REAL   ,                 INTENT(IN) :: dha_angle       ! hydrogen-Bond angle in Hydrogen atom
 !
 INTEGER, PARAMETER      :: MAXW = 2
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
+REAL, PARAMETER         :: EPS = 1.0E-7
 REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
    REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
@@ -2863,10 +2961,12 @@ REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bo
    CHARACTER (LEN=1024)    :: line
    INTEGER                 :: ianz
    INTEGER                 ::    j, im, laenge  ! Dummy index
+   INTEGER                 :: n1, n2         ! Atom that define teh molecule axis
    INTEGER                 :: itype, iprop   ! Atom types, properties
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    INTEGER                 :: nold           ! atom number previous to current molecule
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
+   INTEGER                 :: success        ! Failure or success ?
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
@@ -2877,23 +2977,23 @@ REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bo
    REAL                    :: normal_l       ! length of normal vector
    REAL                    :: hbond          ! actual hydrogen bond A..H
    REAL                    :: rmin, rmax
+   REAL                    :: angle          !Temporary angle
+   REAL                    :: d2             !Temporary distance
+   REAL                    :: solution_1, solution_2 ! Temporary angles
    REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
-   REAL   , DIMENSION(3)   :: u,v,x          ! Temporary vectors
+   REAL   , DIMENSION(3)   :: u,v,x, w, up,wp, p, prot! Temporary vectors
    REAL   , DIMENSION(1:MAXW) :: werte
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
-!  INTEGER             :: i_m_mole
-!   INTEGER             :: i_m_type
-!  INTEGER             :: i_m_char
-!  CHARACTER (LEN=200) :: c_m_file
-!  REAL                :: r_m_fuzzy
-!  REAL                :: r_m_dens
 !
    REAL :: gaslim, ran1
+integer :: ij = 0
 !
+success = -1
+!write(*,*) ' IN DONOR AT ', ia, cr_iscat(ia), ier_num
 fp(:) = .FALSE.
 fq    = .FALSE.
 !
@@ -2940,6 +3040,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       CALL check_symm
       sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
    ENDDO atoms
+!write(*,*) ' GOT ATOM    ', ia, cr_iscat(ia), ier_num
 !
 !  Rotate ligand to achieve Hydrogen bond angle: ANGLE_A_H_D
 !
@@ -2949,14 +3050,37 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    rmax = 1.2               ! Small limit to find donor atom only
    werte(:) = -1
    CALL do_find_env (ianz, werte, MAXW, x, rmin, rmax, fq, fp)
+!
+!  Did we find a proper covalent neighbor at less than 1.2 A?
+!
+   IF(atom_env(0)==0) GOTO 9999                  !Failure, leave
+!write(*,*) ' ENV ', atom_env(0), ier_num, ier_typ
    u(:) = cr_pos(:, atom_env((1))) - cr_pos(:,ia)     ! Vector Hydrogen to Donor
    v(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)          ! Vector Hydrogen to Neighbor in ligand
    WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
    laenge = 81
    CALL vprod(line, laenge)
+   d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
+   angle = do_bang(lspace, u, VNULL, v) ! + gaslim(SIGMA_A_H_D, 2.0)
+   IF(d2 < EPS    ) THEN   !D==>H and H==>A are parallel, seek alternative solution
+      ier_num = 0
+      ier_typ = 0
+      v(1) = v(1) + ran1(idum)
+      v(2) = v(2) - ran1(idum)
+!write(*,*) ' RETRY '
+!WRITE(*,1100) u,v                          ! Do vector product (mol_axis) x (projection)
+      WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
+      laenge = 81
+      CALL vprod(line, laenge)
+      d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
+      IF(d2 < EPS    ) THEN   !D==>H and H==>A are still parallel, silently give up, should not happen ?
+         GOTO 9999
+      ENDIF
+   ENDIF
+!write(*,*) 'VPROD ', u,v, res_para(1:3),ier_num, ier_typ
    sym_uvw(:)     =  res_para(1:3)
-   sym_angle      = ANGLE_A_H_D - do_bang(lspace, u, VNULL, v) &
-                                         + gaslim(SIGMA_A_H_D, 2.0)! 
+!  sym_angle      = ANGLE_A_H_D - angle 
+   sym_angle      = dha_angle   - angle 
    sym_orig(:)    = cr_pos(:,ia)                 ! Rotate in Hydrogen
    sym_trans(:)   = 0.0                          ! No translation needed
    sym_sel_atom   = .true.                       ! Select atoms
@@ -2974,16 +3098,55 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    CALL symm_setup                               ! Symmetry setup defines matrix
 !  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
+!write(*,*) ' ROT ONE     ', ia, cr_iscat(ia), ier_num
 !
 !  Rotate ligand around Donor-Hydrogen bond by random degree
 !
-   sym_uvw(:)     = v(:)
+   sym_uvw(:)     = u(:)
    sym_orig(:)    = cr_pos(:,nold+neig)          ! Rotate in Acceptor
    sym_angle      = 360.0*ran1(0)
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
    CALL symm_setup                               ! Symmetry setup defines matrix
 !  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
+!write(*,*) ' ROT TWO     ', ia, cr_iscat(ia), ier_num
+!
+!  Rotate molecule around the H-O vector to align molecule axis along the surface normal
+!
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
+!   Rotate molecule up to straighten molecule axis out
+   n1 = nold + mole_axis(1)                      ! First atom on molecule axis
+   n2 = nold + mole_axis(2)                      ! Second atom on molecule axis
+!  v(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)    ! Vector Hydrogen to Neighbor in ligand
+   w(:) = surf_normal(:)                         ! Vector anchor to Hydrogen
+   u(:) = cr_pos(:,n2) - cr_pos(:,n1)            ! Current molecule axis
+   angle = do_bang(lspace,u, VNULL, w)
+   IF(angle /= 0.0) THEN
+      WRITE(line,1100) u,w                          ! Do vector product (mol_axis) x (projection)
+      laenge = 81
+      CALL vprod(line, laenge)
+      sym_uvw(:) = res_para(1:3)
+   sym_angle     = angle
+   sym_orig(:)    = cr_pos(:,nold+neig)          ! Rotate in Oxygen
+   sym_trans(:)   = 0.0                          ! No translation needed
+   sym_sel_atom   = .true.                       ! Select atoms
+   sym_new        = .false.                      ! No new types
+   sym_power      =  1                           ! Just need one operation
+   sym_type       = .true.                       ! Proper rotation
+   sym_mode       = .false.                      ! Move atom to new position
+   sym_orig_mol   = .false.                      ! Origin at crystal
+   sym_power_mult = .false.                      ! No multiple copies
+   sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+   sym_end        =  cr_natoms
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup                               ! Symmetry setup defines matrix
+!
+   CALL symm_op_single                           ! Perform the operation on the whole molecule
+   
+   ENDIF
+ENDIF
+!
 !  Group molecule
    m_type_new = m_type_old  + temp_id
    CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
@@ -3002,6 +3165,14 @@ chem_period(:) = .false.                         ! We inserted atoms, turn off p
 chem_quick     = .false.                         ! turn of quick search
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)  ! Anchor is no longer at a surface
+success = 0
+!
+9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
+   IF(success /=0) THEN                       ! An error occurred, reset crystal
+      cr_natoms = nold
+   ENDIF
+!
+!write(*,*) ' IN DONOR AT ', ia, nold, cr_natoms, ier_num, ier_typ
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')

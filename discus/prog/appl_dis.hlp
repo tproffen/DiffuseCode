@@ -1538,7 +1538,8 @@
 !p delete  ! Deletes the connectivity list
 !p recreate  ! Recreates the actual connectivity list for each atom
 !p remove  ! Removes an individual connectivity definition
-!p reset   ! Resets to program start, removes all def.s and the connectivity list
+!p reset   ! Resets to program start, removes all def.s and the 
+!p         !        connectivity list
 !p set     ! Sets an individual definition
 !p show    ! Shows the current definitions
 3  add
@@ -1627,7 +1628,8 @@
    Resets the connectivity to program start conditions.
    All definitions are removed and the connectivity list is deleted.
 3  set
-!b set <central_atom_type>, {<def.no.>| <def_name>}, <neigh types>, <rmin>, <rmax> 
+!b set <central_atom_type>, {<def.no.>| <def_name>}, <neigh types>, <rmin>, 
+                                                                    <rmax> 
 
    This command allows you to replace the settings for the definition 
    number <def.no.> or name <def_name> for the central atom type 
@@ -1691,7 +1693,8 @@
 
    The main menu for surface decoration. 
    The commands allow you to define a variety of decoration modes for 
-   guest structures (molecules=ligands) to be placed on top of an external surface.
+   guest structures (molecules=ligands) to be placed on top of an external
+   surface.
 
    The operation tries to do this quietly in the background but does have 
    a few side effects. Once started the program will:
@@ -1748,7 +1751,8 @@
 3  set
 !b set
 !b set <name>, "ligand", <file>, <density>
-!b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
+!b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
+!b                                                      <distance>
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
 !b set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
 !b set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
@@ -1763,13 +1767,14 @@
        the number of atoms with the "external" property flag. An average area of
        11.0 A^2 is assigned to each surface atom. 
 
-   set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, <distance>
+   set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
+!b                     <distance>, [, "angle:"<b_angle>]
        Defines the bonds of length <distance> between surface atoms of type 
        <atom_type> and atom number <ligand atom no> of the ligand. 
        The number of surface atom types depends on the type of decoration that
        is defined by the "add" command.
-       For the "normal" and "double" type exactly one surface type 
-           parameter must be given.
+       For the "normal", "double", "acceptor" and "donor" type exactly 
+           one surface type parameter must be given.
        For the "bridge" type exactly two surface type 
            parameters must be given.
        For the "multi" type exactly three surface type
@@ -1779,6 +1784,11 @@
        If the type number is given, this atom type will act as anchor. 
        If the type name is given, all atom types with this atom name will act
        as anchors.
+
+       The optional parameter "angle:" is relevant to "acceptor" and
+       "donor" bond schemes only. For these schemes the angle is 
+       interpreted as teh hydrogen bond angle in the Hydrogen atom and
+       should be close to 170°.
 
    set <name>, "axis", "auto"
    set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>

@@ -59,6 +59,7 @@ INTEGER            , DIMENSION(:,:,:), ALLOCATABLE :: dcc_hkl             ! Surf
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_surfnew         ! Molecule atoms as new surface
 REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_dens            ! Molecule density per A^2
 REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_dist            ! Bond length in       A
+REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_angle           ! Bond angle for Hydrogen bonds
 !
 !  Temporary arrays
 !
