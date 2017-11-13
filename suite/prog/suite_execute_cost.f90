@@ -59,7 +59,7 @@ INTEGER                , INTENT(IN) :: NTRIAL
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
-INTEGER, DIMENSION(12) , INTENT(OUT) :: rd_seeds
+INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
 INTEGER                , INTENT(OUT):: ierr
 !
 CHARACTER(LEN=2048) :: line

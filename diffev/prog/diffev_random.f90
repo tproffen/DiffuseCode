@@ -13,7 +13,7 @@ LOGICAL :: write_random_state = .FALSE.
 LOGICAL :: l_get_random_state = .TRUE.
 !INTEGER, DIMENSION(:,:), ALLOCATABLE :: random_state  ! Status for current members
 INTEGER                              :: random_nseed
-INTEGER, DIMENSION(12 )              :: random_best   ! Status for best    member
+INTEGER, DIMENSION(64 )              :: random_best   ! Status for best    member
 !
 CONTAINS
 !
@@ -80,10 +80,10 @@ SUBROUTINE diffev_random_save(new)
 !
 IMPLICIT NONE
 !
-INTEGER, DIMENSION(12), INTENT(IN) :: new
+INTEGER, DIMENSION(64), INTENT(IN) :: new
 !
 random_best(:) = new(:)
-random_nseed   = 12
+random_nseed   = 64
 !
 END SUBROUTINE diffev_random_save
 !
@@ -94,6 +94,8 @@ SUBROUTINE diffev_best_macro
 USE population
 USE run_mpi_mod
 !
+USE random_state_mod
+!
 IMPLICIT NONE
 !
 INTEGER, PARAMETER :: IWR = 88
@@ -101,8 +103,10 @@ INTEGER, PARAMETER :: IWR = 88
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=1024) :: line
 INTEGER :: i, i1
+INTEGER :: nseed_run    ! Actual number of seed used by compiler
 !
-random_nseed   = 12   !  to be debugged depend on compiler ???
+nseed_run = random_nseeds()
+random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on compiler ???
 IF(write_random_state) THEN
    CALL oeffne(IWR, macro_file, 'unknown')
 !

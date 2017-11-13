@@ -12,7 +12,7 @@ INTEGER, PARAMETER       :: RUN_MPI_COUNT_LOGICAL   =   4
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_CHARACTER = 540
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_REAL      =   2
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_TRIAL     = 200
-INTEGER, PARAMETER       :: RUN_MPI_NSEEDS          =  12 !Number of seeds for random
+INTEGER, PARAMETER       :: RUN_MPI_NSEEDS          =  64 !Number of seeds for random
 INTEGER                  :: RUN_MPI_MAXPROG         = 1
 INTEGER, DIMENSION(0:4)  :: run_mpi_oldtypes
 INTEGER, DIMENSION(0:4)  :: run_mpi_blockcounts

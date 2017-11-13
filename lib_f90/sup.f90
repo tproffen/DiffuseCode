@@ -1652,7 +1652,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 12 
+      INTEGER, PARAMETER :: maxw = 64 
 !                                                                       
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp
