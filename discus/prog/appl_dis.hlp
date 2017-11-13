@@ -30,6 +30,7 @@
 !p chem       ! Enter CHEM level (see chem level for details)
 !p connect    ! Enter CONNECTIVITY level
 !p copy       ! Copy atom or molecule within the crystal
+!p decorate   ! Enter  DECORATE level
 !p d2r        ! Transform vector from real to reciprocal space
 !p define     ! Define DISCUS specific settings
 !p diff-four  ! Enter DIFFERENCE FOURIER transform level
@@ -69,6 +70,9 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_Nov
+
+   Added RMCprofile version 5 format to imports 
 3  2017_Oct
 
    Space Groups

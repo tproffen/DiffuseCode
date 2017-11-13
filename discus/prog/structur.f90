@@ -647,7 +647,7 @@ END SUBROUTINE do_readstru
       INTEGER                          :: n_atom 
       LOGICAL          :: need_alloc = .false.
       LOGICAL          :: lcontent
-      LOGICAL lread, lcell, lout 
+      LOGICAL lcell, lout 
       REAL werte (maxw), dw1 
 !                                                                       
       INTEGER len_str 
@@ -655,7 +655,6 @@ END SUBROUTINE do_readstru
       LOGICAL :: IS_IOSTAT_END
 !                                                                       
       cr_natoms = 0 
-      lread     = .true. 
       lcell     = .true. 
       lout      = .false. 
       lcontent  = .false.
@@ -1433,10 +1432,8 @@ check_calc: DO j = 1, ianz
       REAL as_dw (0:MAXSCAT) 
 !                                                                       
       INTEGER i 
-      LOGICAL lread 
 !                                                                       
       cr_natoms = 0 
-      lread = .true. 
       lcell = .false. 
       CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num.eq.0) then 
@@ -2364,7 +2361,7 @@ END SUBROUTINE import_test
                ier_typ = ER_COMM 
             ENDIF 
          ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then 
-            IF (ianz.eq.2) then 
+            IF (ianz >= 2) then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                IF (ier_num.ne.0) return 
                CALL rmcprofile2discus (ianz, cpara, lpara, MAXW) 
@@ -2419,8 +2416,6 @@ END SUBROUTINE import_test
       INTEGER centering 
       INTEGER ityp 
       INTEGER ifv 
-      LOGICAL lread 
-      LOGICAL lwrite 
       LOGICAL lmole, lmole_wr 
       LOGICAL lcontinue 
       REAL z, latt (6) 
@@ -2468,8 +2463,6 @@ END SUBROUTINE import_test
       ELSE 
          ofile = cpara (1) (1:i) //'cell' 
       ENDIF 
-      lread = .true. 
-      lwrite = .false. 
       ird = 34 
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
@@ -2837,8 +2830,6 @@ END SUBROUTINE import_test
       INTEGER               :: indx1, indx2
       INTEGER               :: iostatus
       INTEGER               :: natoms
-      LOGICAL               :: lread
-      LOGICAL               :: lwrite
       INTEGER               :: nline
       INTEGER               :: length
       REAL   , DIMENSION(6) :: latt (6) 
@@ -2860,8 +2851,6 @@ END SUBROUTINE import_test
       ELSE 
          ofile  = cpara (1) (1:i) //'cell' 
       ENDIF 
-      lread  = .true. 
-      lwrite = .false. 
       ird = 34 
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
@@ -2966,31 +2955,47 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !-                                                                      
 !     converts a RMCProfile "cssr" file to DISCUS                   
 !+                                                                      
+USE take_param_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER          , INTENT(IN)                    :: ianz 
+      INTEGER          , INTENT(INOUT)                 :: ianz 
       INTEGER          , INTENT(IN)                    :: MAXW 
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
-      INTEGER          , DIMENSION(1:MAXW), INTENT(IN) :: lpara
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
+      INTEGER, PARAMETER    :: RMC_CSSR  = 0
+      INTEGER, PARAMETER    :: RMC_RMCF6 = 1
 !                                                                       
       REAL   , DIMENSION(3) :: werte
 !                                                                       
-      CHARACTER(LEN= 4)     :: atom   = ' '
-      CHARACTER(LEN=87)     :: line   = ' '
-      CHARACTER(LEN=80)     :: title  = ' '
       CHARACTER(LEN=1024)   :: infile = ' '
       CHARACTER(LEN=1024)   :: ofile  = ' '
       INTEGER               :: ird, iwr 
-      INTEGER               :: i
-      INTEGER               :: iostatus
-      INTEGER               :: natoms
-      LOGICAL               :: lread
-      LOGICAL               :: lwrite
+      INTEGER               :: style
+      LOGICAL               :: fileda
+      LOGICAL               :: lperiod   ! Attempt to rearrange periodically 
       INTEGER               :: nline
-      REAL   , DIMENSION(6) :: latt! (6) 
-      REAL   , DIMENSION(3) :: pos ! (6) 
+      INTEGER, PARAMETER    :: NOPTIONAL = 1
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+      LOGICAL str_comp
+!
+      DATA oname  / 'sort'   /
+      DATA loname /  4       /
+      opara  =  (/ 'none' /)   ! Always provide fresh default values
+      lopara =  (/  4     /)
+      owerte =  (/  0.0   /)
+!
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, owerte)
+      lperiod = str_comp(opara(1), 'discus', 3, lopara(1), 6)
+!
 !                                                                       
 !     Create input / output file name
 !
@@ -2998,16 +3003,56 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      infile = cpara (1) 
-      i = index (infile, '.') 
-      IF (i.eq.0) then 
-         infile = cpara (1) (1:lpara (1) ) //'.cssr' 
-         ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
-      ELSE 
-         ofile  = cpara (1) (1:i) //'stru' 
-      ENDIF 
-      lread  = .true. 
-      lwrite = .false. 
+      infile = cpara (1)(1:lpara (1) )
+      INQUIRE(file=infile,exist=fileda)
+      IF(fileda) THEN
+         IF(infile(lpara(1)-4:lpara(1)) == '.cssr' .OR. &
+            infile(lpara(1)-4:lpara(1)) == '.CSSR' ) THEN 
+            style = RMC_CSSR
+            ofile  = cpara (1) (1:lpara (1)-5 ) //'.stru' 
+         ELSEIF(infile(lpara(1)-5:lpara(1)) == '.rmc6f' .OR. &
+            infile(lpara(1)-5:lpara(1)) == '.RMC6F' ) THEN 
+            style = RMC_RMCF6
+            ofile  = cpara (1) (1:lpara (1)-6 ) //'.stru' 
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+            RETURN
+         ENDIF
+      ELSE
+         infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+         INQUIRE(file=infile,exist=fileda)
+         IF(fileda) THEN
+            style = RMC_RMCF6
+            ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+         ELSE
+            infile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+            INQUIRE(file=infile,exist=fileda)
+            IF(fileda) THEN
+               style = RMC_RMCF6
+               ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+            ELSE
+               infile = cpara (1) (1:lpara (1) ) //'.cssr'
+               INQUIRE(file=infile,exist=fileda)
+               IF(fileda) THEN
+                  style = RMC_CSSR
+                  ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+               ELSE
+                  infile = cpara (1) (1:lpara (1) ) //'.CSSR'
+                  INQUIRE(file=infile,exist=fileda)
+                  IF(fileda) THEN
+                     style = RMC_CSSR
+                     ofile  = cpara (1) (1:lpara (1) ) //'.stru' 
+                  ELSE
+                     ier_num = -6
+                     ier_typ = ER_COMM
+                     RETURN
+                  ENDIF
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
+!
       ird = 34 
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
@@ -3021,6 +3066,37 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
          RETURN 
       ENDIF 
 !                                                                       
+      IF(style == RMC_CSSR) THEN
+         CALL cssr2discus(ird, iwr)
+      ELSEIF(style == RMC_RMCF6) THEN
+         CALL rmcf62discus(ird, iwr, lperiod)
+      ENDIF
+      CLOSE(iwr)
+      CLOSE(ird)
+!
+      END SUBROUTINE rmcprofile2discus 
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE cssr2discus(ird, iwr)
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: ird
+INTEGER, INTENT(IN) :: iwr
+!
+CHARACTER(LEN= 4)     :: atom   = ' '
+CHARACTER(LEN=87)     :: line   = ' '
+CHARACTER(LEN=80)     :: title  = ' '
+      INTEGER               :: i
+INTEGER               :: nline
+INTEGER               :: iostatus
+INTEGER               :: natoms
+REAL   , DIMENSION(6) :: latt! (6) 
+REAL   , DIMENSION(3) :: pos ! (6) 
+!
       nline     = 1
 !
       READ(ird, *    ,IOSTAT=iostatus) latt(1:3)
@@ -3102,7 +3178,284 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       CLOSE(iwr)
       CLOSE(ird)
 !
-      END SUBROUTINE rmcprofile2discus 
+END SUBROUTINE cssr2discus
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE rmcf62discus(ird, iwr, lperiod)
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: ird     ! Input file access number
+INTEGER, INTENT(IN) :: iwr     ! Output file access number
+LOGICAL, INTENT(IN) :: lperiod ! Attempt to rearrange periodically 
+!
+CHARACTER(LEN= 4)      :: atom   = ' '
+CHARACTER(LEN=256)     :: line   = ' '
+CHARACTER(LEN=256)     :: title  = ' '
+!
+CHARACTER(LEN= 4), DIMENSION(:)  , ALLOCATABLE :: r6_at_name
+REAL             , DIMENSION(:,:), ALLOCATABLE :: r6_pos
+INTEGER          , DIMENSION(:)  , ALLOCATABLE :: r6_site
+INTEGER          , DIMENSION(:,:), ALLOCATABLE :: r6_cell
+
+!
+INTEGER                :: i, inumber ! Dummy index
+INTEGER                :: iostatus   ! Current line number for error reports
+INTEGER                :: nline      ! Current line number for error reports
+INTEGER                :: natoms     ! Current line number for error reports
+INTEGER                :: nsites     ! Numberr of sites in a unit cell
+INTEGER                :: success    !
+INTEGER, DIMENSION(3)  :: super      ! Super cell dimensions
+REAL                   :: density    ! Number density in Atoms / A^3
+REAL   , DIMENSION(6)  :: lattice    ! Unit  cell dimensions For large cell
+REAL   , DIMENSION(3,3):: orient     ! Unit  cell dimensions For large cell
+!
+nline   = 0
+natoms  = 0
+nsites  = 0
+success = 1
+header: DO
+   nline = nline + 1
+   READ(ird,'(a)',iostat=iostatus) line
+   IF ( IS_IOSTAT_END(iostatus )) THEN
+      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+      ier_num = -6
+      ier_typ = ER_IO
+      RETURN
+   ENDIF
+   IF(line(1: 6) == 'Atoms:') EXIT header
+   IF(line(1:16) == 'Number of atoms:') THEN
+      READ(line(17:LEN_TRIM(line)),*,IOSTAT=iostatus) natoms
+   ENDIF
+   IF(line(1:21) == 'Supercell dimensions:') THEN
+      READ(line(22:LEN_TRIM(line)),*,IOSTAT=iostatus) super
+   ENDIF
+   IF(line(1:24) == 'Number density (Ang^-3):') THEN
+      READ(line(25:LEN_TRIM(line)),*,IOSTAT=iostatus) density
+   ENDIF
+   IF(line(1:15) == 'Cell (Ang/deg):') THEN
+      READ(line(16:LEN_TRIM(line)),*,IOSTAT=iostatus) lattice
+   ENDIF
+   IF(line(1:22) == 'Lattice vectors (Ang):') THEN
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(1,:)
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(2,:)
+      nline = nline + 1
+      READ(ird,'(a)',iostat=iostatus) line
+      READ(line(1:LEN_TRIM(line)),*,IOSTAT=iostatus) orient(3,:)
+   ENDIF
+ENDDO header
+!
+!
+ALLOCATE(r6_at_name(    1:natoms))
+ALLOCATE(r6_pos    (1:3,1:natoms))
+ALLOCATE(r6_site   (    1:natoms))
+ALLOCATE(r6_cell   (1:3,1:natoms))
+r6_at_name(  :) = ' '
+r6_pos    (:,:) = 0.0
+r6_site   (  :) = 0
+r6_cell   (:,:) = 0
+atoms:DO i=1,natoms
+   nline = nline + 1
+   READ(ird,'(a)',iostat=iostatus) line
+   IF ( IS_IOSTAT_END(iostatus )) THEN
+      WRITE(ier_msg(1),'(a,i8)') 'Error in line ', nline
+      ier_num = -6
+      ier_typ = ER_IO
+      RETURN
+   ENDIF
+   READ(line(1:6),*) inumber
+   r6_at_name(i) = line(10:11)
+   READ(line(16:51),*,IOSTAT=iostatus) r6_pos(:,i)
+   READ(line(52:69),*,IOSTAT=iostatus) r6_site(i),r6_cell(:,i)
+   nsites = MAX(nsites, r6_site(i))
+ENDDO atoms
+!
+IF(lperiod) THEN
+   CALL rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
+ENDIF
+WRITE(iwr, 1000) title(1:LEN_TRIM(title))
+WRITE(iwr, 1100)
+WRITE(iwr, 1200) lattice
+IF(lperiod) THEN
+   WRITE(iwr, 1250) super, nsites
+ELSE
+   WRITE(iwr, 1250) 1,1,1, natoms
+ENDIF
+WRITE(iwr, 1300)
+watoms: DO i=1,natoms
+   WRITE(iwr, 2000) r6_at_name(i), r6_pos(:,i)
+ENDDO watoms
+!
+DEALLOCATE(r6_at_name)
+DEALLOCATE(r6_pos    )
+DEALLOCATE(r6_site   )
+DEALLOCATE(r6_cell   )
+!
+1000 FORMAT('title ',a)
+1100 FORMAT('spcgr P1')
+1200 FORMAT('cell ', 6(2x,F12.6:,', '))
+1250 FORMAT('ncell ',3(2x,I6,','),2x,I12)
+1300 FORMAT('atoms')     
+2000 FORMAT(A4,3(2x, F10.6,','),'   0.1,    1')
+!
+END SUBROUTINE rmcf62discus
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE rmc6f_period(natoms, nsites, lattice, super, r6_at_name, r6_pos, r6_site, r6_cell)
+!
+INTEGER                          , INTENT(IN)    :: natoms     ! Number of atoms
+INTEGER                          , INTENT(IN)    :: nsites     ! Number of sites in teh unit cell
+CHARACTER(LEN= 4), DIMENSION(  natoms), INTENT(INOUT) :: r6_at_name
+REAL             , DIMENSION(3       ), INTENT(INOUT) :: lattice
+INTEGER          , DIMENSION(3       ), INTENT(INOUT) :: super
+REAL             , DIMENSION(3,natoms), INTENT(INOUT) :: r6_pos
+INTEGER          , DIMENSION(  natoms), INTENT(INOUT) :: r6_site
+INTEGER          , DIMENSION(3,natoms), INTENT(INOUT) :: r6_cell
+!
+REAL, PARAMETER :: EPS = 1.E-6
+!
+REAL             , DIMENSION(3,2)          :: xyz
+REAL             , DIMENSION(3,    nsites) :: shift
+REAL             , DIMENSION(3, 2, nsites) :: av_pos
+REAL             , DIMENSION(3, 2, nsites) :: si_pos
+REAL             , DIMENSION(3,    nsites) :: ave_pos
+REAL             , DIMENSION(3,    nsites) :: sig_pos
+INTEGER          , DIMENSION(      nsites) :: nav_pos
+!
+CHARACTER(LEN= 4), DIMENSION(   nsites, super(1), super(2), super(3)) :: dis_atom
+REAL             , DIMENSION(3, nsites, super(1), super(2), super(3)) :: dis_pos
+!
+INTEGER  :: i,j, i1,i2,i3
+INTEGER, DIMENSION(3) :: k
+REAL   , DIMENSION(3) :: wrap
+!
+av_pos(:,:,:) = 0.00
+si_pos(:,:,:) = 0.00
+ave_pos(:,:)  = 0.00
+sig_pos(:,:)  = 0.00
+nav_pos( :)   = 0
+dis_atom(  :,:,:,:) = 'WRNG'
+dis_pos (:,:,:,:,:) = 0.0
+!
+! Check if the number of atoms is an integer multiple of the number of sites
+!
+IF(ABS(REAL(natoms)/REAL(nsites) - natoms/nsites) > EPS .OR.         &
+   super(1)*super(2)*super(3)*nsites /= natoms               ) THEN 
+   ier_num = -146
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+!
+! Determine average positions, and the shift if atoms a closer to 0,0,0
+DO i=1,natoms
+   xyz(1,1) = r6_pos(1,i)*super(1)     -REAL( INT(r6_pos(1,i)*super(1)))
+   xyz(2,1) = r6_pos(2,i)*super(2)     -REAL( INT(r6_pos(2,i)*super(2)))
+   xyz(3,1) = r6_pos(3,i)*super(3)     -REAL( INT(r6_pos(3,i)*super(3)))
+   xyz(1,2) = r6_pos(1,i)*super(1)+0.5 -REAL( INT(r6_pos(1,i)*super(1)+0.5))
+   xyz(2,2) = r6_pos(2,i)*super(2)+0.5 -REAL( INT(r6_pos(2,i)*super(2)+0.5))
+   xyz(3,2) = r6_pos(3,i)*super(3)+0.5 -REAL( INT(r6_pos(3,i)*super(3)+0.5))
+!
+   av_pos(1,1,r6_site(i)) = av_pos(1,1,r6_site(i)) + xyz(1,1)
+   av_pos(2,1,r6_site(i)) = av_pos(2,1,r6_site(i)) + xyz(2,1)
+   av_pos(3,1,r6_site(i)) = av_pos(3,1,r6_site(i)) + xyz(3,1)
+   av_pos(1,2,r6_site(i)) = av_pos(1,2,r6_site(i)) + xyz(1,2)
+   av_pos(2,2,r6_site(i)) = av_pos(2,2,r6_site(i)) + xyz(2,2)
+   av_pos(3,2,r6_site(i)) = av_pos(3,2,r6_site(i)) + xyz(3,2)
+  nav_pos(  r6_site(i)) =nav_pos(  r6_site(i)) + 1
+ENDDO
+!
+DO i=1,nsites
+  IF(nav_pos(i)>0) THEN
+      av_pos(:,1,i) = av_pos(:,1,i)/nav_pos(i)
+      av_pos(:,2,i) = av_pos(:,2,i)/nav_pos(i)
+   ENDIF
+ENDDO
+!
+! Determine a sigma for the two calculation modes in order to decide if atoms are 
+! closer to 0,0,0 or closer to 1/2,1/2,1/2
+!
+DO i=1,natoms
+   xyz(1,1) = r6_pos(1,i)*super(1)     -REAL( INT(r6_pos(1,i)*super(1)))
+   xyz(2,1) = r6_pos(2,i)*super(2)     -REAL( INT(r6_pos(2,i)*super(2)))
+   xyz(3,1) = r6_pos(3,i)*super(3)     -REAL( INT(r6_pos(3,i)*super(3)))
+   xyz(1,2) = r6_pos(1,i)*super(1)+0.5 -REAL( INT(r6_pos(1,i)*super(1)+0.5))
+   xyz(2,2) = r6_pos(2,i)*super(2)+0.5 -REAL( INT(r6_pos(2,i)*super(2)+0.5))
+   xyz(3,2) = r6_pos(3,i)*super(3)+0.5 -REAL( INT(r6_pos(3,i)*super(3)+0.5))
+!
+   si_pos(1,1,r6_site(i)) = si_pos(1,1,r6_site(i)) + (xyz(1,1)-av_pos(1,1,r6_site(i)))**2
+   si_pos(2,1,r6_site(i)) = si_pos(2,1,r6_site(i)) + (xyz(2,1)-av_pos(1,1,r6_site(i)))**2
+   si_pos(3,1,r6_site(i)) = si_pos(3,1,r6_site(i)) + (xyz(3,1)-av_pos(1,1,r6_site(i)))**2
+   si_pos(1,2,r6_site(i)) = si_pos(1,2,r6_site(i)) + (xyz(1,2)-av_pos(1,2,r6_site(i)))**2
+   si_pos(2,2,r6_site(i)) = si_pos(2,2,r6_site(i)) + (xyz(2,2)-av_pos(1,2,r6_site(i)))**2
+   si_pos(3,2,r6_site(i)) = si_pos(3,2,r6_site(i)) + (xyz(3,2)-av_pos(1,2,r6_site(i)))**2
+ENDDO
+!
+DO i=1,nsites
+   IF(nav_pos(i)>0) THEN
+      si_pos(:,1,i) = si_pos(:,1,i)/nav_pos(i)
+      si_pos(:,2,i) = si_pos(:,2,i)/nav_pos(i)
+   ENDIF
+   DO j=1,3
+      IF(si_pos(j,1,i) < si_pos(j,2,i)) THEN
+         ave_pos(j,i) = av_pos(j,1,i)
+         sig_pos(j,i) = si_pos(j,1,i)
+         shift(j,i)   = 0.0
+      ELSE
+         ave_pos(j,i) = av_pos(j,2,i) -0.5
+         sig_pos(j,i) = si_pos(j,2,i)
+         shift(j,i)   = 0.5
+      ENDIF
+   ENDDO
+!write(*,'(a,i2,2x,6(f6.3,2x),i6, 3(f6.3:,2x))') 'Average ',i, ave_pos(:,i), sig_pos(:,i),nav_pos(i),shift(:,i)
+ENDDO
+! Copy atoms into DISCUS sequence
+!
+DO i=1,natoms
+   DO j=1,3
+      k(j) =  INT(r6_pos(j,i)*super(1) + shift(j,r6_site(i))) + 1
+      wrap(j) = 0.0
+      IF(k(j)<1) THEN
+         wrap(j) = super(j)
+         k(j)    = k(j) + super(j)
+      ELSEIF(k(j)>super(j)) THEN
+         wrap(j) = -super(j)
+         k(j)    = k(j) -super(j)
+      ENDIF
+   ENDDO
+!
+   dis_atom(  r6_site(i),k(1),k(2),k(3)) = r6_at_name(i)
+   dis_pos (1,r6_site(i),k(1),k(2),k(3)) = r6_pos(1,  i)*super(1) + wrap(1)
+   dis_pos (2,r6_site(i),k(1),k(2),k(3)) = r6_pos(2,  i)*super(2) + wrap(2)
+   dis_pos (3,r6_site(i),k(1),k(2),k(3)) = r6_pos(3,  i)*super(3) + wrap(3)
+ENDDO
+!
+! Copy back into linear array 
+i=0
+DO i3=1,super(3)
+   DO i2=1,super(2)
+      DO i1=1,super(1)
+         DO  j=1,nsites
+            i = i + 1
+            r6_at_name(i) = dis_atom(  j,i1,i2,i3)
+            r6_pos(1,  i) = dis_pos (1,j,i1,i2,i3)
+            r6_pos(2,  i) = dis_pos (2,j,i1,i2,i3)
+            r6_pos(3,  i) = dis_pos (3,j,i1,i2,i3)
+         ENDDO
+      ENDDO
+   ENDDO
+ENDDO
+lattice(1:3) = lattice(1:3)/REAL(super(1:3))
+!
+END SUBROUTINE rmc6f_period
+!
 !
       SUBROUTINE cif2discus (ianz, cpara, lpara, MAXW) 
 !-                                                                      
@@ -3141,8 +3494,6 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
       INTEGER               :: ird, iwr 
       INTEGER               :: i, j
       INTEGER               :: iostatus
-      LOGICAL               :: lread
-      LOGICAL               :: lwrite
       LOGICAL, DIMENSION(7) :: header_done = .false.
       INTEGER               :: line_no, line_sig, data_no
       INTEGER               :: length, length_cap
@@ -3233,8 +3584,6 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
             ofile  = cpara (1) (1:i) //'stru'
          ENDIF
       ENDIF 
-      lread  = .true. 
-      lwrite = .false. 
       ird = 34 
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
