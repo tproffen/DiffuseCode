@@ -26,7 +26,7 @@ CONTAINS
    INTEGER               :: send_direc_l  ! working directory length
    INTEGER               :: lzeile        ! working directory length
    INTEGER               :: nseeds        ! number of seeds for random nuber generator
-   INTEGER, DIMENSION(:), ALLOCATABLE :: seeds ! Actual seeds
+   INTEGER, DIMENSION(64):: seeds ! Actual seeds
 !  INTEGER, DIMENSION(12)             :: seeds ! Actual seeds
 
    INTEGER  :: i, j, l
