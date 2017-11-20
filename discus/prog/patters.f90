@@ -2185,15 +2185,20 @@ CONTAINS
 !                                                                       
 !        READ (ifa, *, end = 904, err = 950) h, zz1 
          line = ' '
-         READ(ifa,'(a)', END=904, ERR=950) line
+         READ(ifa,'(a)', IOSTAT=iostatus) line
+         IF(iostatus /= 0) GOTO 904
          IF(line == ' ') CYCLE loop_main
          IF(line(1:4) == 'TITL') EXIT loop_main
          READ(line,*,IOSTAT=iostatus) h, zz1
          IF(iostatus /= 0) THEN
-            READ(line( 1: 4), *, end = 60, err = 950) h(1)
-            READ(line( 5: 8), *, end = 60, err = 950) h(2)
-            READ(line( 9:12), *, end = 60, err = 950) h(3)
-            READ(line(13:20), *, end = 60, err = 950) zz1
+            READ(line( 1: 4), *, IOSTAT=iostatus    ) h(1)
+            IF(iostatus /= 0) EXIT loop_main
+            READ(line( 5: 8), *, IOSTAT=iostatus    ) h(2)
+            IF(iostatus /= 0) EXIT loop_main
+            READ(line( 9:12), *, IOSTAT=iostatus    ) h(3)
+            IF(iostatus /= 0) EXIT loop_main
+            READ(line(13:20), *, IOSTAT=iostatus    ) zz1
+            IF(iostatus /= 0) EXIT loop_main
          ENDIF
          IF (.not. (h (1) .eq.0.and.h (2) .eq.0.and.h (3) .eq.0) ) then 
             IF (latt_P.or.latt_A.and.mod (nint (h (2) + h (3) ),        &
@@ -2309,8 +2314,24 @@ CONTAINS
          e_graph_hhM2hl (i) = 0 
          e_graph_0k0 (i) = 0 
          ENDDO 
-         DO i = 1, n 
-         READ (ifa, *, end = 903, err = 903) h, zz1, zz2 
+         loop_sec: DO i = 1, n 
+         line = ' '
+         READ(ifa,'(a)', IOSTAT=iostatus ) line
+         IF(iostatus /= 0) EXIT loop_sec
+         IF(line == ' ') CYCLE loop_sec
+         IF(line(1:4) == 'TITL') EXIT loop_sec
+         READ(line,*,IOSTAT=iostatus) h, zz1
+         IF(iostatus /= 0) THEN
+            READ(line( 1: 4), *, IOSTAT=iostatus    ) h(1)
+            IF(iostatus /= 0) EXIT loop_sec
+            READ(line( 5: 8), *, IOSTAT=iostatus    ) h(2)
+            IF(iostatus /= 0) EXIT loop_sec
+            READ(line( 9:12), *, IOSTAT=iostatus    ) h(3)
+            IF(iostatus /= 0) EXIT loop_sec
+            READ(line(13:20), *, IOSTAT=iostatus    ) zz1
+            IF(iostatus /= 0) EXIT loop_sec
+         ENDIF
+!        READ (ifa, *, end = 903, err = 903) h, zz1, zz2 
          j = e_hist (h) 
          IF (e_aver_f2 (j) .ne.0.0) then 
             e_f = sqrt (abs (zz1) ) / e_aver_f2 (j) 
@@ -2430,10 +2451,12 @@ CONTAINS
                   e_e2m1_2_0k0, e_e2m1_3_0k0, e_abs_e2m1_3_0k0)         
                ENDIF 
             ENDIF 
+         ELSE
+            EXIT loop_sec
          ENDIF 
-         ENDDO 
+         ENDDO  loop_sec
 !                                                                       
-  903    CONTINUE 
+! 903    CONTINUE 
          CLOSE (ifa) 
 !                                                                       
 !     Write results                                                     
@@ -2625,7 +2648,7 @@ CONTAINS
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhM2Hl (i) ) &
+         WRITE( e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhM2Hl (i) ) &
          / float (e_graph_hhM2Hl (0) ) / 0.1                            
          ENDDO 
          IF (e_io.ne.6) then 
