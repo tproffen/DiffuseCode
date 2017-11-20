@@ -1155,6 +1155,7 @@ CONTAINS
       USE wyckoff_mod 
       USE unitcell_mod 
       USE prompt_mod
+      USE param_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1218,6 +1219,7 @@ CONTAINS
 !                                                                       
 !     apply all symmetry operations to original position                
 !                                                                       
+      res_para(0) = 0
       DO is = 1, spc_n 
       IF (gen_sta.eq.GEN_SYMM) then 
          igroup = mod (is - 1, block) + 1 
@@ -1254,6 +1256,8 @@ CONTAINS
                j, is), j = 1, 4)                                        
             ENDIF 
          ENDIF 
+         res_para(0) = REAL(NINT(res_para(0)+1))
+         res_para(NINT(res_para(0))) = REAL(is)
       ENDIF 
 !                                                                       
       ENDDO 
@@ -1261,6 +1265,9 @@ CONTAINS
       IF (loutput) then 
          WRITE (output_io, 6000) spc_n / wyc_n, wyc_n, spc_n 
       ENDIF 
+      res_para(1) = REAL(spc_n / wyc_n)
+      res_para(2) = REAL(        wyc_n)
+      res_para(3) = REAL(spc_n        )
 !                                                                       
   900 FORMAT    (/,' Wyckoff symmetry for position ',3f12.6,/) 
  1000 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
