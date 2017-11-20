@@ -29,6 +29,7 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
+      USE take_param_mod
       IMPLICIT none 
 !                                                                       
        
@@ -54,13 +55,25 @@ CONTAINS
       LOGICAL l_need_setup 
       LOGICAL lselect 
       REAL hkl (3) 
-!                                                                       
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
       INTEGER len_str 
       LOGICAL str_comp 
-!                                                                       
-!                                                                       
+!
       DATA l_need_setup / .true. / 
-!                                                                       
+      DATA oname  / 'radius', 'occupied'/
+      DATA loname /  6        ,  8      /
+      opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
+      lopara =  (/  6,        6         /)
+      owerte =  (/  1.0E-8 ,  0.0       /)
+!
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
       CALL no_error 
@@ -394,7 +407,12 @@ CONTAINS
                ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
+                     CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &
+                          ncalc, oname, loname, opara, lopara, owerte)
                      IF (ianz.eq.1.or.ianz.eq.2) then 
+                        sym_occup  = opara(2) == 'empty'   ! Can target position by occupied or empty?
+                        sym_radius = owerte(1)             ! If empty, necessary free radius
+write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         IF (str_comp (cpara (1) , 'copy', 1, lpara (1) ,&
                         4) ) then                                       
                            sym_mode = .true. 
