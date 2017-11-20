@@ -1230,6 +1230,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) line 
       INTEGER i, j, ii, k, itic 
+      INTEGER :: iostatus
       INTEGER extr_ima 
       INTEGER nx (2), ny (2) 
       INTEGER ihkl (3) 
@@ -1283,7 +1284,12 @@ CONTAINS
 !                                                                       
 !     ----read hkl,fobs,fcalc,phase                                     
 !                                                                       
-         READ (ifa, 1111, end = 20, err = 900) ihkl, zz1, zz2, zz3 
+         line = ' '
+         READ(ifa,'(a)', END=20, ERR=900) line
+         READ(line,*,IOSTAT=iostatus) ihkl, zz1, zz2, zz3
+         IF(iostatus /= 0) THEN
+            READ (line, 1111, end = 20, err = 900) ihkl, zz1, zz2, zz3 
+         ENDIF
  1111 FORMAT   (3I4,2F10.2,F7.2) 
          y (1) = real (ihkl (1) ) 
          y (2) = real (ihkl (2) ) 
@@ -1303,7 +1309,12 @@ CONTAINS
 !                                                                       
 !     ----read hkl,fobs,fcalc,phase                                     
 !                                                                       
-         READ (ifa, *, end = 25, err = 900) h, zz1, zz2, zz3 
+         line = ' '
+         READ(ifa,'(a)', END=25, ERR=900) line
+         READ(line,*,IOSTAT=iostatus) ihkl, zz1, zz2, zz3
+         IF(iostatus /= 0) THEN
+            READ (line, 1111, end = 25, err = 900) ihkl, zz1, zz2, zz3 
+         ENDIF
 !                                                                       
 !     ----Apply reciprocal space symmetry operations                    
 !                                                                       
@@ -1345,7 +1356,13 @@ CONTAINS
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
-         READ (ifa, *, end = 40, err = 900) h, zz1 
+!        READ (ifa, *, end = 40, err = 900) h, zz1 
+         line = ' '
+         READ(ifa,'(a)', END=40, ERR=900) line
+         READ(line,*,IOSTAT=iostatus) ihkl, zz1
+         IF(iostatus /= 0) THEN
+            READ (line, '(3I4,F8.2)', end = 40, err = 900) ihkl, zz1
+         ENDIF
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
 !         subtract sum(fj**2)                                           
@@ -1420,7 +1437,15 @@ CONTAINS
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
-         READ (ifa, *, end = 60, err = 900) y, zz1 
+!        READ (ifa, *, end = 60, err = 900) y, zz1 
+         line = ' '
+         READ(ifa,'(a)', END=60, ERR=900) line
+         READ(line,*,IOSTAT=iostatus) ihkl, zz1
+         IF(iostatus /= 0) THEN
+            READ (line, '(3I4,F8.2)', end = 60, err = 900) ihkl, zz1
+         ENDIF
+         y(:) = REAL(ihkl(:))
+!1111 FORMAT   (3I4,2F10.2,F7.2) 
 !                                                                       
 !     ----Calculate |F|**2, |EF| or |E|**2                              
 !         subtract sum(fj**2)                                           
@@ -1822,7 +1847,9 @@ CONTAINS
 !                                                                       
       CHARACTER ( * ) cpara 
       CHARACTER(1024) outfile 
+      CHARACTER(len=1024) :: line
       INTEGER lpara 
+      INTEGER :: iostatus
       INTEGER i, n, j, lcomm 
       INTEGER e_io, e_io_hkl 
       LOGICAL io_mode 
@@ -2060,7 +2087,22 @@ CONTAINS
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
-         READ (ifa, *, end = 60, err = 950) h, zz1 
+!        READ (ifa, *, end = 60, err = 950) h, zz1 
+         line = ' '
+         READ(ifa,'(a)', END=60, ERR=950) line
+         IF(line == ' ') THEN
+           GOTO 50
+         ENDIF
+         IF(line(1:4)=='TITL') THEN 
+            GOTO 60
+         ENDIF
+         READ(line,*,IOSTAT=iostatus) h, zz1
+         IF(iostatus /= 0) THEN
+            READ(line( 1: 4), *, end = 60, err = 950) h(1)
+            READ(line( 5: 8), *, end = 60, err = 950) h(2)
+            READ(line( 9:12), *, end = 60, err = 950) h(3)
+            READ(line(13:20), *, end = 60, err = 950) zz1
+         ENDIF
          n = n + 1 
          IF (.not. (h (1) .eq.0.and.h (2) .eq.0.and.h (3) .eq.0) ) then 
             n_all = n_all + 1 
@@ -2095,6 +2137,8 @@ CONTAINS
                i_aver_RR = i_aver_RR + abs (zz1) 
                n_RR = n_RR + 1 
             ENDIF 
+         ELSE
+            GOTO 60
          ENDIF 
          GOTO 50 
 !                                                                       
@@ -2135,11 +2179,22 @@ CONTAINS
          CALL oeffne (ifa, rho_file (1) , 'old') 
          n_all = 0 
          lsuccess = .false. 
-         DO i = 1, n 
+         loop_main: DO i = 1, n 
 !                                                                       
 !     ----read hkl,intensity,sigma(intensity)                           
 !                                                                       
-         READ (ifa, *, end = 904, err = 950) h, zz1 
+!        READ (ifa, *, end = 904, err = 950) h, zz1 
+         line = ' '
+         READ(ifa,'(a)', END=904, ERR=950) line
+         IF(line == ' ') CYCLE loop_main
+         IF(line(1:4) == 'TITL') EXIT loop_main
+         READ(line,*,IOSTAT=iostatus) h, zz1
+         IF(iostatus /= 0) THEN
+            READ(line( 1: 4), *, end = 60, err = 950) h(1)
+            READ(line( 5: 8), *, end = 60, err = 950) h(2)
+            READ(line( 9:12), *, end = 60, err = 950) h(3)
+            READ(line(13:20), *, end = 60, err = 950) zz1
+         ENDIF
          IF (.not. (h (1) .eq.0.and.h (2) .eq.0.and.h (3) .eq.0) ) then 
             IF (latt_P.or.latt_A.and.mod (nint (h (2) + h (3) ),        &
             2) .eq.0.or.latt_B.and.mod (nint (h (1) + h (3) ), 2)       &
@@ -2183,8 +2238,10 @@ CONTAINS
                   e_num_0k0 (j) = e_num_0k0 (j) + 1 
                ENDIF 
             ENDIF 
+         ELSE
+            EXIT loop_main
          ENDIF 
-         ENDDO 
+         ENDDO  loop_main
          lsuccess = .true. 
   904    CONTINUE 
          IF (.not.lsuccess) then 
