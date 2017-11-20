@@ -30,6 +30,7 @@
 !p chem       ! Enter CHEM level (see chem level for details)
 !p connect    ! Enter CONNECTIVITY level
 !p copy       ! Copy atom or molecule within the crystal
+!p export     ! Exports the structure in a different format
 !p decorate   ! Enter  DECORATE level
 !p d2r        ! Transform vector from real to reciprocal space
 !p define     ! Define DISCUS specific settings
@@ -1684,6 +1685,10 @@
    absolute positions <x>,<y>,<z> in crystal space, if <s> is "r", a
    relative motion copies the atom number <n> to the sum of present
    position and vector <x>,<y>,<z>.
+2  export
+!b export "shelx",<file{".ins"]>
+
+   Exports the atoms of the current structure as a SHELXL instruction file
 2  d2r
 !b d2r <u>,<v>,<w>
 
@@ -8490,6 +8495,14 @@
    Shows all symmetry operations that copy an atom at position <x>,<y>,<z>
    onto itself. These are the symmetry operations of the current space group,
    not the simple point group symmetry.
+
+   The following results are written into res[*]:
+      res[1] Multiplicity of this site divided by highest multiplicity
+      res[2] Multiplicity of this site
+      res[3] Multiplicity of a general position xyz in this space group
+             == highest multiplicity
+      res[4...] Number of the space group symmetry elements that copy
+             the position onto itself.
 
 !p "full"
 

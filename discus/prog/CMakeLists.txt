@@ -22,7 +22,7 @@ set( SOURCE_MAIN discus.f90 )
 set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	atom_name.f90 discus_blk_appl.f90 bv_data_mod.f90 
 	chem.f90 chem_mod.f90 chem_aver_mod.f90 chem_symm_mod.f90 discus_config_mod.f90
-	discus_branch.f90 discus_nipl_header.f90
+	discus_branch.f90 discus_export.f90 discus_nipl_header.f90
 	conn_def_mod.f90 conn_mod.f90 crystal_mod.f90 
 	class_atom.f90 class_crystal.f90 class_internal.f90
 	celltoindex.f90

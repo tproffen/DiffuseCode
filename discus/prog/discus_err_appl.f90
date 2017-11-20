@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-146,IO=4)
+      PARAMETER    (IU=-148,IO=4)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  '1bar not at origin',                            & !-148 ! discus
+     &  'Unknown export format',                         & !-147 ! discus
      &  'No. of atoms not an integer multiple of sites', & !-146 ! discus
      &  'Decoration name not recognized      ',          & !-145 ! discus
      &  'Too few atoms in ligand molecule    ',          & !-144 ! discus

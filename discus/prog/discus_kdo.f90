@@ -37,6 +37,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE transform_menu
       USE waves_do_menu
       USE discus_init_mod
+      USE discus_export
 !
       USE doact_mod
       USE errlist_mod 
@@ -192,6 +193,11 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
             inverse_type = INV_DIFF 
             lout_rho = .true. 
             CALL patterson (inverse_type) 
+!                                                                       
+!-------export a file from discus format 'export'                  
+!                                                                       
+         ELSEIF (str_comp (befehl, 'export', 3, lbef, 6) ) then 
+            CALL do_export (zeile, lcomm) 
 !                                                                       
 !-------Terminate DISCUS 'exit'                                         
 !                                                                       
