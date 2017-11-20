@@ -216,9 +216,9 @@ CONTAINS
 !                                                                       
 !     Apply symmetry operation to all atoms within selected range       
 !                                                                       
-      DO l = i_start, i_end 
-        i = l 
-        IF (sym_incl.eq.'env ') i = atom_env (l) 
+loop_atoms: DO l = i_start, i_end 
+   i = l 
+   IF (sym_incl.eq.'env ') i = atom_env (l) 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
@@ -240,7 +240,7 @@ CONTAINS
 !-----      ----Apply symmetry operation                                
 !                                                                       
          usym (4) = 1.0 
-         DO k = 1, sym_power 
+loop_pow:DO k = 1, sym_power 
          CALL trans (usym, sym_mat, ures, 4) 
 !                                                                       
 !     ----Add origin                                                    
@@ -248,6 +248,13 @@ CONTAINS
          DO j = 1, 3 
          werte (j + 1) = ures (j) + sym_orig (j) - offset(j)
          ENDDO 
+         DO j = 1, 3 
+         usym (j) = ures (j) 
+         ENDDO 
+         IF(sym_occup) THEN
+            IF( symm_occupied(werte, sym_radius) ) CYCLE loop_pow
+         ENDIF
+
 !                                                                       
 !     ----Insert copy of atom or replace original atom by its image     
 !                                                                       
@@ -266,14 +273,14 @@ CONTAINS
                atom_pos(1:3,l) = cr_pos(1:3,i) + offset(1:3)
             ENDIF 
          ENDIF 
-         DO j = 1, 3 
-         usym (j) = ures (j) 
-         ENDDO 
-         ENDDO 
-      ENDIF 
-      ENDDO 
+!        DO j = 1, 3 
+!        usym (j) = ures (j) 
+!        ENDDO 
+      ENDDO  loop_pow
+   ENDIF 
+ENDDO  loop_atoms
 !                                                                       
-      END SUBROUTINE symm_op_mult                   
+END SUBROUTINE symm_op_mult                   
 !*****7*****************************************************************
       SUBROUTINE symm_op_single 
 !-                                                                      
@@ -314,9 +321,9 @@ CONTAINS
 !                                                                       
 !     Apply symmetry operation to all atoms within selected range       
 !                                                                       
-      DO l = i_start, i_end 
-        i = l 
-        IF (sym_incl.eq.'env ') i = atom_env (l) 
+loop_atoms: DO l = i_start, i_end 
+   i = l 
+   IF (sym_incl.eq.'env ') i = atom_env (l) 
 !                                                                       
 !     --Select atom if:                                                 
 !       type has been selected                                          
@@ -345,6 +352,12 @@ CONTAINS
          DO j = 1, 3 
          werte (j + 1) = ures (j) + sym_orig (j) -offset(j)
          ENDDO 
+!
+!        If requested test for occupied positions
+!
+         IF(sym_occup) THEN
+            IF( symm_occupied(werte, sym_radius) ) CYCLE loop_atoms
+         ENDIF
 !                                                                       
 !     ----Insert copy of atom or replace original atom by its image     
 !                                                                       
@@ -363,10 +376,10 @@ CONTAINS
                atom_pos(1:3,l) = cr_pos(1:3,i) + offset(1:3)
             ENDIF 
          ENDIF 
-      ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO loop_atoms
 !                                                                       
-      END SUBROUTINE symm_op_single                 
+END SUBROUTINE symm_op_single                 
 !*****7*****************************************************************
       SUBROUTINE symm_mole_mult 
 !-                                                                      
@@ -1376,4 +1389,32 @@ CONTAINS
 !                                                                       
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE symm_ca_single                 
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+LOGICAL FUNCTION symm_occupied(werte, radius)
+!
+USE crystal_mod
+USE metric_mod
+!
+IMPLICIT NONE
+!
+REAL, DIMENSION(5), INTENT(IN) :: werte
+REAL              , INTENT(IN) :: radius
+!
+LOGICAL, PARAMETER    ::LSPACE = .TRUE.
+INTEGER               :: i
+REAL   , DIMENSION(3) :: pos
+REAL   , DIMENSION(3) :: vec
+!
+pos(:) = werte(2:4)
+symm_occupied = .FALSE.
+main:DO i=1, cr_natoms
+   vec(:) = cr_pos(:,i)
+   symm_occupied = do_blen(LSPACE, pos,vec) <= radius
+   IF(symm_occupied) EXIT main
+ENDDO main
+!
+END FUNCTION symm_occupied
+!
 END MODULE symm_sup_mod
