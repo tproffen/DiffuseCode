@@ -467,7 +467,7 @@ DO i=mole_num_mole, istart, -1
    mole_off(i) = mole_off(i) + nshift
 ENDDO
 IF(istart <= mole_num_mole) THEN
-   DO j=1,mole_len(istart)
+   DO j=1,nshift 
       mole_cont(mole_off(istart-1)+mole_len(istart-1) + j) = 0
    ENDDO
 ENDIF
