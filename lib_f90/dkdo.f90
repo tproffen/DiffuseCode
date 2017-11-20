@@ -2728,7 +2728,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
                IF (ianz.eq.2.or.cpara (3) .eq.'s') then 
                   a = werte (2) 
-               ELSEIF (ianz.eq.2.and.cpara (3) .eq.'f') then 
+               ELSEIF (ianz.eq.3.and.cpara (3) .eq.'f') then 
                   a = werte (2) / sqrt (8. * log (2.) ) 
                ELSE 
                   ier_num = - 6 
