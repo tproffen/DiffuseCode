@@ -2430,6 +2430,8 @@ END SUBROUTINE import_test
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
+      USE wink_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2760,6 +2762,15 @@ END SUBROUTINE import_test
 !        READ (line (6:length), *, end = 850) ityp, xyz, sof, (uij (i), &
 !        i = 1, 6)                                                      
 ! 850    CONTINUE 
+         uij(:) = 0
+         DO i=1,3
+            ifv = nint (uij(i)/10.)
+            IF(ifv.gt.1) then
+               uij(i) = (uij(i) - ifv * 10) * fv (ifv)
+            ELSEIF (ifv.lt. - 1) then
+               uij(i) = (abs (uij(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
+            ENDIF
+         ENDDO
          IF (iianz == 6) then 
             uiso = uij (1) 
          ELSE 
@@ -2777,7 +2788,7 @@ END SUBROUTINE import_test
          ENDIF 
          ENDDO 
 !         write(iwr,3100) c_atom(ityp),xyz,float(ityp)                  
-         WRITE (iwr, 3100) c_atom (ityp), xyz, uiso 
+         WRITE (iwr, 3100) c_atom (ityp), xyz, uiso *8.*pi**2
       ENDIF 
 !                                                                       
       lcontinue = .false. 
