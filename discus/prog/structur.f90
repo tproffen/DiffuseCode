@@ -160,183 +160,7 @@ CONTAINS
 !                                                                       
          IF (str_comp (befehl, 'cell', 1, lbef, 4) .or.str_comp (befehl,&
          'lcell', 1, lbef, 5) ) then                                    
-            IF (ianz.ge.1) then 
-               cr_newtype = str_comp (befehl, 'cell', 1, lbef, 4) 
-               CALL rese_cr 
-               strucfile = cpara (1) 
-               IF (ier_num.eq.0) then 
-!                                                                       
-!     --------if necessary get crystal size                             
-!                                                                       
-                  IF (ianz.gt.1) then 
-                     cpara (1) = '0.0' 
-                     lpara (1) = 3 
-                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
-                        DO i = 1, ianz - 1 
-                        cr_icc (i) = nint (werte (i + 1) ) 
-                        ENDDO 
-                     ENDIF 
-                  ENDIF 
-                  IF (ier_num.eq.0) then 
-internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
-                        CALL readcell_internal(strucfile)
-                     ELSE internalcell
-!                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
-!                                         n_atom, -1 , .false.)
-!                        IF (ier_num /= 0) THEN
-!                           RETURN
-!                        ENDIF
-                        CALL import_test(0, strucfile, outfile)
-                        IF(ier_num == 0) THEN
-                           strucfile = outfile
-                           CALL readcell (strucfile) 
-                        ENDIF
-                     ENDIF internalcell
-!
-                     IF (ier_num.eq.0) then 
-!                                                                       
-!     ----------check whether total number of atoms fits into available 
-!     ----------space                                                   
-!                                                                       
-                        iatom = cr_icc (1) * cr_icc (2) * cr_icc (3)    &
-                        * cr_natoms                                     
-                        IF (iatom.gt.nmax) then 
-                           CALL alloc_crystal ( MAXSCAT, INT(iatom * 1.1))
-                           IF (ier_num < 0 ) THEN
-                              GOTO 8888              ! Jump to handle error messages, amd macro conditions
-                           ENDIF
-                        ENDIF
-!
-!                          ier_num = - 10 
-!                          ier_typ = ER_APPL 
-!                          WRITE (ier_msg (1), 3000) cr_icc (1),        &
-!                          cr_icc (2), cr_icc (3)                       
-!                          WRITE (ier_msg (2), 3100) cr_natoms 
-!                          WRITE (ier_msg (3), 3200) iatom, nmax 
-!3000 FORMAT                ('Unit cells   : ',3(i4,2x)) 
-!3100 FORMAT                ('Atoms / cell : ',i10) 
-!3200 FORMAT                ('Total / max  : ',i10,'/',i10) 
-!                          RETURN 
-!                       ENDIF 
-                        ce_natoms = cr_natoms 
-                        cr_ncatoms = cr_natoms 
-                        cr_ncreal  = 0   ! Non void atoms in unit cell
-                        DO n=1,cr_natoms
-                           IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
-                        ENDDO
-                        cr_natoms = 0 
-                        DO k = 1, cr_icc (3) 
-                        DO j = 1, cr_icc (2) 
-                        DO i = 1, cr_icc (1) 
-                        DO n = 1, ce_natoms 
-                        cr_natoms = cr_natoms + 1 
-                        cr_iscat (cr_natoms) = cr_iscat (n) 
-                        cr_pos (1, cr_natoms) = cr_pos (1, n) + float ( &
-                        i - 1)                                          
-                        cr_pos (2, cr_natoms) = cr_pos (2, n) + float ( &
-                        j - 1)                                          
-                        cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( &
-                        k - 1)                                          
-                        cr_mole (cr_natoms) = cr_mole (n)
-                        cr_prop (cr_natoms) = cr_prop (n)
-                        cr_surf(:,cr_natoms) = cr_surf(:,n)
-                        ENDDO 
-                        ENDDO 
-                        ENDDO 
-                        ENDDO 
-!                                                                       
-!     ----------Update crystal dimensions                               
-!                                                                       
-                        CALL update_cr_dim 
-                        ncells = cr_icc (1) * cr_icc (2)* cr_icc (3)
-!                                                                       
-!     ----------If molecules were read                                  
-!                                                                       
-                        IF (mole_num_mole.gt.0) then 
-                           need_alloc = .false.
-                           n_gene = MAX( 1, MOLE_MAX_GENE)
-                           n_symm = MAX( 1, MOLE_MAX_SYMM)
-                           n_mole =         MOLE_MAX_MOLE
-                           n_type =         MOLE_MAX_TYPE
-                           n_atom =         MOLE_MAX_ATOM
-                           IF (mole_num_mole* ncells                              >= MOLE_MAX_MOLE ) THEN
-                              n_mole = mole_num_mole* ncells + 20
-                              need_alloc = .true.
-                           ENDIF
-                           IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells >= MOLE_MAX_ATOM ) THEN
-                              n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells + 200
-                              need_alloc = .true.
-                           ENDIF
-                           IF ( need_alloc ) THEN
-                              call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
-                           ENDIF
-                           IF (mole_num_mole * cr_icc (1) * cr_icc (2)  &
-                                             * cr_icc (3) .le.MOLE_MAX_MOLE) then         
-                              mole_num_atom = mole_off (mole_num_mole)  &
-                                              + mole_len (mole_num_mole)                
-                              l             = mole_num_mole 
-                              mole_num_unit = mole_num_mole 
-                              DO i = 2,cr_icc(1)*cr_icc(2)*cr_icc(3)                                
-                                 DO j = 1, mole_num_mole 
-                                    l = l + 1 
-                                    mole_len (l) = mole_len (j) 
-                                    mole_off (l) = mole_off (l -              &
-                                    mole_num_mole) + mole_num_atom            
-                                    mole_type (l) = mole_type (j) 
-                                    mole_char (l) = mole_char (j) 
-                                    mole_dens (l) = mole_dens (j) 
-!                                    mole_biso (l) = mole_biso (j) 
-                                    DO k = 1, mole_len (j) 
-                                       mole_cont(mole_off(l) + k) =&
-                                       mole_cont(mole_off(j) + k) + (i - 1) * ce_natoms   
-                                       iatom          = mole_cont (mole_off (l) + k)
-                                       cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
-                                       cr_mole(iatom) = l
-                                    ENDDO 
-                                 ENDDO 
-                              ENDDO 
-                              mole_num_mole = l 
-                              mole_num_atom = mole_off (mole_num_mole) +&
-                                              mole_len (mole_num_mole)                
-                           ELSE 
-                              ier_num = - 65 
-                              ier_typ = ER_APPL 
-                              GOTO 8888              ! Jump to handle error messages, amd macro conditions
-                           ENDIF 
-                        ENDIF 
-!                                                                       
-!     ----------Define initial crystal size in fractional coordinates   
-!               cr_dim0(:,1) is often used as the coordinate of the lower left
-!               unit cell. Distances are then calculated relative to this
-!               unit cell to obtain relative unit cell numbers. If a large molecule
-!               sticks out of the unit cell, although its center is within the 
-!               unit cell, the offset was calculated wrong. cr_dim(:,2) is hardly used. 
-!               To reflect the intention of cr_dim0(:,1) it is now calculated from cr_icc.
-                        DO l = 1, 3 
-!                          cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
-!                          cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
-                           IF(MOD(cr_icc(l),2)==0) THEN
-                              
-                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
-                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
-                           ELSE
-                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
-                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
-                           ENDIF 
-                        ENDDO 
-                     ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            IF (ier_num.eq.0) then 
-!                                                                       
-!     ------reset microdomain status                                    
-!                                                                       
-               CALL do_stack_rese 
-!              Flag that no Fourier has been calculated yet
-               four_last = FOUR_NN
-            ENDIF 
+            CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -483,6 +307,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                lmakro_error = .FALSE.
                sprompt = ' '
             ENDIF 
+            CALL no_error 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -492,6 +317,227 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
  1000 FORMAT    (1x,a16,i5) 
       END SUBROUTINE read_struc                     
+!
+!*******************************************************************************
+!
+SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara)
+!
+USE discus_allocate_appl_mod
+USE crystal_mod
+USE diffuse_mod
+USE molecule_mod
+USE prop_para_mod
+USE read_internal_mod
+USE stack_rese_mod
+USE update_cr_dim_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*),                  INTENT(IN) :: befehl
+INTEGER         ,                  INTENT(IN) :: lbef
+INTEGER         ,                  INTENT(IN) :: ianz
+INTEGER         ,                  INTENT(IN) :: MAXW
+CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+CHARACTER(LEN=1024) :: strucfile
+CHARACTER(LEN=1024) :: outfile
+LOGICAL             :: need_alloc
+INTEGER             :: i, j, k, l, n
+INTEGER             :: iatom
+INTEGER             :: ce_natoms
+INTEGER             :: n_atom
+INTEGER             :: n_gene
+INTEGER             :: n_symm
+INTEGER             :: n_mole
+INTEGER             :: n_type
+INTEGER             :: ncells
+REAL   , DIMENSION(MAXW) :: werte
+!
+LOGICAL :: str_comp
+!
+            IF (ianz.ge.1) then 
+               cr_newtype = str_comp (befehl, 'cell', 1, lbef, 4) 
+               CALL rese_cr 
+               strucfile = cpara (1) 
+               IF (ier_num.eq.0) then 
+!                                                                       
+!     --------if necessary get crystal size                             
+!                                                                       
+                  IF (ianz.gt.1) then 
+                     cpara (1) = '0.0' 
+                     lpara (1) = 3 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     IF (ier_num.eq.0) then 
+                        DO i = 1, ianz - 1 
+                        cr_icc (i) = nint (werte (i + 1) ) 
+                        ENDDO 
+                     ENDIF 
+                  ENDIF 
+                  IF (ier_num.eq.0) then 
+internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
+                        CALL readcell_internal(strucfile)
+                     ELSE internalcell
+!                        CALL test_file ( strucfile, natoms, nscats, n_mole, n_type, &
+!                                         n_atom, -1 , .false.)
+!                        IF (ier_num /= 0) THEN
+!                           RETURN
+!                        ENDIF
+                        CALL import_test(0, strucfile, outfile)
+                        IF(ier_num == 0) THEN
+                           strucfile = outfile
+                           CALL readcell (strucfile) 
+                        ENDIF
+                     ENDIF internalcell
+!
+                     IF (ier_num.eq.0) then 
+!                                                                       
+!     ----------check whether total number of atoms fits into available 
+!     ----------space                                                   
+!                                                                       
+                        iatom = cr_icc (1) * cr_icc (2) * cr_icc (3)    &
+                        * cr_natoms                                     
+                        IF (iatom.gt.nmax) then 
+                           CALL alloc_crystal ( MAXSCAT, INT(iatom * 1.1))
+                           IF (ier_num < 0 ) THEN
+                              RETURN                 ! Jump to handle error messages, amd macro conditions
+!                             GOTO 8888              ! Jump to handle error messages, amd macro conditions
+                           ENDIF
+                        ENDIF
+!
+!                          ier_num = - 10 
+!                          ier_typ = ER_APPL 
+!                          WRITE (ier_msg (1), 3000) cr_icc (1),        &
+!                          cr_icc (2), cr_icc (3)                       
+!                          WRITE (ier_msg (2), 3100) cr_natoms 
+!                          WRITE (ier_msg (3), 3200) iatom, nmax 
+!3000 FORMAT                ('Unit cells   : ',3(i4,2x)) 
+!3100 FORMAT                ('Atoms / cell : ',i10) 
+!3200 FORMAT                ('Total / max  : ',i10,'/',i10) 
+!                          RETURN 
+!                       ENDIF 
+                        ce_natoms = cr_natoms 
+                        cr_ncatoms = cr_natoms 
+                        cr_ncreal  = 0   ! Non void atoms in unit cell
+                        DO n=1,cr_natoms
+                           IF(cr_at_lis(cr_iscat(n))/='VOID') cr_ncreal = cr_ncreal + 1
+                        ENDDO
+                        cr_natoms = 0 
+                        DO k = 1, cr_icc (3) 
+                        DO j = 1, cr_icc (2) 
+                        DO i = 1, cr_icc (1) 
+                        DO n = 1, ce_natoms 
+                        cr_natoms = cr_natoms + 1 
+                        cr_iscat (cr_natoms) = cr_iscat (n) 
+                        cr_pos (1, cr_natoms) = cr_pos (1, n) + float ( &
+                        i - 1)                                          
+                        cr_pos (2, cr_natoms) = cr_pos (2, n) + float ( &
+                        j - 1)                                          
+                        cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( &
+                        k - 1)                                          
+                        cr_mole (cr_natoms) = cr_mole (n)
+                        cr_prop (cr_natoms) = cr_prop (n)
+                        cr_surf(:,cr_natoms) = cr_surf(:,n)
+                        ENDDO 
+                        ENDDO 
+                        ENDDO 
+                        ENDDO 
+!                                                                       
+!     ----------Update crystal dimensions                               
+!                                                                       
+                        CALL update_cr_dim 
+                        ncells = cr_icc (1) * cr_icc (2)* cr_icc (3)
+!                                                                       
+!     ----------If molecules were read                                  
+!                                                                       
+                        IF (mole_num_mole.gt.0) then 
+                           need_alloc = .false.
+                           n_gene = MAX( 1, MOLE_MAX_GENE)
+                           n_symm = MAX( 1, MOLE_MAX_SYMM)
+                           n_mole =         MOLE_MAX_MOLE
+                           n_type =         MOLE_MAX_TYPE
+                           n_atom =         MOLE_MAX_ATOM
+                           IF (mole_num_mole* ncells                              >= MOLE_MAX_MOLE ) THEN
+                              n_mole = mole_num_mole* ncells + 20
+                              need_alloc = .true.
+                           ENDIF
+                           IF ((mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells >= MOLE_MAX_ATOM ) THEN
+                              n_atom = (mole_off(mole_num_mole)+mole_len(mole_num_mole))*ncells + 200
+                              need_alloc = .true.
+                           ENDIF
+                           IF ( need_alloc ) THEN
+                              call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+                           ENDIF
+                           IF (mole_num_mole * cr_icc (1) * cr_icc (2)  &
+                                             * cr_icc (3) .le.MOLE_MAX_MOLE) then         
+                              mole_num_atom = mole_off (mole_num_mole)  &
+                                              + mole_len (mole_num_mole)                
+                              l             = mole_num_mole 
+                              mole_num_unit = mole_num_mole 
+                              DO i = 2,cr_icc(1)*cr_icc(2)*cr_icc(3)                                
+                                 DO j = 1, mole_num_mole 
+                                    l = l + 1 
+                                    mole_len (l) = mole_len (j) 
+                                    mole_off (l) = mole_off (l -              &
+                                    mole_num_mole) + mole_num_atom            
+                                    mole_type (l) = mole_type (j) 
+                                    mole_char (l) = mole_char (j) 
+                                    mole_dens (l) = mole_dens (j) 
+!                                    mole_biso (l) = mole_biso (j) 
+                                    DO k = 1, mole_len (j) 
+                                       mole_cont(mole_off(l) + k) =&
+                                       mole_cont(mole_off(j) + k) + (i - 1) * ce_natoms   
+                                       iatom          = mole_cont (mole_off (l) + k)
+                                       cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+                                       cr_mole(iatom) = l
+                                    ENDDO 
+                                 ENDDO 
+                              ENDDO 
+                              mole_num_mole = l 
+                              mole_num_atom = mole_off (mole_num_mole) +&
+                                              mole_len (mole_num_mole)                
+                           ELSE 
+                              ier_num = - 65 
+                              ier_typ = ER_APPL 
+                              RETURN                 ! Jump to handle error messages, amd macro conditions
+!                             GOTO 8888              ! Jump to handle error messages, amd macro conditions
+                           ENDIF 
+                        ENDIF 
+!                                                                       
+!     ----------Define initial crystal size in fractional coordinates   
+!               cr_dim0(:,1) is often used as the coordinate of the lower left
+!               unit cell. Distances are then calculated relative to this
+!               unit cell to obtain relative unit cell numbers. If a large molecule
+!               sticks out of the unit cell, although its center is within the 
+!               unit cell, the offset was calculated wrong. cr_dim(:,2) is hardly used. 
+!               To reflect the intention of cr_dim0(:,1) it is now calculated from cr_icc.
+                        DO l = 1, 3 
+!                          cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
+!                          cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+                           IF(MOD(cr_icc(l),2)==0) THEN
+                              
+                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
+                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
+                           ELSE
+                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
+                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
+                           ENDIF 
+                        ENDDO 
+                     ENDIF 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+            IF (ier_num.eq.0) then 
+!                                                                       
+!     ------reset microdomain status                                    
+!                                                                       
+               CALL do_stack_rese 
+!              Flag that no Fourier has been calculated yet
+               four_last = FOUR_NN
+            ENDIF 
+END SUBROUTINE do_readcell
 !
 !*******************************************************************************
 !
