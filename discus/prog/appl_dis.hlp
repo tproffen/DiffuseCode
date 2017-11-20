@@ -74,6 +74,10 @@
 3  2017_Nov
 
    Added RMCprofile version 6 format to imports 
+
+   Added an "export" command, currently just a "shelx" export format
+
+   Added a choice to the ==> 'symmetry/mode' command
 3  2017_Oct
 
    Space Groups
@@ -6782,6 +6786,10 @@
 
    Shows the scattering curve of the selected atom types, which may be
    given as the scattering number of as the element name.
+
+   The values for the scattering curve are stored into the res[] 
+   variable in the order:
+   a1, a2, a3, a4,  b1, b2, b3, b4, c
 3  symmetry
 !b show "symmetry" [,{"full" | "symbol" | "xzy" | "matrix" }
 
@@ -7532,6 +7540,8 @@
    
 3  mode
 !b mode { "copy" | "repl" } [ , { "new" | "old" } ]
+        [, "occupied:"{"any"|"empty"}]
+        [, "radius:"<value>]
 
    The symmetry operation can have two different effects on the current
    atom. In the "copy" mode, the symmetry operation creates a copy of the
@@ -7542,6 +7552,21 @@
    used. It determines if the new molecule created by the symmetry
    operation has is of the same type as the original ("old") or is
    treated as a new molecule type ("new").
+
+   The optional parameters "occupied" and "radius" are effective 
+   only if atoms are selected. These parameters allow you to 
+   choose if the position onto which the atom is copied or moved
+   can be occupied by any other atom or must be empty within a
+   radius of <value> Angstroems. If the power of the symmetry
+   operation is greater than one and multiple copies are choosen, this
+   option applies to each individual copy separately.
+
+   Try to avoid this option with "empty", as the required inner 
+   loop over all atoms in the crystal is bound to take some time. 
+
+   Default values are "any" and a radius of 1.0*10^-8 Angstroem.
+   With these defaults the new position may be occupied by 
+   previous atoms. 
 3  msel
 !b msel { "all" | <number> } [ , <number> ...]
 
