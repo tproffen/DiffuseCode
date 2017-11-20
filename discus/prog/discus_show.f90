@@ -636,6 +636,7 @@ CONTAINS
       USE molecule_mod 
 !                                                                       
       USE errlist_mod 
+      USE param_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -729,6 +730,12 @@ CONTAINS
              (cr_scat (2 * j + 1, i),j = 1, diff_power),      &
              cr_scat (1, i), cr_delfr (i), cr_delfi (i)
          END SELECT
+             DO j=1,diff_power
+                res_para(             j) = cr_scat (2 * j    , i)
+                res_para(diff_power + j) = cr_scat (2 * j + 1, i)
+             ENDDO
+             res_para(diff_power*2+1) = cr_scat (1        , i)
+             res_para(0) = REAL(diff_power*2+1)
       ENDIF 
       ENDDO 
 !
