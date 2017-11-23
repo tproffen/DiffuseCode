@@ -23,6 +23,7 @@ CONTAINS
       USE symm_mod 
       USE symm_sup_mod 
       USE trafo_mod
+      USE wyckoff_mod
 !
       USE doact_mod 
       USE errlist_mod 
@@ -127,6 +128,7 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
                      IF (ier_num.eq.0) then 
                         sym_angle = werte (1) 
                         l_need_setup = .true. 
+                        sym_use = 0             ! Turn off space group matrix usage
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -287,6 +289,7 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
                         CALL trans (sym_hkl, cr_rten, sym_uvw, 3) 
                         sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
+                        sym_use = 0             ! Turn off space group matrix usage
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -412,7 +415,6 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
                      IF (ianz.eq.1.or.ianz.eq.2) then 
                         sym_occup  = opara(2) == 'empty'   ! Can target position by occupied or empty?
                         sym_radius = owerte(1)             ! If empty, necessary free radius
-write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         IF (str_comp (cpara (1) , 'copy', 1, lpara (1) ,&
                         4) ) then                                       
                            sym_mode = .true. 
@@ -472,6 +474,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         IF (ier_num.eq.0) THEN 
                            sym_orig_atom = NINT(werte(1))
                            l_need_setup = .true. 
+                           sym_use = 0             ! Turn off space group matrix usage
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -601,6 +604,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         sym_trans (i) = werte (i) 
                         ENDDO 
                         l_need_setup = .true. 
+                        sym_use = 0             ! Turn off space group matrix usage
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -624,6 +628,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         lpara (1) , 8) ) then                           
                            sym_type = .false. 
                            l_need_setup = .true. 
+                           sym_use = 0             ! Turn off space group matrix usage
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -633,7 +638,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
 !                                                                       
 !     ----Select the direct space direction of the symmetry axis 'uvw'  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'uvw ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'uvw ', 2, lbef, 3) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN
                      IF(str_comp(cpara(1), 'atoms', 1, lpara(1), 5)) THEN
@@ -648,6 +653,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                            ENDDO
                            sym_uvw(:) = 0.0
                            sym_uvw(3) = 1.0
+                           sym_use = 0             ! Turn off space group matrix usage
                         ELSEIF(str_comp(cpara(ianz), 'molecule', 1, lpara(ianz), 8)) THEN
                            sym_axis_type = -1
                            l_need_setup = .true. 
@@ -659,6 +665,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                            ENDDO
                            sym_uvw(:) = 0.0
                            sym_uvw(3) = 1.0
+                           sym_use = 0             ! Turn off space group matrix usage
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -672,6 +679,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                         CALL trans (sym_uvw, cr_gten, sym_hkl, 3) 
                         sym_axis_type     = 0      ! Axis in absolute coordinates
                         l_need_setup = .true. 
+                        sym_use = 0             ! Turn off space group matrix usage
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -684,6 +692,27 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
+!                                                                       
+!     ----Select a space group symmetry matrix 'use'  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'use ', 2, lbef, 3) ) then 
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  IF (ier_num.eq.0) THEN
+                     IF(ianz==1) THEN
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        IF (ier_num.eq.0) THEN
+                           IF(NINT(werte(1))>0 .AND. NINT(werte(1))<=spc_n) THEN
+                              sym_use = NINT(werte(1))
+                              l_need_setup = .true. 
+                           ELSE
+                              sym_use = 0
+                           ENDIF
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                  ENDIF
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
@@ -745,6 +774,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
 !     Shows current symm settings                                       
 !+                                                                      
       USE discus_config_mod 
+      USE discus_show_menu
       USE crystal_mod 
       USE atom_name
       USE molecule_mod 
@@ -758,6 +788,7 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
       INTEGER mol_lis (maxscat+1)
       INTEGER i, j, k 
 !                                                                       
+   IF(sym_use==0) THEN
       WRITE (output_io, 3000) sym_uvw 
       WRITE (output_io, 3010) sym_hkl 
       IF (sym_orig_mol) then 
@@ -854,7 +885,86 @@ write(*,*) ' OCCUP, RADIUS ', sym_occup, sym_radius
             ENDIF 
          ENDIF 
       ENDIF 
+   ELSE
+      WRITE(output_io,5000)
+      CALL do_show_symmetry_single(sym_use, 0)
+      WRITE (output_io, 3050) ( (sym_mat (i, j), j = 1, 4), i = 1, 3) 
+      WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
+      WRITE (output_io, 3070) sym_power 
 !                                                                       
+      IF (sym_power_mult) then 
+         WRITE (output_io, 3080) 'Multiple copy of original' 
+      ELSE 
+         WRITE (output_io, 3080) 'Single copy of original' 
+      ENDIF 
+!                                                                       
+      IF (sym_mode) then 
+         WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
+      ELSE 
+         WRITE (output_io, 3100) 'Move atom/molecule to new position' 
+      ENDIF 
+!                                                                       
+      IF (sym_new.and..not.sym_sel_atom) then 
+         WRITE (output_io, 3110) 'Create new molecule type' 
+      ELSE 
+         WRITE (output_io, 3110) 'Keep molecule type' 
+      ENDIF 
+!                                                                       
+!------ Working with atoms ...                                          
+!                                                                       
+      IF (sym_sel_atom) then 
+!                                                                       
+         j = 0 
+         DO i = 0, cr_nscat 
+         IF (sym_latom (i) ) then 
+            j = j + 1 
+            at_lis (j) = at_name (i) 
+         ENDIF 
+         ENDDO 
+         WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
+!                                                                       
+         IF (sym_incl.eq.'all ') then 
+            WRITE (output_io, 3220) 
+         ELSEIF (sym_incl.eq.'env ') then 
+            WRITE (output_io, 3225) 
+         ELSE 
+            WRITE (output_io, 3230) sym_start, sym_end 
+         ENDIF 
+      ELSE
+!                                                                       
+!------ Working with molecules                                          
+!                                                                       
+         j = 0 
+         DO i = 0, mole_num_type 
+         IF (sym_latom (i) ) then 
+            j = j + 1 
+            mol_lis (j) = i 
+         ENDIF 
+         ENDDO 
+         WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
+!                                                                       
+         IF (sym_end.eq. - 1) then 
+            WRITE (output_io, 3310) 
+         ELSE 
+            WRITE (output_io, 3320) sym_start, sym_end 
+         ENDIF 
+         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) then 
+            IF (sym_dom_mode_atom) then 
+               WRITE (output_io, 4100) 
+            ELSE 
+               WRITE (output_io, 4150) 
+            ENDIF 
+            IF (sym_dom_mode_shape) then 
+               WRITE (output_io, 4200) 
+            ELSE 
+               WRITE (output_io, 4250) 
+            ENDIF 
+         ENDIF 
+      ENDIF 
+   ENDIF 
+ 5000 FORMAT    ( ' Space Group Symmetry Operation'/                    &
+                  '                               ')              
+!
  3000 FORMAT    ( ' Generalized Symmetry Operation'/                    &
      &                   '   Axis in direct space      : ',3(2x,f9.4))  
  3010 FORMAT    ( '   Axis in reciprocal space  : ',3(2x,f9.4)) 

@@ -15,6 +15,7 @@ INTEGER                                      ::  SYM_MAXSCAT = 1
 LOGICAL,          DIMENSION(:), ALLOCATABLE  ::  sym_latom   ! (0:SYM_MAXSCAT)
 !
 CHARACTER (LEN = 4)      :: sym_incl       = 'list'
+INTEGER                  :: sym_use        = 0  ! Use space group symmetry operation no. N
 INTEGER                  :: sym_sel_mode   = 0
 INTEGER, DIMENSION(0:1)  :: sym_sel_prop   = (/0,0/)
 INTEGER                  :: sym_start      = 1

@@ -802,24 +802,52 @@ CONTAINS
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
-      INTEGER mode 
+      INTEGER, INTENT(IN) :: mode 
+!                                                                       
+      CHARACTER(26) cr_system (1:9) 
+      INTEGER :: is
+!                                                                       
+      DATA cr_system / 'triclinic', 'monoclinic b-unique', 'monoclinic c&
+     &-unique', 'orthorhombic', 'tetragonal', 'trigonal hexagonal axes',&
+     & 'trigonal rhombohedral axes', 'hexagonal', 'cubic' /             
+!                                                                       
+!                                                                       
+      WRITE (output_io, 2100) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
+!                                                                       
+      DO is = 1, spc_n 
+         CALL do_show_symmetry_single(is, mode)
+      ENDDO
+!
+ 2100 FORMAT    (/,' Space group ',a16,' No.: ',i3,2x,a26) 
+!
+  END SUBROUTINE do_show_symmetry
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE do_show_symmetry_single(is, mode)
+!
+USE crystal_mod 
+USE wyckoff_mod 
+USE unitcell_mod 
+!                                                                       
+USE prompt_mod 
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: is
+INTEGER, INTENT(IN) :: mode 
+!
 !                                                                       
       INTEGER FULL, SYMBOL, XYZ, MATRIX 
       PARAMETER (FULL = 0) 
       PARAMETER (SYMBOL = 1) 
       PARAMETER (XYZ = 2) 
       PARAMETER (MATRIX = 3) 
-!                                                                       
-      CHARACTER(26) cr_system (1:9) 
-      INTEGER is, j 
-      INTEGER igroup 
-      INTEGER :: block = 1
-      INTEGER n_center 
-!                                                                       
-      DATA cr_system / 'triclinic', 'monoclinic b-unique', 'monoclinic c&
-     &-unique', 'orthorhombic', 'tetragonal', 'trigonal hexagonal axes',&
-     & 'trigonal rhombohedral axes', 'hexagonal', 'cubic' /             
-!                                                                       
+INTEGER :: j 
+INTEGER :: n_center 
+INTEGER :: igroup 
+INTEGER :: block = 1
+!
       n_center = 1 
       IF (cr_spcgr (1:1) .eq.'P') then 
          n_center = 1 
@@ -841,15 +869,12 @@ CONTAINS
       ELSEIF (gen_sta.eq.GEN_CENTER) then 
          block = n_center 
       ENDIF 
-!                                                                       
-      WRITE (output_io, 2100) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
-!                                                                       
-      DO is = 1, spc_n 
       IF (gen_sta.eq.GEN_SYMM) then 
          igroup = mod (is - 1, block) + 1 
       ELSEIF (gen_sta.eq.GEN_CENTER) then 
          igroup = (is - 1) / block + 1 
       ENDIF 
+!
       IF (mode.eq.FULL) then 
          WRITE (output_io, 2200) is, igroup 
          WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
@@ -868,9 +893,7 @@ CONTAINS
       n_center) + 1.eq.block) then                                      
          WRITE (output_io, * ) 
       ENDIF 
-      ENDDO 
 !                                                                       
- 2100 FORMAT    (/,' Space group ',a16,' No.: ',i3,2x,a26) 
  2200 FORMAT    ('Symmetry No.      [',i3,']  (',i3,')') 
  2300 FORMAT    (  ' ( ',3(f4.1,', '),f8.5,' )','  ',a65,/,             &
      &                    ' ( ',3(f4.1,', '),f8.5,' )',/,               &
@@ -883,5 +906,6 @@ CONTAINS
      &                32x,' ( ',3(f4.1,', '),f8.5,' )'   )              
 !                                                                       
 !                                                                       
-      END SUBROUTINE do_show_symmetry               
+END SUBROUTINE do_show_symmetry_single
+!
 END MODULE discus_show_menu

@@ -78,6 +78,7 @@
    Added an "export" command, currently just a "shelx" export format
 
    Added a choice to the ==> 'symmetry/mode' command
+   Added the possibility to use a space group symmetry matrix
 3  2017_Oct
 
    Space Groups
@@ -7422,6 +7423,7 @@
 !p trans   ! Sets the translational part of the symmetry operation
 !p type    ! Allows choice between proper and improper rotations
 !p uvw     ! Sets the symmetry axis in direct space coordinates
+!p use     ! Defines the space group symmetry matrix to be used
 !p wait    ! Waits for user input (see main help)
 3  angle
 !b angle <value>
@@ -7738,7 +7740,15 @@
    Alternatively you may specify the direction in reciprocal space by the
    ==> 'hkl" command.
 
-   Terminates the 'symmetry' menu and returns to the normal discus prompt.
+3  use
+!b use <number>
+
+   Define the space group symmetry matrix to be used. 
+   The symmetry matrix is used as is, therefore this command is 
+   incompatible with the commands:
+      uvw, hkl, origin, trans, angle, power, type
+   The use of any of these commands will automatically switch off the
+   space group symmetry matrix.
 2  transform
 !b tran
 

@@ -2,7 +2,8 @@ MODULE symm_sup_mod
 !
 CONTAINS
 !*****7*****************************************************************
-      SUBROUTINE symm_setup 
+!
+SUBROUTINE symm_setup 
 !-                                                                      
 !     Performs the generalized symmetry operation                       
 !     See Sands, D.E. Vectors and Tensors in Crystallography Chapt. 4.7 
@@ -13,6 +14,8 @@ CONTAINS
       USE symm_mod 
       USE tensors_mod
       USE trafo_mod
+      USE wyckoff_mod
+!
       USE errlist_mod 
       USE trig_degree_mod
       IMPLICIT none 
@@ -35,6 +38,8 @@ CONTAINS
 !                                                                       
 !                                                                       
       DATA kron / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
+!
+IF(sym_use == 0) THEN
 !                                                                       
 !     initialize matrix and angle                                       
 !                                                                       
@@ -170,6 +175,24 @@ CONTAINS
       DO j = 1, 3 
       sym_or_tr (j) = ures (j) + sym_orig (j) 
       ENDDO 
+ELSE
+   sym_mat (:, :) = 0.0 
+   sym_rmat(:, :) = 0.0 
+   sym_mat (4, 4) = 1.0 
+!
+   sym_mat (:, :) = spc_mat(:,:, sym_use)
+!                                                                       
+!     Transform symmetry operation into reciprocal space                
+!                                                                       
+   a(:,:) = sym_mat(1:3,1:3)
+!                                                                       
+!  do transformation q = gSg*                                        
+!                                                                       
+   CALL matmulx (b, a, cr_rten) 
+   CALL matmulx (a, cr_gten, b) 
+   sym_rmat(1:3, 1:3) = a (:, :) 
+!
+ENDIF
 !     write (output_io,2000) ((sym_rmat(i,j),j=1,3),i=1,3)              
 !2000      format(3(3(2x,f10.6)/))                                      
 !                                                                       
