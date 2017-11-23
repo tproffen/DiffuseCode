@@ -2426,30 +2426,30 @@ END SUBROUTINE import_test
 !                                                                       
       END SUBROUTINE do_import                      
 !*****7**************************************************************** 
-      SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW) 
+SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW) 
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
-      USE wink_mod
+USE wink_mod
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER                             , INTENT(IN)    :: ianz 
-      INTEGER                             , INTENT(IN)    :: MAXW 
-      CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
-      INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
+INTEGER                             , INTENT(IN)    :: ianz 
+INTEGER                             , INTENT(IN)    :: MAXW 
+CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
 !                                                                       
-      INTEGER NFV 
-      PARAMETER (NFV = 50) 
+INTEGER, PARAMETER :: NFV = 50 
 !                                                                       
       REAL werte (3) 
 !                                                                       
       INTEGER shelx_num 
-      PARAMETER (shelx_num = 62) 
+      PARAMETER (shelx_num = 61) 
       CHARACTER(4) shelx_ign (1:shelx_num) 
       CHARACTER(2) c_atom (20) 
       CHARACTER(4) command 
+CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE :: eadp_names
       CHARACTER(80) line1 
       CHARACTER(80) line2 
       CHARACTER(160) line 
@@ -2464,6 +2464,8 @@ END SUBROUTINE import_test
       INTEGER centering 
       INTEGER ityp 
       INTEGER ifv 
+INTEGER   :: MAX_EADP
+INTEGER   :: n_eadp
       LOGICAL lmole, lmole_wr 
       LOGICAL lcontinue 
       REAL z, latt (6) 
@@ -2471,6 +2473,7 @@ END SUBROUTINE import_test
       REAL uiso, uij (6) 
       REAL gen (3, 4) 
       REAL fv (NFV) 
+REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !
       INTEGER                               :: iianz      ! Dummy number of parameters
       INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
@@ -2482,13 +2485,13 @@ END SUBROUTINE import_test
 !                                                                       
       DATA shelx_ign / 'ACTA', 'AFIX', 'ANIS', 'BASF', 'BIND', 'BLOC',  &
       'BOND', 'BUMP', 'CGLS', 'CHIV', 'CONF', 'CONN', 'DAMP', 'DANG',   &
-      'DEFS', 'DELU', 'DFIX', 'DISP', 'EADP', 'EQIV', 'EXTI', 'EXYZ',   &
+      'DEFS', 'DELU', 'DFIX', 'DISP',         'EQIV', 'EXTI', 'EXYZ',   &
       'FEND', 'FLAT', 'FMAP', 'FRAG', 'FREE', 'GRID', 'HFIX', 'HOPE',   &
       'HTAB', 'ISOR', 'L.S.', 'LAUE', 'LIST', 'MERG', 'MORE', 'MOVE',   &
       'MPLA', 'NCSY', 'OMIT', 'PART', 'PLAN', 'REM ', 'RESI', 'RTAB',   &
       'SADI', 'SAME', 'SHEL', 'SIMU', 'SIZE', 'SPEC', 'SUMP', 'STIR',   &
       'SWAT', 'TEMP', 'TIME', 'TWIN', 'UNIT', 'WGHT', 'WPDB', 'ZERR' /  
-!                                                                       
+!
       DO i = 1, NFV 
          fv (i) = 0.0 
       ENDDO 
@@ -2521,6 +2524,16 @@ END SUBROUTINE import_test
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
+!
+!   Allocate and initialize the EADP array
+!
+MAX_EADP = 20
+ALLOCATE(eadp_names( 1:MAX_EADP))
+ALLOCATE(eadp_values(1:MAX_EADP))
+!
+n_eadp         = 0
+eadp_names(:)  = ' '
+eadp_values(:) = 0.0
 !                                                                       
       lcontinue = .false. 
       READ (ird, 1000, end = 900, err = 900) line1 
@@ -2541,10 +2554,10 @@ END SUBROUTINE import_test
       IF (length.gt.0) then 
          command = line (1:4) 
       ELSE 
-      command = '    ' 
+         command = '    ' 
       ENDIF 
       DO i = 1, shelx_num 
-      lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
+         lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
       ENDDO 
 !                                                                       
       DO while (command.ne.'FVAR'.and.command.ne.'MOLE') 
@@ -2624,39 +2637,45 @@ END SUBROUTINE import_test
             ix = index (cpara (i) , 'X') 
             IF (ix.gt.0) then 
                gen (i, 1) = 1.0 
-               IF (ix.gt.1.and.cpara (i) (ix - 1:ix - 1) .eq.'-') then 
+               IF (ix.gt.1) THEN
+                  IF(cpara (i) (ix - 1:ix - 1) .eq.'-') then 
                   gen (i, 1) = - 1.0 
                   cpara (i) (ix - 1:ix - 1) = ' ' 
-               ELSEIF (ix.gt.1.and.cpara (i) (ix - 1:ix - 1) .eq.'+')   &
+               ELSEIF (cpara (i) (ix - 1:ix - 1) .eq.'+')   &
                then                                                     
                   gen (i, 1) = 1.0 
                   cpara (i) (ix - 1:ix - 1) = ' ' 
+               ENDIF 
                ENDIF 
                cpara (i) (ix:ix) = ' ' 
             ENDIF 
             iy = index (cpara (i) , 'Y') 
             IF (iy.gt.0) then 
                gen (i, 2) = 1.0 
-               IF (iy.gt.1.and.cpara (i) (iy - 1:iy - 1) .eq.'-') then 
+               IF (iy.gt.1) THEN
+                  IF(cpara (i) (iy - 1:iy - 1) .eq.'-') then 
                   gen (i, 2) = - 1.0 
                   cpara (i) (iy - 1:iy - 1) = ' ' 
-               ELSEIF (iy.gt.1.and.cpara (i) (iy - 1:iy - 1) .eq.'+')   &
+               ELSEIF (cpara (i) (iy - 1:iy - 1) .eq.'+')   &
                then                                                     
                   gen (i, 2) = 1.0 
                   cpara (i) (iy - 1:iy - 1) = ' ' 
+               ENDIF 
                ENDIF 
                cpara (i) (iy:iy) = ' ' 
             ENDIF 
             iz = index (cpara (i) , 'Z') 
             IF (iz.gt.0) then 
                gen (i, 3) = 1.0 
-               IF (iz.gt.1.and.cpara (i) (iz - 1:iz - 1) .eq.'-') then 
+               IF (iz.gt.1) THEN
+                  IF(cpara (i) (iz - 1:iz - 1) .eq.'-') then 
                   gen (i, 3) = - 1.0 
                   cpara (i) (iz - 1:iz - 1) = ' ' 
-               ELSEIF (iz.gt.1.and.cpara (i) (iz - 1:iz - 1) .eq.'+')   &
+               ELSEIF (cpara (i) (iz - 1:iz - 1) .eq.'+')   &
                then                                                     
                   gen (i, 3) = 1.0 
                   cpara (i) (iz - 1:iz - 1) = ' ' 
+               ENDIF 
                ENDIF 
                cpara (i) (iz:iz) = ' ' 
             ENDIF 
@@ -2697,11 +2716,11 @@ END SUBROUTINE import_test
       IF (length.gt.0) then 
          command = line (1:4) 
       ELSE 
-      command = '    ' 
+         command = '    ' 
       ENDIF 
-      DO i = 1, shelx_num 
-      lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
-      ENDDO 
+         DO i = 1, shelx_num 
+            lcontinue = lcontinue.or.command.eq.shelx_ign (i) 
+         ENDDO 
       ENDDO 
 !                                                                       
       WRITE (iwr, 3000) 
@@ -2721,6 +2740,8 @@ END SUBROUTINE import_test
             lmole_wr = .true. 
          ENDIF 
          CONTINUE 
+      ELSEIF(command=='EADP') THEN
+         CONTINUE
       ELSEIF (command.eq.'    ') then 
          CONTINUE
       ELSE 
@@ -2756,13 +2777,13 @@ END SUBROUTINE import_test
          READ (ccpara(2)(1:llpara(2)),*) xyz(1)
          READ (ccpara(3)(1:llpara(3)),*) xyz(2)
          READ (ccpara(4)(1:llpara(4)),*) xyz(3)
+         uij(:) = 0
          DO i=1,iianz - 5
             READ (ccpara(5+i)(1:llpara(5+i)),*) uij(i)
          ENDDO
 !        READ (line (6:length), *, end = 850) ityp, xyz, sof, (uij (i), &
 !        i = 1, 6)                                                      
 ! 850    CONTINUE 
-         uij(:) = 0
          DO i=1,3
             ifv = nint (uij(i)/10.)
             IF(ifv.gt.1) then
@@ -2783,8 +2804,7 @@ END SUBROUTINE import_test
          ELSEIF (ifv.gt.1) then 
             xyz (i) = (xyz (i) - ifv * 10) * fv (ifv) 
          ELSEIF (ifv.lt. - 1) then 
-            xyz (i) = (abs (xyz (i) ) + ifv * 10) * (1. - fv (iabs (ifv)&
-            ) )                                                         
+            xyz(i) = (ABS(xyz(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
          ENDIF 
          ENDDO 
 !         write(iwr,3100) c_atom(ityp),xyz,float(ityp)                  
@@ -2820,12 +2840,14 @@ END SUBROUTINE import_test
 !                                                                       
   900 CONTINUE 
 !                                                                       
-      IF (lmole) then 
+      IF (lmole .AND. .NOT.lmole_wr) THEN   ! Write a final molecule end 
          WRITE (iwr, 4000) 'molecule end' 
       ENDIF 
 !                                                                       
       CLOSE (ird) 
       CLOSE (iwr) 
+DEALLOCATE(eadp_names)
+DEALLOCATE(eadp_values)
 !                                                                       
  1000 FORMAT    (a) 
  2000 FORMAT    ('title ',a) 
