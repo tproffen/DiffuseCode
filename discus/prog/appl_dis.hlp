@@ -60,6 +60,7 @@
 !p seed       ! Set seed for random number generator
 !p shear      ! Enter the SHEAR level
 !p show       ! Show various information
+!p spacegroup ! Sets the space group for the current structure
 !p stack      ! Enter STACKING FAULT level
 !p switch     ! Swap two atoms or molecules within crystal
 !p symm       ! Enter SYMMETRY transformation level
@@ -78,7 +79,16 @@
    Added an "export" command, currently just a "shelx" export format
 
    Added a choice to the ==> 'symmetry/mode' command
-   Added the possibility to use a space group symmetry matrix
+   Added the possibility to use a space group symmetry matrix.
+   Related is the new variable sym_n[1] that stands for the
+   number of symmetry operations in the present space group.
+
+   Added optional parameter 'identical:' to read /cell command
+
+   Added a command 'spacegroup' that sets the sace group.
+
+   The 'wyckoff' command returns the multiplicity of the site and 
+   the spacegroup symmetry matrices that copy the site onto itslef.
 3  2017_Oct
 
    Space Groups
@@ -520,7 +530,7 @@
    The space group symbol is checked for contradictions with the lattice
    constants. In case of error, the unit cell is not read.
 3  cell
-!p cell  <a>,  <b>,  <c>, <alpha>,  <beta>,  <gamma>
+!p cell  <a>,  <b>,  <c>, <alpha>,  <beta>,  <gamma> 
 !p cell  <a>   <b>   <c>  <alpha>   <beta>   <gamma>
 
    The first form with comma separating the lattice constants is 
@@ -5546,6 +5556,8 @@
 !p wait    ! waits for user input (see main help)
 3  cell
 !b cell <name> [,<nx> [,<ny> [,<nz>]]]
+!p       [,"identical:"{tolerate"|"none"]
+!p       [,"radius:<value>]
 
    Reads the contents of a single asymmetric unit from file <name> and
    then generates the unit cell.
@@ -5560,6 +5572,17 @@
    DISCUS file format is assumed.
    If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
+
+   The optional parameters define how discus will handel atoms that
+   are on identical positions. This might arise for example if you
+   try to describe a split position with the partially occupied
+   positions close to each other. 
+   If the optional parameter "identical" is set to "tolerate"
+   atoms will be tolerated that are no closer than the radius 
+   sepcified by the optional radius parameter. To tolerate
+   atoms on ientical positions you must set the radius to zero.
+   Defaults are "none" which means DISCUS tolerates atoms 
+   that are at least 1.0*10^-5Angstroem apart. 
 3  lcell
 !b lcell <name> [,<nx> [,<ny> [,<nz>]]]
 
@@ -6822,6 +6845,16 @@
 !p "matrix"
 
    This produces a list that consists of the (3x4) symmetry matrices.
+2  spacegroup
+!b spacegroup {<spacegroup_name>|<spacegroup_nummer>} [, <origin_choice>}
+
+   Sets the space group for the current structure.
+   Be carefull with this command, as DISCUS will blindly set the space group!
+   DISCUS does not check if the symmetry does match! 
+   A consistency check with the lattice parameter is the only check that
+   is performed. 
+   The command is mostly useful when you want to lower the symmetry to 
+   a subgroup.
 2  stack
 !b stack
 
@@ -8169,6 +8202,8 @@
 !p "vol[1]"    Unit cell volume in A**3
 !p "rvol[1]"   Reciprocal unit cell volume in A**(-3)
 
+!p "sym_n[1]"  Number of symmetry operations for the space group
+
 !p "env[<i>]"      Index of neighboring atoms as found by 
 !p                 ==> "find"
 !p                 "env[0]" is the number of neighbours.
@@ -8532,8 +8567,10 @@
    not the simple point group symmetry.
 
    The following results are written into res[*]:
-      res[1] Multiplicity of this site divided by highest multiplicity
-      res[2] Multiplicity of this site
+      res[1] Multiplicity of this site
+      res[2] Highest multiplicity divided by multiplicity of this site
+             i.e. number of symmetry operations that copy the site onto
+             itself.
       res[3] Multiplicity of a general position xyz in this space group
              == highest multiplicity
       res[4...] Number of the space group symmetry elements that copy
