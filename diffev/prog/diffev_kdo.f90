@@ -528,6 +528,11 @@ ELSE
       ENDIF 
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
       CALL do_read_values         ! We need to read values as this can be the first command after a continue
+      IF(ier_num/=0) THEN
+         ier_msg(1) = 'Check the GENERATION, the parameter and'
+         ier_msg(2) = 'the lastfile for conflicting generation values'
+         RETURN
+      ENDIF
 !     IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
       IF (       run_mpi_active .and. run_mpi_numprocs < 2 ) THEN
          ier_num =  -24
