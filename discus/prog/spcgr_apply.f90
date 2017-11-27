@@ -1219,7 +1219,7 @@ CONTAINS
 !                                                                       
 !     apply all symmetry operations to original position                
 !                                                                       
-      res_para(0) = 0
+      res_para(0) = 3    ! 3 fixed output data, symm matrix no's in 4, ...
       DO is = 1, spc_n 
       IF (gen_sta.eq.GEN_SYMM) then 
          igroup = mod (is - 1, block) + 1 

@@ -352,6 +352,11 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
          ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
             CALL discus_do_show (zeile, lcomm) 
 !                                                                       
+!     set or show space group                                           
+!                                                                       
+         ELSEIF (str_comp (befehl, 'spacegroup', 2, lbef, 10) ) then 
+            CALL set_spcgr(zeile, lcomm) 
+!                                                                       
 !     Go to stacking fault menu 'stack'                                 
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'stac', 2, lbef, 4) ) then 

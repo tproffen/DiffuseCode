@@ -11,6 +11,7 @@
       USE molecule_mod 
       USE mole_env_mod 
       USE pdf_mod
+      USE wyckoff_mod
       USE errlist_mod 
       USE param_mod 
       USE random_mod 
@@ -391,6 +392,21 @@
             ier_num = - 2 
             ier_typ = ER_FORT 
          ENDIF 
+      ELSEIF(lcomm.eq.5) then 
+         IF(string(ikl - 5:ikl - 1) .eq.'sym_n') then 
+            IF(ianz.eq.1) then 
+               WRITE(zeile(ikl-5:ikl+13),'(i15)') spc_n
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
+         ELSE 
+            ier_num = - 2 
+            ier_typ = ER_FORT 
+         ENDIF 
+!                                                                       
       ELSEIF (lcomm.eq.4) then 
 !                                                                       
          IF (string (ikl - 4:ikl - 1) .eq.'cdim') then 

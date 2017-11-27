@@ -162,7 +162,7 @@ befehl = 'lcell'
 lbef   = 5
 cpara(1) = origfile
 lpara(1) = 19
-CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara)
+CALL do_readcell(befehl, lbef, ianz, MAXW, cpara, lpara, .TRUE., 1.0E-5)
 CALL chem_elem(.FALSE.)
 z_unit = 192.0
 DO i=1, cr_nscat

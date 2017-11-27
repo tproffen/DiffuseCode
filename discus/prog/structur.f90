@@ -41,18 +41,19 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
+      USE take_param_mod
+!
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 11) 
+      INTEGER , PARAMETER :: maxw = 11
 !                                                                       
       CHARACTER(LEN=1024) :: line, zeile, cpara (maxw) 
       CHARACTER(LEN=1024) :: strucfile 
       CHARACTER(LEN=1024) :: outfile 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(5) befehl 
+      CHARACTER(LEN=5)    ::  befehl 
       INTEGER lpara (maxw), lp, length 
       INTEGER ce_natoms, lstr, i, j, k, iatom 
       INTEGER ianz, l, n, lbef , iianz
@@ -64,10 +65,28 @@ CONTAINS
       INTEGER          :: n_mole
       INTEGER          :: n_type
       INTEGER          :: n_atom
-      LOGICAL          :: need_alloc = .false.
+      LOGICAL          :: need_alloc = .FALSE.
+      LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
+      REAL             :: r_identical = 1.0E-5
+      INTEGER, PARAMETER :: NOPTIONAL = 2
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
+!
+      DATA oname  / 'radius' , 'identical' /
+      DATA loname /  9       ,  6       /
+      opara  =  (/ '1.0E-5'  , 'none  ' /)   ! Always provide fresh default values
+      lopara =  (/  6        ,  6       /)
+      owerte =  (/  1.0E-5   ,  0.0     /)
+!
+!
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -143,6 +162,11 @@ CONTAINS
                GOTO 8888              ! Jump to handle error messages, amd macro conditions
             ENDIF 
          ENDIF 
+!
+!      --Get optional parameters
+!
+         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, owerte)
 !                                                                       
 !     --reset epsilon tensors                                           
 !                                                                       
@@ -158,13 +182,16 @@ CONTAINS
 !     read in old cell, use space group symbol to generate cell         
 !     content 'cell'                                                    
 !                                                                       
-         IF (str_comp (befehl, 'cell', 1, lbef, 4) .or.str_comp (befehl,&
-         'lcell', 1, lbef, 5) ) then                                    
-            CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara)
+         IF (str_comp (befehl, 'cell',  1, lbef, 4) .or. &
+             str_comp (befehl, 'lcell', 1, lbef, 5)      ) THEN                                    
+            l_identical = str_comp (opara(2), 'tolerate', 5, lopara(2), 8)
+            r_identical = owerte(1)
+            CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
+                             l_identical, r_identical)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) THEN 
             CALL rese_cr 
             cr_name = 'freely created structure' 
             cr_spcgr (1:1)  = 'P' 
@@ -320,7 +347,8 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara)
+SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
+                       r_identical)
 !
 USE discus_allocate_appl_mod
 USE crystal_mod
@@ -341,6 +369,8 @@ INTEGER         ,                  INTENT(IN) :: ianz
 INTEGER         ,                  INTENT(IN) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+LOGICAL         ,                  INTENT(IN) :: l_identical
+REAL            ,                  INTENT(IN) :: r_identical
 !
 CHARACTER(LEN=1024) :: strucfile
 CHARACTER(LEN=1024) :: outfile
@@ -388,7 +418,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         CALL import_test(0, strucfile, outfile)
                         IF(ier_num == 0) THEN
                            strucfile = outfile
-                           CALL readcell (strucfile) 
+                           CALL readcell (strucfile, l_identical, r_identical) 
                         ENDIF
                      ENDIF internalcell
 !
@@ -659,7 +689,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !
 END SUBROUTINE do_readstru
 !********************************************************************** 
-      SUBROUTINE readcell (strucfile) 
+      SUBROUTINE readcell (strucfile, l_identical, r_identical) 
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
@@ -679,6 +709,8 @@ END SUBROUTINE do_readstru
       PARAMETER (ist = 7, maxw = 5) 
 !                                                                       
       CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
+LOGICAL         ,                  INTENT(IN) :: l_identical
+REAL            ,                  INTENT(IN) :: r_identical
 !
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
@@ -956,7 +988,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             ENDIF empty
       ENDDO main 
 !
-      CALL test_identical    ! Test if atoms are too close
+      CALL test_identical (l_identical, r_identical) ! Test if atoms are too close
 !                                                                       
     2    CONTINUE 
          IF (ier_num.eq. -49) then 
@@ -4412,31 +4444,88 @@ types:        DO i=1,ntypes
 !
 !*******************************************************************************
 !
-SUBROUTINE test_identical
+SUBROUTINE test_identical(l_identical, r_identical)
 !
 USE crystal_mod
+USE metric_mod
 USE errlist_mod
 IMPLICIT NONE
 !
-REAL, PARAMETER :: eps = 1.0E-5
+LOGICAL         ,                  INTENT(IN) :: l_identical
+REAL            ,                  INTENT(IN) :: r_identical
+!
+LOGICAL, PARAMETER :: LSPACE = .TRUE.
+REAL    :: eps
+REAL, DIMENSION(3) :: u,v
 INTEGER :: i, j
 !
+eps = 1.0E-5
+IF(l_identical) eps = r_identical
+!
 main: DO i=1, cr_natoms-1
+   u= cr_pos(:,i)
    DO j=i+1,cr_natoms
-      IF(ABS(cr_pos(1,i)-cr_pos(1,j)) < eps .AND.  &
-         ABS(cr_pos(2,i)-cr_pos(2,j)) < eps .AND.  &
-         ABS(cr_pos(3,i)-cr_pos(3,j)) < eps ) THEN
+      v= cr_pos(:,j)
+      IF(do_blen(lspace, u,v)< EPS) THEN
+!     IF(ABS(cr_pos(1,i)-cr_pos(1,j)) < eps .AND.  &
+!        ABS(cr_pos(2,i)-cr_pos(2,j)) < eps .AND.  &
+!        ABS(cr_pos(3,i)-cr_pos(3,j)) < eps ) THEN
          ier_num = -141
          ier_typ = ER_APPL
          WRITE(ier_msg(1),'(a,i6, a, i6,a)') 'Atoms ',i,',',j, &
                           ' are at identical positions' 
          ier_msg(2) = 'Atoms might be separated by integer unit cells'
-         ier_msg(3) = 'If intended, use: set error,live'
+         IF(l_identical) THEN
+            ier_msg(3) = 'If intended, decrease: radius:value '
+         ELSE
+            ier_msg(3) = 'If intended, use: identical:tolerate'
          EXIT main
+         ENDIF
       ENDIF
    ENDDO
 ENDDO main
 END SUBROUTINE test_identical
+!
+!*******************************************************************************
+!
+SUBROUTINE set_spcgr(line,length)
+!
+USE crystal_mod
+USE spcgr_apply
+USE wyckoff_mod
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER                   ::MAXW = 2
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL               , DIMENSION(MAXW) :: werte
+INTEGER :: ianz
+!
+CALL get_params (line, ianz, cpara, lpara, maxw, length)
+IF(ianz>=1) THEN                   ! At least one parameter
+   cr_spcgr= cpara(1)(1:lpara(1))  ! Set space group name
+   IF(ianz==2) THEN
+      spcgr_para = NINT(werte(2))  ! Set origin choice parameter
+      spcgr_ianz = 2
+   ELSE
+      spcgr_ianz = 1
+   ENDIF
+   werte (1) = spcgr_para 
+   CALL spcgr_no (spcgr_ianz, MAXW, werte) 
+   CALL get_symmetry_matrices
+ELSE
+   ier_num = -6
+   ier_typ = ER_COMM
+ENDIF
+!
+END SUBROUTINE set_spcgr
+!
 !*******************************************************************************
 !
 END MODULE structur
