@@ -24,6 +24,9 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2017_November
+
+   A 'manual' command has been added that reads the manual files
 3  2017_Sep
 
    Throughout the program the internal calculation of random numbers 
@@ -716,6 +719,10 @@
 !b lend
 
    Finishes the learn sequence started by ==> learn.
+3  manual
+!b manual {"suite" | "discus" | "diffev" | "kuplot" | "package" | "mixscat"}
+
+   Opens a PDF viewer for one of the Manuals
 3  seed
 !b seed [ <value> ]
 

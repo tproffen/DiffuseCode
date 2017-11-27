@@ -510,6 +510,17 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          ENDIF 
          CALL do_hel (command, lc) 
 !                                                                       
+!------ Online manual                                                     
+!
+      ELSEIF (linteractive .AND. str_comp (bef, 'manual', 2, lbef, 6) ) THEN
+        IF (lc.gt.0) THEN
+           WRITE (command, '(a)') zei (1:lc)
+        ELSE
+           WRITE (command, '(a)') pname
+           lc = LEN_TRIM(pname)
+        ENDIF
+        CALL do_manual(command, lc)
+!                                                                       
 !------ start learning a macro 'learn'                                  
 !                                                                       
       ELSEIF (str_comp (bef, 'lear', 3, lbef, 4) ) THEN 

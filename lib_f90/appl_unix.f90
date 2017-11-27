@@ -227,19 +227,23 @@ INTEGER, INTENT(IN) :: local_mpi_myid
 !
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
+      WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)),TRIM(color_fg)
       WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:umac_dir_l),   TRIM(color_fg)
       WRITE ( *, 2100)                TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
       WRITE ( *, 2200)                TRIM(color_info),start_dir (1:start_dir_l) ,TRIM(color_fg)
    ELSE
-      WRITE ( *, 1000) umac_dir (1:umac_dir_l) 
+      WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
+      WRITE ( *, 1000) umac_dir (1:LEN_TRIM(man_dir)) 
       WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
       WRITE ( *, 1200) start_dir (1:start_dir_l) 
    ENDIF
 ENDIF
 !                                                                       
+  900 FORMAT     (1x,'Manual files in  : ',a) 
  1000 FORMAT     (1x,'User macros in   : ',a) 
  1100 FORMAT     (1x,'System macros in : ',a) 
  1200 FORMAT     (1x,'Start directory  : ',a) 
+ 1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,  'System macros in : ',a,a,a) 
  2200 FORMAT     (1x,  'Start directory  : ',a,a,a) 
@@ -429,10 +433,16 @@ END SUBROUTINE color_set_bg
 !     UNIX version ..                                                   
 !+                                                                      
       USE envir_mod 
+      USE errlist_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
+      INTEGER, PARAMETER :: ird = 34
+!
+      CHARACTER(LEN=1024) :: line
       INTEGER :: pname_l
+      INTEGER :: i
+      LOGICAL :: l_exist
 !
       pname_l = LEN(TRIM(pname))
 !
@@ -456,5 +466,39 @@ END SUBROUTINE color_set_bg
       colorfile (1:appl_dir_l) = appl_dir 
       colorfile (appl_dir_l + 1:appl_dir_l + 19) = '../share/color.map' 
       colorfile_l = LEN(TRIM (colorfile) )
+!
+!   Search for the Installation file "DiscusSuite.txt" to obtain paths
+!
+      man_dir = ' '
+      inst_file = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/DiscusSuite.txt'
+      INQUIRE(FILE=inst_file,EXIST=l_exist)
+      IF(.NOT.l_exist) THEN
+         inst_file = '/usr/local/share/DiscusSuite.txt'
+         INQUIRE(FILE=inst_file,EXIST=l_exist)
+         IF(.NOT.l_exist) THEN
+            inst_file = '/usr/share/DiscusSuite.txt'
+            INQUIRE(FILE=inst_file,EXIST=l_exist)
+            IF(.NOT.l_exist) THEN
+               inst_file = '/share/DiscusSuite.txt'
+            ENDIF
+         ENDIF
+      ENDIF
+      IF(l_exist) THEN
+         CALL oeffne(IRD, inst_file,'old')
+         IF(ier_num==0) THEN
+            READ(IRD,'(a)') line
+            READ(IRD,'(a)') line
+            IF(line(1:13)=='Manual      :') THEN
+               READ(line(15:LEN_TRIM(line)),'(a)') man_dir
+            ENDIF
+         ENDIF
+         CLOSE(IRD)
+      ELSE
+         man_dir = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/'
+      ENDIF
+      i=LEN_TRIM(man_dir)
+      IF(man_dir(i:i) /='/') THEN
+         man_dir(i+1:i+1) = '/'
+      ENDIF
 !
       END SUBROUTINE  program_files

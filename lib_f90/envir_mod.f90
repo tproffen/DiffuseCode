@@ -9,14 +9,17 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: home_dir
    CHARACTER(LEN= 256) :: appl_dir
    CHARACTER(LEN= 256) :: mac_dir
+   CHARACTER(LEN= 256) :: man_dir
    CHARACTER(LEN= 256) :: umac_dir
    CHARACTER(LEN= 256) :: start_dir
    CHARACTER(LEN= 256) :: current_dir
    CHARACTER(LEN= 256) :: operating
    CHARACTER(LEN= 256) :: user_profile
    CHARACTER(LEN= 256) :: term_scheme_file
+   CHARACTER(LEN= 256) :: inst_file
    CHARACTER(LEN= 80 ) :: deffile
    CHARACTER(LEN= 80 ) :: hlpfile
+   CHARACTER(LEN= 80 ) :: manfile
    CHARACTER(LEN= 80 ) :: hlpdir
    CHARACTER(LEN= 80 ) :: colorfile
    CHARACTER(LEN= 80 ) :: nullfile

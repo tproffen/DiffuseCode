@@ -1,6 +1,6 @@
 !****7******************************************************************
 !                                                                       
-      SUBROUTINE do_hel (ein, length) 
+SUBROUTINE do_hel (ein, length) 
 !-                                                                      
 !     This sublevel emulates the HELP function under VMS and            
 !     controls the online help of DISCUS.                               
@@ -428,3 +428,42 @@
 !                                                                       
  1000 FORMAT  (5(3x,a12)) 
       END SUBROUTINE schreib_viele                  
+!*****7*****************************************************************
+SUBROUTINE do_manual(line, length)
+!
+USE envir_mod 
+USE errlist_mod 
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER  :: N_VIEWER = 3
+CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=1024) :: command
+CHARACTER(LEN=10  ), DIMENSION(N_VIEWER) :: pdf_viewer
+INTEGER             :: laenge, i
+INTEGER             :: ierror
+DATA pdf_viewer / 'evince    ', 'acroread  ', 'xpdf      '/
+!
+IF(.NOT. ( line(1:length)=='suite'   .OR. line(1:length)=='discus' .OR. &
+           line(1:length)=='diffev'  .OR. line(1:length)=='kuplot' .OR. &
+           line(1:length)=='package' .OR. line(1:length)=='mixscat')) THEN
+   ier_num = -6
+   ier_typ = ER_COMM
+   RETURN
+ENDIF
+search: DO i=1, N_VIEWER
+   command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
+   CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+   IF(ierror ==0) EXIT search
+ENDDO search
+IF(ierror==0) THEN
+   command = pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))//' '// &
+             man_dir(1:LEN_TRIM(man_dir))//line(1:length)//'_man.pdf &'
+   laenge=LEN_TRIM(command)
+   CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+ENDIF
+!
+END SUBROUTINE do_manual
