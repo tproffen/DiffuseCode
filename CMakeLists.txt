@@ -23,7 +23,7 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
-set (DIFFUSE_VERSION_MINOR 15)
+set (DIFFUSE_VERSION_MINOR 16)
 set (DIFFUSE_VERSION_PATCH 0)
 
 # Readline required for all programs
@@ -74,3 +74,10 @@ add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
 add_subdirectory(suite/prog)
 #add_subdirectory(python)
+
+FILE (GLOB manfiles "${DIFFUSE_SOURCE_DIR}/Manual/*_man.pdf")
+install (FILES ${manfiles} DESTINATION share)
+FILE (WRITE ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt    "Installation: ${CMAKE_INSTALL_PREFIX}")
+FILE (APPEND ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt "\nManual      : ${CMAKE_INSTALL_PREFIX}/share")
+FILE (APPEND ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt "\nHelpdir     : ${CMAKE_INSTALL_PREFIX}/share")
+install (FILES ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt DESTINATION share)
