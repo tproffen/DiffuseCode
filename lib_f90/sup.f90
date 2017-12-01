@@ -519,7 +519,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
            WRITE (command, '(a)') pname
            lc = LEN_TRIM(pname)
         ENDIF
-        CALL do_manual(command, lc)
+        CALL do_manual(zei, lc)
 !                                                                       
 !------ start learning a macro 'learn'                                  
 !                                                                       

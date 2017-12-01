@@ -433,37 +433,175 @@ SUBROUTINE do_manual(line, length)
 !
 USE envir_mod 
 USE errlist_mod 
+USE prompt_mod 
+USE take_param_mod
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
-INTEGER, PARAMETER  :: N_VIEWER = 3
+INTEGER, PARAMETER  :: N_VIEWER = 5
+INTEGER, PARAMETER  :: W_VIEWER = 3
+INTEGER, PARAMETER  :: MAXW     = 2
+INTEGER, PARAMETER  :: MAX_MAN  = 6
 CHARACTER(LEN=1024) :: string
 CHARACTER(LEN=1024) :: command
-CHARACTER(LEN=10  ), DIMENSION(N_VIEWER) :: pdf_viewer
+CHARACTER(LEN=128 ), DIMENSION(N_VIEWER) :: pdf_viewer  ! List of possible viewers
+CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_short   ! List of possible viewers
+CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_test_v  ! List of possible viewers
+CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_viewer  ! List of possible viewers
+CHARACTER(LEN= 7  ), DIMENSION(MAX_MAN ) :: c_manual    ! list of possibel sections
+CHARACTER(LEN= 7  )                      :: manual      ! actual section
+CHARACTER(LEN=1024)                      :: viewer      ! actual viewer
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   !parameters
+INTEGER            , DIMENSION(MAXW) :: lpara   !parameters
+!
+INTEGER, PARAMETER :: NOPTIONAL = 2
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+INTEGER             :: ianz
 INTEGER             :: laenge, i
 INTEGER             :: ierror
-DATA pdf_viewer / 'evince    ', 'acroread  ', 'xpdf      '/
+LOGICAL             :: lexist
 !
-IF(.NOT. ( line(1:length)=='suite'   .OR. line(1:length)=='discus' .OR. &
-           line(1:length)=='diffev'  .OR. line(1:length)=='kuplot' .OR. &
-           line(1:length)=='package' .OR. line(1:length)=='mixscat')) THEN
-   ier_num = -6
-   ier_typ = ER_COMM
+LOGICAL :: str_comp
+!
+DATA oname  / 'section','viewer' /
+DATA loname /  7       , 6 /
+!
+DATA pdf_viewer / 'qpdfview  ', 'evince    ', 'xpdf      ',   &
+                  'okular    ', 'acroread  '/ 
+DATA win_test_v /                                             &
+'/cygdrive/c/Program Files/SumatraPDF/SumatraPDF.exe      ', &
+'/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe   ', &
+'/cygdrive/c/Program Files/Internet Explorer/iexplore.exe'  &
+/
+DATA win_viewer /                                             &
+'/cygdrive/c/Program\ Files/SumatraPDF/SumatraPDF.exe      ', &
+'/cygdrive/c/Program\ Files/Mozilla\ Firefox/firefox.exe   ', &
+'/cygdrive/c/Program\ Files/Internet\ Explorer/iexplore.exe'  &
+/
+DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
+                'package','mixscat' /
+!
+opara (1) = pname         ! Default to section name
+lopara(1) = LEN_TRIM(pname)
+IF(operating(1:7)=='Windows') THEN 
+   opara (2) = 'sumatra'
+   lopara(2) =   7
+ELSE
+   opara (2) = pdf_viewer(1) ! Always provide fresh default values
+   lopara(2) =   8
+ENDIF
+owerte    =  (/  0.0    , 0.0 /)
+!
+CALL get_params (line, ianz, cpara, lpara, maxw, length)
+IF (ier_num.ne.0) THEN
    RETURN
 ENDIF
-search: DO i=1, N_VIEWER
-   command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
-   CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
-   IF(ierror ==0) EXIT search
-ENDDO search
-IF(ierror==0) THEN
-   command = pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))//' '// &
-             man_dir(1:LEN_TRIM(man_dir))//line(1:length)//'_man.pdf &'
-   laenge=LEN_TRIM(command)
-   CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+!
+!  Did user provide a section / viewer ?
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, owerte)
+!
+manual = opara(1)     ! defaults to section name
+ier_num = -6
+ier_typ = ER_COMM
+man: DO i=1,MAX_MAN
+   IF(str_comp (opara(1), c_manual(i), 3, lopara(1), LEN_TRIM(c_manual(i)))) THEN
+      manual  = opara(1)
+      ier_num = 0
+      ier_typ = ER_NONE
+      EXIT man
+   ENDIF
+ENDDO man
+IF(ier_num /=0) THEN
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Selected package is not present, choose:'
+   ier_msg(2) = 'suite, discus, diffev, kuplot, package,'
+   ier_msg(3) = 'mixscat'
+   RETURN
 ENDIF
+!
+IF(operating(1:7)=='Windows') THEN 
+   ierror = -6
+   win_opt: DO i=1,3
+      IF(INDEX(win_viewer(i),opara(2)(2:4))>0) THEN
+         string = win_test_v(i)
+         INQUIRE(FILE=string,EXIST=lexist)
+         IF(lexist) THEN
+            viewer = win_viewer(i)
+            ierror = 0
+            EXIT win_opt
+         ENDIF
+      ENDIF
+   ENDDO win_opt
+!
+   IF(ierror == -6) THEN
+      win_search: DO i=1,3
+         string = win_test_v(i)
+         INQUIRE(FILE=string,EXIST=lexist)
+         IF(lexist) THEN
+            viewer = win_viewer(i)
+            ierror = 0
+            EXIT win_search
+         ENDIF
+      ENDDO win_search
+   ENDIF
+!
+   i=LEN_TRIM(man_dir)
+   IF(man_dir(i:i) /='\') THEN
+      man_dir(i+1:i+1) = '\'
+   ENDIF
+!
+   IF(ierror==0) THEN     ! Finally, everything is fine let's do it
+      command = viewer(1:LEN_TRIM(viewer))//' '// &
+                '"'// &
+                man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf"  &'
+      laenge=LEN_TRIM(command)
+      CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+   ENDIF
+ELSE
+!
+! LINUX Choose viewer
+!
+   command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
+   CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)), EXITSTAT=ierror)
+!
+   IF(ierror == 0 ) THEN  ! Default / User option did not work try list
+      viewer = opara(2)(1:lopara(2))
+   ELSE
+      search: DO i=1, N_VIEWER
+         command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
+         CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+         IF(ierror ==0)  THEN
+            viewer = pdf_viewer(i)
+            EXIT search
+         ENDIF
+      ENDDO search
+   ENDIF
+!
+   IF(ierror==0) THEN     ! Finally, everything is fine let's do it
+      command = viewer(1:LEN_TRIM(viewer))//' '// &
+                man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
+      laenge=LEN_TRIM(command)
+      CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+   ENDIF
+ENDIF
+IF(ierror/=0) THEN     ! Error ??
+   WRITE(output_io,1000) man_dir
+ENDIF
+!
+1000 FORMAT(' Did not find a PDF viewer. '/ &
+' You will find the Manual in the folder:'/' ',a)
 !
 END SUBROUTINE do_manual

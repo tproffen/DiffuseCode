@@ -228,12 +228,12 @@ INTEGER, INTENT(IN) :: local_mpi_myid
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
       WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)),TRIM(color_fg)
-      WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:umac_dir_l),   TRIM(color_fg)
+      WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:LEN_TRIM(umac_dir)),TRIM(color_fg)
       WRITE ( *, 2100)                TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
       WRITE ( *, 2200)                TRIM(color_info),start_dir (1:start_dir_l) ,TRIM(color_fg)
    ELSE
       WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
-      WRITE ( *, 1000) umac_dir (1:LEN_TRIM(man_dir)) 
+      WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
       WRITE ( *, 1100) mac_dir (1:mac_dir_l) 
       WRITE ( *, 1200) start_dir (1:start_dir_l) 
    ENDIF
@@ -486,6 +486,7 @@ END SUBROUTINE color_set_bg
       IF(l_exist) THEN
          CALL oeffne(IRD, inst_file,'old')
          IF(ier_num==0) THEN
+            READ(IRD,'(a)') line
             READ(IRD,'(a)') line
             READ(IRD,'(a)') line
             IF(line(1:13)=='Manual      :') THEN
