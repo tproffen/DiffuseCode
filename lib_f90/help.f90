@@ -442,10 +442,10 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER  :: N_VIEWER = 5
-INTEGER, PARAMETER  :: W_VIEWER = 3
+INTEGER, PARAMETER  :: W_VIEWER = 5
 INTEGER, PARAMETER  :: MAXW     = 2
 INTEGER, PARAMETER  :: MAX_MAN  = 6
-CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=1024) :: string, zeile
 CHARACTER(LEN=1024) :: command
 CHARACTER(LEN=128 ), DIMENSION(N_VIEWER) :: pdf_viewer  ! List of possible viewers
 CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_short   ! List of possible viewers
@@ -479,14 +479,18 @@ DATA loname /  7       , 6 /
 DATA pdf_viewer / 'qpdfview  ', 'evince    ', 'xpdf      ',   &
                   'okular    ', 'acroread  '/ 
 DATA win_test_v /                                             &
+'/cygdrive/c/Program Files (x86)/Foxit Software/Foxit Reader/FoxitReader.exe   ', &
+'/cygdrive/c/Program Files (x86)/STDU Viewer/STDUViewerApp.exe   ', &
 '/cygdrive/c/Program Files/SumatraPDF/SumatraPDF.exe      ', &
-'/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe   ', &
-'/cygdrive/c/Program Files/Internet Explorer/iexplore.exe'  &
+'/cygdrive/c/Program Files/Internet Explorer/iexplore.exe',  &
+'/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe   '   &
 /
 DATA win_viewer /                                             &
+'/cygdrive/c/Program\ Files\ \(x86\)/Foxit\ Software/Foxit\ Reader/FoxitReader.exe', &
+'/cygdrive/c/Program\ Files\ \(x86\)/STDU\ Viewer/STDUViewerApp.exe', &
 '/cygdrive/c/Program\ Files/SumatraPDF/SumatraPDF.exe      ', &
-'/cygdrive/c/Program\ Files/Mozilla\ Firefox/firefox.exe   ', &
-'/cygdrive/c/Program\ Files/Internet\ Explorer/iexplore.exe'  &
+'/cygdrive/c/Program\ Files/Internet\ Explorer/iexplore.exe', &
+'/cygdrive/c/Program\ Files/Mozilla\ Firefox/firefox.exe   '  &
 /
 DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
                 'package','mixscat' /
@@ -494,8 +498,8 @@ DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
 opara (1) = pname         ! Default to section name
 lopara(1) = LEN_TRIM(pname)
 IF(operating(1:7)=='Windows') THEN 
-   opara (2) = 'sumatra'
-   lopara(2) =   7
+   opara (2) = 'foxit'
+   lopara(2) =   5
 ELSE
    opara (2) = pdf_viewer(1) ! Always provide fresh default values
    lopara(2) =   8
@@ -534,8 +538,13 @@ ENDIF
 !
 IF(operating(1:7)=='Windows') THEN 
    ierror = -6
-   win_opt: DO i=1,3
-      IF(INDEX(win_viewer(i),opara(2)(2:4))>0) THEN
+   win_opt: DO i=1,W_VIEWER
+      string = (win_viewer(i))
+      zeile  = (opara(2))
+      CALL do_cap(string)
+      CALL do_cap(zeile)
+      IF(INDEX(string,zeile(2:4))>0) THEN
+!     IF(INDEX(win_viewer(i),opara(2)(2:4))>0) THEN
          string = win_test_v(i)
          INQUIRE(FILE=string,EXIST=lexist)
          IF(lexist) THEN
@@ -547,7 +556,7 @@ IF(operating(1:7)=='Windows') THEN
    ENDDO win_opt
 !
    IF(ierror == -6) THEN
-      win_search: DO i=1,3
+      win_search: DO i=1,W_VIEWER
          string = win_test_v(i)
          INQUIRE(FILE=string,EXIST=lexist)
          IF(lexist) THEN
