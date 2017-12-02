@@ -227,7 +227,7 @@ INTEGER, INTENT(IN) :: local_mpi_myid
 !
 IF(standalone .AND. local_mpi_myid==0) THEN
    IF(term_scheme_exists) THEN
-      WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)),TRIM(color_fg)
+      WRITE ( *, 1900) TRIM(color_bg),TRIM(color_info), man_dir (1:LEN_TRIM(man_dir)) ,TRIM(color_fg)
       WRITE ( *, 2000) TRIM(color_bg),TRIM(color_info),umac_dir (1:LEN_TRIM(umac_dir)),TRIM(color_fg)
       WRITE ( *, 2100)                TRIM(color_info),mac_dir (1:mac_dir_l),     TRIM(color_fg)
       WRITE ( *, 2200)                TRIM(color_info),start_dir (1:start_dir_l) ,TRIM(color_fg)
@@ -498,8 +498,14 @@ END SUBROUTINE color_set_bg
          man_dir = appl_dir(1:LEN_TRIM(appl_dir)) // '../share/'
       ENDIF
       i=LEN_TRIM(man_dir)
-      IF(man_dir(i:i) /='/') THEN
-         man_dir(i+1:i+1) = '/'
+      IF(operating(1:7)=='Windows') THEN
+         IF(man_dir(i:i) /='\') THEN
+            man_dir(i+1:i+1) = '\'
+         ENDIF
+      ELSE
+         IF(man_dir(i:i) /='/') THEN
+            man_dir(i+1:i+1) = '/'
+         ENDIF
       ENDIF
 !
       END SUBROUTINE  program_files
