@@ -64,7 +64,6 @@ CONTAINS
          ii = 0 
 !                                                                       
           DO j = 0, num (1) - 1
-             l = iincu*j
              DO i = 0, num (2) - 1
                 iarg = iarg0 + iincu*j + iincv*i 
                 DO h = 1, num (3) 
