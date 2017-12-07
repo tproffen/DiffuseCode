@@ -11,6 +11,7 @@ CONTAINS
       USE discus_config_mod 
       USE diffuse_mod 
       USE precision_mod
+
       IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(IN) :: iscat 
@@ -44,11 +45,11 @@ CONTAINS
 !$OMP END PARALLEL
 
 !     Allocate, initialize tcsfp
-  PRINT *, 'nthreads=',nthreads,'MAXQXY: ', MAXQXY
+!  PRINT *, 'nthreads=',nthreads,'MAXQXY: ', MAXQXY,'NAT ',nxat
       ALLOCATE (tcsfp (1:MAXQXY,0:nthreads-1))
       tcsfp = cmplx(0.0d0, 0.0d0)
 
-!$OMP PARALLEL PRIVATE(tid,k,xarg0,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
+!$OMP PARALLEL PRIVATE(tid,k,xincu,xincv,xincw,iincu,iincv,iincw,iarg,iarg0,ii,j,i,h)
 !$OMP DO
 
       DO k = 1, nxat 

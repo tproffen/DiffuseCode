@@ -18,10 +18,11 @@ CONTAINS
 !                                                                       
       USE prompt_mod 
       USE precision_mod 
+      USE times_mod
       IMPLICIT none 
        
 !                                                                       
-      REAL ss, seknds 
+      REAL ss, seknds , uhr, uhr_av, uhr_lots
       REAL (KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
@@ -90,6 +91,9 @@ CONTAINS
             dsi (i) = dsi (i) + DBLE (csf (i) * conjg (csf (i) ) ) 
          ENDDO 
       ENDDO loop_lots
+!DO i = 1, num (1) * num (2) *num (3)
+!dsi (i) = DBLE (acsf (i) * conjg (acsf (i) ) ) 
+!ENDDO 
 !                                                                       
 !------ if we had lots, normalise the intensities                       
 !                                                                       
@@ -140,6 +144,7 @@ CONTAINS
       INTEGER isite, iatom, iscat, icell (3) 
       INTEGER scell, ncell, j, ii, jj, kk 
       LOGICAL sel 
+      LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
 !                                                                       
       ave_is_zero: IF (ave.eq.0.0) then 
          RETURN 
@@ -149,6 +154,20 @@ CONTAINS
          ENDIF 
          scell = cr_icc (1) * cr_icc (2) * cr_icc (3) 
          ncell = 0 
+         ALLOCATE(sel_cell(cr_icc(1), cr_icc(2), cr_icc(3)))
+         sel_cell(:,:,:) = .FALSE.
+         DO ii = 1, cr_icc (1) 
+            DO jj = 1, cr_icc (2) 
+               DO kk = 1, cr_icc (3) 
+                  sel_cell(ii,jj,kk) = (ran1 (idum) .le.ave) 
+               ENDDO
+            ENDDO
+         ENDDO
+!                                                                       
+!------ ----- Loop over all atom types                                  
+!                                                                       
+            loop_iscat: DO iscat = 1, cr_nscat 
+               nxat = 0 
 !                                                                       
 !------ - Loop over all unit cells                                      
 !                                                                       
@@ -162,14 +181,15 @@ CONTAINS
 !------ --- get only 'ave'% of those unit cells and compute average     
 !------ --- unit cell                                                   
 !                                                                       
-         sel = (ran1 (idum) .le.ave) 
-         IF (sel) then 
+!        sel = (ran1 (idum) .le.ave) 
+!        IF (sel) then 
+         IF (sel_cell(ii,jj,kk)) then 
             ncell = ncell + 1 
-!                                                                       
-!------ ----- Loop over all atom types                                  
-!                                                                       
-            DO iscat = 1, cr_nscat 
-               nxat = 0 
+!RBN!                                                                       
+!RBN!------ ----- Loop over all atom types                                  
+!RBN!                                                                       
+!RBN            loop_iscat: DO iscat = 1, cr_nscat 
+!RBN               nxat = 0 
 !                                                                       
 !------ ------- Loop over all sites within unit cell                    
 !                                                                       
@@ -183,20 +203,27 @@ CONTAINS
                      ENDDO 
                   ENDIF 
                ENDDO 
-               CALL four_strucf (iscat, .true.) 
-               DO j = 1, num (1) * num (2) *num (3)
-                  acsf (j) = acsf (j) + tcsf (j) 
-               ENDDO 
-            ENDDO 
+!RBN               CALL four_strucf_aver (iscat, .true.) 
+!RBN               DO j = 1, num (1) * num (2) *num (3)
+!RBN                  acsf (j) = acsf (j) + tcsf (j) 
+!RBN               ENDDO 
+!RBN            ENDDO  loop_iscat
          ENDIF 
          ENDDO cell_z
          ENDDO cell_y
          ENDDO cell_x
+               CALL four_strucf (iscat, .true.) 
+               DO j = 1, num (1) * num (2) *num (3)
+                  acsf (j) = acsf (j) + tcsf (j) 
+               ENDDO 
+            ENDDO  loop_iscat
+         ncell = ncell/cr_nscat
+         DEALLOCATE(sel_cell)
 !                                                                       
 !------ - now compute the interference function of the lot shape        
 !                                                                       
          CALL four_getav (lots) 
-         CALL four_strucf (0, .false.) 
+         CALL four_strucf_aver (0, .false.) 
          IF(ncell >0) THEN
             norm = DBLE(1.0D0 / ncell)
          ELSE
@@ -207,7 +234,7 @@ CONTAINS
             ier_msg(2) = 'Increase the percentage for >set aver<'
          ENDIF
          DO j = 1, num (1) * num (2) * num (3)
-            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0)) 
+            acsf (j) = acsf (j) * tcsf (j) * cmplx ( norm, 0.0D0, KIND=KIND(0.0D0))
          ENDDO 
 !                                                                       
 !------ - write how much of the crystal we actually used                
@@ -220,7 +247,7 @@ CONTAINS
       ENDIF ave_is_zero
 !                                                                       
  1000 FORMAT     (' Calculating <F> with ',F5.1,' % of the crystal ...') 
- 2000 FORMAT     (' Used ',F5.1,' % of the crystal to calulate <F> ...') 
+ 2000 FORMAT     (' Used ',F5.1,' % of the crystal to calculate <F> ...') 
       END SUBROUTINE four_aver                      
 !*****7*****************************************************************
       SUBROUTINE four_getatm (iscat, lots, lbeg, ncell) 
@@ -1213,4 +1240,91 @@ main:    DO
       CLOSE(ird)
       CLOSE(iwr)
       END SUBROUTINE calc_hkl
+!
+!*****7*****************************************************************
+      SUBROUTINE four_strucf_aver (iscat, lform) 
+!+                                                                      
+!     Here the complex structure factor of 'nxat' identical atoms       
+!     from array 'xat' is computed.                                     
+!
+!     The phase "iarg0" is calculated via integer math as offset from 
+!     phase = 0 at hkl=0.
+!-                                                                      
+      USE discus_config_mod 
+      USE diffuse_mod 
+      USE precision_mod
+      IMPLICIT none 
+!                                                                       
+      INTEGER, INTENT(IN) :: iscat 
+      LOGICAL, INTENT(IN) :: lform 
+!                                                                       
+      REAL(PREC_DP)        ::        xincu, xincv , xincw
+      REAL(PREC_DP)        ::        oincu, oincv , oincw
+      INTEGER (KIND=PREC_INT_LARGE)   :: h, i, ii, j, k, iarg, iarg0, iincu, iincv, iincw
+      INTEGER (KIND=PREC_INT_LARGE)   ::                              jincu, jincv, jincw
+      INTEGER (KIND=PREC_INT_LARGE), PARAMETER :: shift = -6
+!
+      INTEGER IAND, ISHFT 
+!
+!------ zero fourier array                                              
+!                                                                       
+      tcsf = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
+!                                                                       
+!------ Loop over all atoms in 'xat'                                    
+!                                                                       
+      DO k = 1, nxat 
+!        xarg0 = xm (1)        * xat(k, 1) + xm (2)         * xat(k, 2) + xm (3)         * xat(k, 3)
+         xincu = uin(1)        * xat(k, 1) + uin(2)         * xat(k, 2) + uin(3)         * xat(k, 3)
+         xincv = vin(1)        * xat(k, 1) + vin(2)         * xat(k, 2) + vin(3)         * xat(k, 3)
+         xincw = win(1)        * xat(k, 1) + win(2)         * xat(k, 2) + win(3)         * xat(k, 3)
+         oincu = off_shift(1,1)* xat(k, 1) + off_shift(2,1) * xat(k, 2) + off_shift(3,1) * xat(k, 3)
+         oincv = off_shift(1,2)* xat(k, 1) + off_shift(2,2) * xat(k, 2) + off_shift(3,2) * xat(k, 3)
+         oincw = off_shift(1,3)* xat(k, 1) + off_shift(2,3) * xat(k, 2) + off_shift(3,3) * xat(k, 3)
+!                                                                       
+!        iarg0 = nint (64 * I2PI * (xarg0 - int (xarg0) + 0.0d0) ) 
+         iincu = nint (64 * I2PI * (xincu - int (xincu) + 0.0d0) ) 
+         iincv = nint (64 * I2PI * (xincv - int (xincv) + 0.0d0) ) 
+         iincw = nint (64 * I2PI * (xincw - int (xincw) + 0.0d0) ) 
+         jincu = nint (64 * I2PI * (oincu - int (oincu) + 0.0d0) ) 
+         jincv = nint (64 * I2PI * (oincv - int (oincv) + 0.0d0) ) 
+         jincw = nint (64 * I2PI * (oincw - int (oincw) + 0.0d0) ) 
+         iarg0 =  lmn(1)*iincu + lmn(2)*iincv + lmn(3)*iincw + &
+                  lmn(4)*jincu + lmn(5)*jincv + lmn(6)*jincw
+         iarg = iarg0 
+!                                                                       
+!------ - Loop over all points in Q. 'iadd' is the address of the       
+!------ - complex exponent table. 'IADD' divides out the 64 and         
+!------ - ISHFT acts as MOD so that the argument stays in the table     
+!------ - boundaries.                                                   
+!                 iadd      = ISHFT (iarg, - 6) 
+!                 iadd      = IAND  (iadd, MASK) 
+!                 tcsf (ii) = tcsf (ii) + cex (iadd, MASK) )
+!                 iarg      = iarg + iincw
+!                                                                       
+         ii = 0 
+!                                                                       
+          DO j = 0, num (1) - 1
+             DO i = 0, num (2) - 1
+                iarg = iarg0 + iincu*j + iincv*i 
+                DO h = 1, num (3) 
+                   ii       = ii + 1 
+                   tcsf(ii) = tcsf (ii) + cex (IAND  (ISHFT(iarg, shift), MASK) )
+                   iarg     = iarg + iincw
+                ENDDO 
+             ENDDO 
+          ENDDO 
+      ENDDO 
+!
+!------ Now we multiply with formfactor                                 
+!                                                                       
+      IF (lform) then 
+         DO  i = 1, num (1) * num (2) * num(3)
+!        FORALL( i = 1: num (1) * num (2) * num(3))   !!! DO Loops seem to be faster!
+            tcsf (i) = tcsf (i) * cfact (istl (i), iscat) 
+!        END FORALL
+         END DO
+      ENDIF 
+!                                                                       
+      END SUBROUTINE four_strucf_aver
+!
 END MODULE fourier_sup
