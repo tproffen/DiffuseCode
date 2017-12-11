@@ -61,6 +61,7 @@ INTEGER                                 ::  ilots     = LOT_OFF
 INTEGER , DIMENSION(1:3)                ::  ls_xyz    = 5
 INTEGER                                 ::  nxat      = 1
 INTEGER                                 ::  four_mode = INTERNAL
+LOGICAL                                 ::  lot_all   = .false.
 LOGICAL                                 ::  ffour     = .false.
 LOGICAL                                 ::  lperiod   = .true.
 LOGICAL                                 ::  four_log  = .false.

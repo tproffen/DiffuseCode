@@ -26,6 +26,7 @@ CONTAINS
       REAL (KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
+      INTEGER :: ii          ! Dummy variable
 !                                                                       
       ier_num = 0 
 !                                                                       
@@ -59,7 +60,16 @@ CONTAINS
             csf (i) = cmplx (0.0D0, 0.0D0, KIND=KIND(0.0D0)) 
          ENDDO 
 !                                                                       
-         CALL four_ranloc (csize, lbeg) 
+         IF(lot_all) THEN
+            ii      = nlot - 1 
+            lbeg(3) = (ii  )/(cr_icc(1)*cr_icc(2)) + 1
+            ii      = (ii  ) - (lbeg(3)-1)*(cr_icc(1)*cr_icc(2))
+            lbeg(2) = (ii  )/(cr_icc(1)) + 1
+            ii      = (ii  ) - (lbeg(2)-1)*(cr_icc(1))
+            lbeg(1) = MOD(ii,cr_icc(1)) + 1
+         ELSE
+            CALL four_ranloc (csize, lbeg) 
+         ENDIF
          IF (four_log) then 
             IF (ilots.ne.LOT_OFF) then 
                WRITE (output_io, 2000) nlot, nlots, (lbeg (i), i = 1, 3) 

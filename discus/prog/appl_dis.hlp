@@ -2363,6 +2363,7 @@
 3  lots
 !b lots "off"
 !b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,<n>,{"yes" | "no"}
+!b lots {"box" | "ellipsoid"},<lx>,<ly>,<lz>,"all",{"yes" | "no"}
 
    The program allows to Fourier transform large crystals by averaging
    the scattering from smaller volumes selected at random. This allows
@@ -2375,10 +2376,13 @@
    specified: First the lot shape. The choices are "box" or 
    "ellipsoid". Usually the first letter of the parameter is sufficient.
    The following parameters <lx>,<ly> and <lz> describe the size of
-   the sub-volumes in unit cells. The parameter <n> specifies the number
-   of such volumes to be averaged. The last parameter can be "yes"
-   or "no" and selects if periodic boundary conditions should be
-   applied.
+   the sub-volumes in unit cells. 
+   The parameter <n> specifies the number of such volumes to be averaged. 
+   If the number is chosen with the keyword "all", DISCUS will place
+   the origin of the lots onto each unit cell and th number of the lots
+   corresponds to the total number of unit cells in the crystal.
+   The last parameter can be "yes" or "no" and selects if periodic
+   boundary conditions should be applied.
 
    The lot size should be slightly larger than the longest correlations
    present in the model crystal studied. The number of lots to be
