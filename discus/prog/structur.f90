@@ -2209,9 +2209,18 @@ check_calc: DO j = 1, ianz
       lpara = len_str (cpara) 
       CALL ber_params (1, cpara, lpara, rpara, 1) 
       IF (ier_num.eq.0) then 
-         cr_spcgrno = nint (rpara) 
+         cr_spcgrno = spcgr_num(nint (rpara) , ii)
          cr_syst = spcgr_syst (cr_spcgrno) 
          cr_spcgr = spcgr_name (cr_spcgrno) 
+!
+!     Ensure that space groups given as number without origin choice 2 
+!     are set properly
+!
+         IF((276<=cr_spcgrno .AND. cr_spcgrno<=293) .OR. &
+            (301<=cr_spcgrno .AND. cr_spcgrno<=306)     ) THEN
+            spcgr_para = 2
+            spcgr_ianz = 1
+         ENDIF
       ELSE 
          ier_num = - 7 
          ier_typ = ER_APPL 
