@@ -2872,6 +2872,18 @@ END SUBROUTINE do_execute_block
 !                                                                       
       REAL do_read_number 
 !                                                                       
+! Catch a minus/plus that is intended as sign in front of a number
+IF(iverk> 1) THEN
+   IF(    line(iverk-1:iverk)=='--') THEN
+      line(iverk-1:iverk) = '0+'
+   ELSEIF(line(iverk-1:iverk)=='+-') THEN
+      line(iverk-1:iverk) = '0-'
+   ELSEIF(line(iverk-1:iverk)=='-+') THEN
+      line(iverk-1:iverk) = '0-'
+   ELSEIF(line(iverk-1:iverk)=='++') THEN
+      line(iverk-1:iverk) = '0+'
+   ENDIF
+ENDIF
       lll = iverk - 1 
       iz1 = suche_vor2 (line (1:iverk - 1), lll) 
       zeile = line (iz1:iverk - 1) 
@@ -2881,6 +2893,18 @@ END SUBROUTINE do_execute_block
       ENDIF 
       lreal = index (line (iz1:iverk - 1) , '.') .gt.0 
       lll = ll - (iverk + lverk) + 1 
+! Catch a minus/plus that is intended as sign in front of a number
+IF(lll>2) THEN 
+   IF(    line(iverk+lverk:iverk+lverk+1)=='--') THEN
+      line(iverk+lverk:iverk+lverk+1) = '  '
+   ELSEIF(line(iverk+lverk:iverk+lverk+1)=='-+') THEN
+      line(iverk+lverk:iverk+lverk+1) = ' -'
+   ELSEIF(line(iverk+lverk:iverk+lverk+1)=='+-') THEN
+      line(iverk+lverk:iverk+lverk+1) = ' -'
+   ELSEIF(line(iverk+lverk:iverk+lverk+1)=='++') THEN
+      line(iverk+lverk:iverk+lverk+1) = '  '
+   ENDIF
+ENDIF
       iz2 = suche_nach2 (line (iverk + lverk:ll), lll) 
       zeile = line (iverk + lverk:iverk + lverk + iz2 - 1) 
       w2 = do_read_number (zeile, iz2) 
