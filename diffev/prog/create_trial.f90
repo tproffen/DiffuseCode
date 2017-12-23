@@ -462,59 +462,212 @@ IF ( ier_num/=0) THEN
    CLOSE ( iwr)
    RETURN
 ENDIF
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, *   ,iostat=IO_status) r1, r2, r3, r4 
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, 1000,iostat=IO_status) pop_trialfile 
+ier_num = -31                                       ! Turn error on for read
+ier_typ = ER_APPL
+!
+READ (iwr, *   ,iostat=IO_status)                   ! Read 1st header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, *   ,iostat=IO_status) r1, r2, r3, r4    ! Read generation values
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, *   ,iostat=IO_status)                   ! Read trialfile header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, 1000,iostat=IO_status) pop_trialfile     ! Read trialfile name
 pop_ltrialfile = LEN_TRIM(pop_trialfile)
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, 1000,iostat=IO_status) trial_results 
+!
+READ (iwr, *   ,iostat=IO_status)                   ! read reaultfile header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, 1000,iostat=IO_status) trial_results     ! Read resultfile name 
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 ltrial_results = LEN_TRIM(trial_results)
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, 1000,iostat=IO_status) parent_results 
+!
+READ (iwr, *   ,iostat=IO_status)                   ! read logfile header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, 1000,iostat=IO_status) parent_results    ! Read parent log file name 
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 lparent_results = LEN_TRIM(parent_results)
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, 1000,iostat=IO_status) parent_summary 
+!
+READ (iwr, *   ,iostat=IO_status)                   ! read summary header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, 1000,iostat=IO_status) parent_summary    ! Read summary file name 
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 lparent_summary     = LEN_TRIM(parent_summary)
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, 1000,iostat=IO_status) parent_current 
+!
+ier_num = 0                                         ! Turn error message off as 
+ier_typ = 0                                         ! old file finish here
+READ (iwr, *   ,iostat=IO_status)                   ! read current header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+ier_num = -31                                       ! Turn error on for read
+ier_typ = ER_APPL
+READ (iwr, 1000,iostat=IO_status) parent_current    ! Read current file name
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 lparent_current = LEN_TRIM(parent_current)
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, *   ,iostat=IO_status) pop_back_number
+!
+READ (iwr, *   ,iostat=IO_status)                   ! read backup header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, *   ,iostat=IO_status) pop_back_number  ! read number of backups
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
 DO i=1, pop_back_number
    READ (iwr, *   ,iostat=IO_status) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ (iwr, 1000,iostat=IO_status) pop_back_fil(i) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ (iwr, *   ,iostat=IO_status) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ (iwr, 1000,iostat=IO_status) pop_back_ext(i) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ (iwr, *   ,iostat=IO_status) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ (iwr, 1000,iostat=IO_status) pop_back_trg(i) 
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    pop_back_fil_l(i) = LEN_TRIM(pop_back_fil(i))
    pop_back_ext_l(i) = LEN_TRIM(pop_back_ext(i))
    pop_back_trg_l(i) = LEN_TRIM(pop_back_trg(i))
 ENDDO
+!
 IF(pop_back_number>0) pop_backup = .TRUE.
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, *   ) diff_donor_mode, diff_sel_mode
-READ (iwr, *   ,iostat=IO_status) 
-READ (iwr, *   ) diff_cr, diff_f, diff_local, diff_k
+READ (iwr, *   ,iostat=IO_status)                  ! Read donor  header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, *, IOSTAT=io_status   ) diff_donor_mode, diff_sel_mode
+READ (iwr, *   ,iostat=IO_status)                  ! Read CR, F  header line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
+READ (iwr, *, IOSTAT=io_status   ) diff_cr, diff_f, diff_local, diff_k
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 !
 ! Read random status of best element
 !
 line = ' '
 j = 0
 READ(iwr,'(a)', IOSTAT=io_status) line
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
 !
-READ (iwr, *   ,iostat=IO_status) random_nseed
+!
+READ (iwr, *, IOSTAT=io_status   ,iostat=IO_status) random_nseed
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
 !
 DO i = 0, (random_nseed-1)/6
    READ(iwr,'(a)', IOSTAT=io_status) line
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
    READ(line,*, IOSTAT=IO_status) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
+   IF(IS_IOSTAT_END(IO_STATUS)) THEN
+      CLOSE(iwr)
+      RETURN
+   ENDIF
+!
 ENDDO
 !READ (iwr, *   ,iostat=IO_status) random_best(1:random_nseed)
 !
 READ (iwr, *   ,iostat=IO_status) 
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
 READ (iwr, *   ,iostat=IO_status)
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
 READ (iwr, *   ,iostat=IO_status)
+IF(IS_IOSTAT_END(IO_STATUS)) THEN
+   CLOSE(iwr)
+   RETURN
+ENDIF
+!
 IF(.NOT.pop_current)   THEN    ! Need to update the population etc
    pop_gen = NINT(r1)
    pop_n   = NINT(r2)
@@ -526,6 +679,7 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
       CALL alloc_population( n_pop, n_dim)
       CALL alloc_ref_para(pop_dimx)
       IF(ier_num < 0) THEN
+         CLOSE(iwr)
          RETURN
       ENDIF
    ENDIF
@@ -538,12 +692,32 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
    pop_dimx_init = .true.      ! The dimension has been initialized in this run
    DO i=1,pop_dimx
       READ(iwr,'(a)', IOSTAT=io_status) line
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+!
       READ(line(1:16), '(a)', IOSTAT=io_status) pop_name(i)
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+!
       READ(line(21:96),*,IOSTAT=io_status) pop_xmin(i), pop_xmax(i), &
                                            pop_smin(i), pop_smax(i)
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+!
       pop_type(i) = POP_REAL
       IF(line(98:98) == 'I') pop_type(i) = POP_INTEGER
-      READ(line(100:100),'(L1)') pop_refine(i)
+      READ(line(100:100),'(L1)', IOSTAT=io_status) pop_refine(i)
+      IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         CLOSE(iwr)
+         RETURN
+      ENDIF
+!
    ENDDO
 ENDIF
 CLOSE (iwr) 

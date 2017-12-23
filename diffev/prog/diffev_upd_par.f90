@@ -616,9 +616,15 @@ ELSEIF (ctype.eq.'pop_dimx') then
                RETURN
             ENDIF
          ENDIF
+         DO i=NINT(wert), MAXDIMX
+            IF(pop_name(i)==' ') THEN
+               WRITE(pop_name(i),'(a4,i4.4)') 'PARA',i
+            ENDIF
+         ENDDO
          IF ( pop_gen == 0 ) THEN
             pop_dimx_new = .false.
          ENDIF
+         pop_dimx_init = .true.      ! The dimension has been initialized in this run
       ENDIF 
    ELSE 
       ier_num = - 13 
@@ -643,6 +649,7 @@ ELSEIF (ctype.eq.'pop_sig') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_sigma (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 
@@ -656,6 +663,7 @@ ELSEIF (ctype.eq.'pop_lsig') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_lsig (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 
@@ -669,6 +677,7 @@ ELSEIF (ctype.eq.'pop_xmin') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_xmin (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 
@@ -682,6 +691,7 @@ ELSEIF (ctype.eq.'pop_xmax') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_xmax (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 
@@ -695,6 +705,7 @@ ELSEIF (ctype.eq.'pop_smin') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_smin (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 
@@ -708,6 +719,7 @@ ELSEIF (ctype.eq.'pop_smax') then
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXDIMX .and. ww(1)<=pop_dimx) then 
          pop_smax (ww (1) ) = wert 
+         pop_dimx_init = .TRUE.      ! The dimension hase been initialized in this run
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 

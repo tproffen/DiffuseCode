@@ -23,13 +23,14 @@ CONTAINS
 !
    CHARACTER (LEN=2048)  :: send_direc    ! working directory
    CHARACTER (LEN=1024)  :: zeile         ! dummy line
+   CHARACTER(LEN= 9+LEN(pop_name))   :: string
    INTEGER               :: send_direc_l  ! working directory length
    INTEGER               :: lzeile        ! working directory length
    INTEGER               :: nseeds        ! number of seeds for random nuber generator
    INTEGER, DIMENSION(64):: seeds ! Actual seeds
 !  INTEGER, DIMENSION(12)             :: seeds ! Actual seeds
 
-   INTEGER  :: i, j, l
+   INTEGER  :: i, j, l, k
 !
    INTEGER                 :: ierr
 !
@@ -68,9 +69,19 @@ CONTAINS
    kids_loop: DO i=1,run_mpi_senddata%children
       run_mpi_senddata%kid = i
       DO j=1,run_mpi_senddata%parameters                          ! Encode current trial values
+         run_mpi_senddata%trial_names (j) = pop_name(j                  ) ! Takes value for kid
          run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
          rpara                  (200+  j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
          ref_para               (      j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
+         string = ' '
+         string = 'real, '//pop_name(j)
+         CALL define_variable(string,LEN(string))
+         loop_par: DO k=1,var_num
+            IF(var_name(k)==pop_name(j)) THEN
+               var_val(k) = run_mpi_senddata%trial_values(j)
+               EXIT loop_par
+            ENDIF
+         ENDDO loop_par
       ENDDO
       indivs_loop: DO j=1,run_mpi_senddata%nindiv
          run_mpi_senddata%indiv = j
@@ -110,6 +121,7 @@ CONTAINS
                  run_mpi_senddata%generation, run_mpi_senddata%member,   &
                  run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                          run_mpi_senddata%nindiv  , &
+                 run_mpi_senddata%trial_names ,                          &
                  run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                  run_mpi_senddata%l_get_state,                           &
                  run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
