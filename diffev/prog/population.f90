@@ -11,14 +11,14 @@ INTEGER, PARAMETER      ::      POP_INTEGER = 0
 INTEGER, PARAMETER      ::      POP_REAL    = 1
 !
 CHARACTER (LEN=200)     ::      pop_genfile
-CHARACTER (LEN=200)     ::      pop_trialfile
+CHARACTER (LEN=200)     ::      pop_trialfile  = ' '
 !
-CHARACTER (LEN=200)     ::      trial_results
+CHARACTER (LEN=200)     ::      trial_results  = ' '
 CHARACTER (LEN=200)     ::      parent_results = ' '
 CHARACTER (LEN=200)     ::      parent_current = ' '
 CHARACTER (LEN=200)     ::      parent_summary = ' '
 !
-CHARACTER (LEN=  8) ,DIMENSION(:) , ALLOCATABLE :: pop_name ! (MAXDIMX)
+CHARACTER (LEN= 16) ,DIMENSION(:) , ALLOCATABLE :: pop_name ! (MAXDIMX)
 !
 INTEGER                 :: MAXPOP                      ! Maximum population size
 INTEGER                 :: MAXDIMX                     ! Maximum parameter number
@@ -27,6 +27,7 @@ INTEGER                 :: pop_n
 INTEGER                 :: pop_c
 INTEGER                 :: pop_dimx
 LOGICAL                 :: pop_dimx_new
+LOGICAL                 :: pop_dimx_init = .FALSE.
 INTEGER                 :: pop_gen
 INTEGER                 :: pop_best
 INTEGER                 :: pop_worst
@@ -44,10 +45,11 @@ INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_type       !  (MAXDIMX)
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_lname      !  (MAXDIMX)
 INTEGER ,DIMENSION(:,:), ALLOCATABLE :: pop_random     !  (nseeds:MAXPOP )
 !
-LOGICAL                              :: pop_current       = .false.
-LOGICAL                              :: pop_current_trial = .false.
-LOGICAL                              :: pop_result_file_rd= .true.
-LOGICAL                              :: pop_trial_file_wrt= .true.
+LOGICAL                              :: pop_current       = .FALSE.
+LOGICAL                              :: pop_current_trial = .FALSE.
+LOGICAL                              :: pop_initialized   = .FALSE.
+LOGICAL                              :: pop_result_file_rd= .FALSE.
+LOGICAL                              :: pop_trial_file_wrt= .FALSE.
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_refine     !  (MAXDIMX)
 !
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_sigma   !  (MAXDIMX)

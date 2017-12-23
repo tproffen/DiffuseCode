@@ -102,7 +102,7 @@ CONTAINS
    i1 =  8
    i2 = 71
    WRITE (line (i1:i2), 2150) 'RAVE ','RMIN ','RMAX ','RSIG ' 
-   WRITE (iwr, 2250) line (1:71) 
+   WRITE (iwr, 3000) line (1:LEN_TRIM(line)) 
    CLOSE (iwr) 
 !
    DO i = 1, pop_dimx 
@@ -114,21 +114,23 @@ CONTAINS
       line = '#L GEN '
       i1 =  8 
       i2 = 71
-      WRITE (line (i1:i2), 2200) pop_name(i)(1:5), pop_name(i)(1:5), &
-                                 pop_name(i)(1:5), pop_name(i)(1:5)
-      DO j =  9, 13
-         IF (line (j:j) .eq.' ') line (j:j) = '_' 
-      ENDDO 
-      DO j = 27, 31
-         IF (line (j:j) .eq.' ') line (j:j) = '_' 
-      ENDDO 
-      DO j = 45, 49
-         IF (line (j:j) .eq.' ') line (j:j) = '_' 
-      ENDDO 
-      DO j = 63, 67
-         IF (line (j:j) .eq.' ') line (j:j) = '_' 
-      ENDDO 
-      WRITE (iwr, 2250) line (1:i2) 
+      WRITE (line (i1:), 2200) pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i)))
+!     DO j =  9, 13
+!        IF (line (j:j) .eq.' ') line (j:j) = '_' 
+!     ENDDO 
+!     DO j = 27, 31
+!        IF (line (j:j) .eq.' ') line (j:j) = '_' 
+!     ENDDO 
+!     DO j = 45, 49
+!        IF (line (j:j) .eq.' ') line (j:j) = '_' 
+!     ENDDO 
+!     DO j = 63, 67
+!        IF (line (j:j) .eq.' ') line (j:j) = '_' 
+!     ENDDO 
+      WRITE (iwr, 3000) line (1:LEN_TRIM(line)) 
       CLOSE (iwr) 
    ENDDO 
 !
@@ -138,10 +140,13 @@ CONTAINS
    fname  = parent_results(1:length) // '.name'
    CALL oeffne (iwr, fname, stat)
    IF (ier_num.ne.0) return
-   WRITE(IWR, 2250) 'Member'
-   WRITE(IWR, 2250) 'Rvalue'
+   WRITE(IWR, 2240) 'Member','XMIN','XMAX','SMIN','SMAX'
+   WRITE(IWR, 2250) 'Rvalue', REAL(pop_gen), REAL(pop_n), &
+                    REAL(pop_c), REAL(pop_dimx)
    DO i = 1, pop_dimx
-      WRITE(IWR, 2250) pop_name(i)(1:len_str(pop_name(i)))
+      WRITE(IWR, 2250) pop_name(i)(1:len_str(pop_name(i))), &
+                       pop_xmin(i), pop_xmax(i),            &
+                       pop_smin(i), pop_smax(i)
    ENDDO
    CLOSE (IWR)
 !                                                                       
@@ -150,8 +155,10 @@ CONTAINS
     2000 FORMAT ('#C Summaryfile by DIFFEV, Parameter no. ',i4.4) 
     2100 FORMAT ('#S 1') 
     2150 FORMAT (' ',a5,      13x,a5,      13x,a5,      13x,a5       ) 
-    2200 FORMAT (' ',a5,'AVE ',9x,a5,'MIN ',9x,a5,'MAX ',9x,a5,'SIG ') 
-    2250 FORMAT (a) 
+    2200 FORMAT (' ',a,'_AVE',2x,a,'_MIN',2x,a,'_MAX',2x,a,'_SIG') 
+    2240 FORMAT (a16,4(2x,a18)) 
+    2250 FORMAT (a16,4(2x,E18.10)) 
+    3000 FORMAT (a)
 !                                                                       
    END SUBROUTINE do_initialise                     
 !*****7**************************************************************** 
@@ -296,6 +303,10 @@ CONTAINS
          pop_t  (lb,j) = value
          CALL write_trial (j)
       ENDDO
+      pop_xmin(lb) = value
+      pop_xmax(lb) = value
+      pop_smin(lb) = value
+      pop_smax(lb) = value
 !
       pop_refine(lb) = .false.
       pop_sigma (lb) = 0.0

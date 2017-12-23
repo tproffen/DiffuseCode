@@ -12,6 +12,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          generation, member, &
                          children, parameters, &
                                  nindiv  , &
+                         trial_n,         &
                          trial_v, NTRIAL, &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
@@ -20,6 +21,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
 USE diffev_setup_mod
 USE discus_setup_mod
 USE discus_loop_mod
+USE structur, ONLY: rese_cr
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 USE suite_setup_mod
@@ -56,6 +58,7 @@ INTEGER                , INTENT(IN) :: children
 INTEGER                , INTENT(IN) :: parameters
 INTEGER                , INTENT(IN) :: nindiv
 INTEGER                , INTENT(IN) :: NTRIAL
+CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
@@ -63,13 +66,16 @@ INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
 INTEGER                , INTENT(OUT):: ierr
 !
 CHARACTER(LEN=2048) :: line
+CHARACTER(LEN=1024) :: empty = ' '
 CHARACTER(LEN=2048) :: logfile
 CHARACTER(LEN= 7   ) :: ct_pname_old,ct_pname_cap_old
+CHARACTER(LEN= 9+LEN(trial_n))   :: string
 INTEGER              :: ct_prompt_status_old
 
 LOGICAL, SAVE       :: l_discus_init =.false.
 LOGICAL, SAVE       :: l_kuplot_init =.false.
-INTEGER             :: i
+INTEGER             :: i,j
+INTEGER             :: length = 1
 INTEGER             :: job_l
 INTEGER             :: ios
 LOGICAL :: str_comp
@@ -132,9 +138,18 @@ IF(UBOUND(ref_para, 1) < parameters) THEN
    CALL alloc_ref_para(parameters)
    MAXPAR_REF = parameters
 ENDIF
-DO i=1,parameters            ! Trial parameters for this kid
+loop_par: DO i=1,parameters            ! Trial parameters for this kid
    ref_para(i) = trial_v(i)
-ENDDO
+   string = ' '
+   string = 'real, '//trial_n(i)
+   CALL define_variable(string,LEN(string))
+   DO j=1,var_num
+      IF(var_name(j)==trial_n(i)) THEN
+         var_val(j) = trial_v(i)
+         CYCLE loop_par
+      ENDIF
+   ENDDO
+ENDDO loop_par
 !
 var_val( var_ref+0) = generation
 var_val( var_ref+1) = member
@@ -162,6 +177,34 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    rvalue_yes = .false.   ! Reset the global R-value flag
    l_rvalue   = .false.
    rvalue     = 0.0
+!
+!  Reset KUPLOT
+!
+   IF(.NOT. l_kuplot_init) THEN
+      CALL kuplot_setup   (lstandalone)
+      l_kuplot_init = .true.
+   ENDIF
+   pname     = 'kuplot'
+   pname_cap = 'KUPLOT'
+   prompt    = pname
+   oprompt   = pname
+   CALL kuplot_set_sub ()
+   CALL suite_set_sub_branch
+   CALL do_rese (empty, length)
+!
+!  Reset DISCUS
+!
+   IF(.NOT. l_discus_init) THEN
+      CALL discus_setup   (lstandalone)
+      l_discus_init = .true.
+   ENDIF
+   pname     = 'discus'
+   pname_cap = 'DISCUS'
+   prompt    = pname
+   oprompt   = pname
+   CALL discus_set_sub ()
+   CALL rese_cr
+!
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
       IF(.NOT. l_discus_init) THEN
          CALL discus_setup   (lstandalone)

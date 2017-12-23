@@ -12,6 +12,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          generation, member, &
                          children, parameters, &
                                  nindiv  , &
+                         trial_names ,         &
                          trial_values, NTRIAL, &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
@@ -51,6 +52,7 @@ INTEGER                , INTENT(IN) :: NTRIAL
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_names
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 !
 CHARACTER(LEN=2048) :: line

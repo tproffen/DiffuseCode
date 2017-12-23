@@ -343,27 +343,73 @@ ENDIF
  2000 FORMAT ('# generation members children parameters',/ 4(i8,2x)) 
  2100 FORMAT ('# current member ',/i5) 
  2200 FORMAT ('# parameter list') 
- 3000 FORMAT (2x,e18.10,2x,i4,'  !  ',a8) 
+ 3000 FORMAT (2x,e18.10,2x,i4,'  !  ',a) 
 !                                                                       
 END SUBROUTINE write_trial                    
 !*****7**************************************************************** 
 SUBROUTINE write_genfile 
 !                                                                       
 USE population
+USE diff_evol
+USE diffev_random
+USE run_mpi_mod
+!
+USE random_state_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'unknown'
+CHARACTER (LEN=16)  :: string
+INTEGER             :: i, j
+INTEGER :: nseed_run    ! Actual number of seed used by compiler
 !                                                                       
 CALL do_del_file (pop_genfile) 
 CALL oeffne (iwr, pop_genfile, stat) 
 WRITE (iwr, 1000) pop_gen, pop_n, pop_c, pop_dimx 
-WRITE (iwr, 1100) pop_trialfile (1:pop_ltrialfile) 
-WRITE (iwr, 1200) trial_results (1:ltrial_results) 
-WRITE (iwr, 1300) parent_results (1:lparent_results) 
-WRITE (iwr, 1400) parent_summary (1:lparent_summary) 
+WRITE (iwr, 1100) pop_trialfile (1:LEN_TRIM(pop_trialfile)) 
+WRITE (iwr, 1200) trial_results (1:LEN_TRIM(trial_results))
+WRITE (iwr, 1300) parent_results (1:LEN_TRIM(parent_results)) 
+WRITE (iwr, 1400) parent_summary (1:LEN_TRIM(parent_summary))
+WRITE (iwr, 1500) parent_current (1:LEN_TRIM(parent_current))
+WRITE (iwr, 1510) pop_back_number
+DO i= 1, pop_back_number
+   WRITE (iwr, 1520) pop_back_fil(i)(1:LEN_TRIM(pop_back_fil(i)))
+   WRITE (iwr, 1525) pop_back_ext(i)(1:LEN_TRIM(pop_back_ext(i)))
+   WRITE (iwr, 1530) pop_back_trg(i)(1:LEN_TRIM(pop_back_trg(i)))
+ENDDO
+WRITE (iwr, 2000) diff_donor_mode, diff_sel_mode
+WRITE (iwr, 2100) diff_cr, diff_f, diff_local, diff_k
+!
+nseed_run = random_nseeds()
+random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on compiler ???
+!
+WRITE(IWR,3000) random_nseed
+DO i = 0, (random_nseed-1)/6
+   WRITE(IWR,3100) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
+ENDDO
+!
+WRITE (IWR, 1640) 'XMIN','XMAX','SMIN','SMAX'
+string='Member'
+WRITE (IWR, 1800) string(1:16),-1, 1.,REAL(pop_dimx), &
+                                   1., REAL(pop_dimx),&
+                                   'I', .FALSE.
+string='Rvalue'
+WRITE (IWR, 1800) string(1:16), 0, parent_val(pop_best),&
+                               parent_val(pop_worst),&
+                               child_val(pop_best),&
+                               child_val(pop_worst),&
+ 'I', .FALSE.
+DO i = 1, pop_dimx
+   string = pop_name(i)(1:LEN_TRIM(pop_name(i)))
+!  WRITE(IWR, 1800) pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+!  WRITE(IWR, 1800) string(1:16)                        , &
+   WRITE(IWR, 1800) pop_name(i)(1:16)                   , &
+                  i,pop_xmin(i), pop_xmax(i),             &
+                    pop_smin(i), pop_smax(i), 'R',        &
+                    pop_refine(i)
+ENDDO
 CLOSE (iwr) 
 !                                                                       
  1000 FORMAT ('# generation members children parameters',/ 4(i8,2x)) 
@@ -371,13 +417,31 @@ CLOSE (iwr)
  1200 FORMAT ('# result file'/a) 
  1300 FORMAT ('# log file'/a) 
  1400 FORMAT ('# summary file'/a) 
+ 1500 FORMAT ('# last    file'/a) 
+ 1510 FORMAT ('# backup number'/1x,i4) 
+ 1520 FORMAT ('# backup source'/a) 
+ 1525 FORMAT ('# backup extension'/a) 
+ 1530 FORMAT ('# backup target'/a) 
+ 1640 FORMAT ('# Parameter      no.',4(1x,a18))
+ 1700 FORMAT (a20,77x,a1)
+ 1800 FORMAT (a16,1x,i3,4(1x,E18.10),1x,a1,1x,l1)
+ 3000 FORMAT ('# random seeds '/i5) 
+ 3100 FORMAT (5(1x,i8),1x,i8)
+!
+ 2000 FORMAT ('# donor mode, selection mode'/2(2x,i2))
+ 2100 FORMAT ('# Cross_over, Factor, Local, position'/,4(2x, E18.10)) 
 !
 END SUBROUTINE write_genfile                  
 !*****7**************************************************************** 
 SUBROUTINE read_genfile 
 !                                                                       
+USE diffev_allocate_appl
+USE diff_evol
 USE population
+USE diffev_random
+!
 USE errlist_mod
+USE lib_f90_allocate_mod
 USE variable_mod
 !                                                                       
 IMPLICIT none 
@@ -386,7 +450,10 @@ IMPLICIT none
 INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'old'
+CHARACTER (LEN=128) :: line
 INTEGER             :: io_status
+INTEGER             :: i, j
+INTEGER             :: n_pop, n_dim
 REAL                :: r1, r2, r3, r4 
 !                                                                       
 CALL oeffne (iwr, pop_genfile, stat) 
@@ -399,28 +466,103 @@ READ (iwr, *   ,iostat=IO_status)
 READ (iwr, *   ,iostat=IO_status) r1, r2, r3, r4 
 READ (iwr, *   ,iostat=IO_status) 
 READ (iwr, 1000,iostat=IO_status) pop_trialfile 
+pop_ltrialfile = LEN_TRIM(pop_trialfile)
 READ (iwr, *   ,iostat=IO_status) 
 READ (iwr, 1000,iostat=IO_status) trial_results 
+ltrial_results = LEN_TRIM(trial_results)
 READ (iwr, *   ,iostat=IO_status) 
 READ (iwr, 1000,iostat=IO_status) parent_results 
+lparent_results = LEN_TRIM(parent_results)
 READ (iwr, *   ,iostat=IO_status) 
 READ (iwr, 1000,iostat=IO_status) parent_summary 
+lparent_summary     = LEN_TRIM(parent_summary)
+READ (iwr, *   ,iostat=IO_status) 
+READ (iwr, 1000,iostat=IO_status) parent_current 
+lparent_current = LEN_TRIM(parent_current)
+READ (iwr, *   ,iostat=IO_status) 
+READ (iwr, *   ,iostat=IO_status) pop_back_number
+DO i=1, pop_back_number
+   READ (iwr, *   ,iostat=IO_status) 
+   READ (iwr, 1000,iostat=IO_status) pop_back_fil(i) 
+   READ (iwr, *   ,iostat=IO_status) 
+   READ (iwr, 1000,iostat=IO_status) pop_back_ext(i) 
+   READ (iwr, *   ,iostat=IO_status) 
+   READ (iwr, 1000,iostat=IO_status) pop_back_trg(i) 
+   pop_back_fil_l(i) = LEN_TRIM(pop_back_fil(i))
+   pop_back_ext_l(i) = LEN_TRIM(pop_back_ext(i))
+   pop_back_trg_l(i) = LEN_TRIM(pop_back_trg(i))
+ENDDO
+IF(pop_back_number>0) pop_backup = .TRUE.
+READ (iwr, *   ,iostat=IO_status) 
+READ (iwr, *   ) diff_donor_mode, diff_sel_mode
+READ (iwr, *   ,iostat=IO_status) 
+READ (iwr, *   ) diff_cr, diff_f, diff_local, diff_k
+!
+! Read random status of best element
+!
+line = ' '
+j = 0
+READ(iwr,'(a)', IOSTAT=io_status) line
+!
+READ (iwr, *   ,iostat=IO_status) random_nseed
+!
+DO i = 0, (random_nseed-1)/6
+   READ(iwr,'(a)', IOSTAT=io_status) line
+   READ(line,*, IOSTAT=IO_status) (random_best(j+1),j = i*6,MIN(i*6+5,random_nseed-1))
+ENDDO
+!READ (iwr, *   ,iostat=IO_status) random_best(1:random_nseed)
+!
+READ (iwr, *   ,iostat=IO_status) 
+READ (iwr, *   ,iostat=IO_status)
+READ (iwr, *   ,iostat=IO_status)
+IF(.NOT.pop_current)   THEN    ! Need to update the population etc
+   pop_gen = NINT(r1)
+   pop_n   = NINT(r2)
+   pop_c   = NINT(r3)
+   pop_dimx= NINT(r4)
+   IF(pop_n>MAXPOP .OR. pop_c>MAXPOP .OR. pop_dimx> MAXDIMX) THEN   ! Need to allocate
+      n_pop = MAX(pop_n, pop_c, MAXPOP)
+      n_dim = MAX(pop_dimx, MAXDIMX)
+      CALL alloc_population( n_pop, n_dim)
+      CALL alloc_ref_para(pop_dimx)
+      IF(ier_num < 0) THEN
+         RETURN
+      ENDIF
+   ENDIF
+   IF ( pop_gen > 0 ) THEN
+      pop_dimx_new = .true.
+   ENDIF
+   IF ( pop_gen == 0 ) THEN
+      pop_dimx_new = .false.
+   ENDIF
+   pop_dimx_init = .true.      ! The dimension has been initialized in this run
+   DO i=1,pop_dimx
+      READ(iwr,'(a)', IOSTAT=io_status) line
+      READ(line(1:16), '(a)', IOSTAT=io_status) pop_name(i)
+      READ(line(21:96),*,IOSTAT=io_status) pop_xmin(i), pop_xmax(i), &
+                                           pop_smin(i), pop_smax(i)
+      pop_type(i) = POP_REAL
+      IF(line(98:98) == 'I') pop_type(i) = POP_INTEGER
+      READ(line(100:100),'(L1)') pop_refine(i)
+   ENDDO
+ENDIF
+CLOSE (iwr) 
 !
 IF(io_status /= 0) THEN
    ier_num = -19
+   ier_typ = ER_APPL
    ier_msg(1) = 'Could not read the GENERATION file'
-   CLOSE ( iwr)
    RETURN
 ENDIF
 !                                                                       
-IF ( pop_n /= NINT (r2) ) THEN
+IF ( pop_n >  NINT (r2) ) THEN
    ier_num = -16
    ier_typ = ER_APPL
    ier_msg(1) = 'Number of members differs from current value'
    ier_msg(2) = 'Check value of pop_n[1], and adjust         '
    RETURN
 ENDIF
-IF ( pop_c /= NINT (r3) ) THEN
+IF ( pop_c >  NINT (r3) ) THEN
    ier_num = -16
    ier_typ = ER_APPL
    ier_msg(1) = 'Number of children differs from current value'
@@ -440,7 +582,6 @@ var_val(var_ref+0) = pop_gen  ! Update global user variable
 !pop_c    = nint (r3) 
 !pop_dimx = nint (r4) 
                                                                         
-CLOSE (iwr) 
 !                                                                       
  1000 FORMAT    (a) 
 !                                                                       

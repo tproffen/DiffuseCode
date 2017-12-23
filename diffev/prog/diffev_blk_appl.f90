@@ -45,8 +45,8 @@ CONTAINS
    diff_sel_mode   = SEL_COMP 
 !                                                                 
    pop_genfile    = 'GENERATION'
-   pop_trialfile  = 'TRIALFILE'
-   trial_results  = 'RESULTFILE'
+   pop_trialfile  = ' '
+   trial_results  = ' '
    parent_results = 'LOGFILE'
    parent_summary = 'AVERAGES'
 !

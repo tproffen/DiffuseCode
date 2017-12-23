@@ -19,6 +19,22 @@
    Further help topics are:
 
 2  News
+3  2018_Dec
+
+   Major revision of the refinement parameter handling. 
+   The new command 'newparam' effectively replaces for most of the 
+   common refinements the need of the individual commands to set the 
+   parameter values. Throughout the command language much more 
+   epmphasis is placed on the parameter names instead of the
+   parameter numbers. See ==>'refine' and 'init' commands. 
+   The parameter names are alos placed into the user variable
+   environment and handed down to the slave program (discus or kuplot)
+   where they will have the appropriate values for the members of
+   the population.
+
+   Added a 'read' command that reads GENERATION and the ==> 'logfile'
+   This allows for easier changes of the population size, see the
+   entry 'Description / Population_size'
 3  2017_Sep
 
    Throughout the program the internal calculation of random numbers 
@@ -82,6 +98,34 @@
    This new command creates a short copy of the ==> 'logfiles'. 
    This short form contains the parameters just for the last
    refinement generation.
+3  2013_May
+
+   The run_mpi command has been augmented by a "socket" qualifier, which 
+   will cause DIFFEV to run the application program controlled via a
+   socket. This should speed up the process on a multi-core/multi-cpu
+   system.
+3  2011_June
+
+   The program is now a fully functional fortran2003 program.
+   There are no changes that must be followed by the user, but important
+   differences exist in the memory allocation. The internal arrays that hold 
+   the population are now all allocated automatically, when you define the 
+   number of parameters to be refined, the size of the population and the 
+   constraint equations. Most of the time you will not have to bother with 
+   these computational details. If you whish, you can allocate appropriate 
+   array sizes, see ==> 'allocate', 'deallocate'.
+
+   With this version, the program allows the user to change the population
+   size and the number of parameters to be refined during a refinement cylce.
+
+   If the number of parameters to be refined in increased during a cycle,
+   the program will automatically write new child parameter sets and patch
+   the logfile and summary file.
+
+   See the entry ==> "Description" ==> "Increase_Dimension" for an example.
+   
+   Related to this new feature, the ==> "initialize" command now allows to
+   (re-)initialise an individual parameter.
    
 2  Synopsis
 
@@ -97,8 +141,11 @@
 !p donor       ! Defines which donor to use
 !p fix         ! Fixes a parameter 
 !p initialize  ! Initializes the generation zero
+!p lastfile    ! Defines a file name for the parameters for the last generation
 !p logfile     ! Defines the file name for the parameters for each generation
+!p newparam    ! Defines Ra new parameter or new values for a parameter
 !p pop_name    ! Defines names for the individual parameters
+!p read        ! Tells DIFFEV to update its status from GENERATION
 !p refine      ! Defines which parameters are refined/fixed
 !p restrial    ! Defines the file name for the current R-values
 !p run_mpi     ! Run the cost function program in parallel through MPI
@@ -176,21 +223,27 @@
 
    "GENERATION"   Fixed file name in the current directory!
 
-   The file "GENERATION" contains ten lines with the current generation
-   number, and all relevant file names.
+   The file "GENERATION" contains twelve fixed lines with the current
+   generation number, and all relevant file names.
+   Further lines contain the backup file names if defined, the random
+   number seeds and the finally the parameter names and their allowed
+   numerical ranges.
 
-!p # generation members children parameters 
-!p      158        45        90         4
-!p # trial file
-!p DIFFEV/Trials
-!p # result file
-!p DIFFEV/Results
-!p # log file
-!p DIFFEV/Parameter
-!p # summary file
-!p DIFFEV/Summary
+!p  # generation members children parameters 
+!p       158        45        90         4
+!p  # trial file
+!p  DIFFEV/Trials
+!p  # result file
+!p  DIFFEV/Results
+!p  # log file
+!p  DIFFEV/Parameter
+!p  # summary file
+!p  DIFFEV/Summary
+!p  # last    file
+!p  DIFFEV/Current
 
-   Trial files
+
+   Trial files (obsolete)
 
    DIFFEV writes a short file for each member that contains the current
    parameters for one member. 
@@ -208,7 +261,7 @@
 !p     0.2050311089E+01
 !p     0.3000000000E+01
 
-   Result files
+   Result files (obsolete)
 
    DIFFEV expects to read the R-values for each member from a short file.
    The user defined filename is appended by a four digit member number.
@@ -314,24 +367,25 @@
 !p #                       # not by diffev algorithm, but from a local Gaussian
 !p #                       # distributed search.
 !p #
-!p trialfile  Trials       # The temporary file of the current parameter
-!p #                       # values
-!p restrial   Resultate    # The temporary files of the resulting cost 
-!p #                       # function. Must be written by the slave program.
+!p trialfile  silent       # Instead of writing to a file DIFFEV will pass the 
+!p #                       # values silently down to DISCUS/KUPLOT
+!p restrial   silent       # Instead of reading a resultfiel, DIFFEV wil 
+!p #                       # obtain the cost function results directly from
+!p #                       # the slave program.
 !p logfile    Parameter    # The log file for the parameters
 !p summary    Summary      # A shorter log file 
 !p #
-!p init                    # Initializes diffev, Generation zero is written.
+!p init       silent       # Initializes diffev, Generation zero is written.
 !p #
 !p do i[1]=1,15            # A loop over 15 generations
-!p   sys kuplot < kcompare.mac > /dev/null
+!p   run_mpi kuplot, kcompare.mac, 0,  /dev/null
 !p #                       # diffev starts the kuplot program with input 
 !p #                       # from file "kcompare.mac". This macro instructs
 !p #                       # kuplot to read the 'trialfiles', to calculate the
 !p #                       # cost function for each member and to write the
 !p #                       # results into the 'restrial' files.
 !p #
-!p   compare               # diffev reads the 'restrial' files, compares the 
+!p   compare  silent       # diffev reads the 'restrial' files, compares the 
 !p #                       # cost functions of children and parents and 
 !p #                       # creates the next generation.
 !p #
@@ -340,6 +394,18 @@
 
    Here is an example for a macro that should be used to increase the 
    number of parameters to be refined:
+
+!p newparam cube, -5.0, 5.0, -4.8, 4.8, keep:initialize
+!p #                                # Defines a new parameter called "cube"
+!p #                                # that is allowed to be in 
+!p #                                # the range [-5:+5]
+!p #                                # It is initialized in the
+!p #                                # range [-4.8:+4.8]
+!p dismiss          pop_n[1]/2      # Set R-value of half the population 
+!p                                  # to a very high value, thus they will
+!p                                  # be replaced in the next generation
+
+   Prior to version 5.19 the macro would have taken the following command:
 
 !p variable integer, ipar           # just a nice variable name
 !p pop_dimx[1]    = pop_dimx[1] + 1 # increase dimension
@@ -394,35 +460,22 @@
    I cannot give a hint regarding the number of generations required.
    This depends too much on the problem at hand, parameter correlation,
    the initial choice of parameters etc.
-2  News
-3  2013_May
+3  Population_size
 
-   The run_mpi command has been augmented by a "socket" qualifyer, which 
-   will cause DIFFEV to run the application program controlled via a
-   socket. This should speed up the process on a multi-core/multi-cpu
-   system.
-3  2011_June
+   Usually the population size will remain fixed during the course of
+   a refinement. The population size is defined by setting appropriate
+   values to the variable 'pop_n' and 'pop_c' for the parent and 
+   children respectively.
 
-   The program is now a fully functional fortran2003 program.
-   There are no changes that must be followed by the user, but important
-   differences exist in the memory allocation. The internal arrays that hold 
-   the population are now all allocated automatically, when you define the 
-   number of parameters to be refined, the size of the population and the 
-   constraint equations. Most of the time you will not have to bother with 
-   these computational details. If you whish, you can allocate appropriate 
-   array sizes, see ==> 'allocate', 'deallocate'.
+   If you want to change the population size during a refinement, use 
+   a sequence of commands as follows:
 
-   With this version, the program allows the user to change the population
-   size and the number of parameters to be refined during a refinement cylce.
+   read         ! This forces DIFFEV to update the parameters from
+                ! GENERATION and the logfiles
+   pop_n[1] = <new_value>
+   pop_c[1] = <new_value>
 
-   If the number of parameters to be refined in increased during a cycle,
-   the program will automatically write new child parameter sets and patch
-   the logfile and summary file.
-
-   See the entry ==> "Description" ==> "Increase_Dimension" for an example.
-   
-   Related to this new feature, the ==> "initialize" command now allows to
-   (re-)initialise an individual parameter.
+   You may increase or decrease the population size as needed.
 2  allocate
 !b allocate
 !b allocate "default"
@@ -645,8 +698,10 @@
    for diff_k[1] = 1  the effective donor is the donor vector itself.
 2  fix
 !b fix <parameter_no>, {<value> | "best"}
+!b fix <parameter_name>, {<value> | "best"}
 
-   This command fixes the value of parameter <parameter_no> to 
+   This command fixes the value of parameter <parameter_no> or
+   <parameter_name> to 
    <value> for all members of the population. The ==> refine
    flag is turned of for this parameter. 
    If the second parameter is "best", the parameter is set to the
@@ -733,8 +788,52 @@
    Each generation makes up a scan. The first column is the member number, 
    the second the R-value and all further columns the respective parameter 
    values.
+2  newparam
+!b newparam <name>, <xmin>, <xmax>,<smin>, <smax>  
+            [,init:{"keep"|"initialize"}
+            [,real:{"real"|"integer"}
+
+   This command defines a new parameter name or changes the setting for 
+   an existig parameter name. 
+   <xmin>, <xmax> are the absolute lower and upper windows for the
+                  parameter. DIFFEV restricts the refinement to this 
+                  interval.
+   <smin>, <smax> are the lower and uper limit of the starting 
+                  window that is used when a parameter is initialized.
+
+   The optional parameter "init" defines if the current parameter
+   values for the population are kept at their current values or if 
+   this parameter shall be initialized within the start window 
+   <smin>, <smax>.
+
+   The optional parameter "type" defines if the current parameter
+   shall be treated as a real valued number (the default) or as a
+   whole, integer number.
+
+   The command summarizes the individual commands 
+     par_name <name>
+     pop_xmin[<ipar>] = <xmin>
+     pop_xmax[<ipar>] = <xmax>
+     pop_smin[<ipar>] = <smin>
+     pop_smax[<ipar>] = <smax>
+     pop_sig[<ipar>]  = 0.001
+     pop_lsig[<ipar>] = 0.0001
+     type {"real"<"integer"}.<ipar>
+     
+2  read
+!b read
+
+   Instructs DIFFEV to update its status from the files
+   "GENERATION" and the logfiles defined by the command ==> 'logfile'
+
+   Use this command if you want to continue a refinement at an
+   earlier state and if you have manually edited the GENERATION
+   file. This command will ensure that DIFFEV is at the same status 
+   when it was finished/interupted at the generation specified in 
+   file GENERATION.
 2  refine
 !b refine {"all"|"none"|<number> [,<number>...]}
+!b refine {"all"|"none"|<par_name> [,<par_name>...]}
 
    This command allows you to set, which of the variables are refined.
    If you give the parameter number as negative number, the corresponding

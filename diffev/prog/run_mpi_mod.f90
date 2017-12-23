@@ -58,6 +58,7 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    REAL                  :: rvalue     !569 : 569
    REAL                  :: rvalue2    !570 : 570
    REAL,DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
+   CHARACTER(LEN=16),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_names   !  (MAXPOP)
 END TYPE run_mpi_type
 !
 TYPE ( run_mpi_type)     :: run_mpi_senddata

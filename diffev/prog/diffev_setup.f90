@@ -219,6 +219,7 @@ INTERFACE
                             generation, member, &
                             children, parameters, &
                                     nindiv  , &
+                            trial_n,         &
                             trial_v, NTRIAL, &
                             l_get_random_state,     &
                             rd_nseeds,rd_seeds,     &
@@ -248,6 +249,7 @@ INTERFACE
    INTEGER                , INTENT(IN) :: parameters
    INTEGER                , INTENT(IN) :: nindiv
    INTEGER                , INTENT(IN) :: NTRIAL
+   CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_n
    REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
    LOGICAL                , INTENT(IN)  :: l_get_random_state
    INTEGER                , INTENT(OUT) :: rd_nseeds

@@ -222,6 +222,7 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
       run_mpi_senddata%port     = port_id  (run_mpi_senddata%prog_num,i)
    ENDIF
    DO j=1,pop_dimx                          ! Encode current trial values
+      run_mpi_senddata%trial_names (j) = pop_name(j                  ) ! Takes value for kid that answered
       run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
    ENDDO
 !
@@ -267,6 +268,7 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
       run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
       run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
       DO j=1,pop_dimx                          ! Encode current trial values
+         run_mpi_senddata%trial_names (j) = pop_name(j                  ) ! Takes value for kid that answered
          run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
       ENDDO
 !
@@ -505,6 +507,7 @@ slave: DO
                            run_mpi_senddata%generation, run_mpi_senddata%member,   &
                            run_mpi_senddata%children, run_mpi_senddata%parameters, &
                                                    run_mpi_senddata%nindiv  , &
+                           run_mpi_senddata%trial_names ,                          &
                            run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                            run_mpi_senddata%l_get_state,                           &
                            run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &

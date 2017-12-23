@@ -9,11 +9,13 @@
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-28,IO=0)
+      PARAMETER    (IU=-30,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Conflicting lower/upper values for the limits',                & !-30  ! diffev
+     &  'Parameter name already in use',                                & !-29  ! diffev
      &  'Fixed parameter has non-zero distribution',                    & !-28  ! diffev
      &  'Silent mode within discus_suite only',                         & !-27  ! diffev
      &  'MPI TERMINATED due to slave error ',                           & !-26  ! diffev

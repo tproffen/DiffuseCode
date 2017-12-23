@@ -137,7 +137,11 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a,i12)') 'REF_KID        = ',9999
    WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',9999
    DO i=1,pop_dimx
-      WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
+      WRITE(IWR,'(A,A)') 'variable real, ', pop_name(i)
+   ENDDO
+   DO i=1,pop_dimx
+      WRITE(IWR,'(A,       A,E17.10)') pop_name(i),      ' = ',child(i,pop_best)
+!     WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
 !
    IF(random_nseed>0) THEN

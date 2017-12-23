@@ -8,6 +8,7 @@ SUBROUTINE diffev_mache_kdo (line, lend, length)
 !-                                                                      
 USE constraint
 USE charact_mod 
+USE add_param_mod
 USE diff_evol
 USE diffev_mpi_mod
 USE population
@@ -35,17 +36,21 @@ CHARACTER (LEN= *  ), INTENT(INOUT) :: line
 LOGICAL             , INTENT(  OUT) :: lend 
 INTEGER             , INTENT(INOUT) :: length 
 !
-CHARACTER (LEN=1024)                  :: zeile 
-CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara
-CHARACTER (LEN=   9)                  :: befehl 
+CHARACTER (LEN=1024)                  :: zeile   = ' '
+CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
+CHARACTER (LEN=   9)                  :: befehl  = ' '
+CHARACTER (LEN=  17)                  :: string  = ' '
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
-INTEGER                               :: i, j, ii , nb
+INTEGER                               :: i, j, k, ii , nb
 INTEGER                               :: n_pop  ! dummy for allocation
 INTEGER                               :: lb,ub
 INTEGER                               :: kid, indiv, nindiv
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
+INTEGER                               :: str_length
 INTEGER                               :: lpara (maxw) 
+LOGICAL                               :: back_new
+LOGICAL                               :: lexist
 LOGICAL                               :: lbest
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
@@ -202,10 +207,34 @@ ELSE
       IF (ier_num.eq.0) THEN 
          IF(cpara(1)=='NONE') THEN
             pop_backup = .false.
+            pop_back_number = 0
          ELSE
             IF(pop_back_number==MAXBACK) THEN
                CALL alloc_backup(n_pop)
             ENDIF
+            back_new = .TRUE.
+            loop_back: DO i=1,pop_back_number
+               IF(ianz==3) THEN
+                  IF((pop_back_fil(i)                                == cpara(1) .OR.    &
+                      pop_back_fil(i)(1:LEN_TRIM(pop_back_fil(i))-1) == cpara(1)) .AND.  &
+                     (pop_back_ext(i)                                == cpara(2) .OR.    &
+                      pop_back_ext(i)(2:LEN_TRIM(pop_back_ext(i))  ) == cpara(2)) .AND.  &
+                     (pop_back_trg(i)                                == cpara(3) .OR.    &
+                      pop_back_trg(i)(1:LEN_TRIM(pop_back_trg(i))-1) == cpara(3))       ) THEN
+                     back_new = .FALSE.
+                     EXIT loop_back
+                  ENDIF
+               ELSE IF(ianz==2) THEN
+                  IF((pop_back_fil(i)                                == cpara(1) .OR.    &
+                      pop_back_fil(i)(1:LEN_TRIM(pop_back_fil(i))-1) == cpara(1)) .AND.  &
+                     (pop_back_trg(i)                                == cpara(2) .OR.    &
+                      pop_back_trg(i)(1:LEN_TRIM(pop_back_trg(i))-1) == cpara(2))       ) THEN
+                     back_new = .FALSE.
+                     EXIT loop_back
+                  ENDIF
+               ENDIF
+            ENDDO loop_back
+            IF(back_new) THEN
             pop_back_number = pop_back_number + 1
             nb              = pop_back_number
             IF(cpara(ianz)(lpara(ianz):lpara(ianz))=='.') THEN
@@ -236,6 +265,7 @@ ELSE
                pop_back_fil_l(nb) = lpara(1) + 1
             ENDIF 
             pop_backup = .true.
+            ENDIF    ! if(back_new)
          ENDIF 
       ENDIF 
 !                                                                 
@@ -351,6 +381,14 @@ ELSE
          IF (ier_num == 0) THEN 
             IF (ianz == 2) THEN 
                lbest = .false.
+!              Check if parameter names were provided
+               DO i = 1, ianz
+                  DO k=1,pop_dimx
+                     IF(cpara(i)==pop_name(k)) THEN
+                        WRITE(cpara(i),'(I4)') k
+                     ENDIF
+                  ENDDO
+               ENDDO
                IF (str_comp (cpara(2), 'best', 3, lpara(2), 4) ) THEN 
                   lbest = .true.
                   ianz  = ianz - 1
@@ -373,7 +411,7 @@ ELSE
                   ENDIF 
                ENDIF 
                IF ( 0<lb .and. lb<=pop_dimx) THEN
-                  CALL do_read_values   ! Read values from logfile
+                  CALL do_read_values(.FALSE.)   ! Read values from logfile
                   IF(lbest) THEN
                      value = child(lb,pop_best)
                   ELSE
@@ -403,6 +441,7 @@ ELSE
                pop_trial_file_wrt = .true.
                l_init_x = .true.
                CALL do_initialise (l_init_x)
+               pop_initialized = .TRUE.
             ELSE
                IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6).AND. ianz==1) THEN
                   IF(lstandalone) THEN 
@@ -414,6 +453,7 @@ ELSE
                      ianz = ianz - 1
                      l_init_x = .true.
                      CALL do_initialise (l_init_x)
+                     pop_initialized = .TRUE.
                   ENDIF
                ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1) THEN
                   l_init_x = .false.
@@ -427,7 +467,7 @@ ELSE
                   ENDIF
                ELSE
 !
-!                 If last parameter is 'silent' trun trial files off, else leave current status
+!                 If last parameter is 'silent' turn trial files off, else leave current status
 !
                   IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6)) THEN
                      pop_trial_file_wrt = .false.
@@ -444,21 +484,29 @@ ELSE
                         ier_msg(3) = 'Run at least one compare       '
                         RETURN
                      ENDIF
+!                    Check if parameter names were provided
+                     DO i = 1, ianz
+                        DO k=1,pop_dimx
+                           IF(cpara(i)==pop_name(k)) THEN
+                              WRITE(cpara(i),'(I4)') k
+                           ENDIF
+                        ENDDO
+                     ENDDO
                      CALL ber_params (ianz, cpara, lpara, werte, maxw)
-                     IF (ier_num.eq.0) THEN
-                        IF (ianz.eq.1) THEN 
-                           lb = nint(werte(1))
-                           ub = nint(werte(1))
+                     IF (ier_num == 0) THEN
+                        IF (ianz == 1) THEN 
+                           lb = NINT(werte(1))
+                           ub = NINT(werte(1))
                         ELSEIF (ianz.eq.2 ) THEN
-                           lb = nint(werte(1))
-                           ub = nint(werte(2))
+                           lb = MIN(NINT(werte(1)), NINT(werte(2)))
+                           ub = MAX(NINT(werte(2)), NINT(werte(1)))
                         ELSE
                            ier_num = -6
                            ier_typ = ER_COMM
                            RETURN 
                         ENDIF 
                         IF ( 0<lb .and. lb<=ub .and. ub<=pop_dimx) THEN
-                           CALL do_read_values   ! Read values from logfile
+                           CALL do_read_values(.FALSE.)   ! Read values from logfile
                            IF( ier_num /= 0) RETURN
                            CALL init_x ( lb,ub)  ! Initialize parameter range
                            IF( ier_num /= 0) RETURN
@@ -507,6 +555,11 @@ ELSE
          ENDIF 
       ENDIF 
 !                                                                 
+!     -- add a new parameter to the dimension                     
+!                                                                 
+   ELSEIF (str_comp (befehl, 'newparam', 3, lbef, 8) ) THEN 
+      CALL add_param(zeile, length)
+!                                                                 
 !     -- set the name of a refinement parameter                   
 !                                                                 
    ELSEIF (str_comp (befehl, 'pop_name', 3, lbef, 8) ) THEN 
@@ -518,16 +571,40 @@ ELSE
             IF (nint(werte(1)) >  0       .and.         &
                 nint(werte(1)) <= MAXDIMX .and.         &
                 nint(werte(1)) <= pop_dimx     ) THEN
-            pop_lname (nint (werte (1) ) ) = min (lpara (2), 8)
-            pop_name (nint (werte (1) ) ) = cpara (2)(1:pop_lname(nint (werte (1) ) )) 
+                pop_lname (nint (werte(1))) = min(lpara(2), LEN(pop_name))
+                pop_name (nint(werte(1))) = cpara(2)(1:pop_lname(nint(werte(1)))) 
+                DO j=1,var_num
+                      IF(pop_name(NINT(werte(1))) == var_name(j)) THEN
+                  ier_num = -29
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'The parameter names must be unique. Check'
+                  ier_msg(2) = 'with >>''variable show'' for existing names.'
+                  RETURN
+               ENDIF
+            ENDDO
+               pop_dimx_init = .TRUE.      ! The dimension has been initialized in this run
+               string     = 'real, '//pop_name(NINT(werte(1)))
+               str_length = 6+pop_lname(NINT(werte(1)))
+               CALL define_variable(string, str_length)
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
             ENDIF 
          ENDIF 
       ENDIF 
+   ELSEIF (str_comp (befehl, 'read', 4, lbef, 4) ) THEN
+      pop_current = .FALSE.
+      CALL do_read_values(.TRUE.)         ! Always try to read parameters as instructed by user
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
-      CALL do_read_values         ! We need to read values as this can be the first command after a continue
+      INQUIRE(FILE='GENERATION', EXIST=lexist)
+      IF(lexist) THEN                     ! A GENERATION FILE EXISTS
+         CALL do_read_values(.TRUE.)         ! We need to read values as this can be the first command after a continue
+      ENDIF
+      IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
+         IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+         CALL do_initialise (l_init_x)
+         pop_initialized = .TRUE.
+      ENDIF
       IF(ier_num/=0) THEN
          ier_msg(1) = 'Check the GENERATION, the parameter and'
          ier_msg(2) = 'the lastfile for conflicting generation values'
@@ -552,8 +629,9 @@ ELSE
       ENDIF
       DO i=1, pop_dimx
          IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
-            IF(pop_xmin(i) /= pop_xmax(i) .OR. &
-               MINVAL(pop_t(i,:)) /= MAXVAL(pop_t(i,:))) THEN
+            IF(pop_xmin(i) /= pop_xmax(i) .OR.         &
+               MINVAL(pop_t(i,1:MIN(pop_n,pop_c))) /=  &
+               MAXVAL(pop_t(i,1:MIN(pop_n,pop_c)))     ) THEN
                ier_num = -28
                ier_typ = ER_APPL
                write(ier_msg(1),'(a,i4,a)') 'Parameter no.: ',i,' is fixed but'
@@ -671,6 +749,14 @@ ELSE
                pop_refine (i) = .false. 
                ENDDO 
             ELSE 
+!              Check if parameter names were provided
+               DO i = 1, ianz
+                  DO k=1,pop_dimx
+                     IF(cpara(i)==pop_name(k)) THEN
+                        WRITE(cpara(i),'(I4)') k
+                     ENDIF
+                  ENDDO
+               ENDDO
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) THEN 
                   DO i = 1, ianz 
@@ -727,6 +813,8 @@ ELSE
                RETURN 
             ELSE
                pop_trial_file_wrt = .false.
+               pop_trialfile = ' '
+               pop_ltrialfile = 1
             ENDIF 
          ELSE
             pop_trial_file_wrt = .true.
@@ -772,6 +860,8 @@ ELSE
                RETURN 
             ELSE
                pop_result_file_rd = .false.
+               trial_results = ' '
+               ltrial_results = 1
             ENDIF 
          ELSE
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 

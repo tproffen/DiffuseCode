@@ -9,7 +9,7 @@ PRIVATE
 PUBLIC  :: do_compare
 PUBLIC  :: do_dismiss
 PUBLIC  :: do_read_values
-!PUBLIC  :: read_obj_values
+PUBLIC  :: patch_para
 PUBLIC  :: read_par_values
 PUBLIC  :: write_current
 PUBLIC  :: write_parents
@@ -47,7 +47,7 @@ CONTAINS
    INTEGER                        :: i, j , nb
    REAL                           ::  best, worst 
 !                                                                       
-   CALL do_read_values
+   CALL do_read_values(.TRUE.)
    IF ( ier_num /=0) RETURN
 !                                                                       
 !     Selection mode: Compare each child to its parent                  
@@ -61,6 +61,7 @@ CONTAINS
             ENDDO 
             bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
                                                ! This effectively replaces kup.backup.mac
+               IF(j<=pop_c) THEN
                DO nb = 1, pop_back_number
                   WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)), j, &
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -68,6 +69,7 @@ CONTAINS
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb))
                   CALL do_operating_comm(string)
                ENDDO
+               ENDIF
             ENDIF bck_during
          ELSE 
             DO i = 1, pop_dimx 
@@ -84,6 +86,7 @@ CONTAINS
          ENDDO 
          bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
                                             ! This effectively replaces kup.backup.mac
+            IF(j<=pop_c) THEN
             DO nb = 1, pop_back_number
                WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)), j, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -91,6 +94,7 @@ CONTAINS
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb))
                CALL do_operating_comm(string)
             ENDDO
+            ENDIF
          ENDIF bck_prior
       ENDDO 
    ENDIF during
@@ -140,11 +144,12 @@ CONTAINS
    INTEGER                        :: list_number 
    INTEGER                        :: list_index (2 * MAXPOP) 
    REAL                           :: list_val (2 * MAXPOP) 
+   REAL                           :: best, worst
 !                                                                       
    INTEGER                        :: i, j, k, ii , nb
 !
 !                                                                       
-   CALL do_read_values
+   CALL do_read_values(.TRUE.)
    IF ( ier_num /=0) RETURN
 !                                                                       
 !     Selection mode: use the pop_n best of parents and children        
@@ -152,23 +157,39 @@ CONTAINS
 !                                                                       
 !     Create complete list of all r-values                              
 !                                                                       
+   list_val(:) = 0.0
    during: IF (pop_gen.gt.0) THEN 
       DO j = 1, pop_n 
          list_val (j) = parent_val (j) 
       ENDDO 
+      best  = trial_val(1)
+      worst = trial_val(1)
       DO j = 1, pop_c 
          list_val (pop_n + j) = trial_val (j) 
+         best = MIN(best , trial_val(j))
+         worst= MAX(worst, trial_val(j))
       ENDDO 
+      DO j = pop_c+1, pop_n
+         list_val(j) = worst + (worst-best)
+      ENDDO
       list_number = pop_n + pop_c 
    ELSE during
+      best  = trial_val(1)
+      worst = trial_val(1)
       DO j = 1, pop_c 
          list_val (j) = trial_val (j) 
+         best = MIN(best , trial_val(j))
+         worst= MAX(worst, trial_val(j))
       ENDDO 
+      DO j = pop_c+1, pop_n
+         list_val(j) = worst + (worst-best)
+      ENDDO
       list_number = pop_c 
    ENDIF during
 !                                                                       
 !     heapsort index array  on r-values                                 
 !                                                                       
+list_index(:) = 0
    CALL indexx (list_number, list_val, list_index) 
 !                                                                       
 !     copy the pop_n best into the child variables                      
@@ -183,6 +204,7 @@ CONTAINS
 !                                                                       
                ii = list_index (k) 
                IF(ii /= k) THEN
+                  IF(ii> 0 .AND. ii<=pop_c) THEN
                   DO nb = 1, pop_back_number
                      WRITE(string,1000) pop_back_trg(nb)(1:pop_back_trg_l(nb)),ii, &
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -190,12 +212,14 @@ CONTAINS
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb))
                      CALL do_operating_comm(string)
                   ENDDO
+                  ENDIF
                ENDIF
             ELSE 
 !                                                                       
 !     ------ a child                                                       
 !                                                                       
                ii = list_index (k) - pop_n 
+               IF(ii> 0 .AND. ii<=pop_c) THEN
                DO nb = 1, pop_back_number
                   WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -203,6 +227,7 @@ CONTAINS
                                      pop_back_ext(nb)(1:pop_back_ext_l(nb))
                   CALL do_operating_comm(string)
                ENDDO
+               ENDIF
             ENDIF
          ENDDO
          k = 1
@@ -239,6 +264,8 @@ CONTAINS
       bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
          DO k = pop_n ,1, -1
             ii = list_index (k) 
+            IF(k>pop_c) ii = list_index(list_number)  ! Not enough children copy worst
+            IF(ii> 0 .AND. ii<=pop_c) THEN
             DO nb = 1, pop_back_number
                WRITE(string,1000) pop_back_fil(nb)(1:pop_back_fil_l(nb)),ii, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb)),    &
@@ -246,6 +273,7 @@ CONTAINS
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb))
                CALL do_operating_comm(string)
             ENDDO
+            ENDIF
          ENDDO
          CALL diffev_random_save(pop_random(:,1))
       ENDIF bck_prior
@@ -320,6 +348,7 @@ CONTAINS
    USE support_diffev_mod
 !
    USE prompt_mod
+   USE random_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -332,9 +361,12 @@ CONTAINS
    INTEGER                        :: j, i, ii 
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
-   INTEGER                        :: iostatus
+   INTEGER                        :: iostatus, isuccess
    LOGICAL                        :: istda, lcurrent
    REAL                           :: best, worst 
+   REAL                           :: r
+   REAL                           :: temp_val_min, temp_val_max
+   REAL                           :: temp_pop_min, temp_pop_max
 !                                                                       
    INTEGER                        :: len_str   
 !
@@ -381,10 +413,30 @@ CONTAINS
             READ (line (3:8), *  ,END=30,ERR=30,iostat=iostatus) ii 
          ENDDO 
          READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
-         DO j = 1, pop_c                       ! Read all old parameters
-            READ (iwr, *     ,END=30,ERR=30,iostat=iostatus) &
+         isuccess =  0 
+         get_params: DO j = 1, pop_c                       ! Read all old parameters
+            READ (iwr, *     ,iostat=iostatus) &
               &   ii, parent_val (j), pop_x (i, j)
-         ENDDO
+            IF(IS_IOSTAT_END(iostatus)) THEN 
+               isuccess = -13
+               EXIT get_params
+            ENDIF
+         ENDDO get_params
+         IF(isuccess == -13) THEN   ! Premature END of FILE assume population has increased
+            temp_val_min = MINVAL(parent_val)
+            temp_val_max = MAXVAL(parent_val)
+            temp_pop_min = pop_x(i,1)
+            temp_pop_max = pop_x(i,1)
+            DO ii = 1, j-1
+               temp_pop_min = MIN(temp_pop_min,pop_x(i,ii))
+               temp_pop_max = MAX(temp_pop_min,pop_x(i,ii))
+            ENDDO
+            DO ii = j, pop_c        ! Create new parameters
+               parent_val(ii) = temp_val_max + temp_val_min
+               CALL RANDOM_NUMBER(r)
+               pop_x(i,ii)    = temp_pop_min + (temp_pop_max-temp_pop_min)*r
+            ENDDO
+         ENDIF
       ENDDO
 !                                                                       
 !     --Determine best and worst member                                 
@@ -821,8 +873,8 @@ CONTAINS
 !
    DO i = pop_dimx_old+1, pop_dimx
      WRITE(oname, 900) parent_results(1:length), i
-     CALL OEFFNE(ird,fname,stat,lread)              ! open Rvalue as template
-     CALL OEFFNE(iwr,oname,stat,lread)              ! open new Parameter file
+     CALL OEFFNE(ird,fname,stat)              ! open Rvalue as template
+     CALL OEFFNE(iwr,oname,stat)              ! open new Parameter file
      input: DO                                      ! loop over all lines
         READ ( ird, 1000, IOSTAT=ios) line
         IF ( IS_IOSTAT_END(ios)) EXIT input         ! EOF finish reading
@@ -840,6 +892,35 @@ CONTAINS
      CLOSE ( IWR )
    ENDDO
 !
+!  create new LASTFILE  files, use .0000 as template
+!
+   IF(parent_current/= ' ') THEN    ! A file name exists, update
+   WRITE(fname, 900) parent_current(1:length), 0
+!
+!  Loop over new files
+!
+   DO i = pop_dimx_old+1, pop_dimx
+     WRITE(oname, 900) parent_results(1:length), i
+     CALL OEFFNE(ird,fname,stat)                    ! open Rvalue as template
+     CALL OEFFNE(iwr,oname,stat)                    ! open new Parameter file
+     input_c: DO                                      ! loop over all lines
+        READ ( ird, 1000, IOSTAT=ios) line
+        IF ( IS_IOSTAT_END(ios)) EXIT input_c       ! EOF finish reading
+        IF ( line(1:2)=='#C') THEN
+           WRITE(IWR,1000) line(1:len_str(line))
+        ELSEIF ( line(1:2)=='#S') THEN
+           WRITE(IWR,1000) line(1:len_str(line))
+        ELSEIF ( line(1:2)=='#L') THEN
+           WRITE(IWR,1000) line(1:16)//' '//pop_name(i)(1:pop_lname (i) )
+        ELSE
+           WRITE(IWR,1000) line(1:25)//'    0.0000000000E+00'
+        ENDIF
+     ENDDO input_c                                  ! end loop over all lines
+     CLOSE ( IRD )
+     CLOSE ( IWR )
+   ENDDO
+   ENDIF
+!
 !  create new Summary files, use .0000 as template
 !
    length       = len_str(parent_summary)
@@ -849,11 +930,11 @@ CONTAINS
 !
    DO i = pop_dimx_old+1, pop_dimx
       WRITE(oname, 900) parent_summary(1:length), i
-      CALL OEFFNE(ird,fname,stat,lread)              ! open Rvalue as template
+      CALL OEFFNE(ird,fname,stat)                    ! open Rvalue as template
       IF(ier_num /= 0) THEN
          RETURN
       ENDIF
-      CALL OEFFNE(iwr,oname,stat,lread)              ! open new Parameter file
+      CALL OEFFNE(iwr,oname,stat)                    ! open new Parameter file
       READ ( ird, 1000, IOSTAT=ios) line             ! read the three header lines
       READ ( ird, 1000, IOSTAT=ios) line
       READ ( ird, 1000, IOSTAT=ios) line
@@ -867,21 +948,23 @@ CONTAINS
       WRITE ( IWR, 1100) i                           ! Write Header line 1
       WRITE ( IWR, 1000) '#S 1'                      ! Write Header line 2
       line = '#L GEN '                              ! Prepare Header line 3
-      WRITE (line ( 8:71), 1200) pop_name(i)(1:5), pop_name(i)(1:5), &
-                                 pop_name(i)(1:5), pop_name(i)(1:5)
-      DO j =  9, 13
-         IF (line (j:j) .eq.' ') line (j:j) = '_'
-      ENDDO
-      DO j = 27, 31
-         IF (line (j:j) .eq.' ') line (j:j) = '_'
-      ENDDO
-      DO j = 45, 49
-         IF (line (j:j) .eq.' ') line (j:j) = '_'
-      ENDDO
-      DO j = 63, 67
-         IF (line (j:j) .eq.' ') line (j:j) = '_'
-      ENDDO
-      WRITE (iwr, 1000) line (1:71)                  ! Write Header line 1
+      WRITE (line ( 8:), 1200) pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i))), &
+                                 pop_name(i)(1:LEN_TRIM(pop_name(i)))
+!     DO j =  9, 13
+!        IF (line (j:j) .eq.' ') line (j:j) = '_'
+!     ENDDO
+!     DO j = 27, 31
+!        IF (line (j:j) .eq.' ') line (j:j) = '_'
+!     ENDDO
+!     DO j = 45, 49
+!        IF (line (j:j) .eq.' ') line (j:j) = '_'
+!     ENDDO
+!     DO j = 63, 67
+!        IF (line (j:j) .eq.' ') line (j:j) = '_'
+!     ENDDO
+      WRITE (iwr, 1000) line(1:LEN_TRIM(line))        ! Write Header line 1
       input2: DO                                      ! loop over all lines
          READ ( ird, *   , IOSTAT=ios) j
          IF ( IS_IOSTAT_END(ios)) EXIT input2        ! EOF finish reading
@@ -894,7 +977,7 @@ CONTAINS
  900 FORMAT ( A,'.',I4.4)
 1000 FORMAT ( A )
 1100 FORMAT ( '#C Summaryfile by DIFFEV, Parameter no. ',I4.4)
-1200 FORMAT ( ' ',a5,'AVE ',9x,a5,'MIN ',9x,a5,'MAX ',9x,a5,'SIG ')
+1200 FORMAT ( ' ',a,'_AVE',2x,a,'_MIN',2x,a,'_MAX ',2x,a,'_SIG ')
 1300 FORMAT ( I4, 4(1x,E17.10))
 !
    END SUBROUTINE patch_para
@@ -917,7 +1000,7 @@ CONTAINS
    INTEGER             :: j
    REAL                :: shift
 !                                                                       
-   CALL do_read_values       ! If necessary read parameter values from logfile
+   CALL do_read_values(.TRUE.)       ! If necessary read parameter values from logfile
    IF ( ier_num /=0) RETURN
 !                                                                       
 !  heapsort index array  on r-values                                 
@@ -933,7 +1016,7 @@ CONTAINS
 !
    END SUBROUTINE do_dismiss
 !*****7**************************************************************** 
-   SUBROUTINE do_read_values
+   SUBROUTINE do_read_values(forced)
 !
 !  Reads the parameter values from the log file
 !                                                                       
@@ -942,8 +1025,9 @@ CONTAINS
 !
    IMPLICIT none 
 !
+   LOGICAL, INTENT(IN) :: forced
 !                                                                       
-!  init: IF (pop_gen.gt.0) THEN 
+   init: IF (pop_gen.gt.0 .OR. forced) THEN 
       CALL read_genfile 
       IF ( ier_num /=0) THEN
          ier_msg(1) = 'check existence of GENERATION'
@@ -963,7 +1047,7 @@ CONTAINS
          ier_msg(2) = 'has population been properly initialized?'
          RETURN
       ENDIF
-!  ENDIF init
+   ENDIF init
 !
    END SUBROUTINE do_read_values
 !*****7**************************************************************** 
