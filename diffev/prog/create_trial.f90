@@ -627,7 +627,7 @@ IF(IS_IOSTAT_END(IO_STATUS)) THEN
 ENDIF
 !
 !
-READ (iwr, *, IOSTAT=io_status   ,iostat=IO_status) random_nseed
+READ (iwr, *, IOSTAT=io_status   ) random_nseed
 IF(IS_IOSTAT_END(IO_STATUS)) THEN
    CLOSE(iwr)
    RETURN
