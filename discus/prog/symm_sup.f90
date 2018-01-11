@@ -179,6 +179,8 @@ ELSE
    sym_mat (:, :) = 0.0 
    sym_rmat(:, :) = 0.0 
    sym_mat (4, 4) = 1.0 
+   sym_orig(:)    = 0.0
+   sym_orig_mol   = .false.
 !
    sym_mat (:, :) = spc_mat(:,:, sym_use)
 !                                                                       
