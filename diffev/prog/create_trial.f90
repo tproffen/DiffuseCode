@@ -721,6 +721,11 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
    ENDDO
 ENDIF
 CLOSE (iwr) 
+! In case io_status is zero, reset the error message
+IF(io_status==0) THEN
+   ier_num = 0
+   ier_typ = 0
+ENDIF
 !
 IF(io_status /= 0) THEN
    ier_num = -19
