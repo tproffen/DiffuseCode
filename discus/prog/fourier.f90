@@ -428,7 +428,7 @@ CONTAINS
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
                         IF (str_comp (cpara(4), 'all', 3, lpara(4), 3) ) THEN
                            lot_all = .TRUE.
-                           WRITE(cpara(4),'(I12)'), cr_icc(1)*cr_icc(2)*cr_icc(3)
+                           WRITE(cpara(4),'(I12)')  cr_icc(1)*cr_icc(2)*cr_icc(3)
                            lpara(4) = 12
                            cpara(5) = 'Y'
                         ELSE
