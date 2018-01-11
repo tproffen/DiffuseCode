@@ -32,6 +32,7 @@
 !p ccal          : Perform calculations with single data set
 !p color         : Set pen colors
 !p conv          : Calculate convolution of two data sets
+!p costvalue     ! Set a value to be returned to DIFFEV
 !p cmap          : Select color map
 !p deriv         : Calculate the derivative
 !p ecol          : Set color of error bars
@@ -95,7 +96,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
-3  2017_Cct
+3  2018_Jan
+
+   The new command 'costvalue' allows to set a global value 
+   for the cost funciton that is returned to DIFFEV.
+3  2017_Oct
 
    The 'ni' format may now have a leading header that consists of
    lines that start with a '#' in the first column
@@ -311,6 +316,16 @@
    This command calculates the convolution of data sets <ik1> and 
    <ik2> and creates a new data set with the result. Both data sets
    must be on the same equidistant grid ! 
+2  cost
+!b costvalue  <rvalue>
+
+   Set a value that is to be retured to DIFFEV as the overall
+   R-value. It will overwrite the current weighted R-value
+   that was calculated with the ==> 'rval' command. 
+   The value of <rvalue> can be any expression or real valued 
+   variable. This allows to calculate a combined, weighted
+   R-value from several different calculations like single 
+   crystal, powder diffraction, PDF, etc.
 2  cmap
 !b cmap { "gray" | "fire" | "kupl"  }
 !b cmap { "read" | "write"}, <fname>

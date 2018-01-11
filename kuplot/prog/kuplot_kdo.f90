@@ -13,6 +13,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       USE class_macro_internal
       USE learn_mod 
       USE prompt_mod 
+      USE param_mod 
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
@@ -30,6 +31,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       CHARACTER(1024) zei
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(4) bef 
+      REAL, DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
       INTEGER lc, lbef
@@ -131,6 +133,18 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
          ELSEIF (str_comp (bef, 'color', 3, lbef, 4) ) then 
             CALL set_color (zei, lc) 
+!                                                                       
+!------- define a cost function value to be returned to diffev
+!                                                                       
+         ELSEIF (str_comp (bef, 'costvalue', 3, lbef, 4) ) then 
+            CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
+            IF(ianz==1) then
+               CALL ber_params(ianz, cpara, lpara, werte, maxw)
+               IF(ier_num == 0 ) THEN
+                  rvalues(2) = werte(1)
+                  rvalue_yes = .true.
+               ENDIF
+            ENDIF
 !                                                                       
 !-------  Set bitmap colormap                                           
 !                                                                       
