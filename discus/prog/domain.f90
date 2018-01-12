@@ -1179,8 +1179,10 @@ pseudo_ok:  IF(l_ok) THEN
       line = ' ' 
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
+write(*,*) ' READ_INTERNAL S', mole_num_mole, mole_num_type, mole_num_atom
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
               xyz, dummy_iscat, dummy_prop, dummy_surf )
+write(*,*) ' READ_INTERNAL E', mole_num_mole, mole_num_type, mole_num_atom
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
@@ -1347,6 +1349,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   ENDIF
 !                                                                       
 !     --------If we are reading a molecule insert atom into current     
+write(*,*) ' READ STRUC_mole_header ', ier_num, ier_typ, mole_num_type
                   IF (mole_l_on) then 
                      CALL mole_insert_current (cr_natoms, mole_num_curr) 
                      IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
@@ -1412,6 +1415,7 @@ mole_int: IF(mk_infile_internal) THEN
           ENDDO
           IF(ii> 0) THEN ! If any atom is inside current molecule, then set all parameters
              mole_num_mole             = mole_num_mole + 1
+             mole_num_type             = MAX(mole_num_type,temp_mole_type(i))
              mole_off  (mole_num_mole) = k
              mole_type (mole_num_mole) = temp_mole_type (i)
              mole_char (mole_num_mole) = temp_mole_char (i)
