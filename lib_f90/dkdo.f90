@@ -84,12 +84,12 @@ INTEGER :: len_str
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
 !                                                                       
-      IF (line (1:2) .eq.'do'.and.index (line, '=') .ne.0) then 
+      IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
          jlevel (0) = 0 
          i = length - 3 
          CALL rem_bl (line (4:length), i) 
          length = i + 3 
-      ELSEIF (line (1:2) .eq.'do'.and.index (line, 'while') .ne.0) then 
+      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          jlevel (0) = 2 
          i = length - 3 
 !        CALL rem_bl (line (4:length), i) 
@@ -97,7 +97,7 @@ DATA cprom / '/do', '/if', '/do', '/do' /
          length = i + 3 
       ELSEIF (line (1:2) .eq.'do'.and.length.eq.2) then 
          jlevel (0) = 3 
-      ELSEIF (line (1:2) .eq.'if'.and.index (line, 'then') .ne.0) then 
+      ELSEIF (line (1:2) .eq.'if'.and.INDEX (line, 'then') .ne.0) then 
          jlevel (0) = 1 
 !        CALL rem_bl (line, length) 
          CALL rem_insig_bl (line, length) 
@@ -191,11 +191,11 @@ ENDIF
           nlevel (level) = nlevel (level) - 1 
           GOTO 999
       ENDIF
-      IF (line (1:2) .eq.'do'.and.index (line, '=') .ne.0) then 
+      IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
          i = length - 3 
          CALL rem_bl (line (4:length), i) 
          length = i + 3 
-      ELSEIF (line (1:2) .eq.'do'.and.index (line, 'while') .ne.0) then 
+      ELSEIF (line (1:2) .eq.'do'.and.INDEX (line, 'while') .ne.0) then 
          i = length - 3 
 !        CALL rem_bl (line (4:length), i) 
          CALL rem_insig_bl (line (4:length), i) 
@@ -299,13 +299,13 @@ ENDIF
             nlevel (level) = nlevel (level) + 1 
             do_comm (nlevel (level), level) = line 
             do_leng (nlevel (level), level) = length 
-            IF (line (1:2) .eq.'do'.and.index (line, '=') .ne.0) then 
+            IF (line (1:2) .eq.'do'.and.INDEX (line, '=') .ne.0) then 
                jlevel (level) = 0 
-            ELSEIF (line(1:2).eq.'do'.and.index(line,'while').ne.0) then
+            ELSEIF (line(1:2).eq.'do'.and.INDEX(line,'while').ne.0) then
                jlevel (level) = 2 
             ELSEIF (line (1:2) .eq.'do'.and.length.eq.2) then 
                jlevel (level) = 3 
-            ELSEIF (line (1:2).eq.'if'.and.index(line,'then').ne.0) then
+            ELSEIF (line (1:2).eq.'if'.and.INDEX(line,'then').ne.0) then
                jlevel (level) = 1 
             ELSE 
                ier_num = - 31 
@@ -322,7 +322,7 @@ ENDIF
             level = level - 1 
          ELSEIF (jlevel (level) .eq.2.and.length.eq.5) then 
             level = level - 1 
-         ELSEIF (jlevel (level) .eq.3.and.index (line, 'until') .ne.0)  then
+         ELSEIF (jlevel (level) .eq.3.and.INDEX (line, 'until') .ne.0)  then
             level = level - 1 
          ELSE 
             ier_num = - 19 
@@ -541,7 +541,7 @@ END SUBROUTINE do_execute_block
 !     if or elseif command                                              
 !                                                                       
       ELSEIF (line (1:2) .eq.'if'.or.line (1:6) .eq.'elseif') then 
-         IF (index (line, 'then') .eq.0) then 
+         IF (INDEX (line, 'then') .eq.0) then 
             ier_num = - 31 
             ier_typ = ER_FORT 
             RETURN 
@@ -553,8 +553,8 @@ END SUBROUTINE do_execute_block
             level = level - 1 
          ELSE 
 !...........This is the first if statement thats true                   
-            ikl = index (line, '(') 
-            ithen = index (line, 'then') - 1 
+            ikl = INDEX (line, '(') 
+            ithen = INDEX (line, 'then') - 1 
             string = line (ikl:ithen) 
             ltest (level) = if_test (string, ithen - ikl + 1) 
             IF (ier_num.ne.0) then 
@@ -646,8 +646,8 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     search for argument separator on the do-loop command line         
 !                                                                       
-      ipos = index (line, '=') 
-      ikp = index (line, '[') 
+      ipos = INDEX (line, '=') 
+      ikp = INDEX (line, '[') 
 !                                                                       
 !     Do-loop of type: do counter = start,end[,increment]               
 !                                                                       
@@ -749,10 +749,10 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     DO WHILE loop                                                     
 !                                                                       
-      ELSEIF (laenge.gt.4.and.index(line (4:laenge),'while') .ne.0) then
+      ELSEIF (laenge.gt.4.and.INDEX(line (4:laenge),'while') .ne.0) then
          ier_num = 0 
          ier_typ = ER_NONE 
-         ipos = index (line, '(') 
+         ipos = INDEX (line, '(') 
          zeile = line (ipos:laenge) 
          ldostart (level) = .not.if_test (zeile, laenge-ipos + 1) 
          IF (ier_num.ne.0) then 
@@ -786,7 +786,7 @@ END SUBROUTINE do_execute_block
       INTEGER laenge, ipos, level 
       LOGICAL if_test 
 !                                                                       
-      ipos = index (line, 'until') 
+      ipos = INDEX (line, 'until') 
       IF (ipos.ne.0) then 
          zeile = line (ipos + 5:laenge) 
          ldostart (level) = if_test (zeile, laenge- (ipos + 5) + 1) 
@@ -818,8 +818,9 @@ END SUBROUTINE do_execute_block
       INTEGER laenge, icom, iz1, iz2 , iz3
       INTEGER :: ic1, ic2, ic3
       INTEGER :: iper
+      INTEGER :: lcom    ! comparator length
       INTEGER ikl, iklz, ikla, ikla1, ikla2 
-      INTEGER ll, i, lcom, inot, lll 
+      INTEGER ll, i, inot, lll 
       INTEGER istring1, istring2 
       INTEGER istring1_len 
       INTEGER istring2_len 
@@ -839,19 +840,33 @@ END SUBROUTINE do_execute_block
 !     CALL rem_bl (string, laenge) 
       if_test = .false. 
 !     IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
-      IF (laenge <= 2.or.string.eq.' '.or.ier_num.ne.0) then 
+      IF (laenge <= 2.or.string == ' '.or.ier_num /= 0) THEN 
          ier_num = -12
          ier_typ = ER_FORT
          WRITE (ier_msg (2), '(a41)') line (1:41) 
       ELSE 
-         icom = max (index (string, '.lt.') , index (string, '.le.') ,  &
-                     index (string, '.gt.') , index (string, '.ge.') ,  &
-                     index (string, '.eq.') , index (string, '.ne.') )
-         DO while (icom.ne.0) 
+         icom = MAX (INDEX (string, '.lt.') , INDEX (string, '.le.') ,  &
+                     INDEX (string, '.gt.') , INDEX (string, '.ge.') ,  &
+                     INDEX (string, '.eq.') , INDEX (string, '.ne.') ,  &
+                     INDEX (string, '<')    , INDEX (string, '<=')   ,  &
+                     INDEX (string, '>')    , INDEX (string, '<=')   ,  &
+                     INDEX (string, '==')   , INDEX (string, '/=')      &
+                    )
+         DO while (icom /= 0) 
 !                                                                       
 !     --Found an operator, search for numbers before and after          
 !                                                                       
-         comp = string (icom + 1:icom + 2) 
+            lcom = 4
+            IF(string(icom:icom)=='.') THEN
+               comp = string (icom + 1:icom + 2) 
+               lcom = 4
+            ELSEIF(string(icom+1:icom+1) == '=') THEN
+               comp = string(icom:icom+1)
+               lcom = 2
+            ELSEIF(string(icom:icom)=='<' .OR. string(icom:icom)=='>') THEN
+               comp = string(icom:icom)
+               lcom = 1
+            ENDIF
          ic1 = 0
          ic2 = 0
          lll = icom - 1 
@@ -873,7 +888,7 @@ END SUBROUTINE do_execute_block
          IF(ic1==0) THEN                       ! No " found, regular string or number?
          zeile = '('//string (iz1:icom - 1) //')' 
          ll = icom - 1 - iz1 + 3 
-         istring1 = index (zeile, '''') 
+         istring1 = INDEX (zeile, '''') 
          lstring1 = .false. 
          ENDIF
          IF (istring1.gt.1) THEN
@@ -881,7 +896,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     ----found a string variable                                       
 !                                                                       
-            istring2 = index (zeile (istring1 + 1:ll) , '''') + istring1                                                    
+            istring2 = INDEX (zeile (istring1 + 1:ll) , '''') + istring1                                                    
             IF (istring2.eq.istring1) then 
 !                                                                       
 !     ----Missing second ', first ' is there                            
@@ -900,11 +915,15 @@ END SUBROUTINE do_execute_block
                RETURN 
             ENDIF 
          ENDIF 
-         lll = (laenge) - (icom + 4) + 1 
-         ic2 = INDEX(string(icom+4:laenge),'"')   ! Search for "  in post string
+!        lll = (laenge) - (icom + 4) + 1 
+!        ic2 = INDEX(string(icom+4:laenge),'"')   ! Search for "  in post string
+         lll = (laenge) - (icom + lcom) + 1 
+         ic2 = INDEX(string(icom+lcom:laenge),'"')   ! Search for "  in post string
          IF(ic2 > 0 ) THEN                        ! Found a "
-           zeile = string(icom+4+ic2:laenge)
-           lll = laenge-(icom+4+ic2) + 1
+!          zeile = string(icom+4+ic2:laenge)
+!          lll = laenge-(icom+4+ic2) + 1
+           zeile = string(icom+lcom+ic2:laenge)
+           lll = laenge-(icom+lcom+ic2) + 1
            ic3 = INDEX(zeile(1:lll),'"')          ! Search closing "
            iper = 0
            DO i=1, ic3-1                          ! Count %
@@ -912,29 +931,36 @@ END SUBROUTINE do_execute_block
                  iper = iper + 1
               ENDIF
            ENDDO
-           ic3 = icom + 4 + ic2-1 + ic3 +1
+!          ic3 = icom + 4 + ic2-1 + ic3 +1
+           ic3 = icom + lcom + ic2-1 + ic3 +1
            DO i=1,iper                            ! jump to last argument
               ic3 = ic3 + INDEX(string(ic3:laenge),',') 
            ENDDO
            lll = (laenge) - ic3 + 1
            iz3 = suche_nach (string (ic3:laenge), lll) 
-           iz2 = ic3 + iz3 -icom - 4              ! Needed for ersetz_log
-           string2 = string(icom+4+ic2-1:ic3+iz3-1)  ! Cut the string expression
-           istring2_len = (ic3+iz3-1)-(icom+4+ic2-1) + 1
+!          iz2 = ic3 + iz3 -icom - 4              ! Needed for ersetz_log
+!          string2 = string(icom+4+ic2-1:ic3+iz3-1)  ! Cut the string expression
+!          istring2_len = (ic3+iz3-1)-(icom+4+ic2-1) + 1
+           iz2 = ic3 + iz3 -icom - lcom           ! Needed for ersetz_log
+           string2 = string(icom+lcom+ic2-1:ic3+iz3-1)  ! Cut the string expression
+           istring2_len = (ic3+iz3-1)-(icom+lcom+ic2-1) + 1
            lstring2 = .true.
          ENDIF
          IF(ic2==0) THEN                          ! No " found, regular string or number
-            iz2 = suche_nach (string (icom + 4:laenge), lll)
-            zeile = '('//string (icom + 4:icom + 4 + iz2 - 1) //')' 
-            ll = icom + 4 + iz2 - 1 - (icom + 4) + 3 
-            istring1 = index (zeile, '''') 
+!           iz2 = suche_nach (string (icom + 4:laenge), lll)
+!           zeile = '('//string (icom + 4:icom + 4 + iz2 - 1) //')' 
+!           ll = icom + 4 + iz2 - 1 - (icom + 4) + 3 
+            iz2 = suche_nach (string (icom + lcom:laenge), lll)
+            zeile = '('//string (icom + lcom:icom + lcom + iz2 - 1) //')' 
+            ll = icom + lcom + iz2 - 1 - (icom + lcom) + 3 
+            istring1 = INDEX (zeile, '''') 
             lstring2 = .false. 
 !        ENDIF
             IF (istring1.gt.1) then 
 !                                                                       
 !     ----found a string variable                                       
 !                                                                       
-               istring2 = index (zeile (istring1 + 1:ll) , '''') + istring1                                                    
+               istring2 = INDEX (zeile (istring1 + 1:ll) , '''') + istring1                                                    
                IF (istring2.eq.istring1) then 
 !                                                                       
 !     ----Missing second ', first ' is there                            
@@ -971,61 +997,65 @@ END SUBROUTINE do_execute_block
             string2      = cpara (1) (1:lpara (1) ) 
             istring2_len = lpara (1) 
 !                                                                       
-            IF (comp.eq.'eq') then 
+            IF (comp.eq.'eq'.OR.comp=='==') then 
                lscr = string1 (1:istring1_len) .eq.string2 (1:          &
                istring2_len)                                            
-            ELSEIF (comp.eq.'ne') then 
+            ELSEIF (comp.eq.'ne'.OR. comp == '/=' ) then 
                lscr = string1 (1:istring1_len) .ne.string2 (1:          &
                istring2_len)                                            
-            ELSEIF (comp.eq.'lt') then 
+            ELSEIF (comp.eq.'lt'.OR. comp == '<'  ) then 
                lscr = string1 (1:istring1_len) .lt.string2 (1:          &
                istring2_len)                                            
-            ELSEIF (comp.eq.'le') then 
+            ELSEIF (comp.eq.'le'.OR. comp == '<=' ) then 
                lscr = string1 (1:istring1_len) .le.string2 (1:          &
                istring2_len)                                            
-            ELSEIF (comp.eq.'gt') then 
+            ELSEIF (comp.eq.'gt'.OR. comp == '>'  ) then 
                lscr = string1 (1:istring1_len) .gt.string2 (1:          &
                istring2_len)                                            
-            ELSEIF (comp.eq.'ge') then 
+            ELSEIF (comp.eq.'ge'.OR. comp == '>=' ) then 
                lscr = string1 (1:istring1_len) .ge.string2 (1:          &
                istring2_len)                                            
             ENDIF 
 !
          ELSE 
-            IF (comp.eq.'lt') then 
+            IF (    comp.eq.'lt' .OR. comp == '<'  ) then 
                lscr = w1.lt.w2 
-            ELSEIF (comp.eq.'le') then 
+            ELSEIF (comp.eq.'le' .OR. comp == '<=' ) then 
                lscr = w1.le.w2 
-            ELSEIF (comp.eq.'gt') then 
+            ELSEIF (comp.eq.'gt' .OR. comp == '>'  ) then 
                lscr = w1.gt.w2 
-            ELSEIF (comp.eq.'ge') then 
+            ELSEIF (comp.eq.'ge' .OR. comp == '>=' ) then 
                lscr = w1.ge.w2 
-            ELSEIF (comp.eq.'eq') then 
+            ELSEIF (comp.eq.'eq' .OR. comp == '==') then 
                lscr = w1.eq.w2 
-            ELSEIF (comp.eq.'ne') then 
+            ELSEIF (comp.eq.'ne' .OR. comp == '/=' ) then 
                lscr = w1.NE.w2 
             ENDIF 
          ENDIF 
-         lcom = 4 
+!        lcom = 4 
          CALL ersetz_log (string, iz1, iz2, icom, laenge, lcom, lscr) 
-         icom = max (index (string, '.lt.') , index (string, '.le.') ,  &
-                     index (string, '.gt.') , index (string, '.ge.') ,  &
-                     index (string, '.eq.') , index (string, '.ne.') )
+         icom = MAX (INDEX (string, '.lt.') , INDEX (string, '.le.') ,  &
+                     INDEX (string, '.gt.') , INDEX (string, '.ge.') ,  &
+                     INDEX (string, '.eq.') , INDEX (string, '.ne.') ,  &
+                     INDEX (string, '<')    , INDEX (string, '<=')   ,  &
+                     INDEX (string, '>')    , INDEX (string, '<=')   ,  &
+                     INDEX (string, '==')   , INDEX (string, '/=')      &
+                    )
          ENDDO 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          DO while (ikla.ne.0) 
-         iklz = index (string (ikla + 1:laenge) , ')') + ikla 
+         iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
          IF (iklz.eq.ikla) then 
             ier_num = - 9 
             ier_typ = ER_FORT 
             if_test = .false. 
             RETURN 
          ENDIF 
-         ikla2 = index (string (ikla + 1:iklz) , '(') + ikla 
+         ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
          ikla1 = ikla 
          DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
          ikla1 = ikla2 
-         ikla2 = index (string (ikla1 + 1:iklz) , '(') + ikla1 
+         ikla2 = INDEX (string (ikla1 + 1:iklz) , '(') + ikla1 
          ENDDO 
          ikl = max (ikla1, ikla2) 
          IF (ikl.ne.0) then 
@@ -1036,7 +1066,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !         Evaluate any '.not.'                                          
 !                                                                       
-            inot = index (line, '.not.') 
+            inot = INDEX (line, '.not.') 
             DO while (inot.ne.0) 
             READ (line (inot + 5:inot + 5) , '(l1)') lscr 
             lscr = .not.lscr 
@@ -1044,12 +1074,12 @@ END SUBROUTINE do_execute_block
             iz2 = 1 
             lcom = 5 
             CALL ersetz_log (line, iz1, iz2, inot, ll, lcom, lscr) 
-            inot = index (line, '.not.') 
+            inot = INDEX (line, '.not.') 
             ENDDO 
 !                                                                       
 !         Evaluate any '.and.'                                          
 !                                                                       
-            inot = index (line, '.and.') 
+            inot = INDEX (line, '.and.') 
             DO while (inot.ne.0) 
             READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
             READ (line (inot + 5:inot + 5) , '(l1)') lscr 
@@ -1058,12 +1088,12 @@ END SUBROUTINE do_execute_block
             iz2 = 1 
             lcom = 5 
             CALL ersetz_log (line, iz1, iz2, inot, ll, lcom, lscr) 
-            inot = index (line, '.and.') 
+            inot = INDEX (line, '.and.') 
             ENDDO 
 !                                                                       
 !         Evaluate any '.eqv.'                                          
 !                                                                       
-            inot = index (line, '.eqv.') 
+            inot = INDEX (line, '.eqv.') 
             DO while (inot.ne.0) 
             READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
             READ (line (inot + 5:inot + 5) , '(l1)') lscr 
@@ -1072,12 +1102,12 @@ END SUBROUTINE do_execute_block
             iz2 = 1 
             lcom = 5 
             CALL ersetz_log (line, iz1, iz2, inot, ll, lcom, lscr) 
-            inot = index (line, '.eqv.') 
+            inot = INDEX (line, '.eqv.') 
             ENDDO 
 !                                                                       
 !         Evaluate any '.xor.'                                          
 !                                                                       
-            inot = index (line, '.xor.') 
+            inot = INDEX (line, '.xor.') 
             DO while (inot.ne.0) 
             READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
             READ (line (inot + 5:inot + 5) , '(l1)') lscr 
@@ -1086,12 +1116,12 @@ END SUBROUTINE do_execute_block
             iz2 = 1 
             lcom = 5 
             CALL ersetz_log (line, iz1, iz2, inot, ll, lcom, lscr) 
-            inot = index (line, '.xor.') 
+            inot = INDEX (line, '.xor.') 
             ENDDO 
 !                                                                       
 !         Evaluate any '.or.'                                           
 !                                                                       
-            inot = index (line, '.or.') 
+            inot = INDEX (line, '.or.') 
             DO while (inot.ne.0) 
             READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
             READ (line (inot + 4:inot + 4) , '(l1)') lscr 
@@ -1100,7 +1130,7 @@ END SUBROUTINE do_execute_block
             iz2 = 1 
             lcom = 4 
             CALL ersetz_log (line, iz1, iz2, inot, ll, lcom, lscr) 
-            inot = index (line, '.or.') 
+            inot = INDEX (line, '.or.') 
             ENDDO 
             zeile = ' ' 
             IF (ikl.gt.1) zeile (1:ikl - 1) = string (1:ikl - 1) 
@@ -1114,7 +1144,7 @@ END SUBROUTINE do_execute_block
             string = zeile 
             laenge = lll 
          ENDIF 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          ENDDO 
          i = 1 
          DO while (string (i:i) .eq.' ') 
@@ -1487,7 +1517,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      IF (index (line, '"') .gt.0.or.index (line, '''') .gt.0) then 
+      IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0) then 
          CALL do_string_alloc (line, indxg, length) 
          RETURN 
       ENDIF 
@@ -1519,7 +1549,7 @@ END SUBROUTINE do_execute_block
          IF (ier_num.eq.0) then 
             line = cpara (1) 
             i = lpara (1) 
-            ikk = index (line, '[') 
+            ikk = INDEX (line, '[') 
             IF (ikk.lt.i.and.ikk.gt.0) then 
                IF (line (i:i) .eq.']') then 
                   IF (i.gt.ikk + 1) then 
@@ -1600,10 +1630,10 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     for flexibility                                                   
 !                                                                       
-      ising = index (line, '''') 
+      ising = INDEX (line, '''') 
       DO while (ising.gt.0) 
       line (ising:ising) = '"' 
-      ising = index (line, '''') 
+      ising = INDEX (line, '''') 
       ENDDO 
 !                                                                       
 !     Get the expression                                                
@@ -1658,14 +1688,14 @@ END SUBROUTINE do_execute_block
       ENDIF
       IF (ier_num.eq.0) then 
 !                                                                       
-!-----evaluate the index of the variable                                
+!-----evaluate the INDEX of the variable                                
 !                                                                       
          lll = indxg - 1 
          CALL get_params (line (1:indxg - 1), ianz, cpara, lpara, maxw, lll)
          IF (ier_num.eq.0) then 
             line = cpara (1) 
             i = lpara (1) 
-            ikk = index (line, '[') 
+            ikk = INDEX (line, '[') 
             IF (ikk.lt.i.and.ikk.gt.0) then 
                IF (line (i:i) .eq.']') then 
                   IF (i.gt.ikk + 1) then 
@@ -1740,7 +1770,7 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      IF (index (line, '"') .gt.0.or.index (line, '''') .gt.0 ) THEN
+      IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0 ) THEN
          CALL do_string_alloc (line, indxg, i) 
          WRITE (output_io, 3000) line(1:LEN_TRIM(line))
          RETURN 
@@ -1806,16 +1836,16 @@ END SUBROUTINE do_execute_block
          CONTINUE 
       ELSE 
          CALL ersetz_variable (string, laenge) 
-         ie = index (string, 'E') 
+         ie = INDEX (string, 'E') 
          DO while (ie.ne.0) 
          string (ie:ie) = 'e' 
-         ie = index (string, 'E') 
+         ie = INDEX (string, 'E') 
          ENDDO 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          DO while (ikla.ne.0) 
-         iklz = index (string (ikla + 1:laenge) , ')') + ikla 
+         iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = index (string (ikla + 1:iklz) , '(') + ikla 
+            ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
          ELSE 
             ikla2 = ikla 
          ENDIF 
@@ -1823,7 +1853,7 @@ END SUBROUTINE do_execute_block
          DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
          ikla1 = ikla2 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = index (string (ikla1 + 1:iklz) , '(') + ikla1 
+            ikla2 = INDEX (string (ikla1 + 1:iklz) , '(') + ikla1 
          ELSE 
             ikla2 = ikla1 
          ENDIF 
@@ -1847,11 +1877,11 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     ----Found a pair of parentheses, search for inner set             
 !                                                                       
-            ikpa = index (line, '[') 
+            ikpa = INDEX (line, '[') 
             DO while (ikpa.ne.0) 
-            ikpz = index (line (ikpa + 1:ll) , ']') + ikpa 
+            ikpz = INDEX (line (ikpa + 1:ll) , ']') + ikpa 
             IF (ikpz.gt.ikpa + 1) then 
-               ikpa2 = index (line (ikpa + 1:ikpz) , '[') + ikpa 
+               ikpa2 = INDEX (line (ikpa + 1:ikpz) , '[') + ikpa 
             ELSE 
                ikpa2 = ikpa 
             ENDIF 
@@ -1859,7 +1889,7 @@ END SUBROUTINE do_execute_block
             DO while (ikpa2.lt.ikpz.and.ikpa2.gt.ikpa1) 
             ikpa1 = ikpa2 
             IF (ikpz.gt.ikpa + 1) then 
-               ikpa2 = index (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
+               ikpa2 = INDEX (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
             ELSE 
                ikpa2 = ikpa1 
             ENDIF 
@@ -1898,11 +1928,11 @@ END SUBROUTINE do_execute_block
                   RETURN 
                ENDIF 
             ENDIF 
-            ikpa = index (line, '[') 
+            ikpa = INDEX (line, '[') 
             ENDDO 
 !                                                                       
 !                                                                       
-            ikom = index (line, ',') 
+            ikom = INDEX (line, ',') 
             IF (ikom.eq.0) then 
                CALL eval (line, ll) 
                IF (ier_num.ne.0) then 
@@ -1928,7 +1958,7 @@ END SUBROUTINE do_execute_block
                laenge = lll 
             ENDIF 
          ENDIF 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          ENDDO 
       ENDIF 
       r = do_read_number (string, laenge) 
@@ -1972,11 +2002,11 @@ END SUBROUTINE do_execute_block
          CONTINUE 
       ELSE 
          CALL ersetz_variable (string, laenge) 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          DO while (ikla.ne.0) 
-         iklz = index (string (ikla + 1:laenge) , ')') + ikla 
+         iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = index (string (ikla + 1:iklz) , '(') + ikla 
+            ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
          ELSE 
             ikla2 = ikla 
          ENDIF 
@@ -1984,7 +2014,7 @@ END SUBROUTINE do_execute_block
          DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
          ikla1 = ikla2 
          IF (iklz.gt.ikla + 1) then 
-            ikla2 = index (string (ikla1 + 1:iklz) , '(') + ikla1 
+            ikla2 = INDEX (string (ikla1 + 1:iklz) , '(') + ikla1 
          ELSE 
             ikla2 = ikla1 
          ENDIF 
@@ -2008,11 +2038,11 @@ END SUBROUTINE do_execute_block
 !                                                                       
 !     ----Found a pair of parentheses, search for inner set             
 !                                                                       
-            ikpa = index (line, '[') 
+            ikpa = INDEX (line, '[') 
             DO while (ikpa.ne.0) 
-            ikpz = index (line (ikpa + 1:ll) , ']') + ikpa 
+            ikpz = INDEX (line (ikpa + 1:ll) , ']') + ikpa 
             IF (ikpz.gt.ikpa + 1) then 
-               ikpa2 = index (line (ikpa + 1:ikpz) , '[') + ikpa 
+               ikpa2 = INDEX (line (ikpa + 1:ikpz) , '[') + ikpa 
             ELSE 
                ikpa2 = ikpa 
             ENDIF 
@@ -2020,7 +2050,7 @@ END SUBROUTINE do_execute_block
             DO while (ikpa2.lt.ikpz.and.ikpa2.gt.ikpa1) 
             ikpa1 = ikpa2 
             IF (ikpz.gt.ikpa + 1) then 
-               ikpa2 = index (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
+               ikpa2 = INDEX (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
             ELSE 
                ikpa2 = ikpa1 
             ENDIF 
@@ -2059,13 +2089,13 @@ END SUBROUTINE do_execute_block
                   RETURN 
                ENDIF 
             ENDIF 
-            ikpa = index (line, '[') 
+            ikpa = INDEX (line, '[') 
             ENDDO 
 !                                                                       
 !                                                                       
-            ikom = index (line, ',') 
-            icol = index (line, ':') 
-            iapo = index (line, '''') 
+            ikom = INDEX (line, ',') 
+            icol = INDEX (line, ':') 
+            iapo = INDEX (line, '''') 
             IF (ikom.eq.0.and.icol.eq.0.and.iapo.eq.0) then 
                CALL eval (line, ll) 
                IF (ier_num.ne.0) then 
@@ -2143,7 +2173,7 @@ END SUBROUTINE do_execute_block
                ENDIF 
             ENDIF 
          ENDIF 
-         ikla = index (string, '(') 
+         ikla = INDEX (string, '(') 
          ENDDO 
       ENDIF 
   999 CONTINUE 
@@ -2165,7 +2195,7 @@ END SUBROUTINE do_execute_block
       REAL w1, w2, ww 
 !                                                                       
 !...........Evaluate the exponentiation  '**'                           
-      ipot = index (line, '**') 
+      ipot = INDEX (line, '**') 
       DO while (ipot.ne.0) 
       CALL get_w1_w2 (w1, w2, line, ipot, iz1, iz2, ll, 2, lreal) 
       IF (ier_num.ne.0) then 
@@ -2173,11 +2203,11 @@ END SUBROUTINE do_execute_block
       ENDIF 
       ww = w1**w2 
       CALL ersetz (line, iz1, iz2, ww, ipot, ll, 2, lreal) 
-      ipot = index (line, '**') 
+      ipot = INDEX (line, '**') 
       ENDDO 
 !...... Multiplication, division                                        
-      imal = index (line, '*') 
-      idiv = index (line, '/') 
+      imal = INDEX (line, '*') 
+      idiv = INDEX (line, '/') 
       IF (imal.gt.0.and.idiv.gt.0) then 
          iverk = min (imal, idiv) 
       ELSEIF (imal.gt.0.and.idiv.eq.0) then 
@@ -2208,8 +2238,8 @@ END SUBROUTINE do_execute_block
          ENDIF 
       ENDIF 
       CALL ersetz (line, iz1, iz2, ww, iverk, ll, 1, lreal) 
-      imal = index (line, '*') 
-      idiv = index (line, '/') 
+      imal = INDEX (line, '*') 
+      idiv = INDEX (line, '/') 
       IF (imal.gt.0.and.idiv.gt.0) then 
          iverk = min (imal, idiv) 
       ELSEIF (imal.gt.0.and.idiv.eq.0) then 
@@ -2223,38 +2253,38 @@ END SUBROUTINE do_execute_block
 !...... addition,subtraction                                            
 !...........search for all '+' that are not part of  xxxE+yyy           
       IF (line (1:1) .eq.'+') then 
-         iplus = index (line (2:ll) , '+') 
+         iplus = INDEX (line (2:ll) , '+') 
          IF (iplus.ne.0) iplus = iplus + 1 
       ELSE 
-         iplus = index (line, '+') 
+         iplus = INDEX (line, '+') 
       ENDIF 
       IF (iplus.gt.1) then 
-         iexpo = index (line, 'e') 
+         iexpo = INDEX (line, 'e') 
          DO while (iplus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iplus) 
-         ipp = index (line (iplus + 1:ll) , '+') 
+         ipp = INDEX (line (iplus + 1:ll) , '+') 
          IF (ipp.eq.0) then 
             iplus = 0 
          ELSE 
             iplus = iplus + ipp 
-            iexpo = iexpo + index (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
          ENDIF 
          ENDDO 
       ENDIF 
       IF (line (1:1) .eq.'-') then 
-         iminus = index (line (2:ll) , '-') 
+         iminus = INDEX (line (2:ll) , '-') 
          IF (iminus.ne.0) iminus = iminus + 1 
       ELSE 
-         iminus = index (line, '-') 
+         iminus = INDEX (line, '-') 
       ENDIF 
       IF (iminus.gt.1) then 
-         iexpo = index (line, 'e') 
+         iexpo = INDEX (line, 'e') 
          DO while (iminus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iminus) 
          ipp = index (line (iminus + 1:ll) , '-') 
          IF (ipp.eq.0) then 
             iminus = 0 
          ELSE 
             iminus = iminus + ipp 
-            iexpo = iexpo + index (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
          ENDIF 
          ENDDO 
       ENDIF 
@@ -2279,38 +2309,38 @@ END SUBROUTINE do_execute_block
       ENDIF 
       CALL ersetz (line, iz1, iz2, ww, iverk, ll, 1, lreal) 
       IF (line (1:1) .eq.'+') then 
-         iplus = index (line (2:ll) , '+') 
+         iplus = INDEX (line (2:ll) , '+') 
          IF (iplus.ne.0) iplus = iplus + 1 
       ELSE 
-         iplus = index (line, '+') 
+         iplus = INDEX (line, '+') 
       ENDIF 
       IF (iplus.gt.1) then 
-         iexpo = index (line, 'e') 
+         iexpo = INDEX (line, 'e') 
          DO while (iplus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iplus) 
-         ipp = index (line (iplus + 1:ll) , '+') 
+         ipp = INDEX (line (iplus + 1:ll) , '+') 
          IF (ipp.eq.0) then 
             iplus = 0 
          ELSE 
             iplus = iplus + ipp 
-            iexpo = iexpo + index (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
          ENDIF 
          ENDDO 
       ENDIF 
       IF (line (1:1) .eq.'-') then 
-         iminus = index (line (2:ll) , '-') 
+         iminus = INDEX (line (2:ll) , '-') 
          IF (iminus.ne.0) iminus = iminus + 1 
       ELSE 
-         iminus = index (line, '-') 
+         iminus = INDEX (line, '-') 
       ENDIF 
       IF (iminus.gt.1) then 
-         iexpo = index (line, 'e') 
+         iexpo = INDEX (line, 'e') 
          DO while (iminus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iminus) 
-         ipp = index (line (iminus + 1:ll) , '-') 
+         ipp = INDEX (line (iminus + 1:ll) , '-') 
          IF (ipp.eq.0) then 
             iminus = 0 
          ELSE 
             iminus = iminus + ipp 
-            iexpo = iexpo + index (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
          ENDIF 
          ENDDO 
       ENDIF 
@@ -2364,8 +2394,8 @@ END SUBROUTINE do_execute_block
 !                                                                       
       ier_num = - 1 
       ier_typ = ER_FORT 
-      ikom = index (line, ',') 
-      ihyp = max (index (line, '''') , index (line, '"') ) 
+      ikom = INDEX (line, ',') 
+      ihyp = max (INDEX (line, '''') , INDEX (line, '"') ) 
       IF (ikom.eq.0.and.ihyp.eq.0) then 
          ww = do_read_number (line, lp) 
          IF (ier_num.ne.0) then 
@@ -2891,7 +2921,7 @@ ENDIF
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      lreal = index (line (iz1:iverk - 1) , '.') .gt.0 
+      lreal = INDEX (line (iz1:iverk - 1) , '.') .gt.0 
       lll = ll - (iverk + lverk) + 1 
 ! Catch a minus/plus that is intended as sign in front of a number
 IF(lll>2) THEN 
@@ -2911,7 +2941,7 @@ ENDIF
       IF (ier_num.ne.0) then 
          RETURN 
       ENDIF 
-      lreal = lreal.or.index (line (iverk + lverk:iverk + lverk + iz2 - &
+      lreal = lreal.or.INDEX (line (iverk + lverk:iverk + lverk + iz2 - &
       1) , '.') .gt.0                                                   
 !                                                                       
       END SUBROUTINE get_w1_w2                      
@@ -3056,7 +3086,7 @@ ENDIF
       CHARACTER(1024) zeile 
       INTEGER ll, ibl 
 !                                                                       
-      ibl = index (line (1:ll) , ' ') 
+      ibl = INDEX (line (1:ll) , ' ') 
       DO while (ibl.gt.0) 
       zeile = ' ' 
       IF (ibl.gt.1) zeile (1:ibl - 1) = line (1:ibl - 1) 
@@ -3065,7 +3095,7 @@ ENDIF
       ENDIF 
       ll = ll - 1 
       line = zeile 
-      ibl = index (line (1:ll) , ' ') 
+      ibl = INDEX (line (1:ll) , ' ') 
       ENDDO 
       END SUBROUTINE rem_bl                         
 !*****7**************************************************************** 
@@ -3355,7 +3385,7 @@ END FUNCTION len_str
 !DBG          lpara(ianz)= (ipos+ikk-2) - ipos + 1                      
 !DBG          ipos       =ipos+ikk                                      
 !DBG          if(ipos.le.laenge) then                                   
-!DBG            iko=index(string(ipos:laenge),',')                      
+!DBG            iko=INDEX(string(ipos:laenge),',')                      
 !DBG            if(iko.ne.0) then                                       
 !DBG              lll = laenge - ipos + 1                               
 !DBG              ikk=suche_nach(string(ipos:laenge),lll)+1             
@@ -3631,7 +3661,7 @@ main: DO i=1, laenge
 !                                                                       
 !     Get position of left quotation mark into ind_ql                   
 !                                                                       
-      ind_ql = index (cpara (fpara) (1:lpara (fpara) - 1) , '"') 
+      ind_ql = INDEX (cpara (fpara) (1:lpara (fpara) - 1) , '"') 
       IF (ind_ql.lt.1) then 
 !                                                                       
 !     --No quotation mark found, return                                 
@@ -3641,7 +3671,7 @@ main: DO i=1, laenge
 !                                                                       
 !     Get position of right quotation mark into ind_qr                  
 !                                                                       
-      ind_qr = ind_ql + index(cpara(fpara)(ind_ql + 1:lpara(fpara)),'"')
+      ind_qr = ind_ql + INDEX(cpara(fpara)(ind_ql + 1:lpara(fpara)),'"')
       IF (ind_qr.lt.ind_ql + 1) then 
          ier_num = - 30 
          ier_typ = ER_FORT 
@@ -3652,7 +3682,7 @@ main: DO i=1, laenge
 !                                                                       
 !     Find position of first format specifiers                          
 !                                                                       
-      ind_d = index (cpara (fpara)(ind_ql + 1:ind_qr - 1) , '%') + ind_ql
+      ind_d = INDEX (cpara (fpara)(ind_ql + 1:ind_qr - 1) , '%') + ind_ql
 !                                                                       
       laenge = 0 
       pos = ind_ql + 1 
@@ -3671,7 +3701,7 @@ main: DO i=1, laenge
          ind_f = 9999 
          ftyp = 0 
          DO i = 1, NUM_FORM 
-         ind_i = index (cpara (fpara) (ind_d+1:ind_qr - 1), c_form (i) ) 
+         ind_i = INDEX (cpara (fpara) (ind_d+1:ind_qr - 1), c_form (i) ) 
          IF (ind_i.gt.0.and.ind_i.lt.ind_f) then 
             ind_f = ind_i 
             ftyp = i 
@@ -3725,7 +3755,7 @@ main: DO i=1, laenge
       line = '('//cpara (fpara)  (ind_d+1:ind_d+ind_f - 1) //')' 
                ll = ll + 2 
                CALL rem_bl (line (1:ll), ll) 
-               ind_p = index (line (1:ll) , '.') 
+               ind_p = INDEX (line (1:ll) , '.') 
                IF (ind_p.gt.0) then 
                   number = line (1:ind_p - 1) //')' 
                   lp = ind_p 
@@ -3853,9 +3883,9 @@ main: DO i=1, laenge
             ENDIF 
             IF (l_hyp) then 
                IF (l_sin) then 
-                  ising = index (cpara (npara) (2:ll) , '''') + 1 
+                  ising = INDEX (cpara (npara) (2:ll) , '''') + 1 
                ELSE 
-                  ising = index (cpara (npara) (2:ll) , '"') + 1 
+                  ising = INDEX (cpara (npara) (2:ll) , '"') + 1 
                ENDIF 
                IF (ising.eq.ll) then 
                   cpara (npara) = cpara (npara) (2:ll - 1) 
@@ -4019,7 +4049,7 @@ main: DO i=1, laenge
 !     --Any format specifiers left ?                                    
 !                                                                       
       IF (pos.le.ind_qr - 1) then 
-         ind_d = index (cpara (fpara) (pos:ind_qr - 1) , '%') + pos - 1 
+         ind_d = INDEX (cpara (fpara) (pos:ind_qr - 1) , '%') + pos - 1 
          lfloat = (cpara (fpara) (ind_d+1:ind_d+1) .eq.'f') 
       ELSE 
          ind_d = 0 
