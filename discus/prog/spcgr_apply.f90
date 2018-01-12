@@ -1687,7 +1687,8 @@ CONTAINS
          n_mole = MOLE_MAX_MOLE + 20
          need_alloc = .true.
       ENDIF
-      IF (iatom > MOLE_MAX_ATOM ) THEN
+!     IF (iatom > MOLE_MAX_ATOM ) THEN
+      IF (mole_num_atom + 1.ge.MOLE_MAX_ATOM) then 
          n_atom = MOLE_MAX_ATOM + 200
          need_alloc = .true.
       ENDIF
