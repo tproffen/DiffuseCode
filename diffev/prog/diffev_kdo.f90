@@ -39,7 +39,7 @@ INTEGER             , INTENT(INOUT) :: length
 CHARACTER (LEN=1024)                  :: zeile   = ' '
 CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
 CHARACTER (LEN=   9)                  :: befehl  = ' '
-CHARACTER (LEN=  17)                  :: string  = ' '
+CHARACTER (LEN=1024)                  :: string  = ' '
 INTEGER                               :: indxb, indxg, lcomm, lbef, indxt 
 INTEGER                               :: i, j, k, ii , nb
 INTEGER                               :: n_pop  ! dummy for allocation
