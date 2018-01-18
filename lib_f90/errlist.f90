@@ -197,12 +197,13 @@ SUBROUTINE errlist
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -37
+       INTEGER, PARAMETER :: iu = -38
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR (-37:-21) /                       &
+       DATA ERROR (-38:-21) /                       &
+     &  'Number of hyphenations is not matching',   & !-38  ! fortan
      &  'Mean of lognormal is less than zero',      & !-37  ! fortran
      &  'Skew parameter outside [-1:1]',            & !-36  ! fortran
      &  'Sigma/FWHM is less than zero',             & !-35  ! fortran

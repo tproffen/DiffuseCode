@@ -1042,6 +1042,21 @@ END SUBROUTINE do_execute_block
                      INDEX (string, '==')   , INDEX (string, '/=')      &
                     )
          ENDDO 
+         IF(laenge>3) THEN    ! String is long enough for a logical function
+            CALL calc_intr_log(string,laenge)
+!           ikla = 1 + INDEX (string(2:laenge), '(') 
+!           iklz = ikla + INDEX(string(ikla+1:laenge), ')')
+!           line = string(1:laenge-1)
+!           CALL calc_intr_log (string, ikla, iklz, laenge)
+!           IF(ier_num /= -1 .AND. ier_typ == ER_FORT .AND. &
+!              (INDEX(string,'.not.')>0 .OR. INDEX(string,'.and.')>0 .OR. &
+!               INDEX(string,'.or.' )>0 .OR. INDEX(string,'.xor.')>0 .OR. &
+!               INDEX(string,'.eqv.')>0                                  )&
+!              ) THEN   
+!              ier_num = 0    ! Ignore errors from calc_intr
+!              ier_typ = 0
+!           ENDIF
+         ENDIF
          ikla = INDEX (string, '(') 
          DO while (ikla.ne.0) 
          iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
@@ -2356,12 +2371,88 @@ END SUBROUTINE do_execute_block
       ENDDO 
       END SUBROUTINE eval                           
 !*****7**************************************************************** 
+      SUBROUTINE calc_intr_log (string, length)
+!                                                                       
+!     Evaluate all intrinsic logical functions within string
+!                                                                       
+      USE errlist_mod 
+      USE variable_mod
+!
+      CHARACTER (LEN=* ), INTENT(INout) :: string
+      INTEGER           , INTENT(INOUT) :: length
+!
+      INTEGER, PARAMETER :: N_LF = 2
+!
+      CHARACTER (LEN=5), DIMENSION(1:N_LF) :: f_names
+      INTEGER          , DIMENSION(1:N_LF) :: l_names
+      INTEGER :: j
+      INTEGER :: ikl, iklz
+      INTEGER :: ihyp, ihyp2
+      INTEGER :: n_isexp
+      LOGICAL :: lres
+!
+      LOGICAL :: is_expression
+!
+      DATA f_names /'isexp', 'isvar' /
+      DATA l_names / 5     ,  5      /
+!
+ier_num = 0
+ier_typ = ER_NONE
+!
+DO j=1,N_LF                              ! Loop over all defined functions
+   any_isexp: DO                         ! Search unitil no more found
+      n_isexp = INDEX(string,f_names(j))
+      IF(n_isexp > 0 ) THEN              ! We found a function
+         ikl  = n_isexp + INDEX(string(n_isexp+1:length),'(')
+         IF(ikl > n_isexp) THEN          ! We found an opening '('
+            ihyp = ikl + INDEX(string(ikl+1:length),'''')
+            IF(ihyp > ikl) THEN          ! We found an opening ''''
+               ihyp2 = ihyp + INDEX(string(ihyp+1:length),'''')
+               IF(ihyp2 > ihyp) THEN     ! We found an closing ''''
+                  iklz = ihyp2 + INDEX(string(ihyp2+1:length-1),')')
+                  IF(iklz > ihyp2) THEN  ! We found an closing ')'
+                  SELECT CASE (j)
+                  CASE (1)
+                     lres = is_expression(string(ikl+1:iklz-1))
+                  CASE (2)
+                     lres = is_variable(string(ikl+1:iklz-1))
+                  END SELECT
+                  CALL ersetzl (string, ikl, iklz, lres, l_names(j), length)
+                  ELSE
+                     ier_num = -11
+                     ier_typ = ER_FORT
+                     RETURN
+                  ENDIF
+               ELSE
+                  ier_num = -38
+                  ier_typ = ER_FORT
+                  RETURN
+               ENDIF
+            ELSE
+               ier_num = -38
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+         ELSE
+            ier_num = -11
+            ier_typ = ER_FORT
+            RETURN
+         ENDIF
+      ELSE
+         EXIT any_isexp
+      ENDIF
+   ENDDO any_isexp
+ENDDO
+!
+END SUBROUTINE calc_intr_log
+!*****7**************************************************************** 
       SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp) 
 !                                                                       
 !     Evaluate all intrinsic functions                                  
 !                                                                       
       USE errlist_mod 
       USE random_mod
+      USE variable_mod
       USE wink_mod
       USE times_mod
       USE trig_degree_mod
@@ -2883,6 +2974,42 @@ END SUBROUTINE do_execute_block
       ENDIF 
 !                                                                       
       END SUBROUTINE calc_intr                      
+!
+!*****7**************************************************************** 
+      LOGICAL FUNCTION is_expression(string)
+!
+      USE errlist_mod
+!
+      CHARACTER(LEN=*), INTENT(IN) :: string
+!
+      CHARACTER(LEN=1024) :: line
+      INTEGER             :: ihyp, ihyp2, i1, i2, length
+      REAL                :: ww
+      REAL                :: berechne
+!
+      i1 = 1
+      i2 = LEN_TRIM(string)
+      ihyp = MAX (INDEX (string, '''') , INDEX (string, '"') )
+         IF(ihyp > 0) THEN
+         i1 = ihyp+1
+         ihyp2 = ihyp + MAX (INDEX (string(ihyp+1:i2), '''') ,  &
+                             INDEX (string(ihyp+1:i2), '"')   )
+         i2 = ihyp2-1
+      ENDIF
+      is_expression = .FALSE.
+      IF(i2 >= i1) THEN
+         line = '(' // string(i1:i2) // ')'
+         length = LEN_TRIM(line)
+         ww = berechne(line, length)
+         IF(ier_num == 0) then
+            is_expression = .TRUE.
+         ELSE
+            is_expression = .FALSE.
+            CALL no_error
+         ENDIF
+      ENDIF
+!
+      END FUNCTION is_expression
 !*****7**************************************************************** 
       SUBROUTINE get_w1_w2 (w1, w2, line, iverk, iz1, iz2, ll, lverk,   &
       lreal)                                                            
@@ -3014,6 +3141,39 @@ ENDIF
       string = zeile 
       CALL rem_bl (string, lll) 
       END SUBROUTINE ersetz2                        
+!*****7**************************************************************** 
+      SUBROUTINE ersetzl (string, ikl, iklz, ww, lfunk, lll) 
+!
+!     Replaces the intrinsic logical function and its argument by the           
+!     corresponding value ww
+!
+      IMPLICIT none 
+!
+      CHARACTER (LEN= * ) , INTENT(INOUT) ::string 
+      INTEGER             , INTENT(IN)    :: ikl
+      INTEGER             , INTENT(IN)    :: iklz
+      LOGICAL             , INTENT(IN)    :: ww 
+      INTEGER             , INTENT(IN)    :: lfunk
+      INTEGER             , INTENT(INOUT) :: lll 
+!
+      CHARACTER(1024) zeile 
+      INTEGER ltot , laenge
+!
+      laenge = lll 
+      zeile = ' ' 
+      IF (ikl.gt.1) zeile (1:ikl - 1 - lfunk) = string (1:ikl - 1 - lfunk)
+      WRITE (zeile (ikl - lfunk:ikl - lfunk     ) , '(L1     )') ww 
+      lll = ikl - lfunk
+      IF (iklz + 1.le.laenge) then 
+         ltot = (ikl - lfunk + 1 ) + (laenge-iklz - 1 + 1) - 1 
+         IF (ltot.le.len (zeile) ) then 
+            zeile (ikl - lfunk + 1 :ltot) = string (iklz + 1:laenge) 
+            lll = lll + laenge- (iklz + 1) + 1 
+         ENDIF 
+      ENDIF 
+      string = zeile 
+      CALL rem_bl (string, lll) 
+      END SUBROUTINE ersetzl                        
 !*****7**************************************************************** 
       SUBROUTINE ersetzc (string, ikl, iklz, result, l_result, lfunk, lll)
 !                                                                       

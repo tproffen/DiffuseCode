@@ -89,4 +89,36 @@ CONTAINS
 !
    END SUBROUTINE variable_init
 !
+   LOGICAL FUNCTION is_variable(string)
+!
+   USE param_mod
+!
+   CHARACTER(LEN=*), INTENT(IN) :: string
+!
+   INTEGER :: i,ihyp, ihyp2
+   INTEGER :: i1, i2
+!
+   i1 = 1
+   i2 = LEN_TRIM(string)
+   ihyp = MAX (INDEX (string, '''') , INDEX (string, '"') )
+   IF(ihyp > 0) THEN
+      i1 = ihyp+1
+      ihyp2 = ihyp + MAX (INDEX (string(ihyp+1:i2), '''') ,  &
+                          INDEX (string(ihyp+1:i2), '"')   )
+      i2 = ihyp2-1
+   ENDIF
+   is_variable = .FALSE.
+   IF(i2 >= i1) THEN
+      loop: DO i=1, var_num
+         IF(string(i1:i2)==var_name(i)) THEN
+            is_variable = .TRUE.
+            res_para(0) = 2
+            res_para(1) = 1
+            res_para(2) = var_type(i)
+            EXIT LOOP
+         ENDIF
+      ENDDO loop
+   ENDIF
+   END FUNCTION is_variable
+!
 END MODULE variable_mod
