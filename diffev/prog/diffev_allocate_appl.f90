@@ -220,7 +220,7 @@ CONTAINS
          MAX_CONSTR     =  0
          constr_number  =  0
          constr_size_of =  0
-         ier_num        = -2
+         ier_num        = -3
          ier_typ        = ER_COMM
          ier_msg(1)     = 'Constraints'
          RETURN
@@ -251,8 +251,9 @@ CONTAINS
       lstat = .TRUE.
       pop_size_of = 0
 !
-      CALL alloc_arr ( pop_name      ,1,n_dimx, all_status, 'PARA0000', size_of)
+      CALL alloc_arr ( pop_name      ,0,n_dimx, all_status, 'PARA0000', size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pop_name(0) = 'Rvalue'
       pop_size_of = pop_size_of + size_of
 !
       CALL alloc_arr ( pop_type      ,1,n_dimx, all_status, POP_REAL, size_of)
@@ -379,7 +380,7 @@ CONTAINS
          var_val(var_ref+2) = 0  ! Update global user variable
          var_val(var_ref+3) = 0  ! Update global user variable
          pop_size_of   =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Population'
          RETURN
@@ -437,7 +438,7 @@ CONTAINS
       ELSE                                    ! Failure
          MAXBACK        =  0
          pop_back_number=  0
-         ier_num        = -2
+         ier_num        = -3
          ier_typ        = ER_COMM
          ier_msg(1)     = 'Backups'
          RETURN
@@ -489,7 +490,7 @@ CONTAINS
       ELSE                                    ! Failure
          RUN_MPI_MAXPROG =  0
          progs_size_of =   0
-         ier_num         = -2
+         ier_num         = -3
          ier_typ         = ER_COMM
          ier_msg(1)      = 'Socket_programs'
          RETURN

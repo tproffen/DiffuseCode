@@ -366,7 +366,7 @@ MODULE discus_allocate_appl_mod
          CHEM_MAX_AVE_ATOM = n_max_atom
          NMAX          =  1
          chem_aver_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -418,7 +418,7 @@ MODULE discus_allocate_appl_mod
          CHEM_MAX_ANG  = n_ang
          NMAX          =  1
          chem_ang_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -469,7 +469,7 @@ MODULE discus_allocate_appl_mod
          ENDIF
       ELSE                                    ! Failure
          chem_disp_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -535,7 +535,7 @@ MODULE discus_allocate_appl_mod
          ENDIF
       ELSE                                    ! Failure
          chem_env_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -646,7 +646,7 @@ MODULE discus_allocate_appl_mod
          CHEM_MAX_RAN  = n_ran
          NMAX          =  1
          chem_ran_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -699,7 +699,7 @@ MODULE discus_allocate_appl_mod
          CHEM_MAX_VEC  = n_vec
          NMAX          =  1
          chem_vec_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -762,7 +762,7 @@ MODULE discus_allocate_appl_mod
          CHEM_MAX_CON  = n_con
          NMAX          =  1
          chem_con_size_of  =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'CHEMISTRY'
          RETURN
@@ -900,7 +900,7 @@ MODULE discus_allocate_appl_mod
          MAXSCAT       =  1
          NMAX          =  1
          cry_size_of   =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Crystal'
          RETURN
@@ -960,7 +960,7 @@ MODULE discus_allocate_appl_mod
          MAXDQXY       = n_qxy
          DEB_MAXMASK   =  0
          deb_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Debye'
          RETURN
@@ -1069,7 +1069,7 @@ MODULE discus_allocate_appl_mod
             ier_msg(1)    = 'Save'
          ENDIF
       ELSE                                    ! Failure
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Deco'
          RETURN
@@ -1149,7 +1149,7 @@ MODULE discus_allocate_appl_mod
          DIF_MAXAT     =  1
          DIF_MAXSCAT   = n_scat
          dif_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Diffuse'
          RETURN
@@ -1217,7 +1217,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          CLU_MAX_TYPE  = n_clu
          clu_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'domain'
          RETURN
@@ -1268,7 +1268,7 @@ MODULE discus_allocate_appl_mod
          MK_MAX_SCAT   = n_scat
          MK_MAX_ATOM   = n_atoms
          mic_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'micro'
          RETURN
@@ -1390,7 +1390,7 @@ MODULE discus_allocate_appl_mod
          MMC_MAX_CORR     = n_corr
          MMC_MAX_SCAT     = n_scat
          mmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC'
          RETURN
@@ -1460,7 +1460,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          MMC_MAX_ANGLES   = n_angle
          mmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_ANGLES'
          RETURN
@@ -1544,7 +1544,7 @@ MODULE discus_allocate_appl_mod
          MMC_BUCK_CORR    = n_corr
          MMC_BUCK_SCAT    = n_scat
          mmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_BUCKINGHAM'
          RETURN
@@ -1619,7 +1619,7 @@ MODULE discus_allocate_appl_mod
          MMC_LENN_CORR    = n_corr
          MMC_LENN_SCAT    = n_scat
          mmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_Lennard'
          RETURN
@@ -1691,7 +1691,7 @@ MODULE discus_allocate_appl_mod
          MMC_REP_CORR    = n_corr
          MMC_REP_SCAT    = n_scat
          mmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MMC_Repulsive'
          RETURN
@@ -1813,7 +1813,7 @@ MODULE discus_allocate_appl_mod
          MOLE_MAX_TYPE    = n_type
          MOLE_MAX_ATOM    = n_atom
          mol_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'MOLECULE'
 
@@ -1923,7 +1923,7 @@ MODULE discus_allocate_appl_mod
          PDF_MAXDAT    = n_dat
          PDF_MAXBND    = n_bnd
          pdf_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'PDF'
 
@@ -2015,7 +2015,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          PL_MAXSCAT    = n_scat
          pl_size_of    = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Plot'
          RETURN
@@ -2064,7 +2064,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          POW_MAXPKT    = n_qxy
          pow_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Powder'
          RETURN
@@ -2114,7 +2114,7 @@ MODULE discus_allocate_appl_mod
          POW_MAXSCAT   = n_scat
          POW_NMAX      = n_max
          pown_size_of  = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Powder'
          RETURN
@@ -2165,7 +2165,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          RMC_MAXSCAT   = n_scat
          rmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
          RETURN
@@ -2215,7 +2215,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          RMC_MAX_Q     = n_qxy
          rmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
          RETURN
@@ -2268,7 +2268,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
 !        RMC_MAXSCAT   = n_scat
          rmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
          RETURN
@@ -2327,7 +2327,7 @@ MODULE discus_allocate_appl_mod
          RMC_MAX_SQ    = n_sq
          ier_typ       = 0
          rmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
          RETURN
@@ -2455,7 +2455,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          RMC_MAX_PLANES = n_planes
          rmc_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'RMC'
          RETURN
@@ -2501,7 +2501,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          SAV_MAXSCAT   = n_scat
          sav_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Save'
          RETURN
@@ -2543,7 +2543,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          SHEAR_MAXSCAT = n_scat
          shear_size_of = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Shear'
          RETURN
@@ -2670,7 +2670,7 @@ MODULE discus_allocate_appl_mod
          ST_MAXLAYER   = n_layers
          ST_MAXQXY     = n_qxy
          st_size_of    =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Powder'
          RETURN
@@ -2784,7 +2784,7 @@ MODULE discus_allocate_appl_mod
          ST_MAX_SCAT   =  1
          ST_MMAX       =  1
          st_cr_size_of =  0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Crystal'
          RETURN
@@ -2832,7 +2832,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          SURF_MAXSCAT  = n_scat
          surf_size_of  = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Shear'
          RETURN
@@ -2873,7 +2873,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          SYM_MAXSCAT   = n_scat
          sym_size_of   = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Symmetry'
          RETURN
@@ -2914,7 +2914,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          TRAN_MAXSCAT  = n_scat
          tran_size_of  = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Transform'
          RETURN
@@ -2964,7 +2964,7 @@ MODULE discus_allocate_appl_mod
       ELSE                                    ! Failure
          WV_MAXSCAT    = n_scat
          wv_size_of    = 0
-         ier_num       = -2
+         ier_num       = -3
          ier_typ       = ER_COMM
          ier_msg(1)    = 'Waves'
          RETURN
