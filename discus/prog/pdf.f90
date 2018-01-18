@@ -1103,29 +1103,45 @@ main:    DO
 !------ - set boundary: toggle periodic boundaries                      
 !                                                                       
          IF (str_comp(cpara (1),'BOUNDARY',3,lpara(1),8)) THEN
-            IF (ianz.eq.2.or.ianz.eq.3) then 
-               chem_period (1) = str_comp (cpara (2) , 'periodic', 3,     &
-               lpara (2) , 8)                                           
+            IF (ianz==2 .OR. ianz==3 .OR. ianz==4) THEN 
+               chem_period (1) = str_comp(cpara(2), 'periodic', 3, lpara(2), 8)
                chem_period (2) = chem_period (1) 
                chem_period (3) = chem_period (1) 
-               IF (chem_period (1) ) then 
-                  IF (ianz.eq.3) then 
-                     pdf_2d = str_comp (cpara (3),'2D',1,lpara(3), 2)
-                     pdf_lexact = .false. 
-                     IF (pdf_2d) then 
-      WRITE (output_io, 1000) 'periodic bound. 2D, unit cell' 
+               IF (ianz.eq.3) THEN 
+                  cpara(4) = ' '
+                  lpara(4) =  1
+               ENDIF
+               pdf_2d = str_comp (cpara (3),'2D',1,lpara(3), 2) .OR. &
+                        str_comp (cpara (4),'2D',1,lpara(4), 2)
+               pdf_lexact = str_comp (cpara (3),'exact',1,lpara(3), 2) .OR. &
+                            str_comp (cpara (4),'exact',1,lpara(4), 2)
+               IF (chem_period(1) ) THEN
+                  IF (pdf_2d) THEN 
+                     IF (pdf_lexact) THEN 
+                       WRITE (output_io, 1000) 'periodic bound. 2D, exact ' 
                      ELSE 
-      WRITE (output_io, 1000) 'periodic bound. 3D, unit cell' 
+                       WRITE (output_io, 1000) 'periodic bound. 2D, unit cell' 
+                     ENDIF 
+                  ELSE 
+                     IF (pdf_lexact) THEN 
+                       WRITE (output_io, 1000) 'periodic bound. 3D, exact ' 
+                     ELSE 
+                       WRITE (output_io, 1000) 'periodic bound. 3D, unit cell' 
                      ENDIF 
                   ENDIF 
                ELSE 
-                  IF (ianz.eq.3) then 
-                     pdf_lexact = str_comp (cpara(3),'exact',2,lpara (3),5)
-                  ENDIF 
-                  IF (pdf_lexact) then 
-      WRITE (output_io, 1000) 'no periodic bound., exact' 
+                  IF (pdf_2d) THEN 
+                     IF (pdf_lexact) THEN 
+                        WRITE (output_io, 1000) 'no periodic bound., 2D, exact' 
+                     ELSE 
+                        WRITE (output_io, 1000) 'no periodic bound., 2D, unit cell' 
+                     ENDIF 
                   ELSE 
-      WRITE (output_io, 1000) 'no periodic bound., unit cell' 
+                     IF (pdf_lexact) THEN 
+                        WRITE (output_io, 1000) 'no periodic bound., 3D, exact' 
+                     ELSE 
+                        WRITE (output_io, 1000) 'no periodic bound., 3D, unit cell' 
+                     ENDIF 
                   ENDIF 
                ENDIF 
             ELSE 
@@ -2236,6 +2252,7 @@ laccept = .false.
       USE discus_allocate_appl_mod
       USE discus_config_mod 
       USE discus_plot_mod
+      USE chem_mod
       USE crystal_mod 
       USE molecule_mod 
       USE pdf_mod 
@@ -2319,7 +2336,7 @@ laccept = .false.
       ENDIF
 !
       npoint = 1
-      IF (pdf_lexact) then 
+      IF (pdf_lexact .AND. .NOT.chem_period(1)) then 
 !
 !------ Convert to cartesian
 !
@@ -2385,28 +2402,32 @@ laccept = .false.
             IF(do_mol) THEN
                CALL pdf_addcorr_e_all_mol(lout)
             ELSE
-               CALL pdf_addcorr_e_all(lout)
+               IF(chem_period(1)) THEN
+                  CALL pdf_addcorr_ep_all(lout)
+               ELSE
+                  CALL pdf_addcorr_e_all(lout)
+               ENDIF
             ENDIF
          ELSE                  ! Partial PDF
             CALL pdf_addcorr_e (lout) 
          ENDIF 
       ELSE                     ! Use unit cell indexing for large periodic objects 
          IF(all_atoms) THEN    ! All atom types are selected
-         DO ia = 1, cr_natoms 
-         CALL pdf_addcorr_n_fast (ia) 
-         IF (lout.and. (mod (ia, id) .eq.0) ) then 
-            done = 100.0 * float (ia) / float (cr_natoms) 
-            WRITE (output_io, 1000) done 
-         ENDIF 
-         ENDDO 
-     ELSE
-         DO ia = 1, cr_natoms 
-         CALL pdf_addcorr_n (ia) 
-         IF (lout.and. (mod (ia, id) .eq.0) ) then 
-            done = 100.0 * float (ia) / float (cr_natoms) 
-            WRITE (output_io, 1000) done 
-         ENDIF 
-         ENDDO 
+            DO ia = 1, cr_natoms 
+               CALL pdf_addcorr_n_fast (ia) 
+               IF (lout.and. (mod (ia, id) .eq.0) ) then 
+                  done = 100.0 * float (ia) / float (cr_natoms) 
+                  WRITE (output_io, 1000) done 
+               ENDIF 
+            ENDDO 
+        ELSE
+            DO ia = 1, cr_natoms 
+               CALL pdf_addcorr_n (ia) 
+               IF (lout.and. (mod (ia, id) .eq.0) ) then 
+                  done = 100.0 * float (ia) / float (cr_natoms) 
+                  WRITE (output_io, 1000) done 
+               ENDIF 
+            ENDDO 
          ENDIF 
       ENDIF 
 !do is=1,cr_nscat
@@ -2417,12 +2438,12 @@ laccept = .false.
 !enddo
 !enddo
 !open(unit=88,file='PDF_TEMP.DAT',status='unknown')
-!do ia=1,UBOUND(pdf_temp,1)
-!   write(88,'(F8.3,2x,5i8)'), ia*0.01,(pdf_temp(ia,2,2,i),i=0,UBOUND(pdf_temp,4))
+!do ia=0,UBOUND(pdf_temp,1)
+!   write(88,'(F8.3,2x,5i12)'), ia*0.01,(pdf_temp(ia,1,1,i),i=0,UBOUND(pdf_temp,4))
 !enddo
 !close(88)
 !
-      IF (pdf_lexact) then 
+      IF (pdf_lexact .AND. .NOT.chem_period(1)) then 
 !
 !------ Convert back to crystal metric
 !
@@ -3084,6 +3105,92 @@ inner:      DO iatom = ia+1, cr_natoms
 1000  FORMAT     (  '   ',f6.2,' % done  ...') 
 !
       END SUBROUTINE pdf_addcorr_e_all
+!*****7*****************************************************************
+      SUBROUTINE pdf_addcorr_ep_all(lout)
+!+                                                                      
+!     Calculate correlation for given atom ia, exact version, all atoms
+!     Periodic version
+!-                                                                      
+      USE discus_config_mod 
+      USE crystal_mod 
+      USE chem_mod 
+      USE pdf_mod 
+      USE errlist_mod 
+      USE prompt_mod
+      IMPLICIT none 
+!
+      LOGICAL, INTENT(IN) :: lout
+!                                                                       
+      INTEGER :: id
+      INTEGER :: is, js, ia, iatom, ibin 
+      INTEGER   :: ipdf_rmax
+      INTEGER, DIMENSION(3) :: ncell
+      INTEGER, DIMENSION(3) :: icell
+      INTEGER               :: ix,iy,iz   !Loop over periodic boundaries
+      REAL                  :: done, dist
+      REAL   , DIMENSION(3) :: dd
+      REAL :: ss, seknds
+!
+      icell(1) = MAX(cr_icc(1),NINT(cr_dim0(1,2)-cr_dim0(1,1)))
+      icell(2) = MAX(cr_icc(1),NINT(cr_dim0(2,2)-cr_dim0(2,1)))
+      icell(3) = MAX(cr_icc(1),NINT(cr_dim0(3,2)-cr_dim0(3,1)))
+      ncell(1) = INT(pdf_rmax/cr_a0(1)/icell(1)) + 1
+      ncell(2) = INT(pdf_rmax/cr_a0(2)/icell(2)) + 1
+      ncell(3) = INT(pdf_rmax/cr_a0(3)/icell(3)) + 1
+!
+      id = MAX(100, cr_natoms/5)    ! Progress report 20% or every 100 atoms
+      ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
+      ss = seknds (0.0)
+main: DO ia=1,cr_natoms    ! Outer loop over all atoms
+         IF (lout.and. (mod (ia, id) .eq.0) ) then 
+            done = 100.0 * float (ia) / float (cr_natoms) 
+            WRITE (output_io, 1000) done 
+         ENDIF 
+         is = cr_iscat (ia) 
+         IF (is /= 0 ) THEN   ! disregard VOIDs
+!           pdf_temp (0, is, is,0) = pdf_temp (0, is, is,0) +1  ! Element (is,is) is 
+!                                                           ! excluded in the inner loop
+!                                                                       
+!------ - Here starts the inner loop over all atoms                     
+!                                                                       
+!inner:      DO iatom = ia+1, cr_natoms 
+inner:      DO iatom =    1, cr_natoms 
+               js = cr_iscat (iatom) 
+               IF ( js /= 0) THEN 
+                  DO ix=-ncell(1),ncell(1)
+                  DO iy=-ncell(2),ncell(2)
+                  DO iz=-ncell(3),ncell(3)
+                  dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) + FLOAT(ix*icell(1))
+                  dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) + FLOAT(iy*icell(2))
+                  dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) + FLOAT(iz*icell(3))
+            dist  = SQRT(dd(1)*dd(1)*cr_gten(1,1) + dd(2)*dd(2)*cr_gten(2,2) + &
+                    dd(3)*dd(3)*cr_gten(3,3) + 2. * (                     &
+                    dd(1)*dd(2)*cr_gten(1,2) + dd(1)*dd(3)*cr_gten(1,3) + &
+                    dd(2)*dd(3)*cr_gten(2,3)))
+            ibin=INT((dist+pdf_deltars)/pdf_deltar)
+!                 ibin=int((SQRT(dd (1) * dd (1) + &
+!                                dd (2) * dd (2) + &
+!                                dd (3) * dd (3)  )+pdf_deltars)/pdf_deltar)
+!                                                                       
+!                  IF (dist.le.pdf_rmax) THEN 
+                  IF (ibin.le.ipdf_rmax) THEN
+                     pdf_temp (ibin, is, js,0) = pdf_temp (ibin, is, js,0) +1
+!                    pdf_temp (ibin, js, is,0) = pdf_temp (ibin, js, is,0) +1
+                  ENDIF 
+                  ENDDO
+                  ENDDO
+                  ENDDO
+               ENDIF 
+            ENDDO  inner
+         ENDIF 
+      ENDDO  main
+      ss = seknds (ss )
+      WRITE (output_io, 4000) ss
+4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec')
+!                                                                       
+1000  FORMAT     (  '   ',f6.2,' % done  ...') 
+!
+      END SUBROUTINE pdf_addcorr_ep_all
 !*****7*****************************************************************
       SUBROUTINE pdf_addcorr_e_all_mol(lout)
 !+                                                                      
