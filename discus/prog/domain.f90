@@ -73,11 +73,12 @@ SUBROUTINE do_domain (line, lp)
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
-            indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
-     &r_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl, '?   ', &
-     &2, lbef, 4) ) ) then                                              
+indxg = index (line, '=') 
+IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+              .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+              .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                          str_comp (befehl, '?   ', 2, lbef, 4) )    &
+              .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
 !                                                                       
@@ -903,6 +904,7 @@ pseudo_ok:  IF(l_ok) THEN
       USE structur, ONLY: stru_readheader
       USE trafo_mod
       USE errlist_mod 
+use molecule_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1347,7 +1349,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   ENDIF
 !                                                                       
 !     --------If we are reading a molecule insert atom into current     
-                  IF (mole_l_on) then 
+                  IF (mole_l_on .AND. .NOT. mk_infile_internal) then 
                      CALL mole_insert_current (cr_natoms, mole_num_curr) 
                      IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
                         GOTO 999 
@@ -1407,6 +1409,7 @@ mole_int: IF(mk_infile_internal) THEN
                    mole_len  (mole_num_mole+1) = mole_len  (mole_num_mole+1) + 1    ! Adjust length
                    mole_cont (k + mole_len  (mole_num_mole+1)) = temp_in_crystal(j) ! Set content
                    cr_prop (temp_in_crystal(j)) = IBSET (cr_prop (temp_in_crystal(j)), PROP_MOLECULE) 
+                   cr_mole(temp_in_crystal(j)) = mole_num_mole+1
                 ENDIF
              ENDIF
           ENDDO
