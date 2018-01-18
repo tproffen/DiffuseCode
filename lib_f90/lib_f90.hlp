@@ -24,24 +24,32 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
-3  2017_November
+4  2018_Jan
+
+   The logical comparisons may now take the operators:
+   <, <=, ==, /=, >=, >/ 
+   The classical fortran77 operators are still valid
+
+   New logical functions "isvar" and "isexp" can be used within an
+   "if" construction. See help entry ==>'function'
+4  2017_November
 
    A 'manual' command has been added that reads the manual files
-3  2017_Sep
+4  2017_Sep
 
    Throughout the program the internal calculation of random numbers 
    was changed to the FORTRAN 90 intrinsic function. 
-3  2017_July
+4  2017_July
    
    Predefined variables REF_* are now read/write. See ==> variable
 
    Introduced new intrinsic character functions: index and length
    See help under functions for details.
-3  2016_October
+4  2016_October
 
    New system variables have been introduced. They can be used like any
    other user defined variable. System variables are in capital letters.
-3  2014November
+4  2014November
 
    A new random number "gskew" has been added, which returns a 
    Gaussian distributed random number. The underlying distribution
@@ -644,6 +652,18 @@
 !p                                   length('Discus')
 !p                                   length("%c",line)
 !p                                   index("%c",getcwd(0), '/')
+!p isvar('string')                   Returns TRUE if the string is a used
+!p                                   defined variable. Can only be used inside
+!p                                   an if construction:
+!p                                   Examples:
+!p                                   if(isvar('name')) then
+!p                                   if(isvar('$1')) then
+!p isexp('string')                   Returns TRUE if the string is a valid
+!p                                   expression. Can only be used inside
+!p                                   an if construction:
+!p                                   Examples:
+!p                                   if(isexp('3+5.')) then
+!p                                   if(isexp('$1')) then
 3  help
 !b help [<command> [, <subcommand>] ]
 
@@ -680,6 +700,14 @@
 
    The following operators are allowed:
 
+!p  <      ! less than
+!p  <=     ! less or equal
+!p  >      ! greater than
+!p  >=     ! greater or equal
+!p  ==     ! equal
+!p  /=     ! not equal
+
+   The older forms are still valid:
 !p .lt.    ! less than
 !p .le.    ! less or equal
 !p .gt.    ! greater than
