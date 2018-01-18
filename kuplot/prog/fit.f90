@@ -149,9 +149,11 @@
 !------ search for "="                                                  
 !                                                                       
          indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (be&
-     &fehl, '?   ', 2, lbef, 4) ) ) then                                
+      IF (indxg.ne.0                                            &
+         .and..not. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
+         .and..not. (str_comp (befehl, 'help', 2, lbef, 4) .or. &
+                     str_comp (befehl, '?   ', 2, lbef, 4) )    &
+         .AND. INDEX(line,'==') == 0                          )then
             CALL do_math (line, indxg, ll) 
 !                                                                       
 !------ execute a macro file                                            

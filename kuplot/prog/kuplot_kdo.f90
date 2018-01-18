@@ -73,15 +73,19 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !-------Suche nach einem "="                                            
 !                                                                       
       indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (bef, 'echo', 2, lbef, 4) ) .an&
-     &d..not. (str_comp (bef, 'syst', 2, lbef, 4) ) .and..not. (str_comp&
-     & (bef, 'achx', 2, lbef, 4) ) .and..not. (str_comp (bef, 'achy', 2,&
-     & lbef, 4) ) .and..not. (str_comp (bef, 'tit1', 2, lbef, 4) ) .and.&
-     &.not. (str_comp (bef, 'tit2', 2, lbef, 4) ) .and..not. (str_comp (&
-     &bef, 'sleg', 2, lbef, 4) ) .and..not. (str_comp (bef, 'sann', 2, l&
-     &bef, 4) ) .and..not. (str_comp (bef, 'fput', 2, lbef, 4) ) .and..n&
-     &ot. (str_comp (bef, 'help', 2, lbef, 4) .or.str_comp (bef, '?   ',&
-     & 2, lbef, 4) ) ) then                                             
+      IF (indxg.ne.0  &
+         .and..not. (str_comp (bef, 'echo', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'syst', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'achx', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'achy', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'tit1', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'tit2', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'sleg', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'sann', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'fput', 2, lbef, 4) )   &
+         .and..not. (str_comp (bef, 'help', 2, lbef, 4) .or.&
+                     str_comp (bef, '?   ', 2, lbef, 4) )   &
+         .AND. INDEX(line,'==') == 0 ) then
 !                                                                       
 !-------Zuweisung eines Funktionswertes                                 
 !                                                                       
