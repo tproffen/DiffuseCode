@@ -94,6 +94,7 @@ CONTAINS
    child  = 0.0 
    trial  = 0.0 
 !                                                                 
+   pop_name(0) = 'Rvalue'
    DO i = 1, MAXDIMX 
       WRITE (pop_name (i), 1000) i 
       DO j = 1, 8 
@@ -107,7 +108,7 @@ CONTAINS
    trial_val  = 0.0 
    parent_val = 0.0 
 !                                                                       
-    1000 FORMAT    ('PARA',i4) 
+    1000 FORMAT    ('PARA',i4.4) 
 !                                                                       
    END SUBROUTINE init_population                     
 !*****7*****************************************************************

@@ -81,7 +81,7 @@ CONTAINS
 !                                                                 
    length = len_str(parent_results)
    DO i = 0, pop_dimx
-      WRITE (fname, 900) parent_results(1:length), i
+      WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL oeffne (iwr, fname, stat) 
       IF (ier_num.ne.0) return 
       WRITE (iwr, 1000) 
@@ -93,7 +93,7 @@ CONTAINS
    length = len_str(parent_summary)
 !
    i    = 0
-   WRITE (fname, 900) parent_summary(1:length), i
+   WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
    CALL oeffne (iwr, fname, stat) 
    IF (ier_num.ne.0) return 
    WRITE (iwr, 2000) i
@@ -106,7 +106,7 @@ CONTAINS
    CLOSE (iwr) 
 !
    DO i = 1, pop_dimx 
-      WRITE (fname, 900) parent_summary(1:length), i
+      WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL oeffne (iwr, fname, stat) 
       IF (ier_num.ne.0) return 
       WRITE (iwr, 2000) i
@@ -151,6 +151,7 @@ CONTAINS
    CLOSE (IWR)
 !                                                                       
      900 FORMAT (A,'.',I4.4)
+     950 FORMAT (A,'.',A   )
     1000 FORMAT ('#C Logfile by DIFFEV') 
     2000 FORMAT ('#C Summaryfile by DIFFEV, Parameter no. ',i4.4) 
     2100 FORMAT ('#S 1') 
@@ -215,8 +216,8 @@ CONTAINS
                   MINVAL(pop_t(i,:)) /= MAXVAL(pop_t(i,:))) THEN
                   ier_num = -28
                   ier_typ = ER_APPL
-                  write(ier_msg(1),'(a,i4,a)') 'Parameter no.: ',i,' is fixed but'
-                  ier_msg(2) = 'Limits pop_xmin/pop_xmax are not identical'
+                  write(ier_msg(1),'(a,a,a)') 'Parameter: ',pop_name(i),' is fixed but'
+                  ier_msg(2) = 'but limits pop_xmin/pop_xmax are not identical'
                   ier_msg(3) = 'or trial parameters are not identical'
                   RETURN
                ENDIF

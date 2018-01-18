@@ -1,6 +1,6 @@
 !*****7****************************************************************
 !
-      SUBROUTINE diffev_errlist_appl
+SUBROUTINE diffev_errlist_appl
 !-
 !     Displays error Messages for the error type APPLication
 !+
@@ -9,11 +9,12 @@
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-30,IO=0)
+      PARAMETER    (IU=-31,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Parameter name is too long',                                   & !-31  ! diffev
      &  'Conflicting lower/upper values for the limits',                & !-30  ! diffev
      &  'Parameter name already in use',                                & !-29  ! diffev
      &  'Fixed parameter has non-zero distribution',                    & !-28  ! diffev

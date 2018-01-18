@@ -98,7 +98,8 @@ IF (indxg.ne.0.and.                                              &
     &    .not. (str_comp (befehl, 'fput',  2, lbef, 4) ) .and.   &
     &    .not. (str_comp (befehl, 'socket',2, lbef, 5) ) .and.   &
     &    .not. (str_comp (befehl, 'help',  2, lbef, 4) .or.      &
-    &     str_comp (befehl, '?   ',  2, lbef, 4) )      ) THEN      
+    &     str_comp (befehl, '?   ',  2, lbef, 4) )       .AND.   &
+          INDEX(line,'==') == 0                               ) THEN      
 !                                                                 
 !-------Zuweisung eines Funktionswertes                           
 !                                                                 
@@ -571,21 +572,27 @@ ELSE
             IF (nint(werte(1)) >  0       .and.         &
                 nint(werte(1)) <= MAXDIMX .and.         &
                 nint(werte(1)) <= pop_dimx     ) THEN
-                pop_lname (nint (werte(1))) = min(lpara(2), LEN(pop_name))
-                pop_name (nint(werte(1))) = cpara(2)(1:pop_lname(nint(werte(1)))) 
-                DO j=1,var_num
+                IF(lpara(2)>LEN(pop_name)) THEN
+                   ier_num = -31
+                   ier_typ = ER_APPL
+                   WRITE(ier_msg(1),'(a,i2)') 'Parameter length must be <= ',LEN(pop_name)
+                ELSE
+                   pop_lname (nint (werte(1))) = min(lpara(2), LEN(pop_name))
+                   pop_name (nint(werte(1))) = cpara(2)(1:pop_lname(nint(werte(1)))) 
+                   DO j=1,var_num
                       IF(pop_name(NINT(werte(1))) == var_name(j)) THEN
-                  ier_num = -29
-                  ier_typ = ER_APPL
-                  ier_msg(1) = 'The parameter names must be unique. Check'
-                  ier_msg(2) = 'with >>''variable show'' for existing names.'
-                  RETURN
-               ENDIF
-            ENDDO
-               pop_dimx_init = .TRUE.      ! The dimension has been initialized in this run
-               string     = 'real, '//pop_name(NINT(werte(1)))
-               str_length = 6+pop_lname(NINT(werte(1)))
-               CALL define_variable(string, str_length)
+                        ier_num = -29
+                        ier_typ = ER_APPL
+                        ier_msg(1) = 'The parameter names must be unique. Check'
+                        ier_msg(2) = 'with >>''variable show'' for existing names.'
+                        RETURN
+                     ENDIF
+                  ENDDO
+                  pop_dimx_init = .TRUE.      ! The dimension has been initialized in this run
+                  string     = 'real, '//pop_name(NINT(werte(1)))
+                  str_length = 6+pop_lname(NINT(werte(1)))
+                  CALL define_variable(string, str_length)
+               ENDIF 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -754,6 +761,7 @@ ELSE
                   DO k=1,pop_dimx
                      IF(cpara(i)==pop_name(k)) THEN
                         WRITE(cpara(i),'(I4)') k
+                        lpara(i) = 4
                      ENDIF
                   ENDDO
                ENDDO

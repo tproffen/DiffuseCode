@@ -389,9 +389,9 @@ list_index(:) = 0
       pop_dimx_old = 0
       DO i = 1, pop_dimx
          IF(lcurrent) THEN
-            WRITE(fname, 900) parent_current(1:length), i   ! Use current file
+            WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use current file
          ELSE
-            WRITE(fname, 900) parent_results(1:length), i   ! Use full parameter file
+            WRITE(fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use full parameter file
          ENDIF
          INQUIRE ( FILE=fname, EXIST=istda )   ! does file exist?
          IF ( .NOT. istda) EXIT                ! if not exit loop
@@ -399,9 +399,9 @@ list_index(:) = 0
       ENDDO
       DO i = 1, pop_dimx_old                   ! Loop over old dimension
          IF(lcurrent) THEN
-            WRITE(fname, 900) parent_current(1:length), i   ! Use current file
+            WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use current file
          ELSE
-            WRITE(fname, 900) parent_results(1:length), i   ! Use full parameter file
+            WRITE(fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use full parameter file
          ENDIF
          CALL oeffne (iwr, fname, stat) 
          ii = - 1 
@@ -520,6 +520,7 @@ list_index(:) = 0
    ENDIF
 !
     900 FORMAT (A,'.',I4.4)
+    950 FORMAT (A,'.',A   )
    2000 FORMAT ('Child No. ',i4)
 !                                                                       
    END SUBROUTINE read_par_values                
@@ -567,7 +568,7 @@ list_index(:) = 0
 !                                                                       
    length = len_str(parent_results)
    i      = 0                                     ! 0 is the R-value
-   WRITE (fname, 900) parent_results(1:length), i
+   WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
    CALL oeffne_append (iwr, fname, 'unknown' )
    IF (ier_num.ne.0) THEN 
       RETURN 
@@ -595,7 +596,7 @@ list_index(:) = 0
    params: DO i = 1, pop_dimx
 !
       fname = ' '
-      WRITE (fname, 900) parent_results(1:length), i
+      WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL oeffne_append (iwr, fname, 'unknown')
       IF (ier_num.ne.0) THEN 
          RETURN 
@@ -623,7 +624,7 @@ list_index(:) = 0
 !                                                                       
    length = len_str(parent_summary)
    i    = 0
-   WRITE (fname, 900) parent_summary(1:length), i
+   WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
    CALL oeffne_append (iwr, fname, 'unknown') 
    IF (ier_num.ne.0) THEN 
       RETURN 
@@ -664,7 +665,7 @@ list_index(:) = 0
    CLOSE (IWR)
 !
    DO i = 1, pop_dimx 
-      WRITE (fname, 900) parent_summary(1:length), i
+      WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL oeffne_append (iwr, fname, 'unknown') 
       IF (ier_num.ne.0) return
       pave = 0.0 
@@ -719,6 +720,7 @@ list_index(:) = 0
 !   WRITE ( * , * ) ' Error opening file' 
 !                                                                       
      900 FORMAT (A,'.',I4.4)
+     950 FORMAT (A,'.',a   )
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
 !    1200 FORMAT (a10) 
     1250 FORMAT (a) 
@@ -759,7 +761,7 @@ list_index(:) = 0
    length = len_str(parent_current)
    IF(length  > 0 ) THEN                    ! Current file is defined
       i      = 0                                     ! 0 is the R-value
-      WRITE (fname, 900) parent_current(1:length), i
+      WRITE (fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL oeffne(iwr, fname, 'unknown' )
       IF (ier_num.ne.0) THEN 
          RETURN 
@@ -788,7 +790,7 @@ list_index(:) = 0
       current:DO i = 1, pop_dimx
 !
          fname = ' '
-         WRITE (fname, 900) parent_current(1:length),i
+         WRITE (fname, 950) parent_current(1:length),pop_name(i)(1:LEN_TRIM(pop_name(i)))
          CALL oeffne(iwr, fname, 'unknown')
          IF (ier_num.ne.0) THEN 
             RETURN 
@@ -814,6 +816,7 @@ list_index(:) = 0
    ENDIF
 !
      900 FORMAT (A,'.',I4.4)
+     950 FORMAT (A,'.',A   )
     1000 FORMAT ('#C Current file by DIFFEV')
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
     1250 FORMAT (a) 
@@ -859,7 +862,7 @@ list_index(:) = 0
    length       = len_str(parent_results)
    pop_dimx_old = 0
    DO i = 1, pop_dimx
-      WRITE(fname, 900) parent_results(1:length), i
+      WRITE(fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       INQUIRE ( FILE=fname, EXIST=istda )   ! does file exist?
       IF ( .NOT. istda) EXIT                ! if not exit loop
       pop_dimx_old = i                      ! current old dimension
@@ -867,12 +870,13 @@ list_index(:) = 0
 !
 !  create new Parameter files, use .0000 as template
 !
-   WRITE(fname, 900) parent_results(1:length), 0
+   i = 0
+   WRITE(fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
 !
 !  Loop over new files
 !
    DO i = pop_dimx_old+1, pop_dimx
-     WRITE(oname, 900) parent_results(1:length), i
+     WRITE(oname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
      CALL OEFFNE(ird,fname,stat)              ! open Rvalue as template
      CALL OEFFNE(iwr,oname,stat)              ! open new Parameter file
      input: DO                                      ! loop over all lines
@@ -895,12 +899,13 @@ list_index(:) = 0
 !  create new LASTFILE  files, use .0000 as template
 !
    IF(parent_current/= ' ') THEN    ! A file name exists, update
-   WRITE(fname, 900) parent_current(1:length), 0
+   i = 0
+   WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
 !
 !  Loop over new files
 !
    DO i = pop_dimx_old+1, pop_dimx
-     WRITE(oname, 900) parent_results(1:length), i
+     WRITE(oname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
      CALL OEFFNE(ird,fname,stat)                    ! open Rvalue as template
      CALL OEFFNE(iwr,oname,stat)                    ! open new Parameter file
      input_c: DO                                      ! loop over all lines
@@ -924,12 +929,13 @@ list_index(:) = 0
 !  create new Summary files, use .0000 as template
 !
    length       = len_str(parent_summary)
-   WRITE(fname, 900) parent_summary(1:length), 0
+   i = 0
+   WRITE(fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
 !
 !  Loop over new files
 !
    DO i = pop_dimx_old+1, pop_dimx
-      WRITE(oname, 900) parent_summary(1:length), i
+      WRITE(oname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
       CALL OEFFNE(ird,fname,stat)                    ! open Rvalue as template
       IF(ier_num /= 0) THEN
          RETURN
@@ -975,6 +981,7 @@ list_index(:) = 0
    ENDDO
 !
  900 FORMAT ( A,'.',I4.4)
+ 950 FORMAT ( A,'.',A   )
 1000 FORMAT ( A )
 1100 FORMAT ( '#C Summaryfile by DIFFEV, Parameter no. ',I4.4)
 1200 FORMAT ( ' ',a,'_AVE',2x,a,'_MIN',2x,a,'_MAX ',2x,a,'_SIG ')
