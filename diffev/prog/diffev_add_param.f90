@@ -65,6 +65,12 @@ linit =      str_comp(opara(1), 'init',    2, lpara(1), 4)
 lreal = .NOT.str_comp(opara(2), 'integer', 3, lpara(2), 7)
 !
 !
+IF(lpara(1)>LEN(pop_name)) THEN
+   ier_num = -31
+   ier_typ = ER_APPL
+   WRITE(ier_msg(1),'(a,i2)') 'Parameter length must be <= ',LEN(pop_name)
+   RETURN
+ENDIF
 pname  = ' '
 pname  = cpara(1)(1:MIN(lpara(1),LEN(pname)))
 lpname = MIN(lpara(1),LEN(pname))
