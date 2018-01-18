@@ -43,10 +43,10 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
    master_slave: IF ( run_mpi_myid == master ) THEN  ! MPI master or stand alone
 !                                                                       
       CALL no_error 
-      INQUIRE(FILE='GENERATION', EXIST=lexist)
-      IF(lexist) THEN
-         CALL read_genfile
-      ENDIF
+!     INQUIRE(FILE='GENERATION', EXIST=lexist)
+!     IF(lexist) THEN
+!        CALL read_genfile
+!     ENDIF
 !                                                                       
 !------ This is the main loop: reading commands ..                      
 !                                                                       
