@@ -20,6 +20,15 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2018_Jan
+
+   The logical comparisons may now take the operators:
+   <, <=, ==, /=, >=, >/
+   The classical fortran77 operators are still valid
+
+   New logical functions "isvar" and "isexp" can be used within an
+   "if" construction. See help entry ==>'function' in the
+   general "Command_lang" section
 3  2017_Sep
 
    Throughout the program the internal calculation of random numbers 

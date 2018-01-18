@@ -72,6 +72,15 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Jan
+
+   The logical comparisons may now take the operators:
+   <, <=, ==, /=, >=, >/
+   The classical fortran77 operators are still valid
+
+   New logical functions "isvar" and "isexp" can be used within an
+   "if" construction. See help entry ==>'function' in the
+   general "Command_lang" section.
 3  2017_Nov
 
    Added RMCprofile version 6 format to imports 

@@ -100,6 +100,14 @@
 
    The new command 'costvalue' allows to set a global value 
    for the cost funciton that is returned to DIFFEV.
+
+   The logical comparisons may now take the operators:
+   <, <=, ==, /=, >=, >/
+   The classical fortran77 operators are still valid
+
+   New logical functions "isvar" and "isexp" can be used within an
+   "if" construction. See help entry ==>'function' in the
+   general "Command_lang" section.
 3  2017_Oct
 
    The 'ni' format may now have a leading header that consists of
