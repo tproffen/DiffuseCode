@@ -71,12 +71,12 @@ USE errlist_mod
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
-            indxg = index (line, '=')
-            is_math: IF (indxg.ne.0.and.                            &
-               .not. (str_comp (befehl, 'echo', 2, lbef, 4) ) .and. &
-               .not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and. &
-               .not. (str_comp (befehl, 'help', 2, lbef, 4)   .or.  &
-                      str_comp (befehl, '?   ', 2, lbef, 4) ) ) THEN
+         indxg = index (line, '=') 
+         is_math: IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                       .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
 !                                                                       

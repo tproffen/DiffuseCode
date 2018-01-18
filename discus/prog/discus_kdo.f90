@@ -94,12 +94,14 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !                                                                       
 !-------Suche nach einem "="                                            
 !                                                                       
-      indxg = index (line, '=') 
-      IF (indxg.ne.0.and..not. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-     &.and..not. (str_comp (befehl, 'syst', 2, lbef, 4) ) .and..not. (st&
-     &r_comp (befehl, 'fput', 2, lbef, 4) ) .and..not. (str_comp (befehl&
-     &, 'socket', 2, lbef, 5) ) .and..not. (str_comp (befehl, 'help', 2,&
-     & lbef, 4) .or.str_comp (befehl, '?   ', 2, lbef, 4) ) ) then      
+indxg = index (line, '=') 
+IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'fput', 2, lbef, 4) )       &
+             .AND. .NOT. (str_comp (befehl, 'socket', 2, lbef, 5) )     &
+             .AND. .NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR.    &
+                          str_comp (befehl, '?   ', 2, lbef, 4) )       &
+             .AND. INDEX(line,'==') == 0                            ) THEN      
 !                                                                       
 !-------Zuweisung eines Funktionswertes                                 
 !                                                                       
