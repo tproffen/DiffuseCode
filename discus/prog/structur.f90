@@ -756,9 +756,9 @@ REAL            ,                  INTENT(IN) :: r_identical
       IF ( n_mole > MOLE_MAX_MOLE  .or.  &
            n_type > MOLE_MAX_TYPE  .or.  &
            n_atom > MOLE_MAX_ATOM      ) THEN
-         n_mole = MAX(n_mole,MOLE_MAX_MOLE)
-         n_type = MAX(n_type,MOLE_MAX_TYPE)
-         n_atom = MAX(n_atom,MOLE_MAX_ATOM)
+         n_mole = MAX(n_mole,MOLE_MAX_MOLE,1)
+         n_type = MAX(n_type,MOLE_MAX_TYPE,1)
+         n_atom = MAX(n_atom,MOLE_MAX_ATOM,1)
          CALL alloc_molecule(1, 1, n_mole, n_type, n_atom)
          IF ( ier_num /= 0) THEN
             CLOSE (IST)
@@ -1172,11 +1172,11 @@ check_calc: DO j = 1, ianz
 !                                                                       
       LOGICAL str_comp 
 !
-!                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                                                                        
-      IF (ier_num.eq.0) then 
-         IF (ianz.eq.0) then 
+!
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+!
+IF (ier_num.eq.0) THEN 
+   IF (ianz.eq.0) THEN 
 !                                                                       
 !     --No parameters, start a new Molekule                             
 !                                                                       
@@ -1197,247 +1197,196 @@ check_calc: DO j = 1, ianz
       IF ( need_alloc ) THEN
          call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
       ENDIF
-            IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
-               IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
-                  mole_l_on = .true. 
-                  mole_l_first = .true. 
-                  mole_num_atom = mole_off (mole_num_mole) + mole_len ( &
-                  mole_num_mole)                                        
-                  mole_num_mole = mole_num_mole+1 
-                  mole_num_curr = mole_num_mole 
-                  mole_num_type = mole_num_type+1 
-                  mole_off (mole_num_mole) = mole_num_atom 
-                  mole_type (mole_num_mole) = mole_num_type 
-                  mole_gene_n = 0 
-                  mole_symm_n = 0 
-               ELSE 
-                  ier_num = - 66 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               ier_num = - 65 
-               ier_typ = ER_APPL 
-               RETURN 
-            ENDIF 
+      IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
+         IF (mole_num_type.lt.MOLE_MAX_TYPE) then 
+            mole_l_on = .true. 
+            mole_l_first = .true. 
+            mole_num_atom = mole_off (mole_num_mole) + &
+                            mole_len (mole_num_mole)                                        
+            mole_num_mole = mole_num_mole+1 
+            mole_num_curr = mole_num_mole 
+            mole_num_type = mole_num_type+1 
+            mole_off (mole_num_mole) = mole_num_atom 
+            mole_type(mole_num_mole) = mole_num_type 
+            mole_gene_n = 0 
+            mole_symm_n = 0 
          ELSE 
+            ier_num = - 66 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+      ELSE 
+         ier_num = - 65 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+write(*,*) ' READ MOLECULE LINE, mole_num_type, MOLE_MAX_TYPE ', mole_num_type, MOLE_MAX_MOLE, &
+mole_type(mole_num_mole)
+   ELSE 
 !                                                                       
 !     --Parameters, interpret parameters                                
 !                                                                       
-            IF (str_comp (cpara (1) , 'end', 3, lpara (1) , 3) ) then 
+      IF (str_comp (cpara (1) , 'end', 3, lpara (1) , 3) ) then 
 !                                                                       
 !     ----Turn off molecule                                             
 !                                                                       
-               IF (lcell) call mole_firstcell 
-               mole_l_on = .false. 
+         IF (lcell) call mole_firstcell 
+           mole_l_on = .false. 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'character', 3, lpara (1) , 9)&
-            ) then                                                      
+      ELSEIF(str_comp(cpara(1), 'character', 3, lpara(1), 9)) THEN
 !                                                                       
 !     ------Define whether this is a molecule or an object              
 !                                                                       
-               IF (str_comp (cpara (2) , 'atoms', 2, lpara (2) , 5) )   &
-               then                                                     
-                  mole_char (mole_num_mole) = MOLE_ATOM 
-               ELSEIF (str_comp (cpara (2) , 'cube', 2, lpara (2) , 4) )&
-               then                                                     
-                  mole_char (mole_num_mole) = MOLE_CUBE 
-               ELSEIF (str_comp (cpara (2) , 'cylinder', 2, lpara (2) , &
-               8) ) then                                                
-                  mole_char (mole_num_mole) = MOLE_CYLINDER 
-               ELSEIF (str_comp (cpara (2) , 'sphere', 2, lpara (2) , 6)&
-               ) then                                                   
-                  mole_char (mole_num_mole) = MOLE_SPHERE 
-               ELSEIF (str_comp (cpara (2) , 'edge', 2, lpara (2) , 4) )&
-               then                                                     
-                  mole_char (mole_num_mole) = MOLE_EDGE 
-               ELSEIF (str_comp (cpara (2) , 'domain_cube', 9, lpara (2)&
-               , 11) ) then                                             
-                  mole_char (mole_num_mole) = MOLE_DOM_CUBE 
-               ELSEIF (str_comp (cpara (2) , 'domain_cylinder', 9,      &
-               lpara (2) , 15) ) then                                   
-                  mole_char (mole_num_mole) = MOLE_DOM_CYLINDER 
-               ELSEIF (str_comp (cpara (2) , 'domain_sphere', 9, lpara (&
-               2) , 13) ) then                                          
-                  mole_char (mole_num_mole) = MOLE_DOM_SPHERE 
-               ELSEIF (str_comp (cpara (2) , 'domain_fuzzy', 9, lpara ( &
-               2) , 12) ) then                                          
-                  mole_char (mole_num_mole) = MOLE_DOM_FUZZY 
-               ELSE 
-                  ier_num = - 82 
-                  ier_typ = ER_APPL 
-               ENDIF 
+         IF(str_comp(cpara(2), 'atoms', 2, lpara(2), 5) ) THEN
+            mole_char (mole_num_mole) = MOLE_ATOM 
+         ELSEIF (str_comp (cpara (2) , 'cube', 2, lpara (2) , 4) ) THEN
+            mole_char (mole_num_mole) = MOLE_CUBE 
+         ELSEIF (str_comp (cpara (2) , 'cylinder', 2, lpara (2) , 8) ) THEN
+            mole_char (mole_num_mole) = MOLE_CYLINDER 
+         ELSEIF (str_comp (cpara (2) , 'sphere', 2, lpara (2) , 6)) THEN
+            mole_char (mole_num_mole) = MOLE_SPHERE 
+         ELSEIF (str_comp (cpara (2) , 'edge', 2, lpara (2) , 4) ) THEN
+            mole_char (mole_num_mole) = MOLE_EDGE 
+         ELSEIF (str_comp (cpara (2) , 'domain_cube', 9, lpara (2), 11) ) THEN
+            mole_char (mole_num_mole) = MOLE_DOM_CUBE 
+         ELSEIF (str_comp (cpara (2) , 'domain_cylinder', 9, lpara (2), 15) ) THEN
+            mole_char (mole_num_mole) = MOLE_DOM_CYLINDER 
+         ELSEIF (str_comp (cpara (2) , 'domain_sphere', 9, lpara(2), 13) ) THEN
+            mole_char (mole_num_mole) = MOLE_DOM_SPHERE 
+         ELSEIF (str_comp (cpara (2) , 'domain_fuzzy', 9, lpara(2), 12) ) THEN
+            mole_char (mole_num_mole) = MOLE_DOM_FUZZY 
+         ELSE 
+            ier_num = - 82 
+            ier_typ = ER_APPL 
+         ENDIF 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'file', 3, lpara (1) , 4) )   &
-            then                                                        
-               mole_file (mole_num_mole) = cpara (2) (1:lpara(2))
+      ELSEIF (str_comp (cpara (1) , 'file', 3, lpara (1) , 4) ) then
+         mole_file (mole_num_mole) = cpara (2) (1:lpara(2))
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'density', 3, lpara (1) , 6) )&
-            then                                                        
+      ELSEIF (str_comp (cpara (1) , 'density', 3, lpara (1) , 6) ) then
 !                                                                       
 !     ------Define the scattering density of an object                  
 !                                                                       
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-                     mole_dens (mole_num_mole) = werte (2) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               mole_dens (mole_num_mole) = werte (2) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
 !                                                                       
-            ELSEIF(str_comp(cpara(1),'biso',3,lpara(1),3)) THEN                                                        
+      ELSEIF(str_comp(cpara(1),'biso',3,lpara(1),3)) THEN                                                        
 !                                                                       
 !     ------Define the isotropic molecular B-Value
 !                                                                       
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-                     mole_biso(mole_type(mole_num_mole)) = werte (2) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               mole_biso(mole_type(mole_num_mole)) = werte (2) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'fuzzy', 3, lpara (1) , 5) )  &
-            then                                                        
+      ELSEIF (str_comp (cpara (1) , 'fuzzy', 3, lpara (1) , 5) ) THEN
 !                                                                       
 !     ------Define the minimum distance between atoms in a domain       
 !             and the host                                              
 !                                                                       
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-                     mole_fuzzy (mole_num_mole) = werte (2) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-               ENDIF 
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               mole_fuzzy (mole_num_mole) = werte (2) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'generator', 3, lpara (1) , 9)&
-            ) then                                                      
+      ELSEIF (str_comp (cpara (1) , 'generator', 3, lpara (1) , 9)) THEN
 !                                                                       
 !     ------Define which generators create atoms within the             
 !           same molecule                                               
 !           Obsolete statement, is done automatically!!! RBN            
 !                                                                       
-               ier_num = + 2 
-               ier_typ = ER_APPL 
+         ier_num = + 2 
+         ier_typ = ER_APPL 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'symmetry', 4, lpara (1) , 8) &
-            ) then                                                      
+      ELSEIF (str_comp (cpara (1) , 'symmetry', 4, lpara (1) , 8) ) THEN
 !                                                                       
 !     ------Define which symmetries  create atoms within the            
 !           same molecule                                               
 !           Obsolete statement, is done automatically!!! RBN            
 !                                                                       
-               ier_num = + 2 
-               ier_typ = ER_APPL 
+         ier_num = + 2 
+         ier_typ = ER_APPL 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'type', 3, lpara (1) , 4) )   &
-            then                                                        
+      ELSEIF (str_comp (cpara (1) , 'type', 3, lpara (1) , 4) ) THEN
 !                                                                       
 !     ------Define the molecule type, if less than current highest      
 !     ------type number diminuish type number by one                    
 !                                                                       
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2) then 
-                     IF (nint (werte (2) ) .lt.mole_num_type) then 
-                        mole_num_type = mole_num_type-1 
-                        mole_type (mole_num_mole) = nint (werte (2) ) 
-                     ENDIF 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               IF (NINT (werte (2) ) .lt.mole_num_type) then 
+                  mole_num_type = mole_num_type-1 
+                  mole_type (mole_num_mole) = NINT (werte (2) ) 
+write(*,*) ' SET MOLE_type to A ', mole_type (mole_num_mole), mole_num_type
+               ELSE
+                  mole_type (mole_num_mole) = NINT (werte (2) )
+                  mole_num_type = MAX(mole_num_type, mole_type (mole_num_mole))
+write(*,*) ' SET MOLE_type to B ', mole_type (mole_num_mole), mole_num_type
                ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
 !                                                                       
-            ELSEIF (str_comp (cpara (1) , 'content', 4, lpara (1) , 7) )&
-            then                                                        
+      ELSEIF (str_comp (cpara (1) , 'content', 4, lpara (1) , 7) ) THEN
 !                                                                       
 !     ------start reading a molecule content                            
 !                                                                       
-               cpara (1) = '0' 
-               lpara (1) = 1 
-               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               IF (ier_num.eq.0) then 
-                  IF (ianz.eq.2.or.ianz.eq.3) then 
-                     IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
-                        IF (werte (2) .lt.MOLE_MAX_TYPE) then 
-                           IF (mole_l_on) then 
-                              mole_type(mole_num_mole) = int(werte(2))
-                              mole_num_type = max (mole_num_type-1,     &
-                                                   int(werte (2) ) )                            
-                           ELSE 
-                              mole_num_atom = mole_off (mole_num_mole)  &
-                              + mole_len (mole_num_mole)                
-                              mole_num_mole = mole_num_mole+1 
-                              mole_num_curr = mole_num_mole 
-                              mole_type (mole_num_mole) = int (werte (2))
-                              mole_off (mole_num_mole) = mole_num_atom 
-                              mole_len (mole_num_mole) = 0 
-                              mole_num_type = max (mole_num_type,       &
-                                                   int(werte (2) ) )                             
-                              mole_gene_n = 0 
-                              mole_symm_n = 0 
-                              mole_l_on = .true. 
-                           ENDIF 
-                        ELSE 
-                           ier_num = - 64 
-                           ier_typ = ER_APPL 
-      ier_msg (1)  = 'First characters of wrong line' 
-                           ier_msg (2) = zeile (1:40) 
-                           ier_msg (3) = zeile (41:80) 
-                        ENDIF 
-                     ELSE 
-                        ier_num = - 65 
-                        ier_typ = ER_APPL 
-                        ier_msg (1) = 'First characters of wrong line' 
-                        ier_msg (2) = zeile (1:40) 
-                        ier_msg (3) = zeile (41:80) 
-                     ENDIF 
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2.or.ianz.eq.3) then 
+               IF (mole_num_mole.lt.MOLE_MAX_MOLE) then 
+                  IF (werte (2) .lt.MOLE_MAX_TYPE) then 
+                     IF (mole_l_on) then 
+                        mole_type(mole_num_mole) = int(werte(2))
+                        mole_num_type = max (mole_num_type-1,     &
+                                                 int(werte (2) ) )                            
+                    ELSE 
+                        mole_num_atom = mole_off (mole_num_mole)  &
+                            + mole_len (mole_num_mole)                
+                        mole_num_mole = mole_num_mole+1 
+                        mole_num_curr = mole_num_mole 
+                        mole_type (mole_num_mole) = int (werte (2))
+                        mole_off (mole_num_mole) = mole_num_atom 
+                        mole_len (mole_num_mole) = 0 
+                        mole_num_type = max (mole_num_type,       &
+                                                 int(werte (2) ) )                             
+                        mole_gene_n = 0 
+                        mole_symm_n = 0 
+                        mole_l_on = .true. 
+                    ENDIF 
                   ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                     ier_msg (1) = 'First characters of wrong line' 
-                     ier_msg (2) = zeile (1:40) 
-                     ier_msg (3) = zeile (41:80) 
-                  ENDIF 
-               ELSE 
-                  ier_msg (1) = 'First characters of wrong line' 
-                  ier_msg (2) = zeile (1:40) 
-                  ier_msg (3) = zeile (41:80) 
-               ENDIF 
-            ELSEIF (str_comp (cpara (1) , 'atoms', 4, lpara (1) , 5) )  &
-            then                                                        
-!                                                                       
-!     ------read a molecule content                                     
-!                                                                       
-               IF (mole_l_on) then 
-                  cpara (1) = '0' 
-                  lpara (1) = 1 
-                  CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
-                     DO j = 2, ianz 
-                     mole_len (mole_num_mole) = mole_len (mole_num_mole)&
-                     + 1                                                
-                     mole_cont (mole_off (mole_num_mole) + mole_len (   &
-                     mole_num_mole) ) = int (werte (j) )                
-                     ENDDO 
-                     lcontent = .true.
-                  ELSE 
+                     ier_num = - 64 
+                     ier_typ = ER_APPL 
                      ier_msg (1) = 'First characters of wrong line' 
                      ier_msg (2) = zeile (1:40) 
                      ier_msg (3) = zeile (41:80) 
@@ -1445,18 +1394,57 @@ check_calc: DO j = 1, ianz
                ELSE 
                   ier_num = - 65 
                   ier_typ = ER_APPL 
+                  ier_msg (1) = 'First characters of wrong line' 
+                  ier_msg (2) = zeile (1:40) 
+                  ier_msg (3) = zeile (41:80) 
                ENDIF 
             ELSE 
-               ier_num = - 84 
-               ier_typ = ER_APPL 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
                ier_msg (1) = 'First characters of wrong line' 
                ier_msg (2) = zeile (1:40) 
                ier_msg (3) = zeile (41:80) 
             ENDIF 
+         ELSE 
+            ier_msg (1) = 'First characters of wrong line' 
+            ier_msg (2) = zeile (1:40) 
+            ier_msg (3) = zeile (41:80) 
          ENDIF 
-      ENDIF 
+      ELSEIF (str_comp (cpara (1) , 'atoms', 4, lpara (1) , 5) ) THEN
 !                                                                       
-      END SUBROUTINE struc_mole_header              
+!     ------read a molecule content                                     
+!                                                                       
+         IF (mole_l_on) then 
+            cpara (1) = '0' 
+            lpara (1) = 1 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.eq.0) then 
+               DO j = 2, ianz 
+                  mole_len (mole_num_mole) = mole_len (mole_num_mole)+1
+                  mole_cont (mole_off (mole_num_mole) + &
+                             mole_len ( mole_num_mole) ) = int (werte (j) )                
+               ENDDO 
+               lcontent = .true.
+            ELSE 
+               ier_msg (1) = 'First characters of wrong line' 
+               ier_msg (2) = zeile (1:40) 
+               ier_msg (3) = zeile (41:80) 
+            ENDIF 
+         ELSE 
+            ier_num = - 65 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE 
+         ier_num = - 84 
+         ier_typ = ER_APPL 
+         ier_msg (1) = 'First characters of wrong line' 
+         ier_msg (2) = zeile (1:40) 
+         ier_msg (3) = zeile (41:80) 
+      ENDIF 
+   ENDIF 
+ENDIF 
+!                                                                       
+END SUBROUTINE struc_mole_header              
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,     &
@@ -2007,9 +1995,9 @@ check_calc: DO j = 1, ianz
          ENDIF 
          lbef = min (ibl - 1, lbef) 
          befehl = line (1:lbef) 
-         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.str_comp (   &
-         befehl, 'domain', 4, lbef, 6) .or.str_comp (befehl, 'object',  &
-         4, lbef, 6) ) then                                             
+         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .OR. &
+             str_comp (befehl, 'domain',   4, lbef, 6) .OR. &
+             str_comp (befehl, 'object',   4, lbef, 6)     ) THEN
 !                                                                       
 !     ------Start/End of a molecule                                     
 !                                                                       
@@ -4375,7 +4363,7 @@ main: DO
         indxb = MIN(indxb,indxt)
         lbef = min (indxb - 1, 8)
         bef  = line (1:lbef)
-        CALL do_cap (line(1:lbef))
+        CALL do_cap (line(1:laenge))
         IF(line(1:1)=='#' .OR. line(1:1)=='!') CYCLE main
 !
 ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
@@ -4445,6 +4433,11 @@ types:        DO i=1,ntypes
       ENDDO main
 !
       CLOSE (99)
+!
+      IF(n_mole>0) THEN
+         n_type = MAX(n_type,1)  ! Ensure values are NOT zero
+         n_atom = MAX(n_atom,1)
+      ENDIF
 !
 !
 1000  FORMAT(a)
