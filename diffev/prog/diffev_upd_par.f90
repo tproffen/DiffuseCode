@@ -838,12 +838,13 @@ SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !     Currently empty, needed for formal reasons.
 !+                                                                      
 !
+USE population
 USE errlist_mod 
 USE param_mod 
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER   :: maxw = 9
+INTEGER, PARAMETER   :: MAXW = 9
 !                                                                       
 CHARACTER (LEN= * ), INTENT(INOUT) :: string
 CHARACTER (LEN= * ), INTENT(INOUT) :: line 
@@ -853,10 +854,15 @@ INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
 REAL               , INTENT(INOUT) :: ww
 !
-INTEGER              :: i, lcomm
-REAL                 :: werte (maxw)
+CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
+INTEGER            , DIMENSION(1:MAXW) :: lpara
+REAL               , DIMENSION(1:MAXW) :: werte
+CHARACTER(LEN=1024) :: parstring
+INTEGER              :: ianz
+INTEGER              :: i, j, lcomm
 !                                                                       
 INTEGER              :: length_com 
+REAL                 :: do_read_number
 !                                                                       
 lcomm = length_com (string(1:lp), ikl) 
 ier_num = - 1 
@@ -865,7 +871,71 @@ DO i = 1, maxw
    werte (i) = 0.0 
 ENDDO 
 !                                                                 
-IF (lcomm.eq.0) then 
+IF (lcomm.eq.10) then 
+   IF(string (ikl - lcomm:ikl - 1) .eq.'par_number') THEN
+      CALL get_params (line, ianz, cpara, lpara, 6, lp)
+      IF (ier_num.eq.0) THEN
+         IF (ianz==1) THEN
+            IF(line(1:1) == '''' .AND. line(LEN_TRIM(line):LEN_TRIM(line)) == '''') THEN
+               parstring = line(2:lp-1)
+            ELSE
+               CALL eval(line    , lp      )
+               IF(ier_num == 0) THEN
+                  parstring = line
+               ENDIF
+            ENDIF
+            ww = -2 
+            loop:DO i=1,pop_dimx
+               IF(parstring==pop_name(i)) THEN
+                  ww = i
+                  EXIT loop
+               ENDIF
+            ENDDO loop
+            IF(0<=ww .AND. ww <= pop_dimx) THEN
+               CALL ersetz2 (string, ikl, iklz, ww, lcomm, laenge)
+            ELSE
+               ier_num = - 6
+               ier_typ = ER_COMM
+            ENDIF
+         ELSE
+            ier_num = - 6
+            ier_typ = ER_COMM
+         ENDIF
+      ENDIF
+   ELSE
+      ier_num = - 3
+      ier_typ = ER_FORT
+   ENDIF
+ELSEIF (lcomm.eq.8 ) then 
+   IF(string (ikl - lcomm:ikl - 1) .eq.'par_name') THEN
+      CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
+      IF (ier_num.eq.0) THEN
+         IF (ianz==1) THEN
+            werte(:) = 0
+            CALL eval(cpara(1), lpara(1) )
+            IF(ier_num==0) THEN
+               j = NINT(do_read_number (cpara (1), lpara (1) ))
+               IF(0<=j .AND. j<=pop_dimx) THEN
+                  parstring = pop_name(j)
+                  CALL ersetzc(string, ikl, iklz, parstring, LEN_TRIM(parstring), lcomm, laenge)
+               ELSE
+                  ier_num = - 6
+                  ier_typ = ER_COMM
+               ENDIF
+            ELSE
+               ier_num = - 6
+               ier_typ = ER_COMM
+            ENDIF
+         ELSE
+            ier_num = - 6
+            ier_typ = ER_COMM
+         ENDIF
+      ENDIF
+   ELSE
+      ier_num = - 3
+      ier_typ = ER_FORT
+   ENDIF
+ELSEIF (lcomm.eq.0) then 
    CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
 ELSE 
    ier_num = - 3 
