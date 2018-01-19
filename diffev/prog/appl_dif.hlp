@@ -19,6 +19,26 @@
    Further help topics are:
 
 2  News
+3  2018_Jan
+
+   The logical comparisons may now take the operators:
+   <, <=, ==, /=, >=, >/
+   The classical fortran77 operators are still valid
+
+   New logical functions "isvar" and "isexp" can be used within an
+   "if" construction. See help entry ==>'function' in the
+   general "Command_lang" section
+
+   The ==> function par_number(<char_variable>) returns the 
+   number for the refinement parameter in the character variable
+   <char_variable>.
+
+   The ==> function par_name(<number>) returns the name of the 
+   refinement parameter number <i>.
+
+   Finished the transformation from parameter numbers to 
+   parameter names. All Log files now have an extension of the
+   parameter name instead the parameter number.
 3  2018_Dec
 
    Major revision of the refinement parameter handling. 
@@ -277,9 +297,14 @@
    the second column is the R-value and the third column is the respective 
    parameter value.
    The base name of the parameter files can be set by the user via command
-   ==> 'logfile'. This base name is appended by a four digit number with
-   leading zeros. Parameter file no 0000 has the same structure, except that
-   both column two and three are the R-values.
+   ==> 'logfile'. As of Version 5.16.1 the base name is appended by an
+   extension that is identical to the parameter name. Parameter file
+   <name>.Rvalue has the same structure, except that both column two and
+   three are the R-values.
+
+   Prior to version 5.16.1 the base naem was appended by a four digit 
+   number with leading zeros. Parameter file no 0000 has the same 
+   structure, except that both column two and three are the R-values.
 
    Last file
 
@@ -706,6 +731,23 @@
    flag is turned of for this parameter. 
    If the second parameter is "best", the parameter is set to the
    corresponding value of the current member with the best R-value.
+2  functions
+
+   The following DISCUS specific functions exist. For a listing
+   of general intrinsic functions see help entry 'functions' in
+   the 'Command language' section of the online help.
+
+!b par_number(<char_variable>)
+
+   Returns the number of the refinement parameter whose name is
+   encoded in the character variable.
+   Example:
+   line = 'P_length'
+   eval par_number(line)
+
+!b par_name(<number>)
+
+   Returns the name of the refinement variable number <number>
 2  initialize
 !b initialize [ <par_number1> [, <par_number2>]] [, "silent"]
 !b initialise "logfile"
