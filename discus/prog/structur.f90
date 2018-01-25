@@ -1220,8 +1220,6 @@ IF (ier_num.eq.0) THEN
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
-write(*,*) ' READ MOLECULE LINE, mole_num_type, MOLE_MAX_TYPE ', mole_num_type, MOLE_MAX_MOLE, &
-mole_type(mole_num_mole)
    ELSE 
 !                                                                       
 !     --Parameters, interpret parameters                                
@@ -1343,11 +1341,9 @@ mole_type(mole_num_mole)
                IF (NINT (werte (2) ) .lt.mole_num_type) then 
                   mole_num_type = mole_num_type-1 
                   mole_type (mole_num_mole) = NINT (werte (2) ) 
-write(*,*) ' SET MOLE_type to A ', mole_type (mole_num_mole), mole_num_type
                ELSE
                   mole_type (mole_num_mole) = NINT (werte (2) )
                   mole_num_type = MAX(mole_num_type, mole_type (mole_num_mole))
-write(*,*) ' SET MOLE_type to B ', mole_type (mole_num_mole), mole_num_type
                ENDIF 
             ELSE 
                ier_num = - 6 
