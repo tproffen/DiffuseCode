@@ -1377,10 +1377,10 @@ mole_int: IF(mk_infile_internal) THEN
        ALLOCATE ( temp_mole_char (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_file (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_dens (0:temp_num_mole), STAT = istatus)
-       ALLOCATE ( temp_mole_biso (0:temp_num_mole), STAT = istatus)
+       ALLOCATE ( temp_mole_biso (0:temp_num_type), STAT = istatus)
        ALLOCATE ( temp_mole_fuzzy(0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_cont (0:temp_num_atom), STAT = istatus)
-       CALL stru_internal_molecules(infile, TEMP_MAX_MOLE,                & ! Read domain 
+       CALL stru_internal_molecules(infile, TEMP_MAX_MOLE, TEMP_MAX_TYPE, & ! Read domain 
               TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
               temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type,& ! into temp
               temp_mole_char,    &
@@ -1421,7 +1421,7 @@ mole_int: IF(mk_infile_internal) THEN
              mole_char (mole_num_mole) = temp_mole_char (i)
              mole_file (mole_num_mole) = temp_mole_file (i)
              mole_dens (mole_num_mole) = temp_mole_dens (i)
-             mole_biso (mole_type(mole_num_mole)) = temp_mole_biso (i)
+             mole_biso (mole_type(mole_num_mole)) = temp_mole_biso (temp_mole_type(i))
              mole_fuzzy(mole_num_mole) = temp_mole_fuzzy(i)
           ENDIF
        ENDDO

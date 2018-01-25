@@ -1108,6 +1108,7 @@ CONTAINS
       INTEGER :: im                   ! Dummy index for molecule
       INTEGER :: inew                 ! Dummy index for new molecule
       INTEGER :: old_mole_num_mole    ! Original molecule number
+      INTEGER :: old_mole_num_type    ! Original molecule type number
       INTEGER :: max_length           ! Original maximum molecule length
       LOGICAL :: lout = .false.       ! no output
 !
@@ -1125,6 +1126,7 @@ CONTAINS
       ndel = nint (res_para (1) * cr_natoms) 
 !
       old_mole_num_mole = mole_num_mole
+      old_mole_num_type = mole_num_type
       max_length        = MAXVAL(mole_len)
 !                                                                       
       IF (ndel.ne.0) then 
@@ -1136,7 +1138,7 @@ CONTAINS
          ALLOCATE(new_file(0:old_mole_num_mole))
          ALLOCATE(new_char(0:old_mole_num_mole))
          ALLOCATE(new_dens(0:old_mole_num_mole))
-         ALLOCATE(new_biso(0:old_mole_num_mole))
+         ALLOCATE(new_biso(0:old_mole_num_type))
          ALLOCATE(new_fuzz(0:old_mole_num_mole))
 !
          new_mole(:,:) = 0                 ! Initialise all arrays
@@ -1157,7 +1159,7 @@ CONTAINS
          new_file(0:old_mole_num_mole) = mole_file(0:old_mole_num_mole)
          new_char(0:old_mole_num_mole) = mole_char(0:old_mole_num_mole)
          new_dens(0:old_mole_num_mole) = mole_dens(0:old_mole_num_mole)
-         new_biso(0:old_mole_num_mole) = mole_biso(0:old_mole_num_mole)
+         new_biso(0:old_mole_num_type) = mole_biso(0:old_mole_num_type)
          new_fuzz(0:old_mole_num_mole) = mole_fuzzy(0:old_mole_num_mole)
 !
          mole_len  = 0               ! Clear old molecules
@@ -1178,7 +1180,7 @@ CONTAINS
                mole_file (inew) = new_file(im)
                mole_char (inew) = new_char(im)
                mole_dens (inew) = new_dens(im)
-               mole_biso (inew) = new_biso(im)
+               mole_biso (mole_type(inew)) = new_biso(new_type(im))
                mole_fuzzy(inew) = new_fuzz(im)
                mole_off  (inew) = mole_off(inew-1) + mole_len(inew-1)
                DO ia=1,new_len(im)   ! Loop over atoms in this molecule
