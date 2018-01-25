@@ -941,7 +941,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
       CALL store_temp%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
-           mole_max_mole, mole_max_atom           ) ! Allocate the crystal arrays
+           mole_max_mole, mole_max_type, mole_max_atom ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.

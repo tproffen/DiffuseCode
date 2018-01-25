@@ -1759,7 +1759,7 @@ MODULE discus_allocate_appl_mod
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mol_size_of = mol_size_of + size_of
 !
-      CALL alloc_arr ( mole_biso      ,0,n_mole,  all_status, 0.0, size_of)
+      CALL alloc_arr ( mole_biso      ,0,n_type,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mol_size_of = mol_size_of + size_of
 !

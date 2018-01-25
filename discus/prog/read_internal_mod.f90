@@ -122,7 +122,7 @@ CONTAINS
    CALL read_temp%crystal%get_header_from_crystal()
    CALL read_temp%crystal%get_atoms_from_crystal()
    CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
-              mole_max_atom, mole_num_mole, mole_num_type, &
+              mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
    DO i = 1, mole_num_mole       ! set molecule number for each atom
@@ -284,7 +284,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       ALLOCATE(temp_file(0:n_mole))
       ALLOCATE(temp_char(0:n_mole))
       ALLOCATE(temp_dens(0:n_mole))
-      ALLOCATE(temp_biso(0:n_mole))
+      ALLOCATE(temp_biso(0:n_type))
       ALLOCATE(temp_fuzz(0:n_mole))
       ALLOCATE(temp_cont(0:natoms))
       ALLOCATE(temp_look(0:natoms))
@@ -294,7 +294,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       temp_file(0:n_mole) = ' '
       temp_char(0:n_mole) = 0
       temp_dens(0:n_mole) = 0.0
-      temp_biso(0:n_mole) = 0.0
+      temp_biso(0:n_type) = 0.0
       temp_fuzz(0:n_mole) = 0.0
       temp_cont(0:natoms) = 0
       temp_look(0:natoms) = 0
@@ -303,7 +303,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
 !  Now copy from internal crystal to local variables
 !
       CALL read_temp%crystal%get_molecules_from_crystal(n_mole,       &
-              natoms, temp_num_mole, temp_num_type, &
+              n_type, natoms, temp_num_mole, temp_num_type, &
               temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
               temp_file, temp_dens, temp_biso, temp_fuzz, temp_cont)
 !
@@ -609,7 +609,7 @@ ENDIF
    END SUBROUTINE struc_read_one_atom_internal
 !*******************************************************************************
    SUBROUTINE stru_internal_molecules(strucfile, MOLE_MAX_MOLE,           &
-              MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
+              MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !
@@ -624,6 +624,7 @@ ENDIF
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
    INTEGER,                                       INTENT(IN ) :: mole_max_mole
+   INTEGER,                                       INTENT(IN ) :: mole_max_type
    INTEGER,                                       INTENT(IN ) :: mole_max_atom
    INTEGER,                                       INTENT(OUT) :: mole_num_mole
    INTEGER,                                       INTENT(OUT) :: mole_num_type
@@ -634,7 +635,7 @@ ENDIF
    INTEGER,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_char
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
-   REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_biso
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
@@ -658,7 +659,7 @@ ENDIF
 !  Now copy from crystal to local variables
 !
    CALL read_temp%crystal%get_molecules_from_crystal(MOLE_MAX_MOLE,       &
-              MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
+              MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !

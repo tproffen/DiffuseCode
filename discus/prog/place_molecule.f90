@@ -1403,7 +1403,7 @@ main: DO i=1, dcc_num
    dcc_atom_name(0:cr_nscat,i) = cr_at_lis(0:cr_nscat)
    dcc_adp      (0:cr_nscat,i) = cr_dw    (0:cr_nscat)
    dcc_mole_type(i) = mole_type(1)
-   dcc_biso     (i) = mole_biso(1)
+   dcc_biso     (i) = mole_biso(mole_type(1))    ! Here we use dcc_biso for each molecule
 !
    uvw_out(:) = cr_pos(:, temp_neig) ! save position of molecule atom bonded to surface
    DO j=1, cr_natoms ! Shift the first neighbor to 0,0,0

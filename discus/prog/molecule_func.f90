@@ -161,7 +161,7 @@ IF(.NOT. btest(cr_prop(jatom),1)) THEN      ! Atom is not yet inside a molecule
    mole_type(mole_num_mole) = n_type
    mole_char(mole_num_mole) = MOLE_ATOM
    mole_file(mole_num_mole) = ' '
-   mole_biso(mole_num_mole) = 0.0
+   mole_biso(mole_type(mole_num_mole)) = 0.0
    mole_num_atom = mole_off(mole_num_mole) + mole_len(mole_num_mole)
    j = 0
    DO i=1,UBOUND(t_list,1)
@@ -419,7 +419,7 @@ n_new = ifinish - istart + 1            ! no of atoms in new molecule
    mole_type(mole_num_mole) = n_type
    mole_char(mole_num_mole) = MOLE_ATOM
    mole_file(mole_num_mole) = ' '
-   mole_biso(mole_num_mole) = biso
+   mole_biso(mole_type(mole_num_mole)) = biso
    mole_num_atom = mole_off(mole_num_mole) + n_new
    j = 0
    DO i=istart,ifinish

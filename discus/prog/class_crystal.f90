@@ -103,7 +103,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE    ::  cr_mole_file    ! (  0:MOLE_MAX_MOLE)
    INTEGER, DIMENSION(:), ALLOCATABLE               ::  cr_mole_cont    ! (  0:MOLE_MAX_ATOM)
    REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_dens    ! (  0:MOLE_MAX_MOLE)
-   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_biso    ! (  0:MOLE_MAX_MOLE)
+   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_biso    ! (  0:MOLE_MAX_TYPE)
    REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_fuzzy   ! (  0:MOLE_MAX_MOLE)
 !
    LOGICAL                                          ::  latom = .false.  !have atoms been allocated?
@@ -140,7 +140,7 @@ END TYPE cl_cryst
 CONTAINS
 !
 !******************************************************************************
-   SUBROUTINE alloc_arrays   ( this, natoms, nscat, n_mole, n_atom)
+   SUBROUTINE alloc_arrays   ( this, natoms, nscat, n_mole, n_type, n_atom)
 !
 !  Allocate the arrays for "this" crystal 
 !  Initialize all variables
@@ -151,6 +151,7 @@ CONTAINS
    INTEGER,              INTENT(IN) :: natoms      ! Number of atoms for this crystal
    INTEGER,              INTENT(IN) :: nscat       ! Number of atom types for this crystal
    INTEGER,              INTENT(IN) :: n_mole      ! Number of molecules  for this crystal
+   INTEGER,              INTENT(IN) :: n_type      ! Number of molecule types  for this crystal
    INTEGER,              INTENT(IN) :: n_atom      ! Number of atoms in molecules for this crystal
 !
    INTEGER  :: istatus
@@ -199,7 +200,7 @@ CONTAINS
    ALLOCATE ( this%cr_mole_file (0:n_mole), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_cont (0:n_atom), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_dens (0:n_mole), STAT=istatus ) ! Allocate molecules
-   ALLOCATE ( this%cr_mole_biso (0:n_mole), STAT=istatus ) ! Allocate molecules
+   ALLOCATE ( this%cr_mole_biso (0:n_type), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_fuzzy(0:n_mole), STAT=istatus ) ! Allocate molecules
 !
    this%cr_natoms = natoms                            ! Store number of atoms
@@ -1225,7 +1226,7 @@ CONTAINS
    END SUBROUTINE get_atoms_to_local
 !******************************************************************************
    SUBROUTINE get_molecules_from_crystal   ( this, mole_max_mole,         &
-              mole_max_atom, mole_num_mole, mole_num_type, &
+              mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !
@@ -1237,6 +1238,7 @@ CONTAINS
 !
    CLASS (cl_cryst)                 :: this        ! Work on "this" crystal
    INTEGER,                                       INTENT(IN ) :: mole_max_mole
+   INTEGER,                                       INTENT(IN ) :: mole_max_type
    INTEGER,                                       INTENT(IN ) :: mole_max_atom
    INTEGER,                                       INTENT(OUT) :: mole_num_mole
    INTEGER,                                       INTENT(OUT) :: mole_num_type
@@ -1247,7 +1249,7 @@ CONTAINS
    INTEGER,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_char
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
-   REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_biso
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
