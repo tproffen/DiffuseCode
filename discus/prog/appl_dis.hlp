@@ -81,6 +81,12 @@
    New logical functions "isvar" and "isexp" can be used within an
    "if" construction. See help entry ==>'function' in the
    general "Command_lang" section.
+
+   Variable "mol_type[<i>]" has been made read/write
+
+   stack
+   The ==> 'create' command copies the list of layer origins
+   into an internal file with fixed name "internal.stacklist.stru"
 3  2017_Nov
 
    Added RMCprofile version 6 format to imports 
@@ -6958,6 +6964,11 @@
 
    Creates the list of layer origins. No changes are done to the 
    actual structure, this is performed by the command ==> 'run'.
+
+   The command copies the list of layer origins into an internal
+   file with fixed name "internal.stacklist.stru". The layer types
+   are saved as atoms with names "L001", "L002" etc. The coordinates
+   correspond to the layer positions.
 3  crow
 !b crow <nr>,<cnr>1,<cnr>2,...,<cnrmdtype>
 
@@ -8154,7 +8165,7 @@
 
    If the second parameter is set to "mol", the complete rigid molecule
    is displaced according to the isotropic temperature factor 
-   defines via a "mole_bios[i]=" statement or specified on a 
+   defines via a "mole_biso[i]=" statement or specified on a 
    "molecule biso,<value>" statement in the ==> Unit cell file.
 
    The temperature factor of the atom at the origin of the molecule
@@ -8234,9 +8245,9 @@
 !p                 read only
 !p "mol_len[i1]"   Number of atoms in molecule i1.
 !p                 read only
-!p "mole_type[i1]" Type of molecule no. i1
-!p                 read only
-!p "mole_biso[i1]" Isotropic B-value for Molecule i1
+!p "mol_type[i1]"  Type of molecule no. i1
+!p                 read/write
+!p "mol_biso[i1]"  Isotropic B-value for Molecule type i1
 !p                 read/write
 
 !p "in_mole[i1]"   Molecule number in which atom i1 is located
