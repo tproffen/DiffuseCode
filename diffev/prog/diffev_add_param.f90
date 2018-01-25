@@ -21,6 +21,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*), INTENT(INOUT) :: zeile
 INTEGER         , INTENT(INOUT) :: length
 !
+LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 INTEGER, PARAMETER :: MAXW = 6
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
@@ -192,11 +193,11 @@ ENDIF
 IF(lreal) THEN
    line = 'real, '//pname
    laenge = 6+lpname
-   CALL define_variable(line, laenge)
+   CALL define_variable(line, laenge, IS_DIFFEV)
 ELSE
    line = 'integer, '//pname
    laenge = 9+lpname
-   CALL define_variable(line, laenge)
+   CALL define_variable(line, laenge, IS_DIFFEV)
 ENDIF
 !
 END SUBROUTINE add_param

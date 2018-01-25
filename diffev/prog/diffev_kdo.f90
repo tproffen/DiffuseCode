@@ -11,6 +11,7 @@ USE charact_mod
 USE add_param_mod
 USE diff_evol
 USE diffev_mpi_mod
+USE diffev_reset
 USE population
 USE diffev_allocate_appl
 USE create_trial_mod
@@ -30,7 +31,8 @@ USE variable_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER, PARAMETER   :: maxw = 20
+LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
+INTEGER, PARAMETER :: maxw = 20
 !                                                                       
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
 LOGICAL             , INTENT(  OUT) :: lend 
@@ -591,7 +593,7 @@ ELSE
                   pop_dimx_init = .TRUE.      ! The dimension has been initialized in this run
                   string     = 'real, '//pop_name(NINT(werte(1)))
                   str_length = 6+pop_lname(NINT(werte(1)))
-                  CALL define_variable(string, str_length)
+                  CALL define_variable(string, str_length, IS_DIFFEV)
                ENDIF 
             ELSE
                ier_num = -14
@@ -858,7 +860,9 @@ ELSE
 !                                                                 
 !     -- set the result file                                      
 !                                                                 
-   ELSEIF (str_comp (befehl, 'restrial', 3, lbef, 8) ) THEN 
+   ELSEIF (str_comp (befehl, 'reset'   , 5, lbef, 5) ) THEN 
+      CALL diffev_do_reset
+   ELSEIF (str_comp (befehl, 'restrial', 5, lbef, 8) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN

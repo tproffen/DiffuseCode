@@ -39,6 +39,9 @@
    Finished the transformation from parameter numbers to 
    parameter names. All Log files now have an extension of the
    parameter name instead the parameter number.
+
+   The new command ==>'reset' can be used to reset DIFFEV to the 
+   conditions at program start. 
 3  2018_Dec
 
    Major revision of the refinement parameter handling. 
@@ -884,6 +887,18 @@
    Currently you can only specify up to 20 variable numbers on 
    one "refine" command line. If you need to specify the behaviour
    for more than 20 variables, please use several "refine" commands.
+2  reset
+!b reset
+
+   Resets DIIFEV to the conditions at program start. The generation 
+   number is set to zero, the population size, children size and the
+   number of parameters is set to the default value of one. All parameter
+   names are removed from the list of user variables.
+
+   Use this command if you want to combine several refinements
+   for different experimental data to be executed one after the other.
+   Without the reset, the old parameters would persist and may
+   interfere with your new parameters. 
 2  summary
 !b summary <filename>
 

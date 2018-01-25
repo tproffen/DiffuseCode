@@ -19,6 +19,7 @@ CONTAINS
 !
    IMPLICIT NONE
 !
+   LOGICAL, PARAMETER    :: IS_DIFFEV = .TRUE.
    LOGICAL , INTENT(IN)  :: flag_block    ! run_mpi was called in a do block
 !
    CHARACTER (LEN=2048)  :: send_direc    ! working directory
@@ -75,7 +76,7 @@ CONTAINS
          ref_para               (      j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
          string = ' '
          string = 'real, '//pop_name(j)
-         CALL define_variable(string,LEN(string))
+         CALL define_variable(string,LEN(string), IS_DIFFEV)
          loop_par: DO k=1,var_num
             IF(var_name(k)==pop_name(j)) THEN
                var_val(k) = run_mpi_senddata%trial_values(j)
