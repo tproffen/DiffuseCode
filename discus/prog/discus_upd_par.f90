@@ -1,4 +1,4 @@
-      SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
+SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz) 
 !                                                                       
 !-                                                                      
 !       replaces a substring in an expression by the value of the       
@@ -575,13 +575,14 @@
 !*****7*****************************************************************
       SUBROUTINE discus_upd_para (ctype, ww, maxw, wert, ianz) 
 !-                                                                      
-!       updates the parameter spezified by ctype, index ww  to the      
+!       updates the parameter specified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
       USE molecule_mod 
+      USE do_molecule_alloc
       USE prop_para_mod 
       USE spcgr_apply, ONLY: setup_lattice
       USE errlist_mod 
@@ -595,6 +596,7 @@
       REAL   ,                    INTENT(IN) :: wert 
 !
       INTEGER :: l
+      INTEGER :: iwert, owert
 !                                                                       
       IF (ctype.eq.'x') then 
          IF (ianz.eq.1) then 
@@ -602,10 +604,8 @@
             .le.cr_natoms) then                                         
                cr_pos (1, ww (1) ) = wert 
                l = 1 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) )&
-               )                                                        
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) )&
-               )                                                        
+               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
+               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) ))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -621,10 +621,8 @@
             .le.cr_natoms) then                                         
                cr_pos (2, ww (1) ) = wert 
                l = 2 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) )&
-               )                                                        
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) )&
-               )                                                        
+               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
+               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) ))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -640,10 +638,8 @@
             .le.cr_natoms) then                                         
                cr_pos (3, ww (1) ) = wert 
                l = 3 
-               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) )&
-               )                                                        
-               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1) )&
-               )                                                        
+               cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1)))
+               cr_dim (l, 2) = amax1 (cr_dim (l, 2), cr_pos (l, ww (1)))
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -775,6 +771,25 @@
          IF (ianz.eq.1) then 
             IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) then 
                mole_biso (ww (1) ) = wert 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'mol_type') then 
+         IF (ianz.eq.1) then 
+            IF (0 <= ww(1) .AND. ww(1) <=  mole_num_mole) then 
+               iwert = NINT(wert)
+               owert = mole_type(ww(1))
+               IF(iwert>mole_num_type) THEN      ! This creates a new type
+                  CALL molecule_set_array_size(mole_gene_n, mole_symm_n, mole_num_mole, iwert, mole_num_atom)
+                  CALL molecule_copy_prop(owert, iwert)
+               ENDIF
+               mole_type(ww(1)) = iwert
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
