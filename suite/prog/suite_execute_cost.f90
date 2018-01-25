@@ -65,6 +65,7 @@ INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
 INTEGER                , INTENT(OUT):: ierr
 !
+LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 CHARACTER(LEN=2048) :: line
 CHARACTER(LEN=1024) :: empty = ' '
 CHARACTER(LEN=2048) :: logfile
@@ -142,7 +143,7 @@ loop_par: DO i=1,parameters            ! Trial parameters for this kid
    ref_para(i) = trial_v(i)
    string = ' '
    string = 'real, '//trial_n(i)
-   CALL define_variable(string,LEN(string))
+   CALL define_variable(string,LEN(string), IS_DIFFEV)
    DO j=1,var_num
       IF(var_name(j)==trial_n(i)) THEN
          var_val(j) = trial_v(i)
