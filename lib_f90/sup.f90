@@ -439,6 +439,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       IMPLICIT none 
 !                                                                       
 !                                                                       
+      LOGICAL, PARAMETER :: NO_DIFFEV = .FALSE.
       INTEGER maxpar 
       PARAMETER (maxpar = 2) 
 !                                                                       
@@ -585,7 +586,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !------ definition of variables                                         
 !                                                                       
       ELSEIF (str_comp (bef, 'var', 3, lbef, 3) ) THEN 
-         CALL define_variable (zei, lc) 
+         CALL define_variable (zei, lc, NO_DIFFEV) 
 !                                                                       
 !------ Wait for user input 'wait'                                      
 !                                                                       
@@ -2262,7 +2263,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       ENDDO 
       END SUBROUTINE upd_variable                   
 !*****7**************************************************************** 
-      SUBROUTINE define_variable (zeile, lp) 
+      SUBROUTINE define_variable (zeile, lp, is_diffev) 
 !-                                                                      
 !       Allows the user to define variables                             
 !                                                                       
@@ -2283,11 +2284,15 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          INTEGER,           INTENT(IN) :: lp 
          END SUBROUTINE validate_variable
       END INTERFACE
+!
+CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
+INTEGER           , INTENT(INOUT) :: lp 
+LOGICAL           , INTENT(IN)    :: is_diffev
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 3) 
+      LOGICAL , PARAMETER :: no_diffev = .FALSE.
                                                                         
-      CHARACTER ( * ) zeile 
       INTEGER ianz 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
@@ -2297,7 +2302,6 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       CHARACTER(1024) c_type, c_temp, c_init 
       INTEGER l_type, l_temp 
       INTEGER ccc_type 
-      INTEGER lp 
       INTEGER i, j 
       LOGICAL l_init 
 !                                                                       
@@ -2307,7 +2311,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (str_comp (cpara (1) , 'real', 2, lpara (1) , 4) .or.str_comp (&
+      IF (str_comp (cpara (1) , 'real', 3, lpara (1) , 4) .or.str_comp (&
       cpara (1) , 'inte', 2, lpara (1) , 4) .or.str_comp (cpara (1) ,   &
       'char', 2, lpara (1) , 4) ) THEN                                  
 !                                                                       
@@ -2330,7 +2334,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                c_temp (1:lpara (2) ) = cpara (2) (1:lpara (2) ) 
                l_temp = lpara (2) 
                werte (1) = 0.0 
-               IF (str_comp (c_type, 'real', 2, l_type, 4) ) THEN 
+               IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
                   ccc_type = VAR_TYPE_REAL 
                ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
                   ccc_type = VAR_TYPE_INTE 
@@ -2391,11 +2395,12 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                i = i + 1 
                ENDDO 
                DO j = var_num, i, - 1 
-               var_name (j + 1) = var_name (j) 
-               var_l (j + 1) = var_l (j) 
-               var_type (j + 1) = var_type (j) 
-               var_val (j + 1) = var_val (j) 
-               var_char (j + 1) = var_char (j) 
+                  var_name (j + 1) = var_name (j) 
+                  var_l    (j + 1) = var_l    (j) 
+                  var_type (j + 1) = var_type (j) 
+                  var_val  (j + 1) = var_val  (j) 
+                  var_char (j + 1) = var_char (j) 
+                  var_diff (j + 1) = var_diff (j)    ! true if refine paaram from diffev
                ENDDO 
 !                                                                       
 !     ----- found the proper slot, store value, name and type           
@@ -2403,16 +2408,19 @@ SUBROUTINE cmdline_args (local_mpi_myid)
                var_num = var_num + 1 
                var_name (i) (1:l_temp) = c_temp 
                var_l (i) = l_temp 
-               IF (str_comp (c_type, 'real', 2, l_type, 4) ) THEN 
+               IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_REAL 
                   var_val (i) = werte (1) 
+                  var_diff (i) = is_diffev      ! true if refine param from diffev
                ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_INTE 
                   var_val (i) = nint (werte (1) ) 
+                  var_diff (i) = is_diffev      ! true if refine param from diffev
                ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
                   var_type (i) = VAR_TYPE_CHAR 
                   var_val (i) = 0.0 
                   var_char (i) = c_init (1:len(var_char))
+                  var_diff (i) = is_diffev      ! true if refine param from diffev
                ENDIF 
             ELSE 
                ier_num = - 23 
@@ -2424,6 +2432,10 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          ENDIF 
       ELSEIF (str_comp (cpara (1) , 'show', 2, lpara (1) , 4) ) THEN 
          CALL show_variables 
+      ELSEIF (str_comp (cpara (1) , 'reset', 5, lpara (1) , 5) ) THEN 
+         CALL rese_variables (no_diffev)
+      ELSEIF (str_comp (cpara (1) , 'delete', 3, lpara (1) , 6) ) THEN 
+         CALL del_variables(MAXW, ianz, cpara, lpara, no_diffev)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -2431,49 +2443,150 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       END SUBROUTINE define_variable                
 !*****7**************************************************************** 
-      SUBROUTINE show_variables 
+SUBROUTINE rese_variables(is_diffev)
+!-
+!     Removes all user variables
+!+
+USE variable_mod
+IMPLICIT none 
+!
+LOGICAL, INTENT(IN)    :: is_diffev
+!
+INTEGER :: i, j
+INTEGER :: ndel
+!
+DO i=var_sys+1, var_num
+   IF(var_diff(i) .EQV. is_diffev) THEN
+      var_name( i) = ' '
+      var_char( i) = ' '
+      var_l   ( i) = 1
+      var_type( i) = 0
+      var_diff( i) = .FALSE.
+      var_val ( i) = 0
+   ENDIF
+ENDDO
+ndel = 0
+i = var_sys
+remove: DO 
+   i=i+1
+   IF(var_name(i) == ' ') THEN
+      ndel = ndel +1
+      IF(i>var_num-ndel) EXIT remove
+      DO j=i, var_num-ndel
+         var_name(j) = var_name(j+ndel)
+         var_char(j) = var_char(j+ndel)
+         var_l   (j) = var_l   (j+ndel)
+         var_type(j) = var_type(j+ndel)
+         var_diff(j) = var_diff(j+ndel)
+         var_val (j) = var_val (j+ndel)
+      ENDDO
+   ENDIF
+ENDDO remove
+var_num = var_num - ndel
+!
+END SUBROUTINE rese_variables 
+!
+!*****7**************************************************************** 
+ SUBROUTINE del_variables (MAXW, ianz, cpara, lpara, is_diffev)
+!-
+!     Removes all or specified user variables
+!+
+USE errlist_mod
+USE variable_mod
+!
+IMPLICIT none 
+!
+INTEGER                               , INTENT(IN)    :: MAXW
+INTEGER                               , INTENT(IN)    :: ianz
+CHARACTER(LEN=1024), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+LOGICAL                               , INTENT(IN)    :: is_diffev
+!
+INTEGER :: i, j, k
+!
+LOGICAL :: str_comp
+!
+IF(ianz==1) THEN
+   CALL rese_variables (is_diffev)
+ELSEIF(str_comp (cpara (2) , 'all', 3, lpara(1), 3) ) THEN 
+   CALL rese_variables (is_diffev)
+ELSE
+   main: DO i=2, ianz
+      loop: DO j=var_sys+1, var_num
+         IF(cpara(i) == var_name(j)) THEN 
+            IF(var_diff(j) .EQV. is_diffev) THEN
+               DO k=j+1, var_num
+                  var_name(k-1) = var_name(k)
+                  var_char(k-1) = var_char(k)
+                  var_l   (k-1) = var_l(k)
+                  var_type(k-1) = var_type(k)
+                  var_diff(k-1) = var_diff(k)
+                  var_val (k-1) = var_val(k)
+               ENDDO
+               var_num = var_num - 1
+               CYCLE main
+            ELSE
+               ier_num =  -39
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Offending variable: '//cpara(i)(1:LEN_TRIM(cpara(i)))
+               RETURN
+            ENDIF
+         ENDIF
+      ENDDO loop
+      ier_num = -24
+      ier_typ = ER_FORT
+      ier_msg(1) = 'Offending variable: '//cpara(i)(1:LEN_TRIM(cpara(i)))
+      RETURN
+   ENDDO main
+ENDIF
+!
+END SUBROUTINE del_variables 
+!*****7**************************************************************** 
+SUBROUTINE show_variables 
 !-                                                                      
 !     shows the variable definitions                                    
 !+                                                                      
-      USE prompt_mod 
-      USE variable_mod
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER i 
-!                                                                       
-      INTEGER len_str 
-!                                                                       
-      IF (var_num.gt.0) THEN 
-         WRITE (output_io, 2000) var_num, VAR_MAX 
-         DO i = 1, var_num 
-         IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
-            IF (abs (var_val (i) ) .lt.1e-5.or.abs (var_val (i) )       &
-            .ge.1e6) THEN                                               
-               WRITE (output_io, 2100) var_name (i), var_val (i) 
-            ELSE 
-               WRITE (output_io, 2150) var_name (i), var_val (i) 
-            ENDIF 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
-            WRITE (output_io, 2200) var_name (i), nint (var_val (i) ) 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
-            WRITE (output_io, 2300) var_name (i), var_char (i) (1:      &
-            len_str (var_char (i) ) )                                   
+USE prompt_mod 
+USE variable_mod
+IMPLICIT none 
+!
+!
+CHARACTER(LEN=6), DIMENSION(0:1) :: cdiffev
+INTEGER :: i , j
+!
+INTEGER :: len_str 
+DATA cdiffev/'DIFFEV','      '/
+!
+IF (var_num.gt.0) THEN 
+   WRITE (output_io, 2000) var_num, VAR_MAX 
+   DO i = 1, var_num 
+      j=1
+      IF(var_diff(i)) j=0
+      IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
+         IF (ABS(var_val(i)) .lt.1e-5.or. ABS(var_val(i)).ge.1e6) THEN
+            WRITE(output_io, 2100) var_name (i), var_val (i) , cdiffev(j)
+         ELSE 
+            WRITE(output_io, 2150) var_name (i), var_val (i) , cdiffev(j)
          ENDIF 
-         ENDDO 
-      ELSE 
-         WRITE (output_io, 2050) VAR_MAX 
+      ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
+         WRITE(output_io, 2200) var_name (i), nint (var_val (i) ) , cdiffev(j)
+      ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
+         WRITE(output_io, 2300) var_name(i), var_char(i)(1:len_str(var_char(i))), cdiffev(j)
       ENDIF 
-      WRITE (output_io, * ) 
+   ENDDO 
+ELSE 
+   WRITE (output_io, 2050) VAR_MAX 
+ENDIF 
+WRITE (output_io, * ) 
  2000 FORMAT    (' User defined variables',i3,                          &
      &                  ' Maximum number: ',i3/)                        
  2050 FORMAT    (' No user defined variables',                          &
      &                  ' Maximum number: ',i3/)                        
- 2100 FORMAT    (' Name: ',a30,' = ',8x,e20.8e2,' Real') 
- 2150 FORMAT    (' Name: ',a30,' = ',8x,f16.8  ,'     Real') 
- 2200 FORMAT    (' Name: ',a30,' = ',i15,13x,' Integer') 
- 2300 FORMAT    (' Name: ',a30,' = ''',a,''' Character') 
-      END SUBROUTINE show_variables                 
+ 2100 FORMAT    (' Name: ',a30,' = ',8x,e20.8e2,' Real      ',a) 
+ 2150 FORMAT    (' Name: ',a30,' = ',8x,f16.8  ,'     Real      ',a) 
+ 2200 FORMAT    (' Name: ',a30,' = ',i15,13x,   ' Integer   ',a) 
+ 2300 FORMAT    (' Name: ',a30,' = ''',a,     ''' Character ',a) 
+END SUBROUTINE show_variables                 
 !*****7**************************************************************** 
       SUBROUTINE validate_variable (zeile, lp) 
 !-                                                                      

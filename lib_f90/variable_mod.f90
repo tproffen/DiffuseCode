@@ -17,6 +17,7 @@ MODULE variable_mod
    CHARACTER (LEN=200), DIMENSION(VAR_MAX) :: var_char = ' ' ! (VAR_MAX)
    INTEGER            , DIMENSION(VAR_MAX) :: var_l    = 0   ! (VAR_MAX)
    INTEGER            , DIMENSION(VAR_MAX) :: var_type = 0   ! (VAR_MAX)
+   LOGICAL            , DIMENSION(VAR_MAX) :: var_diff = .FALSE.   ! (VAR_MAX)
    REAL               , DIMENSION(VAR_MAX) :: var_val  = 0.0 ! (VAR_MAX)
 !
 CONTAINS
@@ -32,6 +33,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 14
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -39,6 +41,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 10
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -46,6 +49,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 12
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -53,6 +57,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 13
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -60,6 +65,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) =  7
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -67,6 +73,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) =  9
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -74,6 +81,7 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 10
    var_type( i) = 0
+   var_diff( i) = .FALSE.
    var_val ( i) = 0
 !
    i = i + 1
@@ -81,11 +89,12 @@ CONTAINS
    var_char( i) = ' '
    var_l   ( i) = 2
    var_type( i) = 1
+   var_diff( i) = .FALSE.
    var_val ( i) = REAL(3.1415926535897932384626433832795028841971693993751D0)
 !
 !
    var_num      = i
-   var_sys      = 7
+   var_sys      = i
 !
    END SUBROUTINE variable_init
 !

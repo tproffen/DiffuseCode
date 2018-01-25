@@ -32,6 +32,9 @@
 
    New logical functions "isvar" and "isexp" can be used within an
    "if" construction. See help entry ==>'function'
+
+   New parameters "reset" and "delete" have been added to the 
+   ==> 'variable' command
 4  2017_November
 
    A 'manual' command has been added that reads the manual files
@@ -980,6 +983,8 @@
 !p variable {"integer"|"real"},<name> [,<initial_value>]
 !p variable {"character"},<name>
 !p variable show
+!p variable reset
+!p variable delete {,"all"| <name>..]
 
    The programs that are part of the DIFFUSE suite offer predefined
    variables i[*] and r[*]. These are an integer and a real 
@@ -1001,6 +1006,13 @@
    If the first command parameter is "show" the program displays a
    list of user defined variables and their current values.
    Refer to the help entry "expressions" for further help.
+
+   Both, the "reset" and the "delete, all" parameters specify that
+   the variable list is to be cleared of all user defeined variables.
+   Only the system variables remain.
+
+   Alternatively, the "delete, <name>" parameters allow you to delete 
+   an individual variable.
 
    Examples:
 !p variable  int,alpha,90
