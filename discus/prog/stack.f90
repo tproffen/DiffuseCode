@@ -988,6 +988,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE molecule_mod 
       USE read_internal_mod
+      USE save_menu, ONLY:save_internal
       USE stack_mod 
       USE stack_cr_mod 
       USE structur
@@ -1003,11 +1004,16 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
        
 !                                                                       
+      CHARACTER(LEN=23), PARAMETER :: tempfile ='internal.temporary.stru'
+      CHARACTER(LEN=23), PARAMETER :: stackfile='internal.stacklist.stru'
       INTEGER i, j, k 
       INTEGER         :: nlayers
       INTEGER         :: n_mole  ! number of molecules in input file
       INTEGER         :: n_type  ! number of molecule types in input file
       INTEGER         :: n_atom  ! number of molecule atoms in input file
+      INTEGER         :: natoms
+      INTEGER         :: nscats
+      LOGICAL         :: need_alloc = .false.
       LOGICAL lprev 
       REAL prob (ST_MAXTYPE) 
       REAL prob_n (ST_MAXTYPE) 
@@ -1347,11 +1353,54 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          res_para(i) = st_number(i)
       ENDDO
       res_para(0) = st_ntypes
+!
+!     Save the list of origins as internal file
+!
+      CALL save_internal(tempfile)        ! temporarily save current structure
+!
+      natoms = st_nlayer
+      nscats = st_ntypes
+      need_alloc = .false.
+      IF(natoms > NMAX ) THEN
+         need_alloc = .true.
+      ENDIF
+      IF(nscats > MAXSCAT) THEN
+         need_alloc = .true.
+      ENDIF
+      IF( need_alloc) THEN
+         CALL alloc_crystal (nscats, natoms)
+         IF ( ier_num /= 0 ) RETURN
+      ENDIF
+      cr_natoms = st_nlayer
+      cr_nscat  = st_ntypes
+      cr_dw      (:) = 0.1
+      cr_scat_int(:) = .FALSE.
+      cr_scat_equ(:) = .FALSE.
+      cr_delf_int(:) = .FALSE.
+      cr_at_equ  (:) = ' '
+      DO i=1,st_ntypes
+         write(cr_at_lis(i),3000) i
+         cr_scat_equ(i) = .TRUE.
+         cr_at_equ(i)   = 'H'
+      ENDDO
+      DO i=1,st_nlayer
+         cr_pos  (:,i) = st_origin (:, i)
+         cr_iscat(  i) = st_type(i)
+         cr_mole (  i) = 0
+         cr_surf (:,i) = 0
+         cr_prop (  i) = 1
+      ENDDO
+      mole_num_mole = 0
+      mole_num_type = 0
+      mole_num_atom = 0
+      CALL save_internal(stackfile)
+      CALL readstru_internal(tempfile)    ! Restore current structure
 !                                                                       
 !     do i=1,st_ntypes                                                  
 !       write (output_io,2020) i,st_number(i)                           
 !     ENDDO                                                             
  2000 FORMAT    (a,i4,3f11.4) 
+ 3000 FORMAT('L',I3.3)
       END SUBROUTINE do_stack_create                
 !*****7*****************************************************************
       SUBROUTINE st_init_prob (ptot_n, prob_n) 
