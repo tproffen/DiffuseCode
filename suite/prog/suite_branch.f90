@@ -161,6 +161,12 @@ ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()
 ENDIF
 CALL suite_set_sub_branch ()
-CALL program_files () 
+IF(ier_num == -9 .AND. ier_typ == 1) THEN
+   CALL program_files ()
+   ier_num = -9
+   ier_typ = ER_COMM
+ELSE
+   CALL program_files ()
+ENDIF
 !
 END SUBROUTINE suite_branch

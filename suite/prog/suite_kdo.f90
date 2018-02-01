@@ -130,7 +130,13 @@ ELSE
        prompt    = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL program_files ()
+       IF(ier_num == -9 .AND. ier_typ == 1) THEN
+          CALL program_files ()
+          ier_num = -9
+          ier_typ = ER_COMM
+       ELSE
+          CALL program_files ()
+       ENDIF
 !                                                                 
 !     -- branch to DISCUS
 !
@@ -154,7 +160,13 @@ ELSE
        prompt = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL program_files ()
+       IF(ier_num == -9 .AND. ier_typ == 1) THEN
+          CALL program_files ()
+          ier_num = -9
+          ier_typ = ER_COMM
+       ELSE
+          CALL program_files ()
+       ENDIF
 !                                                                 
 !     -- branch to KUPLOT
 !
@@ -178,7 +190,13 @@ ELSE
        prompt = pname
        oprompt   = pname
        CALL suite_set_sub
-       CALL program_files ()
+       IF(ier_num == -9 .AND. ier_typ == 1) THEN
+          CALL program_files ()
+          ier_num = -9
+          ier_typ = ER_COMM
+       ELSE
+          CALL program_files ()
+       ENDIF
 !                                                                 
 !     -- Run a parallel version of discus_suite
 !
