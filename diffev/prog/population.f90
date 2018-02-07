@@ -36,6 +36,8 @@ INTEGER                 :: pop_ltrialfile
 INTEGER                 :: pop_trialfile_ext
 INTEGER                 :: ltrial_results
 INTEGER                 :: trial_results_ext
+INTEGER                 :: n_rvalue_i
+INTEGER                 :: n_rvalue_o
 INTEGER                 :: lparent_current = 0
 INTEGER                 :: lparent_results = 0
 INTEGER                 :: lparent_summary = 0
@@ -72,9 +74,9 @@ REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig_ad    !  (MAXDIMX)
 REAL    ,DIMENSION(:,:), ALLOCATABLE :: child          !  (MAXDIMX,MAXPOP)
 REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP)
 !
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: child_val      !  (MAXPOP)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: trial_val      !  (MAXPOP)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: parent_val     !  (MAXPOP)
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: child_val      !  (MAXPOP)
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial_val      !  (MAXPOP)
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: parent_val     !  (MAXPOP)
 !
 CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_fil ! (MAXBACK)
 CHARACTER (LEN=200),DIMENSION(:)  , ALLOCATABLE :: pop_back_ext ! (MAXBACK)

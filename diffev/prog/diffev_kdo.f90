@@ -27,6 +27,7 @@ USE learn_mod
 USE macro_mod
 USE prompt_mod
 USE set_sub_generic_mod
+USE take_param_mod
 USE variable_mod
 IMPLICIT none 
 !                                                                       
@@ -60,6 +61,20 @@ REAL                                  :: werte (maxw)
 REAL                                  :: value
 LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
+DATA oname  / 'partial'   /
+DATA loname /  7          /
+opara  =  (/ '0.0000'     /)   ! Always provide fresh default values
+lopara =  (/  6           /)
+owerte =  (/  0.0         /)
+!
 !                                                                       
 CALL no_error 
 !                                                                 
@@ -660,6 +675,7 @@ ELSE
             run_mpi_senddata%prog_l = lpara(1)
             run_mpi_senddata%mac    = cpara(2)(1:lpara(2))
             run_mpi_senddata%mac_l  = lpara(2)
+            run_mpi_senddata%n_rvalue_i = n_rvalue_i ! We expect this many Rvalues
             CALL refine_no_mpi(.true.)
          ELSE
          IF ( ianz == 5 ) THEN
@@ -677,6 +693,7 @@ ELSE
             run_mpi_senddata%prog_l = lpara(1)
             run_mpi_senddata%mac    = cpara(2)(1:100) ! Macro to run
             run_mpi_senddata%mac_l  = lpara(2)
+            run_mpi_senddata%n_rvalue_i = n_rvalue_i ! We expect this many Rvalues
             IF ( ianz == 4 ) THEN
                run_mpi_senddata%out   = cpara(4)(1:100)! Target for program output 
                run_mpi_senddata%out_l = lpara(4)
@@ -865,6 +882,9 @@ ELSE
    ELSEIF (str_comp (befehl, 'restrial', 5, lbef, 8) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
+         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, owerte)
+!
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
             IF(lstandalone) THEN 
                ier_num = -27
@@ -882,6 +902,13 @@ ELSE
                ltrial_results = lpara (1) 
             ENDIF 
          ENDIF 
+         n_rvalue_i = NINT(owerte(1))
+!        IF(ianz>1) THEN
+!           CALL del_params (1, ianz, cpara, lpara, maxw) 
+!           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+!           IF(ier_num/=0) RETURN
+!           n_rvalue_i = NINT(werte(1))
+!        ENDIF
       ENDIF 
 !
 !     -- Write a new set of children for the current generation

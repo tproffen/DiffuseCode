@@ -104,9 +104,11 @@ CONTAINS
 !                                                                 
 ! Initialize array of size MAXPOP
 !
-   child_val  = 0.0 
-   trial_val  = 0.0 
-   parent_val = 0.0 
+   child_val(:,:)  = 0.0 
+   trial_val(:,:)  = 0.0 
+   parent_val(:,:) = 0.0 
+   n_rvalue_i      = 1
+   n_rvalue_o      = 1
 !                                                                       
     1000 FORMAT    ('PARA',i4.4) 
 !                                                                       

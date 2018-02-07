@@ -12,6 +12,7 @@ INTEGER, PARAMETER       :: RUN_MPI_COUNT_LOGICAL   =   4
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_CHARACTER = 540
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_REAL      =   2
 INTEGER, PARAMETER       :: RUN_MPI_COUNT_TRIAL     = 200
+INTEGER, PARAMETER       :: RUN_MPI_MAXRVALUE       =  15
 INTEGER, PARAMETER       :: RUN_MPI_NSEEDS          =  64 !Number of seeds for random
 INTEGER                  :: RUN_MPI_MAXPROG         = 1
 INTEGER, DIMENSION(0:4)  :: run_mpi_oldtypes
@@ -43,6 +44,8 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    INTEGER               :: port       ! 15  ! 15
    INTEGER               :: nseeds     ! 16  ! 16
    INTEGER,DIMENSION(1:RUN_MPI_NSEEDS) :: seeds   !  (nseeds)
+   INTEGER               :: n_rvalue_i ! 16  ! 16
+   INTEGER               :: n_rvalue_o ! 16  ! 16
    LOGICAL               :: repeat     ! 21  ! 21
    LOGICAL               :: use_socket ! 22  ! 22
    LOGICAL               :: prog_start ! 23  ! 23
@@ -55,9 +58,10 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    CHARACTER (LEN=100)   :: prog       !269 : 368
    CHARACTER (LEN=100)   :: mac        !369 : 468
    CHARACTER (LEN=100)   :: out        !469 : 568
-   REAL                  :: rvalue     !569 : 569
-   REAL                  :: rvalue2    !570 : 570
+!  REAL                  :: rvalue     !569 : 569
+!  REAL                  :: rvalue2    !570 : 570
    REAL,DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_values   !  (MAXPOP)
+   REAL,DIMENSION(0:RUN_MPI_MAXRVALUE-1) :: rvalue         !  (MAXPOP)
    CHARACTER(LEN=16),DIMENSION(1:RUN_MPI_COUNT_TRIAL) :: trial_names   !  (MAXPOP)
 END TYPE run_mpi_type
 !

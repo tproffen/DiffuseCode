@@ -6,6 +6,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          direc_len,        &
                          direc ,  direc_l, &
                          kid   ,  indiv  , &
+                         n_rvalue_i, n_rvalue_o, NRVAL,  &
                          rvalue, l_rvalue, &
                          output_len,       &
                          output, output_l, &
@@ -39,7 +40,10 @@ CHARACTER(LEN=mac_len   ), INTENT(IN) :: mac
 CHARACTER(LEN=direc_len ), INTENT(IN) :: direc 
 INTEGER                , INTENT(IN) :: kid   
 INTEGER                , INTENT(IN) :: indiv
-REAL                   , INTENT(OUT):: rvalue
+INTEGER                , INTENT(IN ):: n_rvalue_i
+INTEGER                , INTENT(OUT):: n_rvalue_o
+INTEGER                , INTENT(IN ):: NRVAL
+REAL, DIMENSION(0:NRVAL   ),INTENT(OUT):: rvalue
 LOGICAL                , INTENT(OUT):: l_rvalue
 CHARACTER(LEN=output_len), INTENT(IN) :: output
 INTEGER                , INTENT(IN) :: generation

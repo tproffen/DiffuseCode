@@ -105,7 +105,7 @@ CONTAINS
             ENDIF
             CALL p_branch(zeile, lzeile)
             IF(rvalue_yes) THEN
-               trial_val(run_mpi_senddata%kid) = rvalues(2)
+               trial_val(run_mpi_senddata%kid,0) = rvalues(2,0)
             ENDIF
          ELSE
             CALL p_execute_cost( run_mpi_senddata%repeat,                          &
@@ -116,6 +116,8 @@ CONTAINS
                  LEN(run_mpi_senddata%direc),                      &
                  run_mpi_senddata%direc, run_mpi_senddata%direc_l, &
                  run_mpi_senddata%kid  , run_mpi_senddata%indiv  , &
+                 run_mpi_senddata%n_rvalue_i,  &
+                 run_mpi_senddata%n_rvalue_o, RUN_MPI_MAXRVALUE ,          &
                  run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
                  LEN(run_mpi_senddata%out),                        &
                  run_mpi_senddata%out  , run_mpi_senddata%out_l,     &
@@ -142,7 +144,7 @@ CONTAINS
             EXIT kids_loop
          ENDIF
          IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
-             trial_val(run_mpi_senddata%kid) = run_mpi_senddata%rvalue
+             trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(1)
          ENDIF
       ENDDO indivs_loop
    ENDDO kids_loop

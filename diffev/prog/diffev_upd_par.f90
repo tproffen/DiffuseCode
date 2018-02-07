@@ -141,7 +141,7 @@ ELSEIF (lcomm.eq.5) then
       IF (ianz.eq.1) then 
          IF (0<pop_best .and. pop_best<=pop_n .and. pop_best<= MAXPOP) THEN
             IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-            WRITE (zeile (ikl - 5:ikl + 13) , '(e15.8e2)') child_val (pop_best)                                               
+            WRITE (zeile (ikl - 5:ikl + 13) , '(e15.8e2)') child_val (pop_best,0)
             zeile (ikl + 6:ikl + 6) = 'e' 
          ELSE
             ier_num = -9
@@ -236,7 +236,7 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (0<kpara .and. kpara<=pop_n .and. kpara<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') parent_val (kpara)                                                  
+            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') parent_val (kpara,0)                                                  
             zeile (ikl + 5:ikl + 5) = 'e' 
          ELSE
             ier_num = -9
@@ -261,7 +261,7 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (0<pop_worst .and. pop_worst<=pop_n .and. pop_worst<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') child_val (pop_worst)                                              
+            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') child_val (pop_worst,0)
             zeile (ikl + 5:ikl + 5) = 'e' 
          ELSE
             ier_num = -9
@@ -519,8 +519,8 @@ ELSEIF (ctype.eq.'pop_n') then
                   ENDIF
                ENDIF
                pop_neu = nint (wert)
-               highest_r = maxval ( parent_val(1:pop_n))
-               parent_val(pop_n+1:pop_neu) = 10.*highest_r
+               highest_r = maxval ( parent_val(1:pop_n,0))
+               parent_val(pop_n+1:pop_neu,0) = 10.*highest_r
                FORALL(i=pop_n+1:pop_neu) pop_x (:,i)     = pop_x (:,1)
                pop_n = pop_neu
                var_val(var_ref+1) = pop_n     ! Update global user variable
@@ -732,7 +732,7 @@ ELSEIF (ctype.eq.'pop_smax') then
 ELSEIF (ctype.eq.'child_val') then 
    IF (ianz.eq.1) then 
       IF (0.lt.ww (1) .and.ww (1) .le.MAXPOP .and. ww(1)<=pop_c) then 
-         child_val (ww (1) ) = wert 
+         child_val (ww (1),0 ) = wert 
       ELSE 
          ier_num = -14 
          ier_typ = ER_APPL 

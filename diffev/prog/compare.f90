@@ -54,10 +54,10 @@ CONTAINS
 !                                                                       
    during: IF (pop_gen.gt.0) THEN 
       DO j = 1, pop_n 
-         IF (trial_val (j) .lt.parent_val (j) ) THEN 
+         IF (trial_val (j,0) .lt.parent_val (j,0) ) THEN 
             DO i = 1, pop_dimx 
                child (i, j) = trial (i, j) 
-               child_val (j) = trial_val (j) 
+               child_val (j,0:n_rvalue_i) = trial_val (j,0:n_rvalue_i)
             ENDDO 
             bck_during: IF(pop_backup) THEN    ! copy current best calculations into backup 
                                                ! This effectively replaces kup.backup.mac
@@ -74,7 +74,7 @@ CONTAINS
          ELSE 
             DO i = 1, pop_dimx 
                child (i, j) = pop_x (i, j) 
-               child_val (j) = parent_val (j) 
+               child_val (j,0:n_rvalue_i) = parent_val (j,0:n_rvalue_i) 
             ENDDO 
          ENDIF 
       ENDDO 
@@ -82,7 +82,7 @@ CONTAINS
       DO j = 1, pop_n 
          DO i = 1, pop_dimx 
             child (i, j) = trial (i, j) 
-            child_val (j) = trial_val (j) 
+            child_val (j,0:n_rvalue_i) = trial_val (j,0:n_rvalue_i) 
          ENDDO 
          bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
                                             ! This effectively replaces kup.backup.mac
@@ -101,15 +101,15 @@ CONTAINS
 !                                                                       
 !     --Determine best and worst member                                 
 !                                                                       
-   best = child_val (1) + 1.0 
-   worst = child_val (1) - 1.0 
+   best = child_val (1,0) + 1.0 
+   worst = child_val (1,0) - 1.0 
    DO j = 1, pop_n 
-      IF (child_val (j) .lt.best) THEN 
-         best     = child_val(j)
+      IF (child_val (j,0) .lt.best) THEN 
+         best     = child_val(j,0)
          pop_best = j 
       ENDIF 
-      IF (child_val (j) .gt.worst) THEN 
-         worst    = child_val(j)
+      IF (child_val (j,0) .gt.worst) THEN 
+         worst    = child_val(j,0)
          pop_worst = j 
       ENDIF 
    ENDDO 
@@ -160,26 +160,26 @@ CONTAINS
    list_val(:) = 0.0
    during: IF (pop_gen.gt.0) THEN 
       DO j = 1, pop_n 
-         list_val (j) = parent_val (j) 
+         list_val (j) = parent_val (j,0) 
       ENDDO 
-      best  = trial_val(1)
-      worst = trial_val(1)
+      best  = trial_val(1,0)
+      worst = trial_val(1,0)
       DO j = 1, pop_c 
-         list_val (pop_n + j) = trial_val (j) 
-         best = MIN(best , trial_val(j))
-         worst= MAX(worst, trial_val(j))
+         list_val (pop_n + j) = trial_val (j,0) 
+         best = MIN(best , trial_val(j,0))
+         worst= MAX(worst, trial_val(j,0))
       ENDDO 
       DO j = pop_c+1, pop_n
          list_val(j) = worst + (worst-best)
       ENDDO
       list_number = pop_n + pop_c 
    ELSE during
-      best  = trial_val(1)
-      worst = trial_val(1)
+      best  = trial_val(1,0)
+      worst = trial_val(1,0)
       DO j = 1, pop_c 
-         list_val (j) = trial_val (j) 
-         best = MIN(best , trial_val(j))
-         worst= MAX(worst, trial_val(j))
+         list_val (j) = trial_val (j,0) 
+         best = MIN(best , trial_val(j,0))
+         worst= MAX(worst, trial_val(j,0))
       ENDDO 
       DO j = pop_c+1, pop_n
          list_val(j) = worst + (worst-best)
@@ -247,7 +247,7 @@ list_index(:) = 0
             ii = list_index (k) 
             DO i = 1, pop_dimx 
                child (i, k) = pop_x (i, ii) 
-               child_val (k) = parent_val (ii) 
+               child_val (k,0:n_rvalue_i) = parent_val (ii,0:n_rvalue_i) 
             ENDDO 
          ELSE 
 !                                                                       
@@ -256,7 +256,7 @@ list_index(:) = 0
             ii = list_index (k) - pop_n 
             DO i = 1, pop_dimx 
                child (i, k) = trial (i, ii) 
-               child_val (k) = trial_val (ii) 
+               child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
             ENDDO 
          ENDIF 
       ENDDO 
@@ -281,7 +281,7 @@ list_index(:) = 0
          ii = list_index (k) 
          DO i = 1, pop_dimx 
             child (i, k) = trial (i, ii) 
-            child_val (k) = trial_val (ii) 
+            child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
          ENDDO 
       ENDDO 
    ENDIF copy
@@ -323,7 +323,7 @@ list_index(:) = 0
       len_file = ltrial_results 
       CALL make_file (trial_results, len_file, 4, j) 
       CALL oeffne (iwr, trial_results, stat) 
-      READ (iwr, * ,iostat=iostatus) r, trial_val (j) 
+      READ (iwr, * ,iostat=iostatus) r, trial_val (j,0) 
       CLOSE (iwr) 
       IF ( iostatus /= 0) THEN
          ier_num = -11
@@ -358,7 +358,7 @@ list_index(:) = 0
    CHARACTER (LEN=7)              :: stat = 'unknown'
    CHARACTER (LEN=1024)           :: line 
    CHARACTER (LEN=1024)           :: fname
-   INTEGER                        :: j, i, ii 
+   INTEGER                        :: j, i, ii , k
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
    INTEGER                        :: iostatus, isuccess
@@ -416,15 +416,15 @@ list_index(:) = 0
          isuccess =  0 
          get_params: DO j = 1, pop_c                       ! Read all old parameters
             READ (iwr, *     ,iostat=iostatus) &
-              &   ii, parent_val (j), pop_x (i, j)
+              &   ii, parent_val (j,0), pop_x (i, j)
             IF(IS_IOSTAT_END(iostatus)) THEN 
                isuccess = -13
                EXIT get_params
             ENDIF
          ENDDO get_params
          IF(isuccess == -13) THEN   ! Premature END of FILE assume population has increased
-            temp_val_min = MINVAL(parent_val)
-            temp_val_max = MAXVAL(parent_val)
+            temp_val_min = MINVAL(parent_val(:,0))
+            temp_val_max = MAXVAL(parent_val(:,0))
             temp_pop_min = pop_x(i,1)
             temp_pop_max = pop_x(i,1)
             DO ii = 1, j-1
@@ -432,24 +432,58 @@ list_index(:) = 0
                temp_pop_max = MAX(temp_pop_min,pop_x(i,ii))
             ENDDO
             DO ii = j, pop_c        ! Create new parameters
-               parent_val(ii) = temp_val_max + temp_val_min
+               parent_val(ii,0) = temp_val_max + temp_val_min
                CALL RANDOM_NUMBER(r)
                pop_x(i,ii)    = temp_pop_min + (temp_pop_max-temp_pop_min)*r
             ENDDO
          ENDIF
       ENDDO
+      IF(n_rvalue_i>1) THEN     !Read partial Rvalues
+         i= 0  
+      DO k = 1, n_rvalue_i                   ! Loop over partial Rvalues
+         IF(lcurrent) THEN
+            WRITE(fname, 970) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))),k   ! Use current file
+         ELSE
+            WRITE(fname, 970) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))),k   ! Use full parameter file
+         ENDIF
+         CALL oeffne (iwr, fname, stat) 
+         ii = - 1 
+         DO while (ii.ne.pop_gen - 1)          ! Loop over all previous generations
+            READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
+            DO while (line (2:2) .ne.'S') 
+               READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
+            ENDDO 
+            READ (line (3:8), *  ,END=30,ERR=30,iostat=iostatus) ii 
+         ENDDO 
+         READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
+         isuccess =  0 
+         get_params_k: DO j = 1, pop_c                       ! Read all old parameters
+            READ (iwr, *     ,iostat=iostatus) &
+              &   ii, parent_val (j,k)
+            IF(IS_IOSTAT_END(iostatus)) THEN 
+               isuccess = -13
+               EXIT get_params_k
+            ENDIF
+         ENDDO get_params_k
+         IF(isuccess == -13) THEN   ! Premature END of FILE assume population has increased
+            DO ii = j, pop_c        ! Create new parameters
+               parent_val(ii,k) = temp_val_max + temp_val_min
+            ENDDO
+         ENDIF
+      ENDDO
+      ENDIF
 !                                                                       
 !     --Determine best and worst member                                 
 !                                                                       
-      best  = parent_val (1) + 1.0 
-      worst = parent_val (1) - 1.0 
+      best  = parent_val (1,0) + 1.0 
+      worst = parent_val (1,0) - 1.0 
       DO j = 1, pop_n 
-         IF (parent_val (j) .lt.best) THEN 
-            best     = parent_val(j)
+         IF (parent_val (j,0) .lt.best) THEN 
+            best     = parent_val(j,0)
             pop_best = j 
          ENDIF 
-         IF (parent_val (j) .gt.worst) THEN 
-            worst    = parent_val(j)
+         IF (parent_val (j,0) .gt.worst) THEN 
+            worst    = parent_val(j,0)
             pop_worst = j 
          ENDIF 
       ENDDO 
@@ -521,6 +555,7 @@ list_index(:) = 0
 !
     900 FORMAT (A,'.',I4.4)
     950 FORMAT (A,'.',A   )
+    970 FORMAT (A,'.',A,'.',I4.4   )
    2000 FORMAT ('Child No. ',i4)
 !                                                                       
    END SUBROUTINE read_par_values                
@@ -541,7 +576,7 @@ list_index(:) = 0
 !                                                                       
    INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
-   INTEGER                        :: i, j 
+   INTEGER                        :: i, j,k , kmax
    INTEGER                        :: i1, i2 
    INTEGER                        :: length
 !                                                                       
@@ -567,28 +602,36 @@ list_index(:) = 0
 !------ write the parameters and the results for the current generation 
 !                                                                       
    length = len_str(parent_results)
+   kmax = 0
+   IF(n_rvalue_i>1) kmax = n_rvalue_i
    i      = 0                                     ! 0 is the R-value
-   WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
-   CALL oeffne_append (iwr, fname, 'unknown' )
-   IF (ier_num.ne.0) THEN 
-      RETURN 
-   ENDIF 
+   partial_p: DO k=0,kmax
+      IF(k==0) THEN
+         WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
+      ELSE
+         WRITE (fname, 970) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))), k
+      ENDIF
+      CALL oeffne_append (iwr, fname, 'unknown' )
+      IF (ier_num.ne.0) THEN 
+         RETURN 
+      ENDIF 
 !                                                                       
 !  write current generation as scan number                           
 !                                                                       
-   WRITE (iwr, 1100) pop_gen 
+      WRITE (iwr, 1100) pop_gen 
 !                                                                       
 !  write titles                                                      
 !                                                                       
-   WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
+      WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
 !                                                                       
 !  write the parameters of the individual members                    
 !                                                                       
-   DO j = 1, pop_n 
-      line = ' ' 
-      WRITE (iwr, 1300) j, child_val (j), child_val (j) 
-   ENDDO 
-   CLOSE (iwr) 
+      DO j = 1, pop_n 
+         line = ' ' 
+         WRITE (iwr, 1300) j, child_val (j,k), child_val (j,k) 
+      ENDDO 
+      CLOSE (iwr) 
+   ENDDO partial_p
 !!!!!!!!!!!!!!!
 !
 !  Loop over all parameters pop_dimx
@@ -613,7 +656,7 @@ list_index(:) = 0
 !     write the parameters of the individual members                    
 !                                                                       
       DO j = 1, pop_n 
-         WRITE (iwr, 1300) j, child_val (j), child (i, j) 
+         WRITE (iwr, 1300) j, child_val (j,0), child (i, j) 
       ENDDO 
       CLOSE (iwr) 
    ENDDO params
@@ -623,46 +666,52 @@ list_index(:) = 0
 !     Write the Summary files
 !                                                                       
    length = len_str(parent_summary)
-   i    = 0
-   WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
-   CALL oeffne_append (iwr, fname, 'unknown') 
-   IF (ier_num.ne.0) THEN 
-      RETURN 
-   ENDIF 
+   partial_s: DO k=0,kmax
+      i    = 0
+      IF(k==0) THEN
+         WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
+      ELSE
+         WRITE (fname, 970) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))), k
+      ENDIF
+      CALL oeffne_append (iwr, fname, 'unknown') 
+      IF (ier_num.ne.0) THEN 
+         RETURN 
+      ENDIF 
 !
-   line = ' ' 
-   WRITE (line (1:4), 4000) pop_gen 
-   i    = 1 
-   pave = 0.0 
-   psig = 0.0 
-   pmax = child_val (1) 
-   pmin = child_val (1) 
-   sx   = 0.0 
-   sx2  = 0.0 
+      line = ' ' 
+      WRITE (line (1:4), 4000) pop_gen 
+      i    = 1 
+      pave = 0.0 
+      psig = 0.0 
+      pmax = child_val (1,k) 
+      pmin = child_val (1,k) 
+      sx   = 0.0 
+      sx2  = 0.0 
 !
-   DO j = 1, pop_n 
-      sx = sx + child_val (j) 
-      pmax = max (pmax, child_val (j) ) 
-      pmin = min (pmin, child_val (j) ) 
-   ENDDO 
+      DO j = 1, pop_n 
+      sx = sx + child_val (j,k) 
+         pmax = max (pmax, child_val (j,k) ) 
+         pmin = min (pmin, child_val (j,k) ) 
+      ENDDO 
 !
-   pave = sx / pop_n 
+      pave = sx / pop_n 
 !
-   DO j = 1, pop_n 
-      sx2 = sx2 + (child_val (j)-pave) **2 
-   ENDDO 
-   arg  = sx2 / (pop_n - 1) 
-   IF (arg.lt.0.0) THEN 
-         psig = 0.0 
-   ELSE 
-         psig = sqrt (abs (arg) ) 
-   ENDIF 
+      DO j = 1, pop_n 
+         sx2 = sx2 + (child_val (j,k)-pave) **2 
+      ENDDO 
+      arg  = sx2 / (pop_n - 1) 
+      IF (arg.lt.0.0) THEN 
+            psig = 0.0 
+      ELSE 
+            psig = sqrt (abs (arg) ) 
+      ENDIF 
 !
-   i1 = 5 + (i - 1) * 72 
-   i2 = 5 + (i - 1) * 72 + 71 
-   WRITE (line (i1:i2), 4100) pave, pmin, pmax, psig
-   WRITE (iwr, 4200) line (1:i2) 
-   CLOSE (IWR)
+      i1 = 5 + (i - 1) * 72 
+      i2 = 5 + (i - 1) * 72 + 71 
+      WRITE (line (i1:i2), 4100) pave, pmin, pmax, psig
+      WRITE (iwr, 4200) line (1:i2) 
+      CLOSE (IWR)
+   ENDDO partial_s
 !
    DO i = 1, pop_dimx 
       WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
@@ -697,7 +746,7 @@ list_index(:) = 0
    ENDDO 
 !
 !                                                                       
-   CLOSE (iwr) 
+!  CLOSE (iwr) 
 !                                                                       
 !------ Copy current child into parent parameters and create new trial  
 !     parameters                                                        
@@ -706,7 +755,7 @@ list_index(:) = 0
       DO i = 1, pop_dimx 
          pop_x (i, j) = child (i, j) 
       ENDDO 
-      parent_val (j) = child_val (j) 
+      parent_val (j,0:n_rvalue_i) = child_val (j,0:n_rvalue_i) 
    ENDDO 
 !                                                                       
    pop_gen = pop_gen + 1 
@@ -721,6 +770,7 @@ list_index(:) = 0
 !                                                                       
      900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',a   )
+     970 FORMAT (A,'.',a,'.',I4.4   )
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
 !    1200 FORMAT (a10) 
     1250 FORMAT (a) 
@@ -748,7 +798,7 @@ list_index(:) = 0
 !
    INTEGER, PARAMETER             :: iwr = 7
 !                                                                       
-   INTEGER                        :: i, j 
+   INTEGER                        :: i, j , k, kmax
    INTEGER                        :: length
 !
    CHARACTER (LEN=1024)           :: fname
@@ -760,30 +810,38 @@ list_index(:) = 0
 !                                                                       
    length = len_str(parent_current)
    IF(length  > 0 ) THEN                    ! Current file is defined
+      kmax = 0
+      IF(n_rvalue_i>1) kmax = n_rvalue_i
       i      = 0                                     ! 0 is the R-value
-      WRITE (fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
-      CALL oeffne(iwr, fname, 'unknown' )
-      IF (ier_num.ne.0) THEN 
-         RETURN 
-      ENDIF 
+      partial_c: DO k=0,kmax
+         IF(k==0) THEN
+            WRITE (fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
+         ELSE
+            WRITE (fname, 970) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))),k
+         ENDIF
+         CALL oeffne(iwr, fname, 'unknown' )
+         IF (ier_num.ne.0) THEN 
+            RETURN 
+         ENDIF 
 !     write header
-      WRITE(iwr, 1000)
+         WRITE(iwr, 1000)
 !                                                                       
 !     write current generation as scan number                           
 !                                                                       
-      WRITE (iwr, 1100) pop_gen 
+         WRITE (iwr, 1100) pop_gen 
 !                                                                       
 !     write titles                                                      
 !                                                                       
-      WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
+         WRITE (iwr, 1250) '#L Member Rvalue Rvalue '
 !                                                                       
 !     write the parameters of the individual members                    
 !                                                                       
-      DO j = 1, pop_n 
-         line = ' ' 
-         WRITE (iwr, 1300) j, child_val (j), child_val (j) 
-      ENDDO 
-      CLOSE (iwr) 
+         DO j = 1, pop_n 
+            line = ' ' 
+            WRITE (iwr, 1300) j, child_val (j,k), child_val (j,k) 
+         ENDDO 
+         CLOSE (iwr) 
+      ENDDO partial_c
 !
 !     Loop over all parameters pop_dimx
 !
@@ -809,7 +867,7 @@ list_index(:) = 0
 !        write the parameters of the individual members                    
 !                                                                       
          DO j = 1, pop_n 
-            WRITE (iwr, 1300) j, child_val (j), child (i, j) 
+            WRITE (iwr, 1300) j, child_val (j,0), child (i, j) 
          ENDDO 
          CLOSE (iwr) 
       ENDDO current
@@ -817,6 +875,7 @@ list_index(:) = 0
 !
      900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',A   )
+     970 FORMAT (A,'.',A,'.',I4.4   )
     1000 FORMAT ('#C Current file by DIFFEV')
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
     1250 FORMAT (a) 
@@ -1012,13 +1071,13 @@ list_index(:) = 0
 !                                                                       
 !  heapsort index array  on r-values                                 
 !                                                                       
-   CALL indexx (MAXPOP, parent_val, list_index) 
-   shift = int(parent_val(list_index(pop_n))) + 1.0E10
+   CALL indexx (MAXPOP, parent_val(:,0), list_index) 
+   shift = int(parent_val(list_index(pop_n),0)) + 1.0E10
 !                                                                       
 !     copy the pop_n best into the child variables                      
 !
    DO j = lb, ub
-      parent_val (list_index(j) ) = parent_val (list_index(j)) + shift
+      parent_val (list_index(j),: ) = parent_val (list_index(j),:) + shift
    ENDDO 
 !
    END SUBROUTINE do_dismiss

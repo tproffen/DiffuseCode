@@ -87,6 +87,16 @@ CONTAINS
       WRITE (iwr, 1000) 
       CLOSE (iwr) 
    ENDDO
+!
+   IF(n_rvalue_i > 1 ) THEN    ! partial R-values are requested
+      DO i=1,n_rvalue_i
+         WRITE (fname, 970) parent_results(1:length), pop_name(0)(1:LEN_TRIM(pop_name(0))), i
+         CALL oeffne (iwr, fname, stat)
+         IF (ier_num.ne.0) return
+         WRITE (iwr, 1000)
+         CLOSE (iwr)
+      ENDDO
+   ENDIF
 !                                                                 
 !    Initialise Summary Files                                     
 !                                                                 
@@ -104,6 +114,22 @@ CONTAINS
    WRITE (line (i1:i2), 2150) 'RAVE ','RMIN ','RMAX ','RSIG ' 
    WRITE (iwr, 3000) line (1:LEN_TRIM(line)) 
    CLOSE (iwr) 
+!
+   IF(n_rvalue_i > 1 ) THEN    ! partial R-values are requested
+      DO i=1,n_rvalue_i
+         WRITE (fname, 970) parent_summary(1:length), pop_name(0)(1:LEN_TRIM(pop_name(0))), i
+         CALL oeffne (iwr, fname, stat) 
+         IF (ier_num.ne.0) return 
+         WRITE (iwr, 2050) i
+         WRITE (iwr, 2100) 
+         line = '#L GEN '
+         i1 =  8
+         i2 = 71
+         WRITE (line (i1:i2), 2150) 'RAVE ','RMIN ','RMAX ','RSIG ' 
+         WRITE (iwr, 3000) line (1:LEN_TRIM(line)) 
+         CLOSE (iwr) 
+      ENDDO
+   ENDIF
 !
    DO i = 1, pop_dimx 
       WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
@@ -152,8 +178,10 @@ CONTAINS
 !                                                                       
      900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',A   )
+     970 FORMAT (A,'.',A,'.',I4.4   )
     1000 FORMAT ('#C Logfile by DIFFEV') 
     2000 FORMAT ('#C Summaryfile by DIFFEV, Parameter no. ',i4.4) 
+    2050 FORMAT ('#C Summaryfile by DIFFEV, Partial R-value no. ',i4.4) 
     2100 FORMAT ('#S 1') 
     2150 FORMAT (' ',a5,      13x,a5,      13x,a5,      13x,a5       ) 
     2200 FORMAT (' ',a,'_AVE',2x,a,'_MIN',2x,a,'_MAX',2x,a,'_SIG') 

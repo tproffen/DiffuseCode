@@ -396,10 +396,10 @@ WRITE (IWR, 1800) string(1:16),-1, 1.,REAL(pop_dimx), &
                                    1., REAL(pop_dimx),&
                                    'I', .FALSE.
 string='Rvalue'
-WRITE (IWR, 1800) string(1:16), 0, parent_val(pop_best),&
-                               parent_val(pop_worst),&
-                               child_val(pop_best),&
-                               child_val(pop_worst),&
+WRITE (IWR, 1800) string(1:16), 0, parent_val(pop_best,0),&
+                               parent_val(pop_worst,0),&
+                               child_val(pop_best,0),&
+                               child_val(pop_worst,0),&
  'I', .FALSE.
 DO i = 1, pop_dimx
    string = pop_name(i)(1:LEN_TRIM(pop_name(i)))
@@ -451,6 +451,7 @@ INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'old'
 CHARACTER (LEN=128) :: line
+CHARACTER (LEN=1024):: string
 INTEGER             :: io_status
 INTEGER             :: i, j
 INTEGER             :: n_pop, n_dim
@@ -542,7 +543,7 @@ IF(IS_IOSTAT_END(IO_STATUS)) THEN
 ENDIF
 lparent_current = LEN_TRIM(parent_current)
 !
-READ (iwr, *   ,iostat=IO_status)                   ! read backup header line
+READ (iwr, 1000,iostat=IO_status) line              ! read backup header line
 IF(IS_IOSTAT_END(IO_STATUS)) THEN
    CLOSE(iwr)
    RETURN

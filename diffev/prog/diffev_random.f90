@@ -102,7 +102,7 @@ INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=1024) :: line
-INTEGER :: i, i1
+INTEGER :: i, i1, ir1, ir2
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 !
 nseed_run = random_nseeds()
@@ -144,18 +144,32 @@ IF(write_random_state) THEN
 !     WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
 !
+!  IF(random_nseed>0) THEN
+!     line = ' '
+!     line(1:5) = 'seed '
+!     DO i=1, random_nseed - 1
+!        i1 = 6 + (i-1)*10
+!        WRITE(line(i1:i1+9),'(I8,A2)') random_best(i),', '
+!     ENDDO
+!     i = random_nseed
+!     i1 = 6 + (i-1)*10
+!     WRITE(line(i1:i1+7),'(I8)') random_best(i)
+!     WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
+!  ENDIF
+!
    IF(random_nseed>0) THEN
       line = ' '
       line(1:5) = 'seed '
-      DO i=1, random_nseed - 1
-         i1 = 6 + (i-1)*10
-         WRITE(line(i1:i1+9),'(I8,A2)') random_best(i),', '
+      DO i=1, random_nseed 
+         i1 = 6 + (i-1)*11
+         ir1 =     random_best(i)/ 10000
+         ir2 = MOD(random_best(i), 10000)
+         WRITE(line(i1:i1+10),'(I4,A1,I4,A2)') ir1,',',ir2,', '
       ENDDO
-      i = random_nseed
-      i1 = 6 + (i-1)*10
-      WRITE(line(i1:i1+7),'(I8)') random_best(i)
+      WRITE(line(i1+11:i1+18),'(a8)') ' group:2'
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
+   WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'
    WRITE(IWR,'(a)') '#'

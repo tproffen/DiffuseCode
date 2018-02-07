@@ -321,15 +321,15 @@ CONTAINS
       pop_size_of = pop_size_of + size_of
 !
 !
-      CALL alloc_arr ( child_val     ,1,n_pop , all_status, 0.0, size_of)
+      CALL alloc_arr ( child_val     ,1,n_pop , 0,15,all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( trial_val     ,1,n_pop , all_status, 0.0, size_of)
+      CALL alloc_arr ( trial_val     ,1,n_pop , 0,15,all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !
-      CALL alloc_arr ( parent_val    ,1,n_pop , all_status, 0.0, size_of)
+      CALL alloc_arr ( parent_val    ,1,n_pop , 0,15,all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !
