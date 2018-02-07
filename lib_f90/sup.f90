@@ -650,6 +650,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !
       INTEGER            , INTENT(IN) :: np
       REAL, DIMENSION(np), INTENT(IN) :: werte
+      INTEGER, DIMENSION(NP) :: iwerte
 !                                                                       
 !     IF (iflag.ge.0) THEN 
 !        CALL datum_intrinsic () 
@@ -660,7 +661,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !     iset = 0 
 !     np = 1
 !     werte(1) = IABS(iflag)
-      CALL ini_ran_ix(np, werte)
+      iwerte(:) = NINT(werte(:))
+      CALL ini_ran_ix(np, iwerte)
       END SUBROUTINE ini_ran                        
 !*****7***********************************************************      
       SUBROUTINE get_cmd (line, ll, befehl, lbef, zeile, lp, prom) 
@@ -1661,10 +1663,11 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !                                                                       
       USE errlist_mod 
       USE random_state_mod
+      USE take_param_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 64 
+      INTEGER, PARAMETER :: maxw = 65 
 !                                                                       
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
       INTEGER          , INTENT(INOUT) :: lp
@@ -1673,16 +1676,49 @@ SUBROUTINE cmdline_args (local_mpi_myid)
       INTEGER            , DIMENSION(MAXW) ::  lpara !(maxw)
       INTEGER  :: ianz, np
       REAL               , DIMENSION(MAXW) ::  werte !(maxw) 
+      INTEGER            , DIMENSION(MAXW-1) :: iwerte !(maxw) 
+      INTEGER, PARAMETER :: NOPTIONAL = 1
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+      INTEGER :: igroup
+      INTEGER :: i,ind, ip
+!
+      DATA oname  / 'group'  /
+      DATA loname /  5       /
+      opara  =  (/ '1.0000'  /)   ! Always provide fresh default values
+      lopara =  (/  6        /)
+      owerte =  (/  1.0      /)
+!
 !                                                                       
-      werte(:) = 0.0
+      werte(:)  = 0.0
+      iwerte(:) = 0
       IF (zeile.ne.' ') THEN 
          CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, owerte)
+         igroup = NINT(owerte(1))
+!
          IF (ier_num == 0) THEN 
             IF (ianz <= MAXW) THEN 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num == 0) THEN 
-                  np = ianz
-                  CALL ini_ran_ix(np, werte)
+                  IF(MOD(ianz,igroup)==0) THEN
+                     np = ianz/igroup
+                     DO i = 1, ianz   ! loop over the current number of parameters
+                        ind = (i-1)/igroup+1   ! New parameter index
+                        ip  = igroup - MOD(i-1,igroup) - 1   ! Power for 10**ip
+                        iwerte(ind) = iwerte(ind) + NINT(werte(i))*10000**ip
+                     ENDDO
+                     CALL ini_ran_ix(np, iwerte)
+                  ELSE
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                     ier_msg(1) = 'Nonmatching modulo'
+                  ENDIF 
                ENDIF 
 !           IF (ianz.eq.1) THEN 
 !              CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -1693,7 +1729,7 @@ SUBROUTINE cmdline_args (local_mpi_myid)
 !           ELSEIF (ianz.eq.3) THEN 
 !              CALL ber_params (ianz, cpara, lpara, werte, maxw) 
 !              IF (ier_num.eq.0) THEN 
-!                 CALL ini_ran_ix(3, werte)
+!                 CALL ini_ran_ix(3, iwerte)
 !              ENDIF 
             ELSE 
                ier_num = - 6 
@@ -1702,8 +1738,8 @@ SUBROUTINE cmdline_args (local_mpi_myid)
          ENDIF 
       ELSE 
          np = 1
-         werte(1) = 0.0
-         CALL ini_ran_ix(np, werte)
+         iwerte(1) = 0
+         CALL ini_ran_ix(np, iwerte)
 !        CALL ini_ran (0) 
       ENDIF 
       END SUBROUTINE do_seed                        

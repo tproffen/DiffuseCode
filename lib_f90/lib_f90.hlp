@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2018_Feb
+
+   As a patch to overcome internal precision, the ==> 'seed' command
+   can take an alternative form.
 4  2018_Jan
 
    The logical comparisons may now take the operators:
@@ -766,12 +770,28 @@
    points to the folder that contains the manuals.
 3  seed
 !b seed [ <value> ]
+!b seed [ <value_a>, <value_b> ] , group:<no>
 
    Reinitializes the pseudo random generator. The seed passed to the
    random generator is -abs(nint(value)). If the <value> is omitted,
    the random generator will be passed the number of hundredth of
    seconds passed since midnight, essentially initializing the sequence
    at a unknown fairly random point.
+
+   The seed may take more than one parameter, usually the compiler
+   takes 12 different seeds.
+
+   To overcome limited internal precision, a patch has been introduced
+   in version 5.17.0. 
+   As the random number generator takes seeds in the range from
+   1 to 99999999 the internal precision that calculates the value 
+   on the command line via the detour of a real valued number turned
+   out to be insufficient. To ensure that an eight digit seed number
+   is properly transfered to the seed initialization routine, split
+   the number into two groups of four digit integers as in:
+   12345678  => 1234, 5678, group:2
+   The optional parameter "group" tells the SUITE to group these two 
+   numbers together to the original intended eith digit no.
 3  set
 !b set <command>,..
 

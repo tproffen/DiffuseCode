@@ -43,7 +43,7 @@ seed_val(1:nseeds) = seed_vals(1:nseeds)
 !
 END SUBROUTINE random_current
 !
-SUBROUTINE ini_ran_ix(np, werte)
+SUBROUTINE ini_ran_ix(np, iwerte)
 !
 ! Initializes the random sequence or places it at a previous state
 !
@@ -52,8 +52,8 @@ USE times_mod
 !
 IMPLICIT NONE
 !
-INTEGER           , INTENT(IN) :: np
-REAL, DIMENSION(:), INTENT(IN) :: werte
+INTEGER              , INTENT(IN) :: np
+INTEGER, DIMENSION(:), INTENT(IN) :: iwerte
 !
 INTEGER  :: i
 INTEGER  :: nseeds
@@ -61,13 +61,14 @@ INTEGER  :: nseeds
 !INTEGER, DIMENSION(12)              :: seed_val
 REAL     :: r
 !
-CALL RANDOM_SEED()                   ! Set at default value
-random_linit = .FALSE.
 CALL alloc_random()
+nseeds = UBOUND(seed_vals,1)
 !
 ! If one value == 0 initialize automatically
 ! Else take user values
-IF(np==1 .AND. IABS(NINT(werte(1)))==0) THEN
+IF(np==1 .AND. IABS(iwerte(1))==0) THEN
+   CALL RANDOM_SEED()                   ! Set at default value
+   random_linit = .FALSE.
       CALL  datum_intrinsic ()       ! get time since midnight
       idum =   midnight              ! idum is preserved for backwards compatibility
       seed_vals(:) = midnight        ! Set all seeds
@@ -79,7 +80,7 @@ IF(np==1 .AND. IABS(NINT(werte(1)))==0) THEN
       CALL RANDOM_SEED(PUT=seed_vals)
 ELSE                                 ! more than one value or non-zero value
    DO i=1, MIN(np,nseeds)            ! Loop over all seeds or all provided values
-      seed_vals(i) = IABS(NINT(werte(i)))
+      seed_vals(i) = IABS(iwerte(i))
    ENDDO
    CALL RANDOM_SEED(PUT=seed_vals)
 !  idum = 0                      ! User provided three numbers
