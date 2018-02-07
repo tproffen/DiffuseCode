@@ -3741,6 +3741,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     .or.mmc_cor_energy (0, MC_LENNARD) .or.mmc_cor_energy (0, MC_BUCKING)&
 !     .or.mmc_cor_energy (0,MC_REPULSIVE) ) then                                                
       IF (mmc_cor_energy (0, MC_DISP)                                      &
+         .OR. mmc_move_prob(MC_MOVE_SWDISP) > 0                            &
+         .OR. mmc_move_prob(MC_MOVE_INVDISP) > 0                           &
          ) THEN
          CALL chem_aver (.false., .true.) 
       ENDIF 
