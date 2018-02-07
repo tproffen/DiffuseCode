@@ -7,6 +7,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !     Main menu for KUPLOT                                              
 !                                                                       
       USE nexus_kuplot
+      USE kuplot_diffev_mod
 !
       USE doact_mod
       USE errlist_mod 
@@ -34,7 +35,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       REAL, DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
-      INTEGER lc, lbef
+      INTEGER lc, lbef, i
       INTEGER ianz, indxg, indxb , indxt
       LOGICAL ldummy 
 !                                                                       
@@ -142,10 +143,17 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
          ELSEIF (str_comp (bef, 'costvalue', 3, lbef, 4) ) then 
             CALL get_params (zei, ianz, cpara, lpara, maxw, lc) 
-            IF(ianz==1) then
+            IF(ianz>= 1) then
                CALL ber_params(ianz, cpara, lpara, werte, maxw)
                IF(ier_num == 0 ) THEN
-                  rvalues(2) = werte(1)
+                  DO i=0, ianz-1
+                     rvalues(2, i) = werte(1+i)
+                  ENDDO
+                  IF(ianz>1) THEN
+                     nrvalues = MAX(nrvalues, ianz-1)
+                  ELSEIF(ianz==1) THEN
+                     nrvalues = MAX(nrvalues, 1)
+                  ENDIF
                   rvalue_yes = .true.
                ENDIF
             ENDIF
@@ -159,6 +167,11 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
          ELSEIF (str_comp (bef, 'derivative', 3, lbef, 10) ) then 
             CALL do_derivative (zei, lc) 
+!
+!-------  Make kpara or kpar_par plot
+!
+         ELSEIF (str_comp (bef, 'kpara', 3, lbef, 6) ) then 
+            CALL do_diffev_plot (zei, lc) 
 !                                                                       
 !-------  Set fill parameters                                           
 !                                                                       

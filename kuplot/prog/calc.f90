@@ -1597,6 +1597,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE take_param_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1634,6 +1635,22 @@
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
+      INTEGER, PARAMETER :: NOPTIONAL = 1
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+      INTEGER :: irvalue
+      INTEGER :: i
+!
+      DATA oname  / 'partial'/
+      DATA loname /  7        /
+      opara  =  (/ '0.0000'   /) ! Always provide fresh default values
+      lopara =  (/  6         /)
+      owerte =  (/  0.00      /)
+!
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
@@ -1643,6 +1660,10 @@
          RETURN 
       ENDIF 
 !                                                                       
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, owerte)
+      irvalue = NINT(owerte(1))
+!
       iianz = 2 
       CALL ber_params (iianz, cpara, lpara, werte, maxw) 
       CALL del_params (2, ianz, cpara, lpara, maxw) 
@@ -1688,8 +1709,8 @@
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
-               rvalues  (1) = rval 
-               rvalues  (2) = wrval 
+               rvalues  (1, irvalue) = rval 
+               rvalues  (2, irvalue) = wrval 
                rvalue_yes   = .true.
             ELSE 
                ier_num = - 23 
@@ -1703,8 +1724,8 @@
                res_para (0) = 2 
                res_para (1) = rval 
                res_para (2) = wrval 
-               rvalues  (1) = rval 
-               rvalues  (2) = wrval 
+               rvalues  (1, irvalue) = rval 
+               rvalues  (2, irvalue) = wrval 
                rvalue_yes   = .true.
             ELSE 
                ier_num = - 23 
@@ -1721,6 +1742,20 @@
          ier_typ = ER_COMM 
          RETURN 
       ENDIF 
+!
+      IF(irvalue > 1) THEN
+         rvalues(1,0) = 0.0
+         rvalues(2,0) = 0.0
+         nrvalues = MAX(irvalue,nrvalues)
+         DO i=1, MAX(irvalue,nrvalues)
+            rvalues(1,0) = rvalues(1,0) + rvalues(1,i)
+            rvalues(2,0) = rvalues(2,0) + rvalues(2,i)
+         ENDDO
+         rvalues(1,0) = rvalues(1,0) /nrvalues
+         rvalues(2,0) = rvalues(2,0) /nrvalues
+      ELSE
+         nrvalues = MAX(1, nrvalues)
+      ENDIF
 !                                                                       
       WRITE (output_io, 1000) rval 
       WRITE (output_io, 2000) wrval 

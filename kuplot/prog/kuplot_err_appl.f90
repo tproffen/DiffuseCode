@@ -8,11 +8,15 @@
 !
 !
       integer       iu,io
-      parameter    (iu=-62,io=0)
+      parameter    (iu=-66,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'DIFFEV Rvalue file not found',            &! -66  ! kupl
+     &  'DIFFEV LOG  or Current file not found',   &! -65  ! kupl
+     &  'DIFFEV Summary file not found',           &! -64  ! kupl
+     &  'Parameter no outside range',              &! -63  ! kupl
      &  'Data set is not 2D',                      &! -62  ! kupl
      &  'Singular matrix in Savitzky calculation ' &! -61  ! kupl
      &  /

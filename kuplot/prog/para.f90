@@ -1119,6 +1119,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE param_mod
+      USE take_param_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

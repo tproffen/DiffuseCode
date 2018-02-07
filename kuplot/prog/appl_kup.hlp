@@ -57,6 +57,7 @@
 !p iden          : Toggle plotting of user, data and time information
 !p inte          : Integrate data set
 !p ksav          : Save data set in various formats
+!p kpara         : Plots parameters fitted with DIFFEV
 !p kcal          : Perform calculations with two data sets (add, ..)
 !p lart          : Set type for 1D plot (line, steps, spline)
 !p lcol          : Set line color
@@ -96,6 +97,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2018_Feb
+
+   Added a command 'kpara' to create a plot for DIFFEV
+
+   Added an optional parameter "partial" to the ==> 'rvalue' command
 3  2018_Jan
 
    The new command 'costvalue' allows to set a global value 
@@ -325,7 +331,7 @@
    <ik2> and creates a new data set with the result. Both data sets
    must be on the same equidistant grid ! 
 2  cost
-!b costvalue  <rvalue>
+!b costvalue  <rvalue> [, <partial_rvalue1> ...]
 
    Set a value that is to be retured to DIFFEV as the overall
    R-value. It will overwrite the current weighted R-value
@@ -334,6 +340,9 @@
    variable. This allows to calculate a combined, weighted
    R-value from several different calculations like single 
    crystal, powder diffraction, PDF, etc.
+
+   If the partial R-values are provided as well, they will 
+   overwrite the corresponding partial R-values.
 2  cmap
 !b cmap { "gray" | "fire" | "kupl"  }
 !b cmap { "read" | "write"}, <fname>
@@ -1191,6 +1200,36 @@
 !p "igno" : The special properties of these data points are ignored and 
 !p          the result is the corresponding operation between the two 
 !p          numbers.
+2  kpara
+!b kpara {<par_name> | <par_number>} 
+!b kpara { {"last"| "-1"} | <generation_no> } ,
+!b       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
+
+   This command serves to create a standardized plot of the parameters
+   refined via DIFFEV. 
+
+   The first form with a single parameter name or number will plot the 
+   development of this parameter versus the refinement generations.
+   The parameter name may include "Rvalue" or 0 to plot the development
+   of the R-value.
+
+   The second form serves to plot the distribution of two parameters
+   in a given generation. If the first command parameter is either
+   "last" or "-1" the last generation is used. This can be helpful to
+   repeatedly plot the parameters during a refinement. 
+   The plot will display the distribution of the two parameters.
+   The size of the markers indicates the R-value for each parameter
+   pair, with the smallest marker signifying the smallest R-value.
+   Either of the two parameter names/numbers may be "Rvalue" or "0"
+   to show the correlation between parameter value and the R-value.
+
+   Examples
+   kpara Rvalue    ! Show the R-value versus generations
+   kpara P_one     ! Same for a parameter named "P_one"
+   kpara last, P_one, Rvalue  ! Show R-values versus Parameter value
+                              ! in the last generation
+   kpara last, P_one, P_two   ! Dislay (possible) correlation 
+                              ! between these two parameters
 2  lart
 !b lart <ik>,<p>
 
@@ -1743,7 +1782,7 @@
    will reset KUPLOT back to the initial state including titles, colors,
    labels and so on.
 2  rval
-!b rval <ik>,<ij>[,<weight>]
+!b rval <ik>,<ij>[,<weight>]  [, partial:<no>]
 
    Calculates the residual between curves <ik> and <ij>.
    The last parameter defines the weighting scheme to be used for 
@@ -1753,6 +1792,16 @@
 !p   "sqrt" : w(y) = SQRT(y)          "inv"  : w(y) = 1/y
 !p   "log"  : w(y) = LOG(y)           "isq"  : w(y) = 1/SQRT(y)
 !p   "lin"  : w(y) = y                "dat"  : w(y) = 1/DY (error data set) 
+
+   The "partial" parameter tells KUPLOT that this is one out of
+   several R-values that will be send back to DIFFEV. If these 
+   partial R-values are to be averaged evenly, it is sufficient to
+   provide all partial R-values via the 'rval' command.
+   If you want to weigh these R-values differently, use the 
+   ==> 'costvalue' command. 
+
+   The R-values are also copied into the result variable as entries
+   one and two (unwieghted and weighted).
 2  sann
 !b sann <ia>,"OFF"
 !b sann <ia>,<text>,<x>,<y> [,{"l"|"c"|"r"}] [,<angle>] [,<xp>,<yp>]
@@ -2249,3 +2298,58 @@
    An invalid smoothing size was given. Valid numbers are odd 
    integers. The minimum value for a smoothing polynomial of the
    order of 2 is 5, for 4th order 7.
+4  -40
+   Maximum derivative exceeded 
+4  -41
+   MCA scan not found
+4  -42
+   Invalid window ID selected
+4  -43
+   Invalid value/range for log. axis
+4  -44
+   Data sets must have same x-range
+4  -45
+   Step size of data sets is different
+4  -46
+   Invalid bank number found in iparm. file
+4  -47
+   Error reading instrument parameter file
+4  -48
+   Unsupported GSAS binning type found
+4  -49
+   No TIME_MAP entry found in GSAS file
+4  -50
+   Requested bank not found in GSAS file
+4  -51
+   Unit for GSAS TOF conversion invalid
+4  -52
+   Unsupported incident spectr. function
+4  -53
+   This KUPLOT has NeXus support disabled
+4  -54
+   Close current NeXus file first
+4  -55
+   No NeXus file currently open
+4  -56
+   NeXus SDS has too many dimensions
+4  -57
+   Invalid SDS name specified (try nxdir)
+4  -58
+   SDS section value out of range
+4  -59
+   Invalid column number specified
+4  -60
+   Multiple point with same x, no spline
+4  -61
+   Singular matrix in Savitzky calculation
+
+4  -62
+   Data set is not 2D
+4  -63
+   Parameter no outside range
+4  -64
+   DIFFEV Summary file not found
+4  -65
+   DIFFEV LOG  or Current file not found
+4  -66
+   DIFFEV Rvalue file not found
