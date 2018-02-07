@@ -6,6 +6,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          direc_len,        &
                          direc ,  direc_l, &
                          kid   ,  indiv  , &
+                         n_rvalue_i, n_rvalue_o, NRVAL,        &
                          rvalue, l_rvalue, &
                          output_len,       &
                          output, output_l, &
@@ -50,7 +51,11 @@ CHARACTER(LEN=direc_len), INTENT(IN) :: direc
 INTEGER                , INTENT(IN) :: kid   
 INTEGER                , INTENT(IN) :: indiv
 CHARACTER(LEN=output_len), INTENT(IN) :: output
-REAL                   , INTENT(OUT):: rvalue
+INTEGER                , INTENT(IN)  :: n_rvalue_i
+INTEGER                , INTENT(OUT) :: n_rvalue_o
+INTEGER                , INTENT(IN)  :: NRVAL
+REAL, DIMENSION(0:NRVAL), INTENT(OUT) :: rvalue
+!REAL                   , INTENT(OUT):: rvalue
 LOGICAL                , INTENT(OUT):: l_rvalue
 INTEGER                , INTENT(IN) :: generation
 INTEGER                , INTENT(IN) :: member
@@ -177,7 +182,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
    rvalue_yes = .false.   ! Reset the global R-value flag
    l_rvalue   = .false.
-   rvalue     = 0.0
+   rvalue(:)  = 0.0
 !
 !  Reset KUPLOT
 !
@@ -236,7 +241,13 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
    IF(rvalue_yes) THEN    ! We got an r-value
       l_rvalue = .true.
-      rvalue   = rvalues(2)
+      n_rvalue_o = 1
+      rvalue(0)= rvalues(2,0)
+      n_rvalue_o = 0
+      IF(nrvalues == n_rvalue_i) THEN
+         rvalue(1:n_rvalue_i) = rvalues(2,1:n_rvalue_i)
+         n_rvalue_o = nrvalues
+      ENDIF
    ENDIF
 ELSE
    mpi_slave_error = ier_num

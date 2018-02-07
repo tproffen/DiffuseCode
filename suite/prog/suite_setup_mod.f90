@@ -175,6 +175,7 @@ INTERFACE
                             direc_len,        &
                             direc ,  direc_l, &
                             kid   ,  indiv  , &
+                            n_rvalue_i, n_rvalue_o, NRVAL, &
                             rvalue, l_rvalue, &
                             output_len,       &
                             output, output_l, &
@@ -203,7 +204,10 @@ INTERFACE
    INTEGER                , INTENT(IN) :: kid
    INTEGER                , INTENT(IN) :: indiv
    CHARACTER(LEN=output_len), INTENT(IN) :: output
-   REAL                   , INTENT(OUT):: rvalue
+   INTEGER                , INTENT(IN ):: n_rvalue_i
+   INTEGER                , INTENT(OUT):: n_rvalue_o
+   INTEGER                , INTENT(IN ):: NRVAL
+   REAL, DIMENSION(0:NRVAL), INTENT(OUT):: rvalue
    LOGICAL                , INTENT(OUT):: l_rvalue
    INTEGER                , INTENT(IN) :: generation
    INTEGER                , INTENT(IN) :: member
