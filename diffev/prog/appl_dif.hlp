@@ -19,6 +19,18 @@
    Further help topics are:
 
 2  News
+3  2018_Feb
+
+   Added an optional parameter "partial:<value>" to the 
+   ==> 'restrial' command. This parameter tells DIFFEV how many
+   partial R-values the slave program will calculate and return. 
+   If set or if the value is larger than 1, DIFFEV will create
+   logfiles "Summary.Rvalue.0001", "Parameter.Rvalue.0001" and
+   "Current.Rvalue.0001" etc. for each partial R-value. 
+   Use the KUPLOT commands 'rval' and 'cost' to set the 
+   individual R-values and a (weighted) average.
+   You can display the development of the partial R-values within
+   KUPLOT" with the kuplot command 'kpara'.
 3  2018_Jan
 
    The logical comparisons may now take the operators:
@@ -911,7 +923,10 @@
    minium value, the third the maximum value and the fourth the sigma of
    the parameter distribution.
 2  restrial
-!b restrial <result>
+!b restrial "silent" {,partial:<no>}
+!b restrial <result> {,partial:<no>}
+
+   Within the discus_suite always use the "silent" mode!
 
    These temporary files are used to communicate the R-value from the 
    slave program back to DIFFEV. 
@@ -929,7 +944,14 @@
    If the file name is the string "silent", the result files are
    note read from your disk. DIFFEV expects to be part of a suite 
    program and will expect that the result values have been transfered
-   directly from the slave program. See also ==> 'trialfile', 'run_mpi', 'compare'
+   directly from the slave program. See also ==> 'trialfile', 
+   'run_mpi', 'compare'
+
+   The optional parameter "partial:<no>" tells DIFFEV how many
+   partial R-values to expect from the the slave program. 
+   Within DIFFEV the parrtial R-values are just archived, the slave
+   program has to provide the properly weighted average R-value.
+
 2  run_mpi
 !b run_mpi <program_name>, <macro_name>, <no_repetitions>, <output_base> [,"socket"]
 
