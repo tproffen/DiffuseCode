@@ -261,7 +261,9 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
       pop_random(1:j,run_mpi_senddata%kid) = run_mpi_senddata%seeds(1:j)
    ENDIF
    IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
-      trial_val(run_mpi_senddata%kid) = run_mpi_senddata%rvalue
+      j = run_mpi_senddata%n_rvalue_o
+      n_rvalue_o = j
+      trial_val(run_mpi_senddata%kid,0:j) = run_mpi_senddata%rvalue(0:j)
    ENDIF
 !
    IF ( run_mpi_numsent < pop_c*run_mpi_senddata%nindiv ) THEN  ! There are more jobs to do
@@ -501,6 +503,8 @@ slave: DO
                            LEN(run_mpi_senddata%direc),                      &
                            run_mpi_senddata%direc, run_mpi_senddata%direc_l, &
                            run_mpi_senddata%kid  , run_mpi_senddata%indiv  , &
+                           run_mpi_senddata%n_rvalue_i, run_mpi_senddata%n_rvalue_o, &
+                           RUN_MPI_MAXRVALUE,     &
                            run_mpi_senddata%rvalue, run_mpi_senddata%l_rvalue,     &
                            LEN(output),                                      &
                            output                , output_l ,                      &
