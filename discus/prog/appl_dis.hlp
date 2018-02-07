@@ -9714,6 +9714,14 @@
    outside the range of atoms in the molecule. Check if an 
    atom is missing in the ligand structure file or if the 
    atom number on the bond/axis command is erroneous.
+4  -145
+   Decoration name not recognized
+4  -146
+   No. of atoms not an integer multiple of sites
+4  -147
+   Unknown export format
+4  -148
+   1bar not at origin
 3  chem
    Errors at the chemistry level of DISCUS
 
