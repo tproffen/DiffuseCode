@@ -3720,7 +3720,7 @@ main: DO i=1, laenge
       IF (laenge.gt.0) then 
          i = iachar (string (laenge:laenge) ) 
          IF (zero.le.i.and.i.le.nine.or.i.eq.period.or.i.eq.blank1) then
-            READ (line, *, end = 999, err = 999) do_read_number 
+            READ (line, *, end = 999, err = 999) do_read_number
 !                                                                       
             ier_num = 0 
             ier_typ = ER_NONE 
