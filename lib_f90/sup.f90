@@ -2502,20 +2502,21 @@ DO i=var_sys+1, var_num
    ENDIF
 ENDDO
 ndel = 0
-i = var_sys
+i = var_sys+1
 remove: DO 
-   i=i+1
    IF(var_name(i) == ' ') THEN
       ndel = ndel +1
       IF(i>var_num-ndel) EXIT remove
       DO j=i, var_num-ndel
-         var_name(j) = var_name(j+ndel)
-         var_char(j) = var_char(j+ndel)
-         var_l   (j) = var_l   (j+ndel)
-         var_type(j) = var_type(j+ndel)
-         var_diff(j) = var_diff(j+ndel)
-         var_val (j) = var_val (j+ndel)
+         var_name(j) = var_name(j+1)
+         var_char(j) = var_char(j+1)
+         var_l   (j) = var_l   (j+1)
+         var_type(j) = var_type(j+1)
+         var_diff(j) = var_diff(j+1)
+         var_val (j) = var_val (j+1)
       ENDDO
+   ELSE
+      i=i+1
    ENDIF
 ENDDO remove
 var_num = var_num - ndel
@@ -2538,7 +2539,7 @@ CHARACTER(LEN=1024), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 LOGICAL                               , INTENT(IN)    :: is_diffev
 !
-INTEGER :: i, j, k
+INTEGER :: i, j, k, upper
 !
 LOGICAL :: str_comp
 !
@@ -2548,7 +2549,8 @@ ELSEIF(str_comp (cpara (2) , 'all', 3, lpara(1), 3) ) THEN
    CALL rese_variables (is_diffev)
 ELSE
    main: DO i=2, ianz
-      loop: DO j=var_sys+1, var_num
+      upper = var_num
+      loop: DO j=var_sys+1, upper
          IF(cpara(i) == var_name(j)) THEN 
             IF(var_diff(j) .EQV. is_diffev) THEN
                DO k=j+1, var_num

@@ -25,6 +25,7 @@ INTEGER              :: lcomm
 INTEGER              :: i
 !
 ! Remove all parameter names from the variable entry
+ianz = 2
 DO i=1, pop_dimx
    cpara(1) = 'delete'
    lpara(1) = 6
