@@ -13,7 +13,7 @@ LOGICAL :: write_random_state = .FALSE.
 LOGICAL :: l_get_random_state = .TRUE.
 !INTEGER, DIMENSION(:,:), ALLOCATABLE :: random_state  ! Status for current members
 INTEGER                              :: random_nseed
-INTEGER, DIMENSION(64 )              :: random_best   ! Status for best    member
+INTEGER, DIMENSION(0:64)             :: random_best   ! Status for best    member
 !
 CONTAINS
 !
@@ -80,10 +80,10 @@ SUBROUTINE diffev_random_save(new)
 !
 IMPLICIT NONE
 !
-INTEGER, DIMENSION(64), INTENT(IN) :: new
+INTEGER, DIMENSION(0:64), INTENT(IN) :: new
 !
 random_best(:) = new(:)
-random_nseed   = 64
+random_nseed   = MIN(64, new(0))
 !
 END SUBROUTINE diffev_random_save
 !
@@ -102,7 +102,7 @@ INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=1024) :: line
-INTEGER :: i, i1, ir1, ir2
+INTEGER :: i, i1, ir1, ir2, ir3
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 !
 nseed_run = random_nseeds()
@@ -161,12 +161,13 @@ IF(write_random_state) THEN
       line = ' '
       line(1:5) = 'seed '
       DO i=1, random_nseed 
-         i1 = 6 + (i-1)*11
-         ir1 =     random_best(i)/ 10000
-         ir2 = MOD(random_best(i), 10000)
-         WRITE(line(i1:i1+10),'(I4,A1,I4,A2)') ir1,',',ir2,', '
+         i1 = 6 + (i-1)*16
+         ir1 =         random_best(i)/ 100000000
+         ir2 =     MOD(random_best(i), 100000000)/10000
+         ir3 =     MOD(random_best(i), 10000)
+         WRITE(line(i1:i1+15),'(I4,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
       ENDDO
-      WRITE(line(i1+11:i1+18),'(a8)') ' group:2'
+      WRITE(line(i1+16:i1+23),'(a8)') ' group:3'
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'

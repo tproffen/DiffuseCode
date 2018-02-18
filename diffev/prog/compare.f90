@@ -23,6 +23,7 @@ CONTAINS
 ! compare to best of all (membeers + children)
 !
    USE diff_evol
+   USE diffev_random
 !                                                                       
    IMPLICIT none 
 !                                                                       
@@ -31,6 +32,7 @@ CONTAINS
    ELSEIF (diff_sel_mode.eq.SEL_BEST_ALL) THEN 
       CALL compare_best_all 
    ENDIF 
+   CALL diffev_best_macro
    END SUBROUTINE do_compare                        
 !*****7**************************************************************** 
    SUBROUTINE compare_toparent 
@@ -230,14 +232,6 @@ list_index(:) = 0
                ENDIF
             ENDIF
          ENDDO
-         k = 1
-         IF (.NOT.(list_index (k) .le.pop_n)) THEN 
-!
-!        This is a new "best", update random state
-!
-            ii = list_index (k) - pop_n 
-            CALL diffev_random_save(pop_random(:,ii))
-         ENDIF
       ENDIF bck_during
       DO k = 1, pop_n 
          IF (list_index (k) .le.pop_n) THEN 
@@ -260,6 +254,14 @@ list_index(:) = 0
             ENDDO 
          ENDIF 
       ENDDO 
+      k = 1
+      IF (.NOT.(list_index (k) .le.pop_n)) THEN 
+!
+!     This is a new "best", update random state
+!
+         ii = list_index (k) - pop_n 
+         CALL diffev_random_save(pop_random(:,ii))
+      ENDIF
    ELSE copy
       bck_prior: IF(pop_backup) THEN    ! copy current best calculations into backup 
          DO k = pop_n ,1, -1
@@ -275,7 +277,6 @@ list_index(:) = 0
             ENDDO
             ENDIF
          ENDDO
-         CALL diffev_random_save(pop_random(:,1))
       ENDIF bck_prior
       DO k = 1, pop_n 
          ii = list_index (k) 
@@ -284,6 +285,7 @@ list_index(:) = 0
             child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
          ENDDO 
       ENDDO 
+      CALL diffev_random_save(pop_random(:,1))
    ENDIF copy
 !                                                                       
 !     determine best/worst member                                       
@@ -553,7 +555,6 @@ list_index(:) = 0
       RETURN
    ENDIF
 !
-    900 FORMAT (A,'.',I4.4)
     950 FORMAT (A,'.',A   )
     970 FORMAT (A,'.',A,'.',I4.4   )
    2000 FORMAT ('Child No. ',i4)
@@ -768,7 +769,6 @@ list_index(:) = 0
 !     999 CONTINUE 
 !   WRITE ( * , * ) ' Error opening file' 
 !                                                                       
-     900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',a   )
      970 FORMAT (A,'.',a,'.',I4.4   )
     1100 FORMAT ('#S ',i5,' = Generation Number ') 
@@ -873,7 +873,6 @@ list_index(:) = 0
       ENDDO current
    ENDIF
 !
-     900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',A   )
      970 FORMAT (A,'.',A,'.',I4.4   )
     1000 FORMAT ('#C Current file by DIFFEV')
@@ -1039,7 +1038,6 @@ list_index(:) = 0
       CLOSE ( IWR )
    ENDDO
 !
- 900 FORMAT ( A,'.',I4.4)
  950 FORMAT ( A,'.',A   )
 1000 FORMAT ( A )
 1100 FORMAT ( '#C Summaryfile by DIFFEV, Parameter no. ',I4.4)

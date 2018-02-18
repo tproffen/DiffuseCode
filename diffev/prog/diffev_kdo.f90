@@ -658,7 +658,7 @@ ELSE
                MAXVAL(pop_t(i,1:MIN(pop_n,pop_c)))     ) THEN
                ier_num = -28
                ier_typ = ER_APPL
-               write(ier_msg(1),'(a,i4,a)') 'Parameter no.: ',i,' is fixed but'
+               WRITE(ier_msg(1),'(a,i4,a)') 'Parameter no.: ',i,' is fixed but'
                ier_msg(2) = 'Limits pop_xmin/pop_xmax are not identical'
                ier_msg(3) = 'or trial parameters are not identical'
                RETURN
@@ -721,7 +721,16 @@ ELSE
                         CALL read_par_values
                      ENDIF init_slave
                   ENDIF
+                  IF(ALLOCATED(kid_on_node)) DEALLOCATE(kid_on_node)
+                  IF(ALLOCATED(node_has_kids)) DEALLOCATE(node_has_kids)
+                  ALLOCATE(kid_on_node(0:pop_c))
+                  run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
+                  ALLOCATE(node_has_kids(1:NUM_NODE,0:run_mpi_max_slaves*run_mpi_kid_per_core,2))
+                  kid_on_node(:) = 0
+                  node_has_kids(:,:,:) = 0
                   CALL run_mpi_master 
+                  DEALLOCATE(kid_on_node)
+                  DEALLOCATE(node_has_kids)
                ELSE    ! run_mpi_active
 !                 MPI is not active, refine with non parallel algorithm
                   CALL refine_no_mpi(.false.)

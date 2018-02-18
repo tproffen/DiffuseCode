@@ -67,6 +67,17 @@ END TYPE run_mpi_type
 !
 TYPE ( run_mpi_type)     :: run_mpi_senddata
 INTEGER                  :: sdl_length
+INTEGER                  :: NUM_NODE = 0
+INTEGER                  :: run_mpi_max_slaves = 0                !Maximum slaves on any node
+INTEGER                  :: run_mpi_kid_per_core
+!
+CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: node_names
+CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: slave_on_node   ! Slave is on this node name
+INTEGER            , DIMENSION(:), ALLOCATABLE :: slave_is_node   ! Slave is on this node number
+INTEGER            , DIMENSION(:), ALLOCATABLE :: slave_per_node  ! Maximum number of slaves on this node number
+INTEGER            , DIMENSION(:), ALLOCATABLE :: kid_on_node     ! kid is on this node number
+INTEGER            ,DIMENSION(:,:),ALLOCATABLE :: node_has_slaves ! this node number has these slaves
+INTEGER          ,DIMENSION(:,:,:),ALLOCATABLE :: node_has_kids   ! this node number has these kids
 !
 CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: prog_entry
 INTEGER           , DIMENSION(:), ALLOCATABLE :: socket_id

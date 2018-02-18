@@ -352,7 +352,7 @@ CONTAINS
 !
       nseeds = random_nseeds()                ! too be improved for different compilers
 !     nseeds = 12
-      CALL alloc_arr ( pop_random ,1,nseeds, 1,n_pop , all_status, 0  , size_of)
+      CALL alloc_arr ( pop_random ,0,nseeds, 1,n_pop , all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pop_size_of = pop_size_of + size_of
 !

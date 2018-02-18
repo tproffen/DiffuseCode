@@ -101,6 +101,7 @@ CONTAINS
                pop_random(:,i) = 0
                l = MIN(nseeds, RUN_MPI_NSEEDS)
                pop_random(1:l,i) = seeds(1:l)
+               pop_random(0  ,i) = l
                run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
             CALL p_branch(zeile, lzeile)
@@ -132,6 +133,7 @@ CONTAINS
             IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
                l = MIN(nseeds, RUN_MPI_NSEEDS)
                pop_random(1:l,i) = seeds(1:l)
+               pop_random(0  ,i) = l
                run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
          ENDIF

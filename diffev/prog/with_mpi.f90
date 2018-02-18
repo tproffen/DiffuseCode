@@ -9,7 +9,7 @@ SUBROUTINE run_mpi_init
 !
 ! Runs a refinement in parallel using MPI
 !
-! two options exist, one to start the slave program vie a system call, 
+! two options exist, one to start the slave program via a system call, 
 ! the other starting the slave via a socket.
 !
 ! In the system mode, the program is executed and closed upon each
@@ -38,6 +38,15 @@ INTEGER                        :: run_mpi_integer_extent
 INTEGER                        :: run_mpi_logical_extent
 INTEGER                        :: run_mpi_charact_extent
 INTEGER                        :: run_mpi_real_extent
+!
+CHARACTER (LEN=MPI_MAX_PROCESSOR_NAME) :: node_name   = ' '
+INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
+INTEGER               :: sender        ! Id of slave that answered
+INTEGER               :: local_id      ! BUG Patch MPI_ID messy with structure
+INTEGER               :: i, j
+INTEGER               :: length
+INTEGER               :: ierr
+LOGICAL               :: success
 !
 CALL MPI_INIT (ier_num)       ! initialize the MPI system
 !
@@ -124,6 +133,78 @@ socket_status = PROMPT_OFF  ! Turn off socket responses
 !
 mpi_active = .true.
 !
+!  Build a list of nodes, node names, and assignment of the processes onto these nodes
+!
+local_id = run_mpi_myid
+IF(run_mpi_myid==0)  THEN  !   MASTER
+   IF(ALLOCATED(node_names)) DEALLOCATE(node_names)
+   IF(ALLOCATED(node_names)) DEALLOCATE(slave_on_node)
+   IF(ALLOCATED(node_names)) DEALLOCATE(slave_is_node)
+   IF(ALLOCATED(node_names)) DEALLOCATE(slave_per_node)
+   ALLOCATE(node_names    (1:run_mpi_numprocs))
+   ALLOCATE(slave_on_node (1:run_mpi_numprocs))
+   ALLOCATE(slave_is_node (1:run_mpi_numprocs))
+   ALLOCATE(slave_per_node(1:run_mpi_numprocs))
+   node_names    (:) = ' '
+   slave_on_node (:) = ' '
+   slave_is_node (:) = -1
+   slave_per_node(:) = 0
+   NUM_NODE = 0
+   sdl_length = 1! 580! + 200
+   DO i=1, run_mpi_numprocs-1
+      run_mpi_senddata%kid = -i
+      CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
+                      MPI_COMM_WORLD, ier_num )
+   ENDDO
+   DO i=1, run_mpi_numprocs-1
+      CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
+                      MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+      run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+      sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
+      success = .FALSE.
+      search: DO j=1,NUM_NODE
+         IF(run_mpi_senddata%direc == node_names(j)) THEN
+            success = .TRUE.
+            slave_is_node(sender) = j
+            slave_per_node(j)     = slave_per_node(j) + 1
+            EXIT search
+         ENDIF
+      ENDDO search
+      IF(.NOT.success) THEN
+         NUM_NODE = NUM_NODE + 1
+         node_names(NUM_NODE) = run_mpi_senddata%direc(1:run_mpi_senddata%direc_l)
+         slave_is_node(sender) = NUM_NODE
+         slave_per_node(NUM_NODE) = 1
+      ENDIF
+      slave_on_node(sender) = run_mpi_senddata%direc
+   ENDDO
+   run_mpi_max_slaves = MAXVAL(slave_per_node,1)
+   IF(ALLOCATED(node_has_slaves)) DEALLOCATE(node_has_slaves)
+   ALLOCATE(node_has_slaves(1:NUM_NODE,0:run_mpi_max_slaves))
+   node_has_slaves(:,:) = 0
+   DO j=1, run_mpi_numprocs-1
+      i = slave_is_node(j)
+      node_has_slaves(i,0) = node_has_slaves(i,0) + 1
+      node_has_slaves(i,node_has_slaves(i,0)) = j
+   ENDDO
+!
+ELSE
+   CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ierr) ! Querry incomming size
+   CALL MPI_GET_COUNT(run_mpi_status, run_mpi_data_type, sdl_length, ierr)                  ! Determine size
+!
+!  Now receive incomming message
+!
+   CALL MPI_RECV ( run_mpi_senddata, sdl_length, run_mpi_data_type, MPI_ANY_SOURCE, &
+                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
+   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+   CALL MPI_GET_PROCESSOR_NAME ( node_name, length, ier_num)
+   run_mpi_senddata%direc   = node_name
+   run_mpi_senddata%direc_l = length
+
+   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
+                   MPI_COMM_WORLD, ier_num )
+ENDIF
+!
 3000 FORMAT('MPI system returned error no. ',i8)
 !4000 FORMAT(1x,'MPI initilization successful ..')
 !
@@ -159,6 +240,8 @@ LOGICAL               :: prog_start    ! External program needs to be started
 !
 LOGICAL               :: prog_exist    ! program/macro combination exists in data base
 INTEGER               :: local_id      ! BUG Patch MPI_ID messy with structure
+INTEGER               :: islave        ! Current slave process
+INTEGER               :: min_kid       ! Current kid with least completed INDIVs
 !
 local_id = run_mpi_myid  ! BUG PATCH MPI_ID gets messed up be receive with structure
 !
@@ -216,6 +299,11 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
    ier_num = 0
    run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
    run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
+   kid_on_node(run_mpi_senddata%kid) = slave_is_node(i)
+   kid_on_node(0                   ) = kid_on_node  (0) + 1
+   node_has_kids(slave_is_node(i),0,1) = node_has_kids(slave_is_node(i),0,1) + 1 !Increment number of kids on this node
+   node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),1) = run_mpi_senddata%kid
+   node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),2) = run_mpi_senddata%indiv
    IF(run_mpi_senddata%prog_start) THEN     ! Program needs to be started, increment port no
       run_mpi_senddata%port     = 2000 + MOD(run_mpi_numprocs*run_mpi_senddata%prog_num + i,3600)
    ELSE                                     ! Program is running use old port no
@@ -259,6 +347,7 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
       nseeds = run_mpi_senddata%nseeds
       j = MIN(nseeds, RUN_MPI_NSEEDS)
       pop_random(1:j,run_mpi_senddata%kid) = run_mpi_senddata%seeds(1:j)
+      pop_random(0  ,run_mpi_senddata%kid) = j
    ENDIF
    IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
       j = run_mpi_senddata%n_rvalue_o
@@ -269,6 +358,27 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
    IF ( run_mpi_numsent < pop_c*run_mpi_senddata%nindiv ) THEN  ! There are more jobs to do
       run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
       run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
+islave = slave_is_node(sender)
+IF(kid_on_node(0)<pop_c .AND.  &
+   node_has_kids(islave,0,1) < slave_per_node(islave)*run_mpi_kid_per_core ) THEN    ! Kids need to be distributed
+   kid_on_node(0) = kid_on_node(0) + 1
+   kid_on_node(kid_on_node(0)) = islave  ! Place next kid onto node of this slave
+   node_has_kids(islave,0,1) = node_has_kids(islave,0,1) + 1 !Increment number of kids on this node
+   node_has_kids(islave,node_has_kids(islave,0,1),1) = kid_on_node(0)
+   node_has_kids(islave,node_has_kids(islave,0,1),2) = 1
+   run_mpi_senddata%kid    = kid_on_node(0)
+   run_mpi_senddata%indiv  = 1
+   min_kid = node_has_kids(islave,0,1)
+ELSE                             ! All kids are distributed, increment INDIV
+   min_kid = MINLOC(node_has_kids(islave,1:node_has_kids(islave,0,1),2),1)
+   IF( node_has_kids(islave,min_kid,2) < run_mpi_senddata%nindiv) THEN   ! More indivs are needed
+      node_has_kids(islave,min_kid,2) = node_has_kids(islave,min_kid,2) + 1
+      run_mpi_senddata%kid    = node_has_kids(islave, min_kid,1)
+      run_mpi_senddata%indiv  = node_has_kids(islave, min_kid,2)
+   ELSE
+      CYCLE rec_hand
+   ENDIF
+ENDIF
       DO j=1,pop_dimx                          ! Encode current trial values
          run_mpi_senddata%trial_names (j) = pop_name(j                  ) ! Takes value for kid that answered
          run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
@@ -578,5 +688,10 @@ ENDIF
 !
 CALL MPI_FINALIZE ( ier_num )
 !
+IF(ALLOCATED(node_names)) DEALLOCATE(node_names)
+IF(ALLOCATED(node_names)) DEALLOCATE(slave_on_node)
+IF(ALLOCATED(node_names)) DEALLOCATE(slave_is_node)
+!
 END SUBROUTINE run_mpi_finalize
+!
 END MODULE DIFFEV_MPI_MOD
