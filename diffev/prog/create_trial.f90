@@ -426,7 +426,7 @@ CLOSE (iwr)
  1700 FORMAT (a20,77x,a1)
  1800 FORMAT (a16,1x,i3,4(1x,E18.10),1x,a1,1x,l1)
  3000 FORMAT ('# random seeds '/i5) 
- 3100 FORMAT (5(1x,i8),1x,i8)
+ 3100 FORMAT (5(1x,i11),1x,i11)
 !
  2000 FORMAT ('# donor mode, selection mode'/2(2x,i2))
  2100 FORMAT ('# Cross_over, Factor, Local, position'/,4(2x, E18.10)) 
