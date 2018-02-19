@@ -240,8 +240,9 @@ LOGICAL               :: prog_start    ! External program needs to be started
 !
 LOGICAL               :: prog_exist    ! program/macro combination exists in data base
 INTEGER               :: local_id      ! BUG Patch MPI_ID messy with structure
-INTEGER               :: islave        ! Current slave process
+INTEGER               :: inode         ! Current slave process
 INTEGER               :: min_kid       ! Current kid with least completed INDIVs
+INTEGER               :: lastgen = -1  ! At the previous call to Rrun_mpi_master we were inthis GENERATION
 !
 local_id = run_mpi_myid  ! BUG PATCH MPI_ID gets messed up be receive with structure
 !
@@ -293,17 +294,35 @@ run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
 !
 run_mpi_senddata%l_get_state = l_get_random_state  ! Inquire random number status
 !
+node_has_kids(:,:,2) =  0                   ! No individuals are done
+IF(pop_gen > lastgen) THEN                 ! New GENERATION , new job distributio
+   node_has_kids(:,:,:) = 0
+   kid_on_node(:)       = 0
+ENDIF
+!
 !  Start initial jobs
 !
-DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
+initial:DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
    ier_num = 0
    run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
    run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
-   kid_on_node(run_mpi_senddata%kid) = slave_is_node(i)
-   kid_on_node(0                   ) = kid_on_node  (0) + 1
-   node_has_kids(slave_is_node(i),0,1) = node_has_kids(slave_is_node(i),0,1) + 1 !Increment number of kids on this node
-   node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),1) = run_mpi_senddata%kid
-   node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),2) = run_mpi_senddata%indiv
+   IF(pop_gen > lastgen) THEN                 ! New GENERATION , new job distribution
+      kid_on_node(run_mpi_senddata%kid) = slave_is_node(i)
+      kid_on_node(0                   ) = kid_on_node  (0) + 1
+      node_has_kids(slave_is_node(i),0,1) = node_has_kids(slave_is_node(i),0,1) + 1 !Increment number of kids on this node
+      node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),1) = run_mpi_senddata%kid
+      node_has_kids(slave_is_node(i),node_has_kids(slave_is_node(i),0,1),2) = run_mpi_senddata%indiv
+   ELSE                                     ! Same GENERATION use old Job DISTRIBUTION
+      inode = slave_is_node(i)             ! We are on this node
+      min_kid = MINLOC(node_has_kids(inode,1:node_has_kids(inode,0,1),2),1)
+      IF( node_has_kids(inode,min_kid,2) < run_mpi_senddata%nindiv) THEN   ! More indivs are needed
+         node_has_kids(inode,min_kid,2) = node_has_kids(inode,min_kid,2) + 1
+         run_mpi_senddata%kid    = node_has_kids(inode, min_kid,1)
+         run_mpi_senddata%indiv  = node_has_kids(inode, min_kid,2)
+      ELSE
+         CYCLE initial
+      ENDIF
+   ENDIF
    IF(run_mpi_senddata%prog_start) THEN     ! Program needs to be started, increment port no
       run_mpi_senddata%port     = 2000 + MOD(run_mpi_numprocs*run_mpi_senddata%prog_num + i,3600)
    ELSE                                     ! Program is running use old port no
@@ -314,12 +333,12 @@ DO i = 1, run_mpi_numjobs                   !  Start the intial jobs
       run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
    ENDDO
 !
-sdl_length = 1! 580! + 200
+   sdl_length = 1! 580! + 200
    CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
                    MPI_COMM_WORLD, ier_num )
 !
    run_mpi_numsent = run_mpi_numsent + 1
-ENDDO
+ENDDO initial
 !
 !------       --Receive results and hand out new jobs
 !
@@ -358,27 +377,27 @@ rec_hand: DO i = 1, pop_c * run_mpi_senddata%nindiv
    IF ( run_mpi_numsent < pop_c*run_mpi_senddata%nindiv ) THEN  ! There are more jobs to do
       run_mpi_senddata%kid    = mod( run_mpi_numsent,  pop_c) + 1
       run_mpi_senddata%indiv  =      run_mpi_numsent / pop_c  + 1
-islave = slave_is_node(sender)
-IF(kid_on_node(0)<pop_c .AND.  &
-   node_has_kids(islave,0,1) < slave_per_node(islave)*run_mpi_kid_per_core ) THEN    ! Kids need to be distributed
-   kid_on_node(0) = kid_on_node(0) + 1
-   kid_on_node(kid_on_node(0)) = islave  ! Place next kid onto node of this slave
-   node_has_kids(islave,0,1) = node_has_kids(islave,0,1) + 1 !Increment number of kids on this node
-   node_has_kids(islave,node_has_kids(islave,0,1),1) = kid_on_node(0)
-   node_has_kids(islave,node_has_kids(islave,0,1),2) = 1
-   run_mpi_senddata%kid    = kid_on_node(0)
-   run_mpi_senddata%indiv  = 1
-   min_kid = node_has_kids(islave,0,1)
-ELSE                             ! All kids are distributed, increment INDIV
-   min_kid = MINLOC(node_has_kids(islave,1:node_has_kids(islave,0,1),2),1)
-   IF( node_has_kids(islave,min_kid,2) < run_mpi_senddata%nindiv) THEN   ! More indivs are needed
-      node_has_kids(islave,min_kid,2) = node_has_kids(islave,min_kid,2) + 1
-      run_mpi_senddata%kid    = node_has_kids(islave, min_kid,1)
-      run_mpi_senddata%indiv  = node_has_kids(islave, min_kid,2)
-   ELSE
-      CYCLE rec_hand
-   ENDIF
-ENDIF
+      inode = slave_is_node(sender)         ! We are on this node
+      IF(pop_gen > lastgen .AND. kid_on_node(0)<pop_c .AND.  &
+         node_has_kids(inode,0,1) < slave_per_node(inode)*run_mpi_kid_per_core ) THEN    ! Kids need to be distributed
+         kid_on_node(0) = kid_on_node(0) + 1
+         kid_on_node(kid_on_node(0)) = inode  ! Place next kid onto node of this slave
+         node_has_kids(inode,0,1) = node_has_kids(inode,0,1) + 1 !Increment number of kids on this node
+         node_has_kids(inode,node_has_kids(inode,0,1),1) = kid_on_node(0)
+         node_has_kids(inode,node_has_kids(inode,0,1),2) = 1
+         run_mpi_senddata%kid    = kid_on_node(0)
+         run_mpi_senddata%indiv  = 1
+         min_kid = node_has_kids(inode,0,1)
+      ELSE                             ! All kids are distributed, increment INDIV
+         min_kid = MINLOC(node_has_kids(inode,1:node_has_kids(inode,0,1),2),1)
+         IF( node_has_kids(inode,min_kid,2) < run_mpi_senddata%nindiv) THEN   ! More indivs are needed
+            node_has_kids(inode,min_kid,2) = node_has_kids(inode,min_kid,2) + 1
+            run_mpi_senddata%kid    = node_has_kids(inode, min_kid,1)
+            run_mpi_senddata%indiv  = node_has_kids(inode, min_kid,2)
+         ELSE
+            CYCLE rec_hand
+         ENDIF
+      ENDIF
       DO j=1,pop_dimx                          ! Encode current trial values
          run_mpi_senddata%trial_names (j) = pop_name(j                  ) ! Takes value for kid that answered
          run_mpi_senddata%trial_values(j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid that answered
@@ -400,6 +419,8 @@ ENDIF
 run_mpi_myid = local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 !------       --End of loop over all kids in the population
+!
+lastgen = pop_gen
 !
 END SUBROUTINE run_mpi_master
 !
