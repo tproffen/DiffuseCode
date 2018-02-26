@@ -224,6 +224,7 @@ INTERFACE
                             trial_v, NTRIAL, &
                             l_get_random_state,     &
                             rd_nseeds,rd_seeds,     &
+                            l_first_job,            &
                             ierr )
 !
    IMPLICIT NONE
@@ -258,6 +259,7 @@ INTERFACE
    LOGICAL                , INTENT(IN)  :: l_get_random_state
    INTEGER                , INTENT(OUT) :: rd_nseeds
    INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+   LOGICAL                , INTENT(IN ) :: l_first_job
    INTEGER                , INTENT(OUT):: ierr 
 !
    END SUBROUTINE diffev_execute_cost

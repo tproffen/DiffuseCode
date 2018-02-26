@@ -17,6 +17,7 @@ SUBROUTINE diffev_execute_cost( repeat,    &
                          trial_values, NTRIAL, &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
+                         l_first_job,            &
                          ierr )
 !
 ! specific funtion to execute the cost function from diffev
@@ -56,6 +57,7 @@ INTEGER                , INTENT(IN) :: NTRIAL
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+LOGICAL                , INTENT(IN ):: l_first_job
 CHARACTER(LEN=16),DIMENSION(1:NTRIAL),INTENT(IN) :: trial_names
 REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_values
 !

@@ -51,7 +51,7 @@ TYPE run_mpi_type                          ! MPI with types does not work yet
    LOGICAL               :: prog_start ! 23  ! 23
    LOGICAL               :: l_rvalue   ! 24  ! 24
    LOGICAL               :: l_get_state! 25  ! 25
-   LOGICAL               :: spacer1    ! 26  ! 26
+   LOGICAL               :: l_first_job! 26  ! 26
    LOGICAL               :: spacer2    ! 27  ! 27
    LOGICAL               :: spacer3    ! 28  ! 28
    CHARACTER (LEN=240)   :: direc      ! 29 : 268

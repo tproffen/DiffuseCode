@@ -5,6 +5,7 @@ USE diffev_loop_mod
 USE diffev_do_exit_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
+USE variable_mod
 !
 IMPLICIT none 
 !
@@ -29,6 +30,8 @@ CALL diffev_setup(standalone)
 CALL diffev_set_sub
 CALL diffev_set_sub_cost
 CALL SIGNAL(2, diffev_sigint)
+var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
+var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
 CALL diffev_loop
 !                                                                       
 CALL run_mpi_finalize

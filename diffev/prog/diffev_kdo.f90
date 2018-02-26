@@ -51,29 +51,29 @@ INTEGER                               :: kid, indiv, nindiv
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
 INTEGER                               :: str_length
-INTEGER                               :: lpara (maxw) 
+INTEGER             , DIMENSION(MAXW) :: lpara = 0
 LOGICAL                               :: back_new
 LOGICAL                               :: lexist
 LOGICAL                               :: lbest
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
-REAL                                  :: werte (maxw) 
+REAL                , DIMENSION(MAXW) :: werte = 0.0
 REAL                                  :: value
 LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 4
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
-DATA oname  / 'partial'   /
-DATA loname /  7          /
-opara  =  (/ '0.0000'     /)   ! Always provide fresh default values
-lopara =  (/  6           /)
-owerte =  (/  0.0         /)
+DATA oname  / 'partial', 'repeat' , 'logfile', 'compute'  /
+DATA loname /  7       ,  6       ,  7       ,  7  /
+opara  =  (/ '0.000000', '1.000000', 'none    ', 'parallel' /)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,  8        ,  8         /)
+owerte =  (/  0.0      ,  1.0      ,  0.0      ,  1.0       /)
 !
 !                                                                       
 CALL no_error 
@@ -122,6 +122,10 @@ IF (indxg.ne.0.and.                                              &
 !                                                                 
    CALL do_math (line, indxg, length) 
 ELSE 
+!
+   cpara(:) = ' '
+   lpara(:) = 0
+   werte(:) = 0.0
 !                                                                 
 !     --execute a macro file                                      
 !                                                                 
@@ -667,6 +671,8 @@ ELSE
       ENDDO
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
+         CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                           oname, loname, opara, lopara, owerte)
          run_mpi_senddata%l_get_state = l_get_random_state   ! Log random number state
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
@@ -698,8 +704,13 @@ ELSE
                run_mpi_senddata%out   = cpara(4)(1:100)! Target for program output 
                run_mpi_senddata%out_l = lpara(4)
             ELSE
-               run_mpi_senddata%out   = '/dev/null'   ! Default output
-               run_mpi_senddata%out_l = 9
+               IF(opara(3)=='none') THEN
+                  run_mpi_senddata%out   = '/dev/null'   ! Default output
+                  run_mpi_senddata%out_l = 9
+               ELSE
+                  run_mpi_senddata%out   = opara(3)(1:lopara(3))
+                  run_mpi_senddata%out_l = lopara(3)
+               ENDIF
             ENDIF 
             run_mpi_senddata%repeat = .false.! repeat = .false. means no repetition
             run_mpi_senddata%nindiv = 1      ! nindiv is at least 1
@@ -708,11 +719,25 @@ ELSE
                ianz = 1
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) THEN 
-                  IF ( nint(werte(1)) > 0 ) THEN
+                  IF ( nint(werte(1)) > 1 ) THEN
                      run_mpi_senddata%repeat = .true.             ! repeat = false means no repetition
+                     IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                        run_mpi_senddata%repeat = .TRUE.
+                     ELSE
+                        run_mpi_senddata%repeat = .FALSE.
+                     ENDIF
+                  ELSE !
+                     run_mpi_senddata%repeat = .FALSE.
                   ENDIF 
                   run_mpi_senddata%nindiv = max(1,nint(werte(1))) ! nindiv is at least 1
                ENDIF 
+            ELSE 
+                     IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                        run_mpi_senddata%repeat = .TRUE.
+                     ELSE
+                        run_mpi_senddata%repeat = .FALSE.
+                     ENDIF
+                  run_mpi_senddata%nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
             ENDIF 
             IF ( ier_num == 0) THEN
                IF(run_mpi_active) THEN   !Parallel processing with MPI

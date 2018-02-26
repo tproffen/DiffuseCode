@@ -129,6 +129,7 @@ CONTAINS
                  run_mpi_senddata%trial_values, RUN_MPI_COUNT_TRIAL,     &
                  run_mpi_senddata%l_get_state,                           &
                  run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
+                 run_mpi_senddata%l_first_job,                           &
                  ierr )
             IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
                l = MIN(nseeds, RUN_MPI_NSEEDS)
