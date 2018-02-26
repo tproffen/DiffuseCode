@@ -17,6 +17,7 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          trial_v, NTRIAL, &
                          l_get_random_state,     &
                          rd_nseeds,rd_seeds,     &
+                         l_first_job,            &
                          ierr )
 !
 USE diffev_setup_mod
@@ -68,6 +69,7 @@ REAL,DIMENSION(1:NTRIAL),INTENT(IN) :: trial_v
 LOGICAL                , INTENT(IN)  :: l_get_random_state
 INTEGER                , INTENT(OUT) :: rd_nseeds
 INTEGER, DIMENSION(64) , INTENT(OUT) :: rd_seeds
+LOGICAL                , INTENT(IN ) :: l_first_job
 INTEGER                , INTENT(OUT):: ierr
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
@@ -84,10 +86,13 @@ INTEGER             :: i,j
 INTEGER             :: length = 1
 INTEGER             :: job_l
 INTEGER             :: ios
+INTEGER             :: ct_ostate    ! Original program state
+INTEGER             :: ct_oprogr    ! Original program
+INTEGER             :: ct_ompifirst ! Original mpi_first state
 LOGICAL :: str_comp
 INTEGER :: len_str
 !
-CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directeory as passed from master
+CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directory as passed from master
 !
 ! If instructed, get state of random number generator
 !
@@ -100,6 +105,9 @@ ENDIF
 ct_pname_old         = pname
 ct_pname_cap_old     = pname_cap
 ct_prompt_status_old = prompt_status
+ct_ostate            = var_val(VAR_STATE)
+ct_oprogr            = var_val(VAR_PROGRAM)
+ct_ompifirst         = var_val(VAR_MPI_FIRST)
 
 IF(str_comp(output(1:output_l), '/dev/null', 9, output_l, 9)) THEN
    line  = 'prompt, redirect, off'
@@ -164,6 +172,16 @@ var_val( var_ref+3) = parameters
 var_val( var_ref+4) = kid
 var_val( var_ref+5) = indiv
 var_val( var_ref+6) = nindiv
+IF(repeat) THEN
+   var_val( var_ref+7) = var_val(VAR_TRUE)
+ELSE
+   var_val( var_ref+7) = var_val(VAR_FALSE)
+ENDIF
+IF(l_first_job) THEN
+   var_val(VAR_MPI_FIRST) = var_val(VAR_TRUE)
+ELSE
+   var_val(VAR_MPI_FIRST) = var_val(VAR_FALSE)
+ENDIF
 !
 !  build macro line
 !
@@ -220,6 +238,8 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       pname_cap = 'DISCUS'
       prompt    = pname
       oprompt   = pname
+      var_val(VAR_PROGRAM)= var_val(VAR_DISCUS)   ! Set program to DISCUS
+      var_val(VAR_STATE)  = var_val(VAR_IS_SECTION)
       CALL discus_set_sub ()
       CALL suite_set_sub_branch
       CALL discus_loop ()
@@ -232,6 +252,8 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       pname_cap = 'KUPLOT'
       prompt    = pname
       oprompt   = pname
+      var_val(VAR_PROGRAM)= var_val(VAR_KUPLOT)   ! Set program to KUPLOT
+      var_val(VAR_STATE)  = var_val(VAR_IS_SECTION)
       CALL kuplot_set_sub ()
       CALL suite_set_sub_branch
       CALL kuplot_loop ()
@@ -266,14 +288,20 @@ pname_cap     = ct_pname_cap_old
 prompt_status = ct_prompt_status_old
 prompt        = pname
 oprompt       = pname
+var_val(VAR_STATE)     = ct_ostate
+var_val(VAR_PROGRAM)   = ct_oprogr
+var_val(VAR_MPI_FIRST) = ct_ompifirst
 !
 !
 IF(pname=='discus') THEN      ! Return to DISCUS branch
       CALL discus_set_sub ()
+      var_val(VAR_PROGRAM)= var_val(VAR_DISCUS)   ! Set program to DISCUS
 ELSEIF(pname=='diffev') THEN  ! Return to DIFFEV branch
       CALL diffev_set_sub ()
+      var_val(VAR_PROGRAM)= var_val(VAR_DIFFEV)   ! Set program to DIFFEV
 ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()
+      var_val(VAR_PROGRAM)= var_val(VAR_KUPLOT)   ! Set program to KUPLOT
 ENDIF
 CALL suite_set_sub_branch ()
 CALL program_files ()

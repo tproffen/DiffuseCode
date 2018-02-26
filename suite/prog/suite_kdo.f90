@@ -26,6 +26,7 @@ USE class_macro_internal
 USE learn_mod 
 USE prompt_mod
 USE envir_mod
+USE variable_mod
 !USE set_sub_generic_mod
 !
 IMPLICIT none 
@@ -121,6 +122,8 @@ ELSE
          CALL diffev_setup   (lstandalone)
          suite_diffev_init = .TRUE.
        ENDIF
+       var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+       var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
        CALL diffev_set_sub ()
        CALL suite_set_sub_branch
        CALL diffev_loop    ()
@@ -129,6 +132,8 @@ ELSE
        pname_cap = 'SUITE'
        prompt    = pname
        oprompt   = pname
+       var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+       var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
        CALL suite_set_sub
        IF(ier_num == -9 .AND. ier_typ == 1) THEN
           CALL program_files ()
@@ -151,6 +156,8 @@ ELSE
          CALL discus_setup   (lstandalone)
          suite_discus_init = .TRUE.
        ENDIF
+       var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+       var_val(VAR_PROGRAM) = var_val(VAR_DISCUS)
        CALL discus_set_sub ()
        CALL suite_set_sub_branch
        CALL discus_loop    ()
@@ -159,6 +166,8 @@ ELSE
        pname_cap = 'SUITE'
        prompt = pname
        oprompt   = pname
+       var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+       var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
        CALL suite_set_sub
        IF(ier_num == -9 .AND. ier_typ == 1) THEN
           CALL program_files ()
@@ -181,6 +190,8 @@ ELSE
          CALL kuplot_setup   (lstandalone)
          suite_kuplot_init = .TRUE.
        ENDIF
+       var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+       var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
        CALL kuplot_set_sub ()
        CALL suite_set_sub_branch
        CALL kuplot_loop    ()
@@ -189,6 +200,8 @@ ELSE
        pname_cap = 'SUITE'
        prompt = pname
        oprompt   = pname
+       var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+       var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
        CALL suite_set_sub
        IF(ier_num == -9 .AND. ier_typ == 1) THEN
           CALL program_files ()

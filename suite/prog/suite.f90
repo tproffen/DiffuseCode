@@ -12,6 +12,7 @@ USE run_mpi_mod
 !
 USE prompt_mod
 USE envir_mod
+USE variable_mod
 !                                                                       
 IMPLICIT none 
 !
@@ -47,10 +48,17 @@ IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    suite_diffev_init = .TRUE.
    CALL diffev_set_sub ()
    CALL suite_set_sub_cost ()
-   CALL diffev_loop    ()
    pname     = 'diffev'
    pname_cap = 'DIFFEV'
    prompt    = pname
+   var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+   var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
+   IF(run_mpi_active) THEN
+      var_val(VAR_MPI)     = var_val(VAR_MPI_ON)
+   ELSE
+      var_val(VAR_MPI)     = var_val(VAR_MPI_OFF)
+   ENDIF
+   CALL diffev_loop    ()
 ELSE
    CALL program_files ()
    CALL discus_setup(lstandalone)
@@ -64,6 +72,13 @@ ELSE
    prompt    = pname
    hlpfile   = hlpdir(1:hlp_dir_l)//pname(1:LEN(TRIM(pname)))//'.hlp'
    hlpfile_l = LEN(TRIM(hlpfile))
+   var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+   var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
+   IF(run_mpi_active) THEN
+      var_val(VAR_MPI)     = var_val(VAR_MPI_ON)
+   ELSE
+      var_val(VAR_MPI)     = var_val(VAR_MPI_OFF)
+   ENDIF
    IF(.NOT.run_mpi_active) THEN
       CALL suite_set_sub_cost ()
    ENDIF
