@@ -44,6 +44,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE class_macro_internal
       USE learn_mod 
       USE prompt_mod
+      USE variable_mod
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       

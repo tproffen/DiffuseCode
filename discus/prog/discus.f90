@@ -2,6 +2,7 @@ PROGRAM discus
 !                                                                       
 USE discus_setup_mod
 USE discus_loop_mod
+USE variable_mod
 !
 IMPLICIT none 
 !
@@ -12,6 +13,8 @@ EXTERNAL :: discus_sigint
 CALL discus_setup(standalone)
 CALL discus_set_sub
 CALL SIGNAL(2, discus_sigint)
+var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+var_val(VAR_PROGRAM) = var_val(VAR_DISCUS)
 CALL discus_loop
 !                                                                       
 END PROGRAM discus                            
