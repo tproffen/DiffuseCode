@@ -2645,7 +2645,7 @@ END SUBROUTINE show_variables
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
       INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER, PARAMETER :: reserved_n = 91
+      INTEGER, PARAMETER :: reserved_n = 92
 !
       CHARACTER(LEN=14), DIMENSION(reserved_n) :: reserved
       INTEGER i, ii 
@@ -2664,7 +2664,7 @@ END SUBROUTINE show_variables
       'i', 'r', 'res' , 'gskew', 'pois', 'gbox', 'date', 'fdate', 'fmodt',  &
       'REF_GENERATION',                                                     &
       'REF_MEMBER', 'REF_CHILDREN', 'REF_DIMENSION', 'REF_KID',             &
-      'REF_INDIV', 'REF_NINDIV','PI'/
+      'REF_INDIV', 'REF_NINDIV', 'REF_COMPUTE','PI'/
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 

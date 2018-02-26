@@ -144,6 +144,7 @@ USE class_macro_internal
 USE prompt_mod 
 USE set_sub_generic_mod
 USE mpi_slave_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
@@ -172,8 +173,25 @@ INTEGER                              :: nindiv
 LOGICAL                              :: repeat
 !
 INTEGER :: len_str
+LOGICAL :: str_comp
+!                                                                       
+INTEGER, PARAMETER :: NOPTIONAL = 4
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
+!
+DATA oname  / 'partial', 'repeat' , 'logfile', 'compute'  /
+DATA loname /  7       ,  6       ,  7       ,  7  /
 !
 DATA cprom / '/do', '/if', '/do', '/do' / 
+!
+opara  =  (/ '0.000000', '1.000000', 'none    ', 'parallel' /)   ! Always provide fresh default values
+lopara =  (/  8        ,  8        ,  8        ,  8         /)
+owerte =  (/  0.0      ,  1.0      ,  0.0      ,  1.0       /)
+!
 !                                                                       
 lblock_read = .true. 
 nlevel (level) = nlevel (level) + 1 
@@ -234,6 +252,8 @@ ENDIF
 !
          IF(pname=='diffev') THEN
             CALL get_params (zeile, ianz, cpara, lpara, maxw, length)
+            CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, owerte)
             IF(ier_num == 0) THEN
                IF ( ianz >= 2 .and. ianz <= 4 ) THEN
                   IF ( ianz == 4 ) THEN
@@ -242,8 +262,13 @@ ENDIF
                      cpara(4) = '0'
                      lpara(4) = 1
                   ELSE
-                     outfile = '/dev/null'   ! Default output
-                     out_l   = 9
+                     IF(opara(3)=='none') THEN
+                        outfile = '/dev/null'   ! Default output
+                        out_l   = 9
+                     ELSE
+                        outfile = opara(3)(1:lopara(3))
+                        out_l   = lopara(3)
+                     ENDIF
                   ENDIF
                   prog_n = cpara(1)
                   prog_l = lpara(1)
@@ -254,10 +279,31 @@ ENDIF
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   repeat = .false.
                   IF (ier_num.eq.0) then
+                     IF(ianz>2) THEN
                      IF ( nint(werte(3)) > 0 ) THEN
                         repeat = .true.             ! repeat = false means no repetition
                      ENDIF
                      nindiv = max(1,nint(werte(3))) ! nindiv is at least 1
+
+                     IF ( nint(werte(3)) > 0 ) THEN
+                        repeat = .true.             ! repeat = false means no repetition
+                        IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                           repeat = .TRUE.
+                        ELSE
+                           repeat = .FALSE.
+                        ENDIF
+                     ELSE !
+                        repeat = .FALSE.
+                     ENDIF
+                     nindiv = max(1,nint(werte(3))) ! nindiv is at least 1
+                     ELSE
+                        IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                           repeat = .TRUE.
+                        ELSE
+                           repeat = .FALSE.
+                        ENDIF
+                        nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
+                     ENDIF
                   ENDIF
                   CALL p_loop_mpi(prog_n, prog_l, mac_n, mac_l, &
                                outfile, out_l, repeat, nindiv)
@@ -826,6 +872,7 @@ END SUBROUTINE do_execute_block
       INTEGER istring2_len 
       LOGICAL lscr, lscr1 
       LOGICAL lstring1, lstring2 
+      INTEGER :: ios
       REAL werte (MAXW) 
       REAL w1, w2 
       REAL berechne 
@@ -1083,7 +1130,13 @@ END SUBROUTINE do_execute_block
 !                                                                       
             inot = INDEX (line, '.not.') 
             DO while (inot.ne.0) 
-            READ (line (inot + 5:inot + 5) , '(l1)') lscr 
+            ios = 0
+            READ (line (inot + 5:inot + 5) , '(l1)',IOSTAT=ios) lscr 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             lscr = .not.lscr 
             iz1 = max (inot - 1, 1) 
             iz2 = 1 
@@ -1096,8 +1149,19 @@ END SUBROUTINE do_execute_block
 !                                                                       
             inot = INDEX (line, '.and.') 
             DO while (inot.ne.0) 
+            ios = 0
             READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             READ (line (inot + 5:inot + 5) , '(l1)') lscr 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             lscr = lscr1.and.lscr 
             iz1 = inot - 1 
             iz2 = 1 
@@ -1110,8 +1174,19 @@ END SUBROUTINE do_execute_block
 !                                                                       
             inot = INDEX (line, '.eqv.') 
             DO while (inot.ne.0) 
-            READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
-            READ (line (inot + 5:inot + 5) , '(l1)') lscr 
+            ios = 0
+            READ (line (inot - 1:inot - 1) , '(l1)',IOSTAT=ios) lscr1 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+            READ (line (inot + 5:inot + 5) , '(l1)',IOSTAT=ios) lscr 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             lscr = (lscr1.and.lscr) .or. (.not.lscr1.and..not.lscr) 
             iz1 = inot - 1 
             iz2 = 1 
@@ -1124,8 +1199,19 @@ END SUBROUTINE do_execute_block
 !                                                                       
             inot = INDEX (line, '.xor.') 
             DO while (inot.ne.0) 
-            READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
-            READ (line (inot + 5:inot + 5) , '(l1)') lscr 
+            ios = 0
+            READ (line (inot - 1:inot - 1) , '(l1)',IOSTAT=ios) lscr1 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+            READ (line (inot + 5:inot + 5) , '(l1)',IOSTAT=ios) lscr 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             lscr = (lscr1.and..not.lscr) .or. (.not.lscr1.and.lscr) 
             iz1 = inot - 1 
             iz2 = 1 
@@ -1138,8 +1224,19 @@ END SUBROUTINE do_execute_block
 !                                                                       
             inot = INDEX (line, '.or.') 
             DO while (inot.ne.0) 
-            READ (line (inot - 1:inot - 1) , '(l1)') lscr1 
-            READ (line (inot + 4:inot + 4) , '(l1)') lscr 
+            ios = 0
+            READ (line (inot - 1:inot - 1) , '(l1)',IOSTAT=ios) lscr1 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+            READ (line (inot + 4:inot + 4) , '(l1)',IOSTAT=ios) lscr 
+            IF(ios/=0) THEN
+               ier_num = -18
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
             lscr = lscr1.or.lscr 
             iz1 = inot - 1 
             iz2 = 1 

@@ -26,6 +26,10 @@
    Here you find a list of recent changes, additions, bug corrections
 4  2018_Feb
 
+   New read-only ==> variables "PROGRAM", "STATE", "MPI", "MPI_FIRST"
+   were introduced that can be querried to learn in which program 
+   section and at what state you are.
+
    As a patch to overcome internal precision, the ==> 'seed' command
    can take an alternative form.
 4  2018_Jan
@@ -1023,6 +1027,11 @@
    including the underscore "_".
    Presently they are single value variables.
 
+   Several system variable exist that are read only. Several of 
+   these refer to the refinement section DIFFEV. These variables 
+   all start with "REF_". See the DIFFEV on-line help and manual
+   for further details.
+
    If the first command parameter is "show" the program displays a
    list of user defined variables and their current values.
    Refer to the help entry "expressions" for further help.
@@ -1067,6 +1076,14 @@
                    If the value is changed, you can store more
                    values in ref_para[], but this does NOT change
                    the actual dimension pop_dimx that DIFFEV uses.
+   PROGRAM         Tells you in which section you are possible 
+                   values are SUITE=0, DISCUS=1, DIFFEV=2, KUPLOT=3 
+   STATE           Tells you whether this is the TOP=0 level, a
+                   SECTION=1 or a BRANCH=2.
+   MPI             Was the program started with MPI ?
+                   MPI_ON=1, MPI_OFF=0
+   MPI_FIRST       Is this the first call to DIFFEVs ==> 'run_mpi'
+                   command with the current GENERATION? FALSE=0 TRUE=1
 3  errors
 
    The program has been written such that it should handle almost
