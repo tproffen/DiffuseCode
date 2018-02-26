@@ -2,6 +2,7 @@
 !                                                                       
       USE kuplot_setup_mod
       USE kuplot_loop_mod 
+      USE variable_mod
       IMPLICIT none 
 !
       LOGICAL, PARAMETER :: standalone = .true.
@@ -16,6 +17,8 @@
       CALL kuplot_setup (standalone)
       CALL kuplot_set_sub
       CALL SIGNAL(2, kuplot_sigint)
+      var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
+      var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
       CALL kuplot_loop 
 !                                                                       
 !                                                                       

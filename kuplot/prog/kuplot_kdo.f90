@@ -19,6 +19,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       USE kuplot_config 
       USE kuplot_mod 
       USE set_sub_generic_mod
+      USE variable_mod
 !
       IMPLICIT none 
 !                                                                       
