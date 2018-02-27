@@ -620,9 +620,9 @@ ELSE
             ENDIF 
          ENDIF 
       ENDIF 
-   ELSEIF (str_comp (befehl, 'read', 4, lbef, 4) ) THEN
-      pop_current = .FALSE.
-      CALL do_read_values(.TRUE.)         ! Always try to read parameters as instructed by user
+!  ELSEIF (str_comp (befehl, 'read', 4, lbef, 4) ) THEN
+!     pop_current = .FALSE.
+!     CALL do_read_values(.TRUE.)         ! Always try to read parameters as instructed by user
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
       INQUIRE(FILE='GENERATION', EXIST=lexist)
       IF(lexist) THEN                     ! A GENERATION FILE EXISTS
