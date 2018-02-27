@@ -31,6 +31,8 @@
    individual R-values and a (weighted) average.
    You can display the development of the partial R-values within
    KUPLOT" with the kuplot command 'kpara'.
+
+   removed 'read' command
 3  2018_Jan
 
    The logical comparisons may now take the operators:
@@ -180,7 +182,6 @@
 !p logfile     ! Defines the file name for the parameters for each generation
 !p newparam    ! Defines Ra new parameter or new values for a parameter
 !p pop_name    ! Defines names for the individual parameters
-!p read        ! Tells DIFFEV to update its status from GENERATION
 !p refine      ! Defines which parameters are refined/fixed
 !p restrial    ! Defines the file name for the current R-values
 !p run_mpi     ! Run the cost function program in parallel through MPI
@@ -880,14 +881,7 @@
 2  read
 !b read
 
-   Instructs DIFFEV to update its status from the files
-   "GENERATION" and the logfiles defined by the command ==> 'logfile'
-
-   Use this command if you want to continue a refinement at an
-   earlier state and if you have manually edited the GENERATION
-   file. This command will ensure that DIFFEV is at the same status 
-   when it was finished/interupted at the generation specified in 
-   file GENERATION.
+   This command has been removed.
 2  refine
 !b refine {"all"|"none"|<number> [,<number>...]}
 !b refine {"all"|"none"|<par_name> [,<par_name>...]}

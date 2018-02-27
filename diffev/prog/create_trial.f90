@@ -455,7 +455,10 @@ CHARACTER (LEN=1024):: string
 INTEGER             :: io_status
 INTEGER             :: i, j
 INTEGER             :: n_pop, n_dim
+INTEGER             :: m_pop_gen, m_pop_n, m_pop_c, m_pop_dimx
+LOGICAL             :: l_write
 REAL                :: r1, r2, r3, r4 
+REAL                :: highest_r
 !                                                                       
 CALL oeffne (iwr, pop_genfile, stat) 
 IF ( ier_num/=0) THEN
@@ -669,14 +672,15 @@ IF(IS_IOSTAT_END(IO_STATUS)) THEN
    RETURN
 ENDIF
 !
+l_write = .FALSE.              ! Generation file does not have to be written
 IF(.NOT.pop_current)   THEN    ! Need to update the population etc
-   pop_gen = NINT(r1)
-   pop_n   = NINT(r2)
-   pop_c   = NINT(r3)
-   pop_dimx= NINT(r4)
-   IF(pop_n>MAXPOP .OR. pop_c>MAXPOP .OR. pop_dimx> MAXDIMX) THEN   ! Need to allocate
-      n_pop = MAX(pop_n, pop_c, MAXPOP)
-      n_dim = MAX(pop_dimx, MAXDIMX)
+   m_pop_gen  = MAX(pop_gen , NINT(r1))
+   m_pop_n    = MAX(pop_n   , NINT(r2))
+   m_pop_c    = MAX(pop_c   , NINT(r3))
+   m_pop_dimx = MAX(pop_dimx, NINT(r4))
+   IF(m_pop_n>MAXPOP .OR. m_pop_c>MAXPOP .OR. m_pop_dimx> MAXDIMX) THEN   ! Need to allocate
+      n_pop = MAX(m_pop_n, m_pop_c, MAXPOP)
+      n_dim = MAX(m_pop_dimx, MAXDIMX)
       CALL alloc_population( n_pop, n_dim)
       CALL alloc_ref_para(pop_dimx)
       IF(ier_num < 0) THEN
@@ -691,15 +695,24 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
       pop_dimx_new = .false.
    ENDIF
    pop_dimx_init = .true.      ! The dimension has been initialized in this run
-   DO i=1,pop_dimx
+   DO i=1,NINT(r4)
       READ(iwr,'(a)', IOSTAT=io_status) line
       IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         ier_num = -17
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Number of parameters differs from current value'
+         ier_msg(2) = 'Check value of pop_dimx[1], and adjust         '
+         ier_msg(3) = 'Conflicting values within GENERATION file      '
          CLOSE(iwr)
          RETURN
       ENDIF
 !
       READ(line(1:16), '(a)', IOSTAT=io_status) pop_name(i)
       IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         ier_num = -17
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Error reading parameter name in GENERATION file'
+         ier_msg(3) = 'Conflicting values within GENERATION file      '
          CLOSE(iwr)
          RETURN
       ENDIF
@@ -707,6 +720,10 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
       READ(line(21:96),*,IOSTAT=io_status) pop_xmin(i), pop_xmax(i), &
                                            pop_smin(i), pop_smax(i)
       IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         ier_num = -17
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Error reading parameter limits in GENERATION file'
+         ier_msg(3) = 'Conflicting values within GENERATION file      '
          CLOSE(iwr)
          RETURN
       ENDIF
@@ -715,13 +732,49 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
       IF(line(98:98) == 'I') pop_type(i) = POP_INTEGER
       READ(line(100:100),'(L1)', IOSTAT=io_status) pop_refine(i)
       IF(IS_IOSTAT_END(IO_STATUS)) THEN
+         ier_num = -17
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Error reading parameter status in GENERATION file'
+         ier_msg(3) = 'Conflicting values within GENERATION file      '
          CLOSE(iwr)
          RETURN
       ENDIF
 !
    ENDDO
+!
+!  Test for changes in population size
+!
+   IF(NINT(r1)>0 .AND. NINT(r1)>= pop_gen) THEN   ! We are in a GENERATION > zero
+      pop_gen = NINT(r1)
+      IF(NINT(r2)<pop_n) THEN   ! Population size increased  by pop_n[] command
+               highest_r = MAXVAL( parent_val(1:NINT(r1),0))
+               parent_val(pop_n+1:pop_n,0) = 10.*highest_r
+               FORALL(i=pop_n+1:pop_n) pop_x (:,i)     = pop_x (:,1)
+               r2 = FLOAT(pop_n) 
+               var_val(var_ref+1) = pop_n     ! Update global user variable
+               l_write = .TRUE.
+      ELSEIF(NINT(r2)>pop_n) THEN   ! Population size decreased  by pop_n[] command
+               r2 = FLOAT(pop_n) 
+               var_val(var_ref+1) = pop_n     ! Update global user variable
+               l_write = .TRUE.
+      ENDIF
+      IF(NINT(r3)/=pop_c) THEN   ! Children size changed by pop_c[} command
+               r3 = FLOAT(pop_c)
+               var_val(var_ref+2) = pop_c     ! Update global user variable
+               CALL create_trial                 ! Make a new set
+               l_write = .TRUE.
+      ENDIF
+      IF(NINT(r4)<pop_dimx) THEN   ! Dimension has  increased by pop_dimx[] command
+               r4 = FLOAT(pop_dimx)
+               l_write = .TRUE.
+      ENDIF
+   ENDIF
 ENDIF
 CLOSE (iwr) 
+IF(l_write) THEN
+   CALL write_genfile                ! Write the "GENERATION" file
+   l_write = .FALSE.
+ENDIF
 ! In case io_status is zero, reset the error message
 IF(io_status==0) THEN
    ier_num = 0
