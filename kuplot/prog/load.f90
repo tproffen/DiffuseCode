@@ -2,7 +2,7 @@
 !     Routines to allocate memory for data sets and load data sets      
 !     using different file formats.                                     
 !*****7**************************************************************** 
-      SUBROUTINE do_func (zeile, lp) 
+SUBROUTINE do_func (zeile, lp) 
 !                                                                       
 !     Create new data set from given function                           
 !                                                                       
@@ -353,6 +353,7 @@
       USE times_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE take_param_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -372,11 +373,29 @@
 !                                                                       
       LOGICAL str_comp 
       INTEGER ifiles, len_str 
+!
+      INTEGER, PARAMETER :: NOPTIONAL = 6
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
+!
+      DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'separator'  /
+      DATA loname /  4    ,  4    ,   4    ,   5     ,  5     ,  9           /
+      opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', ';     ' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6       /)
+      owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  0.0     /)
+!
+!
 !                                                                       
       istr = 1 
       CALL no_error 
       CALL get_params (string, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.ne.0) return 
+      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                        oname, loname, opara, lopara, owerte)
       IF (ianz.ge.2) then 
 !                                                                       
 !------- -get file typ                                                  
@@ -563,7 +582,8 @@
       ELSEIF (unter.eq.'SM') then 
          CALL read_simref (ifil) 
       ELSEIF (unter.eq.'CSV') then 
-         CALL read_csv(ifil)
+         CALL do_read_csv(maxw, ianz, cpara, lpara ,   &
+              NOPTIONAL, opara, lopara, owerte, ncalc , ifil)
       ELSE 
          ier_num = - 2 
          ier_typ = ER_APPL 
@@ -3223,6 +3243,144 @@
  9999 FORMAT     (a) 
 !                                                                       
       END SUBROUTINE read_xy                        
+!*****7**************************************************************** 
+SUBROUTINE do_read_csv(MAXW, ianz, cpara, lpara, NOPTIONAL, opara, &
+                       lopara, owerte, ncalc, ifil )
+!
+      USE errlist_mod 
+      USE prompt_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+!
+IMPLICIT NONE
+!
+INTEGER                                   , INTENT(IN   ) :: MAXW
+INTEGER                                   , INTENT(INOUT) :: ianz
+CHARACTER (LEN=1024), DIMENSION(MAXW)     , INTENT(INOUT) :: cpara
+INTEGER             , DIMENSION(MAXW)     , INTENT(INOUT) :: lpara
+INTEGER                                   , INTENT(IN   ) :: NOPTIONAL
+CHARACTER (LEN=1024), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara
+INTEGER             , DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara
+REAL                , DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte
+INTEGER                                   , INTENT(IN   ) :: ncalc
+INTEGER                                   , INTENT(IN   ) :: ifil
+!
+CHARACTER(LEN=1024) :: line
+INTEGER             :: ios
+INTEGER :: isep, iskip, icolx, icoly, icoldx, icoldy, ncol
+INTEGER :: length
+INTEGER :: nsep, nsec
+INTEGER :: i, j
+INTEGER             :: nr
+INTEGER             :: maxpp
+!INTEGER, DIMENSION(2,4) :: sections
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: limits
+!
+! Interpret the optional parameters into local variables
+!
+IF(opara(6)==';' .OR. opara(6)=='semicolon' ) THEN
+   isep = IACHAR(';')
+ELSEIF(opara(6)==':' .OR. opara(6)=='colon' ) THEN
+   isep = IACHAR(':')
+ELSEIF(opara(6)=='comma' ) THEN
+   isep = IACHAR(',')
+ELSEIF(opara(6)(1:3)=='tab' ) THEN
+   isep = 9
+ENDIF
+!
+iskip  = NINT(owerte(1))
+icolx  = NINT(owerte(2))
+icoly  = NINT(owerte(3))
+icoldx = NINT(owerte(4))
+icoldy = NINT(owerte(5))
+ncol   = MAX(icolx, icoly, icoldx, icoldy)
+!
+!write(*,*) ' IANZ ', ianz
+!do i=1,ianz
+!   write(*,*) ' PARA ', i, cpara(i)(1:lpara(i))
+!enddo
+!write(*,*) ' IANZ ', NOPTIONAL
+!do i=1,NOPTIONAL
+!   write(*,*) ' PARA ', i, opara(i)(1:lopara(i))
+!enddo
+!
+!  Skip header lines
+!
+skip: DO i=1, iskip
+   READ(ifil,'(a)', IOSTAT=ios) line
+   IF(ios/=0) RETURN
+ENDDO skip
+!
+! Main body read lines, determin the number of sections and read 
+! the intended sections into x, y, dx, dy
+! If any of the requested columns is empty stop reading
+!
+nr = 1
+maxpp = maxarray - offxy (iz - 1) 
+body: DO
+   READ(ifil,'(a)', IOSTAT=ios) line
+   length = LEN_TRIM(line)
+   IF(ios/=0) EXIT body             ! Error, finish read
+   nsep = 0
+   DO i=1,length                    ! Determin number of separators
+      if(IACHAR(line(i:i))==isep) nsep = nsep + 1
+   ENDDO
+   nsec = nsep
+!                                   ! last char /= sep => one more section
+   IF(IACHAR(line(length:length))/=isep) nsec = nsec + 1
+   IF(nsec<ncol) EXIT body          ! Less sections than required columns
+   ALLOCATE(limits(2,nsec))
+   limits(:,:)    = 0
+   limits(1,nsec) = 1
+   limits(2,nsec) = length
+   j = 1                            ! Determine the limits of each section
+   DO i=1, length
+      IF(IACHAR(line(i:i))==isep) THEN    ! Next section boundary
+         limits(2,j) = i-1
+         limits(1,j+1) = MIN(i+1, length)
+         j = j+1
+      ENDIF
+   ENDDO
+!
+!  Check if we have something like ...;;... for a required column If so quit reading
+   IF(limits(2,icolx)-limits(1,icolx)<0) EXIT body   ! Width is zero 
+   IF(limits(2,icoly)-limits(1,icoly)<0) EXIT body   ! Width is zero 
+   IF(icoldx>0 .AND. limits(2,icoldx)-limits(1,icoldx)<0) EXIT body   ! Width is zero 
+   IF(icoldy>0 .AND. limits(2,icoldy)-limits(1,icoldy)<0) EXIT body   ! Width is zero 
+!
+!  Read data x, y, optionally dx, dy
+   READ(line(limits(1,icolx):limits(2,icolx)),*,IOSTAT=ios) x (offxy (iz - 1) + nr)
+   IF(ios/=0) EXIT body
+   READ(line(limits(1,icoly):limits(2,icoly)),*,IOSTAT=ios) y (offxy (iz - 1) + nr)
+   IF(ios/=0) EXIT body
+   IF(icoldx>0) THEN
+      READ(line(limits(1,icoldx):limits(2,icoldx)),*,IOSTAT=ios) dx (offxy (iz - 1) + nr)
+      IF(ios/=0) EXIT body
+   ENDIF
+   IF(icoldy>0) THEN
+      READ(line(limits(1,icoldy):limits(2,icoldy)),*,IOSTAT=ios) dy (offxy (iz - 1) + nr)
+      IF(ios/=0) EXIT body
+   ENDIF
+   nr = nr + 1                            ! Increment number of data points
+   IF (nr.gt.maxpp) THEN                  ! Too many data points ERROR
+      ier_num = - 6 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+   DEALLOCATE(limits)
+!
+ENDDO body
+!
+! Record data set length and show data
+!
+len(iz)   = nr - 1 
+offxy(iz) = offxy(iz - 1) + len(iz) 
+offz(iz)  = offz(iz - 1) 
+iz = iz + 1 
+!                                                                       
+CALL show_data (iz - 1) 
+!                                                                       
+END SUBROUTINE do_read_csv
 !*****7**************************************************************** 
       SUBROUTINE read_csv (ifil)
 !+                                                                      

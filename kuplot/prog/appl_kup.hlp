@@ -102,6 +102,8 @@
    Added a command 'kpara' to create a plot for DIFFEV
 
    Added an optional parameter "partial" to the ==> 'rvalue' command
+
+   Added optional parameters to the "load csv" command
 3  2018_Jan
 
    The new command 'costvalue' allows to set a global value 
@@ -1296,9 +1298,26 @@
    that size.
 3  csv
 !  load xy,<file>
+!  load xy,<file>, skip:<nskip>, 
+           colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
+           separator:<name> 
 
    Reads a csv type file that has been extracted from PANAlytical
    powder data.  
+
+   The second form is a generic attempt to read any CSV file. 
+   You can specify as optional parameters:
+   skip:  Number of header lines to skip     Default : 25
+   colx:  Column from which to take x-data   Default :  1
+   coly:  Column from which to take y-data   Default :  2
+   coldx: Column from which to take uncertainties for x-data Default : 0
+   coldy: Column from which to take uncertainties for y-data Default : 0
+   separator: Character that separates the columns, possible values are:
+              ";" or "semicolon"             Default  : "semicolon"
+              ":" or "colon"
+              "comma"
+              "tab"
+   If the error columns are omitted or set to zero no error data are read
 3  de
 !b load de,<file>,<gridx>,<gridy>
 
