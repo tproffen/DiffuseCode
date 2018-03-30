@@ -650,12 +650,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
        
 !                                                                       
-      CHARACTER ( LEN=* ) strucfile 
+      CHARACTER ( LEN=* ) , INTENT(in) :: strucfile 
       CHARACTER(31) fform 
       CHARACTER(15) C_MOLE ( - 4:4) 
       INTEGER ist, i, j, k, l 
       INTEGER i_start, i_end 
       INTEGER is, ie 
+      INTEGER ::   wr_prop = 1
+      INTEGER ::   wr_mole = 0
+      INTEGER ::   wr_cont = 0
       LOGICAL lread 
       LOGICAL                            :: lsave
       LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
@@ -737,6 +740,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (ist, fform) (cr_dw (i), i = j * 7 + 1, cr_nscat) 
          ENDIF 
       ENDIF 
+      IF (sav_w_occ) THEN 
+         j = (cr_nscat - 1) / 7 
+         DO i = 1, j 
+         is = (i - 1) * 7 + 1 
+         ie = is + 6 
+         WRITE (ist, 3220) (cr_occ(k), k = is, ie) 
+         ENDDO 
+         IF (cr_nscat - j * 7.eq.1) THEN 
+            WRITE (ist, 3221) cr_occ(cr_nscat) 
+         ELSEIF (cr_nscat - j * 7.gt.1) THEN 
+            WRITE (fform, 7020) cr_nscat - j * 7 - 1 
+            WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
+         ENDIF 
+      ENDIF 
       IF (sav_w_gene) THEN 
          DO k = 1, gen_add_n 
          WRITE (ist, 3021) ( (gen_add (i, j, k), j = 1, 4), i = 1, 3),  &
@@ -766,12 +783,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (ist, 4002) 'object', mole_type (i) 
             WRITE (ist, 4100) 'object', c_mole (mole_char (i) ) 
             WRITE (ist, 4200) 'object', mole_dens (i) 
-            DO j = 1, mole_len (i) 
-            k = mole_cont (mole_off (i) + j) 
-            WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-            l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-            lwrite(k) = .false.
-            ENDDO 
+!           DO j = 1, mole_len (i) 
+!           k = mole_cont (mole_off (i) + j) 
+!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
+!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+!           lwrite(k) = .false.
+!           ENDDO 
             WRITE (ist, 4900) 'object' 
          ENDIF 
          ENDDO 
@@ -792,12 +809,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                WRITE (ist, 4300) 'domain' 
             ENDIF 
             WRITE (ist, 4400) 'domain', mole_fuzzy (i) 
-            DO j = 1, mole_len (i) 
-            k = mole_cont (mole_off (i) + j) 
-            WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-            l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-            lwrite(k) = .false.
-            ENDDO 
+!           DO j = 1, mole_len (i) 
+!           k = mole_cont (mole_off (i) + j) 
+!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
+!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+!           lwrite(k) = .false.
+!           ENDDO 
             WRITE (ist, 4900) 'domain' 
          ENDIF 
          ENDDO 
@@ -812,12 +829,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (ist, 4002) 'molecule', mole_type (i) 
             WRITE (ist, 4100) 'molecule', c_mole (mole_char (i) ) 
             WRITE (ist, 4500) 'molecule', mole_biso (mole_type(i))
-            DO j = 1, mole_len (i) 
-            k = mole_cont (mole_off (i) + j) 
-            WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
-            l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
-            lwrite(k) = .false.
-            ENDDO 
+!           DO j = 1, mole_len (i) 
+!           k = mole_cont (mole_off (i) + j) 
+!           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
+!           l = 1, 3), cr_dw (cr_iscat (k) ), cr_prop (k)               
+!           lwrite(k) = .false.
+!           ENDDO 
             WRITE (ist, 4900) 'molecule' 
          ENDIF 
          ENDDO 
@@ -833,17 +850,36 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     IF (sav_latom (cr_iscat (i) ) ) THEN 
       IF (check_select_status (sav_latom (cr_iscat (i) ), cr_prop (i),   &
                                sav_sel_prop)     ) THEN
-         IF(lwrite(i)) THEN
-            IF(sav_w_prop) THEN
-               WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
-                              (cr_pos (j, i),j = 1, 3),          &
-                              cr_dw (cr_iscat (i) ), cr_prop (i)               
-            ELSE
-               WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
-                              (cr_pos (j, i),j = 1, 3),          &
-                              cr_dw (cr_iscat (i) ), 1
-            ENDIF 
-         ENDIF 
+!        IF(lwrite(i)) THEN
+         wr_prop = 1
+         wr_mole = 0
+         wr_cont = 0
+         IF(sav_w_prop) wr_prop = cr_prop(i)
+         IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
+            IF(cr_mole(i)/=0) THEN
+               wr_mole = cr_mole(i)
+               check_mole: DO j = 1, mole_len (cr_mole(i))
+                  IF(mole_cont (mole_off(cr_mole(i))+j) == i) THEN
+                     wr_cont = j
+                     EXIT check_mole
+                  ENDIF
+               ENDDO check_mole
+            ENDIF
+         ENDIF
+         WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+                        (cr_pos (j, i),j = 1, 3),          &
+                        cr_dw (cr_iscat (i) ), wr_prop,    &
+                        wr_mole, wr_cont
+!           IF(sav_w_prop) THEN
+!              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+!                             (cr_pos (j, i),j = 1, 3),          &
+!                             cr_dw (cr_iscat (i) ), cr_prop (i)               
+!           ELSE
+!              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
+!                             (cr_pos (j, i),j = 1, 3),          &
+!                             cr_dw (cr_iscat (i) ), 1
+!           ENDIF 
+!        ENDIF 
       ENDIF 
       ENDDO 
 !
@@ -853,7 +889,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3000 FORMAT    ('title ',a) 
  3010 FORMAT    ('spcgr ',a16) 
  3011 FORMAT    ('spcgr ',a16,',',i4) 
- 3020 FORMAT    ('cell  ',5(f10.6,2x ),f10.6) 
+ 3020 FORMAT    ('cell  ',5(f10.6,','),f10.6) 
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 
  3030 FORMAT    ('ncell ',3(i8,','),i10,',',i12) 
@@ -861,7 +897,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3111 FORMAT    (('scat  ', a4)) 
  3120 FORMAT    (('adp   ', f9.6,6(',',5x,f9.6))) 
  3121 FORMAT    (('adp   ', f9.6)) 
- 3900 FORMAT    ('atoms ') 
+ 3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
+ 3221 FORMAT    (('occ   ', f9.6)) 
+ 3900 FORMAT    ('atoms !    x',15x,'y',15x,'z',14x,'Biso', 5x,'Property', &
+                 3x,'MoleNo   MoleAt') 
                                                                         
  4000 FORMAT    (a) 
  4002 FORMAT    (a,' type,',i8) 
@@ -871,7 +910,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  4400 FORMAT    (a,' fuzzy    ,',f12.4) 
  4500 FORMAT    (a,' biso     ,',f12.4)
  4900 FORMAT    (a,' end') 
-    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8) 
+    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', I8) 
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
       END SUBROUTINE save_keyword                   

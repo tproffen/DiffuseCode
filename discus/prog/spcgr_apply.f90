@@ -1380,7 +1380,7 @@ CONTAINS
 !                                                                       
 !     Sort Atoms into molecules                                         
 !                                                                       
-      IF (mole_l_on) then 
+      IF (mole_l_on .OR. cr_mole(ii)/=0) then 
          CALL mole_insert (ii) 
          IF (ier_num.ne.0) then 
             RETURN 
@@ -1726,7 +1726,7 @@ CONTAINS
 !     move the offset of all molecules after "imole" one down           
 !                                                                       
       DO i = imole+1, mole_num_mole 
-      mole_off (i) = mole_off (i) + 1 
+         mole_off (i) = mole_off (i) + 1 
       ENDDO 
 !                                                                       
 !     insert atom "iatom" at the end of molecule "imole"                
@@ -1744,6 +1744,116 @@ CONTAINS
       cr_mole(iatom) = imole
 !                                                                       
       END SUBROUTINE mole_insert_current            
+!********************************************************************** 
+      SUBROUTINE mole_insert_explicit (iatom, imole, inatom) 
+!-                                                                      
+!     Inserts the last atom into the molecule list as last atom of      
+!     the specified molecule.                                           
+!+                                                                      
+      USE discus_allocate_appl_mod
+      USE crystal_mod
+      USE molecule_mod 
+      USE prop_para_mod
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      INTEGER, INTENT(IN) :: iatom 
+      INTEGER, INTENT(IN) :: imole 
+      INTEGER, INTENT(IN) :: inatom
+!
+      INTEGER :: n_gene
+      INTEGER :: n_symm
+      INTEGER :: n_mole
+      INTEGER :: n_type
+      INTEGER :: n_atom
+      INTEGER :: ishift
+      LOGICAL :: need_alloc = .false.
+!                                                                       
+      INTEGER i 
+!                                                                       
+!                                                                       
+!     Move the content of all molecules after "imole" one down the list 
+!     mole_num_atom : total number of atoms in molecules                
+!     mole_num_acur : number of atoms in molecules including "imole"    
+!                                                                       
+      mole_num_atom = mole_off(mole_num_mole) + mole_len( mole_num_mole)
+!                                                                       
+!     If necessary, create new molecule                                 
+!                                                                       
+      need_alloc = .false.
+      n_gene = MAX( 1, MOLE_MAX_GENE)
+      n_symm = MAX( 1, MOLE_MAX_SYMM)
+      n_mole =         MOLE_MAX_MOLE
+      n_type =         MOLE_MAX_TYPE
+      n_atom =         MOLE_MAX_ATOM
+      IF (imole > MOLE_MAX_MOLE ) THEN
+         n_mole = MOLE_MAX_MOLE + 20
+         need_alloc = .true.
+      ENDIF
+!     IF (iatom > MOLE_MAX_ATOM ) THEN
+      IF (mole_num_atom + 1.ge.MOLE_MAX_ATOM) then 
+         n_atom = MOLE_MAX_ATOM + 200
+         need_alloc = .true.
+      ENDIF
+      IF ( need_alloc ) THEN
+         call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
+      IF (imole.gt.mole_num_mole) then 
+         IF (imole.le.MOLE_MAX_MOLE) then 
+            mole_num_mole = mole_num_mole+1 
+            mole_len (imole) = 0 
+            mole_off (imole) = mole_num_atom 
+            mole_type (imole) = MAX(1,mole_num_type )
+            mole_char (imole) = mole_char (imole-1) 
+            mole_dens (imole) = mole_dens (imole-1) 
+!            mole_biso (imole) = mole_biso (imole-1) 
+         ELSE 
+            ier_num = - 65 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+      ENDIF 
+!
+      mole_num_acur = mole_off (imole) + mole_len (imole) 
+!
+      ishift = 0
+      IF(inatom>mole_len(imole)) THEN
+         ishift = inatom - mole_len(imole)
+!
+         IF (mole_num_atom + ishift.le.MOLE_MAX_ATOM) then 
+            DO i = mole_num_atom, mole_num_acur + ishift, - 1 
+            mole_cont (i + ishift) = mole_cont (i) 
+            ENDDO 
+         ELSE 
+            ier_num = - 74 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+!                                                                       
+!     move the offset of all molecules after "imole" one down           
+!                                                                       
+         DO i = imole+1, mole_num_mole 
+            mole_off (i) = mole_off (i) + ishift 
+         ENDDO 
+      ENDIF
+!
+!     insert atom "iatom" at the proper place of molecule "imole"                
+!
+      IF (mole_num_acur + ishift.le.MOLE_MAX_ATOM) then 
+         mole_cont(mole_off(imole) + inatom) = iatom
+         mole_len(imole) = MAX(mole_len(imole), inatom)
+!        mole_cont (mole_num_acur + 1) = iatom 
+!        mole_len (imole) = mole_len (imole) + 1 
+!        mole_num_acur = mole_num_acur + 1 
+      ELSE 
+         ier_num = - 74 
+         ier_typ = ER_APPL 
+         RETURN 
+      ENDIF 
+      cr_prop(iatom) = ibset(cr_prop(iatom),PROP_MOLECULE)
+      cr_mole(iatom) = imole
+!
+END SUBROUTINE mole_insert_explicit
 !********************************************************************** 
       SUBROUTINE first_mole (mole_st) 
 !-                                                                      

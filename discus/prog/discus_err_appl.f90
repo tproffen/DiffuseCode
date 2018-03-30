@@ -9,7 +9,7 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-148,IO=4)
+      PARAMETER    (IU=-148,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
@@ -182,7 +182,9 @@
      &  'Large distance between micro and host',         & ! ! +1  ! discus
      &  'Molecule generator is obsolete >help data',     & ! ! +2  ! discus
      &  'Molecule symmetry  is obsolete >help data',     & ! ! +3  ! discus
-     &  'Monte Carlo level is obsolete >help mmc'        & ! ! +4  ! discus
+     &  'Monte Carlo level is obsolete >help mmc',       & ! ! +4  ! discus
+     &  'Element charge was dropped',                    & ! ! +5  ! discus
+     &  'Element name is unknown'                        & ! ! +6  ! discus
      &           /
 !
       if (ier_typ.eq.ER_RMC) then
