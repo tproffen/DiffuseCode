@@ -72,6 +72,31 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Mar
+
+   save
+   As of version 5.17.1 DISCUS saves the atoms in its internal 
+   sequence, even if molecules are involved. The molecule info
+   is written into the file header and further columns have been 
+   added to the atom list that specify in which molecule an atom
+   is located.
+
+   stack
+   A simplified list of origin types has been added to the 
+   'create' command. This list "internal.stacksimple.list" 
+   contains the atom types "L001", etc at reduced origins
+   starting at 0,0,0 and incrementing with [0,0,1]. This 
+   list facilitates correlation analysis.
+
+   read
+   A comment with the read menu caused an exit, changed to 
+   ignore the comment.
+
+   read / import
+   Improved the reading of CIF files. Attempt to replace ion
+   charges with the DISCUS standard as best as possible.
+   If the space group is not given or is a '?', the symmetry
+   operations are read instead.
 3  2018_Jan
 
    The logical comparisons may now take the operators:
@@ -5559,6 +5584,10 @@
    or structure may be read. The old structure is lost ! If necessary
    save it with the --> 'save' command.
 
+   The 'read' menu is an old one. After a 'cell', 'stru', 'free' 
+   command DISCUS will leave the menu even without an 'exit'. 
+   As of version 5.17.1 comments no longer cause an 'exit'.
+
    Further help topics are:
 
 3  commands
@@ -6969,6 +6998,12 @@
    file with fixed name "internal.stacklist.stru". The layer types
    are saved as atoms with names "L001", "L002" etc. The coordinates
    correspond to the layer positions.
+
+   A simplified list of origin types called
+   "internal.stacksimple.list" 
+   contains the atom types "L001", etc at reduced origins
+   starting at 0,0,0 and incrementing with [0,0,1]. This 
+   list facilitates correlation analysis.
 3  crow
 !b crow <nr>,<cnr>1,<cnr>2,...,<cnrmdtype>
 
