@@ -389,7 +389,8 @@ list_index(:) = 0
          lcurrent = .true.
       ENDIF
       pop_dimx_old = 0
-      DO i = 1, pop_dimx
+      search0: DO i = 1, pop_dimx
+         IF(pop_name(i)=='PARA0000') CYCLE search0
          IF(lcurrent) THEN
             WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use current file
          ELSE
@@ -398,8 +399,9 @@ list_index(:) = 0
          INQUIRE ( FILE=fname, EXIST=istda )   ! does file exist?
          IF ( .NOT. istda) EXIT                ! if not exit loop
          pop_dimx_old = i                      ! current old dimension
-      ENDDO
-      DO i = 1, pop_dimx_old                   ! Loop over old dimension
+      ENDDO search0
+      search_old: DO i = 1, pop_dimx_old                   ! Loop over old dimension
+         IF(pop_name(i)=='PARA0000') CYCLE search_old
          IF(lcurrent) THEN
             WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))   ! Use current file
          ELSE
@@ -439,10 +441,11 @@ list_index(:) = 0
                pop_x(i,ii)    = temp_pop_min + (temp_pop_max-temp_pop_min)*r
             ENDDO
          ENDIF
-      ENDDO
+      ENDDO search_old
       IF(n_rvalue_i>1) THEN     !Read partial Rvalues
          i= 0  
-      DO k = 1, n_rvalue_i                   ! Loop over partial Rvalues
+      search_partial: DO k = 1, n_rvalue_i                   ! Loop over partial Rvalues
+         IF(pop_name(i)=='PARA0000') CYCLE search_partial
          IF(lcurrent) THEN
             WRITE(fname, 970) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i))),k   ! Use current file
          ELSE
@@ -472,7 +475,7 @@ list_index(:) = 0
                parent_val(ii,k) = temp_val_max + temp_val_min
             ENDDO
          ENDIF
-      ENDDO
+      ENDDO search_partial
       ENDIF
 !                                                                       
 !     --Determine best and worst member                                 
@@ -641,6 +644,7 @@ list_index(:) = 0
 !
       fname = ' '
       WRITE (fname, 950) parent_results(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
+      IF(fname=='PARA0000') CYCLE params
       CALL oeffne_append (iwr, fname, 'unknown')
       IF (ier_num.ne.0) THEN 
          RETURN 
@@ -714,8 +718,9 @@ list_index(:) = 0
       CLOSE (IWR)
    ENDDO partial_s
 !
-   DO i = 1, pop_dimx 
+   summary: DO i = 1, pop_dimx 
       WRITE (fname, 950) parent_summary(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
+      IF(fname=='PARA0000') CYCLE summary
       CALL oeffne_append (iwr, fname, 'unknown') 
       IF (ier_num.ne.0) return
       pave = 0.0 
@@ -744,7 +749,7 @@ list_index(:) = 0
       WRITE (line (i1:i2), 4100) pave, pmin, pmax, psig 
       WRITE (iwr, 4200) line (1:i2) 
       CLOSE (iwr) 
-   ENDDO 
+   ENDDO summary
 !
 !                                                                       
 !  CLOSE (iwr) 
