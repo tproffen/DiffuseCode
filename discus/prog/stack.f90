@@ -1006,6 +1006,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       CHARACTER(LEN=23), PARAMETER :: tempfile ='internal.temporary.stru'
       CHARACTER(LEN=23), PARAMETER :: stackfile='internal.stacklist.stru'
+      CHARACTER(LEN=25), PARAMETER :: stacksimple='internal.stacksimple.list'
       INTEGER i, j, k 
       INTEGER         :: nlayers
       INTEGER         :: n_mole  ! number of molecules in input file
@@ -1394,6 +1395,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       mole_num_type = 0
       mole_num_atom = 0
       CALL save_internal(stackfile)
+!
+!     Save simplified list for correlation analysis
+!
+      cr_pos(:,:) = 0.0
+      DO i=1,st_nlayer
+         cr_pos(3,i) = FLOAT(i-1)
+      ENDDO
+      CALL save_internal(stacksimple)
       CALL readstru_internal(tempfile)    ! Restore current structure
 !                                                                       
 !     do i=1,st_ntypes                                                  
