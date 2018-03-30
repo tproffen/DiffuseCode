@@ -680,9 +680,9 @@ CONTAINS
       ENDIF 
 !                                                                       
       IF (ldbw) then 
-         sb = exp ( - DBLE(cr_dw ( (iscat) ) * q2)) 
+         sb = exp ( - DBLE(cr_dw ( (iscat) ) * q2)) * DBLE(cr_occ(iscat))
       ELSE 
-         sb = 1.0D0
+         sb = 1.0D0 * DBLE(cr_occ(iscat))
       ENDIF 
 !                                                                       
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 

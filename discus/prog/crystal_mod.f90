@@ -73,6 +73,8 @@ USE discus_config_mod
    REAL   , DIMENSION(3)                 ::  cr_win = 90.0
    REAL   , DIMENSION(3,2)               ::  cr_dim = RESHAPE((/0,0,0, 1,1,1/),SHAPE(cr_dim))
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  cr_dw  ! (  0:MAXSCAT)
+   REAL   , DIMENSION(  :), ALLOCATABLE  ::  cr_occ ! (  0:MAXSCAT)
+   REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_occ ! (  0:MAXSCAT)
    REAL   , DIMENSION(:,:), ALLOCATABLE  ::  as_pos ! (3,1:MAXSCAT)
    REAL   , DIMENSION(  :), ALLOCATABLE  ::  as_dw  ! (  0:MAXSCAT)
 !

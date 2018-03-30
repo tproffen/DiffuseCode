@@ -346,7 +346,7 @@ CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
 !
 INTEGER :: stype
 INTEGER :: j
-REAL               :: occup, biso
+REAL               :: occup,biso
 REAL, DIMENSION(3) :: vec
 !
    stype = 0
@@ -358,7 +358,7 @@ REAL, DIMENSION(3) :: vec
    ENDDO loop_stype
    vec(:) = cr_pos(:,i)
    CALL get_wyckoff(vec,.FALSE.,1)
-   occup = 10.000 + REAL(res_para(1)/res_para(3))
+   occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(i))
    biso = cr_dw(cr_iscat(i))/8./pi**2
    WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
 !

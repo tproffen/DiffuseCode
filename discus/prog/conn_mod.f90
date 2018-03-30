@@ -1468,7 +1468,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             at_name_d = at_name(cr_iscat(i))
             CALL char_prop_1 (c_property, cr_prop (i), length) 
             WRITE (output_io, 3010) at_name_d, cr_pos (1, i), cr_pos (2,&
-            i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &
+            i), cr_pos (3, i), cr_dw (cr_iscat (i) ), c_property (1:    &   !! WORK OCC
             length)
             v(:) = cr_pos(:,i) + c_offs(:,j)
             distance = do_blen(.TRUE., u,v)

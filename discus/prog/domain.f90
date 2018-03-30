@@ -1328,6 +1328,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                   ENDIF
                   cr_at_lis (cr_nscat) = line (1:ibl) 
                   cr_dw (cr_nscat) = dw1 
+                  cr_occ(cr_nscat) = 1.00      !! WORK OCC
 !                                                                       
                   IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)           &
                   .lt.1.and.0.0.le.cr_pos (2, i) .and.cr_pos (2, i)     &
@@ -1338,6 +1339,7 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      as_iscat (as_natoms) = cr_iscat (i) 
                      as_prop (as_natoms) = cr_prop (i) 
                      as_dw (as_natoms) = cr_dw (cr_nscat) 
+                     as_occ(as_natoms) = cr_occ(cr_nscat) 
                      DO j = 1, 3 
                      as_pos (j, as_natoms) = cr_pos (j, i) 
                      ENDDO 

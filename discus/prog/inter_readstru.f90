@@ -36,6 +36,7 @@ LOGICAL :: rd_cr_acentric
 LOGICAL :: rd_cr_cartesian
 LOGICAL :: rd_cr_newtype
 REAL                , DIMENSION(:),   ALLOCATABLE :: rd_cr_dw     ! (0:MAXSCAT) 
+REAL                , DIMENSION(:),   ALLOCATABLE :: rd_cr_occ    ! (0:MAXSCAT) 
 CHARACTER (LEN=   4), DIMENSION(:),   ALLOCATABLE :: rd_cr_at_lis ! (0:MAXSCAT) 
 CHARACTER (LEN=   4), DIMENSION(:),   ALLOCATABLE :: rd_cr_as_lis ! (0:MAXSCAT) 
 CHARACTER (LEN=   4), DIMENSION(:),   ALLOCATABLE :: rd_cr_at_equ ! (0:MAXSCAT) 

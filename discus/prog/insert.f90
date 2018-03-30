@@ -819,7 +819,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   j = 1 
                   IF (k.eq.1) then 
                      DO while (j.le.cr_nscat.and. (cname (k)            &
-                     .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )     
+                     .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )     !! WORK OCC
                      j = j + 1 
                      ENDDO 
                   ELSE 
@@ -835,6 +835,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ELSE 
                         cr_dw (cr_nscat + 1) = 0.0 
                      ENDIF 
+                     cr_occ(cr_nscat+1) = 1.00                 !! WORK OCC
                      cr_at_lis (cr_nscat + 1) = cname (k) 
                      cr_nscat = cr_nscat + 1 
                   ELSE 
@@ -1038,7 +1039,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      j = 1 
                      IF (k.eq.1) then 
                         DO while (j.le.cr_nscat.and.                  &
-                                  (cname (k) .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )
+                                  (cname (k) .ne.cr_at_lis (j) .or.ins_adp.ne.cr_dw (j) ) )!! WORK OCC
                            j = j + 1 
                         ENDDO 
                      ELSE 
@@ -1053,6 +1054,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ELSE 
                            cr_dw (cr_nscat + 1) = 0.0 
                         ENDIF 
+                        cr_occ(cr_nscat + 1) = 1.00                   !! WORK OCC
                         cr_at_lis (cr_nscat + 1) = cname (k) 
                         cr_nscat = cr_nscat + 1 
                      ELSE 

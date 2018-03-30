@@ -87,6 +87,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    INTEGER                                          ::  cr_n_REAL_atoms = 0
 
    REAL              , DIMENSION(  :), ALLOCATABLE  ::  cr_dw      ! (  0:MAXSCAT)
+   REAL              , DIMENSION(  :), ALLOCATABLE  ::  cr_occ     ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    TYPE(cl_atom)     , DIMENSION(:)  , POINTER      ::  atoms            !the actual atoms
 !
@@ -169,6 +170,7 @@ CONTAINS
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules
@@ -192,6 +194,7 @@ CONTAINS
    ALLOCATE ( this%cr_sav_atom(  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_at_lis  (  0:nscat), STAT=istatus ) ! Allocate atom names
    ALLOCATE ( this%cr_dw      (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
+   ALLOCATE ( this%cr_occ     (  0:nscat), STAT=istatus ) ! Allocate Debye Waller terms
    ALLOCATE ( this%atoms      (natoms   ), STAT=istatus ) ! Allocate list of atoms
    ALLOCATE ( this%cr_mole_len  (0:n_mole), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_off  (0:n_mole), STAT=istatus ) ! Allocate molecules
@@ -324,6 +327,25 @@ CONTAINS
 !
    END SUBROUTINE set_cryst_dw 
 !******************************************************************************
+   SUBROUTINE set_cryst_occ( this, MAXSCAT, inum, cr_occ)
+!
+!  Set the atom name array for "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst)                 :: this
+   INTEGER,              INTENT(IN) :: MAXSCAT
+   INTEGER,              INTENT(IN) :: inum
+   REAL   ,DIMENSION(0:MAXSCAT), INTENT(IN) :: cr_occ
+!
+   INTEGER :: i
+!
+   DO i=0, inum
+      this%cr_occ(i) = cr_occ(i)
+   ENDDO
+!
+   END SUBROUTINE set_cryst_occ 
+!******************************************************************************
    SUBROUTINE get_cryst_tran_f ( this, cr_tran_f)
 !
 !  Get the transformation matrix to cartesian space
@@ -349,6 +371,7 @@ CONTAINS
    INTEGER,              INTENT(OUT) :: itype
    CHARACTER (LEN=4),    INTENT(OUT) :: at_name
    REAL   ,              INTENT(OUT) :: dw1
+!  REAL   ,              INTENT(OUT) :: occ1   !!WORK OCC
 !
    REAL   , DIMENSION(3)             :: posit
    INTEGER                           :: iprop
@@ -357,6 +380,7 @@ CONTAINS
    CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface )
    at_name = this%cr_at_lis(itype)
    dw1     = this%cr_dw    (itype)
+!  occ1    = this%cr_occ   (itype)   !!WORK OCC
 !
    END SUBROUTINE get_cryst_scat 
 !******************************************************************************
@@ -543,12 +567,14 @@ CONTAINS
 !
    ia =  0
    this%cr_dw(0)       = cr_dw(0)           ! always save void ADP
+   this%cr_occ(0)      = cr_occ(0)          ! always save void OCC
    IF(this%cr_sav_adp) THEN
       DO i=1,cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = cr_dw(ia)
+            this%cr_occ(ia)      = cr_occ(ia)
 !        ENDIF
       ENDDO
    ELSE
@@ -557,6 +583,7 @@ CONTAINS
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = cr_dw(ia)
+            this%cr_occ(ia)      = cr_occ(ia)
          ENDIF
       ENDDO
    ENDIF
@@ -688,6 +715,7 @@ CONTAINS
    INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
    REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
+!  REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_equ ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_as_lis ! (0:MAXSCAT) 
@@ -842,12 +870,14 @@ CONTAINS
 !
    ia =  0
    this%cr_dw(0)       = rd_cr_dw(0)           ! always save void ADP
+!  this%cr_occ(0)      = rd_cr_occ(0)          ! always save void OCC  !! WORK OCC
    IF(this%cr_sav_adp) THEN
       DO i=1,rd_cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = rd_cr_dw(ia)
+!           this%cr_occ(ia)      = rd_cr_occ(ia)   !! WORK OCC
 !        ENDIF
       ENDDO
    ELSE
@@ -856,6 +886,7 @@ CONTAINS
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = rd_cr_dw(ia)
+!           this%cr_occ(ia)      = rd_cr_occ(ia)  !! WORK OCC
          ENDIF
       ENDDO
    ENDIF
@@ -1072,6 +1103,7 @@ CONTAINS
       cr_at_equ(i)    = this%cr_at_equ(i)
       cr_at_lis(i)    = this%cr_at_lis(i)
       cr_dw(i)        = this%cr_dw(i)
+      cr_occ(i)       = this%cr_occ(i)
    END FORALL
 !
    cr_newtype      = this%cr_newtype
@@ -1098,6 +1130,7 @@ CONTAINS
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
    REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
+!  REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
@@ -1138,6 +1171,7 @@ CONTAINS
    FORALL (i=0:this%cr_nscat)
       rd_cr_at_lis(i)    = this%cr_at_lis(i)
       rd_cr_dw(i)        = this%cr_dw(i)
+!     rd_cr_occ(i)       = this%cr_occ(i)  !! WORK OCC
    END FORALL
 !
    rd_cr_nscat        = MAX(rd_cr_nscat,this%cr_nscat)
@@ -1312,6 +1346,7 @@ CONTAINS
       DEALLOCATE ( this%cr_sav_atom, STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_at_lis  , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_dw      , STAT=istatus ) ! Always deallocate
+      DEALLOCATE ( this%cr_occ     , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%atoms      , STAT=istatus ) ! Always deallocate
       DEALLOCATE ( this%cr_mole_len  , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_off  , STAT=istatus ) ! Always deallocate molecules

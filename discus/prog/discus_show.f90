@@ -268,7 +268,7 @@ CONTAINS
       DO i = 1, LINES - 2 
       k = (j - 1) * (LINES - 2) + i + kvoid 
       at_name_d = at_name (k) 
-      WRITE (output_io, 2010) at_name_d, k, cr_dw (k) 
+      WRITE (output_io, 2010) at_name_d, k, cr_dw (k) , cr_occ(k)
       ENDDO 
       IF (.not.lmakro) then 
          WRITE (output_io, 2020) 
@@ -280,11 +280,11 @@ CONTAINS
       DO i = 1, cr_nscat - ( (cr_nscat - kvoid) / (LINES - 2) ) *       &
       (LINES - 2) - kvoid                                               
       k = (j - 1) * (LINES - 2) + i + kvoid 
-      WRITE (output_io, 2010) cr_at_lis (k), k, cr_dw (k) 
+      WRITE (output_io, 2010) cr_at_lis (k), k, cr_dw (k) , cr_occ(k)
       ENDDO 
  1000 FORMAT    (a)
- 2000 FORMAT    (' Atoms present  '/ ' Name         Type       B')
- 2010 FORMAT    (1x,a9,2x,i4,2x,f12.5)
+ 2000 FORMAT    (' Atoms present  '/ ' Name         Type       B   Occ')
+ 2010 FORMAT    (1x,a9,2x,i4,2x,f12.5, 2x, F12.5)
  2020 FORMAT    (' Press RETURN for more ...')
       END SUBROUTINE show_chem
 !*****7*****************************************************************
@@ -410,7 +410,7 @@ CONTAINS
                at_name_d = at_name (cr_iscat (i) ) 
                CALL char_prop_1 (c_property, cr_prop (i), length) 
                WRITE (output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-                  cr_pos (3, i), cr_dw (cr_iscat (i) ), i, cr_mole(i),      &
+                  cr_pos (3, i), cr_dw (cr_iscat (i) ), i, cr_mole(i),      &  !! WORK OCC
                   c_property (1:length)
                DO k=1,3
                   ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
@@ -434,7 +434,7 @@ CONTAINS
                   at_name_d = at_name (cr_iscat (i) ) 
                   CALL char_prop_1 (c_property, cr_prop (i), length) 
                   WRITE (output_io, 3010) at_name_d, cr_pos (1, i),        &
-                  cr_pos (2, i), cr_pos (3, i), cr_dw (cr_iscat (i) ),     &
+                  cr_pos (2, i), cr_pos (3, i), cr_dw (cr_iscat (i) ),     & !! WORK OCC
                   i, cr_mole(i) ,                                          &
                   c_property (1:length)                                    
                ENDDO 
@@ -560,7 +560,7 @@ CONTAINS
             k = mole_cont (mole_off (i) + j) 
             at_name_d = at_name (cr_iscat (k) ) 
             WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k),        &
-            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k) )         
+            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k) )            !! WORK OCC
             ENDDO 
             ENDDO 
             RETURN 
@@ -599,7 +599,7 @@ CONTAINS
       k = mole_cont (mole_off (i) + j) 
       at_name_d = at_name (cr_iscat (k) ) 
       WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k), cr_pos (2, k)&
-      , cr_pos (3, k), cr_dw (cr_iscat (k) )                            
+      , cr_pos (3, k), cr_dw (cr_iscat (k) )                               !! WORK OCC
       ENDDO 
       ENDDO 
 !                                                                       

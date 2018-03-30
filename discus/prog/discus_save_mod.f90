@@ -20,6 +20,7 @@ LOGICAL               ::  sav_t_keyword , sav_keyword  = .true.
 !
 LOGICAL               ::  sav_t_w_scat  , sav_w_scat   = .false.
 LOGICAL               ::  sav_t_w_adp   , sav_w_adp    = .false.
+LOGICAL               ::  sav_t_w_occ   , sav_w_occ    = .false.
 LOGICAL               ::  sav_t_r_ncell , sav_r_ncell  = .false.
 LOGICAL               ::  sav_t_w_ncell , sav_w_ncell  = .false.
 LOGICAL               ::  sav_t_w_gene  , sav_w_gene   = .true.
