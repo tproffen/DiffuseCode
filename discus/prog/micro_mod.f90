@@ -14,6 +14,7 @@ CHARACTER(LEN=16) mk_spcgr
 CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE ::  mk_at_lis  ! (0:MK_MAX_SCAT)
 !
 REAL            , DIMENSION(:), ALLOCATABLE ::  mk_dw      ! (0:MK_MAX_SCAT)
+REAL            , DIMENSION(:), ALLOCATABLE ::  mk_occ     ! (0:MK_MAX_SCAT)
 REAL                :: mk_a0(3)
 REAL                :: mk_win(3)
 REAL                :: mk_dim(3,2)

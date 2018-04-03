@@ -450,7 +450,7 @@ CONTAINS
             IF (ier_num.ne.0) return 
 !            ENDDO 
             IF (ianz.ge.4) then 
-               CALL do_ins_atom (name, werte) 
+               CALL do_ins_atom (name, maxw, werte) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -616,7 +616,7 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte) 
+                     CALL do_ins_atom (name, maxw, werte) 
                   ELSE 
 !                                                                       
 !     ----------Interpret parameters 8,9,10 as direct lattice units     
@@ -654,13 +654,13 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                      ENDIF 
-                     CALL do_ins_atom (name, werte) 
+                     CALL do_ins_atom (name, maxw, werte) 
                   ENDIF 
                ELSEIF (cr_natoms.eq.0) then 
 !                                                                       
 !     --------The crystal is empty. Insert atom in any case             
 !                                                                       
-                  CALL do_ins_atom (name, werte) 
+                  CALL do_ins_atom (name, maxw, werte) 
                ELSE 
 !                                                                       
 !     --------Wrong range of atoms to compare to the new one            
@@ -683,7 +683,7 @@ CONTAINS
    10 CONTINUE 
       END SUBROUTINE do_app                         
 !****7******************************************************************
-      SUBROUTINE do_ins_atom (name, werte) 
+      SUBROUTINE do_ins_atom (name, maxw, werte) 
 !-                                                                      
 !     Inserts the atom given by name and position in werte into the     
 !     structure.                                                        
@@ -697,7 +697,7 @@ CONTAINS
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, PARAMETER     :: maxw  = 5
+      INTEGER, INTENT(IN)     :: maxw
 !                                                                       
       CHARACTER (LEN=* )    , INTENT(IN) :: name 
       REAL , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 

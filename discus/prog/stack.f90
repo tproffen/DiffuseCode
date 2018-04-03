@@ -1621,7 +1621,7 @@ more1: IF (st_nlayer.ge.1) then
             ENDIF 
          ELSE 
             CALL readstru (NMAX, MAXSCAT, st_layer (st_type (i) ), cr_name,&
-            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis,&
+            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis,&
             cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw,&
             as_pos, as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,&
             spcgr_ianz, spcgr_para)                                        
@@ -1721,7 +1721,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             gen_add_n = 0 
             sym_add_n = 0 
             CALL stru_readheader (ist, MAXSCAT, cr_name,   &
-            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win,        &
+            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win,        &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)
 !                                                                       
             IF (ier_num.ne.0) then 
@@ -1734,8 +1734,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ier_typ = ER_NONE 
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,&
-            as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)     
+            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,&
+            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)     
             CLOSE (ist) 
             IF (ier_num.ne.0) then 
                RETURN 
@@ -2003,7 +2003,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             CALL readstru_internal (st_layer (st_type (1) ))!, &
          ELSE
          CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name, cr_spcgr, &
-         cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,  &
+         cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,  &
          cr_mole, cr_surf,                                              &
          cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,&
          as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,        &
@@ -2085,7 +2085,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                CALL readstru_internal (st_layer_c (l ))
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer_c (l), cr_name,      &
-            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
+            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,       &
             cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
@@ -2310,7 +2310,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                CALL readstru_internal (st_layer(1))
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (1), cr_name,        &
-            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
+            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,&
             cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
@@ -2432,7 +2432,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
                CALL readstru_internal (st_layer(l))
             ELSE
             CALL readstru (NMAX, MAXSCAT, st_layer (l), cr_name,        &
-            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,        &
+            cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,cr_occ, &
             cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms,    &
             as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,     &
             sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)           
@@ -2536,7 +2536,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
           CALL readstru_internal (st_infile)
       ELSE
       CALL readstru (ST_MMAX, ST_MAX_SCAT, st_infile, st_name, st_spcgr,&
-      st_a0, st_win, st_natoms, st_nscat, st_dw, st_at_lis, st_pos,     &
+      st_a0, st_win, st_natoms, st_nscat, st_dw, st_occ, st_at_lis, st_pos,     &
       st_mole, st_surf,                                                 &
       st_iscat, st_prop, st_dim, sa_natoms, sa_at_lis, sa_dw, sa_pos,   &
       sa_iscat, sa_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &

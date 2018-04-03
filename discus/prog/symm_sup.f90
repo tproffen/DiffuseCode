@@ -213,7 +213,7 @@ ENDIF
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -221,11 +221,11 @@ ENDIF
       INTEGER i_start, i_end 
 !                                                                       
       REAL usym (4), ures (4) 
-      REAL werte (5) 
+      REAL, DIMENSION(MAXW) :: werte! (5) 
       REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.00 / 
 !
       offset(4) = 0.0
 !                                                                       
@@ -286,7 +286,7 @@ loop_pow:DO k = 1, sym_power
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -320,17 +320,17 @@ END SUBROUTINE symm_op_mult
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, l 
       INTEGER i_start, i_end 
       REAL usym (4), ures (4) 
-      REAL werte (5) 
+      REAL, DIMENSION(MAXW) :: werte !(5) 
       REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
 !
       offset(4) = 0.0
 !                                                                       
@@ -389,7 +389,7 @@ loop_atoms: DO l = i_start, i_end
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -423,7 +423,7 @@ END SUBROUTINE symm_op_single
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -443,10 +443,10 @@ END SUBROUTINE symm_op_single
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
 !                                                                       
       REAL usym (4), ures (4), use_orig (3) 
-      REAL werte (5) 
+      REAL , DIMENSION(MAXW) :: werte! (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -564,7 +564,7 @@ END SUBROUTINE symm_op_single
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -627,7 +627,7 @@ END SUBROUTINE symm_op_single
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
@@ -645,10 +645,11 @@ END SUBROUTINE symm_op_single
       INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
       REAL usym (4), ures (4) 
-      REAL werte (5), use_orig (3) 
+      REAL, DIMENSION(MAXW) :: werte !(5)
+      REAL, DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 , 1.0/ 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -762,7 +763,7 @@ END SUBROUTINE symm_op_single
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -818,7 +819,7 @@ END SUBROUTINE symm_op_single
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
@@ -837,10 +838,10 @@ END SUBROUTINE symm_op_single
       REAL new_dime (4, 4) 
       REAL elements (3, 8) 
       REAL usym (4), ures (4), use_orig (3) 
-      REAL werte (5) 
+      REAL , DIMENSION(MAXW) :: werte ! (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -984,7 +985,7 @@ END SUBROUTINE symm_op_single
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -1047,7 +1048,7 @@ END SUBROUTINE symm_op_single
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
       INTEGER i, j, ii, l 
@@ -1064,10 +1065,11 @@ END SUBROUTINE symm_op_single
       REAL new_dime (4, 4) 
       REAL elements (3, 8) 
       REAL usym (4), ures (4) 
-      REAL werte (5), use_orig (3) 
+      REAL , DIMENSION(MAXW) :: werte! (5), use_orig (3) 
+      REAL , DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -1201,7 +1203,7 @@ END SUBROUTINE symm_op_single
          IF (sym_mode) then 
             name = cr_at_lis (cr_iscat (i) ) 
             werte (5) = cr_dw (cr_iscat (i) ) 
-            CALL do_ins_atom (name, werte) 
+            CALL do_ins_atom (name, MAXW, werte) 
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 

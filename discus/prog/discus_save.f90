@@ -899,8 +899,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3121 FORMAT    (('adp   ', f9.6)) 
  3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
  3221 FORMAT    (('occ   ', f9.6)) 
- 3900 FORMAT    ('atoms !    x',15x,'y',15x,'z',14x,'Biso', 5x,'Property', &
-                 3x,'MoleNo   MoleAt') 
+ 3900 FORMAT    ('atoms !    x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
+                 2x,'MoleNo,  MoleAt') 
                                                                         
  4000 FORMAT    (a) 
  4002 FORMAT    (a,' type,',i8) 

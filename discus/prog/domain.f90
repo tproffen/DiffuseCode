@@ -572,7 +572,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     Read the input file header                                        
 !                                                                       
          CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win, sav_ncell,   &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
       ENDIF
       IF (ier_num.ne.0) THEN 
@@ -934,7 +934,7 @@ use molecule_mod
 !     Read the input file header                                        
 !                                                                       
          CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win, sav_ncell,   &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
       ENDIF
 !                                                                       
