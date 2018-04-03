@@ -644,7 +644,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                ENDIF
 !
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
-               cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw,     &
+               cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
                cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
                as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
                sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
@@ -729,7 +729,7 @@ REAL            ,                  INTENT(IN) :: r_identical
       LOGICAL          :: need_alloc = .false.
       LOGICAL          :: lcontent
       LOGICAL lcell, lout 
-      REAL werte (maxw), dw1 
+      REAL werte (maxw), dw1 , occ1
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -782,7 +782,7 @@ REAL            ,                  INTENT(IN) :: r_identical
 !     --Read header of structure file                                   
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
       IF (ier_num.ne.0) THEN 
          CLOSE (ist)
@@ -914,6 +914,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
                   dw1 = werte (4) 
+                  occ1 = 1.00                           ! WORK OCC
                   IF(mole_l_on) THEN
                      cr_mole (i) = mole_num_mole
                   ELSE
@@ -932,8 +933,9 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                                                                       
                      IF (.not.cr_newtype) then 
                         DO j = 0, cr_nscat 
-                        IF (line (1:ibl) .eq.cr_at_lis (j)              &
-                        .and.dw1.eq.cr_dw (j) ) then                    
+                        IF (line (1:ibl)  == cr_at_lis (j)              &
+                        .and.dw1 == cr_dw (j)                     &
+                        .AND. occ1==cr_occ(j) ) then                    
                            cr_iscat (i) = j 
                            CALL symmetry 
                            IF (ier_num.ne.0) then 
@@ -964,10 +966,12 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                            cr_iscat (i) = cr_nscat 
                            cr_at_lis (cr_nscat) = line (1:ibl) 
                            cr_dw (cr_nscat) = dw1 
+                           cr_occ(cr_nscat) = 1.00                    ! WORK OCC
 !                                                                       
                            as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
                            as_iscat (as_natoms) = cr_iscat (i) 
                            as_dw (as_natoms) = cr_dw (cr_nscat) 
+                           as_occ(as_natoms) = cr_occ(cr_nscat) 
 !                       ENDIF
                         DO j = 1, 3 
                         as_pos (j, as_natoms) = cr_pos (j, i) 
@@ -1443,7 +1447,7 @@ ENDIF
 END SUBROUTINE struc_mole_header              
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
-      cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_at_lis, cr_pos,     &
+      cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,     &
       cr_mole, cr_surf,                                                 &
       cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,   &
       as_iscat, as_prop, sav_ncell, sav_r_ncell, sav_ncatoms,           &
@@ -1489,9 +1493,11 @@ END SUBROUTINE struc_mole_header
       REAL cr_a0 (3) 
       REAL cr_win (3) 
       REAL cr_dw (0:MAXSCAT) 
+      REAL cr_occ(0:MAXSCAT) 
       REAL cr_dim (3, 2) 
       REAL as_pos (3, MAXSCAT) 
       REAL as_dw (0:MAXSCAT) 
+      REAL as_occ(0:MAXSCAT) 
 !                                                                       
       INTEGER i 
 !                                                                       
@@ -1507,14 +1513,15 @@ END SUBROUTINE struc_mole_header
 !     --Read header of structure file                                   
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
 !                                                                       
          IF (ier_num.eq.0) then 
 !                                                                       
+write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-            cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim, &
-            as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)     
+            cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim, &
+            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)     
          ENDIF 
       ENDIF 
 !                                                                       
@@ -1523,10 +1530,11 @@ END SUBROUTINE struc_mole_header
          WRITE (ier_msg (1), 3000) cr_natoms + 1 
  3000 FORMAT      ('At atom number = ',i8) 
       ENDIF 
+write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
       END SUBROUTINE readstru                       
 !********************************************************************** 
       SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
-      cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win, sav_ncell,   &
+      cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)                 
 !-                                                                      
 !     This subroutine reads the header of a structure file              
@@ -1550,6 +1558,7 @@ END SUBROUTINE struc_mole_header
       REAL cr_a0 (3) 
       REAL cr_win (3) 
       REAL cr_dw (0:HD_MAXSCAT) 
+      REAL cr_occ(0:HD_MAXSCAT) 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 13) 
@@ -1574,6 +1583,7 @@ END SUBROUTINE struc_mole_header
       INTEGER len_str 
       LOGICAL str_comp 
 !
+cr_occ(:) = 1.0   !! WORK OCC
       xx_nscat = 0 
       xx_nadp = 0 
 !                                                                       
@@ -1935,8 +1945,8 @@ END SUBROUTINE struc_mole_header
       END SUBROUTINE stru_readheader                
 !********************************************************************** 
       SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
-      cr_dw, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,     &
-      as_natoms, as_at_lis, as_dw, as_pos, as_iscat, as_prop)                      
+      cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,     &
+      as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
@@ -1954,6 +1964,7 @@ END SUBROUTINE struc_mole_header
       INTEGER                                ,INTENT(INOUT) :: cr_natoms
       INTEGER                                ,INTENT(INOUT) :: cr_nscat 
       REAL            , DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_dw       ! (0:MAXSCAT) 
+      REAL            , DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_occ      ! (0:MAXSCAT) 
       CHARACTER(LEN=4), DIMENSION(0:MAXSCAT) ,INTENT(INOUT) :: cr_at_lis   ! (0:MAXSCAT) 
       REAL            , DIMENSION(1:3,1:NMAX),INTENT(INOUT) :: cr_pos
       INTEGER         , DIMENSION(1:NMAX),    INTENT(INOUT) :: cr_iscat
@@ -1964,6 +1975,7 @@ END SUBROUTINE struc_mole_header
       INTEGER                                ,INTENT(INOUT) :: as_natoms 
       CHARACTER(LEN=4), DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_at_lis   ! (0:MAXSCAT) 
       REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_dw       ! (0:MAXSCAT) 
+      REAL            , DIMENSION(0:MAXSCAT), INTENT(INOUT) :: as_occ      ! (0:MAXSCAT) 
       REAL            , DIMENSION(3,1:MAXSCAT), INTENT(INOUT) :: as_pos      ! (3, MAXSCAT) 
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
@@ -1985,7 +1997,7 @@ END SUBROUTINE struc_mole_header
       LOGICAL             :: lcontent
       REAL, PARAMETER     :: eps = 1e-6
       REAL, DIMENSION(maxw) :: werte !(maxw)
-      REAL                :: dw1 
+      REAL                :: dw1 , occ1 = 1
 !                                                                       
       INTEGER :: len_str 
       LOGICAL :: str_comp 
@@ -2061,13 +2073,15 @@ END SUBROUTINE struc_mole_header
             cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
             ENDDO 
             dw1 = werte (4) 
+            occ1 = 1.00                                 ! WORK OCC
             cr_prop (i) = nint (werte (5) ) 
       IF (line (1:4) .ne.'    ') then 
                ibl = ibl - 1 
                CALL do_cap (line (1:ibl) ) 
                DO j = 0, cr_nscat 
                   IF (line (1:ibl) .eq.cr_at_lis (j) .and. &
-                      ABS(dw1-cr_dw(j)).lt.eps               ) THEN
+                      ABS(dw1-cr_dw(j)).lt.eps       .AND. &
+                      ABS(occ1-cr_occ(j))<eps             ) THEN
                      cr_iscat (i) = j 
                      GOTO 11 
                   ENDIF 
@@ -2084,6 +2098,7 @@ END SUBROUTINE struc_mole_header
                cr_iscat (i) = cr_nscat 
                cr_at_lis (cr_nscat) = line (1:ibl) 
                cr_dw (cr_nscat) = dw1 
+               cr_occ(cr_nscat) = 1.00    ! WORK OCC
 !                                                                       
                IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)              &
                .lt.1.and.0.0.le.cr_pos (2, i) .and.cr_pos (2, i)        &
@@ -2093,6 +2108,7 @@ END SUBROUTINE struc_mole_header
                   as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
                   as_iscat (as_natoms) = cr_iscat (i) 
                   as_dw (as_natoms) = cr_dw (cr_nscat) 
+                  as_occ(as_natoms) = cr_occ(cr_nscat) 
                   DO j = 1, 3 
                   as_pos (j, as_natoms) = cr_pos (j, i) 
                   ENDDO 
@@ -2110,9 +2126,11 @@ END SUBROUTINE struc_mole_header
                   cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
                   cr_mole(cr_natoms) = mole_num_curr
                ELSE             ! No molecule header, but explicit info on line
-                  CALL mole_insert_explicit(cr_natoms, NINT(werte(6)), NINT(werte(7))) 
-                  cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
-                  cr_mole(cr_natoms) = NINT(werte(6))
+                  IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
+                     CALL mole_insert_explicit(cr_natoms, NINT(werte(6)), NINT(werte(7))) 
+                     cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
+                     cr_mole(cr_natoms) = NINT(werte(6))
+                  ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
