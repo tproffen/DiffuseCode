@@ -314,6 +314,7 @@ SUBROUTINE pdf
       REAL(PREC_DP) :: factor
       INTEGER :: max_bnd
       INTEGER i, j, ia, is, js, nn, nnn 
+      INTEGER, DIMENSION(0:MAXSCAT) :: pdf_natoms
       LOGICAL ltot 
 !                                                                       
 !     REAL form, quad 
@@ -406,20 +407,37 @@ SUBROUTINE pdf
       bave = 0.0 
       hh = pdf_xq**2 
 !                                                                       
+!RBN  cr_n_real_atoms = 0 
+!RBN  DO ia = 1, cr_natoms 
+!RBN  IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
+!RBN     bave = bave+form (cr_iscat (ia), cr_scat, pdf_lxray, hh,  pdf_power) *cr_occ(cr_iscat(ia))
+!RBN     cr_n_real_atoms = cr_n_real_atoms + 1 
+!RBN  ENDIF 
+!RBN  ENDDO 
+!RBN  bave = bave / float (cr_n_real_atoms) 
+!
+      pdf_natoms(:) = 0
       cr_n_real_atoms = 0 
-      DO ia = 1, cr_natoms 
-      IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
-         bave = bave+form (cr_iscat (ia), cr_scat, pdf_lxray, hh,  pdf_power) 
-         cr_n_real_atoms = cr_n_real_atoms + 1 
-      ENDIF 
+      DO ia = 1, cr_natoms
+         IF (cr_at_lis (cr_iscat (ia) ) .ne.'VOID') then 
+            pdf_natoms(cr_iscat(ia)) = pdf_natoms(cr_iscat(ia)) + 1
+         ENDIF 
       ENDDO 
+!
+      bave = 0.0
+      DO is = 0, cr_nscat 
+         pdf_natoms(is) = NINT( FLOAT(pdf_natoms(is)) * cr_occ(is))
+         cr_n_real_atoms = cr_n_real_atoms + pdf_natoms(is)
+         bave = bave+form (is, cr_scat, pdf_lxray, hh,  pdf_power) *pdf_natoms(is)
+      ENDDO
       bave = bave / float (cr_n_real_atoms) 
 !                                                                       
       IF (.not.pdf_lweights) then 
          DO is = 0, cr_nscat 
          DO js = 0, cr_nscat 
          pdf_weight (is, js) = form (is, cr_scat, pdf_lxray, hh, pdf_power)        &
-         * form (js, cr_scat, pdf_lxray, hh, pdf_power) / bave**2                  
+         * form (js, cr_scat, pdf_lxray, hh, pdf_power) / bave**2                  &
+         *cr_occ(is)*cr_occ(js)
          ENDDO 
          ENDDO 
       ENDIF 

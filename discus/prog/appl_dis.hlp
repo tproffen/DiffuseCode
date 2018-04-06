@@ -72,6 +72,21 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_April
+
+   An 'occupancy' was added as further atom property. 
+   The philosophy behind DISCUS is a simulation of an actual
+   crystal structure, thus the occupancy is really just an
+   emergency measure for the simulation where you want just 
+   very few or a single unit cell. 
+   As side effect the format of the 'cell' file has been 
+   augmented. 
+   For details see ==> 'read'
+
+   read / import
+   Improved handling of CIF files that do not have an empty
+   line following a 'loop'.
+   Import the occupancy.
 3  2018_Mar
 
    save
@@ -539,10 +554,11 @@
 !p spcgr Pm-3m
 !p symm  1.00,0.00,0.00,0.123, 0.00,1.0,0.00,0.00, 0.00,0.00,1.00,-0.567
 !p cell  5.0,5.0,5.0,90.,90.,90.
-!p atoms
+!p atoms x,    y,    z,  Biso, Property, MoleNcwoum, MoleAt, Occ
 !p NA1+  0.0   0.0   0.0 0.1
 !p NA1+  1/3, 1-0.5, 0.0, 0.1
 !p NA1+  1/3, 1-0.5, 0.3, 0.1,  1
+!p NA1+  1/3, 1-0.5, 0.3, 0.1,  1,  0,  0,   1.00
 
    Further help topics are:
 
@@ -584,7 +600,8 @@
    The space group symbol is checked for contradictions with the lattice
    constants. In case of error, the unit cell is not read.
 3  atoms
-!p <name>  <x>, <y>, <z>, <B> [, <propertyflag>]
+!p <name>  <x>, <y>, <z>, <B> , <propertyflag>, <MoleNo>, <MoleAt>, <occ>
+!p <name>  <x>, <y>, <z>, <B> , <propertyflag>
 !p <name>  <x>  <y>  <z>  <B>
 
    If a unit cell is read, only those atoms in the asymmetric unit should
@@ -593,6 +610,9 @@
    the fractional coordinates and the isotropic thermal coefficient B.
    The property flag is optional. This is, however, automatically
    written to a saved structure file.
+   The <MoleNo> and <MoleAt> specify in which molecule the atom is and 
+   at which entry within the atom is.
+   The <occ> specifies an occupancy for the atom.
 
    The name (in capital characters) must be left bound in the first four
    columns. 
@@ -5604,8 +5624,9 @@
 !p wait    ! waits for user input (see main help)
 3  cell
 !b cell <name> [,<nx> [,<ny> [,<nz>]]]
-!p       [,"identical:"{tolerate"|"none"]
-!p       [,"radius:<value>]
+!p       [,"identical:"{"tolerate"|"none"}]
+!p       [,"radius:"<value>]
+!p       [,"occupancy:"{"clear"|"apply"|"ignore"}]
 
    Reads the contents of a single asymmetric unit from file <name> and
    then generates the unit cell.
@@ -5621,7 +5642,7 @@
    If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
 
-   The optional parameters define how discus will handel atoms that
+   The optional parameters define how discus will handle atoms that
    are on identical positions. This might arise for example if you
    try to describe a split position with the partially occupied
    positions close to each other. 
@@ -5631,6 +5652,19 @@
    atoms on ientical positions you must set the radius to zero.
    Defaults are "none" which means DISCUS tolerates atoms 
    that are at least 1.0*10^-5Angstroem apart. 
+
+   As of version 5.18.0 occupancies were introduced to DISCUS.
+   The optional parameter "occupancy" tells DISCUS how to 
+   interpret the values found in the input file. The default is
+   "clear" All occupancies are reset to 1.0 and DISCUS behaves
+           as prior to 5.16.0
+   "apply" During the expansion of the asymmetric unit to the 
+           full crystal the actual atoms are in part replaced
+           by "voids" to achieve (at least approximately) the
+           occupancy
+   "keep"  The occupancies are kept at the values specified
+           in the input file. The actual atom list will be that
+           of a fully occupied crystal.
 3  lcell
 !b lcell <name> [,<nx> [,<ny> [,<nz>]]]
 
@@ -6287,7 +6321,7 @@
    save process with the ==>'sele' and 'dese' commands.
 3  omit
 !b omit { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
-!b         "object" | "scat" | "adp" }
+!b         "object" | "scat" | "adp" | "occ" }
 
    The keyword controlled format includes the mandatory lines :
    title
@@ -6304,6 +6338,10 @@
                 file, while the status of the other keyword is not changed.
 
    "adp"        The list of all Atomic displacement parameters is omitted
+                from the structure file, while the status of the other
+                keyword is not changed.
+
+   "occ"        The list of all occupancy parameters is omitted
                 from the structure file, while the status of the other
                 keyword is not changed.
 
@@ -6361,7 +6399,7 @@
    Shows the current parameters of the save menu.
 3  write
 !b write { "all" | "generator" | "ncell" | "symmetry" | "molecule" |
-!b         "object" | "domain" | "scat" | "adp" }
+!b         "object" | "domain" | "scat" | "adp" | "occ" }
 
    The keyword controlled format includes the mandatory  and 
    automatically included lines :
@@ -6379,6 +6417,9 @@
                 file.
 
    "adp"        The list of all atomic displacement parameters is written
+                to the structure file.
+
+   "occ"        The list of all occupancy parameters is written
                 to the structure file.
 
    "generator"  If additional generators were read from the input file
@@ -8233,7 +8274,9 @@
 
 !p "m[<i>]" is the number of the scattering curve for atom <i>.
 
-!p "b[<t>}" is the isotropic B value for atom type <t>.
+!p "b[<t>]" is the isotropic B value for atom type <t>.
+
+!p "occ[<t>]" is the occupancy for atom type <t>.
 
 !p "n[1]"   is the total number of atoms in the crystal, this variable
 !p          is read only.

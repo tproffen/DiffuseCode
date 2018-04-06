@@ -173,6 +173,7 @@ CONTAINS
 !
    CHARACTER (LEN=4)             :: at_name    ! temporary atom name
    REAL                          :: dw1        ! temporary DW factor
+   REAL                          :: occ1       ! temporary occupancy factor
 !
    INTEGER                       :: i_mole     ! Atoom is part of molecule i_mole
    INTEGER                       :: i_type     ! and this molecule is of type i_type
@@ -333,7 +334,7 @@ main: do ia = 1, natoms
       werte    = 0.0
       cr_natoms = cr_natoms + 1
       CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface)
-      CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1  )
+      CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso)
@@ -363,12 +364,14 @@ scat_dw: IF ( new_type ) THEN                     ! force each atom to be a new 
          cr_nscat = cr_nscat + 1
          cr_at_lis(cr_nscat) = at_name
          cr_dw    (cr_nscat) = dw1
+         cr_occ   (cr_nscat) = occ1
          itype               = cr_nscat
       ELSE scat_dw                                ! check for previous atom types
          itype = -1
 do_scat_dw: DO k = 1,cr_nscat
-            IF ( at_name == cr_at_lis(k) .and.  &
-                 dw1     == cr_dw    (k)      ) THEN
+            IF ( at_name == cr_at_lis(k) .AND.  &
+                 dw1     == cr_dw    (k) .AND.  &
+                 occ1    == cr_occ   (k)   ) THEN
                itype = k
                EXIT do_scat_dw
             ENDIF
@@ -377,6 +380,7 @@ do_scat_dw: DO k = 1,cr_nscat
             cr_nscat = cr_nscat + 1               ! Atom type does not exist, create a new one
             cr_at_lis(cr_nscat) = at_name
             cr_dw    (cr_nscat) = dw1
+            cr_occ   (cr_nscat) = occ1
             itype               = cr_nscat
          ENDIF
       ENDIF scat_dw                               ! End check for atom type
@@ -429,7 +433,7 @@ ENDIF
    END SUBROUTINE readcell_internal
 !*******************************************************************************
    SUBROUTINE stru_readheader_internal (rd_strucfile, rd_MAXSCAT, rd_cr_name,   &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,        &
+            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para,   &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -447,6 +451,7 @@ ENDIF
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
    REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
@@ -481,7 +486,7 @@ ENDIF
    ENDIF
 !
    CALL read_temp%crystal%get_header_to_local (rd_MAXSCAT, rd_cr_name,      &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,      &
+            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )

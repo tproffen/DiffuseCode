@@ -259,42 +259,35 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'omit', 1, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN 
-                     IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) &
-                     ) THEN                                             
+                     IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3)) THEN
                         sav_w_gene = .false. 
-                        sav_w_ncell = .false. 
+                        sav_w_ncell= .false. 
                         sav_w_symm = .false. 
                         sav_w_scat = .false. 
-                        sav_w_adp = .false. 
+                        sav_w_adp  = .false. 
+                        sav_w_occ  = .false. 
                         sav_w_obje = .false. 
                         sav_w_doma = .false. 
                         sav_w_prop = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara(1), 'gene', 1, lpara(1), 4) ) THEN
                         sav_w_gene = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'mole', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'mole', 1, lpara(1), 4) ) THEN
                         sav_w_mole = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'obje', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'obje', 1, lpara(1), 4) ) THEN
                         sav_w_obje = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'doma', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'doma', 1, lpara(1), 4) ) THEN
                         sav_w_doma = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'ncell', 1, lpara (1)&
-                     , 5) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'ncell', 1, lpara(1), 5) ) THEN
                         sav_w_ncell = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'symm', 2, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'symm', 2, lpara(1), 4) ) THEN
                         sav_w_symm = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'scat', 2, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'scat', 2, lpara(1), 4) ) THEN
                         sav_w_scat = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
-                     3) ) THEN                                          
+                     ELSEIF(str_comp(cpara (1), 'adp', 1, lpara(1), 3) ) THEN
                         sav_w_adp = .false. 
-                     ELSEIF (str_comp (cpara (1) , 'prop', 1, lpara (1) ,&
-                     4) ) THEN                                          
+                     ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1), 3) ) THEN
+                        sav_w_occ = .false. 
+                     ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .false. 
                      ELSE 
                         ier_num = - 6 
@@ -378,6 +371,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ELSE 
                         WRITE (output_io, 3009) 'omitted' 
                      ENDIF 
+                     IF (sav_w_occ) THEN 
+                        WRITE (output_io, 4009) 'written' 
+                     ELSE 
+                        WRITE (output_io, 4009) 'omitted' 
+                     ENDIF 
                      IF (sav_w_gene) THEN 
                         WRITE (output_io, 3010) 'written' 
                      ELSE 
@@ -452,39 +450,33 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) &
                      ) THEN                                             
                         sav_w_gene = .true. 
-                        sav_w_ncell = .true. 
+                        sav_w_ncell= .true. 
                         sav_w_symm = .true. 
                         sav_w_scat = .true. 
-                        sav_w_adp = .true. 
+                        sav_w_adp  = .true. 
+                        sav_w_occ  = .true. 
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
                         sav_w_prop = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'gene', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'gene', 1, lpara(1), 4) ) THEN
                         sav_w_gene = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'mole', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'mole', 1, lpara(1), 4) ) THEN
                         sav_w_mole = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'obje', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'obje', 1, lpara(1), 4) ) THEN
                         sav_w_obje = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'doma', 1, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'doma', 1, lpara(1), 4) ) THEN
                         sav_w_doma = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'ncell', 1, lpara (1)&
-                     , 5) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'ncell', 1, lpara(1), 5) ) THEN
                         sav_w_ncell = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'symm', 2, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'symm', 2, lpara(1), 4) ) THEN
                         sav_w_symm = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'scat', 2, lpara (1) &
-                     , 4) ) THEN                                        
+                     ELSEIF(str_comp(cpara (1), 'scat', 2, lpara(1), 4) ) THEN
                         sav_w_scat = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'adp', 1, lpara (1) ,&
-                     3) ) THEN                                          
+                     ELSEIF(str_comp(cpara (1), 'adp', 1, lpara(1),3) ) THEN
                         sav_w_adp = .true. 
-                     ELSEIF (str_comp (cpara (1) , 'prop', 1, lpara (1) ,&
-                     4) ) THEN                                          
+                     ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1),3) ) THEN
+                        sav_w_occ = .true. 
+                     ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .true. 
                      ELSE 
                         ier_num = - 6 
@@ -551,6 +543,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
      &       ' Following lines ',26x,': atoms'/)                        
  3008 FORMAT(' Explicit list of atomic names             : ',a7) 
  3009 FORMAT(' Explicit list of atomic displacement par. : ',a7) 
+ 4009 FORMAT(' Explicit list of occupancy parameters     : ',a7) 
  3010 FORMAT(' Additional generator matrizes             : ',a7) 
  3020 FORMAT(' Additional symmetry operators             : ',a7) 
  3030 FORMAT(' Number of unit cells, atoms per unit cell : ',a7) 
@@ -750,7 +743,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          IF (cr_nscat - j * 7.eq.1) THEN 
             WRITE (ist, 3221) cr_occ(cr_nscat) 
          ELSEIF (cr_nscat - j * 7.gt.1) THEN 
-            WRITE (fform, 7020) cr_nscat - j * 7 - 1 
+            WRITE (fform, 7030) cr_nscat - j * 7 - 1 
             WRITE (ist, fform) (cr_occ(i), i = j * 7 + 1, cr_nscat) 
          ENDIF 
       ENDIF 
@@ -869,7 +862,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
                         (cr_pos (j, i),j = 1, 3),          &
                         cr_dw (cr_iscat (i) ), wr_prop,    &
-                        wr_mole, wr_cont
+                        wr_mole, wr_cont, cr_occ(cr_iscat(i))
 !           IF(sav_w_prop) THEN
 !              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
 !                             (cr_pos (j, i),j = 1, 3),          &
@@ -899,9 +892,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3121 FORMAT    (('adp   ', f9.6)) 
  3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
  3221 FORMAT    (('occ   ', f9.6)) 
- 3900 FORMAT    ('atoms !    x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
-                 2x,'MoleNo,  MoleAt') 
-                                                                        
+ 3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
+                 2x,'MoleNo,  MoleAt,   Occ')
  4000 FORMAT    (a) 
  4002 FORMAT    (a,' type,',i8) 
  4100 FORMAT    (a,' character,',a15) 
@@ -910,9 +902,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  4400 FORMAT    (a,' fuzzy    ,',f12.4) 
  4500 FORMAT    (a,' biso     ,',f12.4)
  4900 FORMAT    (a,' end') 
-    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', I8) 
+    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', I8,', ', F10.6) 
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
+ 7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
       END SUBROUTINE save_keyword                   
 !********************************************************************** 
       SUBROUTINE save_internal (strucfile) 
@@ -986,7 +979,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     whether they were supposed to be saved or not.
 !     n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
       CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
-           sav_w_adp, sav_w_gene, sav_w_symm,                     &
+           sav_w_adp, sav_w_occ, sav_w_gene, sav_w_symm,                &
            sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
            sav_sel_prop,MAXSCAT,sav_latom)
 !
@@ -1029,6 +1022,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       sav_t_w_scat  = sav_w_scat
       sav_t_w_adp   = sav_w_adp
+      sav_t_w_occ   = sav_w_occ
       sav_t_r_ncell = sav_r_ncell
       sav_t_w_ncell = sav_w_ncell
       sav_t_w_gene  = sav_w_gene
@@ -1079,6 +1073,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       sav_w_scat  = sav_t_w_scat
       sav_w_adp   = sav_t_w_adp
+      sav_w_occ   = sav_t_w_occ
       sav_r_ncell = sav_t_r_ncell
       sav_w_ncell = sav_t_w_ncell
       sav_w_gene  = sav_t_w_gene
@@ -1129,6 +1124,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       sav_w_scat  = .false.
       sav_w_adp   = .false.
+      sav_w_occ   = .false.
       sav_r_ncell = .true.
       sav_w_ncell = .true.
       sav_w_gene  = .true.

@@ -66,9 +66,10 @@ CONTAINS
       INTEGER          :: n_type
       INTEGER          :: n_atom
       LOGICAL          :: need_alloc = .FALSE.
+      INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
       LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
       REAL             :: r_identical = 1.0E-5
-      INTEGER, PARAMETER :: NOPTIONAL = 2
+      INTEGER, PARAMETER :: NOPTIONAL = 3
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -80,11 +81,11 @@ CONTAINS
       INTEGER len_str 
       LOGICAL str_comp 
 !
-      DATA oname  / 'radius' , 'identical' /
-      DATA loname /  9       ,  6       /
-      opara  =  (/ '1.0E-5'  , 'none  ' /)   ! Always provide fresh default values
-      lopara =  (/  6        ,  6       /)
-      owerte =  (/  1.0E-5   ,  0.0     /)
+      DATA oname  / 'radius' , 'occupancy', 'identical' /
+      DATA loname /  9       ,  9         ,  6          /
+      opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '    /)   ! Always provide fresh default values
+      lopara =  (/  6        ,  6         ,  6          /)
+      owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
 !
 !
 !                                                                       
@@ -187,10 +188,21 @@ CONTAINS
 !                                                                       
          IF (str_comp (befehl, 'cell',  1, lbef, 4) .or. &
              str_comp (befehl, 'lcell', 1, lbef, 5)      ) THEN                                    
-            l_identical = str_comp (opara(2), 'tolerate', 5, lopara(2), 8)
+            l_identical = str_comp (opara(3), 'tolerate', 5, lopara(3), 8)
             r_identical = owerte(1)
+            IF(opara(2)=='clear')  THEN
+               occupancy = 0
+            ELSEIF(opara(2)=='apply')  THEN
+               occupancy = 1
+            ELSEIF(opara(2)=='keep')  THEN
+               occupancy = -1
+            ELSE
+               ier_num = -13
+               ier_typ = ER_COMM
+               RETURN
+            ENDIF
             CALL do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, &
-                             l_identical, r_identical)
+                             l_identical, r_identical, occupancy)
 !                                                                       
 !     Free style editing of a structure 'free'                          
 !                                                                       
@@ -351,7 +363,7 @@ CONTAINS
 !*******************************************************************************
 !
 SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
-                       r_identical)
+                       r_identical, occupancy)
 !
 USE discus_allocate_appl_mod
 USE crystal_mod
@@ -374,6 +386,7 @@ CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 LOGICAL         ,                  INTENT(IN) :: l_identical
 REAL            ,                  INTENT(IN) :: r_identical
+INTEGER         ,                  INTENT(IN) :: occupancy
 !
 CHARACTER(LEN=1024) :: strucfile
 CHARACTER(LEN=1024) :: outfile
@@ -388,6 +401,7 @@ INTEGER             :: n_mole
 INTEGER             :: n_type
 INTEGER             :: ncells
 REAL   , DIMENSION(MAXW) :: werte
+REAL                :: r
 !
 LOGICAL :: str_comp
 !
@@ -464,12 +478,9 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         DO n = 1, ce_natoms 
                         cr_natoms = cr_natoms + 1 
                         cr_iscat (cr_natoms) = cr_iscat (n) 
-                        cr_pos (1, cr_natoms) = cr_pos (1, n) + float ( &
-                        i - 1)                                          
-                        cr_pos (2, cr_natoms) = cr_pos (2, n) + float ( &
-                        j - 1)                                          
-                        cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( &
-                        k - 1)                                          
+                        cr_pos (1, cr_natoms) = cr_pos (1, n) + float ( i - 1)
+                        cr_pos (2, cr_natoms) = cr_pos (2, n) + float ( j - 1)
+                        cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( k - 1)
                         cr_mole (cr_natoms) = cr_mole (n)
                         cr_prop (cr_natoms) = cr_prop (n)
                         cr_surf(:,cr_natoms) = cr_surf(:,n)
@@ -477,6 +488,25 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         ENDDO 
                         ENDDO 
                         ENDDO 
+!
+!     ---------- Apply occupancy
+!
+                        IF(occupancy == 0) THEN     ! Clear occupancies on read cell
+                           cr_occ(:) = 1.0
+                        ELSEIF(occupancy==1) THEN   ! Apply occupancies
+                           DO i=1, cr_natoms
+                              IF(cr_occ(cr_iscat(i))<1.0) THEN
+                                 CALL RANDOM_NUMBER(r)
+                                 IF(r > cr_occ(cr_iscat(i))) THEN
+                                    cr_iscat(i) = 0
+                                    cr_prop (i)  = ibclr (cr_prop (i),  PROP_NORMAL)
+                                 ENDIF
+                              ENDIF
+                           ENDDO
+                           cr_occ(:) = 1.0
+                        ELSEIF(occupancy==-1) THEN   ! Ignore occupancies but keep values
+                           CONTINUE
+                        ENDIF
 !                                                                       
 !     ----------Update crystal dimensions                               
 !                                                                       
@@ -692,7 +722,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !
 END SUBROUTINE do_readstru
 !********************************************************************** 
-      SUBROUTINE readcell (strucfile, l_identical, r_identical) 
+SUBROUTINE readcell (strucfile, l_identical, r_identical) 
 !-                                                                      
 !           This subroutine reads a unit cell.                          
 !+                                                                      
@@ -705,18 +735,20 @@ END SUBROUTINE do_readstru
       USE spcgr_apply
       USE wyckoff_mod
       IMPLICIT none 
+!
 !                                                                       
-       
-!                                                                       
-      INTEGER ist, maxw 
-      PARAMETER (ist = 7, MAXW = 7) 
-!                                                                       
-      CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
-LOGICAL         ,                  INTENT(IN) :: l_identical
-REAL            ,                  INTENT(IN) :: r_identical
+CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
+LOGICAL            , INTENT(IN) :: l_identical
+REAL               , INTENT(IN) :: r_identical
 !
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: ist     = 7
+INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
+!
+INTEGER                              :: at_ianz
+CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER i, j, ibl, lbef 
       INTEGER     :: iatom
       INTEGER lline 
@@ -728,6 +760,7 @@ REAL            ,                  INTENT(IN) :: r_identical
       INTEGER                          :: n_atom 
       LOGICAL          :: need_alloc = .false.
       LOGICAL          :: lcontent
+LOGICAL, SAVE          :: at_init = .TRUE.
       LOGICAL lcell, lout 
       REAL werte (maxw), dw1 , occ1
 !                                                                       
@@ -783,7 +816,7 @@ REAL            ,                  INTENT(IN) :: r_identical
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
-         sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
+         sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
       IF (ier_num.ne.0) THEN 
          CLOSE (ist)
          RETURN 
@@ -829,6 +862,7 @@ REAL            ,                  INTENT(IN) :: r_identical
          ENDIF
       ENDIF
 
+at_init = .TRUE.
 
 main: DO  ! while (cr_natoms.lt.nmax)  ! end of loop via EOF in input
          ier_num = -49 
@@ -896,7 +930,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   werte (j) = 0.0 
                   ENDDO 
                   werte (5) = 1.0 
-                  CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte)                                          
+                  CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+                                       AT_MAXP, at_ianz, at_param, at_init)                                          
                   IF (ier_num.ne.0.and.ier_num.ne. -49) then 
                      GOTO 999 
                   ENDIF 
@@ -914,7 +949,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
                   dw1 = werte (4) 
-                  occ1 = 1.00                           ! WORK OCC
+                  occ1 = werte(8)                       ! WORK OCC
                   IF(mole_l_on) THEN
                      cr_mole (i) = mole_num_mole
                   ELSE
@@ -966,7 +1001,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                            cr_iscat (i) = cr_nscat 
                            cr_at_lis (cr_nscat) = line (1:ibl) 
                            cr_dw (cr_nscat) = dw1 
-                           cr_occ(cr_nscat) = 1.00                    ! WORK OCC
+                           cr_occ(cr_nscat) = occ1                    ! WORK OCC
 !                                                                       
                            as_at_lis (cr_nscat) = cr_at_lis (cr_nscat) 
                            as_iscat (as_natoms) = cr_iscat (i) 
@@ -1038,110 +1073,165 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
  2000 FORMAT    (a) 
       END SUBROUTINE readcell                       
 !********************************************************************** 
-      SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw, werte)                                                            
+SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw, werte, &
+                 AT_MAXP, at_ianz, at_param, at_init)                                                            
 !-                                                                      
 !     reads a line from the cell file/structure file                    
 !+                                                                      
-      USE prop_para_mod 
-      IMPLICIT none 
+USE prop_para_mod 
+USE charact_mod
+IMPLICIT none 
 !                                                                       
-                                                                        
+CHARACTER (LEN=*)                   , INTENT(INOUT) :: line 
+INTEGER                             , INTENT(IN)    :: ibl 
+INTEGER                             , INTENT(IN)    :: length 
+INTEGER                             , INTENT(IN)    :: cr_natoms 
+INTEGER                             , INTENT(IN)    :: maxw 
+REAL   , DIMENSION(MAXW)            , INTENT(INOUT) :: werte !(maxw) 
+INTEGER                             , INTENT(IN)    :: AT_MAXP
+INTEGER                             , INTENT(OUT)   :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(OUT)   :: at_param
+LOGICAL                             , INTENT(INOUT) :: at_init
 !                                                                       
-      CHARACTER (LEN=*)       , INTENT(INOUT) :: line 
-      INTEGER                 , INTENT(IN)    :: ibl 
-      INTEGER                 , INTENT(IN)    :: length 
-      INTEGER                 , INTENT(IN)    :: cr_natoms 
-      INTEGER                 , INTENT(IN)    :: maxw 
-      REAL   , DIMENSION(MAXW), INTENT(INOUT) :: werte !(maxw) 
-!                                                                       
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) string 
-      INTEGER lpara (maxw) 
-      INTEGER j ,isok
-      INTEGER ianz 
-      LOGICAL  :: lcalc     ! Flag if calculation is needed
-!                                                                       
-      werte(:) = 0.0
-      werte(5) = 1.0 
-      CALL get_params (line (ibl:length), ianz, cpara, lpara, maxw,     &
-      length - ibl + 1)                                                 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
+CHARACTER(LEN=1024)                  :: string 
+INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
+REAL               , DIMENSION(MAXW) :: wwerte  ! (maxw) 
+INTEGER                              :: i, j ,isok
+INTEGER                              :: ianz 
+INTEGER                              :: ios 
+INTEGER, SAVE                        :: col_x      = 1 
+INTEGER, SAVE                        :: col_y      = 2 
+INTEGER, SAVE                        :: col_z      = 3 
+INTEGER, SAVE                        :: col_biso   = 4 
+INTEGER, SAVE                        :: col_prop   = 5 
+INTEGER, SAVE                        :: col_moleno = 6 
+INTEGER, SAVE                        :: col_moleat = 7 
+INTEGER, SAVE                        :: col_occ    = 8 
+LOGICAL                              :: lcalc     ! Flag if calculation is needed
+!
+IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
+!
+! Determine sequence of parameters on the atom line
+!
+IF(at_init) THEN
+   DO i=1,at_ianz
+      IF(at_param(i) == 'X'       ) col_x = i
+      IF(at_param(i) == 'Y'       ) col_y = i
+      IF(at_param(i) == 'Z'       ) col_z = i
+      IF(at_param(i) == 'BISO'    ) col_biso = i
+      IF(at_param(i) == 'PROPERTY') col_prop = i
+      IF(at_param(i) == 'MOLENO'  ) col_moleno = i
+      IF(at_param(i) == 'MOLEAT'  ) col_moleat = i
+      IF(at_param(i) == 'OCC'     ) col_occ = i
+   ENDDO
+   at_init = .FALSE.
+ENDIF
+werte(:) = 0.0
+werte(5) = 1.0    ! Default for property flag
+IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
+!
+CALL get_params(line (ibl:length), ianz, cpara, lpara, maxw,     &
+                length - ibl + 1)
 params: IF(IANZ.eq.1) THEN
 !                                                                       
 !-----      Deal with old four respectively old five column style       
 !                                                                       
-         READ(line(ibl:length), *, END = 999, ERR = 850) (werte(j), j = 1, 4)
-!                                                                       
-!       got four columns, try to read column five                       
-!                                                                       
-         READ(line(ibl:length), *, END = 800, ERR = 850) (werte(j), j = 1, 5)
-  800    CONTINUE 
-         CALL no_error 
-         GOTO 900 
-  850    CONTINUE
-      ELSE params
-!                                                                       
-got_params: IF (ier_num.eq.0) THEN 
-         IF (ianz==4 .OR. ianz==5 .OR. ianz==7) THEN 
+   READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 5)
+   IF(IS_IOSTAT_END(ios))  THEN     ! LESS THAN FIVE PARAMS
+      READ(line(ibl:length), *, IOSTAT=ios) (werte(j), j = 1, 4)
+   ENDIF
+   IF(ios /= 0) THEN   ! Error reading
+      ier_num = -49
+      ier_typ = ER_APPL
+      ier_msg(1) = line(1:MIN(UBOUND(ier_msg,1), LEN_TRIM(line)))
+      RETURN
+   ENDIF
+   CALL no_error 
+ELSE params
+!  The line has comma separated parameters, compare to expectation from 'atom' line
+   got_params: IF (ier_num == 0) THEN 
+      IF(ianz>=at_ianz .AND.   & ! Correct minimum parameter number
+         (ianz>=4 .AND. ianz<=8 )) THEN 
 !
-            lcalc = .false.
-check_calc: DO j = 1, ianz 
-               IF(MAX( INDEX(cpara(j),'+') , INDEX(cpara(j),'-'),  &
-                       INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>1) THEN
-                  lcalc = .true.
-                  EXIT check_calc
-               ENDIF
-               READ(cpara(j)(1:lpara(j)),*,IOSTAT=isok) werte(j)
-               IF(isok /= 0) THEN
-                  lcalc = .true.
-                  EXIT check_calc
-               ENDIF
-            ENDDO check_calc
-            IF(lcalc) THEN    ! We need to calculate the parameter value
+         lcalc = .false.
+         check_calc: DO j = 1, ianz 
+            IF(MAX( INDEX(cpara(j),'+') , INDEX(cpara(j),'-'),  &
+                    INDEX(cpara(j),'*') , INDEX(cpara(j),'/') )>1) THEN
+               lcalc = .true.
+               EXIT check_calc
+            ENDIF
+            READ(cpara(j)(1:lpara(j)),*,IOSTAT=isok) wwerte(j)
+            IF(isok /= 0) THEN
+               lcalc = .true.
+               EXIT check_calc
+            ENDIF
+         ENDDO check_calc
+         IF(lcalc) THEN    ! We need to calculate the parameter value
             DO j = 1, ianz 
                string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
                cpara (j) = string 
                lpara (j) = lpara (j) + 6 
             ENDDO 
-            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
             IF (ier_num.ne.0) then 
-               ier_msg (1)  = 'Error calculating atom  ' 
+               ier_msg (1) = 'Error calculating atom  ' 
                ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
                WRITE (ier_msg (3), 2000) cr_natoms + 1 
                RETURN 
             ENDIF 
-            ENDIF 
-            CALL no_error 
-         ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
-            ier_msg (1) = 'Missing coordinates for ' 
-            ier_msg (2) = 'atom '//line (1:ibl) 
-            ier_msg (3) = ' ' 
-            RETURN 
          ENDIF 
-      ELSE  got_params
-         ier_msg (1) = 'Error reading parameters for' 
-         ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
-         WRITE (ier_msg (3), 2000) cr_natoms + 1 
+         werte(1) = wwerte(col_x)        ! Are always present
+         werte(2) = wwerte(col_y)        ! Are always present
+         werte(3) = wwerte(col_z)        ! Are always present
+         werte(4) = wwerte(col_biso)     ! Are always present
+         IF(col_prop>0) THEN             ! Optional property flag
+            werte(5) = wwerte(col_prop)
+         ELSE
+            werte(5) = 1.0
+         ENDIF
+         IF(col_moleno>0) THEN           ! Optional Molecule number
+            werte(6) = wwerte(col_moleno)
+         ELSE
+            werte(6) = 0.0
+         ENDIF
+         IF(col_moleat>0) THEN           ! Optional Molecule entry number
+            werte(7) = wwerte(col_moleat)
+         ELSE
+            werte(7) = 0.0
+         ENDIF
+         IF(col_occ   >0) THEN           ! Optional Occupancy
+            werte(8) = wwerte(col_occ)
+         ELSE
+            werte(8) = 1.0
+         ENDIF
+         CALL no_error 
+      ELSE 
+         ier_num = - 6
+         ier_typ = ER_COMM 
+         ier_msg (1) = 'Missing coordinates for ' 
+         ier_msg (2) = 'atom '//line (1:ibl) 
+         ier_msg (3) = ' ' 
          RETURN 
-         ENDIF  got_params
-      ENDIF params
+      ENDIF 
+   ELSE  got_params
+      ier_msg (1) = 'Error reading parameters for' 
+      ier_msg (2) = 'coordinates for atom '//line (1:ibl) 
+      WRITE (ier_msg (3), 2000) cr_natoms + 1 
       RETURN 
-!                                                                       
-  900 CONTINUE 
+   ENDIF  got_params
+ENDIF params
 !                                                                       
 !-----      Basic error checks TO FOLLOW                                
 !                                                                       
-      IF (nint (werte (5) ) < 0              .or.  &
-          2**(MAXPROP+1)-1  < nint (werte (5)    )  )THEN
-         ier_num = - 102 
-         ier_typ = ER_APPL 
-      ENDIF 
-!                                                                       
-  999 CONTINUE 
+IF(NINT(werte(5)) < 0                .or.       &
+   2**(MAXPROP+1)-1  < NINT(werte(5))    ) THEN
+   ier_num = - 102 
+   ier_typ = ER_APPL 
+ENDIF 
 !                                                                       
  2000 FORMAT    ('Atom Nr. ',i4) 
-      END SUBROUTINE read_atom_line                 
+END SUBROUTINE read_atom_line                 
 !********************************************************************** 
       SUBROUTINE struc_mole_header (zeile, lp, lcell, lcontent) 
 !-                                                                      
@@ -1481,6 +1571,9 @@ END SUBROUTINE struc_mole_header
       CHARACTER(16) cr_spcgr 
       CHARACTER(4) cr_at_lis (0:MAXSCAT) 
       CHARACTER(4) as_at_lis (0:MAXSCAT) 
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER                              :: at_ianz
+CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !                                                                       
       INTEGER cr_nscat 
       INTEGER as_natoms 
@@ -1514,14 +1607,14 @@ END SUBROUTINE struc_mole_header
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
          cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
-         sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)              
+         sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 !                                                                       
          IF (ier_num.eq.0) then 
 !                                                                       
-write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
             cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim, &
-            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)     
+            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
+            AT_MAXP, at_ianz, at_param)     
          ENDIF 
       ENDIF 
 !                                                                       
@@ -1530,35 +1623,38 @@ write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
          WRITE (ier_msg (1), 3000) cr_natoms + 1 
  3000 FORMAT      ('At atom number = ',i8) 
       ENDIF 
-write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
       END SUBROUTINE readstru                       
 !********************************************************************** 
-      SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
+SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
       cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,   &
-      sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)                 
+      sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)                 
 !-                                                                      
 !     This subroutine reads the header of a structure file              
 !+                                                                      
-      USE gen_add_mod 
-      USE sym_add_mod 
-      IMPLICIT none 
+USE gen_add_mod 
+USE sym_add_mod 
+IMPLICIT none 
 !                                                                       
-      INTEGER HD_MAXSCAT 
+INTEGER                                  , INTENT(IN)  :: ist
+INTEGER                                  , INTENT(IN)  :: HD_MAXSCAT 
+CHARACTER(LEN=80)                        , INTENT(OUT) :: cr_name 
+CHARACTER(LEN=16)                        , INTENT(OUT) :: cr_spcgr 
+CHARACTER(LEN=4), DIMENSION(0:HD_MAXSCAT), INTENT(OUT) :: cr_at_lis ! (0:HD_MAXSCAT) 
+INTEGER                                  , INTENT(OUT) :: cr_nscat 
+REAL   , DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_dw     ! (0:HD_MAXSCAT) 
+REAL   , DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_occ    ! (0:HD_MAXSCAT) 
+REAL   , DIMENSION(3)                    , INTENT(OUT) :: cr_a0     ! (3) 
+REAL   , DIMENSION(3)                    , INTENT(OUT) :: cr_win    ! (3) 
+INTEGER, DIMENSION(3)                    , INTENT(OUT) :: sav_ncell ! (3) 
+INTEGER                                  , INTENT(OUT) :: sav_ncatoms 
+LOGICAL                                  , INTENT(OUT) :: sav_r_ncell 
 !                                                                       
+INTEGER                                  , INTENT(OUT) :: spcgr_ianz 
+INTEGER                                  , INTENT(OUT) :: spcgr_para 
+INTEGER                                  , INTENT(IN)  :: AT_MAXP
+INTEGER                                  , INTENT(OUT) :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
-      CHARACTER(80) cr_name 
-      CHARACTER(16) cr_spcgr 
-      CHARACTER(4) cr_at_lis (0:HD_MAXSCAT) 
-!                                                                       
-      INTEGER cr_nscat 
-!                                                                       
-      INTEGER spcgr_ianz 
-      INTEGER spcgr_para 
-!                                                                       
-      REAL cr_a0 (3) 
-      REAL cr_win (3) 
-      REAL cr_dw (0:HD_MAXSCAT) 
-      REAL cr_occ(0:HD_MAXSCAT) 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 13) 
@@ -1566,15 +1662,12 @@ write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
       CHARACTER(1024) line, cpara (maxw) 
       CHARACTER(1024) zeile 
       CHARACTER(6) befehl 
-      INTEGER ist, i, ll, j, islash 
+      INTEGER i, ll, j, islash 
       INTEGER ianz 
 !DBG      integer             spcgr_ianz                                
       INTEGER lpara (maxw), lp 
       INTEGER lbef, indxb 
-      INTEGER xx_nscat, xx_nadp 
-      INTEGER sav_ncell (3) 
-      INTEGER sav_ncatoms 
-      LOGICAL sav_r_ncell 
+      INTEGER xx_nscat, xx_nadp , xx_nocc
       LOGICAL lend 
       LOGICAL :: lcontent
 !DBG      real            spcgr_para                                    
@@ -1586,6 +1679,7 @@ write(*,*) ' ATOM 1, ', cr_pos(:,1), cr_iscat(1), cr_mole(1), cr_prop(1)
 cr_occ(:) = 1.0   !! WORK OCC
       xx_nscat = 0 
       xx_nadp = 0 
+      xx_nocc = 0 
 !                                                                       
       ier_num = - 46 
       ier_typ = ER_APPL 
@@ -1824,6 +1918,30 @@ cr_occ(:) = 1.0   !! WORK OCC
                ier_typ = ER_COMM 
             ENDIF 
 !                                                                       
+!     ----Occupancy parameters to setup specific sequence of         
+!                                    scattering curves 'occ'            
+!                                                                       
+         ELSEIF (str_comp (befehl, 'occ', 2, lbef, 3) ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  IF (xx_nocc + ianz.le.HD_MAXSCAT) then 
+                     DO i = 1, ianz 
+                     cr_occ(xx_nocc + i) = werte (i) 
+                     ENDDO 
+                     xx_nocc = xx_nocc + ianz 
+                     cr_nscat = max (cr_nscat, xx_nocc) 
+                  ELSE 
+                     ier_num = - 26 
+                     ier_typ = ER_APPL 
+                  ENDIF 
+               ENDIF 
+            ELSE 
+               ier_num = -112
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
 !     ----Crystal dimensions and number of atoms per unit cell 'ncell'  
 !                                                                       
          ELSEIF (str_comp (befehl, 'ncell', 1, lbef, 5) ) then 
@@ -1895,7 +2013,20 @@ cr_occ(:) = 1.0   !! WORK OCC
             CALL struc_mole_header (zeile, i, .false., lcontent) 
             IF (ier_num.ne.0) return 
          ELSEIF (str_comp (befehl, 'atoms', 2, lbef, 5) ) then 
-            CONTINUE 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
+               at_ianz = 4       ! At least x,y,z,Biso
+               at_param(1) = 'X'
+               at_param(2) = 'Y'
+               at_param(3) = 'Z'
+               at_param(4) = 'BISO'
+            ELSE
+               DO i=1,ianz
+                  CALL do_cap(cpara(i))
+                  at_param(i) = cpara(i)
+               ENDDO
+               at_ianz = ianz
+            ENDIF
          ELSE 
             ier_num = - 89 
             ier_typ = ER_APPL 
@@ -1946,7 +2077,8 @@ cr_occ(:) = 1.0   !! WORK OCC
 !********************************************************************** 
       SUBROUTINE struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
       cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,     &
-      as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)                      
+      as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
+            AT_MAXP, at_ianz, at_param)                      
 !-                                                                      
 !           This subroutine reads the list of atoms into the            
 !       crystal array                                                   
@@ -1979,9 +2111,12 @@ cr_occ(:) = 1.0   !! WORK OCC
       REAL            , DIMENSION(3,1:MAXSCAT), INTENT(INOUT) :: as_pos      ! (3, MAXSCAT) 
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_iscat    ! (MAXSCAT) 
       INTEGER         , DIMENSION(1:MAXSCAT), INTENT(INOUT) :: as_prop     ! (MAXSCAT) 
+INTEGER                                  , INTENT(IN)  :: AT_MAXP
+INTEGER                                  , INTENT(OUT) :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
       INTEGER , PARAMETER :: ist  = 7
-      INTEGER , PARAMETER :: maxw = 7
+      INTEGER , PARAMETER :: maxw = 8 ! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
       CHARACTER(LEN=10)   :: befehl 
       CHARACTER(LEN=1024) ::  line, zeile 
@@ -1995,6 +2130,7 @@ cr_occ(:) = 1.0   !! WORK OCC
       INTEGER             :: n_atom
       LOGICAL             :: need_alloc = .false.
       LOGICAL             :: lcontent
+      LOGICAL, SAVE       :: at_init = .TRUE.
       REAL, PARAMETER     :: eps = 1e-6
       REAL, DIMENSION(maxw) :: werte !(maxw)
       REAL                :: dw1 , occ1 = 1
@@ -2003,6 +2139,7 @@ cr_occ(:) = 1.0   !! WORK OCC
       LOGICAL :: str_comp 
 !                                                                       
       lcontent = .false.
+      at_init = .TRUE.
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -2053,7 +2190,8 @@ cr_occ(:) = 1.0   !! WORK OCC
             IF ( need_alloc ) THEN
                call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
             ENDIF
-            CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte)
+            CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+                 AT_MAXP, at_ianz, at_param, at_init)
             IF (ier_num.ne.0.and.ier_num.ne. - 49) then 
                GOTO 999 
             ENDIF 
@@ -2073,7 +2211,7 @@ cr_occ(:) = 1.0   !! WORK OCC
             cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
             ENDDO 
             dw1 = werte (4) 
-            occ1 = 1.00                                 ! WORK OCC
+            occ1 = werte(8)                             ! WORK OCC
             cr_prop (i) = nint (werte (5) ) 
       IF (line (1:4) .ne.'    ') then 
                ibl = ibl - 1 
@@ -2098,7 +2236,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                cr_iscat (i) = cr_nscat 
                cr_at_lis (cr_nscat) = line (1:ibl) 
                cr_dw (cr_nscat) = dw1 
-               cr_occ(cr_nscat) = 1.00    ! WORK OCC
+               cr_occ(cr_nscat) = occ1    ! WORK OCC
 !                                                                       
                IF (0.0.le.cr_pos (1, i) .and.cr_pos (1, i)              &
                .lt.1.and.0.0.le.cr_pos (2, i) .and.cr_pos (2, i)        &
@@ -3657,6 +3795,7 @@ END SUBROUTINE rmc6f_period
       INTEGER               :: j_label = 0
       INTEGER               :: j_uiso  = 0
       INTEGER               :: j_biso  = 0
+      INTEGER               :: j_occ   = 0
       INTEGER               :: j_x     = 0
       INTEGER               :: j_y     = 0
       INTEGER               :: j_z     = 0
@@ -3695,6 +3834,7 @@ END SUBROUTINE rmc6f_period
       REAL   , DIMENSION(4,4) :: symm_mat ! (6) 
       REAL                  :: uiso
       REAL                  :: biso
+      REAL                  :: occ
 !
       TYPE :: atom_list
          CHARACTER (LEN=80) :: label  
@@ -3703,6 +3843,7 @@ END SUBROUTINE rmc6f_period
          REAL,DIMENSION(3)  :: at_pos
          REAL,DIMENSION(6)  :: at_uanis
          REAL               :: at_bvalue
+         REAL               :: at_occ
          TYPE(atom_list), POINTER   :: next
       END TYPE atom_list
 !
@@ -3872,6 +4013,8 @@ main: DO
             i = 1
             count_symm: DO
                IF(rawline(nline+i)== ' ') EXIT count_symm
+               IF(rawline(nline+i)(1:4)== 'loop') EXIT count_symm
+               IF(rawline(nline+i)(1:1)/= ''''  ) EXIT count_symm
                i = i+1
             ENDDO count_symm
             symm_2 = nline + i - 1
@@ -3918,6 +4061,7 @@ main: DO
             j_symb  = 0
             j_uiso  = 0
             j_biso  = 0
+            j_occ   = 0
             j_x     = 0
             j_y     = 0
             j_z     = 0
@@ -3938,6 +4082,7 @@ analyze_atom: DO
                IF(line(1:22)=='_atom_site_type_symbol')     j_symb  = nentries
                IF(line(1:25)=='_atom_site_U_iso_or_equiv')  j_uiso  = nentries
                IF(line(1:25)=='_atom_site_B_iso_or_equiv')  j_biso  = nentries
+               IF(line(1:20)=='_atom_site_occupancy')       j_occ   = nentries
                IF(line(1:18)=='_atom_site_fract_x')         j_x     = nentries
                IF(line(1:18)=='_atom_site_fract_y')         j_y     = nentries
                IF(line(1:18)=='_atom_site_fract_z')         j_z     = nentries
@@ -3947,6 +4092,7 @@ analyze_atom: DO
             ccpara = ' '
             nblank = 0
 atoms:      DO                                 ! Get all atoms information
+               IF(line(1:1)=='loop') EXIT atoms
                IF(line(1:1)/='#' .and. line /= ' ') THEN
                   CALL get_params_blank(line,ianz, ccpara,llpara, nentries, length)
 !
@@ -3965,6 +4111,7 @@ atoms:      DO                                 ! Get all atoms information
                   READ(ccpara(j_z)(1:llpara(j_z)),*) pos(3)
                   uiso = 0.0
                   biso = 0.0
+                  occ  = 1.0
                   IF(j_uiso > 0) THEN
                      IF(ccpara(j_uiso)(1:1)=='?') THEN
                        biso = 0.000
@@ -3981,9 +4128,18 @@ atoms:      DO                                 ! Get all atoms information
                         READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
                      ENDIF
                   ENDIF
+                  IF(j_occ  > 0) THEN
+                     IF(ccpara(j_occ )(1:1)=='?') THEN
+                       occ  = 1.000
+                     ELSE
+                        IF(INDEX(ccpara(j_occ ),'(')>0) llpara(j_occ ) = INDEX(ccpara(j_occ ),'(') - 1
+                        READ(ccpara(j_occ )(1:llpara(j_occ )),*) occ 
+                     ENDIF
+                  ENDIF
                   ALLOCATE(TEMP)
                   TEMP%at_name   = ' '
                   TEMP%at_bvalue = 0.0
+                  TEMP%at_occ    = 0.0
                   TEMP%at_pos    = 0.0
                   IF(j_symb > 0) THEN  ! I prefer the atom symbol to its label
                      TEMP%label     = ccpara(j_label)(1:      llpara(j_label) )
@@ -4000,6 +4156,7 @@ atoms:      DO                                 ! Get all atoms information
                   TEMP%at_pos(2) = pos(2)
                   TEMP%at_pos(3) = pos(3)
                   TEMP%at_bvalue = biso
+                  TEMP%at_occ    = occ
                   TEMP%at_uanis  = 0.0
                   NULLIFY(temp%next)
 !
@@ -4289,7 +4446,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       TAIL => HEAD
       TEMP => HEAD
       DO WHILE (ASSOCIATED(TAIL))
-         WRITE(iwr,1400) TAIL%at_name,TAIL%at_pos,TAIL%at_bvalue 
+         WRITE(iwr,1400) TAIL%at_name,TAIL%at_pos,TAIL%at_bvalue, TAIL%at_occ 
          TAIL => TAIL%next
          DEALLOCATE(TEMP)       ! Clean up the memory structure
          TEMP => TAIL
@@ -4303,8 +4460,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 1170 FORMAT('spcgr  P1')
 1180 FORMAT('symm  ',3(3(f5.1,', '),f12.9,','), I3)
 1200 FORMAT('cell  ',5(f12.5,', '),f12.5)
-1300 FORMAT('atoms')
-1400 FORMAT(a4, 4(F12.8,', '),'1'  )
+1300 FORMAT('atoms x,',12x,'y,',12x,'z,',12x,'Biso,', 4x,'Property,', &
+                 2x,'MoleNo,  MoleAt, Occ')
+1400 FORMAT(a4, 4(F12.8,', '),'1,      0,       0,      ',F8.6  )
 !
       CLOSE(iwr)
 !
@@ -4409,6 +4567,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       CHARACTER (LEN=  20)                  :: bef
       CHARACTER (LEN=   4), DIMENSION(1024), SAVE :: names
       REAL                , DIMENSION(1024), SAVE :: bvals
+      REAL                , DIMENSION(1024), SAVE :: occs
       INTEGER                               :: ios
       INTEGER                               :: i
       INTEGER                               :: ianz   ! no of arguments
@@ -4416,6 +4575,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       INTEGER                               :: lp     ! length of parameter string
       INTEGER                               :: nscattypes ! no of SCAT arguments 
       INTEGER                               :: nadptypes  ! no of ADP  arguments 
+      INTEGER                               :: nocctypes  ! no of ADP  arguments 
       INTEGER                               :: indxt      ! Pos of a TAB in input
       INTEGER                               :: indxb      ! Pos of a BLANK in input
       INTEGER                               :: lbef       ! Length of command string
@@ -4426,6 +4586,12 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
       REAL                                  :: xc,yc,zc,bval
+INTEGER                              :: idummy  = 0
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER                              :: at_ianz
+LOGICAL                              :: at_init = .TRUE.
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
+REAL                                 :: occ
 !
       INTEGER, EXTERNAL :: len_str
       LOGICAL, EXTERNAL :: str_comp
@@ -4435,10 +4601,12 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       natoms     = 0
       nscattypes = 0
       nadptypes  = 0
+      nocctypes  = 0
       IF ( init == -1 ) then
-        names  = ' '
-        bvals  = 0.0
-        ntypes = 0
+        names(:)  = ' '
+        bvals(:)  = 0.0
+        occs(:)   = 1.0
+        ntypes    = 0
         n_mole     = 0
         n_type     = 0
         n_atom     = 0
@@ -4492,13 +4660,40 @@ header: DO
                   ENDDO
                   nadptypes = nadptypes + ianz
                ELSE
-                  ier_num = -111
+                  ier_num = -112
                   ier_typ = ER_APPL
                   CLOSE(99)
                   RETURN
                ENDIF
             ELSE
-               ier_num = -111
+               ier_num = -112
+               ier_typ = ER_APPL
+               CLOSE(99)
+               RETURN
+            ENDIF
+        ELSEIF (line(1:3) == 'OCC' ) then 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               IF (ier_num.eq.0) then 
+                  DO i = 1,ianz
+                      IF(werte(i)<0.0 .OR. 1.0<werte(i)) THEN
+                         ier_num = -150
+                         ier_typ = ER_APPL
+                         CLOSE(99)
+                         RETURN
+                      ENDIF
+                      occs (nocctypes+i) = werte(i)
+                  ENDDO
+                  nocctypes = nocctypes + ianz
+               ELSE
+                  ier_num = -148
+                  ier_typ = ER_APPL
+                  CLOSE(99)
+                  RETURN
+               ENDIF
+            ELSE
+               ier_num = -148
                ier_typ = ER_APPL
                CLOSE(99)
                RETURN
@@ -4524,10 +4719,27 @@ header: DO
                ENDIF
             ENDIF
         ENDIF
-        IF (line(1:4) == 'ATOM') EXIT header
+        IF (line(1:4) == 'ATOM') THEN 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF(ianz==0)   THEN   ! Pre 5.17.2 style, no params
+               at_ianz = 4       ! At least x,y,z,Biso
+               at_param(1) = 'X'
+               at_param(2) = 'Y'
+               at_param(3) = 'Z'
+               at_param(4) = 'BISO'
+            ELSE
+               DO i=1,ianz
+                  CALL do_cap(cpara(i))
+                  at_param(i) = cpara(i)
+               ENDDO
+               at_ianz = ianz
+            ENDIF
+            at_init = .TRUE.
+            EXIT header
+         ENDIF
       ENDDO header
 !
-      IF (nscattypes /= nadptypes) THEN
+      IF (nscattypes /= nadptypes ) THEN
          ier_num = -115
          ier_typ = ER_APPL
          CLOSE(99)
@@ -4587,13 +4799,32 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
            iflag  = 0
            imole  = 0
            inatom = 0
-           READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval, iflag, imole, inatom
-           IF(IS_IOSTAT_END(ios))  THEN     ! iflag, imole, inatom are missing
-              READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
-           ELSE 
+           ios = 0
+           CALL read_atom_line (line, lbef+1, laenge, natoms, MAXW, werte, &
+                                AT_MAXP, at_ianz, at_param, at_init)                                          
+           xc     = werte(1)
+           yc     = werte(2)
+           zc     = werte(3)
+           bval   = werte(4)
+           iflag  = NINT(werte(5))
+           imole  = NINT(werte(6))
+           inatom = NINT(werte(7))
+           occ    =      werte(8)
+           IF(occ     <0.0 .OR. 1.0<occ     ) THEN
+              ier_num = -150
+              ier_typ = ER_APPL
+              ier_msg(1) = line(1:46)
+              WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+              CLOSE(99)
+              RETURN
+           ENDIF
+!          READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval, iflag, imole, inatom
+!          IF(IS_IOSTAT_END(ios))  THEN     ! iflag, imole, inatom are missing
+!             READ (line(5:len_str(line)), *, IOSTAT = ios) xc,yc,zc,bval
+!          ELSE 
               n_mole = MAX(n_mole, imole)
               n_atom = MAX(n_atom, inatom)
-           ENDIF
+!          ENDIF
            IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
               ios = -1
            ENDIF
@@ -4608,7 +4839,8 @@ types:        DO i=1,ntypes
                     IF ( lcell ) THEN
                        new = .false.
                        EXIT types
-                    ELSEIF ( abs(abs(bval)-abs(bvals(i))) < eps ) THEN
+                    ELSEIF ( abs(abs(bval)-abs(bvals(i))) < eps .AND.   &
+                             abs(abs(occ )-abs( occs(i))) < eps ) THEN
                        new = .false.
                        EXIT types
                     ENDIF
@@ -4618,6 +4850,7 @@ types:        DO i=1,ntypes
                  ntypes = ntypes + 1
                  names(ntypes) = line(1:4)
                  bvals(ntypes) = bval
+                  occs(ntypes) = occ 
               ENDIF
            ELSE isatom
               ier_num = -49

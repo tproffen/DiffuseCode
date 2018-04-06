@@ -1524,7 +1524,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER ist 
       PARAMETER (ist = 7) 
 !                                                                       
-       
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER                              :: at_ianz
+CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !                                                                       
       INTEGER          :: natoms, max_natoms
       INTEGER          :: nscats, max_nscats
@@ -1686,10 +1688,10 @@ internal: IF(st_internal(st_type(i)) ) THEN
             gen_add_n = 0 
             sym_add_n = 0 
             CALL stru_readheader_internal (st_layer(st_type(i)), MAXSCAT, cr_name,   &
-            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_a0, cr_win,        &
+            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win,        &
             sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
             GEN_ADD_MAX, gen_add_n, gen_add_power, gen_add,                 &
-            SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add )
+            SYM_ADD_MAX, sym_add_n, sym_add_power, sym_add)
 !
 !                                                                       
             IF (ier_num.ne.0) then 
@@ -1721,8 +1723,9 @@ internal: IF(st_internal(st_type(i)) ) THEN
             gen_add_n = 0 
             sym_add_n = 0 
             CALL stru_readheader (ist, MAXSCAT, cr_name,   &
-            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win,        &
-            sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)
+            cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, &
+            sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+            AT_MAXP, at_ianz, at_param)
 !                                                                       
             IF (ier_num.ne.0) then 
                RETURN 
@@ -1735,7 +1738,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !                                                                       
             CALL struc_read_atoms (NMAX, MAXSCAT, cr_natoms, cr_nscat,  &
             cr_dw, cr_occ, cr_at_lis, cr_pos, cr_iscat, cr_mole, cr_surf, cr_prop, cr_dim,&
-            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop)     
+            as_natoms, as_at_lis, as_dw, as_occ, as_pos, as_iscat, as_prop, &
+            AT_MAXP, at_ianz, at_param)
             CLOSE (ist) 
             IF (ier_num.ne.0) then 
                RETURN 

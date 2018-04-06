@@ -520,6 +520,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       PARAMETER (imd = 45) 
 !                                                                       
       CHARACTER(1024) infile 
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER                              :: at_ianz
+CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+!
       LOGICAL lend 
       LOGICAL :: l_ok    ! the domain list file contains a correct input pseuodatom
       LOGICAL lread 
@@ -541,7 +545,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       lread = .true. 
       IF ( clu_infile_internal ) THEN
          CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -573,7 +577,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
          CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
-         sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
+         sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
+         AT_MAXP, at_ianz, at_param)           
       ENDIF
       IF (ier_num.ne.0) THEN 
          CLOSE(imd)
@@ -626,7 +631,7 @@ pseudo_ok:  IF(l_ok) THEN
 !!!!!!!!!!!
                IF ( clu_infile_internal ) THEN
                   CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
-                  mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
+                  mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
                   sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
                   mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
                   mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -916,13 +921,16 @@ use molecule_mod
       INTEGER ist 
       PARAMETER (ist = 46) 
 !                                                                       
+INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER                              :: at_ianz
+CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       LOGICAL lread 
 !                                                                       
       lread = .true. 
       IF(infile(1:8)=='internal') THEN
          mk_infile_internal = .true.
          CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_a0, mk_win,         &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,   &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -935,7 +943,8 @@ use molecule_mod
 !                                                                       
          CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
          mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
-         sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para)           
+         sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
+         AT_MAXP, at_ianz, at_param)           
       ENDIF
 !                                                                       
       CALL micro_read_atom (ist, infile, mc_idimen, mc_matrix) 

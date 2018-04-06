@@ -283,7 +283,7 @@ CONTAINS
       WRITE (output_io, 2010) cr_at_lis (k), k, cr_dw (k) , cr_occ(k)
       ENDDO 
  1000 FORMAT    (a)
- 2000 FORMAT    (' Atoms present  '/ ' Name         Type       B   Occ')
+ 2000 FORMAT    (' Atoms present  '/ ' Name         Type       B        Occ')
  2010 FORMAT    (1x,a9,2x,i4,2x,f12.5, 2x, F12.5)
  2020 FORMAT    (' Press RETURN for more ...')
       END SUBROUTINE show_chem
@@ -410,8 +410,8 @@ CONTAINS
                at_name_d = at_name (cr_iscat (i) ) 
                CALL char_prop_1 (c_property, cr_prop (i), length) 
                WRITE (output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-                  cr_pos (3, i), cr_dw (cr_iscat (i) ), i, cr_mole(i),      &  !! WORK OCC
-                  c_property (1:length)
+                  cr_pos (3, i), cr_dw (cr_iscat (i) ), i, cr_mole(i),      &
+                  c_property (1:length), cr_occ(cr_iscat(i))
                DO k=1,3
                   ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
                ENDDO
@@ -434,9 +434,9 @@ CONTAINS
                   at_name_d = at_name (cr_iscat (i) ) 
                   CALL char_prop_1 (c_property, cr_prop (i), length) 
                   WRITE (output_io, 3010) at_name_d, cr_pos (1, i),        &
-                  cr_pos (2, i), cr_pos (3, i), cr_dw (cr_iscat (i) ),     & !! WORK OCC
+                  cr_pos (2, i), cr_pos (3, i), cr_dw (cr_iscat (i) ),     &
                   i, cr_mole(i) ,                                          &
-                  c_property (1:length)                                    
+                  c_property (1:length), cr_occ(cr_iscat(i))
                ENDDO 
             ELSE 
                ier_num = - 6 
@@ -445,8 +445,9 @@ CONTAINS
          ENDIF 
       ENDIF 
 !                                                                       
- 3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',3x,'Molecule Property') 
- 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a) 
+ 3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
+                 3x,'Molecule Property  Occupancy') 
+ 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6) 
  3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
       END SUBROUTINE do_show_atom                   
 !*****7*****************************************************************
@@ -560,7 +561,7 @@ CONTAINS
             k = mole_cont (mole_off (i) + j) 
             at_name_d = at_name (cr_iscat (k) ) 
             WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k),        &
-            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k) )            !! WORK OCC
+            cr_pos (2, k), cr_pos (3, k), cr_dw (cr_iscat (k) ), cr_occ(cr_iscat(k))  
             ENDDO 
             ENDDO 
             RETURN 
@@ -618,8 +619,8 @@ CONTAINS
      &       10x,'Character : ',a15/                                    &
      &       10x,'File      : ',a/                                      &
      &       10x,'Fuzzy     : ',f12.4/                                  &
-     &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B')       
- 3010 FORMAT(1x,a9,i11,1x,3(2x,f12.6),4x,f10.6) 
+     &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B',10x,'Occ')       
+ 3010 FORMAT(1x,a9,i11,1x,3(2x,f12.6),4x,f10.6,2x, F8.6) 
       END SUBROUTINE do_show_molecule               
 !*****7*****************************************************************
       SUBROUTINE do_show_scat (ianz, cpara, lpara, werte, maxw) 

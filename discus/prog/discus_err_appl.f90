@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-148,IO=6)
+      PARAMETER    (IU=-150,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'Occupancy outside [0:1]',                       & !-150 ! discus
+     &  'Error reading SCAT instruction',                & !-149 ! discus
      &  '1bar not at origin',                            & !-148 ! discus
      &  'Unknown export format',                         & !-147 ! discus
      &  'No. of atoms not an integer multiple of sites', & !-146 ! discus

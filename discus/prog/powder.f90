@@ -2023,7 +2023,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ENDIF 
       ENDDO 
 !
-      pow_nreal = SUM(natom)  ! Add real atom numbers 
+!     pow_nreal = SUM(natom)  ! Add real atom numbers 
+      pow_nreal = 0
+      DO j=1,cr_nscat         ! Add real atom numbers
+         pow_nreal = pow_nreal + NINT(natom(j)*cr_occ(j))
+      ENDDO
 !DBG      sss = seknds (sss) 
 !DBG      WRITE (output_io, 4000) sss 
 !
@@ -2095,7 +2099,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       DO iscat = 1, cr_nscat 
       DO i = 1, num (1) * num (2) 
       rsf (i) = rsf (i) + DBLE (cfact (powder_istl (i), iscat) * &
-                         conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)                              
+                         conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)
 !     pow_f2aver (i) = pow_f2aver (i)  + &
 !                      real (       cfact_pure(istl(i), iscat)  * &
 !                            conjg (cfact_pure(istl(i), iscat)))  &

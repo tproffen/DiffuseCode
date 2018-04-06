@@ -73,6 +73,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    LOGICAL                                          ::  cr_cartesian = .false.
    LOGICAL                                          ::  cr_sav_scat  = .false.
    LOGICAL                                          ::  cr_sav_adp   = .false.
+   LOGICAL                                          ::  cr_sav_occ   = .false.
    LOGICAL                                          ::  cr_sav_gene  = .true.
    LOGICAL                                          ::  cr_sav_symm  = .true.
    LOGICAL                                          ::  cr_sav_ncell = .false.
@@ -360,7 +361,7 @@ CONTAINS
 !
    END SUBROUTINE get_cryst_tran_f
 !******************************************************************************
-   SUBROUTINE get_cryst_scat ( this, inum, itype, at_name, dw1)
+   SUBROUTINE get_cryst_scat ( this, inum, itype, at_name, dw1, occ1)
 !
 !  Get the atom name and Debye Waller factor for atom Nr. inum
 !
@@ -371,7 +372,7 @@ CONTAINS
    INTEGER,              INTENT(OUT) :: itype
    CHARACTER (LEN=4),    INTENT(OUT) :: at_name
    REAL   ,              INTENT(OUT) :: dw1
-!  REAL   ,              INTENT(OUT) :: occ1   !!WORK OCC
+   REAL   ,              INTENT(OUT) :: occ1   !!WORK OCC
 !
    REAL   , DIMENSION(3)             :: posit
    INTEGER                           :: iprop
@@ -380,7 +381,7 @@ CONTAINS
    CALL this%atoms(inum)%get_atom ( itype, posit, iprop, isurface )
    at_name = this%cr_at_lis(itype)
    dw1     = this%cr_dw    (itype)
-!  occ1    = this%cr_occ   (itype)   !!WORK OCC
+   occ1    = this%cr_occ   (itype)   !!WORK OCC
 !
    END SUBROUTINE get_cryst_scat 
 !******************************************************************************
@@ -567,14 +568,12 @@ CONTAINS
 !
    ia =  0
    this%cr_dw(0)       = cr_dw(0)           ! always save void ADP
-   this%cr_occ(0)      = cr_occ(0)          ! always save void OCC
    IF(this%cr_sav_adp) THEN
       DO i=1,cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = cr_dw(ia)
-            this%cr_occ(ia)      = cr_occ(ia)
 !        ENDIF
       ENDDO
    ELSE
@@ -583,7 +582,27 @@ CONTAINS
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = cr_dw(ia)
+         ENDIF
+      ENDDO
+   ENDIF
+!  save Occupancy values 
+!
+   ia =  0
+   this%cr_occ(0)      = cr_occ(0)          ! always save void OCC
+   IF(this%cr_sav_occ) THEN
+      DO i=1,cr_nscat
+!        IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
             this%cr_occ(ia)      = cr_occ(ia)
+!        ENDIF
+      ENDDO
+   ELSE
+      DO i=1,cr_nscat
+         IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_occ(ia)      = 1.00    ! Use default instead
          ENDIF
       ENDDO
    ENDIF
@@ -665,7 +684,7 @@ CONTAINS
             rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
             rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
-            rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,                                 &
+            rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_cr_tran_g, rd_cr_tran_gi, rd_cr_tran_f, rd_cr_tran_fi, rd_cr_gmat, rd_cr_fmat, &
@@ -715,7 +734,7 @@ CONTAINS
    INTEGER             , DIMENSION(3)           , INTENT(IN) :: rd_cr_icc
    INTEGER                                      , INTENT(IN) :: rd_cr_nscat 
    REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_dw     ! (0:MAXSCAT) 
-!  REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_lis ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_at_equ ! (0:MAXSCAT) 
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(IN) :: rd_cr_as_lis ! (0:MAXSCAT) 
@@ -870,14 +889,12 @@ CONTAINS
 !
    ia =  0
    this%cr_dw(0)       = rd_cr_dw(0)           ! always save void ADP
-!  this%cr_occ(0)      = rd_cr_occ(0)          ! always save void OCC  !! WORK OCC
    IF(this%cr_sav_adp) THEN
       DO i=1,rd_cr_nscat
 !        IF ( this%cr_sav_atom(i)) THEN
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = rd_cr_dw(ia)
-!           this%cr_occ(ia)      = rd_cr_occ(ia)   !! WORK OCC
 !        ENDIF
       ENDDO
    ELSE
@@ -886,7 +903,29 @@ CONTAINS
             ia = ia + 1
             iscat_table(i) = ia
             this%cr_dw(ia)       = rd_cr_dw(ia)
-!           this%cr_occ(ia)      = rd_cr_occ(ia)  !! WORK OCC
+         ENDIF
+      ENDDO
+   ENDIF
+   this%cr_nscat = ia
+!
+!  save occupancy values 
+!
+   ia =  0
+   this%cr_occ(0)       = rd_cr_occ(0)           ! always save void ADP
+   IF(this%cr_sav_occ) THEN
+      DO i=1,rd_cr_nscat
+!        IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_occ(ia)       = rd_cr_occ(ia)
+!        ENDIF
+      ENDDO
+   ELSE
+      DO i=1,rd_cr_nscat
+         IF ( this%cr_sav_atom(i)) THEN
+            ia = ia + 1
+            iscat_table(i) = ia
+            this%cr_occ(ia)       = 1.00
          ENDIF
       ENDDO
    ENDIF
@@ -964,7 +1003,8 @@ CONTAINS
 !
    END SUBROUTINE set_crystal_from_local
 !******************************************************************************
-   SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_gene, sav_symm, &
+   SUBROUTINE set_crystal_save_flags ( this,  sav_scat, sav_adp, sav_occ, &
+                                       sav_gene, sav_symm, &
                                        sav_w_ncell, sav_obje, sav_doma, sav_mole, &
                                        sav_prop,sav_sel_prop,n_latom,sav_latom)
 !
@@ -976,6 +1016,7 @@ CONTAINS
 !   INTEGER, INTENT(IN)              ::   n_nscat
    LOGICAL, INTENT(IN)              ::  sav_scat
    LOGICAL, INTENT(IN)              ::  sav_adp
+   LOGICAL, INTENT(IN)              ::  sav_occ
    LOGICAL, INTENT(IN)              ::  sav_gene
    LOGICAL, INTENT(IN)              ::  sav_symm
    LOGICAL, INTENT(IN)              ::  sav_w_ncell
@@ -991,6 +1032,7 @@ CONTAINS
 !
    this%cr_sav_scat  = sav_scat
    this%cr_sav_adp   = sav_adp
+   this%cr_sav_occ   = sav_occ
    this%cr_sav_gene  = sav_gene
    this%cr_sav_symm  = sav_symm
    this%cr_sav_ncell = sav_w_ncell
@@ -1115,7 +1157,7 @@ CONTAINS
    END SUBROUTINE get_header_from_crystal
 !******************************************************************************
    SUBROUTINE get_header_to_local (this, rd_MAXSCAT, rd_cr_name,      &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_a0, rd_cr_win,      &
+            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,      &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -1130,7 +1172,7 @@ CONTAINS
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
    REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_dw     ! (0:MAXSCAT) 
-!  REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
+   REAL                , DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_occ    ! (0:MAXSCAT)   !! WORK OCC
    CHARACTER (LEN=   4), DIMENSION(0:rd_MAXSCAT), INTENT(INOUT) :: rd_cr_at_lis ! (0:MAXSCAT) 
    INTEGER             , DIMENSION(3)           , INTENT(INOUT) :: rd_sav_ncell ! (3) 
    LOGICAL                                      , INTENT(INOUT) :: rd_sav_r_ncell 
@@ -1171,7 +1213,7 @@ CONTAINS
    FORALL (i=0:this%cr_nscat)
       rd_cr_at_lis(i)    = this%cr_at_lis(i)
       rd_cr_dw(i)        = this%cr_dw(i)
-!     rd_cr_occ(i)       = this%cr_occ(i)  !! WORK OCC
+      rd_cr_occ(i)       = this%cr_occ(i)  !! WORK OCC
    END FORALL
 !
    rd_cr_nscat        = MAX(rd_cr_nscat,this%cr_nscat)

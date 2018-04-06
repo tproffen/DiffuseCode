@@ -540,6 +540,22 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+         ELSEIF(string(ikl - 3:ikl - 1)  == 'occ') THEN 
+            IF(ianz.eq.1) then 
+               IF(ikl >  lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF(1 <= kpara.AND.kpara <= cr_nscat) THEN 
+                  WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') cr_occ (kpara)
+                  zeile (ikl + 8:ikl + 8) = 'e' 
+               ELSE 
+                  ier_num = - 8 
+                  ier_typ = ER_FORT 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
          ELSEIF (string (ikl - 3:ikl - 1) .eq.'vol') then 
             IF (ianz.eq.1) then 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
@@ -745,6 +761,19 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
                cr_gmat, cr_fmat, cr_cartesian,                          &
                cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'occ') then 
+         IF (ianz.eq.1) then 
+            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) then 
+               cr_occ (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
