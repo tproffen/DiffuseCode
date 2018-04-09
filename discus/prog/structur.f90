@@ -207,6 +207,7 @@ CONTAINS
 !     Free style editing of a structure 'free'                          
 !                                                                       
          ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) THEN 
+!           CALL do_readfree(befehl,lbef,ianz, maxw, cpara, lpara)
             CALL rese_cr 
             cr_name = 'freely created structure' 
             cr_spcgr (1:1)  = 'P' 
@@ -772,6 +773,8 @@ LOGICAL, SAVE          :: at_init = .TRUE.
       lcell     = .true. 
       lout      = .false. 
       lcontent  = .false.
+      at_param(:) = ' '
+      at_ianz     = 0
       CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
                              n_atom, -1 , .not.cr_newtype)
       IF (ier_num /= 0) THEN
@@ -1104,10 +1107,10 @@ INTEGER, SAVE                        :: col_x      = 1
 INTEGER, SAVE                        :: col_y      = 2 
 INTEGER, SAVE                        :: col_z      = 3 
 INTEGER, SAVE                        :: col_biso   = 4 
-INTEGER, SAVE                        :: col_prop   = 5 
-INTEGER, SAVE                        :: col_moleno = 6 
-INTEGER, SAVE                        :: col_moleat = 7 
-INTEGER, SAVE                        :: col_occ    = 8 
+INTEGER, SAVE                        :: col_prop   = 0 
+INTEGER, SAVE                        :: col_moleno = 0 
+INTEGER, SAVE                        :: col_moleat = 0 
+INTEGER, SAVE                        :: col_occ    = 0 
 LOGICAL                              :: lcalc     ! Flag if calculation is needed
 !
 IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
@@ -1129,7 +1132,9 @@ IF(at_init) THEN
 ENDIF
 werte(:) = 0.0
 werte(5) = 1.0    ! Default for property flag
+wwerte(5)= 1.0    ! Default for property flag
 IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
+IF(UBOUND(wwerte,1)>=8) wwerte(8) = 1.0    ! Default for Occupancy
 !
 CALL get_params(line (ibl:length), ianz, cpara, lpara, maxw,     &
                 length - ibl + 1)
@@ -1596,6 +1601,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !                                                                       
       cr_natoms = 0 
       lcell = .false. 
+      at_param(:) = ' '
+      at_ianz     = 0
       CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num.eq.0) then 
          DO i = 1, 3 
@@ -2020,6 +2027,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                at_param(2) = 'Y'
                at_param(3) = 'Z'
                at_param(4) = 'BISO'
+               at_param(5:) = ' '
             ELSE
                DO i=1,ianz
                   CALL do_cap(cpara(i))
