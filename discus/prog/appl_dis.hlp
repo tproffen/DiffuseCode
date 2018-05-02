@@ -72,8 +72,21 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_May
+
+   read / import
+   Improved handling of CIF files with atom names like "Ti4+"   
 3  2018_April
 
+   remove molecules
+   Changed the behavior if whole molecules are removed. The
+   molecule type is still set to zero and the atoms inside the 
+   molecule are switched to 'voids'. The molecule status of the 
+   individual atoms is, however, retained. This allows you to still
+   wotk with these "removed" molecules, in strict analogy to 
+   removed atoms. The full molecule entry disappears with a 'purge'
+
+   occupancy
    An 'occupancy' was added as further atom property. 
    The philosophy behind DISCUS is a simulation of an actual
    crystal structure, thus the occupancy is really just an
