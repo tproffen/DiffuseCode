@@ -138,12 +138,14 @@
 !                                                                       
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: command 
+      CHARACTER(LEN=1024) :: message
 !
       INTEGER length
 !                                                                       
 !     CALL system (command(1:len_str(command)), ier_num) 
       length = LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:length), EXITSTAT=ier_num) 
+      write(*,*) ' SYS CMD >', command(1:length)
+      CALL EXECUTE_COMMAND_LINE (command(1:length), CMDSTAT=ier_num, CMDMSG=message) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -254,6 +256,7 @@
 !                                                                       
       CHARACTER (LEN=*) name 
       CHARACTER(1024) command 
+      CHARACTER(LEN=1024) :: message
       INTEGER len_str, laenge 
 !                                                                       
       laenge = len_str (name) 
@@ -265,7 +268,7 @@
       command (1:6) = 'rm -f ' 
       command (7:7 + laenge) = name (1:laenge) 
 !     CALL system (command(1:7+laenge)) 
-      CALL EXECUTE_COMMAND_LINE (command(1:7+laenge),EXITSTAT=ier_num) 
+      CALL EXECUTE_COMMAND_LINE (command(1:7+laenge), CMDSTAT=ier_num, CMDMSG=message) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -290,6 +293,7 @@
 !                                                                       
       CHARACTER (LEN=*) nameold, namenew 
       CHARACTER(80) command 
+      CHARACTER(LEN=1024) :: message
       INTEGER len_str, lo, ln 
 !                                                                       
       lo = len_str (nameold) 
@@ -306,7 +310,7 @@
       command (5 + lo:4 + lo + ln) = namenew (1:ln) 
 !                                                                       
 !     CALL system (command(1:4+lo+ln)) 
-      CALL EXECUTE_COMMAND_LINE (command(1:4+lo+ln),EXITSTAT=ier_num) 
+      CALL EXECUTE_COMMAND_LINE (command(1:4+lo+ln), CMDSTAT=ier_num, CMDMSG=message) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
@@ -483,7 +487,7 @@
 !                                                                       
       CHARACTER (LEN=*) datei, stat 
       CHARACTER(1024) line 
-      CHARACTER(LEN=1024) message 
+      CHARACTER(LEN=1024) :: message 
       INTEGER inum, ios 
       INTEGER l_datei 
       LOGICAL lda
