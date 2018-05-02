@@ -783,204 +783,197 @@ CONTAINS
       ENDIF 
       END SUBROUTINE do_ins_atom                    
 !*****7*****************************************************************
-      SUBROUTINE do_remove (line, ll) 
+SUBROUTINE do_remove (line, ll) 
 !-                                                                      
 !     Removes a single atom from the structure. line is evaluated to    
 !     give the index of the atom.                                       
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE molecule_mod 
-      USE prop_para_mod 
-      USE errlist_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+USE molecule_mod 
+USE prop_para_mod 
+USE errlist_mod 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 6) 
+INTEGER, PARAMETER :: maxw = 6
 !                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(1024) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER i, j 
-      INTEGER ll, istart, iend, ianz 
-      INTEGER tstart, tend 
-      LOGICAL l_mole 
-      LOGICAL l_type 
-      REAL werte (maxw) 
+CHARACTER( LEN=* ), INTENT(INOUT) :: line 
+INTEGER           , INTENT(INOUT) :: ll
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara !(maxw) 
+INTEGER            , DIMENSION(MAXW) :: lpara !(maxw) 
+INTEGER :: i, j 
+INTEGER :: istart, iend, ianz 
+INTEGER :: tstart, tend 
+LOGICAL :: l_mole 
+LOGICAL :: l_type 
+REAL               , DIMENSION(MAXW) :: werte ! (maxw) 
 !                                                                       
-      LOGICAL str_comp 
+LOGICAL :: str_comp 
 !                                                                       
-      l_mole = .false. 
+l_mole = .false. 
 !                                                                       
 !     Get parameters                                                    
 !                                                                       
-      CALL get_params (line, ianz, cpara, lpara, maxw, ll) 
-      IF (ier_num.eq.0) then 
+CALL get_params (line, ianz, cpara, lpara, maxw, ll) 
+IF(ier_num.eq.0) THEN 
 !                                                                       
 !     --Remove atoms or molecules ?                                     
 !                                                                       
-         l_mole = .false. 
-         tstart = 1 
-         tend = mole_num_type 
-         IF (ianz.gt.2.and.str_comp (cpara (3) , 'molecule', 1, lpara ( &
-         3) , 8) ) then                                                 
-            cpara (3) = '0' 
-            lpara (3) = 1 
-            l_mole = .true. 
-         ELSEIF (ianz.gt.1.and.str_comp (cpara (2) , 'molecule', 1,     &
-         lpara (2) , 8) ) then                                          
-            DO i = ianz, 3, - 1 
-            cpara (i + 1) = cpara (i) 
-            lpara (i + 1) = lpara (i) 
-            ENDDO 
-            cpara (3) = '0' 
-            lpara (3) = 1 
-            l_mole = .true. 
-            cpara (2) = cpara (1) 
-            lpara (2) = lpara (1) 
-            ianz = ianz + 1 
-         ENDIF 
-         IF (ianz.gt.4.and.str_comp (cpara (4) , 'type', 1, lpara (4) , &
-         8) ) then                                                      
-            cpara (4) = '0' 
-            lpara (4) = 1 
-            l_type = .true. 
-         ENDIF 
+   l_mole = .false. 
+   tstart = 1 
+   tend = mole_num_type 
+   IF(ianz >  2 .AND. str_comp(cpara(3), 'molecule', 1, lpara(3), 8)) THEN
+      cpara (3) = '0' 
+      lpara (3) = 1 
+      l_mole = .true. 
+   ELSEIF (ianz.gt.1 .AND. str_comp (cpara (2) , 'molecule', 1,     &
+      lpara (2) , 8) ) THEN                                          
+      DO i = ianz, 3, - 1 
+         cpara (i + 1) = cpara (i) 
+         lpara (i + 1) = lpara (i) 
+      ENDDO 
+      cpara (3) = '0' 
+      lpara (3) = 1 
+      l_mole = .true. 
+      cpara (2) = cpara (1) 
+      lpara (2) = lpara (1) 
+      ianz = ianz + 1 
+   ENDIF 
+   IF(ianz.gt.4 .AND. str_comp (cpara (4) , 'type', 1, lpara (4) , 8) ) THEN
+      cpara (4) = '0' 
+      lpara (4) = 1 
+      l_type = .true. 
+   ENDIF 
 !                                                                       
 !     --Calculate value of parameters                                   
 !                                                                       
-         IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) ) then 
+   IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) ) THEN 
 !                                                                       
 !     ----Remove all molecules or all atoms                             
 !                                                                       
-            WRITE (cpara (1), 3000) 1 
-            IF (l_mole) then 
-               WRITE (cpara (2), 3000) mole_num_mole 
-            ELSE 
-               WRITE (cpara (2), 3000) cr_natoms 
-               IF (ianz.eq.1) ianz = 2 
-            ENDIF 
-            lpara (1) = 11 
-            lpara (2) = 11 
-         ELSEIF (str_comp (cpara (1) , 'last', 1, lpara (1) , 4) ) then 
+      WRITE (cpara (1), 3000) 1 
+      IF (l_mole) THEN 
+         WRITE (cpara (2), 3000) mole_num_mole 
+      ELSE 
+         WRITE (cpara (2), 3000) cr_natoms 
+         IF (ianz.eq.1) ianz = 2 
+      ENDIF 
+      lpara (1) = 11 
+      lpara (2) = 11 
+   ELSEIF (str_comp (cpara (1) , 'last', 1, lpara (1) , 4) ) THEN 
 !                                                                       
 !     ----Remove last molecule or last atom                             
 !                                                                       
-            IF (l_mole) then 
-               WRITE (cpara (1), 3000) mole_num_mole 
-               WRITE (cpara (2), 3000) mole_num_mole 
-            ELSE 
-               WRITE (cpara (1), 3000) cr_natoms 
-               WRITE (cpara (2), 3000) cr_natoms 
-               IF (ianz.eq.1) ianz = 2 
-            ENDIF 
-            lpara (1) = 11 
-            lpara (2) = 11 
-         ENDIF 
+      IF (l_mole) THEN 
+         WRITE (cpara (1), 3000) mole_num_mole 
+         WRITE (cpara (2), 3000) mole_num_mole 
+      ELSE 
+         WRITE (cpara (1), 3000) cr_natoms 
+         WRITE (cpara (2), 3000) cr_natoms 
+         IF (ianz.eq.1) ianz = 2 
+      ENDIF 
+      lpara (1) = 11 
+     lpara (2) = 11 
+   ENDIF 
 !                                                                       
 !     --Select type of molecule                                         
 !                                                                       
-         IF (str_comp (cpara (5) , 'all', 1, lpara (5) , 3) ) then 
+   IF (str_comp (cpara (5) , 'all', 1, lpara (5) , 3) ) THEN 
 !                                                                       
 !     ----Remove all types of molecules or all atoms                    
 !                                                                       
-            WRITE (cpara (5), 3000) 1 
-            WRITE (cpara (6), 3000) mole_num_type 
-            lpara (5) = 11 
-            lpara (6) = 11 
-         ELSEIF (str_comp (cpara (5) , 'last', 1, lpara (5) , 4) ) then 
+      WRITE (cpara (5), 3000) 1 
+      WRITE (cpara (6), 3000) mole_num_type 
+      lpara (5) = 11 
+      lpara (6) = 11 
+   ELSEIF(str_comp (cpara (5) , 'last', 1, lpara (5) , 4) ) THEN 
 !                                                                       
 !     ----Remove only the last type of molecule                         
 !                                                                       
-            WRITE (cpara (5), 3000) mole_num_type 
-            WRITE (cpara (6), 3000) mole_num_type 
-            lpara (5) = 11 
-            lpara (6) = 11 
-         ENDIF 
+      WRITE (cpara (5), 3000) mole_num_type 
+      WRITE (cpara (6), 3000) mole_num_type 
+      lpara (5) = 11 
+      lpara (6) = 11 
+   ENDIF 
 !                                                                       
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.eq.0) then 
-            istart = nint (werte (1) ) 
-            IF (ianz.eq.1) then 
-               iend = istart 
-            ELSE 
-               iend = nint (werte (2) ) 
-            ENDIF 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   IF (ier_num.eq.0) THEN 
+      istart = NINT (werte (1) ) 
+      IF (ianz.eq.1) THEN 
+         iend = istart 
+      ELSE 
+         iend = nint (werte (2) ) 
+      ENDIF 
 !                                                                       
 !     ----Remove molecules                                              
 !                                                                       
-            IF (l_mole) then 
-               IF (                                                     &
-               0.lt.istart.and.istart.le.iend.and.iend.le.mole_num_mole)&
-               then                                                     
+      IF (l_mole) THEN            !: Molecules yes/no
+         IF(0.lt.istart .AND. istart.le.iend .AND. iend.le.mole_num_mole) THEN
 !                                                                       
 !     --------Set limits for types that can be removed                  
 !                                                                       
-                  IF (ianz.eq.5) then 
-                     tstart = int( werte (5) )
-                     tend = int (werte (5) )
-                  ELSEIF (ianz.eq.6) then 
-                     tstart = int( werte (5) )
-                     tend = int( werte (6) )
-                  ENDIF 
-      IF (0.lt.tstart.and.tstart.le.tend.and.tend.le.mole_num_type) then 
+               IF (ianz.eq.5) THEN 
+                  tstart = INT( werte (5) )
+                  tend = INT (werte (5) )
+               ELSEIF (ianz.eq.6) THEN 
+                  tstart = INT( werte (5) )
+                  tend = INT( werte (6) )
+               ENDIF 
+            IF(0.lt.tstart .AND. tstart.le.tend .AND. tend.le.mole_num_type) THEN 
+!                                                                    
+!  ----------Loop over all molecules in range                        
 !                                                                       
-!     ----------Loop over all molecules in range                        
-!                                                                       
-                     DO i = istart, iend 
-                     IF (tstart.le.mole_type (i) .and.mole_type (i)     &
-                     .le.tend) then                                     
+               DO i = istart, iend 
+                  IF (tstart.le.mole_type (i) .AND. mole_type (i) .le.tend) THEN
 !                                                                       
 !     --------------Set molecule type to zero and remove atoms          
 !                                                                       
-                        mole_type (i) = 0 
-                        mole_char (i) = 0 
-                        DO j = 1, mole_len (i) 
-                        cr_iscat (mole_cont (mole_off (i) + j) )        &
-                        = 0                                             
-                        cr_mole (mole_cont (mole_off (i) + j) ) = 0
-                        cr_surf(:,mole_cont (mole_off (i) + j) ) = 0
-                        cr_prop (mole_cont (mole_off (i) + j) ) = ibclr &
-                        (cr_prop (mole_cont (mole_off (i) + j) ),       &
-                        PROP_NORMAL)                                    
-                        ENDDO 
-                     ENDIF 
+                     mole_type (i) = 0 
+                     mole_char (i) = 0 
+                     DO j = 1, mole_len (i) 
+                        cr_iscat(mole_cont (mole_off (i) + j) ) = 0                                             
+!                       cr_mole (mole_cont (mole_off (i) + j) ) = 0
+!                       cr_surf (:,mole_cont (mole_off (i) + j) ) = 0
+                        cr_prop (mole_cont (mole_off (i) + j) ) =  &
+                            IBCLR(cr_prop (mole_cont (mole_off (i) + j) ), PROP_NORMAL)                                    
                      ENDDO 
-                  ELSE 
-                     ier_num = - 64 
-                     ier_typ = ER_APPL 
                   ENDIF 
-               ELSE 
-                  ier_num = - 63 
-                  ier_typ = ER_APPL 
-               ENDIF 
+               ENDDO 
             ELSE 
+               ier_num = - 64 
+               ier_typ = ER_APPL 
+            ENDIF 
+         ELSE 
+            ier_num = - 63 
+            ier_typ = ER_APPL 
+         ENDIF 
+      ELSE            !: Molecules yes/no
 !                                                                       
 !     ------If index of atom is within limits, remove atom by           
 !           Setting its scattering curve to zero                        
 !                                                                       
-               IF (0.lt.istart.and.istart.le.iend.and.iend.le.cr_natoms)&
-               then                                                     
-                  DO i = istart, iend 
-                  cr_iscat (i) = 0 
-                  cr_prop (i) = ibclr (cr_prop (i), PROP_NORMAL) 
-                  ENDDO 
-               ELSE 
-                  ier_num = - 19 
-                  ier_typ = ER_APPL 
-               ENDIF 
-            ENDIF 
+         IF(0.lt.istart .AND. istart.le.iend .AND. iend.le.cr_natoms) THEN
+            DO i = istart, iend 
+               cr_iscat (i) = 0 
+               cr_prop (i) = IBCLR (cr_prop (i), PROP_NORMAL) 
+            ENDDO 
          ELSE 
-            ier_num = - 6 
-            ier_typ = ER_COMM 
+            ier_num = - 19 
+            ier_typ = ER_APPL 
          ENDIF 
-      ENDIF 
+      ENDIF            !: Molecules yes/no
+   ELSE 
+      ier_num = - 6 
+      ier_typ = ER_COMM 
+   ENDIF 
+ENDIF 
 !                                                                       
- 3000 FORMAT    (i11) 
+3000 FORMAT(i11) 
 !                                                                       
-      END SUBROUTINE do_remove                      
+END SUBROUTINE do_remove                      
 !*****7**************************************************************   
       SUBROUTINE do_purge 
 !-                                                                      
@@ -1065,20 +1058,20 @@ CONTAINS
 !                                                                       
       LOGICAL lpurge 
 !                                                                       
-      IF (lpurge) then 
+      IF (lpurge) THEN 
          WRITE (output_io, 1000) 
-         IF (chem_period (1) .or.chem_period (2) .or.chem_period (3) )  &
-         then                                                           
+         IF(chem_period(1) .OR. chem_period(2) .OR. chem_period(3) ) THEN
             chem_period (1) = .false. 
             chem_period (2) = .false. 
             chem_period (3) = .false. 
+            chem_purge      = .TRUE.      ! Disable use of periodic boundary
             WRITE (output_io, 1100) 'Peridic boundaries DISABLED ..' 
          ENDIF 
-         IF (chem_quick) then 
+         IF (chem_quick) THEN 
             chem_quick = .false. 
       WRITE (output_io, 1100) 'Chem. neighbor mode set to EXACT ..' 
          ENDIF 
-         IF (.not.pdf_lexact) then 
+         IF (.not.pdf_lexact) THEN 
             pdf_lexact = .true. 
       WRITE (output_io, 1100) 'PDF calculation mode set to EXACT ..' 
          ENDIF 
