@@ -208,81 +208,82 @@ CONTAINS
 !                                                                       
          ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) THEN 
 !           CALL do_readfree(befehl,lbef,ianz, maxw, cpara, lpara)
-            CALL rese_cr 
-            cr_name = 'freely created structure' 
-            cr_spcgr (1:1)  = 'P' 
-            cr_spcgr (2:2)  = '1' 
-            cr_spcgr (3:16) = '              ' 
-            cr_spcgrno = 1 
-            cr_syst = 1 
-            spcgr_para = 1
-            CALL get_symmetry_matrices 
-            IF (ianz.eq.0) then 
-               DO i = 1, 3 
-               cr_a0 (i) = 1.0 
-               cr_win (i) = 90.0 
-               ENDDO 
-            ELSEIF (ianz.eq.6.or. ianz.eq.7 .or. ianz==8) then 
-               iianz = 6
-               CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-               CALL del_params (6, ianz, cpara, lpara, maxw) 
-               IF(ianz.eq.1 .OR. ianz==2) THEN
-                  iianz = 1
-                  CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-                  IF(ier_num==0) THEN
-                     cr_spcgrno = NINT(wwerte(1))
-                     cr_spcgr   = spcgr_name (cr_spcgrno) 
-                  ELSE
-                     cr_spcgr = cpara(1)(1:lpara(1))
-                  ENDIF
-                  CALL no_error
-                  CALL del_params (1, ianz, cpara, lpara, maxw) 
-                  IF(ianz == 1) THEN
-                     CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
-                     IF(ier_num==0) THEN
-                        spcgr_para = nint (wwerte (1) ) 
-                     ELSE
-                        ier_num = - 93
-                        ier_typ = ER_APPL 
-                        ier_msg (1) = 'Error reading origin choice indicator'
-                     ENDIF
-                  ENDIF
-               ENDIF
-               DO i = 1, 3 
-               cr_a0 (i) = werte (i) 
-               cr_win (i) = werte (i + 3) 
-               ENDDO 
-               IF (cr_a0 (1) .le.0.0.or.cr_a0 (2) .le.0.0.or.cr_a0 (3)  &
-               .le.0.0.or.cr_win (1) .le.0.0.or.cr_win (2)              &
-               .le.0.0.or.cr_win (3) .le.0.0.or.cr_win (1)              &
-               .ge.180.0.or.cr_win (2) .ge.180.0.or.cr_win (3)          &
-               .ge.180.0) then                                          
-                  ier_num = - 93 
-                  ier_typ = ER_APPL 
-                  ier_msg (1) = 'Error reading unit cell parameters' 
-                  GOTO 8888              ! Jump to handle error messages, amd macro conditions
-               ENDIF 
-               werte(1)=spcgr_para
-               CALL spcgr_no(1,maxw,werte)
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-               GOTO 8888              ! Jump to handle error messages, amd macro conditions
-            ENDIF 
-            cr_icc (1) = 1 
-            cr_icc (2) = 1 
-            cr_icc (3) = 1 
-            cr_natoms = 0 
-            cr_ncatoms = 1 
-            cr_ncreal  = 1 
-            cr_nscat = 0 
-            as_natoms = 0 
+            CALL do_readfree(            ianz, maxw, cpara, lpara)
+!           CALL rese_cr 
+!           cr_name = 'freely created structure' 
+!           cr_spcgr (1:1)  = 'P' 
+!           cr_spcgr (2:2)  = '1' 
+!           cr_spcgr (3:16) = '              ' 
+!           cr_spcgrno = 1 
+!           cr_syst = 1 
+!           spcgr_para = 1
+!           CALL get_symmetry_matrices 
+!           IF (ianz.eq.0) then 
+!              DO i = 1, 3 
+!              cr_a0 (i) = 1.0 
+!              cr_win (i) = 90.0 
+!              ENDDO 
+!           ELSEIF (ianz.eq.6.or. ianz.eq.7 .or. ianz==8) then 
+!              iianz = 6
+!              CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+!              CALL del_params (6, ianz, cpara, lpara, maxw) 
+!              IF(ianz.eq.1 .OR. ianz==2) THEN
+!                 iianz = 1
+!                 CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+!                 IF(ier_num==0) THEN
+!                    cr_spcgrno = NINT(wwerte(1))
+!                    cr_spcgr   = spcgr_name (cr_spcgrno) 
+!                 ELSE
+!                    cr_spcgr = cpara(1)(1:lpara(1))
+!                 ENDIF
+!                 CALL no_error
+!                 CALL del_params (1, ianz, cpara, lpara, maxw) 
+!                 IF(ianz == 1) THEN
+!                    CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+!                    IF(ier_num==0) THEN
+!                       spcgr_para = nint (wwerte (1) ) 
+!                    ELSE
+!                       ier_num = - 93
+!                       ier_typ = ER_APPL 
+!                       ier_msg (1) = 'Error reading origin choice indicator'
+!                    ENDIF
+!                 ENDIF
+!              ENDIF
+!              DO i = 1, 3 
+!              cr_a0 (i) = werte (i) 
+!              cr_win (i) = werte (i + 3) 
+!              ENDDO 
+!              IF (cr_a0 (1) .le.0.0.or.cr_a0 (2) .le.0.0.or.cr_a0 (3)  &
+!              .le.0.0.or.cr_win (1) .le.0.0.or.cr_win (2)              &
+!              .le.0.0.or.cr_win (3) .le.0.0.or.cr_win (1)              &
+!              .ge.180.0.or.cr_win (2) .ge.180.0.or.cr_win (3)          &
+!              .ge.180.0) then                                          
+!                 ier_num = - 93 
+!                 ier_typ = ER_APPL 
+!                 ier_msg (1) = 'Error reading unit cell parameters' 
+!                 GOTO 8888              ! Jump to handle error messages, amd macro conditions
+!              ENDIF 
+!              werte(1)=spcgr_para
+!              CALL spcgr_no(1,maxw,werte)
+!           ELSE 
+!              ier_num = - 6 
+!              ier_typ = ER_COMM 
+!              GOTO 8888              ! Jump to handle error messages, amd macro conditions
+!           ENDIF 
+!           cr_icc (1) = 1 
+!           cr_icc (2) = 1 
+!           cr_icc (3) = 1 
+!           cr_natoms = 0 
+!           cr_ncatoms = 1 
+!           cr_ncreal  = 1 
+!           cr_nscat = 0 
+!           as_natoms = 0 
 !                                                                       
 !     ----reset microdomain status                                      
 !                                                                       
-            CALL do_stack_rese 
+!           CALL do_stack_rese 
 !           Flag that no Fourier has been calculated yet
-            four_last = FOUR_NN
+!           four_last = FOUR_NN
 !                                                                       
 !     read an old structure 'stru'                                      
 !                                                                       
@@ -367,6 +368,7 @@ SUBROUTINE do_readcell(befehl,lbef,ianz, maxw, cpara, lpara, l_identical, &
                        r_identical, occupancy)
 !
 USE discus_allocate_appl_mod
+USE chem_mod 
 USE crystal_mod
 USE diffuse_mod
 USE molecule_mod
@@ -601,6 +603,9 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !              Flag that no Fourier has been calculated yet
                four_last = FOUR_NN
             ENDIF 
+!
+chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+!
 END SUBROUTINE do_readcell
 !
 !*******************************************************************************
@@ -721,7 +726,109 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                ENDIF 
                ENDIF internals
 !
+chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+!
 END SUBROUTINE do_readstru
+!
+!********************************************************************** 
+!
+SUBROUTINE do_readfree(ianz, maxw, cpara, lpara)
+!
+USE chem_mod
+USE crystal_mod
+USE diffuse_mod
+USE spcgr_mod
+USE spcgr_apply
+USE stack_rese_mod
+!
+!CHARACTER(LEN=*),                  INTENT(IN) :: befehl
+!INTEGER         ,                  INTENT(IN) :: lbef
+INTEGER         ,                  INTENT(IN) :: ianz
+INTEGER         ,                  INTENT(IN) :: MAXW
+CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+INTEGER  :: i
+INTEGER  :: iianz
+!
+REAL, DIMENSION(MAXW) :: werte
+REAL, DIMENSION(MAXW) :: wwerte
+!
+CALL rese_cr 
+cr_name = 'freely created structure' 
+cr_spcgr (1:1)  = 'P' 
+cr_spcgr (2:2)  = '1' 
+cr_spcgr (3:16) = '              ' 
+cr_spcgrno = 1 
+cr_syst = 1 
+spcgr_para = 1
+CALL get_symmetry_matrices 
+IF (ianz==0) THEN 
+   cr_a0 (:) = 1.0 
+   cr_win(:) = 90.0 
+ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN 
+   iianz = 6
+   CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+   CALL del_params (6, ianz, cpara, lpara, maxw) 
+   IF(ianz==1 .OR. ianz==2) THEN
+      iianz = 1
+      CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+      IF(ier_num==0) THEN
+         cr_spcgrno = NINT(wwerte(1))
+         cr_spcgr   = spcgr_name (cr_spcgrno) 
+      ELSE
+         cr_spcgr = cpara(1)(1:lpara(1))
+      ENDIF
+      CALL no_error
+      CALL del_params (1, ianz, cpara, lpara, maxw) 
+      IF(ianz == 1) THEN
+         CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
+         IF(ier_num==0) THEN
+            spcgr_para = nint (wwerte (1) ) 
+         ELSE
+            ier_num = - 93
+            ier_typ = ER_APPL 
+            ier_msg (1) = 'Error reading origin choice indicator'
+         ENDIF
+      ENDIF
+   ENDIF
+   DO i = 1, 3 
+      cr_a0 (i) = werte (i) 
+      cr_win (i) = werte (i + 3) 
+   ENDDO 
+   IF (cr_a0(1)  <=   0.0 .OR. cr_a0 (2) <=   0.0 .OR. cr_a0 (3) <=   0.0 .OR.    &
+       cr_win(1) <=   0.0 .OR. cr_win(2) <=   0.0 .OR. cr_win(3) <=   0.0 .OR.    &
+       cr_win(1) >= 180.0 .OR. cr_win(2) >= 180.0 .OR. cr_win(3) >= 180.0      ) THEN                                          
+      ier_num = - 93 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Error reading unit cell parameters' 
+      RETURN                 ! Jump to handle error messages, amd macro conditions
+   ENDIF 
+   werte(1)=spcgr_para
+   CALL spcgr_no(1,maxw,werte)
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN                 ! Jump to handle error messages, amd macro conditions
+ENDIF 
+cr_icc (1) = 1 
+cr_icc (2) = 1 
+cr_icc (3) = 1 
+cr_natoms = 0 
+cr_ncatoms = 1 
+cr_ncreal  = 1 
+cr_nscat = 0 
+as_natoms = 0 
+!                                                                       
+!----reset microdomain status                                      
+!                                                                       
+CALL do_stack_rese 
+!  Flag that no Fourier has been calculated yet
+four_last = FOUR_NN
+!
+chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+!
+END SUBROUTINE do_readfree
 !********************************************************************** 
 SUBROUTINE readcell (strucfile, l_identical, r_identical) 
 !-                                                                      
@@ -4510,9 +4617,14 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       IF(lsymbol) THEN             ! Atom symbols, check charge
          charge = MAX(INDEX(at_name,'-'), INDEX(at_name,'+'))
          IF(charge>0) THEN         ! A charge is given, check order and entry
+write(*,*) 'CIF ANTOM NAME ', at_name(1:4), length, charge
             IF(charge==length-1) THEN
                DO j=-8,8
                   IF(at_name(charge:charge+1)==ions(j)) at_name(charge:charge+1) = names(j)
+               ENDDO
+            ELSEIF(charge==length) THEN
+               DO j=-8,8
+                  IF(at_name(charge-1:charge)==names(j)) at_name(charge-1:charge) = names(j)
                ENDDO
             ELSEIF(IACHAR(at_name(charge-1:charge-1))<=zero .OR.  nine>=IACHAR(at_name(charge-1:charge-1))) THEN
                at_name(charge:length) = ' '
