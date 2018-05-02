@@ -346,11 +346,12 @@
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = - 30, IO = 0) 
+      PARAMETER (IU = - 31, IO = 0) 
 !                                                                       
       CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
       DATA ERROR ( IU:-21) /                             &
+      'Periodic boundries disabled, PURGE was done ',    & ! !-31
       'Multiple identical sites in unit cell   ',        & ! !-30
       'Atom type outside valid range           ',        & ! !-29
       'Invalid correlation conn   index given  ',        & ! !-28

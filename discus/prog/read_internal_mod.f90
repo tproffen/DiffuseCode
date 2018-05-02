@@ -54,6 +54,7 @@ CONTAINS
 !  Reads a structure from an internal cystal. The old crystal is overwritten
 !
    USE discus_allocate_appl_mod
+   USE chem_mod
    USE crystal_mod
    USE prop_para_mod
    USE molecule_mod
@@ -135,6 +136,7 @@ CONTAINS
 !
    DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
+   chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
    END SUBROUTINE readstru_internal
 !*******************************************************************************
@@ -144,6 +146,7 @@ CONTAINS
 !
    USE discus_allocate_appl_mod
 !   USE class_internal
+   USE chem_mod
    USE crystal_mod
    USE molecule_mod
    USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
@@ -429,6 +432,8 @@ IF(n_mole > 0) THEN
    DEALLOCATE(temp_cont)
    DEALLOCATE(temp_look)
 ENDIF
+!
+   chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
    END SUBROUTINE readcell_internal
 !*******************************************************************************

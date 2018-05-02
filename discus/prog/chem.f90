@@ -719,7 +719,8 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                      cr_icc (2) = nint (werte (2) ) 
                      cr_icc (3) = nint (werte (3) ) 
                      cr_ncatoms = nint (werte (4) ) 
-                  ELSE 
+                     chem_purge = .FALSE.     ! Crystal dimension should allow periodic boundary
+                  ELSE
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
@@ -776,6 +777,13 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                IF (ianz.ge.3) then 
                   CALL do_cap (cpara (3) ) 
                   IF (cpara (3) (1:3) .eq.'PER') then 
+                     IF(chem_purge) THEN
+                        ier_num = -31
+                        ier_typ = ER_CHEM
+                        ier_msg(1) = "Use >set crystal< in chem to define "
+                        ier_msg(2) = "Number of unit cells and atoms per unit cell"
+                        ier_msg(3) = "Or read a new cell/structure"
+                     ELSE
                      IF (ianz.eq.4) then 
                         CALL do_cap (cpara (4) ) 
                         indxx = index (cpara (4) , 'X') 
@@ -788,6 +796,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                         chem_period (1) = .true. 
                         chem_period (2) = .true. 
                         chem_period (3) = .true. 
+                     ENDIF 
                      ENDIF 
                   ELSE 
                      chem_period (1) = .false. 

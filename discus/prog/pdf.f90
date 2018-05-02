@@ -1122,6 +1122,13 @@ main:    DO
 !                                                                       
          IF (str_comp(cpara (1),'BOUNDARY',3,lpara(1),8)) THEN
             IF (ianz==2 .OR. ianz==3 .OR. ianz==4) THEN 
+               IF(str_comp(cpara(2), 'periodic', 3, lpara(2), 8) .AND. chem_purge) THEN
+                  ier_num = -31
+                  ier_typ = ER_CHEM
+                  ier_msg(1) = "Use >set crystal< in chem to define "
+                  ier_msg(2) = "Number of unit cells and atoms per unit cell"
+                  ier_msg(3) = "Or read a new cell/structure"
+               ELSE
                chem_period (1) = str_comp(cpara(2), 'periodic', 3, lpara(2), 8)
                chem_period (2) = chem_period (1) 
                chem_period (3) = chem_period (1) 
@@ -1161,6 +1168,7 @@ main:    DO
                         WRITE (output_io, 1000) 'no periodic bound., 3D, unit cell' 
                      ENDIF 
                   ENDIF 
+               ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 6 

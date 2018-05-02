@@ -33,6 +33,7 @@ REAL, DIMENSION(2)                       :: chem_bang_cut  = (/0.0,180.0/)
 LOGICAL                                  :: chem_quick     = .true.
 LOGICAL                                  :: chem_cluster   = .false.
 LOGICAL, DIMENSION(3)                    :: chem_period    = .true.
+LOGICAL                                  :: chem_purge     = .FALSE.
 LOGICAL                                  :: chem_sel_atom  = .true.
 !
 ! Vector definitions
