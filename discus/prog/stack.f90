@@ -1507,6 +1507,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !+                                                                      
       USE discus_config_mod 
       USE discus_allocate_appl_mod
+      USE chem_mod
       USE crystal_mod 
       USE gen_add_mod 
       USE sym_add_mod 
@@ -1790,6 +1791,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Update Crystal dimension                                          
 !                                                                       
       CALL update_cr_dim 
+      chem_purge = .FALSE.    ! No purge is done, periodic boundary might be OK
 !                                                                       
       END SUBROUTINE do_stack_fill                  
 !*****7*****************************************************************
