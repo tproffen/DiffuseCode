@@ -4617,7 +4617,6 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       IF(lsymbol) THEN             ! Atom symbols, check charge
          charge = MAX(INDEX(at_name,'-'), INDEX(at_name,'+'))
          IF(charge>0) THEN         ! A charge is given, check order and entry
-write(*,*) 'CIF ANTOM NAME ', at_name(1:4), length, charge
             IF(charge==length-1) THEN
                DO j=-8,8
                   IF(at_name(charge:charge+1)==ions(j)) at_name(charge:charge+1) = names(j)
