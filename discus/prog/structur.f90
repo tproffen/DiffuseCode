@@ -743,8 +743,8 @@ USE stack_rese_mod
 !
 !CHARACTER(LEN=*),                  INTENT(IN) :: befehl
 !INTEGER         ,                  INTENT(IN) :: lbef
-INTEGER         ,                  INTENT(IN) :: ianz
-INTEGER         ,                  INTENT(IN) :: MAXW
+INTEGER         ,                  INTENT(INOUT) :: ianz
+INTEGER         ,                  INTENT(IN   ) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
@@ -763,6 +763,10 @@ cr_spcgrno = 1
 cr_syst = 1 
 spcgr_para = 1
 CALL get_symmetry_matrices 
+write(*,*) 'IANZ ', ianz
+do i=1,ianz
+  write(*,*) ' PARA ', i, cpara(i)(1:lpara(i))
+enddo
 IF (ianz==0) THEN 
    cr_a0 (:) = 1.0 
    cr_win(:) = 90.0 
