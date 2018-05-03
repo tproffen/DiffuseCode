@@ -10,6 +10,7 @@ USE diffev_loop_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 !
+USE appl_env_mod
 USE prompt_mod
 USE envir_mod
 USE variable_mod

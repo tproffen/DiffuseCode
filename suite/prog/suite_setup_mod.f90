@@ -10,6 +10,7 @@ SUBROUTINE setup_suite
 !USE allocate_appl
 !USE blk_appl
 !
+USE appl_env_mod
 USE run_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod

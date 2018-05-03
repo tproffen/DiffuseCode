@@ -28,6 +28,7 @@ USE kuplot_setup_mod
 USE kuplot_loop_mod
 USE suite_setup_mod
 !
+USE appl_env_mod
 USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod

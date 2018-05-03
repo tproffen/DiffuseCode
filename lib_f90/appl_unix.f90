@@ -1,5 +1,7 @@
+MODULE appl_env_mod
 !*****7***************************************************************  
 !                                                                       
+CONTAINS
 !                                                                       
 SUBROUTINE appl_env (standalone, local_mpi_myid)
 !-                                                                      
@@ -509,3 +511,4 @@ END SUBROUTINE color_set_bg
       ENDIF
 !
       END SUBROUTINE  program_files
+END MODULE appl_env_mod

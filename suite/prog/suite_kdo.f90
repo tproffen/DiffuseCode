@@ -20,6 +20,7 @@ USE suite_setup_mod
 USE charact_mod 
 !USE allocate_appl
 !
+USE appl_env_mod
 USE doact_mod
 USE errlist_mod 
 USE class_macro_internal

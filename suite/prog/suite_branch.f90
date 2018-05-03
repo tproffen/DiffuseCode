@@ -10,6 +10,7 @@ USE discus_loop_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 !
+USE appl_env_mod
 USE errlist_mod
 USE prompt_mod
 USE suite_init_mod

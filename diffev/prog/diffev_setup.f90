@@ -13,6 +13,7 @@ USE constraint
 USE population
 USE run_mpi_mod
 !
+USE appl_env_mod
 USE prompt_mod 
 USE lib_f90_default_mod
 !

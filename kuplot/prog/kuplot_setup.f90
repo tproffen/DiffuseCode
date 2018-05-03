@@ -10,6 +10,7 @@ CONTAINS
       USE lib_f90_default_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE appl_env_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: standalone

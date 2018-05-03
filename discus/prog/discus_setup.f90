@@ -10,6 +10,7 @@ SUBROUTINE discus_setup (standalone)
       USE discus_allocate_appl_mod
       USE discus_init_mod
 !
+      USE appl_env_mod
       USE errlist_mod
       USE prompt_mod 
       USE lib_f90_default_mod
