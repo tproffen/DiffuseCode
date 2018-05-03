@@ -763,10 +763,6 @@ cr_spcgrno = 1
 cr_syst = 1 
 spcgr_para = 1
 CALL get_symmetry_matrices 
-write(*,*) 'IANZ ', ianz
-do i=1,ianz
-  write(*,*) ' PARA ', i, cpara(i)(1:lpara(i))
-enddo
 IF (ianz==0) THEN 
    cr_a0 (:) = 1.0 
    cr_win(:) = 90.0 
