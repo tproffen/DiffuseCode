@@ -144,7 +144,6 @@
 !                                                                       
 !     CALL system (command(1:len_str(command)), ier_num) 
       length = LEN_TRIM(command)
-      write(*,*) ' SYS CMD >', command(1:length)
       CALL EXECUTE_COMMAND_LINE (command(1:length), CMDSTAT=ier_num, CMDMSG=message) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
