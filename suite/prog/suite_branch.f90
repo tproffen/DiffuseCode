@@ -74,8 +74,8 @@ br_pname_old         = pname         ! Store old prompt/error status
 br_pname_cap_old     = pname_cap
 br_prompt_status_old = prompt_status
 br_ier_sta_old       = ier_sta
-br_state_old         = var_val(VAR_STATE)
-br_progr_old         = var_val(VAR_PROGRAM)
+br_state_old         = NINT(var_val(VAR_STATE))
+br_progr_old         = NINT(var_val(VAR_PROGRAM))
 !
 IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    IF(suite_kuplot_init) then

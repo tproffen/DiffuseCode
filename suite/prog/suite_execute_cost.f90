@@ -106,9 +106,9 @@ ENDIF
 ct_pname_old         = pname
 ct_pname_cap_old     = pname_cap
 ct_prompt_status_old = prompt_status
-ct_ostate            = var_val(VAR_STATE)
-ct_oprogr            = var_val(VAR_PROGRAM)
-ct_ompifirst         = var_val(VAR_MPI_FIRST)
+ct_ostate            = NINT(var_val(VAR_STATE))
+ct_oprogr            = NINT(var_val(VAR_PROGRAM))
+ct_ompifirst         = NINT(var_val(VAR_MPI_FIRST))
 
 IF(str_comp(output(1:output_l), '/dev/null', 9, output_l, 9)) THEN
    line  = 'prompt, redirect, off'
