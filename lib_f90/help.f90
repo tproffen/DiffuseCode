@@ -446,9 +446,8 @@ INTEGER, PARAMETER  :: W_VIEWER = 5
 INTEGER, PARAMETER  :: MAXW     = 2
 INTEGER, PARAMETER  :: MAX_MAN  = 6
 CHARACTER(LEN=1024) :: string, zeile
-CHARACTER(LEN=1024) :: command
+CHARACTER(LEN=1024) :: command, message
 CHARACTER(LEN=128 ), DIMENSION(N_VIEWER) :: pdf_viewer  ! List of possible viewers
-CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_short   ! List of possible viewers
 CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_test_v  ! List of possible viewers
 CHARACTER(LEN=128 ), DIMENSION(W_VIEWER) :: win_viewer  ! List of possible viewers
 CHARACTER(LEN= 7  ), DIMENSION(MAX_MAN ) :: c_manual    ! list of possibel sections
@@ -516,12 +515,12 @@ ENDIF
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
 !
-manual = opara(1)     ! defaults to section name
+manual  = opara(1)(1:MIN(LEN(manual),lopara(1)))    ! defaults to section name
 ier_num = -6
 ier_typ = ER_COMM
 man: DO i=1,MAX_MAN
    IF(str_comp (opara(1), c_manual(i), 3, lopara(1), LEN_TRIM(c_manual(i)))) THEN
-      manual  = opara(1)
+      manual  = opara(1)(1:MIN(LEN(manual),lopara(1)))
       ier_num = 0
       ier_typ = ER_NONE
       EXIT man
@@ -577,21 +576,21 @@ IF(operating(1:7)=='Windows') THEN
                 '"'// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf"  &'
       laenge=LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+      CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
    ENDIF
 ELSE
 !
 ! LINUX Choose viewer
 !
    command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
-   CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)), EXITSTAT=ierror)
+   CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)),  CMDSTAT=ierror, CMDMSG=message)
 !
    IF(ierror == 0 ) THEN  ! Default / User option did not work try list
       viewer = opara(2)(1:lopara(2))
    ELSE
       search: DO i=1, N_VIEWER
          command = 'which '//pdf_viewer(i)(1:LEN_TRIM(pdf_viewer(i)))
-         CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+         CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)),  CMDSTAT=ierror, CMDMSG=message)
          IF(ierror ==0)  THEN
             viewer = pdf_viewer(i)
             EXIT search
@@ -603,7 +602,7 @@ ELSE
       command = viewer(1:LEN_TRIM(viewer))//' '// &
                 man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
       laenge=LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:laenge), EXITSTAT=ierror)
+      CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
    ENDIF
 ENDIF
 IF(ierror/=0) THEN     ! Error ??
