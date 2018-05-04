@@ -51,21 +51,20 @@ CONTAINS
 !                                                                       
       CHARACTER(LEN=1024) :: line, zeile, cpara (maxw) 
       CHARACTER(LEN=1024) :: strucfile 
-      CHARACTER(LEN=1024) :: outfile 
+!     CHARACTER(LEN=1024) :: outfile 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(LEN=5)    ::  befehl 
       INTEGER lpara (maxw), lp, length 
-      INTEGER ce_natoms, lstr, i, j, k, iatom 
-      INTEGER ianz, l, n, lbef , iianz
-      LOGICAL lout 
-      REAL werte (maxw) , wwerte(maxw)
-      INTEGER          :: ncells
-      INTEGER          :: n_gene
-      INTEGER          :: n_symm
-      INTEGER          :: n_mole
-      INTEGER          :: n_type
-      INTEGER          :: n_atom
-      LOGICAL          :: need_alloc = .FALSE.
+      INTEGER          :: lstr, i, j, k
+      INTEGER          :: ianz, lbef
+      LOGICAL          :: lout 
+      REAL   , DIMENSION(maxw) ::  werte!, wwerte
+!     INTEGER          :: ncells
+!     INTEGER          :: n_gene
+!     INTEGER          :: n_symm
+!     INTEGER          :: n_mole
+!     INTEGER          :: n_type
+!     LOGICAL          :: need_alloc = .FALSE.
       INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
       LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
       REAL             :: r_identical = 1.0E-5
@@ -2138,7 +2137,7 @@ cr_occ(:) = 1.0   !! WORK OCC
             ELSE
                DO i=1,ianz
                   CALL do_cap(cpara(i))
-                  at_param(i) = cpara(i)
+                  at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
                ENDDO
                at_ianz = ianz
             ENDIF
@@ -3370,7 +3369,6 @@ USE take_param_mod
       INTEGER               :: style
       LOGICAL               :: fileda
       LOGICAL               :: lperiod   ! Attempt to rearrange periodically 
-      INTEGER               :: nline
       INTEGER, PARAMETER    :: NOPTIONAL = 1
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
@@ -3587,7 +3585,6 @@ INTEGER, INTENT(IN) :: ird     ! Input file access number
 INTEGER, INTENT(IN) :: iwr     ! Output file access number
 LOGICAL, INTENT(IN) :: lperiod ! Attempt to rearrange periodically 
 !
-CHARACTER(LEN= 4)      :: atom   = ' '
 CHARACTER(LEN=256)     :: line   = ' '
 CHARACTER(LEN=256)     :: title  = ' '
 !
@@ -3969,6 +3966,8 @@ END SUBROUTINE rmc6f_period
       INTEGER len_str 
 !
       is_loop = 0
+      symm_n  = 0
+      symm_1  = 0
 !                                                                       
 !     Create input / output file name
 !
@@ -4705,7 +4704,6 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
       REAL                                  :: xc,yc,zc,bval
-INTEGER                              :: idummy  = 0
 INTEGER, PARAMETER                   :: AT_MAXP = 8
 INTEGER                              :: at_ianz
 LOGICAL                              :: at_init = .TRUE.
@@ -4849,7 +4847,7 @@ header: DO
             ELSE
                DO i=1,ianz
                   CALL do_cap(cpara(i))
-                  at_param(i) = cpara(i)
+                  at_param(i) = cpara(i)(1:MIN(LEN(at_param),lpara(i)))
                ENDDO
                at_ianz = ianz
             ENDIF

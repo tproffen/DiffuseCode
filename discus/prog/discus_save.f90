@@ -646,7 +646,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CHARACTER ( LEN=* ) , INTENT(in) :: strucfile 
       CHARACTER(31) fform 
       CHARACTER(15) C_MOLE ( - 4:4) 
-      INTEGER ist, i, j, k, l 
+      INTEGER ist, i, j, k
       INTEGER i_start, i_end 
       INTEGER is, ie 
       INTEGER ::   wr_prop = 1

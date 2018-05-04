@@ -2979,18 +2979,16 @@ REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bo
    REAL                    :: rmin, rmax
    REAL                    :: angle          !Temporary angle
    REAL                    :: d2             !Temporary distance
-   REAL                    :: solution_1, solution_2 ! Temporary angles
    REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
-   REAL   , DIMENSION(3)   :: u,v,x, w, up,wp, p, prot! Temporary vectors
+   REAL   , DIMENSION(3)   :: u,v,x, w       ! Temporary vectors
    REAL   , DIMENSION(1:MAXW) :: werte
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
 !
-   REAL :: gaslim, ran1
-integer :: ij = 0
+   REAL :: ran1
 !
 success = -1
 !write(*,*) ' IN DONOR AT ', ia, cr_iscat(ia), ier_num

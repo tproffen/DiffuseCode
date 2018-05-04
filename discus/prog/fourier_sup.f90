@@ -22,7 +22,7 @@ CONTAINS
       IMPLICIT none 
        
 !                                                                       
-      REAL ss, seknds , uhr, uhr_av, uhr_lots
+      REAL ss, seknds
       REAL (KIND=PREC_DP) :: dnorm
       INTEGER lbeg (3), csize (3) 
       INTEGER iscat, nlot, ncell, i 
@@ -153,7 +153,6 @@ CONTAINS
       REAL (KIND=PREC_DP) :: norm
       INTEGER isite, iatom, iscat, icell (3) 
       INTEGER scell, ncell, j, ii, jj, kk 
-      LOGICAL sel 
       LOGICAL, DIMENSION(:,:,:), ALLOCATABLE :: sel_cell
 !                                                                       
       ave_is_zero: IF (ave.eq.0.0) then 

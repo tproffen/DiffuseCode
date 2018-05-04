@@ -85,7 +85,6 @@ INTEGER                  :: length
 INTEGER                  :: lbef
 INTEGER                  :: lattice = 1
 INTEGER                  :: unique_n
-INTEGER                  :: stype
 INTEGER                  :: shelx_n
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: n_atoms 
 CHARACTER (LEN=2), DIMENSION(:), ALLOCATABLE :: unique_names
@@ -93,9 +92,6 @@ CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 INTEGER          , DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 LOGICAL                  :: orig_OK =.FALSE.
 REAL                     :: z_unit
-REAL                     :: occup
-REAL                     :: biso
-REAL   , DIMENSION(3)    :: vec
 REAL   , DIMENSION(MAXW) :: werte
 REAL   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
 !
@@ -253,6 +249,7 @@ ELSE
 ENDIF
 !
 ! Write Symmetry matrices
+j = spc_n
 !
 IF(cr_spcgr(1:1)=='P') THEN
    j = spc_n                              ! Need all symmetry operations
@@ -264,7 +261,7 @@ ELSEIF(cr_spcgr(1:1)=='F' ) THEN
 ELSEIF(cr_spcgr(1:1)=='R' ) THEN
    j =spc_n / 3                           ! Only need the first third symmetry operations
 ENDIF
-IF(.NOT.cr_acentric) j = J / 2            ! Centrosymmetric need the first half only
+IF(.NOT.cr_acentric) j = j / 2            ! Centrosymmetric need the first half only
 DO i=2, j                                 ! Omit identity x,y,z
    WRITE(IWR, 1400) spc_xyz(i)(1:LEN_TRIM(spc_xyz(i)))
 ENDDO
@@ -359,7 +356,7 @@ REAL, DIMENSION(3) :: vec
    vec(:) = cr_pos(:,i)
    CALL get_wyckoff(vec,.FALSE.,1)
    occup = 10.000 + REAL(res_para(1)/res_para(3))*cr_occ(cr_iscat(i))
-   biso = cr_dw(cr_iscat(i))/8./pi**2
+   biso = cr_dw(cr_iscat(i))/8./REAL(pi**2)
    WRITE(IWR,2500) shelx_names(i), stype, cr_pos(:,i), occup,biso
 !
 2500 FORMAT(a4,1x,i2,3(f12.6),f12.5,f11.5)
