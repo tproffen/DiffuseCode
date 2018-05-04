@@ -40,7 +40,7 @@ IF (ianz>=  1) then
    ELSEIF (str_comp (cpara (1) , 'param', 3, lpara (1) , 5) )  THEN
       CALL diffev_show_param(ianz, cpara, lpara, MAXW)
    ELSEIF (str_comp (cpara (1) , 'population', 3, lpara (1) , 10) )  THEN
-      CALL diffev_show_population(ianz, cpara, lpara, MAXW)
+      CALL diffev_show_population
    ELSE
 !                                                                       
 !     -- try generic show commands                                      
@@ -147,7 +147,7 @@ END SUBROUTINE diffev_show_para_x
 !
 !*****7*****************************************************************3*******
 !
-SUBROUTINE diffev_show_population(ianz, cpara, lpara, MAXW)
+SUBROUTINE diffev_show_population
 !
 USE population
 USE diff_evol
@@ -156,11 +156,6 @@ USE errlist_mod
 USE prompt_mod
 !
 IMPLICIT NONE
-!
-INTEGER                            , INTENT(IN)    :: ianz
-INTEGER                            , INTENT(IN)    :: MAXW
-CHARACTER(LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
-INTEGER,          DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !
 CHARACTER(LEN=20), DIMENSION(0:1) :: cdonor
 CHARACTER(LEN=35), DIMENSION(0:2) :: csel
