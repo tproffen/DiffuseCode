@@ -423,7 +423,6 @@ CLOSE (iwr)
  1525 FORMAT ('# backup extension'/a) 
  1530 FORMAT ('# backup target'/a) 
  1640 FORMAT ('# Parameter      no.',4(1x,a18))
- 1700 FORMAT (a20,77x,a1)
  1800 FORMAT (a16,1x,i3,4(1x,E18.10),1x,a1,1x,l1)
  3000 FORMAT ('# random seeds '/i5) 
  3100 FORMAT (5(1x,i11),1x,i11)
@@ -451,7 +450,6 @@ INTEGER, PARAMETER  :: iwr = 7
 !                                                                       
 CHARACTER (LEN=7)   :: stat = 'old'
 CHARACTER (LEN=128) :: line
-CHARACTER (LEN=1024):: string
 INTEGER             :: io_status
 INTEGER             :: i, j
 INTEGER             :: n_pop, n_dim

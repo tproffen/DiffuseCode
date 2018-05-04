@@ -373,6 +373,8 @@ list_index(:) = 0
    INTEGER                        :: len_str   
 !
    iostatus = 0
+   temp_val_min = 0.0
+   temp_val_max = 0.0
 !                                                                       
 ! Read old Parent value, if not yet initialized                     
 !                                                                       

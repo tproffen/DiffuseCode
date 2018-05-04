@@ -39,7 +39,7 @@ CONTAINS
 !                                                                       
    CHARACTER (LEN=2048) :: line 
    CHARACTER (LEN=1024) :: fname 
-   INTEGER              :: i, j
+   INTEGER              :: i
    INTEGER              :: i1, i2 
    INTEGER              :: length
 !                                                                       
@@ -176,7 +176,6 @@ CONTAINS
    ENDDO
    CLOSE (IWR)
 !                                                                       
-     900 FORMAT (A,'.',I4.4)
      950 FORMAT (A,'.',A   )
      970 FORMAT (A,'.',A,'.',I4.4   )
     1000 FORMAT ('#C Logfile by DIFFEV') 

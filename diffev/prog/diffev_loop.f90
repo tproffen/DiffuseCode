@@ -33,7 +33,6 @@ IMPLICIT none
 CHARACTER (LEN=1024)           :: line, zeile 
 CHARACTER (LEN=4)              :: befehl 
 LOGICAL                        :: lend   = .false.
-LOGICAL                        :: lexist = .FALSE.
 INTEGER                        :: laenge, lp, lbef 
 !
 INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process

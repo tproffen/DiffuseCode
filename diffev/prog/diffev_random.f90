@@ -160,6 +160,7 @@ IF(write_random_state) THEN
    IF(random_nseed>0) THEN
       line = ' '
       line(1:5) = 'seed '
+      i1 = 6
       DO i=1, random_nseed 
          i1 = 6 + (i-1)*16
          ir1 =         random_best(i)/ 100000000
