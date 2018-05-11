@@ -20,8 +20,8 @@ link_directories(${PGPLOT_LIBRARIES})
 set (SOURCE_MAIN suite.f90)
 set (SOURCES_ALL suite_setup_mod.f90 suite_branch.f90 suite_loop.f90
 	suite_err_appl.f90 suite_exit.f90 suite_execute_cost.f90 
-	suite_init_mod.f90 suite_kdo.f90  suite_parallel.f90
-	suite_upd_par.f90 )
+	suite_init_mod.f90 suite_kdo.f90  suite_set_sub_mod.f90
+        suite_parallel.f90 suite_upd_par.f90 )
 set( SOURCES_LOCAL suite_out_file.f90 suite_pdf_file.f90 suite_powder_file.f90)
 
 set (LIBS diffev_all discus_all kuplot_all lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY} )

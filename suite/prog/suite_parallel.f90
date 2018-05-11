@@ -6,13 +6,15 @@ CONTAINS
 !
 SUBROUTINE suite_do_parallel ( zeile, length)
 !
+USE ber_params_mod
 USE errlist_mod
+USE get_params_mod
 USE operating_mod
 USE prompt_mod
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: zeile
-INTEGER         , INTENT(IN) :: length
+INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: MAXW = 30
 CHARACTER(LEN=14)                    :: cdummy

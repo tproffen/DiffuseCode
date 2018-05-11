@@ -5,6 +5,7 @@ SUBROUTINE suite_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !       appropriate Parameter.                                          
 !     This is needed if the parameter is read.                          
 !+                                                                      
+USE blanks_mod
 USE errlist_mod 
 USE param_mod 
 !
@@ -179,7 +180,9 @@ SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !     Currently empty, needed for formal reasons.
 !+                                                                      
 !
+USE calc_expr_mod
 USE errlist_mod 
+USE ersetz_mod
 USE param_mod 
 IMPLICIT none 
 !                                                                       

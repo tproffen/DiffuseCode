@@ -5,6 +5,7 @@ CONTAINS
 SUBROUTINE do_exit 
 !                                                                       
 !USE allocate_appl
+USE exit_mod
 USE prompt_mod 
 !+                                                                      
 !           Clean exit from the program DIFFEV ;-)                      

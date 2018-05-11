@@ -1,6 +1,7 @@
 PROGRAM discus_suite 
 !                                                                       
 USE suite_setup_mod
+USE suite_set_sub_mod
 USE suite_loop_mod
 USE suite_init_mod
 USE discus_setup_mod
@@ -93,6 +94,7 @@ SUBROUTINE suite_sigint
 !
 USE discus_exit_mod
 USE diffev_do_exit_mod
+USE exit_mod
 !
 IMPLICIT NONE
 CHARACTER(LEN=1) :: dummy

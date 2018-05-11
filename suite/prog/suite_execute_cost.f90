@@ -27,8 +27,11 @@ USE structur, ONLY: rese_cr
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 USE suite_setup_mod
+USE suite_set_sub_mod
 !
 USE appl_env_mod
+USe define_variable_mod
+USE do_set_mod
 USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
@@ -157,7 +160,8 @@ loop_par: DO i=1,parameters            ! Trial parameters for this kid
    ref_para(i) = trial_v(i)
    string = ' '
    string = 'real, '//trial_n(i)
-   CALL define_variable(string,LEN(string), IS_DIFFEV)
+   length = LEN(string)
+   CALL define_variable(string,length, IS_DIFFEV)
    DO j=1,var_num
       IF(var_name(j)==trial_n(i)) THEN
          var_val(j) = trial_v(i)

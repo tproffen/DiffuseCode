@@ -10,11 +10,13 @@ USE discus_loop_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 !
+USE blanks_mod
 USE appl_env_mod
 USE errlist_mod
 USE prompt_mod
 USE suite_init_mod
 USE suite_setup_mod
+USE suite_set_sub_mod
 USE charact_mod
 USE variable_mod
 !

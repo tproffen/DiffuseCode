@@ -16,14 +16,18 @@ USE kuplot_loop_mod
 USE suite_init_mod
 USE suite_parallel_mod
 USE suite_setup_mod
+USE suite_set_sub_mod
 !
 USE charact_mod 
 !USE allocate_appl
 !
+USE blanks_mod
 USE appl_env_mod
 USE doact_mod
+USE calc_expr_mod
 USE errlist_mod 
 USE class_macro_internal
+USE kdo_all_mod
 USE learn_mod 
 USE prompt_mod
 USE envir_mod
