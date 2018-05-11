@@ -1,5 +1,6 @@
 SUBROUTINE file_kdo(line, ilen)
 !
+      USE blanks_mod
       USE class_macro_internal
       USE envir_mod
       USE errlist_mod
@@ -249,8 +250,10 @@ SUBROUTINE file_kdo(line, ilen)
       SUBROUTINE build_macro_name(line, ilen, filename, MAXW, &
                  ianz, cpara, lpara, werte)
 !
+      USE build_name_mod
       USE envir_mod
       USE errlist_mod
+      USE get_params_mod
       USE prompt_mod
 !
       IMPLICIT NONE
@@ -424,9 +427,11 @@ SUBROUTINE file_kdo(line, ilen)
 !-
 !     Reads a single line from the current macro storage
 !+
+USE ber_params_mod
       USE charact_mod
       USE doact_mod
       USE errlist_mod
+      USE get_params_mod
       USE macro_mod
       USE class_macro_internal
       USE prompt_mod
@@ -436,16 +441,16 @@ SUBROUTINE file_kdo(line, ilen)
       CHARACTER ( * ) line
 !
       CHARACTER(1024) zeile
-      CHARACTER(1024) string
+      CHARACTER(LEN=1024), DIMENSION(1) :: string
       INTEGER ndol, nexcl, nquote1, nquote2
       INTEGER lpar
       INTEGER n_par
       INTEGER laenge
       INTEGER lx, nx, x, lll, sdol
       INTEGER il
-      INTEGER lstring
+      INTEGER, DIMENSION(1) :: lstring
       LOGICAL lnum
-      REAL r_par
+      REAL   , DIMENSION(1) :: r_par
 !
       INTEGER len_str
       LOGICAL str_comp
@@ -528,7 +533,7 @@ SUBROUTINE file_kdo(line, ilen)
          ENDIF
 !DBG        read(zeile(ndol+1:nx),*) n_par
          IF (ier_num.eq.0) then
-            n_par = nint (r_par)
+            n_par = nint (r_par(1))
                IF(n_par <= mac_tree_active%nparams) THEN
                lpar = mac_tree_active%lparams(n_par)
                line = ' '
@@ -736,6 +741,7 @@ END SUBROUTINE macro_close_mpi
 !+
       USE doact_mod
       USE errlist_mod
+      USE get_params_mod
       USE class_macro_internal
       USE macro_mod
       USE prompt_mod
@@ -814,6 +820,7 @@ SUBROUTINE test_macro(line,ilen, numpar)
 !
 !  Tests how many macro parameters a macro needs
 !
+USE ber_params_mod
 USE charact_mod
 USE errlist_mod
 USE macro_mod
@@ -829,17 +836,18 @@ INTEGER, PARAMETER ::  imc  = 63
 !
 !
 CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
-CHARACTER (LEN=1024)                    :: filename, string, zeile
+CHARACTER (LEN=1024)                    :: filename, zeile
+CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: string
 !
 INTEGER             , DIMENSION(1:MAXW) :: lpara
 INTEGER                                 :: ianz, length
 INTEGER                                 :: ndol, nexcl, nquote1,nquote2, nx, lx, x
-INTEGER                                 :: lstring
+INTEGER             , DIMENSION(1:MAXW) :: lstring
 LOGICAL                                 :: lnum
 INTEGER                                 :: iseof
 LOGICAL                                 :: fileda
 REAL                , DIMENSION(1:MAXW) :: werte
-REAL                                    :: r_par
+REAL                , DIMENSION(1:MAXW) :: r_par
 !
 numpar = 0                                 ! Assume no parameters are required
 CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)
@@ -847,16 +855,16 @@ CALL inquire_macro_name(fileda, filename)  ! We need to locate the macro on the 
 IF(fileda) THEN
    CALL oeffne(imc, filename, 'old')
    readcont: DO                            ! Read all lines from macro
-      READ(IMC,'(a)',IOSTAT=iseof) string
+      READ(IMC,'(a)',IOSTAT=iseof) string(1)
       IF ( IS_IOSTAT_END(iseof) ) EXIT readcont
-      length = LEN_TRIM(string)
+      length = LEN_TRIM(string(1))
 !
-      nocomment: IF (string(1:1) /= '#' .and. string (1:1) /=  '!' .and. length /= 0) THEN
+      nocomment: IF (string(1)(1:1) /= '#' .and. string(1) (1:1) /=  '!' .and. length /= 0) THEN
          ndol    = 0
          nexcl   = 0
          nquote1 = 0
          nquote2 = 0
-         zeile   = string
+         zeile   = string(1)
          nexcl   = INDEX(zeile (1:length) , '!', .TRUE.)   ! Find last '!'
          nquote1 = INDEX(zeile (1:length) , '"', .TRUE.)   ! Find last '"'
          IF(nexcl > 0 .AND. nexcl > nquote1) THEN
@@ -896,8 +904,8 @@ IF(fileda) THEN
 !     --Read parameter number and substitute rest of string
 !
             IF (nx.ge.ndol + 1) then
-               string = zeile (ndol + 1:nx)
-               lstring = nx - (ndol + 1) + 1
+               string(1) = zeile (ndol + 1:nx)
+               lstring(1) = nx - (ndol + 1) + 1
                CALL ber_params (1, string, lstring, r_par, 1)
             ELSE
                ier_num = - 12
@@ -905,7 +913,7 @@ IF(fileda) THEN
             ENDIF
 !DBG        read(zeile(ndol+1:nx),*) n_par
             IF (ier_num.eq.0) then
-               numpar = MAX(numpar, NINT(r_par))
+               numpar = MAX(numpar, NINT(r_par(1)))
             ENDIF
             IF(nx+1 > length) EXIT sub_param
             zeile = zeile(nx+1:length)

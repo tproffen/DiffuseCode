@@ -174,6 +174,7 @@
 !+                                                                      
 !     Changes working directory ..                                      
 !-                                                                      
+      USE build_name_mod
       USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
@@ -204,7 +205,8 @@
             WRITE ( *, 1000) cwd (1:ld) 
          ENDIF 
       ELSE 
-         CALL get_params (dir, ianz, cpara, lpara, maxw, - ld) 
+         ld = -ld
+         CALL get_params (dir, ianz, cpara, lpara, maxw, ld) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          dir = cpara (1) (1:lpara (1) ) 
          ld = lpara (1) 

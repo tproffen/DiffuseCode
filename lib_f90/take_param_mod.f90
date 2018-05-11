@@ -21,6 +21,7 @@ SUBROUTINE get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
 !  remaining parameters will not be calculated, and the routine returns
 !  the strings only.
 !
+USE ber_params_mod
 use charact_mod
 USE errlist_mod
 !

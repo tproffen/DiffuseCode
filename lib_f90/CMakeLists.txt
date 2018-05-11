@@ -1,15 +1,29 @@
 # Create the lib_90 library for the command language
 
 set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
-              appl_unix.f90 blockdat.f90 dkdo.f90 
-              errlist.f90 help.f90 jsu_readline.f90 learn.f90 macro.f90 
-              random.f90 random_state_mod.f90 sup.f90 set_sub_generic_mod.f90 variable_test.f90 
+              appl_unix.f90 blanks_mod.f90 berechne_mod.f90 
+              ber_params_mod.f90 blockdat.f90 
+              build_name_mod.f90
+              calc_expr_mod.f90  calc_intr_mod.f90 cmdline_args_mod.f90
+              get_params_mod.f90 count_col_mod.f90 
+              define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
+              do_execute_mod.f90
+              do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
+              do_string_alloc_mod.f90
+              do_variable_mod.f90 do_wait_mod.f90
+              errlist.f90 ersetz_mod.f90 exit_mod.f90
+              fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
+              length_string_mod.f90 macro.f90  operating_mod.f90
+              random.f90 random_state_mod.f90 sockets_mod.f90 str_comp_mod.f90 
+              string_convert_mod.f90
+              sup.f90 set_sub_generic_mod.f90 variable_test.f90 
               charact_mod.f90 debug_mod.f90 doact_mod.f90 doexec_mod.f90 
               doloop_mod.f90 envir_mod.f90 errlist_mod.f90 learn_mod.f90
               terminal_mod.f90 mpi_slave_mod.f90 dummy_loop_mpi.f90
               class_macro.f90 macro_internal.f90 macro_mod.f90 
               math_sup.f90 trig_degree_mod.f90
-              param_mod.f90 prompt_mod.f90 random_mod.f90 sorting.f90 take_param_mod.f90
+              param_mod.f90 prompt_mod.f90 random_mod.f90 
+              search_string_mod.f90 sorting.f90 take_param_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               memory.f90 )
 

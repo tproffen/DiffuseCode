@@ -167,8 +167,10 @@
 !+                                                                      
 !     Changes working directory ..                                      
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
       USE envir_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -195,7 +197,8 @@
             WRITE ( *, 1000) cwd (1:ld) 
          ENDIF 
       ELSE 
-         CALL get_params (dir, ianz, cpara, lpara, maxw, - ld) 
+         ld = -ld
+         CALL get_params (dir, ianz, cpara, lpara, maxw, ld) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
          dir = cpara (1) (1:lpara (1) ) 
          ld = lpara (1) 
@@ -249,6 +252,7 @@
 !+                                                                      
 !     Deletes a file                                                    
 !-                                                                      
+      USE blanks_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -286,6 +290,7 @@
 !+                                                                      
 !     Renames the file <nameold> to <namenew>                           
 !-                                                                      
+      USE blanks_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -567,7 +572,9 @@
 !*****7***************************************************************  
       SUBROUTINE do_fexist (zeile, lp, lout) 
 !                                                                       
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 

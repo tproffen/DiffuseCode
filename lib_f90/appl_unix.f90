@@ -13,6 +13,7 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       USE terminal_mod
       USE param_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
       LOGICAL, INTENT(IN) :: standalone
@@ -259,10 +260,12 @@ SUBROUTINE color_set_scheme (standalone, local_mpi_myid)
 !  Else we try a default color scheme according to the
 !  Operating system
 !
+USE blanks_mod
 USE terminal_mod
 USE envir_mod
 USE param_mod
 USE prompt_mod
+USE string_convert_mod
 !
 IMPLICIT NONE
 !
@@ -330,6 +333,7 @@ END SUBROUTINE color_set_scheme
 !
 SUBROUTINE color_set_fg(line,icolon,color_type , color_string, color_color)
 !
+USE ber_params_mod
 USE errlist_mod
 USE terminal_mod
 IMPLICIT NONE
@@ -381,6 +385,7 @@ END SUBROUTINE color_set_fg
 !
 SUBROUTINE color_set_bg(line,icolon,color_type , color_string, color_color)
 !
+USE ber_params_mod
 USE errlist_mod
 USE terminal_mod
 IMPLICIT NONE

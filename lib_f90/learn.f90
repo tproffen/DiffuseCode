@@ -5,7 +5,9 @@
 !     within a learning sequence or not ..                              
 !                                                                       
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE prompt_mod 
       IMPLICIT none 

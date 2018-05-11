@@ -17,6 +17,9 @@ SUBROUTINE do_hel (ein, length)
       USE errlist_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE string_convert_mod
+      USE sup_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -136,6 +139,7 @@ SUBROUTINE do_hel (ein, length)
 !     Prints out status line in online help                             
 !-                                                                      
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -176,6 +180,7 @@ SUBROUTINE do_hel (ein, length)
       USE envir_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -433,8 +438,10 @@ SUBROUTINE do_manual(line, length)
 !
 USE envir_mod 
 USE errlist_mod 
+USE get_params_mod
 USE prompt_mod 
 USE take_param_mod
+USE string_convert_mod
 !
 IMPLICIT NONE
 !
