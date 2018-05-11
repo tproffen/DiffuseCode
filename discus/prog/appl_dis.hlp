@@ -74,8 +74,14 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2018_May
 
+   surface
+   Corrected a BUG related to the location of cylindrical surfaces.
+
    read / import
    Improved handling of CIF files with atom names like "Ti4+"   
+   Improved handling of CIF files with atom lines that contain
+   just dots 
+   Ti Ti 0.00 0.00 0.00 . 1.0
 3  2018_April
 
    remove molecules

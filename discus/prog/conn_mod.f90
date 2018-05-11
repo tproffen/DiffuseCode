@@ -476,7 +476,10 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE crystal_mod 
       USE modify_mod
       USE variable_test
+      USE berechne_mod
+      USE ber_params_mod
       USE errlist_mod
+      USE get_params_mod
       USE take_param_mod
 !
       IMPLICIT none
@@ -525,7 +528,6 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
       LOGICAL :: str_comp
-      REAL    :: berechne
 !
       DATA oname  / 'first', 'molescope' /
       DATA loname /  5     ,  9          /
@@ -894,10 +896,16 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE crystal_mod 
       USE modify_mod
 !
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE learn_mod 
       USE class_macro_internal
+      USE get_params_mod
       USE prompt_mod 
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1496,7 +1504,9 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
    USE discus_config_mod 
    USE crystal_mod 
    USE chem_aver_mod
+   USE ber_params_mod
    USE errlist_mod 
+   USE get_params_mod
    USE param_mod 
 !
    IMPLICIT NONE

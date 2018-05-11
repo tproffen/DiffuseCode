@@ -14,7 +14,11 @@ CONTAINS
       USE modify_mod
       USE rmc_mod 
       USE quad_mod
+      USE ber_params_mod
       USE errlist_mod
+      USE get_params_mod
+      USE build_name_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !
@@ -287,7 +291,8 @@ CONTAINS
                         wwerte, maxw, .false.)                          
                         IF (ier_num.eq.0) then 
                            CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           CALL ber_params (1, cpara, lpara, mmdis, 1) 
+                           CALL ber_params (1, cpara, lpara, werte, 1) 
+                           mmdis = werte(1)
                            IF (ier_num.eq.0) then 
                               DO i = 1, iianz 
                               DO j = 1, jjanz 
@@ -446,7 +451,9 @@ CONTAINS
       USE modify_mod
       USE molecule_mod 
       USE rmc_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxww = 4 
@@ -546,6 +553,7 @@ CONTAINS
       USE discus_config_mod 
       USE rmc_mod 
       USE errlist_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -554,7 +562,7 @@ CONTAINS
 !     INTEGER           , INTENT(OUT) :: imode
 !     INTEGER           , INTENT(OUT) :: ilocal 
       INTEGER           , INTENT(IN ) :: ianz
-      CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(IN ) :: cpara  !(maxw) 
+      CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara  !(maxw) 
       INTEGER           , DIMENSION(1:MAXW), INTENT(IN ) :: lpara  !(maxw) 
       REAL              , DIMENSION(1:MAXW), INTENT(IN ) :: werte  !(maxw) 
 !
@@ -965,8 +973,12 @@ CONTAINS
       USE rmc_mod 
       USE save_menu
 !                                                                       
+      USE ber_params_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxw = 10 
@@ -1175,8 +1187,12 @@ CONTAINS
 !
       USE debug_mod 
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE build_name_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
        
 !                                                                       
