@@ -98,10 +98,13 @@ SUBROUTINE do_plot (lmenu)
 !+                                                                      
 !     This is the plotting routine for hardcopies                       
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -223,7 +226,8 @@ SUBROUTINE do_plot (lmenu)
          ENDIF 
 !                                                                       
          IF (ianz.gt.1) then 
-            CALL get_params (zeile, ianz, cpara, lpara, maxw, - lp) 
+            lp = -lp
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             prnbef = cpara (1) 
@@ -514,6 +518,7 @@ SUBROUTINE do_plot (lmenu)
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

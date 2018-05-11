@@ -6,6 +6,7 @@
 !     Mouse command ..                                                  
 !-                                                                      
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
       IMPLICIT none 
@@ -22,7 +23,8 @@
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, - lp) 
+      lp = -lp
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
       IF (ianz.eq.0) then 
@@ -498,7 +500,9 @@
 !                                                                       
 !     Allows the user to enter KUPLOT command                           
 !                                                                       
+      USE do_if_mod
       USE doact_mod 
+      USE do_execute_mod
       USE errlist_mod 
       USE class_macro_internal
       USE kuplot_config 

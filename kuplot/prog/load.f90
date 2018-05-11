@@ -6,7 +6,10 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
 !     Create new data set from given function                           
 !                                                                       
+      USE ber_params_mod
+      USE berechne_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -20,6 +23,7 @@ SUBROUTINE do_func (zeile, lp)
       CHARACTER(1024) cpara (maxw), cfkt, cdummy 
       INTEGER lp, lcfkt, lpara (maxw) 
       INTEGER ianz, i, ii, jj, kk, iref 
+      INTEGER :: length
       INTEGER maxpkt, maxzz 
       REAL xstart, xend, xdelta 
       REAL ystart, yend, ydelta 
@@ -28,7 +32,6 @@ SUBROUTINE do_func (zeile, lp)
       REAL xx, yy, f, xkk 
       LOGICAL ffit, str_comp 
 !                                                                       
-      REAL berechne 
 !                                                                       
 !------ space left for additional data set ?                            
 !                                                                       
@@ -103,8 +106,9 @@ SUBROUTINE do_func (zeile, lp)
             DO i = 1, ii 
             rpara (0) = x (offxy (iref - 1) + i) 
             cdummy = '('//cfkt (1:lcfkt) //')' 
+            length = lcfkt + 2
             x (offxy (iz - 1) + i) = rpara (0) 
-            y (offxy (iz - 1) + i) = berechne (cdummy, lcfkt + 2) 
+            y (offxy (iz - 1) + i) = berechne (cdummy, length)
             dx (offxy (iz - 1) + i) = 0.0 
             dy (offxy (iz - 1) + i) = 0.0 
             ENDDO 
@@ -146,8 +150,9 @@ SUBROUTINE do_func (zeile, lp)
                DO i = 1, ii 
                rpara (0) = xstart + (i - 1) * xdelta 
                cdummy = '('//cfkt (1:lcfkt) //')' 
+               length = lcfkt + 2
                x (offxy (iz - 1) + i) = rpara (0) 
-               y (offxy (iz - 1) + i) = berechne (cdummy, lcfkt + 2) 
+               y (offxy (iz - 1) + i) = berechne (cdummy, length)
                dx (offxy (iz - 1) + i) = 0.0 
                dy (offxy (iz - 1) + i) = 0.0 
                ENDDO 
@@ -205,9 +210,10 @@ SUBROUTINE do_func (zeile, lp)
                rpara (0) = xstart + (ii - 1) * xdelta 
                DO jj = 1, ny (iz) 
                cdummy = '('//cfkt (1:lcfkt) //')' 
+               length = lcfkt + 2
                rpara (1) = ystart + (jj - 1) * ydelta 
-               z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) = berechne ( &
-               cdummy, lcfkt + 2)                                       
+               z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) =  &
+                 berechne(cdummy, length)
                x (offxy (iz - 1) + ii) = rpara (0) 
                y (offxy (iz - 1) + jj) = rpara (1) 
                dx (offxy (iz - 1) + ii) = 0.0 
@@ -240,7 +246,9 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
 !     Allocate space for new data set                                   
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -348,12 +356,16 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
+      USE ber_params_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE times_mod 
       USE kuplot_config 
       USE kuplot_mod 
       USE take_param_mod
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1125,6 +1137,8 @@ SUBROUTINE do_func (zeile, lp)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+!
+      USE count_col_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1360,13 +1374,17 @@ SUBROUTINE do_func (zeile, lp)
 !+                                                                      
 !     Load SPEC scan files                                              
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
+!
+      INTEGER, PARAMETER :: MAXWW = 1
 !                                                                       
       INTEGER maxw, colm 
       INTEGER READ_TYPE_SC 
@@ -1379,6 +1397,9 @@ SUBROUTINE do_func (zeile, lp)
       PARAMETER (READ_TYPE_SM = 2) 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
+      CHARACTER (LEN=1024), DIMENSION(MAXWW) :: ccpara
+      INTEGER             , DIMENSION(MAXWW) :: llpara
+      REAL                , DIMENSION(MAXWW) :: wwerte
       CHARACTER(4096) mine, sinfo 
       CHARACTER(200) date, tit 
       CHARACTER(40) field (0:colm), input (colm) 
@@ -1546,9 +1567,12 @@ SUBROUTINE do_func (zeile, lp)
                   READ (field (6), * ) npoints 
                   READ (field (7), * ) ctime
                   janz   = 1
-                  linput = LEN_TRIM(input(1))
-                  CALL ber_params (janz, input, linput, werte, maxw) 
-                  i = NINT(werte(1))
+                  ccpara(1) = input(1)
+                  llpara(1) = LEN_TRIM(ccpara(1))
+                  CALL ber_params (janz, ccpara, llpara, wwerte, MAXWW)
+!                 linput = LEN_TRIM(input(1))
+!                 CALL ber_params (janz, input, linput, werte, maxw) 
+                  i = NINT(wwerte(1))
 !                  READ (input(1),*) i
                   IF(nscan == iscan) THEN
                      IF(npoints+1 < i) THEN
@@ -1632,11 +1656,11 @@ SUBROUTINE do_func (zeile, lp)
             field (icell (1) ) ) ) , icell (1)                          
             WRITE (output_io, 2100) 'y', field (icell (2) ) (1:len_str (&
             field (icell (2) ) ) ) , icell (2)                          
-            IF (icell (3) .ne.0) write (output_io, 2110) field (icell ( &
+            IF (icell (3) .ne.0) WRITE (output_io, 2110) field (icell ( &
             3) ) (1:len_str (field (icell (3) ) ) ), icell (3)          
-            IF (icell (4) .ne.0) write (output_io, 2120) 'dx', field (  &
+            IF (icell (4) .ne.0) WRITE (output_io, 2120) 'dx', field (  &
             icell (4) ) (1:len_str (field (icell (4) ) ) ) , icell (4)  
-            IF (icell (5) .ne.0) write (output_io, 2120) 'dy', field (  &
+            IF (icell (5) .ne.0) WRITE (output_io, 2120) 'dy', field (  &
             icell (5) ) (1:len_str (field (icell (5) ) ) ) , icell (5)  
             WRITE (output_io, * ) 
 !                                                                       
@@ -1933,9 +1957,9 @@ SUBROUTINE do_func (zeile, lp)
 !------ display result                                                  
 !                                                                       
       WRITE (output_io, 3000) scan (1:len_str (scan) ) 
-      IF (date (1:4) .ne.'none') write (output_io, 3010) date (1:       &
+      IF (date (1:4) .ne.'none') WRITE (output_io, 3010) date (1:       &
       len_str (date) )                                                  
-      IF (energy (1:4) .ne.'none') write (output_io, 3020) energy (1:   &
+      IF (energy (1:4) .ne.'none') WRITE (output_io, 3020) energy (1:   &
       len_str (energy) )                                                
 !                                                                       
       ii = 0 
@@ -1984,6 +2008,7 @@ SUBROUTINE do_func (zeile, lp)
 !+                                                                      
 !     Analyse scan string (number or number>number)                     
 !-                                                                      
+      USE ber_params_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
@@ -2054,16 +2079,13 @@ SUBROUTINE do_func (zeile, lp)
       ENDDO 
 !                                                                       
       READ (ifil, 9999, end = 20) mine 
-!write(*,*) ' POINT 1 ',mine(1:50)
       READ (mine (8:len_str (mine) ), * ) nchan, chana, chane 
 !                                                                       
       i = chana 
       READ (ifil, 9999, end = 20) mine 
-!write(*,*) ' POINT 2 ',mine(1:50)
 !                                                                       
       DO while (mine (1:1) .eq.'#') 
       READ (ifil, 9999, end = 20) mine 
-!write(*,*) ' POINT 3 ',mine(1:50)
       ENDDO 
       ibsl = index (mine, '\') 
       READ (mine (3:ibsl - 1), * , IOSTAT=iostatus) (counts (j), j = i, i + 15) 
@@ -2071,13 +2093,10 @@ SUBROUTINE do_func (zeile, lp)
       IF(IS_IOSTAT_EOR(iostatus) ) GOTO 20
       nlines = (chane-chana + 1) / 16 - 1 
       nrest = mod (chane-chana, 16) + 1 
-!write(*,*) ' POINT 4 ,Nlines, Nrest ', nlines, nrest 
-!read(*,*) mine
 !                                                                       
       DO nl = 1, nlines 
       READ (ifil, 9999, end = 20) mine 
          length = LEN(TRIM(mine))
-!if(mine(2:2).ne. '0') write(*,*) ' POINT 5 ',nl,' >>',mine(1:length)
       i = i + 16 
       ibsl = index (mine, '\') 
       IF(ibsl == 0) ibsl = length+1
@@ -2104,10 +2123,12 @@ SUBROUTINE do_func (zeile, lp)
 !+                                                                      
 !     Load GSAS files                                                   
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2386,7 +2407,7 @@ SUBROUTINE do_func (zeile, lp)
       yval (i) = yval (i) / i0 
       dyval (i) = dyval (i) / i0 
 !                                                                       
-      IF (dbg) write (91, * ) xval (i), i0 
+      IF (dbg) WRITE (91, * ) xval (i), i0 
       ENDDO 
 !                                                                       
       IF (dbg) close (91) 
@@ -2628,6 +2649,7 @@ SUBROUTINE do_func (zeile, lp)
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2659,7 +2681,7 @@ SUBROUTINE do_func (zeile, lp)
 !----- Check the file exists                                            
 !                                                                       
       INQUIRE (file = iname, exist = liparm) 
-      IF (.not.liparm) write (output_io, 1000) iname (1:len_str (iname) &
+      IF (.not.liparm) WRITE (output_io, 1000) iname (1:len_str (iname) &
       )                                                                 
 !                                                                       
  1000 FORMAT (' Instrument parameter file ',a,' not found ..') 
@@ -2819,7 +2841,7 @@ SUBROUTINE do_func (zeile, lp)
          yval (i) = scal * yval (i) 
          dyval (i) = sqrt (yval (i) ) 
          ENDDO 
-         IF (dbg) write ( * , 1300) 'STD' 
+         IF (dbg) WRITE ( * , 1300) 'STD' 
 !                                                                       
       ELSEIF (index (bank_line, 'ESD') .ne.0) then 
          read (ifil, '(10f8.0)') (yval (i) , dyval (i) , i = 1, nc)
@@ -2827,7 +2849,7 @@ SUBROUTINE do_func (zeile, lp)
          yval (i) = scal * yval (i) 
          dyval (i) = scal * dyval (i) 
          ENDDO 
-         IF (dbg) write ( * , 1300) 'ESD' 
+         IF (dbg) WRITE ( * , 1300) 'ESD' 
 !                                                                       
       ELSEIF (index (bank_line, 'FXYE') .ne.0) then 
          DO i = 1, nc 
@@ -2835,10 +2857,10 @@ SUBROUTINE do_func (zeile, lp)
          yval (i) = scal * yval (i) 
          dyval (i) = scal * dyval (i) 
          ENDDO 
-         IF (dbg) write ( * , 1300) 'FXYE' 
+         IF (dbg) WRITE ( * , 1300) 'FXYE' 
 !                                                                       
       ELSE 
-         IF (dbg) write ( * , 1300) '(default) STD' 
+         IF (dbg) WRITE ( * , 1300) '(default) STD' 
          READ (ifil, '(10(i2,f6.0))') (idummy, yval (i) , i = 1, nc) 
          DO i = 1, nc 
          yval (i) = scal * yval (i) 
@@ -2900,7 +2922,7 @@ SUBROUTINE do_func (zeile, lp)
                WRITE ( *, 1400) it_no, it_nval, it_nrec 
                WRITE ( *, 1500) clckwdt 
             ENDIF 
-            IF (it_no.ne.i_tmap.and.dbg) write ( *, 1600) 
+            IF (it_no.ne.i_tmap.and.dbg) WRITE ( *, 1600) 
          ELSE 
             ier_num = - 49 
             ier_typ = ER_APPL 
@@ -3111,7 +3133,7 @@ SUBROUTINE do_func (zeile, lp)
    20 CONTINUE 
 !                                                                       
       gsas_no_banks = ibank 
-      IF (dbg) write ( *, 1000) ibank 
+      IF (dbg) WRITE ( *, 1000) ibank 
 !                                                                       
       REWIND (ifil) 
       RETURN 
@@ -3132,6 +3154,8 @@ SUBROUTINE do_func (zeile, lp)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+!
+      USE count_col_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3206,7 +3230,7 @@ SUBROUTINE do_func (zeile, lp)
          ENDIF 
       ENDIF 
 !                                                                       
-      IF (iski.gt.0) write (output_io, 1010) iski 
+      IF (iski.gt.0) WRITE (output_io, 1010) iski 
       WRITE (output_io, 1000) iwex, iwey, iwdx, iwdy 
       IF (iwex.le.0.or.iwex.gt.nval.or.iwey.le.0.or.iwey.gt.nval.or.iwdx&
      &.gt.nval.or.iwdy.gt.nval) then                                    

@@ -2,6 +2,7 @@
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter. Modified version for KUPLOT.             
 !+                                                                      
+      USE blanks_mod
       USE errlist_mod 
       USE param_mod 
       USE kuplot_config 

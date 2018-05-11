@@ -1,25 +1,38 @@
+!MODULE kuplot_fit_mod
+!
+!CONTAINS
 !*****7*****************************************************************
 !     This sublevel includes all commands and functions for the         
 !     least square fits in KUPLOT.                                      
 !*****7*****************************************************************
-      SUBROUTINE do_fit (zei, lp) 
+SUBROUTINE do_fit (zei, lp)! , previous) 
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
+      USE sup_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
 !                                                                       
-      CHARACTER ( * ) zei 
+ CHARACTER (LEN=*), INTENT(INOUT) :: zei 
+ INTEGER          , INTENT(INOUT) :: lp
+!CHARACTER (LEN= * ), DIMENSION(3), INTENT(INOUT) :: previous
+!
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) line, zeile 
       CHARACTER(LEN=40         ) :: orig_prompt 
@@ -27,7 +40,7 @@
       CHARACTER(4) befehl 
       CHARACTER(LEN=1) :: empty 
       INTEGER lpara (maxw) 
-      INTEGER ll, lp 
+      INTEGER ll
       INTEGER ianz, indxg, lbef 
       INTEGER maxpkt, maxzz 
       REAL werte (maxw) 
@@ -35,6 +48,21 @@
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
+!
+!---- Check for a 'finished' LOW level macro
+!
+!write(*,*) ' IN FIT ZEI : ', zei(1:lp), ' ', lp, &
+!      str_comp(zei, 'finished', 8, lp, 8) 
+!write(*,*) ' PREV ', previous(1)(1:8)
+!write(*,*) ' PREV ', previous(2)(1:8),  &
+!      str_comp(previous(2), 'run', 3, LEN_TRIM(previous(2)), 3)
+!write(*,*) ' PREV ', previous(3)(1:8)
+!IF(str_comp(zei, 'finished', 8, lp, 8) ) THEN
+!   IF(str_comp(previous(2), 'run', 3, LEN_TRIM(previous(2)), 3) ) THEN
+!write(*,*) ' IN FIT RETURNING TO RUN', ikfit, ikfirst(ikfit), lni (ikfit) 
+!      return
+!   ENDIF
+!ENDIF
 !                                                                       
       empty = ' '
       CALL no_error 
@@ -413,9 +441,12 @@
 !+                                                                      
 !     Set theory function                                               
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -545,9 +576,12 @@
 !     fitparameter und einstellungen als macro speichern                
 !-                                                                      
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+!
+      USE build_name_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -673,9 +707,12 @@
 !+                                                                      
 !     aendern der wichtung                                              
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -729,10 +766,13 @@
 !+                                                                      
 !     aendern der fit-parameter                                         
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1220,6 +1260,7 @@
 !*****7*****************************************************************
       SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
+      USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1232,9 +1273,8 @@
       CHARACTER(1024) cdummy 
       REAL dummy, werte (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz, ip 
+      INTEGER ianz, ip , length
 !                                                                       
-      REAL berechne 
 !                                                                       
       IF (ianz.eq.2) then 
          ip = nint (werte (1) ) 
@@ -1248,7 +1288,8 @@
          fit_func = cpara (2) (1:lpara (2) ) 
          fit_lfunc = lpara (2) 
          cdummy = '('//fit_func (1:fit_lfunc) //')' 
-         dummy = berechne (cdummy, fit_lfunc + 2) 
+         length = fit_lfunc + 2
+         dummy = berechne (cdummy, length)
 !                                                                       
       ELSE 
          ier_num = - 6 
@@ -1279,6 +1320,7 @@
 !***********************************************************************
       SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
+      USE  berechne_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1289,8 +1331,9 @@
       REAL xx, f, df (maxpara) 
       REAL pb, h, err 
       INTEGER i, ix, iy, ind 
+      INTEGER :: length
 !                                                                       
-      REAL berechne, dfridr 
+      REAL dfridr 
 !                                                                       
       DO ind = 1, maxpara 
       df (ind) = 0.0 
@@ -1308,7 +1351,8 @@
       ENDIF 
 !                                                                       
       cdummy = '('//fit_func (1:fit_lfunc) //')' 
-      f = berechne (cdummy, fit_lfunc + 2) 
+      length = fit_lfunc + 2
+      f = berechne (cdummy, length)
 !                                                                       
 !-------ableitungen                                                     
 !                                                                       
@@ -1329,18 +1373,21 @@
 !*****7*****************************************************************
       REAL function func (xx) 
 !                                                                       
+      USE  berechne_mod
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
       IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) cdummy 
-      REAL xx, berechne 
+      CHARACTER(LEN=1024) :: cdummy 
+      INTEGER :: length
+      REAL xx
 !                                                                       
       p (np1) = xx 
       cdummy = '('//fit_func (1:fit_lfunc) //')' 
-      func = berechne (cdummy, fit_lfunc + 2) 
+      length = fit_lfunc + 2
+      func = berechne (cdummy, length)
 !                                                                       
       END FUNCTION func                             
 !*****7*****************************************************************
@@ -3181,3 +3228,5 @@
       ENDDO 
       RETURN 
       END FUNCTION dfridr                           
+!
+!END MODULE kuplot_fit_mod

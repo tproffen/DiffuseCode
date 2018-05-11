@@ -7,7 +7,10 @@
 !                                                                       
 !     Main show menu                                                    
 !                                                                       
+      USE ber_params_mod
+      USE do_show_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 

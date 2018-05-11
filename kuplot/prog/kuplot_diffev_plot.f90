@@ -21,6 +21,7 @@ CONTAINS
 SUBROUTINE do_diffev_plot(line, length)
 !
 USE errlist_mod
+USE get_params_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -111,7 +112,9 @@ SUBROUTINE kpara(MAXW, cpara, lpara, ianz, ipartial)
 !
 USE kuplot_config
 USE kuplot_mod
+USE ber_params_mod
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !
@@ -302,14 +305,16 @@ SUBROUTINE kpar_par(MAXW, cpara, lpara, ianz, ipartial)
 !
 USE kuplot_config
 USE kuplot_mod
+USE ber_params_mod
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !
 INTEGER                            , INTENT(IN) :: MAXW
-CHARACTER(LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
-INTEGER         , DIMENSION(1:MAXW), INTENT(IN) :: lpara
-INTEGER                            , INTENT(IN) :: ianz
+CHARACTER(LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+INTEGER         , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
+INTEGER                            , INTENT(INOUT) :: ianz
 INTEGER                            , INTENT(IN) :: ipartial
 !
 CHARACTER (LEN=1024) :: infile0

@@ -9,7 +9,10 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal
       USE mpi_slave_mod
+      USE do_if_mod
       USE prompt_mod 
+      USE sup_mod
+!
       IMPLICIT none 
 !*****7*****************************************************************
 !       This is the universal plot program KUPLOT. It sets up most      
@@ -18,6 +21,7 @@ CONTAINS
 !                                                                       
 !                                                                       
       CHARACTER(1024) line, zeile 
+!CHARACTER(LEN=1024), DIMENSION(3) :: previous = ' '
       CHARACTER(4) befehl 
       LOGICAL lend 
       INTEGER lbef, lp, ll 
@@ -37,7 +41,7 @@ CONTAINS
          IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') then 
             CALL do_loop (line, lend, ll) !, kuplot_mache_kdo) 
          ELSE 
-            CALL kuplot_mache_kdo (line, lend, ll) 
+            CALL kuplot_mache_kdo (line, lend, ll) !, previous) 
          ENDIF 
          ENDIF 
       ENDIF ok

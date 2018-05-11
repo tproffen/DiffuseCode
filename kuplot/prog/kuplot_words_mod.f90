@@ -102,6 +102,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+      USE string_convert_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw
@@ -169,6 +170,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+      USE string_convert_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw
@@ -240,6 +242,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+      USE string_convert_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw
@@ -278,6 +281,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+      USE string_convert_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw
@@ -310,6 +314,7 @@ CONTAINS
 !  REPLACE the string in cpara by the appropriate number 
 !  If a word is not recognized no error is specified as its likely 
 !  a numerical value
+      USE string_convert_mod
    IMPLICIT NONE
 !
    INTEGER                           , INTENT(IN)    :: maxw

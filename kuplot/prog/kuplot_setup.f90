@@ -10,13 +10,16 @@ CONTAINS
       USE lib_f90_default_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE cmdline_args_mod
       USE appl_env_mod
+      USE random_state_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(IN) :: standalone
 !
       INTEGER, PARAMETER  :: np = 1
-      REAL, DIMENSION(np) :: werte = 0.0
+!     REAL, DIMENSION(np) :: werte = 0.0
+      INTEGER, DIMENSION(np) :: iwerte = 0
 !                                                                       
       include'date.inc' 
 !                                                                       
@@ -28,7 +31,8 @@ CONTAINS
       prompt_status = PROMPT_ON 
       prompt_status_old = PROMPT_ON 
 !                                                                       
-      CALL ini_ran (np, werte) 
+!     CALL ini_ran (np, werte) 
+      CALL ini_ran_ix (np, iwerte) 
 !                                                                       
 !     Call initialization routines                                      
 !                                                                       

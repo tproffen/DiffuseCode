@@ -5,7 +5,9 @@
 !+                                                                      
 !     sort xy file after increasing x values                            
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -100,9 +102,12 @@
 !     given data set. Range in Fourier space is determined              
 !     by sample width in real space.                                    
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -428,10 +433,13 @@
 !+                                                                      
 !     Smooth data set                                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -537,7 +545,9 @@
 !+                                                                      
 !     Compute integral for 2d/3d data sets                              
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
@@ -677,7 +687,9 @@
 !+                                                                      
 !     calculates mean and standard deviation                            
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
@@ -847,7 +859,10 @@
 !+                                                                      
 !     Search for maxima in data set                                     
 !-                                                                      
+      USE ber_params_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 

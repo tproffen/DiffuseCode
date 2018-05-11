@@ -7,9 +7,12 @@
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -267,7 +270,9 @@
 !     This routine allows the user to exclude data regions              
 !     and replace by linear interpolation of end points.                
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -400,10 +405,13 @@
 !+                                                                      
 !     Arithmetic between complete data sets                             
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -631,7 +639,9 @@
 !+                                                                      
 !     Merge different data sets                                         
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -775,7 +785,9 @@
 !+                                                                      
 !     Rebin data to given grid (only 2D - otherwise save/read GNU)      
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -918,7 +930,9 @@
 !+                                                                      
 !     Interpolate data set <ik> on grid of <ig> using spline            
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -1017,7 +1031,9 @@
 !+                                                                      
 !     Convoluting two data sets                                         
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -1120,7 +1136,9 @@
 !+                                                                      
 !     Calculate n-th derivative of given data set.                      
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE prompt_mod 
@@ -1256,11 +1274,14 @@
 !     Calculates scaling and offset to give best match between          
 !     two data sets.                                                    
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1467,7 +1488,9 @@
 !     Calculates fraction to match x*data_1 + (1-x)*data_2              
 !     to given data set.                                                
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -1592,12 +1615,15 @@
 !                                                                       
 !*****7*****************************************************************
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
       USE take_param_mod
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       

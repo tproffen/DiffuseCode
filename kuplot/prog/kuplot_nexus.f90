@@ -44,7 +44,9 @@ CONTAINS
 !     include'nexus.inc' 
       USE prompt_mod 
 !
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT NONE
 !
 !                                                                       
@@ -204,7 +206,10 @@ CONTAINS
 !                                                                       
 !     include'napif.inc' 
 !     include'nexus.inc' 
+      USE ber_params_mod
+      USE blanks_mod
       USE errlist_mod 
+      USE get_params_mod
 !
       IMPLICIT NONE
 !                                                                       

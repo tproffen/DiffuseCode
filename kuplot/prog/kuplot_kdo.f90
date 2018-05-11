@@ -2,22 +2,28 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !*****7*****************************************************************
-SUBROUTINE kuplot_mache_kdo (line, lend, length) 
+SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous) 
 !                                                                       
 !     Main menu for KUPLOT                                              
 !                                                                       
       USE nexus_kuplot
       USE kuplot_diffev_mod
 !
+      USE ber_params_mod
+      USE blanks_mod
+      USE calc_expr_mod
       USE doact_mod
       USE errlist_mod 
+      USE get_params_mod
       USE class_macro_internal
+      USE kdo_all_mod
       USE learn_mod 
       USE prompt_mod 
       USE param_mod 
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+!     USE kuplot_fit_mod
       USE set_sub_generic_mod
       USE variable_mod
 !
@@ -26,12 +32,14 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       CHARACTER (LEN= * ), INTENT(INOUT) :: line 
       LOGICAL            , INTENT(OUT)   :: lend
       INTEGER            , INTENT(INOUT) :: length 
+!     CHARACTER (LEN= * ), DIMENSION(3), INTENT(INOUT) :: previous
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 1) 
 !                                                                       
       CHARACTER(1024) zei
       CHARACTER(1024) cpara (maxw) 
+!     CHARACTER(LEN=1024), DIMENSION(3) :: blank = ' '
       CHARACTER(4) bef 
       REAL, DIMENSION(MAXW) :: werte
       REAL dummy 
@@ -58,7 +66,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
       indxb = index (line, ' ')       ! find a blank
       IF(indxb==0) indxb = length + 1
       indxb = MIN(indxb,indxt)
-      lbef = min (indxb - 1, 4) 
+      lbef = min (indxb - 1, 4)
       bef = line (1:lbef) 
 !                                                                       
 !     command parameters start at the first character                   
@@ -103,6 +111,17 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
                ier_num = - 13 
                ier_typ = ER_MAC 
             ENDIF 
+!
+!------ FINISHED AN LOW level Macro return to specified place
+!
+!        ELSEIF(str_comp(bef, 'finished', 8, lbef, 8) ) THEN
+!           IF(str_comp (previous(1), 'fit', 3, LEN_TRIM(previous), 3) ) THEN 
+!              zei = bef            ! flag down the 'finished' command
+!              lc  = LEN_TRIM(bef)
+!           write(*,*) ' RETURNED TO FIT  with ', zei(1:lc)
+!              CALL do_fit (zei, lc, previous) 
+!           ENDIF
+!           previous(:) = ' '
 !                                                                       
 !------ Terminate KUPLOT 'exit'                                         
 !                                                                       
@@ -181,8 +200,11 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length)
 !                                                                       
 !-------  Enter fit sublevel                                            
 !                                                                       
-         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'fit', 3, lbef, 3) ) then 
-            CALL do_fit (zei, lc) 
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. &
+                 str_comp (bef, 'fit', 3, lbef, 3)       ) THEN
+            CALL do_fit (zei, lc) !, previous) 
+!           previous(1) = 'fit 1'
+!           previous(2) = 'run'
 !                                                                       
 !-------  Plot filenames on plot                                        
 !                                                                       

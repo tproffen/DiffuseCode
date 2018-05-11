@@ -6,7 +6,9 @@
 !+                                                                      
 !     Sets active window for plotting                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -53,7 +55,9 @@
 !+                                                                      
 !     Sets active frame for input parameters                            
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -98,7 +102,9 @@
 !+                                                                      
 !     Set backgound color for frames                                    
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -150,7 +156,9 @@
 !+                                                                      
 !     Copy plot parameters of one frame to other frame(s)               
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -196,7 +204,9 @@
 !+                                                                      
 !     Sets frame sizes and locations                                    
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -250,9 +260,13 @@
 !     Set datasets to be displayed in each frame                        
 !     or give textfile for text frames.                                 
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+!
+      USE build_name_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -314,7 +328,9 @@
 !+                                                                      
 !     Set mumber of frames to be used                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 

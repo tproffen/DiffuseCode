@@ -4,6 +4,7 @@
 !       Things to do when KUPLOT exits                                  
 !                                                                       
       USE errlist_mod 
+      USE exit_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -27,6 +28,7 @@
 !     This subroutine calls all KUPLOT specific emergency handlers
 !     which can also be called from the SUITE
 !
+      USE exit_mod
       IMPLICIT NONE
       CHARACTER(LEN=1) :: dummy
       WRITE(*,*)

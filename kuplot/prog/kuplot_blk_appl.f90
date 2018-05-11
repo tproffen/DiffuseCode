@@ -324,7 +324,9 @@
 !+                                                                      
 !     Reading defaults                                                  
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -366,7 +368,9 @@
 !+                                                                      
 !     Writing defaults                                                  
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       

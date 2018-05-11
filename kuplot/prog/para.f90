@@ -6,7 +6,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets option value in integer arrays(nia:nie)                      
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
@@ -64,7 +66,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets option value in integer arrays(nia,nib)                      
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
@@ -125,7 +129,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets option value in integer arrays                               
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -160,7 +166,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets strings for title                                            
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -176,7 +184,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       INTEGER lpara (maxw), ianz 
       REAL werte (maxw) 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, - lp) 
+      lp = -lp
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
       IF (ianz.eq.0) then 
@@ -193,7 +202,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets strings for axes                                             
 !-                                                                      
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -210,7 +221,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       REAL werte (maxw) 
       LOGICAL lflag, str_comp 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, - lp) 
+      lp = -lp
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
 !                                                                       
       IF (ianz.eq.0) then 
@@ -231,7 +243,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets options for filling                                          
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -306,7 +320,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets options for bond drawings                                    
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
@@ -372,7 +388,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets linewidth for given data set                                 
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -417,7 +435,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets type of box & axis for active frame                          
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -462,9 +482,12 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets size of markers                                              
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+      USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -532,7 +555,10 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets possible caption for given data set                          
 !-                                                                      
+      USE ber_params_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -567,8 +593,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
                ilegend (iwin, iframe, ik) = 0 
                info_orig (iwin, iframe, 1) = - 9999. 
             ELSE 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw,        &
-               - lp)                                                    
+               lp = -lp
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
@@ -598,7 +624,10 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Sets possible annotations                                         
 !-                                                                      
+      USE ber_params_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -629,8 +658,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
             IF (str_comp (cpara (2) , 'OFF', 3, lpara (2) , 3) ) then 
                antext (iwin, iframe, ik) = 'OFF' 
             ELSE 
-               CALL get_params (zeile, ianz, cpara, lpara, maxw,        &
-               - lp)                                                    
+               lp = -lp
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp)
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
                IF (ier_num.ne.0) return 
@@ -696,7 +725,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Command buff ..                                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -739,7 +770,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Command skal ..                                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -798,7 +831,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Command mark ..                                                   
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -851,7 +886,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Setting of contour line intervalls                                
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -900,7 +937,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Setting of contour line intervalls                                
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -979,7 +1018,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !+                                                                      
 !     Setting of font size, type and color                              
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
@@ -1116,6 +1157,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !     Reset KUPLOT                                                      
 !-                                                                      
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 

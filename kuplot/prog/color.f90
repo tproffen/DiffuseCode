@@ -6,7 +6,9 @@
 !+                                                                      
 !     Set colours for background & pens                                 
 !-                                                                      
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
 !                                                                       
@@ -59,8 +61,11 @@
 !     Set colour map                                                    
 !                                                                       
       USE errlist_mod 
+      USE get_params_mod
       USE kuplot_config 
-      USE kuplot_mod 
+      USE kuplot_mod
+! 
+      USE build_name_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
