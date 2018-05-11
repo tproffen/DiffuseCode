@@ -13,8 +13,10 @@ USE learn_mod
 USE class_macro_internal 
 USE mpi_slave_mod
 USE diffev_random
+USE do_if_mod
 USE prompt_mod 
 USE set_sub_generic_mod
+USE sup_mod
 !                                                                       
 IMPLICIT none 
 !

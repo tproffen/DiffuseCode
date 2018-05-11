@@ -13,6 +13,7 @@ CONTAINS
    USE param_mod
    USE prompt_mod
    USE random_state_mod
+   USE define_variable_mod
    USE set_sub_generic_mod
    USE doexec_mod
    USE variable_mod
@@ -27,6 +28,7 @@ CONTAINS
    CHARACTER(LEN= 9+LEN(pop_name))   :: string
    INTEGER               :: send_direc_l  ! working directory length
    INTEGER               :: lzeile        ! working directory length
+   INTEGER               :: length        ! dummy length
    INTEGER               :: nseeds        ! number of seeds for random nuber generator
    INTEGER, DIMENSION(64):: seeds ! Actual seeds
 !  INTEGER, DIMENSION(12)             :: seeds ! Actual seeds
@@ -76,7 +78,8 @@ CONTAINS
          ref_para               (      j) = pop_t(j,run_mpi_senddata%kid) ! Takes value for kid
          string = ' '
          string = 'real, '//pop_name(j)
-         CALL define_variable(string,LEN(string), IS_DIFFEV)
+         length = LEN(string)
+         CALL define_variable(string,length, IS_DIFFEV)
          loop_par: DO k=1,var_num
             IF(var_name(k)==pop_name(j)) THEN
                var_val(k) = run_mpi_senddata%trial_values(j)

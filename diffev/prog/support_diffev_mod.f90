@@ -13,6 +13,8 @@ CONTAINS
 !
 !    builds a filename of type "base.0000"
 !
+   USE build_name_mod
+!
    IMPLICIT none 
 !                                                                       
    INTEGER, PARAMETER             :: maxw = 2

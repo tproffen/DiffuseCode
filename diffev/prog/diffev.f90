@@ -47,6 +47,7 @@ SUBROUTINE diffev_sigint
 !     which can also be called from the SUITE
 !
 USE diffev_do_exit_mod
+USE exit_mod
 IMPLICIT NONE
 CHARACTER(LEN=1) :: dummy
 WRITE(*,*)

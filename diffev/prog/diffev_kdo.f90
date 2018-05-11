@@ -22,7 +22,14 @@ USE diffev_show_mod
 USE diffev_refine
 USE diffev_random
 !
+USE ber_params_mod
+USE blanks_mod
+USE build_name_mod
+use calc_expr_mod
+USE define_variable_mod
 USE errlist_mod 
+USE get_params_mod
+USE kdo_all_mod
 USE learn_mod 
 USE macro_mod
 USE prompt_mod

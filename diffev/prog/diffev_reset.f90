@@ -11,6 +11,7 @@ USE diffev_allocate_appl
 USE diffev_blk_appl
 USE population
 USE diff_evol
+USE do_variable_mod
 !
 IMPLICIT NONE
 !

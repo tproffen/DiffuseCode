@@ -15,6 +15,8 @@ SUBROUTINE diffev_do_show (line, lp)
 USE diffev_allocate_appl
 !
 USE errlist_mod 
+USE do_show_mod
+USE get_params_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -60,6 +62,7 @@ SUBROUTINE diffev_show_param(ianz, cpara, lpara, MAXW)
 !
 USE population
 !
+USE ber_params_mod
 USE errlist_mod
 USE prompt_mod
 !

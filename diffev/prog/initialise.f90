@@ -196,6 +196,8 @@ CONTAINS
    USE population
    USE constraint
    USE create_trial_mod
+!  USE do_if_mod
+   USE do_execute_mod
    USE random_mod
 !
    IMPLICIT none
@@ -217,7 +219,6 @@ CONTAINS
 !
    INTEGER, EXTERNAL    :: len_str
 !
-   LOGICAL, EXTERNAL    :: if_test 
    REAL   , EXTERNAL    :: ran1 
 !
    DO j = 1, pop_c 

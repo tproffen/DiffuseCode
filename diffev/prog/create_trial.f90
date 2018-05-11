@@ -87,8 +87,10 @@ USE constraint
 USE diff_evol
 USE population
 USE triple_perm
+!USE do_if_mod
 USE random_mod
 USE errlist_mod 
+USE do_execute_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -106,7 +108,6 @@ REAL                           :: shift
 REAL                           :: value 
 REAL                           :: w 
 !                                                                       
-LOGICAL                        :: if_test 
 REAL                           :: ran1 
 REAL                           :: gasdev 
 !                                                                       

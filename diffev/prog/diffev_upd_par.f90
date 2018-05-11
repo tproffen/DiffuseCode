@@ -7,6 +7,7 @@ SUBROUTINE diffev_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !+                                                                      
 USE diff_evol
 USE population
+USE blanks_mod
 USE errlist_mod 
 USE param_mod 
 !
@@ -838,8 +839,13 @@ SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !     Currently empty, needed for formal reasons.
 !+                                                                      
 !
+USE berechne_mod
+USE calc_expr_mod
+USE do_read_number_mod
+USE ersetz_mod
 USE population
 USE errlist_mod 
+USE get_params_mod
 USE param_mod 
 IMPLICIT none 
 !                                                                       
@@ -862,7 +868,6 @@ INTEGER              :: ianz
 INTEGER              :: i, j, lcomm
 !                                                                       
 INTEGER              :: length_com 
-REAL                 :: do_read_number
 !                                                                       
 lcomm = length_com (string(1:lp), ikl) 
 ier_num = - 1 

@@ -11,7 +11,10 @@ USE create_trial_mod
 USE compare
 USE initialise
 !
+USE ber_params_mod
+USE define_variable_mod
 USE errlist_mod
+USE get_params_mod
 USE lib_f90_allocate_mod
 USE take_param_mod
 USE variable_mod
