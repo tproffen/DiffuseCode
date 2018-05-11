@@ -39,9 +39,13 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE discus_init_mod
       USE discus_export
 !
+      USE blanks_mod
+      USE calc_expr_mod
       USE doact_mod
       USE errlist_mod 
+      USE get_params_mod
       USE class_macro_internal
+      USE kdo_all_mod
       USE learn_mod 
       USE prompt_mod
       USE variable_mod
@@ -428,6 +432,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !+                                                                      
       USE unitcell_mod 
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       

@@ -12,6 +12,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       USE mole_env_mod 
       USE pdf_mod
       USE wyckoff_mod
+      USE blanks_mod
       USE errlist_mod 
       USE param_mod 
       USE random_mod 
@@ -882,12 +883,17 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !     intrinsic function that references crystallographic values        
 !     is found in this subroutine.                                      
 !+                                                                      
+      USE berechne_mod
       USE discus_config_mod 
       USE crystal_mod 
+      USE do_read_number_mod
+      USE ersetz_mod
       USE atom_env_mod 
       USE metric_mod
       USE molecule_mod 
+      USE calc_expr_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       IMPLICIT none 
 !                                                                       
@@ -896,7 +902,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       INTEGER,           INTENT(IN)    :: ikl
       INTEGER,           INTENT(IN)    :: iklz
       INTEGER,           INTENT(IN)    :: laenge
-      INTEGER,           INTENT(IN)    :: lp
+      INTEGER,           INTENT(INOUT) :: lp
       REAL   ,           INTENT(OUT)   :: ww
        
 !                                                                       
@@ -913,7 +919,6 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       LOGICAL str_comp 
 !     REAL do_blen, do_bang 
 !     REAL skalpro 
-      REAL do_read_number 
 !                                                                       
       DATA unitmat / 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 / 
 !                                                                       

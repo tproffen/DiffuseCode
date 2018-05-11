@@ -13,7 +13,10 @@ CONTAINS
       USE crystal_mod 
       USE conn_mod
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE do_show_mod
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -363,6 +366,7 @@ CONTAINS
       USE atom_name
       USE modify_mod
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -463,6 +467,7 @@ CONTAINS
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
        
 !                                                                       
@@ -514,6 +519,7 @@ CONTAINS
       USE molecule_mod 
       USE mole_env_mod 
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 

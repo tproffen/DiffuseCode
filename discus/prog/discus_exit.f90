@@ -5,6 +5,7 @@ CONTAINS
 !+                                                                      
 !           Clean exit from the program DISCUS ;-)                      
 !-                                                                      
+      USE exit_mod
       USE prompt_mod 
 !                                                                       
       IMPLICIT none 

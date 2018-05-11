@@ -7,6 +7,7 @@ SUBROUTINE do_export(line, lp)
 ! Exports a structure in different formats
 !
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !
@@ -62,6 +63,7 @@ USE structur
 USE save_menu, ONLY: save_internal
 USE wyckoff_mod
 !
+USE build_name_mod
 USE errlist_mod
 USE param_mod
 !

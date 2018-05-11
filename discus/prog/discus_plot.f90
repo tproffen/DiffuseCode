@@ -18,11 +18,18 @@ CONTAINS
       USE update_cr_dim_mod
       USE trafo_mod
 !
+      USE ber_params_mod
+      USE build_name_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_wait_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
+      USE string_convert_mod
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1963,6 +1970,7 @@ CONTAINS
       USE discus_plot_mod 
       USE discus_plot_init_mod
       USE trans_sup_mod
+      USE blanks_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       

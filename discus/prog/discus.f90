@@ -27,6 +27,7 @@ SUBROUTINE discus_sigint
 !     which can also be called from the SUITE
 !
 USE discus_exit_mod
+USE exit_mod
 IMPLICIT NONE
 CHARACTER(LEN=1) :: dummy
 WRITE(*,*)

@@ -15,11 +15,13 @@ MODULE discus_allocate_appl_mod
 !
     SUBROUTINE discus_do_allocate_appl(zeile,lcomm)
 !
+    USE ber_params_mod
+    USE get_params_mod
     IMPLICIT NONE
 !
 !
     CHARACTER (LEN=*), INTENT(IN)            :: zeile
-    INTEGER          , INTENT(IN)            :: lcomm
+    INTEGER          , INTENT(INOUT)         :: lcomm
 !
     INTEGER , PARAMETER                      :: MAXW=10
     CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
@@ -61,11 +63,12 @@ MODULE discus_allocate_appl_mod
 !
     SUBROUTINE discus_do_deallocate_appl(zeile,lcomm)
 !
+       USE get_params_mod
        IMPLICIT NONE
 !
 !
        CHARACTER (LEN=*), INTENT(IN)            :: zeile
-       INTEGER          , INTENT(IN)            :: lcomm
+       INTEGER          , INTENT(INOUT)         :: lcomm
 !
        INTEGER , PARAMETER                      :: MAXW=10
        CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara

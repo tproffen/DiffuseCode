@@ -11,16 +11,19 @@ SUBROUTINE discus_setup (standalone)
       USE discus_init_mod
 !
       USE appl_env_mod
+      USE cmdline_args_mod
       USE errlist_mod
       USE prompt_mod 
       USE lib_f90_default_mod
+      USE random_state_mod
 !
 IMPLICIT none 
 !
 LOGICAL, INTENT(IN) :: standalone
 !
 INTEGER, PARAMETER  :: np = 1
-REAL, DIMENSION(np) :: werte = 0.0
+!REAL, DIMENSION(np) :: werte = 0.0
+INTEGER, DIMENSION(np) :: iwerte = 0
 !                                                                       
       include'date.inc' 
 !
@@ -32,7 +35,8 @@ REAL, DIMENSION(np) :: werte = 0.0
       prompt_status = PROMPT_ON
       prompt_status_old = PROMPT_ON
 !                                                                       
-CALL ini_ran (np,werte) 
+!CALL ini_ran (np,werte) 
+CALL ini_ran_ix (np,iwerte) 
 !
 !     Call initial default allocation
 IF(standalone) CALL lib_alloc_default
