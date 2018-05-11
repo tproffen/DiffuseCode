@@ -1014,6 +1014,7 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE discus_allocate_appl_mod
+      USE get_params_mod
       USE param_mod
 !
       IMPLICIT NONE

@@ -141,7 +141,9 @@ CONTAINS
       USE crystal_mod 
       USE trafo_mod
 !
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       IMPLICIT none 
 !                                                                       
@@ -218,7 +220,9 @@ CONTAINS
       USE discus_config_mod 
       USE crystal_mod 
       USE trafo_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       IMPLICIT none 
 !                                                                       
@@ -316,7 +320,9 @@ CONTAINS
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE wink_mod
       USE param_mod 
       USE trafo_mod

@@ -38,14 +38,16 @@ CONTAINS
 !      USE interface_def
 !
       USE doact_mod 
+      USE do_wait_mod
+      USE build_name_mod
       USE learn_mod 
+      USE get_params_mod
       USE class_macro_internal
       USE prompt_mod 
       USE take_param_mod
+      USE sup_mod
 !
       IMPLICIT none 
-!                                                                       
-       
 !                                                                       
       INTEGER , PARAMETER :: maxw = 11
 !                                                                       
@@ -376,6 +378,7 @@ USE read_internal_mod
 USE stack_rese_mod
 USE update_cr_dim_mod
 !
+USE ber_params_mod
 USE errlist_mod
 !
 IMPLICIT NONE
@@ -739,6 +742,8 @@ USE diffuse_mod
 USE spcgr_mod
 USE spcgr_apply
 USE stack_rese_mod
+USE ber_params_mod
+USE get_params_mod
 !
 !CHARACTER(LEN=*),                  INTENT(IN) :: befehl
 !INTEGER         ,                  INTENT(IN) :: lbef
@@ -804,7 +809,8 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
       RETURN                 ! Jump to handle error messages, amd macro conditions
    ENDIF 
    werte(1)=spcgr_para
-   CALL spcgr_no(1,maxw,werte)
+   iianz = 1
+   CALL spcgr_no(iianz,maxw,werte)
 ELSE 
    ier_num = - 6 
    ier_typ = ER_COMM 
@@ -841,6 +847,7 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       USE discus_save_mod 
       USE spcgr_apply
       USE wyckoff_mod
+      USE string_convert_mod
       IMPLICIT none 
 !
 !                                                                       
@@ -1188,7 +1195,9 @@ SUBROUTINE read_atom_line (line, ibl, length, cr_natoms, maxw, werte, &
 !     reads a line from the cell file/structure file                    
 !+                                                                      
 USE prop_para_mod 
+USE ber_params_mod
 USE charact_mod
+USE get_params_mod
 IMPLICIT none 
 !                                                                       
 CHARACTER (LEN=*)                   , INTENT(INOUT) :: line 
@@ -1209,6 +1218,7 @@ REAL               , DIMENSION(MAXW) :: wwerte  ! (maxw)
 INTEGER                              :: i, j ,isok
 INTEGER                              :: ianz 
 INTEGER                              :: ios 
+INTEGER                              :: laenge
 INTEGER, SAVE                        :: col_x      = 1 
 INTEGER, SAVE                        :: col_y      = 2 
 INTEGER, SAVE                        :: col_z      = 3 
@@ -1242,8 +1252,8 @@ wwerte(5)= 1.0    ! Default for property flag
 IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
 IF(UBOUND(wwerte,1)>=8) wwerte(8) = 1.0    ! Default for Occupancy
 !
-CALL get_params(line (ibl:length), ianz, cpara, lpara, maxw,     &
-                length - ibl + 1)
+laenge = length - ibl + 1
+CALL get_params(line (ibl:length), ianz, cpara, lpara, maxw, laenge)
 params: IF(IANZ.eq.1) THEN
 !                                                                       
 !-----      Deal with old four respectively old five column style       
@@ -1354,6 +1364,8 @@ END SUBROUTINE read_atom_line
       USE crystal_mod 
       USE molecule_mod 
       USE spcgr_apply
+      USE ber_params_mod
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER(LEN=* ), INTENT(IN)    :: zeile 
@@ -1746,6 +1758,9 @@ SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
 !+                                                                      
 USE gen_add_mod 
 USE sym_add_mod 
+      USE ber_params_mod
+      USE get_params_mod
+      USE string_convert_mod
 IMPLICIT none 
 !                                                                       
 INTEGER                                  , INTENT(IN)  :: ist
@@ -2201,6 +2216,7 @@ cr_occ(:) = 1.0   !! WORK OCC
       USE molecule_mod 
       USE prop_para_mod
       USE spcgr_apply
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
       INTEGER                                ,INTENT(IN)    :: NMAX 
@@ -2236,12 +2252,14 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       CHARACTER(LEN=1024) ::  line, zeile 
       INTEGER             :: i, j, ibl, lbef 
       INTEGER             :: iatom
+      INTEGER             :: iimole
       INTEGER             :: lline 
       INTEGER             :: n_gene
       INTEGER             :: n_symm
       INTEGER             :: n_mole
       INTEGER             :: n_type
       INTEGER             :: n_atom
+      INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
       LOGICAL             :: need_alloc = .false.
       LOGICAL             :: lcontent
       LOGICAL, SAVE       :: at_init = .TRUE.
@@ -2254,6 +2272,11 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
       lcontent = .false.
       at_init = .TRUE.
+      IF(cr_natoms == 0) THEN 
+         n_mole_old = 0  ! For empty crystal reset number of old molecules
+      ELSE
+         n_mole_old = mole_num_mole
+      ENDIF
  1000 CONTINUE 
       ier_num = - 49 
       ier_typ = ER_APPL 
@@ -2375,13 +2398,14 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
                   IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
                      GOTO 999 
                   ENDIF 
-                  cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
+                  cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
                   cr_mole(cr_natoms) = mole_num_curr
                ELSE             ! No molecule header, but explicit info on line
                   IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
-                     CALL mole_insert_explicit(cr_natoms, NINT(werte(6)), NINT(werte(7))) 
-                     cr_prop(cr_natoms) = ibset(cr_prop(cr_natoms),PROP_MOLECULE)
-                     cr_mole(cr_natoms) = NINT(werte(6))
+                     iimole = NINT(werte(6)) + n_mole_old
+                     CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
+                     cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+                     cr_mole(cr_natoms) = NINT(werte(6)) + n_mole_old
                   ENDIF 
                ENDIF 
             ENDIF 
@@ -2424,15 +2448,18 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       USE discus_config_mod 
       USE crystal_mod 
       USE spcgr_mod 
+      USE ber_params_mod
       IMPLICIT none 
 !                                                                       
-       
+      INTEGER              , INTENT(INOUT) :: ianz
+      INTEGER              , INTENT(IN) :: MAXW
+      REAL, DIMENSION(MAXW), INTENT(IN) :: werte
 !                                                                       
-      CHARACTER(1024) cpara 
-      INTEGER lpara 
-      INTEGER ianz, maxw, ii, i 
-      REAL werte (maxw) 
-      REAL rpara 
+      CHARACTER(LEN=1024), DIMENSION(1) :: cpara 
+      INTEGER            , DIMENSION(1) :: lpara 
+      REAL               , DIMENSION(1) :: rpara 
+!
+      INTEGER ii, i 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -2483,7 +2510,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       lpara = len_str (cpara) 
       CALL ber_params (1, cpara, lpara, rpara, 1) 
       IF (ier_num.eq.0) then 
-         cr_spcgrno = spcgr_num(nint (rpara) , ii)
+         cr_spcgrno = spcgr_num(nint (rpara(1)) , ii)
          cr_syst = spcgr_syst (cr_spcgrno) 
          cr_spcgr = spcgr_name (cr_spcgrno) 
 !
@@ -2673,6 +2700,7 @@ END SUBROUTINE import_test
 !-                                                                      
 !     imports a file into discus.cell format                            
 !+                                                                      
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2745,12 +2773,16 @@ SUBROUTINE ins2discus (ianz, cpara, lpara, MAXW)
 !-                                                                      
 !     converts a SHELXL "ins" or "res" file to DISCUS                   
 !+                                                                      
+USE ber_params_mod
+USE blanks_mod
+USE build_name_mod
+USE get_params_mod
 USE wink_mod
 !
 IMPLICIT none 
 !                                                                       
 !                                                                       
-INTEGER                             , INTENT(IN)    :: ianz 
+INTEGER                             , INTENT(INOUT) :: ianz 
 INTEGER                             , INTENT(IN)    :: MAXW 
 CHARACTER (LEN= * ), DIMENSION(MAXW), INTENT(INOUT) :: cpara ! (MAXW) 
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW) 
@@ -3205,13 +3237,15 @@ DEALLOCATE(eadp_values)
 !-                                                                      
 !     converts a CrystalMaker "xyz" file to DISCUS                   
 !+                                                                      
+      USE build_name_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER          , INTENT(IN)                    :: ianz 
-      INTEGER          , INTENT(IN)                    :: MAXW 
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
-      INTEGER          , DIMENSION(1:MAXW), INTENT(IN) :: lpara
+      INTEGER          , INTENT(INOUT)                    :: ianz 
+      INTEGER          , INTENT(IN)                       :: MAXW 
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 !                                                                       
       REAL   , DIMENSION(3) :: werte
@@ -3349,6 +3383,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !-                                                                      
 !     converts a RMCProfile "cssr" file to DISCUS                   
 !+                                                                      
+USE build_name_mod
 USE take_param_mod
       IMPLICIT none 
 !                                                                       
@@ -3855,14 +3890,19 @@ END SUBROUTINE rmc6f_period
 !+                                                                      
 !                                                                       
       USE tensors_mod
+      USE build_name_mod
       USE wink_mod
+      USE ber_params_mod
+      USE blanks_mod
+      USE get_params_mod
+      USE string_convert_mod
 !
       IMPLICIT none 
 !                                                                       
-      INTEGER          , INTENT(IN)                    :: ianz 
+      INTEGER          , INTENT(INOUT)                 :: ianz 
       INTEGER          , INTENT(IN)                    :: MAXW 
-      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(IN) :: cpara
-      INTEGER          , DIMENSION(1:MAXW), INTENT(IN) :: lpara
+      CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
+      INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
       REAL, PARAMETER :: eightpi2 = 8.*3.1415926535897932384626433832795028841971693993751**2
 !                                                                       
@@ -3892,7 +3932,7 @@ END SUBROUTINE rmc6f_period
       INTEGER               :: iostatus
       LOGICAL, DIMENSION(7) :: header_done = .false.
       INTEGER               :: line_no, line_sig, data_no
-      INTEGER               :: length, length_cap
+      INTEGER               :: length, length_cap, length_b
       INTEGER               :: is_cell
       INTEGER               :: is_loop
       INTEGER               :: is_spcgr
@@ -4217,6 +4257,12 @@ atoms:      DO                                 ! Get all atoms information
                      nline = j_atom
                      EXIT atoms
                   ENDIF
+                  DO i=1,ianz                     ! Replace all '.' by '0.0'
+                     IF(ccpara(i) == '.') THEN
+                        ccpara(i) = '0.0'
+                        llpara(i) = 3
+                     ENDIF
+                  ENDDO
                   IF(INDEX(ccpara(j_x),'(')>0) llpara(j_x) = INDEX(ccpara(j_x),'(') - 1
                   IF(INDEX(ccpara(j_y),'(')>0) llpara(j_y) = INDEX(ccpara(j_y),'(') - 1
                   IF(INDEX(ccpara(j_z),'(')>0) llpara(j_z) = INDEX(ccpara(j_z),'(') - 1
@@ -4230,16 +4276,25 @@ atoms:      DO                                 ! Get all atoms information
                      IF(ccpara(j_uiso)(1:1)=='?') THEN
                        biso = 0.000
                      ELSE
-                        IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
-                        READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
-                        biso = uiso * eightpi2
+                        IF(ccpara(j_uiso)(1:llpara(j_uiso))=='.') THEN
+                           biso = 0.0
+                        ELSE
+                           IF(INDEX(ccpara(j_uiso),'(')>0) llpara(j_uiso) = INDEX(ccpara(j_uiso),'(') - 1
+                           READ(ccpara(j_uiso)(1:llpara(j_uiso)),*) uiso
+                           biso = uiso * eightpi2
+                        ENDIF
                      ENDIF
                   ELSEIF(j_biso > 0) THEN
-                     IF(ccpara(j_uiso)(1:1)=='?') THEN
+                     IF(ccpara(j_biso)(1:1)=='?') THEN
                        biso = 0.000
                      ELSE
-                        IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
-                        READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                        IF(ccpara(j_biso)(1:llpara(j_biso))=='.') THEN
+                           biso = 0.0
+                        ELSE
+                           IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
+write(*,*) 'CCPARA(j_BISO )', ccpara(j_biso)(1:llpara(j_biso))  , ' ', llpara(j_biso)
+                           READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
+                        ENDIF
                      ENDIF
                   ENDIF
                   IF(j_occ  > 0) THEN
@@ -4504,7 +4559,8 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             symm_mat(:,:) = 0.0
             iquote1 = INDEX(rawline(symm_1+i-1),'''', .FALSE.)
             iquote2 = INDEX(rawline(symm_1+i-1),'''', .TRUE.)
-            CALL get_params (rawline(symm_1+i-1) (iquote1+1:iquote2-1), iianz, cspara, lspara, 3, iquote2-iquote1-1) 
+            length_b= iquote2-iquote1-1
+            CALL get_params (rawline(symm_1+i-1) (iquote1+1:iquote2-1), iianz, cspara, lspara, 3, length_b)
             CALL do_cap(cspara(1))
             CALL do_cap(cspara(2))
             CALL do_cap(cspara(3))
@@ -4594,7 +4650,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !
       USE element_data_mod
       USE charact_mod
+      USE blanks_mod
       USE errlist_mod
+      USE string_convert_mod
       IMPLICIT NONE
 !
       LOGICAL,          INTENT(IN)    :: lsymbol
@@ -4660,7 +4718,10 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 !
 !     Determines the number of atoms and atom types in strucfile
 !
+      USE ber_params_mod
       USE charact_mod
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT NONE
 !
 
@@ -5044,6 +5105,7 @@ USE crystal_mod
 USE spcgr_apply
 USE wyckoff_mod
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !

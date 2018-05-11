@@ -18,13 +18,20 @@ SUBROUTINE do_niplps (linverse)
       USE chem_aver_mod
       USE qval_mod
 !
+      USE ber_params_mod
+      USE build_name_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      IMPLICIT none 
+      USE sup_mod
 !                                                                       
+      IMPLICIT none 
 !                                                                       
       INTEGER maxp
       PARAMETER (maxp = 11) 

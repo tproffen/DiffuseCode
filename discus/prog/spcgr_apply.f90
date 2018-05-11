@@ -246,6 +246,7 @@ CONTAINS
 !     Determines the xyz triplet, and the letter that describes the     
 !     symmetry operation                                                
 !+                                                                      
+      USE blanks_mod
       IMPLICIT none 
 !                                                                       
       INTEGER SPC_MAX 
@@ -1089,6 +1090,8 @@ CONTAINS
 !-                                                                      
 !     Determines the local symmetry of the position given in the line   
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       

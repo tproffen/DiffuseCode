@@ -18,12 +18,14 @@ SUBROUTINE do_molecularize (line, length)
 !
 USE crystal_mod
 !
+USE ber_params_mod
 USE errlist_mod
+USE get_params_mod
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: line
-INTEGER         , INTENT(IN) :: length
+INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER            , PARAMETER       :: MAXW= 20
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara ! 

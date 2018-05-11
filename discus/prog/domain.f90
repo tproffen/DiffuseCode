@@ -17,11 +17,19 @@ SUBROUTINE do_domain (line, lp)
       USE domaindis_mod 
       USE discus_show_menu
 !
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USe do_eval_mod
+      USE do_wait_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE string_convert_mod
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -700,7 +708,10 @@ pseudo_ok:  IF(l_ok) THEN
       USE discus_config_mod 
       USE domaindis_mod 
       USE tensors_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -947,7 +958,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          AT_MAXP, at_ianz, at_param)           
       ENDIF
 !                                                                       
-      CALL micro_read_atom (ist, infile, mc_idimen, mc_matrix) 
+      CALL micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
+                            AT_MAXP, at_ianz, at_param) 
       IF(.not.(infile(1:8)=='internal')) THEN
          CLOSE (ist) 
       ENDIF
@@ -1044,7 +1056,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !                                                                       
       END SUBROUTINE micro_remove_old               
 !*****7*****************************************************************
-      SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix) 
+      SUBROUTINE micro_read_atom (ist, infile, mc_idimen, mc_matrix, &
+                                  AT_MAXP, at_ianz, at_param) 
 !                                                                       
       USE discus_config_mod 
       USE discus_allocate_appl_mod 
@@ -1056,24 +1069,28 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       USE molecule_mod 
       USE prop_para_mod 
       USE read_internal_mod
-      USE structur, ONLY: struc_mole_header
-      USE spcgr_apply, ONLY: mole_insert_current
+      USE structur, ONLY: struc_mole_header, read_atom_line
+      USE spcgr_apply, ONLY: mole_insert_current, mole_insert_explicit
       USE trafo_mod
       USE surface_mod 
       USE errlist_mod 
+      USE string_convert_mod
+!                                                                       
       IMPLICIT none 
 !                                                                       
-       
-!                                                                       
-      INTEGER ist 
-      CHARACTER (LEN = *), INTENT(IN) :: infile
-      REAL mc_idimen (4, 4) 
-      REAL mc_matrix (4, 4) 
+INTEGER            , INTENT(IN) :: ist 
+CHARACTER (LEN = *), INTENT(IN) :: infile
+REAL               , INTENT(IN) :: mc_idimen (4, 4) 
+REAL               , INTENT(IN) :: mc_matrix (4, 4) 
+INTEGER                                  , INTENT(IN)  :: AT_MAXP
+INTEGER                                  , INTENT(OUT) :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
+!
 !                                                                       
       INTEGER idim4 
       PARAMETER (idim4 = 4) 
       INTEGER maxw 
-      PARAMETER (maxw = 4) 
+      PARAMETER (maxw = 8) 
 !                                                                       
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
@@ -1121,7 +1138,11 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER             :: n_type
       INTEGER             :: n_atom
       INTEGER             :: n_read_atoms
+      INTEGER             :: n_mole_old = 0    ! previous number of molecules in structure
+      INTEGER             :: iimole
+      INTEGER             :: lline
       LOGICAL             :: linternal
+      LOGICAL, SAVE       :: at_init = .TRUE.
       REAL :: d100, d010, d001
 !                                                                       
       INTEGER len_str 
@@ -1174,6 +1195,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       ELSE
          natoms_old = clu_remove_end
       ENDIF 
+      at_init = .TRUE.
 !                                                                       
       IF(mk_infile_internal) THEN
          mk_iatom = 0
@@ -1183,6 +1205,11 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          temp_present    = .false.
          temp_in_crystal = 0
          temp_in_mole    = 0
+      ENDIF
+      IF(cr_natoms == 0) THEN
+         n_mole_old = 0
+      ELSE
+         n_mole_old = mole_num_mole
       ENDIF
  1000 CONTINUE 
       ier_num = - 49 
@@ -1202,6 +1229,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       ELSE
          READ (ist, 2000, end = 2, err = 999) line 
       ENDIF
+      lline = len_str (line)
 blank1: IF (line.ne.' '.and.line (1:1) .ne.'#'.AND.line(1:1)/='!'.and.line.ne.char (13) ) then
          i_count = i_count + 1 
          ibl = index (line, ' ') + 1 
@@ -1225,19 +1253,20 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             CALL struc_mole_header (zeile, i, .false.,lcontent) 
             IF (ier_num.ne.0) return 
          ELSE is_mole
-            READ (line (ibl:80), *, end = 999, err = 999) (werte (j),   &
-            j = 1, 4)                                                   
+!           READ (line (ibl:80), *, end = 999, err = 999) (werte (j), j = 1, 4)
+            CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
+                 AT_MAXP, at_ianz, at_param, at_init)
             n_read_atoms = n_read_atoms + 1
             DO j = 1, 3 
-            u (j) = werte (j) 
+               u (j) = werte (j) 
             ENDDO 
             u (4) = 1.0 
             CALL trans (u, mc_matrix, v, idim4) 
             CALL trans (v, mc_idimen, w, idim4) 
             DO j = 1, 3 
-            vv (j) = w (j) 
-            mk_dim (j, 1) = min (mk_dim (j, 1), v (j) ) 
-            mk_dim (j, 2) = max (mk_dim (j, 2), v (j) ) 
+               vv (j) = w (j) 
+               mk_dim (j, 1) = min (mk_dim (j, 1), v (j) ) 
+               mk_dim (j, 2) = max (mk_dim (j, 2), v (j) ) 
             ENDDO 
             linternal = .FALSE.
             IF (mc_type  .eq.MD_DOMAIN_SPHERE) then 
@@ -1365,6 +1394,15 @@ noblank:      IF (line (1:4) .ne.'    ') then
                      IF (ier_num.lt.0.and.ier_num.ne. - 49) then 
                         GOTO 999 
                      ENDIF 
+                     cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+                     cr_mole(cr_natoms) = mole_num_curr
+                  ELSE             ! No molecule header, but explicit info on line
+                     IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
+                        iimole = NINT(werte(6)) + n_mole_old
+                        CALL mole_insert_explicit(cr_natoms, iimole, NINT(werte(7)))
+                        cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+                        cr_mole(cr_natoms) = NINT(werte(6)) + n_mole_old
+                     ENDIF
                   ENDIF 
                ENDIF  noblank
             ENDIF inside
@@ -1519,6 +1557,7 @@ mole_int: IF(mk_infile_internal) THEN
       USE read_internal_mod 
       USE tensors_mod
       USE errlist_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1807,6 +1846,7 @@ mole_int: IF(mk_infile_internal) THEN
       USE domain_mod
       USE modify_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       

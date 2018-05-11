@@ -18,14 +18,20 @@ CONTAINS
       USE output_mod 
       USE patters_mod 
 !
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      IMPLICIT none 
+      USE sup_mod
 !                                                                       
-       
+      IMPLICIT none 
 !                                                                       
       INTEGER, INTENT(INOUT)  :: inverse_type
 !
@@ -2764,6 +2770,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Author   : R.B. Neder (reinhard.neder@fau.de)      
 !+                                                                      
+      USE do_wait_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       

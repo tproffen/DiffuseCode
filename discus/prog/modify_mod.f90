@@ -17,7 +17,9 @@ CONTAINS
       USE molecule_mod 
       USE prop_para_mod 
       USE update_cr_dim_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE random_mod
 !
       IMPLICIT none 
@@ -208,6 +210,13 @@ CONTAINS
             iianz = 1 
             CALL get_iscat (iianz, cpara (2), lpara (2), uerte, maxw,   &
             .false.)                                                    
+            DO i = 1, iianz
+               IF(uerte(i)==-1) THEN
+                  ier_num = -6
+                  ier_typ = ER_COMM
+                  RETURN
+               ENDIF
+            ENDDO
 !                                                                       
             IF (ianz.eq.3.and.ier_num.eq. - 27) then 
                IF (cr_nscat + 1 >  MAXSCAT) then 
@@ -385,7 +394,10 @@ CONTAINS
       USE charact_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE build_name_mod
       IMPLICIT none 
 !                                                                       
        
@@ -394,7 +406,7 @@ CONTAINS
       PARAMETER (maxw = 15) 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: line
-      INTEGER          , INTENT(IN) :: laenge
+      INTEGER          , INTENT(INOUT) :: laenge
 !
       CHARACTER(LEN=4)              :: name 
       CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
@@ -404,7 +416,6 @@ CONTAINS
       INTEGER                              :: new_nscat  = 0
       LOGICAL                              :: need_alloc = .false.
       REAL werte (maxw) 
-!     REAL berechne 
 !
 !     While developing, increment crystal if neede, but keep the check
 !
@@ -481,7 +492,9 @@ CONTAINS
       USE crystal_mod 
       USE metric_mod
       USE prop_para_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -500,7 +513,6 @@ CONTAINS
       LOGICAL lkick, lspace 
       REAL werte (maxw) 
       REAL w (3), v (3) 
-!     REAL berechne 
 !     REAL do_blen 
 !                                                                       
       DATA lspace / .true. / 
@@ -694,12 +706,13 @@ CONTAINS
       USE crystal_mod 
       USE prop_para_mod 
       USE errlist_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER, INTENT(IN)     :: maxw
 !                                                                       
-      CHARACTER (LEN=* )    , INTENT(IN) :: name 
+      CHARACTER (LEN=* )    , INTENT(INOUT) :: name 
       REAL , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
 !
       INTEGER                :: i, l
@@ -792,7 +805,9 @@ USE discus_config_mod
 USE crystal_mod 
 USE molecule_mod 
 USE prop_para_mod 
+USE ber_params_mod
 USE errlist_mod 
+USE get_params_mod
 IMPLICIT none 
 !                                                                       
        
@@ -1332,7 +1347,9 @@ END SUBROUTINE do_remove
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1347,7 +1364,6 @@ END SUBROUTINE do_remove
       INTEGER lpara (maxw) 
       INTEGER ianz, i, lp, ind 
       REAL werte (maxw) 
-!     REAL berechne 
 !                                                                       
       zeile = ' ' 
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -1407,7 +1423,9 @@ END SUBROUTINE do_remove
       USE crystal_mod 
       USE molecule_mod 
       USE update_cr_dim_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1489,7 +1507,9 @@ END SUBROUTINE do_remove
       USE charact_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1971,12 +1991,13 @@ ENDIF
       USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
-      INTEGER,                   INTENT(IN)    :: lp 
+      INTEGER,                   INTENT(INOUT) :: lp 
       INTEGER,                   INTENT(IN)    :: lu
       INTEGER,                   INTENT(IN)    :: lo
       LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
@@ -2037,12 +2058,14 @@ ENDIF
 !-                                                                      
       USE discus_config_mod 
       USE molecule_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       CHARACTER  (LEN=  * ),     INTENT(IN)    :: zeile 
-      INTEGER,                   INTENT(IN)    :: lp 
+      INTEGER,                   INTENT(INOUT) :: lp 
       INTEGER,                   INTENT(IN)    :: lu
       INTEGER,                   INTENT(IN)    :: lo
       LOGICAL, DIMENSION(lu:lo), INTENT(OUT)   :: latom 
@@ -2099,6 +2122,7 @@ ENDIF
 !                                                                       
       USE prop_para_mod 
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2316,7 +2340,9 @@ ENDIF
       USE prop_para_mod 
       USE surface_mod
       USE wyckoff_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE take_param_mod
 !
       IMPLICIT none 
@@ -2687,7 +2713,7 @@ cyl_loop:      DO i = 1, cr_natoms
                   IF(linside) THEN
                   v (1) = cr_pos (1, i)-center(1)
                   v (2) = cr_pos (2, i)-center(2)
-                  v (3) = 0.0          -center(3)
+                  v (3) = 0.0          !-center(3)
                   d = radius - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
                      +     v(2) * v(2) * cr_gten(2, 2)    &
                      +     v(3) * v(3) * cr_gten(3, 3)    &
@@ -2697,8 +2723,8 @@ cyl_loop:      DO i = 1, cr_natoms
                   h(:) = v(:)
                   CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h) 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
-                  v (1) = 0.0          -center(1)
-                  v (2) = 0.0          -center(2)
+                  v (1) = 0.0          !-center(1)
+                  v (2) = 0.0          !-center(2)
                   v (3) = cr_pos (3, i)-center(3)
                   d = height - sqrt(v(1) * v(1) * cr_gten(1, 1)        &
                      +     v(2) * v(2) * cr_gten(2, 2)    & 
@@ -2899,7 +2925,9 @@ USE crystal_mod
 USE prop_para_mod
 USE param_mod
 USE prompt_mod
+USE ber_params_mod
 USE errlist_mod
+USE get_params_mod
 IMPLICIT NONE
 CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
@@ -3407,6 +3435,7 @@ END SUBROUTINE surface_character
       USE param_mod 
       USE prompt_mod 
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
        
 !                                                                       
@@ -3460,7 +3489,10 @@ END SUBROUTINE surface_character
       USE crystal_mod 
       USE molecule_mod 
 !                                                                       
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE build_name_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -3647,11 +3679,15 @@ END SUBROUTINE surface_character
       USE molecule_mod 
       USE prop_para_mod 
 !
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -3817,6 +3853,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !-                                                                      
       USE discus_config_mod 
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -3855,7 +3892,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE surface_mod 
+      USE berechne_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -3876,7 +3915,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       REAL distance 
 !                                                                       
       LOGICAL str_comp 
-      REAL berechne 
 !                                                                       
       lold = .false. 
 !                                                                       
@@ -4055,11 +4093,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE molecule_mod 
       USE prop_para_mod 
 !
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -4228,7 +4270,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE prop_para_mod 
 !
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile
@@ -4446,7 +4490,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_config_mod 
       USE charact_mod
       USE crystal_mod 
+      USE berechne_mod
+      USE do_variable_mod
       USE errlist_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
        
@@ -4460,7 +4507,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       LOGICAL lnew 
       REAL werte (maxw) 
 !                                                                       
-      REAL berechne 
 !                                                                       
 !     ----Select which atoms are included in the wave                   
 !                                                                       

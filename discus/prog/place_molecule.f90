@@ -16,13 +16,18 @@ CONTAINS
    USE modify_func_mod
 USE prop_para_mod
 !
+   USE calc_expr_mod
    USE doact_mod
+   USE do_eval_mod
+USE do_wait_mod
 USE errlist_mod
+   USE get_params_mod
    USE learn_mod
    USE class_macro_internal
    USE prompt_mod
-   IMPLICIT none
+      USE sup_mod
 !
+   IMPLICIT none
 !
    CHARACTER (LEN=5)                       :: befehl! command on input line
    CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
@@ -264,6 +269,8 @@ USE errlist_mod
    USE modify_mod
    USE point_grp
 !
+   USE ber_params_mod
+   USE get_params_mod
    USE take_param_mod
 !
    IMPLICIT NONE
@@ -555,6 +562,7 @@ USE errlist_mod
 USE deco_mod
    USE modify_mod
 USE errlist_mod
+   USE get_params_mod
 !
    IMPLICIT NONE
 !

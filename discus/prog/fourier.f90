@@ -22,10 +22,18 @@ CONTAINS
       USE output_mod 
       USE zone
 !
+      USE ber_params_mod
+      USE build_name_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE string_convert_mod
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -979,7 +987,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          WRITE (output_io, 1120) nlots 
          WRITE (output_io, 1130) (ls_xyz (i), i = 1, 3), lperiod 
       ENDIF 
-!                                                                       
       radiation = 'neutron' 
       IF (lxray) radiation = 'x-ray' 
       radiation = c_rad(diff_radiation)

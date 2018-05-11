@@ -20,12 +20,19 @@ SUBROUTINE chem
       USE celltoindex_mod
       USE modify_mod
 !
+      USE build_name_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USe do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
       USE param_mod 
       USE prompt_mod 
+      USE string_convert_mod
+      USE sup_mod
       IMPLICIT none 
 !                                                                       
        
@@ -448,6 +455,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
       USE diffuse_mod 
       USE errlist_mod 
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -680,7 +688,10 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
        
@@ -903,6 +914,7 @@ USE discus_allocate_appl_mod
 USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE ber_params_mod
 USE errlist_mod 
 IMPLICIT none 
 !                                                                       
@@ -986,11 +998,13 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE chem_mod 
    USE conn_mod
    USE modify_mod
+   USE ber_params_mod
    USE errlist_mod 
+   USE get_params_mod
    IMPLICIT none 
 !
 !
-   INTEGER                           , INTENT(IN)    :: ianz 
+   INTEGER                           , INTENT(INOUT) :: ianz 
    INTEGER                           , INTENT(IN)    :: maxw 
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
    REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
@@ -1112,7 +1126,9 @@ USE chem_mod
 USE metric_mod
 USE modify_mod
 USE rmc_symm_mod
+USE ber_params_mod
 USE errlist_mod 
+USE get_params_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1356,6 +1372,7 @@ USE discus_allocate_appl_mod
 USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE ber_params_mod
 USE errlist_mod 
 IMPLICIT none 
 !                                                                       
@@ -1445,7 +1462,9 @@ ENDIF
       USE crystal_mod 
       USE chem_mod 
       USE modify_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1527,7 +1546,10 @@ ENDIF
       USE metric_mod
       USE rmc_sup_mod
       USE rmc_symm_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1821,7 +1843,9 @@ ENDIF
 !     Parameters for command 'set neig' processed here                  
 !-                                                                      
       USE discus_config_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1869,7 +1893,9 @@ ENDIF
       USE chem_mod 
       USE celltoindex_mod
       USE modify_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -2025,7 +2051,9 @@ ENDIF
       USE element_data_mod
       USE bv_data_mod
 !
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -2165,6 +2193,7 @@ ENDIF
       USE chem_mod 
       USE molecule_mod 
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2212,7 +2241,9 @@ ENDIF
       USE atom_name 
       USE chem_mod 
       USE molecule_mod 
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
@@ -2369,7 +2400,11 @@ ENDIF
       USE discus_config_mod 
       USE chem_mod 
       USE modify_mod
+      USE build_name_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2798,7 +2833,10 @@ ENDIF
       USE discus_config_mod 
       USE chem_mod 
       USE mc_mod 
+      USE build_name_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3124,6 +3162,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3670,6 +3709,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE metric_mod
       USE mc_mod 
       USE molecule_mod 
+      USE ber_params_mod
       USE errlist_mod 
       USE prompt_mod 
       IMPLICIT none 
@@ -3822,6 +3862,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
@@ -4016,6 +4057,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod   
       USE modify_func_mod   
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4227,6 +4269,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod   
       USE modify_func_mod
       USE errlist_mod 
+      USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
       USE prompt_mod 
@@ -4458,6 +4501,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mmc_mod   
       USE modify_mod   
       USE molecule_mod 
+      USE ber_params_mod
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
@@ -4840,6 +4884,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE mc_mod 
       USE mmc_mod   
       USE molecule_mod 
+      USE ber_params_mod
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
@@ -6477,6 +6522,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod
       USE celltoindex_mod
       USE errlist_mod
+      USE get_params_mod
+      USE ber_params_mod
       USE param_mod
       USE prompt_mod
       IMPLICIT NONE

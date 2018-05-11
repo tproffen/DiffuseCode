@@ -16,15 +16,20 @@ SUBROUTINE pdf
       USE pdf_mod 
       USE rmc_mod 
 !
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
-      IMPLICIT none 
+      USE string_convert_mod
+      USE sup_mod
 !                                                                       
-       
+      IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 24  ! A command requires at least these no of parameters
       INTEGER maxw 
@@ -744,12 +749,15 @@ SUBROUTINE pdf
       USE save_menu
 !
       USE debug_mod 
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
-      INTEGER          , INTENT(IN) :: lp
+      INTEGER          , INTENT(INOUT) :: lp
 !                                                                       
       INTEGER maxw 
       PARAMETER (maxw = 10) 
@@ -843,13 +851,15 @@ SUBROUTINE pdf
       USE pdf_mod 
 !
       USE debug_mod 
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       USE ISO_FORTRAN_ENV
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
-      INTEGER          , INTENT(IN) :: lp
+      INTEGER          , INTENT(INOUT) :: lp
 !                                                                       
       INTEGER, PARAMETER :: maxw = 5 
 !                                                                       
@@ -1092,8 +1102,11 @@ main:    DO
       USE rmc_mod 
       USE rmc_sup_mod
 !
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
        

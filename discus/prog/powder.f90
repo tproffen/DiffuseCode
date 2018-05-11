@@ -23,12 +23,17 @@ CONTAINS
       USE powder_mod 
       USE discus_show_menu
 !
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      IMPLICIT none 
+      USE sup_mod
 !                                                                       
+      IMPLICIT none 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -489,7 +494,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE debye_mod 
       USE diffuse_mod 
       USE powder_mod 
+      USE ber_params_mod
+      USE get_params_mod
       USE trig_degree_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
       INTEGER MAXW 

@@ -19,14 +19,20 @@ SUBROUTINE stack
       USE stack_rese_mod 
       USE spcgr_apply
 !
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
+      USE build_name_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      IMPLICIT none 
+      USE sup_mod
 !                                                                       
-       
+      IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 99  ! A command requires at least these no of parameters
                                            ! Needs work as it should also be >= ST_MAXTYPE
@@ -1380,7 +1386,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       cr_delf_int(:) = .FALSE.
       cr_at_equ  (:) = ' '
       DO i=1,st_ntypes
-         write(cr_at_lis(i),3000) i
+         WRITE(cr_at_lis(i),3000) i
          cr_scat_equ(i) = .TRUE.
          cr_at_equ(i)   = 'H'
       ENDDO
@@ -1676,6 +1682,11 @@ more1: IF (st_nlayer.ge.1) then
                CALL symm_op_single 
             ENDIF 
          ENDIF 
+!write(*,*)' MOLECULES ' , mole_num_mole, mole_num_curr, mole_num_atom, mole_num_type
+!do j= 1, mole_num_mole
+!  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
+!  write(*,*) ' mole_cont ', (mole_cont(mole_off(j)+k),k=1, mole_len(j))
+!enddo
 !                                                                       
 !     --Loop over all layers in crystal                                 
 !                                                                       
@@ -1783,6 +1794,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
                   CALL symm_op_single 
                ENDIF 
             ENDIF 
+!write(*,*)' MOLECULES ' , mole_num_mole, mole_num_curr, mole_num_atom, mole_num_type
+!do j= 1, mole_num_mole
+!  write(*,*) ' mole_len, mole_typ, mole_off ',mole_len(j), mole_type(j), mole_off(j)
+!  write(*,*) ' mole_cont ', (mole_cont(mole_off(j)+k),k=1, mole_len(j))
+!enddo
          ENDDO layers
       ENDIF more1
 !                                                                       

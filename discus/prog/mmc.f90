@@ -18,12 +18,17 @@ USE mmc_mod
 USE modify_mod
 USE chem_symm_mod
 !
+USE calc_expr_mod
 USE doact_mod 
+USE do_eval_mod
+USE do_wait_mod
 USE errlist_mod 
+USE get_params_mod
 USE learn_mod 
 USE class_macro_internal
 USE param_mod 
 USE prompt_mod 
+      USE sup_mod
 IMPLICIT none 
 !                                                                       
        
@@ -659,7 +664,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mmc_mod 
       USE modify_mod
       USE rmc_sup_mod
+      USE ber_params_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1607,6 +1615,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE mmc_mod 
       USE modify_mod
       USE errlist_mod 
+      USE get_params_mod
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
        

@@ -28,14 +28,19 @@ CONTAINS
       USE update_cr_dim_mod
       USE trafo_mod
 !
+      USE ber_params_mod
+      USE calc_expr_mod
       USE doact_mod 
+      USE do_eval_mod
+      USE do_wait_mod
       USE errlist_mod 
+      USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
       USE prompt_mod 
-      IMPLICIT none 
+      USE sup_mod
 !                                                                       
-       
+      IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MIN_PARA = 29  ! A command requires at leaset these no of parameters
       INTEGER maxw 

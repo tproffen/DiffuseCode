@@ -9,9 +9,13 @@ CONTAINS
 !     string. Routine uses arrays 'dsi' and 'tcsf' => results of        
 !     Fourier might be destroyed !                                      
 !+                                                                      
+      USE ber_params_mod
       USE discus_config_mod 
       USE diffuse_mod 
+      USE build_name_mod
+      USE blanks_mod
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
