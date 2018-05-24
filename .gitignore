@@ -4,3 +4,4 @@ date.inc
 cmake_install.cmake
 CMakeFiles
 BACK*
+Doxygen*
