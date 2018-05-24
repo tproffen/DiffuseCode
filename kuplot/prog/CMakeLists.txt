@@ -12,12 +12,13 @@ link_directories(${PGPLOT_LIBRARIES})
 set (SOURCE_MAIN kuplot.f90 )
 set (SOURCES_ALL kuplot_blk_appl.f90 calc.f90 color.f90 draw.f90 
 	kuplot_err_appl.f90 kuplot_exit.f90 fit.f90 frame.f90 gsas.f90 
-	kuplot_diffev_plot.f90
+	fit_macro.f90 fit_mache_kdo.f90 fit_params_mod.f90 fit_set_sub_mod.f90
+        kuplot_diffev_plot.f90
 	kuplot_kdo.f90 koordinate_mod.f90 kuplot_loop.f90 
 	kuplot_setup.f90 kuplot_branch.f90 load.f90 math.f90 para.f90 
 	kuplot_plot.f90 kuplot_save.f90 kuplot_show.f90 kuplot_upd_par.f90
 	kuplot_config.f90 kuplot_mod.f90 kuplot_branch.f90
-	kuplot_words_mod.f90)
+	kuplot_words_mod.f90 kuplot_top.f90)
 
 set (LIBS lib_f90 lib_f90c ${DIFFUSE_LIBS} ${PNG_LIBRARY})
 
