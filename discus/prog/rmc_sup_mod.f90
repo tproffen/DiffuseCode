@@ -2087,7 +2087,7 @@ loop_plane: DO ip = 1, rmc_nplane
             CALL rmc_layer (k, ip) 
             CALL fourier_lmn(eck,vi,num,lmn,off_shift)
             CALL rmc_stltab (k, ip, .true.) 
-            CALL four_aver (rmc_ilots, rmc_ave) 
+            CALL four_aver (rmc_ilots, rmc_ave, cr_icc) 
 !                                                                       
             iii = offsq (ip, k) 
 !                                                                       
