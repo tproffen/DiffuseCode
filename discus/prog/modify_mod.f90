@@ -769,6 +769,7 @@ CONTAINS
                   cr_iscat (cr_natoms) = cr_nscat 
                   cr_at_lis (cr_nscat) = name 
                   cr_dw (cr_nscat) = werte (5) 
+                  cr_occ(cr_nscat) = 1.0
                ELSE 
                   ier_num = - 26 
                   ier_typ = ER_APPL 
@@ -3825,8 +3826,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) THEN 
@@ -4240,8 +4243,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) THEN 
