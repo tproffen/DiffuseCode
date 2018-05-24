@@ -197,14 +197,25 @@ SUBROUTINE errlist
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -39
+       INTEGER, PARAMETER :: iu = -48
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
-       DATA ERROR ( iu:-21) /                       &
-     &  'Refine variable, use reset in diffev',     & !-39  ! fortan
-     &  'Number of hyphenations is not matching',   & !-38  ! fortan
+       DATA ERROR ( iu:-41) /                       &
+     &  'Parameters must be matrix variables',      & !-48  ! fortran
+     &  'INVMAT only implemented for dimension <=4',& !-47  ! fortran
+     &  'Input variable is not a matrix',           & !-46  ! fortran
+     &  'Matrix cannot be inverted DET==0',         & !-45  ! fortran
+     &  'Matrix dimensions do not match',           & !-44  ! fortran
+     &  'Expression is not a Character string  ',   & !-43  ! fortran
+     &  'Variable on left side is not CHARACTER',   & !-42  ! fortran
+     &  'Variable on left side is READ only'        & !-41  ! fortran
+     &   /
+       DATA ERROR (-40:-21) /                       &
+     &  'Erroneous dimensions for user variable',   & !-40  ! fortran
+     &  'Refine variable, use reset in diffev',     & !-39  ! fortran
+     &  'Number of hyphenations is not matching',   & !-38  ! fortran
      &  'Mean of lognormal is less than zero',      & !-37  ! fortran
      &  'Skew parameter outside [-1:1]',            & !-36  ! fortran
      &  'Sigma/FWHM is less than zero',             & !-35  ! fortran
