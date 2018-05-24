@@ -15,10 +15,12 @@ SUBROUTINE define_variable (zeile, lp, is_diffev)
 !+                                                                      
 USE ber_params_mod
 USE build_name_mod
+USE constants_mod
 USE do_variable_mod
 USE errlist_mod 
 USE get_params_mod
 USE prompt_mod 
+USE take_param_mod
 USE variable_mod
 !
 IMPLICIT none 
@@ -27,31 +29,80 @@ CHARACTER (LEN=* ), INTENT(INOUT) :: zeile
 INTEGER           , INTENT(INOUT) :: lp 
 LOGICAL           , INTENT(IN)    :: is_diffev
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 3) 
-      LOGICAL , PARAMETER :: no_diffev = .FALSE.
+INTEGER, PARAMETER :: maxw = 4
+LOGICAL, PARAMETER :: no_diffev = .FALSE.
                                                                         
-      INTEGER ianz 
+INTEGER :: ianz 
 !                                                                       
-      CHARACTER(1024) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL               , DIMENSION(MAXW) :: werte
+!
+INTEGER, PARAMETER :: MAXF=2
+CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
+INTEGER            , DIMENSION(MAXF) :: llpara
+REAL               , DIMENSION(MAXF) :: wwerte
 !                                                                       
-      CHARACTER(1024) c_type, c_temp, c_init 
-      INTEGER l_type, l_temp 
-      INTEGER ccc_type 
-      INTEGER i, j 
-      LOGICAL l_init 
+CHARACTER(LEN=1024) :: c_type, c_temp, c_init , string
+INTEGER :: l_type, l_temp 
+INTEGER :: ccc_type 
+INTEGER :: i, j , length, iianz
+INTEGER :: n1, n2, n_data    ! Dimensions of arrays, total size
+INTEGER :: place             ! location of variable arrays
+LOGICAL :: l_init 
 !                                                                       
       LOGICAL str_comp 
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'dim' /
+DATA loname /  3    /
+!
+opara  =  (/ 'scalar' /)   ! Always provide fresh default values
+lopara =  (/  6       /)
+owerte =  (/  0.0     /)
 !                                                                       
       ccc_type = 0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, owerte)
+!
+n1 = 0
+n2 = 0
+n_data = n1 * n2
+IF(opara(1) == 'scalar') THEN
+   n1 = 0
+   n2 = 0
+   n_data = 0
+ELSEif(opara(1)(1:1) == '[' .AND. opara(1)(lopara(1):lopara(1)) == ']') THEN
+   string = opara(1)(2:lopara(1)-1)
+   length = lopara(1)-2
+   ccpara(:) = ' '
+   llpara(:) = 0
+   wwerte(:) = 0.0
+   CALL get_params (string, iianz, ccpara, llpara, MAXF, length)
+   CALL ber_params (iianz, ccpara, llpara, wwerte, MAXF)
+   IF(iianz==1) THEN
+      n1 = NINT(wwerte(1))
+      n2 = 1
+   ELSEIF(iianz==2) THEN
+      n1 = NINT(wwerte(1))
+      n2 = NINT(wwerte(2))
+   ENDIF
+   n_data = n1 * n2
+ENDIF
 !                                                                       
-      IF (str_comp (cpara (1) , 'real', 3, lpara (1) , 4) .or.str_comp (&
-      cpara (1) , 'inte', 2, lpara (1) , 4) .or.str_comp (cpara (1) ,   &
-      'char', 2, lpara (1) , 4) ) THEN                                  
+IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
+   str_comp(cpara (1) , 'inte', 2, lpara (1) , 4) .or.  &
+   str_comp(cpara (1) , 'char', 2, lpara (1) , 4) ) THEN                                  
 !                                                                       
 !     --A new variable is being defined                                 
 !                                                                       
@@ -73,18 +124,18 @@ LOGICAL           , INTENT(IN)    :: is_diffev
                l_temp = lpara (2) 
                werte (1) = 0.0 
                IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
-                  ccc_type = VAR_TYPE_REAL 
+                  ccc_type =       IS_REAL 
                ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
-                  ccc_type = VAR_TYPE_INTE 
+                  ccc_type = IS_INTE 
                ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
-                  ccc_type = VAR_TYPE_CHAR 
+                  ccc_type =       IS_CHAR 
                ENDIF 
                l_init = .false. 
                c_init = ' ' 
                IF (ianz.eq.3) THEN 
                   CALL del_params (2, ianz, cpara, lpara, maxw) 
                   IF (ier_num.ne.0) RETURN 
-                  IF (ccc_type.eq.VAR_TYPE_CHAR) THEN 
+                  IF (ccc_type.eq.      IS_CHAR) THEN 
                      CALL do_build_name (ianz, cpara, lpara, werte,     &
                      maxw, 1)                                           
                      c_init = cpara (1) (1:lpara (1) ) 
@@ -125,20 +176,21 @@ LOGICAL           , INTENT(IN)    :: is_diffev
 !           descending alphabetical order                               
 !                                                                       
                i = var_sys + 1 
-               DO while (l_temp.lt.var_l (i) .and.i.le.var_num) 
-               i = i + 1 
+               DO WHILE (l_temp.lt.var_l (i) .AND.i.le.var_num) 
+                  i = i + 1 
                ENDDO 
-               DO while (l_temp.eq.var_l (i) .and.llt (c_temp, var_name &
-               (i) ) .and.i.le.var_num)                                 
-               i = i + 1 
+               DO  WHILE(l_temp.eq.var_l (i) .AND.LLT(c_temp, var_name(i))  &
+                  .AND.i.le.var_num)                                 
+                  i = i + 1 
                ENDDO 
                DO j = var_num, i, - 1 
-                  var_name (j + 1) = var_name (j) 
-                  var_l    (j + 1) = var_l    (j) 
-                  var_type (j + 1) = var_type (j) 
-                  var_val  (j + 1) = var_val  (j) 
-                  var_char (j + 1) = var_char (j) 
-                  var_diff (j + 1) = var_diff (j)    ! true if refine paaram from diffev
+                  var_name (j+1) = var_name (j)    ! Shift fields by size of new variable
+                  var_l    (j+1) = var_l    (j) 
+                  var_entry(j+1) = var_entry(j)
+                  var_type (j+1) = var_type (j) 
+                  var_val  (j+1) = var_val  (j) 
+                  var_char (j+1) = var_char (j) 
+                  var_diff (j+1) = var_diff (j)    ! true if refine param from diffev
                ENDDO 
 !                                                                       
 !     ----- found the proper slot, store value, name and type           
@@ -146,17 +198,41 @@ LOGICAL           , INTENT(IN)    :: is_diffev
                var_num = var_num + 1 
                var_name (i) (1:l_temp) = c_temp 
                var_l (i) = l_temp 
+!
+               place = 1
+               IF(n_data>0) THEN             ! We have an array
+                  search_entry: DO j=1,VAR_MAX
+                     IF(var_field(j)%var_shape(1)==0) THEN   !Found free entry
+                        place = j
+                        var_n_arr = MAX(var_n_arr, place)
+                        EXIT search_entry
+                     ENDIF
+                  ENDDO search_entry
+                  var_entry(i) = place       ! Keep track in which entry the array is stored
+                  var_field(place)%var_shape(1) = n1
+                  var_field(place)%var_shape(2) = n2
+                  IF(ALLOCATED(var_field(place)%var_value)) DEALLOCATE(var_field(place)%var_value)
+                  ALLOCATE(var_field(place)%var_value(n1,n2))
+               ELSE
+                  var_entry(i) = 0
+               ENDIF
                IF (str_comp (c_type, 'real', 3, l_type, 4) ) THEN 
-                  var_type (i) = VAR_TYPE_REAL 
-                  var_val (i) = werte (1) 
+                  var_type (i) =       IS_REAL 
+                  var_val  (i) = werte (1) 
+                  IF(n_data>0) THEN             ! We have an array
+                      var_field(place)%var_value(:,:) = werte(1)
+                  ENDIF
                   var_diff (i) = is_diffev      ! true if refine param from diffev
                ELSEIF (str_comp (c_type, 'inte', 2, l_type, 4) ) THEN 
-                  var_type (i) = VAR_TYPE_INTE 
-                  var_val (i) = nint (werte (1) ) 
+                  var_type (i) =       IS_INTE 
+                  var_val  (i) = NINT(werte (1) ) 
+                  IF(n_data>0) THEN             ! We have an array
+                      var_field(place)%var_value(:,:) = NINT(werte(1))
+                  ENDIF
                   var_diff (i) = is_diffev      ! true if refine param from diffev
                ELSEIF (str_comp (c_type, 'char', 2, l_type, 4) ) THEN 
-                  var_type (i) = VAR_TYPE_CHAR 
-                  var_val (i) = 0.0 
+                  var_type (i) =       IS_CHAR 
+                  var_val  (i) = 0.0 
                   var_char (i) = c_init (1:len(var_char))
                   var_diff (i) = is_diffev      ! true if refine param from diffev
                ENDIF 
