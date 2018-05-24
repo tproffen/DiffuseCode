@@ -65,17 +65,18 @@ SUBROUTINE eval (line, ll)
       REAL w1, w2, ww 
 !                                                                       
 !...........Evaluate the exponentiation  '**'                           
-      ipot = INDEX (line, '**') 
-      DO while (ipot.ne.0) 
-      CALL get_w1_w2 (w1, w2, line, ipot, iz1, iz2, ll, 2, lreal) 
-      IF (ier_num.ne.0) then 
-         RETURN 
-      ENDIF 
-      ww = w1**w2 
-      CALL ersetz (line, iz1, iz2, ww, ipot, ll, 2, lreal) 
-      ipot = INDEX (line, '**') 
-      ENDDO 
+ipot = INDEX (line, '**') 
+DO while (ipot.ne.0) 
+   CALL get_w1_w2 (w1, w2, line, ipot, iz1, iz2, ll, 2, lreal) 
+   IF (ier_num.ne.0) then 
+      RETURN 
+   ENDIF 
+   ww = w1**w2 
+   CALL ersetz (line, iz1, iz2, ww, ipot, ll, 2, lreal) 
+   ipot = INDEX (line, '**') 
+ENDDO 
 !...... Multiplication, division                                        
+!
       imal = INDEX (line, '*') 
       idiv = INDEX (line, '/') 
       IF (imal.gt.0.and.idiv.gt.0) then 
@@ -87,7 +88,8 @@ SUBROUTINE eval (line, ll)
       ELSEIF (imal.eq.0.and.idiv.eq.0) then 
          iverk = 0 
       ENDIF 
-      DO while (iverk.ne.0) 
+!
+loop_verk:DO while (iverk.ne.0) 
       CALL get_w1_w2 (w1, w2, line, iverk, iz1, iz2, ll, 1, lreal) 
       IF (ier_num.ne.0) then 
          RETURN 
@@ -119,7 +121,7 @@ SUBROUTINE eval (line, ll)
       ELSEIF (imal.eq.0.and.idiv.eq.0) then 
          iverk = 0 
       ENDIF 
-      ENDDO 
+ENDDO  loop_verk
 !...... addition,subtraction                                            
 !...........search for all '+' that are not part of  xxxE+yyy           
       IF (line (1:1) .eq.'+') then 
