@@ -14,6 +14,7 @@ CONTAINS
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
       USE blanks_mod
+      USE constants_mod
       USE errlist_mod 
       USE variable_mod
       IMPLICIT none 
@@ -26,6 +27,7 @@ CONTAINS
 !                                                                       
       INTEGER i, ianf, iend, ll 
       INTEGER linsert 
+LOGICAL :: success = .FALSE.
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -34,22 +36,24 @@ CONTAINS
 !                                                                       
 !     Loop over all defined variables and search for coincidences       
 !     of the variable name. Works since names like "cos" etc are        
-!     forbidden, and the names have been sorted in alphabitcally        
+!     forbidden, and the names have been sorted in alphabetically        
 !     descending order.                                                 
 !                                                                       
 !                                                                       
 !     --If an apostrophe is found, ignore the string                    
 !                                                                       
-      IF (max (index (string, '''') , index (string, '"') ) .gt.0) THEN 
-         RETURN 
-      ENDIF 
-      DO i = 1, var_num 
-      ianf = index (string, var_name (i) (1:var_l (i) ) ) 
-      DO while (ianf.ne.0) 
+IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
+   RETURN 
+ENDIF 
+names:DO i = 1, var_num 
+   success = .FALSE.
+   ianf = INDEX (string, var_name (i) (1:var_l (i) ) ) 
+   DO while (ianf.ne.0) 
+      IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
       IF (ianf.gt.1) zeile (1:ianf - 1) = string (1:ianf - 1) 
-      IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
+      IF (var_type (i) .eq.      IS_REAL) THEN 
                                                                         
          WRITE (dummy (1:15) , '(e15.8e2)') var_val (i) 
          dummy (12:12) = 'e' 
@@ -57,13 +61,13 @@ CONTAINS
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
-      ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
+      ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
          WRITE (dummy (1:15) , '(i15)') nint (var_val (i) ) 
          ll = 15 
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
-      ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
+      ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
 !DBG_RBN            ll = len_str(var_char(i))                           
 !DBG_RBN            zeile(ianf:ianf+ll-1)= var_char(i)(1:ll)            
 !DBG_RBN            linsert = ll                                        
@@ -81,13 +85,20 @@ CONTAINS
       laenge)                                                           
       string = zeile 
       laenge = ll 
+      success = .TRUE.
 !DBG_RBN      write(*,*) ' ZEILE >',zeile(1:ll)                         
-      IF (max (index (string, '''') , index (string, '"') ) .gt.0) THEN 
+      IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
          RETURN 
       ENDIF 
-      ianf = index (string, var_name (i) (1:var_l (i) ) ) 
-      ENDDO 
-      ENDDO 
+      ianf = INDEX (string, var_name (i) (1:var_l (i) ) ) 
+   ENDDO 
+ENDDO names
+!
+IF(.NOT. success) THEN
+!  ier_num = -24
+!  ier_typ = ER_FORT
+ENDIF
+!
 END SUBROUTINE ersetz_variable                
 !
 !*****7**************************************************************** 
@@ -101,6 +112,7 @@ SUBROUTINE upd_variable (string, laenge, wert, dummy, length)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE constants_mod
       USE lib_f90_allocate_mod
       USE errlist_mod 
       USE param_mod
@@ -123,11 +135,12 @@ INTEGER         , INTENT(IN) :: length
 !                                                                       
       DO i = 1, var_num 
       IF (string (1:laenge) .eq.var_name (i) (1:var_l (i) ) ) THEN 
-         IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
+         IF(var_entry(i)>0) RETURN     ! This is a variable array
+         IF (var_type (i) .eq.      IS_REAL) THEN 
             var_val (i) = wert 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
+         ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
             var_val (i) = nint (wert) 
-         ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
+         ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
             var_char (i) = dummy (1:length) 
          ENDIF 
          IF(string (1:laenge) == 'REF_DIMENSION') THEN
@@ -163,6 +176,12 @@ DO i=var_sys+1, var_num
       var_type( i) = 0
       var_diff( i) = .FALSE.
       var_val ( i) = 0
+      IF(var_entry(i)/=0) THEN      ! GOT An array
+         IF(ALLOCATED(var_field(var_entry(i))%var_value)) &
+          DEALLOCATE(var_field(var_entry(i))%var_value)
+         var_field(var_entry(i))%var_shape(:) = 0
+         var_entry(i) = 0
+      ENDIF
    ENDIF
 ENDDO
 ndel = 0
@@ -172,12 +191,13 @@ remove: DO
       ndel = ndel +1
       IF(i>var_num-ndel) EXIT remove
       DO j=i, var_num-ndel
-         var_name(j) = var_name(j+1)
-         var_char(j) = var_char(j+1)
-         var_l   (j) = var_l   (j+1)
-         var_type(j) = var_type(j+1)
-         var_diff(j) = var_diff(j+1)
-         var_val (j) = var_val (j+1)
+         var_name (j) = var_name (j+1)
+         var_char (j) = var_char (j+1)
+         var_l    (j) = var_l    (j+1)
+         var_type (j) = var_type (j+1)
+         var_diff (j) = var_diff (j+1)
+         var_val  (j) = var_val  (j+1)
+         var_entry(j) = var_entry(j+1)
       ENDDO
    ELSE
       i=i+1
@@ -217,13 +237,20 @@ ELSE
       loop: DO j=var_sys+1, upper
          IF(cpara(i) == var_name(j)) THEN 
             IF(var_diff(j) .EQV. is_diffev) THEN
+               IF(var_entry(j)/=0) THEN      ! GOT An array
+                  IF(ALLOCATED(var_field(var_entry(j))%var_value)) &
+                    DEALLOCATE(var_field(var_entry(j))%var_value)
+                  var_field(var_entry(j))%var_shape(:) = 0
+                  var_entry(j) = 0
+               ENDIF
                DO k=j+1, var_num
-                  var_name(k-1) = var_name(k)
-                  var_char(k-1) = var_char(k)
-                  var_l   (k-1) = var_l(k)
-                  var_type(k-1) = var_type(k)
-                  var_diff(k-1) = var_diff(k)
-                  var_val (k-1) = var_val(k)
+                  var_name (k-1) = var_name(k)
+                  var_char (k-1) = var_char(k)
+                  var_l    (k-1) = var_l(k)
+                  var_type (k-1) = var_type(k)
+                  var_diff (k-1) = var_diff(k)
+                  var_val  (k-1) = var_val(k)
+                  var_entry(k-1) = var_entry(k)
                ENDDO
                var_num = var_num - 1
                CYCLE main
@@ -250,14 +277,18 @@ SUBROUTINE show_variables
 !-                                                                      
 !     shows the variable definitions                                    
 !+                                                                      
+USE constants_mod
+USE blanks_mod
 USE prompt_mod 
 USE variable_mod
 IMPLICIT none 
 !
 !
 CHARACTER(LEN=6), DIMENSION(0:1) :: cdiffev
+CHARACTER(LEN=1024) :: string
 INTEGER :: i , j
 !
+INTEGER :: length
 INTEGER :: len_str 
 DATA cdiffev/'DIFFEV','      '/
 !
@@ -266,15 +297,29 @@ IF (var_num.gt.0) THEN
    DO i = 1, var_num 
       j=1
       IF(var_diff(i)) j=0
-      IF (var_type (i) .eq.VAR_TYPE_REAL) THEN 
+      string = ' '
+      length = 0
+      IF(var_entry(i)>0) THEN
+         IF(var_field(var_entry(i))%var_shape(2)>1) THEN
+            WRITE(string,'(a1,i8,a1,i8,a1)') '[',var_field(var_entry(i))%var_shape(1), &
+            ',',var_field(var_entry(i))%var_shape(2),']'
+            length = 19
+            CALL rem_bl(string, length)
+         ELSE
+            WRITE(string,'(a1,i8,a1)') '[',var_field(var_entry(i))%var_shape(1),']'
+            length = 10
+            CALL rem_bl(string, length)
+         ENDIF
+      ENDIF
+      IF (var_type (i) .eq.      IS_REAL) THEN 
          IF (ABS(var_val(i)) .lt.1e-5.or. ABS(var_val(i)).ge.1e6) THEN
-            WRITE(output_io, 2100) var_name (i), var_val (i) , cdiffev(j)
+            WRITE(output_io, 2100) var_name (i), var_val (i) , cdiffev(j), string(1:length)
          ELSE 
-            WRITE(output_io, 2150) var_name (i), var_val (i) , cdiffev(j)
+            WRITE(output_io, 2150) var_name (i), var_val (i) , cdiffev(j), string(1:length)
          ENDIF 
-      ELSEIF (var_type (i) .eq.VAR_TYPE_INTE) THEN 
-         WRITE(output_io, 2200) var_name (i), nint (var_val (i) ) , cdiffev(j)
-      ELSEIF (var_type (i) .eq.VAR_TYPE_CHAR) THEN 
+      ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
+         WRITE(output_io, 2200) var_name (i), nint (var_val (i) ) , cdiffev(j), string(1:length)
+      ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
          WRITE(output_io, 2300) var_name(i), var_char(i)(1:len_str(var_char(i))), cdiffev(j)
       ENDIF 
    ENDDO 
@@ -286,9 +331,9 @@ WRITE (output_io, * )
      &                  ' Maximum number: ',i3/)                        
  2050 FORMAT    (' No user defined variables',                          &
      &                  ' Maximum number: ',i3/)                        
- 2100 FORMAT    (' Name: ',a30,' = ',8x,e20.8e2,' Real      ',a) 
- 2150 FORMAT    (' Name: ',a30,' = ',8x,f16.8  ,'     Real      ',a) 
- 2200 FORMAT    (' Name: ',a30,' = ',i15,13x,   ' Integer   ',a) 
+ 2100 FORMAT    (' Name: ',a30,' = ',8x,e20.8e2,' Real      ',a,a) 
+ 2150 FORMAT    (' Name: ',a30,' = ',8x,f16.8  ,'     Real      ',a,a) 
+ 2200 FORMAT    (' Name: ',a30,' = ',i15,13x,   ' Integer   ',a,a) 
  2300 FORMAT    (' Name: ',a30,' = ''',a,     ''' Character ',a) 
 END SUBROUTINE show_variables                 
 !
@@ -305,6 +350,7 @@ SUBROUTINE validate_variable (zeile, lp)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
+      USE reserved_mod
       USE charact_mod
       USE errlist_mod 
       USE set_sub_generic_mod
@@ -313,36 +359,23 @@ SUBROUTINE validate_variable (zeile, lp)
       CHARACTER (LEN=*), INTENT(IN) :: zeile 
       INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER, PARAMETER :: reserved_n = 92
-!
-      CHARACTER(LEN=14), DIMENSION(reserved_n) :: reserved
       INTEGER i, ii 
+      INTEGER :: length
       LOGICAL lok 
 !                                                                       
-      DATA reserved / 'asin', 'acos', 'atan', 'asind', 'acosd', 'atand',    &
-      'sin', 'cos', 'tan', 'sind', 'cosd', 'tand', 'sinh', 'cosh',          &
-      'tanh', 'sqrt', 'exp', 'ln', 'abs', 'mod', 'max', 'min', 'int',       &
-      'nint', 'frac', 'ran', 'gran', 'logn', 'do', 'enddo', 'if', 'elseif', &
-      'endif', 'else', 'then', 'while', 'until', 'lt', 'le', 'gt', 'ge',    &
-      'eq', 'and', 'or', 'xor', 'break', 'by', 'continue', 'stop', 'exit',  &
-      'echo', 'eval', 'fopen', 'fclose', 'fformat', 'fexist', 'fend',       &
-      'fput', 'fget', 'fsub', 'help', 'learn', 'lend', 'seed', 'set',       &
-      'show', 'sleep', 'socket', 'system', 'wait', 'variable', 'cd',        &
-      'getcwd', 'geetenv',                                                  &
-      'i', 'r', 'res' , 'gskew', 'pois', 'gbox', 'date', 'fdate', 'fmodt',  &
-      'REF_GENERATION',                                                     &
-      'REF_MEMBER', 'REF_CHILDREN', 'REF_DIMENSION', 'REF_KID',             &
-      'REF_INDIV', 'REF_NINDIV', 'REF_COMPUTE','PI'/
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
 !                                                                       
-      DO i = 1, reserved_n 
-         IF (index (reserved (i), zeile (1:lp) ) .NE.0) THEN 
+      main:DO i = 1, lib_reserved_n 
+!        IF (INDEX (lib_reserved (i), zeile (1:lp) ) .NE.0) THEN 
+         length = MAX(LEN_TRIM(lib_reserved(i)), LEN_TRIM(zeile(1:lp)))
+         IF ((lib_reserved (i)(1:length)== zeile (1:length) ) ) THEN 
             ier_num = - 25 
             ier_typ = ER_FORT 
+            EXIT main
          ENDIF 
-      ENDDO 
+      ENDDO main 
 !                                                                       
 !     Check against variables/functions of the main program             
 !                                                                       
