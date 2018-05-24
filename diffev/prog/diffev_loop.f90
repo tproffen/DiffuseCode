@@ -80,7 +80,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
             IF(lstandalone) THEN
                CALL errlist 
                IF (ier_sta.ne.ER_S_LIVE) then 
-                  IF (lmakro.and.ier_sta.ne.ER_S_LIVE) then 
+                  IF (lmakro.and.ier_sta.ne.ER_S_LIVE.AND.lmacro_close) then 
                      CALL macro_close 
                      prompt_status = PROMPT_ON 
                   ENDIF 
@@ -104,10 +104,12 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
                         ier_typ = ER_COMM
                         EXIT main
                      ELSE
-                        CALL macro_close
-                        lmakro_error = .FALSE.
-                        PROMPT_STATUS = PROMPT_ON
-                        sprompt = ' '
+                        IF(lmacro_close) THEN
+                           CALL macro_close
+                           lmakro_error = .FALSE.
+                           PROMPT_STATUS = PROMPT_ON
+                           sprompt = ' '
+                        ENDIF 
                      ENDIF 
                   ENDIF 
                ENDIF 
