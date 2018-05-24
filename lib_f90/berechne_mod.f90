@@ -23,6 +23,7 @@ REAL FUNCTION berechne (string, laenge)
       INTEGER          , INTENT(INOUT) :: laenge
 !
       CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
+      INTEGER          :: c
       INTEGER lpara (maxw) 
       INTEGER max 
       INTEGER ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
@@ -38,10 +39,13 @@ REAL FUNCTION berechne (string, laenge)
          CONTINUE 
       ELSE 
          CALL ersetz_variable (string, laenge) 
-         ie = INDEX (string, 'E') 
-         DO while (ie.ne.0) 
-         string (ie:ie) = 'e' 
-         ie = INDEX (string, 'E') 
+         DO ie=2,laenge-1  !while (ie.ne.0)
+            IF(string(ie:ie)=='E') THEN
+               c = IACHAR(string(ie-1:ie-1))
+               IF((zero<=c .and. c<=nine) .AND. (string(ie+1:ie+1)=='+' .OR. string(ie+1:ie+1)=='-')) THEN
+                  string (ie:ie) = 'e' 
+               ENDIF
+            ENDIF
          ENDDO 
          ikla = INDEX (string, '(') 
          DO while (ikla.ne.0) 
@@ -101,6 +105,9 @@ REAL FUNCTION berechne (string, laenge)
                IF (ikpz.gt.ikp + 1) then 
                   zeile = line (ikp + 1:ikpz - 1) 
                   lp = ikpz - ikp - 1 
+                  cpara(:) = ' '
+                  lpara(:) = 0
+                  werte(:) = 0.0
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      DO i = 1, ianz 
@@ -304,8 +311,11 @@ REAL FUNCTION berechne (string, laenge)
             icol = INDEX (line, ':') 
             iapo = INDEX (line, '''') 
             IF (ikom.eq.0.and.icol.eq.0.and.iapo.eq.0) then 
-               CALL eval (line, ll) 
-               IF (ier_num.ne.0) then 
+               ier_num = -43
+               ier_typ = ER_FORT
+               ier_msg(1) = 'Offending string: '//line(1:LEN_TRIM(line))
+!              CALL eval (line, ll) 
+!              IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
 !           ELSEIF(ikom.eq.1.and.icol.eq.0.and.iapo.eq.0) then
@@ -314,14 +324,15 @@ REAL FUNCTION berechne (string, laenge)
 !              CALL eval(cpara(2),lpara(2))
 !              line = cpara(1)(1:lpara(1))//','//cpara(2)(1:lpara(2))
 !              ll   = lpara(1)+1+lpara(2)
-            ENDIF 
+!           ENDIF 
             IF (ikl.ge.3.and.icol.eq.0) then 
                CALL calc_intr (string, line, ikl, iklz, laenge, ll) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
             ELSE 
-               IF (icol.ge.1.and.ikl.gt.1) then 
+               IF (icol.ge.1.and.ikl.gt.1) THEN   ! We have a substring
+                  IF(INDEX(string,'''')>1 .AND. string(ikl-1:ikl-1)=='''') THEN
                   cpara (1) = line (1:icol - 1) 
                   lpara (1) = icol - 1 
                   cpara (2) = line (icol + 1:ll) 
@@ -365,6 +376,14 @@ REAL FUNCTION berechne (string, laenge)
                   ENDIF 
                   string = zeile 
                   laenge = lll 
+                  ELSE
+                     ier_num = -43
+                     ier_typ = ER_FORT
+                     IF(ikl>2) THEN
+                        ier_msg(1) = 'Offending string: '//string(2:ikl-1)
+                     ENDIF
+                     RETURN
+                  ENDIF
                ELSE 
                   zeile = ' ' 
                   IF (ikl.gt.1) zeile (1:ikl - 1) = string (1:ikl - 1) 
