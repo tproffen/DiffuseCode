@@ -621,6 +621,30 @@ USE ber_params_mod
  1000 FORMAT     (a)
  2000 FORMAT     (' ------ > Macro halted, continue with cont ...',a1)
       END SUBROUTINE macro_read
+!
+!*****7****************************************************************
+!
+SUBROUTINE macro_terminate
+!
+USE class_macro_internal
+USE macro_mod
+!
+IMPLICIT NONE
+!
+!IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
+   IF(.not. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
+      lmakro = .false.
+      macro_level = 0
+      CALL macro_close
+   ELSE
+      mac_tree_active => mac_tree_active%parent
+      macro_level = macro_level - 1
+   ENDIF
+!   RETURN
+!ENDIF
+!
+END SUBROUTINE macro_terminate
+!
 !*****7****************************************************************
 !
 SUBROUTINE macro_close
