@@ -276,6 +276,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       call alloc_molecule(1,1,new_mole, n_type, new_nmax)
       IF ( ier_num /= 0 ) THEN
          ier_msg(1) = 'Could not allocate space for molecules'
+         WRITE(ier_msg(2), '(i15,1x,i15)')  new_mole, n_type
+         WRITE(ier_msg(3), '(i15       )')  new_nmax
          RETURN
       ENDIF
    ENDIF
