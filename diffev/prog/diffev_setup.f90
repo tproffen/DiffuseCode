@@ -146,6 +146,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE diffev_get_var_type(line,length, var_is_type)
+!
+   CHARACTER(LEN=*)     , INTENT(IN)  :: line
+   INTEGER              , INTENT(IN)  :: length
+   INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+   END SUBROUTINE diffev_get_var_type
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !
    CHARACTER (LEN= * ), INTENT(INOUT) :: string
@@ -200,6 +210,7 @@ p_calc_intr_spec    => diffev_calc_intr_spec
 p_validate_var_spec => diffev_validate_var_spec
 p_branch            => diffev_branch
 p_loop_mpi          => diffev_loop_mpi
+p_get_var_type      => diffev_get_var_type
 !
 END SUBROUTINE diffev_set_sub
 !
