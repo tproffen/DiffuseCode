@@ -80,15 +80,9 @@ pname  = cpara(1)(1:MIN(lpara(1),LEN(pname)))
 lpname = MIN(lpara(1),LEN(pname))
 cpara(1) = '0'
 lpara(1) = 1
-!DO i = 1, var_num 
-!   IF(pname == var_name(i)) THEN
-!      ier_num = -29
-!      ier_typ = ER_APPL
-!      ier_msg(1) = 'The parameter names must be unique. Check'
-!      ier_msg(2) = 'with >>''variable show'' for existing names.'
-!      RETURN
-!   ENDIF
-!ENDDO 
+CALL check_param_name(pname, lpname)
+IF(ier_num /= 0) RETURN
+!
 CALL ber_params (ianz, cpara, lpara, werte,MAXW)
 IF(ier_num /= 0) THEN
    RETURN
@@ -204,4 +198,72 @@ ELSE
 ENDIF
 !
 END SUBROUTINE add_param
+!
+!*******************************************************************************
+!
+SUBROUTINE check_param_name(string, length)
+!
+USE errlist_mod
+USE reserved_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: string
+INTEGER         , INTENT(IN) :: length
+!
+INTEGER :: i
+!
+ier_num = 0
+ier_typ = ER_NONE
+!
+DO i = 1, diffev_reserved_n
+   IF (INDEX(diffev_reserved(i), string(1:length) ) .ne.0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+!
+DO i = 1, discus_reserved_n
+   IF (INDEX(discus_reserved(i), string(1:length) ) /=  0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+!
+DO i = 1, kuplot_reserved_n
+   IF (INDEX(kuplot_reserved(i), string(1:length) ) /=  0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+!
+DO i = 1,  suite_reserved_n
+   IF (INDEX(suite_reserved(i), string(1:length) ) /=  0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+!
+DO i = 1,    lib_reserved_n
+   IF (INDEX(lib_reserved(i), string(1:length) ) /=  0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+DO i = 1, var_num 
+   IF (INDEX (var_name(i), string(1:length) ) /= 0) THEN
+      ier_num = - 25
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ENDDO
+!
+END SUBROUTINE check_param_name
+!
 END MODULE add_param_mod
