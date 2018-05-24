@@ -640,6 +640,7 @@ LOGICAL             :: need_alloc
 !
 LOGICAL             :: str_comp
 !
+CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
@@ -719,8 +720,8 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !                                                                       
                   cr_ncatoms = MAX(1,cr_natoms / (cr_icc (1) * cr_icc (2)     &
                                                 * cr_icc (3) ))
-                  cr_ncatoms = cr_ncatoms
-                               cr_ncatoms = cr_ncatoms
+!                 cr_ncatoms = cr_ncatoms
+!                              cr_ncatoms = cr_ncatoms
                   IF(cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
                      chem_period(:) = .false.
                      chem_quick     = .false.
@@ -1246,9 +1247,18 @@ IF(at_init) THEN
    ENDDO
    at_init = .FALSE.
 ENDIF
+wwerte(:)= 0.0
 werte(:) = 0.0
 werte(5) = 1.0    ! Default for property flag
 wwerte(5)= 1.0    ! Default for property flag
+IF(UBOUND(werte,1)>=7) THEN
+   werte(6) = 0.0    ! Default for molecule number
+   werte(7) = 0.0    ! Default for Atom in molecule
+ENDIF
+IF(UBOUND(wwerte,1)>=7) THEN
+   wwerte(6) = 0.0    ! Default for molecule number
+   wwerte(7) = 0.0    ! Default for Atom in molecule
+ENDIF
 IF(UBOUND(werte,1)>=8) werte(8) = 1.0    ! Default for Occupancy
 IF(UBOUND(wwerte,1)>=8) wwerte(8) = 1.0    ! Default for Occupancy
 !
@@ -2612,23 +2622,44 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       cr_delf_int (i) = .true. 
       cr_scat_equ (i) = .false. 
       ENDDO 
+      cr_dw(:)     = 0.0
+      cr_occ(:)    = 1.0
+      as_dw(:)     = 0.0
+      as_occ(:)    = 1.0
+!
       DO i = 1, 3 
       cr_dim (i, 1) = 0.0 
       cr_dim (i, 2) = 0.0 
       ENDDO 
 !
-      cr_mole = 0
+      as_pos(:,:)  = 0
+      cr_pos(:,:)  = 0
+      cr_prop(:)   = 0
+      cr_iscat(:)  = 0
+      cr_mole(:)   = 0
       cr_surf(:,:) = 0
 !                                                                       
-      DO i = 0, MOLE_MAX_MOLE 
-      mole_len (i) = 0 
-      mole_off (i) = 0 
-      ENDDO 
+!     DO i = 0, MOLE_MAX_MOLE 
+      mole_len (:) = 0 
+      mole_off (:) = 0 
+      mole_type(:) = 0 
+      mole_char(:) = 0 
+      mole_file(:) = ' '
+      mole_cont(:) = 0 
+      mole_dens(:) = 0.0
+      mole_biso(:) = 0.0
+      mole_fuzzy(:) = 0.0
+      mole_gene (:,:,:) = 0.0
+      mole_symm (:,:,:) = 0.0
+!     ENDDO 
       mole_l_on = .false. 
       mole_num_mole = 0 
       mole_num_curr = 0 
       mole_num_act = 0 
       mole_num_type = 0 
+      mole_num_unit = 0 
+      mole_num_atom = 0 
+      mole_num_acur = 0 
       mole_gene_n = 0 
       mole_symm_n = 0 
 !                                                                       
@@ -4292,7 +4323,6 @@ atoms:      DO                                 ! Get all atoms information
                            biso = 0.0
                         ELSE
                            IF(INDEX(ccpara(j_biso),'(')>0) llpara(j_biso) = INDEX(ccpara(j_biso),'(') - 1
-write(*,*) 'CCPARA(j_BISO )', ccpara(j_biso)(1:llpara(j_biso))  , ' ', llpara(j_biso)
                            READ(ccpara(j_biso)(1:llpara(j_biso)),*) biso
                         ENDIF
                      ENDIF
@@ -4940,6 +4970,7 @@ main: DO
         indxb = index (line, ' ')       ! find a blank
         IF(indxb==0) indxb = laenge + 1
         indxb = MIN(indxb,indxt)
+!
         lbef = min (indxb - 1, 8)
         bef  = line (1:lbef)
         CALL do_cap (line(1:laenge))
