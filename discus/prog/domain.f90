@@ -377,8 +377,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) THEN 
@@ -1624,6 +1626,7 @@ mole_int: IF(mk_infile_internal) THEN
          IF (ii.eq.0) then 
             ier_num = - 91 
             ier_typ = ER_APPL 
+            ier_msg(1)  = ' Unknown pseudo atom name '//line(1:4)
             RETURN 
          ENDIF 
 !                                                                       

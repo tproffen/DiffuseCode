@@ -1142,8 +1142,10 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) THEN 

@@ -741,8 +741,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   prompt = orig_prompt
                   RETURN
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) THEN 
