@@ -139,12 +139,13 @@
 !                                                                       
       CHARACTER (LEN=*), INTENT(IN) :: command 
       CHARACTER(LEN=1024) :: message
+      INTEGER :: exit_msg
 !
       INTEGER length
 !                                                                       
 !     CALL system (command(1:len_str(command)), ier_num) 
       length = LEN_TRIM(command)
-      CALL EXECUTE_COMMAND_LINE (command(1:length), CMDSTAT=ier_num, CMDMSG=message) 
+      CALL EXECUTE_COMMAND_LINE (command(1:length), CMDSTAT=ier_num, CMDMSG=message, EXITSTAT=exit_msg) 
       IF (ier_num.eq.0) then 
          ier_typ = ER_NONE 
       ELSE 
