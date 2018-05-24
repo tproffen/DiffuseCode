@@ -11,50 +11,78 @@ SUBROUTINE do_math (line, indxg, length)
 !                                                                       
       USE berechne_mod
 USE ber_params_mod
+USE constants_mod
 USE do_variable_mod
       USE errlist_mod 
       USE do_string_alloc_mod
       USE get_params_mod
       USE set_sub_generic_mod
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 10
+INTEGER, PARAMETER :: maxw = 10
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
 INTEGER          , INTENT(IN   ) :: indxg
 INTEGER          , INTENT(INOUT) :: length
 !
-      CHARACTER(LEN=1024) :: zeile, cpara (maxw) 
+CHARACTER(LEN=1024)   :: zeile, cpara (maxw) 
+INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
       INTEGER lpara (maxw) 
       INTEGER i, ikk, iii (maxw), ianz, lll 
+INTEGER :: indxb
 !                                                                       
       REAL wert, werte (maxw) 
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0) then 
-         CALL do_string_alloc (line, indxg, length) 
-         RETURN 
-      ENDIF 
+lll = indxg -1
+indxb = INDEX(line(1:lll),'[')
+IF(indxb >0) lll = indxb - 1
+
+CALL p_get_var_type(line, lll, var_is_type)
+IF(var_is_type(1)== IS_UNKNOWN) THEN     ! unknown variable name on left side
+   ier_num = -2
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Offending name is '//line(1:lll)
+   RETURN
+ENDIF
+IF(var_is_type(3)==IS_READ) THEN
+   ier_num = -41
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Offending name is '//line(1:lll)
+   RETURN
+ENDIF
+!
+IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0) then 
+   IF(var_is_type(1)==IS_CHAR) THEN
+      CALL do_string_alloc (line, indxg, length) 
+      RETURN 
+   ELSE
+      ier_num = -42
+      ier_typ = ER_FORT
+      ier_msg(1) = 'Offending name is '//line(1:lll)
+      RETURN 
+   ENDIF 
+ENDIF 
 !                                                                       
 !     Get the expression                                                
 !                                                                       
-      lll = length - (indxg + 1) + 1 
-      CALL get_params (line (indxg + 1:length), ianz, cpara, lpara, maxw, lll)
-      IF (ier_num.ne.0) then 
-         RETURN 
-      ELSEIF (ianz.eq.0) then 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
-      i = lpara (1) 
-      zeile = '('//cpara (1) (1:i) //')' 
-      i = i + 2 
+lll = length - (indxg + 1) + 1 
+CALL get_params (line (indxg + 1:length), ianz, cpara, lpara, maxw, lll)
+IF (ier_num.ne.0) then 
+   RETURN 
+ELSEIF (ianz.eq.0) then 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
+zeile = '('//cpara(1)(1:lpara(1)) //')' 
+i     = lpara(1) + 2 
 !                                                                       
 !     Calculate the expression                                          
 !                                                                       
+IF(var_is_type(1)/=IS_CHAR) THEN     ! Variable on left side is numeric
       wert = berechne (zeile, i) 
       IF (ier_num.eq.0) then 
 !                                                                       
@@ -105,11 +133,12 @@ INTEGER          , INTENT(INOUT) :: length
                ier_typ = ER_FORT 
             ENDIF 
          ENDIF 
-      ELSE 
+      ENDIF 
+ELSE             ! Variable on left side is CHARACTER
          zeile = line (1:indxg) //'"%c",'//line (indxg + 1:length) 
          length = length + 5 
          CALL do_string_alloc (zeile, indxg, length) 
-      ENDIF 
+ENDIF 
 !                                                                       
 END SUBROUTINE do_math                        
 !
