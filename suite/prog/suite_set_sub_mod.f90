@@ -51,6 +51,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE suite_get_var_type(line,length, var_is_type)
+!
+   CHARACTER(LEN=*)     , INTENT(IN)  :: line
+   INTEGER              , INTENT(IN)  :: length
+   INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+   END SUBROUTINE suite_get_var_type
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !
    CHARACTER (LEN= * ), INTENT(INOUT) :: string
@@ -72,7 +82,15 @@ INTERFACE
 !
    END SUBROUTINE suite_validate_var_spec 
 END INTERFACE
-
+!
+INTERFACE
+   SUBROUTINE suite_top(zeile)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+!
+   END SUBROUTINE suite_top
+END INTERFACE
+!
 !
 p_mache_kdo         => suite_mache_kdo
 p_errlist_appl      => suite_errlist_appl
@@ -80,6 +98,8 @@ p_ersetz_para       => suite_ersetz_para
 p_upd_para          => suite_upd_para
 p_calc_intr_spec    => suite_calc_intr_spec
 p_validate_var_spec => suite_validate_var_spec
+p_top               => suite_top
+p_get_var_type      => suite_get_var_type
 !
 END SUBROUTINE suite_set_sub
 !
@@ -170,5 +190,6 @@ END INTERFACE
 p_branch            =>  suite_branch 
 !
 END SUBROUTINE suite_set_sub_branch
+!
 !
 END MODULE suite_set_sub_mod

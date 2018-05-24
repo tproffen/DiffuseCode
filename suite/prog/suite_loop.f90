@@ -48,6 +48,7 @@ lend = .FALSE.
 !                                                                       
 !  - execute command                                                 
 !                                                                       
+               IF(line(1:4)=='quit') RETURN
                IF (line (1:3) .eq.'do '.OR.line (1:2) .eq.'if') then 
                   CALL do_loop (line, lend, laenge) 
                ELSE 
@@ -58,12 +59,13 @@ lend = .FALSE.
 !                                                                       
 !     - Handle error message                                            
 !                                                                       
-         IF (ier_num.ne.0) then 
+         IF (ier_num.ne.0) THEN 
             IF( ier_num ==-9.and. ier_typ==ER_IO) THEN
-               write(output_io, 8000)
-               write(output_io, 9000)
-               stop
+               WRITE(output_io, 8000)
+               WRITE(output_io, 9000)
+               STOP
             ENDIF
+            IF(l_to_top) RETURN
             IF(mpi_active .AND. ier_sta == ER_S_EXIT) THEN  ! Error while MPI is on
                ier_sta = ER_S_LIVE              ! Fake Error status to prevent stop
                CALL errlist                     ! but get error message
@@ -72,7 +74,7 @@ lend = .FALSE.
             ENDIF
             CALL errlist 
             IF (ier_sta.ne.ER_S_LIVE) then 
-               IF (lmakro.and.ier_sta.ne.ER_S_LIVE) then 
+               IF (lmakro.and.ier_sta.ne.ER_S_LIVE.AND.lmacro_close) then 
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
                ENDIF 
