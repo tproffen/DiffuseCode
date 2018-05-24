@@ -5,7 +5,7 @@
 !     This sublevel includes all commands and functions for the         
 !     least square fits in KUPLOT.                                      
 !*****7*****************************************************************
-SUBROUTINE do_fit (zei, lp)! , previous) 
+SUBROUTINE do_fit (zei, lp)
 !                                                                       
 !     Main fitting menu                                                 
 !                                                                       
@@ -13,6 +13,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
       USE calc_expr_mod
       USE doact_mod 
       USE do_eval_mod
+      USE do_set_mod
       USE do_wait_mod
       USE errlist_mod 
       USE get_params_mod
@@ -31,10 +32,9 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !                                                                       
  CHARACTER (LEN=*), INTENT(INOUT) :: zei 
  INTEGER          , INTENT(INOUT) :: lp
-!CHARACTER (LEN= * ), DIMENSION(3), INTENT(INOUT) :: previous
 !
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) line, zeile 
+      CHARACTER(1024) line, zeile
       CHARACTER(LEN=40         ) :: orig_prompt 
       CHARACTER(40) cdummy 
       CHARACTER(4) befehl 
@@ -48,22 +48,8 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
+real :: f, df(maxpara)
 !
-!---- Check for a 'finished' LOW level macro
-!
-!write(*,*) ' IN FIT ZEI : ', zei(1:lp), ' ', lp, &
-!      str_comp(zei, 'finished', 8, lp, 8) 
-!write(*,*) ' PREV ', previous(1)(1:8)
-!write(*,*) ' PREV ', previous(2)(1:8),  &
-!      str_comp(previous(2), 'run', 3, LEN_TRIM(previous(2)), 3)
-!write(*,*) ' PREV ', previous(3)(1:8)
-!IF(str_comp(zei, 'finished', 8, lp, 8) ) THEN
-!   IF(str_comp(previous(2), 'run', 3, LEN_TRIM(previous(2)), 3) ) THEN
-!write(*,*) ' IN FIT RETURNING TO RUN', ikfit, ikfirst(ikfit), lni (ikfit) 
-!      return
-!   ENDIF
-!ENDIF
-!                                                                       
       empty = ' '
       CALL no_error 
       sel_func = ftyp (1:4) .ne.'NONE' 
@@ -172,7 +158,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !                                                                       
       CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
-         IF (line.eq.' '.or.line (1:1) .eq.'#') goto 10 
+         IF (line.eq.' '.or.line (1:1) .eq.'#' .OR. line(1:1)=='!') goto 10 
 !                                                                       
 !------ search for "="                                                  
 !                                                                       
@@ -228,6 +214,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !     Define fit function 'func'                                        
 !                                                                       
          ELSEIF (str_comp (befehl, 'func', 3, lbef, 4) ) then 
+            lturn_off = .FALSE.
             CALL do_fit_fkt (zeile, lp) 
             IF (ier_num.eq.0) sel_func = .true. 
 !                                                                       
@@ -307,6 +294,8 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !-------Run fit                                                         
 !                                                                       
          ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
+!
+            lturn_off = .TRUE.
             IF (.not.sel_func) then 
                ier_num = - 25 
                ier_typ = ER_APPL 
@@ -321,7 +310,13 @@ SUBROUTINE do_fit (zei, lp)! , previous)
                ENDIF 
                CALL get_extrema 
             ENDIF 
+            lturn_off = .FALSE.
+!                                                                  
+!-------Test a recursive call to kuplot_loop                            
 !                                                                       
+         ELSEIF (str_comp (befehl, 'test', 2, lbef, 4) ) then 
+            CALL theory_macro(1.0,  f, df, 1)
+!                                                                  
 !-------Save fit results                                                
 !                                                                       
          ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
@@ -458,7 +453,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
       CHARACTER(80) iname 
       REAL werte (maxw) 
       INTEGER lpara (maxw), lp 
-      INTEGER ianz
+      INTEGER ianz, iianz
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -477,7 +472,11 @@ SUBROUTINE do_fit (zei, lp)! , previous)
                lpara (4) = 3 
             ENDIF 
          ENDIF 
-         IF (ianz.gt.1) then 
+         IF (ftyp(1:2)=='MA' .AND. ianz==3) THEN
+            CALL del_params (1, ianz, cpara, lpara, maxw) 
+            iianz = 1
+            CALL ber_params (iianz, cpara, lpara, werte, maxw) 
+         ELSEIF (ianz.gt.1) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          ELSE 
@@ -563,6 +562,11 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !                                                                       
       ELSEIF (ftyp (1:2) .eq.'FX') then 
          CALL setup_user (ianz, werte, maxw, cpara, lpara) 
+!                                                                       
+!------ User defined macro (xy and xyz data sets)                    
+!                                                                       
+      ELSEIF (ftyp (1:2) .eq.'MA') then 
+         CALL setup_user_macro (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       ELSE 
          ier_num = - 25 
@@ -770,6 +774,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+      USE param_mod
       USE kuplot_config 
       USE kuplot_mod 
       USE string_convert_mod
@@ -819,6 +824,12 @@ SUBROUTINE do_fit (zei, lp)! , previous)
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+!
+      IF(ier_num == 0) THEN 
+         DO ip=1,MAXPARA
+            kupl_para(ip) = p(ip)
+         ENDDO
+      ENDIF
 !                                                                       
  1000 FORMAT     (' ---------- > Setting parameter p(',i2,') = ',g12.6, &
      &                   '  pinc = ',f4.1)                              
@@ -856,6 +867,8 @@ SUBROUTINE do_fit (zei, lp)! , previous)
          ELSE 
             fitfkt = 'Gaussian (1D)' 
          ENDIF 
+      ELSEIF (ftyp (1:2) .eq.'MA') then 
+         fitfkt = 'f = '//fit_func (1:fit_lfunc) 
       ELSE 
          fitfkt = 'not defined' 
       ENDIF 
@@ -1038,6 +1051,8 @@ SUBROUTINE do_fit (zei, lp)! , previous)
             CALL show_psvgt (idout) 
          ELSEIF (ftyp (1:2) .eq.'FX') then 
             CALL show_user (idout) 
+         ELSEIF (ftyp (1:2) .eq.'MA') then 
+            CALL show_user_macro (idout) 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -1252,6 +1267,8 @@ SUBROUTINE do_fit (zei, lp)! , previous)
          ELSE 
             CALL theory_gauss_2d (xx, f, df, iwert) 
          ENDIF 
+      ELSEIF (ftyp (1:2) .eq.'MA') then 
+         CALL theory_macro (xx, f, df, iwert) 
       ENDIF 
 !                                                                       
       END SUBROUTINE kupl_theory                    
@@ -1298,6 +1315,66 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !                                                                       
       END SUBROUTINE setup_user                     
 !*****7*****************************************************************
+!       User defined fit macro                                       
+!*****7*****************************************************************
+      SUBROUTINE setup_user_macro (ianz, werte, maxw, cpara, lpara) 
+!                                                                       
+      USE  berechne_mod
+      USE errlist_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+!                                                                       
+      IMPLICIT none 
+!                                                                       
+      INTEGER , INTENT(IN) :: maxw 
+      INTEGER , INTENT(IN) :: ianz 
+      REAL    , DIMENSION(MAXW), INTENT(IN) ::  werte (maxw) 
+!                                                                       
+      CHARACTER (LEN=*), DIMENSION(MAXW), INTENT(IN) :: cpara
+      INTEGER          , DIMENSION(MAXW), INTENT(IN) :: lpara
+      INTEGER :: ip 
+      INTEGER :: m,i,iiw,iix
+REAL, DIMENSION(maxpara) :: df
+REAL                   :: f
+      REAL :: xx
+!                                                                       
+!                                                                       
+      IF (ianz.eq.2) then 
+         ip = nint (werte (1) ) 
+         IF (ip.lt.1.or.ip.gt.maxpara) then 
+            ier_num = - 31 
+            ier_typ = ER_APPL 
+            RETURN 
+         ENDIF 
+!                                                                       
+         npara = ip 
+         fit_func = cpara (2) (1:lpara (2) ) 
+         fit_lfunc = lpara (2) 
+!        cdummy = '('//fit_func (1:fit_lfunc) //')' 
+!        length = fit_lfunc + 2
+!        dummy = berechne (cdummy, length)
+         IF (lni (ikfit) ) then 
+            iiw = offz (ikfit - 1) 
+            iix = offxy (ikfit - 1) 
+            m = nx (ikfit) * ny (ikfit) 
+         ELSE 
+            iiw = offxy (ikfit - 1) 
+            iix = offxy (ikfit - 1) 
+            m = len (ikfit) 
+         ENDIF 
+         DO i = 1, 1  !!! m 
+            xx = x (iix + i) 
+            CALL theory_macro (xx, f, df, i) 
+            IF(ier_num/=0) RETURN
+         ENDDO
+!                                                                       
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
+      ENDIF 
+!                                                                       
+      END SUBROUTINE setup_user_macro
+!*****7*****************************************************************
       SUBROUTINE show_user (idout) 
 !                                                                       
       USE kuplot_config 
@@ -1317,6 +1394,26 @@ SUBROUTINE do_fit (zei, lp)! , previous)
  1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
 !                                                                       
       END SUBROUTINE show_user                      
+!*****7*****************************************************************
+      SUBROUTINE show_user_macro (idout) 
+!                                                                       
+      USE kuplot_config 
+      USE kuplot_mod 
+!                                                                       
+      IMPLICIT none 
+!                                                                       
+      INTEGER idout, i 
+!                                                                       
+      WRITE (idout, 1000) fit_func (1:fit_lfunc) 
+      DO i = 1, npara 
+      WRITE (idout, 1100) i, p (i), dp (i), pinc (i) 
+      ENDDO 
+      WRITE (idout, * ) ' ' 
+!                                                                       
+ 1000 FORMAT (1x,'Fit function : F = ',a,/) 
+ 1100 FORMAT (3x,'p(',i2,') : ',g12.6,' +- ',g12.6,4x,'pinc : ',f2.0) 
+!                                                                       
+      END SUBROUTINE show_user_macro                      
 !***********************************************************************
       SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
@@ -1686,7 +1783,7 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !---------integral berechnen                                            
       zz = p (iii + 3) / p (iii + 4) + p (iii + 3) * p (iii + 4) 
       sint = p (iii + 1) * REAL(zpi) * zz 
-      ds0 = zpi * zz 
+      ds0 = REAL(zpi) * zz 
       ds2 = p (iii + 1) * REAL(zpi) * (1.0 / p (iii + 4) + p (iii + 4) ) 
       ds3 = p (iii + 1) * REAL(zpi) * ( - p (iii + 3) / p (iii + 4) **2 + p ( &
       iii + 3) )                                                        
@@ -2946,254 +3043,273 @@ SUBROUTINE do_fit (zei, lp)! , previous)
 !***7*******************************************************************
 !     Altered subroutine FITTE for KUPLOT use                           
 !***7*******************************************************************
-      SUBROUTINE fit_kupl (ww) 
+SUBROUTINE fit_kupl (ww) 
 !+                                                                      
 !     eigentliche fit-routine speziell fuer kupl ..                     
 !-                                                                      
-      USE param_mod 
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE param_mod 
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
+IMPLICIT NONE
 !
-      IMPLICIT NONE
+REAL, DIMENSION(MAXARRAY), INTENT(IN) ::  ww !(maxarray) 
 !
-      INTEGER :: i, j, k,l, l1, nl   ! Loop indices
-      INTEGER :: m, n, nf
-      INTEGER :: iiw, iix
-      REAL :: f
-      REAL :: g
-      REAL :: h
-      REAL :: s
-      REAL :: sqsum
-      REAL :: sum3
-      REAL :: sum4
-      REAL :: syi
-      REAL :: ttt
-      REAL :: xx
-      REAL :: zl
-      REAL ww (maxarray) 
-      REAL df (maxpara), dl (maxpara), dz (maxpara), pl (maxpara) 
-      REAL pinc_old (maxpara) 
+INTEGER :: i, j, k,l, l1, nl   ! Loop indices
+INTEGER :: m, n, nf
+INTEGER :: iiw, iix
+REAL :: f
+REAL :: g
+REAL :: h
+REAL :: s
+REAL :: sqsum
+REAL :: sum3
+REAL :: sum4
+REAL :: syi
+REAL :: ttt
+REAL :: xx
+REAL :: zl
+REAL, DIMENSION(MAXPARA) ::  df, dl, dz, pl
+REAL, DIMENSION(MAXPARA) ::  pinc_old
 !                                                                       
-      zl = 0.0
-      IF (lni (ikfit) ) then 
-         iiw = offz (ikfit - 1) 
-         iix = offxy (ikfit - 1) 
-         m = nx (ikfit) * ny (ikfit) 
-      ELSE 
-         iiw = offxy (ikfit - 1) 
-         iix = offxy (ikfit - 1) 
-         m = len (ikfit) 
-      ENDIF 
+zl = 0.0
+IF (lni (ikfit) ) THEN 
+   iiw = offz (ikfit - 1) 
+   iix = offxy (ikfit - 1) 
+   m = nx (ikfit) * ny (ikfit) 
+ELSE 
+   iiw = offxy (ikfit - 1) 
+   iix = offxy (ikfit - 1) 
+   m = len (ikfit) 
+ENDIF 
 !                                                                       
-      DO i = 1, npara 
-      pinc_old (i) = pinc (i) 
-      ENDDO 
+DO i = 1, npara 
+   pinc_old (i) = pinc (i) 
+ENDDO 
 !                                                                       
-      IF (fstart) write (output_io, 5000) 
-      n = npara 
-      j = 0 
-   10 CONTINUE 
-      zwert = 0.0 
-      DO k = 1, n 
+IF (fstart) write (output_io, 5000) 
+n = npara 
+j = 0 
+!
+cycles: DO
+   zwert = 0.0 
+   DO k = 1, n 
       dz (k) = 0.0 
       DO l = k, n 
-      cl (l, k) = 0.0 
+         cl (l, k) = 0.0 
       ENDDO 
-      ENDDO 
-      DO i = 1, m 
+   ENDDO 
+   points: DO i = 1, m 
       xx = x (iix + i) 
       CALL kupl_theory (xx, f, df, i) 
       s = ww (iiw + i) - f 
-      IF (wtyp.eq.'BCK') then 
-         IF (ww (iiw + i) .ne. - 9999.) then 
-            w (iiw + i) = exp ( - wval * s) 
+      IF (wtyp.eq.'BCK') THEN 
+         IF (ww (iiw + i) .ne. - 9999.) THEN 
+            w (iiw + i) = EXP ( - wval * s) 
          ELSE 
             w (iiw + i) = 0.0 
          ENDIF 
       ENDIF 
       zwert = zwert + w (iiw + i) * s * s 
       DO k = 1, n 
-      IF (abs (df (k) ) .lt.0.0000001) df (k) = 0.0 
-      ttt = w (iiw + i) * df (k) 
-      dz (k) = dz (k) - s * ttt 
-      DO l = k, n 
-      cl (l, k) = cl (l, k) + ttt * df (l) 
+         IF (abs (df (k) ) .lt.0.0000001) df (k) = 0.0 
+         ttt = w (iiw + i) * df (k) 
+         dz (k) = dz (k) - s * ttt 
+         DO l = k, n 
+            cl (l, k) = cl (l, k) + ttt * df (l) 
+         ENDDO 
       ENDDO 
-      ENDDO 
-      ENDDO 
-      f = 1.0 
-      IF (urf.le.0) GOTO 60
-   40 CONTINUE 
+   ENDDO  points
+!
+   f = 1.0 
+   IF (urf >  0) THEN
       h = 0.0 
       DO k = 1, n 
-      IF (dz (k) .ne.0.0) h = h + (dz (k) * dz (k) ) / (zwert * cl (k,  &
-      k) )                                                              
+         IF(dz(k).ne.0.0) h = h + (dz(k) * dz(k)) / (zwert * cl(k,k))
       ENDDO 
       f = 1.000001 + urf * h 
-   60 CONTINUE 
-      IF (fstart) write (output_io, 5010) j, zwert, f 
-      zalt = zl 
-      zdif = zwert - zl 
-      fend = f 
-      IF (j.le.0) GOTO 80
-   70 CONTINUE 
-      IF (zwert - zl .ge. 0) GOTO 300
-   80 CONTINUE 
+   ENDIF
+!
+   IF (fstart) write (output_io, 5010) j, zwert, f 
+   zalt = zl 
+   zdif = zwert - zl 
+   fend = f 
+   IF (j >  0) THEN
+      IF (zwert - zl .ge. 0) EXIT cycles
+   ENDIF
+!
       zl = zwert 
       DO k = 1, n 
-      pl (k) = p (k) 
+         pl (k) = p (k) 
       ENDDO 
+      loopk: DO k = 1, n 
+         loopl: DO l = 1, k 
+            l1 = l - 1 
+            s = cl (k, l) 
+            IF (l - k .eq. 0) EXIT loopl
+            IF (l1 >    0) THEN
+               DO i = 1, l1 
+                  s = s - cl (i, l) * cl (i, k) 
+               ENDDO 
+            ENDIF
+            cl (l, k) = s 
+         ENDDO  loopl
+!
+         IF (s == 0) THEN
+            dl (k) = 0.0 
+         ELSE
+            s = s * f 
+            IF (l1 >  0) THEN
+               DO i = 1, l1 
+                  ttt = cl (i, k) 
+                  cl (i, k) = ttt * dl (i) 
+                  s = s - ttt * cl (i, k) 
+               ENDDO 
+            ENDIF
+            IF (s >  0) THEN
+               dl (k) = 1.0 / s 
+            ENDIF
+         ENDIF
+!
+      ENDDO  loopk
+!
+      IF (j - ncycle .gt. 0) EXIT cycles
+      j = j + 1 
+!
+      IF (n - 1 >   0) THEN
+         DO l = 2, n 
+            l1 = l - 1 
+            DO k = 1, l1 
+               dz (l) = dz (l) - cl (k, l) * dz (k) 
+            ENDDO 
+         ENDDO 
+      ENDIF
+!
+      dz (n) = dz (n) * dl (n) 
+      IF (n - 1 >   0) THEN
+         DO nl = 2, n 
+            l = n - nl + 1 
+            l1 = l + 1 
+            dz (l) = dz (l) * dl (l) 
+            DO k = l1, n 
+               dz (l) = dz (l) - cl (l, k) * dz (k) 
+            ENDDO 
+         ENDDO 
+      ENDIF
+!
       DO k = 1, n 
-      DO l = 1, k 
-      l1 = l - 1 
-      s = cl (k, l) 
-      IF (l - k .eq. 0) GOTO 140
-  100 IF (l1 .le. 0) GOTO 130
-  110 DO i = 1, l1 
-      s = s - cl (i, l) * cl (i, k) 
-      ENDDO 
-  130 cl (l, k) = s 
-      ENDDO 
-  140 IF (s.ne.0) GOTO 145
-  142 dl (k) = 0.0 
-      GOTO 190 
-  145 s = s * f 
-      IF (l1.le.0) GOTO 170
-  150 DO i = 1, l1 
-      ttt = cl (i, k) 
-      cl (i, k) = ttt * dl (i) 
-      s = s - ttt * cl (i, k) 
-      ENDDO 
-  170 IF (s.le.0) GOTO 190
-  180 dl (k) = 1.0 / s 
-  190 CONTINUE 
-      ENDDO 
-      IF (j - ncycle .gt. 0) GOTO 300 
-  200 j = j + 1 
-      IF (n - 1 .le.0) GOTO 230
-  210 DO l = 2, n 
-      l1 = l - 1 
-      DO k = 1, l1 
-      dz (l) = dz (l) - cl (k, l) * dz (k) 
-      ENDDO 
-      ENDDO 
-  230 dz (n) = dz (n) * dl (n) 
-      IF (n - 1 .le.0) GOTO 260
-  240 DO nl = 2, n 
-      l = n - nl + 1 
-      l1 = l + 1 
-      dz (l) = dz (l) * dl (l) 
-      DO k = l1, n 
-      dz (l) = dz (l) - cl (l, k) * dz (k) 
-      ENDDO 
-      ENDDO 
-  260 DO k = 1, n 
-      pinc (k) = 0.01 * dz (k) 
-      p (k) = p (k) - dz (k) 
+         pinc (k) = 0.01 * dz (k) 
+         p (k) = p (k) - dz (k) 
+         kupl_para(k) = p(k)            ! Update global parameter
       ENDDO 
 !                                                                       
-      GOTO 10 
+ENDDO cycles
 !                                                                       
-  300 g = 1.0 
-      h = float (m - n) 
-      IF (h * zl.gt.0.0) g = zl / h 
-      DO k = 1, n 
-      dl (k) = dl (k) * g 
-      cl (k, k) = 1.0 
-      ENDDO 
-      IF (n - 1 .le.0) GOTO 350
-  320 DO l = 2, n 
+g = 1.0 
+h = float (m - n) 
+IF (h * zl.gt.0.0) g = zl / h 
+DO k = 1, n 
+   dl (k) = dl (k) * g 
+   cl (k, k) = 1.0 
+ENDDO 
+!
+IF (n - 1 >   0) THEN
+   DO l = 2, n 
       l1 = l - 1 
       DO k = 1, l1 
+         s = 0.0 
+         DO i = k, l1 
+            s = s - cl (i, l) * cl (i, k) 
+         ENDDO 
+         cl (l, k) = s 
+      ENDDO 
+   ENDDO 
+ENDIF
+!
+DO k = 1, n 
+   DO l = k, n 
       s = 0.0 
-      DO i = k, l1 
-      s = s - cl (i, l) * cl (i, k) 
-      ENDDO 
+      IF (l - k ==   0) THEN
+         DO i = l, n 
+            ttt = cl (i, k) 
+            cl (i, k) = ttt * dl (i) 
+            s = s + ttt * cl (i, k) 
+         ENDDO 
+      ELSE
+         DO i = l, n 
+            s = s + cl (i, l) * cl (i, k) 
+         ENDDO 
+      ENDIF
       cl (l, k) = s 
-      ENDDO 
-      ENDDO 
-  350 DO k = 1, n 
-      DO l = k, n 
-      s = 0.0 
-      IF (l - k .ne. 0) GOTO 380
-  360 DO i = l, n 
-      ttt = cl (i, k) 
-      cl (i, k) = ttt * dl (i) 
-      s = s + ttt * cl (i, k) 
-      ENDDO 
-      GOTO 400 
-  380 DO i = l, n 
-      s = s + cl (i, l) * cl (i, k) 
-      ENDDO 
-  400 CONTINUE 
-      cl (l, k) = s 
-      ENDDO 
-      ENDDO 
-      DO l = 1, n 
-      IF (dl (l) .ne. 0 ) GOTO 502
-  501 dp (l) = 1.0 
+   ENDDO 
+ENDDO 
+!
+DO l = 1, n 
+   IF (dl (l) ==   0 ) THEN
+      dp (l) = 1.0 
       dp (l) = 0.0 
-      GOTO 570 
-  502 f = sqrt (cl (l, l) ) 
+   ELSE
+      f = SQRT (cl (l, l) ) 
       dp (l) = f 
       DO k = 1, l 
-      dz (k) = cl (l, k) / f 
+         dz (k) = cl (l, k) / f 
       ENDDO 
       DO k = l, n 
-      dz (k) = cl (k, l) / f 
+         dz (k) = cl (k, l) / f 
       ENDDO 
       DO k = 1, l 
-      IF (dp (k) .eq.0.0) then 
-         cl (l, k) = dz (k) 
-      ELSE 
-         cl (l, k) = dz (k) / dp (k) 
-      ENDIF 
-      ENDDO 
-  570 CONTINUE 
-      ENDDO 
-!                                                                       
-      DO k = 1, n 
-      p (k) = pl (k) 
-      ENDDO 
-      sqsum = 0.0 
-      syi = 0.0 
-      sum3 = 0.0 
-      sum4 = 0.0 
-      nf = n 
-      DO i = 1, n 
-      IF (df (i) .eq.0.) nf = nf - 1 
-      ENDDO 
-      DO i = 1, m 
-      xx = x (iix + i) 
-      CALL kupl_theory (xx, f, df, - i) 
-      h = ww (iiw + i) - f 
-      IF (wtyp.eq.'BCK') then 
-         IF (ww (iiw + i) .ne. - 9999.) then 
-            w (iiw + i) = exp ( - wval * s) 
+         IF (dp (k) .eq.0.0) then 
+            cl (l, k) = dz (k) 
          ELSE 
-            w (iiw + i) = 0.0 
+            cl (l, k) = dz (k) / dp (k) 
          ENDIF 
-      ENDIF 
-      sum3 = sum3 + w (iiw + i) * h * h 
-      sum4 = sum4 + w (iiw + i) * ww (iiw + i) * ww (iiw + i) 
       ENDDO 
-      r4 = sqrt (sum3 / sum4) 
-      re = sqrt ( (m - nf) / sum4) 
-      res_para (0) = 1 
-      res_para (1) = r4 
-      res_para (2) = re 
+   ENDIF
+ENDDO 
 !                                                                       
-      DO i = 1, npara 
-      pinc (i) = pinc_old (i) 
-      ENDDO 
-      IF (fstart) write (output_io, * ) 
+DO k = 1, n 
+   p (k) = pl (k) 
+   kupl_para(k) = p(k)            ! Update global parameter
+ENDDO 
+sqsum = 0.0 
+syi = 0.0 
+sum3 = 0.0 
+sum4 = 0.0 
+nf = n 
+DO i = 1, n 
+   IF (df (i) .eq.0.) nf = nf - 1 
+ENDDO 
+DO i = 1, m 
+   xx = x (iix + i) 
+   CALL kupl_theory (xx, f, df, - i) 
+   h = ww (iiw + i) - f 
+   IF (wtyp.eq.'BCK') then 
+      IF (ww (iiw + i) .ne. - 9999.) then 
+         w (iiw + i) = EXP ( - wval * h) 
+      ELSE 
+         w (iiw + i) = 0.0 
+      ENDIF 
+   ENDIF 
+   sum3 = sum3 + w (iiw + i) * h * h 
+   sum4 = sum4 + w (iiw + i) * ww (iiw + i) * ww (iiw + i) 
+ENDDO 
+r4 = SQRT (sum3 / sum4) 
+re = SQRT ( (m - nf) / sum4) 
+res_para (0) = 1 
+res_para (1) = r4 
+res_para (2) = re 
+!                                                                       
+DO i = 1, npara 
+   pinc (i) = pinc_old (i) 
+ENDDO 
+IF (fstart) write (output_io, * ) 
 !                                                                       
  5000 FORMAT     (' Starting least square fit ... ',/) 
  5010 FORMAT     (3x,'cycle:',i4,3x,'sum: ',g12.6,3x,' urf: ',g12.6) 
 !                                                                       
-      END SUBROUTINE fit_kupl                       
+END SUBROUTINE fit_kupl                       
+!
 !***7*******************************************************************
 !     Routine zur Berechnung der Ableitung aus RECIPES                  
 !***7*******************************************************************
