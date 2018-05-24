@@ -31,14 +31,14 @@ CONTAINS
       lend = .false.
 !                                                                       
 !                                                                       
-      main: DO WHILE (.not.lend) 
+      main: DO WHILE (.NOT.lend) 
       CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
-      ok: IF (ier_num.eq.0.and.ll.gt.0) then 
-         IF (.not.(line.eq.' '.or.line (1:1) .eq.'#')) THEN
+      ok: IF (ier_num.eq.0.and.ll.gt.0) THEN 
+         IF (.NOT.(line==' ' .OR. line(1:1)=='#' .OR. line(1:1)=='!')) THEN
 !                                                                       
 !------ --- Execute command                                             
 !                                                                       
-         IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') then 
+         IF (befehl (1:3) .eq.'do '.or.befehl (1:2) .eq.'if') THEN 
             CALL do_loop (line, lend, ll) !, kuplot_mache_kdo) 
          ELSE 
             CALL kuplot_mache_kdo (line, lend, ll) !, previous) 
@@ -48,7 +48,7 @@ CONTAINS
 !                                                                       
 !     - Handle error message                                            
 !                                                                       
-      fehler: IF (ier_num.ne.0) then 
+      fehler: IF (ier_num.ne.0) THEN 
          IF( ier_num ==-9.and. ier_typ==ER_IO) THEN
             write(output_io, 8000)
             write(output_io, 9000)
@@ -56,8 +56,8 @@ CONTAINS
          ENDIF
          IF(lstandalone) THEN
             CALL errlist 
-            IF (ier_sta.ne.ER_S_LIVE) then 
-               IF (lmakro) then 
+            IF (ier_sta.ne.ER_S_LIVE) THEN 
+               IF (lmakro) THEN 
                   CALL macro_close 
                   prompt_status = PROMPT_ON 
                ENDIF 
@@ -74,17 +74,19 @@ CONTAINS
                EXIT main                        ! Now terminate program gracefully
             ENDIF
             CALL errlist
-            IF (ier_sta.ne.ER_S_LIVE) then 
-               IF (lmakro .OR. lmakro_error) then 
+            IF (ier_sta.ne.ER_S_LIVE) THEN 
+               IF (lmakro .OR. lmakro_error) THEN 
                   IF(sprompt /= 'kuplot') THEN
                      ier_num = -9
                      ier_typ = ER_COMM
                      EXIT main
                   ELSE
-                     CALL macro_close
-                     lmakro_error = .FALSE.
-                     PROMPT_STATUS = PROMPT_ON
-                     sprompt = ' '
+                     IF(lmacro_close) THEN
+                        CALL macro_close
+                        lmakro_error = .FALSE.
+                        PROMPT_STATUS = PROMPT_ON
+                        sprompt = ' '
+                     ENDIF 
                   ENDIF 
                ENDIF 
             ENDIF 

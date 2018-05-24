@@ -74,6 +74,7 @@ SUBROUTINE kuplot_set_sub
 ! LIB_F90 by their generic names
 !
 USE set_sub_generic_mod
+USE prompt_mod
 !
 INTERFACE
    SUBROUTINE kuplot_mache_kdo (line, lend, length)
@@ -117,6 +118,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE kuplot_get_var_type(line,length, var_is_type)
+!
+   CHARACTER(LEN=*)     , INTENT(IN)  :: line
+   INTEGER              , INTENT(IN)  :: length
+   INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+   END SUBROUTINE kuplot_get_var_type
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE kuplot_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !
    CHARACTER (LEN= * ), INTENT(INOUT) :: string
@@ -148,6 +159,13 @@ INTEGER          , INTENT(IN) :: length
    END SUBROUTINE kuplot_branch
 END INTERFACE
 !
+INTERFACE
+   SUBROUTINE kuplot_top(zeile)
+!
+   CHARACTER (LEN=*), INTENT(IN) :: zeile
+   END SUBROUTINE kuplot_top
+END INTERFACE
+!
 p_mache_kdo         => kuplot_mache_kdo
 p_errlist_appl      => kuplot_errlist_appl
 p_ersetz_para       => kuplot_ersetz_para
@@ -156,6 +174,10 @@ p_calc_intr_spec    => kuplot_calc_intr_spec
 p_validate_var_spec => kuplot_validate_var_spec
 p_branch            => kuplot_branch
 p_loop_mpi          => dummy_loop_mpi
+p_get_var_type      => kuplot_get_var_type
+IF(lstandalone) THEN
+p_top               => kuplot_top
+ENDIF
 !
 END SUBROUTINE kuplot_set_sub
 !
