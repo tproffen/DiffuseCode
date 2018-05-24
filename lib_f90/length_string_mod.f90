@@ -33,36 +33,38 @@ END FUNCTION len_str
 !
 !*****7***************************************************************  
 !
-      INTEGER FUNCTION length_com (string, ikl) 
+INTEGER FUNCTION length_com (string, ikl) 
 !-                                                                      
 !     Determines the length of the variable or intrinsic function       
 !     by searching backwards from the bracket to the first non          
 !     character and non '_' character.                                  
 !+                                                                      
-      USE charact_mod
-      IMPLICIT none 
+USE charact_mod
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER ( * ) string 
+CHARACTER (LEN=*), INTENT(IN) :: string 
+INTEGER          , INTENT(IN) :: ikl
 !                                                                       
-      INTEGER ikl, i, c 
-      LOGICAL lchar 
+INTEGER :: i, c 
+LOGICAL :: lchar 
 !                                                                       
-      i = ikl 
-      lchar = .true. 
-      DO while (lchar.and.i.gt.1) 
-      i = i - 1 
-      c = iachar (string (i:i) ) 
-      lchar = a.le.c.and.c.le.z.or.c.eq.u 
-      ENDDO 
+i = ikl 
+lchar = .true. 
+!
+DO while (lchar.and.i.gt.1) 
+   i = i - 1 
+   c = iachar (string (i:i) ) 
+   lchar = a.le.c.and.c.le.z.or.c.eq.u .OR. aa.le.c.and.c.le.zz
+ENDDO 
 !                                                                       
-      IF (i.eq.1.and.lchar) then 
-         length_com = ikl - 1 
-      ELSE 
-         length_com = ikl - i - 1 
-      ENDIF 
+IF (i.eq.1.and.lchar) then 
+   length_com = ikl - 1 
+ELSE 
+   length_com = ikl - i - 1 
+ENDIF 
 !                                                                       
-      END FUNCTION length_com                       
+END FUNCTION length_com                       
 !
 !*****7***************************************************************  
 !
