@@ -52,7 +52,7 @@ SUBROUTINE do_loop (line, lend, length)
   999 CONTINUE 
       lblock = .false. 
       IF (ier_num.ne.0) THEN 
-         IF(lmakro) THEN
+         IF(lmakro .AND. lmacro_close) THEN
             CALL macro_close
          ENDIF 
       ENDIF 
@@ -129,7 +129,7 @@ DATA cprom / '/do', '/if', '/do', '/do' /
 IF (ier_num.ne.0) then 
    lblock_read = .FALSE. 
    lblock      = .FALSE. 
-   IF(lmakro) THEN
+   IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close
    ENDIF 
 ENDIF 
@@ -402,7 +402,7 @@ ENDIF
 IF (ier_num.ne.0) then 
    WRITE (ier_msg (1), 3000) 
    WRITE (ier_msg (2), 3100) line (1:41) 
-   IF(lmakro) THEN
+   IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close
    ENDIF 
 ENDIF 
@@ -515,7 +515,7 @@ ENDDO main
 IF (ier_num.ne.0) then 
    WRITE (ier_msg (1), 3000) 
    WRITE (ier_msg (2), 3100) line (1:41) 
-   IF(lmakro) THEN
+   IF(lmakro .AND. lmacro_close) THEN
       CALL macro_close
    ENDIF 
 ENDIF 
