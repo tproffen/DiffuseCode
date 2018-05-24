@@ -41,5 +41,7 @@ MODULE prompt_mod
    LOGICAL              :: lsetup_done       = .false.
    LOGICAL              :: lstandalone       = .true.
    LOGICAL              :: linteractive      = .true.
+   LOGICAL              :: lturn_off         = .true.
+   LOGICAL              :: l_to_top          = .FALSE.
 !
 END MODULE prompt_mod
