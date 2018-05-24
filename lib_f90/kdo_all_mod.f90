@@ -9,6 +9,7 @@ SUBROUTINE kdo_all (bef, lbef, zei, lc)
 !     This part contains all the program independent commands.          
 !                                                                       
 !     USE calc_expr_mod
+USE arrays_mod
 USE ber_params_mod
 USE define_variable_mod
 USE do_eval_mod
@@ -116,6 +117,31 @@ IMPLICIT none
 !                                                                       
       ELSEIF (str_comp (bef, 'lend', 3, lbef, 4) ) THEN 
          CALL ende_learn 
+!                                                                       
+!------ Multiply two user variable arrays 'matmul'                      
+!                                                                       
+      ELSEIF (str_comp (bef, 'matmul', 4, lbef, 6) ) THEN 
+         CALL arr_matmul(zei,lc) 
+!                                                                       
+!------ Add      two user variable arrays 'matadd'                      
+!                                                                       
+      ELSEIF (str_comp (bef, 'matadd', 4, lbef, 6) ) THEN 
+         CALL arr_matadd(zei,lc) 
+!                                                                       
+!------ Calculate determinant             'detmat'                      
+!                                                                       
+      ELSEIF (str_comp (bef, 'detmat', 4, lbef, 6) ) THEN 
+         CALL arr_detmat(zei,lc) 
+!                                                                       
+!------ Calculate inverse matrix          'invmat'                      
+!                                                                       
+      ELSEIF (str_comp (bef, 'invmat', 4, lbef, 6) ) THEN 
+         CALL arr_invmat(zei,lc) 
+!                                                                       
+!------ Calculate transpose matrix          'mattrans'                      
+!                                                                       
+      ELSEIF (str_comp (bef, 'mattrans', 4, lbef, 6) ) THEN 
+         CALL arr_transpose(zei,lc) 
 !                                                                       
 !     Reset the seed for the random number generator 'seed'             
 !                                                                       
