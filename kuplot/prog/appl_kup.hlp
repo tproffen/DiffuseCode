@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2018_May
+
+   Added the possibility to use a macro as fit 'function'
 3  2018_Feb
 
    Added a command 'kpara' to create a plot for DIFFEV
@@ -498,6 +501,7 @@
 !p  "lore"    yes  no   Lorentzian      number of Lorentzians
 !p  "pseudo"  yes  no   Pseudo-Voigt    number of Pseudo-Voigts
 !p  "fx"      yes  yes  User defined    # parameters and function
+!p  "ma"      yes  yes  User macro      # parameters and macro name
 !p  "back"    yes  no   Background      # of background parameters
 !p  "gsas"    yes  no   TOF profile     see text
 
@@ -599,6 +603,85 @@
 !p func fx,3,p[1]+p[2]*exp(p[3]*r[0])   : Fit a+b*exp(c*x)
 !p func fx,2,p[1]*r[0]+p[2]*r[1]        : Fit a*x + b*y (2D data set)
 
+   For a syntax check, the expression is calculated once after entering
+   this command. If the parameter values p[i] are not set to proper
+   start values, a error might occur, i.e. division by zero.
+4  ma
+!b func "ma",<ip>,<macro_name>
+   KUPLOT allows the user to fit a user defined function inside a
+   macro to a given 1D as well as 2D data set. The first parameter
+   after "fx" specifies the number of parameters. Refer to the
+   parameters in the expression for the function as p[1],p[2],....
+   The x-variable is r[0] and the y-variable (for 2D data sets)
+   is r[1]. Note, that possible values stored in these variables
+   are lost. 
+
+   The macro can use expressions, loops and if constructions,
+   nested macros are allowed as well.
+   For a full use of the discus_suite, use a combination of a
+   'top' and 'quit' command. With the 'top' command the macro 
+   steps to the top level at the discus_suite. From there on
+   all commands can be used. 
+
+   The final function value must be given on a 'value' command,
+   the derivatives on a 'deriv' command. For these command you
+   must have left the 'top' section via a 'quit'.
+   As simple macro would be:
+   value p[1]*r[0]                  ! Fit a*x
+   deriv 1, r[0]                    ! derivative with respect to p[1]
+   finished
+
+   or absolutely eqivalently:
+   r[100] = p[1]*r[0]
+   value r[100]                     ! Fit a*x
+   deriv 1, r[0]                    ! derivative with respect to p[1]
+   finished
+
+   More involved, create a structure, calculate bond length as the
+   function value:
+
+   r[101] = p[1]                    ! Copy KUPLOT variables to global 
+   r[102] = p[2]
+   top                              ! Go to top level menu
+     discus
+       read 
+         free
+       insert C, r[101], 0,0, 0.1
+       insert C, r[102], 0,0, 0.1
+       r[200] = x[1]-x[2]           ! the function value
+       r[201] =  1.0                ! the derivative with respect to p[1]
+       r[202] = -1.0                ! the derivative with respect to p[2]
+     exit
+   quit                             ! Quit the top level menu back to fit
+   value r[200]
+   deriv 1, r[201]
+   deriv 2, r[202]
+   finished
+
+   It sounds complicated, but the following examples should help:
+
+!p func ma,3, one.mac                   : Fit a+b*exp(c*x)
+
+   Inside macro "one.mac" use the lines:
+   value p[1]+p[2]*exp(p[3]*r[0])   ! Fit a+b*exp(c*x)
+   deriv 1, 0.0                     ! derivative with respect to p[1]
+   deriv 2, exp(p[3]*r[0])          ! derivative with respect to p[2]
+   deriv 3, p[2]*exp(p[3]*r[0])*r[0]! derivative with respect to p[3]
+   finished
+
+   The last command 'finished' is required inside these macros to 
+   return to the fit routine.
+
+!p func ma,2, two.mac                   : Fit a*x + b*y (2D data set)
+
+   Inside macro "two.mac" use the lines:
+   value p[1]*r[0]+p[2]*r[1]        ! Fit a*x + b*y
+   deriv 1, r[0]                    ! derivative with respect to p[1]
+   deriv 2, r[1]                    ! derivative with respect to p[2]
+   finished
+
+!p func ma, 2
+   
    For a syntax check, the expression is calculated once after entering
    this command. If the parameter values p[i] are not set to proper
    start values, a error might occur, i.e. division by zero.
@@ -2058,6 +2141,7 @@
 !p "n[5]"             : maximum number of bonds                   (RO)
 
 !p "p[i]"             : Fit parameters
+!p "s[i]"             : Fit parameter sigmas
 
 !p "axis[1,i]"        : Angle of labels for axis i (1=x,2=y)
 !p "axis[2,i]"        : Length of major ticks for axis i (1=x,2=y)
