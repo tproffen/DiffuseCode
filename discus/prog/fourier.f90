@@ -55,7 +55,7 @@ CONTAINS
       CHARACTER(1024) line 
       CHARACTER(LEN=1024)  :: infile, calcfile
       CHARACTER(LEN=1024)  :: symbol
-      INTEGER :: i, j=1, k, ianz, lp, length , lsymbol
+      INTEGER :: i, j=1, k, ianz, lp, length , lsymbol, iianz
       INTEGER indxg, lbef 
       INTEGER              :: infile_l, outfile_l
       INTEGER              :: n_qxy    ! required size in reciprocal space this run
@@ -63,6 +63,7 @@ CONTAINS
       INTEGER              :: n_natoms ! required no of atoms
       INTEGER              :: four_dim ! Dimension of Fourier that was calculated
       INTEGER              :: istyle   ! Type of hkl file at 'hkl'
+      INTEGER, DIMENSION(3):: csize
       LOGICAL              :: ldim 
       LOGICAL              :: ltop = .false. ! the top left corner has been defined
       REAL   , DIMENSION(3)::  divis
@@ -435,29 +436,30 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                      IF (ier_num.eq.0) then 
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        IF (str_comp (cpara(4), 'all', 3, lpara(4), 3) ) THEN
-                           lot_all = .TRUE.
-                           WRITE(cpara(4),'(I12)')  cr_icc(1)*cr_icc(2)*cr_icc(3)
-                           lpara(4) = 12
-                           cpara(5) = 'Y'
-                        ELSE
-                           lot_all = .FALSE.
-                        ENDIF
-                        CALL ber_params (ianz - 1, cpara, lpara, werte, &
-                        maxw)                                           
+                        lot_all = str_comp(cpara(4), 'all', 3, lpara(4), 3)
+                        iianz = 3
+                        CALL ber_params(iianz, cpara, lpara, werte, maxw)
                         IF (ier_num.eq.0) then 
                            ldim = .true. 
                            DO i = 1, 3 
-                           ldim = ldim.and. (0..lt.nint (werte (i) )    &
-                           .and.nint (werte (i) ) .le.cr_icc (i) )      
+                              ldim = ldim.and. (0..lt.nint (werte (i) )    &
+                                         .and. nint (werte (i) ) .le.cr_icc (i) )      
                            ENDDO 
                            IF (ldim) then 
                               ls_xyz (1) = nint (werte (1) ) 
                               ls_xyz (2) = nint (werte (2) ) 
                               ls_xyz (3) = nint (werte (3) ) 
-                              nlots = nint (werte (4) ) 
-                              CALL do_cap (cpara (5) ) 
-                              lperiod = (cpara (5) (1:1) .eq.'Y') 
+!
+                              CALL do_cap (cpara (5) )
+                              lperiod = (cpara (5) (1:1) .eq.'Y')
+                              CALL four_csize (cr_icc, csize, lperiod, ls_xyz)
+                              iianz = 1
+                              IF(lot_all) THEN
+                                 WRITE(cpara(1),'(I12)')  csize(1)*csize(2)*csize(3)
+                                 lpara(1) = 12
+                              ENDIF
+                              CALL ber_params(iianz, cpara, lpara, werte, maxw)
+                              nlots = nint(werte(1) ) 
                            ELSE 
                               ier_num = - 101 
                               ier_typ = ER_APPL 
@@ -888,7 +890,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ENDIF 
 !                                                                       
 !------ end of command list                                             
-!                                                                       
+!
       IF (ier_num.ne.0) then 
          CALL errlist 
          IF (ier_sta.ne.ER_S_LIVE) then 
@@ -901,8 +903,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   prompt_status = PROMPT_ON 
                   RETURN 
                ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
                ENDIF 
             ENDIF 
             IF (lblock) then 

@@ -51,7 +51,7 @@ CONTAINS
       IF (ier_num.ne.0) return 
       CALL four_formtab 
       CALL four_csize (cr_icc, csize, lperiod, ls_xyz) 
-      CALL four_aver (ilots, fave) 
+      CALL four_aver (ilots, fave, csize) 
 !                                                                       
 !------ loop over crystal regions (lots)                                
 !                                                                       
@@ -61,12 +61,18 @@ CONTAINS
          ENDDO 
 !                                                                       
          IF(lot_all) THEN
+!           ii      = nlot - 1 
+!           lbeg(3) = (ii  )/(cr_icc(1)*cr_icc(2)) + 1
+!           ii      = (ii  ) - (lbeg(3)-1)*(cr_icc(1)*cr_icc(2))
+!           lbeg(2) = (ii  )/(cr_icc(1)) + 1
+!           ii      = (ii  ) - (lbeg(2)-1)*(cr_icc(1))
+!           lbeg(1) = MOD(ii,cr_icc(1)) + 1
             ii      = nlot - 1 
-            lbeg(3) = (ii  )/(cr_icc(1)*cr_icc(2)) + 1
-            ii      = (ii  ) - (lbeg(3)-1)*(cr_icc(1)*cr_icc(2))
-            lbeg(2) = (ii  )/(cr_icc(1)) + 1
-            ii      = (ii  ) - (lbeg(2)-1)*(cr_icc(1))
-            lbeg(1) = MOD(ii,cr_icc(1)) + 1
+            lbeg(3) = (ii  )/(csize(1)*csize(2)) + 1
+            ii      = (ii  ) - (lbeg(3)-1)*(csize(1)*csize(2))
+            lbeg(2) = (ii  )/(csize(1)) + 1
+            ii      = (ii  ) - (lbeg(2)-1)*(csize(1))
+            lbeg(1) = MOD(ii,csize(1)) + 1
          ELSE
             CALL four_ranloc (csize, lbeg) 
          ENDIF
@@ -129,7 +135,7 @@ CONTAINS
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
       END SUBROUTINE four_run                       
 !*****7*****************************************************************
-      SUBROUTINE four_aver (lots, ave) 
+      SUBROUTINE four_aver (lots, ave, csize) 
 !+                                                                      
 !     This routine calculates the average structure factor <F>.         
 !-                                                                      
@@ -148,6 +154,7 @@ CONTAINS
 !
       INTEGER, INTENT(IN) :: lots
       REAL   , INTENT(IN) :: ave 
+      INTEGER, DIMENSION(3), INTENT(IN) :: csize
 !                                                                       
       REAL ran1
       REAL (KIND=PREC_DP) :: norm
@@ -161,13 +168,13 @@ CONTAINS
          IF (four_log) then 
             WRITE (output_io, 1000) 100.0 * ave 
          ENDIF 
-         scell = cr_icc (1) * cr_icc (2) * cr_icc (3) 
+         scell = csize (1) * csize (2) * csize (3) 
          ncell = 0 
-         ALLOCATE(sel_cell(cr_icc(1), cr_icc(2), cr_icc(3)))
+         ALLOCATE(sel_cell(csize(1), csize(2), csize(3)))
          sel_cell(:,:,:) = .FALSE.
-         DO ii = 1, cr_icc (1) 
-            DO jj = 1, cr_icc (2) 
-               DO kk = 1, cr_icc (3) 
+         DO ii = 1, csize (1) 
+            DO jj = 1, csize (2) 
+               DO kk = 1, csize (3) 
                   sel_cell(ii,jj,kk) = (ran1 (idum) .le.ave) 
                ENDDO
             ENDDO
@@ -180,9 +187,9 @@ CONTAINS
 !                                                                       
 !------ - Loop over all unit cells                                      
 !                                                                       
-         cell_x: DO ii = 1, cr_icc (1) 
-         cell_y: DO jj = 1, cr_icc (2) 
-         cell_z: DO kk = 1, cr_icc (3) 
+         cell_x: DO ii = 1, csize (1) 
+         cell_y: DO jj = 1, csize (2) 
+         cell_z: DO kk = 1, csize (3) 
          icell (1) = ii 
          icell (2) = jj 
          icell (3) = kk 
@@ -525,9 +532,9 @@ CONTAINS
          csize (2) = cr_icc (2) 
          csize (3) = cr_icc (3) 
       ELSE 
-         csize (1) = cr_icc (1) - ls_xyz (1) 
-         csize (2) = cr_icc (2) - ls_xyz (2) 
-         csize (3) = cr_icc (3) - ls_xyz (3) 
+         csize (1) = MAX(1, cr_icc (1) - ls_xyz (1) + 1 )
+         csize (2) = MAX(1, cr_icc (2) - ls_xyz (2) + 1 )
+         csize (3) = MAX(1, cr_icc (3) - ls_xyz (3) + 1 )
       ENDIF 
 !                                                                       
       END SUBROUTINE four_csize                     
