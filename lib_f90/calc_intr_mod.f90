@@ -21,15 +21,20 @@
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 9) 
+      INTEGER, PARAMETER :: maxw = 9
 !                                                                       
-      CHARACTER ( * ) string, line 
+      CHARACTER(LEN=*), INTENT(INOUT) :: string
+      CHARACTER(LEN=*), INTENT(INOUT) :: line 
+      INTEGER         , INTENT(INOUT) :: ikl
+      INTEGER         , INTENT(INOUT) :: iklz
+      INTEGER         , INTENT(INOUT) :: lll
+      INTEGER         , INTENT(INOUT) :: lp 
+!
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) zeile 
       CHARACTER(1024) answer , search
       INTEGER lpara (maxw) 
-      INTEGER lp, lll, ikom, ikl, iklz, i, ianz 
+      INTEGER ikom, i, ianz 
       INTEGER lcom 
       INTEGER ihyp 
       INTEGER dummy 
