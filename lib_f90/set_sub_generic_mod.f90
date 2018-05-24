@@ -78,6 +78,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE get_var_type(line,length, var_is_type)
+!
+   CHARACTER(LEN=*)     , INTENT(IN)  :: line
+   INTEGER              , INTENT(IN)  :: length
+   INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+   END SUBROUTINE get_var_type
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE execute_cost( repeat,    &
                             prog_len,         &
                             prog  ,  prog_l , &
@@ -148,6 +158,14 @@ INTEGER          , INTENT(IN) :: length
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE top(zeile)
+!
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+!
+   END SUBROUTINE top
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE loop_mpi(prog_n, prog_l, mac_n, mac_l, out_n, out_l, repeat, nindiv)
 !
 CHARACTER (LEN=*), INTENT(IN) :: prog_n
@@ -187,6 +205,8 @@ PROCEDURE(validate_var_spec), POINTER :: p_validate_var_spec => NULL()
 PROCEDURE(execute_cost  )   , POINTER :: p_execute_cost   => NULL()
 PROCEDURE(branch        )   , POINTER :: p_branch         => NULL()
 PROCEDURE(loop_mpi      )   , POINTER :: p_loop_mpi       => NULL()
+PROCEDURE(top           )   , POINTER :: p_top            => NULL()
+PROCEDURE(get_var_type  )   , POINTER :: p_get_var_type   => NULL()
 
 !
 END MODULE set_sub_generic_mod
