@@ -21,6 +21,8 @@ MODULE param_mod
 !  REAL   , DIMENSION(0:MAXPAR_RES) :: res_para = 0.0 ! (0:MAXPAR_RES)
    REAL   , DIMENSION(:),ALLOCATABLE:: res_para       ! (0:MAXPAR_RES)
    REAL   , DIMENSION(:),ALLOCATABLE:: ref_para       ! Defined by DIFFEV
+   REAL   , DIMENSION(0:MAXPAR)     :: kupl_para = 0.0 ! (0:MAXPAR)
+   REAL   , DIMENSION(0:MAXPAR)     :: kupl_deriv= 0.0 ! (0:MAXPAR)
    INTEGER                          :: nrvalues = 0
    REAL   , DIMENSION(1:2, 0:15)    :: rvalues  = 0.0 ! (1:2)
    LOGICAL                          :: rvalue_yes = .false.
