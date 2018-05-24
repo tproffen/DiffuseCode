@@ -8,6 +8,7 @@
       USE kuplot_config 
       USE kuplot_mod 
       USE variable_mod
+      USE lib_upd_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -29,6 +30,10 @@
       INTEGER kpara (mmaxw) 
 !                                                                       
       INTEGER length_com 
+!
+CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+IF(ier_num == 0) RETURN
+CALL no_error
 !                                                                       
       laenge = ll 
       ltyp = 1 
@@ -42,25 +47,9 @@
       IF (lcomm.eq.1) then 
          IF (ikl.gt.2) zeile (1:ikl - 1) = string (1:ikl - 2) 
 !                                                                       
-!-------- general integer parameter i[n]                                
-!                                                                       
-         IF (string (ikl - 1:ikl - 1) .eq.'i') then 
-            IF (ianz.eq.1) then 
-               IF (0.le.kpara (1) .and.kpara (1) .le.MAXPAR) then 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') inpara (   &
-                  kpara (1) )                                           
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-            ENDIF 
-!                                                                       
 !-------- program information n[n]                                      
 !                                                                       
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'n') then 
+         IF (string (ikl - 1:ikl - 1) .eq.'n') then 
             IF (ianz.eq.1) then 
                IF (1.le.kpara (1) .and.kpara (1) .le.5) then 
                   IF (kpara (1) .eq.1) then 
@@ -77,23 +66,6 @@
                   ELSEIF (kpara (1) .eq.5) then 
                      WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') maxbond 
                   ENDIF 
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-            ENDIF 
-!                                                                       
-!-------- general real parameter r[n]                                   
-!                                                                       
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'r') then 
-            IF (ianz.eq.1) then 
-               IF (0.le.kpara (1) .and.kpara (1) .le.MAXPAR) then 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') rpara (&
-                  kpara (1) )                                           
-                  zeile (ikl + 10:ikl + 10) = 'e' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -296,31 +268,6 @@
                   ELSE 
                      WRITE (zeile (ikl - 2:ikl + 13) , '(i15)') 0 
                   ENDIF 
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 2 
-            ier_typ = ER_FORT 
-         ENDIF 
-!                                                                       
-      ELSEIF (lcomm.eq.3) then 
-         IF (ikl.gt.4) zeile (1:ikl - 3) = string (1:ikl - 4) 
-!                                                                       
-!-------- result array res[n]                                           
-!                                                                       
-         IF (string (ikl - 3:ikl - 1) .eq.'res') then 
-            IF (ikl.gt.4) zeile (1:ikl - 3) = string (1:ikl - 4) 
-            IF (ianz.eq.1) then 
-               IF (0.le.kpara (1) .and.kpara (1) .le.MAXPAR_RES) then 
-                  WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)')        &
-                  res_para (kpara (1) )                                 
-                  zeile (ikl + 8:ikl + 8) = 'e' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -572,31 +519,6 @@
             ier_typ = ER_FORT 
          ENDIF 
 !
-      ELSEIF(lcomm==8) THEN                                                                  
-!                                                                       
-         IF (string (ikl - 8:ikl - 1) .eq.'ref_para') then 
-            IF (ianz.eq.1) then 
-               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
-               (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara(1).and.kpara(1).le.MAXPAR_REF   ) then 
-                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
-                  ref_para (kpara(1))
-                  zeile (ikl + 3:ikl + 3) = 'e' 
-               ELSE 
-                  ier_num = -133 
-                  ier_typ = ER_APPL 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-         ELSE 
-            ier_num = - 2 
-            ier_typ = ER_FORT 
-         ENDIF 
-!
       ELSE 
          ier_num = - 2 
          ier_typ = ER_FORT 
@@ -606,8 +528,13 @@
          IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1:&
          laenge)                                                        
          string = zeile 
-         CALL rem_bl (string, ll) 
+!        CALL rem_bl (string, ll) 
+      ELSE
+         ll = min (40, laenge)
+         WRITE (ier_msg (1), '(a)') string (1:ll)
       ENDIF 
+      ll = LEN_TRIM(string)
+!
       END SUBROUTINE kuplot_ersetz_para                    
 !*****7*****************************************************************
       SUBROUTINE kuplot_upd_para (ctype, ww, maxw, wert, ianz) 
@@ -620,6 +547,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+      USE lib_upd_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -630,40 +558,13 @@
       REAL   ,                    INTENT(IN) :: wert 
 !
       INTEGER idummy 
-!                                                                       
-!------ integer parameter i[n]                                          
-!                                                                       
-      IF (ctype.eq.'i') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-               inpara (ww (1) ) = int (wert) 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-         ENDIF 
-!                                                                       
-!------ real parameter r[n]                                             
-!                                                                       
-      ELSEIF (ctype.eq.'r') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-               rpara (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-         ENDIF 
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
+IF(ier_num==0) RETURN
+CALL no_error
 !                                                                       
 !------ fit parameter p[n]                                              
 !                                                                       
-      ELSEIF (ctype.eq.'p') then 
+      IF (ctype.eq.'p') then 
          IF (ianz.eq.1) then 
             IF (1.le.ww (1) .and.ww (1) .le.MAXPARA) then 
                p (ww (1) ) = wert 
@@ -844,36 +745,10 @@
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-!------ result array parameter res[n]                                   
-!                                                                       
-      ELSEIF (ctype.eq.'res') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
-               res_para (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSEIF (ctype.eq.'ref_para') THEN
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_REF) then 
-               ref_para (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
       ELSE 
          ier_num = - 2 
          ier_typ = ER_FORT 
+         WRITE (ier_msg (1), '(a)') ctype
       ENDIF 
 !                                                                       
  2000 FORMAT     (' ------ > Last ',i3,' data set(s) deleted ...') 
@@ -912,7 +787,7 @@
 !                                                                       
       END SUBROUTINE kuplot_calc_intr_spec                 
 !*****7**************************************************************** 
-      SUBROUTINE kuplot_validate_var_spec (zeile, lp) 
+SUBROUTINE kuplot_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, KUPLOT specific part 
 !                                                                       
@@ -921,32 +796,99 @@
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)    
 !+                                                                      
-      USE errlist_mod 
-      USE kuplot_config 
+USE reserved_mod
+USE errlist_mod 
+USE kuplot_config 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) :: zeile 
-      INTEGER,           INTENT(IN) :: lp 
+CHARACTER (LEN=*), INTENT(IN) :: zeile 
+INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER reserved_n 
-      PARAMETER (reserved_n = 22) 
-                                                                        
-      CHARACTER(12) reserved (reserved_n) 
-      INTEGER i 
+INTEGER :: i , length
 !                                                                       
-      DATA reserved / 'x', 'y', 'z', 'dx', 'dy', 'nx', 'ny', 'ni', 'np',&
-      'xmin', 'xmax', 'ymin', 'ymax', 'zmin', 'zman', 'n', 'p', 'axis', &
-      'pwin', 'cmap', 'cmax', 'size' /                                  
+ier_num = 0 
+ier_typ = ER_NONE 
 !                                                                       
-      ier_num = 0 
-      ier_typ = ER_NONE 
+main: DO i = 1, kuplot_reserved_n 
+!  IF (index (kuplot_reserved (i), zeile (1:lp) ) .ne.0) THEN 
+   length = MAX(LEN_TRIM(kuplot_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   IF(kuplot_reserved (i)(1:length)== zeile(1:length) ) THEN           
+      ier_num = - 25 
+      ier_typ = ER_FORT 
+      EXIT main
+   ENDIF 
+ENDDO  main
 !                                                                       
-      DO i = 1, reserved_n 
-      IF (index (reserved (i), zeile (1:lp) ) .ne.0) then 
-         ier_num = - 25 
-         ier_typ = ER_FORT 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE kuplot_validate_var_spec              
+END SUBROUTINE kuplot_validate_var_spec              
+!
+!*******************************************************************************
+!
+SUBROUTINE kuplot_get_var_type(line,length, var_is_type)
+!
+! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
+!
+USE constants_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)     , INTENT(IN)  :: line
+INTEGER              , INTENT(IN)  :: length
+INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+INTEGER, PARAMETER :: MAXPAR = 23
+CHARACTER(LEN=16), DIMENSION(MAXPAR) :: kuplot_names
+INTEGER          , DIMENSION(MAXPAR) :: kuplot_type
+INTEGER          , DIMENSION(MAXPAR) :: kuplot_dim
+LOGICAL          , DIMENSION(MAXPAR) :: kuplot_ro 
+INTEGER :: i
+!
+DATA kuplot_names  &
+    /'zmax    ', 'zmin    ', 'ymax    ', 'ymin    ', 'xmax    ', &
+     'xmin    ', 'size    ', 'pwin    ', 'cmax    ', 'cmap    ', &
+     'axis    ', 'ny      ', 'nx      ', 'np      ', 'ni      ', &
+     'dy      ', 'dx      ', 'z       ', 'y       ', 'x       ', &
+     's       ', 'p       ', 'n       '                          &
+    /
+DATA kuplot_type &
+    /  IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_INTE ,   IS_INTE , &
+       IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_REAL ,   IS_INTE                           &
+    /
+DATA kuplot_dim  &
+    /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_ARR  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
+       IS_ARR  ,   IS_ARR  ,   IS_ARR  ,   IS_ARR  ,   IS_ARR  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC                            &
+    /
+DATA kuplot_ro  &
+    /  .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .TRUE.  ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
+       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. , &
+       .TRUE.  ,   .FALSE. ,   .FALSE.                           &
+    /
+!
+var_is_type(:) = IS_UNKNOWN
+!
+main: DO i=1, MAXPAR
+   IF(line(1:length) == kuplot_names(i)(1:LEN_TRIM(kuplot_names(i)))) THEN
+      var_is_type(1) = kuplot_type(i)
+      var_is_type(2) = kuplot_dim (i)
+      IF(kuplot_ro(i)) THEN
+         var_is_type(3) = IS_READ
+      ELSE
+         var_is_type(3) = IS_WRITE
+      ENDIF
+      RETURN
+   ENDIF
+ENDDO main
+!
+CALL lib_get_var_type(line, length, var_is_type)
+!
+!
+END SUBROUTINE kuplot_get_var_typE

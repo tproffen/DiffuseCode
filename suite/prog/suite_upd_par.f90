@@ -8,6 +8,7 @@ SUBROUTINE suite_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 USE blanks_mod
 USE errlist_mod 
 USE param_mod 
+USE lib_upd_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -20,89 +21,8 @@ INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
 REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
-CHARACTER (LEN=1024)                 :: zeile 
-!                                                                       
-INTEGER                              :: laenge, ltyp, kpara, kpara2
-INTEGER                              :: lcomm 
-INTEGER                              :: length_com 
-!                                                                       
-laenge = ll 
-ltyp = 1 
-zeile = ' ' 
-kpara = nint (ww (1) ) 
-kpara2 = 1
-IF (maxw.ge.2) then 
-   kpara2 = nint (ww (2) ) 
-ENDIF 
-!                                                                 
-lcomm = length_com (string, ikl) 
-!                                                                 
-IF (lcomm.eq.1) then 
-!                                                                 
-   IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string (1: ikl - lcomm - 1)                                               
-   IF (string (ikl - 1:ikl - 1) .eq.'i') then 
-      IF (ianz.eq.1) then 
-         IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-            WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') inpara ( kpara)                                                
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ELSEIF (string (ikl - 1:ikl - 1) .eq.'r') then 
-      IF (ianz.eq.1) then 
-         IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-            WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') rpara ( kpara)                                                
-            zeile (ikl + 10:ikl + 10) = 'e' 
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ENDIF 
-!                                                                 
-ELSEIF (lcomm.eq.3) then 
-!                                                                 
-   IF (string (ikl - 3:ikl - 1) .eq.'res') then 
-      IF (ianz.eq.1) then 
-         IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string (1:ikl - lcomm - 1)                                      
-         IF (0.le.kpara.and.kpara.le.MAXPAR_RES) then 
-            WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') res_para (kpara)                                      
-            zeile (ikl + 8:ikl + 8) = 'e' 
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ELSE 
-      ier_num = - 2 
-      ier_typ = ER_FORT 
-   ENDIF 
-!                                                                 
-ELSE 
-   ier_num = - 2 
-   ier_typ = ER_FORT 
-ENDIF 
-IF (ier_num.eq.0) then 
-   ll = laenge+15 - ltyp - (iklz - ikl + 1) 
-   IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1: laenge)                                                        
-   string = zeile 
-!ELSE 
-!   WRITE ( *, * ) string 
-ENDIF 
-CALL rem_bl (string, ll) 
+CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!
 END SUBROUTINE suite_ersetz_para                    
 !*****7*****************************************************************
 SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz) 
@@ -110,9 +30,9 @@ SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz)
 !       updates the parameter spezified by ctype, index ww  to the      
 !       new value of wert                                               
 !+                                                                      
-!USE allocate_appl
 USE errlist_mod 
 USE param_mod 
+USE lib_upd_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -123,56 +43,11 @@ INTEGER           , INTENT(IN   )    :: ianz
 INTEGER           , INTENT(IN   )    :: ww (maxw)
 REAL              , INTENT(IN   )    :: wert 
 !
-IF (ctype.eq.'i') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-         inpara (ww (1) ) = int (wert) 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSEIF (ctype.eq.'r') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-         rpara (ww (1) ) = wert 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSEIF (ctype.eq.'res') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
-         res_para (ww (1) ) = wert 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSE 
-   ier_num = - 2 
-   ier_typ = ER_FORT 
-   WRITE ( *, * ) ctype 
-ENDIF 
-! 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
-! 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
 !
 END SUBROUTINE suite_upd_para                       
 !*****7***************************************************************  
-SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)                                                               
+SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !-                                                                      
 !     These are special intrinsic function for the DISCSU_SUITE. Any          
 !     intrinsic function that references crystallographic values        
@@ -233,6 +108,7 @@ SUBROUTINE suite_validate_var_spec (zeile, lp)
 !       Author  : R.B. Neder  (reinhard.neder@krist.uni-erlangen.de)    
 !+                                                                      
 !
+USE reserved_mod
 USE errlist_mod 
 IMPLICIT none 
 !                                                                       
@@ -240,21 +116,94 @@ IMPLICIT none
 CHARACTER (LEN= * ), INTENT(IN   ) :: zeile 
 INTEGER            , INTENT(IN   ) :: lp 
 !                                                                       
-INTEGER, PARAMETER                       :: reserved_n = 1
-                                                                        
-CHARACTER (LEN=12),DIMENSION(reserved_n) :: reserved = &
-              (/'            '/)
-INTEGER                                  :: i 
+INTEGER                                  :: i , length
 !                                                                       
 !                                                                       
 ier_num = 0 
 ier_typ = ER_NONE 
 !                                                                       
-DO i = 1, reserved_n 
-   IF (index (reserved (i), zeile (1:lp) ) .ne.0) then 
+DO i = 1, suite_reserved_n 
+!  IF (index (suite_reserved (i), zeile (1:lp) ) .ne.0) then 
+   length = MAX(LEN_TRIM(suite_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   IF(suite_reserved (i)(1:length)== zeile(1:length) ) THEN           
       ier_num = - 25 
       ier_typ = ER_FORT 
    ENDIF 
 ENDDO 
 !                                                                       
 END SUBROUTINE suite_validate_var_spec              
+!
+!*******************************************************************************
+!
+SUBROUTINE suite_get_var_type(line,length, var_is_type)
+!
+! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
+! Currently the suite does not offer local variables.
+!
+USE constants_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)     , INTENT(IN)  :: line
+INTEGER              , INTENT(IN)  :: length
+INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+!INTEGER, PARAMETER :: IS_SCAL = 0
+!INTEGER, PARAMETER :: IS_VEC  = 1
+!INTEGER, PARAMETER :: IS_ARR  = 2
+!INTEGER, PARAMETER :: MAXPAR = 24
+!CHARACTER(LEN=16), DIMENSION(MAXPAR) :: suite_names
+!INTEGER          , DIMENSION(MAXPAR) :: suite_type
+!INTEGER          , DIMENSION(MAXPAR) :: suite_dim
+!LOGICAL          , DIMENSION(MAXPAR) :: suite_ro 
+!INTEGER :: i
+!
+!DATA suite_names  &
+!    /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
+!     'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
+!     'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'vol     ', &
+!     'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
+!     'x       ', 'n       ', 'm       ', 'b       '              &
+!    /
+!DATA suite_type &
+!    /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
+!       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
+!       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
+!       IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
+!       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_REAL               &
+!    /
+!DATA suite_dim  &
+!    /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
+!       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+!       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
+!       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+!       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
+!    /
+!DATA suite_ro  &
+!    /  .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .TRUE.  , &
+!       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+!       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+!       .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
+!       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .FALSE.               &
+!    /
+!
+var_is_type(:) = IS_UNKNOWN
+!
+!main: DO i=1, MAXPAR
+!   IF(line(1:length) == suite_names(i)(1:LEN_TRIM(suite_names(i)))) THEN
+!      var_is_type(1) = suite_type(i)
+!      var_is_type(2) = suite_dim (i)
+!      IF(suite_ro(i)) THEN
+!         var_is_type(3) = IS_READ
+!      ELSE
+!         var_is_type(3) = IS_WRITE
+!      ENDIF
+!      RETURN
+!   ENDIF
+!ENDDO main
+!
+CALL lib_get_var_type(line, length, var_is_type)
+!
+!
+END SUBROUTINE suite_get_var_typE

@@ -9,6 +9,7 @@ USE diff_evol
 USE population
 USE blanks_mod
 USE errlist_mod 
+USE lib_upd_mod
 USE param_mod 
 !
 IMPLICIT none 
@@ -27,6 +28,10 @@ CHARACTER (LEN=1024)                 :: zeile
 INTEGER                              :: laenge, ltyp, kpara, kpara2
 INTEGER                              :: lcomm 
 INTEGER                              :: length_com 
+!
+CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+IF(ier_num == 0) RETURN
+CALL no_error
 !                                                                       
 laenge = ll 
 ltyp = 1 
@@ -41,61 +46,13 @@ lcomm = length_com (string, ikl)
 !                                                                 
 IF (lcomm.eq.1) then 
 !                                                                 
-   IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string (1: ikl - lcomm - 1)                                               
-   IF (string (ikl - 1:ikl - 1) .eq.'i') then 
-      IF (ianz.eq.1) then 
-         IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-            WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') inpara ( kpara)                                                
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ELSEIF (string (ikl - 1:ikl - 1) .eq.'r') then 
-      IF (ianz.eq.1) then 
-         IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-            WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') rpara ( kpara)                                                
-            zeile (ikl + 10:ikl + 10) = 'e' 
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ELSEIF (string (ikl - 1:ikl - 1) .eq.'p') then 
+   IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1: ikl - lcomm - 1)
+!
+   IF (string (ikl - 1:ikl - 1) .eq.'p') then 
       IF (ianz.eq.1) then 
          IF (0.le.kpara.and.kpara.le.MAXDIMX .and. kpara<=pop_dimx) THEN 
             WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') pop_para (kpara)                                      
             zeile (ikl + 10:ikl + 10) = 'e' 
-         ELSE 
-            ier_num = - 8 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ELSE 
-         ier_num = - 13 
-         ier_typ = ER_FORT 
-         RETURN 
-      ENDIF 
-   ELSE 
-      ier_num = - 2 
-      ier_typ = ER_FORT 
-   ENDIF 
-!                                                                 
-ELSEIF (lcomm.eq.3) then 
-!                                                                 
-   IF (string (ikl - 3:ikl - 1) .eq.'res') then 
-      IF (ianz.eq.1) then 
-         IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string (1:ikl - lcomm - 1)                                      
-         IF (0.le.kpara.and.kpara.le.MAXPAR_RES) then 
-            WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') res_para (kpara)                                      
-            zeile (ikl + 8:ikl + 8) = 'e' 
          ELSE 
             ier_num = - 8 
             ier_typ = ER_FORT 
@@ -279,7 +236,7 @@ ELSEIF (lcomm.eq.6) then
       ier_typ = ER_FORT 
       RETURN 
    ENDIF 
-!                                                                 
+!
 ELSEIF (lcomm.eq.7) then 
    IF (string (ikl - 7:ikl - 1) .eq.'diff_cr') then 
       IF (ianz.eq.1) then 
@@ -328,6 +285,7 @@ ELSEIF (lcomm.eq.7) then
          ier_typ = ER_FORT 
          RETURN 
       ENDIF 
+!
    ELSE 
       ier_num = - 2 
       ier_typ = ER_FORT 
@@ -428,10 +386,12 @@ IF (ier_num.eq.0) then
    ll = laenge+15 - ltyp - (iklz - ikl + 1) 
    IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1: laenge)                                                        
    string = zeile 
-!ELSE 
-!   WRITE ( *, * ) string 
+ELSE
+ll = min (40, laenge)
+    WRITE (ier_msg (1), '(a)') string (1:ll)
 ENDIF 
-CALL rem_bl (string, ll) 
+ll = LEN_TRIM(string)
+!
 END SUBROUTINE diffev_ersetz_para                    
 !*****7*****************************************************************
 SUBROUTINE diffev_upd_para (ctype, ww, maxw, wert, ianz) 
@@ -446,6 +406,7 @@ USE population
 USE errlist_mod 
 USE param_mod 
 USE lib_f90_allocate_mod
+USE lib_upd_mod
 USE variable_mod
 !
 IMPLICIT none 
@@ -460,34 +421,12 @@ REAL              , INTENT(IN   )    :: wert
 INTEGER               :: i
 INTEGER               :: pop_neu
 REAL                  :: highest_r
+!
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
+IF(ier_num==0) RETURN
+CALL no_error
 !                                                                       
-IF (ctype.eq.'i') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-         inpara (ww (1) ) = int (wert) 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSEIF (ctype.eq.'r') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-         rpara (ww (1) ) = wert 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSEIF (ctype.eq.'pop_n') then 
+IF (ctype.eq.'pop_n') then 
    IF (ianz.eq.1) then 
       IF (nint (wert) .lt.4) then 
          ier_num = - 3
@@ -602,9 +541,6 @@ ELSEIF (ctype.eq.'pop_dimx') then
       IF (nint (wert) .lt.1) then 
          ier_num = - 10 
          ier_typ = ER_APPL 
-!           ELSEIF (MAXDIMX.lt.nint (wert) ) then 
-!              ier_num = -4 
-!              ier_typ = ER_APPL 
       ELSE 
          IF ( pop_gen > 0 ) THEN
             pop_dimx_new = .true.
@@ -795,39 +731,12 @@ ELSEIF (ctype.eq.'diff_k') then
       ier_typ = ER_FORT 
       RETURN 
    ENDIF 
-ELSEIF (ctype.eq.'res') then 
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
-         res_para (ww (1) ) = wert 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
-ELSEIF (ctype.eq.'ref_para') THEN
-   IF (ianz.eq.1) then 
-      IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_REF) then 
-         ref_para (ww (1) ) = wert 
-      ELSE 
-         ier_num = - 8 
-         ier_typ = ER_FORT 
-      ENDIF 
-   ELSE 
-      ier_num = - 13 
-      ier_typ = ER_FORT 
-      RETURN 
-   ENDIF 
+!
 ELSE 
    ier_num = - 2 
    ier_typ = ER_FORT 
-   WRITE ( *, * ) ctype 
+   WRITE (ier_msg (1), '(a)') ctype
 ENDIF 
-! 2000 FORMAT  (' Integer Parameter: ',I1,' : ',i15) 
-! 2010 FORMAT  (' Real    Parameter: ',I1,' : ',e15.8e2) 
 !
 END SUBROUTINE diffev_upd_para                       
 !*****7***************************************************************  
@@ -965,28 +874,99 @@ SUBROUTINE diffev_validate_var_spec (zeile, lp)
 !+                                                                      
 !
 USE errlist_mod 
+USE reserved_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
 CHARACTER (LEN= * ), INTENT(IN   ) :: zeile 
 INTEGER            , INTENT(IN   ) :: lp 
 !                                                                       
-INTEGER, PARAMETER                       :: reserved_n = 8
-                                                                        
-CHARACTER (LEN=12),DIMENSION(reserved_n) :: reserved = &
-              (/'pop_gen     ', 'pop_n       ', 'pop_t       ', 'pop_dimx    ', &
-                'pop_xmin    ', 'pop_xmax    ', 'diff_cr     ', 'diff_f      '/)                      
-INTEGER                                  :: i 
+INTEGER                            :: i , length
 !                                                                       
 !                                                                       
 ier_num = 0 
 ier_typ = ER_NONE 
 !                                                                       
-DO i = 1, reserved_n 
-   IF (index (reserved (i), zeile (1:lp) ) .ne.0) then 
+main: DO i = 1, diffev_reserved_n 
+!  IF (index (diffev_reserved (i), zeile (1:lp) ) .ne.0) THEN 
+   length = MAX(LEN_TRIM(diffev_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   IF(diffev_reserved (i)(1:length)== zeile(1:length) ) THEN           
       ier_num = - 25 
       ier_typ = ER_FORT 
+      EXIT main
    ENDIF 
-ENDDO 
+ENDDO  main
 !                                                                       
 END SUBROUTINE diffev_validate_var_spec              
+!
+!*******************************************************************************
+!
+SUBROUTINE diffev_get_var_type(line,length, var_is_type)
+!
+! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
+!
+USE constants_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)     , INTENT(IN)  :: line
+INTEGER              , INTENT(IN)  :: length
+INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+!I
+INTEGER, PARAMETER :: MAXPAR = 24
+CHARACTER(LEN=16), DIMENSION(MAXPAR) :: diffev_names
+INTEGER          , DIMENSION(MAXPAR) :: diffev_type
+INTEGER          , DIMENSION(MAXPAR) :: diffev_dim
+LOGICAL          , DIMENSION(MAXPAR) :: diffev_ro 
+INTEGER :: i
+!
+DATA diffev_names  &
+    /'child_val', 'pop_xmin ', 'pop_xmax ', 'pop_smin ', 'pop_smax ',  &
+     'pop_lsig ', 'pop_dimx ', 'diff_sel ', 'pop_sig  ', 'pop_gen  ',  &
+     'diff_lo  ', 'diff_cr  ', 'worstr   ', 'worstm   ', 'rvalue   ',  &
+     'diff_k   ', 'diff_f   ', 'pop_v    ', 'pop_t    ', 'pop_n    ',  &
+     'pop_c    ', 'bestr    ', 'bestm    ', 'p        '                &
+    /
+DATA diffev_type &
+    /  IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
+       IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL , &
+       IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_REAL ,   IS_INTE , &
+       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL               &
+    /
+DATA diffev_dim  &
+    /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
+    /
+DATA diffev_ro  &
+    /  .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. , &
+       .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
+       .FALSE. ,   .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
+       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.                &
+    /
+!
+var_is_type(:) = IS_UNKNOWN
+!
+main: DO i=1, MAXPAR
+   IF(line(1:length) == diffev_names(i)(1:LEN_TRIM(diffev_names(i)))) THEN
+      var_is_type(1) = diffev_type(i)
+      var_is_type(2) = diffev_dim (i)
+      IF(diffev_ro(i)) THEN
+         var_is_type(3) = IS_READ
+      ELSE
+         var_is_type(3) = IS_WRITE
+      ENDIF
+      RETURN
+   ENDIF
+ENDDO main
+!
+CALL lib_get_var_type(line, length, var_is_type)
+!
+!
+END SUBROUTINE diffev_get_var_typE

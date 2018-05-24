@@ -14,14 +14,15 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       USE wyckoff_mod
       USE blanks_mod
       USE errlist_mod 
+      USE lib_upd_mod
       USE param_mod 
       USE random_mod 
       IMPLICIT none 
 !                                                                       
       INTEGER,                    INTENT(IN   ) :: ikl
       INTEGER,                    INTENT(IN   ) :: iklz
-      CHARACTER (LEN=*),          INTENT(OUT  ) :: string 
-      INTEGER,                    INTENT(OUT  ) :: ll
+      CHARACTER (LEN=*),          INTENT(INOUT) :: string 
+      INTEGER,                    INTENT(INOUT) :: ll
       INTEGER,                    INTENT(IN   ) :: maxw
       REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
       INTEGER,                    INTENT(IN   ) :: ianz
@@ -31,55 +32,31 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       INTEGER laenge, ltyp, kpara, kpara2
       INTEGER lcomm 
       INTEGER length_com 
+!
+CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+IF(ier_num == 0) RETURN
+CALL no_error
 !                                                                       
       laenge = ll 
       ltyp = 1 
       zeile = ' ' 
       kpara = nint (ww (1) ) 
       kpara2 = 0
-      IF (maxw.ge.2) then 
+      IF (maxw.ge.2) THEN 
          kpara2 = nint (ww (2) ) 
       ENDIF 
 !                                                                       
       lcomm = length_com (string, ikl) 
 !                                                                       
-      IF (lcomm.eq.1) then 
+      IF (lcomm.eq.1) THEN 
 !                                                                       
          IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string (1:   &
          ikl - lcomm - 1)                                               
-         IF (string (ikl - 1:ikl - 1) .eq.'i') then 
-            IF (ianz.eq.1) then 
-               IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') inpara (   &
-                  kpara)                                                
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'r') then 
-            IF (ianz.eq.1) then 
-               IF (0.le.kpara.and.kpara.le.MAXPAR) then 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') rpara (&
-                  kpara)                                                
-                  zeile (ikl + 10:ikl + 10) = 'e' 
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'x') then 
-            IF (ianz.eq.1) then 
+!
+         IF (string (ikl - 1:ikl - 1) .eq.'x') THEN 
+            IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') cr_pos &
                   (1, kpara)                                            
                   zeile (ikl + 10:ikl + 10) = 'e' 
@@ -92,10 +69,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'y') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 1:ikl - 1) .eq.'y') THEN 
+            IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') cr_pos &
                   (2, kpara)                                            
                   zeile (ikl + 10:ikl + 10) = 'e' 
@@ -108,10 +85,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'z') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 1:ikl - 1) .eq.'z') THEN 
+            IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') cr_pos &
                   (3, kpara)                                            
                   zeile (ikl + 10:ikl + 10) = 'e' 
@@ -124,10 +101,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'m') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 1:ikl - 1) .eq.'m') THEN 
+            IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') cr_iscat ( &
                   kpara)                                                
                ELSE 
@@ -139,9 +116,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'b') then 
-            IF (ianz.eq.1) then 
-               IF (1.le.kpara.and.kpara.le.cr_nscat) then 
+         ELSEIF (string (ikl - 1:ikl - 1) .eq.'b') THEN 
+            IF (ianz.eq.1) THEN 
+               IF (1.le.kpara.and.kpara.le.cr_nscat) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') cr_dw (&
                   kpara)                                                
                   zeile (ikl + 10:ikl + 10) = 'e' 
@@ -154,24 +131,24 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 1:ikl - 1) .eq.'n') then 
-            IF (ianz.eq.1) then 
-               IF (kpara.eq.1) then 
+         ELSEIF (string (ikl - 1:ikl - 1) .eq.'n') THEN 
+            IF (ianz.eq.1) THEN 
+               IF (kpara.eq.1) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') cr_natoms 
-               ELSEIF (kpara.eq.2) then 
+               ELSEIF (kpara.eq.2) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') cr_nscat 
-               ELSEIF (kpara.eq.3) then 
+               ELSEIF (kpara.eq.3) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') cr_ncatoms 
-               ELSEIF (kpara.eq.4) then 
+               ELSEIF (kpara.eq.4) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
                   mole_num_mole                                         
-               ELSEIF (kpara.eq.5) then 
+               ELSEIF (kpara.eq.5) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
                   mole_num_type                                         
-               ELSEIF (kpara.eq.6) then 
+               ELSEIF (kpara.eq.6) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
                   mole_num_unit                                         
-               ELSEIF (kpara.eq.7) then 
+               ELSEIF (kpara.eq.7) THEN 
                   WRITE (zeile (ikl - 1:ikl + 13) , '(i15)')            &
                   cr_ncreal
                ENDIF 
@@ -185,18 +162,18 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.8) then 
+      ELSEIF (lcomm.eq.8) THEN 
                                                                         
-         IF (string (ikl - 8:ikl - 1) .eq.'mol_cont') then 
-            IF (ianz.eq.2) then 
+         IF (string (ikl - 8:ikl - 1) .eq.'mol_cont') THEN 
+            IF (ianz.eq.2) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.mole_num_mole) then 
-                  IF (0.eq.kpara2) then 
+               IF (0.lt.kpara.and.kpara.le.mole_num_mole) THEN 
+                  IF (0.eq.kpara2) THEN 
                      WRITE (zeile (ikl - 8:ikl + 13) , '(i15)')         &
                      mole_len (kpara)                                   
                   ELSEIF (0.le.kpara2.and.kpara2.le.mole_len (kpara) )  &
-                  then                                                  
+                  THEN                                                  
                      WRITE (zeile (ikl - 8:ikl + 13) , '(i15)')         &
                      mole_cont (mole_off (kpara) + kpara2)              
                   ELSE 
@@ -215,11 +192,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_biso') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_biso') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.mole_num_type) then 
+               IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
                   mole_biso (kpara)                                     
                   zeile (ikl + 3:ikl + 3) = 'e' 
@@ -234,11 +211,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_dens') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_dens') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.mole_num_type) then 
+               IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
                   mole_dens (kpara)                                     
                   zeile (ikl + 3:ikl + 3) = 'e' 
@@ -253,11 +230,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_type') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_type') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.mole_num_mole) then 
+               IF (0.lt.kpara.and.kpara.le.mole_num_mole) THEN 
                   WRITE (zeile (ikl - 8:ikl + 13) , '(i15)') mole_type (&
                   kpara)                                                
                ELSE 
@@ -271,8 +248,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_dens') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_dens') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pdf_rho0
@@ -283,8 +260,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_scal') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'pdf_scal') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pdf_scale
@@ -295,11 +272,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
 !                                                                       
-         ELSEIF (string (ikl - 8:ikl - 1) .eq.'ref_para') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'ref_para') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) then 
+               IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) THEN 
                   WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
                   ref_para (kpara)                                     
                   zeile (ikl + 3:ikl + 3) = 'e' 
@@ -318,13 +295,13 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.7) then 
+      ELSEIF (lcomm.eq.7) THEN 
 !                                                                       
-         IF (string (ikl - 7:ikl - 1) .eq.'mol_len') then 
-            IF (ianz.eq.1) then 
+         IF (string (ikl - 7:ikl - 1) .eq.'mol_len') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.lt.kpara.and.kpara.le.mole_num_mole) then 
+               IF (0.lt.kpara.and.kpara.le.mole_num_mole) THEN 
                   WRITE (zeile (ikl - 7:ikl + 13) , '(i15)') mole_len ( &
                   kpara)                                                
                ELSE 
@@ -337,12 +314,12 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 7:ikl - 1) .eq.'at_name') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 7:ikl - 1) .eq.'at_name') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   zeile (ikl - 7:ikl + 13) = cr_at_lis (cr_iscat (kpara)&
                   )                                                     
                ELSE 
@@ -355,8 +332,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 7:ikl - 1) .eq.'at_type') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 7:ikl - 1) .eq.'at_type') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF (0.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_nscat) THEN
@@ -371,8 +348,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 7:ikl - 1) .eq.'in_mole') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 7:ikl - 1) .eq.'in_mole') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
@@ -393,9 +370,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 2 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF(lcomm.eq.5) then 
-         IF(string(ikl - 5:ikl - 1) .eq.'sym_n') then 
-            IF(ianz.eq.1) then 
+      ELSEIF(lcomm.eq.5) THEN 
+         IF(string(ikl - 5:ikl - 1) .eq.'sym_n') THEN 
+            IF(ianz.eq.1) THEN 
                WRITE(zeile(ikl-5:ikl+13),'(i15)') spc_n
             ELSE 
                ier_num = - 13 
@@ -408,10 +385,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.4) then 
+      ELSEIF (lcomm.eq.4) THEN 
 !                                                                       
-         IF (string (ikl - 4:ikl - 1) .eq.'cdim') then 
-            IF (ianz.eq.2) then 
+         IF (string (ikl - 4:ikl - 1) .eq.'cdim') THEN 
+            IF (ianz.eq.2) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
       IF (1.le.kpara.and.kpara.le.3.and.1.le.kpara2.and.kpara2.le.2) the&
@@ -428,10 +405,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'prop') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'prop') THEN 
+            IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
-               then                                                     
+               THEN                                                     
                   WRITE (zeile (ikl - 4:ikl + 13) , '(i15)') cr_prop (  &
                   kpara)                                                
                ELSE 
@@ -443,11 +420,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'menv') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'menv') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) then 
+               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
       WRITE (zeile (ikl - 4:ikl + 13) , '(i15    )') mole_env (kpara) 
                ELSE 
                   ier_num = - 8 
@@ -458,8 +435,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'seed') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'seed') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
       WRITE (zeile (ikl - 4:ikl + 13) , '(i15    )') idum
@@ -468,8 +445,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'rvol') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'rvol') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 4:ikl + 13) , '(e15.8e2)') cr_vr 
@@ -483,30 +460,13 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 2 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.3) then 
+      ELSEIF (lcomm.eq.3) THEN 
 !                                                                       
-         IF (string (ikl - 3:ikl - 1) .eq.'res') then 
-            IF (ianz.eq.1) then 
+         IF (string (ikl - 3:ikl - 1) .eq.'env') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) then 
-                  WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)')        &
-                  res_para (kpara)                                      
-                  zeile (ikl + 8:ikl + 8) = 'e' 
-               ELSE 
-                  ier_num = - 8 
-                  ier_typ = ER_FORT 
-               ENDIF 
-            ELSE 
-               ier_num = - 13 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-         ELSEIF (string (ikl - 3:ikl - 1) .eq.'env') then 
-            IF (ianz.eq.1) then 
-               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
-               (1:ikl - lcomm - 1)                                      
-               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) then 
+               IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
       WRITE (zeile (ikl - 3:ikl + 13) , '(i15    )') atom_env (kpara) 
                ELSE 
                   ier_num = - 8 
@@ -520,15 +480,15 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !                                                                       
 !------ - Lattice parameters for current phase lat[n]                   
 !                                                                       
-         ELSEIF (string (ikl - 3:ikl - 1) .eq.'lat') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 3:ikl - 1) .eq.'lat') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-               IF (kpara.ge.1.and.kpara.le.3) then 
+               IF (kpara.ge.1.and.kpara.le.3) THEN 
                   WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') cr_a0 (&
                   kpara)                                                
                   zeile (ikl + 8:ikl + 8) = 'e' 
-               ELSEIF (kpara.ge.4.and.kpara.le.6) then 
+               ELSEIF (kpara.ge.4.and.kpara.le.6) THEN 
                   WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') cr_win &
                   (kpara - 3)                                           
                   zeile (ikl + 8:ikl + 8) = 'e' 
@@ -542,7 +502,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
          ELSEIF(string(ikl - 3:ikl - 1)  == 'occ') THEN 
-            IF(ianz.eq.1) then 
+            IF(ianz.eq.1) THEN 
                IF(ikl >  lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF(1 <= kpara.AND.kpara <= cr_nscat) THEN 
@@ -557,8 +517,8 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-         ELSEIF (string (ikl - 3:ikl - 1) .eq.'vol') then 
-            IF (ianz.eq.1) then 
+         ELSEIF (string (ikl - 3:ikl - 1) .eq.'vol') THEN 
+            IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)') cr_v 
@@ -576,7 +536,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
          ier_num = - 2 
          ier_typ = ER_FORT 
       ENDIF 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          ll = laenge+15 - ltyp - (iklz - ikl + 1) 
          IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1:&
          laenge)                                                        
@@ -585,7 +545,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
          ll = min (40, laenge) 
          WRITE (ier_msg (1), 8000) string (1:ll) 
       ENDIF 
-      CALL rem_bl (string, ll) 
+      ll  = LEN_TRIM(string)
 !                                                                       
  8000 FORMAT    (a) 
       END SUBROUTINE discus_ersetz_para                    
@@ -604,6 +564,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       USE spcgr_apply, ONLY: setup_lattice
       USE errlist_mod 
       USE param_mod 
+      USE lib_upd_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*),          INTENT(IN) :: ctype 
@@ -614,11 +575,15 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
       INTEGER :: l
       INTEGER :: iwert, owert
+!
+CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
+IF(ier_num==0) RETURN
+CALL no_error
 !                                                                       
-      IF (ctype.eq.'x') then 
-         IF (ianz.eq.1) then 
+      IF (ctype.eq.'x') THEN 
+         IF (ianz.eq.1) THEN 
             IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) then                                         
+            .le.cr_natoms) THEN                                         
                cr_pos (1, ww (1) ) = wert 
                l = 1 
                cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
@@ -632,10 +597,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'y') then 
-         IF (ianz.eq.1) then 
+      ELSEIF (ctype.eq.'y') THEN 
+         IF (ianz.eq.1) THEN 
             IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) then                                         
+            .le.cr_natoms) THEN                                         
                cr_pos (2, ww (1) ) = wert 
                l = 2 
                cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1) ))
@@ -649,10 +614,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'z') then 
-         IF (ianz.eq.1) then 
+      ELSEIF (ctype.eq.'z') THEN 
+         IF (ianz.eq.1) THEN 
             IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) then                                         
+            .le.cr_natoms) THEN                                         
                cr_pos (3, ww (1) ) = wert 
                l = 3 
                cr_dim (l, 1) = amin1 (cr_dim (l, 1), cr_pos (l, ww (1)))
@@ -666,12 +631,12 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'m') then 
-         IF (ianz.eq.1) then 
+      ELSEIF (ctype.eq.'m') THEN 
+         IF (ianz.eq.1) THEN 
             IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) then                                         
+            .le.cr_natoms) THEN                                         
                IF (0.le.int (wert) .and.int (wert) .le.MAXSCAT.and.int (&
-               wert) .le.cr_nscat) then                                 
+               wert) .le.cr_nscat) THEN                                 
                   cr_iscat (ww (1) ) = int (wert) 
                ELSE 
                   ier_num = - 97 
@@ -686,9 +651,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'b') then 
-         IF (ianz.eq.1) then 
-            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) then 
+      ELSEIF (ctype.eq.'b') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) THEN 
                cr_dw (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -699,64 +664,18 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'i') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-               inpara (ww (1) ) = int (wert) 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'r') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR) then 
-               rpara (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-!                                                                       
-!DBG        ELSEIF(ctype.eq.'property') then                            
-!DBG        if(ianz.eq.1) then                                          
-!DBG          if(0.lt.ww(1) .and. ww(1).le.NMAX  .and.                  
-!DBG     &       ww(1).le.cr_natoms   ) then                            
-!DBG      if(0 .le.int(wert) .and. int(wert)-1.le.2**(MAXPROP-1)) then  
-!DBG             cr_prop (ww(1))=int(wert)                              
-!DBG            ELSE                                                    
-!DBG              ier_num = -102                                        
-!DBG              ier_typ = ER_APPL                                     
-!DBG            endif                                                   
-!DBG          ELSE                                                      
-!DBG            ier_num = -8                                            
-!DBG            ier_typ = ER_FORT                                       
-!DBG          endif                                                     
-!DBG        ELSE                                                        
-!DBG          ier_num = -13                                             
-!DBG          ier_typ = ER_FORT                                         
-!DBG          return                                                    
-!DBG        endif                                                       
 !                                                                       
 !------ Setting lat[n]                                                  
 !                                                                       
-      ELSEIF (ctype.eq.'lat') then 
-         IF (ianz.eq.1) then 
-            IF (ww (1) .ge.1.and.ww (1) .le.3) then 
+      ELSEIF (ctype.eq.'lat') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (ww (1) .ge.1.and.ww (1) .le.3) THEN 
                cr_a0 (ww (1) ) = wert 
                CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
                cr_gmat, cr_fmat, cr_cartesian,                         &
                cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
-            ELSEIF (ww (1) .ge.4.and.ww (1) .le.6) then 
+            ELSEIF (ww (1) .ge.4.and.ww (1) .le.6) THEN 
                cr_win (ww (1) - 3) = wert 
                CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten,       &
                cr_reps, cr_rten, cr_win, cr_wrez, cr_v, cr_vr, .false., &
@@ -771,9 +690,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'occ') then 
-         IF (ianz.eq.1) then 
-            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) then 
+      ELSEIF (ctype.eq.'occ') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.lt.ww (1) .and.ww (1) .le.cr_nscat) THEN 
                cr_occ (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -784,9 +703,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'mol_dens') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) then 
+      ELSEIF (ctype.eq.'mol_dens') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
                mole_dens (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -797,9 +716,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'mol_biso') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) then 
+      ELSEIF (ctype.eq.'mol_biso') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
                mole_biso (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
@@ -810,9 +729,9 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'mol_type') then 
-         IF (ianz.eq.1) then 
-            IF (0 <= ww(1) .AND. ww(1) <=  mole_num_mole) then 
+      ELSEIF (ctype.eq.'mol_type') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0 <= ww(1) .AND. ww(1) <=  mole_num_mole) THEN 
                iwert = NINT(wert)
                owert = mole_type(ww(1))
                IF(iwert>mole_num_type) THEN      ! This creates a new type
@@ -829,22 +748,10 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'res') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
-               res_para (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
-      ELSEIF (ctype.eq.'env') then 
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) then 
+!
+      ELSEIF (ctype.eq.'env') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_RES) THEN 
                atom_env (ww (1) ) = int (wert) 
             ELSE 
                ier_num = - 8 
@@ -855,19 +762,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
-      ELSEIF (ctype.eq.'ref_para') THEN
-         IF (ianz.eq.1) then 
-            IF (0.le.ww (1) .and.ww (1) .le.MAXPAR_REF) then 
-               ref_para (ww (1) ) = wert 
-            ELSE 
-               ier_num = - 8 
-               ier_typ = ER_FORT 
-            ENDIF 
-         ELSE 
-            ier_num = - 13 
-            ier_typ = ER_FORT 
-            RETURN 
-         ENDIF 
+!
       ELSE 
          ier_num = - 2 
          ier_typ = ER_FORT 
@@ -929,24 +824,24 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       werte (i) = 0.0 
       ENDDO 
 !                                                                       
-      IF (lcomm.eq.9) then 
+      IF (lcomm.eq.9) THEN 
 !                                                                       
 !     Calculate average density of a fractional coordinate              
 !                                                                       
-         IF (string (ikl - 9:ikl - 1) .eq.'aver_dens') then 
+         IF (string (ikl - 9:ikl - 1) .eq.'aver_dens') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                DO i = 1, maxw 
                werte (i) = 0.00001 
                ENDDO 
-               IF (ianz.eq.3.or.ianz.eq.4) then 
+               IF (ianz.eq.3.or.ianz.eq.4) THEN 
                   DO i = 1, ianz 
                   CALL eval (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   ENDDO 
@@ -962,18 +857,18 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_typ = ER_FORT 
          ENDIF 
 !                                                                       
-      ELSEIF (lcomm.eq.8) then 
+      ELSEIF (lcomm.eq.8) THEN 
 !                                                                       
-         IF (string (ikl - 8:ikl - 1) .eq.'mol_test') then 
+         IF (string (ikl - 8:ikl - 1) .eq.'mol_test') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.1) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.1) THEN 
                   CALL eval (cpara (1), lpara (1) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   l = nint (do_read_number (cpara (1), lpara (1) ) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   res_para (0) = 0 
@@ -982,7 +877,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                   ww = 0 
                   DO i = 1, mole_num_mole 
                   DO j = 1, mole_len (i) 
-                  IF (mole_cont (mole_off (i) + j) .eq.l) then 
+                  IF (mole_cont (mole_off (i) + j) .eq.l) THEN 
                      res_para (0) = 2 
                      res_para (1) = i 
                      res_para (2) = j 
@@ -1002,12 +897,12 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.7) then 
+      ELSEIF (lcomm.eq.7) THEN 
 !                                                                       
 !     Calculate scalar product                                          
 !                                                                       
-         IF (string (ikl - 7:ikl - 1) .eq.'scalpro') then 
-            IF (cr_v.le.0) then 
+         IF (string (ikl - 7:ikl - 1) .eq.'scalpro') THEN 
+            IF (cr_v.le.0) THEN 
                ier_num = - 35 
                ier_typ = ER_APPL 
                ier_msg (1) = 'A proper unit cell must be defined' 
@@ -1015,19 +910,19 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                RETURN 
             ENDIF 
             CALL get_params (line, ianz, cpara, lpara, 7, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.ge.6) then 
-                  IF (ianz.eq.6) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.ge.6) THEN 
+                  IF (ianz.eq.6) THEN 
                      cpara (7) = 'dd' 
                      lpara (7) = 2 
                   ENDIF 
                   DO i = 1, 6 
                   CALL eval (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   ENDDO 
@@ -1035,12 +930,12 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                   u (i) = werte (i) 
                   v (i) = werte (i + 3) 
                   ENDDO 
-                  IF (cpara (7) .eq.'rr') then 
+                  IF (cpara (7) .eq.'rr') THEN 
                      ww = skalpro (u, v, cr_rten) 
-                  ELSEIF (cpara (7) .eq.'dd') then 
+                  ELSEIF (cpara (7) .eq.'dd') THEN 
                      ww = skalpro (u, v, cr_gten) 
                   ELSEIF (cpara (7) .eq.'rd'.or.cpara (7) .eq.'dr')     &
-                  then                                                  
+                  THEN                                                  
                      ww = skalpro (u, v, unitmat) 
                   ELSE 
                      ier_num = - 81 
@@ -1058,25 +953,25 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.5) then 
+      ELSEIF (lcomm.eq.5) THEN 
 !                                                                       
 !     Calculate reciprocal length or d-star value, respectivly          
 !                                                                       
-         IF (string (ikl - 5:ikl - 1) .eq.'dstar') then 
+         IF (string (ikl - 5:ikl - 1) .eq.'dstar') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.3.or.ianz.eq.6) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.3.or.ianz.eq.6) THEN 
                   DO i = 1, ianz 
                   CALL eval (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   ENDDO 
-                  IF (ianz.eq.3) then 
+                  IF (ianz.eq.3) THEN 
                      DO i = 4, 6 
                      werte (i) = 0.0 
                      ENDDO 
@@ -1097,32 +992,32 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.4) then 
+      ELSEIF (lcomm.eq.4) THEN 
 !                                                                       
 !     Calculate a bond angle                                            
 !                                                                       
-         IF (string (ikl - 4:ikl - 1) .eq.'bang') then 
+         IF (string (ikl - 4:ikl - 1) .eq.'bang') THEN 
             CALL get_params (line, ianz, cpara, lpara, 9, lp) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                IF (ianz.eq.3.or.ianz.eq.4.or.ianz.eq.6.or.ianz.eq.9)    &
-               then                                                     
+               THEN                                                     
 !     --------Input are atom numbers                                    
                   IF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) &
-                  then                                                  
+                  THEN                                                  
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
                      j = nint (werte (3) ) 
-                     IF (ianz.eq.3) then 
-      IF (i.lt.1.or.cr_natoms.lt.i.or.j.lt.1.or.cr_natoms.lt.j) then 
+                     IF (ianz.eq.3) THEN 
+      IF (i.lt.1.or.cr_natoms.lt.i.or.j.lt.1.or.cr_natoms.lt.j) THEN 
                            ier_typ = ER_APPL 
                            ier_num = - 19 
                            RETURN 
@@ -1140,7 +1035,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                      ELSE 
                         k = nint (werte (4) ) 
       IF (i.lt.1.or.cr_natoms.lt.i.or.j.lt.1.or.cr_natoms.lt.j.or.k.lt.1&
-     &.or.cr_natoms.lt.k) then                                          
+     &.or.cr_natoms.lt.k) THEN                                          
                            ier_typ = ER_APPL 
                            ier_num = - 19 
                            RETURN 
@@ -1160,17 +1055,17 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                   ELSEIF (str_comp(cpara(1), 'envi', 1, lpara(1), 4)) THEN
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
                      j = nint (werte (3) ) 
-                     IF (ianz.eq.3) then 
+                     IF (ianz.eq.3) THEN 
                         IF (i.lt.1.or.atom_env(0).lt.i.or.j.lt.1.or. &
                                       atom_env(0).lt.j) THEN 
                            ier_typ = ER_APPL 
@@ -1192,15 +1087,15 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !     --------Input are real space coordinates                          
                      DO i = 1, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
-                     IF (ianz.eq.6) then 
+                     IF (ianz.eq.6) THEN 
                         DO i = 4, 6 
                         werte (i + 3) = werte (i) 
                         werte (i) = 0.0 
@@ -1223,26 +1118,26 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !                                                                       
 !     Calculate a bond length                                           
 !                                                                       
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'blen') then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'blen') THEN 
             CALL get_params (line, ianz, cpara, lpara, 6, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz==2 .or. ianz.eq.3.or.ianz.eq.6) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz==2 .or. ianz.eq.3.or.ianz.eq.6) THEN 
 !     --------Input are atom numbers                                    
                   IF (str_comp (cpara (1) , 'atom', 1, lpara (1) , 4) ) &
-                  then                                                  
+                  THEN                                                  
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
                      i = nint (werte (2) ) 
                      j = nint (werte (3) ) 
-      IF (i.lt.1.or.cr_natoms.lt.i.or.j.lt.1.or.cr_natoms.lt.j) then 
+      IF (i.lt.1.or.cr_natoms.lt.i.or.j.lt.1.or.cr_natoms.lt.j) THEN 
                         ier_typ = ER_APPL 
                         ier_num = - 19 
                         RETURN 
@@ -1258,11 +1153,11 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
                   ELSEIF (str_comp (cpara(1), 'envi', 1, lpara(1), 4)) THEN
                      DO i = 2, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
@@ -1283,15 +1178,15 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !     --------Input are real space coordinates                          
                      DO i = 1, ianz 
                      CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
+                     IF (ier_num.ne.0) THEN 
                         GOTO 999 
                      ENDIF 
                      ENDDO 
-                     IF (ianz.eq.3) then 
+                     IF (ianz.eq.3) THEN 
                         DO i = 4, 6 
                         werte (i) = 0.0 
                         ENDDO 
@@ -1312,21 +1207,21 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !                                                                       
 !     Calculate angle in reciprocal space                               
 !                                                                       
-         ELSEIF (string (ikl - 4:ikl - 1) .eq.'rang') then 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'rang') THEN 
             CALL get_params (line, ianz, cpara, lpara, 9, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.6.or.ianz.eq.9) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.6.or.ianz.eq.9) THEN 
                   DO i = 1, ianz 
                   CALL eval (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                  IF (ier_num.ne.0) then 
+                  IF (ier_num.ne.0) THEN 
                      GOTO 999 
                   ENDIF 
                   ENDDO 
-                  IF (ianz.eq.6) then 
+                  IF (ianz.eq.6) THEN 
                      DO i = 4, 6 
                      werte (i + 3) = werte (i) 
                      werte (i) = 0.0 
@@ -1349,7 +1244,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
             ier_num = - 3 
             ier_typ = ER_FORT 
          ENDIF 
-      ELSEIF (lcomm.eq.0) then 
+      ELSEIF (lcomm.eq.0) THEN 
          CALL ersetz2 (string, ikl, iklz, ww, 0, laenge) 
       ELSE 
          ier_num = - 3 
@@ -1358,7 +1253,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !                                                                       
   999 CONTINUE 
 !                                                                       
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          WRITE (ier_msg (1), 9000) string (1:min (40, laenge) ) 
          WRITE (ier_msg (1), 9000) line (1:min (40, laenge) ) 
       ENDIF 
@@ -1366,7 +1261,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
  9000 FORMAT    (a) 
       END SUBROUTINE discus_calc_intr_spec                 
 !*****7**************************************************************** 
-      SUBROUTINE discus_validate_var_spec (zeile, lp) 
+SUBROUTINE discus_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, DISCUS specific part 
 !                                                                       
@@ -1375,33 +1270,99 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@fau.de)    
 !+                                                                      
-      USE discus_config_mod 
-      USE errlist_mod 
-      IMPLICIT none 
+USE reserved_mod
+USE discus_config_mod 
+USE errlist_mod 
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) :: zeile 
-      INTEGER,           INTENT(IN) :: lp 
+CHARACTER (LEN=*), INTENT(IN) :: zeile 
+INTEGER,           INTENT(IN) :: lp 
+!
+INTEGER  :: i , length
 !                                                                       
-      INTEGER, PARAMETER :: reserved_n = 33 
-                                                                        
-      CHARACTER(LEN=12), DIMENSION(1:reserved_n) :: reserved
-      INTEGER  :: i 
+ier_num = 0 
+ier_typ = ER_NONE 
 !                                                                       
-      DATA reserved / 'bang', 'blen', 'dstar', 'md_test', 'mol_test',   &
-      'rang', 'scalpro', 'x', 'y', 'z', 'm', 'b', 'n', 'cdim', 'lat',   &
-      'vol', 'rvol', 'rlat', 'env', 'menv', 'md_num', 'md_cre',         &
-      'mc_num', 'md_rad', 'mr_run', 'mc_type', 'mc_orig', 'mc_rad',     &
-      'md_next', 'md_dist', 'mol_cont', 'mol_dens', 'mol_len' /         
+main: DO i = 1, discus_reserved_n 
+!  IF (index (discus_reserved (i), zeile (1:lp) ) .ne.0) THEN 
+   length = MAX(LEN_TRIM(discus_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   IF(discus_reserved (i)(1:length)== zeile(1:length) ) THEN    
+      ier_num = - 25 
+      ier_typ = ER_FORT 
+      EXIT main
+   ENDIF 
+ENDDO main
 !                                                                       
-      ier_num = 0 
-      ier_typ = ER_NONE 
-!                                                                       
-      DO i = 1, reserved_n 
-      IF (index (reserved (i), zeile (1:lp) ) .ne.0) then 
-         ier_num = - 25 
-         ier_typ = ER_FORT 
-      ENDIF 
-      ENDDO 
-!                                                                       
-      END SUBROUTINE discus_validate_var_spec              
+END SUBROUTINE discus_validate_var_spec              
+!
+!*******************************************************************************
+!
+SUBROUTINE discus_get_var_type(line,length, var_is_type)
+!
+! Returns the variable type : INTEGER, REAL, CHARACTER, and Scalar versus field
+!
+USE constants_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*)     , INTENT(IN)  :: line
+INTEGER              , INTENT(IN)  :: length
+INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
+!
+INTEGER, PARAMETER :: MAXPAR = 24
+CHARACTER(LEN=16), DIMENSION(MAXPAR) :: discus_names
+INTEGER          , DIMENSION(MAXPAR) :: discus_type
+INTEGER          , DIMENSION(MAXPAR) :: discus_dim
+LOGICAL          , DIMENSION(MAXPAR) :: discus_ro 
+INTEGER :: i
+!
+DATA discus_names  &
+    /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
+     'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
+     'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'vol     ', &
+     'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
+     'x       ', 'n       ', 'm       ', 'b       '              &
+    /
+DATA discus_type &
+    /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
+       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
+       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
+       IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_REAL               &
+    /
+DATA discus_dim  &
+    /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
+    /
+DATA discus_ro  &
+    /  .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .TRUE.  , &
+       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
+       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .FALSE.               &
+    /
+!
+var_is_type(:) = IS_UNKNOWN
+!
+main: DO i=1, MAXPAR
+   IF(line(1:length) == discus_names(i)(1:LEN_TRIM(discus_names(i)))) THEN
+      var_is_type(1) = discus_type(i)
+      var_is_type(2) = discus_dim (i)
+      IF(discus_ro(i)) THEN
+         var_is_type(3) = IS_READ
+      ELSE
+         var_is_type(3) = IS_WRITE
+      ENDIF
+      RETURN
+   ENDIF
+ENDDO main
+!
+CALL lib_get_var_type(line, length, var_is_type)
+!
+!
+END SUBROUTINE discus_get_var_type
