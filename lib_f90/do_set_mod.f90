@@ -165,9 +165,6 @@ IF (zeile.ne.' ') THEN
                   IF (llog) THEN 
                      CALL oeffne_append (output_io, logfile, 'old')
                      IF (ier_num.ne.0) RETURN 
-!DBG                    open(unit=output_io,file=logfile,               
-!DBG     &                   status='old',access='append')              
-!DBG95     &                 status='old',access='sequential')          
                   ELSE 
                      OPEN (unit = output_io, file = logfile,      &
                            status = 'new',IOSTAT=ios,IOMSG=message)
@@ -185,7 +182,6 @@ IF (zeile.ne.' ') THEN
                   ier_typ = ER_COMM 
                ENDIF 
             ENDIF 
-            WRITE (output_io, * ) 
 !                                                                       
             IF (dbg) THEN 
                WRITE ( *, 5000) prompt_status, prompt_status_old 
