@@ -94,6 +94,7 @@ SUBROUTINE diffev_best_macro
 USE population
 USE run_mpi_mod
 !
+USE errlist_mod
 USE random_state_mod
 !
 IMPLICIT NONE
@@ -102,8 +103,21 @@ INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=  25), PARAMETER :: string = 'cat *.mac |fgrep ref_para'
+CHARACTER(LEN=1024) :: message
+INTEGER            , PARAMETER :: lstring = 25
+INTEGER :: exit_msg
 INTEGER :: i, i1, ir1, ir2, ir3
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
+LOGICAL, SAVE :: l_test     = .TRUE.
+LOGICAL, SAVE :: l_ref_para = .FALSE.
+!
+IF(l_test) THEN     ! Need to test for ref_para in macros
+   CALL EXECUTE_COMMAND_LINE(string(1:lstring), CMDSTAT=ier_num, &
+                             CMDMSG=message, EXITSTAT=exit_msg  )
+   IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
+   l_test = .FALSE.                        ! no more need to test
+ENDIF
 !
 nseed_run = random_nseeds()
 random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on compiler ???
@@ -143,6 +157,11 @@ IF(write_random_state) THEN
       WRITE(IWR,'(A,       A,E17.10)') pop_name(i),      ' = ',child(i,pop_best)
 !     WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
+   IF(l_ref_para) THEN
+      DO i=1,pop_dimx
+         WRITE(IWR,'(A,i4,    A,E17.10)') 'ref_para[',i,']   = ',child(i,pop_best)
+      ENDDO
+   ENDIF
 !
 !  IF(random_nseed>0) THEN
 !     line = ' '
