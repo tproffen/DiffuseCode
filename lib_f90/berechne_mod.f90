@@ -310,7 +310,7 @@ REAL FUNCTION berechne (string, laenge)
             ikom = INDEX (line, ',') 
             icol = INDEX (line, ':') 
             iapo = INDEX (line, '''') 
-            IF (ikom.eq.0.and.icol.eq.0.and.iapo.eq.0) then 
+            IF (ikom.eq.0.and.icol.eq.0.and.iapo.eq.0 .AND. ikl<=1) then 
                ier_num = -43
                ier_typ = ER_FORT
                ier_msg(1) = 'Offending string: '//line(1:LEN_TRIM(line))
