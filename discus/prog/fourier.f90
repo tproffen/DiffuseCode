@@ -457,6 +457,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                               IF(lot_all) THEN
                                  WRITE(cpara(1),'(I12)')  csize(1)*csize(2)*csize(3)
                                  lpara(1) = 12
+                              ELSE
+                                 cpara(1) = cpara(4)
+                                 lpara(1) = lpara(4)
                               ENDIF
                               CALL ber_params(iianz, cpara, lpara, werte, maxw)
                               nlots = nint(werte(1) ) 
