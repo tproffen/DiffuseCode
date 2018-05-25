@@ -174,6 +174,7 @@
       USE build_name_mod
       USE envir_mod 
       USE errlist_mod 
+      USE get_params_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -258,6 +259,7 @@
 !     Deletes a file                                                    
 !-                                                                      
       USE errlist_mod 
+      USE blanks_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -294,6 +296,7 @@
 !     Renames the file <nameold> to <namenew>                           
 !-                                                                      
       USE errlist_mod 
+      USE blanks_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
