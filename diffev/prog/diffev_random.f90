@@ -103,9 +103,9 @@ INTEGER, PARAMETER :: IWR = 88
 !
 CHARACTER(LEN=40) :: macro_file = 'diffev_best.mac'
 CHARACTER(LEN=1024) :: line
-CHARACTER(LEN=  25), PARAMETER :: string = 'cat *.mac |fgrep ref_para'
+CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
 CHARACTER(LEN=1024) :: message
-INTEGER            , PARAMETER :: lstring = 25
+INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
 INTEGER :: i, i1, ir1, ir2, ir3
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
@@ -115,6 +115,7 @@ LOGICAL, SAVE :: l_ref_para = .FALSE.
 IF(l_test) THEN     ! Need to test for ref_para in macros
    CALL EXECUTE_COMMAND_LINE(string(1:lstring), CMDSTAT=ier_num, &
                              CMDMSG=message, EXITSTAT=exit_msg  )
+write(*,*) ' EXIT MSG ', exit_msg
    IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
    l_test = .FALSE.                        ! no more need to test
 ENDIF
