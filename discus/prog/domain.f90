@@ -560,6 +560,15 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          clu_iatom = 0
+         at_param(1) = 'X'
+         at_param(2) = 'Y'
+         at_param(3) = 'Z'
+         at_param(4) = 'BISO'
+         at_param(5) = 'PROPERTY'
+         at_param(6) = 'MOLENO'
+         at_param(7) = 'MOLEAT'
+         at_param(8) = 'OCC'
+         at_ianz = 8
       ELSE
          CALL test_file ( clu_infile, natoms, nscats, n_mole, n_type, &
                              n_atom, -1 , .false.)
@@ -948,6 +957,15 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          mk_iatom = 0
+         at_param(1) = 'X'
+         at_param(2) = 'Y'
+         at_param(3) = 'Z'
+         at_param(4) = 'BISO'
+         at_param(5) = 'PROPERTY'
+         at_param(6) = 'MOLENO'
+         at_param(7) = 'MOLEAT'
+         at_param(8) = 'OCC'
+         at_ianz = 8
       ELSE
          CALL oeffne (ist, infile, 'unknown') 
          IF (ier_num.ne.0) return 
@@ -1114,6 +1132,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       REAL, DIMENSION(3)  :: xyz ! Atom position
       INTEGER             :: dummy_iscat ! Atom type
       INTEGER             :: dummy_prop ! Atom property
+      INTEGER             :: dummy_mole ! Atom is in this molecule
+      INTEGER             :: dummy_moleatom ! Atom is in this molecul at number
       INTEGER, DIMENSION(0:3)  :: dummy_surf
       INTEGER             :: natoms ! Number of molecules
       INTEGER             :: nscat  ! Number of molecule types
@@ -1220,19 +1240,20 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       IF(mk_infile_internal) THEN
          mk_iatom =  mk_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(infile,  mk_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf )
+              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_mole, dummy_moleatom )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             ier_num = 0
             ier_typ = ER_NONE
              mk_iatom =  mk_iatom - 1   ! Increment internal atom number
             GOTO 2
          ENDIF
-         WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat) ! copy into line
+         WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat), &
+                           dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
       ELSE
-         READ (ist, 2000, end = 2, err = 999) line 
+         READ (ist, 2000, END = 2, ERR = 999) line 
       ENDIF
       lline = len_str (line)
-blank1: IF (line.ne.' '.and.line (1:1) .ne.'#'.AND.line(1:1)/='!'.and.line.ne.char (13) ) then
+blank1: IF (line.ne.' '.AND.line (1:1) .ne.'#'.AND.line(1:1)/='!'.AND.line.ne.char (13) ) THEN
          i_count = i_count + 1 
          ibl = index (line, ' ') + 1 
          lbef = 10 
@@ -1256,6 +1277,9 @@ is_mole: IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or. &
             IF (ier_num.ne.0) return 
          ELSE is_mole
 !           READ (line (ibl:80), *, end = 999, err = 999) (werte (j), j = 1, 4)
+!write(*,*) ' LINE ', line(1:len_trim(line))
+!write(*,*) 'at_init', at_init, lline, ibl, at_ianz, AT_MAXP
+!   write(*,*) 'werte, wwerte ', ubound(werte),ubound(at_param)
             CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
                  AT_MAXP, at_ianz, at_param, at_init)
             n_read_atoms = n_read_atoms + 1
@@ -1542,7 +1566,7 @@ mole_int: IF(mk_infile_internal) THEN
       ENDIF
 !                                                                       
  2000 FORMAT    (a) 
- 3000 FORMAT    (a4, 4(f16.8))
+ 3000 FORMAT    (a4, 4(f16.8, ','), 3(i8, ','), f16.8)
  3100 FORMAT    ('Shortest Distance to host ',f12.4) 
  3200 FORMAT    ('Intended fuzzy distance   ',f12.4) 
       END SUBROUTINE micro_read_atom                
@@ -1580,6 +1604,8 @@ mole_int: IF(mk_infile_internal) THEN
       REAL     :: size_sigma
       INTEGER  :: dummy_iscat
       INTEGER  :: dummy_prop
+      INTEGER  :: dummy_mole
+      INTEGER  :: dummy_moleatom
       INTEGER, DIMENSION(0:3)  :: dummy_surf
 !                                                                       
       LOGICAL str_comp 
@@ -1600,7 +1626,7 @@ mole_int: IF(mk_infile_internal) THEN
       IF(clu_infile_internal) THEN   ! Read pseudo atom from internal storage
          clu_iatom = clu_iatom + 1   ! Increment internal atom number
          CALL struc_read_one_atom_internal(clu_infile, clu_iatom,  &
-              xyz, dummy_iscat, dummy_prop, dummy_surf )
+              xyz, dummy_iscat, dummy_prop, dummy_surf, dummy_mole, dummy_moleatom )
          IF( ier_num == -105 ) THEN  ! read "end_of_file" 
             lend    = .true.
             ier_num = 0

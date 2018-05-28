@@ -200,6 +200,7 @@ CONTAINS
    REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
    INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
    INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
+   INTEGER, DIMENSION(1,2)              :: iin_mole
 !
    LOGICAL                       :: need_alloc ! we need to allocate something
    LOGICAL                       :: new_type   ! Each atom is a new type
@@ -338,7 +339,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
 main: do ia = 1, natoms
       werte    = 0.0
       cr_natoms = cr_natoms + 1
-      CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface)
+      CALL read_temp%crystal%get_cryst_atom ( ia, itype, posit, iprop, isurface, iin_mole)
       CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
@@ -507,7 +508,8 @@ ENDIF
    END SUBROUTINE stru_readheader_internal
 !*******************************************************************************
    SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
-              rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf )
+              rd_cr_natoms, rd_cr_pos, rd_cr_iscat, rd_cr_prop, &
+              rd_cr_surf, rd_cr_mole )
 !
 !  This subroutine adds all atoms from the internal storage to the local
 !  crystal rd_cr_pos. The number of atoms cr_natoms is incremented accordingly
@@ -522,6 +524,7 @@ ENDIF
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_iscat
    INTEGER             , DIMENSION(0:3,1:RD_NMAX),INTENT(INOUT) :: rd_cr_surf
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_prop
+   INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_mole
 !
    INTEGER                       :: i
    INTEGER                       :: istatus
@@ -533,6 +536,7 @@ ENDIF
    INTEGER                       :: itype
    REAL   , DIMENSION(3)         :: posit
    INTEGER, DIMENSION(0:3)       :: isurface
+   INTEGER, DIMENSION(1:2)       :: iin_mole
    INTEGER                       :: iprop
 !
    ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
@@ -550,13 +554,14 @@ ENDIF
    CALL readstru_size_int(strucfile, natoms, &           ! Get the number of atoms
               nscat, n_mole, n_type, n_atom)
    DO i=1,natoms
-      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface)
+      CALL read_temp%crystal%get_cryst_atom(i, itype, posit, iprop, isurface, iin_mole)
       rd_cr_natoms = rd_cr_natoms + 1
       rd_cr_pos(1,rd_cr_natoms) = posit(1)
       rd_cr_pos(2,rd_cr_natoms) = posit(2)
       rd_cr_pos(3,rd_cr_natoms) = posit(3)
       rd_cr_iscat(rd_cr_natoms) = itype
       rd_cr_prop (rd_cr_natoms) = iprop 
+      rd_cr_mole (rd_cr_natoms) = iin_mole(1) 
    ENDDO
 !
    DEALLOCATE(read_temp, STAT = istatus)
@@ -568,7 +573,8 @@ ENDIF
    END SUBROUTINE struc_read_atoms_internal
 !*******************************************************************************
    SUBROUTINE struc_read_one_atom_internal(strucfile, iatom,  &
-              rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf )
+              rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, &
+              rd_cr_mole, rd_cr_moleatom )
 !
 !  This subroutine reads just atom "iatom" from the internal storage.
 !  The atom is copied into internal storage
@@ -581,6 +587,8 @@ ENDIF
    INTEGER                            , INTENT(INOUT) :: rd_cr_iscat
    INTEGER                            , INTENT(INOUT) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3),INTENT(INOUT) :: rd_cr_surf
+   INTEGER                             ,INTENT(INOUT) :: rd_cr_mole
+   INTEGER                             ,INTENT(INOUT) :: rd_cr_moleatom
 !
    INTEGER                       :: i
    INTEGER                       :: istatus
@@ -589,6 +597,7 @@ ENDIF
    INTEGER                       :: n_mole
    INTEGER                       :: n_type
    INTEGER                       :: n_atom
+   INTEGER, DIMENSION(1:2)       :: iin_mole
 !
    ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
    IF ( istatus /= 0) THEN
@@ -606,7 +615,10 @@ ENDIF
               nscat, n_mole, n_type, n_atom)
    IF ( iatom <= natoms ) THEN
       i = iatom
-      CALL read_temp%crystal%get_cryst_atom(i, rd_cr_iscat, rd_cr_pos, rd_cr_prop, rd_cr_surf)
+      CALL read_temp%crystal%get_cryst_atom(i, rd_cr_iscat, rd_cr_pos, &
+           rd_cr_prop, rd_cr_surf, iin_mole)
+      rd_cr_mole     = iin_mole(1)
+      rd_cr_moleatom = iin_mole(2)
    ELSE
       ier_num = -105
       ier_typ = ER_APPL

@@ -1666,6 +1666,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 !  INTEGER                 :: i_m_type
    INTEGER, DIMENSION(4)   :: hkl
+   INTEGER                 :: in_mole,in_moleatom
 !
    vnull(:) = 0.00
 !
@@ -1691,20 +1692,20 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
       nold = cr_natoms
       IF(mole_axis(0)==2) THEN
       im = mole_axis(2)                                ! Make mole axis from spcified atoms
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       axis_ligand(1) = posit(1)
       axis_ligand(2) = posit(2)
       axis_ligand(3) = posit(3)
       im = mole_axis(1)
 !
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       axis_ligand(1) = axis_ligand(1) - posit(1)       ! this is mole axis
       axis_ligand(2) = axis_ligand(2) - posit(2)
       axis_ligand(3) = axis_ligand(3) - posit(3)
       ENDIF
 !     Insert molecule atoms into crystal at correct origin in initial orientation
       normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
-      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface,in_mole,in_moleatom)
 !
       origin(1)  = cr_pos(1,ia) + surf_normal(1)/normal_l*dist - posit(1)  ! Origin is shifted
       origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist - posit(2)  ! by dist away from 
@@ -1712,7 +1713,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
       sym_latom(:) = .false.                           ! Initially deselect all atomtypes
 !
       atoms: DO im=1,mole_natoms                       ! Load all atoms from the molecule
-         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
          posit(:) = posit(:) + origin(:)
          WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
          laenge = 60
@@ -1861,6 +1862,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
    REAL     , DIMENSION(1:3)               :: vnull
    INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: in_mole,in_moleatom
 !  INTEGER             :: i_m_type
 !
    vnull(:) = 0.00
@@ -1924,12 +1926,12 @@ IF(lrestrict) THEN
       nold = cr_natoms                                   ! Remember old atom number
       IF(mole_axis(0)==2) THEN
       im   = mole_axis(2)
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       axis_ligand(1) = posit(1)
       axis_ligand(2) = posit(2)
       axis_ligand(3) = posit(3)
       im = mole_axis(1)
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
 !           CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop, isurface)
       axis_ligand(1) = axis_ligand(1) - posit(1)
       axis_ligand(2) = axis_ligand(2) - posit(2)
@@ -1942,13 +1944,13 @@ IF(lrestrict) THEN
 !
 !     Get position of "Neig" and subtract to ensure correct origin
 !     in read_crystal this atom is always shifted to (0,0,0)
-      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface,in_mole,in_moleatom)
       origin(1)  = x(1) + surf_normal(1)/normal_l*b_n - posit(1)    ! Calculate ligand origin
       origin(2)  = x(2) + surf_normal(2)/normal_l*b_n - posit(2)
       origin(3)  = x(3) + surf_normal(3)/normal_l*b_n - posit(3)
       sym_latom(:) = .false.                        ! Initially deselect all atomtypes
       DO im=1,mole_natoms                           ! Insert all atoms
-         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
          posit(:) = posit(:) + origin(:)
          WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
          laenge = 60
@@ -2111,6 +2113,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
 !
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: in_mole,in_moleatom
 !
 maxw     = MAX(MINPARA,nanch)
 vnull(:) = 0.00
@@ -2140,11 +2143,11 @@ ENDIF
 !
 n_atoms_orig = cr_natoms                         ! Number of atoms prior to insertion
 nold = cr_natoms                                 ! Remember original atom number
-CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface)
+CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface,in_mole,in_moleatom)
 origin(:) = 0.0 -posit(:)                     ! initially place at 0,0,0
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 insert: DO im=1,mole_natoms                   ! Insert all atoms
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60
@@ -2431,6 +2434,7 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
    INTEGER             :: nold         ! atom number previous to current molecule
    INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: in_mole,in_moleatom
 !  INTEGER             :: i_m_mole
 !   INTEGER             :: i_m_type
 !  INTEGER             :: i_m_char
@@ -2469,7 +2473,7 @@ origin(:)    = 0.0                            ! initially place at 0,0,0
 sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
 insert: DO im=1,mole_natoms                   ! Insert all atoms
-   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
@@ -2740,6 +2744,7 @@ INTEGER                              :: test_nhkl
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: in_mole,in_moleatom
 !
    REAL :: gaslim, ran1
 !
@@ -2775,7 +2780,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60
@@ -2997,6 +3002,7 @@ REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bo
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
+   INTEGER             :: in_mole,in_moleatom
 !
    REAL :: ran1
 !
@@ -3037,7 +3043,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_latom(:) = .false.                        ! Initially deselect all atomtypes
 !
    atoms: DO im=1,mole_natoms                    ! Load all atoms from the molecule
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface)
+      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
       posit(:) = posit(:) + origin(:)
       WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
       laenge = 60

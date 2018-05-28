@@ -1718,7 +1718,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             ier_typ = ER_NONE 
 !                                                                       
             CALL struc_read_atoms_internal (st_layer(st_type(i)),NMAX,&
-                  cr_natoms, cr_pos, cr_iscat, cr_prop, cr_surf)
+                  cr_natoms, cr_pos, cr_iscat, cr_prop, cr_surf, cr_mole)
             CLOSE (ist) 
             IF (ier_num.ne.0) then 
                RETURN 

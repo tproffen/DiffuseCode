@@ -18,6 +18,7 @@ TYPE :: cl_atom                        ! the basic type definition
    REAL   , DIMENSION(3)  :: pos       ! fractional coordinates
    INTEGER                :: prop      ! a property flag
    INTEGER, DIMENSION(0:3):: surf      ! surface charcteristics
+   INTEGER, DIMENSION(1:2):: in_mole   ! In which molecule are we
 !
 CONTAINS
    PROCEDURE, PUBLIC, PASS :: set_atom ! set verything
@@ -28,7 +29,7 @@ CONTAINS
 !
 !  Methods to work on atoms
 !
-   SUBROUTINE set_atom(this, itype, posit, iprop, isurface )
+   SUBROUTINE set_atom(this, itype, posit, iprop, isurface , iin_mole)
 !
 !  Set atom type, position and property
 !
@@ -45,15 +46,17 @@ CONTAINS
    REAL   , DIMENSION(3),INTENT(IN) :: posit ! atom position
    INTEGER,              INTENT(IN) :: iprop ! atom property
    INTEGER, DIMENSION(0:3),INTENT(IN) :: isurface ! atom surface
+   INTEGER, DIMENSION(1:2),INTENT(IN) :: iin_mole   ! In which molecule are we
 !
    this%iscat   = itype
    this%pos(:)  = posit(:)
    this%prop    = iprop
    this%surf(:) = isurface(:)
+   this%in_mole(:) = iin_mole(:)
 !
    END SUBROUTINE set_atom
 !
-   SUBROUTINE get_atom(this, itype, posit, iprop, isurface )
+   SUBROUTINE get_atom(this, itype, posit, iprop, isurface, iin_mole)
 !
 !  Get atom type, position and property
 !
@@ -64,11 +67,13 @@ CONTAINS
    REAL   , DIMENSION(3),INTENT(OUT) :: posit
    INTEGER,              INTENT(OUT) :: iprop
    INTEGER, DIMENSION(0:3),INTENT(OUT) :: isurface ! atom surface
+   INTEGER, DIMENSION(1:2),INTENT(OUT) :: iin_mole   ! In which molecule are we
 !
    itype       = this%iscat
    posit(:)    = this%pos(:)
    iprop       = this%prop
    isurface(:) = this%surf(:)
+   iin_mole(:) = this%in_mole(:)
 !
    END SUBROUTINE get_atom
 !
