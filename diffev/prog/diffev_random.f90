@@ -115,7 +115,6 @@ LOGICAL, SAVE :: l_ref_para = .FALSE.
 IF(l_test) THEN     ! Need to test for ref_para in macros
    CALL EXECUTE_COMMAND_LINE(string(1:lstring), CMDSTAT=ier_num, &
                              CMDMSG=message, EXITSTAT=exit_msg  )
-write(*,*) ' EXIT MSG ', exit_msg
    IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
    l_test = .FALSE.                        ! no more need to test
 ENDIF
