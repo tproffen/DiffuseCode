@@ -67,6 +67,7 @@ CONTAINS
 !                                                                 
    pop_n     = 1 
    pop_c     = pop_n 
+   lastgen   = -1
    pop_dimx  = 1 
    pop_best  = 1 
    pop_worst = 1 

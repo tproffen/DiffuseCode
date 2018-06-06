@@ -59,6 +59,7 @@ INTEGER                               :: ianz
 INTEGER                               :: iianz 
 INTEGER                               :: str_length
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
+!INTEGER, SAVE                         :: lastgen = -1
 LOGICAL                               :: back_new
 LOGICAL                               :: lexist
 LOGICAL                               :: lbest
@@ -746,6 +747,39 @@ ELSE
                      ENDIF
                   run_mpi_senddata%nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
             ENDIF 
+!write(*,*) ' RUN_MPI_ACTIVE; POP_GEN; LASTGEN ', run_mpi_active , pop_gen, lastgen
+!write(*,*) ' PARALLEL ?                       ',run_mpi_senddata%repeat
+!write(*,*) ' NODES, PROCESSORS                ', num_node, run_mpi_numprocs
+!write(*,*) ' CHILDREN NINDIV                  ', pop_c,run_mpi_senddata%nindiv, pop_c*run_mpi_senddata%nindiv
+            IF(run_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
+               IF(run_mpi_senddata%repeat) THEN            ! parallel refinement of indivs
+                  IF(NUM_NODE>pop_c) THEN
+                     ier_num = -32
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For compute:parallel refinement of indivs'
+                     ier_msg(2) = 'Node number must be <= population size'
+                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV'
+                     RETURN
+                  ENDIF
+                  IF(run_mpi_numprocs>pop_c*run_mpi_senddata%nindiv) THEN
+                     ier_num = -33
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For compute:parallel refinement of indivs'
+                     ier_msg(2) = 'Node number must be <= population size'
+                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV'
+                     RETURN
+                  ENDIF
+               ELSE                                       ! Serial refinement of indivs
+                  IF(NUM_NODE>pop_c) THEN
+                     ier_num = -33
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For compute:serial   refinement of indivs'
+                     ier_msg(2) = 'Node number must be <= population size'
+                     ier_msg(3) = ' '
+                     RETURN
+                  ENDIF
+               ENDIF
+            ENDIF
             IF ( ier_num == 0) THEN
                IF(run_mpi_active) THEN   !Parallel processing with MPI
                   IF(.NOT.lstandalone) THEN
@@ -753,16 +787,17 @@ ELSE
                         CALL read_par_values
                      ENDIF init_slave
                   ENDIF
-                  run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
-                  IF(.NOT.ALLOCATED(kid_on_node)) THEN
-                     ALLOCATE(kid_on_node(0:pop_c))
-                     kid_on_node(:) = 0
-                  ENDIF
-                  IF(.NOT.ALLOCATED(node_has_kids)) THEN
-                     ALLOCATE(node_has_kids(1:NUM_NODE,0:run_mpi_max_slaves*run_mpi_kid_per_core,2))
-                     node_has_kids(:,:,:) = 0
-                  ENDIF
+!                 run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
+!                 IF(.NOT.ALLOCATED(kid_on_node)) THEN
+!                    ALLOCATE(kid_on_node(0:pop_c))
+!                    kid_on_node(:) = 0
+!                 ENDIF
+!                 IF(.NOT.ALLOCATED(node_has_kids)) THEN
+!                    ALLOCATE(node_has_kids(1:NUM_NODE,0:run_mpi_max_slaves*run_mpi_kid_per_core,2))
+!                    node_has_kids(:,:,:) = 0
+!                 ENDIF
                   CALL run_mpi_master 
+!                 lastgen = pop_gen     ! We finished a refinement in this generation
 !                 DEALLOCATE(kid_on_node)
 !                 DEALLOCATE(node_has_kids)
                ELSE    ! run_mpi_active

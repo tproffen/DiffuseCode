@@ -24,6 +24,7 @@ CONTAINS
 !
    USE diff_evol
    USE diffev_random
+   USE population
 !                                                                       
    IMPLICIT none 
 !                                                                       
@@ -33,6 +34,7 @@ CONTAINS
       CALL compare_best_all 
    ENDIF 
    CALL diffev_best_macro
+   lastgen = pop_gen - 1
    END SUBROUTINE do_compare                        
 !*****7**************************************************************** 
    SUBROUTINE compare_toparent 

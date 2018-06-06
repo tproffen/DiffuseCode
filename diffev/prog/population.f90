@@ -29,6 +29,7 @@ INTEGER                 :: pop_dimx
 LOGICAL                 :: pop_dimx_new
 LOGICAL                 :: pop_dimx_init = .FALSE.
 INTEGER                 :: pop_gen
+INTEGER                 :: lastgen
 INTEGER                 :: pop_best
 INTEGER                 :: pop_worst
 INTEGER                 :: pop_lgenfile

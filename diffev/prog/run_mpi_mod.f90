@@ -72,12 +72,17 @@ INTEGER                  :: run_mpi_max_slaves = 0                !Maximum slave
 INTEGER                  :: run_mpi_kid_per_core
 !
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: node_names
-CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: slave_on_node   ! Slave is on this node name
+!CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: slave_on_node   ! Slave is on this node name
 INTEGER            , DIMENSION(:), ALLOCATABLE :: slave_is_node   ! Slave is on this node number
-INTEGER            , DIMENSION(:), ALLOCATABLE :: slave_per_node  ! Maximum number of slaves on this node number
-INTEGER            , DIMENSION(:), ALLOCATABLE :: kid_on_node     ! kid is on this node number
-INTEGER            ,DIMENSION(:,:),ALLOCATABLE :: node_has_slaves ! this node number has these slaves
-INTEGER          ,DIMENSION(:,:,:),ALLOCATABLE :: node_has_kids   ! this node number has these kids
+!INTEGER            , DIMENSION(:), ALLOCATABLE :: slave_per_node  ! Maximum number of slaves on this node number
+!INTEGER            , DIMENSION(:), ALLOCATABLE :: kid_on_node     ! kid is on this node number
+!INTEGER            ,DIMENSION(:,:),ALLOCATABLE :: node_has_slaves ! this node number has these slaves
+!INTEGER          ,DIMENSION(:,:,:),ALLOCATABLE :: node_has_kids   ! this node number has these kids
+INTEGER, DIMENSION(:)  , ALLOCATABLE :: kid_at_indiv   ! Kid is currently at this child
+INTEGER, DIMENSION(:)  , ALLOCATABLE :: kid_at_node    ! Kid is placed onto this node
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: node_has_kids  ! Which kids are at this node
+INTEGER, DIMENSION(:)  , ALLOCATABLE :: node_max_kids  ! Maximum kids to be placed onto this node
+LOGICAL, DIMENSION(:)  , ALLOCATABLE :: node_finished  ! This node has done all its jobs
 !
 CHARACTER(LEN=200), DIMENSION(:), ALLOCATABLE :: prog_entry
 INTEGER           , DIMENSION(:), ALLOCATABLE :: socket_id

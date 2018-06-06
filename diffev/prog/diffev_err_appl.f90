@@ -9,11 +9,13 @@ SUBROUTINE diffev_errlist_appl
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-31,IO=0)
+      PARAMETER    (IU=-33,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Less children*NINDIV than compute nodes*CPUs ',                & !-33  ! diffev
+     &  'Less children than compute nodes             ',                & !-32  ! diffev
      &  'Parameter name is too long',                                   & !-31  ! diffev
      &  'Conflicting lower/upper values for the limits',                & !-30  ! diffev
      &  'Parameter name already in use',                                & !-29  ! diffev
