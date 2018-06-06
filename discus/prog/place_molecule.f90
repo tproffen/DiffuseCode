@@ -1272,8 +1272,6 @@ CYCLE main_loop
            ier_msg(3) = 'Check the set ligand command'
          ENDIF
 !
-write(*,*) ' DONE WITH DECO ', ier_num, ier_typ, cr_natoms, natoms_prior
-!
          IF(ier_num == 0)  THEN       ! Success in main_loop
 !
             DO ia=1, n_repl
@@ -1909,6 +1907,8 @@ IF(lrestrict) THEN
       ENDIF
       DEALLOCATE(test_hkl)
    ENDIF
+write(*,*) ' BRIDGE in IA', ia, cr_pos(:,ia)
+write(*,*) ' Normal      ', 5 , surf_normal 
 !
 !  Find the other partners involved in the bridge 
    x(1)     = cr_pos(1,ia)
@@ -1941,14 +1941,14 @@ IF(lrestrict) THEN
       x(1) = (cr_pos(1,ia)+cr_pos(1,atom_env(j)))*0.5    ! Calculate midpoint
       x(2) = (cr_pos(2,ia)+cr_pos(2,atom_env(j)))*0.5
       x(3) = (cr_pos(3,ia)+cr_pos(3,atom_env(j)))*0.5
-      WRITE(line,1100) x, bridge                         ! Calculate vector parallel to surface
-      laenge = 81
-      CALL vprod(line, laenge)
-      tangent(:) = res_para(1:3)
-      WRITE(line,1100) bridge, tangent                   ! Calculate surface normal
-      laenge = 81
-      CALL vprod(line, laenge)
-      surf_normal(:) = res_para(1:3)
+!     WRITE(line,1100) x, bridge                         ! Calculate vector parallel to surface
+!     laenge = 81
+!     CALL vprod(line, laenge)
+!     tangent(:) = res_para(1:3)
+!     WRITE(line,1100) bridge, tangent                   ! Calculate surface normal
+!     laenge = 81
+!     CALL vprod(line, laenge)
+!     surf_normal(:) = res_para(1:3)
 !
       nold = cr_natoms                                   ! Remember old atom number
       IF(mole_axis(0)==2) THEN
@@ -1975,6 +1975,12 @@ IF(lrestrict) THEN
       origin(1)  = x(1) + surf_normal(1)/normal_l*b_n - posit(1)    ! Calculate ligand origin
       origin(2)  = x(2) + surf_normal(2)/normal_l*b_n - posit(2)
       origin(3)  = x(3) + surf_normal(3)/normal_l*b_n - posit(3)
+write(*,*) ' Surface atom', atom_env(j), cr_pos(:,atom_env(j))
+write(*,*) ' Midpoint    ', 5          , x(:)
+write(*,*) ' Normal      ', 5          , surf_normal(:)
+write(*,*) ' Posit       ', 1          , posit (:)
+write(*,*) ' Origin      ', 5          , origin(:)
+write(*,*) ' n_l, b_l,b_n', 1          , normal_l, b_l, b_n, dist**2-b_l**2/4.
       sym_latom(:) = .false.                        ! Initially deselect all atomtypes
       DO im=1,mole_natoms                           ! Insert all atoms
          CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
@@ -1988,6 +1994,7 @@ IF(lrestrict) THEN
          CALL check_symm
          sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
       ENDDO
+write(*,*) ' Fist Mol At ', nold + 1   , cr_pos(:,nold+1)
       IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 ! define rotation operation
       sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
@@ -2014,7 +2021,7 @@ IF(lrestrict) THEN
          sym_uvw(:) = res_para(1:3)
          CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
          CALL symm_setup
-!        CALL symm_show
+         CALL symm_show
          CALL symm_op_single
       ENDIF
       ENDIF
@@ -3360,6 +3367,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    rmax = 1.2               ! Small limit to find donor atom only
    werte(:) = -1
    CALL do_find_env (ianz, werte, MAXW, x, rmin, rmax, fq, fp)
+!write(*,*) ' ATOM;ENV ', atom_env(0), ier_num, ier_typ
 !
 !  Did we find a proper covalent neighbor at less than 1.2 A?
 !
@@ -3482,7 +3490,7 @@ success = 0
       cr_natoms = nold
    ENDIF
 !
-!write(*,*) ' IN DONOR AT ', ia, nold, cr_natoms, ier_num, ier_typ
+!write(*,*) ' LEAVE DONOR ', ia, nold, cr_natoms, ier_num, ier_typ
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
