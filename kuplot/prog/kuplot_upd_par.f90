@@ -813,6 +813,7 @@ ier_typ = ER_NONE
 main: DO i = 1, kuplot_reserved_n 
 !  IF (index (kuplot_reserved (i), zeile (1:lp) ) .ne.0) THEN 
    length = MAX(LEN_TRIM(kuplot_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   length = MIN(length, LEN(kuplot_reserved), LEN(zeile))
    IF(kuplot_reserved (i)(1:length)== zeile(1:length) ) THEN           
       ier_num = - 25 
       ier_typ = ER_FORT 

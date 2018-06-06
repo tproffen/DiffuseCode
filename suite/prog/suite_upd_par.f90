@@ -125,6 +125,7 @@ ier_typ = ER_NONE
 DO i = 1, suite_reserved_n 
 !  IF (index (suite_reserved (i), zeile (1:lp) ) .ne.0) then 
    length = MAX(LEN_TRIM(suite_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   length = MIN(length, LEN(suite_reserved), LEN(zeile))
    IF(suite_reserved (i)(1:length)== zeile(1:length) ) THEN           
       ier_num = - 25 
       ier_typ = ER_FORT 

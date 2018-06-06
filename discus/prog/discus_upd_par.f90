@@ -1287,6 +1287,7 @@ ier_typ = ER_NONE
 main: DO i = 1, discus_reserved_n 
 !  IF (index (discus_reserved (i), zeile (1:lp) ) .ne.0) THEN 
    length = MAX(LEN_TRIM(discus_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   length = MIN(length, LEN(discus_reserved), LEN(zeile))
    IF(discus_reserved (i)(1:length)== zeile(1:length) ) THEN    
       ier_num = - 25 
       ier_typ = ER_FORT 
