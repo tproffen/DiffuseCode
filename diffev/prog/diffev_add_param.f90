@@ -256,7 +256,10 @@ DO i = 1,    lib_reserved_n
       RETURN
    ENDIF
 ENDDO
-DO i = 1, var_num 
+!
+!  Check against system variable names
+!
+DO i = 1, var_sys 
    IF (INDEX (var_name(i), string(1:length) ) /= 0) THEN
       ier_num = - 25
       ier_typ = ER_FORT
