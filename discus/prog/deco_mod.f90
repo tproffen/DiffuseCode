@@ -5,7 +5,7 @@ MODULE deco_mod
 !-
 USE discus_config_mod
 !
-INTEGER, PARAMETER        :: DC_MAXMODE  = 6  ! We have six decoration modes
+INTEGER, PARAMETER        :: DC_MAXMODE  = 7  ! We have six decoration modes
 !
 SAVE
 !
@@ -17,7 +17,8 @@ INTEGER, PARAMETER                        :: DC_BRIDGE   = 2
 INTEGER, PARAMETER                        :: DC_DOUBLE   = 3
 INTEGER, PARAMETER                        :: DC_MULTIPLE = 4
 INTEGER, PARAMETER                        :: DC_ACCEPTOR = 5
-INTEGER, PARAMETER                        :: DC_DONOR    = DC_MAXMODE
+INTEGER, PARAMETER                        :: DC_DONOR    = 6
+INTEGER, PARAMETER                        :: DC_CHELATE  = DC_MAXMODE
 !
 INTEGER, PARAMETER                        :: SURF_ATOM   =-1
 INTEGER, PARAMETER                        :: SURF_NONE   = 0
@@ -118,6 +119,6 @@ LOGICAL                                   :: dc_mol_all   = .true.
 !END TYPE is_atom
 !
 DATA dcc_ctype /'NONE    ', 'NORMAL  ', 'BRIDGE  ', 'DOUBLE  ', 'MULTIPLE', &
-                'ACCEPTOR', 'DONOR   ' /
+                'ACCEPTOR', 'DONOR   ', 'CHELATE ' /
 !
 END MODULE deco_mod

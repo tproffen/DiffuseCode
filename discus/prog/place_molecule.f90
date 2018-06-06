@@ -591,6 +591,8 @@ USE errlist_mod
          dcc_type(dcc_num) = DC_NORMAL
       ELSEIF ( str_comp(cpara(2),'bridge',3,lpara(2),6) ) THEN
          dcc_type(dcc_num) = DC_BRIDGE
+      ELSEIF ( str_comp(cpara(2),'chelate',3,lpara(2),7) ) THEN
+         dcc_type(dcc_num) = DC_CHELATE
       ELSEIF ( str_comp(cpara(2),'double',3,lpara(2),6) ) THEN
          dcc_type(dcc_num) = DC_DOUBLE
       ELSEIF ( str_comp(cpara(2),'multiple',3,lpara(2),8) ) THEN
@@ -604,7 +606,7 @@ USE errlist_mod
          ier_typ = ER_COMM
          ier_msg(1) = 'Allowed decoration types are:'
          ier_msg(2) = 'normal, bridge, double, multi, acceptor'
-         ier_msg(3) = 'donor'
+         ier_msg(3) = 'donor , chelate' 
 !        NULLIFY(dc_def_temp) ! 
          RETURN
       ENDIF
@@ -769,6 +771,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
    IF(ier_num /=0) THEN
       i = ier_num                         ! Keep error status
       j = ier_typ
+      CALL save_restore_setting
       CALL readstru_internal( corefile)   ! Read  core file
       ier_num = i                         ! Restore error status
       ier_typ = j
@@ -1231,6 +1234,28 @@ CYCLE main_loop
                                 ier_msg(1) = 'The donor connection requires one bond'
                                 EXIT main_loop
                              ENDIF
+                          CASE ( DC_CHELATE  )               ! Molecule in chelate  connection position
+                             IF(ncon == 2) THEN
+                             CALL deco_place_chelate(dc_temp_id, temp_iatom(ia), &
+                                  dc_temp_axis, dc_temp_surfnew,             &
+                                  m_type_old, mole_name, &
+                                  dc_temp_natoms, &
+                                  UBOUND(dcc_atom_name,1), &
+                                  dcc_atom_name(:,dc_temp_id),    &
+                                  dcc_adp      (:,dc_temp_id),    &
+                                  dcc_biso     (  dc_temp_id),    &
+                                  nanch, anchor, & ! UBOUND(dcc_surf,2),             &
+                                  dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
+                                  istart, iend, temp_lrestrict,    &
+                                  dcc_hkl(1,0,dc_temp_id), &
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+if(ier_num/=0) EXIT main_loop
+CYCLE main_loop
+                             ELSE
+                                ier_num = -1118
+                                ier_msg(1) = 'The double connection requires two bond'
+                                EXIT main_loop
+                             ENDIF
                        END SELECT
                     ENDIF
                     CYCLE main_loop
@@ -1246,6 +1271,8 @@ CYCLE main_loop
            ier_msg(2) = 'Is the coverage too small? '
            ier_msg(3) = 'Check the set ligand command'
          ENDIF
+!
+write(*,*) ' DONE WITH DECO ', ier_num, ier_typ, cr_natoms, natoms_prior
 !
          IF(ier_num == 0)  THEN       ! Success in main_loop
 !
@@ -2340,6 +2367,275 @@ cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at
 1200 FORMAT(6(F12.6,', '),'dddd')
 !
 END SUBROUTINE deco_place_double
+!
+!*******************************************************************************
+!
+SUBROUTINE deco_place_chelate(temp_id, ia, &
+                            mole_axis, mole_surfnew,           &
+                            m_type_old, mole_name, &
+                            mole_natoms, &
+                            mole_nscat, mole_atom_name, &
+                            mole_dw, r_m_biso,          &
+                            nanch, anchor, &
+                            neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl)
+!
+! Place the ligand in a "chelate" bond. 
+! The two connecting ligand atoms are placed along a line normal to the local surface normal.
+! The molecule axis is rotated around these two atoms into a plane that contains the 
+! local surface normal.
+!
+USE crystal_mod
+USE atom_env_mod
+USE chem_mod
+USE metric_mod
+USE modify_mod
+USE molecule_func_mod
+USE point_grp
+USE prop_para_mod
+USE read_internal_mod
+USE symm_menu
+USE symm_mod
+USE symm_sup_mod
+USE trafo_mod
+!
+USE param_mod
+USE trig_degree_mod
+!
+IMPLICIT NONE
+!
+INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
+INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
+INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
+INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
+CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
+INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
+INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
+CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
+REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+INTEGER,                 INTENT(IN) :: nanch           ! Connected to this neighbor in mole
+INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
+INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
+REAL   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
+INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
+INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
+INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
+LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
+INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
+INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
+INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
+INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
+!
+REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+!
+REAL, PARAMETER :: EPS = 1.0E-6
+!
+CHARACTER (LEN=1024)                    :: line
+INTEGER                                 :: j, im, laenge
+INTEGER                                 :: iprop
+INTEGER                                 :: itype
+INTEGER, DIMENSION(0:3)                 :: isurface
+INTEGER                                 :: nold   ! atom number previous to current molecule
+INTEGER  , DIMENSION(1:4)               :: hkl
+INTEGER                                 :: n1, n2  ! Ligand atoms
+!
+INTEGER                              :: test_nhkl
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
+!
+LOGICAL, PARAMETER :: lspace = .true.
+REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
+REAL                    :: aa, bb, cc, arg  ! Triangle sides for cosine theorem
+REAL                                    :: normal_l
+REAL     , DIMENSION(1:3)               :: x, origin, posit
+REAL     , DIMENSION(1:3)               :: vnull
+INTEGER             :: m_type_new   ! new molecule types 
+INTEGER             :: in_mole,in_moleatom
+!
+vnull(:) = 0.00
+nold     = cr_natoms
+write(*,*) ' BIND TO ATOM ', ia, cr_iscat(ia), cr_pos(:,ia)
+!
+!  Determine surface character, if growth is restricted check if we're at proper surface
+!
+hkl(4) = 0
+CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+surf_normal(1:3) = FLOAT(surface_normal(:,1))
+hkl(1:3) = surface_normal(:,1)
+IF(lrestrict) THEN
+   test_nhkl =    nhkl
+   ALLOCATE(test_hkl(3,test_nhkl))
+   test_hkl(1:3,1:test_nhkl) =    rhkl(1:3,1:test_nhkl)
+      IF(.NOT.point_test(hkl, test_hkl, test_nhkl, .TRUE.) ) THEN
+         RETURN
+      ENDIF
+      DEALLOCATE(test_hkl)
+ENDIF
+!
+!  Insert molecule atoms into crystal at initial origin along normal
+normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
+origin(1)  = cr_pos(1,ia) + surf_normal(1)/normal_l*dist(1)
+origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*dist(1)
+origin(3)  = cr_pos(3,ia) + surf_normal(3)/normal_l*dist(1)
+sym_latom(:) = .false.                        ! Initially deselect all atomtypes
+DO im=1,mole_natoms                           ! Insert all atoms
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   posit(:) = posit(:) + origin(:)
+   WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   laenge = 60
+   CALL do_ins(line, laenge)
+   cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
+   cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
+   cr_surf(:,cr_natoms) = 0
+   CALL check_symm
+   sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atom type for rotation
+ENDDO
+n1 = nold + neig(1)                           ! Atom number for 1st
+n2 = nold + neig(2)                           ! and 2nd bonded ligand atoms
+write(*,*) ' ATOMS n1, n2 ', n1, n2, cr_iscat(n1), cr_iscat(n2)
+!
+! 1.st step rotate ligand molecule in neig(1) to achieve the intended 
+! distance dist(2) between surface atom ia and neig(2)
+!
+!  Find the vector from ligand atoms neig(1) and neig(2), the ligand_chelate axis
+x(1) = cr_pos(1,n2) - cr_pos(1,n1)
+x(2) = cr_pos(2,n2) - cr_pos(2,n1)
+x(3) = cr_pos(3,n2) - cr_pos(3,n1)
+cc = sqrt (skalpro (x, x, cr_gten))           ! Distance between chelate atoms
+aa = dist(2)                                  ! Intended distance surface to ligand(2)
+bb = dist(1)                                  ! Intended distance surface to ligand(1)
+arg = (aa*aa - bb*bb -cc*cc)/(-2.*bb*cc)      ! Arg of acos
+IF(arg > 1) THEN                              ! No solution exists
+   cr_natoms = nold
+   RETURN
+ENDIF
+!
+! Define rotation operation
+! Determine rotation axis by vector product ligand_chelate x surface_normal
+! Angle is 180 - current angle (chelate to Normal) - intended angle
+sym_angle = -(180. - do_bang(lspace, surf_normal, vnull, x) - acosd(arg))
+IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
+   sym_orig(:)    = cr_pos(:,n1)              ! Define origin in neig(1)
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_sel_atom   = .true.                    ! Select atoms
+   sym_new        = .false.                   ! No new types
+   sym_power      =  1                        ! Just need one operation
+   sym_type       = .true.                    ! Proper rotation
+   sym_mode       = .false.                   ! Move atom to new position
+   sym_orig_mol   = .false.                   ! Origin at crystal
+   sym_power_mult =.false.                    ! No multiple copies
+   sym_sel_atom   = .true.                    ! Select atoms not molecules
+   sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+   sym_end        =  cr_natoms
+   IF(ABS(sym_angle-180.) < EPS ) THEN        ! Ligand and surface normal are antiparallel
+      WRITE(line,1100) x(1)+0.1,x(2)+0.1,x(3)+0.1, surf_normal
+   ELSE
+      WRITE(line,1100) x,surf_normal
+   ENDIF
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) = res_para(1:3)
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+   CALL symm_setup
+!  CALL symm_show
+   CALL symm_op_single
+ENDIF
+!
+! 2nd step: Rotate ligand molecule to place chelate axis normal to the surface
+! Determine rotation axis by vector product ligand_chelate x surface_normal
+! define rotation operation
+!  Find the vector from ligand atoms neig(1) and neig(2), the ligand_chelate axis
+!  Needs new calculation, as molecule was rotated in step 1
+x(1) = cr_pos(1,n2) - cr_pos(1,n1)
+x(2) = cr_pos(2,n2) - cr_pos(2,n1)
+x(3) = cr_pos(3,n2) - cr_pos(3,n1)
+sym_angle = do_bang(lspace, surf_normal, vnull, x) - 90.0
+IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
+   sym_orig(:)    = cr_pos(:,ia)              ! Define origin in surface atom
+   sym_trans(:)   = 0.0                       ! No translation needed
+   sym_sel_atom   = .true.                    ! Select atoms
+   sym_new        = .false.                   ! No new types
+   sym_power      =  1                        ! Just need one operation
+   sym_type       = .true.                    ! Proper rotation
+   sym_mode       = .false.                   ! Move atom to new position
+   sym_orig_mol   = .false.                   ! Origin at crystal
+   sym_power_mult =.false.                    ! No multiple copies
+   sym_sel_atom   = .true.                    ! Select atoms not molecules
+   sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+   sym_end        =  cr_natoms
+   IF(ABS(sym_angle-180.) < EPS ) THEN        ! Ligand and surface normal are antiparallel
+      WRITE(line,1100) x(1)+0.1,x(2)+0.1,x(3)+0.1, surf_normal
+   ELSE
+      WRITE(line,1100) x,surf_normal
+   ENDIF
+   laenge = 81
+   CALL vprod(line, laenge)
+   sym_uvw(:) = res_para(1:3)
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+   CALL symm_setup
+!  CALL symm_show
+   CALL symm_op_single
+ENDIF
+!
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
+!   Define the current molecule axis
+   axis_ligand(1) = cr_pos(1,nold+mole_axis(2)) - cr_pos(1,nold+mole_axis(1))
+   axis_ligand(2) = cr_pos(2,nold+mole_axis(2)) - cr_pos(2,nold+mole_axis(1))
+   axis_ligand(3) = cr_pos(3,nold+mole_axis(2)) - cr_pos(3,nold+mole_axis(1))
+!  define rotation operation
+   sym_angle      = -1.*do_bang(lspace, surf_normal, vnull, axis_ligand)
+!  Find the vector from ligand atoms neig(1) and neig(2), the ligand_chelate axis
+!  Needs new calculation, as molecule was rotated in step 2
+   x(1) = cr_pos(1,n2) - cr_pos(1,n1)
+   x(2) = cr_pos(2,n2) - cr_pos(2,n1)
+   x(3) = cr_pos(3,n2) - cr_pos(3,n1)
+   IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
+      sym_orig(:)    = cr_pos(:,n1)              ! Define origin
+      sym_trans(:)   = 0.0                       ! No translation needed
+      sym_sel_atom   = .true.                    ! Select atoms
+      sym_new        = .false.                   ! No new types
+      sym_power      =  1                        ! Just need one operation
+      sym_type       = .true.                    ! Proper rotation
+      sym_mode       = .false.                   ! Move atom to new position
+      sym_orig_mol   = .false.                   ! Origin at crystal
+      sym_power_mult =.false.                    ! No multiple copies
+      sym_sel_atom   = .true.                    ! Select atoms not molecules
+      sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+      sym_end        =  cr_natoms
+!
+      sym_uvw(:) = x(:) 
+      CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
+      CALL symm_setup
+!     CALL symm_show
+      CALL symm_op_single
+   ENDIF
+ENDIF
+!
+m_type_new = m_type_old  + temp_id
+!
+CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+!
+flagsurf: DO j=1,20
+   IF(mole_surfnew(j)>0) THEN
+      im = nold + mole_surfnew(j)
+      cr_prop  (im) = IBSET (cr_prop (im), PROP_SURFACE_EXT)
+      cr_surf(:,im) = cr_surf(:, ia)          ! Copy surface vector from anchor
+   ELSE
+      EXIT flagsurf
+   ENDIF
+ENDDO flagsurf
+!
+chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+chem_quick     = .false.                         ! turn of quick search
+cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+!
+1000 FORMAT(a4,4(2x,',',F12.6))
+1100 FORMAT(6(F12.6,', '),'ddd')
+!
+END SUBROUTINE deco_place_chelate
 !
 !*****7*****************************************************************
 !
