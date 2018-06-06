@@ -52,6 +52,7 @@ SUBROUTINE eval (line, ll)
 !-                                                                      
 !       evaluates a line that has only the basic arithmetics            
 !+                                                                      
+USE blanks_mod
       USE errlist_mod 
       IMPLICIT none 
 !                                                                       
@@ -64,6 +65,7 @@ SUBROUTINE eval (line, ll)
       LOGICAL lreal 
       REAL w1, w2, ww 
 !                                                                       
+CALL rem_bl(line,ll)
 !...........Evaluate the exponentiation  '**'                           
 ipot = INDEX (line, '**') 
 DO while (ipot.ne.0) 
