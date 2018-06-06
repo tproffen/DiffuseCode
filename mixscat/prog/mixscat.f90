@@ -79,6 +79,7 @@ PROGRAM mixsca
 !                                                                       
 !     This routine makes inital setup                                   
 !                                                                       
+      USE appl_env_mod
       USE prompt_mod 
       IMPLICIT none 
 !
