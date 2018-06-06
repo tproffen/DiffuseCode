@@ -72,6 +72,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_June
+
+   decoration
+   Added a "chelate" bonding scheme and corrected the descriptions 
+   for the "bridge" scheme.
+   Added the missing descriptions to the "acceptor" and "donor" 
+   schemes.
 3  2018_May
 
    surface
@@ -1831,8 +1838,13 @@
               A single ligand atom is bonded to the surface atoms. 
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
-   "bridge"   The ligand molecule is place on top of a single surface atom. 
+   "chelate"  The ligand molecule is placed on top of a single surface atom. 
               A pair of ligand atoms is bonded to the identical surface atom.
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+   "bridge"   The ligand molecule is placed bridging between two different
+              surface atoms. 
+              A single ligand atom is bonded to two (neighboring) surface atoms.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
    "double"   The ligand molecule is bonded with individual bonds to two surface
@@ -1841,10 +1853,33 @@
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
    "multi"    The ligand molecule is bonded with several bonds to a group of 
-              surface atoms. A second bond  connects (another) ligand atom to
-              a surface atom. 
+              surface atoms. 
+              A first bond connects a ligand atom to a single surface atom.
+              A second bond connects (another) ligand atom to
+              a (group of) surface atom(s). 
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+   "acceptor" Place a ligand molecule with a hydrogen bond type. 
+              The surface atom acts as acceptor atom. The surface atom should
+              be a reasonable acceptor atom like O, N... and the ligand atom
+              should be a Hydrogen. 
+              The ligand atom is placed at a user specified distance to the 
+              surface atom. This distance should be around 1.9  Angstroem. 
+              Within the H atom DISCUS will create a roughly 170 degree bond 
+              angle.
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+   "donor"    Place a ligand molecule with a hydrogen bond type. 
+              The surface atom acts as donor atom. The surface atom should
+              be a reasonable donor atom like H. and the ligand atom
+              should be a reasonable acceptor atom like O, N, ... 
+              The ligand atom is placed at a user specified distance to the 
+              surface atom. This distance should be around 1.9  Angstroem. 
+              Within the H atom DISCUS will create a roughly 170 degree bond 
+              angle.
+              The orientation of the molecule is defined by its axis which is
+              placed normal to the local surface.
+
 3  reset
 !b reset
    Reset and clear all definitions.

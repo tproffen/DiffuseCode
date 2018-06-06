@@ -19,6 +19,12 @@
    Further help topics are:
 
 2  News
+3  2018_June
+
+   Revised the internal workings of the distribution within
+   run_mpi. This has no effects on the user. It should anable you,
+   however, to distribute the children much better on a system with
+   many nodes and many CPU's per node. See the manual for furtrher info.
 3  2018_Feb
 
    Added an optional parameter "partial:<value>" to the 
