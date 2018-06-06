@@ -370,6 +370,7 @@ SUBROUTINE validate_variable (zeile, lp)
       main:DO i = 1, lib_reserved_n 
 !        IF (INDEX (lib_reserved (i), zeile (1:lp) ) .NE.0) THEN 
          length = MAX(LEN_TRIM(lib_reserved(i)), LEN_TRIM(zeile(1:lp)))
+         length = MIN(length, LEN(lib_reserved), LEN(zeile))
          IF ((lib_reserved (i)(1:length)== zeile (1:length) ) ) THEN 
             ier_num = - 25 
             ier_typ = ER_FORT 
