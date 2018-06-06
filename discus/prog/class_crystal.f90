@@ -636,10 +636,10 @@ CONTAINS
             iprop = 1
          ENDIF
          IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
-            IF(cr_mole(i)/=0) THEN
-               iin_mole(1) = cr_mole(i)
-               check_mole: DO j = 1, mole_len (cr_mole(i))
-                  IF(mole_cont (mole_off(cr_mole(i))+j) == i) THEN
+            IF(cr_mole(inum)/=0) THEN
+               iin_mole(1) = cr_mole(inum)
+               check_mole: DO j = 1, mole_len (cr_mole(inum))
+                  IF(mole_cont (mole_off(cr_mole(inum))+j) == i) THEN
                      iin_mole(2) = j
                      EXIT check_mole
                   ENDIF
