@@ -320,8 +320,7 @@ CALL no_error
                (1:ikl - lcomm - 1)                                      
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
                THEN                                                     
-                  zeile (ikl - 7:ikl + 13) = cr_at_lis (cr_iscat (kpara)&
-                  )                                                     
+                  zeile(ikl-7:ikl+13) = ''''//cr_at_lis(cr_iscat(kpara))//''''                                                     
                ELSE 
                   ier_num = - 105 
                   ier_typ = ER_APPL 
@@ -337,7 +336,7 @@ CALL no_error
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF (0.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_nscat) THEN
-                  zeile (ikl - 7:ikl + 13) = cr_at_lis (kpara)
+                  zeile(ikl-7:ikl+13) = ''''//cr_at_lis (kpara)//''''
                ELSE 
                   ier_num = - 122 
                   ier_typ = ER_APPL 
