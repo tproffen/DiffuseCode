@@ -4,7 +4,7 @@
 !
 !*****7**************************************************************** 
 !
-      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp) 
+RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp) 
 !                                                                       
 !     Evaluate all intrinsic functions                                  
 !                                                                       
@@ -36,6 +36,7 @@
       INTEGER lpara (maxw) 
       INTEGER ikom, i, ianz 
       INTEGER lcom 
+      INTEGER :: Laenge
       INTEGER ihyp 
       INTEGER dummy 
       LOGICAL :: BACK   ! FLAG for index intrinsic

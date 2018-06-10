@@ -2,7 +2,7 @@ MODULE do_variable_mod
 !
 CONTAINS
 !*****7**************************************************************** 
-      SUBROUTINE ersetz_variable (string, laenge) 
+SUBROUTINE ersetz_variable (line, length) 
 !-                                                                      
 !       replaces a substring in an expression by the value of the       
 !       appropriate user defined variable.                              
@@ -11,28 +11,46 @@ CONTAINS
 !       Version : 1.0                                                   
 !       Date    : 22 Oct 03                                             
 !                                                                       
-!       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
+!       Author  : R.B. Neder  (reinhard.neder@fau.de)    
 !+                                                                      
-      USE blanks_mod
-      USE constants_mod
-      USE errlist_mod 
-      USE variable_mod
-      IMPLICIT none 
+USE blanks_mod
+USE constants_mod
+USE errlist_mod 
+USE string_extract_mod
+USE variable_mod
+!
+IMPLICIT none 
 !                                                                       
+CHARACTER (LEN=*), INTENT(INOUT) :: line 
+INTEGER          , INTENT(INOUT) :: length 
+CHARACTER(LEN=1024) :: string 
+CHARACTER(LEN=1024) :: substring 
+CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=1024) :: dummy 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: string 
-      INTEGER          , INTENT(INOUT) :: laenge 
-      CHARACTER(1024) zeile 
-      CHARACTER(1024) dummy 
-!                                                                       
-      INTEGER i, ianf, iend, ll 
-      INTEGER linsert 
+INTEGER :: i, ianf, iend, ll 
+INTEGER :: linsert 
+INTEGER :: laenge
+INTEGER :: istart, istop
+INTEGER :: s1,s2,s3
 LOGICAL :: success = .FALSE.
 !                                                                       
-      INTEGER len_str 
+INTEGER len_str 
 !                                                                       
-      linsert = 0
-      ll = laenge 
+string = line
+istart = 1
+istop  = length
+s1 = 0
+s2 = 0
+s3 = 0
+line = ' '
+!
+main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
+   CALL string_extract(string,istart, istop, substring, s1,s2,s3)
+!
+   linsert = 0
+   laenge  = s2 - s1 + 1     ! Length of current string
+   ll = laenge 
 !                                                                       
 !     Loop over all defined variables and search for coincidences       
 !     of the variable name. Works since names like "cos" etc are        
@@ -42,17 +60,17 @@ LOGICAL :: success = .FALSE.
 !                                                                       
 !     --If an apostrophe is found, ignore the string                    
 !                                                                       
-IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
-   RETURN 
-ENDIF 
-names:DO i = 1, var_num 
+!IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
+!   RETURN 
+!ENDIF 
+   names:DO i = 1, var_num 
    success = .FALSE.
-   ianf = INDEX (string, var_name (i) (1:var_l (i) ) ) 
+   ianf = INDEX (substring, var_name (i) (1:var_l (i) ) ) 
    DO while (ianf.ne.0) 
       IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
-      IF (ianf.gt.1) zeile (1:ianf - 1) = string (1:ianf - 1) 
+      IF (ianf.gt.1) zeile (1:ianf - 1) = substring (1:ianf - 1) 
       IF (var_type (i) .eq.      IS_REAL) THEN 
                                                                         
          WRITE (dummy (1:15) , '(e15.8e2)') var_val (i) 
@@ -68,36 +86,28 @@ names:DO i = 1, var_num
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
       ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
-!DBG_RBN            ll = len_str(var_char(i))                           
-!DBG_RBN            zeile(ianf:ianf+ll-1)= var_char(i)(1:ll)            
-!DBG_RBN            linsert = ll                                        
          ll = len_str (var_char (i) ) 
          zeile (ianf:ianf) = '''' 
          zeile (ianf + 1:ianf + ll) = var_char (i) (1:ll) 
          zeile (ianf + ll + 1:ianf + ll + 1) = '''' 
          linsert = ll + 2 
-!DBG_RBN      write(*,*) 'in ERSETZ'                                    
-!DBG_RBN      write(*,*) ' ll,ianf,ianf+ll-1 ',ll,ianf,ianf+ll-1        
-!DBG_RBN      write(*,*) ' ZEILE >',zeile(1:ianf+ll+1),'<'              
       ENDIF 
       ll = laenge+linsert - (iend-ianf + 1) 
-      IF (iend.lt.laenge) zeile (ianf + linsert:ll) = string (iend+1:   &
+      IF (iend.lt.laenge) zeile (ianf + linsert:ll) = substring (iend+1:   &
       laenge)                                                           
-      string = zeile 
+      substring = zeile 
       laenge = ll 
       success = .TRUE.
-!DBG_RBN      write(*,*) ' ZEILE >',zeile(1:ll)                         
-      IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
-         RETURN 
-      ENDIF 
-      ianf = INDEX (string, var_name (i) (1:var_l (i) ) ) 
+      ianf = INDEX (substring, var_name (i) (1:var_l (i) ) ) 
    ENDDO 
-ENDDO names
+   ENDDO names
 !
-IF(.NOT. success) THEN
-!  ier_num = -24
-!  ier_typ = ER_FORT
-ENDIF
+   line = line(1:LEN_TRIM(line))//substring(1:LEN_TRIM(substring))  &
+          //string(s2+1:s3-1)
+   istart = s3
+!
+ENDDO main
+length = LEN_TRIM(line)
 !
 END SUBROUTINE ersetz_variable                
 !

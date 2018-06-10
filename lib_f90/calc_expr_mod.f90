@@ -9,14 +9,15 @@ SUBROUTINE do_math (line, indxg, length)
 !     Calculates the value of an expression and stores the result       
 !     in the proper variable                                            
 !                                                                       
-      USE berechne_mod
+USE blanks_mod
+USE berechne_mod
 USE ber_params_mod
 USE constants_mod
 USE do_variable_mod
-      USE errlist_mod 
-      USE do_string_alloc_mod
-      USE get_params_mod
-      USE set_sub_generic_mod
+USE errlist_mod 
+USE do_string_alloc_mod
+USE get_params_mod
+USE set_sub_generic_mod
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: maxw = 10
@@ -29,13 +30,11 @@ CHARACTER(LEN=1024)   :: zeile, cpara (maxw)
 INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
       INTEGER lpara (maxw) 
-      INTEGER i, ikk, iii (maxw), ianz, lll 
+      INTEGER i, ikk, iii (maxw), ianz, lll , laenge
 INTEGER :: indxb
 !                                                                       
       REAL wert, werte (maxw) 
-!                                                                       
-!     String substitution???                                            
-!                                                                       
+!
 lll = indxg -1
 indxb = INDEX(line(1:lll),'[')
 IF(indxb >0) lll = indxb - 1
@@ -54,7 +53,13 @@ IF(var_is_type(3)==IS_READ) THEN
    RETURN
 ENDIF
 !
-IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0) then 
+!     String substitution???
+!
+zeile = line(indxg+1:length)
+laenge = length - indxg
+CALL rem_leading_bl(zeile,laenge)
+IF(zeile(1:1)=='"' .OR. zeile(1:1)=='''') THEN    ! This is a character substitution
+!IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0) then 
    IF(var_is_type(1)==IS_CHAR) THEN
       CALL do_string_alloc (line, indxg, length) 
       RETURN 
