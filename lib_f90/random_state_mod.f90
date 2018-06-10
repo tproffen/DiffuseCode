@@ -31,10 +31,16 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(OUT) :: nseeds
 INTEGER, DIMENSION(:),INTENT(OUT) :: seed_val
+INTEGER, PARAMETER                :: np = 1
+INTEGER, DIMENSION(1)             :: werte
 !INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: seed_val
 !
-CALL alloc_random()                ! Just in case, if random had not been initialized
 CALL RANDOM_SEED(SIZE=nseeds)      ! Get seed size 
+IF(.NOT. ALLOCATED(seed_vals)) THEN
+CALL alloc_random()                ! Just in case, if random had not been initialized
+   werte(:) = 0
+   CALL ini_ran_ix(np,werte)
+ENDIF
 !
 CALL RANDOM_SEED(GET=seed_vals)    ! Use the global variable, is allocated to proper size
 seed_val(:) = 0                    ! Initialize user array
@@ -116,7 +122,7 @@ USE take_param_mod
 !
 IMPLICIT none 
 !                                                                       
-INTEGER, PARAMETER :: maxw = 65 
+INTEGER, PARAMETER :: maxw = 193 
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
 INTEGER          , INTENT(INOUT) :: lp
@@ -160,7 +166,11 @@ IF (zeile.ne.' ') THEN
                DO i = 1, ianz   ! loop over the current number of parameters
                   ind = (i-1)/igroup+1   ! New parameter index
                   ip  = igroup - MOD(i-1,igroup) - 1   ! Power for 10**ip
-                  iwerte(ind) = iwerte(ind) + NINT(werte(i))*10000**ip
+                  iwerte(ind) = iwerte(ind) + IABS(NINT(werte(i)))*10000**ip
+               ENDDO
+               DO i = 1, np
+                  ind = (i-1)*igroup + 1
+                  IF(werte(ind)<0) iwerte(i) = -iwerte(i)
                ENDDO
                CALL ini_ran_ix(np, iwerte)
             ELSE
