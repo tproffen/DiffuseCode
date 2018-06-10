@@ -181,13 +181,13 @@ IF(write_random_state) THEN
       line(1:5) = 'seed '
       i1 = 6
       DO i=1, random_nseed 
-         i1 = 6 + (i-1)*16
-         ir1 =         random_best(i)/ 100000000
-         ir2 =     MOD(random_best(i), 100000000)/10000
-         ir3 =     MOD(random_best(i), 10000)
-         WRITE(line(i1:i1+15),'(I4,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
+         i1 = 6 + (i-1)*17
+         ir1 =              random_best(i)/ 100000000
+         ir2 =     MOD(IABS(random_best(i)), 100000000)/10000
+         ir3 =     MOD(IABS(random_best(i)), 10000)
+         WRITE(line(i1:i1+16),'(I5,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
       ENDDO
-      WRITE(line(i1+16:i1+23),'(a8)') ' group:3'
+      WRITE(line(i1+17:i1+25),'(a8)') ' group:3'
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'
