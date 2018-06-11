@@ -1120,6 +1120,7 @@ list_index(:) = 0
          ier_msg(2) = 'has population been properly initialized?'
          RETURN
       ENDIF
+      pop_not_first = .TRUE.                     ! This is no longer the first time
    ENDIF init
 !
    END SUBROUTINE do_read_values

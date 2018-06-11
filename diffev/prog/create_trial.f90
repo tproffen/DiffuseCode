@@ -681,7 +681,7 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
       n_pop = MAX(m_pop_n, m_pop_c, MAXPOP)
       n_dim = MAX(m_pop_dimx, MAXDIMX)
       CALL alloc_population( n_pop, n_dim)
-      CALL alloc_ref_para(pop_dimx)
+      CALL alloc_ref_para(  n_dim)
       IF(ier_num < 0) THEN
          CLOSE(iwr)
          RETURN
@@ -743,7 +743,7 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
 !
 !  Test for changes in population size
 !
-   IF(NINT(r1)>0 .AND. NINT(r1)>= pop_gen) THEN   ! We are in a GENERATION > zero
+   IF(pop_not_first .AND. NINT(r1)>0 .AND. NINT(r1)>= pop_gen) THEN   ! We are in a GENERATION > zero
       pop_gen = NINT(r1)
       IF(NINT(r2)<pop_n) THEN   ! Population size increased  by pop_n[] command
                highest_r = MAXVAL( parent_val(1:NINT(r1),0))
@@ -767,6 +767,12 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
                r4 = FLOAT(pop_dimx)
                l_write = .TRUE.
       ENDIF
+   ELSE
+      pop_gen  = NINT(r1)
+      pop_n    = NINT(r2)
+      pop_c    = NINT(r3)
+      pop_dimx = NINT(r4)
+!      CALL alloc_ref_para(MAXDIMX)
    ENDIF
 ENDIF
 CLOSE (iwr) 

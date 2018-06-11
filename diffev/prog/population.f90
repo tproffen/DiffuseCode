@@ -48,6 +48,7 @@ INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_type       !  (MAXDIMX)
 INTEGER ,DIMENSION(:)  , ALLOCATABLE :: pop_lname      !  (MAXDIMX)
 INTEGER ,DIMENSION(:,:), ALLOCATABLE :: pop_random     !  (nseeds:MAXPOP )
 !
+LOGICAL                              :: pop_not_first     = .FALSE.
 LOGICAL                              :: pop_current       = .FALSE.
 LOGICAL                              :: pop_current_trial = .FALSE.
 LOGICAL                              :: pop_initialized   = .FALSE.

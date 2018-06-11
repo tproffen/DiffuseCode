@@ -747,10 +747,6 @@ ELSE
                      ENDIF
                   run_mpi_senddata%nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
             ENDIF 
-!write(*,*) ' RUN_MPI_ACTIVE; POP_GEN; LASTGEN ', run_mpi_active , pop_gen, lastgen
-!write(*,*) ' PARALLEL ?                       ',run_mpi_senddata%repeat
-!write(*,*) ' NODES, PROCESSORS                ', num_node, run_mpi_numprocs
-!write(*,*) ' CHILDREN NINDIV                  ', pop_c,run_mpi_senddata%nindiv, pop_c*run_mpi_senddata%nindiv
             IF(run_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
                IF(run_mpi_senddata%repeat) THEN            ! parallel refinement of indivs
                   IF(NUM_NODE>pop_c) THEN
