@@ -537,7 +537,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lnone = .false. 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
 !                                                                       
 !------ - Show defined interaction angles                               
 !                                                                       
@@ -549,7 +549,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lnone = .false. 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
 !                                                                       
 !------ - Show defined interaction environments                         
 !                                                                       
@@ -564,7 +564,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lnone = .false. 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
 !                                                                       
 !------ - Show defined interaction ranges                               
 !                                                                       
@@ -592,7 +592,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lnone = .false. 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
 !                                                                       
 !------ - Show defined displacement directions                          
 !                                                                       
@@ -610,7 +610,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             ENDIF 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
 !                                                                       
 !------ - Show defined interaction connectivities                              
 !                                                                       
@@ -623,7 +623,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
             lnone = .false. 
          ENDIF 
          ENDDO 
-         IF (lnone) write (output_io, 3050) 
+         IF (lnone) WRITE (output_io, 3050) 
       ENDIF 
 !                                                                       
  1000 FORMAT ('    Neighbour determination mode   : quick = ',L1,/      &
@@ -2574,7 +2574,7 @@ ENDIF
       chem_hist (ibin) = chem_hist (ibin) + 1 
 !                                                                       
       IF (nlots.gt.20) then 
-         IF (mod (il, iup) .eq.0) write (output_io, 900) il 
+         IF (mod (il, iup) .eq.0) WRITE (output_io, 900) il 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -2699,7 +2699,7 @@ ENDIF
       ENDDO 
 !                                                                       
       IF (nlots.gt.20) then 
-         IF (mod (il, iup) .eq.0) write (output_io, 900) il 
+         IF (mod (il, iup) .eq.0) WRITE (output_io, 900) il 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -3251,7 +3251,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                di = do_blen (.true., u, v) 
                is = cr_iscat (i) 
                js = cr_iscat (atom (j) ) 
-               IF (lfile) write (37, 3000) d, is, js 
+               IF (lfile) WRITE (37, 3000) d, is, js 
                bl_sum (is, js) = bl_sum (is, js) + di 
                bl_s2 (is, js) = bl_s2 (is, js) + di**2 
                bl_anz (is, js) = bl_anz (is, js) + 1 
@@ -3261,7 +3261,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ENDIF 
       ENDDO 
 !                                                                       
-!------ - write results and save to res_para block                      
+!------ - WRITE results and save to res_para block                      
 !                                                                       
       DO i = 0, cr_nscat 
       DO j = i, cr_nscat 
@@ -3434,7 +3434,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                   ENDDO 
                   di = do_blen (.true., u, v) 
                   js = cr_iscat (atom (j, icent) ) 
-                  IF (lfile) write (37, 3000) d, is, js 
+                  IF (lfile) WRITE (37, 3000) d, is, js 
                   bl_sum (is, js) = bl_sum (is, js) + di 
                   bl_s2 (is, js) = bl_s2 (is, js) + di**2 
                   bl_anz (is, js) = bl_anz (is, js) + 1 
@@ -3799,7 +3799,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                v (k) = cr_pos (k, jmol) 
                d (k) = u (k) - v (k) 
                ENDDO 
-               IF (lfile) write (37, 3000) d 
+               IF (lfile) WRITE (37, 3000) d 
                di = do_blen (.true., u, v) 
                is = mole_type (i) 
                js = mole_type (mol (j) ) 
@@ -3973,7 +3973,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                         wi = do_bang (.true., v, u, w) 
                         is = cr_iscat (atom (j) ) 
                         js = cr_iscat (atom (j + 1) ) 
-                        IF (lfile) write (37, 3000) u, is, js 
+                        IF (lfile) WRITE (37, 3000) u, is, js 
                         ba_sum (is, js) = ba_sum (is, js) + wi 
                         ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
                         ba_anz (is, js) = ba_anz (is, js) + 1 
@@ -4194,7 +4194,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                         wi = mod (wi + wis / 2., wis) - wis / 2. 
                      ENDIF 
                   ENDIF 
-                  IF (lfile) write (37, 3000) u, is, js 
+                  IF (lfile) WRITE (37, 3000) u, is, js 
                   ba_sum (is, js) = ba_sum (is, js) + wi 
                   ba_s2 (is, js) = ba_s2 (is, js) + wi**2 
                   ba_anz (is, js) = ba_anz (is, js) + 1 
@@ -4836,7 +4836,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             mo_ach_corr (ic) = 0.0 
          ENDIF 
 !                                                                       
-         IF (lout) write (output_io, 1100) ic, 100. * pro00, 100. *     &
+         IF (lout) WRITE (output_io, 1100) ic, 100. * pro00, 100. *     &
          pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
 !                                                                       
       ELSE 
@@ -5009,7 +5009,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             mo_ach_corr (ic) = 0.0 
          ENDIF 
 !                                                                       
-         IF (lout) write (output_io, 1100) ic, 100. * pro00, 100. *     &
+         IF (lout) WRITE (output_io, 1100) ic, 100. * pro00, 100. *     &
          pro01, 100. * pro11, nneig, mo_ach_corr (ic)                   
 !                                                                       
       ELSE 
