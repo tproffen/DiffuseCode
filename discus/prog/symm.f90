@@ -34,6 +34,7 @@ CONTAINS
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
+      USE param_mod 
       USE prompt_mod 
       USE take_param_mod
       USE sup_mod
@@ -580,6 +581,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
                   ENDIF 
+                  IF(ALL(sym_latom(0:SYM_MAXSCAT)) .AND. sym_incl=='all') THEN
+                     lspace = .TRUE.
+                     DO i=1,2
+                        hkl(:) = cr_dim0(:,i)
+                        IF (sym_power_mult) then 
+                           CALL symm_ca_mult (hkl, lspace) 
+                        ELSE 
+                           CALL symm_ca_single (hkl, lspace, .true.) 
+                        ENDIF 
+                        cr_dim0(1,i) = NINT(res_para(1))
+                        cr_dim0(2,i) = NINT(res_para(2))
+                        cr_dim0(3,i) = NINT(res_para(3))
+                     ENDDO
+                  ENDIF
                   CALL update_cr_dim 
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
