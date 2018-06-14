@@ -161,6 +161,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE discus_calc_intr_log_spec(string, length)
+!
+   IMPLICIT NONE
+   CHARACTER(LEN=*) , INTENT(INOUT) :: string
+   INTEGER          , INTENT(INOUT) :: length
+!
+   END SUBROUTINE discus_calc_intr_log_spec
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE discus_validate_var_spec (string, lp)
 !
    CHARACTER (LEN= * ), INTENT(IN   ) :: string
@@ -183,6 +193,7 @@ p_errlist_appl      => discus_errlist_appl
 p_ersetz_para       => discus_ersetz_para
 p_upd_para          => discus_upd_para
 p_calc_intr_spec    => discus_calc_intr_spec
+p_calc_intr_log_spec=> discus_calc_intr_log_spec
 p_validate_var_spec => discus_validate_var_spec
 p_branch            => discus_branch
 p_loop_mpi          => dummy_loop_mpi

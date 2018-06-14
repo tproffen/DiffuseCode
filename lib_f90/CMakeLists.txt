@@ -12,7 +12,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
               do_string_alloc_mod.f90
               do_variable_mod.f90 do_wait_mod.f90
-              errlist.f90 ersetz_mod.f90 exit_mod.f90
+              errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
               length_string_mod.f90 lib_get_var_type.f90 lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 operating_mod.f90 reserved_mod.f90

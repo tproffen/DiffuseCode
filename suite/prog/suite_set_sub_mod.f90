@@ -75,6 +75,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE suite_calc_intr_log_spec(string, length)
+!
+   IMPLICIT NONE
+   CHARACTER(LEN=*) , INTENT(INOUT) :: string
+   INTEGER          , INTENT(INOUT) :: length
+!
+   END SUBROUTINE suite_calc_intr_log_spec
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE suite_validate_var_spec (string, lp)
 !
    CHARACTER (LEN= * ), INTENT(IN   ) :: string
@@ -97,6 +107,7 @@ p_errlist_appl      => suite_errlist_appl
 p_ersetz_para       => suite_ersetz_para
 p_upd_para          => suite_upd_para
 p_calc_intr_spec    => suite_calc_intr_spec
+p_calc_intr_log_spec=> suite_calc_intr_log_spec
 p_validate_var_spec => suite_validate_var_spec
 p_top               => suite_top
 p_get_var_type      => suite_get_var_type

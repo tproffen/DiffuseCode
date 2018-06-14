@@ -791,13 +791,13 @@ CALL no_error
       USE param_mod 
       IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN   ) :: string
+      CHARACTER (LEN=*), INTENT(INOUT) :: string
       CHARACTER (LEN=*), INTENT(INOUT) :: line 
       INTEGER,           INTENT(IN)    :: ikl
       INTEGER,           INTENT(IN)    :: iklz
-      INTEGER,           INTENT(IN)    :: laenge
+      REAL   ,           INTENT(INOUT) :: ww
+      INTEGER,           INTENT(INOUT) :: laenge
       INTEGER,           INTENT(INOUT) :: lp
-      REAL   ,           INTENT(OUT)   :: ww
        
 !                                                                       
       INTEGER, PARAMETER :: maxw = 9
@@ -1259,7 +1259,254 @@ CALL no_error
 !                                                                       
  9000 FORMAT    (a) 
       END SUBROUTINE discus_calc_intr_spec                 
+!
 !*****7**************************************************************** 
+!
+SUBROUTINE discus_calc_intr_log_spec(string, length)
+!
+! evaluate DISCUS specific logical functions
+!
+USE errlist_mod 
+USE ersetzl_mod
+USE variable_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*) , INTENT(INOUT) :: string
+INTEGER          , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER :: N_LF = 1
+!
+CHARACTER (LEN=6), DIMENSION(1:N_LF) :: f_names
+INTEGER          , DIMENSION(1:N_LF) :: l_names
+INTEGER :: j
+INTEGER :: ikl, iklz
+INTEGER :: ihyp, ihyp2
+INTEGER :: n_isexp
+LOGICAL :: lres
+!
+!     LOGICAL :: is_expression
+!
+DATA f_names /'isprop'/
+DATA l_names / 6      /
+INTERFACE
+  LOGICAL FUNCTION is_property(string)
+    CHARACTER(LEN=*), INTENT(IN) :: string
+  END FUNCTION is_property
+END INTERFACE
+!
+ier_num = 0
+ier_typ = ER_NONE
+!
+DO j=1,N_LF                              ! Loop over all defined functions
+   any_isexp: DO                         ! Search unitil no more found
+      n_isexp = INDEX(string,f_names(j))
+      IF(n_isexp > 0 ) THEN              ! We found a function
+         ikl  = n_isexp + INDEX(string(n_isexp+1:length),'(')
+         IF(ikl > n_isexp) THEN          ! We found an opening '('
+            ihyp = ikl + INDEX(string(ikl+1:length),'''')
+            IF(ihyp > ikl) THEN          ! We found an opening ''''
+               ihyp2 = ihyp + INDEX(string(ihyp+1:length),'''')
+               IF(ihyp2 > ihyp) THEN     ! We found an closing ''''
+                  iklz = ihyp2 + INDEX(string(ihyp2+1:length-1),')')
+                  IF(iklz > ihyp2) THEN  ! We found an closing ')'
+                  SELECT CASE (j)
+                  CASE (1)
+                     lres = is_property(string(ikl+1:iklz-1))
+                  END SELECT
+                  CALL ersetzl (string, ikl, iklz, lres, l_names(j), length)
+                  ELSE
+                     ier_num = -11
+                     ier_typ = ER_FORT
+                     RETURN
+                  ENDIF
+               ELSE
+                  ier_num = -38
+                  ier_typ = ER_FORT
+                  RETURN
+               ENDIF
+            ELSE
+               ier_num = -38
+               ier_typ = ER_FORT
+               RETURN
+            ENDIF
+         ELSE
+            ier_num = -11
+            ier_typ = ER_FORT
+            RETURN
+         ENDIF
+      ELSE
+         EXIT any_isexp
+      ENDIF
+   ENDDO any_isexp
+ENDDO
+!
+END SUBROUTINE discus_calc_intr_log_spec
+!
+!*****7**************************************************************** 
+LOGICAL FUNCTION is_property(string)
+!
+! Evaluate the "isprop" function
+!
+use crystal_mod
+USE prop_para_mod
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE take_param_mod
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: string
+!
+INTEGER, PARAMETER :: MAXW      = 3
+INTEGER, PARAMETER :: NOPTIONAL = 2
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW     ) :: cpara   !parameter strings returned
+INTEGER            , DIMENSION(MAXW     ) :: lpara   !Lenght para name
+REAL               , DIMENSION(MAXW     ) :: werte   !Lenght para name
+!
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+INTEGER :: ianz, iianz
+INTEGER :: i
+INTEGER :: iatom
+INTEGER :: length
+LOGICAL :: ltest
+!
+DATA oname  / 'and', 'or'/
+DATA loname /  3,    2   /
+!
+opara  =  (/ '      ', '      ' /)   ! Always provide fresh default values
+lopara =  (/  0,        0       /)
+owerte =  (/  0.0,      0.0     /)
+!
+length = LEN_TRIM(string)
+!
+CALL get_params (string, ianz, cpara, lpara, MAXW, length)
+IF(ier_num /= 0) RETURN
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, owerte)
+iianz = 1
+CALL ber_params(iianz, cpara, lpara, werte, maxw)
+IF(ier_num /=0) RETURN
+!
+iatom = NINT(werte(1))
+CALL del_params(iianz, ianz, cpara, lpara, MAXW)
+!
+IF(opara(2)/=' ') THEN     ! or is present
+   opara(2)  = opara(2)(2:lopara(2)-1)
+   lopara(2) = lopara(2) - 2
+   ianz = 2
+ELSE
+   ianz = 1
+ENDIF
+IF(opara(1)==' ') THEN     ! and is not explicitly given
+   opara(1)  = cpara(1)
+   lopara(1) = lpara(1)
+   IF(lopara(1)==0) lopara(1) = 3
+ELSE
+   IF(cpara(1)/=' ') THEN   ! 'and:' is given as well as default=> ERROR
+      ier_num = -151
+      ier_typ = ER_APPL
+      RETURN 
+   ENDIF
+ENDIF
+opara(1)  = opara(1)(2:lopara(1)-1)
+lopara(1) = lopara(1) - 2
+!do i=1,ianz
+!  write(*,'(a, i2,a)') ' FINAL ', i, opara(i)(1:lopara(i))
+!enddo
+!
+ltest       = .FALSE.
+is_property = .TRUE.
+!
+IF(    opara(1)=='normal'   ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_NORMAL,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='molecule' ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_MOLECULE,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='domain'   ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_DOMAIN,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='outside'  ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_OUTSIDE,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='external' ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='internal' ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_SURFACE_INT,1)==1
+   ltest = .TRUE.
+ELSEIF(opara(1)=='ligand'   ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_LIGAND,1)==1
+   ltest = .TRUE.
+ELSE
+!  Not a single word, test the letters
+!write(*,*) ' NOT A WORD ', is_property, MAXPROP
+   DO i=1, MAXPROP
+!write(*,*) ' LOOP ', i , is_property
+      IF(INDEX(opara(1)(1:lopara(1)), c_prop_letter(i:i))>0) THEN  ! Property letter found
+         is_property=is_property .AND. IBITS(cr_prop(iatom), i-1, 1)==1  ! Property present
+         ltest = .TRUE.
+!write(*,*) ' TESTED ',c_prop_letter(i:i), IBITS(cr_prop(iatom), i-1,1)==1, is_property
+      ELSEIF(INDEX(opara(1)(1:lopara(1)), c_prop_small (i:i))>0) THEN  ! small Property letter found
+         is_property=is_property .AND. IBITS(cr_prop(iatom), i-1, 1)==0  ! property absent
+         ltest = .TRUE.
+!write(*,*) ' TESTED ',c_prop_small (i:i), IBITS(cr_prop(iatom), i-1,1)==1, is_property
+      ENDIF
+   ENDDO
+ENDIF
+IF(ianz==2) THEN    ! 'or:' is specified
+!write(*,*) ' OR IS PRESNT '
+   IF(    opara(2)=='normal'   ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_NORMAL,1)==1
+      ltest = .TRUE.
+   ELSEIF(opara(2)=='molecule' ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_MOLECULE,1)==1
+      ltest = .TRUE.
+   ELSEIF(opara(2)=='domain'   ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_DOMAIN,1)==1
+      ltest = .TRUE.
+   ELSEIF(opara(2)=='outside'  ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_OUTSIDE,1)==1
+      ltest = .TRUE.
+!write(*,*) ' TESTED OUTSIDE  ', IBITS(cr_prop(iatom),PROP_OUTSIDE,1)==1
+   ELSEIF(opara(2)=='external' ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1)==1
+      ltest = .TRUE.
+!write(*,*) ' TESTED EXTERNAL ', IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1)==1
+   ELSEIF(opara(2)=='internal' ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_SURFACE_INT,1)==1
+      ltest = .TRUE.
+   ELSEIF(opara(2)=='ligand'   ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_LIGAND,1)==1
+      ltest = .TRUE.
+   ELSE
+!  Not a single word, test the letters
+      DO i=1, MAXPROP
+         IF(INDEX(opara(1)(1:lopara(1)), c_prop_letter(i:i))>0) THEN  ! Property letter found
+            is_property=is_property .OR. IBITS(cr_prop(iatom), i-1, 1)==1
+            ltest = .TRUE.
+         ELSEIF(INDEX(opara(1)(1:lopara(1)), c_prop_small (i:i))>0) THEN  ! Property letter found
+            is_property=is_property .OR. IBITS(cr_prop(iatom), i-1, 1)==0
+            ltest = .TRUE.
+         ENDIF
+      ENDDO
+   ENDIF
+ENDIF
+IF(.NOT.ltest) is_property = .FALSE.
+!
+END FUNCTION is_property
+!
+!*****7**************************************************************** 
+!
 SUBROUTINE discus_validate_var_spec (zeile, lp) 
 !-                                                                      
 !       checks whether the variable name is legal, DISCUS specific part 

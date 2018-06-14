@@ -786,6 +786,16 @@ CALL no_error
       ier_msg (1) = 'Function : '//string (1:30) 
 !                                                                       
       END SUBROUTINE kuplot_calc_intr_spec                 
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE kuplot_calc_intr_log_spec(string, length)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*) , INTENT(INOUT) :: string
+INTEGER          , INTENT(INOUT) :: length
+!
+END SUBROUTINE kuplot_calc_intr_log_spec
 !*****7**************************************************************** 
 SUBROUTINE kuplot_validate_var_spec (zeile, lp) 
 !-                                                                      

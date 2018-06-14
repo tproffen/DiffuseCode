@@ -173,9 +173,11 @@ LOGICAL FUNCTION if_test (string, laenge)
       USE berechne_mod
       USE build_name_mod
       USE calc_expr_mod
+      USE do_variable_mod
       USE errlist_mod 
       USE get_params_mod
       USE search_string_mod
+      USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -212,6 +214,7 @@ LOGICAL FUNCTION if_test (string, laenge)
       w2 = 0
       lstring1 = .FALSE.
       lstring2 = .FALSE.
+      CALL ersetz_variable(string, laenge)
 !     CALL rem_bl (string, laenge) 
       if_test = .false. 
 !     IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
@@ -419,6 +422,7 @@ LOGICAL FUNCTION if_test (string, laenge)
          ENDDO 
          IF(laenge>3) THEN    ! String is long enough for a logical function
             CALL calc_intr_log(string,laenge)
+            CALL p_calc_intr_log_spec(string,laenge)
 !           ikla = 1 + INDEX (string(2:laenge), '(') 
 !           iklz = ikla + INDEX(string(ikla+1:laenge), ')')
 !           line = string(1:laenge-1)
@@ -831,6 +835,7 @@ SUBROUTINE calc_intr_log (string, length)
 !     Evaluate all intrinsic logical functions within string
 !                                                                       
       USE errlist_mod 
+      USE ersetzl_mod
       USE variable_mod
 !
       CHARACTER (LEN=* ), INTENT(INout) :: string
@@ -938,42 +943,6 @@ LOGICAL FUNCTION is_expression(string)
       ENDIF
 !
 END FUNCTION is_expression
-!
-!*****7**************************************************************** 
-!
-SUBROUTINE ersetzl (string, ikl, iklz, ww, lfunk, lll) 
-!
-!     Replaces the intrinsic logical function and its argument by the           
-!     corresponding value ww
-!
-      USE blanks_mod
-      IMPLICIT none 
-!
-      CHARACTER (LEN= * ) , INTENT(INOUT) ::string 
-      INTEGER             , INTENT(IN)    :: ikl
-      INTEGER             , INTENT(IN)    :: iklz
-      LOGICAL             , INTENT(IN)    :: ww 
-      INTEGER             , INTENT(IN)    :: lfunk
-      INTEGER             , INTENT(INOUT) :: lll 
-!
-      CHARACTER(1024) zeile 
-      INTEGER ltot , laenge
-!
-      laenge = lll 
-      zeile = ' ' 
-      IF (ikl.gt.1) zeile (1:ikl - 1 - lfunk) = string (1:ikl - 1 - lfunk)
-      WRITE (zeile (ikl - lfunk:ikl - lfunk     ) , '(L1     )') ww 
-      lll = ikl - lfunk
-      IF (iklz + 1.le.laenge) then 
-         ltot = (ikl - lfunk + 1 ) + (laenge-iklz - 1 + 1) - 1 
-         IF (ltot.le.len (zeile) ) then 
-            zeile (ikl - lfunk + 1 :ltot) = string (iklz + 1:laenge) 
-            lll = lll + laenge- (iklz + 1) + 1 
-         ENDIF 
-      ENDIF 
-      string = zeile 
-      CALL rem_bl (string, lll) 
-END SUBROUTINE ersetzl                        
 !
 !*****7**************************************************************** 
 !

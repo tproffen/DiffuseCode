@@ -97,6 +97,16 @@ IF (ier_num.ne.0) then
 ENDIF 
 !                                                                       
 END SUBROUTINE suite_calc_intr_spec                 
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE suite_calc_intr_log_spec(string, length)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*) , INTENT(INOUT) :: string
+INTEGER          , INTENT(INOUT) :: length
+!
+END SUBROUTINE suite_calc_intr_log_spec
 !*****7**************************************************************** 
 SUBROUTINE suite_validate_var_spec (zeile, lp) 
 !-                                                                      

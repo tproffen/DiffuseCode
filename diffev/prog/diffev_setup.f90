@@ -170,6 +170,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE diffev_calc_intr_log_spec(string, length)
+!
+   IMPLICIT NONE
+   CHARACTER(LEN=*) , INTENT(INOUT) :: string
+   INTEGER          , INTENT(INOUT) :: length
+!
+   END SUBROUTINE diffev_calc_intr_log_spec
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE diffev_validate_var_spec (string, lp)
 !
    CHARACTER (LEN= * ), INTENT(IN   ) :: string
@@ -207,6 +217,7 @@ p_errlist_appl      => diffev_errlist_appl
 p_ersetz_para       => diffev_ersetz_para
 p_upd_para          => diffev_upd_para
 p_calc_intr_spec    => diffev_calc_intr_spec
+p_calc_intr_log_spec=> diffev_calc_intr_log_spec
 p_validate_var_spec => diffev_validate_var_spec
 p_branch            => diffev_branch
 p_loop_mpi          => diffev_loop_mpi

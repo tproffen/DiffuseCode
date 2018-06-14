@@ -21,5 +21,6 @@ INTEGER, PARAMETER ::  PROP_DECO_ANCHOR  =  8
 INTEGER, PARAMETER ::  PROP_IGNORE       =  MAXPROP+1
 !
 CHARACTER(LEN=8)   ::  c_prop_letter     = 'NMDOEIL '
+CHARACTER(LEN=8)   ::  c_prop_small      = 'nmdoeil '
 !
 END MODULE prop_para_mod

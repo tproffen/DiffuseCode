@@ -69,6 +69,16 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
+   SUBROUTINE calc_intr_log_spec(string, length)
+!
+   IMPLICIT NONE
+   CHARACTER(LEN=*) , INTENT(INOUT) :: string
+   INTEGER          , INTENT(INOUT) :: length
+!
+   END SUBROUTINE calc_intr_log_spec
+END INTERFACE
+!
+INTERFACE
    SUBROUTINE validate_var_spec (string, lp)
 !
    CHARACTER (LEN= * ), INTENT(IN   ) :: string
@@ -201,6 +211,7 @@ PROCEDURE(errlist_appl  )   , POINTER :: p_errlist_appl   => NULL()
 PROCEDURE(ersetz_para   )   , POINTER :: p_ersetz_para    => NULL()
 PROCEDURE(upd_para      )   , POINTER :: p_upd_para       => NULL()
 PROCEDURE(calc_intr_spec)   , POINTER :: p_calc_intr_spec => NULL()
+PROCEDURE(calc_intr_log_spec),POINTER :: p_calc_intr_log_spec => NULL()
 PROCEDURE(validate_var_spec), POINTER :: p_validate_var_spec => NULL()
 PROCEDURE(execute_cost  )   , POINTER :: p_execute_cost   => NULL()
 PROCEDURE(branch        )   , POINTER :: p_branch         => NULL()

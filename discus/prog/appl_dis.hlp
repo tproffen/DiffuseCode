@@ -74,6 +74,10 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2018_June
 
+   functions
+
+   Added a new logical function that querries the properties of an atom.
+
    decoration
    Added a "chelate" bonding scheme and corrected the descriptions 
    for the "bridge" scheme.
@@ -2687,6 +2691,42 @@
 !p                                   right, respectively.
 
    The arguments to any of these functions are any arithmetic expression.
+
+!p isprop(i1, propstring)
+!p isprop(i1, and:propstring [,or:propstring])
+!p                                 ! Returns a logical true if the properties
+!p                                   encoded in <propstring> are true for 
+!p                                   atom number <i1>.
+!p                                   Valid forms for the property string are
+!p                                   individual names of the properties as:
+!p                                   'normal', 'molecule', 'domain',  
+!p                                   'outside', 'external', 'inside', 
+!p                                   'ligand'.
+!p                                   The function will thus be used to querry
+!p                                   exactly one property. 
+!p                                   Alternatively the propstring can take 
+!p                                   the form 'NMDOEIL' or 'nmdoeil'
+!p                                   The number of letters and their sequence
+!p                                   is up to the user.
+!p                                   With a property string in capital 
+!p                                   letters as "and:'NMDOEIL'" the function 
+!p                                   is true if all properties that are 
+!p                                   listed are true for atom <i1>. 
+!p                                   With a property string in small 
+!p                                   letters as "and:'nmdoeil'" the function 
+!p                                   is true if all properties that are 
+!p                                   listed are false for atom <i1>. 
+!p                                   Capital and small letters can be 
+!p                                   mixed at will. 
+!p                                   With a leading "or:" the function is 
+!p                                   true if any of the properties in
+!p                                   capital letters is present and any
+!p                                   of the properties in small letters is
+!p                                   absent. 
+!p                                   Both, the "and:" and "or:" arguments
+!p                                   may be used simulteneously to form
+!p                                   complex querries. 
+!p                                   
 2  import
 !b import "cif",<file{".cif"]>
 !b import "cmaker",<file{".xyz"]>
