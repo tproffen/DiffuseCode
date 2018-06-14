@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-150,IO=6)
+      PARAMETER    (IU=-151,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'AND and DEFAULT simultaneously in isprop',      & !-151 ! discus
      &  'Occupancy outside [0:1]',                       & !-150 ! discus
      &  'Error reading SCAT instruction',                & !-149 ! discus
      &  '1bar not at origin',                            & !-148 ! discus
