@@ -6,6 +6,7 @@ CONTAINS
 !
 SUBROUTINE suite_do_parallel ( zeile, length)
 !
+USE appl_env_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
@@ -88,6 +89,7 @@ IF(ier_num == 0) THEN
                line = line(1:LEN_TRIM(line))//' '//cpara(i)(1:lpara(i))
             ENDDO
             CALL do_operating_comm(line)
+            CALL color_set_scheme(.TRUE., 0)
          ELSE
             ier_num = -12
             ier_typ = ER_MAC
