@@ -194,7 +194,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'
    WRITE(IWR,'(a)') '#'
-   WRITE(IWR,'(a)') 'exit'
+!  WRITE(IWR,'(a)') 'exit'
 !
    CLOSE(IWR)
 !
