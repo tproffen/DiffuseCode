@@ -4577,7 +4577,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          zeile = ' ' 
          l = lpara (j) 
          zeile (1:1) = '(' 
-         zeile (2:l + 1) = cpara (j) 
+         zeile (2:l + 1) = cpara (j) (1:lpara(j))
          zeile (l + 2:l + 2) = ')' 
          l = l + 2 
          werte (jj) = berechne (zeile, l) 
