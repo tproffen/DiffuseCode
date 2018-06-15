@@ -1,5 +1,6 @@
 MODULE do_wait_mod
 !
+LOGICAL :: wait_active = .TRUE.
 CONTAINS
 !                                                                       
 ! Process the 'wait' command
@@ -29,6 +30,7 @@ INTEGER            , INTENT(INOUT)   ::  lp
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
+IF(wait_active) THEN
       lp = - lp 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -77,6 +79,7 @@ INTEGER            , INTENT(INOUT)   ::  lp
    50 CONTINUE 
       ier_num = - 9 
       ier_typ = ER_IO 
+ENDIF
 !                                                                       
  1000 FORMAT     (' ------ > Waiting for <RETURN> : ') 
  1500 FORMAT     (' ------ > Waiting for input : ') 

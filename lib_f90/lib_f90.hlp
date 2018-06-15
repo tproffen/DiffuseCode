@@ -24,6 +24,9 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2018_June
+
+   Added a ==> 'set wait {"on"|"off"} option
 4  2018_May
 
    The variables ==> 'variable' were augmented by 1-D and 2-D arrays.
@@ -938,6 +941,15 @@
 !b set debug, {"on" | "off"}
 
    This command allows the user to enable various DEBUG outputs ...
+4  wait
+!b set wait, {"on" | "off"}
+
+   This command allows the user to tailor the 'wait' comand.
+   The default is 'set wait, on'.
+   With 'set wait, on' the 'wait' command in a macro is active.
+   With 'set wait, off' the 'wait' command in a macro will be 
+   ignored and the programm continues execution as if the 
+   'wait' command were absent.
 3  show
 !b show {"res" | "variables"}
 
@@ -1073,6 +1085,16 @@
 
    This command allows to write interactive macros, demo macros
    and tutorials.
+
+   With the command 
+!b set wait, {"on" | "off"}
+   you can toggle the active state of the wait command on off.
+
+   The default is 'set wait, on'.
+   With 'set wait, on' the 'wait' command in a macro is active.
+   With 'set wait, off' the 'wait' command in a macro will be 
+   ignored and the programm continues execution as if the 
+   'wait' command were absent.
 3  variable
 !p variable {"integer"|"real"},<name> [,<initial_value>] [,dim:[d1,d2]]
 !p variable {"character"},<name>

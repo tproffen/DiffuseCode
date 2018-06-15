@@ -9,6 +9,7 @@ SUBROUTINE do_set (zeile, lp)
 USE debug_mod 
 USE envir_mod 
 USE errlist_mod 
+USE do_wait_mod
 USE get_params_mod
 USE prompt_mod 
 !                                                                       
@@ -197,6 +198,16 @@ IF (zeile.ne.' ') THEN
       ELSEIF (str_comp (cpara (1) , 'debug', 2, lpara (1) , 5) ) THEN
          IF (ianz.eq.2) THEN 
             dbg = (cpara (2) (1:2) .eq.'on') 
+         ELSE 
+            ier_num = - 6 
+            ier_typ = ER_COMM 
+         ENDIF 
+!                                                                       
+!----- ---- set wait                                                   
+!                                                                       
+      ELSEIF (str_comp (cpara (1) , 'wait', 2, lpara (1) , 4) ) THEN
+         IF (ianz.eq.2) THEN 
+            wait_active = (cpara (2) (1:2) .eq.'on') 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
