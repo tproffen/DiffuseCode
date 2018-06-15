@@ -5,6 +5,8 @@
 !+                                                                      
       USE errlist_mod 
 !                                                                       
+      USE ber_params_mod
+      USE get_params_mod
       USE config_mod 
       USE mixscat_mod 
 !
@@ -25,7 +27,8 @@
       LOGICAL str_comp 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      CALL ber_params (1, cpara (1), lpara (1), ris, 1) 
+      CALL ber_params (1, cpara (1), lpara (1), werte, 1) 
+      ris = werte(1)
       IF (ier_num.ne.0) return 
 !                                                                       
       is = nint (ris) 
@@ -90,6 +93,8 @@
 !-                                                                      
 !       Set scale factor                                                
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       USE errlist_mod 
       USE config_mod 
       USE mixscat_mod 
@@ -132,6 +137,8 @@
 !-                                                                      
 !       Get scales from fitting rho0 slopes                             
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
@@ -236,7 +243,10 @@
 !-                                                                      
 !       Sets pair to be removed                                         
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       USE errlist_mod 
+      USE string_convert_mod
       USE config_mod 
       USE mixscat_mod 
 !                                                                       
@@ -277,7 +287,10 @@
 !-                                                                      
 !       Sets sample composition                                         
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       USE errlist_mod 
+      USE string_convert_mod
       USE config_mod 
       USE mixscat_mod 
 !                                                                       
@@ -331,6 +344,9 @@
 !-                                                                      
 !       Calculates the differential PDF                                 
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
+      USE do_show_mod
       USE errlist_mod 
       USE prompt_mod 
       USE config_mod 
@@ -444,8 +460,11 @@
 !-                                                                      
 !     Determines the scattering type of the parameter                   
 !+                                                                      
+      USE berechne_mod
+      USE ber_params_mod
       USE charact_mod
       USE errlist_mod 
+      USE string_convert_mod
       USE config_mod 
       USE mixscat_mod 
 !                                                                       
@@ -459,7 +478,7 @@
       INTEGER i, j, l, ianz, jj, jp 
       REAL werte (maxw) 
 !                                                                       
-      REAL berechne 
+!     REAL berechne 
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 

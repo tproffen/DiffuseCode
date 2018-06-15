@@ -4,7 +4,9 @@ PROGRAM mixsca
       USE errlist_mod 
       USE learn_mod 
       USE class_macro_internal 
+      USE do_if_mod
       USE prompt_mod 
+      USE sup_mod
       USE lib_f90_default_mod
       IMPLICIT none 
 !*****7*****************************************************************
@@ -79,16 +81,18 @@ PROGRAM mixsca
 !                                                                       
 !     This routine makes inital setup                                   
 !                                                                       
+      USE cmdline_args_mod
       USE appl_env_mod
       USE prompt_mod 
+      USE random_state_mod
       IMPLICIT none 
 !
-      INTEGER, PARAMETER  :: np = 1
-      REAL, DIMENSION(np) :: werte = 0.0
+      INTEGER, PARAMETER     :: np = 1
+      INTEGER, DIMENSION(np) :: iwerte = 0
 !                                                                       
       include'date.inc' 
 !                                                                       
-      CALL ini_ran (np, werte) 
+      CALL ini_ran_ix (np, iwerte) 
 !                                                                       
 !     Call initialization routine                                       
 !                                                                       

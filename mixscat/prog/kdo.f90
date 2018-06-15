@@ -4,8 +4,11 @@
 !     This routine interprets the commands and executes the             
 !     corresponding function.                                           
 !-                                                                      
+      USE blanks_mod
+      USE calc_expr_mod
       USE charact_mod
       USE errlist_mod 
+      USE kdo_all_mod 
       USE learn_mod 
 !                                                                       
       USE config_mod 

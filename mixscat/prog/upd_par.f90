@@ -3,6 +3,7 @@
 !       Replaces a substring in an expression by the value of the       
 !       appropriate parameter.                                          
 !+                                                                      
+      USE blanks_mod
       USE errlist_mod 
       USE param_mod 
       USE config_mod 

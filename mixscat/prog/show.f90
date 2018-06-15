@@ -5,7 +5,9 @@
 !-                                                                      
 !     Main menu for show command.                                       
 !+                                                                      
+      USE get_params_mod
       USE errlist_mod 
+      USE do_show_mod
       USE config_mod 
 !                                                                       
       IMPLICIT none 
@@ -298,6 +300,8 @@
 !-                                                                      
 !     Shows the scattering curve of an atom type.                       
 !+                                                                      
+      USE ber_params_mod
+      USE get_params_mod
       USE errlist_mod 
       USE prompt_mod 
       USE config_mod 
@@ -326,7 +330,8 @@
       ENDIF 
 !                                                                       
       CALL del_params (1, ianz, cpara, lpara, maxw) 
-      CALL ber_params (1, cpara (1), lpara (1), ris, 1) 
+      CALL ber_params (1, cpara (1), lpara (1), werte, 1) 
+      ris = werte(1)
       IF (ier_num.ne.0) return 
 !                                                                       
       is = nint (ris) 

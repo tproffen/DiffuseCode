@@ -3,6 +3,8 @@
 !-                                                                      
 !       Main menu for read command.                                     
 !+                                                                      
+      USE get_params_mod
+      USE ber_params_mod
       USE errlist_mod 
 !                                                                       
       USE config_mod 
@@ -49,10 +51,14 @@
 !+                                                                      
 !     Reads observed PDF as xy ASCII file.                              
 !-                                                                      
+      USE build_name_mod
+      USE count_col_mod
       USE debug_mod
       USE errlist_mod 
+      USE get_params_mod
       USE param_mod 
       USE prompt_mod 
+      USE string_convert_mod
 !                                                                       
       USE config_mod 
       USE mixscat_mod 
@@ -252,6 +258,8 @@
 !-                                                                      
 !     Setting Q to calculate f(xray) ..                                 
 !+                                                                      
+      USE get_params_mod
+      USE ber_params_mod
       USE errlist_mod 
       USE prompt_mod 
       USE config_mod 
