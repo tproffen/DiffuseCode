@@ -75,7 +75,13 @@ IF(ier_num == 0) THEN
          mfile = cpara(1)
          INQUIRE(FILE=mfile, EXIST=lexist)
          IF(lexist) THEN
-            WRITE(line, '(3a,i6,4a)')  'mpiexec --prefix ',mpi_path(1:LEN_TRIM(mpi_path)), &
+! probably ALL OMPI_ environment variable should be set blank before we 
+! start the mpiexec process. These two seem to be essential, 
+! Although openmpi sets these to some value, initially the seem to have 
+! to be blank. OMPI_MCA_ess=pmi give an error.
+            WRITE(line, '(4a,i6,4a)') &
+            'export OMPI_APP_CTX_NUM_PROCS= ; export OMPI_MCA_ess= ;',&
+            'mpiexec --oversubscribe --prefix ',mpi_path(1:LEN_TRIM(mpi_path)), &
             ' -n ',numproc, ' ',discus_path(1:LEN_TRIM(discus_path)), &
             discus_name(1:LEN_TRIM(discus_name)),' -macro'
             DO I=1, ianz
