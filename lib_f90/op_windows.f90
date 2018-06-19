@@ -32,7 +32,7 @@ CHARACTER(LEN=*), INTENT(OUT) :: discus_path
 CHARACTER(LEN=*), INTENT(OUT) :: discus_name
 !
 discus_path = '/bin/'
-discus_name = 'discus_suite.exe'
+discus_name = 'discus_suite_parallel.exe'
 !
 END SUBROUTINE get_discus_path
 !
