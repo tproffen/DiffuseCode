@@ -96,9 +96,11 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
       IF (iend.lt.laenge) zeile (ianf + linsert:ll) = substring (iend+1:   &
       laenge)                                                           
       substring = zeile 
+      istart = ianf+linsert                  ! Start further search after insert
       laenge = ll 
       success = .TRUE.
-      ianf = INDEX (substring, var_name (i) (1:var_l (i) ) ) 
+      ianf = INDEX (substring(istart:len_trim(substring)), var_name (i) (1:var_l (i) ) ) 
+      IF(ianf>0) ianf = ianf + istart - 1    ! if found, correct the offset
    ENDDO 
    ENDDO names
 !
