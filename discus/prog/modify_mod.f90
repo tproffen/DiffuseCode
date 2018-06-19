@@ -2218,6 +2218,9 @@ ENDIF
          lentry1)                                                       
          sel_field (1) = bit_set (sel_field, 1, PROP_SURFACE_INT,       &
          lentry2)                                                       
+      ELSEIF (str_comp (cpara (i) , 'ligand', 2, lpara(i) , 6) ) THEN
+         sel_field (0) = bit_set (sel_field, 0, PROP_LIGAND, lentry1)
+         sel_field (1) = bit_set (sel_field, 1, PROP_LIGAND, lentry2)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 

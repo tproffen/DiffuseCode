@@ -5603,6 +5603,7 @@
    O = outside,  the atom is outside of the crystal
    E = external, the atom is close to an external surface
    I = internal, the atom is close to an internal surface
+   L = ligand,   the atom is in a ligand molecule place by deco
 
    The atom properties are set at:
    reading a unit cell or structure file
@@ -5665,6 +5666,9 @@
             through the ==> 'domain' menu. Individual distances to the
             boundary can be set within the ==> 'domain' menu through
             the ==> 'domain/fuzzy' command.
+   "ligand"
+            The rules apply if an atom is inside a ligand molecule that was 
+            placed onto the surface within the ==> 'deco' menu. 
 3  set/clear
 !b set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
 !b set   <flag>, "atoms"}, {"all" | <start>,<end>}
