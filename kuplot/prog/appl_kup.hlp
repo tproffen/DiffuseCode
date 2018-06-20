@@ -97,6 +97,11 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2018_June
+
+   Revised the reaction to a CTRL-C
+
+   Added a ==> 'set error, ... , "save" option
 3  2018_May
 
    Added the possibility to use a macro as fit 'function'

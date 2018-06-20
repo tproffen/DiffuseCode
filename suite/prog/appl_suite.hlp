@@ -20,6 +20,11 @@
    data are written directly into the next available KUPLOT 
    data set. This is available for Fourier output, powder, pdf.
 2  News
+3  2018_June
+
+   Revised the reaction to a CTRL-C
+
+   Added a ==> 'set error, ... , "save" option
 3  2018_Jan
 
    The logical comparisons may now take the operators:

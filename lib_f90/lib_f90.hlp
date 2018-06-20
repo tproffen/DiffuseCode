@@ -26,7 +26,11 @@
    Here you find a list of recent changes, additions, bug corrections
 4  2018_June
 
+   Revised the reaction to a CTRL-C
+
    Added a ==> 'set wait {"on"|"off"} option
+
+   Added a ==> 'set error, ... , "save" option
 4  2018_May
 
    The variables ==> 'variable' were augmented by 1-D and 2-D arrays.
@@ -912,11 +916,13 @@
    'echo' and 'eval' will always appear on the screen. The last parameter
    allows on to save the current prompt and output settings.
 
-   The parameter "old" allow the user to and restore the setting of the 
+   The parameter "old" allows the user to restore the setting of the 
    prompt and output. This can e.g. be used to turn the prompt off in a 
    macro and then restore the original setting after the macro is executed.
+   Make sure that you saveed the desired prompt by setting the last
+   parameter to "save".
 4  error
-!b set error , {"cont" | "exit" | "live" }
+!b set error , {"cont" | "exit" | "live" | "old"} [ , "save"]
 
    Sets the error status.
 
@@ -937,6 +943,8 @@
 !p         The program also continue to execute a macro! 
 !p         It is most helpful to catch errors from the 'system' command
 !p         and to allow a flexible response. 
+!p "old"   Restore the last error status that was set and saved in a 
+!p         previous 'set error, <value>, save ' command. 
 4  debug
 !b set debug, {"on" | "off"}
 

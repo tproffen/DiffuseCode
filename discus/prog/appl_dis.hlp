@@ -74,6 +74,10 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2018_June
 
+   Revised the reaction to a CTRL-C
+
+   Added a ==> 'set error, ... , "save" option
+
    functions
 
    Added a new logical function that querries the properties of an atom.
