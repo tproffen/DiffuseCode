@@ -23,8 +23,8 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
-set (DIFFUSE_VERSION_MINOR 20)
-set (DIFFUSE_VERSION_PATCH 1)
+set (DIFFUSE_VERSION_MINOR 21)
+set (DIFFUSE_VERSION_PATCH 0)
 
 # Readline required for all programs
 
@@ -68,7 +68,7 @@ endif (DEBUG)
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-#add_subdirectory(mixscat/prog)
+add_subdirectory(mixscat/prog)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
