@@ -1810,6 +1810,7 @@ main:    DO
       sig2 = rmc_sigma**2 / 2.0 
 !                                                                       
 main: DO while (loop) 
+         IF(ier_num/=0.OR.ier_ctrlc) RETURN      ! An error occured or CTRL-C
          laccept = .true. 
          igen = igen + 1 
 IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
@@ -2454,21 +2455,23 @@ laccept = .false.
          ENDIF 
       ELSE                     ! Use unit cell indexing for large periodic objects 
          IF(all_atoms) THEN    ! All atom types are selected
-            DO ia = 1, cr_natoms 
+            loop1: DO ia = 1, cr_natoms 
                CALL pdf_addcorr_n_fast (ia) 
+               IF(ier_num/=0.OR.ier_ctrlc) EXIT loop1
                IF (lout.and. (mod (ia, id) .eq.0) ) then 
                   done = 100.0 * float (ia) / float (cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 
-            ENDDO 
+            ENDDO loop1
         ELSE
-            DO ia = 1, cr_natoms 
+            loop2: DO ia = 1, cr_natoms 
                CALL pdf_addcorr_n (ia) 
+               IF(ier_num/=0.OR.ier_ctrlc) EXIT loop2
                IF (lout.and. (mod (ia, id) .eq.0) ) then 
                   done = 100.0 * float (ia) / float (cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 
-            ENDDO 
+            ENDDO loop2
          ENDIF 
       ENDIF 
 !do is=1,cr_nscat
@@ -2484,11 +2487,17 @@ laccept = .false.
 !enddo
 !close(88)
 !
-      IF (pdf_lexact .AND. .NOT.chem_period(1)) then 
+      IF (pdf_lexact .AND. .NOT.chem_period(1) .AND.(ier_num==0 .AND. .NOT.ier_ctrlc)) then 
 !
 !------ Convert back to crystal metric
 !
          CALL powder_trans_atoms_fromcart
+      ELSEIF (pdf_lexact .AND. .NOT.chem_period(1) .AND.(ier_num/=0 .OR. ier_ctrlc)) then 
+!
+!------ Convert back to crystal metric
+!
+         CALL powder_trans_atoms_fromcart
+         RETURN     !ERRR, skip convtherm and convert
       ENDIF
 !                                                                       
       CALL pdf_convtherm (1.0, sum) 

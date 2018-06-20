@@ -44,8 +44,10 @@ MODULE errlist_mod
 !
    CHARACTER(LEN= 80), DIMENSION(3) :: ier_msg
    CHARACTER(LEN= 80) :: ier_out
-   INTEGER            :: ier_num
-   INTEGER            :: ier_typ
-   INTEGER            :: ier_sta
+   INTEGER            :: ier_num   = 0
+   INTEGER            :: ier_typ   = ER_NONE
+   INTEGER            :: ier_sta   = ER_S_CONT
+   INTEGER            :: ier_sav   = ER_S_CONT
+   LOGICAL            :: ier_ctrlc = .FALSE.
 !
 END MODULE errlist_mod

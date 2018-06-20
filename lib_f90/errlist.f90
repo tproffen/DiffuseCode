@@ -69,6 +69,8 @@ SUBROUTINE errlist
        ier_msg(2) = ' '
        ier_msg(3) = ' '
 !
+       ier_ctrlc = .FALSE.
+!
        END
 !*****7****************************************************************
        SUBROUTINE disp_error (typ,error,iu,io)
@@ -165,7 +167,7 @@ SUBROUTINE errlist
      &  'Too many parameters',                      & !-17  ! command
      &  ' ',                                        & !-16  ! command
      &  ' ',                                        & !-15  ! command
-     &  ' ',                                        & !-14  ! command
+     &  'Program was interrupted by CTRL-C ',       & !-14  ! command
      &  'Optional parameter value not recognized',  & !-13  ! command
      &  'Optional parameter name not recognized',   & !-12  ! command
      &  'Error in subroutine',                      & !-11  ! command

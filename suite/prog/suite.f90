@@ -38,7 +38,9 @@ lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
 CALL setup_suite     ! Define initial parameter, array values
 CALL suite_set_sub   ! Point to specific subroutines
-CALL SIGNAL(2, suite_sigint)
+CALL set_signal
+!CALL SIGNAL(2, -1)
+!CALL SIGNAL(2, suite_sigint)
 !
 IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
@@ -90,30 +92,97 @@ ENDIF
 CALL run_mpi_finalize
 !                                                                       
 END PROGRAM discus_suite
-SUBROUTINE suite_sigint
+!
+!*******************************************************************************
+!
+RECURSIVE SUBROUTINE suite_sigint
 !
 USE discus_exit_mod
 USE diffev_do_exit_mod
+USE diffev_mpi_mod
+USE run_mpi_mod
+!
+USE appl_env_mod
+USE class_macro_internal
+USE doact_mod
+USE errlist_mod
 USE exit_mod
+USE sup_mod
+USE terminal_mod
 !
 IMPLICIT NONE
-CHARACTER(LEN=1) :: dummy
+CHARACTER(LEN=8)  :: dummy
+INTEGER           :: lbef
 !
-WRITE(*,*) 
-WRITE(*,*) ' CTRL-C was called, program will be terminated'
-!
-CALL discus_emergency_save
-!
-CALL diffev_emergency_save
-CALL diffev_emergency_mpi
+LOGICAL, EXTERNAL :: str_comp
 !
 CALL exit_all
+CALL set_signal
+CALL color_set_scheme(.TRUE., 0)
 !
 WRITE(*,*) 
-WRITE(*,*) ' DISCUS SUITE closed by User Request CTRL-C '
-WRITE(*,*) ' For final close down hit ENTER key'
+WRITE(*,'(a,a,a,a)') TRIM(color_err),' DISCUS SUITE closed by User Request CTRL-C ',TRIM(color_fg),CHAR(7)
+WRITE(*,'(a,a,a,a)') TRIM(color_err),' Type the desired keyword and hit the ENTER key',TRIM(color_fg),CHAR(7)
+WRITE(*,*) ' '
+WRITE(*,*) '          : Empty ENTER is the same as continue.'
+WRITE(*,*) ' continue : Continue at the interactive prompt.'
+WRITE(*,*) '          : If you are inside a lengthy calculation like '
+WRITE(*,*) '          : domain, fourier, mmc, pdf, powder, rmc, ...,'
+WRITE(*,*) '          : it may take a while before the prompt shows up.'
+WRITE(*,*) '          : No calculation, structure, current folder etc. is reliable! '
+WRITE(*,*) ' save     : Save the current structure to EMERGENCY.STRU and continue. '
+WRITE(*,*) ' resume   : Pick up at the interrupt, pretend there was no CTRL-C '
+WRITE(*,*) '          : and let the calculation continue.'
+WRITE(*,*) '          : There is no warranty that the calculation will be correct!'
+WRITE(*,*) ' exit     : Stop the discus_suite'
+dummy = ' '
+CALL do_prompt('ctrl-c')
 READ(*,'(a)') dummy
+lbef = LEN_TRIM(dummy)
+IF(dummy==' ') THEN
+   ier_num = -14
+   ier_typ = ER_COMM
+   ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
+   RETURN
+ELSEIF(str_comp (dummy, 'continue', 3, lbef, 8)) THEN
+   ier_num = -14
+   ier_typ = ER_COMM
+   ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
+   RETURN
+ELSEIF(str_comp (dummy, 'save', 3, lbef, 4)) THEN
+   CALL discus_emergency_save
+   CALL diffev_emergency_save
+!
+   ier_num = -14
+   ier_typ = ER_COMM
+   ier_ctrlc = .TRUE.   ! Flag to interrupt lengthy calculations
+   RETURN
+ELSEIF(str_comp (dummy, 'resume', 3, lbef, 6)) THEN
+   ier_num = 0
+   ier_typ = ER_NONE
+   ier_msg(:) = ' '
+   RETURN
+ELSEIF(str_comp (dummy, 'exit', 3, lbef, 4)) THEN
+   CALL diffev_emergency_mpi
+   STOP
+ELSE
+   CALL diffev_emergency_mpi
+   STOP
+ENDIF
 !
 STOP
 !
 END SUBROUTINE suite_sigint
+!
+!*******************************************************************************
+!
+SUBROUTINE set_signal
+!
+EXTERNAL :: suite_sigint
+!
+!CALL SIGNAL(2,  0)
+!CALL SIGNAL(2,  1)
+CALL SIGNAL(2, suite_sigint)
+!
+END SUBROUTINE set_signal
+

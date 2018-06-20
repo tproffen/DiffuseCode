@@ -29,6 +29,12 @@ USE ber_params_mod
       INTEGER ikl, ithen 
       LOGICAL lreg 
       REAL werte (maxw) 
+!
+      IF(ier_ctrlc) THEN
+         ier_num = -14
+         ier_typ = ER_COMM
+      ENDIF
+      IF(ier_num/=0) RETURN
 !                                                                       
 !     LOGICAL if_test 
 !                                                                       

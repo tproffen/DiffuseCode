@@ -1633,6 +1633,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                CALL st_fourier(rept_f2aver)
                rept_f2aver = .false.   ! No further calculations needed
             ENDIF 
+            IF(ier_num/=0 .OR. ier_ctrlc) RETURN
             DO i = 1, inc (1) 
             hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
             ll = hkl (3) 
@@ -1732,6 +1733,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL st_fourier(rept_f2aver)
                   rept_f2aver = .false.   ! no further calculations needed
                ENDIF 
+               IF(ier_num/=0 .OR. ier_ctrlc) RETURN
                DO i = 1, inc (1) 
                hkl (3) = eck (3, 1) + (i - 1) * vi (3, 1) 
                ll = hkl (3) 
@@ -2028,6 +2030,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
                histogram (ibin, look (jscat, iscat),0 ) = &
                histogram (ibin, look (jscat, iscat),0 ) + 1
+               IF(ier_num/=0 .OR. ier_ctrlc) RETURN
             ENDIF 
          ENDDO 
          ENDIF 
@@ -2360,6 +2363,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
                histogram (ibin, look (jscat, iscat),islook ) = &
                histogram (ibin, look (jscat, iscat),islook ) + 1                                
+               IF(ier_num/=0 .OR. ier_ctrlc) RETURN
             ENDIF 
          ENDDO 
          ENDIF 
