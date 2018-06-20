@@ -38,6 +38,16 @@ IF (zeile.ne.' ') THEN
 !----- ---- set error                                                   
 !                                                                       
       IF (str_comp (cpara (1) , 'error', 1, lpara (1) , 5) ) THEN 
+         IF(ianz.eq.3) THEN 
+            IF(str_comp(cpara(3), 'save', 2, lpara(3), 4)) THEN
+               ier_sav = ier_sta
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+               RETURN
+            ENDIF 
+            ianz = ianz -1
+         ENDIF
          IF(ianz.eq.2) THEN 
             IF(str_comp(cpara(2), 'cont', 2, lpara(2), 4)) THEN
                ier_sta = ER_S_CONT 
@@ -45,6 +55,8 @@ IF (zeile.ne.' ') THEN
                ier_sta = ER_S_EXIT 
             ELSEIF(str_comp(cpara(2), 'live', 2, lpara (2), 4)) THEN
                ier_sta = ER_S_LIVE 
+            ELSEIF(str_comp(cpara(2), 'old' , 2, lpara (2), 3)) THEN
+               ier_sta = ier_sav
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
