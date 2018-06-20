@@ -344,6 +344,7 @@ SUBROUTINE do_hel (ein, length)
       IMPLICIT none 
 !                                                                       
 !                                                                       
+      CHARACTER(LEN=1024) :: clines
       CHARACTER(80) line 
       CHARACTER(1) cdummy 
       INTEGER ihl, ilc, ll 
@@ -351,7 +352,13 @@ SUBROUTINE do_hel (ein, length)
       INTEGER len_str 
 !                                                                       
    10 CONTINUE 
-      DO ilc = 1, lines - 2 
+      CALL get_environment_variable ('LINES', clines)
+      IF(clines==' ') THEN
+         lines = 20
+      ELSE
+         READ(clines,*) lines
+      ENDIF
+      DO ilc = 1, lines - 6 
       READ (ihl, 1000, end = 9010) line 
 !                                                                       
       IF (line (1:1) .eq.'!') then 
