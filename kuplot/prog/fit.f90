@@ -3051,6 +3051,7 @@ USE param_mod
 USE prompt_mod 
 USE kuplot_config 
 USE kuplot_mod 
+USE errlist_mod
 !                                                                       
 IMPLICIT NONE
 !
@@ -3203,6 +3204,12 @@ cycles: DO
          p (k) = p (k) - dz (k) 
          kupl_para(k) = p(k)            ! Update global parameter
       ENDDO 
+   IF(ier_ctrlc) THEN
+      ier_num = -14
+      ier_typ = ER_COMM
+      RETURN
+   ENDIF
+   IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
 !                                                                       
 ENDDO cycles
 !                                                                       
