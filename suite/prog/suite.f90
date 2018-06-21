@@ -102,7 +102,6 @@ USE diffev_do_exit_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
 !
-USE appl_env_mod
 USE class_macro_internal
 USE doact_mod
 USE errlist_mod
@@ -118,7 +117,6 @@ LOGICAL, EXTERNAL :: str_comp
 !
 CALL exit_all
 CALL set_signal
-CALL color_set_scheme(.TRUE., 0)
 !
 WRITE(*,*) 
 WRITE(*,'(a,a,a,a)') TRIM(color_err),' DISCUS SUITE closed by User Request CTRL-C ',TRIM(color_fg),CHAR(7)

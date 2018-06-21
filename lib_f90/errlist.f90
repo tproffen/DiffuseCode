@@ -69,8 +69,6 @@ SUBROUTINE errlist
        ier_msg(2) = ' '
        ier_msg(3) = ' '
 !
-       ier_ctrlc = .FALSE.
-!
        END
 !*****7****************************************************************
        SUBROUTINE disp_error (typ,error,iu,io)
@@ -94,6 +92,10 @@ SUBROUTINE errlist
 !
        INTEGER       len_str
 !
+       IF(ier_ctrlc) THEN     ! Avoid multiple message in case of a ctrl-c
+          IF(ier_rep .AND. ier_num==-14) RETURN
+          ier_rep = .TRUE.
+       ENDIF
        IF(iu <= ier_num .AND. ier_num <= io) THEN
          IF(    error(ier_num).ne.' ') THEN
             WRITE(error_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
@@ -118,6 +120,7 @@ SUBROUTINE errlist
          le=len_str(estr)
          CALL socket_send(s_conid,estr,le)
        ENDIF
+!
 !
 1000  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)
 1500  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)

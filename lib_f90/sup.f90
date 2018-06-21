@@ -105,6 +105,8 @@ CONTAINS
             RETURN
          ENDIF
       ELSE 
+        ier_ctrlc = .FALSE.
+        ier_rep   = .FALSE.
 !                                                                       
 !     --Normal mode, if status is PROMPT_OFF or PROMPT_REDIRECT         
 !---- --we assume non interactive input and use 'normal' FORTRAN      
