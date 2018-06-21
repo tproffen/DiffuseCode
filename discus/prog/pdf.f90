@@ -1810,7 +1810,12 @@ main:    DO
       sig2 = rmc_sigma**2 / 2.0 
 !                                                                       
 main: DO while (loop) 
-         IF(ier_num/=0.OR.ier_ctrlc) RETURN      ! An error occured or CTRL-C
+         IF(ier_ctrlc) THEN
+            ier_num = -14
+            ier_typ = ER_COMM
+            RETURN
+         ENDIF
+         IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
          laccept = .true. 
          igen = igen + 1 
 IF((igen<0.05*rmc_maxcyc.and.MOD(igen,10)==2) .or. MOD(igen, 10)==2) THEN
@@ -2457,8 +2462,13 @@ laccept = .false.
          IF(all_atoms) THEN    ! All atom types are selected
             loop1: DO ia = 1, cr_natoms 
                CALL pdf_addcorr_n_fast (ia) 
-               IF(ier_num/=0.OR.ier_ctrlc) EXIT loop1
-               IF (lout.and. (mod (ia, id) .eq.0) ) then 
+               IF(ier_ctrlc) THEN
+                  ier_num = -14
+                  ier_typ = ER_COMM
+                  EXIT loop1
+               ENDIF
+               IF(ier_num/=0) EXIT loop1      ! An error occured or CTRL-C
+               IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
                   done = 100.0 * float (ia) / float (cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 
@@ -2466,8 +2476,13 @@ laccept = .false.
         ELSE
             loop2: DO ia = 1, cr_natoms 
                CALL pdf_addcorr_n (ia) 
-               IF(ier_num/=0.OR.ier_ctrlc) EXIT loop2
-               IF (lout.and. (mod (ia, id) .eq.0) ) then 
+               IF(ier_ctrlc) THEN
+                  ier_num = -14
+                  ier_typ = ER_COMM
+                  EXIT loop2
+               ENDIF
+               IF(ier_num/=0) EXIT loop2      ! An error occured or CTRL-C
+               IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
                   done = 100.0 * float (ia) / float (cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 

@@ -98,7 +98,12 @@ CONTAINS
             IF (four_log) then 
                WRITE (output_io, 3000) cr_at_lis (iscat), nxat 
             ENDIF 
-            IF(ier_num/=0.OR.ier_ctrlc) RETURN      ! An error occured or CTRL-C
+            IF(ier_ctrlc) THEN
+               ier_num = -14
+               ier_typ = ER_COMM
+               RETURN
+            ENDIF
+            IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
          ENDDO loop_atoms
 !                                                                       
 !------ - subtract average structure factor, add intensity              

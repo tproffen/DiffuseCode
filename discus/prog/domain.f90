@@ -660,6 +660,7 @@ pseudo_ok:  IF(l_ok) THEN
             CALL micro_read_simple (imd, lend, l_ok, infile, mc_dimen, mc_idimen,&
             mc_matrix, MK_MAX_SCAT, mk_at_lis)                                                     
             IF(ier_ctrlc) THEN
+               CLOSE(imd)
                ier_num = -14
                ier_typ = ER_COMM
                RETURN

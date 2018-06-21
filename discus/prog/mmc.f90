@@ -1873,7 +1873,12 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       natoms = 1 
    10 CONTINUE 
-      IF(ier_num/=0.OR.ier_ctrlc) RETURN      ! An error occured or CTRL-C
+         IF(ier_ctrlc) THEN
+            ier_num = -14
+            ier_typ = ER_COMM
+            RETURN
+         ENDIF
+         IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
 !                                                                       
 !     --- Choose a move at random                                       
 !                                                                       
