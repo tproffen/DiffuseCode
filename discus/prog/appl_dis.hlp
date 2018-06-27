@@ -74,6 +74,12 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2018_June
 
+   Added the possibility for interactive plots.
+   See ==> plot/back
+       ==> plot/poly
+       ==> plot/bond
+       ==> plot/run 
+
    Revised the reaction to a CTRL-C
 
    Added a ==> 'set error, ... , "save" option
@@ -4843,6 +4849,8 @@
 !p =       ! Assigns the value to a variable (see main help)
 !p absc    ! Defines the abscissa of the plot
 !p asym    ! Lists the content of the asymmetric unit
+!p back    ! Selects the plot background for JMOL
+!p bond    ! Selects the bond plotting style
 !p chem    ! Lists all type of atoms present in the crystal
 !p col     ! Defines the sequence in which the xy and z coordinates are written.
 !p continue! Continue a stopped macro (see main help level)
@@ -4854,6 +4862,7 @@
 !p hkl     ! Sets reciprocal space direction normal to plot slice
 !p ordi    ! Defines the ordinate of the plot
 !p outfile ! Name of output file to which the structure is written
+!p poly    ! Selects the polyhedron plotting style 
 !p prog    ! Selects the plotting program
 !p prop    ! Selects the atom properties, which will be checked
 !p run     ! Starts writing of the structure
@@ -4889,11 +4898,16 @@
    read, all atoms that are in the unit cell 0 <= xyz < 1, are chemically
    unique and have a different temperature coefficient are included in
    the asymmetric unit.
+3  back
+!b back <r>, <g>, <b>
+
+   Sets the background color for a JMOL plot.
+   Valid RGB values are in the range [0:255]
 3  bonds
 !b bonds { "all" | <name> | <number> } ,{ "all" | <name> | <number> },
 !b       <rmin>, <rmax>, <diameter>, { <gray> | <r>,<g>,<b>}
 
-   Defines which bonds the plotting program XBS will draw. This 
+   Defines which bonds the plotting program JMOL / XBS will draw. This 
    command does not affect the other plotting programs.
    Choose the pairs of atoms to be connected by bonds. Bonds that
    fall into the interval <rmin> to <rmax> are plotted. The thickness
@@ -5016,6 +5030,49 @@
 !b outfile <filename>
 
    Sets the name of the output file to which the structure is written.
+3  poly
+!p poly "off"
+!b poly <center>, <neighbor> 
+!b      [, "nmin:"<nmin>], [, "nmax:"<nmax>]
+!b      [, "dmin:"<dmin>], [, "dmax:"<dmax>]
+!b      [, "face:"<style>], [, "hue:"<style>], [, "color:"<color>]
+
+  Sets the definitions for plotting polyhedra in an interactive plot.
+  Currently only an interactive plot with JMOL is supported.
+  The command ==> 'run inter:yes' gives the details how to start an
+  interactve plot session.
+
+!p "off"      Turn off any polyhedra.
+!p <center>   Specifies the central atom type(s). 
+!p <neighbor> Specifies the neighboring atom type(s). 
+!p          A single central / neighbor atom type may be specified
+!p          as its atom name, for example Si.
+!p          To specify several choices as central atom type, place 
+!p          the list in single quotation marks: 'Si, Al'
+
+   The optional parameters are:
+
+!p "nmin:"  Minimum number of neighboring atoms for the polyhedron
+            Defaults to zero or value of "nmax:" if "nmax:" is present
+!p "nmax:"  Maximum number of neighboring atoms for the polyhedron
+            Polyhedra will be plotted if the central atom has a 
+            number of neighbors in the range nmin to nmax.
+            Defaults to "nmax:0"
+            If neither is specified, JMOL uses the bonds from the 
+            'bond' command or the range from "dmin:" to "dmax:".
+!p "dmin:"  Minimum distance of neighboring atoms
+            Defaults to "dmin:0.0"
+!p "dmax:"  Maximum distance of neighboring atoms
+            Defaults to "dmax:0.0"
+            If "dmin", "dmax:" are given, they effectively 
+            override the connectivity specified by a 'bond' command. 
+!p "face:"  {"flat" | "collapsed"} 
+!p          Plot the polyhedra with flat or collapsed faces.
+!p "hue:"   {"solid" | "trans"} 
+!p          Plot the polyhedra with solid or tansparent faces.
+!p "col:"   {"auto" | <color_name>}
+!p          Plot the polyhedra with the color of the central 
+!p          atom =="auto" or a user defined JMOL color.
 3  prog
 !b prog { "gnuplot" | "kuplot" | "atoms" | 
 !b        "xbs" | "frames" [,"append" | "init"] |
@@ -5126,10 +5183,19 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  run
-!b run
+!b run  ["plot:inter"] [, "kill:"["yes"|"no"}]
 
    Starts writing of the structure. If no output filename has been provided
    or no atoms been selected, an error message is given.
+
+   If the plot progam was selected as "jmol", you can start an 
+   interactive plot session with the optional parameter "plot:inter".
+
+   If previous instances of "JMOL" are to be terminated prior to the
+   new plat provide the optional parameter "kill:yes".
+   On a Linux type operating system processes "jmol" are killed, 
+   on Windows processes "java" will be killed. Be carefull if other
+   java programs are active!. 
 3  sel
 !b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
