@@ -145,4 +145,99 @@ ENDIF
 !
 END SUBROUTINE matinv4
 !
+!*******************************************************************************
+!
+SUBROUTINE mat_axis(mat, axis, alpha, det, trace, ier)
+!
+!  Determine the rotation angle and the rotation axis for a 3x3 matrix
+!  RETURNS: 
+!  axis(3):    Rotation axis
+!  alpha  :    Rotation angle
+!  det    :    Determinant
+!  trace  :    Trace
+!  ier    :    0:success
+!             -1:det==0
+!             -2:det/=+-1
+!             -3:trace outside [-3:3]
+!             +1: Rotation angle is zero
+!
+USE trig_degree_mod
+IMPLICIT NONE
+!
+REAL, DIMENSION(3,3), INTENT(IN)  :: mat
+REAL, DIMENSION(3)  , INTENT(OUT) :: axis
+REAL                , INTENT(OUT) :: alpha
+REAL                , INTENT(OUT) :: det
+REAL                , INTENT(OUT) :: trace
+INTEGER             , INTENT(OUT) :: ier
+!
+REAL, PARAMETER :: EPS = 1.E-5
+!
+INTEGER              :: i1,i2,i3
+REAL, DIMENSION(3,3) :: work
+REAL                 :: ca, sa
+REAL                 :: n1,n2,n3
+REAL                 :: m1,m2,m3
+!
+axis(:) = 0.0
+alpha   = 0.0
+det     = det3(mat)
+trace   = mat(1,1) + mat(2,2) + mat(3,3)
+ca      = 0.5*(trace-1)
+IF(ABS(det)<EPS) THEN
+   ier = -1
+   RETURN
+ENDIF
+IF(ABS(det)-1>EPS) THEN
+   ier = -2
+   RETURN
+ENDIF
+IF(ABS(trace)>3.0) THEN
+   ier = -3
+   RETURN
+ENDIF
+work  = mat/det                   ! Normalize the matrix
+alpha = ACOSD(ca)
+sa    = SIND(alpha)
+!
+IF(ABS(alpha)<EPS) THEN
+   ier =  1
+   RETURN
+ENDIF
+!
+IF(         ( (work(1,1)-ca)/(1.0-ca) )<0.0) THEN
+   n1 = 0.0
+ELSE
+   n1    = SQRT( (work(1,1)-ca)/(1.0-ca) )
+ENDIF
+IF(         ( (work(2,2)-ca)/(1.0-ca) )<0.0) THEN
+   n2 = 0.0
+ELSE
+   n2    = SQRT( (work(2,2)-ca)/(1.0-ca) )
+ENDIF
+IF(         ( (work(3,3)-ca)/(1.0-ca) )<0.0) THEN
+   n3 = 0.0
+ELSE
+   n3    = SQRT( (work(3,3)-ca)/(1.0-ca) )
+ENDIF
+!
+loop1: DO i1=-1,1,2
+   m1 = n1*FLOAT(i1)
+   loop2: DO i2=-1,1,2
+      m2 = n2*FLOAT(i2)
+      loop3: DO i3=-1,1,2
+         m3 = n3*FLOAT(i3)
+         IF(ABS(m1*m2*(1.-ca)-m3*sa - work(1,2))<EPS .AND. &
+            ABS(m1*m3*(1.-ca)-m2*sa - work(1,3))<EPS .AND. &
+            ABS(m2*m3*(1.-ca)-m1*sa - work(2,3))<EPS ) THEN 
+            EXIT loop1
+         ENDIF
+      ENDDO loop3
+   ENDDO loop2
+ENDDO loop1
+axis(1) = m1
+axis(2) = m2
+axis(3) = m3
+!
+END SUBROUTINE mat_axis
 END MODULE matrix_mod
