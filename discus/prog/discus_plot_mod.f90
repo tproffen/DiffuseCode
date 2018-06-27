@@ -10,6 +10,7 @@ SAVE
 INTEGER, PRIVATE    :: ik
 INTEGER                                   :: PL_MAXSCAT = 1
 !
+CHARACTER(LEN=1024)  :: pl_jmol  = ' '
 CHARACTER(LEN= 200)  :: pl_out   = 'plot.cif'
 CHARACTER(LEN=  80)  :: pl_title = 'crystal structure'
 CHARACTER(LEN=  12)  :: pl_prog  = 'cif'
@@ -28,6 +29,8 @@ REAL   , DIMENSION(3,3)                   :: pl_inv       = &
          RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(pl_inv ))
 REAL   , DIMENSION(:),     ALLOCATABLE    :: pl_siz       ! (0:MAXSCAT)
 REAL   , DIMENSION(:,:),   ALLOCATABLE    :: pl_rgb       ! (3,0:MAXSCAT)
+INTEGER, DIMENSION(3)                     :: pl_back = &  ! plot background
+         (/ 240, 240, 240 /)
 REAL   , DIMENSION(:,:,:), ALLOCATABLE    :: pl_bond_len  ! (2,0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(  :,:), ALLOCATABLE    :: pl_bond_rad  ! (  0:MAXSCAT,0:MAXSCAT)
 REAL   , DIMENSION(:,:,:), ALLOCATABLE    :: pl_bond_col  ! (3,0:MAXSCAT,0:MAXSCAT)
@@ -47,6 +50,16 @@ INTEGER, DIMENSION(:), ALLOCATABLE        :: pl_color     ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_latom     ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_batom_a   ! (0:MAXSCAT)
 LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_batom_e   ! (0:MAXSCAT)
+INTEGER                                   :: pl_poly_n    ! Number of polyhedra definitions
+LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_poly_c    ! (0:MAXSCAT)
+LOGICAL, DIMENSION(:), ALLOCATABLE        :: pl_poly_o    ! (0:MAXSCAT)
+REAL                                      :: pl_poly_dmin ! Minimum distance to neighbor for polhedra
+REAL                                      :: pl_poly_dmax ! Maximum distance to neighbor for polhedra
+INTEGER                                   :: pl_poly_nmin ! Minimum neighbors for polhedra
+INTEGER                                   :: pl_poly_nmax ! Maximum neighbors for polhedra
+LOGICAL                                   :: pl_poly_face ! Face style flat/collapsed
+LOGICAL                                   :: pl_poly_hue  ! Face style solid / transparent
+CHARACTER(LEN=6)                          :: pl_poly_col  ! Face color
 LOGICAL                                   :: pl_dens      = .false.
 LOGICAL                                   :: pl_sel_atom  = .true.
 LOGICAL                                   :: pl_mol_all   = .true.

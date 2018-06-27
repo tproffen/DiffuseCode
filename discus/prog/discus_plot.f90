@@ -11,6 +11,7 @@ CONTAINS
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE metric_mod
       USE modify_mod
       USE molecule_mod
       USE discus_plot_mod 
@@ -18,6 +19,7 @@ CONTAINS
       USE update_cr_dim_mod
       USE trafo_mod
 !
+      USE envir_mod
       USE ber_params_mod
       USE build_name_mod
       USE calc_expr_mod
@@ -30,10 +32,12 @@ CONTAINS
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
+      USE take_param_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
+      INTEGER, PARAMETER :: ITMP     = 78  ! temporary unit number
       INTEGER, PARAMETER :: MIN_PARA = 20  ! A command requires at leaset these no of parameters
       INTEGER maxw 
       LOGICAL lold 
@@ -43,19 +47,44 @@ CONTAINS
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
       CHARACTER(1024) line, zeile
+      CHARACTER(LEN=1024) :: tempfile
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
       CHARACTER(5) befehl 
       CHARACTER(1) cdum 
       REAL :: size, rr=0.0, rg=0.0, rb=0.0
       INTEGER lp, length 
-      INTEGER ianz, i, j, is, it, ic, lbef 
+      INTEGER :: iianz,ianz, i, j, is, it, ic, lbef 
+      INTEGER :: npoly     
       INTEGER indxg 
       INTEGER         :: nscat
+      INTEGER         :: ios
+
       LOGICAL lend, l_select 
+      LOGICAL :: labs = .FALSE.
+      LOGICAL :: lord = .FALSE.
+      LOGICAL :: lnor = .FALSE.
+!
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
+      INTEGER, PARAMETER :: NOPTIONAL = 9
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+      CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+      INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+      INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+!
+      DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  /
+      DATA loname /  4     ,  4     ,  4     ,  4     ,  4     ,  3     ,  4     ,  4     ,  4      /
+!
+      ! Always provide fresh default values, Repeat for each command
+      opara  =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ', 'none ', 'none ' /)
+      lopara =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4     ,  4     ,  4      /)
+      owerte =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0    /)
+!
+!
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -107,14 +136,15 @@ CONTAINS
 !     ----Select the abscissa for a projection onto a to plot           
 !           slice 'absc'                                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'absc', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'absc', 2, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
                         DO i = 1, 3 
-                        pl_abs (i) = werte (i) 
+                           pl_abs (i) = werte (i) 
                         ENDDO 
+                        labs = .TRUE.
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -200,6 +230,26 @@ CONTAINS
                ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) then 
 !                                                                       
                   CALL property_select (zeile, lp, pl_sel_prop) 
+!                                                                       
+!     ----Select the background 'back'                                       
+!                                                                       
+               ELSEIF (str_comp (befehl, 'back', 2, lbef, 4) ) then 
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  IF (ier_num.eq.0.and. ianz.eq.3 ) then 
+                     CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                     IF (ier_num.eq.0) then 
+                        IF(0<=NINT(werte(1)) .AND. NINT(werte(1))<=255 .AND. &
+                           0<=NINT(werte(2)) .AND. NINT(werte(2))<=255 .AND. &
+                           0<=NINT(werte(3)) .AND. NINT(werte(3))<=255) THEN
+                           pl_back(1) = NINT(werte(1))
+                           pl_back(2) = NINT(werte(2))
+                           pl_back(3) = NINT(werte(3))
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF 
+                     ENDIF 
+                  ENDIF 
 !                                                                       
 !     ----Select the bonds 'bond'                                       
 !                                                                       
@@ -319,6 +369,7 @@ CONTAINS
                         pl_hkl (i) = werte (i) 
                         ENDDO 
                         CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+                        lnor = .TRUE.
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -345,14 +396,15 @@ CONTAINS
 !     ----Select the ordinate for a projection onto a to plot           
 !           slice 'ordi'                                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'ordi', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'ordi', 2, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
                         DO i = 1, 3 
-                        pl_ord (i) = werte (i) 
+                           pl_ord (i) = werte (i) 
                         ENDDO 
+                        lord = .TRUE.
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -370,6 +422,69 @@ CONTAINS
                      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
                      IF (ier_num.eq.0) then 
                         pl_out = cpara (1) (1:lpara(1))
+                     ENDIF 
+                  ENDIF 
+!
+!     ----Select the Polyhedra to be plotted by Jmol 'poly'
+!
+               ELSEIF (str_comp (befehl, 'poly', 3, lbef, 4) ) then 
+!
+      ! Always provide fresh default values, Repeat for each command
+      opara (1:7) =   (/ '0.000', '0.000', '0    ', '0    ', 'flat ', 'solid', 'auto ' /)
+      lopara(1:7) =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4      /)
+      owerte(1:7) =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0    /)
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                                    oname, loname, opara, lopara, owerte)
+                  IF (ier_num.eq.0) then 
+                     IF(str_comp(cpara(1), 'off', 3, lpara(1), 3)) THEN
+                        pl_poly_n = 0
+                     ELSE
+                     line = cpara(2)
+                     IF(cpara(1)(1:1)=='''' .AND. cpara(1)(lpara(1):lpara(1))=='''') THEN
+                        zeile = cpara(1)(2:lpara(1)-1)
+                     ELSE
+                        zeile = cpara(1)(1:lpara(1))
+                     ENDIF
+                     CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                     CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold)                               
+                     IF (ier_num.eq.0) then 
+                        IF(NINT(werte(1))==-1) THEN
+                           pl_poly_c(:) = .TRUE.
+                        ELSE
+                           DO i=1,ianz
+                              pl_poly_c(NINT(werte(i))) = .TRUE.
+                           ENDDO
+                           pl_poly_c(-1) = .FALSE.
+                        ENDIF 
+                        i = LEN_TRIM(line)
+                        IF(line(1:1)=='''' .AND. line(i:i)=='''') THEN
+                           zeile = line(2:i-1)
+                        ELSE
+                           zeile = line(1:i)
+                        ENDIF
+                        CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold)                               
+                        IF (ier_num.eq.0) then 
+                           IF(NINT(werte(1))==-1) THEN
+                              pl_poly_o(:) = .TRUE.
+                           ELSE
+                              DO i=1,ianz
+                                 pl_poly_o(NINT(werte(i))) = .TRUE.
+                              ENDDO
+                              pl_poly_o(-1) = .FALSE.
+                           ENDIF 
+                           IF(owerte(1)>0.0) pl_poly_dmin = owerte(1)
+                           IF(owerte(2)>0.0) pl_poly_dmax = owerte(2)
+                           pl_poly_nmax = NINT(owerte(4))
+                           IF(NINT(owerte(3))==0) owerte(3) = pl_poly_nmax
+                           pl_poly_nmin = NINT(owerte(3))
+                           pl_poly_face = opara(5)=='flat'
+                           pl_poly_hue  = opara(6)=='trans'
+                           pl_poly_col  = opara(7)
+                           pl_poly_n    = 1
+                        ENDIF 
+                     ENDIF 
                      ENDIF 
                   ENDIF 
 !                                                                       
@@ -411,6 +526,40 @@ CONTAINS
                         pl_prog = 'diamond' 
                      ELSEIF (cpara(1)(1:1) .eq.'J'.and.ianz.eq.1) then
                         pl_prog = 'jmol' 
+!                       Test existence of jmol / java 
+                        IF(operating=='Linux') THEN                      
+                           tempfile = '/tmp/which_jmol'
+                           line = 'which jmol > /tmp/which_jmol'
+                        ELSEIF(operating=='Windows') THEN                      
+                           tempfile = '/tmp/which_jmol'
+                           line = 'which java > /tmp/which_jmol'
+                        ELSEIF(operating(1:6)=='cygwin') THEN                      
+                           tempfile = '/tmp/which_jmol'
+                           line = 'which java > /tmp/which_jmol'
+                        ENDIF
+                           CALL system(line)
+                           CALL oeffne( ITMP, tempfile, 'old')
+                           IF(ier_NUM==0) THEN
+                              READ(ITMP,'(a)',IOSTAT=ios) pl_jmol
+                              CLOSE(ITMP)
+                              IF(IS_IOSTAT_END(ios)) THEN
+                                 ier_num = -152
+                                 ier_typ = ER_APPL
+                                 pl_jmol = ' '
+                              ELSE
+                                 IF(operating(1:6)=='cygwin' .OR.       &
+                                    operating(1:7)=='Windows'    ) THEN
+                                    i = LEN_TRIM(pl_jmol)
+                                    IF(pl_jmol(i-3:i) == 'java') THEN
+                                       pl_jmol = 'cd /opt/jmol && java -Xmx512m -jar ./Jmol.jar ' 
+                                    ELSEIF(pl_jmol(1:14) == 'which: no java') THEN
+                                       ier_num = -152
+                                       ier_typ = ER_APPL
+                                       pl_jmol = ' '
+                                    ENDIF
+                                 ENDIF
+                              ENDIF
+                           ENDIF
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -420,6 +569,14 @@ CONTAINS
 !     ----run plot 'run'                                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'run', 1, lbef, 3) ) then 
+!                 Always provide fresh default values, Repeat for each command
+                  opara (8:9) =   (/ 'none ', 'none ' /)
+                  lopara(8:9) =   (/  4     ,  4      /)
+                  owerte(8:9) =   (/  0.0   ,  0.0    /)
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+                  CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                                    oname, loname, opara, lopara, owerte)
+                  IF (ier_num.eq.0.and.ianz.eq.0) then 
                   IF (pl_out.ne.' ') then 
                      CALL update_cr_dim 
                      DO i = 1, 3 
@@ -439,7 +596,20 @@ CONTAINS
                         ENDIF 
                         ENDDO 
                         IF (l_select) then 
-                           CALL do_plot 
+                           CALL plot_test_aon(lnor, labs, lord)
+                           IF(ier_num == 0) THEN
+                              CALL do_plot 
+                              IF(ier_num == 0) THEN
+                                 IF(opara(8)=='inter') THEN
+                                    IF(pl_prog=='jmol') THEN
+                                       CALL plot_inter(opara(9)(1:lopara(9)))
+                                    ELSE
+                                       ier_num = -152
+                                       ier_typ = ER_APPL 
+                                    ENDIF
+                                 ENDIF
+                              ENDIF
+                           ENDIF
                         ELSE 
                            ier_num = - 3 
                            ier_typ = ER_APPL 
@@ -452,6 +622,7 @@ CONTAINS
                      ier_num = - 37 
                      ier_typ = ER_APPL 
                   ENDIF 
+                     ENDIF 
 !                                                                       
 !     ----set atom representation for KUPLOT                            
 !                                                                       
@@ -566,6 +737,7 @@ CONTAINS
                         pl_uvw (i) = werte (i) 
                         ENDDO 
                         CALL trans (pl_uvw, cr_gten, pl_hkl, 3) 
+                        lnor = .TRUE.
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
@@ -940,7 +1112,7 @@ CONTAINS
 !                                                                       
 !------ Output CIF (subset)                                             
 !                                                                       
-      ELSEIF (pl_prog.eq.'cif') then 
+      ELSEIF (pl_prog.eq.'cif'.or.pl_prog.eq.'jmol') then 
 !                                                                       
 !------ - Atom or molecule mode                                         
 !                                                                       
@@ -979,7 +1151,7 @@ CONTAINS
 !                                                                       
 !------ Output DIAMOND                                                  
 !                                                                       
-      ELSEIF (pl_prog.eq.'diamond'.or.pl_prog.eq.'jmol') then 
+      ELSEIF (pl_prog.eq.'diamond') then 
 !                                                                       
 !------ - Atom or molecule mode                                         
 !                                                                       
@@ -2054,4 +2226,451 @@ CONTAINS
 !                                                                       
       END SUBROUTINE plot_diamond                   
 !*****7*****************************************************************
+!
+SUBROUTINE plot_inter(kill)
+!   
+USE crystal_mod
+USE discus_plot_mod
+USE discus_plot_init_mod
+USE metric_mod
+   USE symm_mod
+   USE symm_sup_mod
+USE tensors_mod
+USE trans_sup_mod
+USE trafo_mod
+!
+USE spcgr_apply
+!
+USE envir_mod
+USE errlist_mod
+USE param_mod
+USE prompt_mod
+USE trig_degree_mod
+use matrix_mod
+!
+IMPLICIT NONE
+!
+REAL, PARAMETER :: azero = 1.0
+REAL, PARAMETER :: eps   = 1.0E-5
+CHARACTER(LEN=*), INTENT(IN) :: kill
+!
+INTEGER, PARAMETER  :: ITMP     = 78  ! temporary unit number
+LOGICAL, PARAMETER  :: lscreen = .FALSE.
+CHARACTER(LEN=1024) :: tempfile
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=1024) :: line_move
+CHARACTER(LEN=   2) :: w_char = '  '
+INTEGER             :: i,j,k
+INTEGER             :: length
+INTEGER             :: jmol_pid
+INTEGER             :: ios
+LOGICAL             :: did_kill = .false.
+LOGICAL             :: lpresent = .false.
+LOGICAL             :: lsecond  = .false.
+LOGICAL             :: lunit    = .false.
+REAL, DIMENSION(4)  :: hkl      !Normal in reciprocal space for augmented matrix
+REAL, DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
+REAL, DIMENSION(3)  :: n_uvw    !Normal in direct space
+REAL, DIMENSION(3)  :: v        !temporary vector
+REAL, DIMENSION(3)  :: u        !temporary vector
+REAL, DIMENSION(3)  :: axis     !axis for moveto command
+REAL, DIMENSION(3)  :: p_x      !projected x-axis
+REAL, DIMENSION(3)  :: p_a      !projected abscissa
+REAL, DIMENSION(3)  :: p_o      !projected abscissa
+REAL, DIMENSION(3,3):: roti     !Rotation matrix
+REAL, DIMENSION(3,3):: rot1     !Rotation matrix
+REAL, DIMENSION(3,3):: rot2     !Rotation matrix
+REAL, DIMENSION(3,3):: rotf     !Rotation matrix
+REAL, DIMENSION(3,3):: test     !Test for unit matrix
+REAL :: det, trace
+INTEGER :: ier
+REAL                :: rr
+REAL                :: beta
+!
+IF(pl_prog=='jmol') THEN
+   IF(kill=='yes') THEN
+      INQUIRE(FILE='/tmp/jmol.pid', EXIST=lpresent)
+      IF(lpresent) THEN
+         line = 'rm -f /tmp/jmol.pid'
+         CALL system(line)
+      ENDIF
+      did_kill = .FALSE.
+      IF(operating=='Linux') THEN
+         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
+         CALL system(line)
+!
+      ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
+         line = 'ps aux | grep ''jmol -s /tmp/jmol.mol'' | grep -v grep | awk ''{print $1}'' > /tmp/jmol.pid'
+         CALL system(line)
+         line = 'ps aux | grep java |                      grep -v grep | awk ''{print $1}'' >> /tmp/jmol.pid'
+         CALL system(line)
+      ENDIF
+      tempfile = '/tmp/jmol.pid'
+      CALL oeffne( ITMP, tempfile, 'old')
+      IF(ier_num==0) THEN
+         READ(ITMP,*,IOSTAT=ios) jmol_pid
+         DO WHILE (.NOT.IS_IOSTAT_END(ios)) 
+            WRITE(line,'(a,i12,a)') 'kill -9 ',jmol_pid, ' > /dev/null'
+            CALL system(line)
+            did_kill = .TRUE.
+            READ(ITMP,*,IOSTAT=ios) jmol_pid
+         ENDDO
+         CLOSE(ITMP)
+         line = 'rm -f /tmp/jmol.pid'
+         CALL system(line)
+         IF(operating=='Linux') THEN
+            IF(did_kill) WRITE(output_io,*) ' Processes were killed, hit ENTER to retrieve prompt'
+         ENDIF
+      ENDIF
+   ENDIF
+!
+! Determine moveto command
+!
+   CALL plot_ini_jmol  (azero,                        &
+        pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+        cr_gten, cr_rten, cr_eps)
+!
+   hkl(1:3) = pl_hkl(1:3)                      ! Take HKL of normal as this is c*, if default
+   hkl(4)   = 0.0
+   CALL tran_ca (hkl, pl_tran_fi, lscreen)     ! TRAN_CA works on 4x4 matrix
+   n_hkl(1:3) = hkl(1:3)                       ! TRANS works on 3x3 matrix
+   CALL trans (n_hkl, cr_rten, n_uvw, 3)       ! uvw is the normal in caresian space
+   rr = SQRT(n_uvw(1)**2 + n_uvw(2)**2 + n_uvw(3)**2)
+   n_uvw(1) = n_uvw(1) / rr
+   n_uvw(2) = n_uvw(2) / rr
+   n_uvw(3) = n_uvw(3) / rr
+!
+!!!! THE FOLLOWING DOES NOT WORK RIGHT NOW !!! PATCHED BELOW
+   WRITE(line,'(6(f12.6,'',''),a)') pl_abs(1:3), n_uvw(1:3), 'dddd'
+   length = 82
+   CALL do_proj (line, length)                ! Project abscissa into plane normal to 'normal'
+   p_a(1:3) = res_para(4:6)
+   rr = SQRT(p_a(1)**2 + p_a(2)**2 + p_a(3)**2)
+   p_a(1) = p_a(1) / rr
+   p_a(2) = p_a(2) / rr
+   p_a(3) = p_a(3) / rr
+!
+!  Do vector product of normal and projected abscissa to get an ordinate
+!
+   p_o(1) = n_uvw(2)*p_a(3) - n_uvw(3)*p_a(2)
+   p_o(2) = n_uvw(3)*p_a(1) - n_uvw(1)*p_a(3)
+   p_o(3) = n_uvw(1)*p_a(2) - n_uvw(2)*p_a(1)
+!
+! write(*,*) ' normal ', n_uvw(:), SQRT(n_uvw(1)**2 + n_uvw(2)**2 + n_uvw(3)**2)
+! write(*,*) ' abscis ', p_a  (:), SQRT(p_a  (1)**2 + p_a  (2)**2 + p_a  (3)**2)
+! write(*,*) ' ordina ', p_o  (:), SQRT(p_o  (1)**2 + p_o  (2)**2 + p_o  (3)**2)
+! write(*,*) ' w_na   ', acosd(n_uvw(1)*p_a(1) + n_uvw(2)*p_a(2) + n_uvw(3)*p_a(3) )
+! write(*,*) ' w_no   ', acosd(n_uvw(1)*p_o(1) + n_uvw(2)*p_o(2) + n_uvw(3)*p_o(3) )
+! write(*,*) ' w_ao   ', acosd(p_a  (1)*p_o(1) + p_a  (2)*p_o(2) + p_a  (3)*p_o(3) )
+   roti(:,1) =  p_a  (:)
+   roti(:,2) =  p_o  (:)
+   roti(:,3) = n_uvw(:)
+   CALL matinv3(roti,rotf)
+!
+!  The second operation will be the tilt of the intended normal 
+   axis(1)   = 0.0
+   axis(2)   = 0.0
+   axis(3)   = 1.0
+   test(:,:) = rotf(:,:)
+   test(1,1) = ABS(test(1,1)) - 1.0
+   test(2,2) = ABS(test(2,2)) - 1.0
+   test(3,3) = ABS(test(3,3)) - 1.0
+   lunit = .TRUE.
+   DO i=1,3
+      DO j=1,3
+         lunit = lunit .AND. ABS(test(i,j)) < eps
+      ENDDO
+   ENDDO
+   IF(lunit) THEN                            ! We have a unit matrix
+      line_move = 'moveto 0.0  {0 0 1}  0.0'
+   ELSE                                      ! Regular matrix determne axis amd angle
+      CALL mat_axis(rotf, axis, beta, det, trace, ier)
+!      CALL get_detail_axis(rotf, w_char, axis)
+      rr = SQRT(axis(1)**2 + axis(2)**2 + axis(3)**2)
+      axis(1) = axis(1) / rr
+      axis(2) = axis(2) / rr
+      axis(3) = axis(3) / rr
+!
+! write(*,*) ' MATRIX              ', rotf(1,:)
+! write(*,*) ' MATRIX              ', rotf(2,:)
+! write(*,*) ' MATRIX              ', rotf(3,:)
+! write(*,*) ' AXIS                ', axis
+      v(1) = rotf(1,1)*n_uvw(1) + rotf(1,2)*n_uvw(2) + rotf(1,3)*n_uvw(3)
+      v(2) = rotf(2,1)*n_uvw(1) + rotf(2,2)*n_uvw(2) + rotf(2,3)*n_uvw(3)
+      v(3) = rotf(3,1)*n_uvw(1) + rotf(3,2)*n_uvw(2) + rotf(3,3)*n_uvw(3)
+! write(*,*) ' TRANSFORMED normal  ', v
+      u(1) = rotf(1,1)*p_a  (1) + rotf(1,2)*p_a  (2) + rotf(1,3)*p_a  (3)
+      u(2) = rotf(2,1)*p_a  (1) + rotf(2,2)*p_a  (2) + rotf(2,3)*p_a  (3)
+      u(3) = rotf(3,1)*p_a  (1) + rotf(3,2)*p_a  (2) + rotf(3,3)*p_a  (3)
+! write(*,*) ' TRANSFORMED abscissa', u
+      u(1) = rotf(1,1)*p_o  (1) + rotf(1,2)*p_o  (2) + rotf(1,3)*p_o  (3)
+      u(2) = rotf(2,1)*p_o  (1) + rotf(2,2)*p_o  (2) + rotf(2,3)*p_o  (3)
+      u(3) = rotf(3,1)*p_o  (1) + rotf(3,2)*p_o  (2) + rotf(3,3)*p_o  (3)
+! write(*,*) ' TRANSFORMED ordinate', u
+!     We need negative angle as view is into -C in JMOL !!
+      beta = -ACOSD(0.5*(rotf(1,1) + rotf(2,2) + rotf(3,3)-1.)) ! trace is cos+cos+1
+! write(*,*) ' Determinant, beta   ', det3(rotf), beta
+      IF(ABS(beta)<EPS) THEN
+         line_move = 'moveto 0.0  {0 0 1}  0.0'
+      ELSE
+         WRITE(line_move,'(a,3(1x,f6.3),a,f8.3)') 'moveto 0.0  {', axis(:),'}  ', beta
+      ENDIF
+   ENDIF
+!!!!!!!!!!!PATCH FOR RIGHT NOW!!!!!!!!!!!!
+! Just straighten up the normal
+   IF(ABS(n_uvw(3)-1.0)<EPS) THEN
+      line_move = 'moveto 0.0  {0 0 1}  0.0'
+   ELSE
+      beta = ACOSD(n_uvw(3))
+      axis(1) =  n_uvw(2)
+      axis(2) = -n_uvw(1)
+      axis(3) =  0.0
+      WRITE(line_move,'(a,3(1x,f6.3),a,f8.3)') 'moveto 0.0  {', axis(:),'}  ', beta
+   ENDIF
+! write(*,*) 'LINEMOVE ', line_move(1:LEN_TRIM(line_move))
+!! END !!!!PATCH FOR RIGHT NOW!!!!!!!!!!!!
+   CALL plot_ini_trans (azero,                        &
+        pl_tran_g, pl_tran_gi, pl_tran_f, pl_tran_fi, &
+        cr_gten, cr_rten, cr_eps)
+!
+   IF(operating=='Linux') THEN
+      tempfile = '/tmp/jmol.mol'
+   ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
+      tempfile = '/opt/jmol/jmol.mol'
+   ENDIF
+   CALL oeffne( ITMP, tempfile, 'unknown')
+   IF(operating=='Linux') THEN
+!
+!     Write load command, enclose file name in apostrophes to cover 
+!     blanks in filenemes
+      WRITE(ITMP,'(3a)') 'load ''',                  &
+         current_dir(1:LEN_TRIM(current_dir))//      &
+         pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
+   ELSEIF(operating(1:6)=='cygwin') THEN
+      WRITE(ITMP,'(3a)') 'load ''',                   &
+         operat_top(1:LEN_TRIM(operat_top))//        &
+         current_dir(1:LEN_TRIM(current_dir))//      &
+         pl_out(1:LEN_TRIM(pl_out)), ' {1 1 1}'
+   ELSEIF(operating(1:7)=='Windows') THEN
+      WRITE(ITMP,'(3a)') 'load ''',                  &
+         current_dir(11:11) // ':' //                &
+         current_dir(12:LEN_TRIM(current_dir)) //    &
+         pl_out(1:LEN_TRIM(pl_out)), ''' {1 1 1}'
+   ENDIF
+!  WRITE(ITMP,'(a)') 'moveto 0.0  {0 0 1}  0.0'
+   WRITE(ITMP,'(a)') line_move(1:len_TRIM(line_move))
+   WRITE(ITMP,'(a)') 'boundbox off'
+   WRITE(ITMP,'(a)') 'unitcell off'
+   WRITE(ITMP,'(a)') 'axes 0.03'
+   WRITE(ITMP,'(a)') 'hide none'
+   WRITE(ITMP,'(a)') 'select * '
+   WRITE(ITMP,'(a)') 'center selected'
+   IF(ANY(pl_bond(0:cr_nscat, 0:cr_nscat))) THEN   ! Bonds were specified
+   WRITE(ITMP,'(a)') 'connect (all) (all) DELETE'
+   DO i=0, cr_nscat
+      DO j=0, cr_nscat
+         IF(pl_bond(i,j)) THEN
+            WRITE(ITMP,'(a, f5.2, 1x, f5.2, 1x, a,a,a, a,a,a, a, f5.2, a)') &
+            'connect ', pl_bond_len(1,i,j), pl_bond_len(2,i,j), &
+            '(_',cr_at_lis(i)(1:len_trim(cr_at_lis(i))),')',    &
+            '(_',cr_at_lis(j)(1:len_trim(cr_at_lis(j))),')',    &
+            ' SINGLE radius ',pl_bond_rad(i,j), ' ModifyOrCreate'
+         ENDIF
+      ENDDO
+   ENDDO
+   ENDIF
+   IF(pl_poly_n>0) THEN
+!  DO i=1, pl_poly_n
+      WRITE(line,'(a)') 'polyhedra '
+      k = LEN_TRIM(line)
+      IF(pl_poly_nmin>0 .AND. pl_poly_nmax>0) WRITE(line(k+1:k+3),'(i2,a)') pl_poly_nmin,' '
+      k = LEN_TRIM(line)
+      IF(pl_poly_nmax>0) WRITE(line(k+1:k+3),'(1x,i2  )') pl_poly_nmax
+      k = LEN_TRIM(line)
+      IF(pl_poly_dmin>0.0 .AND. pl_poly_dmax>0.0) WRITE(line(k+1:k+8),'(f8.2)') pl_poly_dmin
+      k = LEN_TRIM(line)
+      IF(pl_poly_dmax>0.0) WRITE(line(k+1:k+8),'(f8.2)') pl_poly_dmax
+      k = LEN_TRIM(line)
+      WRITE(line(k+1:k+8),'(a)') ' BONDS ('
+      k = LEN_TRIM(line)
+      IF(pl_poly_c(-1)) THEN
+         WRITE(line(k+1:k+7),'(a)') '*) to ('
+         k = LEN_TRIM(line)
+      ELSE
+         lsecond = .FALSE.
+         DO j=0,cr_nscat
+            IF(pl_poly_c(j)) THEN
+               IF(lsecond) THEN
+                  WRITE(line(k+1:k+8),'(a,a)') ' OR ',cr_at_lis(j)
+               ELSE
+                  WRITE(line(k+1:k+4),'(a)') cr_at_lis(j)
+                  lsecond = .TRUE.
+               ENDIF
+               k = LEN_TRIM(line)
+            ENDIF
+         ENDDO
+         WRITE(line(k+1:k+6),'(a)') ') to ('
+         k = LEN_TRIM(line)
+      ENDIF
+      IF(pl_poly_o(-1)) THEN
+         WRITE(line(k+1:k+2),'(a)') '*)'
+         k = LEN_TRIM(line)
+      ELSE
+         lsecond = .FALSE.
+         DO j=0,cr_nscat
+            IF(pl_poly_o(j)) THEN
+               IF(lsecond) THEN
+                  WRITE(line(k+1:k+8),'(a,a)') ' OR ',cr_at_lis(j)
+               ELSE
+                  WRITE(line(k+1:k+4),'(a)') cr_at_lis(j)
+                  lsecond = .TRUE.
+               ENDIF
+               k = LEN_TRIM(line)
+            ENDIF
+         ENDDO
+         WRITE(line(k+1:k+1),'(a)') ')'
+         k = LEN_TRIM(line)
+      ENDIF
+      IF(.NOT.pl_poly_face) WRITE(line(k+1:k+10),'(a)') ' COLLAPSED'
+      WRITE(ITMP,'(a)') line(1:LEN_TRIM(line))
+      IF(pl_poly_hue) THEN
+         line = 'color polyhedra translucent '
+         IF(pl_poly_col/='auto') line = line(1:len_trim(line)) // ' ' // pl_poly_col
+         WRITE(ITMP,'(a)') line(1:LEN_TRIM(line))
+      ELSE
+         IF(pl_poly_col/='auto') THEN
+            line = 'color polyhedra ' // pl_poly_col
+            WRITE(ITMP,'(a)') line(1:LEN_TRIM(line))
+         ENDIF
+      ENDIF
+!  ENDDO
+   ENDIF
+   WRITE(ITMP,'(a)') 'spacefill 25%'
+   WRITE(ITMP,'(a)') 'zoom 125'
+   WRITE(ITMP,'(a,i3,a,i3,a,i3,a)') 'background [',pl_back(1),',' , pl_back(2),',', pl_back(3),']'
+   CLOSE(ITMP)
+   IF(operating=='Linux') THEN
+      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+            tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
+   ELSEIF(operating(1:6)=='cygwin') THEN
+      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
+   ELSEIF(operating(1:7)=='Windows') THEN
+      WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
+!
+   ENDIF
+   WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
+   CALL system(line)
+ENDIF
+END SUBROUTINE plot_inter
+!*****7*****************************************************************
+!
+SUBROUTINE plot_test_aon(lnor, labs, lord)
+!
+USE crystal_mod
+USE metric_mod
+USE discus_plot_mod 
+USE trafo_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+LOGICAL, INTENT(IN) :: lnor
+LOGICAL, INTENT(IN) :: labs
+LOGICAL, INTENT(IN) :: lord
+!
+LOGICAL           , PARAMETER :: lspace = .TRUE.
+REAL              , PARAMETER :: EPS  = 1.E-5!A small value
+REAL, DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
+!
+REAL               :: w_na, w_no, w_ao    ! pairwise angles
+REAL, DIMENSION(3) :: v                   ! a vector
+!  Tests if normal, abscissa nad ordinate are parallel, try to correct
+w_na = do_bang (lspace, pl_uvw, NULL, pl_abs) 
+w_no = do_bang (lspace, pl_uvw, NULL, pl_ord) 
+w_ao = do_bang (lspace, pl_abs, NULL, pl_ord) 
+IF(ABS(w_na)<EPS)  THEN     ! Normal and Abscissa are parallel
+  IF(lnor) THEN            ! User specified Normal
+     IF(labs) THEN         ! User specified Abscissa, Flag error
+        ier_num = -80 
+        ier_typ = ER_APPL
+        RETURN
+     ELSE                  ! No abscissa give, lets calculate one
+        IF(ABS(w_no) > EPS) THEN ! Normal and Ordinate are not parallel
+           CALL vekprod (pl_ord, pl_uvw, pl_abs, cr_eps, cr_rten)
+           w_na = 90.0
+           w_ao = 90.0
+        ELSE                     ! Normal and Ordinate are parallel
+           IF(labs) THEN         ! User specified Ordinate, Flag error
+              ier_num = -153
+              ier_typ = ER_APPL
+              RETURN
+           ELSE                  ! No abscissa give, lets calculate one
+              v(1) = pl_uvw(1) + 0.1
+              v(2) = pl_uvw(2) + 0.01
+              v(3) = pl_uvw(3) + 0.03
+              CALL vekprod (v     , pl_uvw, pl_abs, cr_eps, cr_rten)
+              CALL vekprod (pl_uvw, pl_abs, pl_ord, cr_eps, cr_rten)
+              w_na = 90.0
+              w_no = 90.0
+              w_ao = 90.0
+           ENDIF
+        ENDIF
+     ENDIF
+  ELSE                           ! User did not give a normal
+     IF(labs) THEN               ! User specified Abscissa
+        IF(lord) THEN            ! User specified Ordinate
+           CALL vekprod (pl_abs, pl_ord, pl_uvw, cr_eps, cr_rten)
+           w_na = 90.0
+           w_no = 90.0
+        ELSE                        ! User did not give Ordinate
+           v(1) = pl_abs(1) + 0.1
+           v(2) = pl_abs(2) + 0.01
+           v(3) = pl_abs(3) + 0.03
+           CALL vekprod (v     , pl_abs, pl_uvw, cr_eps, cr_rten)
+           CALL vekprod (pl_uvw, pl_abs, pl_ord, cr_eps, cr_rten)
+           w_na = 90.0
+           w_no = 90.0
+           w_ao = 90.0
+        ENDIF
+     ELSE                        ! User did not give abscissa
+        IF(lord) THEN            ! User specified Ordinate
+           v(1) = pl_ord(1) + 0.1
+           v(2) = pl_ord(2) + 0.01
+           v(3) = pl_ord(3) + 0.03
+           CALL vekprod (pl_ord, v     , pl_abs, cr_eps, cr_rten)
+           CALL vekprod (pl_abs, pl_ord, pl_uvw, cr_eps, cr_rten)
+           w_na = 90.0
+           w_no = 90.0
+           w_ao = 90.0
+        ELSE                        ! User did not give ordinate
+           pl_hkl(1) = 0.0          ! Make JMOL standard
+           pl_hkl(2) = 0.0
+           pl_hkl(3) = 1.0
+           pl_abs(1) = 1.0
+           pl_abs(2) = 0.0
+           pl_abs(3) = 0.0
+           CALL trans (pl_hkl, cr_rten, pl_uvw, 3) 
+           CALL vekprod (pl_uvw, pl_abs, pl_ord, cr_eps, cr_rten)
+           w_na = 90.0
+           w_no = 90.0
+           w_ao = 90.0
+        ENDIF
+     ENDIF
+  ENDIF
+ENDIF
+!   ! at this point w_na is not ZERO, check Ordinate and correct
+IF(ABS(w_no)<EPS .OR. ABS(w_ao)<EPS)  THEN     ! Ordinate is parallel to Normal or Abscissa 
+   IF(lord) THEN            ! User specified Ordinate
+      ier_num = -154
+      ier_typ = ER_APPL
+      RETURN
+   ELSE                     ! User did not give ordinate
+      CALL vekprod (pl_uvw, pl_abs, pl_ord, cr_eps, cr_rten)
+      w_no = 90.0
+      w_ao = 90.0
+   ENDIF
+ENDIF
+END SUBROUTINE plot_test_aon
+!
 END MODULE discus_plot_menu

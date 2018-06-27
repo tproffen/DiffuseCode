@@ -19,6 +19,7 @@ CONTAINS
       USE molecule_mod 
       USE output_mod 
       USE patters_mod 
+      USE discus_plot_mod 
       USE pdf_mod 
       USE discus_plot_mod 
       USE powder_mod 
@@ -175,6 +176,8 @@ CONTAINS
 !     offsq (i, j) = 0 
 !     ENDDO 
 !     ENDDO 
+!
+      pl_poly_n = 0
 !
       CALL rese_cr
       CALL do_stack_rese

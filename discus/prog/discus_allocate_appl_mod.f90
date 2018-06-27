@@ -2020,6 +2020,12 @@ MODULE discus_allocate_appl_mod
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
        pl_size_of = pl_size_of + size_of
 !
+       CALL alloc_arr ( pl_poly_c    ,          -1, n_scat,  all_status, .FALSE. , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+       CALL alloc_arr ( pl_poly_o    ,          -1, n_scat,  all_status, .FALSE. , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       IF( lstat ) THEN                        ! Success
          PL_MAXSCAT    = n_scat
          pl_rgb(1, :)  = 1
@@ -3122,7 +3128,7 @@ MODULE discus_allocate_appl_mod
 !+
       IMPLICIT NONE
 !
-      CALL alloc_plot ( 1 )
+      CALL alloc_plot ( 1    )
 !
     END SUBROUTINE dealloc_plot
 !

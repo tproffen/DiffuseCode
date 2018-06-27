@@ -9,11 +9,14 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-151,IO=6)
+      PARAMETER    (IU=-154,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'Angle Ordinate to (Normal/Abscissa) is 0',      & !-154 ! discus
+     &  'Angle between Normal and Ordinate is 0',        & !-153 ! discus
+     &  'Interactive plot for JMOL only',                & !-152 ! discus
      &  'AND and DEFAULT simultaneously in isprop',      & !-151 ! discus
      &  'Occupancy outside [0:1]',                       & !-150 ! discus
      &  'Error reading SCAT instruction',                & !-149 ! discus
