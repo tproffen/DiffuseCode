@@ -14,6 +14,7 @@ MODULE envir_mod
    CHARACTER(LEN= 256) :: start_dir
    CHARACTER(LEN= 256) :: current_dir
    CHARACTER(LEN= 256) :: operating
+   CHARACTER(LEN= 256) :: operat_top
    CHARACTER(LEN= 256) :: user_profile
    CHARACTER(LEN= 256) :: term_scheme_file
    CHARACTER(LEN= 256) :: inst_file

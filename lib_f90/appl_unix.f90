@@ -28,7 +28,12 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       INTEGER len_str 
       INTEGER pname_l 
       LOGICAL lpresent
+INTEGER :: lib_f90_getpid
 !                                                                       
+! Get the PID of the DISCUS Process
+!
+PID = lib_f90_getpid()
+!
       operating = ' ' 
       CALL get_environment_variable ('OS', operating) 
       IF(operating == '') THEN
@@ -84,6 +89,27 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       lines = lines - 2 
 !
       IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
+         operating = 'Windows'
+         color_theme = THEME_LGHTYL_BLACK
+         INQUIRE(FILE='/Cygwin.bat',EXIST=lpresent)
+         IF(lpresent) THEN
+            OPEN(idef,FILE='/Cygwin.bat',STATUS='old')
+            READ(idef,'(a)', IOSTAT=ios) line
+            find_op: DO WHILE(.NOT. IS_IOSTAT_END(ios))
+               IF(line(1:5)=='chdir') THEN    ! FOUND correct line
+                 operat_top = line( 7:LEN_TRIM(LINE)-4)
+                 operating  = line(10:LEN_TRIM(LINE)-4) !'Cygwin'
+                 EXIT find_op
+               ENDIF
+               READ(idef,'(a)', IOSTAT=ios) line
+            ENDDO find_op
+            CLOSE(idef)
+         ELSE
+            INQUIRE(FILE='/suite.sh',EXIST=lpresent)
+            IF(lpresent) THEN
+               operating = 'Windows'
+            ENDIF
+         ENDIF
          user_profile = ' '
          CALL get_environment_variable ('USERPROFILE', user_profile)
          home_dir = user_profile
