@@ -264,6 +264,10 @@ ENDIF
 !        run  a slave from diffev within discus_suite at NO MPI
 !
          IF(pname=='diffev') THEN
+!
+            opara  =  (/ '0.000000', '1.000000', 'none    ', 'parallel' /)   ! Always provide fresh default values
+            lopara =  (/  8        ,  8        ,  8        ,  8         /)
+            owerte =  (/  0.0      ,  1.0      ,  0.0      ,  1.0       /)
             CALL get_params (zeile, ianz, cpara, lpara, maxw, length)
             CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                               oname, loname, opara, lopara, owerte)
