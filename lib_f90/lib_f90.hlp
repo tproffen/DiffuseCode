@@ -515,9 +515,16 @@
    end of file sets the value of res[0] to zero!
 
    Example: 
-   variavle character, str_a
+   Assume a file "example.text" with the following content:
+   3.1415  123456
+   2.7182817 Hello 654321
+   This can be read with the following instructions
+
+   fopen 1, example.text
+   variable character, str_a
    fget 1, r[2],i[2]
    fget 1, r[2],str_a,i[2]
+   fclose 1
 3  fopen
 !b fopen <number>,<file> [,{"append" | "overwrite"}]
 
