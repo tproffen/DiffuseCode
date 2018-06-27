@@ -3,7 +3,7 @@
 !     Compiler specific routines GNU gfortran version                   
 !
 !*****7**************************************************************** 
-      SUBROUTINE datum () 
+SUBROUTINE datum () 
 !                                                                       
       USE times_mod
       IMPLICIT none 
@@ -625,4 +625,14 @@
       is_nan = isnan(x)
 !
       END FUNCTION is_nan
+!
+!*****7***********************************************************      
+!
+INTEGER FUNCTION lib_f90_getpid()
+!
+! Interface to the compiler dependent GETPID routines
+!
+lib_f90_getpid = getpid()
+!
+END FUNCTION lib_f90_getpid
 !*****7***********************************************************      
