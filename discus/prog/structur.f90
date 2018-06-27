@@ -170,6 +170,9 @@ CONTAINS
 !
 !      --Get optional parameters
 !
+         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '    /)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6          /)
+         owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, owerte)
 !                                                                       
@@ -2596,6 +2599,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       USE molecule_mod 
       USE sym_add_mod 
       USE discus_save_mod 
+      USE discus_plot_mod
       IMPLICIT none 
 !                                                                       
        
@@ -2667,6 +2671,22 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       gen_add_n = 0 
 !                                                                       
       sav_r_ncell = .false. 
+!
+      pl_poly_n = 0
+      pl_poly_c(:) = .FALSE.
+      pl_poly_o(:) = .FALSE.
+      pl_poly_dmin = 0.0
+      pl_poly_dmax = 0.0
+      pl_poly_nmin = 0
+      pl_poly_dmax = 0
+      pl_poly_face = .TRUE.
+      pl_poly_hue  = .FALSE.
+      pl_poly_col  = 'auto'
+!
+      pl_bond(:,:)       = .FALSE.
+      pl_bond_len(:,:,:) = 0.0
+      pl_bond_rad(  :,:) = 0.0
+      pl_bond_col(:,:,:) = 0.0
 !                                                                       
       END SUBROUTINE rese_cr                        
 !

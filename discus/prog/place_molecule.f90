@@ -332,6 +332,9 @@ USE errlist_mod
 !
 !  Get optional parameters
 !
+   opara  =  (/ '170.00'/)    ! Always provide fresh default values
+   lopara =  (/  6      /)
+   owerte =  (/  170.00 /)
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, owerte)
    IF(ier_num /= 0) RETURN

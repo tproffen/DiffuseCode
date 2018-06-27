@@ -417,6 +417,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
+                     opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
+                     lopara =  (/  6,        6         /)
+                     owerte =  (/  1.0E-8 ,  0.0       /)
                      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &
                           ncalc, oname, loname, opara, lopara, owerte)
                      IF (ianz.eq.1.or.ianz.eq.2) then 

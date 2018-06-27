@@ -1390,6 +1390,11 @@ length = LEN_TRIM(string)
 !
 CALL get_params (string, ianz, cpara, lpara, MAXW, length)
 IF(ier_num /= 0) RETURN
+!
+opara  =  (/ '      ', '      ' /)   ! Always provide fresh default values
+lopara =  (/  0,        0       /)
+owerte =  (/  0.0,      0.0     /)
+!
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
 iianz = 1

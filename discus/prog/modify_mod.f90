@@ -2408,6 +2408,7 @@ ENDIF
       DATA null / 0.0, 0.0, 0.0 / 
       DATA oname  / 'centx', 'centy', 'centz',  'keep ',  'accum', 'exec '/
       DATA loname /  5,       5,       5,        4     ,   5     ,  4    /
+!
       opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
       lopara =  (/  6,        6,        6      ,  6      ,  4      ,  3 /)
       owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0 /)
@@ -2432,6 +2433,9 @@ ENDIF
       center(:) = 0.0     ! Default center to 0.0, 0.0, 0.0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF(ier_num /= 0) RETURN
+      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6      ,  4      ,  3 /)
+      owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0 /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
       IF(ier_num /= 0) RETURN

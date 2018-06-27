@@ -567,6 +567,9 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
 !     Sort optional parameters
 !
+      opara  =  (/ '-1     ', 'ignore ' /)   ! Always provide fresh default values
+      lopara =  (/  7       ,  7        /)
+      owerte =  (/  -1.0    ,  0.0      /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
       IF(     str_comp(opara(2), 'ignore',  2, lopara(2), 6) ) THEN
