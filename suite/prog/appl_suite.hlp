@@ -3,6 +3,16 @@
    The discus_suite program integrates the stand alone programs
    DISCUS DIFFEV and KUPLOT into one common program.
 
+   To switch to any of the individual sections type the respective
+   name. Return to the suite with the command "exit". Within each
+   of the sections you can jump to another section with the 
+   command "branch" that takes the intended section name as single 
+   parameter. Return to the original section with an "exit" command.
+
+   Type any of the following topics to obtain further help. 
+   Information on the general commands that are available at any
+   section are found in the topic "Command_lang"uage
+
 2  Summary
 
    You can switch to the individual sections "discus", "diffev",
@@ -129,3 +139,18 @@
    start prior tot he macro name. The numebr defaults to the value
    of the SHELL variable NUMBER_OF_PROCESSORS on your system. If this
    variable is not set, discus_suite will start 4 processes.
+
+2  manual
+!b manual ["section:"{"suite"  | "discus"  | "diffev" |
+!b                    "kuplot" | "package" | "mixscat"}
+!b        [,"viewer:"<name>]
+
+   Opens a PDF viewer for one of the Manuals
+
+   The section defaults to the current program section that you are
+   working with.
+   On Linux systems, the viewer defaults to "qpdfview", on Windows 
+   system it defaults to "firefox". If DISCUS does not find the
+   default or the user provided viewer, DISCUS will search
+   a list of common PDF viewers. If none is found an error message
+   points to the folder that contains the manuals.
