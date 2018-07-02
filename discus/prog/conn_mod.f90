@@ -2002,6 +2002,8 @@ NULLIFY(hood_c)
 NULLIFY(hood_j)
 !
 ino = 0
+IF(.NOT.ALLOCATED(at_conn)) RETURN
+IF(UBOUND(at_conn,1)==0) RETURN
 IF(ASSOCIATED(at_conn(isel)%liste)) THEN     ! A connectivity list has been created
    is = cr_iscat(isel) 
    IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
