@@ -401,6 +401,7 @@ CONTAINS
       USE crystal_mod 
       USE tensors_mod
       USE trafo_mod
+!     USE matrix_mod
       IMPLICIT none 
 !                                                                       
        
@@ -440,6 +441,9 @@ CONTAINS
       REAL scale 
       REAL glide 
       REAL eps 
+!      REAL :: alphaQ, detQ, traceQ
+!REAL, DIMENSION(3) :: axisQ
+!      INTEGER :: ier
 !                                                                       
       DATA eps / 0.0001 / 
 !                                                                       
@@ -564,10 +568,93 @@ CONTAINS
          screw (i) = 0.0 
          ENDDO 
       ELSE 
+!                                                                       
+!     --To detemine the axis, we need to calculate                      
+!       (Matrix - Identity)**-1                                         
+!                                                                       
+         DO i = 1, 3 
+         DO j = 1, 3 
+         temp (i, j) = work (i, j) 
+         sum (i, j) = 0.0 
+         ENDDO 
+         sum (i, i) = 1.0 
+         ENDDO 
+!                                                                       
+         factor = 1. 
+         IF (w_char (1:1) .eq.'-'.or.w_char (2:2) .eq.'m') then 
+            factor = - 1. 
+         ENDIF 
+!                                                                       
+         DO i = 1, 3 
+         DO j = 1, 3 
+         cp (i, j) = work (i, j) 
+         ENDDO 
+         cp (i, i) = cp (i, i) - factor 
+         ENDDO 
+!                                                                       
+!     --Usually the determinant of (Matrix - Identity) is singular      
+!       a 2x2 submatrix can however be solved                           
+!                                                                       
+         lsearch = .true. 
+         l = 4 
+         DO while (lsearch.and.l.gt.0) 
+         l = l + 1 
+         ii = (mod (l - 1 + 1, 3) ) + 1 
+         jj = (mod (l - 1 + 2, 3) ) + 1 
+         kk = (mod (l - 1 + 3, 3) ) + 1 
+         IF (cp (ii, ii) * cp (jj, jj) - cp (ii, jj) * cp (jj, ii)      &
+         .ne.0.0) then                                                  
+            det = cp (ii, ii) * cp (jj, jj) - cp (ii, jj) * cp (jj, ii) 
+            axis (ii) = - (cp (jj, jj) * cp (ii, kk) - cp (ii, jj)      &
+            * cp (jj, kk) ) / det                                       
+            axis (jj) = - (cp (ii, ii) * cp (jj, kk) - cp (jj, ii)      &
+            * cp (ii, kk) ) / det                                       
+            axis (kk) = 1.0 
+            IF (abs (abs (axis (ii) ) - 0.5) .lt.eps.or.abs (abs (axis (&
+            jj) ) - 0.5) .lt.eps) then                                  
+               axis (ii) = 2 * axis (ii) 
+               axis (jj) = 2 * axis (jj) 
+               axis (kk) = 2 * axis (kk) 
+            ENDIF 
+            lsearch = .false. 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!     --Find how many elements are equal to zero, this helps classifying
+!                                                                       
+         nnull = 0 
+         DO i = 1, 3 
+         IF (abs (axis (i) ) .lt.eps) then 
+            nnull = nnull + 1 
+         ENDIF 
+         ENDDO 
+!                                                                       
+!     --Get proper sense of direction                                   
+!                                                                       
+         IF (nnull.eq.0) then 
+            IF (axis (1) * axis (2) * axis (3) .lt.0) then 
+               DO i = 1, 3 
+               axis (i) = - axis (i) 
+               ENDDO 
+            ENDIF 
+         ELSEIF (nnull.eq.1) then 
+            DO i = 1, 3 
+            IF (abs (axis (i) ) .lt.eps) then 
+               jj = (mod (i - 1 + 1, 3) ) + 1 
+               kk = (mod (i - 1 + 2, 3) ) + 1 
+               IF (axis (jj) .lt.0.0) then 
+                  axis (i) = - axis (i) 
+                  axis (jj) = - axis (jj) 
+                  axis (kk) = - axis (kk) 
+               ENDIF 
+            ENDIF 
+            ENDDO 
+         ENDIF 
 !
 !       Determine the rotation axis
 !
-        CALL get_detail_axis(work, w_char, axis)
+!       CALL get_detail_axis(work, w_char, axisQ)
+!       CALL mat_axis(work, axisQ, alphaQ, detQ, traceQ, ier)
       ENDIF 
 !                                                                       
 !     Determine screw part/glide part, exclude -N axes since t=0 always 
