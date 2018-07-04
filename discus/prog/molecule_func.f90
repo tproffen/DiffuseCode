@@ -1,6 +1,7 @@
 MODULE molecule_func_mod
 !
 USE conn_mod
+USE conn_sup_mod
 USE molecule_mod
 !
 IMPLICIT NONE

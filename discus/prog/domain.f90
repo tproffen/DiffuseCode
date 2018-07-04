@@ -1880,6 +1880,7 @@ mole_int: IF(mk_infile_internal) THEN
       USE discus_config_mod 
       USE domain_mod
       USE modify_mod
+      USE surface_func_mod
       USE errlist_mod 
       USE get_params_mod
       IMPLICIT none 

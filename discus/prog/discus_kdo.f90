@@ -10,6 +10,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE charact_mod 
       USE chem_menu
       USE conn_mod
+      USE do_find_mod
       USE domain_menu
       USE fourier_menu
       USE insert_menu
@@ -25,6 +26,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE pdf_menu
       USE discus_plot_menu
       USE powder
+      USE prop_para_func
       USE rmc_menu
       USE save_menu
       USE discus_show_menu
@@ -33,6 +35,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE shear
       USE structur
       USE spcgr_apply, ONLY: wyckoff_main
+      USE surface_func_mod
       USE thermal_mod
       USE transform_menu
       USE waves_do_menu

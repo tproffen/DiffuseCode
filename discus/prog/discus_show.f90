@@ -12,6 +12,7 @@ CONTAINS
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE conn_mod
+      USE conn_sup_mod
 !                                                                       
       USE ber_params_mod
       USE errlist_mod 
@@ -365,6 +366,7 @@ CONTAINS
       USE atom_env_mod 
       USE atom_name
       USE modify_mod
+      USE prop_char_mod
 !                                                                       
       USE ber_params_mod
       USE errlist_mod 
@@ -639,6 +641,7 @@ CONTAINS
       USE crystal_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE get_iscat_mod
       USE modify_mod
       USE molecule_mod 
 !                                                                       

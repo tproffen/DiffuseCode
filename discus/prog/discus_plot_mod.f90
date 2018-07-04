@@ -59,7 +59,7 @@ INTEGER                                   :: pl_poly_nmin ! Minimum neighbors fo
 INTEGER                                   :: pl_poly_nmax ! Maximum neighbors for polhedra
 LOGICAL                                   :: pl_poly_face ! Face style flat/collapsed
 LOGICAL                                   :: pl_poly_hue  ! Face style solid / transparent
-CHARACTER(LEN=6)                          :: pl_poly_col  ! Face color
+CHARACTER(LEN=128)                        :: pl_poly_col  ! Face color
 LOGICAL                                   :: pl_dens      = .false.
 LOGICAL                                   :: pl_sel_atom  = .true.
 LOGICAL                                   :: pl_mol_all   = .true.

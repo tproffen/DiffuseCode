@@ -20,6 +20,8 @@ SUBROUTINE save_struc (string, lcomm)
       USE modify_mod
       USE discus_save_mod 
       USE discus_show_menu
+      USE prop_char_mod
+      USE prop_para_func
 !
       USE ber_params_mod
       USE build_name_mod
@@ -850,7 +852,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !       type has been selected                                          
 !                                                                       
 !     IF (sav_latom (cr_iscat (i) ) ) THEN 
-      IF (check_select_status (sav_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, sav_latom (cr_iscat (i) ), cr_prop (i),   &
                                sav_sel_prop)     ) THEN
 !        IF(lwrite(i)) THEN
          wr_prop = 1

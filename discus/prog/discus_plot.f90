@@ -16,6 +16,8 @@ CONTAINS
       USE molecule_mod
       USE discus_plot_mod 
       USE discus_show_menu
+      USE get_iscat_mod
+      USE prop_para_func
       USE update_cr_dim_mod
       USE trafo_mod
 !
@@ -53,8 +55,8 @@ CONTAINS
       CHARACTER(1) cdum 
       REAL :: size, rr=0.0, rg=0.0, rb=0.0
       INTEGER lp, length 
-      INTEGER :: iianz,ianz, i, j, is, it, ic, lbef 
-      INTEGER :: npoly     
+      INTEGER :: ianz, i, j, is, it, ic, lbef 
+!      INTEGER :: npoly     
       INTEGER indxg 
       INTEGER         :: nscat
       INTEGER         :: ios
@@ -481,7 +483,7 @@ CONTAINS
                            pl_poly_nmin = NINT(owerte(3))
                            pl_poly_face = opara(5)=='flat'
                            pl_poly_hue  = opara(6)=='trans'
-                           pl_poly_col  = opara(7)
+                           pl_poly_col  = opara(7)(1:MIN(LEN(pl_poly_col),lopara(7)))
                            pl_poly_n    = 1
                         ENDIF 
                      ENDIF 
@@ -845,7 +847,9 @@ CONTAINS
       USE modify_mod
       USE molecule_mod 
       USE discus_plot_mod 
-      USE prop_para_mod 
+      USE prop_char_mod
+!      USE prop_para_func
+!      USE prop_para_mod 
 !
       USE errlist_mod 
       USE prompt_mod 
@@ -1193,8 +1197,6 @@ CONTAINS
       LOGICAL lno_slice, latom 
 !                                                                       
       INTEGER len_str 
-!     LOGICAL check_select_status 
-!     REAL skalpro 
 !                                                                       
       WRITE (iff, 500) cr_name (1:len_str (cr_name) ) 
       WRITE (iff, 510) (cr_a0 (i) * cr_icc (i), i = 1, 3),  &
@@ -1228,7 +1230,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1301,8 +1303,6 @@ CONTAINS
       LOGICAL lno_slice, latom 
 !                                                                       
       INTEGER len_str 
-!     LOGICAL check_select_status 
-!     REAL skalpro 
       CHARACTER(12) povcolor (15) 
       DATA povcolor / 'Scarlet', 'HuntersGreen', 'MediumBlue',          &
       'Magenta', 'Yellow', 'Black', 'IndianRed', 'DarkGreen',           &
@@ -1341,7 +1341,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1427,8 +1427,6 @@ CONTAINS
       INTEGER i, j, iff 
       LOGICAL lno_slice, latom 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL skalpro 
 !                                                                       
 !     scalef(1) = MAX(cr_icc(1), INT((cr_dim(1,2)-cr_dim(1,1)))+2)
 !     scalef(2) = MAX(cr_icc(2), INT((cr_dim(2,2)-cr_dim(2,1)))+2)
@@ -1465,7 +1463,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1553,8 +1551,6 @@ CONTAINS
       INTEGER i, j, iff, pt, pc 
       LOGICAL lno_slice, latom, lkupl 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL skalpro 
 !                                                                       
       latom = .false. 
       IF (pl_hkl(1).eq.0.and.pl_hkl(2).eq.0.and.pl_hkl(3).eq.0) then
@@ -1580,7 +1576,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -1860,10 +1856,6 @@ CONTAINS
       REAL xmin (3), xmax (3), null (3) 
       REAL xx 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_bang 
-!     REAL do_blen 
-!     REAL skalpro 
 !                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
@@ -1888,7 +1880,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -2063,11 +2055,6 @@ CONTAINS
       REAL xmin (3), xmax (3), null (3) 
       REAL xx 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_bang 
-!     REAL do_blen 
-!     REAL skalpro 
-!                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
       DATA null / 0.0, 0.0, 0.0 / 
@@ -2092,7 +2079,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -2155,7 +2142,6 @@ CONTAINS
       LOGICAL lscreen 
       REAL uvw (4) 
 !                                                                       
-!     LOGICAL check_select_status 
 !                                                                       
       DATA lscreen / .false. / 
       DATA lspace / .true. / 
@@ -2168,7 +2154,7 @@ CONTAINS
 !
       natoms = 0
       DO i = 1, cr_natoms 
-         IF (check_select_status(pl_latom(cr_iscat(i)), cr_prop (i),pl_sel_prop) ) THEN
+         IF (check_select_status(i, pl_latom(cr_iscat(i)), cr_prop (i),pl_sel_prop) ) THEN
             natoms = natoms + 1
          ENDIF
       ENDDO
@@ -2190,7 +2176,7 @@ CONTAINS
 !       type has been selected and                                      
 !            all atoms are selected                            or       
 !                                                                       
-      IF (check_select_status (pl_latom (cr_iscat (i) ), cr_prop (i),   &
+      IF (check_select_status (i, pl_latom (cr_iscat (i) ), cr_prop (i),   &
       pl_sel_prop) ) then                                               
 !                                                                       
 !     --Check dimensions of plotting space                              
@@ -2259,7 +2245,6 @@ LOGICAL, PARAMETER  :: lscreen = .FALSE.
 CHARACTER(LEN=1024) :: tempfile
 CHARACTER(LEN=1024) :: line
 CHARACTER(LEN=1024) :: line_move
-CHARACTER(LEN=   2) :: w_char = '  '
 INTEGER             :: i,j,k
 INTEGER             :: length
 INTEGER             :: jmol_pid
@@ -2274,12 +2259,9 @@ REAL, DIMENSION(3)  :: n_uvw    !Normal in direct space
 REAL, DIMENSION(3)  :: v        !temporary vector
 REAL, DIMENSION(3)  :: u        !temporary vector
 REAL, DIMENSION(3)  :: axis     !axis for moveto command
-REAL, DIMENSION(3)  :: p_x      !projected x-axis
 REAL, DIMENSION(3)  :: p_a      !projected abscissa
 REAL, DIMENSION(3)  :: p_o      !projected abscissa
 REAL, DIMENSION(3,3):: roti     !Rotation matrix
-REAL, DIMENSION(3,3):: rot1     !Rotation matrix
-REAL, DIMENSION(3,3):: rot2     !Rotation matrix
 REAL, DIMENSION(3,3):: rotf     !Rotation matrix
 REAL, DIMENSION(3,3):: test     !Test for unit matrix
 REAL :: det, trace

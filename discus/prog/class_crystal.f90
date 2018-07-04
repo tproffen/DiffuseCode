@@ -623,7 +623,7 @@ CONTAINS
    ia = 0
    DO inum=1,cr_natoms
 !     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
-      IF(check_select_status(this%cr_sav_atom(cr_iscat(inum)),   &
+      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum)),   &
                                   cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1
@@ -960,7 +960,7 @@ CONTAINS
    ia = 0
    DO inum=1,rd_cr_natoms
 !     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
-      IF(check_select_status(this%cr_sav_atom(rd_cr_iscat(inum)),   &
+      IF(check_select_status(inum,this%cr_sav_atom(rd_cr_iscat(inum)),   &
                                   rd_cr_prop (inum),                &
                              this%cr_sav_sel_prop) ) THEN
          ia = ia + 1

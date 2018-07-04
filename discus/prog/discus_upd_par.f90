@@ -1382,6 +1382,8 @@ LOGICAL :: ltest
 DATA oname  / 'and', 'or'/
 DATA loname /  3,    2   /
 !
+is_property = .FALSE.
+!
 opara  =  (/ '      ', '      ' /)   ! Always provide fresh default values
 lopara =  (/  0,        0       /)
 owerte =  (/  0.0,      0.0     /)

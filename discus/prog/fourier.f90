@@ -18,6 +18,7 @@ CONTAINS
       USE diffuse_mod 
       USE external_four
       USE fourier_sup
+      USE get_iscat_mod
       USE modify_mod
       USE output_mod 
       USE zone

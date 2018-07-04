@@ -23,4 +23,19 @@ INTEGER, PARAMETER ::  PROP_IGNORE       =  MAXPROP+1
 CHARACTER(LEN=8)   ::  c_prop_letter     = 'NMDOEIL '
 CHARACTER(LEN=8)   ::  c_prop_small      = 'nmdoeil '
 !
+INTEGER            ::  prop_user_no      = 0
+!
+TYPE :: prop_templ
+   INTEGER :: act
+   INTEGER :: at_type
+   INTEGER :: conn_no
+   CHARACTER(LEN=256) :: conn_name
+   INTEGER :: n_min
+   INTEGER :: n_max
+   INTEGER :: e_min
+   INTEGER :: e_max
+END TYPE prop_templ
+!
+TYPE(prop_templ), DIMENSION(:), ALLOCATABLE :: prop_user
+!
 END MODULE prop_para_mod

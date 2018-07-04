@@ -662,6 +662,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE crystal_mod 
       USE chem_mod 
       USE chem_menu
+      USE get_iscat_mod
       USE mc_mod 
       USE mmc_mod 
       USE modify_mod
@@ -1613,6 +1614,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE get_iscat_mod
       USE rmc_mod 
       USE mmc_mod 
       USE modify_mod
@@ -1783,20 +1785,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL e_old (0:MC_N_ENERGY) 
       REAL e_new (0:MC_N_ENERGY) 
 !                                                                       
-!      REAL mmc_energy_angle 
-!      REAL mmc_energy_occ 
-!      REAL mmc_energy_dis 
-!      REAL mmc_energy_spr 
-!      REAL mmc_energy_vec 
-!      REAL mmc_energy_len 
-!      REAL mmc_energy_buck 
-!      REAL mmc_energy_rep 
       REAL ran1, gasdev 
-!      INTEGER len_str 
-!     LOGICAL atom_allowed 
-!     LOGICAL check_select_status 
-!     REAL do_blen 
-!     REAL skalpro 
 !                                                                       
       DATA c_energy /                    &
            '                        ',   &
@@ -1898,8 +1887,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          ENDIF 
          iselz = isel (1) 
          IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
-      laccept = mmc_allowed (cr_iscat (isel (1) ) ) .and.check_select_st&
-     &atus (.true., cr_prop (isel (1) ),  cr_sel_prop)                  
+            laccept = mmc_allowed(cr_iscat(isel(1) ) ) .and. &
+                      check_select_status(isel(1), .true., cr_prop (isel (1) ),  cr_sel_prop)                  
          IF (cr_ncatoms.gt.0) then 
             CALL indextocell (isel (1), iz1, is (1) ) 
          ELSE 
@@ -1921,10 +1910,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          iz (1, i) = iz1 (i) 
          iz (2, i) = iz2 (i) 
          ENDDO 
-         laccept = mmc_allowed (cr_iscat (isel (1) ) ) .and.mmc_allowed &
-         (cr_iscat (isel (2) ) ) .and.check_select_status (.true.,      &
-         cr_prop (isel (1) ), cr_sel_prop) .and.check_select_status (   &
-         .true., cr_prop (isel (2) ), cr_sel_prop)                      
+         laccept = mmc_allowed(cr_iscat(isel(1) ) ) .and.&
+                   mmc_allowed(cr_iscat(isel(2) ) ) .and.&
+                   check_select_status(isel(1),.true., cr_prop(isel(1) ), cr_sel_prop) .and.&
+                   check_select_status(isel(2),.true., cr_prop(isel(2) ), cr_sel_prop)                      
       ELSEIF (mmc_move.eq.MC_MOVE_SWCHEM) then 
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
@@ -1951,8 +1940,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          laccept = cr_iscat (isel (1) ) .ne.cr_iscat (isel (2) ) .and.                  &
                  ( mmc_allowed (cr_iscat (isel (1) ) ) .and.                            &
                    mmc_allowed (cr_iscat (isel (2) ) )      )    .and.                  &
-                   check_select_status (.true., cr_prop (isel (1) ), cr_sel_prop) .and. &
-                   check_select_status (.true., cr_prop (isel (2) ), cr_sel_prop)                              
+                   check_select_status (isel(1), .true., cr_prop (isel (1) ), cr_sel_prop) .and. &
+                   check_select_status (isel(2), .true., cr_prop (isel (2) ), cr_sel_prop)                              
       ENDIF 
 !                                                                       
 !-----      ----Check whether geometrical constrains apply              
@@ -2586,8 +2575,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER ncalc 
       INTEGER ival1
 !                                                                       
-!     LOGICAL check_select_status 
-!                                                                       
       mmc_energy_occ = 0.0 
       ncalc = 0 
       valid_e = .false. 
@@ -2607,7 +2594,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                in_e = natom (icent) 
                is = cr_iscat (iatom (0, icent) ) 
                DO in = in_a, in_e 
-                  IF (check_select_status (.true., cr_prop (iatom (in,  &
+                  IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,  &
                                            icent) ), cr_sel_prop) ) then                         
                      ival1 = 0 
                      js = cr_iscat (iatom (in, icent) ) 
@@ -2645,7 +2633,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                in_e = 0 
                is = cr_iscat (isel (ia) ) 
                in = 0
-                  IF (check_select_status (.true., cr_prop (iatom (in,  &
+                  IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,  &
                                            icent) ), cr_sel_prop) ) then                         
                      ival1 = 0 
                      js = cr_iscat (iatom (in, icent) ) 
@@ -2781,9 +2770,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL delta 
       REAL dx 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL skalpro 
-!                                                                       
       mmc_energy_dis = 0.0 
       valid_e = .false. 
 !                                                                       
@@ -2806,7 +2792,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   DO in = in_a, in_e 
                   js = cr_iscat (iatom (in, icent) ) 
                   IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
-                     IF (check_select_status (.true., cr_prop (iatom (  &
+                     IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (  &
                      in, icent) ), cr_sel_prop) ) then                  
                         CALL indextocell (iatom (in, icent), cell, site) 
                         DO i = 1, 3 
@@ -2836,7 +2823,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                   in = 0 
                   js = cr_iscat (iatom (in, icent) ) 
                   IF (is.eq.js.or.mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
-                     IF (check_select_status (.true., cr_prop (iatom (  &
+                     IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (  &
                      in, icent) ), cr_sel_prop) ) then                  
                         CALL indextocell (iatom (in, icent), cell, site) 
                         DO i = 1, 3 
@@ -2895,8 +2883,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL d, u (3), v (3) 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_blen 
 !                                                                       
       mmc_energy_spr = 0.0 
       ncalc = 0 
@@ -2933,7 +2919,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             DO in = in_a, in_e 
             js = cr_iscat (iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_SPRING, is, js) .ne.0.0) then 
-               IF (check_select_status (.true., cr_prop (iatom (in,     &
+               IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,     &
                icent) ), cr_sel_prop) ) then                            
                   DO i = 1, 3 
                   v (i) = patom (i, in, icent) 
@@ -3088,9 +3075,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL d, u (3), v (3) 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_blen 
-!                                                                       
       mmc_energy_len = 0.0 
       ncalc = 0 
       valid_e = .false. 
@@ -3126,7 +3110,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             DO in = in_a, in_e 
             js = cr_iscat (iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_LENNARD, is, js) .ne.0.0) then 
-               IF (check_select_status (.true., cr_prop (iatom (in,     &
+               IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,     &
                icent) ), cr_sel_prop) ) then                            
                   DO i = 1, 3 
                   v (i) = patom (i, in, icent) 
@@ -3190,9 +3175,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL d, u (3), v (3) 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_blen 
-!                                                                       
       mmc_energy_rep = 0.0 
       ncalc = 0 
       valid_e = .false. 
@@ -3229,7 +3211,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             DO in = in_a, in_e 
             js = cr_iscat (iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_REPULSIVE, is, js) .ne.0.0) then 
-               IF (check_select_status (.true., cr_prop (iatom (in,     &
+               IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,     &
                icent) ), cr_sel_prop) ) then                            
                   DO i = 1, 3 
                   v (i) = patom (i, in, icent) 
@@ -3305,9 +3288,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL d, u (3), v (3) 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_blen 
-!                                                                       
       mmc_energy_buck = 0.0 
       ncalc = 0 
       valid_e = .false. 
@@ -3343,7 +3323,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             DO in = in_a, in_e 
             js = cr_iscat (iatom (in, icent) ) 
             IF (mmc_target_corr (ic, MC_BUCKING, is, js) .ne.0.0) then 
-               IF (check_select_status (.true., cr_prop (iatom (in,     &
+               IF (check_select_status (iatom (in, icent),  &
+                                           .true., cr_prop (iatom (in,     &
                icent) ), cr_sel_prop) ) then                            
                   DO i = 1, 3 
                   v (i) = patom (i, in, icent) 
@@ -3410,9 +3391,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:maxatom, CHEM_MAX_CENT) 
       REAL a, b, u (3), v (3), w (3) 
 !                                                                       
-!     LOGICAL check_select_status 
-!     REAL do_bang 
-!                                                                       
       lnoneig = .true. 
       mmc_energy_angle = 0.0 
       valid_e = .false. 
@@ -3432,9 +3410,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             is = cr_iscat (iatom (ii, icent) ) 
             js = cr_iscat (iatom (jj, icent) ) 
             IF (mmc_target_corr (ic, MC_ANGLE, is, js) .ne.0.0) then 
-               IF (check_select_status (.true., cr_prop (iatom (ii,     &
+               IF (check_select_status (iatom (ii, icent),  &
+                                           .true., cr_prop (iatom (ii,     &
                icent) ), cr_sel_prop) ) then                            
-                  IF (check_select_status (.true., cr_prop (iatom (jj,  &
+                  IF (check_select_status (jj, .true., cr_prop (iatom (jj,  &
                   icent) ), cr_sel_prop) ) then                         
                      DO i = 1, 3 
                      v (i) = patom (i, ii, icent) 

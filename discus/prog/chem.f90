@@ -18,6 +18,7 @@ SUBROUTINE chem
       USE chem_aver_mod
       USE chem_symm_mod
       USE celltoindex_mod
+      USE get_iscat_mod
       USE modify_mod
 !
       USE build_name_mod
@@ -998,7 +999,8 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE discus_config_mod 
    USE crystal_mod 
    USE chem_mod 
-   USE conn_mod
+   USE conn_sup_mod
+   USE get_iscat_mod
    USE modify_mod
    USE ber_params_mod
    USE errlist_mod 
@@ -1125,6 +1127,7 @@ USE discus_allocate_appl_mod
 USE discus_config_mod 
 USE crystal_mod 
 USE chem_mod 
+USE get_iscat_mod
 USE metric_mod
 USE modify_mod
 USE rmc_symm_mod
@@ -1463,6 +1466,7 @@ ENDIF
       USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE ber_params_mod
       USE errlist_mod 
@@ -1894,6 +1898,7 @@ ENDIF
       USE atom_name 
       USE chem_mod 
       USE celltoindex_mod
+      USE do_find_mod
       USE modify_mod
       USE ber_params_mod
       USE errlist_mod 
@@ -2045,6 +2050,7 @@ ENDIF
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE do_find_mod
       USE atom_env_mod 
       USE atom_name 
       USE chem_mod  
@@ -2401,6 +2407,7 @@ ENDIF
 !+                                                                      
       USE discus_config_mod 
       USE chem_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE build_name_mod
       USE ber_params_mod
@@ -3159,6 +3166,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
+      USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
       USE modify_mod
@@ -3310,6 +3318,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
+      USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
       USE mmc_mod 
@@ -3864,6 +3873,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+      USE get_iscat_mod
       USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
@@ -4053,6 +4063,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE crystal_mod 
       USE atom_name 
       USE chem_mod 
+      USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
       USE mmc_mod 
@@ -4265,6 +4276,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE chem_mod 
       USE chem_aver_mod
       USE celltoindex_mod
+      USE get_iscat_mod
       USE metric_mod
       USE mc_mod 
       USE mmc_mod   
@@ -4702,6 +4714,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE discus_config_mod 
       USE crystal_mod 
       USE chem_mod 
+      USE get_iscat_mod
       USE mc_mod 
       USE mmc_mod   
       USE modify_mod
@@ -5053,8 +5066,10 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE check_bound_mod
       USE chem_mod 
       USE celltoindex_mod
+      USE do_find_mod
       USE metric_mod
       USE modify_mod
       USE errlist_mod 
@@ -5299,9 +5314,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE discus_config_mod 
       USE crystal_mod 
       USE atom_env_mod 
+      USE check_bound_mod
       USE chem_mod 
       USE celltoindex_mod
-      USE conn_mod
+      USE conn_sup_mod
+      USE do_find_mod
       USE metric_mod
       USE modify_mod
       USE modify_func_mod
@@ -5982,6 +5999,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE atom_name 
       USE atom_env_mod 
       USE chem_mod 
+      USE do_find_mod
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
@@ -6261,6 +6279,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE atom_name 
       USE atom_env_mod 
       USE chem_mod 
+      USE do_find_mod
       USE metric_mod
       USE modify_mod
       USE modify_func_mod

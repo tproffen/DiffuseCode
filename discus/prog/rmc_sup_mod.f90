@@ -11,6 +11,7 @@ CONTAINS
       USE chem_mod 
       USE diffuse_mod 
       USE fourier_sup
+      USE get_iscat_mod
       USE modify_mod
       USE rmc_mod 
       USE quad_mod
@@ -448,6 +449,7 @@ CONTAINS
 !-                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE molecule_mod 
       USE rmc_mod 
@@ -2834,6 +2836,7 @@ loop_plane: DO ip = 1, rmc_nplane
       USE crystal_mod 
       USE atom_env_mod 
       USE chem_mod 
+      USE do_find_mod
       USE modify_mod
       USE rmc_mod 
       USE param_mod 
@@ -2878,7 +2881,7 @@ loop_plane: DO ip = 1, rmc_nplane
       USE discus_config_mod 
       USE crystal_mod 
       USE celltoindex_mod
-      USE conn_mod
+      USE conn_sup_mod
       USE rmc_mod 
       USE random_mod
       IMPLICIT none 

@@ -9,6 +9,7 @@ SUBROUTINE waves_menu
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE molecule_mod 
       USE discus_show_menu

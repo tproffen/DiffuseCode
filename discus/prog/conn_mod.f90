@@ -1,6 +1,8 @@
 MODULE conn_mod
 !
 USE conn_def_mod
+USE conn_sup_mod
+USE conn_type_mod
 USE crystal_mod
 !
 USE errlist_mod
@@ -10,9 +12,9 @@ IMPLICIT none
 !
 PRIVATE
 PUBLIC  conn_menu              !  Main menu to interact with user
-PUBLIC  get_connectivity_list  !  Read out the actual list of atoms around a central atom
-PUBLIC  get_connectivity_identity ! Identify a connectivity definition
-PUBLIC  get_connectivity_numbers  ! Read out number of connectivities for atom type
+!PUBLIC  get_connectivity_list  !  Read out the actual list of atoms around a central atom
+!PUBLIC  get_connectivity_identity ! Identify a connectivity definition
+!PUBLIC  get_connectivity_numbers  ! Read out number of connectivities for atom type
 PUBLIC  do_show_connectivity   !  Show the current definitions
 PRIVATE allocate_conn_list     !  Allocate memory for the connectivity
 PRIVATE deallocate_conn        !  Free memory
@@ -27,62 +29,6 @@ PRIVATE do_exchange            !  Helper to exchange atoms between connectivitie
 PUBLIC  conn_update            !  Update the connectivity for an atom
 !
 INTEGER, PARAMETER              :: MAX_ATOM=10
-!
-! TYPE NEIGHBORS  is a linear chain to be filled with the actual neighboring atoms
-!                 currently only the neighbor number is stored no further info, as
-!                 I do not want to update this list all the time.
-TYPE :: NEIGHBORS
-   INTEGER                      :: atom_number
-   INTEGER, DIMENSION(1:3)      :: offset
-   TYPE (NEIGHBORS), POINTER    :: next
-END TYPE
-!
-! TYPE NEIGHBORHOOD is a linear chain of the possible neighborhoods.
-!                   Each node branches off to one side with the actual neighboring atoms
-TYPE :: NEIGHBORHOOD
-   INTEGER                      :: central_number     ! absolute number of central atom
-   INTEGER                      :: central_type       ! central atom is of this type
-   INTEGER                      :: neigh_type         ! this neighbors belongs to this definition
-   CHARACTER (LEN=256)          :: conn_name          ! Connectivity name
-   INTEGER                      :: conn_name_l        ! Connectivity name length
-   INTEGER                      :: mmc_sel            ! This connectivity may be used by mmc to select
-   INTEGER                      :: mmc_ene            ! This connectivity may be used by mmc energy
-   REAL                         :: distance_min       ! minimum distance to neighbors
-   REAL                         :: distance_max       ! maximum distance to neighbors
-   INTEGER                      :: natoms             ! number of neighbors
-   TYPE (NEIGHBORS), POINTER    :: nachbar            ! The actual list of neighboring atoms
-   TYPE (NEIGHBORHOOD), POINTER :: next_neighborhood  ! A next neighborhood
-END TYPE
-!
-! TYPE MAIN_LIST is a structure that contains info on the central atom, as
-!                well as a pointer to the NEIGHBORHOOD
-TYPE :: MAIN_LIST
-   INTEGER                      :: number
-   TYPE (NEIGHBORHOOD), POINTER :: liste
-END TYPE
-!
-! In order to have FAST access to the neighborhood of any atom, an
-! allocatable array is defined. Entry at_conn(i) gives access to the 
-! neighborhood of atom i
-TYPE (main_list), DIMENSION(:), ALLOCATABLE :: at_conn
-!
-! (temporary) pointers of TYPE NEIGHBORS. This allows to move along the 
-! neighbors in an individual neighborhood.
-TYPE (NEIGHBORS), POINTER       :: head, tail, temp
-!
-! (temporary) pointers of TYPE NEIGHBORHOOD. This allows to move along the 
-! neighborhoods of an individual atom.
-TYPE (NEIGHBORHOOD), POINTER       :: hood_head
-TYPE (NEIGHBORHOOD), POINTER       :: hood_temp
-TYPE (NEIGHBORHOOD), POINTER       :: hood_central
-TYPE (NEIGHBORHOOD), POINTER       :: hood_second
-!
-INTEGER, PARAMETER                 :: STATUS_ON  =  1
-INTEGER, PARAMETER                 :: STATUS_OFF = -1
-INTEGER, PARAMETER                 :: STATUS_IGN =  0
-LOGICAL                            :: conn_status = .FALSE.
-INTEGER                            :: conn_mmc_sel = STATUS_IGN ! For later use 
-INTEGER                            :: conn_mmc_ene = STATUS_IGN ! For later use 
 !
 CONTAINS
 !
@@ -163,7 +109,8 @@ CONTAINS
    USE chem_mod
    USE crystal_mod
    USE atom_env_mod
-   USE modify_mod
+!  USE modify_mod
+   USE do_find_mod
 !
    IMPLICIT NONE
 !
@@ -308,8 +255,9 @@ CONTAINS
 !
    USE chem_mod
    USE crystal_mod
+   USE do_find_mod
    USE atom_env_mod
-   USE modify_mod
+!  USE modify_mod
 !
    IMPLICIT NONE
 !
@@ -474,6 +422,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE discus_allocate_appl_mod 
       USE discus_config_mod 
       USE crystal_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE variable_test
       USE berechne_mod
@@ -897,6 +846,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !+                                                                      
       USE discus_config_mod 
       USE crystal_mod 
+      USE get_iscat_mod
       USE modify_mod
 !
       USE ber_params_mod
@@ -1277,157 +1227,14 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
    END SUBROUTINE conn_test
 !
 !
-   SUBROUTINE get_connectivity_list (jatom, is1, ino, c_list, c_offs, natoms )
-!-                                                                      
-!     Get the list of neighbors for central atom jatom of type is1
-!+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
-!
-      INTEGER, INTENT(IN)  :: jatom   ! central atom number
-      INTEGER, INTENT(IN)  :: is1     ! central atom type
-      INTEGER, INTENT(INOUT)  :: ino     ! Connectivity def. no.
-      CHARACTER(LEN=256)   :: c_name  ! Connectivity name
-      INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: c_list    ! Size of array c_list 
-      INTEGER, DIMENSION(:,:), ALLOCATABLE, INTENT(OUT) :: c_offs ! Offsets from periodic boundary
-      INTEGER, INTENT(OUT) :: natoms  ! number of atoms in connectivity list
-!
-      INTEGER    :: i,k
-!
-      natoms = 0
-!
-!
-      IF ( ALLOCATED(at_conn) ) THEN
-         i = jatom 
-        IF ( ASSOCIATED(at_conn(i)%liste) ) THEN      ! If neighborhood was created
-          hood_temp => at_conn(i)%liste               ! point to the first neighborhood
-!         hood_head => at_conn(i)%liste
-          DO WHILE ( ASSOCIATED(hood_temp) )          ! While there are further neighborhood
-             temp => hood_temp%nachbar                    ! point to the first neighbor within current neigborhood
-             IF ( hood_temp%neigh_type == ino  .OR. &
-                  hood_temp%conn_name  == c_name   ) THEN   ! This is the right neighborhood
-                ino    = hood_temp%neigh_type         ! Return actual number and name
-                c_name = hood_temp%conn_name
-                natoms = hood_temp%natoms
-                IF(ALLOCATED(c_list)) THEN
-!                  IF(UBOUND(c_list).lt.natoms) THEN
-                      DEALLOCATE(c_list)
-                      ALLOCATE(c_list(0:natoms))
-!                  ENDIF
-                ELSE
-                   ALLOCATE(c_list(0:natoms))
-                ENDIF
-                IF(ALLOCATED(c_offs)) THEN
-!                  IF(UBOUND(c_offs).lt.natoms) THEN
-                      DEALLOCATE(c_offs)
-                      ALLOCATE(c_offs(1:3,0:natoms))
-!                  ENDIF
-                ELSE
-                   ALLOCATE(c_offs(1:3,0:natoms))
-                ENDIF
-                c_list(:)   = 0   ! clear connectivity list
-                c_offs(:,:) = 0
-                IF(natoms == 0) RETURN                      ! Empty list
-                k = 0
-                DO WHILE ( ASSOCIATED(temp) )               ! While there are further neighbors
-                    k         = k+ 1
-                    c_list(k) = temp%atom_number
-                    c_offs(1,k) = temp%offset(1)
-                    c_offs(2,k) = temp%offset(2)
-                    c_offs(3,k) = temp%offset(3)
-                  temp => temp%next                         ! Point to next neighbor
-                END DO
-                RETURN                                      ! End of connectivity list
-             ENDIF
-             hood_temp => hood_temp%next_neighborhood     ! Point to next neighborhood
-          END DO
-        END IF
-      ENDIF
-!
-   END SUBROUTINE get_connectivity_list
-!
-!
-   SUBROUTINE get_connectivity_identity (is1, work_id, work_name, work_name_l)
-!-                                                                      
-!     Get the identity of a connectivity from central atom and number or name
-!+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
-!
-!
-      INTEGER,            INTENT(IN)      :: is1        ! central atom type
-      INTEGER,            INTENT(INOUT)   :: work_id    ! Connectivity def. no.
-      CHARACTER(LEN=256), INTENT(INOUT)   :: work_name  ! Connectivity name
-      INTEGER           , INTENT(INOUT)   :: work_name_l! Connectivity name length
-!
-      IF ( ALLOCATED(def_main) ) THEN
-         is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
-            def_head => def_main(is1)%def_liste
-            def_temp => def_main(is1)%def_liste
-            search: DO                                           ! search for working definition
-               IF ( .NOT. ASSOCIATED(def_temp)) THEN             ! target is not associated ERROR
-                  ier_num = -109
-                  ier_typ = ER_APPL
-                  RETURN
-               ENDIF
-               IF ( work_id   == def_temp%valid_id  .OR. &
-                    work_name == def_temp%def_name       ) THEN  ! Found working definition
-                  work_id     = def_temp%valid_id                ! Make sure ID matches
-                  work_name   = def_temp%def_name                ! Make sure name matches
-                  work_name_l = def_temp%def_name_l              ! Make sure name matches
-                  EXIT search
-               ENDIF
-               def_head => def_temp
-               def_temp => def_temp%def_next
-            ENDDO search
-         ELSE
-            ier_num = -109
-            ier_typ = ER_APPL
-         ENDIF is_there
-      ELSE
-         ier_num = -110
-         ier_typ = ER_APPL
-      ENDIF
-!
-   END SUBROUTINE get_connectivity_identity
-!
-!
-   INTEGER FUNCTION get_connectivity_numbers (is1)
-!-                                                                      
-!     Return the number of connectivities defined for an atom type
-!+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
-!
-      INTEGER,            INTENT(IN)      :: is1        ! central atom type
-!
-      INTEGER :: numbers
-!
-      numbers = 0
-      IF ( ALLOCATED(def_main) ) THEN
-         is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
-            numbers = def_main(is1)%def_number
-         ENDIF is_there
-      ELSE
-         ier_num = -110
-         ier_typ = ER_APPL
-      ENDIF
-!
-      get_connectivity_numbers = numbers   ! assign return value
-!
-   END FUNCTION get_connectivity_numbers
-!
-!
    SUBROUTINE do_show_connectivity ( iatom, idef, c_name, long )
 !-                                                                      
 !     Shows the connectivity no. idef around atom no iatom
 !+                                                                      
       USE crystal_mod
       USE atom_name
-      USE modify_mod
+!     USE modify_mod
+      USE prop_char_mod
       USE metric_mod
       USE param_mod 
       USE prompt_mod 

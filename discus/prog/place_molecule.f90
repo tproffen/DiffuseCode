@@ -14,6 +14,7 @@ CONTAINS
    USE discus_allocate_appl_mod
    USE modify_mod
    USE modify_func_mod
+USE prop_para_func
 USE prop_para_mod
 !
    USE calc_expr_mod
@@ -268,6 +269,7 @@ USE errlist_mod
    USE chem_mod
    USE deco_mod
    USE discus_allocate_appl_mod
+   USE get_iscat_mod
    USE modify_mod
    USE point_grp
 !
@@ -657,10 +659,12 @@ USE deco_mod
    USE modify_mod
    USE modify_func_mod
    USE molecule_mod
+USE prop_para_func
    USE prop_para_mod
    USE read_internal_mod
    USE structur , ONLY: rese_cr
    USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
+!USE surface_func_mod
    USE discus_init_mod, ONLY: mmc_init
 !
    USE param_mod
@@ -1339,8 +1343,9 @@ USE crystal_mod
 USE deco_mod
 USE discus_allocate_appl_mod
 USE metric_mod
-USE modify_mod
+!USE modify_mod
 USE molecule_mod
+USE prop_para_func
 USE spcgr_apply
 USE save_menu, ONLY: save_internal
 USE discus_save_mod
@@ -1638,6 +1643,7 @@ USE crystal_mod
    USE point_grp
    USE prop_para_mod
    USE read_internal_mod
+   USE surface_func_mod
    USE surface_mod
    USE symm_menu
    USE symm_mod
@@ -1828,12 +1834,14 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
 USE crystal_mod
    USE atom_env_mod
    USE chem_mod
+USE do_find_mod
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
    USE point_grp
 USE prop_para_mod
    USE read_internal_mod
+USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -2073,12 +2081,14 @@ IF(lrestrict) THEN
 USE crystal_mod
    USE atom_env_mod
    USE chem_mod
+USE do_find_mod
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
    USE point_grp
 USE prop_para_mod
    USE read_internal_mod
+USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -2361,6 +2371,7 @@ USE molecule_func_mod
 USE point_grp
 USE prop_para_mod
 USE read_internal_mod
+USE surface_func_mod
 USE symm_menu
 USE symm_mod
 USE symm_sup_mod
@@ -2593,12 +2604,14 @@ END SUBROUTINE deco_place_chelate
 USE crystal_mod
    USE atom_env_mod
    USE chem_mod
+USE do_find_mod
    USE metric_mod
    USE modify_mod
    USE molecule_func_mod
    USE point_grp
 USE prop_para_mod
 USE read_internal_mod
+USE surface_func_mod
    USE symm_menu
    USE symm_mod
    USE symm_sup_mod
@@ -2916,6 +2929,7 @@ USE crystal_mod
    USE point_grp
 USE prop_para_mod
    USE read_internal_mod
+USE surface_func_mod
    USE surface_mod
    USE symm_menu
    USE symm_mod
@@ -3160,12 +3174,14 @@ SUBROUTINE deco_place_donor(temp_id, ia, &
 USE crystal_mod
 USE atom_env_mod
 USE chem_mod
+USE do_find_mod
 USE metric_mod
 USE modify_mod
 USE molecule_func_mod
 USE point_grp
 USE prop_para_mod
 USE read_internal_mod
+USE surface_func_mod
 USE surface_mod
 USE symm_menu
 USE symm_mod
@@ -3426,6 +3442,7 @@ END SUBROUTINE deco_place_donor
 USE crystal_mod
    USE atom_env_mod
    USE chem_mod
+USE do_find_mod
    USE metric_mod
    USE modify_mod
 USE prop_para_mod

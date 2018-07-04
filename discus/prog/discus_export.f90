@@ -57,7 +57,8 @@ USE generate_mod
 USE diffuse_mod
 USE discus_save_mod
 USE molecule_mod
-USE modify_mod
+!USE modify_mod
+USE prop_para_func
 USE prop_para_mod
 USE structur
 USE save_menu, ONLY: save_internal

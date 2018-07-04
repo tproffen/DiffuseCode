@@ -1099,6 +1099,7 @@ main:    DO
       USE crystal_mod 
       USE chem_mod 
       USE diffuse_mod 
+      USE get_iscat_mod
       USE modify_mod
       USE pdf_mod 
       USE rmc_mod 
