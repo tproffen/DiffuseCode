@@ -105,6 +105,28 @@ SUBROUTINE datum ()
 !                                                                       
       END SUBROUTINE file_info                      
 !*****7*****************************************************************
+      SUBROUTINE file_info_disk (filename, fmodt) 
+!+                                                                      
+!     Gets and stored sile modification time                            
+!-                                                                      
+      USE errlist_mod 
+      USE times_mod
+      IMPLICIT none 
+!                                                                       
+!                                                                       
+      CHARACTER(LEN=*) , INTENT(IN)  :: filename
+      CHARACTER(LEN=24), INTENT(OUT) :: fmodt
+!
+      INTEGER buff (13) 
+      CHARACTER :: ctime
+!
+      fmodt = ' '
+      CALL stat (filename, buff, ier_num) 
+      IF (ier_num.ne.0) RETURN 
+      fmodt = ctime (buff (10) ) 
+!                                                                       
+      END SUBROUTINE file_info_disk
+!*****7*****************************************************************
       SUBROUTINE do_getargs (iarg, arg, narg) 
 !+                                                                      
 !     Get command line parameters                                       

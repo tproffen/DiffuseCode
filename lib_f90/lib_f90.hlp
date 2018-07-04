@@ -24,6 +24,11 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2018_July
+
+   Modified the ==> 'system' command to be a bit more flexible
+
+   Modified the ==> function "fmodt" to take a file name as well.
 4  2018_June
 
    Revised the reaction to a CTRL-C
@@ -653,13 +658,18 @@
 !p                                   mm    : minute  (1,2,... 60)
 !p                                   ss    : second  (1,2,... 60)
 !p                                   CCYY  : year    (century, year)
-!p fmodt(0)                        ! Returns modification data and time
-!p                                 ! of the file opened last. The format
-!p                                 ! is the same as for fdate(0)
+!p fmodt(0)                        ! Returns modification date and time
+!p                                 ! of the last file that was opened by 
+!p                                 ! the Discus_suite.
+!p fmodt('name')                   ! Date for file "name"
+!p fmodt(<line>)                   ! Date for file in variable <line>
+!p                                 ! The format ! is the same as for fdate(0)
 !p getcwd(0)                       ! Returns the current directory as
-!p                                   character string
+!p                                   character string.
 !p getenv('name')                  ! Returns the value of the environment
-!p                                   variable <name>
+!p                                   variable "name".
+!p getenv(<line>)                  ! Returns the value of the environment
+!p                                   variable that is stored in variable <line>.
 !p index(<line>, <substring> [,"BACK"]) ! Returns the location of the
 !p                                   substring within the line.
 !p                                   If the optional keyword "BACK" is present,
@@ -1078,11 +1088,14 @@
    Executes the single shell command <com>.
    If the command string is enclosed in "", you can place integer and
    real format specifiers "%d" "%f" which are then substituted by the
-   corresponding values.
+   corresponding values. 
+   The shell command <comm> may be placed in front of the double
+   quotation marks.
 
    Example
    i[0]=10
    system "ls %d.*"
+   system ls "%d.*"
 
    This would list all files called 10.*
 3  wait

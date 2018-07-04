@@ -15,12 +15,13 @@ INTEGER          , INTENT(INOUT) :: lp
 !                                                                       
 INTEGER, PARAMETER :: maxp = 12
 !
-CHARACTER(LEN=1024) :: string 
+CHARACTER(LEN=1024) :: string , line
 CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
 REAL               , DIMENSION(MAXP) :: werte
 !
 INTEGER :: ianz 
+INTEGER :: lline 
 INTEGER :: i 
 INTEGER :: iko, iqo, iqo2, lstring 
 !                                                                       
@@ -55,6 +56,13 @@ ELSE
       string = ' ' 
       lstring = 1 
    ENDIF 
+!
+   line = ' '
+   lline = 0
+   IF(iqo>1) THEN
+      line = zeile(1:iqo-1)
+      lline = iqo-1
+   ENDIF
 !                                                                       
 !     --get all other parameters                                        
 !                                                                       
@@ -89,6 +97,7 @@ ELSE
                string = zeile 
             ENDDO 
          ENDIF 
+         IF(lline>0) string=line(1:lline)//string(1:LEN_TRIM(string))
          CALL do_operating_comm (string) 
       ENDIF 
    ENDIF 

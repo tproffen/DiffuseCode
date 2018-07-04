@@ -33,6 +33,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) zeile 
       CHARACTER(1024) answer , search
+      CHARACTER(LEN=24) :: fmodt
       INTEGER lpara (maxw) 
       INTEGER ikom, i, ianz 
       INTEGER lcom 
@@ -187,7 +188,26 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
             ww = gasskew (a,skew) 
             CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
          ELSEIF (string (ikl - 5:ikl - 1) .eq.'fmodt') then 
-            CALL ersetzc (string, ikl, iklz, f_modt, 24, 5, lll) 
+            CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
+            IF(ier_num==0) THEN
+               IF(ianz == 0) THEN
+                  CALL ersetzc (string, ikl, iklz, f_modt, 24, 5, lll) 
+               ELSEIF(ianz == 1 .AND. cpara(1)=='0') THEN
+                  CALL ersetzc (string, ikl, iklz, f_modt, 24, 5, lll) 
+               ELSE
+                  CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+                  IF(ier_num==0) THEN
+                     IF(cpara(1)(1:1)=='''' .AND.               &
+                        cpara(1)(lpara(1):lpara(1))=='''') THEN
+                        zeile = cpara(1)(2:lpara(1)-1)
+                     ELSE
+                        zeile = cpara(1)(1:lpara(1))
+                     ENDIF
+                     CALL file_info_disk(zeile,fmodt)
+                     CALL ersetzc (string, ikl, iklz, fmodt, 24, 5, lll) 
+                  ENDIF
+               ENDIF
+            ENDIF
          ELSEIF (string (ikl - 5:ikl - 1) .eq.'fdate') then 
             CALL datum 
             CALL ersetzc (string, ikl, iklz, f_date, 24, 5, lll) 
