@@ -92,6 +92,8 @@ INTEGER                               , INTENT(INOUT) :: laenge
          ENDIF 
       ENDIF 
       ENDDO 
+!
+! RBN JULY 2018 ALWAYS remove leading and trailing banks !!!
 !                                                                       
 !     remove leading blanks if length was given positive                
 !                                                                       
@@ -102,14 +104,19 @@ INTEGER                               , INTENT(INOUT) :: laenge
          lpara (i) = lll 
          ENDDO 
       ENDIF 
+      DO i = 1, ianz 
+         lll = lpara (i) 
+         CALL rem_leading_bl (cpara (i), lll) 
+         lpara (i) = lll 
+      ENDDO 
 !
 !     remove trailing blanks if length was given positive
 !
-      IF(rmblk) THEN
+!     IF(rmblk) THEN
          DO i=1,ianz
             lpara(i) = LEN_TRIM(cpara(i))
          ENDDO
-      ENDIF
+!     ENDIF
 !                                                                       
 !      Check parameter length to catch things like ...,,...             
 !      ianz is decremented until ALL get_parameter calls do             
