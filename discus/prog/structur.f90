@@ -310,6 +310,8 @@ CONTAINS
 !              Flag that no Fourier has been calculated yet
                four_last = FOUR_NN
             ENDIF 
+         ELSEIF (str_comp (befehl, 'exit', 1, lbef, 4) ) then 
+            GOTO 9999 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
@@ -783,7 +785,8 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
       CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
       IF(ier_num==0) THEN
          cr_spcgrno = NINT(wwerte(1))
-         cr_spcgr   = spcgr_name (cr_spcgrno) 
+         cr_spcgr   = cpara(1)(1:lpara(1))
+!        cr_spcgr   = spcgr_name (cr_spcgrno) 
       ELSE
          cr_spcgr = cpara(1)(1:lpara(1))
       ENDIF
@@ -793,11 +796,15 @@ ELSEIF (ianz==6 .OR. ianz==7 .OR. ianz==8) THEN
          CALL ber_params (ianz, cpara, lpara, wwerte, maxw) 
          IF(ier_num==0) THEN
             spcgr_para = nint (wwerte (1) ) 
+            spcgr_ianz = 1
          ELSE
             ier_num = - 93
             ier_typ = ER_APPL 
             ier_msg (1) = 'Error reading origin choice indicator'
          ENDIF
+      ELSE
+         spcgr_para = 1
+         spcgr_ianz = 0
       ENDIF
    ENDIF
    DO i = 1, 3 
@@ -4915,13 +4922,13 @@ header: DO
                   ENDDO
                   nocctypes = nocctypes + ianz
                ELSE
-                  ier_num = -148
+                  ier_num = -149
                   ier_typ = ER_APPL
                   CLOSE(99)
                   RETURN
                ENDIF
             ELSE
-               ier_num = -148
+               ier_num = -149
                ier_typ = ER_APPL
                CLOSE(99)
                RETURN
