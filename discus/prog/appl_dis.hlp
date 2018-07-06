@@ -72,13 +72,15 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
-2  2018_July
+3  2018_July
 
    Added the possibility to define property like features 
    that are based on the connectivities ==> property
 
    Fixed a bug that did not allow a read free for origin choice 2
    Added an 'exit' command to the read menu.
+
+   Added a 'reset' command to 'plot'
 3  2018_June
 
    Added the possibility for interactive plots.
@@ -575,6 +577,45 @@
 4  boundary
 
    A cylindrical boundary has been added.
+2  Menues
+
+   The DISCUS section is structured into several menues that 
+   are designed to modify the structure, to calculate the 
+   diffraction pattern etc. 
+   These menues are:
+
+   Read/save a structure
+   read       ! Read structure or unit cell from file or internal storage
+   save       ! Save the structure to file or internal storage
+   plot       ! Write the structure in a format for plotting
+
+   Modify a structure
+   decorate   ! Decorate the surface with ligands
+   domain     ! Place domains into host structure
+   insert     ! Insert objects into the crystal
+   mmc        ! MONTE-CARLO simulations
+   rmc        ! REVERSE-MONTE-CARLO simulations
+   stack      ! Build a crystal with stacking faults
+   symm       ! Perform a generalized symmetry operation
+   shear      ! Perform a general shear/affine operation
+   waves      ! Apply modulation wave modifications
+   transform  ! Decribe the structure with a different unit cell
+
+   Information 
+   chem       ! Analyze a structure
+   connect    ! Build a connectivity table 
+   property   ! Set / clear reaction to properties
+
+   Fourier calculations
+   powder     ! Perform powder diffraction calculations
+   fourier    ! Perform single crystal diffraction calculations
+   rmc        ! REVERSE-MONTE-CARLO simulations
+   inverse    ! perform an inverse Fourier transformation
+   diff-four  ! Calculate a difference Fourier map
+   patterson  ! Calculate the Patterson function
+   output     ! Write Fourier results to disk
+
+   pdf        ! Calculate a Pair distribution function
 2  Unit_cell
 !b !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !b !!          NEW FORMAT OF DATA FILE, STARTING IN DISCUS-3.10          !!
@@ -5197,12 +5238,15 @@
 
    If the plot progam was selected as "jmol", you can start an 
    interactive plot session with the optional parameter "plot:inter".
+   It may take a while for JMOL to open, you might want to add a 
+   ==> 'wait return' command after the 'run' command.
 
    If previous instances of "JMOL" are to be terminated prior to the
    new plat provide the optional parameter "kill:yes".
    On a Linux type operating system processes "jmol" are killed, 
    on Windows processes "java" will be killed. Be carefull if other
-   java programs are active!. 
+   java programs are active! The intention is to kill only processes
+   started by DISCUS.
 3  sel
 !b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
