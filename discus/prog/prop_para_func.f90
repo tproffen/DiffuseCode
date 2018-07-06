@@ -499,6 +499,7 @@ USE surface_func_mod
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
+         ier_msg(1) = 'Selection must be: ignore, present, absent'
          RETURN 
       ENDIF 
       ENDDO 
@@ -581,6 +582,11 @@ ELSEIF(act=='ignore') THEN
    pp%act =  0
 ELSEIF(act=='present') THEN
    pp%act =  1
+ELSE
+   ier_num = -6
+   ier_typ = ER_COMM
+   ier_msg(1) = 'Selection must be: ignore, present, absent'
+   RETURN
 ENDIF
 IF(opara(6)=='none') THEN
    pp%at_type = -2
@@ -591,6 +597,9 @@ ELSE
    ianz     = 1
 !  store requested atom types
    CALL get_iscat(ianz, cpara, lpara, werte, MAXW, .FALSE. )
+   IF(ier_num/=0) THEN
+      RETURN
+   ENDIF
 !
    pp%at_type = NINT(werte(1))
 ENDIF
@@ -636,6 +645,18 @@ pp%n_min   = NINT(owerte(1))
 pp%n_max   = NINT(owerte(2))
 pp%e_min   = NINT(owerte(3))
 pp%e_max   = NINT(owerte(4))
+IF(pp%n_min > pp%n_max) THEN
+   ier_msg(1) = 'Lower boundary of included range higher than upper'
+   ier_num = -155
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
+IF(pp%e_min > pp%e_max) THEN
+   ier_msg(1) = 'Lower boundary of excluded range higher than upper'
+   ier_num = -155
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
 !
 ! Values are determined, find entry and store
 !
