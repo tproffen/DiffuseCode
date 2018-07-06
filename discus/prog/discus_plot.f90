@@ -567,10 +567,17 @@ CONTAINS
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
+!
+!     ----reset plot 'reset'                                                
+!
+               ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
+                  labs = .FALSE.
+                  lord = .FALSE.
+                  lnor = .FALSE.
 !                                                                       
 !     ----run plot 'run'                                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run', 1, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) then 
 !                 Always provide fresh default values, Repeat for each command
                   opara (8:9) =   (/ 'none ', 'none ' /)
                   lopara(8:9) =   (/  4     ,  4      /)
@@ -2654,5 +2661,64 @@ IF(ABS(w_no)<EPS .OR. ABS(w_ao)<EPS)  THEN     ! Ordinate is parallel to Normal 
    ENDIF
 ENDIF
 END SUBROUTINE plot_test_aon
+!
+!*******************************************************************************
+!
+SUBROUTINE plot_reset
+!
+USE discus_plot_mod
+!
+! reset all variables needed for the plotting of structures
+!-
+!
+IMPLICIT NONE
+!
+INTEGER :: ik
+!
+pl_jmol  = ' '
+pl_out   = 'plot.cif'
+pl_title = 'crystal structure'
+pl_prog  = 'cif'
+pl_vrml  = 'u'
+pl_col   = 'xyz'
+pl_width     = 1e12
+pl_dim       = reshape((/(-1e14,ik=1,3),(1e12,ik=1,3)/),shape(pl_dim)) ! (3,2)
+pl_hkl       = (/0.0,0.0,1.0/)
+pl_uvw       = (/0.0,0.0,1.0/)
+pl_vec       = 0.0
+pl_abs       = (/1.0,0.0,0.0/)
+pl_ord       = (/0.0,1.0,0.0/)
+pl_siz(:)    = 1.0      ! 
+pl_rgb(:,:)  = 0.0       ! 
+pl_back      = (/ 240, 240, 240 /)   ! plot background
+pl_bond_len(:,:,:) = 0.0  ! 
+pl_bond_rad(  :,:) = 0.2  !
+pl_bond_col(:,:,:) = 0.0  !
+pl_vrml_scaling = 0.05
+pl_scale        = (/-1.0, 1.0/)
+pl_sel_prop     = (/0,0/)
+pl_typ(:)       = 3
+pl_color(:)     = 0
+pl_latom(:)     = .FALSE. 
+pl_batom_a(:)   = .FALSE.   ! 
+pl_batom_e(:)   = .FALSE.   ! 
+pl_poly_n       = 0  ! Number of polyhedra definitions
+pl_poly_c(:) = .FALSE.    ! 
+pl_poly_o(:) = .FALSE.    ! 
+pl_poly_dmin = 0.0     ! Minimum distance to neighbor for polhedra
+pl_poly_dmax = 0.0     ! Maximum distance to neighbor for polhedra
+pl_poly_nmin = 0       ! Minimum neighbors for polhedra
+pl_poly_nmax = 192     ! Maximum neighbors for polhedra
+pl_poly_face = .TRUE.  ! Face style flat/collapsed
+pl_poly_hue  = .FALSE. ! Face style solid / transparent
+pl_poly_col  = 'auto'  ! Face color
+pl_dens      = .false.
+pl_sel_atom  = .true.
+pl_mol_all   = .true.
+pl_bond(:,:) = .FALSE.      ! (0:MAXSCAT,0:MAXSCAT)
+pl_append    = .false.
+pl_ext_all   = .true.
+!
+END SUBROUTINE plot_reset
 !
 END MODULE discus_plot_menu
