@@ -591,7 +591,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         IF (sym_power_mult) then 
                            CALL symm_ca_mult (hkl, lspace) 
                         ELSE 
-                           CALL symm_ca_single (hkl, lspace, .true.) 
+                           CALL symm_ca_single (hkl, lspace, .FALSE.) 
                         ENDIF 
                         cr_dim0(1,i) = NINT(res_para(1))
                         cr_dim0(2,i) = NINT(res_para(2))
