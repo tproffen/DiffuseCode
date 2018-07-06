@@ -72,6 +72,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+2  2018_July
+
+   Added the possibility to define property like features 
+   that are based on the connectivities ==> property
+
+   Fixed a bug that did not allow a read free for origin choice 2
+   Added an 'exit' command to the read menu.
 3  2018_June
 
    Added the possibility for interactive plots.
@@ -5699,6 +5706,9 @@
 !p show      ! Show current property related settings
 3  prop
 !b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
+!b prop {"ignore"|"present"|"absent"} , atom:<type>, 
+!b      conn:{<number>|<name>}, nmin:<number>, nmax:<number>,
+!b      emin:<number>, emax:<number>, no:<entry>
 
    Defines which properties an atom must have to be included in 
    commands ==> 'remove' ; 'replace'
@@ -5739,6 +5749,21 @@
    "ligand"
             The rules apply if an atom is inside a ligand molecule that was 
             placed onto the surface within the ==> 'deco' menu. 
+
+   The second form with the optional arguments allows to define 
+   property like behaviour based on the connectivities that must 
+   have been defined for the atom of type <type>.
+   nmin and nmax are minimum and maximum coordination numbers that the
+        atom must have for the property to be true.
+   emin and emax define an interval of excluded coordination numbers.
+
+   Example:
+   prop present, atom:si,conn:1, nmin:0, nmax:3 
+   This is true only if the selected atom is of type silicaon with
+   zero to 3 neighbors in its current onnectivity number 1. 
+
+   Keep in mind that you may have to update the connectivity
+   list for this atom type.
 3  set/clear
 !b set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
 !b set   <flag>, "atoms"}, {"all" | <start>,<end>}
@@ -5869,6 +5894,11 @@
    If the file ends in 'cif', 'CIF', a CIF-file format is assumed.
    If the file ends in 'txt', 'TXT', a CMAKER-file format is assumed.
    If the file ends in 'cssr', 'CSSR', a RMCprofile-file format is assumed.
+3  exit
+!b exit
+
+   Exits the read menu, in case no 'cell', 'free', or 'stru' command 
+   is used.
 2  remove
 !b remove <start> [, <end> ]
 !b remove <start> [, <end> ] , "mole" [ ,"type", <t_start> [, <t_end>]]
@@ -9962,12 +9992,99 @@
    atom number on the bond/axis command is erroneous.
 4  -145
    Decoration name not recognized
+
+   The first parameter on the ==> 'decoration' 'set'
+   command must be the name of one of the decoration
+   schemes that were started with an 'add' command.  
+   add <name>, <deco_type>
+   set <name>, ...
+   For the current command the value of <name> differs
+   from all names given on any 'add' command.
 4  -146
    No. of atoms not an integer multiple of sites
+
+   An attempt was made to create structure with the atoms
+   in a unit cell seqeunce from an RMCprofile input file.
+   The total number of atoms in the input file should 
+   have been an integer multiple of the number of 
+   sites per unit cell.
+
+   Check the RMCprofile setting that were used to create the 
+   structure. Another reson might be that the atoms are 
+   very disordered and DISCSU cannot find the correct number
+   of sites per unit cell.
+
 4  -147
    Unknown export format
+
+   The export format that was given is not known.
+   Check the command line for erroneous spelling.
 4  -148
    1bar not at origin
+
+   A centrosymmetric structure that you want to export to SHELX
+   must have its center of symmetry at the origin. 
+   Check the setting. If necessary shift the origin with the
+   ==> 'transform' menu.
+   
+4  -149
+   Error reading OCC instruction
+
+   An error occurred while reading the OCC instruction in
+   a crystal file. Check the input file for erroneous numbers
+   or values.
+4  -150
+   Occupancy outside [0:1]
+   
+   An atom occupancy must be in the interval [0:1]
+   Check all parameters and expressions from which the
+   occupancy was derived.
+4  -151
+   AND and DEFAULT simultaneously in isprop
+   
+   The function 'isprop' takes arguments like:
+   isprop('NMDOEIL')         ! by default == AND
+   isprop(AND:'NMDOEIL')
+   isprop(OR:'NMDOEIL')
+   isprop(AND:'NMDOEIL', OR:'NMDOEIL')
+   The combination
+   isprop('NMDOEIL', AND:'NMDOEIL') 
+   is illeagal, as the first argument without keyword 
+   corresponds to the AND condition as well.
+4  -152
+   Interactive plot for JMOL only
+   
+   Currently the only interactive plot program 
+   associated by the Discus-suite is JMOL. 
+   Linux users: Make sure you have JMOL and JAVA
+   installed.
+   Windows users, make sure you have the Java Runtime
+   Environment JRE installed.
+4  -153 Angle between Normal and Ordinate is 0
+   
+   A plot was attempted with this angle 
+   at zero degrees. Check the setting for the 
+   normal, given by the ==> 'plot' 'uvw' or
+   ==> 'plot' 'hkl' command and the ordinate
+   ==> 'plot' 'ord'.
+4  -154
+   Angle Ordinate to (Normal/Abscissa) is 0
+   
+   A plot was attempted with this angle 
+   at zero degrees. Check the setting for the 
+   normal, given by the ==> 'plot' 'uvw' or
+   ==> 'plot' 'hkl' command and the abscissa
+   ==> 'plot' 'abs'.
+4  -155
+   Coordination range is erroneous
+
+   For the user defined proprty like behaviur, the 
+   coordination number limits must be given as
+   nmin:<lower>, nmax:<upper>
+   emin:<lower>, emax:<upper>
+   For each of the pairs nmin/nmax and emin/emax
+   the value of <lower> must be less or equal to 
+   the value of <upper>.
 3  chem
    Errors at the chemistry level of DISCUS
 
