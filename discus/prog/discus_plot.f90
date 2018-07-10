@@ -571,6 +571,7 @@ CONTAINS
 !     ----reset plot 'reset'                                                
 !
                ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
+                  CALL  plot_reset
                   labs = .FALSE.
                   lord = .FALSE.
                   lnor = .FALSE.
@@ -2681,7 +2682,7 @@ pl_title = 'crystal structure'
 pl_prog  = 'cif'
 pl_vrml  = 'u'
 pl_col   = 'xyz'
-pl_width     = 1e12
+pl_width     = 1.e12
 pl_dim       = reshape((/(-1e14,ik=1,3),(1e12,ik=1,3)/),shape(pl_dim)) ! (3,2)
 pl_hkl       = (/0.0,0.0,1.0/)
 pl_uvw       = (/0.0,0.0,1.0/)
@@ -2690,6 +2691,7 @@ pl_abs       = (/1.0,0.0,0.0/)
 pl_ord       = (/0.0,1.0,0.0/)
 pl_siz(:)    = 1.0      ! 
 pl_rgb(:,:)  = 0.0       ! 
+pl_rgb(1,:)  = 1.0       ! 
 pl_back      = (/ 240, 240, 240 /)   ! plot background
 pl_bond_len(:,:,:) = 0.0  ! 
 pl_bond_rad(  :,:) = 0.2  !
@@ -2712,12 +2714,12 @@ pl_poly_nmax = 192     ! Maximum neighbors for polhedra
 pl_poly_face = .TRUE.  ! Face style flat/collapsed
 pl_poly_hue  = .FALSE. ! Face style solid / transparent
 pl_poly_col  = 'auto'  ! Face color
-pl_dens      = .false.
-pl_sel_atom  = .true.
-pl_mol_all   = .true.
+pl_dens      = .FALSE.
+pl_sel_atom  = .TRUE.
+pl_mol_all   = .TRUE.
 pl_bond(:,:) = .FALSE.      ! (0:MAXSCAT,0:MAXSCAT)
-pl_append    = .false.
-pl_ext_all   = .true.
+pl_append    = .FALSE.
+pl_ext_all   = .TRUE.
 !
 END SUBROUTINE plot_reset
 !
