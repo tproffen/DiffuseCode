@@ -19,6 +19,11 @@
    Further help topics are:
 
 2  News
+2  2018_July
+
+   A small modification to the "diffev_best" macro. 
+   The value of REF_NINDIV is written and at the end a
+   "set error, continue' instruction has been added.
 3  2018_June
 
    Revised the reaction to a CTRL-C
