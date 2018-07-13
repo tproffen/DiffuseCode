@@ -238,148 +238,197 @@ USE ber_params_mod
 !                                                                       
       END SUBROUTINE do_fend                        
 !*****7***********************************************************      
-      SUBROUTINE do_fget (zeile, lp) 
+!
+SUBROUTINE do_fget (zeile, lp) 
 !                                                                       
 USE ber_params_mod
-      USE calc_expr_mod
-      USE charact_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE macro_mod 
-      USE param_mod 
-      IMPLICIT none 
+USE calc_expr_mod
+USE charact_mod
+USE errlist_mod 
+USE get_params_mod
+USE macro_mod 
+USE param_mod 
+USE take_param_mod
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 25) 
+INTEGER, PARAMETER :: MAXW = 25
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) ::  zeile 
-      INTEGER          , INTENT(INOUT) :: lp 
+CHARACTER (LEN=*), INTENT(IN) ::  zeile 
+INTEGER          , INTENT(INOUT) :: lp 
 !
-      CHARACTER(1024) cpara (maxw), line, cstr , bstr
-      CHARACTER(2048) string 
-      REAL werte (maxw) 
-      INTEGER lpara (maxw), lstr
-      INTEGER ianz, i, igl, ii, ianzz 
-      INTEGER ia, ie, itab , ll
+CHARACTER(1024) cpara (maxw), line, cstr , bstr
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: fpara
+CHARACTER(2048) string 
+REAL werte (maxw) 
+INTEGER lpara (maxw), lstr
+INTEGER ianz, i, igl, ii, ianzz 
+INTEGER ia, ie, itab , ll
+INTEGER :: k1, k2, length, idot
 !                                                                       
-      INTEGER len_str 
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+INTEGER len_str 
+!
+DATA oname  / 'form'   /
+DATA loname /  4       /
+opara  =  (/ '*'       /)   ! Always provide fresh default values
+lopara =  (/  1        /)
+owerte =  (/  0.0      /)
 !                                                                       
-      ianzz = 1 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, owerte)
+IF(opara(1)/='*') THEN
+   line= opara(1)(2:lopara(1)-1)
+   lp = lopara(1) - 2
+   CALL get_params (line, ianzz, fpara, lpara, MAXW, lp)
+   DO i=1,ianz
+      lpara(i) = LEN_TRIM(cpara(i))   ! Restore parameter length
+   ENDDO
+ENDIF
+!
+ianzz = 1 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) RETURN 
+IF (ianz.eq.1) THEN 
+   ianz = 0 
+ELSE 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+ENDIF 
+ii = nint (werte (1) ) 
+IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
+   ier_num = - 13 
+   ier_typ = ER_IO 
+   RETURN 
+ENDIF 
 !                                                                       
-      CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) RETURN 
-      IF (ianz.eq.1) THEN 
-         ianz = 0 
+IF (.not.io_open (ii) ) THEN 
+   ier_num = - 11 
+   ier_typ = ER_IO 
+   RETURN 
+ENDIF 
+!                                                                       
+IF (ianz.gt.0) THEN 
+   READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
+   DO while (string (1:1) .eq.'#') 
+      READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
+   ENDDO 
+   lstr = len_str (string) 
+   itab = index (string, TAB) 
+   DO while (itab.gt.0) 
+      string (itab:itab) = ' ' 
+      itab = index (string, TAB) 
+   ENDDO 
+   IF(opara(1)=='*') THEN
+      ia = max (1, io_get_sub (ii, 1) ) 
+      IF (io_get_sub (ii, 2) .eq. - 1) THEN 
+         ie = lstr 
       ELSE 
-         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         ie = min (lstr, io_get_sub (ii, 2) ) 
       ENDIF 
-      ii = nint (werte (1) ) 
-      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
-         ier_num = - 13 
-         ier_typ = ER_IO 
-         RETURN 
-      ENDIF 
-!                                                                       
-      IF (.not.io_open (ii) ) THEN 
-         ier_num = - 11 
-         ier_typ = ER_IO 
-         RETURN 
-      ENDIF 
-!                                                                       
-      IF (ianz.gt.0) THEN 
-         READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
-         DO while (string (1:1) .eq.'#') 
-            READ (io_unit (ii) , '(a)', err = 998, end = 999) string 
-         ENDDO 
-         lstr = len_str (string) 
-         itab = index (string, TAB) 
-         DO while (itab.gt.0) 
-            string (itab:itab) = ' ' 
-            itab = index (string, TAB) 
-         ENDDO 
-         ia = max (1, io_get_sub (ii, 1) ) 
-         IF (io_get_sub (ii, 2) .eq. - 1) THEN 
-            ie = lstr 
-         ELSE 
-            ie = min (lstr, io_get_sub (ii, 2) ) 
-         ENDIF 
-!RBN        read(string(ia:ie),*,err=998,end=999) (werte(i),i=1,ianz)   
-!RBN        res_para(0) = 0                                             
-!RBN        do i=1,ianz                                                 
-!RBN          write(cstr,*) werte(i)                                    
-!RBN          lstr = len_str(cstr)                                      
-!RBN          line = cpara(i)(1:lpara(i))//'='//cstr(1:lstr)            
-!RBN          lp   = len_str(line)                                      
-!RBN          igl  = index(line,'=')                                    
-!RBN          call do_math(line,igl,lp)                                 
-!RBN          if (ier_num.ne.0) return                                  
-!RBN        ENDDO                                                       
-         loop_para: DO i = 1, ianz 
-            line = cpara (i) (1:lpara (i) ) //'=' 
-            lp = lpara (i) + 1 
-            igl = index (line, '=') 
-            cstr (1:1) = string (ia:ia) 
+      loop_para: DO i = 1, ianz 
+         line = cpara (i) (1:lpara (i) ) //'=' 
+         lp = lpara (i) + 1 
+         igl = index (line, '=') 
+         cstr (1:1) = string (ia:ia) 
 !                                                                       
 !     ---Remove leading blanks or leading ","                           
 !                                                                       
-            DO while (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') 
-               ia = ia + 1 
-               IF (ia.gt.ie) THEN 
-                  GOTO 998 
-               ENDIF 
-               cstr (1:1) = string (ia:ia) 
-            ENDDO 
+         DO while (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') 
+            ia = ia + 1 
+            IF (ia.gt.ie) THEN 
+               GOTO 998 
+            ENDIF 
+            cstr (1:1) = string (ia:ia) 
+         ENDDO 
 !                                                                       
 !     ---Copy the characters into the line, until a blank or ","        
 !                                                                       
-            ll = 0
-            bstr = ' '
-            DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
-               ll = ll + 1
-               lp = lp + 1 
-               line (lp:lp) = cstr (1:1) 
-               bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
-               ia = ia + 1 
-               IF (ia.gt.ie) THEN 
-                  GOTO 997 
-               ENDIF 
-               cstr (1:1) = string (ia:ia) 
-            ENDDO 
-  997       CONTINUE 
-            CALL do_math (line, igl, lp) 
-            IF(ier_num /= 0) THEN    ! Error in math assum string 
-               line = cpara(i)(1:lpara(i)) //' = '''// bstr(1:LEN_TRIM(bstr))//''''  
-               igl = lpara(i) + 2
-               lp  = LEN_TRIM(line)
-               CALL do_math (line, igl, lp)
+         ll = 0
+         bstr = ' '
+         DO while (.not. (cstr (1:1) .eq.' '.or.cstr (1:1) .eq.',') ) 
+            ll = ll + 1
+            lp = lp + 1 
+            line (lp:lp) = cstr (1:1) 
+            bstr (ll:ll) = cstr (1:1)   ! make copy for character evaluation
+            ia = ia + 1 
+            IF (ia.gt.ie) THEN 
+               GOTO 997 
+            ENDIF 
+            cstr (1:1) = string (ia:ia) 
+         ENDDO 
+997      CONTINUE 
+         CALL do_math (line, igl, lp) 
+         IF(ier_num /= 0) THEN    ! Error in math assum string 
+            line = cpara(i)(1:lpara(i)) //' = '''// bstr(1:LEN_TRIM(bstr))//''''  
+            igl = lpara(i) + 2
+            lp  = LEN_TRIM(line)
+            CALL do_math (line, igl, lp)
+         ENDIF
+      ENDDO loop_para
+   ELSE
+      k1 = 0
+      k2 = 0
+      DO i = 1, ianz
+         k1 = k2 + 1
+         IF(fpara(i)(1:1) == 'i') THEN
+            READ(fpara(i)(2:LEN_TRIM(fpara(i))),*) length
+            k2 = k2 + length
+            line = cpara(i)(1:lpara(i)) //' = '//string(k1:k2)
+            igl = lpara(i) + 2
+            lp  = LEN_TRIM(line)
+         ELSEIF(fpara(i)(1:1) == 'f') THEN
+            idot = INDEX(fpara(i),'.')
+            IF(idot==0) THEN
+               READ(fpara(i)(2:LEN_TRIM(fpara(i))),*) length
+            ELSE
+               READ(fpara(i)(2:idot-1            ),*) length
             ENDIF
-         ENDDO loop_para
-      ELSE 
-         READ (io_unit (ii), *, err = 998, end = 999) 
-         res_para (0) = 0 
-      ENDIF 
+            k2 = k2 + length
+            line = cpara(i)(1:lpara(i)) //' = '//string(k1:k2)
+            igl = lpara(i) + 2
+            lp  = LEN_TRIM(line)
+         ELSEIF(fpara(i)(1:1) == 'a') THEN
+            READ(fpara(i)(2:LEN_TRIM(fpara(i))),*) length
+            k2 = k2 + length
+            line = cpara(i)(1:lpara(i)) //' = '''//string(k1:k2)//''''
+            igl = lpara(i) + 2
+            lp  = LEN_TRIM(line)
+         ENDIF
+         CALL do_math (line, igl, lp)
+      ENDDO
+   ENDIF
+ELSE 
+   READ (io_unit (ii), *, err = 998, end = 999) 
+   res_para (0) = 0 
+ENDIF 
 !                                                                       
-      RETURN 
+RETURN 
 !                                                                       
-  998 CONTINUE 
-      ier_num = - 3 
-      ier_typ = ER_IO 
-      RETURN 
+998 CONTINUE 
+ier_num = - 3 
+ier_typ = ER_IO 
+RETURN 
 !                                                                       
-  999 CONTINUE 
-      IF (io_eof (ii) ) THEN 
-         res_para (0) = - 1 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_IO 
-      ENDIF 
-      RETURN 
+999 CONTINUE 
+IF (io_eof (ii) ) THEN 
+   res_para (0) = - 1 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_IO 
+ENDIF 
 !                                                                       
-      END SUBROUTINE do_fget                        
+END SUBROUTINE do_fget                        
 !*****7***********************************************************      
       SUBROUTINE do_fformat (zeile, lp) 
 !                                                                       
@@ -504,24 +553,25 @@ REAL   , DIMENSION(MAXW) :: werte
       SUBROUTINE do_fput (zeile, lp) 
 !                                                                       
 USE ber_params_mod
-      USE berechne_mod
-      USE blanks_mod
-      USE build_name_mod
-      USE calc_expr_mod
-      USE debug_mod 
-      USE errlist_mod 
-      USE get_params_mod
-      USE macro_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = MAC_MAX_FORM) 
+USE berechne_mod
+USE blanks_mod
+USE build_name_mod
+USE calc_expr_mod
+USE debug_mod 
+USE errlist_mod 
+USE get_params_mod
+USE macro_mod 
+USE take_param_mod
+!
+IMPLICIT none 
+!
+INTEGER, PARAMETER :: maxw = MAC_MAX_FORM 
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
 INTEGER          , INTENT(INOUT) :: lp
 !
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: fpara
 CHARACTER(LEN=1024)                  :: cstr, line 
 CHARACTER(LEN=1)                     :: quote 
 REAL                     :: wert 
@@ -529,79 +579,107 @@ INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ianz, lstr, i, ie, ianzz, ii 
 REAL   , DIMENSION(MAXW) :: werte
 !                                                                       
-      INTEGER len_str 
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+INTEGER len_str 
+!
+DATA oname  / 'form'   /
+DATA loname /  4       /
+opara  =  (/ '*'       /)   ! Always provide fresh default values
+lopara =  (/  1        /)
+owerte =  (/  0.0      /)
 !                                                                       
-      quote = achar (39) 
-      ianzz = 1 
+quote = achar (39) 
+ianzz = 1 
 !                                                                       
-      lp = -lp
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) RETURN 
+lp = -lp
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, owerte)
+IF(opara(1)/='*') THEN
+   line= opara(1)(2:lopara(1)-1)
+   lp = lopara(1) - 2
+   CALL get_params (line, ianzz, fpara, lpara, MAXW, lp)
+   DO i=1,ianz
+      lpara(i) = LEN_TRIM(cpara(i))   ! Restore parameter length
+   ENDDO
+   IF(ianz-1<= MAC_MAX_FORM) THEN
+      DO i=1,ianz-1
+         io_out_format (i) = '('//fpara(i)(1:MIN(20,LEN_TRIM(fpara(i))))//')'
+      ENDDO
+   ENDIF
+ENDIF
 !                                                                       
-      CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
-      IF (ier_num.ne.0) RETURN 
-      IF (ianz.eq.1) THEN 
-         ianz = 0 
-      ELSE 
-         CALL del_params (1, ianz, cpara, lpara, maxw) 
-      ENDIF 
-      ii = nint (werte (1) ) 
-      IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
-         ier_num = - 13 
-         ier_typ = ER_IO 
-         RETURN 
-      ENDIF 
+CALL ber_params (ianzz, cpara, lpara, werte, maxw) 
+IF (ier_num.ne.0) RETURN 
+IF (ianz.eq.1) THEN 
+   ianz = 0 
+ELSE 
+   CALL del_params (1, ianz, cpara, lpara, maxw) 
+ENDIF 
+ii = nint (werte (1) ) 
+IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
+   ier_num = - 13 
+   ier_typ = ER_IO 
+   RETURN 
+ENDIF 
 !                                                                       
-      IF (.not.io_open (ii) ) THEN 
-         ier_num = - 11 
-         ier_typ = ER_IO 
-         RETURN 
-      ENDIF 
+IF (.not.io_open (ii) ) THEN 
+   ier_num = - 11 
+   ier_typ = ER_IO 
+   RETURN 
+ENDIF 
 !                                                                       
-      IF (ianz.ge.1) THEN 
-         ie = 0 
-         CALL rem_leading_bl(cpara(1),lpara(1))
-         IF (cpara (1) (1:1) .eq.'"') THEN 
-            CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-            line = cpara (1) 
-            ie = lpara (1) 
+IF (ianz.ge.1) THEN 
+   ie = 0 
+   CALL rem_leading_bl(cpara(1),lpara(1))
+   IF (cpara (1) (1:1) .eq.'"') THEN 
+      CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+      line = cpara (1) 
+      ie = lpara (1) 
+   ELSE 
+      DO i = 1, ianz 
+         IF (index (cpara (i) (1:lpara (i) ), quote) .ne.0) THEN 
+            line(ie+1:ie+lpara (i) - 2) = cpara(i)(2:lpara(i) - 1)
+            ie = ie+lpara (i) - 2 
          ELSE 
-            DO i = 1, ianz 
-            IF (index (cpara (i) (1:lpara (i) ), quote) .ne.0) THEN 
-               line (ie+1:ie+lpara (i) - 2) = cpara (i) (2:lpara (i)    &
-               - 1)                                                     
-               ie = ie+lpara (i) - 2 
+            cstr = '('//cpara (i) (1:lpara (i) ) //')' 
+            lstr = lpara (i) + 2 
+            CALL rem_bl (cstr, lstr) 
+            wert = berechne (cstr, lstr) 
+            IF (ier_num.ne.0) RETURN 
+            IF (io_out_format (i) .eq.'(*)') THEN 
+               WRITE (cstr, *, err = 999) wert 
             ELSE 
-               cstr = '('//cpara (i) (1:lpara (i) ) //')' 
-               lstr = lpara (i) + 2 
-               CALL rem_bl (cstr, lstr) 
-               wert = berechne (cstr, lstr) 
-               IF (ier_num.ne.0) RETURN 
-               IF (io_out_format (i) .eq.'(*)') THEN 
-                  WRITE (cstr, *, err = 999) wert 
+               IF (index(io_out_format (i) , 'i') .ne.0 .OR.  &
+                   index(io_out_format (i) , 'I') .ne.0 .OR.  &
+                   index(io_out_format (i) , 'z') .ne.0 .OR.  &
+                   index(io_out_format (i) , 'Z') .ne.0)    THEN                  
+                  WRITE(cstr, io_out_format(i), err = 999) NINT( wert)
                ELSE 
-                  IF (index (io_out_format (i) , 'i') .ne.0.or.index (  &
-                  io_out_format (i) , 'I') .ne.0.or.index (             &
-                  io_out_format (i) , 'z') .ne.0.or.index (             &
-                  io_out_format (i) , 'Z') .ne.0) THEN                  
-                     WRITE (cstr, io_out_format (i), err = 999) nint (  &
-                     wert)                                              
-                  ELSE 
-                     WRITE (cstr, io_out_format (i), err = 999) wert 
-                  ENDIF 
+                  WRITE(cstr, io_out_format(i), err = 999) wert 
                ENDIF 
-               lstr = len_str (cstr) 
-               line (ie+1:ie+lstr) = cstr (1:lstr) 
-               ie = ie+lstr 
             ENDIF 
-            ENDDO 
+            lstr = len_str (cstr) 
+            line (ie+1:ie+lstr) = cstr (1:lstr) 
+            ie = ie+lstr 
          ENDIF 
-         WRITE (io_unit (ii), 9999, err = 999) line (1:ie) 
-         IF (dbg) WRITE ( *, 1000) line (1:ie) 
-      ELSE 
-         WRITE (io_unit (ii), *, err = 999) 
-      ENDIF 
-      RETURN 
+      ENDDO 
+   ENDIF 
+   WRITE (io_unit (ii), 9999, err = 999) line (1:ie) 
+   IF (dbg) WRITE ( *, 1000) line (1:ie) 
+ELSE 
+   WRITE (io_unit (ii), *, err = 999) 
+ENDIF 
+RETURN 
 !                                                                       
   999 ier_num = - 12 
       ier_typ = ER_IO 
@@ -609,6 +687,7 @@ REAL   , DIMENSION(MAXW) :: werte
 !                                                                       
  1000 FORMAT    ( ' debug  > Written: ',a) 
  9999 FORMAT    (a) 
-      END SUBROUTINE do_fput                        
+!
+END SUBROUTINE do_fput                        
 !
 END MODULE fput_mod
