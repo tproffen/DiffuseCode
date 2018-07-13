@@ -148,6 +148,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a,i12)') 'REF_MEMBER     = ',pop_n
    WRITE(IWR,'(a,i12)') 'REF_CHILDREN   = ',pop_c
    WRITE(IWR,'(a,i12)') 'REF_DIMENSION  = ',pop_dimx
+   WRITE(IWR,'(a,i12)') 'REF_NINDIV     = ',run_mpi_senddata%nindiv
    WRITE(IWR,'(a,i12)') 'REF_KID        = ',9999
    WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',9999
    DO i=1,pop_dimx
@@ -194,6 +195,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'
    WRITE(IWR,'(a)') '#'
+   WRITE(IWR,'(a)') 'set error, continue'
 !  WRITE(IWR,'(a)') 'exit'
 !
    CLOSE(IWR)
