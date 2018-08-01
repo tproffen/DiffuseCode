@@ -2912,7 +2912,7 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
          RETURN 
       ENDIF 
       infile = cpara (1) 
-      i = index (infile, '.') 
+      i = index (infile, '.', .TRUE.) 
       IF (i.eq.0) then 
          infile = cpara (1) (1:lpara (1) ) //'.ins' 
          ofile = cpara (1) (1:lpara (1) ) //'.cell' 
