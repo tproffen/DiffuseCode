@@ -9,6 +9,7 @@ SUBROUTINE discus_setup (standalone)
 !                                                                       
       USE discus_allocate_appl_mod
       USE discus_init_mod
+      USE discus_reset_all_mod
 !
       USE appl_env_mod
       USE cmdline_args_mod
@@ -46,6 +47,7 @@ IF(standalone) CALL lib_alloc_default
 !     Call initialization routine.                                      
 !                                                                       
 CALL discus_initarrays 
+CALL discus_reset_all
 IF(standalone) CALL init_sysarrays 
 !                                                                       
 !     get envirmonment information                                      
