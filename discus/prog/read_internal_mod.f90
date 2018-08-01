@@ -34,7 +34,9 @@ CONTAINS
    INTEGER       , INTENT(INOUT) :: n_atom
 !
    read_temp%strucfile = strucfile
-   CALL store_find_node(store_root, read_temp, ier_num ) ! Find the proper node
+   NULLIFY(read_from)
+   NULLIFY(read_parent)
+   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -487,7 +489,9 @@ ENDIF
    ENDIF
 !
    read_temp%strucfile = rd_strucfile
-   CALL store_find_node(store_root, read_temp, ier_num ) ! Find the proper node
+   NULLIFY(read_from)
+   NULLIFY(read_parent)
+   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -546,7 +550,9 @@ ENDIF
       RETURN
    ENDIF
    read_temp%strucfile = strucfile
-   CALL store_find_node(store_root, read_temp, ier_num ) ! Find the proper node
+   NULLIFY(read_from)
+   NULLIFY(read_parent)
+   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -606,7 +612,9 @@ ENDIF
       RETURN
    ENDIF
    read_temp%strucfile = strucfile
-   CALL store_find_node(store_root, read_temp, ier_num ) ! Find the proper node
+   NULLIFY(read_from)
+   NULLIFY(read_parent)
+   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
