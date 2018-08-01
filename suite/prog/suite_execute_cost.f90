@@ -235,10 +235,10 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    CALL rese_cr
 !
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
-      IF(.NOT. l_discus_init) THEN
-         CALL discus_setup   (lstandalone)
+!     IF(.NOT. l_discus_init) THEN         ! Allways do a DISCUS RESET
+         CALL discus_setup   (lstandalone)        ! Allways do a DISCUS RESET
          l_discus_init = .true.
-      ENDIF
+!     ENDIF
       pname     = 'discus'
       pname_cap = 'DISCUS'
       prompt    = pname
