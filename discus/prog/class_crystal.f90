@@ -207,6 +207,30 @@ CONTAINS
    ALLOCATE ( this%cr_mole_biso (0:n_type), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_fuzzy(0:n_mole), STAT=istatus ) ! Allocate molecules
 !
+   this%cr_gen_add (4,4,0:14 ) = 0.0
+   this%cr_sym_add (4,4,0:14 ) = 0.0
+   this%cr_scat    (11,0:nscat) = 0.0
+   this%cr_delfr   (  0:nscat) = 0.0
+   this%cr_delfi   (  0:nscat) = 0.0
+   this%cr_scat_int(  0:nscat) = .TRUE.
+   this%cr_scat_equ(  0:nscat) = .FALSE.
+   this%cr_delf_int(  0:nscat) = .FALSE.
+   this%cr_at_equ  (  0:nscat) = ' '
+   this%cr_sav_atom(  0:nscat) = .TRUE.
+   this%cr_at_lis  (  0:nscat) = ' '
+   this%cr_dw      (  0:nscat) = 0.0
+   this%cr_occ     (  0:nscat) = 0.0
+!  this%atoms      (natoms   )
+   this%cr_mole_len  (0:n_mole) = 0
+   this%cr_mole_off  (0:n_mole) = 0
+   this%cr_mole_type (0:n_mole) = 0
+   this%cr_mole_char (0:n_mole) = 0
+   this%cr_mole_file (0:n_mole) = ' '
+   this%cr_mole_cont (0:n_atom) = 0
+   this%cr_mole_dens (0:n_mole) = 0.0
+   this%cr_mole_biso (0:n_type) = 0.0
+   this%cr_mole_fuzzy(0:n_mole) = 0.0
+!
    this%cr_natoms = natoms                            ! Store number of atoms
    this%cr_nscat  = nscat                             ! Store number of atom types
    this%latom  = .true.                            ! Flag that crystal is allocated
@@ -1422,6 +1446,8 @@ CONTAINS
       DEALLOCATE ( this%cr_mole_dens , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_biso , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_fuzzy, STAT=istatus ) ! Always deallocate molecules
+!
+!     IF(ALLOCATED(this%atoms)) DEALLOCATE ( this%atoms)
    ENDIF
    this%cr_natoms = 0
    this%latom  = .false.
