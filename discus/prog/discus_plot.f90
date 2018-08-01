@@ -86,6 +86,11 @@ CONTAINS
       lopara =   (/  5     ,  5     ,  1     ,  1     ,  4     ,  5     ,  4     ,  4     ,  4      /)
       owerte =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0   ,  0.0   ,  0.0    /)
 !
+IF(pl_init) THEN
+   labs = .FALSE.
+   lord = .FALSE.
+   lnor = .FALSE.
+ENDIF
 !
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
@@ -2676,6 +2681,7 @@ IMPLICIT NONE
 !
 INTEGER :: ik
 !
+pl_init  = .TRUE.
 pl_jmol  = ' '
 pl_out   = 'plot.cif'
 pl_title = 'crystal structure'

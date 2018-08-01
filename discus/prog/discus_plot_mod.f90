@@ -16,6 +16,7 @@ CHARACTER(LEN=  80)  :: pl_title = 'crystal structure'
 CHARACTER(LEN=  12)  :: pl_prog  = 'cif'
 CHARACTER(LEN=   8)  :: pl_vrml  = 'u'
 CHARACTER(LEN=   4)  :: pl_col   = 'xyz'
+LOGICAL                                   :: pl_init      ! Plot was initialized
 REAL                                      :: pl_width     = 1e12
 REAL   , DIMENSION(3,2)                   :: pl_dim       = reshape((/(-1e14,ik=1,3),(1e12,ik=1,3)/),shape(pl_dim)) ! (3,2)
 REAL   , DIMENSION(3)                     :: pl_hkl       = (/0.0,0.0,1.0/)
