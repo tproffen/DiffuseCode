@@ -79,11 +79,11 @@ INTEGER                                   :: dc_temp_lname   ! Temporary name le
 CHARACTER (LEN=1024)                      :: dc_temp_file    ! Temporary filename for input
 INTEGER                                   :: dc_temp_lfile   ! Temporary filename length for input
 INTEGER                                   :: dc_temp_type = DC_NONE   ! Temporary connection type for input
-INTEGER, DIMENSION(0:4)                   :: dc_temp_surf = 0! Temporary surface atom type for input
+INTEGER, DIMENSION(0:40)                  :: dc_temp_surf = 0! Temporary surface atom type for input
 INTEGER                                   :: dc_temp_maxsurf ! Maximum number of surface atom typers
 INTEGER                                   :: dc_temp_neig    ! Temporary neighbor atom number for input
 INTEGER, DIMENSION(0:2)                   :: dc_temp_axis    ! Temporary axis for ligand      for input
-INTEGER, DIMENSION(1:20)                  :: dc_temp_surfnew=0 ! Temporary list of new surface atoms
+INTEGER, DIMENSION(1:40)                  :: dc_temp_surfnew=0 ! Temporary list of new surface atoms
 REAL                                      :: dc_temp_dist    ! Temporary neighbor distance    for input
 REAL                                      :: dc_temp_dens    ! Temporary ligand density       for input
 LOGICAL                                   :: dc_temp_restrict = .FALSE. ! Restriction yes / no
