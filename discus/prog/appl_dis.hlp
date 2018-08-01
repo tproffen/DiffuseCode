@@ -55,6 +55,7 @@
 !p read       ! Read structure or unit cell from file
 !p remove     ! Remove atom or molecule from crystal
 !p replace    ! Replace atom(s) or molecule(s) with other type
+!p reset      ! Reset DISCUS to initial program start conditions
 !p rmc        ! Enter REVERSE-MONTE-CARLO level
 !p save       ! Enter SAVE level to save the structure
 !p seed       ! Set seed for random number generator
@@ -62,6 +63,7 @@
 !p show       ! Show various information
 !p spacegroup ! Sets the space group for the current structure
 !p stack      ! Enter STACKING FAULT level
+!p storage    ! Enter STORAGE level
 !p switch     ! Swap two atoms or molecules within crystal
 !p symm       ! Enter SYMMETRY transformation level
 !p transform  ! Enter unit cell TRANSFORMATION  level
@@ -72,6 +74,12 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Aug
+
+   Added a 'reset' command to DISCUS. (Work in progress)
+   Added a ==> 'storage' menu.
+      This menu allos to display and manage the internally stored
+      crystal structure files. 
 3  2018_July
 
    Added the possibility to define property like features 
@@ -81,6 +89,14 @@
    Added an 'exit' command to the read menu.
 
    Added a 'reset' command to 'plot'
+
+   connectivity
+      Modified the behavior for central atoms given by name 
+      instead of type number. Connectivity will perform the 
+      requested action for all atom types of this name.
+      add Si, O, 1.2, 2.0, silicon
+      Creates a connectivity for all Silicon atom types.
+
 3  2018_June
 
    Added the possibility for interactive plots.
@@ -605,6 +621,7 @@
    chem       ! Analyze a structure
    connect    ! Build a connectivity table 
    property   ! Set / clear reaction to properties
+   storage    ! List / manipulate internally stored structures
 
    Fourier calculations
    powder     ! Perform powder diffraction calculations
@@ -1699,6 +1716,15 @@
    Switches to the connectivity menu.
    At this menu all parameters related to interatomic distances
    and the connectivity list are defined.
+
+   Modification Note: As of version 5.24 DISCUS will perform the
+      requested action (add, set, remove) for all central atom
+      types with this name if the central atom is specified by
+      name instead of type number.
+      add Si, O, 1.2, 2.0, silicon
+      Creates a connectivity for all Silicon atom types.
+      add  3, O, 1.2, 2.0, silicon
+      Creates a connectivity for atom type 3 only.
 
 3  Commands
 !p add     ! Adds a new definition 
@@ -5796,18 +5822,23 @@
 
    The second form with the optional arguments allows to define 
    property like behaviour based on the connectivities that must 
-   have been defined for the atom of type <type>.
+   have been defined for the atom(s) of type <type>.
    nmin and nmax are minimum and maximum coordination numbers that the
         atom must have for the property to be true.
    emin and emax define an interval of excluded coordination numbers.
 
    Example:
    prop present, atom:si,conn:1, nmin:0, nmax:3 
-   This is true only if the selected atom is of type silicaon with
+   This is true only if the selected atom is of type silicon with
    zero to 3 neighbors in its current onnectivity number 1. 
 
    Keep in mind that you may have to update the connectivity
-   list for this atom type.
+   list for this atom type / these atom types.
+
+   If you specify the atom by its name, the property will 
+   apply to all atom types with this atom name. Alternatively
+   specify the atom type number instead of the atom name as in: 
+   prop present, atom:7,conn:1, nmin:0, nmax:3 !Apply to atom type 7
 3  set/clear
 !b set   <flag>, "types",  {"all" | <iscat> [, <iscat...]}
 !b set   <flag>, "atoms"}, {"all" | <start>,<end>}
@@ -6404,6 +6435,13 @@
 !p "mode" : show general RMC calculation settings
 !p "rval" : show R-values for current refinement
 !p "sym"  : show information about using symmetry information of read planes
+2  reset
+!b reset
+
+   Places DISCUS into the state at program start. 
+
+   Version info:v.5.24.0 
+        resets: crystal, connectivity, plot and internal storage 
 2  save
 !b save
 !b save <name>
@@ -7554,6 +7592,48 @@
    Reads the components of the translation vector between layers <i> and <j>.
    The current origin of any layer is calculated by adding the translation
    vector between layer types <i> and <j> to the previous origin.
+2  storage
+
+   Menu to display and manage internally stored crystal structures
+
+   Further help is available on:
+3  commands
+!p show       ! Show list of stored structures
+!p reset      ! Clear list of stored structures
+!p remove     ! Clear list of stored structures
+!p exit       ! Leaves the storage menu
+3  show
+!p show
+!p show "all"
+!p show <name>
+!p    display:{"short" | "crystal" | "connect" | "full"}
+
+   Displays the complete list (no parameters or "all")
+   or an individual structure.
+
+   The optional parameter "display:" determines the amount of
+   information that is displayed:
+   "short" (default)  Show the file names only
+   "crystal"          Additionally show number of atoms, 
+                      atom types and molecule info
+                      This is stored into the result variable 
+                      at entries 1 to 4.
+   "connect"          Additionally show the internal connection
+                      in the binary storage tree. This is really
+                      just for debug purposes
+   "full"             Combines "crystal" and "connect"
+3  reset
+!p reset {<name>}
+
+   Clears the complete internal list or the single structure
+   named <name>
+   Commands 'reset' and 'remove' are synonymous
+3  remove
+!p remove {<name>}
+
+   Clears the complete internal list or the single structure
+   named <name>
+   Commands 'reset' and 'remove' are synonymous
 2  surface
 
    Menu to define crystal surfaces and related settings
