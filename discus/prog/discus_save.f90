@@ -924,12 +924,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     This subroutine saves the structure and/or the unit cell          
 !     onto a file. The format uses keyword description.                 
 !+                                                                      
-      USE discus_config_mod 
+!     USE discus_config_mod 
       USE crystal_mod 
-      USE gen_add_mod 
+!     USE gen_add_mod 
       USE class_internal
-      USE molecule_mod 
-      USE sym_add_mod 
+!     USE molecule_mod 
+!     USE sym_add_mod 
       USE discus_save_mod 
       USE errlist_mod
       IMPLICIT none 
@@ -960,6 +960,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          RETURN
       ENDIF
 !                                                                       
+IF(ASSOCIATED(store_root)) THEN    ! The tree exists already, add a node
 !
       ALLOCATE(store_temp, STAT = istatus)        ! Allocate a temporary storage
       NULLIFY(store_temp%before)
@@ -980,27 +981,70 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ier_msg(1) = 'Could not allocate storage crystal'
          RETURN
       ENDIF
+      CALL save_internal_node(store_temp, strucfile)
+ELSE
+!
+      ALLOCATE(store_root, STAT = istatus)        ! Allocate a temporary storage
+      NULLIFY(store_root%before)
+      NULLIFY(store_root%after )
+      IF ( istatus /= 0) THEN
+         ier_num = -114
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Temporary storage failed'
+         RETURN
+      ENDIF
+      store_root%strucfile = strucfile            ! Copy filename
+      ALLOCATE(store_root%crystal, STAT=istatus)  ! Allocate the crystal at this node
+      IF ( istatus /= 0) THEN
+         ier_num = -114
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Could not allocate storage crystal'
+         RETURN
+      ENDIF
+      CALL save_internal_node(store_root, strucfile)
+ENDIF
+!
+      END SUBROUTINE save_internal
+!
+!*******************************************************************************
+!
+SUBROUTINE save_internal_node(ptr, strucfile)
+!
+      USE discus_config_mod 
+      USE crystal_mod 
+!     USE gen_add_mod 
+      USE class_internal
+      USE molecule_mod 
+!     USE sym_add_mod 
+      USE discus_save_mod 
+      USE errlist_mod
+      IMPLICIT none 
+!
+TYPE(internal_storage), POINTER :: ptr
+CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
-      CALL store_temp%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
+      CALL ptr%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
            mole_max_mole, mole_max_type, mole_max_atom ) ! Allocate the crystal arrays
 !
 !     An internal crystal has ALL headers saved, logical flags are used to indicate
 !     whether they were supposed to be saved or not.
 !     n_latom = UBOUND(sav_latom,1)     ! Make sure we send correct array size
-      CALL store_temp%crystal%set_crystal_save_flags (sav_w_scat, & 
+      CALL ptr%crystal%set_crystal_save_flags (sav_w_scat, & 
            sav_w_adp, sav_w_occ, sav_w_gene, sav_w_symm,                &
            sav_w_ncell, sav_w_obje, sav_w_doma, sav_w_mole, sav_w_prop, &
            sav_sel_prop,MAXSCAT,sav_latom)
 !
-      CALL store_temp%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+      CALL ptr%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
 !
 !     CALL store_write_node(store_root)
 !
-      NULLIFY(store_temp)
+!     NULLIFY(store_temp)
 !
-      END SUBROUTINE save_internal
+END SUBROUTINE save_internal_node
+!
+!*******************************************************************************
 !
       SUBROUTINE save_store_setting
 !
