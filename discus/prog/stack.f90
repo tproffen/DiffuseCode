@@ -993,6 +993,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !+                                                                      
       USE discus_config_mod 
       USE discus_allocate_appl_mod
+      USE class_internal
       USE crystal_mod 
       USE molecule_mod 
       USE read_internal_mod
@@ -1412,6 +1413,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ENDDO
       CALL save_internal(stacksimple)
       CALL readstru_internal(tempfile)    ! Restore current structure
+      CALL store_remove_single(tempfile, ier_num)  ! Cleanup internal storage
+      IF(ier_num/=0) THEN
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Could not remove temporary internal storage'
+         ier_msg(2) = 'in stack_create'
+         ier_msg(3) = 'Please document and report'
+      ENDIF
+
 !                                                                       
 !     do i=1,st_ntypes                                                  
 !       write (output_io,2020) i,st_number(i)                           

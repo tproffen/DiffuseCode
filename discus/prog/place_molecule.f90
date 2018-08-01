@@ -683,6 +683,10 @@ USE prop_para_func
    CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara      ! a string
    INTEGER            , DIMENSION(MAXW) :: lpara      ! a string
    REAL               , DIMENSION(MAXW) :: werte      ! a string
+!
+   INTEGER   :: ier_num_deco, ier_typ_deco
+   CHARACTER(LEN=LEN(ier_msg)), DIMENSION(1:3) :: ier_msg_deco
+
    INTEGER   :: istatus          ! status
    INTEGER   :: i,j, k, i1  ! dummy index
    INTEGER   :: ia   ! dummy index
@@ -1310,9 +1314,18 @@ CYCLE main_loop
      ier_msg(3) = 'Check settings and command in surface menu'
    ENDIF
 !
-   IF(ier_num == 0 ) THEN
-      CALL save_restore_setting     ! Restore user save settigns
+   IF(ier_num /=0) THEN
+      ier_num_deco = ier_num
+      ier_typ_deco = ier_typ
+      ier_msg_deco = ier_msg
+   ELSE
+      ier_num_deco =  0
+      ier_typ_deco =  0
+      ier_msg_deco = ' '
    ENDIF
+!  IF(ier_num == 0 ) THEN
+      CALL save_restore_setting     ! Restore user save settigns
+!  ENDIF
 !
 !  Clean up temporary arrays
 !
@@ -1326,6 +1339,32 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
    line   = ' '
    length = 1
    CALL conn_do_set (code_res,line, length) ! Reset connectivities
+!
+! Clean up internal files
+!
+CALL store_remove_single(corefile, ier_num)
+CALL store_remove_single(shellfile, ier_num)
+CALL store_remove_single('internal_anchors', ier_num)
+CALL store_remove_single('internal_sorted', ier_num)
+rdefs: DO dc_temp_id=1, dcc_num
+   WRITE(mole_name,1000) dc_temp_id, dcc_file(dc_temp_id)(1:dcc_lfile(dc_temp_id))
+   CALL store_remove_single(mole_name, ier_num)
+ENDDO rdefs
+IF(ier_num/=0) THEN
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Could not remove temporary internal storage'
+   ier_msg(2) = 'in deco_run '
+   ier_msg(3) = 'Please document and report'
+ENDIF
+
+!
+!  Restore DECO ERROR SETTINGS 
+!
+   IF(ier_num_deco/=0) THEN
+      ier_num = ier_num_deco
+      ier_typ = ier_typ_deco
+      ier_msg = ier_msg_deco
+   ENDIF
 !
    END SUBROUTINE deco_run
 !
@@ -3187,6 +3226,8 @@ USE symm_menu
 USE symm_mod
 USE symm_sup_mod
 USE trafo_mod
+!
+use molecule_mod
 !
 USE param_mod
 USE random_mod
