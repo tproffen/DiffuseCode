@@ -995,6 +995,7 @@ END SUBROUTINE do_remove
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
       USE discus_config_mod 
+      USE conn_mod
       USE molecule_mod 
       USE update_cr_dim_mod
       USE errlist_mod 
@@ -1154,6 +1155,7 @@ END SUBROUTINE do_remove
          new_type(:)   = 0
          new_file(:)   = ' '
          new_char(:)   = 0
+         new_biso(:)   = 0.0
 !
          DO ia=1, cr_natoms           ! Loop over all atoms
             IF(cr_mole(ia)/=0) THEN   ! Atom is in a molecule
