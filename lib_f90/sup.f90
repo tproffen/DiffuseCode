@@ -149,6 +149,18 @@ CONTAINS
 !     blanks, get the command.                                          
 !     Return comment lines "# ..." unchanged.                           
 !                                                                       
+!
+!     - Learn command for learn sequence                                
+!
+      IF (llearn.and..not.str_comp (line, 'lend', 3, lbef, 4)   &
+                .and..not.str_comp (line, 'mouse', 3, lbef, 5)  &
+                .and..not.lmakro) THEN
+         IF (ll.gt.0) THEN 
+            WRITE (33, 2000) input (1:len_str (input) ) 
+         ELSE 
+            WRITE (33, 2000) 
+         ENDIF 
+      ENDIF 
       IF (ll.ne.0) THEN 
          IF (input (1:1) .ne.'#'.and.input (1:1) .ne.'!') THEN 
             ll = len_str (input) 
@@ -179,18 +191,6 @@ CONTAINS
             IF (indxb + 1.le.ll) THEN 
                zeile = line (indxb + 1:ll) 
                lp = ll - indxb 
-            ENDIF 
-!                                                                       
-!     - Learn command for learn sequence                                
-!                                                                       
-            IF (llearn.and..not.str_comp (befehl, 'lend', 3, lbef, 4)   &
-                      .and..not.str_comp (befehl, 'mouse', 3, lbef, 5)  &
-                      .and..not.lmakro) THEN
-               IF (ll.gt.0) THEN 
-                  WRITE (33, 2000) input (1:len_str (input) ) 
-               ELSE 
-                  WRITE (33, 2000) 
-               ENDIF 
             ENDIF 
          ELSE 
             line = input 
