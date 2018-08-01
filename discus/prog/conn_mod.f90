@@ -423,7 +423,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE discus_config_mod 
       USE crystal_mod 
       USE get_iscat_mod
-      USE modify_mod
+!     USE modify_mod
       USE variable_test
       USE berechne_mod
       USE ber_params_mod
@@ -451,8 +451,10 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER            , DIMENSION(2)  :: llpara
       REAL               , DIMENSION(2)  :: wwerte
 !
+      INTEGER, DIMENSION(:), ALLOCATABLE :: is_cent  ! Central atom type(s)
+!
       INTEGER             :: ianz         ! number of command line parameters
-      INTEGER             :: iianz        ! dummy number
+      INTEGER             :: iianz,i      ! dummy number
       INTEGER             :: is1          ! first atom type
       INTEGER             :: is2          ! second atom type
       INTEGER             :: temp_id      ! temporary definition ID
@@ -613,6 +615,10 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
       CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew)
       is1 = NINT(werte(1))
+      IF(ALLOCATED(is_cent)) DEALLOCATE(is_cent)
+      ALLOCATE(is_cent(0:iianz))
+      is_cent(1:iianz) = NINT(werte(1:iianz))
+      is_cent(0) = iianz
       CALL del_params (1, ianz, cpara, lpara, maxw) 
 !
       IF ( code /= code_add ) then
@@ -630,12 +636,14 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
          ENDIF
          CALL variable_exist (work_name, work_name_l,0, l_exist, l_type, is_no)
          IF(l_exist) THEN
+            DEALLOCATE(is_cent)
             ier_num = -120
             ier_typ = ER_APPL
             RETURN
          ENDIF
          CALL discus_validate_var_spec(work_name, work_name_l)
          IF( ier_num == -25 ) THEN
+            DEALLOCATE(is_cent)
             ier_num = -120
             ier_typ = ER_APPL
             RETURN
@@ -674,9 +682,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
          CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
       ENDIF
 !
+      loop_central: DO i = 1, is_cent(0)
+      is1 = is_cent(i)
       is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
          is_work: IF ( work_id /= -1 ) THEN                      ! Work on an existing definition
             IF ( work_id > def_main(is1)%def_number ) THEN       ! Definition does not exist
+               DEALLOCATE(is_cent)
                ier_num = -109
                ier_typ = ER_APPL
                RETURN
@@ -685,6 +696,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp => def_main(is1)%def_liste
             search: DO                                           ! search for working definition
                IF ( .NOT. ASSOCIATED(def_temp)) THEN             ! target is not associated ERROR
+                  DEALLOCATE(is_cent)
                   ier_num = -109
                   ier_typ = ER_APPL
                   RETURN
@@ -701,6 +713,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             IF ( code == code_set ) THEN                         ! Replace current entries
                DEALLOCATE( def_temp%valid_types, stat = all_status) ! delete old arry
                IF ( all_status /= 0 ) THEN
+                  DEALLOCATE(is_cent)
                   ier_num = -3
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error allocating the definitions'
@@ -709,6 +722,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                ENDIF
                ALLOCATE ( def_temp%valid_types(1:ianz), stat = all_status) ! alloc array of neighbor types
                IF ( all_status /= 0 ) THEN
+                  DEALLOCATE(is_cent)
                   ier_num = -3
                   ier_typ = ER_COMM
                   ier_msg(1) = ' Error allocating the definitions'
@@ -767,6 +781,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             ENDDO search2                                        ! End search for working definition
             ALLOCATE(def_temp, stat=all_status)                  ! Allocate a next node
             IF ( all_status /= 0 ) THEN
+               DEALLOCATE(is_cent)
                ier_num = -3
                ier_typ = ER_COMM
                ier_msg(1) = ' Error allocating the definitions'
@@ -775,6 +790,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             ENDIF
             ALLOCATE ( def_temp%valid_types(1:ianz), stat = all_status) ! alloc array of neighbor types
             IF ( all_status /= 0 ) THEN
+               DEALLOCATE(is_cent)
                ier_num = -3
                ier_typ = ER_COMM
                ier_msg(1) = ' Error allocating the definitions'
@@ -804,6 +820,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_main(is1)%def_id     = is1                    ! Set identifier
             def_main(is1)%def_number = 0                      ! No def.s exist yet.
             IF ( all_status /= 0 ) THEN
+               DEALLOCATE(is_cent)
                ier_num = -3
                ier_typ = ER_COMM
                ier_msg(1) = ' Error allocating the definitions'
@@ -813,6 +830,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp => def_main(is1)%def_liste
             ALLOCATE ( def_temp%valid_types(1:ianz), stat = all_status) ! alloc array of neighbor types
             IF ( all_status /= 0 ) THEN
+               DEALLOCATE(is_cent)
                ier_num = -3
                ier_typ = ER_COMM
                ier_msg(1) = ' Error allocating the definitions'
@@ -836,7 +854,9 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF
       ENDIF is_there
+      ENDDO loop_central
 !
+      DEALLOCATE(is_cent)
 !
    END SUBROUTINE conn_do_set
 !
@@ -847,7 +867,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE discus_config_mod 
       USE crystal_mod 
       USE get_iscat_mod
-      USE modify_mod
+!     USE modify_mod
 !
       USE ber_params_mod
       USE calc_expr_mod
