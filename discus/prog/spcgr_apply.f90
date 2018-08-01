@@ -116,18 +116,18 @@ CONTAINS
 !                                                                       
       END SUBROUTINE get_symmetry_matrices         
 !*****7*****************+***********************************************
-      SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
+SUBROUTINE make_symmetry_matrix (SPC_MAX, spc_n, spc_mat, spc_det,&
       spc_spur, spc_char, spc_xyz, igg, NG, generators, generpower)     
 !-                                                                      
 !     Applies the current generator to all existing symmetry matrices   
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      IMPLICIT none 
+USE discus_config_mod 
+USE crystal_mod 
+IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      INTEGER SPC_MAX 
+INTEGER, INTENT(IN) :: SPC_MAX 
       CHARACTER(65) spc_char (1:SPC_MAX) 
       CHARACTER(87) spc_xyz (1:SPC_MAX) 
       INTEGER spc_n 
@@ -1349,7 +1349,9 @@ END SUBROUTINE get_detail_axis
       CALL firstcell (copy, 4) 
       lident = .true. 
       DO i = 1, 3 
-      lident = lident.and.abs (orig (i) - copy (i) ) .lt.eps 
+      lident = lident.and.                        &
+         (     abs (orig (i) - copy (i) )      .lt.eps .OR.   &
+           ABS(abs (orig (i) - copy (i) )-1.0) .lt.eps)
       ENDDO 
       IF (lident) then 
          wyc_n = wyc_n + 1 
@@ -1585,16 +1587,27 @@ END SUBROUTINE get_detail_axis
          CALL firstcell (y, 4) 
       ENDIF 
       lnew = .true. 
-      DO ia = ii, iii 
+      DO ia = ii, cr_natoms 
+!      DO ia = ii, iii 
       DO i = 1, 3 
       previous (i) = cr_pos (i, ia) 
       ENDDO 
       previous (4) = 1.0 
       CALL firstcell (previous, 4) 
 !     ------check if atom exists                                        
-      IF (abs (compare (1) - previous (1) ) .lt.eps.and.abs (compare (2)&
-      - previous (2) ) .lt.eps.and.abs (compare (3) - previous (3) )    &
-      .lt.eps) then                                                     
+      IF((    abs (compare (1) - previous (1) ) .lt.eps .OR.        &
+          ABS(abs (compare (1) - previous (1) )-1.) .lt.eps) .AND.  &
+         (    abs (compare (2) - previous (2) ) .lt.eps .OR.        &
+          ABS(abs (compare (2) - previous (2) )-1.) .lt.eps) .AND.  &
+         (    abs (compare (3) - previous (3) ) .lt.eps .OR.        &
+          ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)  ) THEN
+!
+!      IF ((abs (compare (1) - previous (1) ) .lt.eps.and.  &
+!           abs (compare (2) - previous (2) ) .lt.eps.and.  &
+!           abs (compare (3) - previous (3) ) .lt.eps)  .OR.  &
+!      (ABS(abs (compare (1) - previous (1) )-1.) .lt.eps.and.  &
+!       ABS(abs (compare (2) - previous (2) )-1.) .lt.eps.and.  &
+!       ABS(abs (compare (3) - previous (3) )-1.) .lt.eps)       ) THEN
          lnew = .false. 
          GOTO 30 
       ENDIF 
@@ -1671,9 +1684,12 @@ END SUBROUTINE get_detail_axis
       IF (mole_l_first) then 
          mole_num_act = mole_num_curr - 1 
          DO i = ii, cr_natoms 
+            vec(1:3) = cr_pos(1:3,i)        ! Make sure that every first atom of
+            CALL firstcell(vec, 3)          ! a molecule is always within the
+            cr_pos(1:3,i) = vec(1:3)        ! first unit cell
          mole_num_act = mole_num_act + 1 
          CALL mole_insert_current (i, mole_num_act) 
-         IF (ier_num.ne.0) then 
+         IF (ier_num.ne.0) THEN 
             RETURN 
          ENDIF 
          ENDDO 
@@ -1736,7 +1752,9 @@ END SUBROUTINE get_detail_axis
             CALL firstcell (old, 3) 
             lsame = .true. 
             DO l = 1, 3 
-            lsame = lsame.and.abs (old (l) - vec (l) ) .lt.eps 
+            lsame = lsame.and. &
+               (    abs (old (l) - vec (l) )      .lt.eps .OR.  & 
+                ABS(abs (old (l) - vec (l) )-1.0) .lt.eps       )
             ENDDO 
             IF (lsame) then 
 !     ----------This is another atom of the same molecule               
