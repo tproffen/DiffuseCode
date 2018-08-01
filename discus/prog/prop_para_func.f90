@@ -528,16 +528,18 @@ REAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
 TYPE(prop_templ), DIMENSION(:), ALLOCATABLE :: p_temp
 TYPE(prop_templ)                            :: pp
 !
-INTEGER, PARAMETER :: MAXW = 1
+INTEGER, PARAMETER :: MAXW = 10
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
+INTEGER, DIMENSION(:), ALLOCATABLE :: at_kind    ! Atom type(s) on "atom:" parameter
+!
 CHARACTER (LEN=256)  :: c_name   ! Connectivity name
 INTEGER              :: c_name_l ! connectivity name length
 INTEGER              :: ino      ! connectivity number
-INTEGER              :: i        !ndex 
+INTEGER              :: i,j      ! index 
 INTEGER              :: id       ! Propert identifier
 INTEGER              :: nuser=0  ! Number of user definitions
 LOGICAL              :: lsearch  ! Need a search Yes / No
@@ -589,6 +591,10 @@ ELSE
    RETURN
 ENDIF
 IF(opara(6)=='none') THEN
+   IF(ALLOCATED(at_kind)) DEALLOCATE(at_kind)
+   ALLOCATE(at_kind(0:1))
+   at_kind(1:1) = -2
+   at_kind(0) = 1
    pp%at_type = -2
 ELSE
    cpara(1) = opara(6)
@@ -600,98 +606,124 @@ ELSE
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
+   IF(ALLOCATED(at_kind)) DEALLOCATE(at_kind)
+   ALLOCATE(at_kind(0:ianz))
+   at_kind(1:ianz) = NINT(werte(1:ianz))
+   at_kind(0) = ianz
 !
    pp%at_type = NINT(werte(1))
 ENDIF
 !
 !   store requested connectivities
-pp%conn_no   = 0
-pp%conn_name = ' '
-IF(opara(7)=='none') THEN
+loop_type: DO j=1, at_kind(0)
+   pp%at_type = at_kind(j)
+!
    pp%conn_no   = 0
    pp%conn_name = ' '
-ELSE
-   cpara(1) = opara(7)
-   lpara(1) = lopara(7)
-   ianz     = 1
-   CALL ber_params (ianz, cpara, lpara, werte, MAXW)
-   IF(pp%at_type==-1) THEN      ! All atom type selected
-      IF(ier_num==0) THEN
-         pp%conn_no   = NINT(werte(1))
-         pp%conn_name = ' '
-      ELSE
-         RETURN
-      ENDIF
+   IF(opara(7)=='none') THEN
+      pp%conn_no   = 0
+      pp%conn_name = ' '
    ELSE
-      IF(ier_num==0) THEN
-         ino      = NINT(werte(1))
-         c_name   = ' '
-         c_name_l = 0
+      cpara(1) = opara(7)
+      lpara(1) = lopara(7)
+      ianz     = 1
+      CALL ber_params (ianz, cpara, lpara, werte, MAXW)
+      IF(pp%at_type==-1) THEN      ! All atom type selected
+         IF(ier_num==0) THEN
+            pp%conn_no   = NINT(werte(1))
+            pp%conn_name = ' '
+         ELSE
+            RETURN
+         ENDIF
       ELSE
-         ino      = 0
-         c_name   = opara(6)
-         c_name_l = lopara(6)
-      ENDIF
-      CALL get_connectivity_identity( pp%at_type, ino, c_name, c_name_l)
-      IF(ier_num==0) THEN
-         pp%conn_no = ino
-         pp%conn_name = c_name
-      ELSE
-         RETURN
+         IF(ier_num==0) THEN
+            ino      = NINT(werte(1))
+            c_name   = ' '
+            c_name_l = 0
+         ELSE
+            ino      = 0
+            c_name   = opara(6)
+            c_name_l = lopara(6)
+         ENDIF
+         CALL get_connectivity_identity( pp%at_type, ino, c_name, c_name_l)
+         IF(ier_num==0) THEN
+            pp%conn_no = ino
+            pp%conn_name = c_name
+         ELSE
+            RETURN
+         ENDIF
       ENDIF
    ENDIF
-ENDIF
-pp%n_min   = NINT(owerte(1))
-pp%n_max   = NINT(owerte(2))
-pp%e_min   = NINT(owerte(3))
-pp%e_max   = NINT(owerte(4))
-IF(pp%n_min > pp%n_max) THEN
-   ier_msg(1) = 'Lower boundary of included range higher than upper'
-   ier_num = -155
-   ier_typ = ER_APPL
-   RETURN
-ENDIF
-IF(pp%e_min > pp%e_max) THEN
-   ier_msg(1) = 'Lower boundary of excluded range higher than upper'
-   ier_num = -155
-   ier_typ = ER_APPL
-   RETURN
-ENDIF
+   pp%n_min   = NINT(owerte(1))
+   pp%n_max   = NINT(owerte(2))
+   pp%e_min   = NINT(owerte(3))
+   pp%e_max   = NINT(owerte(4))
+   IF(pp%n_min > pp%n_max) THEN
+      ier_msg(1) = 'Lower boundary of included range higher than upper'
+      ier_num = -155
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+   IF(pp%e_min > pp%e_max) THEN
+      ier_msg(1) = 'Lower boundary of excluded range higher than upper'
+      ier_num = -155
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
 !
 ! Values are determined, find entry and store
 !
-IF(lsearch) THEN     !User did not specify number, and act='ignore'
-  id = -2
-  search: DO i=1,prop_user_no
-    IF(prop_user(i)%at_type   == pp%at_type    .AND. &
-       prop_user(i)%conn_no   == pp%conn_no    .AND. &
-       prop_user(i)%conn_name == pp%conn_name  .AND. &
-       prop_user(i)%n_min     == pp%n_min      .AND. &
-       prop_user(i)%n_max     == pp%n_max      .AND. &
-       prop_user(i)%e_min     == pp%e_min      .AND. &
-       prop_user(i)%e_max     == pp%e_max           ) THEN
-!
-        id = i
-        EXIT search
-     ENDIF
-  ENDDO search
-  IF(id==-2) THEN
-     RETURN
-  ENDIF
-ELSE
-  IF(id==0) THEN     !User did not specify number, and act/='ignore' Find empty
-     id = prop_user_no + 1                  ! Default to a new entry if no empty is found
-     empty: DO i=1,prop_user_no
-        IF(prop_user(i)%act==0) THEN
-           id = i                           ! Empty entry was found, take this as id
-           EXIT empty
-        ENDIF
-     ENDDO empty
+   IF((prop_user_no>= UBOUND(prop_user,1) .OR.     &
+       id >UBOUND(prop_user,1)                 )   &
+      .AND. act/='ignore'                             ) THEN   ! Need more space
+      nuser = MAX(nuser, prop_user_no+10, UBOUND(prop_user,1), id)
+      ALLOCATE(p_temp(nuser))                                  ! Make temporary storage
+      p_temp(1:prop_user_no) = prop_user(1:prop_user_no)       ! Restore old data
+      CALL MOVE_ALLOC(FROM=p_temp, TO=prop_user)
    ENDIF
-ENDIF
-IF(pp%act==0) THEN                         ! Turn off the property
-   IF(lall  ) THEN                         ! Turn off all
-      DO id=1,prop_user_no
+   IF(lsearch) THEN     !User did not specify number, and act='ignore'
+     id = -2
+     search: DO i=1,prop_user_no
+       IF(prop_user(i)%at_type   == pp%at_type    .AND. &
+          prop_user(i)%conn_no   == pp%conn_no    .AND. &
+          prop_user(i)%conn_name == pp%conn_name  .AND. &
+          prop_user(i)%n_min     == pp%n_min      .AND. &
+          prop_user(i)%n_max     == pp%n_max      .AND. &
+          prop_user(i)%e_min     == pp%e_min      .AND. &
+          prop_user(i)%e_max     == pp%e_max           ) THEN
+!
+           id = i
+           EXIT search
+        ENDIF
+     ENDDO search
+     IF(id==-2) THEN
+        RETURN
+     ENDIF
+   ELSE
+     IF(id==0) THEN     !User did not specify number, and act/='ignore' Find empty
+        id = prop_user_no + 1                  ! Default to a new entry if no empty is found
+        empty: DO i=1,prop_user_no
+           IF(prop_user(i)%act==0) THEN
+              id = i                           ! Empty entry was found, take this as id
+              EXIT empty
+           ENDIF
+        ENDDO empty
+      ENDIF
+   ENDIF
+   IF(pp%act==0) THEN                         ! Turn off the property
+      IF(lall  ) THEN                         ! Turn off all
+         DO id=1,prop_user_no
+            prop_user(id)%act       = 0             ! Found entry back to default for all parameter
+            prop_user(id)%at_type   = 0
+            prop_user(id)%conn_no   = 0
+            prop_user(id)%conn_name = ' '
+            prop_user(id)%n_min     = 0
+            prop_user(id)%n_max     = 192
+            prop_user(id)%e_min     = -1
+            prop_user(id)%e_max     = -1
+         ENDDO
+         prop_user_no = 0
+      ELSE
          prop_user(id)%act       = 0             ! Found entry back to default for all parameter
          prop_user(id)%at_type   = 0
          prop_user(id)%conn_no   = 0
@@ -700,29 +732,21 @@ IF(pp%act==0) THEN                         ! Turn off the property
          prop_user(id)%n_max     = 192
          prop_user(id)%e_min     = -1
          prop_user(id)%e_max     = -1
-      ENDDO
-      prop_user_no = 0
+      ENDIF
    ELSE
-      prop_user(id)%act       = 0             ! Found entry back to default for all parameter
-      prop_user(id)%at_type   = 0
-      prop_user(id)%conn_no   = 0
-      prop_user(id)%conn_name = ' '
-      prop_user(id)%n_min     = 0
-      prop_user(id)%n_max     = 192
-      prop_user(id)%e_min     = -1
-      prop_user(id)%e_max     = -1
+      prop_user(id)%act       = pp%act
+      prop_user(id)%at_type   = pp%at_type
+      prop_user(id)%conn_no   = pp%conn_no
+      prop_user(id)%conn_name = pp%conn_name
+      prop_user(id)%n_min     = pp%n_min
+      prop_user(id)%n_max     = pp%n_max
+      prop_user(id)%e_min     = pp%e_min
+      prop_user(id)%e_max     = pp%e_max
+      prop_user_no = MAX(prop_user_no, id)
    ENDIF
-ELSE
-   prop_user(id)%act       = pp%act
-   prop_user(id)%at_type   = pp%at_type
-   prop_user(id)%conn_no   = pp%conn_no
-   prop_user(id)%conn_name = pp%conn_name
-   prop_user(id)%n_min     = pp%n_min
-   prop_user(id)%n_max     = pp%n_max
-   prop_user(id)%e_min     = pp%e_min
-   prop_user(id)%e_max     = pp%e_max
-   prop_user_no = MAX(prop_user_no, id)
-ENDIF
+   id = 0
+!
+ENDDO loop_type
 !
 lactive = .FALSE.
 active: DO i=1,prop_user_no
@@ -740,6 +764,7 @@ END SUBROUTINE property_set_user
 SUBROUTINE property_show_user
 !
 USE crystal_mod
+USE atom_name
 USE prop_para_mod
 USE prompt_mod
 !
@@ -751,7 +776,7 @@ INTEGER :: i,ll
 DATA char_l /'absent ', 'ignore ', 'present' /
 !
 IF(prop_user_no>0) THEN
-   WRITE(output_io,'(a)')  ' USERS:  No., Status ,Atoms, Neighbors  , Excluded   , Conn, Conn name'
+   WRITE(output_io,'(a)')  ' USERS:  No., Status ,Atoms     , Neighbors  , Excluded   , Conn, Conn name'
    DO i=1, prop_user_no
       line = ' '
       ll = 0
@@ -759,18 +784,18 @@ IF(prop_user_no>0) THEN
       WRITE(line(ll+1:ll+13),'(i4,'', '',a7)') i, char_l(prop_user(i)%act)
       ll = 13
       IF(prop_user(i)%at_type==-1) THEN
-         WRITE(line(ll+1:ll+6), '('', '',a4)') 'all'
+         WRITE(line(ll+1:ll+11), '('', '',a9)') 'all'
       ELSE
-         WRITE(line(ll+1:ll+6), '('', '',a4)') cr_at_lis(prop_user(i)%at_type)
+         WRITE(line(ll+1:ll+11), '('', '',a9)') at_name(prop_user(i)%at_type)
       ENDIF
-      ll = 19
+      ll = 24
       WRITE(line(ll+1:ll+26), '('', ['',i4,'':'',i4,''], ['',i4,'':'',i4,'']'')') &
            prop_user(i)%n_min, prop_user(i)%n_max, &
            prop_user(i)%e_min, prop_user(i)%e_max
-      ll = 45
+      ll = 50
       IF(prop_user(i)%conn_no==0) THEN
          WRITE(line(ll+1: ll+6), '(a)') ', none'
-         ll = 51
+         ll = 56
       ELSE
          WRITE(line(ll+1:), '('', '',i4,'', '',a)') prop_user(i)%conn_no, &
          prop_user(i)%conn_name(1:LEN_TRIM(prop_user(i)%conn_name))
