@@ -52,6 +52,7 @@ END SUBROUTINE do_export
 SUBROUTINE discus2ins (ianz, cpara, lpara, MAXW)
 !
 USE chem_aver_mod
+USE class_internal
 USE crystal_mod
 USE generate_mod
 USE diffuse_mod
@@ -174,6 +175,14 @@ ENDDO
 ! Restore original structure
 !
 CALL do_readstru(origfile)
+CALL store_remove_single(origfile, ier_num)
+IF(ier_num/=0) THEN
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Could not remove temporary internal storage'
+   ier_msg(2) = 'in shelx export'
+   ier_msg(3) = 'Please document and report'
+   RETURN
+ENDIF
 !
 ! Reduce names to unique atom names
 !
@@ -216,8 +225,14 @@ loop_shelx: DO i=1,cr_natoms
       IF(cr_at_lis(cr_iscat(i))(1:2) == shelx_names(j)(1:2)) THEN
          shelx_n = shelx_n + 1
          shelx_names(i)(1:2) = cr_at_lis(cr_iscat(i))(1:2)
+         shelx_names(i)(3:3) = shelx_names(j)(3:3)
          IF(shelx_names(j)(4:4) == 'Z') THEN
-            shelx_names(3:4) = 'AA'
+            IF(shelx_names(j)(3:3) == 'x') THEN
+               shelx_names(i)(3:4) = 'AA'
+            ELSE
+               shelx_names(i)(3:3) = ACHAR(IACHAR(shelx_names(j)(3:3))+1)
+               shelx_names(i)(4:4) = 'A'
+            ENDIF
          ELSE
             shelx_names(i)(4:4) = ACHAR(IACHAR(shelx_names(j)(4:4))+1)
          ENDIF
@@ -230,7 +245,7 @@ loop_shelx: DO i=1,cr_natoms
 ENDDO loop_shelx
 !
 DO i=1,shelx_n
-   IF(shelx_names(i)(4:4) == 'A') THEN
+   IF(shelx_names(i)(3:4) == 'xA') THEN
       shelx_names(i)(3:4) = '  '
       IF(shelx_names(i)(2:2) == 'x') shelx_names(i)(2:2) = ' '
    ELSE
