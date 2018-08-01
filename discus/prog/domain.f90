@@ -559,6 +559,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
+         IF(ier_num /= 0) RETURN
          clu_iatom = 0
          at_param(1) = 'X'
          at_param(2) = 'Y'
@@ -973,6 +974,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          at_param(8) = 'OCC'
          at_ianz = 8
       ELSE
+         mk_infile_internal = .false.
          CALL oeffne (ist, infile, 'unknown') 
          IF (ier_num.ne.0) return 
 !                                                                       
@@ -1252,6 +1254,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
             ier_typ = ER_NONE
              mk_iatom =  mk_iatom - 1   ! Increment internal atom number
             GOTO 2
+         ELSEIF(ier_num/=0) then
+            RETURN
          ENDIF
          WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat), &
                            dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
