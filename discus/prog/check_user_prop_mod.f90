@@ -34,18 +34,20 @@ check: DO i=1,prop_user_no
    IF(prop_user(i)%act/=0) THEN                               ! NOT ignore
       test = test .AND.      cr_iscat(iatom) == prop_user(i)%at_type  & ! same atom type
                         .OR. -1 == prop_user(i)%at_type                 ! Any atom type allowed
-      ino  = prop_user(i)%conn_no
-      c_name   = prop_user(i)%conn_name
-      c_name_l = LEN_TRIM(c_name)
-      ll       = c_name_l
-      CALL get_connectivity_identity(cr_iscat(iatom), ino, c_name, c_name_l)
-      test = test .AND. prop_user(i)%conn_name(1:ll)==c_name(1:c_name_l)
-      CALL get_connectivity_list (iatom, cr_iscat(iatom), ino, c_list, c_offs, natoms )
-      test = test .AND. prop_user(i)%n_min<=natoms     &         ! Correct number of neighbors
-                  .AND.                     natoms<=prop_user(i)%n_max
-      test = test .AND. .NOT. (prop_user(i)%e_min<=natoms       &       ! Correct number of neighbors
+      IF(test) THEN
+         ino  = prop_user(i)%conn_no
+         c_name   = prop_user(i)%conn_name
+         c_name_l = LEN_TRIM(c_name)
+         ll       = c_name_l
+         CALL get_connectivity_identity(cr_iscat(iatom), ino, c_name, c_name_l)
+         test = test .AND. prop_user(i)%conn_name(1:ll)==c_name(1:c_name_l)
+         CALL get_connectivity_list (iatom, cr_iscat(iatom), ino, c_list, c_offs, natoms )
+         test = test .AND. prop_user(i)%n_min<=natoms     &         ! Correct number of neighbors
+                     .AND.                     natoms<=prop_user(i)%n_max
+         test = test .AND. .NOT. (prop_user(i)%e_min<=natoms       &       ! Correct number of neighbors
                                .AND.               natoms<=prop_user(i)%e_max)
-      IF(prop_user(i)%act==-1) test = .NOT.test               ! Absent invert the test
+         IF(prop_user(i)%act==-1) test = .NOT.test               ! Absent invert the test
+      ENDIF
    ENDIF
    IF(.NOT.test) EXIT check
 ENDDO check
