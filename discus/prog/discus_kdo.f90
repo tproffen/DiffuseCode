@@ -7,6 +7,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
 !-                                                                      
       USE addfile_mod
       USE discus_allocate_appl_mod
+      USE discus_reset_all_mod
       USE charact_mod 
       USE chem_menu
       USE conn_mod
@@ -41,6 +42,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE waves_do_menu
       USE discus_init_mod
       USE discus_export
+      USE storage_menu_mod
 !
       USE blanks_mod
       USE calc_expr_mod
@@ -346,6 +348,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !
          ELSEIF (str_comp(befehl, 'rese', 3, lbef, 4)) THEN
             CALL discus_initarrays
+            CALL discus_reset_all
 !                                                                       
 !     save structure to file 'save'                                     
 !                                                                       
@@ -371,6 +374,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'stac', 2, lbef, 4) ) then 
             CALL stack 
+!
+!     Go into storage menu 'storage'
+!
+         ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'storage', 3, lbef, 7) ) THEN
+            CALL storage
 !                                                                       
 !     Go to surface menu 'surface'                                      
 !                                                                       
