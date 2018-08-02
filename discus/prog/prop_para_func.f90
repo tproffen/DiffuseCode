@@ -650,7 +650,11 @@ loop_type: DO j=1, at_kind(0)
             pp%conn_no = ino
             pp%conn_name = c_name
          ELSE
-            RETURN
+            pp%conn_no = ino
+            pp%conn_name = c_name
+            ier_num = 0
+            ier_typ = 0
+            ier_msg(:) = ' '
          ENDIF
       ENDIF
    ENDIF
