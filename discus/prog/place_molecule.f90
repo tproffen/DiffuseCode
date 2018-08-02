@@ -185,10 +185,10 @@ USE errlist_mod
                  IF(dcc_num > 0 ) THEN
                      CALL deco_run
                      if(ier_num == 0) ladd = .true.   ! allow new add command
-                  ELSE
+                 ELSE
                      ier_num = -129
                      ier_typ = ER_APPL
-                  ENDIF
+                 ENDIF
 !
               ELSEIF (str_comp (befehl, 'sel', 3, lbef, 3) .or.  &
                       str_comp (befehl, 'del', 3, lbef, 3)     ) THEN
@@ -734,6 +734,14 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 !
    REAL ran1
 !
+   IF(cr_natoms == 0 ) THEN
+      ier_num = -27
+      ier_typ = ER_CHEM
+      RETURN
+   ENDIF
+   IF(ALLOCATED(anch_id)) THEN
+      DEALLOCATE(anch_id)
+   ENDIF
    ALLOCATE(anch_id(1:dcc_num*dcc_maxsurf,1:2))   ! make lookup for anchors
 !  ALLOCATE(anch_id(1:dc_temp_id*dc_temp_maxsurf,1:2))   ! make lookup for anchors
    temp_grand = 1.0
@@ -744,12 +752,13 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 !
    CALL save_store_setting             ! Backup user "save" setting
    CALL save_default_setting           ! Default to full saving
-   corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
-   CALL save_internal(corefile)        !     thus this file name is unique
-   shellfile  = 'internal.decoshell'   
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
+!
+   corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
+   shellfile  = 'internal.decoshell'   
+   CALL save_internal(corefile)        !     thus this file name is unique
    line       = 'present, external'    ! Force atom to be close to a surface
    length     = 17
    CALL property_select(line, length, sav_sel_prop)
@@ -874,6 +883,15 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
             ENDDO
          ENDDO replace
       ENDDO name_anchors
+IF(n_repl==0) THEN
+   ier_num = -131
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Is the surface very small, just a few atoms?'
+   ier_msg(2) = 'Is the coverage too small? '
+   ier_msg(3) = 'Check the set ligand command'
+   DEALLOCATE(anch_id)
+   RETURN
+ENDIF
 !
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
@@ -1039,6 +1057,10 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
          ALLOCATE(temp_iscat(    1:n_repl))
          ALLOCATE(temp_pos  (1:3,1:n_repl))
          ALLOCATE(temp_ident(    1:n_repl))
+         temp_iatom(:) = 0
+         temp_iscat(:) = 0
+         temp_pos(:,:) = 0
+         temp_ident(:) = 0
          j = 0
          DO ia = 1, cr_natoms
             DO k=1, n_anch
@@ -1060,6 +1082,15 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
 !
 CALL rese_cr
 CALL readstru_internal( corefile)   ! Read  original core file
+IF(cr_natoms == 0 ) THEN
+   ier_num = -27
+   ier_typ = ER_CHEM
+   ier_msg(1) = 'Central core is empty upon read in DECO ?'
+   ier_msg(2) = 'Check the property settings. '
+   ier_msg(3) = ' '
+   DEALLOCATE(anch_id)
+   RETURN
+ENDIF
 !
 ! Set properties to a well defined setting
 !
@@ -1085,6 +1116,15 @@ loop_anchor: DO j=1,n_repl
       ENDIF
    ENDDO find_atom
 ENDDO loop_anchor
+IF(MAXVAL(temp_iatom)==0) THEN
+   ier_num = -131
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Is the surface very small, just a few atoms?'
+   ier_msg(2) = 'Is the coverage too small? '
+   ier_msg(3) = 'Check the set ligand command'
+   DEALLOCATE(anch_id)
+   RETURN
+ENDIF
 !
 nanch = UBOUND(dcc_surf,2)
 ALLOCATE(anchor(1:2,0:UBOUND(dcc_surf,2)))
