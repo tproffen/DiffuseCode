@@ -34,10 +34,23 @@ CONTAINS
    TYPE(internal_storage), POINTER :: new_node
    TYPE(internal_storage), POINTER :: temp    
 !
+!write(*,*) ' IN STORE ADD ', ASSOCIATED(ptr), ASSOCIATED(new_node)
+!write(*,*) ' PTR%before   ', ASSOCIATED(ptr%before)
+!write(*,*) ' PTR%after    ', ASSOCIATED(ptr%after)
+!write(*,*) ' NEW%before   ', ASSOCIATED(new_node%before)
+!write(*,*) ' NEW%after    ', ASSOCIATED(new_node%after)
+!write(*,*) ' PTR%struc    ', ptr%strucfile(1:LEN_TRIM(ptr%strucfile))
+!write(*,*) ' NEW%struc    ', new_node%strucfile(1:LEN_TRIM(new_node%strucfile))
+!write(*,*) ' ROOT FILE    ' ,store_root%strucfile(1:len_trim(store_root%strucfile))
+!write(*,*) ' COMPARE      ', LLT(new_node%strucfile, ptr%strucfile), &
+!                             new_node%strucfile  ==   ptr%strucfile, &
+!                             LGT(new_node%strucfile, ptr%strucfile)
    IF ( .not. ASSOCIATED(ptr))  THEN                     ! Pointer does not exist
       ptr  => new_node                                   ! Add here
       NULLIFY(ptr%before)
       NULLIFY(ptr%after)
+      NULLIFY(new_node%before)
+      NULLIFY(new_node%after)
    ELSEIF ( LLT(new_node%strucfile, ptr%strucfile)) THEN ! new "strucfile" is < old
       IF ( ASSOCIATED(ptr%before) ) THEN                 ! before node exists, 
          CALL store_add_node(ptr%before, new_node)       !   recursively add new node
@@ -65,36 +78,40 @@ CONTAINS
 !
 !*******************************************************************************
 !
-   RECURSIVE SUBROUTINE store_find_node ( ptr, from, search, parent, ier_num )
+   RECURSIVE SUBROUTINE store_find_node ( ptr, from, strucfile, search, parent, ier)
 !
    IMPLICIT NONE
 !
    TYPE(internal_storage), POINTER :: ptr     ! Pointer to current position in tree
    TYPE(internal_storage), POINTER :: from    ! Pointer to current parent
+   CHARACTER (LEN=*), INTENT(IN)   :: strucfile   ! "file" name for this internal storage
    TYPE(internal_storage), POINTER :: search  ! The structure file to be found
    TYPE(internal_storage), POINTER :: parent  ! The structure's parent
-   INTEGER, INTENT(INOUT)          :: ier_num
+   INTEGER, INTENT(OUT)            :: ier
 !
    IF ( ASSOCIATED(ptr)) THEN
-      IF ( LLT(search%strucfile, ptr%strucfile )) THEN
+      IF ( LLT(strucfile, ptr%strucfile )) THEN
          IF ( ASSOCIATED(ptr%before) ) THEN
-            CALL store_find_node ( ptr%before, ptr, search, parent, ier_typ )
+            CALL store_find_node ( ptr%before, ptr, strucfile, search, parent, ier)
          ELSE
-            ier_num = -113
+            ier = -113
+            NULLIFY(search)
          ENDIF
-      ELSEIF ( search%strucfile == ptr%strucfile ) THEN
-         search  = ptr
+      ELSEIF ( strucfile == ptr%strucfile ) THEN
+         search => ptr
          parent => from
-         ier_typ = 0
+         ier = 0
       ELSE
          IF ( ASSOCIATED(ptr%after) ) THEN
-            CALL store_find_node ( ptr%after, ptr, search, parent, ier_typ )
+            CALL store_find_node ( ptr%after, ptr, strucfile, search, parent, ier)
          ELSE
-            ier_num = -113
+            ier = -113
+            NULLIFY(search)
          ENDIF
       ENDIF
    ELSE
-      ier_num = -113
+      ier = -113
+      NULLIFY(search)
    ENDIF
    END SUBROUTINE store_find_node
 !
@@ -192,17 +209,16 @@ IF(flag_all) THEN
       res_para(0:1) = 0
    ENDIF
 ELSE
-  ALLOCATE(search)
-   search%strucfile = node_name
+!  ALLOCATE(search)
    NULLIFY(from)
    NULLIFY(parent)
-   CALL store_find_node(store_root, from, search, parent, ier_num ) ! Find the proper node
+   CALL store_find_node(store_root, from, node_name, search, parent, ier_num ) ! Find the proper node
    IF(ier_num == 0) THEN
       CALL store_show_single(search, parent, display)
    ELSE
       ier_typ = ER_APPL
    ENDIF
-  DEALLOCATE(search)
+!   IF(ASSOCIATED(search)) DEALLOCATE(search)
 ENDIF
 !
 END SUBROUTINE store_list_node
@@ -307,11 +323,10 @@ TYPE(internal_storage), POINTER :: search  ! Pointer to current position in tree
 TYPE(internal_storage), POINTER :: parent  ! The structure's parent
 INTEGER,         INTENT(OUT)    :: ier_num ! Pointer to current position in tree
 !
-ALLOCATE(search)
-search%strucfile = strucfile
+!ALLOCATE(search)
 NULLIFY(from)
 NULLIFY(parent)
-CALL store_find_node ( store_root, from, search, parent, ier_num )
+CALL store_find_node ( store_root, from, strucfile, search, parent, ier_num )
 IF(ier_num == 0) THEN
 !
 !  No children at all
@@ -373,7 +388,7 @@ IF(ier_num == 0) THEN
             ENDIF
          ENDIF
       ELSE
-         store_root=> search%before
+         store_root=> search%after
       ENDIF
 !
 !  Exactly both children BEFORE and AFTER

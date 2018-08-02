@@ -973,6 +973,9 @@ IF(ASSOCIATED(store_root)) THEN    ! The tree exists already, add a node
       ENDIF
       store_temp%strucfile = strucfile            ! Copy filename
 !
+!write(*,*) ' ADDING A NODE ' , ASSOCIATED(store_root),' ', ASSOCIATED(store_temp) 
+!write(*,*) ' ROOT FILE    ' ,store_root%strucfile(1:len_trim(store_root%strucfile))
+!write(*,*) ' STRU FILE    ' ,strucfile(1:len_trim(strucfile))
       CALL store_add_node(store_root, store_temp) ! add this node to storage tree
       ALLOCATE(store_temp%crystal, STAT=istatus)  ! Allocate the crystal at this node
       IF ( istatus /= 0) THEN

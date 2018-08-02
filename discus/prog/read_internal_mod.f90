@@ -33,11 +33,18 @@ CONTAINS
    INTEGER       , INTENT(INOUT) :: n_type
    INTEGER       , INTENT(INOUT) :: n_atom
 !
-   read_temp%strucfile = strucfile
+integer ier
+!
    NULLIFY(read_from)
    NULLIFY(read_parent)
-   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
-   IF ( ier_num /= 0) THEN
+   IF(.NOT.ASSOCIATED(store_root)) THEN
+      ier_num = -113
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
+   CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier ) ! Find the proper node
+   IF ( ier /= 0 .OR. .NOT.ASSOCIATED(read_temp)) THEN
+      ier_num = -113
       ier_typ = ER_APPL
       RETURN
    ENDIF
@@ -80,12 +87,6 @@ CONTAINS
    INTEGER                       :: i,j
    INTEGER                       :: iatom
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
    CALL readstru_size_int(strucfile, natoms, & 
                    nscat, n_mole, n_type, n_atom)
    IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
@@ -135,8 +136,6 @@ CONTAINS
          cr_mole(iatom) = i
       ENDDO
    ENDDO
-!
-   DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
    chem_purge = .FALSE.                          ! No purge, period boundary is OK
 !
@@ -210,12 +209,12 @@ CONTAINS
    rd_icc = cr_icc               ! Save crystal dimensions
 !
    new_type = cr_newtype         ! Was defined via the 'cell' or 'lcell' command
-   ALLOCATE(read_temp, STAT = istatus )            ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
+!  ALLOCATE(read_temp, STAT = istatus )            ! Allocate a temporary storage
+!  IF ( istatus /= 0) THEN
+!     ier_num = -114
+!     ier_typ = ER_APPL
+!     RETURN
+!  ENDIF
 !   ALLOCATE(read_temp, STAT = istatus )           ! Allocate a temporary storage
 !write(*,*) ' STATUS of ALLOC ', istatus
    CALL readstru_size_int(strucfile, natoms, &     ! Get the sizes of the internal crystal
@@ -421,7 +420,7 @@ do_scat_dw: DO k = 1,cr_nscat
       ENDDO 
    ENDDO 
 !
-   DEALLOCATE(read_temp, STAT = istatus )         ! Deallocate a temporary storage
+!  DEALLOCATE(read_temp, STAT = istatus )         ! Deallocate a temporary storage
 IF(n_mole > 0) THEN
 !
 !  Deallocate temporary space for molecule info
@@ -481,17 +480,10 @@ ENDIF
 !
    INTEGER             :: istatus
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
-!
    read_temp%strucfile = rd_strucfile
    NULLIFY(read_from)
    NULLIFY(read_parent)
-   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
+   CALL store_find_node(store_root, read_from, rd_strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -503,12 +495,6 @@ ENDIF
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
 !
-   DEALLOCATE(read_temp, STAT = istatus)
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-   ENDIF
-!  
    END SUBROUTINE stru_readheader_internal
 !*******************************************************************************
    SUBROUTINE struc_read_atoms_internal(strucfile, RD_NMAX, &
@@ -543,16 +529,9 @@ ENDIF
    INTEGER, DIMENSION(1:2)       :: iin_mole
    INTEGER                       :: iprop
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
-   read_temp%strucfile = strucfile
    NULLIFY(read_from)
    NULLIFY(read_parent)
-   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
+   CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -569,12 +548,6 @@ ENDIF
       rd_cr_prop (rd_cr_natoms) = iprop 
       rd_cr_mole (rd_cr_natoms) = iin_mole(1) 
    ENDDO
-!
-   DEALLOCATE(read_temp, STAT = istatus)
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-   ENDIF
 !
    END SUBROUTINE struc_read_atoms_internal
 !*******************************************************************************
@@ -605,16 +578,9 @@ ENDIF
    INTEGER                       :: n_atom
    INTEGER, DIMENSION(1:2)       :: iin_mole
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
-   read_temp%strucfile = strucfile
    NULLIFY(read_from)
    NULLIFY(read_parent)
-   CALL store_find_node(store_root, read_from, read_temp, read_parent, ier_num ) ! Find the proper node
+   CALL store_find_node(store_root, read_from, strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
    IF ( ier_num /= 0) THEN
       ier_typ = ER_APPL
       RETURN
@@ -629,12 +595,6 @@ ENDIF
       rd_cr_moleatom = iin_mole(2)
    ELSE
       ier_num = -105
-      ier_typ = ER_APPL
-   ENDIF
-!
-   DEALLOCATE(read_temp, STAT = istatus)
-   IF ( istatus /= 0) THEN
-      ier_num = -114
       ier_typ = ER_APPL
    ENDIF
 !
@@ -675,12 +635,12 @@ ENDIF
    INTEGER                       :: nscat
    INTEGER                       :: istatus
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
+!  ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
+!  IF ( istatus /= 0) THEN
+!     ier_num = -114
+!     ier_typ = ER_APPL
+!     RETURN
+!  ENDIF
    CALL readstru_size_int(strucfile, natoms, & 
                    nscat, mole_num_mole, mole_num_type, mole_num_atom)
    IF ( ier_num /= 0) THEN                        ! Could not find the internal storage file
@@ -695,7 +655,7 @@ ENDIF
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
               mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
 !
-   DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
+!  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
    END SUBROUTINE stru_internal_molecules
 !*******************************************************************************
@@ -717,16 +677,16 @@ ENDIF
    INTEGER, INTENT(INOUT)        :: n_type
    INTEGER, INTENT(INOUT)        :: n_atom
 !
-   ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
-   IF ( istatus /= 0) THEN
-      ier_num = -114
-      ier_typ = ER_APPL
-      RETURN
-   ENDIF
+!  ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
+!  IF ( istatus /= 0) THEN
+!     ier_num = -114
+!     ier_typ = ER_APPL
+!     RETURN
+!  ENDIF
    CALL readstru_size_int(strucfile, natoms, & 
                    nscat, n_mole, n_type, n_atom)
 !
-   DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
+!  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !
    END SUBROUTINE testfile_internal
 !*******************************************************************************
