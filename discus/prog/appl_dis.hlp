@@ -5827,10 +5827,21 @@
         atom must have for the property to be true.
    emin and emax define an interval of excluded coordination numbers.
 
+   If you specify several properties of the second kind, the following
+   rules apply:
+   Any property applies only to atom types specified by "atom:"
+   If an atom is not of any of the kinds specified by teh "atom:"
+   parameters the atom is never selected.
+   If several properties are specified for a given atom type, they
+   work with a logical AND. All conditions must be met for an atom
+   to be selected.
+   Keep in mind that the parameter "atom:O" will apply to all
+   Oxygen atom types.
+
    Example:
    prop present, atom:si,conn:1, nmin:0, nmax:3 
    This is true only if the selected atom is of type silicon with
-   zero to 3 neighbors in its current onnectivity number 1. 
+   zero to 3 neighbors in its current connectivity number 1. 
 
    Keep in mind that you may have to update the connectivity
    list for this atom type / these atom types.
