@@ -480,7 +480,6 @@ ENDIF
 !
    INTEGER             :: istatus
 !
-   read_temp%strucfile = rd_strucfile
    NULLIFY(read_from)
    NULLIFY(read_parent)
    CALL store_find_node(store_root, read_from, rd_strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
