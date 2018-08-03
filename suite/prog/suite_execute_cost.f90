@@ -20,6 +20,8 @@ SUBROUTINE suite_execute_cost( repeat,           &
                          l_first_job,            &
                          ierr )
 !
+USE class_internal
+
 USE diffev_setup_mod
 USE discus_setup_mod
 USE discus_loop_mod
@@ -223,10 +225,10 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
 !  Reset DISCUS
 !
-   IF(.NOT. l_discus_init) THEN
+  IF(.NOT. l_discus_init) THEN
       CALL discus_setup   (lstandalone)
       l_discus_init = .true.
-   ENDIF
+  ENDIF
    pname     = 'discus'
    pname_cap = 'DISCUS'
    prompt    = pname
@@ -235,10 +237,11 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
    CALL rese_cr
 !
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
-!     IF(.NOT. l_discus_init) THEN         ! Allways do a DISCUS RESET
-         CALL discus_setup   (lstandalone)        ! Allways do a DISCUS RESET
+     IF(.NOT. l_discus_init) THEN
+         CALL discus_setup   (lstandalone)
          l_discus_init = .true.
-!     ENDIF
+     ENDIF
+      CALL store_remove_all(store_root)    ! Allways do a DISCUS internal storage reset
       pname     = 'discus'
       pname_cap = 'DISCUS'
       prompt    = pname
