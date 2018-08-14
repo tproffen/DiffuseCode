@@ -1980,6 +1980,13 @@
 !b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
 !b                                                      <distance>
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
+!b
+!b set <name>, "tilt", "angle", <value>
+!b set <name>, "tilt", "plane", "auto"
+!b set <name>, "tilt", "plane", <h>, <k>, <l>
+!b set <name>, "tilt", "atoms", "auto"
+!b set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
+!b
 !b set <name>, {"hkl"| "form"}, {<h>, <k>, <l>| "none"}
 !b set <name>, "surface", <ligand atom no> [, <ligand atom no>...]
 
@@ -1994,7 +2001,7 @@
        11.0 A^2 is assigned to each surface atom. 
 
    set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
-!b                     <distance>, [, "angle:"<b_angle>]
+                       <distance>, [, "angle:"<b_angle>]
        Defines the bonds of length <distance> between surface atoms of type 
        <atom_type> and atom number <ligand atom no> of the ligand. 
        The number of surface atom types depends on the type of decoration that
@@ -2015,6 +2022,28 @@
        "donor" bond schemes only. For these schemes the angle is 
        interpreted as teh hydrogen bond angle in the Hydrogen atom and
        should be close to 170°.
+
+   set <name>, "tilt", "angle", <value>
+   set <name>, "tilt", "plane", "auto"
+   set <name>, "tilt", "plane", <h>, <k>, <l>
+   set <name>, "tilt", "atoms", "auto"
+   set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
+       Defines a tilt of the molecules relative to the local surface normal.
+       If the molecule is reasonably flat, one can expect that the molecules
+       will be tilted around an axis parallel to the local surface and parallel
+       to the molecule plane. 
+       With "tilt", "plane", "auto" or "tilt", "atoms", "auto" DISCUS will 
+       calculate a least squares plane through the ligand molecule and 
+       tilt the molecule around the axis described above. 
+       Alternatively you can describe a normal to the molecule with the
+       "tilt", "plane", <h>, <k>, <l> values. The axis <hkl> should refer to 
+       the metric of the molecule file that you define with the 
+       "set <name>, ligand" command.
+       Alternatively, DISCSU can construct the normal to the molecule
+       if you provide the four atom numbers <n1>, <n2>, <n3>, <n4>.
+       The normal will be calculated via the vector product of the
+       two difference vectorsbetween the pairs: n2-n1  and n4-n1. Make sure
+       that these two vectors are not parallel. 
 
    set <name>, "axis", "auto"
    set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
@@ -10195,7 +10224,8 @@
    installed.
    Windows users, make sure you have the Java Runtime
    Environment JRE installed.
-4  -153 Angle between Normal and Ordinate is 0
+4  -153
+   Angle between Normal and Ordinate is 0
    
    A plot was attempted with this angle 
    at zero degrees. Check the setting for the 
