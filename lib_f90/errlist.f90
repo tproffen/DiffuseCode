@@ -101,6 +101,8 @@ SUBROUTINE errlist
             WRITE(error_io,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)!,CHAR(7)
             IF(error_io/=0) &
                WRITE(*    ,1000) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg),CHAR(7)
+            IF(ier_mpi) &
+            WRITE(output_io,1100)                 typ,error(ier_num),ier_num
 !           WRITE(ier_out,1500) TRIM(color_err),typ,error(ier_num),ier_num,TRIM(color_fg)
             DO i=1,3
               IF (ier_msg(i) /= ' ')  &
@@ -123,6 +125,7 @@ SUBROUTINE errlist
 !
 !
 1000  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a,a1)
+1100  FORMAT(  ' ***',a,'*** ',a45,' ***',i4,' ***'     )
 1500  FORMAT(a,' ***',a,'*** ',a45,' ***',i4,' ***',a)
 2000  FORMAT(a,' !!!! No error message for error no.:',I8,' !!!!'/        &
      &         '      Error type:    ',a,'            '/                  &
