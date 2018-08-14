@@ -663,7 +663,7 @@ CONTAINS
             IF(cr_mole(inum)/=0) THEN
                iin_mole(1) = cr_mole(inum)
                check_mole: DO j = 1, mole_len (cr_mole(inum))
-                  IF(mole_cont (mole_off(cr_mole(inum))+j) == i) THEN
+                  IF(mole_cont (mole_off(cr_mole(inum))+j) == inum) THEN
                      iin_mole(2) = j
                      EXIT check_mole
                   ENDIF
