@@ -1071,6 +1071,21 @@ MODULE discus_allocate_appl_mod
       CALL alloc_arr ( dcc_angle,              1,n_deco ,  all_status, 170.0, size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_tilt,               1,n_deco ,  all_status,   0.0, size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_tilt_hkl, 1, 3,     1,n_deco ,  all_status,   0.0, size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_tilt_atom, 1, 4,    1,n_deco ,  all_status,   0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_tilt_is_atom,       1,n_deco ,  all_status,.TRUE., size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_tilt_is_auto,       1,n_deco ,  all_status,.TRUE., size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       IF( lstat ) THEN                        ! Success
          DCC_MAXNUM    = n_deco
          DCC_MAXANCH   = n_anch
