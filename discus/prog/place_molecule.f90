@@ -546,6 +546,61 @@ USE errlist_mod
       i = dcc_surfnew(0,temp_num)
       dcc_surfnew(i+1:i+ianz,temp_num) = NINT(werte(1:ianz))
       dcc_surfnew(0,temp_num) = dcc_surfnew(0,temp_num) + ianz
+   ELSEIF ( str_comp(cpara(2),'tilt',4,lpara(2),4) ) THEN
+      CALL del_params (2, ianz, cpara, lpara, maxw)   ! delete first 2 params
+      IF( str_comp(cpara(1),'angle',4,lpara(1),5) ) THEN
+         CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         IF(ianz==1) THEN
+            CALL ber_params (ianz, cpara, lpara, werte, maxw)
+            IF(ier_num/=0) RETURN
+            dcc_tilt(temp_num) = werte(1)
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+         ENDIF
+      ELSEIF( str_comp(cpara(1),'plane',4,lpara(1),5) ) THEN
+         CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         IF(ianz==1) THEN
+            IF(str_comp(cpara(1), 'auto', 4, lpara(1), 4)) THEN
+               dcc_tilt_hkl (1:3,temp_num) = -1.0
+               dcc_tilt_atom(1:4,temp_num) = -1
+               dcc_tilt_is_auto(temp_num) = .TRUE.
+            ELSE
+               ier_num = -6
+               ier_typ = ER_COMM
+            ENDIF
+         ELSEIF(ianz==3) THEN
+            CALL ber_params (ianz, cpara, lpara, werte, maxw)
+            IF(ier_num/=0) RETURN
+            dcc_tilt_hkl (1:3,temp_num) = werte(1:3)
+            dcc_tilt_atom(1:4,temp_num) = -1
+            dcc_tilt_is_auto(temp_num) = .FALSE.
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+         ENDIF
+      ELSEIF( str_comp(cpara(1),'atoms',4,lpara(1),5) ) THEN
+         CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
+         IF(ianz==1) THEN
+            IF(str_comp(cpara(1), 'auto', 4, lpara(1), 4)) THEN
+               dcc_tilt_hkl (1:3,temp_num) = -1.0
+               dcc_tilt_atom(1:4,temp_num) = -1
+               dcc_tilt_is_auto(temp_num) = .TRUE.
+            ELSE
+               ier_num = -6
+               ier_typ = ER_COMM
+            ENDIF
+         ELSEIF(ianz==4) THEN
+            CALL ber_params (ianz, cpara, lpara, werte, maxw)
+            IF(ier_num/=0) RETURN
+            dcc_tilt_hkl (1:3,temp_num) = -1.0
+            dcc_tilt_atom(1:4,temp_num) = NINT(werte(1:4))
+            dcc_tilt_is_auto(temp_num) = .FALSE.
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
+         ENDIF
+      ENDIF
    ELSE
       ier_num = -6
       ier_typ = ER_COMM
@@ -1180,7 +1235,11 @@ anchor = 0
                                   dc_temp_neig, dc_temp_dist,      &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
+                                  dcc_tilt_atom(1:4,dc_temp_id),                     &
+                                  dcc_tilt_is_atom(dc_temp_id),                      &
+                                  dcc_tilt_is_auto(dc_temp_id)      )
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The normal connection requires one bond'
@@ -1200,7 +1259,11 @@ anchor = 0
                                   dc_temp_neig, dc_temp_dist, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
+                                  dcc_tilt_atom(1:4,dc_temp_id),                     &
+                                  dcc_tilt_is_atom(dc_temp_id) ,                     &
+                                  dcc_tilt_is_auto(dc_temp_id)      )
                              ELSE
                                 ier_num = -1118
                                 ier_msg(1) = 'The bridge connection requires one bond'
@@ -1220,7 +1283,11 @@ anchor = 0
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
+                                  dcc_tilt_atom(1:4,dc_temp_id),                     &
+                                  dcc_tilt_is_atom(dc_temp_id) ,                     &
+                                  dcc_tilt_is_auto(dc_temp_id)      )
 CYCLE main_loop
                              ELSE
                                 ier_num = -1118
@@ -1240,7 +1307,11 @@ CYCLE main_loop
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
+                                  dcc_tilt_atom(1:4,dc_temp_id),                     &
+                                  dcc_tilt_is_atom(dc_temp_id) ,                     &
+                                  dcc_tilt_is_auto(dc_temp_id)      )
 CYCLE main_loop
                              ELSE
                                 ier_num = -1118
@@ -1299,7 +1370,11 @@ CYCLE main_loop
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
-                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id))
+                                  dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
+                                  dcc_tilt(dc_temp_id), dcc_tilt_hkl(1:3,dc_temp_id),&
+                                  dcc_tilt_atom(1:4,dc_temp_id),                     &
+                                  dcc_tilt_is_atom(dc_temp_id) ,                     &
+                                  dcc_tilt_is_auto(dc_temp_id)      )
 if(ier_num/=0) EXIT main_loop
 CYCLE main_loop
                              ELSE
@@ -1622,6 +1697,17 @@ ENDDO main
       ELSE
          WRITE(output_io,1320) dcc_type(i),dcc_ctype(dcc_type(i)), dcc_axis(1,i),dcc_axis(2,i)
       ENDIF
+      WRITE(output_io,1323) dcc_type(i),dcc_ctype(dcc_type(i)), dcc_tilt(i)
+      IF(dcc_tilt_is_auto(i)) THEN
+         WRITE(output_io,1325) dcc_type(i),dcc_ctype(dcc_type(i))
+      ELSE
+         IF(dcc_tilt_is_atom(i)) THEN
+            WRITE(output_io,1322) dcc_type(i),dcc_ctype(dcc_type(i)), dcc_tilt_atom(1:4,i)
+         ELSE
+            WRITE(output_io,1321) dcc_type(i),dcc_ctype(dcc_type(i)), dcc_tilt_hkl(1:3,i)
+         ENDIF
+      ENDIF
+
       IF(.NOT.dcc_lrestrict(i)) THEN
             WRITE(output_io, 1330)
       ELSE
@@ -1650,8 +1736,12 @@ ENDDO main
 1200 FORMAT('   Molecule file   :     ',a)
 1300 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : NONE')
 1305 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : AUTO')
-1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to last')
-1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis ',i4,' to ',i4 )
+1310 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : ',i4,' to last')
+1320 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand axis : ',i4,' to ',i4 )
+1321 FORMAT('   Connection type :     ',i4,' ',a8, ' Tilt plane  : ',3(f8.3,2x)  )
+1322 FORMAT('   Connection type :     ',i4,' ',a8, ' Tilt atoms  : ',4(i4  ,2x)  )
+1323 FORMAT('   Connection type :     ',i4,' ',a8, ' Ligand tilt : ',F8.3        )
+1325 FORMAT('   Connection type :     ',i4,' ',a8, ' Tilt plane  : AUTO'         )
 1330 FORMAT('   Connection open to all surfaces')
 1340 FORMAT('   Connection restricted to following forms')
 1345 FORMAT('   Connection restricted to following surfaces')
@@ -1710,7 +1800,9 @@ dcc_num = 0
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
                             neig, dist, istart, iend, &
-                            lrestrict, nhkl, rhkl)
+                            lrestrict, nhkl, rhkl   , &
+                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                            tilt_is_auto)
 !
 USE crystal_mod
    USE chem_mod
@@ -1750,7 +1842,12 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
-   INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 !
    REAL   , PARAMETER      :: EPS = 1.0E-6
 !
@@ -1872,6 +1969,9 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
 !         CALL symm_op_single                           ! Perform the operation
 !      ENDIF  ! Rotate if not zero degrees
       ENDIF
+      CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                     tilt_is_auto,                                    &
+                     surf_normal, mole_natoms, 0, 0)
       IF(ABS(dist) < EPS ) THEN                        ! Remove surface atom
          cr_iscat(ia) = 0
          cr_prop (ia) = ibclr (cr_prop (ia), PROP_NORMAL)
@@ -1908,7 +2008,9 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
                             nanch, anchor, &
-                            neig, dist, istart, iend, lrestrict, nhkl, rhkl)
+                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, &
+                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                            tilt_is_auto)
 !
 USE crystal_mod
    USE atom_env_mod
@@ -1950,6 +2052,12 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+!
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
@@ -2113,6 +2221,12 @@ IF(lrestrict) THEN
 !         CALL symm_op_single
 !      ENDIF
       ENDIF
+!
+!     Tilt molecule by user request
+!
+      CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                     tilt_is_auto,                                    &
+                     surf_normal, mole_natoms, 0, 0)
       m_type_new = m_type_old  + temp_id
 !
       CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
@@ -2146,7 +2260,9 @@ IF(lrestrict) THEN
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
                             nanch,anchor, neig, dist,ncon, &
-                            istart, iend, lrestrict, nhkl, rhkl)
+                            istart, iend, lrestrict, nhkl, rhkl,   &
+                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                            tilt_is_auto)
 !
 !  The molecule is bound by two of its atoms to two different surfae atoms.
 !  The molecule is placed such that:
@@ -2199,6 +2315,11 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -2398,6 +2519,14 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
 ENDIF
 cr_prop (all_surface(2)) = IBCLR (cr_prop (all_surface(2)), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 !
+!     Tilt molecule by user request
+!
+write(*,*) ' nold, n1, n2 ', nold, n1, n2
+origin(1:3) = cr_pos(1:3, n1)
+CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+               tilt_is_auto,                                    &
+               surf_normal, mole_natoms, n1, n2)
+!
 m_type_new = m_type_old  + temp_id
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
 flagsurf: DO j=1,20
@@ -2434,7 +2563,9 @@ SUBROUTINE deco_place_chelate(temp_id, ia, &
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
                             nanch, anchor, &
-                            neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl)
+                            neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl, &
+                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                            tilt_is_auto)
 !
 ! Place the ligand in a "chelate" bond. 
 ! The two connecting ligand atoms are placed along a line normal to the local surface normal.
@@ -2482,6 +2613,12 @@ INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface 
 LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
 INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
 INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
+!
 INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
 INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
 INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
@@ -2639,6 +2776,13 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL rotate_projected(n1, n2, nold, mole_axis, surf_normal)
 ENDIF
 !
+!     Tilt molecule by user request
+!
+origin(1:3) = cr_pos(1:3, n1)
+CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+               tilt_is_auto,                                    &
+               surf_normal, mole_natoms, n1, n2)
+!
 m_type_new = m_type_old  + temp_id
 !
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
@@ -2671,7 +2815,9 @@ END SUBROUTINE deco_place_chelate
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso,          &
                             nanch, anchor, &
-                            neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl)
+                            neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl, &
+                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                            tilt_is_auto)
 !
 !  Places a molecule that has multiple bonds to the surface.
 !  The first bond should be the one that carries multiple connections to
@@ -2723,6 +2869,11 @@ REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
    LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
    INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
    INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
+INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
@@ -3683,6 +3834,97 @@ USE errlist_mod
 1100 FORMAT(6(F12.6,', '),'ddd')
 !
    END SUBROUTINE deco_find_anchor
+!
+!###############################################################################
+!
+SUBROUTINE deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+                     tilt_is_auto,                                    &
+                     surf_normal, mole_natoms, n1, n2)
+!
+USE crystal_mod
+USE fit_mod
+USE symm_menu
+USE symm_mod
+USE symm_sup_mod
+USE metric_mod
+USE trafo_mod
+!
+USE param_mod
+!
+IMPLICIT NONE
+!
+REAL,    DIMENSION(3), INTENT(IN) :: origin          ! Molecule origin
+REAL                 , INTENT(IN) :: tilt            ! Molecule tilt angle
+REAL,    DIMENSION(3), INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal normal
+INTEGER, DIMENSION(4), INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
+LOGICAL              , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
+LOGICAL              , INTENT(IN) :: tilt_is_auto    ! Plane defined automatically
+REAL,    DIMENSION(3), INTENT(IN) :: surf_normal     ! Local surface normal
+INTEGER              , INTENT(IN) :: mole_natoms     ! number of atoms in molecule
+INTEGER              , INTENT(IN) :: n1              ! number of atom that defines rotation axis
+INTEGER              , INTENT(IN) :: n2              ! number of atom that defines rotation axis
+!
+REAL   , DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
+!
+CHARACTER(LEN=1024)   :: line
+INTEGER               :: nold      ! Original number of atoms
+INTEGER               :: laenge
+INTEGER               :: i
+INTEGER, DIMENSION(:), ALLOCATABLE :: list
+REAL   , DIMENSION(3) :: u, v, hkl ! Dummy vectors
+REAL                  :: dist
+!
+IF(ABS(tilt)>0.001) THEN
+nold = cr_natoms - mole_natoms
+!
+   IF(n1==0 .AND. n2==0) THEN
+      IF(tilt_is_auto) THEN                      ! Determine molecular plane automatically
+         ALLOCATE(list(1:mole_natoms))
+         DO i=1,mole_natoms
+            list(i) = nold + i
+         ENDDO
+         CALL dis_fit_plane(mole_natoms, list, hkl, dist)
+         DEALLOCATE(list)
+      ELSE
+      IF(tilt_is_atom) THEN
+         u(:) = cr_pos(:,nold+tilt_atom(2)) - cr_pos(:,nold+tilt_atom(1))
+         v(:) = cr_pos(:,nold+tilt_atom(4)) - cr_pos(:,nold+tilt_atom(3))
+         WRITE(line,1100) u, v                  ! Do vector product (e3) x (e1 )
+         WRITE(*   ,1100) u, v                  ! Do vector product (e3) x (e1 )
+         laenge = 81
+         CALL vprod(line, laenge)
+         hkl(:) =  res_para(1:3)                 ! Result is cartesian y-axis
+      ELSE
+         hkl(:) = tilt_hkl(:)
+      ENDIF
+      ENDIF
+   ELSE
+      hkl(:) = cr_pos(:,n2) - cr_pos(:,n1)
+   ENDIF
+!
+   sym_uvw(:)     = hkl(1:3)
+   sym_angle      = tilt
+   sym_orig(:)    = origin(:)                    ! Rotate in origin
+   sym_trans(:)   = 0.0                          ! No translation needed
+   sym_sel_atom   = .true.                       ! Select atoms
+   sym_new        = .false.                      ! No new types
+   sym_power      =  1                           ! Just need one operation
+   sym_type       = .true.                       ! Proper rotation
+   sym_mode       = .false.                      ! Move atom to new position
+   sym_orig_mol   = .false.                      ! Origin at crystal
+   sym_power_mult = .false.                       ! No multiple copies
+   sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
+   sym_end        =  cr_natoms
+   CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+   CALL symm_setup                               ! Symmetry setup defines matrix
+   CALL symm_show                                ! Show only in debug
+   CALL symm_op_single                           ! Perform the operation
+ENDIF
+!
+1100 FORMAT(6(F12.6,', '),'ddd')
+!
+END SUBROUTINE deco_tilt
 !
 !###############################################################################
 !
