@@ -61,6 +61,11 @@ INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_surfnew         ! Mole
 REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_dens            ! Molecule density per A^2
 REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_dist            ! Bond length in       A
 REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_angle           ! Bond angle for Hydrogen bonds
+REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_tilt            ! Tilt angle for ligand off axis
+REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_tilt_hkl        ! Normal to molecule plane
+INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_tilt_atom       ! Atoms that form molecule plane
+LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_tilt_is_atom    ! Tilt angle for ligand off axis
+LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_tilt_is_auto    ! Tilt angle for ligand off axis
 !
 !  Temporary arrays
 !
