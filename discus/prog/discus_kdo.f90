@@ -218,8 +218,13 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
 !-------Find properties   'find'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'find', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'find', 3, lbef, 4) ) then 
             CALL do_find (zeile, lcomm) 
+!                                                                       
+!-------Fit something     'fit'                                        
+!                                                                       
+         ELSEIF (str_comp (befehl, 'fit', 3, lbef, 3) ) then 
+            CALL discus_do_fit (zeile, lcomm) 
 !                                                                       
 !-------Fourier transform 'four'                                        
 !                                                                       
@@ -491,3 +496,23 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
       ENDIF 
 !                                                                       
       END SUBROUTINE do_define                      
+subroutine discus_do_fit(line, length)
+use crystal_mod
+use fit_mod
+!
+character(len=*), INTENT(INOUT) :: Line
+integer         , INTENT(INOUT) :: length
+!
+INTEGER, DIMENSION(:), ALLOCATABLE :: list
+INTEGER               :: i
+REAL   , DIMENSION(3) :: hkl
+REAL                  :: dist
+!
+ALLOCATE(list(1:cr_natoms))
+         DO i=1,cr_natoms
+            list(i) = i
+         ENDDO
+         CALL dis_fit_plane(cr_natoms, list, hkl, dist)
+         DEALLOCATE(list)
+!
+end subroutine discus_do_fit
