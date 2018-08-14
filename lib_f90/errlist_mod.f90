@@ -50,5 +50,6 @@ MODULE errlist_mod
    INTEGER            :: ier_sav   = ER_S_CONT
    LOGICAL            :: ier_ctrlc = .FALSE.
    LOGICAL            :: ier_rep   = .FALSE.
+   LOGICAL            :: ier_mpi   = .FALSE.
 !
 END MODULE errlist_mod

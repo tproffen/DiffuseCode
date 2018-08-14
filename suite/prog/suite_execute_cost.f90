@@ -98,6 +98,8 @@ INTEGER             :: ct_ompifirst ! Original mpi_first state
 LOGICAL :: str_comp
 INTEGER :: len_str
 !
+ier_mpi = .TRUE.
+!
 CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directory as passed from master
 !
 ! If instructed, get state of random number generator
@@ -313,6 +315,7 @@ ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
 ENDIF
 CALL suite_set_sub_branch ()
 CALL program_files ()
+ier_mpi = .FALSE.
 !
 2000 FORMAT ( a,' ',a,',',i8,',',i8)
 2100 FORMAT ( a,' ',a,',',i8       )
