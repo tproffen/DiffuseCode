@@ -312,7 +312,7 @@
 !p echo ">%5.1f<",44.1        produces :  > 44.1<
 !p echo ">%2**2+1.1f<",44.1   produces :  > 44.1<
 !p echo ">%c<",'bla'          produces :  >bla<
-!p echo ">%5c<",'bla'         produces :  >  bla<
+!p echo ">%5c<",'bla'         produces :  >bla  <
 3  eval
 !b eval <expr> [, <expr> ...]
 
