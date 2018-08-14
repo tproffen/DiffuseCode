@@ -185,7 +185,7 @@ SUBROUTINE do_hel (ein, length)
 !                                                                       
 !                                                                       
       INTEGER nviele 
-      PARAMETER (nviele = 101) 
+      PARAMETER (nviele = 201) 
 !                                                                       
       INTEGER ihl, ibef, maxw 
       CHARACTER ( * ) bef (maxw) 
