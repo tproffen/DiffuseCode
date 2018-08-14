@@ -152,8 +152,9 @@ CONTAINS
 !
 !     - Learn command for learn sequence                                
 !
-      IF (llearn.and..not.str_comp (line, 'lend', 3, lbef, 4)   &
-                .and..not.str_comp (line, 'mouse', 3, lbef, 5)  &
+      lbef = MIN(LEN(input),LEN_TRIM(input)) 
+      IF (llearn.and..not.str_comp (input, 'lend', 3, lbef, 4)   &
+                .and..not.str_comp (input, 'mouse', 3, lbef, 5)  &
                 .and..not.lmakro) THEN
          IF (ll.gt.0) THEN 
             WRITE (33, 2000) input (1:len_str (input) ) 
