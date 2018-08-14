@@ -542,6 +542,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       REAL mc_idimen (4, 4) 
       REAL mc_matrix (4, 4) 
       integer natoms_old
+      INTEGER               :: i
+      INTEGER, DIMENSION(5) :: maxdim = 0
       INTEGER  :: natoms  ! Number of atoms in the input file
       INTEGER  :: nscats  ! NUmber of atom types in the input file
       INTEGER  :: n_mole  ! Number of molecules in the input file
@@ -549,6 +551,41 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
       real    shortest
       real    vv(3)
+!
+!     TEST FILESIZE OF ALL internal CONTENT FILES
+!
+      maxdim(:) = 0
+      DO i=1, clu_number
+         IF(clu_content(i)(1:8)=='internal')THEN
+         infile = clu_content(i)
+         CALL testfile_internal(  infile , natoms, &
+              nscats, n_mole, n_type, n_atom)
+         maxdim(1) = MAX(natoms, MK_MAX_ATOM, NMAX)
+         maxdim(2) = MAX(nscats, MK_MAX_SCAT, MAXSCAT)
+         maxdim(3) = MAX(n_mole, MOLE_MAX_MOLE)
+         maxdim(4) = MAX(n_type, MOLE_MAX_TYPE)
+         maxdim(5) = MAX(n_atom, MOLE_MAX_ATOM)
+         ENDIF
+      ENDDO
+      natoms = maxdim(1)
+      nscats = maxdim(2)
+      n_mole = maxdim(3)
+      n_type = maxdim(4)
+      n_atom = maxdim(5)
+         IF(natoms > MAX(MK_MAX_ATOM, NMAX)    .or. &
+            nscats > MAX(MK_MAX_SCAT, MAXSCAT) .or. &
+            n_mole > MOLE_MAX_MOLE             .or. &
+            n_type > MOLE_MAX_TYPE             .or. &
+            n_atom > MOLE_MAX_ATOM                   ) THEN
+            natoms = MAX(natoms, MK_MAX_ATOM, NMAX)
+            nscats = MAX(nscats, MK_MAX_SCAT, MAXSCAT)
+            n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+            n_type = MAX(n_type, MOLE_MAX_TYPE)
+            n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+            CALL alloc_micro  ( nscats, natoms)
+            MK_MAX_ATOM = natoms
+            MK_MAX_SCAT = nscats
+         ENDIF
 !
       clu_remove_end = cr_natoms    ! Initially remove only atoms in original crystal
 !                                                                       
@@ -1257,6 +1294,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
          ELSEIF(ier_num/=0) then
             RETURN
          ENDIF
+         dummy_mole = 0      ! Internal molecule atoms are set further down
+         dummy_moleatom = 0  ! Internal molecule atoms are set further down
          WRITE(line, 3000) mk_at_lis(dummy_iscat), xyz, mk_dw(dummy_iscat), &
                            dummy_prop, dummy_mole, dummy_moleatom, 1.0 ! copy into line
       ELSE
