@@ -880,6 +880,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER     :: new_nmax
       INTEGER     :: new_nscat
       INTEGER     :: io_line
+      INTEGER     :: iimole
       INTEGER                          :: n_mole 
       INTEGER                          :: n_type 
       INTEGER                          :: n_atom 
@@ -1070,6 +1071,12 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
 !                 if it is not inside a molecule                        
 !                                                                       
                      CALL firstcell (werte, maxw) 
+                  ENDIF 
+                  IF(NINT(werte(6))>0 .AND. NINT(werte(7))>0) THEN
+                     iimole = NINT(werte(6)) !+ n_mole_old
+                     CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
+                     cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
+                     cr_mole(cr_natoms) = NINT(werte(6)) !+ n_mole_old
                   ENDIF 
 !                                                                       
                   DO j = 1, 3 
@@ -1465,7 +1472,9 @@ IF (ier_num.eq.0) THEN
 !                                                                       
 !     ----Turn off molecule                                             
 !                                                                       
-         IF (lcell) call mole_firstcell 
+         IF(mole_len(mole_num_mole)>0) THEN    !Ignore empty molecules
+            IF (lcell) call mole_firstcell 
+         ENDIF
            mole_l_on = .false. 
 !                                                                       
       ELSEIF(str_comp(cpara(1), 'character', 3, lpara(1), 9)) THEN
