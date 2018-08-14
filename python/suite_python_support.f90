@@ -13,11 +13,13 @@ SUBROUTINE suite_prae
 !
 USE suite_setup_mod
 USE suite_init_mod
+USE suite_set_sub_mod
 USE discus_setup_mod
 USE kuplot_setup_mod
 USE diffev_setup_mod
 USE diffev_mpi_mod
 USE run_mpi_mod
+USE appl_env_mod
 !
 USE prompt_mod
 USE envir_mod
@@ -65,8 +67,10 @@ SUBROUTINE discus_prae
 !
 USE suite_setup_mod
 USE suite_init_mod
+USE suite_set_sub_mod
 USE discus_setup_mod
 USE prompt_mod
+USE appl_env_mod
 IMPLICIT NONE
 !
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
@@ -94,8 +98,10 @@ SUBROUTINE diffev_prae
 !
 USE suite_setup_mod
 USE suite_init_mod
+USE suite_set_sub_mod
 USE diffev_setup_mod
 USE prompt_mod
+USE appl_env_mod
 IMPLICIT NONE
 !
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
@@ -123,7 +129,9 @@ SUBROUTINE kuplot_prae
 !
 USE suite_setup_mod
 USE suite_init_mod
+USE suite_set_sub_mod
 USE kuplot_setup_mod
+USE appl_env_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -151,7 +159,9 @@ SUBROUTINE back_to_suite
 !  Go back to the suite level
 !
 USE suite_setup_mod
+USE suite_set_sub_mod
 USE prompt_mod
+USE appl_env_mod
 !
 IMPLICIT NONE
 !

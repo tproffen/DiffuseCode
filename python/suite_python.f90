@@ -53,6 +53,7 @@ SUBROUTINE initialize_suite()
 USE suite_setup_mod
 USE suite_loop_mod
 USE suite_init_mod
+USE suite_set_sub_mod
 USE discus_setup_mod
 USE kuplot_setup_mod
 USE diffev_setup_mod
@@ -308,11 +309,12 @@ USE charact_mod
 USE doact_mod
 USE prompt_mod
 USE terminal_mod
+USE do_if_mod
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=*), INTENT(IN) :: prog
-CHARACTER(LEN=*), INTENT(IN) :: line
+CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER                      :: length
 LOGICAL                      :: lend
 !
@@ -331,7 +333,7 @@ END SELECT section
 length = LEN_TRIM(line)
 WRITE(output_io,'(a5,a,a5)') COLOR_INFO,line(1:length), COLOR_FG_DEFAULT
 IF(.NOT.lblock_read) THEN   ! This is the first DO/IF statement
-   CALL do_do_init (line, lend, length)
+   CALL do_do_init (line, length)
 ELSE
    input_gui = line
    CALL do_insert_line
@@ -352,6 +354,7 @@ USE errlist_mod
 USE class_macro_internal
 USE prompt_mod
 USE terminal_mod
+USE do_if_mod
 !
 IMPLICIT NONE
 !

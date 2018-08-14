@@ -32,9 +32,6 @@ find_package(Readline REQUIRED)
 
 # Option to build a PYTHON interface
 option(DIFFUSE_PYTHON "DIFFUSE_PYTHON" OFF)
-if (DIFFUSE_PYTHON)
-  find_package(NumPy)
-endif (DIFFUSE_PYTHON)
 
 # Set common libraries
 
@@ -73,7 +70,11 @@ add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
 add_subdirectory(suite/prog)
-#add_subdirectory(python)
+
+# Add Python directory if Python option is selected
+if (DIFFUSE_PYTHON)
+  add_subdirectory(python)
+endif (DIFFUSE_PYTHON)
 
 FILE (GLOB manfiles "${DIFFUSE_SOURCE_DIR}/Manual/*_man.pdf")
 install (FILES ${manfiles} DESTINATION share)
