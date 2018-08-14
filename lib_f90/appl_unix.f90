@@ -263,6 +263,7 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 2300) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2400) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
       WRITE ( *, 2500) TRIM(color_bg),TRIM(color_info),TRIM(color_fg)
+      WRITE ( *, 2600) TRIM(color_bg),TRIM(color_info),TRIM(color_fg),TRIM(color_info),TRIM(color_fg)
    ELSE
       WRITE ( *,  900)  man_dir (1:LEN_TRIM(man_dir)) 
       WRITE ( *, 1000) umac_dir (1:LEN_TRIM(umac_dir)) 
@@ -271,6 +272,7 @@ IF(standalone .AND. local_mpi_myid==0) THEN
       WRITE ( *, 1300)
       WRITE ( *, 1400)
       WRITE ( *, 1500)
+      WRITE ( *, 1600)
    ENDIF
 ENDIF
 !                                                                       
@@ -281,6 +283,7 @@ ENDIF
  1300 FORMAT     (1x,'Access manuals at each section with   : ','manual')
  1400 FORMAT     (1x,'Access help at each section/menu with : ','help  ')
  1500 FORMAT     (1x,'News at each section/Command_lang in  : ','help News')
+ 1600 FORMAT     (1x,'Change font size with VT Fonts menu or: ','CTRL + /CTRL -')
  1900 FORMAT     (1x,a,'Manual files in  : ',a,a,a) 
  2000 FORMAT     (1x,a,'User macros in   : ',a,a,a) 
  2100 FORMAT     (1x,a,'System macros in : ',a,a,a) 
@@ -288,6 +291,7 @@ ENDIF
  2300 FORMAT     (1x,a,'Access manuals at each section with   : ',a,'manual',a)
  2400 FORMAT     (1x,a,'Access help at each section/menu with : ',a,'help  ',a)
  2500 FORMAT     (1x,a,'News at each section/Command_lang in  : ',a,'help News',a)
+ 2600 FORMAT     (1x,a,'Change font size with ',a,'VT Fonts',a,' menu or: ',a,'CTRL + /CTRL -',a)
 !
 END SUBROUTINE write_appl_env                       
 !
@@ -366,7 +370,18 @@ ENDIF
 IF(standalone.AND.local_mpi_myid==0) THEN  ! set standard Background and Foreground
    WRITE(*,'(a)') TRIM(color_bg)
    WRITE(*,'(a)') TRIM(color_fg)
+!
+DO i=1, LEN(line)
+  line(i:i) = '.'
+ENDDO
+WRITE(*,*) line(1:MIN(256,LEN_TRIM(line)))
+WRITE(*,*) 
+WRITE(*,*) 
+WRITE(*,*) 
+WRITE(*,*) 
+WRITE(*,*) 
 ENDIF
+!
 END SUBROUTINE color_set_scheme
 !
 SUBROUTINE color_set_fg(line,icolon,color_type , color_string, color_color)
