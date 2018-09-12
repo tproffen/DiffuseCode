@@ -74,6 +74,24 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Sep
+
+   Added new export options:
+   to CIF
+   export cif, <filename>
+
+   to RMCprofile version 6 and 7
+   export rmcprofile, <filename> [,version:7]
+
+   to VASP, POSCAR file
+   export vasp, POSCAR
+   export poscar, POSCAR
+
+   If atom types exist, for which there is no more actual atom in 
+   the crystal, the form factors are set to zero. This alloes you
+   to define pseudo atoms for the domain without the need to 
+   use the 'fourier/scat' command to set dummy scattering
+   functions.
 3  2018_Aug
 
    Added a 'reset' command to DISCUS. (Work in progress)
@@ -1875,9 +1893,26 @@
    relative motion copies the atom number <n> to the sum of present
    position and vector <x>,<y>,<z>.
 2  export
+!b export "cif",<file{".cif"]>
 !b export "shelx",<file{".ins"]>
+!b export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
+!b export "vasp",<file]>
+!b export "poscar",<file]>
 
+   cif
+   Exports the atoms of the current structure as a minimal CIF
+   file.
+
+   shelx
    Exports the atoms of the current structure as a SHELXL instruction file
+
+   rmcprofile
+   Exports the atoms of the current structure as a RMCprofile 
+   version 6 or 7 input file
+
+   vasp
+   poscar
+   Exports the atoms of the current structure as a VASP "POSCAR" file. 
 2  d2r
 !b d2r <u>,<v>,<w>
 
