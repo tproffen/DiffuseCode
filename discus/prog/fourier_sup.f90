@@ -662,12 +662,15 @@ CONTAINS
       USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
+      USE chem_aver_mod
 !                                                                       
+      USE param_mod
       USE prompt_mod 
       USE precision_mod
       IMPLICIT none 
        
 !                                                                       
+      LOGICAL, PARAMETER :: lout = .FALSE.
       REAL                :: q2
       REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
       INTEGER iq, iscat 
@@ -677,8 +680,11 @@ CONTAINS
       IF (four_log) then 
          WRITE (output_io, 1000) 
       ENDIF 
+!
+      CALL chem_elem(lout)
 !                                                                       
       DO iscat = 1, cr_nscat 
+      IF(res_para(iscat+1)> 0.0) THEN
       DO iq = 0, CFPKT 
       q2 = REAL((REAL (iq, KIND=KIND(0.0D0)) * CFINC) **2 , KIND=KIND(0.0E0))
       sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
@@ -700,6 +706,10 @@ CONTAINS
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 
       cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
       ENDDO 
+      ELSE
+      cfact     (:, iscat) = CMPLX( 0.0D0, 0.0D0)
+      cfact_pure(:, iscat) = CMPLX( 0.0D0, 0.0D0)
+      ENDIF
       ENDDO 
 !                                                                       
  1000 FORMAT     (' Computing formfactor lookup table ...') 
