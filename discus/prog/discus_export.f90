@@ -654,13 +654,11 @@ IF(cr_syst==cr_ortho .OR. cr_syst==cr_tetragonal .OR. cr_syst==cr_cubic) THEN
    WRITE(IWR, 1600 )   0.000000,                  cr_a0(2)*FLOAT(cr_icc(2)), 0.000000
    WRITE(IWR, 1600 )   0.000000,                  0.000000,                  cr_a0(3)*FLOAT(cr_icc(3))
 ELSE
-   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)),                 &
-                       cr_a0(2)*FLOAT(cr_icc(2))*cosd(cr_win(3)), &
-                       cr_a0(3)*FLOAT(cr_icc(3))*cosd(cr_win(2))
-   WRITE(IWR, 1600 )   0.000000,                                  &
-                       cr_a0(2)*FLOAT(cr_icc(2))*sind(cr_win(3)), &
-                       cr_a0(3)*FLOAT(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))
-   WRITE(IWR, 1600 )   0.000000,                  0.000000,       &
+   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)), 0.000000, 0.00000
+   WRITE(IWR, 1600 )   cr_a0(2)*FLOAT(cr_icc(2))*cosd(cr_win(3))                     , &
+                       cr_a0(2)*FLOAT(cr_icc(2))*sind(cr_win(3)), 0.000000
+   WRITE(IWR, 1600 )   cr_a0(3)*FLOAT(cr_icc(3))*cosd(cr_win(2))                     , &
+                       cr_a0(3)*FLOAT(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))     , &
                        cr_v    *FLOAT(cr_icc(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
 ENDIF
 WRITE(IWR, '(a)')   'Atoms:'
