@@ -112,9 +112,9 @@ END SUBROUTINE distrib_preve
 !
 !*******************************************************************************
 !
-SUBROUTINE distrib_sequential(kid, indiv, pop_c,   &
+SUBROUTINE distrib_sequential(kid, indiv, nodes, pop_c, nindiv,  &
            numcalcs, inode, numsent,              &
-           kid_at_indiv, kid_at_node)
+           kid_at_indiv, kid_at_node, node_has_kids)
 !
 ! Distributes all kids and indives sequentially onto the nodes and cores
 !
@@ -122,12 +122,15 @@ IMPLICIT NONE
 !
 INTEGER              , INTENT(INOUT) :: kid      ! We will work on this kid
 INTEGER              , INTENT(INOUT) :: indiv    ! We will work on this indiv
+INTEGER              , INTENT(IN   ) :: nodes    ! Actual number of nodes
 INTEGER              , INTENT(IN   ) :: pop_c    ! Actual number of children
+INTEGER              , INTENT(IN   ) :: nindiv   ! Actual number of maximum  indivs
 INTEGER              , INTENT(IN   ) :: numcalcs ! Total number of jobs needed
 INTEGER              , INTENT(IN   ) :: inode    ! Current node
 INTEGER              , INTENT(IN   ) :: numsent  ! Jobs sent out
 INTEGER, DIMENSION(1:pop_c)        , INTENT(INOUT) :: kid_at_indiv
 INTEGER, DIMENSION(1:pop_c)        , INTENT(INOUT) :: kid_at_node 
+INTEGER, DIMENSION(1:nodes,0:pop_c*nindiv), INTENT(INOUT) :: node_has_kids
 !
 !
 kid   = 0
@@ -137,6 +140,8 @@ IF(numsent<numcalcs) THEN
    indiv  =      numsent / pop_c  + 1
    kid_at_indiv(kid) = indiv
    kid_at_node (kid) = inode
+   node_has_kids(inode,kid) = kid
+   node_has_kids(inode,0  ) = kid
 ENDIF
 !
 END SUBROUTINE distrib_sequential

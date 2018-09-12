@@ -349,13 +349,17 @@ initial:DO                                           !  Start the intial jobs
    run_mpi_senddata%kid    = 0                      ! Will be > 0, if distrib is OK
    run_mpi_senddata%indiv  = 0
    inode = slave_is_node(slave)                     ! Current slave is on this node
-   IF(.NOT.node_finished(inode)) THEN               ! This node has kids/indivs available
       IF(run_mpi_senddata%repeat) THEN              ! Parallel computing of indivs requested
          IF(pop_gen /= lastgen) THEN                ! New GENERATION , new job distribution
+   IF(.NOT.node_finished(inode)) THEN               ! This node has kids/indivs available
             CALL distrib_even(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
                  NUM_NODE,  pop_c, run_mpi_senddata%nindiv, inode,          &
                  kid_at_indiv, kid_at_node,                                 &
                  node_has_kids, node_max_kids, node_finished)
+         ENDIF
+   IF(ALL(node_finished)) THEN                     ! All nodes have been populated
+      EXIT initial
+   ENDIF
          ELSE                                       ! Same generation place kid onto previous node
             CALL distrib_preve(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
                  NUM_NODE,  pop_c, run_mpi_senddata%nindiv, inode,           &
@@ -364,16 +368,13 @@ initial:DO                                           !  Start the intial jobs
       ELSE                                          ! Serial distribution of indivs
          IF(pop_gen /= lastgen) THEN                ! New GENERATION , new job distribution
             CALL distrib_sequential(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
-                 pop_c, numtasks, inode, run_mpi_numsent, kid_at_indiv, kid_at_node)
+                 NUM_NODE, pop_c, run_mpi_senddata%nindiv, numtasks, inode,       &
+                 run_mpi_numsent, kid_at_indiv, kid_at_node, node_has_kids)
          ELSE                                       ! Same generation place kid onto previous node
             CALL distrib_preve(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
                  NUM_NODE,  pop_c, one_indiv, inode,           &
                  kid_at_indiv, node_has_kids, node_finished)
-         ENDIF
       ENDIF
-   ENDIF
-   IF(ALL(node_finished)) THEN                     ! All nodes have been populated
-      EXIT initial
    ENDIF
    IF(run_mpi_senddata%kid> 0) THEN   ! Proper assignment start the job
       IF(run_mpi_senddata%prog_start) THEN     ! Program needs to be started, increment port no
@@ -452,7 +453,10 @@ rec_hand: DO   ! i = 1, num_hand
    ELSE                                                  ! Sequential distribution, take next job
       IF(pop_gen/=lastgen) THEN                           ! New generation, create new distribution
          CALL distrib_sequential(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
-              pop_c, numtasks, inode, run_mpi_numsent, kid_at_indiv, kid_at_node)
+                 NUM_NODE, pop_c, run_mpi_senddata%nindiv, numtasks, inode,       &
+                 run_mpi_numsent, kid_at_indiv, kid_at_node, node_has_kids)
+!        CALL distrib_sequential(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
+!             pop_c, numtasks, inode, run_mpi_numsent, kid_at_indiv, kid_at_node)
       ELSE                                               ! Same Generation use previous distribution
             CALL distrib_preve(run_mpi_senddata%kid, run_mpi_senddata%indiv, &
                  NUM_NODE,  pop_c, one_indiv, inode,          &
