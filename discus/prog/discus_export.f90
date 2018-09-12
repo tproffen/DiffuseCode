@@ -8,6 +8,7 @@ SUBROUTINE do_export(line, lp)
 !
 USE errlist_mod
 USE get_params_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
@@ -18,20 +19,74 @@ INTEGER, PARAMETER :: MAXW = 5
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
+!
+INTEGER  :: rmcversion
 !
 LOGICAL str_comp
+!
+DATA oname  / 'version'                    /
+DATA loname /  7                           /
+!
+opara  =  (/ '6.0000' /)   ! Always provide fresh default values
+lopara =  (/  6       /)
+owerte =  (/  6.0     /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) then
    RETURN
 ENDIF
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, owerte)
+!
 !                                                                       
 IF (ianz.ge.1) then
-   IF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then
+   IF (str_comp (cpara (1) , 'cif', 2, lpara (1) , 3) ) then
+      IF (ianz.eq.2) then
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         IF (ier_num.ne.0) return
+         CALL discus2cif (ianz, cpara, lpara, MAXW)
+      ELSE
+         ier_num = - 6
+         ier_typ = ER_COMM
+      ENDIF
+   ELSEIF (str_comp (cpara (1) , 'shelx', 2, lpara (1) , 5) ) then
       IF (ianz.eq.2) then
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) return
          CALL discus2ins (ianz, cpara, lpara, MAXW)
+      ELSE
+         ier_num = - 6
+         ier_typ = ER_COMM
+      ENDIF
+   ELSEIF (str_comp (cpara (1) , 'rmcprofile', 2, lpara (1) , 10) ) then
+      IF (ianz.eq.2) then
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         IF (ier_num.ne.0) RETURN
+         rmcversion = NINT(owerte(1))
+         CALL discus2rmc6f (ianz, cpara, lpara, MAXW, rmcversion)
+      ELSE
+         ier_num = - 6
+         ier_typ = ER_COMM
+      ENDIF
+   ELSEIF (str_comp (cpara (1) , 'vasp', 2, lpara (1) , 4)  .OR.  &
+           str_comp (cpara (1) , 'poscar', 2, lpara (1) , 6) ) then
+      IF (ianz.eq.2) then
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         IF (ier_num.ne.0) RETURN
+         CALL discus2poscar (ianz, cpara, lpara, MAXW)
+      ELSEIF(ianz==1) THEN
+         ianz = 1
+         cpara(1) = 'POSCAR'
+         lpara(1) = 6
+         CALL discus2poscar (ianz, cpara, lpara, MAXW)
       ELSE
          ier_num = - 6
          ier_typ = ER_COMM
@@ -46,6 +101,70 @@ ELSE
 ENDIF
 !
 END SUBROUTINE do_export
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus2cif (ianz, cpara, lpara, MAXW)
+!
+USE crystal_mod
+USE discus_allocate_appl_mod
+USE discus_plot_mod
+USE discus_plot_export_mod
+USE modify_mod
+USE molecule_mod
+!
+USE build_name_mod
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+INTEGER            ,                  INTENT(IN)    :: MAXW
+INTEGER            ,                  INTENT(INOUT) :: ianz
+CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+INTEGER, PARAMETER :: IWR = 35
+LOGICAL, PARAMETER :: lold = .FALSE.
+!
+CHARACTER(LEN=1024)      :: ofile = ' '
+CHARACTER(LEN=1024)      :: zeile = ' '
+INTEGER                  :: lp
+INTEGER                  :: nscat
+REAL   , DIMENSION(MAXW) :: werte
+!
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+IF (ier_num.ne.0) then
+   RETURN
+ENDIF
+ofile = cpara (1)
+IF(ofile(lpara(1)-3:lpara(1)) /= '.cif') ofile = cpara (1) (1:lpara (1) ) //'.cif'
+CALL oeffne (IWR, ofile, 'unknown')
+IF (ier_num.ne.0) then
+   CLOSE(IWR)
+   RETURN
+ENDIF
+!
+!
+!     Allocate the necessary arrays
+!
+IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
+     MAXSCAT > PL_MAXSCAT ) THEN
+   nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
+   CALL alloc_plot ( nscat )
+   IF(ier_num < 0) THEN
+     RETURN
+   ENDIF
+ENDIF
+zeile = 'all'
+lp    = 3
+CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
+                  pl_sel_atom, lold, .TRUE.)
+!
+CALL plot_cif(IWR, .FALSE.)
+!
+CLOSE(IWR)
+!
+END SUBROUTINE discus2cif
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -380,5 +499,364 @@ REAL, DIMENSION(3) :: vec
 2500 FORMAT(a4,1x,i2,3(f12.6),f12.5,f11.5)
 !
 END SUBROUTINE shelx_write_atom
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus2rmc6f (ianz, cpara, lpara, MAXW, rmcversion)
+!
+!  Exports the current structure in RMC6F format
+!
+USE crystal_mod
+USE celltoindex_mod
+USE modify_func_mod
+!
+USE charact_mod
+USE build_name_mod
+USE errlist_mod
+USE param_mod
+USE prompt_mod
+USE times_mod
+USE trig_degree_mod
+!
+IMPLICIT NONE
+!
+INTEGER            ,                  INTENT(IN)    :: MAXW
+INTEGER            ,                  INTENT(INOUT) :: ianz
+CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+INTEGER                             , INTENT(IN)    :: rmcversion     ! Version is 6 or 7
+!
+INTEGER, PARAMETER :: IWR = 35
+!
+CHARACTER(LEN=1024)      :: ofile  = ' '
+CHARACTER(LEN=1024)      :: line   = ' '
+CHARACTER(LEN=1024)      :: string = ' '
+CHARACTER(LEN=9), DIMENSION(:), ALLOCATABLE :: atom_names
+INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
+INTEGER                  :: iatom, iscat, is, i, j, ii, ll
+INTEGER                  :: ntypes      ! Actual atom types      to be written to file
+INTEGER                  :: natoms      ! Actual number of atoms to be written to file
+INTEGER, DIMENSION(3)    :: icell 
+REAL   , DIMENSION(3)    :: shift
+REAL   , DIMENSION(MAXW) :: werte
+!
+! Build the output file name
+!
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+IF (ier_num.ne.0) then
+   RETURN
+ENDIF
+ofile = cpara (1)
+IF(.NOT.(ofile(lpara(1)-5:lpara(1)) == '.rmc6f')) THEN
+  ofile = cpara (1) (1:lpara (1) ) //'.rmc6f'
+ENDIF
+CALL oeffne (IWR, ofile, 'unknown')
+IF (ier_num.ne.0) then
+   CLOSE(IWR)
+   RETURN
+ENDIF
+!
+! Make RMCprofile atom names
+!
+ALLOCATE(atom_names(0:MAXSCAT))
+ALLOCATE(atom_number(0:MAXSCAT))
+atom_names(:)  = ' '
+atom_number(:) = 0
+IF(rmcversion==6) THEN
+   DO i=0,MAXSCAT
+      atom_names(i)(1:2) = cr_at_lis(i)(1:2)
+      IF(IACHAR(atom_names(i)(2:2))>=aa .AND. IACHAR(atom_names(i)(2:2))<=zz) THEN
+         atom_names(i)(2:2) = ACHAR(IACHAR(atom_names(i)(2:2)) - aa + a)
+      ELSEIF(.NOT. (IACHAR(atom_names(i)(2:2))>=a .AND. IACHAR(atom_names(i)(2:2))<=z)) THEN
+         atom_names(i)(2:2) = ' '
+      ENDIF
+      IF(cr_at_lis(i)(1:2)=='H.') atom_names(i)='H   '
+      IF(cr_at_lis(i)(1:2)=='D ') atom_names(i)='H   '
+   ENDDO
+ELSE
+   DO i=0,MAXSCAT
+      atom_names(i)(1:4) = cr_at_lis(i)(1:4)
+      IF(IACHAR(atom_names(i)(2:2))>=aa .AND. IACHAR(atom_names(i)(2:2))<=zz) THEN
+         atom_names(i)(2:2) = ACHAR(IACHAR(atom_names(i)(2:2)) - aa + a)
+      ENDIF
+      IF(cr_at_lis(i)(1:2)=='H.' ) atom_names(i)(1:4)='H   '
+      IF(cr_at_lis(i)(1:2)=='D ' ) atom_names(i)(1:4)='2H  '
+      IF(cr_at_lis(i)(1:3)=='D1-') atom_names(i)(1:4)='2H  '
+      ii = 1
+      DO j=0,i-1
+         IF(atom_names(i)(1:4) == atom_names(j)(1:4)) THEN
+            ii = ii + 1
+         ENDIF
+      ENDDO
+      IF(ii<10) THEN
+         WRITE(atom_names(i)(5:9),'(A2,I1,A2)') ' [',ii,'] '
+      ELSEIF(ii<100) THEN
+         WRITE(atom_names(i)(5:9),'(A2,I2,A1)') ' [',ii,']'
+      ENDIF
+   ENDDO
+ENDIF
+!
+! Count atoms that will be written to file
+!
+natoms = 0
+ntypes = 0
+count: DO iatom=1,cr_natoms
+   IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+      IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
+         natoms = natoms + 1
+         find_entry: DO j=1,MAXSCAT
+            IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
+               atom_number(j) = atom_number(j) + 1
+               EXIT find_entry
+            ENDIF
+         ENDDO find_entry
+      ENDIF
+   ENDIF
+ENDDO count
+DO i=1,MAXSCAT
+   IF(atom_number(i) > 0 ) ntypes = ntypes + 1
+ENDDO
+!
+! Write the actual file
+!
+CALL datum
+WRITE(IWR, '(a)')   '(Version 6f format configuration file)'
+WRITE(IWR, '(a,a,a)') '(Generated by DISCUS Version ',version,')'
+WRITE(IWR, '(a)')   'Metadata owner:     DISCUS'
+WRITE(IWR, 1100 )    int_date(3), int_date(2), int_date(1)
+WRITE(IWR, '(a,a)') 'Metadata comment:   ',cr_name(1:LEN_TRIM(cr_name))
+WRITE(IWR, 1110 )   ntypes
+line   = 'Atom types present:         '
+string = 'Number of each atom type:   '
+ii     = 28
+ll     = 28
+DO i=1, MAXSCAT
+   IF(atom_number(i) > 0) THEN
+      line = line(1:ii) // ' ' // atom_names(i)(1:4)
+      ii = LEN_TRIM(line)
+      WRITE(string(ll+1:ll+13),'(I12,1x)') atom_number(i)
+      ll = ll + 13
+   ENDIF
+ENDDO
+WRITE(IWR, '(a)')   line(1:LEN_TRIM(line))
+WRITE(IWR, '(a)')   string(1:LEN_TRIM(string))
+WRITE(IWR, '(a)')   'Number of moves generated:                  0'
+WRITE(IWR, '(a)')   'Number of moves tried:                      0'
+WRITE(IWR, '(a)')   'Number of moves accepted:                   0'
+WRITE(IWR, '(a)')   'Number of prior configuration saves: 0'
+WRITE(IWR, 1200 )   natoms
+WRITE(IWR, 1300 )   FLOAT(natoms)/(FLOAT(cr_icc(1)*cr_icc(2)*cr_icc(3))*cr_v)
+WRITE(IWR, 1400 )   cr_icc(:)
+WRITE(IWR, 1500 )   (cr_a0 (i)*FLOAT(cr_icc(i)),i=1,3), cr_win(:)
+WRITE(IWR, '(a)')   'Lattice vectors (Ang):'
+IF(cr_syst==cr_ortho .OR. cr_syst==cr_tetragonal .OR. cr_syst==cr_cubic) THEN
+   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)), 0.000000,                  0.000000
+   WRITE(IWR, 1600 )   0.000000,                  cr_a0(2)*FLOAT(cr_icc(2)), 0.000000
+   WRITE(IWR, 1600 )   0.000000,                  0.000000,                  cr_a0(3)*FLOAT(cr_icc(3))
+ELSE
+   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)),                 &
+                       cr_a0(2)*FLOAT(cr_icc(2))*cosd(cr_win(3)), &
+                       cr_a0(3)*FLOAT(cr_icc(3))*cosd(cr_win(2))
+   WRITE(IWR, 1600 )   0.000000,                                  &
+                       cr_a0(2)*FLOAT(cr_icc(2))*sind(cr_win(3)), &
+                       cr_a0(3)*FLOAT(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))
+   WRITE(IWR, 1600 )   0.000000,                  0.000000,       &
+                       cr_v    *FLOAT(cr_icc(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
+ENDIF
+WRITE(IWR, '(a)')   'Atoms:'
+!
+! Finished header, loop over all atom types and all atoms
+! Property induced selection rules hold, VOIDS are never written
+!
+shift(:) = FLOAT(NINT(cr_dim(:,1)))
+ii       = 0
+DO iscat=1,MAXSCAT
+   DO iatom=1,cr_natoms
+      IF(cr_iscat(iatom)==iscat) THEN
+         IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+            IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
+               ii = ii + 1                               ! increment atom number for RMCprofile sequence
+               CALL indextocell (iatom, icell, is)
+               IF(rmcversion==6) THEN
+                  WRITE(IWR, 1700) ii, atom_names(cr_iscat(iatom))(1:2),   &
+                     ((cr_pos(i,iatom)-shift(i))/FLOAT(cr_icc(i)),i=1,3),  &
+                     is, icell(1)-1, icell(2)-1, icell(3)-1
+               ELSE
+                  WRITE(IWR, 1800) ii, atom_names(cr_iscat(iatom))(1:9),   &
+                     ((cr_pos(i,iatom)-shift(i))/FLOAT(cr_icc(i)),i=1,3),  &
+                     is, icell(1)-1, icell(2)-1, icell(3)-1
+               ENDIF
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDDO
+ENDDO
+!
+CLOSE(IWR)
+DEALLOCATE(atom_names)
+!
+1100 FORMAT('Metadate date:      ',I2.2,'-',I2.2,'-',I4)
+1110 FORMAT('Number of types of atoms: ', I27)
+1200 FORMAT('Number of atoms: ', I27)
+1300 FORMAT('Number density (Ang^-3): ', F24.15)
+1400 FORMAT('Supercell dimensions:             ',3I4)
+1500 FORMAT('Cell (Ang/deg):',6(1x,F20.15))
+1600 FORMAT(3(1x,F20.15))
+1700 FORMAT(i6,3x,a2,3(1x,f18.15),i6,3i4)
+1800 FORMAT(i6,3x,a9,3(1x,f18.15),i6,3i4)
+!
+END SUBROUTINE discus2rmc6f
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE discus2poscar (ianz, cpara, lpara, MAXW)
+!
+!  Exports the current structure in VASP POSCAR format
+!
+USE crystal_mod
+USE celltoindex_mod
+USE modify_func_mod
+!
+USE charact_mod
+USE build_name_mod
+USE errlist_mod
+USE param_mod
+USE prompt_mod
+USE times_mod
+USE trig_degree_mod
+!
+IMPLICIT NONE
+!
+INTEGER            ,                  INTENT(IN)    :: MAXW
+INTEGER            ,                  INTENT(INOUT) :: ianz
+CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+INTEGER, PARAMETER :: IWR = 35
+!
+CHARACTER(LEN=1024)      :: ofile  = ' '
+CHARACTER(LEN=1024)      :: line   = ' '
+CHARACTER(LEN=1024)      :: string = ' '
+CHARACTER(LEN=9), DIMENSION(:), ALLOCATABLE :: atom_names
+INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
+INTEGER                  :: iatom, iscat, is, i, j, ii, ll
+INTEGER                  :: ntypes      ! Actual atom types      to be written to file
+INTEGER                  :: natoms      ! Actual number of atoms to be written to file
+INTEGER, DIMENSION(3)    :: icell 
+REAL   , DIMENSION(3)    :: shift
+REAL   , DIMENSION(MAXW) :: werte
+!
+! Build the output file name
+!
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+IF (ier_num.ne.0) then
+   RETURN
+ENDIF
+ofile = cpara (1)
+CALL oeffne (IWR, ofile, 'unknown')
+IF (ier_num.ne.0) then
+   CLOSE(IWR)
+   RETURN
+ENDIF
+!
+! Make VASP atom names
+!
+ALLOCATE(atom_names(0:MAXSCAT))
+ALLOCATE(atom_number(0:MAXSCAT))
+atom_names(:)  = ' '
+atom_number(:) = 0
+   DO i=0,MAXSCAT
+      atom_names(i)(1:4) = cr_at_lis(i)(1:4)
+      IF(IACHAR(atom_names(i)(2:2))>=aa .AND. IACHAR(atom_names(i)(2:2))<=zz) THEN
+         atom_names(i)(2:2) = ACHAR(IACHAR(atom_names(i)(2:2)) - aa + a)
+      ENDIF
+      ii = 1
+      DO j=0,i-1
+         IF(atom_names(i)(1:4) == atom_names(j)(1:4)) THEN
+            ii = ii + 1
+         ENDIF
+      ENDDO
+      IF(ii<10) THEN
+         WRITE(atom_names(i)(5:9),'(A2,I1,A2)') ' [',ii,'] '
+      ELSEIF(ii<100) THEN
+         WRITE(atom_names(i)(5:9),'(A2,I2,A1)') ' [',ii,']'
+      ENDIF
+   ENDDO
+!
+! Count atoms that will be written to file
+!
+natoms = 0
+ntypes = 0
+count: DO iatom=1,cr_natoms
+   IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+      IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
+         natoms = natoms + 1
+         find_entry: DO j=1,MAXSCAT
+            IF(atom_names(cr_iscat(iatom))(1:4)==atom_names(j)(1:4)) THEN
+               atom_number(j) = atom_number(j) + 1
+               EXIT find_entry
+            ENDIF
+         ENDDO find_entry
+      ENDIF
+   ENDIF
+ENDDO count
+DO i=1,MAXSCAT
+   IF(atom_number(i) > 0 ) ntypes = ntypes + 1
+ENDDO
+!
+! Write the actual file
+!
+CALL datum
+WRITE(IWR, '(a,a,a,a)') cr_name(1:LEN_TRIM(cr_name)), ' (Generated by DISCUS Version ',version,')'
+WRITE(IWR, '(a)')   '  1.0000'
+IF(cr_syst==cr_ortho .OR. cr_syst==cr_tetragonal .OR. cr_syst==cr_cubic) THEN
+   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)), 0.000000,                  0.000000
+   WRITE(IWR, 1600 )   0.000000,                  cr_a0(2)*FLOAT(cr_icc(2)), 0.000000
+   WRITE(IWR, 1600 )   0.000000,                  0.000000,                  cr_a0(3)*FLOAT(cr_icc(3))
+ELSE
+   WRITE(IWR, 1600 )   cr_a0(1)*FLOAT(cr_icc(1)), 0.000000, 0.00000
+   WRITE(IWR, 1600 )   cr_a0(2)*FLOAT(cr_icc(2))*cosd(cr_win(3))                     , &
+                       cr_a0(2)*FLOAT(cr_icc(2))*sind(cr_win(3)), 0.000000
+   WRITE(IWR, 1600 )   cr_a0(3)*FLOAT(cr_icc(3))*cosd(cr_win(2))                     , &
+                       cr_a0(3)*FLOAT(cr_icc(3))*sind(cr_win(2))*cosd(cr_win(1))     , &
+                       cr_v    *FLOAT(cr_icc(3))/(cr_a0(1)*cr_a0(2)*sind(cr_win(3)))
+ENDIF
+!
+string = '   '
+ll     =  3
+DO i=1, MAXSCAT
+   IF(atom_number(i) > 0) THEN
+      WRITE(string(ll+1:ll+13),'(I12,1x)') atom_number(i)
+      ll = ll + 13
+   ENDIF
+ENDDO
+WRITE(IWR, '(a)')   string(1:LEN_TRIM(string))
+WRITE(IWR, '(a)')   'Direct'
+!
+!
+! Finished header, loop over all atom types and all atoms
+! Property induced selection rules hold, VOIDS are never written
+!
+shift(:) = FLOAT(NINT(cr_dim(:,1)))
+DO iscat=1,MAXSCAT
+   DO iatom=1,cr_natoms
+      IF(cr_iscat(iatom)==iscat) THEN
+         IF(cr_at_lis(cr_iscat(iatom))/='VOID') THEN
+            IF (check_select_status (iatom, .true., cr_prop (iatom),  cr_sel_prop) ) THEN
+                  WRITE(IWR, 1700) ((cr_pos(i,iatom)-shift(i))/FLOAT(cr_icc(i)),i=1,3)
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDDO
+ENDDO
+!
+CLOSE(IWR)
+DEALLOCATE(atom_names)
+!
+1600 FORMAT(3(1x,F13.7))
+1700 FORMAT(3(1x,f10.7))
+!
+END SUBROUTINE discus2poscar
+!
 !
 END MODULE discus_export
