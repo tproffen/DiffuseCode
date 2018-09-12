@@ -4190,9 +4190,16 @@ main: DO
 !
             IF(INDEX(line,'_symmetry_space_group_name_H-M')/=0) THEN
                iquote1 = INDEX(line(is_spcgr+30:length),'''')
-               iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'''')
-               iquote1 = is_spcgr+30+iquote1
-               iquote2 =             iquote1+iquote2 - 2
+               IF(iquote1>0) THEN
+                  iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'''')
+                  iquote1 = is_spcgr+30+iquote1
+                  iquote2 =             iquote1+iquote2 - 2
+               ELSE
+                  iquote1 = INDEX(line(is_spcgr+30:length),'"')
+                  iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'"')
+                  iquote1 = is_spcgr+30+iquote1
+                  iquote2 =             iquote1+iquote2 - 2
+               ENDIF
                IF(iquote2> iquote1 .and. iquote1>0 .and. iquote2>0 ) THEN
                   spcgr   = line(iquote1:iquote2)
                   spcgr_l = iquote2 - iquote1 + 1
