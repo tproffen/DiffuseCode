@@ -662,15 +662,12 @@ CONTAINS
       USE discus_config_mod 
       USE crystal_mod 
       USE diffuse_mod 
-      USE chem_aver_mod
 !                                                                       
-      USE param_mod
       USE prompt_mod 
       USE precision_mod
       IMPLICIT none 
        
 !                                                                       
-      LOGICAL, PARAMETER :: lout = .FALSE.
       REAL                :: q2
       REAL (KIND=PREC_DP) :: sb, sf, sfp, sfpp 
       INTEGER iq, iscat 
@@ -680,11 +677,8 @@ CONTAINS
       IF (four_log) then 
          WRITE (output_io, 1000) 
       ENDIF 
-!
-      CALL chem_elem(lout)
 !                                                                       
       DO iscat = 1, cr_nscat 
-      IF(res_para(iscat+1)> 0.0) THEN
       DO iq = 0, CFPKT 
       q2 = REAL((REAL (iq, KIND=KIND(0.0D0)) * CFINC) **2 , KIND=KIND(0.0E0))
       sf = DBLE(form (iscat, cr_scat, lxray, q2, diff_power) )
@@ -706,10 +700,6 @@ CONTAINS
       cfact     (iq, iscat) = cmplx (sb * (sf + sfp), sb * sfpp, KIND=KIND(0.0D0)) 
       cfact_pure(iq, iscat) = cmplx (     (sf + sfp),      sfpp, KIND=KIND(0.0D0)) 
       ENDDO 
-      ELSE
-      cfact     (:, iscat) = CMPLX( 0.0D0, 0.0D0)
-      cfact_pure(:, iscat) = CMPLX( 0.0D0, 0.0D0)
-      ENDIF
       ENDDO 
 !                                                                       
  1000 FORMAT     (' Computing formfactor lookup table ...') 
@@ -826,6 +816,8 @@ CONTAINS
       USE charact_mod
       USE crystal_mod 
       USE element_data_mod
+      USE chem_aver_mod
+      USE param_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -840,6 +832,7 @@ CONTAINS
       INTEGER , PARAMETER  :: RAD_XRAY = 1
       INTEGER , PARAMETER  :: RAD_NEUT = 2
       INTEGER , PARAMETER  :: RAD_ELEC = 3
+      LOGICAL, PARAMETER :: lout = .FALSE.
 !
       CHARACTER (LEN = 4 ) :: element 
       INTEGER    :: i
@@ -860,6 +853,8 @@ CONTAINS
 !
       CALL get_wave ( lambda, rlambda, renergy, l_energy,diff_radiation, &
                       ier_num, ier_typ )
+!
+      CALL chem_elem(lout)
 !                                                                       
       IF (ier_num.ne.0) RETURN 
 !                                                                       
@@ -867,6 +862,7 @@ CONTAINS
          DO i = 1, cr_nscat 
          IF (cr_at_lis (i) /= 'XAXI' .AND. cr_at_lis (i) /= 'YAXI' .and. & 
              cr_at_lis (i) /= 'ZAXI') THEN                  
+            IF(res_para(i+1)> 0.0) THEN
             IF (cr_scat_int (i) ) then 
                SELECTCASE(diff_radiation)
                   CASE(RAD_NEUT)        !  neutron scattering
@@ -945,6 +941,11 @@ CONTAINS
                END SELECT
 !                                                                       
             ENDIF 
+            ELSE
+               cr_scat(:,i) = 0.00
+               cr_delfr (i) = 0.0
+               cr_delfi (i) = 0.0
+            ENDIF
          ENDIF 
          ENDDO 
       ELSE any_element
