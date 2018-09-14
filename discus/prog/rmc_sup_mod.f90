@@ -36,6 +36,7 @@ CONTAINS
       CHARACTER(LEN=1024), DIMENSION(25                     ) :: cpara
       REAL               , DIMENSION(25                     ) :: werte
       REAL               , DIMENSION(25                     ) :: wwerte
+      REAL               , DIMENSION(25                     ) :: uerte
       INTEGER            , DIMENSION(25                     ) :: lpara
 !
       REAL mmdis, hklmin (3), hklmax (3)
@@ -292,13 +293,13 @@ CONTAINS
                         wwerte, maxw, .false.)                          
                         IF (ier_num.eq.0) then 
                            CALL del_params (2, ianz, cpara, lpara, maxw) 
-                           CALL ber_params (1, cpara, lpara, werte, 1) 
-                           mmdis = werte(1)
+                           CALL ber_params (1, cpara, lpara, uerte, 1) 
+                           mmdis = uerte(1)
                            IF (ier_num.eq.0) then 
                               DO i = 1, iianz 
                               DO j = 1, jjanz 
-                              is = int (werte (i) ) 
-                              js = int (wwerte (j) ) 
+                              is = NINT (werte (i) ) 
+                              js = NINT (wwerte (j) ) 
                               CALL rmc_set_mindist (is, js, mmdis) 
                               ENDDO 
                               ENDDO 
