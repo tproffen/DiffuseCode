@@ -55,6 +55,21 @@ USE ber_params_mod
          laenge = do_leng (ilevel (level), level) 
       ENDIF 
 !                                                                       
+      IF(line(1:4) ==  'else') THEN 
+         IF (INDEX (line, 'if') >   0) THEN 
+            CALL rem_insig_bl(line, laenge) 
+!        ELSE
+!           ier_num = - 31 
+!           ier_typ = ER_FORT 
+!           RETURN
+         ENDIF 
+      ELSEIF(line(1:3) ==  'end') THEN 
+         IF (INDEX (line, 'if') >   0) THEN 
+            CALL rem_insig_bl(line, laenge) 
+         ELSEIF (INDEX (line, 'do') >   0) THEN 
+            CALL rem_insig_bl(line, laenge) 
+         ENDIF
+      ENDIF 
 !     if do-loop command, evaluate counter                              
 !                                                                       
       IF (line (1:3) .eq.'do ') then 

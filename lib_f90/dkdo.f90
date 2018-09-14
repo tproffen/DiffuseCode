@@ -349,6 +349,14 @@ ENDIF
       do_comm (nlevel (level), level) = line 
       do_leng (nlevel (level), level) = length 
       ldostart (level) = .true. 
+!
+      IF(line(1:3) ==  'end') THEN
+         IF (INDEX (line, 'if') >   0) THEN
+            CALL rem_insig_bl(line, length)
+         ELSEIF (INDEX (line, 'do') >   0) THEN
+            CALL rem_insig_bl(line, length)
+         ENDIF
+      ENDIF
 !                                                                       
 !     sort commands into proper levels                                  
 !                                                                       
