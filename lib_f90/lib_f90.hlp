@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2018_September
+
+   Modified the do and if constructions to be valid as well for 
+   "end do" "end if" and "else if" with arbitrary blanks.
 4  2018_July
 
    Modified the ==> 'fput' and 'fget' commands to take an optional 
@@ -276,6 +280,10 @@
    until <logical expression> is true.
    If an error occurs during execution of the loop, the loop is
    interrupted.
+
+   As of version 5.25.1 and later, the word "enddo"
+   may also be spelled "end do", where the number of blanks
+   that follow the "end" is not significant.
 3  echo
 !p echo [<string>]
 !p echo ["string%dstring",<integer expression>]
@@ -776,6 +784,10 @@
 !p endif
 
    The logical expressions may contain numerical comparisons with syntax:
+
+   As of version 5.25.1 and later, the words "elseif" and "endif"
+   may also be spelled "else if" or "end if", where the number of blanks
+   that follow the "end" is not significant.
 
 !p <arithmetic expression> <operator> <arithmetic comparison>
 
