@@ -12,8 +12,10 @@ SUBROUTINE errlist
        USE set_sub_generic_mod
        IMPLICIT      NONE
 !
-       IF(mpi_is_slave .AND. ier_num /= 0) THEN
+       IF(mpi_is_slave .AND. ier_num /= 0 .AND. ier_sta /= ER_S_LIVE) THEN
           mpi_slave_error = ier_num   ! Transfer error for MPI to signal
+       ELSE
+          mpi_slave_error = 0
        ENDIF
 !
        IF    (ier_typ == ER_NONE) THEN
