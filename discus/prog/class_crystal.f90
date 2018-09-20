@@ -642,42 +642,7 @@ CONTAINS
    this%cr_natoms       = cr_natoms
    this%cr_n_REAL_atoms = cr_n_REAL_atoms
 !
-!  Save atoms, if selected
-!
-   ia = 0
-   DO inum=1,cr_natoms
-!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
-      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum)),   &
-                                  cr_prop (inum),                &
-                             this%cr_sav_sel_prop) ) THEN
-         ia = ia + 1
-         itype = iscat_table(cr_iscat(inum))
-         posit = cr_pos(:,inum)
-         isurface(:) = cr_surf(:, inum)
-         IF(this%cr_sav_prop) THEN
-            iprop = cr_prop (inum)
-         ELSE
-            iprop = 1
-         ENDIF
-         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
-            IF(cr_mole(inum)/=0) THEN
-               iin_mole(1) = cr_mole(inum)
-               check_mole: DO j = 1, mole_len (cr_mole(inum))
-                  IF(mole_cont (mole_off(cr_mole(inum))+j) == inum) THEN
-                     iin_mole(2) = j
-                     EXIT check_mole
-                  ENDIF
-               ENDDO check_mole
-            ELSE
-               iin_mole(:) = 0
-            ENDIF
-         ENDIF
-         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, iin_mole )
-      ENDIF
-   ENDDO
-   this%cr_natoms = MIN(cr_natoms,ia)
-   DEALLOCATE(iscat_table, STAT=istatus)
-
+! Save molecules if selected
 !
    IF(this%cr_sav_mole .or. this%cr_sav_doma .or. this%cr_sav_obje) THEN
       this%cr_mole_max_mole = mole_max_mole
@@ -718,6 +683,54 @@ CONTAINS
       this%cr_mole_fuzzy    = 0.0
       this%cr_mole_cont     = 0
    ENDIF
+!
+!  Save atoms, if selected
+!
+   ia = 0
+   DO inum=1,cr_natoms
+!     IF(this%cr_sav_atom(cr_iscat(inum))) THEN
+      IF(check_select_status(inum,this%cr_sav_atom(cr_iscat(inum)),   &
+                                  cr_prop (inum),                &
+                             this%cr_sav_sel_prop) ) THEN
+         ia = ia + 1
+         itype = iscat_table(cr_iscat(inum))
+         posit = cr_pos(:,inum)
+         isurface(:) = cr_surf(:, inum)
+         IF(this%cr_sav_prop) THEN
+            iprop = cr_prop (inum)
+         ELSE
+            iprop = 1
+         ENDIF
+         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
+            IF(cr_mole(inum)/=0) THEN
+               iin_mole(1) = cr_mole(inum)
+               check_mole: DO j = 1, mole_len (cr_mole(inum))
+                  IF(mole_cont (mole_off(cr_mole(inum))+j) == inum) THEN
+                     iin_mole(2) = j
+                     this%cr_mole_cont (mole_off(cr_mole(inum))+j) = ia
+                     EXIT check_mole
+                  ENDIF
+               ENDDO check_mole
+            ELSE
+               iin_mole(:) = 0
+            ENDIF
+         ENDIF
+         CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, iin_mole )
+      ELSE
+         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
+            IF(cr_mole(inum)/=0) THEN
+               ier_num = -157
+               ier_typ = ER_APPL
+               WRITE(ier_msg(1), '(a,i7)') 'Atom number ',inum
+               ier_msg(2) = 'The atom is deseclected but part of a molecule'
+               ier_msg(3) = 'Remove this atom type and purge prior to save '
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDDO
+   this%cr_natoms = MIN(cr_natoms,ia)
+   DEALLOCATE(iscat_table, STAT=istatus)
+
 !
    END SUBROUTINE set_crystal_from_standard
 !******************************************************************************

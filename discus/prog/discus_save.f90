@@ -1026,6 +1026,8 @@ SUBROUTINE save_internal_node(ptr, strucfile)
 TYPE(internal_storage), POINTER :: ptr
 CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
 !
+CHARACTER ( LEN=80 ) :: ier_msg_local 
+!
 !     Allocate sufficient space, even for all headers, and atom type, if they are omitted
 !
       CALL ptr%crystal%alloc_arrays(cr_natoms,MAXSCAT, &
@@ -1040,6 +1042,16 @@ CHARACTER ( LEN=* ), INTENT(IN) :: strucfile
            sav_sel_prop,MAXSCAT,sav_latom)
 !
       CALL ptr%crystal%set_crystal_from_standard(strucfile) ! Copy complete crystal
+!
+      IF(ier_num == -157) THEN
+         ier_msg_local = ier_msg(1)
+         CALL store_remove_single( strucfile, ier_num)
+         ier_num = -157
+         ier_typ = ER_APPL
+         ier_msg(1) = ier_msg_local
+         ier_msg(2) = 'Atom is deseclected but part of a molecule'
+         ier_msg(3) = 'Remove this atom type and purge prior to save '
+      ENDIF
 !
 !     CALL store_write_node(store_root)
 !

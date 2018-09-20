@@ -9,11 +9,13 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-155,IO=6)
+      PARAMETER    (IU=-157,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'Incomplete molecule would be saved',            & !-157 ! discus
+     &  'Incomplete molecule in structure',              & !-156 ! discus
      &  'Coordination range is erroneous',               & !-155 ! discus
      &  'Angle Ordinate to (Normal/Abscissa) is 0',      & !-154 ! discus
      &  'Angle between Normal and Ordinate is 0',        & !-153 ! discus
