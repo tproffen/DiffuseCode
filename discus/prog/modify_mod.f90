@@ -353,7 +353,7 @@ CONTAINS
       jp = cr_prop (jj) 
 !                                                                       
       cr_iscat (ii) = js 
-      cr_mole (ii) = jm 
+!     cr_mole (ii) = jm 
       cr_surf(:,ii)= jjs(:)
       cr_prop (ii) = jp 
       DO i = 1, 3 
@@ -363,7 +363,7 @@ CONTAINS
 !                                                                       
       IF (lswap) then 
          cr_iscat (jj) = is 
-         cr_mole (jj) = im 
+!        cr_mole (jj) = im 
          cr_surf(:,jj)= iis(:)
          cr_prop (jj) = ip 
          DO i = 1, 3 
