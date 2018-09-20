@@ -724,6 +724,7 @@ USE prop_para_func
 !
    USE param_mod
    USE random_mod
+USE prompt_mod
 !
    IMPLICIT none
 !
@@ -847,6 +848,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
       i = ier_num                         ! Keep error status
       j = ier_typ
       CALL save_restore_setting
+      CALL no_error
       CALL readstru_internal( corefile)   ! Read  core file
       ier_num = i                         ! Restore error status
       ier_typ = j
@@ -871,6 +873,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 !
 !
 CALL rese_cr
+CALL no_error
 !
 CALL readstru_internal(shellfile)   ! Read shell file
 cr_icc(:) = 1                       ! The shell is not periodic, 
@@ -939,6 +942,9 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
          ENDDO replace
       ENDDO name_anchors
 IF(n_repl==0) THEN
+   CALL save_restore_setting
+   CALL no_error
+   CALL readstru_internal( corefile)   ! Read  core file
    ier_num = -131
    ier_typ = ER_APPL
    ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1136,6 +1142,8 @@ ENDIF
 !
 !
 CALL rese_cr
+CALL save_restore_setting
+CALL no_error
 CALL readstru_internal( corefile)   ! Read  original core file
 IF(cr_natoms == 0 ) THEN
    ier_num = -27
@@ -1172,6 +1180,9 @@ loop_anchor: DO j=1,n_repl
    ENDDO find_atom
 ENDDO loop_anchor
 IF(MAXVAL(temp_iatom)==0) THEN
+   CALL save_restore_setting
+   CALL no_error
+   CALL readstru_internal( corefile)   ! Read  original core file
    ier_num = -131
    ier_typ = ER_APPL
    ier_msg(1) = 'Is the surface very small, just a few atoms?'
@@ -1390,6 +1401,8 @@ CYCLE main_loop
          ENDDO main_loop   ! END DO main loop over all atoms
 !
          IF(cr_natoms == natoms_prior) THEN    ! No atoms added Failure
+           CALL save_restore_setting
+           CALL no_error
            CALL readstru_internal(corefile)   ! Read core file
            ier_num = -131
            ier_typ = ER_APPL
@@ -1405,6 +1418,8 @@ CYCLE main_loop
             ENDDO
             CALL do_purge
          ELSE     ! Error in main_loop
+           CALL save_restore_setting
+           CALL no_error
            CALL readstru_internal(corefile)   ! Read core file
            ier_num = -131
            ier_typ = ER_APPL
@@ -1413,6 +1428,8 @@ CYCLE main_loop
            ier_msg(3) = 'Check the set ligand command'
          ENDIF
       ELSE     ! n_repl > 0   !! No anchor atoms found
+        CALL save_restore_setting
+        CALL no_error
         CALL readstru_internal( corefile)   ! Read  core file
         ier_num = -131
         ier_typ = ER_APPL
@@ -1421,6 +1438,9 @@ CYCLE main_loop
         ier_msg(3) = 'Check the set ligand command'
       ENDIF    ! n_repl > 0   !! No anchor atoms found
    ELSE     ! SHELL has atoms
+     CALL rese_cr
+     CALL save_restore_setting
+     CALL no_error
      CALL readstru_internal( corefile)   ! Read  core file
      ier_num = -130
      ier_typ = ER_APPL
@@ -1457,7 +1477,7 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
 !
 ! Clean up internal files
 !
-CALL store_remove_single(corefile, ier_num)
+!CALL store_remove_single(corefile, ier_num)
 CALL store_remove_single(shellfile, ier_num)
 CALL store_remove_single('internal_anchors', ier_num)
 CALL store_remove_single('internal_sorted', ier_num)
@@ -2521,7 +2541,6 @@ cr_prop (all_surface(2)) = IBCLR (cr_prop (all_surface(2)), PROP_DECO_ANCHOR)  !
 !
 !     Tilt molecule by user request
 !
-write(*,*) ' nold, n1, n2 ', nold, n1, n2
 origin(1:3) = cr_pos(1:3, n1)
 CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                tilt_is_auto,                                    &
