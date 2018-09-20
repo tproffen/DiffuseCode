@@ -104,8 +104,8 @@ main_loop: do
                   lp = lp + 7 
                   CALL do_hel ('discus '//zeile, lp) 
                ELSE 
-                  lp = lp + 12 
-                  CALL do_hel ('discus deco '//zeile, lp) 
+                  lp = lp + 15 
+                  CALL do_hel ('discus storage '//zeile, lp) 
                ENDIF 
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
