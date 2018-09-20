@@ -555,9 +555,9 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !     TEST FILESIZE OF ALL internal CONTENT FILES
 !
       maxdim(:) = 0
-      DO i=1, clu_number
-         IF(clu_content(i)(1:8)=='internal')THEN
-         infile = clu_content(i)
+DO i=1, clu_number
+   infile = clu_content(i)
+   IF(clu_content(i)(1:8)=='internal')THEN
          CALL testfile_internal(  infile , natoms, &
               nscats, n_mole, n_type, n_atom)
          maxdim(1) = MAX(natoms, MK_MAX_ATOM, NMAX)
@@ -565,8 +565,51 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
          maxdim(3) = MAX(n_mole, MOLE_MAX_MOLE)
          maxdim(4) = MAX(n_type, MOLE_MAX_TYPE)
          maxdim(5) = MAX(n_atom, MOLE_MAX_ATOM)
-         ENDIF
-      ENDDO
+         CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
+         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
+         sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
+         mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
+         mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
+         IF(ier_num /= 0) RETURN
+   ELSE
+      CALL oeffne (imd, infile, 'old') 
+      IF (ier_num.ne.0) THEN 
+         CLOSE(imd)
+         RETURN
+      ENDIF
+!                                                                       
+!     Read the input file header                                        
+!                                                                       
+      CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
+      mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+      sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
+      AT_MAXP, at_ianz, at_param)           
+     CLOSE(imd)
+   ENDIF
+!                                                                       
+!------ Here we should include comparison of the unit cell              
+!       space group etc.                                                
+!                                                                       
+   lmetric = abs (mk_a0 (1) - cr_a0 (1) ) .lt.0.0001 .AND. &
+             abs (mk_a0 (2) - cr_a0 (2) ) .lt.0.0001 .AND. &
+             abs (mk_a0 (3) - cr_a0 (3) ) .lt.0.0001 .AND. &
+             abs (mk_win (1) - cr_win (1) ) .lt.0.001.AND. &
+             abs (mk_win (2) - cr_win (2) ) .lt.0.001.AND. &
+             abs (mk_win (3) - cr_win (3) ) .lt.0.001                                                    
+   IF (.NOT.lmetric) THEN 
+      ier_num = -87 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'The lattice constants in the content' 
+      ier_msg (2) = 'file differ from those of the host' 
+      RETURN 
+   ENDIF 
+   IF (mk_spcgr (1:1) .ne.cr_spcgr (1:1) ) then 
+      ier_num = - 88 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'between microdomain content and host' 
+      RETURN 
+   ENDIF 
+ENDDO
       natoms = maxdim(1)
       nscats = maxdim(2)
       n_mole = maxdim(3)
@@ -645,13 +688,14 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !------ Here we should include comparison of the unit cell              
 !       space group etc.                                                
 !                                                                       
-      lmetric = abs (mk_a0 (1) - cr_a0 (1) ) .lt.0.0001.and.abs (mk_a0 (&
-      2) - cr_a0 (2) ) .lt.0.0001.and.abs (mk_a0 (3) - cr_a0 (3) )      &
-      .lt.0.0001.and.abs (mk_win (1) - cr_win (1) ) .lt.0.001.and.abs ( &
-      mk_win (2) - cr_win (2) ) .lt.0.001.and.abs (mk_win (3) - cr_win (&
-      3) ) .lt.0.001                                                    
-      IF (.not.lmetric) then 
-         ier_num = - 87 
+      lmetric = abs (mk_a0 (1) - cr_a0 (1) ) .lt.0.0001 .AND. &
+                abs (mk_a0 (2) - cr_a0 (2) ) .lt.0.0001 .AND. &
+                abs (mk_a0 (3) - cr_a0 (3) ) .lt.0.0001 .AND. &
+                abs (mk_win (1) - cr_win (1) ) .lt.0.001.AND. &
+                abs (mk_win (2) - cr_win (2) ) .lt.0.001.AND. &
+                abs (mk_win (3) - cr_win (3) ) .lt.0.001                                                    
+      IF (.NOT.lmetric) THEN 
+         ier_num = -87 
          ier_typ = ER_APPL 
          ier_msg (1) = 'The lattice constants in the domain' 
          ier_msg (2) = 'file differ from those of the host' 
