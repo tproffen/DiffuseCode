@@ -1496,10 +1496,11 @@ END SUBROUTINE get_detail_axis
 !                                                                       
 !     Sort Atoms into molecules                                         
 !                                                                       
-      IF (mole_l_on .OR. cr_mole(ii)/=0) then 
-         IF(cr_natoms>ii) THEN      ! Atom  number increased, insert into molecules
+      IF ((     mole_l_on .AND. cr_mole(ii)==0) .OR.                     &
+          (.NOT.mole_l_on .AND. cr_mole(ii)/=0 .AND. cr_natoms>ii)) THEN 
+!        IF(cr_natoms>ii) THEN      ! Atom  number increased, insert into molecules
             CALL mole_insert (ii) 
-         ENDIF 
+!        ENDIF 
          IF (ier_num.ne.0) then 
             RETURN 
          ENDIF 

@@ -735,6 +735,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                ENDIF internals
 !
 chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+CALL test_mole_gap
 !
 END SUBROUTINE do_readstru
 !
@@ -1077,6 +1078,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                      CALL mole_insert_explicit(cr_natoms, iimole        , NINT(werte(7))) 
                      cr_prop(cr_natoms) = IBSET(cr_prop(cr_natoms),PROP_MOLECULE)
                      cr_mole(cr_natoms) = NINT(werte(6)) !+ n_mole_old
+!                  ELSEIF(mole_l_on) THEN
+!                     CALL mole_insert_current (cr_natoms, mole_num_curr) 
                   ENDIF 
 !                                                                       
                   DO j = 1, 3 
@@ -1085,7 +1088,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   dw1 = werte (4) 
                   occ1 = werte(8)                       ! WORK OCC
                   IF(mole_l_on) THEN
-                     cr_mole (i) = mole_num_mole
+!                    cr_mole (i) = mole_num_mole
                   ELSE
                      cr_mole(i) = NINT(werte(6))
                   ENDIF
@@ -1203,6 +1206,8 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
          WRITE (ier_msg (1), 3000) as_natoms + 1 
  3000 FORMAT      ('At atom number = ',i8) 
       ENDIF 
+!
+      CALL test_mole_gap
 !                                                                       
  2000 FORMAT    (a) 
       END SUBROUTINE readcell                       
@@ -5211,6 +5216,37 @@ ELSE
 ENDIF
 !
 END SUBROUTINE set_spcgr
+!
+!*******************************************************************************
+!
+SUBROUTINE test_mole_gap
+!
+USE molecule_mod
+!
+USE errlist_mod
+!
+INTEGER :: i,j
+!
+main: DO i=1,MIN(mole_num_atom,UBOUND(mole_cont,1))
+   IF(mole_cont(i) == 0) THEN
+      ier_msg(1) = 'Atoms are missing in a molecule'
+      second: DO j=1,mole_num_mole
+         IF(i<mole_off(j)+mole_len(j)) THEN
+            WRITE(ier_msg(1),'(A,i7)') 'Atoms are missing in molecule', j
+            EXIT second
+         ENDIF
+      ENDDO second
+      ier_num = -156
+      ier_typ = ER_APPL
+      ier_msg(2) = 'Check the MoleAt column in the structure file'
+      ier_msg(3) = 'Was structure saved with atoms deselected?'
+      EXIT main
+   ENDIF
+ENDDO main
+!
+IF(ier_num/=0) CALL rese_cr
+!
+END SUBROUTINE test_mole_gap
 !
 !*******************************************************************************
 !
