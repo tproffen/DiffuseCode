@@ -1818,7 +1818,11 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !     Update Crystal dimension                                          
 !                                                                       
       CALL update_cr_dim 
-      chem_purge = .FALSE.    ! No purge is done, periodic boundary might be OK
+      chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+                              ! In the rare circumstances that is is the user
+                              ! has to turn this on explicitly
+      chem_quick = .FALSE.
+      chem_period(:) = .FALSE.
 !                                                                       
       END SUBROUTINE do_stack_fill                  
 !*****7*****************************************************************

@@ -784,25 +784,26 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !                                                                       
 !------ --- set mode: set calculation mode to quick/exact               
 !                                                                       
-            ELSEIF (cpara (1) (1:2) .eq.'MO') then 
+            ELSEIF (cpara (1) (1:2) == 'MO') THEN 
                CALL do_cap (cpara (2) ) 
+               IF(chem_purge .AND. (cpara(2)(1:3) ==  'QUI' .OR. &
+                                    cpara(3)(1:3) ==  'PER'     )) THEN
+                  ier_num = -31
+                  ier_typ = ER_CHEM
+                  ier_msg(1) = "Use >set crystal< in chem to define "
+                  ier_msg(2) = "Number of unit cells and atoms per unit cell"
+                  ier_msg(3) = "Or read a new cell/structure"
+               ELSE
                chem_quick = (cpara (2) (1:3) .eq.'QUI') 
                chem_cluster = (cpara (2) (1:3) .eq.'CLU') 
-               IF (ianz.ge.3) then 
+               IF (ianz.ge.3) THEN 
                   CALL do_cap (cpara (3) ) 
-                  IF (cpara (3) (1:3) .eq.'PER') then 
-                     IF(chem_purge) THEN
-                        ier_num = -31
-                        ier_typ = ER_CHEM
-                        ier_msg(1) = "Use >set crystal< in chem to define "
-                        ier_msg(2) = "Number of unit cells and atoms per unit cell"
-                        ier_msg(3) = "Or read a new cell/structure"
-                     ELSE
-                     IF (ianz.eq.4) then 
+                  IF (cpara (3) (1:3) .eq.'PER') THEN 
+                     IF (ianz.eq.4) THEN 
                         CALL do_cap (cpara (4) ) 
-                        indxx = index (cpara (4) , 'X') 
-                        indxy = index (cpara (4) , 'Y') 
-                        indxz = index (cpara (4) , 'Z') 
+                        indxx = INDEX (cpara (4) , 'X') 
+                        indxy = INDEX (cpara (4) , 'Y') 
+                        indxz = INDEX (cpara (4) , 'Z') 
                         chem_period (1) = indxx.gt.0 
                         chem_period (2) = indxy.gt.0 
                         chem_period (3) = indxz.gt.0 

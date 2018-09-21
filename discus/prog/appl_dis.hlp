@@ -92,6 +92,12 @@
    to define pseudo atoms for the domain without the need to 
    use the 'fourier/scat' command to set dummy scattering
    functions.
+
+   purge, stack, domain, deco
+      Turned on stricter behavior for the handling of 
+      periodic boundary conditions and the "chem" quick mode
+      off. It can be turned back on with after explicit 
+      'set crystal' comand in the chemistry menu.
 3  2018_Aug
 
    Added a 'reset' command to DISCUS. (Work in progress)
@@ -1945,6 +1951,11 @@
    local surface, the orientational relationship between the ligand metric and 
    the host metric is not relevant. 
 
+   If deco successfully placed molecules onto the surface, the crystal
+   is no longer periodic. Thus periodic boundary conditions and 
+   the "chem" quick mode are off. They can be turned back on after 
+   explicit 'set crystal' comand in the chemistry menu.
+
 3  Commands
 !p add     ! Add a new definition
 !p reset   ! Reset and clear all definitions
@@ -2183,6 +2194,11 @@
 
    The domain lists encode the size, character, and orientation within 
    the file itself.
+
+   If domain successfully placed guests into the crystal, the crystal
+   is no longer periodic. Thus periodic boundary conditions and 
+   the "chem" quick mode are off. They can be turned back on after 
+   explicit 'set crystal' comand in the chemistry menu.
 
    Valid commands at this sub level are:
 3  commands
@@ -5927,9 +5943,17 @@
 2  purge
 !b purge
 
-   deletes all vacancies in the structure array, thus speeds up Fourier
+   Deletes all vacancies in the structure array, thus speeds up Fourier
    calculation.
    Due to internal calls, the result variables are changed!
+
+   If the 'purge' command does actually remove atoms or molecules 
+   from the structure array, the crystal will usually no longer be
+   periodic or sorted in a fashion of contiguos unit cells that all
+   have the same amount of atoms. DISCUS therefore needs to turn off
+   the periodic boundary conditions and the "chem" mode "quick". 
+   These can be turned back on with an explicit 
+   ==> 'set crystal' command in the ==> 'chemistry' menu.
 2  r2d
 !b r2d <h>,<k>,<l>
 
@@ -7332,6 +7356,12 @@
 
    The menu includes a new approach to calculate the Fourier transform that
    saves considerable computational time. 
+
+   If stack successfully placed atoms into the crystal with the 
+   'run' command, the crystal is no longer periodic. Thus periodic
+   boundary conditions and the "chem" quick mode are off. They can
+   be turned back on after explicit 'set crystal' comand in the
+   chemistry menu.
 
    Further help topics are
 

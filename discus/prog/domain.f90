@@ -513,6 +513,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       USE discus_config_mod 
       USE discus_allocate_appl_mod
+      USE chem_mod
       USE crystal_mod 
       USE domain_mod 
       USE domaindis_mod 
@@ -798,6 +799,12 @@ pseudo_ok:  IF(l_ok) THEN
       IF ( .not. clu_infile_internal ) THEN
          CLOSE (imd) 
       ENDIF 
+!
+      chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+                              ! In the rare circumstances that is is the user
+                              ! has to turn this on explicitly
+      chem_quick = .FALSE.
+      chem_period(:) = .FALSE.
 !                                                                       
       END SUBROUTINE micro_filereading              
 !*****7*****************************************************************

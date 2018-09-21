@@ -1499,6 +1499,12 @@ ENDIF
       ier_num = ier_num_deco
       ier_typ = ier_typ_deco
       ier_msg = ier_msg_deco
+   ELSE
+      chem_purge = .TRUE.     ! The crystal is most likely NOT periodic.
+                              ! In the rare circumstances that is is the user
+                              ! has to turn this on explicitly
+      chem_quick = .FALSE.
+      chem_period(:) = .FALSE.
    ENDIF
 !
    END SUBROUTINE deco_run
