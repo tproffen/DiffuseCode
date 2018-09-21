@@ -594,8 +594,8 @@ CONTAINS
 !                                                                       
       DO i = istart, iend 
       IF (mole_char (i) .eq.MOLE_ATOM) then 
-         WRITE (output_io, 3000) i, mole_type (i), C_MOLE (mole_char (i)&
-         ), mole_biso(mole_type(i))
+         WRITE (output_io, 3100) i, mole_type (i), C_MOLE (mole_char (i)&
+         ), mole_biso(mole_type(i)), mole_len(i)
       ELSEIF (mole_char (i) .gt.MOLE_ATOM) then 
          WRITE (output_io, 4000) i, mole_type (i), C_MOLE (mole_char (i)&
          ), mole_dens (i)                                               
@@ -608,7 +608,7 @@ CONTAINS
       k = mole_cont (mole_off (i) + j) 
       at_name_d = at_name (cr_iscat (k) ) 
       WRITE (output_io, 3010) at_name_d, k, cr_pos (1, k), cr_pos (2, k)&
-      , cr_pos (3, k), cr_dw (cr_iscat (k) )                               !! WORK OCC
+      , cr_pos (3, k), cr_dw (cr_iscat (k) ), j                            !! WORK OCC
       ENDDO 
       ENDDO 
 !                                                                       
@@ -616,7 +616,14 @@ CONTAINS
      &       10x,'Type      : ',i11/                                    &
      &       10x,'Character : ',a8/                                     &
      &       10x,'Biso      :' ,f13.4/                                  &
+     &       10x,'No. atoms :' ,i11  /                                  &
      &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B')       
+ 3100 FORMAT(/' Molecule Number    : ',i11/                             &
+     &       10x,'Type      : ',i11/                                    &
+     &       10x,'Character : ',a8/                                     &
+     &       10x,'Biso      :' ,f13.4/                                  &
+     &       10x,'No. atoms :' ,i11  /                                  &
+     &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B', 9x,'No in Mol')       
  4000 FORMAT(/' Object   Number    : ',i11,/                            &
      &       10x,'Type      : ',i11/                                    &
      &       10x,'Character : ',a15/                                    &
@@ -628,7 +635,7 @@ CONTAINS
      &       10x,'File      : ',a/                                      &
      &       10x,'Fuzzy     : ',f12.4/                                  &
      &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B',10x,'Occ')       
- 3010 FORMAT(1x,a9,i11,1x,3(2x,f12.6),4x,f10.6,2x, F8.6) 
+ 3010 FORMAT(1x,a9,i11,1x,3(2x,f12.6),4x,f10.6,2x, I11 ) 
       END SUBROUTINE do_show_molecule               
 !*****7*****************************************************************
       SUBROUTINE do_show_scat (ianz, cpara, lpara, werte, maxw) 
