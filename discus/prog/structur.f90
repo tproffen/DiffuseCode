@@ -410,6 +410,7 @@ INTEGER             :: n_symm
 INTEGER             :: n_mole
 INTEGER             :: n_type
 INTEGER             :: ncells
+INTEGER, DIMENSION(3) :: local_icc
 REAL   , DIMENSION(MAXW) :: werte
 REAL                :: r
 !
@@ -433,6 +434,7 @@ LOGICAL :: str_comp
                         ENDDO 
                      ENDIF 
                   ENDIF 
+local_icc(:) = cr_icc(:)
                   IF (ier_num.eq.0) then 
 internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         CALL readcell_internal(strucfile)
@@ -446,6 +448,7 @@ internalcell:        IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                         IF(ier_num == 0) THEN
                            strucfile = outfile
                            CALL readcell (strucfile, l_identical, r_identical) 
+cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
                         ENDIF
                      ENDIF internalcell
 !
@@ -863,7 +866,7 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       IMPLICIT none 
 !
 !                                                                       
-CHARACTER ( LEN=* ), INTENT(IN) :: strucfile 
+CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
 LOGICAL            , INTENT(IN) :: l_identical
 REAL               , INTENT(IN) :: r_identical
 !
@@ -930,6 +933,18 @@ LOGICAL, SAVE          :: at_init = .TRUE.
             RETURN
          ENDIF
       ENDIF
+!
+! To ensure that molecules are placed properly, it best to read as
+! structure first, shift all molecule origins into the first unit
+! cell and to read again
+!
+IF(n_mole > 0) THEN
+   CALL readcell_mole(strucfile, l_identical, r_identical)
+   RETURN
+ENDIF
+!
+! No molecules, use old readcell, might be phased out ?????
+!
       CALL oeffne (ist, strucfile, 'old') 
       IF (ier_num /= 0) THEN
          CLOSE (ist)
@@ -5247,6 +5262,74 @@ ENDDO main
 IF(ier_num/=0) CALL rese_cr
 !
 END SUBROUTINE test_mole_gap
+!
+!*******************************************************************************
+!
+SUBROUTINE readcell_mole(strucfile, l_identical, r_identical)
+!
+USE crystal_mod
+USE discus_save_mod
+USE molecule_mod
+USE prop_para_func
+USE read_internal_mod
+USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
+!
+IMPLICIT none 
+!
+!                                                                       
+CHARACTER ( LEN=* ), INTENT(OUT) :: strucfile 
+LOGICAL            , INTENT(IN)  :: l_identical
+REAL               , INTENT(IN)  :: r_identical
+!
+CHARACTER(LEN=200) :: tempfile
+CHARACTER(LEN=1024) :: line
+INTEGER :: length
+INTEGER :: im, j, iat
+REAL, DIMENSION(3) :: vec     ! position of first atom in a molecule
+REAL, DIMENSION(3) :: fract   ! shift into first unit cell
+REAL, DIMENSION(3) :: shift   ! shift into first unit cell
+!
+!
+CALL do_readstru(strucfile)
+!
+! Shift molecules such that the first atom has coordinates [0:1[
+!
+moles: DO im = 1, mole_num_mole
+   vec(:)   = 0.0
+   shift(:) = 0.0
+   vec(:)   = cr_pos(:,mole_cont(mole_off(im) + 1))
+   fract(1) = vec(1)   - FLOAT(INT(vec(1)))  + 1.0
+   fract(1) = fract(1) - FLOAT(INT(fract(1)))
+   shift(1) = fract(1) -vec(1)
+   fract(2) = vec(2)   - FLOAT(INT(vec(2)))  + 1.0
+   fract(2) = fract(2) - FLOAT(INT(fract(2)))
+   shift(2) = fract(2) - vec(2)
+   fract(3) = vec(3)   - FLOAT(INT(shift(3)))
+   fract(3) = fract(3) - FLOAT(INT(fract(3)))
+   shift(3) = fract(3) - vec(3)
+   IF(MAXVAL(shift)>0.0) THEN
+      atoms: DO j=1, mole_len(im)
+         iat = mole_cont(mole_off(im) + j)
+         cr_pos(1,iat) = cr_pos(1,iat) + shift(1)
+         cr_pos(2,iat) = cr_pos(2,iat) + shift(2)
+         cr_pos(3,iat) = cr_pos(3,iat) + shift(3)
+      ENDDO atoms
+   ENDIF
+ENDDO moles
+!
+CALL save_store_setting             ! Backup user "save" setting
+CALL save_default_setting           ! Default to full saving
+line       = 'ignore, all'          ! Ignore all properties
+length     = 11
+CALL property_select(line, length, sav_sel_prop)
+tempfile = 'internal'//'RBN_READMOLE'
+CALL save_internal(tempfile)
+CALL save_restore_setting
+CALL no_error
+CALL readcell_internal(tempfile)
+CALL store_remove_single(tempfile, ier_num)
+!
+END SUBROUTINE readcell_mole
 !
 !*******************************************************************************
 !
