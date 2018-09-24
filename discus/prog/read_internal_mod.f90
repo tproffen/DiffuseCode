@@ -336,6 +336,7 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
    mole_cont = 0
    i_mole    = 0
    mole_num_atom = 0
+   mole_num_mole = 0
 !
 main: do ia = 1, natoms
       werte    = 0.0
@@ -399,10 +400,11 @@ do_scat_dw: DO k = 1,cr_nscat
          CALL firstcell ( werte, 5)
       ENDIF
       DO j=1,3
-         cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
+         cr_pos(j,cr_natoms) = werte(j)           ! store in actual crystal
       ENDDO
       cr_iscat(cr_natoms) = itype                 ! set the atom type
-      cr_mole (cr_natoms) = i_mole                ! set the molecule number
+!     cr_mole (cr_natoms) = i_mole                ! set the molecule number
+      cr_mole (cr_natoms) = 0
       cr_surf(:,cr_natoms) = isurface               ! set the property flag
       cr_prop (cr_natoms) = iprop                 ! set the property flag
       CALL symmetry
