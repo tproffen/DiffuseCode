@@ -93,8 +93,8 @@ REAL                     :: pow_width      = 20.0
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
-INTEGER                            :: pow_nreal
-REAL                               :: pow_u2aver
+INTEGER                            :: pow_nreal  = 0
+REAL                               :: pow_u2aver = 0.0
 !
 INTEGER                  :: pow_size_of  = 0 ! Bytes allocated for powder
 !

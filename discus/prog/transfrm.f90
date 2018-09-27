@@ -501,9 +501,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
+!     ----reset transformation 'reset'                                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL tran_reset
+!                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                   IF (lchange) then 
                      CALL tran_setup 
                   ENDIF 
@@ -1341,4 +1346,40 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  2000 FORMAT    (3i4,a20) 
  3000 FORMAT    (3f8.3,1x,a20,1x,3i4) 
       END SUBROUTINE tran_hkl                       
+!
+!*******************************************************************************
+!
+SUBROUTINE tran_reset
+!
+USE transfrm_mod
+!
+IMPLICIT NONE
+!
+INTEGER :: ik
+!
+TRAN_MAXSCAT = 1
+!
+tran_start   =  1
+tran_end     = -1
+tran_inp     = TRAN_INP_G
+IF(ALLOCATED(tran_latom)) tran_latom(:) = .FALSE.  ! (0:TRAN_MAXSCAT)
+!
+tran_oold      = .true.
+tran_sel_atom  = .true.
+tran_orig(3)   = 0.0
+tran_det       = 1.0
+tran_g   (:,:) = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_g ))
+tran_gi  (:,:) = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_gi))
+tran_f   (:,:) = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_f ))
+tran_fi  (:,:) = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(tran_fi))
+tran_deltahkl  = 0.001
+!
+END SUBROUTINE tran_reset
+!
+!*******************************************************************************
+!
 END MODULE transform_menu

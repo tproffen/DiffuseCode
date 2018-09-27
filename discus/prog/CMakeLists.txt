@@ -33,7 +33,7 @@ set( SOURCES_ALL  addfile.f90 discus_allocate_appl_mod.f90 atom_env_mod.f90
 	discus_err_appl.f90 discus_exit.f90 external.f90 external_mod.f90 extrmc.f90 fourier.f90 fourier_sup.f90
         discus_fit.f90 discus_pointgrp.f90 discus_reset_all.f90
         do_find_mod.f90
-        four_angles_mod.f90 fourier_lmn_mod.f90
+        four_angles_mod.f90 fourier_lmn_mod.f90 fourier_reset.f90
 	gen_add_mod.f90 generate_mod.f90 graphic.f90 insert.f90 insert_mod.f90 intens_mod.f90
         get_iscat_mod.f90
 	inter_readstru.f90

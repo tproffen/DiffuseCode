@@ -595,7 +595,7 @@ CONTAINS
       DO i = istart, iend 
       IF (mole_char (i) .eq.MOLE_ATOM) then 
          WRITE (output_io, 3100) i, mole_type (i), C_MOLE (mole_char (i)&
-         ), mole_biso(mole_type(i)), mole_len(i)
+         ), mole_biso(mole_type(i)), mole_clin(mole_type(i)), mole_cqua(mole_type(i)),mole_len(i)
       ELSEIF (mole_char (i) .gt.MOLE_ATOM) then 
          WRITE (output_io, 4000) i, mole_type (i), C_MOLE (mole_char (i)&
          ), mole_dens (i)                                               
@@ -621,7 +621,7 @@ CONTAINS
  3100 FORMAT(/' Molecule Number    : ',i11/                             &
      &       10x,'Type      : ',i11/                                    &
      &       10x,'Character : ',a8/                                     &
-     &       10x,'Biso      :' ,f13.4/                                  &
+     &       10x,'Biso cl cq:' ,f13.4,2x,f13.8, 2x, f13.8 /             &
      &       10x,'No. atoms :' ,i11  /                                  &
      &       ' Name',11x,'Number',6x,'x',13x,'y',13x,'z',15x,'B', 9x,'No in Mol')       
  4000 FORMAT(/' Object   Number    : ',i11,/                            &

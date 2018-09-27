@@ -98,6 +98,22 @@
       periodic boundary conditions and the "chem" quick mode
       off. It can be turned back on with after explicit 
       'set crystal' comand in the chemistry menu.
+
+   added a 'reset to the 'chem' menu
+   added a 'reset to the 'domain' menu
+   added a 'reset to the 'fourier', 'inverse', difffour', patterson' menu
+   added a 'reset to the 'insert' menu
+   added a 'reset to the 'pdf' menu
+   added a 'reset to the 'shear' menu
+   added a 'reset to the 'save' menu
+   added a 'reset to the 'stack' menu
+   added a 'reset to the 'symmmetry' menu
+   added a 'reset to the 'transform' menu
+   added a 'reset to the 'waves' menu
+   added to the global 'reset: 
+       most arrays, chem, deco, domain, fourier routines, insert, mmc, 
+       pdf, property, rmc, save, shear, symmetry, transform, waves
+
 3  2018_Aug
 
    Added a 'reset' command to DISCUS. (Work in progress)
@@ -2014,9 +2030,12 @@
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
 
+!p reset   ! Reset and clear all definitions
 3  reset
 !b reset
-   Reset and clear all definitions.
+
+   Reset all decoration definitions back to the default values at 
+   system start. 
 3  run
 !b run
    Starts the decoration. 
@@ -2404,8 +2423,8 @@
 3  reset
 !b reset
 
-   Reset all definition back to the default values at system start. 
-   All current assignments are removed.
+   Reset all Fourier definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -2561,6 +2580,7 @@
 !p nord    ! defines the number of points along the ordinate
 !p ntop    ! defines the number of points along the top axis
 !p ord     ! defines the coordinate of the ordinate
+!p reset   ! Reset and clear all definitions
 !p run     ! starts the calculation
 !p scat    ! defines the scattering factor for an element
 !p set     ! sets Fourier mode
@@ -2703,6 +2723,11 @@
 
    Defines which the component of the vector parallel to the ordinate
    is written to the output file.
+3  reset
+!b reset
+
+   Reset all Fourier definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -2994,6 +3019,7 @@
 !p file       ! Defines the file name with the actual domain content
 !p fuzzy      ! Defines the distance between domain atoms and host atoms
 !p origin     ! Places the origin of the object/domain in real space coordinates
+!p reset   ! Reset and clear all definitions
 !p run        ! Does the actual insertion
 !p show       ! Show the current parameters
 !p type       ! Defines the object type number
@@ -3049,6 +3075,11 @@
    The center of the object is placed at the vector <x>,<y>,<z>.
    DISCUS describes this position by the coordinates of the first
    of the atoms. It's name represents the 'character' of the object
+3  reset
+!b reset
+
+   Reset all insert definitions back to the default values at 
+   system start. 
 3  run
 
    Performs the actual insertion.
@@ -3142,6 +3173,8 @@
 !p na      ! defines the number of points along the abscissa
 !p no      ! defines the number of points along the ordinate
 !p ord     ! defines the coordinate of the ordinate
+!p reset   ! Reset all Fourier definitions
+!p reset   ! Reset all Fourier definitions
 !p rhoabs  ! defines the coordinate of the real space abscissa
 !p rholayer! defines the layer in real space to be calculated
 !p rholl   ! defines the lower left corner in real space
@@ -3150,6 +3183,7 @@
 !p rhono   ! defines the number of points along the real space ordinate
 !p rhoord  ! defines the coordinate of the real space ordinate
 !p rhoul   ! defines the upper left corner in real space
+!p reset   ! Reset and clear all definitions
 !p run     ! starts the calculation
 !p scale   ! defines an overall scale factor
 !p set     ! sets various parameters
@@ -3281,6 +3315,11 @@
 !b rhoul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the real space plane to be calculated.
+3  reset
+!b reset
+
+   Reset all Fourier definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -3451,6 +3490,7 @@
 !p eval    ! Evaluates an expression (see main help)
 !p exit    ! Terminates the MC sub level, returns to the main DISCUS level.
 !p help    ! Gives on-line help for 'mc' (see main help)
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts MC simulation
 !p save    ! Saves structure (see main help -> save)
 !p set     ! Sets most MC parameters
@@ -3687,6 +3727,11 @@
 
    Resets the value of all internal variables, counters, etc to the 
    startup default values.
+3  reset
+!b reset
+
+   Reset all mmc definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -4055,6 +4100,7 @@
 !p help    ! Gives help for the output level (see main help)
 !p input   ! Reads an old data file
 !p outfile ! Sets name of output file
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of output
 !p show    ! Shows the current settings
 !p thre    ! Sets the thresholds used for bitmap output
@@ -4176,6 +4222,11 @@
    Within the DISCUS_SUITE the output files can be written directly into 
    KUPLOT. Simply start the file name with the fixed string 'kuplot'.
    The data set number in kuplot will be incremented automatically.
+3  reset
+!b reset
+
+   Reset all output definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -4275,6 +4326,7 @@
 !p na      ! defines the number of points along the abscissa
 !p no      ! defines the number of points along the ordinate
 !p ord     ! defines the coordinate of the ordinate
+!p reset   ! Reset all Fourier definitions
 !p rhoabs  ! defines the coordinate of the real space abscissa
 !p rholayer! defines the layer in real space to be calculated
 !p rholl   ! defines the lower left corner in real space
@@ -4436,6 +4488,11 @@
 !b rhoul <e31> , <e32> , <e33>
 
    Sets the upper left corner of the real space plane to be calculated.
+3  reset
+!b reset
+
+   Reset all Fourier definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -5019,6 +5076,7 @@
 !p poly    ! Selects the polyhedron plotting style 
 !p prog    ! Selects the plotting program
 !p prop    ! Selects the atom properties, which will be checked
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of the structure
 !p sel     ! Selects which atoms are to be included in the plot
 !p set     ! Sets type, color and size of atom in plot file
@@ -5336,6 +5394,11 @@
    the ==> 'domain' menu. Individual distances
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
+3  reset
+!b reset
+
+   Reset all plot definitions back to the default values at 
+   system start. 
 3  run
 !b run  ["plot:inter"] [, "kill:"["yes"|"no"}]
 
@@ -5489,6 +5552,7 @@
 !p help    ! Gives on-line help for 'plot' (see main help)
 !p electron! switches to electron calculation
 !p neut    ! switches to neutron calculation
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of the structure
 !p set     ! Sets Theta limits, grid in reciprocal space, ...
 !p show    ! Shows settings for the plotting parameters
@@ -5505,6 +5569,11 @@
 !b neut
 
    Switches to neutron diffraction.
+3  reset
+!b reset
+
+   Reset all powder definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -6225,7 +6294,7 @@
    This command deselects all or individual molecule types used in
    the RMC refinement.
 3  rese
-!b rese
+!b rese { "all" }
 
    This command resets the RMC parameters. In this version only the
    'plane counter' is reset and the 'data' command will start reading
@@ -6579,6 +6648,7 @@
 !p omit    ! Defines which information to omit from the file
 !p outf    ! Defines the name of the output file
 !p prop    ! Selects the atom properties, which will be checked
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts the saving of the structure
 !p sel     ! Selects atoms to be included in the structure file
 !p show    ! Shows the current parameters
@@ -6748,6 +6818,9 @@
    Defines the output file name.
    If the filename starts with the string 'internal', the file is not
    written to disk but stored internally.
+3  reset
+
+   Resets the save menu to program start conditions.
 3  run
 !b run
 
@@ -6863,6 +6936,7 @@
 !p origin  ! Define the origin for the deformation 
 !p osel    ! Select the object types
 !p odes    ! Deselect the object types
+!p reset   ! Reset and clear all definitions
 !p run     ! Perform the actual deformation
 !p sel     ! Select the atom types
 !p show    ! Show the current settings
@@ -7069,6 +7143,11 @@
    The selection of objects by 'osel','msel' and atoms by 'sel' are mutually
    exclusive. The symmetry operation uses either atoms or molecules,
    or objects.
+3  reset
+!b reset
+
+   Reset all shear definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -7389,6 +7468,7 @@
 !p random  ! Sets values for random stacking faults
 !p rese    ! Resets the number of layers to zero
 !p rotate  ! Set values for rotational disorder of the layers
+!p reset   ! Reset and clear all definitions
 !p run     ! Decorates the list of origins with atoms to create the crystal
 !p set     ! Sets parameters
 !p show    ! Shows the current settings
@@ -7636,6 +7716,11 @@
 !b rotate status,  [ "on" | "off" ]
 
    The rotational disorder is only effective if its status is switched "on".
+3  reset
+!b reset
+
+   Reset all stack definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -7975,6 +8060,7 @@
 !p origin  ! Sets the origin for the symmetry operation
 !p osel    ! Selects objects to be included in the symmetry operations
 !p power   ! Sets the power of the symmetry operation
+!p reset   ! Sets the status back to program start conditions
 !p run     ! Starts the calculation of the symmetry operations
 !p sel     ! Selects atoms to be included in the symmetry operations
 !p show    ! Shows the current parameters
@@ -8234,6 +8320,11 @@
    are created. The position of the first atom results from a single
    application of the symmetry operation, the position of the second from
    a twofold application etc. 
+3  reset
+!b reset
+
+   Reset all symmetry definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -8371,6 +8462,7 @@
 !p incl    ! Sets the range of atoms to be included in the transformation
 !p onew    ! Sets the new origin in terms of the old base
 !p oold    ! Sets the old origin in terms of the new base
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts the transformation for the selected atoms
 !p sel     ! Selects atoms to be included in the transformation
 !p set     ! Sets parameters
@@ -8565,6 +8657,11 @@
 
    Defines the position of the old origin in terms of multiples <a>,<b>,<c>
    of the new base vectors. The default at program startup is 0.0, 0.0, 0.0
+3  reset
+!b reset
+
+   Reset all transformation definitions back to the default values at 
+   system start. 
 3  run
 !b run
 
@@ -8835,6 +8932,7 @@
 !p plow    ! Sets the low probability for density waves
 !p repl    ! Selects atoms to be replaced by a density wave
 !p rot     ! Sets type to rotational wave (molecules only)
+!p reset   ! Reset and clear all definitions
 !p run     ! Starts the calculation of the wave
 !p sel     ! Selects atoms to be included in the wave
 !p shift   ! Allows a constant shift to be added to the displacement
@@ -9047,6 +9145,11 @@
    Keep in mind that you should select only those atoms that you 
    want to exchange, and do not use the ==> sel all construction.
 
+3  reset
+!b reset
+
+   Reset all wave definitions back to the default values at 
+   system start. 
 3  run
 !b run
 

@@ -3,7 +3,7 @@ MODULE mole_surf_mod
 !USE crystal_mod
 !
 PRIVATE
-PUBLIC do_place_molecule
+PUBLIC do_place_molecule, deco_reset
 !
 CONTAINS
    SUBROUTINE do_place_molecule
@@ -1243,6 +1243,8 @@ anchor = 0
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   dc_temp_neig, dc_temp_dist,      &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
@@ -1266,6 +1268,8 @@ anchor = 0
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor,                  &
                                   dc_temp_neig, dc_temp_dist, &
                                   istart, iend, temp_lrestrict,    &
@@ -1290,6 +1294,8 @@ anchor = 0
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor, & ! UBOUND(dcc_surf,2),             &
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
@@ -1314,6 +1320,8 @@ CYCLE main_loop
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor,                  &
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
@@ -1338,6 +1346,8 @@ CYCLE main_loop
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   dc_temp_neig, dc_temp_dist, temp_secnd, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
@@ -1357,6 +1367,8 @@ CYCLE main_loop
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   dc_temp_neig, dc_temp_dist,      &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
@@ -1377,6 +1389,8 @@ CYCLE main_loop
                                   dcc_atom_name(:,dc_temp_id),    &
                                   dcc_adp      (:,dc_temp_id),    &
                                   dcc_biso     (  dc_temp_id),    &
+                                  dcc_clin     (  dc_temp_id),    &
+                                  dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor, & ! UBOUND(dcc_surf,2),             &
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
@@ -1627,6 +1641,8 @@ main: DO i=1, dcc_num
    dcc_adp      (0:cr_nscat,i) = cr_dw    (0:cr_nscat)
    dcc_mole_type(i) = mole_type(1)
    dcc_biso     (i) = mole_biso(mole_type(1))    ! Here we use dcc_biso for each molecule
+   dcc_clin     (i) = mole_clin(mole_type(1))    ! Here we use dcc_clin for each molecule
+   dcc_cqua     (i) = mole_cqua(mole_type(1))    ! Here we use dcc_cqua for each molecule
 !
    uvw_out(:) = cr_pos(:, temp_neig) ! save position of molecule atom bonded to surface
    DO j=1, cr_natoms ! Shift the first neighbor to 0,0,0
@@ -1780,42 +1796,50 @@ ENDDO main
 !
 !######################################################################
 !
-   SUBROUTINE deco_reset
+SUBROUTINE deco_reset
 !
 !  Set all definitions back to system default
 !
-   USE deco_mod
-   IMPLICIT none
+USE deco_mod
+IMPLICIT none
 !
 !  INTEGER :: istatus
 !
 dcc_num = 0
-      dcc_name      (    :) = ' '
-      dcc_lname     (    :) = 0
-      dcc_file      (    :) = ' '
-      dcc_lfile     (    :) = 0
-      dcc_natoms    (    :) = 0
-      dcc_atom_name (:,  :) = ' '
-      dcc_adp       (:,  :) = 0
-      dcc_biso      (    :) = 0
-      dcc_mole_type (    :) = 0
-      dcc_type      (    :) = 0
-      dcc_surf      (:,:,:) = 0
-      dcc_neig      (:,  :) = 0
-      dcc_secnd     (    :) = 0
-      dcc_axis      (:,  :) = 0
-      dcc_axis      (0,  :) = -1
-      dcc_lrestrict (    :) = .FALSE.
-      dcc_lform     (    :) = .FALSE.
-      dcc_hkl       (:,:,:) = 0
-      dcc_surfnew   (:,  :) = 0
-      dcc_dens      (    :) = 0.0
-      dcc_dist      (:,  :) = 0.0
+IF(ALLOCATED(dcc_name))         dcc_name      (    :) = ' '
+IF(ALLOCATED(dcc_lname))        dcc_lname     (    :) = 0
+IF(ALLOCATED(dcc_file))         dcc_file      (    :) = ' '
+IF(ALLOCATED(dcc_lfile))        dcc_lfile     (    :) = 0
+IF(ALLOCATED(dcc_natoms))       dcc_natoms    (    :) = 0
+IF(ALLOCATED(dcc_atom_name))    dcc_atom_name (:,  :) = ' '
+IF(ALLOCATED(dcc_adp))          dcc_adp       (:,  :) = 0
+IF(ALLOCATED(dcc_biso))         dcc_biso      (    :) = 0
+IF(ALLOCATED(dcc_clin))         dcc_clin      (    :) = 0
+IF(ALLOCATED(dcc_cqua))         dcc_cqua      (    :) = 0
+IF(ALLOCATED(dcc_mole_type))    dcc_mole_type (    :) = 0
+IF(ALLOCATED(dcc_type))         dcc_type      (    :) = 0
+IF(ALLOCATED(dcc_surf))         dcc_surf      (:,:,:) = 0
+IF(ALLOCATED(dcc_neig))         dcc_neig      (:,  :) = 0
+IF(ALLOCATED(dcc_secnd))        dcc_secnd     (    :) = 0
+IF(ALLOCATED(dcc_axis))         dcc_axis      (:,  :) = 0
+IF(ALLOCATED(dcc_axis))         dcc_axis      (0,  :) = -1
+IF(ALLOCATED(dcc_lrestrict))    dcc_lrestrict (    :) = .FALSE.
+IF(ALLOCATED(dcc_lform))        dcc_lform     (    :) = .FALSE.
+IF(ALLOCATED(dcc_hkl))          dcc_hkl       (:,:,:) = 0
+IF(ALLOCATED(dcc_surfnew))      dcc_surfnew   (:,  :) = 0
+IF(ALLOCATED(dcc_dens))         dcc_dens      (    :) = 0.0
+IF(ALLOCATED(dcc_dist))         dcc_dist      (:,  :) = 0.0
+IF(ALLOCATED(dcc_angle))        dcc_angle     (    :) = 170.0  !Bond angle for Hydrogen bonds
+IF(ALLOCATED(dcc_tilt))         dcc_tilt(:)         = 0.0            ! Tilt angle for ligand off axis
+IF(ALLOCATED(dcc_tilt_hkl))     dcc_tilt_hkl(:,:)   = 0.0        ! Normal to molecule plane
+IF(ALLOCATED(dcc_tilt_atom))    dcc_tilt_atom(:,:)  = 0       ! Atoms that form molecule plane
+IF(ALLOCATED(dcc_tilt_is_atom)) dcc_tilt_is_atom(:) = .TRUE.    ! Tilt angle for ligand off axis
+IF(ALLOCATED(dcc_tilt_is_auto)) dcc_tilt_is_auto(:) = .TRUE.    ! Tilt angle for ligand off axis
 !
-   dc_init        = .true.    ! We need to initialize
-   dc_latom(:)    = .false.
+dc_init        = .true.    ! We need to initialize
+dc_latom(:)    = .false.
 !
-   END SUBROUTINE deco_reset
+END SUBROUTINE deco_reset
 !
 !******************************************************************************
 !
@@ -1824,7 +1848,7 @@ dcc_num = 0
                             m_type_old, mole_name, &
                             mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             neig, dist, istart, iend, &
                             lrestrict, nhkl, rhkl   , &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -1862,6 +1886,8 @@ USE crystal_mod
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
@@ -2004,7 +2030,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
       ENDIF
 !
       m_type_new = m_type_old  + temp_id 
-      CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+      CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
       flagsurf: DO j=1,20
                IF(mole_surfnew(j)>0) THEN
             im = nold + mole_surfnew(j)
@@ -2032,7 +2058,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
                             m_type_old, mole_name, &
                             mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             nanch, anchor, &
                             neig, dist, istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -2069,6 +2095,8 @@ USE surface_func_mod
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: nanch           ! Connected to this neighbor in mole
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
@@ -2255,7 +2283,7 @@ IF(lrestrict) THEN
                      surf_normal, mole_natoms, 0, 0)
       m_type_new = m_type_old  + temp_id
 !
-      CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+      CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
       flagsurf: DO j=1,20
          IF(mole_surfnew(j)>0) THEN
             im = nold + mole_surfnew(j)
@@ -2284,7 +2312,7 @@ IF(lrestrict) THEN
                             m_type_old, mole_name, &
                             mole_natoms,           &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             nanch,anchor, neig, dist,ncon, &
                             istart, iend, lrestrict, nhkl, rhkl,   &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -2331,6 +2359,8 @@ USE surface_func_mod
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: nanch           ! Number of anchor types
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
    INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
@@ -2553,7 +2583,7 @@ CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                surf_normal, mole_natoms, n1, n2)
 !
 m_type_new = m_type_old  + temp_id
-CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 flagsurf: DO j=1,20
    IF(mole_surfnew(j)>0) THEN
       im = nold + mole_surfnew(j)
@@ -2586,7 +2616,7 @@ SUBROUTINE deco_place_chelate(temp_id, ia, &
                             m_type_old, mole_name, &
                             mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             nanch, anchor, &
                             neig, dist, ncon,istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -2628,6 +2658,8 @@ INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in mole
 CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
 REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
 INTEGER,                 INTENT(IN) :: nanch           ! Connected to this neighbor in mole
 INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
@@ -2810,7 +2842,7 @@ CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
 !
 m_type_new = m_type_old  + temp_id
 !
-CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 !
 flagsurf: DO j=1,20
    IF(mole_surfnew(j)>0) THEN
@@ -2838,7 +2870,7 @@ END SUBROUTINE deco_place_chelate
                             mole_axis, mole_surfnew,           &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             nanch, anchor, &
                             neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -2883,6 +2915,8 @@ USE surface_func_mod
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: nanch           ! Number of anchor types
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 !  INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
@@ -3151,7 +3185,7 @@ flagsurf: DO j=1,20
 ENDDO flagsurf
 !
 m_type_new = m_type_old  + temp_id
-CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
 success = 0                                   ! Clear error flag
 !
 9999 CONTINUE                                 ! Jump here from errors to ensure dealloc
@@ -3171,7 +3205,7 @@ success = 0                                   ! Clear error flag
                             mole_axis, mole_surfnew,          &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             neig, dist, temp_secnd, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
 !
 !  Place molecules via a hydrogen bond onto the surface acceptor atom
@@ -3206,6 +3240,8 @@ USE surface_func_mod
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
    INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: temp_secnd      ! Second neighbor atom in molecule
@@ -3393,7 +3429,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    
 ENDIF
 !
-   CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+   CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
    flagsurf: DO j=1,20
       IF(mole_surfnew(j)>0) THEN
          im = nold + mole_surfnew(j)
@@ -3421,7 +3457,7 @@ SUBROUTINE deco_place_donor(temp_id, ia, &
                             mole_axis, mole_surfnew,          &
                             m_type_old, mole_name, mole_natoms, &
                             mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso,          &
+                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             neig, dist, istart, iend, lrestrict, nhkl, rhkl, dha_angle)
 !
 !  Place molecules via a hydrogn bond onto the surface donor atom
@@ -3461,6 +3497,8 @@ INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in the 
    CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
    REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
 REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
 INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
 REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
 INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
@@ -3660,7 +3698,7 @@ ENDIF
 !
 !  Group molecule
    m_type_new = m_type_old  + temp_id
-   CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso)
+   CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
    flagsurf: DO j=1,20
       IF(mole_surfnew(j)>0) THEN
          im = nold + mole_surfnew(j)

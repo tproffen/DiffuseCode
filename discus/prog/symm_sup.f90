@@ -1444,4 +1444,53 @@ ENDDO main
 !
 END FUNCTION symm_occupied
 !
+!*****7*****************************************************************
+!
+SUBROUTINE symm_reset
+!
+USE symm_mod
+!
+IMPLICIT NONE
+!
+IF(ALLOCATED(sym_latom)) sym_latom(:) = .FALSE.   ! (0:SYM_MAXSCAT)
+IF(ALLOCATED(sym_excl))  sym_excl     = 0
+sym_incl       = 'list'
+sym_use        = 0  ! Use space group symmetry operation no. N
+sym_sel_mode   = 0
+sym_sel_prop   = (/0,0/)
+sym_start      = 1
+sym_end        = 1
+sym_sub_start  = 1
+sym_sub_end    = 1
+sym_n_excl     = 1
+sym_power      = 1
+sym_axis_type  = 0  ! axis type (0 abolute, 1 atoms in crystal, -1 atoms in mol
+sym_axis_atoms = 0  ! Atoms that define the axis
+sym_orig_type  = 0  ! origin type (0 abolute, 1 atoms in crystal, -1 atoms in mol
+sym_orig_atom  = 1  ! Atom at origin of symmetry operation
+sym_mode       = .true.
+sym_new        = .false.
+sym_orig_mol   = .true.
+sym_power_mult = .true.
+sym_type       = .true.
+sym_occup      = .false.
+sym_occup      = .false.
+sym_sel_atom   = .true.
+sym_sel_sub    = .FALSE.
+sym_dom_mode_shape = .false.
+sym_dom_mode_atom  = .false.
+sym_angle     = 0.0
+sym_radius    = 1.0E-8
+sym_hkl       = (/0.0, 0.0, 1.0/)
+sym_orig      = (/0.0, 0.0, 0.0/)
+sym_or_tr     = (/0.0, 0.0, 0.0/)
+sym_trans     = (/0.0, 0.0, 0.0/)
+sym_uvw       = (/0.0, 0.0, 1.0/)
+sym_mat       = 0.0
+sym_rmat      = 0.0
+!
+END SUBROUTINE symm_reset
+!
+!*****7*****************************************************************
+!
 END MODULE symm_sup_mod

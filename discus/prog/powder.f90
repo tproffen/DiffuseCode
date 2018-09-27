@@ -133,10 +133,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'neut', 1, lbef, 4) ) then 
                   lxray = .false. 
                   diff_radiation = RAD_NEUT
+!
+!     ----rese powder patter settings 'rese'
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL powder_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                   CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
                               diff_radiation, diff_power) 
                   IF (ier_num.eq.0) then 
@@ -3045,4 +3050,83 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
  1000 FORMAT     (' Computing Molecular DW lookup table ...') 
       END SUBROUTINE powder_dwmoltab                   
+!
+!*******************************************************************************
+!
+SUBROUTINE powder_reset
+
+USE powder_mod
+USE powder_scat_mod
+!
+pow_axis       = POW_AXIS_Q
+pow_npkt       = 1           ! Actual number of powder data points
+!
+pow_four_mode  = 0
+pow_four_type  = POW_COMPL
+pow_four_vers  = POW_HIST
+!
+pow_lp         = POW_LP_BRAGG
+!
+pow_l_all      = .true.
+!
+pow_tthmin     =  0.1
+pow_tthmax     = 40.0
+pow_deltatth   =  0.05
+pow_qmin       =  0.2
+pow_qmax       =  7.0
+pow_deltaq     =  0.0001
+pow_ds_max     =  0.0001
+pow_ds_min     =  0.0001
+pow_delta      =  0.0
+pow_lp_fac     =  0.88
+pow_lp_ang     = 20.0
+pow_lp_cos     =  0.936
+!
+pow_nback      = 0
+pow_back(:)    = 0.0
+pow_scale      = 1.0
+!
+pow_hkl_max(:) = 4.0
+pow_hkl_del(:) = 0.05
+pow_hkl_shift(:)= 0.00
+!
+pow_pref       = .false.
+pow_pref_type  = POW_PREF_RIET
+pow_pref_g1    = 0.0
+pow_pref_g2    = 0.0
+pow_pref_hkl(:)   = (/0., 0., 1./)
+!
+pow_profile    = POW_PROFILE_PSVGT
+pow_pr_par     =  0
+pow_fwhm       =  0.01
+pow_eta        =  0.5
+pow_etax       =  0.0
+pow_u          =  0.0
+pow_v          =  0.0
+pow_w          =  0.05
+pow_p1         =  0.0
+pow_p2         =  0.0
+pow_p3         =  0.0
+pow_p4         =  0.0
+pow_width      = 20.0
+!
+!
+IF(ALLOCATED(pow_qsp))    pow_qsp   (:) = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_f2aver)) pow_f2aver(:) = 0.0D0  !  (0:POW_MAXPKT)
+IF(ALLOCATED(pow_faver2)) pow_faver2(:) = 0.0D0  !  (0:POW_MAXPKT)
+pow_nreal   = 0
+pow_u2aver  = 0.0
+!
+! powder_scat
+!
+POW_NMAX  = 1
+POW_MAXSCAT = 1
+IF(ALLOCATED(pow_nscat)) pow_nscat(:)   = 0
+IF(ALLOCATED(pow_iatom)) pow_iatom(:,:) = 0
+!
+!
+END SUBROUTINE powder_reset
+!
+!*******************************************************************************
+!
 END MODULE powder

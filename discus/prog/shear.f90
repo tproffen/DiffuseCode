@@ -519,10 +519,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !             ier_num = -6                                              
 !             ier_typ = ER_COMM                                         
 !           endif                                                       
-!                                                                       
+!
+!     ----Reset shear 'rese'                                               
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL shear_reset
+!                                                                   
 !     ----run shear 'run'                                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                   IF (l_need_setup) then 
                      CALL shear_setup 
                   ENDIF 
@@ -1673,4 +1678,46 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
       END SUBROUTINE shear_ca_single                
+!
+!*******************************************************************************
+!
+SUBROUTINE shear_reset
+!
+USE shear_mod
+! 
+IMPLICIT NONE
+!
+INTEGER :: ik
+!
+IF(ALLOCATED(shear_latom))  shear_latom(:) = .TRUE.  ! (0:MAXSCAT)
+shear_incl     = ' '
+shear_sel_prop =  0
+shear_start    =  1
+shear_end      = -1
+shear_mode     = SHEAR_OBJECT
+shear_input    = SHEAR_MATRIX
+shear_new      = .false.
+shear_orig_mol = .false.
+shear_sel_atom = .true.
+shear_dom_mode_atom  = .true.
+shear_dom_mode_shape = .true.
+shear_hkl(:)         = (/0.,1.,0./)
+shear_orig(:)        = 0.0
+shear_vector(:)      = (/1.,0.,0./)
+shear_length         = 0.0
+shear_uvw(:)         = (/0.,1.,0./)
+shear_mat(:,:)       = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(shear_mat ))
+shear_rmat(:,:)      = &
+         RESHAPE((/1.,(0.,0.,0.,0.,1.,ik=1,3)/),SHAPE(shear_rmat))
+shear_eigenv(:,:)    = &
+         RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(shear_eigenv ))
+shear_eigent(:,:)    = &
+         RESHAPE((/1.,(0.,0.,0.,1.,ik=1,2)/),SHAPE(shear_eigent ))
+shear_eigenw(  :)    = 1.0
+!
+END SUBROUTINE shear_reset
+!
+!*******************************************************************************
+!
 END MODULE shear

@@ -39,6 +39,8 @@ INTEGER, DIMENSION(:), ALLOCATABLE   :: iatoms
 INTEGER                              :: itype
 INTEGER                              :: i
 REAL                                 :: biso
+REAL                                 :: clin
+REAL                                 :: cqua
 !
 LOGICAL :: str_comp
 !
@@ -81,7 +83,9 @@ IF(ier_num == 0) THEN
             ifinish = NINT(werte(2))
             itype   = NINT(werte(3))
             biso    =      werte(4)
-            CALL molecularize_numbers(istart, ifinish, itype, biso)
+            clin    =      werte(5)
+            cqua    =      werte(6)
+            CALL molecularize_numbers(istart, ifinish, itype, biso, clin, cqua)
             ELSE
                ier_num = -6
                ier_typ = ER_FORT
@@ -361,7 +365,7 @@ DO ino = 1, ino_max                        ! Loop over all connectivity types
 ENDDO
 END SUBROUTINE mol_add_excl
 !
-SUBROUTINE molecularize_numbers(istart,ifinish, new_type, biso)
+SUBROUTINE molecularize_numbers(istart,ifinish, new_type, biso, clin, cqua)
 !
 ! Groups atoms istart to ifinish into a molecule
 ! with molecule type new_type. 
@@ -377,6 +381,8 @@ INTEGER, INTENT(IN)  :: istart
 INTEGER, INTENT(IN)  :: ifinish
 INTEGER, INTENT(IN)  :: new_type
 REAL   , INTENT(IN)  :: biso
+REAL   , INTENT(IN)  :: clin
+REAL   , INTENT(IN)  :: cqua
 !
 INTEGER   :: n_new,n_atom, n_type, n_mole
 INTEGER   :: i, j
@@ -423,6 +429,8 @@ n_new = ifinish - istart + 1            ! no of atoms in new molecule
    mole_char(mole_num_mole) = MOLE_ATOM
    mole_file(mole_num_mole) = ' '
    mole_biso(mole_type(mole_num_mole)) = biso
+   mole_clin(mole_type(mole_num_mole)) = clin
+   mole_cqua(mole_type(mole_num_mole)) = cqua
    mole_num_atom = mole_off(mole_num_mole) + n_new
    j = 0
    DO i=istart,ifinish

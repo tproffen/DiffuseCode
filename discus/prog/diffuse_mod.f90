@@ -49,10 +49,10 @@ COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  acsf         ! (1
 COMPLEX (KIND=KIND(0.0D0)) , DIMENSION(0:MASK)             ::  cex       = (0.0D0,0.0D0)
 REAL    (KIND=KIND(0.0D0)) , DIMENSION(:)   , ALLOCATABLE  ::  dsi          ! (1:MAXQXY)
 REAL    , DIMENSION(:, :), ALLOCATABLE  ::  xat          ! (1:NMAX, 1:3)
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  xm        = 0.0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  win       = 0.0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  vin       = 0.0
-REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  uin       = 0.0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  xm        = 0.0D0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  win       = 0.0D0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  vin       = 0.0D0
+REAL    (KIND=KIND(0.0D0)), DIMENSION(1:3)                ::  uin       = 0.0D0
 REAL                                    ::  fave      = 0.0
 INTEGER , DIMENSION(:)   , ALLOCATABLE  ::  istl         ! (1:MAXQXY)
 INTEGER , DIMENSION(1:3)                ::  num       = 1
@@ -67,16 +67,16 @@ LOGICAL                                 ::  lperiod   = .true.
 LOGICAL                                 ::  four_log  = .false.
 LOGICAL                                 ::  four_was_run  = .false. ! TRUE if a fourier has been calculated
 !
-REAL                                    ::  braggmax
-REAL                                    ::  braggmin
-REAL                                    ::  diffuave
-REAL                                    ::  diffusig
-REAL                                    ::  diffumax
-REAL                                    ::  diffumin
+REAL                                    ::  braggmax = 0.0
+REAL                                    ::  braggmin = 0.0
+REAL                                    ::  diffuave = 0.0
+REAL                                    ::  diffusig = 0.0
+REAL                                    ::  diffumax = 0.0
+REAL                                    ::  diffumin = 0.0
 REAL                                    ::  ps_low   = 1.20
 REAL                                    ::  ps_high  = 0.01
-REAL                                    ::  zmin
-REAL                                    ::  zmax
+REAL                                    ::  zmin     = 0.0
+REAL                                    ::  zmax     = 0.0
 !
 CHARACTER(LEN=4)                        ::  lambda   = 'MOA1'
 INTEGER                                 ::  four_exp = 0
@@ -98,12 +98,12 @@ REAL    , DIMENSION(1:3, 1:3)           ::  off_shift= 0.00
 REAL                                    ::  renergy  = 17.480782
 REAL                                    ::  rlambda  =  0.709260
 LOGICAL                                 ::  l_energy = .false.
-INTEGER                                 ::  dif_size_of
+INTEGER                                 ::  dif_size_of = 0.0
 !
-LOGICAL                                 ::  l_zone = .false.
-REAL   , DIMENSION(1:3)                 ::  zone_uvw 
-REAL   , DIMENSION(1:3)                 ::  zone_ewald 
-REAL                                    ::  zone_res 
+LOGICAL                                 ::  l_zone       = .false.
+REAL   , DIMENSION(1:3)                 ::  zone_uvw     = (/ 0.0, 0.0, 1.0/) 
+REAL   , DIMENSION(1:3)                 ::  zone_ewald   = 0.0
+REAL                                    ::  zone_res     = 0.0
 REAL                                    ::  zone_delta_d = 0.015
 !
 INTEGER                                 ::  four_last = FOUR_NN  ! No Fourier calculated yet

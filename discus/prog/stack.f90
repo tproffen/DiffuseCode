@@ -683,6 +683,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
+!     ----reset stacking faults 'reset'                                     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL stack_reset 
+!                                                                       
 !     ----run stacking faults 'run'                                     
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
@@ -2592,4 +2597,70 @@ internal: IF(st_internal(st_type(i)) ) THEN
       ENDIF 
 !                                                                       
       END SUBROUTINE stack_dist_file                
+!
+!*******************************************************************************
+!
+SUBROUTINE stack_reset
+!
+USE stack_mod
+!
+IMPLICIT NONE
+!
+ST_MAXQXY    = 1
+ST_MAXLAYER  = 1
+ST_MAXTYPE   = 1
+!
+IF(ALLOCATED(st_layer))    st_layer(:)     = ' '         ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_layer_c))  st_layer_c(:)   = ' '         ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_llayer))   st_llayer(:)    = 0           ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_number))   st_number(:)    = 0           ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_ndisp))    st_ndisp(:)     = 0           ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_chem))     st_chem(:)      = 0           ! (  ST_MAXTYPE)
+IF(ALLOCATED(st_disp))     st_disp(:,:)    = 0           ! (3,ST_MAXTYPE)
+IF(ALLOCATED(st_corr))     st_corr(:,:)    = 0.0         ! (  ST_MAXTYPE, ST_MAXTYPE)
+IF(ALLOCATED(st_sigma))    st_sigma(:,:,:) = 0.0         ! (  ST_MAXTYPE, ST_MAXTYPE,3)
+IF(ALLOCATED(st_trans))    st_trans(:,:,:) = 0.0         ! (  ST_MAXTYPE, ST_MAXTYPE,3)
+!
+IF(ALLOCATED(st_type))       st_type(:)       = 0        ! (  ST_MAXLAYER)
+IF(ALLOCATED(st_internal))   st_internal(:)   = .FALSE.  ! (  ST_MAXTYPE )
+IF(ALLOCATED(st_origin))     st_origin(:,:)   = 0.0      ! (3,ST_MAXLAYER)
+IF(ALLOCATED(st_rot_ang_no)) st_rot_ang_no(:) = 0.0      ! (  ST_MAXLAYER)
+IF(ALLOCATED(st_rot_ang_m1)) st_rot_ang_m1(:) = 0.0      ! (  ST_MAXLAYER)
+IF(ALLOCATED(st_rot_ang_m2)) st_rot_ang_m2(:) = 0.0      ! (  ST_MAXLAYER)
+!
+IF(ALLOCATED(st_csf))        st_csf(:) = (0.0D0, 0.0D0)          ! (ST_MAXQXY)
+!
+st_infile        = ' '
+!
+st_distr         = ST_DIST_MATRIX
+st_infile_l      = 1
+st_nlayer        = 0
+st_ntypes        = 0
+st_nchem         = 0
+st_first         = 0
+st_mod_sta       = .false.
+st_tra_aver      = .false.
+st_rot_mode      = .false.
+st_rot_status    = .false.
+st_rot_no_lspace = .true.
+st_rot_m1_lspace = .true.
+st_rot_m2_lspace = .true.
+st_aver          = 0.0
+st_prob          = 0.0
+st_mod(:,:)      = 0.0
+st_inv(:,:)      = 0.0
+st_t_aver(:)     = 0.0
+st_off(:)        = 0.0
+st_sigma_off(:)  = 0.0
+st_rot_no(:)     = 0.0
+st_rot_m1(:)     = 0.0
+st_rot_m2(:)     = 0.0
+st_rot_si_no     = 0.0
+st_rot_si_m1     = 0.0
+st_rot_si_m2     = 0.0
+!
+END SUBROUTINE stack_reset
+!
+!*******************************************************************************
+!
 END MODULE stack_menu

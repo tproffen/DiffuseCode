@@ -106,6 +106,8 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    INTEGER, DIMENSION(:), ALLOCATABLE               ::  cr_mole_cont    ! (  0:MOLE_MAX_ATOM)
    REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_dens    ! (  0:MOLE_MAX_MOLE)
    REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_biso    ! (  0:MOLE_MAX_TYPE)
+   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_clin    ! (  0:MOLE_MAX_TYPE)
+   REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_cqua    ! (  0:MOLE_MAX_TYPE)
    REAL   , DIMENSION(:), ALLOCATABLE               ::  cr_mole_fuzzy   ! (  0:MOLE_MAX_MOLE)
 !
    LOGICAL                                          ::  latom = .false.  !have atoms been allocated?
@@ -181,6 +183,8 @@ CONTAINS
       DEALLOCATE ( this%cr_mole_cont , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_dens , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_biso , STAT=istatus ) ! Always deallocate molecules
+      DEALLOCATE ( this%cr_mole_clin , STAT=istatus ) ! Always deallocate molecules
+      DEALLOCATE ( this%cr_mole_cqua , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_fuzzy, STAT=istatus ) ! Always deallocate molecules
    ENDIF
    ALLOCATE ( this%cr_gen_add (4,4,0:14 ), STAT=istatus )  ! Allocate equivalent atom names
@@ -205,6 +209,8 @@ CONTAINS
    ALLOCATE ( this%cr_mole_cont (0:n_atom), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_dens (0:n_mole), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_biso (0:n_type), STAT=istatus ) ! Allocate molecules
+   ALLOCATE ( this%cr_mole_clin (0:n_type), STAT=istatus ) ! Allocate molecules
+   ALLOCATE ( this%cr_mole_cqua (0:n_type), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_fuzzy(0:n_mole), STAT=istatus ) ! Allocate molecules
 !
    this%cr_gen_add (4,4,0:14 ) = 0.0
@@ -229,6 +235,8 @@ CONTAINS
    this%cr_mole_cont (0:n_atom) = 0
    this%cr_mole_dens (0:n_mole) = 0.0
    this%cr_mole_biso (0:n_type) = 0.0
+   this%cr_mole_clin (0:n_type) = 0.0
+   this%cr_mole_cqua (0:n_type) = 0.0
    this%cr_mole_fuzzy(0:n_mole) = 0.0
 !
    this%cr_natoms = natoms                            ! Store number of atoms
@@ -430,7 +438,8 @@ CONTAINS
    END SUBROUTINE get_cryst_atom 
 !******************************************************************************
    SUBROUTINE get_cryst_mole ( this, inum, i_m_mole, i_m_type, i_m_char, &
-                               c_m_file, r_m_fuzzy, r_m_dens, r_m_biso)
+                               c_m_file, r_m_fuzzy, r_m_dens, r_m_biso,  &
+                               r_m_clin, r_m_cqua )
 !
 !  Get the atom name and Debye Waller factor for atom Nr. inum
 !
@@ -445,6 +454,8 @@ CONTAINS
    REAL   ,              INTENT(OUT) :: r_m_fuzzy
    REAL   ,              INTENT(OUT) :: r_m_dens
    REAL   ,              INTENT(OUT) :: r_m_biso
+   REAL   ,              INTENT(OUT) :: r_m_clin
+   REAL   ,              INTENT(OUT) :: r_m_cqua
 !
    INTEGER                           :: i,j  ! Dummy
 !
@@ -460,6 +471,8 @@ CONTAINS
             r_m_fuzzy= this%cr_mole_fuzzy(i)
             r_m_dens = this%cr_mole_dens(i)
             r_m_biso = this%cr_mole_biso(this%cr_mole_type(i))
+            r_m_clin = this%cr_mole_clin(this%cr_mole_type(i))
+            r_m_cqua = this%cr_mole_cqua(this%cr_mole_type(i))
             RETURN
          ENDIF
       ENDDO
@@ -653,6 +666,8 @@ CONTAINS
       this%cr_num_atom      = mole_num_atom
       FORALL ( i=0:mole_num_type)
          this%cr_mole_biso (i) = mole_biso (i)
+         this%cr_mole_clin (i) = mole_clin (i)
+         this%cr_mole_cqua (i) = mole_cqua (i)
       END FORALL
       FORALL ( i=0:mole_num_mole)
          this%cr_mole_len  (i) = mole_len  (i)
@@ -680,6 +695,8 @@ CONTAINS
       this%cr_mole_file     = ' '
       this%cr_mole_dens     = 0.0
       this%cr_mole_biso     = 0.0
+      this%cr_mole_clin     = 0.0
+      this%cr_mole_cqua     = 0.0
       this%cr_mole_fuzzy    = 0.0
       this%cr_mole_cont     = 0
    ENDIF
@@ -1025,6 +1042,8 @@ CONTAINS
       this%cr_num_atom      = rd_n_atom
       FORALL ( i=0:rd_n_mole_type)
          this%cr_mole_biso (i) = mole_biso (i)
+         this%cr_mole_clin (i) = mole_clin (i)
+         this%cr_mole_cqua (i) = mole_cqua (i)
       END FORALL
       FORALL ( i=0:rd_n_mole)
          this%cr_mole_len  (i) = mole_len  (i)
@@ -1052,6 +1071,8 @@ CONTAINS
       this%cr_mole_file     = ' '
       this%cr_mole_dens     = 0.0
       this%cr_mole_biso     = 0.0
+      this%cr_mole_clin     = 0.0
+      this%cr_mole_cqua     = 0.0
       this%cr_mole_fuzzy    = 0.0
       this%cr_mole_cont     = 0
    ENDIF
@@ -1364,7 +1385,8 @@ CONTAINS
    SUBROUTINE get_molecules_from_crystal   ( this, mole_max_mole,         &
               mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
+              mole_fuzzy, mole_cont)
 !
 !  Get all values from "this" crystal and place into the main DISCUS crystal!
 !  The standard crystal is completely overwritten!
@@ -1386,6 +1408,8 @@ CONTAINS
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
    REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_clin
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_cqua
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
@@ -1397,6 +1421,8 @@ CONTAINS
    IF ( sav_w_mole .or. sav_w_obje .or. sav_w_doma ) THEN
       FORALL ( ia=0:mole_num_type)
          mole_biso (ia) = this%cr_mole_biso (ia)
+         mole_clin (ia) = this%cr_mole_clin (ia)
+         mole_cqua (ia) = this%cr_mole_cqua (ia)
       END FORALL
       FORALL ( ia=0:mole_num_mole)
          mole_len  (ia) = this%cr_mole_len  (ia)
@@ -1458,6 +1484,8 @@ CONTAINS
       DEALLOCATE ( this%cr_mole_cont , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_dens , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_biso , STAT=istatus ) ! Always deallocate molecules
+      DEALLOCATE ( this%cr_mole_clin , STAT=istatus ) ! Always deallocate molecules
+      DEALLOCATE ( this%cr_mole_cqua , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_fuzzy, STAT=istatus ) ! Always deallocate molecules
 !
 !     IF(ALLOCATED(this%atoms)) DEALLOCATE ( this%atoms)

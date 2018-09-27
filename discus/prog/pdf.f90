@@ -182,8 +182,22 @@ SUBROUTINE pdf
 !                                                                       
 !------ Reset PDF segement                                              
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
             pdf_ldata = .false. 
+            CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+            IF (ier_num.eq.0) then 
+               IF (ianz.eq.1) then 
+                  IF(str_comp(cpara(1), 'all', 2, lpara(1), 3) ) THEN
+                     CALL pdf_reset
+                  ELSE 
+                     ier_typ = ER_COMM 
+                     ier_num = - 6 
+                  ENDIF 
+               ELSE 
+                  ier_typ = ER_COMM 
+                  ier_num = - 6 
+               ENDIF 
+            ENDIF 
 !                                                                       
 !------ Show current PDF parameters                                     
 !                                                                       
@@ -2364,13 +2378,21 @@ laccept = .false.
       ALLOCATE(pdf_look_mol(0:mole_num_type,0:mole_num_type))
       IF(ALLOCATED(pdf_bvalue_mole)) DEALLOCATE(pdf_bvalue_mole)
       ALLOCATE(pdf_bvalue_mole(0:pdf_nmol))
+      IF(ALLOCATED(pdf_clin_mole)) DEALLOCATE(pdf_clin_mole)
+      ALLOCATE(pdf_clin_mole(0:pdf_nmol))
+      IF(ALLOCATED(pdf_cqua_mole)) DEALLOCATE(pdf_cqua_mole)
+      ALLOCATE(pdf_cqua_mole(0:pdf_nmol))
       pdf_look_mol    = 0
       pdf_bvalue_mole = 0.0
+      pdf_clin_mole   = 0.0
+      pdf_cqua_mole   = 0.0
       IF(pdf_nmol>0) THEN    ! Non-zero molecular bvalues
          DO i=1,mole_num_type
             pdf_look_mol(0,i) = i
             pdf_look_mol(i,0) = i
             pdf_bvalue_mole(i) = mole_biso(i)
+            pdf_clin_mole(i)   = mole_clin(i)
+            pdf_cqua_mole(i)   = mole_cqua(i)
          ENDDO
          nlook = mole_num_type
          DO i=1,mole_num_type
@@ -2379,6 +2401,8 @@ laccept = .false.
                pdf_look_mol(i,j) = nlook
                pdf_look_mol(j,i) = nlook
                pdf_bvalue_mole(nlook) = mole_biso(i) + mole_biso(j)
+               pdf_clin_mole(nlook)   = mole_clin(i) + mole_clin(j)
+               pdf_cqua_mole(nlook)   = mole_cqua(i) + mole_cqua(j)
             ENDDO
          ENDDO
       ENDIF
@@ -3373,8 +3397,8 @@ inner:      DO iatom = ia+1, cr_natoms
             sigma = 0.0 
             IF (pdf_gauss) then 
                sigma = fac * (cr_dw (is) + cr_dw (js) + pdf_bvalue_mole(il)) 
-               sigma = sigma - pdf_delta / dist2 
-               sigma = sigma - pdf_gamma / dist 
+               sigma = sigma - pdf_delta / dist2  - pdf_cqua_mole(il)/dist2
+               sigma = sigma - pdf_gamma / dist   - pdf_clin_mole(il)/dist
                sigma = max (0.0, sigma) 
             ENDIF 
             sigma = sigma + pdf_qalp**2 * dist2 
@@ -3439,5 +3463,105 @@ inner:      DO iatom = ia+1, cr_natoms
       ENDDO 
 !                                                                       
       END SUBROUTINE pdf_convtherm                  
+!
 !*****7*****************************************************************
+!
+SUBROUTINE pdf_reset
+!
+USE pdf_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+PDF_MAXSCAT      = 1
+PDF_MAXDAT       = 1
+PDF_MAXBND       = 1
+PDF_MAXTEMP      = 1
+PDF_MAXSINCC     = 2**12+1
+!
+pdf_nscat = 1
+pdf_ndat  = 1
+pdf_nbnd  = 1
+pdf_ntemp = 1
+!
+IF(ALLOCATED(pdf_calc))   pdf_calc(:)       = 0.0D0  ! (MAXDAT)
+IF(ALLOCATED(pdf_ppp))    pdf_ppp (:)       = 0.0D0  ! (MAXDAT)
+IF(ALLOCATED(pdf_corr))   pdf_corr(:)       = 0.0D0  ! (MAXDAT)
+IF(ALLOCATED(pdf_temp))   pdf_temp(:,:,:,:) = 0      ! (MAXTEMP,0:MAXSCAT,0:MAXSCAT)
+IF(ALLOCATED(pdf_obs))    pdf_obs(:)        = 0.0    ! (MAXDAT)
+IF(ALLOCATED(pdf_wic))    pdf_wic(:)        = 0.0    ! (MAXDAT)
+!
+IF(ALLOCATED(pdf_sincc))  pdf_sincc(:)      = 0.0D0  ! (2*MAXDAT)
+IF(ALLOCATED(pdf_weight)) pdf_weight(:,:)   = 0.0    ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_exp))    pdf_exp(:)        = 0.0D0  ! (4000)
+!
+pdf_rmin   =  0.001   ! Minimum distance to calculate, internal value
+pdf_rminu  =  0.01    ! Minimum distance to calculate, user value
+pdf_rmax   = 50.00    ! Maximum distance to calculate, internal value
+pdf_rmaxu  = 50.00    ! Maximum distance to calculate, user value
+pdf_qmax   = 30.00
+pdf_deltar =  0.001   ! internal delta r
+pdf_deltars=  0.0005
+pdf_deltaru=  0.01    ! User supplied delta r
+pdf_us_int =  1       ! Ratio user steps to internal steps
+pdf_mode   =  PDF_DO_CALC ! PDF mode, default to 'calc'
+pdf_skal   =  1.00
+pdf_sigmaq =  0.00
+pdf_xq     =  0.00
+pdf_rfmin  =  0.01    ! distance range for refinement, internal value
+pdf_rfmax  =  0.01    ! distance range for refinement, internal value
+pdf_rfminu =  0.01    ! distance range for refinement, user value
+pdf_rfmaxu =  0.01    ! distance range for refinement, user value
+pdf_rfminf =  0.01    ! distance range for refinement, file value
+pdf_rfmaxf =  0.01    ! distance range for refinement, file value
+pdf_delta  =  0.00
+pdf_rcut   =  0.00
+pdf_srat   =  1.00
+pdf_gamma  =  0.00
+pdf_qalp   =  0.00
+pdf_dnorm  =  1.00
+pdf_rho0   =  0.00
+pdf_sphere =  0.00
+pdf_diam_poly =  0.00
+pdf_diam   =  0.00
+pdf_shape  =  0.00
+pdf_scale  =  1.00
+pdf_poly(5)=  0.00
+!
+IF(ALLOCATED(pdf_bnd))  pdf_bnd(:,:) = 0     ! (3,-MAXBND:2*MAXBND)
+!
+pdf_bin    = 1
+pdf_finite = PDF_BACK_PERIOD
+pdf_poly_n = 0
+pdf_sel_prop(0:1) = 0
+!                                                
+pdf_radiation = PDF_RAD_XRAY
+pdf_power     = 4
+pdf_nmol      = 0   ! pdf_temp dimension if molecules are relevant
+pdf_lxray       = .false.
+pdf_gauss       = .false.
+pdf_gauss_init  = .true.
+pdf_2d          = .false.
+IF(ALLOCATED(pdf_allowed_i))   pdf_allowed_i(:)   = .TRUE. ! (0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_allowed_j))   pdf_allowed_j(:)   = .TRUE. ! (0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_look_mol))    pdf_look_mol(:,:)  = 0      ! (0:PDF_MAXSCAT)
+IF(ALLOCATED(pdf_bvalue_mole)) pdf_bvalue_mole(:) = 0.0    ! effective mol bvalues
+IF(ALLOCATED(pdf_clin_mole))   pdf_clin_mole(:)   = 0.0    ! linear correction mol
+IF(ALLOCATED(pdf_cqua_mole))   pdf_cqua_mole(:)   = 0.0    ! quadratic correction mol
+!
+pdf_ldata     = .false.
+pdf_lweights  = .false.
+pdf_lrho0     = .true.
+pdf_lexact    = .false.
+pdf_lrho0_rel = .false.
+pdf_size_of   = 0
+!
+pdf_refine_scale   = .false.
+pdf_refine_density = .false.
+pdf_refine_lattice(:) = .false.
+!
+END SUBROUTINE pdf_reset
+!
+!*****7*****************************************************************
+!
 END MODULE pdf_menu

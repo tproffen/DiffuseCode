@@ -297,9 +297,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
+!     Reset output 'reset'
+!                                                                       
+            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+               CALL output_reset
+!                                                                       
 !     write output file 'run'                                           
 !                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) THEN 
+            ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
                IF(four_was_run) THEN    ! A fourier has been calculated do output
                   CALL chem_elem(.false.)
                   CALL set_output (linverse) 
@@ -1421,4 +1426,39 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
       ENDIF 
 !
       END SUBROUTINE set_output                     
+!
+!*******************************************************************************
+!
+SUBROUTINE output_reset
+!
+USE output_mod
+!
+IMPLICIT NONE
+!
+outfile      = 'fcalc.dat'
+ityp         = 0
+extr_abs     = 1
+extr_ord     = 2
+extr_top     = 3
+rho_extr_abs = 1
+rho_extr_ord = 2
+out_extr_abs = 1
+out_extr_ord = 2
+out_extr_top = 3
+out_inc(:)   = (/121, 121, 1/)
+out_eck      = reshape((/ 0.0, 0.0,  0.0, &
+                          5.0, 0.0,  0.0, &
+                          0.0, 5.0,  0.0, &
+                          0.0, 0.0,  0.0/),shape(out_eck))
+out_vi       = reshape((/0.05, 0.00, 0.00, &
+                         0.0 , 0.05, 0.00, &
+                         0.00, 0.00, 0.00/),shape(out_vi))
+cpow_form    = 'tth'
+out_user_limits = .false.
+out_user_values(:) = (/1.0, 10.0, 0.01/)
+!
+END SUBROUTINE output_reset
+!
+!*******************************************************************************
+!
 END MODULE output_menu

@@ -1026,6 +1026,12 @@ MODULE discus_allocate_appl_mod
       CALL alloc_arr ( dcc_biso,1,n_deco ,  all_status, 0.0  , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_clin,1,n_deco ,  all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+      CALL alloc_arr ( dcc_cqua,1,n_deco ,  all_status, 0.0  , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( dcc_mole_type,1,n_deco ,  all_status, 0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
@@ -1794,6 +1800,14 @@ MODULE discus_allocate_appl_mod
       mol_size_of = mol_size_of + size_of
 !
       CALL alloc_arr ( mole_biso      ,0,n_type,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_clin      ,0,n_type,  all_status, 0.0, size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      mol_size_of = mol_size_of + size_of
+!
+      CALL alloc_arr ( mole_cqua      ,0,n_type,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       mol_size_of = mol_size_of + size_of
 !

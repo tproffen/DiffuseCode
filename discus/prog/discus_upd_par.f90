@@ -211,6 +211,44 @@ CALL no_error
                RETURN 
             ENDIF 
 !                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_clin') THEN 
+            IF (ianz.eq.1) THEN 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
+                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
+                  mole_clin (kpara)                                     
+                  zeile (ikl + 3:ikl + 3) = 'e' 
+               ELSE 
+                  ier_num = - 64 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
+         ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_cqua') THEN 
+            IF (ianz.eq.1) THEN 
+               IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
+               (1:ikl - lcomm - 1)                                      
+               IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
+                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
+                  mole_cqua (kpara)                                     
+                  zeile (ikl + 3:ikl + 3) = 'e' 
+               ELSE 
+                  ier_num = - 64 
+                  ier_typ = ER_APPL 
+                  RETURN 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
+!                                                                       
          ELSEIF (string (ikl - 8:ikl - 1) .eq.'mol_dens') THEN 
             IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
@@ -719,6 +757,32 @@ CALL no_error
          IF (ianz.eq.1) THEN 
             IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
                mole_biso (ww (1) ) = wert 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'mol_clin') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
+               mole_clin (ww (1) ) = wert 
+            ELSE 
+               ier_num = - 8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF (ctype.eq.'mol_cqua') THEN 
+         IF (ianz.eq.1) THEN 
+            IF (0.le.ww (1) .and.ww (1) .le.mole_num_type) THEN 
+               mole_cqua (ww (1) ) = wert 
             ELSE 
                ier_num = - 8 
                ier_typ = ER_FORT 
@@ -1565,7 +1629,7 @@ CHARACTER(LEN=*)     , INTENT(IN)  :: line
 INTEGER              , INTENT(IN)  :: length
 INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
 !
-INTEGER, PARAMETER :: MAXPAR = 24
+INTEGER, PARAMETER :: MAXPAR = 26
 CHARACTER(LEN=16), DIMENSION(MAXPAR) :: discus_names
 INTEGER          , DIMENSION(MAXPAR) :: discus_type
 INTEGER          , DIMENSION(MAXPAR) :: discus_dim
@@ -1574,6 +1638,7 @@ INTEGER :: i
 !
 DATA discus_names  &
     /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
+     'mol_cqua', 'mol_clin',                                     &
      'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
      'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'vol     ', &
      'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
@@ -1581,6 +1646,7 @@ DATA discus_names  &
     /
 DATA discus_type &
     /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
+       IS_REAL ,   IS_REAL ,                                     &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
        IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
        IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
@@ -1588,6 +1654,7 @@ DATA discus_type &
     /
 DATA discus_dim  &
     /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
+       IS_VEC  ,   IS_VEC  ,                                     &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
@@ -1595,6 +1662,7 @@ DATA discus_dim  &
     /
 DATA discus_ro  &
     /  .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .TRUE.  , &
+       .FALSE. ,   .FALSE. ,                                     &
        .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
        .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &

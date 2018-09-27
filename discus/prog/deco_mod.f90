@@ -46,6 +46,8 @@ INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_natoms          ! Cont
 CHARACTER(LEN=4)   , DIMENSION(:,  :), ALLOCATABLE :: dcc_atom_name       ! Content atom names
 REAL               , DIMENSION(:,  :), ALLOCATABLE :: dcc_adp             ! Content ADP's
 REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_biso            ! Content molecule ADP's
+REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_clin            ! Content molecule ADP's
+REAL               , DIMENSION(    :), ALLOCATABLE :: dcc_cqua            ! Content molecule ADP's
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_mole_type       ! Content molecule type
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_type            ! definitions type
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_lname           ! Length definitions name

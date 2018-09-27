@@ -128,7 +128,8 @@ integer ier
    CALL read_temp%crystal%get_molecules_from_crystal(mole_max_mole,       &
               mole_max_type, mole_max_atom, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
+              mole_fuzzy, mole_cont)
    DO i = 1, mole_num_mole       ! set molecule number for each atom
       DO j = 1, mole_len (i)
          iatom          = mole_cont (mole_off (i) + j)
@@ -186,6 +187,8 @@ integer ier
    REAL                          :: r_fuzzy    ! and this molecule is of type i_type
    REAL                          :: r_dens     ! and this molecule is of type i_type
    REAL                          :: r_biso     ! and this molecule is of type i_type
+   REAL                          :: r_clin     ! and this molecule is of type i_type
+   REAL                          :: r_cqua     ! and this molecule is of type i_type
 !
 
    INTEGER                              :: temp_num_mole
@@ -198,6 +201,8 @@ integer ier
    INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_char
    REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_dens
    REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_biso
+   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_clin
+   REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_cqua
    REAL   , DIMENSION(:  ), ALLOCATABLE :: temp_fuzz
    INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_cont
    INTEGER, DIMENSION(:  ), ALLOCATABLE :: temp_look
@@ -293,6 +298,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       ALLOCATE(temp_char(0:n_mole))
       ALLOCATE(temp_dens(0:n_mole))
       ALLOCATE(temp_biso(0:n_type))
+      ALLOCATE(temp_clin(0:n_type))
+      ALLOCATE(temp_cqua(0:n_type))
       ALLOCATE(temp_fuzz(0:n_mole))
       ALLOCATE(temp_cont(0:natoms))
       ALLOCATE(temp_look(0:natoms))
@@ -303,6 +310,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       temp_char(0:n_mole) = 0
       temp_dens(0:n_mole) = 0.0
       temp_biso(0:n_type) = 0.0
+      temp_clin(0:n_type) = 0.0
+      temp_cqua(0:n_type) = 0.0
       temp_fuzz(0:n_mole) = 0.0
       temp_cont(0:natoms) = 0
       temp_look(0:natoms) = 0
@@ -313,7 +322,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       CALL read_temp%crystal%get_molecules_from_crystal(n_mole,       &
               n_type, natoms, temp_num_mole, temp_num_type, &
               temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
-              temp_file, temp_dens, temp_biso, temp_fuzz, temp_cont)
+              temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
+              temp_fuzz, temp_cont)
 !
 !  Build lookup table for original molecules
 !
@@ -345,7 +355,7 @@ main: do ia = 1, natoms
       CALL read_temp%crystal%get_cryst_scat ( ia, itype, at_name , dw1, occ1  )
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
-                 i_char, c_file, r_fuzzy, r_dens, r_biso)
+                 i_char, c_file, r_fuzzy, r_dens, r_biso, r_clin, r_cqua)
 in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molecule
             IF ( .not. mole_l_on .OR. temp_look(ia)> mole_num_curr ) THEN  ! Right now we are not in a molecule
                mole_l_on    = .true.              ! Turn molecule on
@@ -362,6 +372,8 @@ in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molec
                mole_fuzzy(i_mole) = r_fuzzy       ! Set current molecule Fuzzy distance
                mole_dens (i_mole) = r_dens        ! Set current molecule density
                mole_biso (mole_type(i_mole)) = r_biso ! Set current molecule b-value
+               mole_clin (mole_type(i_mole)) = r_clin ! Set current molecule b-value
+               mole_cqua (mole_type(i_mole)) = r_cqua ! Set current molecule b-value
                mole_num_curr      = i_mole        ! Set molecule no we are working on
             ENDIF
       ELSE  in_mole
@@ -400,11 +412,11 @@ do_scat_dw: DO k = 1,cr_nscat
          CALL firstcell ( werte, 5)
       ENDIF
       DO j=1,3
-         cr_pos(j,cr_natoms) = werte(j)           ! store in actual crystal
+         cr_pos(j,cr_natoms) = werte(j)           ! strore in actual crystal
       ENDDO
       cr_iscat(cr_natoms) = itype                 ! set the atom type
 !     cr_mole (cr_natoms) = i_mole                ! set the molecule number
-      cr_mole (cr_natoms) = 0
+      cr_mole (cr_natoms) = 0                     ! set the molecule number
       cr_surf(:,cr_natoms) = isurface               ! set the property flag
       cr_prop (cr_natoms) = iprop                 ! set the property flag
       CALL symmetry
@@ -434,6 +446,8 @@ IF(n_mole > 0) THEN
    DEALLOCATE(temp_char)
    DEALLOCATE(temp_dens)
    DEALLOCATE(temp_biso)
+   DEALLOCATE(temp_clin)
+   DEALLOCATE(temp_cqua)
    DEALLOCATE(temp_fuzz)
    DEALLOCATE(temp_cont)
    DEALLOCATE(temp_look)
@@ -604,7 +618,8 @@ ENDIF
    SUBROUTINE stru_internal_molecules(strucfile, MOLE_MAX_MOLE,           &
               MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
+              mole_fuzzy, mole_cont)
 !
 !  Read all molecules from internal storage into local variables.
 !
@@ -629,6 +644,8 @@ ENDIF
    CHARACTER (LEN=*), DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_file
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_dens
    REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_biso
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_clin
+   REAL   ,           DIMENSION(0:MOLE_MAX_TYPE), INTENT(OUT) :: mole_cqua
    REAL   ,           DIMENSION(0:MOLE_MAX_MOLE), INTENT(OUT) :: mole_fuzzy
    INTEGER,           DIMENSION(0:MOLE_MAX_ATOM), INTENT(OUT) :: mole_cont
 !
@@ -654,7 +671,8 @@ ENDIF
    CALL read_temp%crystal%get_molecules_from_crystal(MOLE_MAX_MOLE,       &
               MOLE_MAX_TYPE, MOLE_MAX_ATOM, mole_num_mole, mole_num_type, &
               mole_num_atom, mole_len, mole_off, mole_type, mole_char,    &
-              mole_file, mole_dens, mole_biso, mole_fuzzy, mole_cont)
+              mole_file, mole_dens, mole_biso, mole_clin, mole_cqua,      &
+              mole_fuzzy, mole_cont)
 !
 !  DEALLOCATE(read_temp, STAT = istatus )        ! Deallocate a temporary storage
 !

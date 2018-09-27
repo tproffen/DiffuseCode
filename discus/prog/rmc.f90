@@ -139,19 +139,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !------ reset rmc setting 'rese'                                        
 !                                                                       
          ELSEIF (str_comp (befehl, 'rese', 3, lbef, 4) ) then 
-            rmc_nplane = 0 
-            rmc_calc_f = .true. 
-            rmc_qmin   =  9999.0 
-            rmc_qmax   = - 9999.0 
-            offq       = 0   ! offq (*)
-            offsq      = 0   ! offsq(*)
-!                                                                       
-!           DO i = 1, RMC_MAX_PLANES 
-!           offq (i) = 0 
-!           DO j = 1, RMC_MAX_SYM 
-!           offsq (i, j) = 0 
-!           ENDDO 
-!           ENDDO 
+            CALL rmc_reset
 !                                                                       
 !------ run 'run'                                                       
 !                                                                       
@@ -252,5 +240,31 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       prompt = orig_prompt
 !                                                                       
       END SUBROUTINE rmc                            
+!
 !*****7*****************************************************************
+!
+SUBROUTINE rmc_reset
+!
+USE rmc_mod
+!
+IMPLICIT NONE
+!
+
+rmc_nplane = 0 
+rmc_calc_f = .true. 
+rmc_qmin   =  9999.0 
+rmc_qmax   = - 9999.0 
+offq       = 0   ! offq (*)
+offsq      = 0   ! offsq(*)
+!                                                                       
+!           DO i = 1, RMC_MAX_PLANES 
+!           offq (i) = 0 
+!           DO j = 1, RMC_MAX_SYM 
+!           offsq (i, j) = 0 
+!           ENDDO 
+!           ENDDO 
+END SUBROUTINE rmc_reset
+!
+!*****7*****************************************************************
+!
 END MODULE rmc_menu

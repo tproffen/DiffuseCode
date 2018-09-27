@@ -1128,6 +1128,8 @@ END SUBROUTINE do_remove
       INTEGER, DIMENSION(:  ), ALLOCATABLE :: new_char
       REAL   , DIMENSION(:  ), ALLOCATABLE :: new_dens
       REAL   , DIMENSION(:  ), ALLOCATABLE :: new_biso
+      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_clin
+      REAL   , DIMENSION(:  ), ALLOCATABLE :: new_cqua
       REAL   , DIMENSION(:  ), ALLOCATABLE :: new_fuzz
 !                                                                       
 !                                                                       
@@ -1148,6 +1150,8 @@ END SUBROUTINE do_remove
          ALLOCATE(new_char(0:old_mole_num_mole))
          ALLOCATE(new_dens(0:old_mole_num_mole))
          ALLOCATE(new_biso(0:old_mole_num_type))
+         ALLOCATE(new_clin(0:old_mole_num_type))
+         ALLOCATE(new_cqua(0:old_mole_num_type))
          ALLOCATE(new_fuzz(0:old_mole_num_mole))
 !
          new_mole(:,:) = 0                 ! Initialise all arrays
@@ -1156,6 +1160,8 @@ END SUBROUTINE do_remove
          new_file(:)   = ' '
          new_char(:)   = 0
          new_biso(:)   = 0.0
+         new_clin(:)   = 0.0
+         new_cqua(:)   = 0.0
 !
          DO ia=1, cr_natoms           ! Loop over all atoms
             IF(cr_mole(ia)/=0) THEN   ! Atom is in a molecule
@@ -1170,6 +1176,8 @@ END SUBROUTINE do_remove
          new_char(0:old_mole_num_mole) = mole_char(0:old_mole_num_mole)
          new_dens(0:old_mole_num_mole) = mole_dens(0:old_mole_num_mole)
          new_biso(0:old_mole_num_type) = mole_biso(0:old_mole_num_type)
+         new_clin(0:old_mole_num_type) = mole_clin(0:old_mole_num_type)
+         new_cqua(0:old_mole_num_type) = mole_cqua(0:old_mole_num_type)
          new_fuzz(0:old_mole_num_mole) = mole_fuzzy(0:old_mole_num_mole)
 !
          mole_len  = 0               ! Clear old molecules
@@ -1179,6 +1187,8 @@ END SUBROUTINE do_remove
          mole_char = 0
          mole_dens = 0
          mole_biso = 0
+         mole_clin = 0
+         mole_cqua = 0
          mole_file = ' '
 !
          inew = 0                    ! No new molecules yet
@@ -1191,6 +1201,8 @@ END SUBROUTINE do_remove
                mole_char (inew) = new_char(im)
                mole_dens (inew) = new_dens(im)
                mole_biso (mole_type(inew)) = new_biso(new_type(im))
+               mole_clin (mole_type(inew)) = new_clin(new_type(im))
+               mole_cqua (mole_type(inew)) = new_cqua(new_type(im))
                mole_fuzzy(inew) = new_fuzz(im)
                mole_off  (inew) = mole_off(inew-1) + mole_len(inew-1)
                DO ia=1,new_len(im)   ! Loop over atoms in this molecule
@@ -1211,6 +1223,8 @@ END SUBROUTINE do_remove
          DEALLOCATE(new_char)
          DEALLOCATE(new_dens)
          DEALLOCATE(new_biso)
+         DEALLOCATE(new_clin)
+         DEALLOCATE(new_cqua)
          DEALLOCATE(new_fuzz)
 !
       ENDIF 
@@ -1917,5 +1931,7 @@ END SUBROUTINE do_remove
       mole_type (idest) = mole_type (isource) 
 !                                                                       
       END SUBROUTINE copy_mole_char                 
+!
 !*****7*****************************************************************
+!
 END MODULE modify_mod

@@ -100,7 +100,9 @@ LOGICAL             ::  pdf_2d     = .false.
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 LOGICAL, DIMENSION(:),ALLOCATABLE  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
 INTEGER, DIMENSION(:,:),ALLOCATABLE  ::  pdf_look_mol ! (0:PDF_MAXSCAT)
-REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_bvalue_mole ! evvective mol bvalues
+REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_bvalue_mole ! effective mol bvalues
+REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_clin_mole ! linear correction mol
+REAL,    DIMENSION(:)  , ALLOCATABLE ::  pdf_cqua_mole ! quadratic correction mol
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_i ! (0:PDF_MAXSCAT)
 !LOGICAL, DIMENSION(0:    MAXSCAT)  ::  pdf_allowed_j ! (0:PDF_MAXSCAT)
 LOGICAL             ::  pdf_ldata     = .false.

@@ -319,6 +319,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         clu_mode = CLU_IN_PSEUDO 
                      ENDIF 
                   ENDIF 
+!
+!     ----Reset the distribution of domains 'rese'                       
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL domain_reset 
 !                                                                       
 !     ----Start the distribution of domains 'run'                       
 !                                                                       
@@ -1247,6 +1252,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       CHARACTER (LEN=200), DIMENSION(:), ALLOCATABLE :: temp_mole_file
       REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_dens
       REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_biso
+      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_clin
+      REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_cqua
       REAL   , DIMENSION(:), ALLOCATABLE :: temp_mole_fuzzy
       INTEGER, DIMENSION(:), ALLOCATABLE :: temp_mole_cont
       LOGICAL, DIMENSION(:), ALLOCATABLE :: temp_present
@@ -1553,13 +1560,16 @@ mole_int: IF(mk_infile_internal) THEN
        ALLOCATE ( temp_mole_file (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_dens (0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_biso (0:temp_num_type), STAT = istatus)
+       ALLOCATE ( temp_mole_clin (0:temp_num_type), STAT = istatus)
+       ALLOCATE ( temp_mole_cqua (0:temp_num_type), STAT = istatus)
        ALLOCATE ( temp_mole_fuzzy(0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_cont (0:temp_num_atom), STAT = istatus)
        CALL stru_internal_molecules(infile, TEMP_MAX_MOLE, TEMP_MAX_TYPE, & ! Read domain 
               TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
-              temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type,& ! into temp
-              temp_mole_char,    &
-              temp_mole_file, temp_mole_dens, temp_mole_biso, temp_mole_fuzzy, temp_mole_cont)
+              temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type, & ! into temp
+              temp_mole_char,                                              &
+              temp_mole_file, temp_mole_dens, temp_mole_biso,              &
+              temp_mole_clin, temp_mole_cqua, temp_mole_fuzzy, temp_mole_cont)
        IF(MOLE_MAX_MOLE < mole_num_mole + temp_num_mole .or.  &    ! If necessary increase
           MOLE_MAX_TYPE < mole_num_type + temp_num_type .or.  &    ! size of crystal molecule
           MOLE_MAX_ATOM < mole_num_atom + temp_num_atom     ) THEN ! arrays
@@ -1597,6 +1607,8 @@ mole_int: IF(mk_infile_internal) THEN
              mole_file (mole_num_mole) = temp_mole_file (i)
              mole_dens (mole_num_mole) = temp_mole_dens (i)
              mole_biso (mole_type(mole_num_mole)) = temp_mole_biso (temp_mole_type(i))
+             mole_clin (mole_type(mole_num_mole)) = temp_mole_clin (temp_mole_type(i))
+             mole_cqua (mole_type(mole_num_mole)) = temp_mole_cqua (temp_mole_type(i))
              mole_fuzzy(mole_num_mole) = temp_mole_fuzzy(i)
           ENDIF
        ENDDO
@@ -1611,6 +1623,8 @@ mole_int: IF(mk_infile_internal) THEN
        DEALLOCATE ( temp_mole_file , STAT = istatus)
        DEALLOCATE ( temp_mole_dens , STAT = istatus)
        DEALLOCATE ( temp_mole_biso , STAT = istatus)
+       DEALLOCATE ( temp_mole_clin , STAT = istatus)
+       DEALLOCATE ( temp_mole_cqua , STAT = istatus)
        DEALLOCATE ( temp_mole_fuzzy, STAT = istatus)
        DEALLOCATE ( temp_mole_cont , STAT = istatus)
        DEALLOCATE ( temp_present   , STAT = istatus)
@@ -2019,4 +2033,65 @@ mole_int: IF(mk_infile_internal) THEN
       ENDIF 
 !                                                                       
       END SUBROUTINE domain_do_set                  
+!
+!*******************************************************************************
+!
+SUBROUTINE domain_reset
+!
+USE domain_mod
+USE micro_mod
+!
+IMPLICIT NONE
+!
+mk_name  = ' '
+mk_spcgr = 'P1'
+!
+mk_a0(:)    = (/1.0, 1.0, 1.0/)
+mk_win(:)   = (/90.0, 90.0, 90.0/)
+mk_dim(:,:) = 0.0
+mk_nscat    = 0
+mk_natoms   = 0
+!
+mk_spcgr_ianz = 1
+mk_spcgr_para = 0
+mk_spcgr_no   = 1
+mk_gen_add_n  = 0
+mk_gen_add_power(:) = 1
+mk_gen_add(:,:,:  ) = &
+     RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,mk_GEN_ADD_MAX)/),(/4,4,mk_GEN_ADD_MAX+1/))
+!
+mk_sym_add_n                     = 0
+mk_sym_add_power(:) = 1
+mk_sym_add(:,:,:)   = &
+     RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,mk_SYM_ADD_MAX)/),(/4,4,mk_SYM_ADD_MAX+1/))
+!
+mk_infile_internal = .FALSE.  ! File with domain atoms in stored internally
+mk_iatom           = 1        ! Current atom number in internal file
+!
+IF(ALLOCATED(clu_content))    clu_content(:) = ' '   ! (CLU_MAX_TYPE)
+IF(ALLOCATED(clu_name))       clu_name(:)    = ' '      ! (CLU_MAX_TYPE)
+!
+IF(ALLOCATED(clu_character))  clu_character(:) = -4  ! (CLU_MAX_TYPE)
+IF(ALLOCATED(clu_fuzzy))      clu_fuzzy(:)     = 2.55  ! (CLU_MAX_TYPE)
+IF(ALLOCATED(clu_orient))     clu_orient(:,:,:) = 0.00 ! (CLU_MAX_TYPE,3,4)
+IF(ALLOCATED(clu_shape))      clu_shape(:,:,:) = 0.00  ! (CLU_MAX_TYPE,3,4)
+IF(ALLOCATED(clu_sigma))      clu_sigma(:,:  ) = 0.00  ! (CLU_MAX_TYPE,3  )
+!
+clu_infile = ' '
+clu_index = 0
+clu_mode  = CLU_IN_PSEUDO
+clu_number = 0
+!
+clu_surface = .FALSE.
+clu_infile_internal = .false. ! Is infile an internal file ?
+clu_iatom = 0
+!
+clu_remove_mode = CLU_REMOVE_STRICT   ! Remove initial atoms or include prev domains
+clu_remove_end  = 0  ! Initial last atom to remove
+clu_remove_dist = 0.0! Initial removal distance
+!
+END SUBROUTINE domain_reset
+!
+!*******************************************************************************
+!
 END MODULE domain_menu

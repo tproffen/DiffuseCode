@@ -18,6 +18,7 @@ CONTAINS
       USE diffuse_mod 
       USE external_four
       USE fourier_sup
+      USE fourier_reset_mod
       USE get_iscat_mod
       USE modify_mod
       USE output_mod 
@@ -582,9 +583,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
+!     reset all fourier settings 'reset'
+!                                                                       
+            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               CALL fourier_reset
+!                                                                       
 !     start the Fourier transform 'run'                                 
 !                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
                   eck(1,4) = eck(1,1)       ! This is a layer
                   eck(2,4) = eck(2,1)       ! Set verticval corner

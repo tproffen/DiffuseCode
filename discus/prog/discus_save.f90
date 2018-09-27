@@ -322,10 +322,15 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_flen = lpara (1) 
                      ENDIF 
                   ENDIF 
+!
+!     ----Reset save menu 'rese'n'                                      
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+                  CALL save_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) THEN 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
                   IF (sav_keyword) THEN 
                      IF (str_comp (sav_file(1:8),'internal',8,8,8)) THEN
                         CALL save_internal (sav_file) 
@@ -833,6 +838,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             WRITE (ist, 4002) 'molecule', mole_type (i) 
             WRITE (ist, 4100) 'molecule', c_mole (mole_char (i) ) 
             WRITE (ist, 4500) 'molecule', mole_biso (mole_type(i))
+            WRITE (ist, 4600) 'molecule', mole_clin (mole_type(i))
+            WRITE (ist, 4700) 'molecule', mole_cqua (mole_type(i))
 !           DO j = 1, mole_len (i) 
 !           k = mole_cont (mole_off (i) + j) 
 !           WRITE (ist, 4) cr_at_lis (cr_iscat (k) ), (cr_pos (l, k),   &
@@ -912,6 +919,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  4300 FORMAT    (a,' file     ,',a) 
  4400 FORMAT    (a,' fuzzy    ,',f12.4) 
  4500 FORMAT    (a,' biso     ,',f12.4)
+ 4600 FORMAT    (a,' clin     ,',f12.8)
+ 4700 FORMAT    (a,' cqua     ,',f12.8)
  4900 FORMAT    (a,' end') 
     4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', I8,', ', F10.6) 
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
@@ -1111,6 +1120,8 @@ END SUBROUTINE save_internal_node
 !
       END SUBROUTINE save_store_setting
 !
+!*******************************************************************************
+!
       SUBROUTINE save_restore_setting
 !
       USE discus_config_mod
@@ -1162,6 +1173,8 @@ END SUBROUTINE save_internal_node
 !
       END SUBROUTINE save_restore_setting
 !
+!*******************************************************************************
+!
       SUBROUTINE save_default_setting
 !
       USE discus_config_mod
@@ -1212,5 +1225,67 @@ END SUBROUTINE save_internal_node
       sav_size_of = 1
 !
       END SUBROUTINE save_default_setting
+!
+!*******************************************************************************
+!
+SUBROUTINE save_reset
+!
+USE discus_save_mod
+
+IMPLICIT NONE
+!
+SAV_T_MAXSCAT = 1
+SAV_MAXSCAT  =  1
+!
+IF(ALLOCATED(sav_latom))   sav_latom(:)   = .TRUE. ! (0:MAXSCAT)
+IF(ALLOCATED(sav_t_latom)) sav_t_latom(:) = .TRUE. ! (0:MAXSCAT)
+!
+sav_t_sel_atom = .TRUE.
+sav_sel_atom   = .TRUE.
+!
+sav_t_file    = 'crystal.stru' 
+sav_file      = 'crystal.stru'
+!
+sav_t_keyword = .TRUE.
+sav_keyword   = .TRUE.
+!
+sav_t_w_scat  = .FALSE.
+sav_w_scat    = .FALSE.
+sav_t_w_adp   = .FALSE.
+sav_w_adp     = .FALSE.
+sav_t_w_occ   = .FALSE.
+sav_w_occ     = .FALSE.
+sav_t_r_ncell = .FALSE.
+sav_r_ncell   = .FALSE.
+sav_t_w_ncell = .FALSE.
+sav_w_ncell   = .FALSE.
+sav_t_w_gene  = .TRUE.
+sav_w_gene    = .TRUE.
+sav_t_w_symm  = .TRUE.
+sav_w_symm    = .TRUE.
+sav_t_w_mole  = .TRUE.
+sav_w_mole    = .TRUE.
+sav_t_w_obje  = .TRUE.
+sav_w_obje    = .TRUE.
+sav_t_w_doma  = .TRUE.
+sav_w_doma    = .TRUE.
+sav_t_w_prop  = .TRUE.
+sav_w_prop    = .TRUE.
+!
+sav_t_start   =  1
+sav_start     =  1
+sav_t_end     =  1
+sav_end       = -1
+sav_t_ncell(:)   =  1 
+sav_ncell(:)     =  1
+sav_t_sel_prop(:)=  (/0,0/)
+sav_sel_prop(:)  =  (/0,0/)
+sav_t_ncatoms =  1
+sav_ncatoms   =  1
+!
+END SUBROUTINE save_reset
+!
+!*******************************************************************************
+!
 !
 END MODULE save_menu

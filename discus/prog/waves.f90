@@ -424,6 +424,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
+!
+!     --- reset waves 'rese'                                               
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL waves_reset
 !                                                                       
 !     --- run waves 'run'                                               
 !                                                                       
@@ -1218,4 +1223,43 @@ ELSE wave_type
       ENDIF 
 !                                                                       
       END FUNCTION triang                           
+!
+!*****7*********************************************************        
+!
+SUBROUTINE waves_reset
+!
+USE waves_mod
+!
+IMPLICIT NONE
+!
+wv_func(:)   = 'sinu'
+!
+WV_MAXSCAT = 1
+IF(ALLOCATED(wv_repl ))     wv_repl(:)      = 0           ! (0:WV_MAXSCAT)
+IF(ALLOCATED(wv_latom))     wv_latom(:)     = .FALSE.     ! (0:WV_MAXSCAT)
+IF(ALLOCATED(wv_latom_rot)) wv_latom_rot(:) = .FALSE. ! (0:WV_MAXSCAT)
+!
+wv_iwave         = WV_LONG
+wv_ifunc         = WV_SINUS
+wv_sel_prop(0)   = 0
+wv_phase_typ     = WV_FIX
+wv_wave(:)       = (/1.,0.,0./)
+wv_swing(:)      = (/0.,1.,0./)
+wv_rot_uvw(:)    = (/0.,0.,1./)
+wv_rot_orig(:)   = 0.0
+wv_amp           = 0.5
+wv_rlam          =50.0
+wv_phase         = 0.0
+wv_amp0          = 0.0
+wv_plow          = 0.0
+wv_phigh         = 0.0
+wv_asym          = 0.5
+wv_sel_atom      = .true.
+wv_lacoust       = .true.
+wv_viceversa     = .false.
+!
+END SUBROUTINE waves_reset
+!
+!*****7*********************************************************        
+!
 END MODULE waves_do_menu

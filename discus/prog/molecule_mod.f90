@@ -47,6 +47,8 @@ REAL   , DIMENSION(:,:,:), ALLOCATABLE  ::  mole_symm                 ! (4,4,1:M
 !        RESHAPE((/(1.,(0.,0.,0.,0.,1.,ik=1,3),il=0,MOLE_MAX_SYMM)/),SHAPE(mole_symm ))
 REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_dens                 ! (  0:MOLE_MAX_MOLE)
 REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_biso                 ! (  0:MOLE_MAX_TYPE)
+REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_clin                 ! (  0:MOLE_MAX_TYPE)
+REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_cqua                 ! (  0:MOLE_MAX_TYPE)
 REAL   , DIMENSION(:), ALLOCATABLE      ::  mole_fuzzy                ! (  0:MOLE_MAX_MOLE)
 !
 INTEGER                                 :: mol_size_of = 0

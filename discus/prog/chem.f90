@@ -372,6 +372,11 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
                CALL do_hel ('discus chem '//zeile, lp) 
             ENDIF 
 !                                                                       
+!------ reset all parameters for 'chem' section: 'reset'                   
+!                                                                       
+         ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+            CALL chem_reset
+!                                                                       
 !------ set most parameters for 'chem' section: 'set'                   
 !                                                                       
          ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
@@ -6670,5 +6675,107 @@ IF(lshift) THEN   ! Periodic boundary conditions were applied
 ENDIF
 !
 END SUBROUTINE chem_apply_period
+!
 !*****7***************************************************************  
+!
+SUBROUTINE chem_reset
+
+USe chem_mod
+!
+IMPLICIT NONE
+!
+CHEM_MAXAT_CELL   = 1
+CHEM_MAX_AVE_ATOM = 1
+CHEM_MAX_VEC      = 1
+CHEM_MAX_ANG      = 1
+CHEM_MAX_RAN      = 0
+CHEM_MAX_CON      = 1
+CHEM_MAX_ENV      = 1
+!
+chem_fname     = 'blen.xy'
+chem_bin       = 601
+chem_ncor      = 1
+chem_blen_cut(:)  = (/1.5,  7.5/)
+chem_bang_cut(:)  = (/0.0,180.0/)
+chem_quick     = .true.
+chem_cluster   = .false.
+chem_period(:) = .true.
+chem_purge     = .FALSE.
+chem_sel_atom  = .true.
+!
+! Vector definitions
+IF(ALLOCATED(chem_cvec))    chem_cvec(:,:)    = 0        !  (5,CHEM_MAX_VEC)
+IF(ALLOCATED(chem_cvec))    chem_cvec(1,:)    = -9999    !  (5,CHEM_MAX_VEC)
+IF(ALLOCATED(chem_use_vec)) chem_use_vec(:,:) = 1     !  (CHEM_MAX_VEC,CHEM_MAX_COR)
+!
+! Range definitions
+IF(ALLOCATED(chem_use_ran))     chem_use_ran(:,:)    = 1     !  (CHEM_MAX_RAN,CHEM_MAX_COR)
+IF(ALLOCATED(chem_cran_cent))   chem_cran_cent(:,:)  = -9999   !  (0:CHEM_MAX_ATOM,CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_neig))   chem_cran_neig(:,:)  = 0   !  (0:CHEM_MAX_ATOM,CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_nuvw))   chem_cran_nuvw(:)    = 0   !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_nshort)) chem_cran_nshort(:)  = 0 !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_uvw))    chem_cran_uvw(:,:,:) = 0.0    !  (3,48,CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_sig))    chem_cran_sig(:)     = 0.0    !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_wsig))   chem_cran_wsig(:)    = 0.0   !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_rmax))   chem_cran_rmax(:)    = 0.0   !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_rmin))   chem_cran_rmin(:)    = 0.0   !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_cang))   chem_cran_cang(:)    = .FALSE. !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_lsym))   chem_cran_lsym(:)    = .FALSE. !  (CHEM_MAX_RAN)
+IF(ALLOCATED(chem_cran_short))  chem_cran_short(:)   = .FALSE. !  (CHEM_MAX_RAN)
+!
+! Angle definitions
+IF(ALLOCATED(chem_cwin))    chem_cwin(:,:)  = -9999        !  (9,CHEM_MAX_ANG)
+IF(ALLOCATED(chem_use_win)) chem_use_win(:,:) = 0     !  (CHEM_MAX_ANG,CHEM_MAX_COR)
+!
+! Connectivity definitions
+IF(ALLOCATED(chem_ccon))    chem_ccon(:,:) = -9999        !  (2,CHEM_MAX_ANG)
+IF(ALLOCATED(chem_cname))   chem_cname(:) = ' '  !  MMC Correlation name
+IF(ALLOCATED(chem_cname_l)) chem_cname_l(:) = 1     !  (2,CHEM_MAX_ANG)
+IF(ALLOCATED(chem_use_con)) chem_use_con(:,:) = 0     !  (CHEM_MAX_CON,CHEM_MAX_COR)
+!
+! Environment definitions
+!
+chem_hist(:) = 0 !  (CHEM_MAX_BIN)
+!
+! Average crystal structure
+IF(ALLOCATED(chem_ave_n))     chem_ave_n(:)       = 0       !  (MAXAT_CELL)
+IF(ALLOCATED(chem_ave_iscat)) chem_ave_iscat(:,:) = 0   !  (MAXAT_CELL,CHEM_MAX_ATOM)
+IF(ALLOCATED(chem_ave_pos))  chem_ave_pos(:,:)   = 0.0     !  (3,MAXAT_CELL)
+IF(ALLOCATED(chem_ave_sig))  chem_ave_sig(:,:)   = 0.0     !  (3,MAXAT_CELL)
+IF(ALLOCATED(chem_ave_bese)) chem_ave_bese(:,:)  = 0.0    !  (MAXAT_CELL,CHEM_MAX_ATOM)
+!
+! Displacement correlations
+IF(ALLOCATED(chem_disp_ave)) chem_disp_ave(:,:,:) = 0.0    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+IF(ALLOCATED(chem_disp_sig)) chem_disp_sig(:,:,:) = 0.0    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)
+!
+! Environment interactions
+IF(ALLOCATED(chem_use_env))  chem_use_env(:,:) = -9999     !  (CHEM_MAX_ENV,CHEM_MAX_COR)
+IF(ALLOCATED(chem_cenv))     chem_cenv(:,:) = -9999        !  (0:MAX_ATOM_ENV,CHEM_MAX_ENV)
+IF(ALLOCATED(chem_env_neig)) chem_env_neig(:) = 0    !  (CHEM_MAX_ENV)
+IF(ALLOCATED(chem_rmax_env)) chem_rmax_env(:) = 3.5  !  (CHEM_MAX_ENV)
+IF(ALLOCATED(chem_rmin_env)) chem_rmin_env(:) = 0.1  !  (CHEM_MAX_ENV)
+!
+chem_nran(:) = 0 !  (CHEM_MAX_COR)
+chem_nvec(:) = 0 !  (CHEM_MAX_COR)
+chem_ncon(:) = 0 !  (CHEM_MAX_COR)
+chem_nwin(:) = 0 !  (CHEM_MAX_COR)
+chem_ctyp(:) = 0 !  (CHEM_MAX_COR)
+chem_nnei(:) = 0 !  (CHEM_MAX_COR)
+chem_nenv(:) = 0 !  (CHEM_MAX_COR)
+!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_ave    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
+!REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
+chem_neig(:,:,:) = 0.0        !  (3,48,CHEM_MAX_COR)
+chem_dir(:,:,:) = 0.0         !  (3,2,CHEM_MAX_COR)
+chem_rmax(:)     = 0.0        !  (CHEM_MAX_COR)
+chem_rmin(:)     = 0.0        !  (CHEM_MAX_COR)
+chem_freq_sigma(:)     = 0.0  !  (CHEM_MAX_COR)
+chem_wink_sigma(:)     = 0.0  !  (CHEM_MAX_COR)
+chem_cang(:)       = .FALSE.  !  (CHEM_MAX_COR)
+chem_ldall(:)      = .FALSE.  !  (CHEM_MAX_COR)
+!
+!
+END SUBROUTINE chem_reset
+!
+!*****7***************************************************************  
+!
 END MODULE chem_menu

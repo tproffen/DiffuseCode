@@ -232,7 +232,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                   ENDIF 
 !                                                                       
-!     ----Select the isotropic B-value  of the object  'density'        
+!     ----Select the isotropic B-value  of the object  'biso'        
 !                                                                       
                ELSEIF (str_comp (befehl, 'biso', 1, lbef, 4) ) then 
                   IF (itype.gt.0) then 
@@ -243,6 +243,48 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         maxw)                                           
                         IF (ier_num.eq.0) then 
                            ins_biso = werte (1) 
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                  ENDIF 
+!                                                                       
+!     ----Select the linear correlation of the object  'clin'        
+!                                                                       
+               ELSEIF (str_comp (befehl, 'clin', 1, lbef, 4) ) then 
+                  IF (itype.gt.0) then 
+                     CALL get_params (zeile, ianz, cpara, lpara, maxw,  &
+                     lp)                                                
+                     IF (ier_num.eq.0.and.ianz.eq.1) then 
+                        CALL ber_params (ianz, cpara, lpara, werte,     &
+                        maxw)                                           
+                        IF (ier_num.eq.0) then 
+                           ins_clin = werte (1) 
+                        ELSE 
+                           ier_num = - 6 
+                           ier_typ = ER_COMM 
+                        ENDIF 
+                     ELSE 
+                        ier_num = - 6 
+                        ier_typ = ER_COMM 
+                     ENDIF 
+                  ENDIF 
+!                                                                       
+!     ----Select the ldraticinear correlation of the object  'cqua'        
+!                                                                       
+               ELSEIF (str_comp (befehl, 'cqua', 1, lbef, 4) ) then 
+                  IF (itype.gt.0) then 
+                     CALL get_params (zeile, ianz, cpara, lpara, maxw,  &
+                     lp)                                                
+                     IF (ier_num.eq.0.and.ianz.eq.1) then 
+                        CALL ber_params (ianz, cpara, lpara, werte,     &
+                        maxw)                                           
+                        IF (ier_num.eq.0) then 
+                           ins_cqua = werte (1) 
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
@@ -475,9 +517,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                   ENDIF 
 !                                                                       
+!     ----Reset insert menu 'rese'                                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL insert_reset
+!                                                                       
 !     ----run shear 'run'                                               
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run', 1, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
                   IF (ins_character.eq.MOLE_ATOM) then 
 !                                                                       
 !-----      --------Insert a molecule into the structure                
@@ -623,6 +670,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ENDIF 
          WRITE (output_io, 3019) ins_density 
          WRITE (output_io, 3021) ins_biso    
+         WRITE (output_io, 3022) ins_clin    
+         WRITE (output_io, 3023) ins_cqua    
          WRITE (output_io, 3020) ins_origin 
          WRITE (output_io, 3030) 'x', ins_xaxis 
          WRITE (output_io, 3030) 'y', ins_yaxis 
@@ -651,6 +700,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3016 FORMAT    ( '   type number        : ',i6) 
  3019 FORMAT    ( '   Scattering density : ',2x,f9.4) 
  3021 FORMAT    ( '   Isotropic B-value  : ',2x,f9.4) 
+ 3022 FORMAT    ( '   Linear correlation : ',2x,f9.4) 
+ 3023 FORMAT    ( '   Quadr. correlation : ',2x,f9.4) 
  3020 FORMAT    ( '   origin             : ',3(2x,f9.4)/) 
  3030 FORMAT    ( '   ',a1,'-axis             : ',3(2x,f9.4)) 
  3110 FORMAT    ( '   file               : ',a) 
@@ -775,6 +826,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   mole_type (i) = mole_num_type 
                   mole_dens (i) = ins_density 
                   mole_biso (mole_type(i)) = ins_biso    
+                  mole_clin (mole_type(i)) = ins_clin    
+                  mole_cqua (mole_type(i)) = ins_cqua    
                ELSE 
                   mole_type (i) = ins_type 
                   kk = 1 
@@ -983,7 +1036,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ii = mole_off (mole_num_mole) + mole_len (mole_num_mole) + 1
                   mole_type (i)  = mole_num_type 
                   mole_dens (i)  = 1.0 
-                  mole_biso (mole_type(i))  = 1.0 
+                  mole_biso (mole_type(i))  = 0.0 
+                  mole_clin (mole_type(i))  = 0.0 
+                  mole_cqua (mole_type(i))  = 0.0 
                   mole_file (i)  = ins_file 
                   mole_fuzzy (i) = ins_fuzzy 
                ELSE 
@@ -1102,4 +1157,33 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ENDIF enough_mole  
 !                                                                       
       END SUBROUTINE insert_domain                  
+!
+!*****7*****************************************************************
+!
+SUBROUTINE insert_reset
+!
+USE insert_mod
+! 
+IMPLICIT NONE
+!
+ins_obj_atom  = 'VOID'
+ins_file      = ' '
+ins_CHARACTER = 0
+ins_type      = 0
+ins_origin(:) = (/0.0, 0.0, 0.0/) ! (3)
+ins_cent(:)   = (/0.0, 0.0, 0.0/) ! (3)
+ins_density   = 0.0
+ins_biso      = 0.0
+ins_clin      = 0.0
+ins_cqua      = 0.0
+ins_fuzzy     = 0.0
+ins_adp       = 0.0
+ins_xaxis(:)  = (/1.0, 0.0, 0.0/) ! (3)
+ins_yaxis(:)  = (/0.0, 1.0, 0.0/) ! (3)
+ins_zaxis(:)  = (/0.0, 0.0, 1.0/) ! (3)
+ins_xdim(:)   = (/1.0, 0.0, 0.0/) ! (3)
+ins_ydim(:)   = (/0.0, 1.0, 0.0/) ! (3)
+ins_zdim(:)   = (/0.0, 0.0, 1.0/) ! (3)
+!
+END SUBROUTINE insert_reset
 END MODULE insert_menu

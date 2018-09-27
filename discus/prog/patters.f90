@@ -12,6 +12,7 @@ CONTAINS
       USE discus_allocate_appl_mod
       USE crystal_mod 
       USE diffuse_mod 
+      USE fourier_reset_mod 
       USE intens_mod 
       USE inverse_mod 
       USE metric_mod
@@ -635,9 +636,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
+!     Reset the Fourier settings 'reset'
+!                                                                       
+            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               CALL fourier_reset
+!                                                                       
 !     start the inverse Fourier transform 'run'                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+            ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
 !                                                                       
                IF (cr_v.le.0.0) then 
                   ier_num = - 35 

@@ -548,9 +548,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                   ENDIF 
 !                                                                       
+!     ----run symmetry 'rese'                                            
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL symm_reset
+!                                                                       
 !     ----run symmetry 'run'                                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                   IF (l_need_setup) then 
                      CALL symm_setup 
                   ENDIF 
