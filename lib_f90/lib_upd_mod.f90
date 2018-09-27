@@ -56,6 +56,7 @@ search_var: DO i=var_sys+1, var_num
             IF((ianz>=2 .AND. 0<kpara2 .AND. kpara2<=var_field(var_entry(i))%var_shape(2)) .OR.  &
                (kpara2==0 .AND. var_field(var_entry(i))%var_shape(2)==1 ) )  THEN
                kpara2 = MAX(1, kpara2)
+               zeile(1:ikl - lcomm-1) = string(1:ikl - lcomm-1)
                IF(var_type(i)==      IS_INTE) THEN
                   WRITE(zeile(ikl - lcomm:ikl + 13),'(i15)')                 &
                   NINT(var_field(var_entry(i))%var_value(kpara,kpara2))
