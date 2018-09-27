@@ -1559,6 +1559,38 @@ IF (ier_num.eq.0) THEN
             ENDIF 
          ENDIF 
 !                                                                       
+      ELSEIF(str_comp(cpara(1),'clin',3,lpara(1),3)) THEN                                                        
+!                                                                       
+!     ------Define the isotropic molecular B-Value
+!                                                                       
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               mole_clin(mole_type(mole_num_mole)) = werte (2) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
+!                                                                       
+      ELSEIF(str_comp(cpara(1),'cqua',3,lpara(1),3)) THEN                                                        
+!                                                                       
+!     ------Define the isotropic molecular B-Value
+!                                                                       
+         cpara (1) = '0' 
+         lpara (1) = 1 
+         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+         IF (ier_num.eq.0) then 
+            IF (ianz.eq.2) then 
+               mole_cqua(mole_type(mole_num_mole)) = werte (2) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ENDIF 
+!                                                                       
       ELSEIF (str_comp (cpara (1) , 'fuzzy', 3, lpara (1) , 5) ) THEN
 !                                                                       
 !     ------Define the minimum distance between atoms in a domain       
@@ -2688,6 +2720,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       mole_cont(:) = 0 
       mole_dens(:) = 0.0
       mole_biso(:) = 0.0
+      mole_clin(:) = 0.0
+      mole_cqua(:) = 0.0
       mole_fuzzy(:) = 0.0
       mole_gene (:,:,:) = 0.0
       mole_symm (:,:,:) = 0.0
@@ -4016,6 +4050,7 @@ END SUBROUTINE rmc6f_period
       INTEGER               :: ird, iwr 
       INTEGER               :: iianz = 3
       INTEGER               :: i, j, k
+      INTEGER               :: iblank
       INTEGER               :: iostatus
       LOGICAL, DIMENSION(7) :: header_done = .false.
       INTEGER               :: line_no, line_sig, data_no
@@ -4203,29 +4238,34 @@ main: DO
             is_loop = nline                     ! Store line number of loop start
          ENDIF
 !
-!  Space group name
+!  Space group name                    ! Find '_H-M' or '_H-M_alt' or similar
 !
-         is_spcgr = INDEX(line,'_symmetry_space_group')
+         is_spcgr = INDEX(line,'_space_group')
          IF(is_spcgr/=0) THEN                   ! Got a symmetry info
 !
-            IF(INDEX(line,'_symmetry_space_group_name_H-M')/=0) THEN
-               iquote1 = INDEX(line(is_spcgr+30:length),'''')
+!           IF(INDEX(line,'_symmetry_space_group_name_H-M')/=0) THEN
+            is_spcgr = INDEX(line,'_H-M')
+            IF(is_spcgr/=0) THEN                       ! Found H-M symbol
+               
+               iblank = INDEX(line(is_spcgr:length), ' ')    !Find blank after H-M
+                  
+               iquote1 = INDEX(line(is_spcgr+iblank:length),'''')
                IF(iquote1>0) THEN
-                  iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'''')
-                  iquote1 = is_spcgr+30+iquote1
+                  iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'''')
+                  iquote1 = is_spcgr+iblank+iquote1
                   iquote2 =             iquote1+iquote2 - 2
                ELSE
-                  iquote1 = INDEX(line(is_spcgr+30:length),'"')
-                  iquote2 = INDEX(line(is_spcgr+30+iquote1:length),'"')
-                  iquote1 = is_spcgr+30+iquote1
+                  iquote1 = INDEX(line(is_spcgr+iblank:length),'"')
+                  iquote2 = INDEX(line(is_spcgr+iblank+iquote1:length),'"')
+                  iquote1 = is_spcgr+iblank+iquote1
                   iquote2 =             iquote1+iquote2 - 2
                ENDIF
                IF(iquote2> iquote1 .and. iquote1>0 .and. iquote2>0 ) THEN
                   spcgr   = line(iquote1:iquote2)
                   spcgr_l = iquote2 - iquote1 + 1
                ELSE                     ! Space group is not enclosed in quotation marks
-                  spcgr = line(is_spcgr+30:length)
-                  spcgr_l = length - (is_spcgr+30) + 1
+                  spcgr = line(is_spcgr+iblank:length)
+                  spcgr_l = length - (is_spcgr+iblank) + 1
                ENDIF
                CALL rem_bl(spcgr,spcgr_l)
                bravais = spcgr(1:1)
@@ -4240,6 +4280,7 @@ main: DO
                IF(spcgr(spcgr_l-1:spcgr_l-1)==':') THEN
                   spcgr(spcgr_l-1:spcgr_l-1) =','
                ENDIF
+write(*,*) ' SPACE GROUP ', spcgr, spcgr_l
                header_done(1) = .true.
             ENDIF
          ENDIF
