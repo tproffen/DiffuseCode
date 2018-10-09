@@ -4280,7 +4280,6 @@ main: DO
                IF(spcgr(spcgr_l-1:spcgr_l-1)==':') THEN
                   spcgr(spcgr_l-1:spcgr_l-1) =','
                ENDIF
-write(*,*) ' SPACE GROUP ', spcgr, spcgr_l
                header_done(1) = .true.
             ENDIF
          ENDIF
