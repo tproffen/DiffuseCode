@@ -1873,7 +1873,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       z = ran1 (idum) 
       i = 1 
-      DO while (z.gt.mmc_move_cprob (i) .and.i.lt.MC_N_MOVE) 
+      DO while (z.ge.mmc_move_cprob (i) .and.i.lt.MC_N_MOVE) 
       i = i + 1 
       ENDDO 
       mmc_move = i 
