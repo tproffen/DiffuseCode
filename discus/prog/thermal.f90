@@ -20,6 +20,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+      USE random_mod
 !
       IMPLICIT none 
        
@@ -39,6 +40,7 @@ CONTAINS
       REAL uc_su2 (3, 0:maxscat) 
       REAL pi2, bfac, a 
       LOGICAL flag_all, flag_mol 
+REAL :: gasdev
 !
       flag_all=.true.
       flag_mol=.false.
@@ -86,15 +88,15 @@ CONTAINS
             is = mole_cont (mole_off (i) + 1) 
 !           a = sqrt (bfac * cr_dw (cr_iscat (is) ) ) 
             a = sqrt (bfac * mole_biso (mole_type (i) ) ) 
-            CALL ther_vec(flag_all, a, uc, up)
+!           CALL ther_vec(flag_all, a, uc, up)
             is = mole_type (i) 
-!        DO ii = 1, 3 
-!        IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
-!           up (ii) = gasdev (a) 
-!        ELSE 
-!           up (ii) = 0.0 
-!        ENDIF 
-!        ENDDO 
+         DO ii = 1, 3 
+         IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
+            up (ii) = gasdev (a) 
+         ELSE 
+            up (ii) = 0.0 
+         ENDIF 
+         ENDDO 
             CALL trans (up, cr_gmat, uc, 3) 
             DO j = 1, 3 
                DO k = 1, mole_len (i) 
@@ -113,15 +115,15 @@ CONTAINS
          DO i = 1, cr_natoms 
             is = cr_iscat (i) 
             a  = sqrt (bfac * cr_dw (is) ) 
-            CALL ther_vec(flag_all, a, uc, up)
-!        DO ii = 1, 3 
-!        IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
-!           up (ii) = gasdev (a) 
-!        ELSE 
-!           up (ii) = 0.0 
-!        ENDIF 
-!        ENDDO 
-!        CALL trans (up, cr_gmat, uc, 3) 
+!           CALL ther_vec(flag_all, a, uc, up)
+         DO ii = 1, 3 
+         IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
+            up (ii) = gasdev (a) 
+         ELSE 
+            up (ii) = 0.0 
+         ENDIF 
+         ENDDO 
+         CALL trans (up, cr_gmat, uc, 3) 
             DO j = 1, 3 
                cr_pos (j, i)  = cr_pos (j, i) + uc (j) 
                uc_max (j, is) = max (uc_max (j, is), abs (up (j) ) ) 
