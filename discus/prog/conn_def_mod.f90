@@ -20,6 +20,7 @@ TYPE :: CONN_DEFS
    INTEGER                            :: valid_id     ! ID = no of current definition
    CHARACTER (LEN=256)                :: def_name     ! Name of current definition
    INTEGER                            :: def_name_l   ! Length of connectivity name
+   LOGICAL                            ::     create   ! Do create list if TRUE
    INTEGER                            :: mmc_sel      ! This definition may be used by mmc to select
    INTEGER                            :: mmc_ene      ! This definition may be used by mmc energy
    INTEGER                            :: valid_no     ! Number of valid atom types

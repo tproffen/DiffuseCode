@@ -34,6 +34,8 @@ CONTAINS
 !
 !  Module procedures to allocate, deallocate,
 !
+!*******************************************************************************
+!
    SUBROUTINE allocate_conn_list(MAX_ATOM)
 !
 !  Simply allocates the connectivity list
@@ -53,22 +55,32 @@ CONTAINS
    ENDIF
    END SUBROUTINE allocate_conn_list
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-   SUBROUTINE deallocate_conn(MAX_ATOM)
+   SUBROUTINE deallocate_conn(MAX_ATOM, l_all, itype, ino, c_name)
 !
 !  Properly deallocates the connectivity list
 !
+use crystal_mod
+!
    IMPLICIT  none
 !
-   INTEGER, INTENT(in)  :: MAX_ATOM
+   INTEGER, INTENT(in)          :: MAX_ATOM
+   LOGICAL, INTENT(IN)          :: l_all          ! deallocate all connectivities
+   INTEGER, INTENT(in)          :: itype          ! Atom type whose conn shal be deallocated
+   INTEGER, INTENT(in)          :: ino            ! Conn number for this atom type
+   CHARACTER(LEN=*), INTENT(IN) :: c_name         ! Conn  name for this atom type
 !
-   INTEGER              :: i
+   CHARACTER(LEN=256)   :: work_name    ! Name of the definition to change/delete
+   INTEGER              :: work_name_l  ! Length of name for the definition to change/delete
+   INTEGER              :: i, j
 !
+   work_name_l = LEN_TRIM(work_name)
 !
 ! Do proper removal of connectivity list
 !
-   IF(ALLOCATED(at_conn)) THEN
+   IF(ALLOCATED(at_conn)) THEN                           ! Connectivities have been created
+      IF(l_all) THEN                                     ! Clear all connectivities
       cln_nghb : DO i=1,MAX_ATOM                         ! Loop over all atoms
         liste: IF ( ASSOCIATED(at_conn(i)%liste) ) THEN  ! If neighborhood was created
           hood_temp => at_conn(i)%liste                  ! point to the first neighborhood
@@ -91,6 +103,8 @@ CONTAINS
              ENDIF
              hood_head => hood_temp
           END DO hood                                    ! Loop over neighborhoods
+          NULLIFY(hood_temp)
+          NULLIFY(hood_head)
         END IF liste                                     ! If atom has neigborhoods
       END DO cln_nghb                                    ! Loop over atoms
 !
@@ -98,11 +112,58 @@ CONTAINS
       DEALLOCATE (at_conn )                     ! Deallocate the initial array
 !
       conn_status = .false.
+      ELSE                                               ! A specifiv connectivity is to be deallocated
+         cln_spec : DO i=1,MAX_ATOM                         ! Loop over all atoms
+            j = 0
+            liste2: IF ( ASSOCIATED(at_conn(i)%liste) ) THEN  ! If neighborhood was created
+               hood_temp => at_conn(i)%liste                  ! point to the first neighborhood
+               NULLIFY(hood_prev)                             ! The list itself has no predecessor
+               hood2: DO WHILE ( ASSOCIATED(hood_temp) )      ! While there are further neighborhood
+                  j = j + 1
+                  IF(hood_temp%conn_name == c_name) THEN      ! This neighoborhood is to be deallocated
+                     temp => hood_temp%nachbar                ! point to the first neighbor within current neigborhood
+                     head => hood_temp%nachbar
+                     DO WHILE ( ASSOCIATED(temp) )            ! While there are further neighbors
+                        temp => temp%next                     ! Point to next neighbor
+                        IF(ASSOCIATED(head)) THEN
+                           DEALLOCATE ( head )                ! deallocate previous neighbor
+                        ENDIF
+                        head => temp                          ! also point to next neighbor
+                     END DO
+                     NULLIFY(temp)
+                     NULLIFY(head)
+                     IF(ASSOCIATED(hood_temp%next_neighborhood)) THEN   ! A next neighborhood exists
+                        IF(ASSOCIATED(hood_prev))   THEN                ! A previous neighborhood existed
+                           hood_prev%next_neighborhood => hood_temp%next_neighborhood
+                        ELSE
+                           at_conn(i)%liste => hood_temp%next_neighborhood
+                        ENDIF
+                     ELSE                                        ! This was the ast neighborhood
+                        IF(ASSOCIATED(hood_prev))   THEN                ! A previous neighborhood existed
+                           NULLIFY(hood_prev%next_neighborhood)
+                        ELSE
+                           NULLIFY(at_conn(i)%liste)
+                        ENDIF
+                     ENDIF
+                     DEALLOCATE(hood_temp)
+                     NULLIFY(hood_temp)
+                     NULLIFY(hood_prev)
+                     EXIT liste2                                 ! we are done with this atom
+                  ELSE
+                     hood_prev => hood_temp
+                     hood_temp => hood_temp%next_neighborhood    ! Point to next neighborhood
+                  ENDIF
+               END DO hood2                                    ! Loop over neighborhoods
+            END IF liste2                                    ! If atom has neigborhoods
+         END DO cln_spec                                    ! Loop over atoms
+      ENDIF
    ENDIF
 !
    END SUBROUTINE deallocate_conn
 !
-   SUBROUTINE create_connectivity
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+   SUBROUTINE create_connectivity(l_all, itype, ino, c_name)
 !
 !  Performs a loop over all atoms and creates the individual connectivities
 !
@@ -114,7 +175,10 @@ CONTAINS
 !
    IMPLICIT NONE
 !
-!  INTEGER, INTENT(IN)  :: i
+   LOGICAL, INTENT(IN)          :: l_all          ! allocate all connectivities
+   INTEGER, INTENT(in)          :: itype          ! Atom type whose conn shall be allocated
+   INTEGER, INTENT(in)          :: ino            ! Conn number for this atom type
+   CHARACTER(LEN=*), INTENT(IN) :: c_name         ! Conn  name for this atom type
 !
    INTEGER, PARAMETER  :: MIN_PARA = 1
    INTEGER             :: maxw
@@ -125,18 +189,22 @@ CONTAINS
    INTEGER              :: is  ! dummies for scattering types
    INTEGER              :: ianz
    INTEGER              :: n_neig      ! Actual number of neighboring atoms
-   INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig  ! Valid neigbors under the scope
+!  INTEGER, PARAMETER   :: itype = 0   ! Dummy atom type
+!  INTEGER, PARAMETER   :: ino   = 0   ! Dummy conn number
+!  CHARACTER(LEN=256), PARAMETER     :: c_name   = ' '   ! Dummy conn name
+   INTEGER,DIMENSION(:), ALLOCATABLE :: valid_neig       ! Valid neigbors under the scope
    LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
    LOGICAL              :: fq    ! quick search algorithm
+!  LOGICAL              :: l_all ! Deallocate all connectivities
    REAL                 :: rmin        ! Minimum bond length
    REAL                 :: rmax        ! Maximum bond length
    REAL   , DIMENSION(3)     :: x      ! Atom position
 !
    maxw = MAX(MIN_PARA, MAXSCAT+1)
 !
-   CALL deallocate_conn(conn_nmax)                     ! Deallocate old connectivity
+   CALL deallocate_conn(conn_nmax, l_all, itype, ino, c_name)              ! Deallocate old connectivity(ies)
    conn_nmax = cr_natoms                               ! Remember current atom number
-   CALL allocate_conn_list(conn_nmax)                  ! Allocate connectivity
+   IF(l_all) CALL allocate_conn_list(conn_nmax)        ! Allocate connectivity
 !
    fp (1) = chem_period (1)
    fp (2) = chem_period (2)
@@ -152,6 +220,8 @@ CONTAINS
       allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
          def_temp => def_main(is)%def_liste
          neighs: DO
+            IF(l_all .OR. c_name == def_temp%def_name) THEN !Allocate all OR a specific one
+            IF(def_temp%create) THEN
             werte(1:def_temp%valid_no) =      &
                def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
             ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
@@ -188,6 +258,10 @@ CONTAINS
 !              Properly set the pointer hood_temp
 !
                IF ( ASSOCIATED(at_conn(i)%liste)) THEN      ! A previous NEIGHBORHOOD exists
+                  IF(.NOT.ASSOCIATED(hood_temp)) hood_temp => at_conn(i)%liste ! Point to current NEIGHBORHOOD
+                  DO WHILE(ASSOCIATED(hood_temp%next_neighborhood))
+                     hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
+                  ENDDO
                   ALLOCATE(hood_temp%next_neighborhood)     ! Create one NEIGHBORHOOD
                   hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
                ELSE
@@ -237,9 +311,13 @@ CONTAINS
                ENDDO
                DEALLOCATE(valid_neig)
             ENDIF
+               IF(.NOT.l_all) CYCLE atome
+!              def_temp%create = .FALSE.
+            ENDIF                                           ! IF create
             IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
                CYCLE atome
             ENDIF
+            ENDIF                                           ! IF all or specific
             def_temp => def_temp%def_next
          ENDDO neighs                                       ! Loop over def.s
       ENDIF allowed                                         ! Atom has def.s
@@ -248,6 +326,8 @@ CONTAINS
    conn_status = .true.
 !
    END SUBROUTINE create_connectivity
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE recreate_connectivity(itype, ino, c_name)
 !
@@ -280,6 +360,7 @@ CONTAINS
    LOGICAL              :: fq    ! quick search algorithm
    LOGICAL              :: found_def   ! Found correct neiborhood def to replace
    LOGICAL              :: found       ! Found correct neiborhood to replace
+!  LOGICAL              :: l_all ! Deallocate all connectivities
    REAL                 :: rmin        ! Minimum bond length
    REAL                 :: rmax        ! Maximum bond length
    REAL   , DIMENSION(3)     :: x      ! Atom position
@@ -287,7 +368,8 @@ CONTAINS
    maxw = MAX(MIN_PARA, MAXSCAT+1)
    found = .FALSE.
 !
-!  CALL deallocate_conn(conn_nmax)                     ! Deallocate old connectivity
+!  l_all = .TRUE.
+!  CALL deallocate_conn(conn_nmax, l_all)              ! Deallocate old connectivity
    conn_nmax = cr_natoms                               ! Remember current atom number
    IF ( .NOT.ALLOCATED(at_conn)) THEN                 ! No previous NEIGHBORHOOD exists
       CALL allocate_conn_list(conn_nmax)               ! Allocate connectivity
@@ -335,6 +417,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                         found = .TRUE.
                         EXIT find_hood
                      ENDIF
+                     hood_prev => hood_temp
                      hood_temp => hood_temp%next_neighborhood  ! Point to the next NEIGHBORHOOD
                   ENDDO find_hood
                   IF(found) THEN                            ! We are at correct neighborhood
@@ -349,6 +432,11 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                        head => temp                         ! also point to next neighbor
                      END DO
                   ELSE                                      ! No neighborood found thus:
+                     hood_temp => hood_prev
+                     NULLIFY(hood_prev)
+                     IF(ASSOCIATED(hood_temp%next_neighborhood)) THEN
+                        DEALLOCATE(hood_temp%next_neighborhood)
+                     ENDIF
                      ALLOCATE(hood_temp%next_neighborhood)     ! Create one NEIGHBORHOOD
                      hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
                   ENDIF
@@ -414,6 +502,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
    END SUBROUTINE recreate_connectivity
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE conn_do_set ( code, zeile, length)
 !-                                                                      
@@ -737,6 +826,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                def_temp%mole_scope = mole_scope                  ! Set scope
                def_temp%def_rmin   = rmin                        ! Set bond length limits
                def_temp%def_rmax   = rmax                        ! Set bond length limits
+               def_temp%create     = .TRUE.
             ELSEIF ( code == code_del ) THEN                     ! Remove this definition
                IF ( ASSOCIATED(def_temp%def_next) ) THEN         ! A further definition exists
                   IF ( work_id == 1 ) THEN                       ! This is the first def.
@@ -811,6 +901,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
+            def_temp%create     = .TRUE.
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF is_work
@@ -850,6 +941,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
             def_temp%mole_scope = mole_scope                  ! Set scope
             def_temp%def_rmin   = rmin                        ! Set bond length limits
             def_temp%def_rmax   = rmax                        ! Set bond length limits
+            def_temp%create     = .TRUE.
             NULLIFY(def_temp%def_next)                        ! No further definition
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF
@@ -859,6 +951,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       DEALLOCATE(is_cent)
 !
    END SUBROUTINE conn_do_set
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE conn_menu
 !-                                                                      
@@ -891,6 +985,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       CHARACTER(1024) line, zeile
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAXSCAT) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAXSCAT)
+      CHARACTER(LEN=1024), DIMENSION(1)                       ::ccpara ! (MAXSCAT) 
+      INTEGER            , DIMENSION(1)                       ::llpara ! (MAXSCAT)
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
       INTEGER              :: c_name_l ! connectivity name length
       INTEGER              :: ino      ! connectivity no
@@ -898,10 +994,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER              :: itype    ! atomR type for recreate
       INTEGER lp, length, lbef 
       INTEGER indxg, ianz, iianz
+      LOGICAL              :: l_all    ! Deallocate all connectivities
       LOGICAL              :: long     ! make long output
       LOGICAL              :: lnew     ! Do not make new atom type
       LOGICAL lend
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
+      REAL               , DIMENSION(1)                       :: wwerte ! (MAXSCAT) 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -994,12 +1092,59 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !     ----create a connectivity list 'create'                                     
 !                                                                       
                ELSEIF (str_comp (befehl, 'create', 2, lbef, 6) ) then 
-                  CALL create_connectivity
+                  l_all  = .TRUE.
+                  itype  = 0
+                  ino    = 0
+                  c_name = ' '
+                  CALL create_connectivity(l_all, itype, ino, c_name)
 !                                                                       
 !     ----delete a connectivity list 'delete'                                     
 !                                                                       
                ELSEIF (str_comp (befehl, 'delete', 2, lbef, 6) ) then 
-                  CALL deallocate_conn (conn_nmax)
+                  CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+                  IF(ier_num==0) THEN
+                     itype  = 0
+                     ino    = 0
+                     c_name = ' '
+                     IF(ianz==0) THEN 
+                        l_all = .TRUE.
+                        CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                     ELSEIF(ianz==1) THEN
+                        l_all = str_comp(cpara(1), 'ALL', 3, lpara(1) ,3)
+                        IF(l_all) THEN
+                           CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                        ENDIF
+                     ELSEIF(ianz==2) THEN
+                        ccpara(1) = cpara(ianz)
+                        llpara(1) = lpara(ianz)
+                        c_name = cpara(1)(1:lpara(1))
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        IF(ier_num==0) THEN
+                           ino = NINT(werte(1))
+                           c_name = ' '
+                        ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
+                           CALL no_error   ! assume 
+                        ENDIF
+                        lnew  = .false.
+                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
+                        IF(ier_num==0) THEN
+                           itype = NINT(werte(1))
+                           l_all = .FALSE.
+                           IF(itype == -1) THEN
+                              DO itype =0, cr_nscat
+                                 CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                              ENDDO
+                              CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                           ENDIF
+                        ENDIF
+                     ELSE
+                        ier_num = -6
+                        ier_typ = ER_COMM
+                     ENDIF
+                  ENDIF
 !                                                                       
 !     ----add a new connectivity definition       'add'
 !                                                                       
@@ -1020,21 +1165,29 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                      ino    = 0
                      c_name = ' '
                      IF(ianz==2) THEN
-                        iianz = 1
+                        ccpara(1) = cpara(ianz)
+                        llpara(1) = lpara(ianz)
+                        c_name = cpara(1)(1:lpara(1))
+                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        IF(ier_num==0) THEN
+                           ino = NINT(werte(1))
+                           c_name = ' '
+                        ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
+                           CALL no_error   ! assume 
+                        ENDIF
                         lnew  = .false.
-                        CALL get_iscat (iianz, cpara, lpara, werte, maxw, lnew)
+                        CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
                         IF(ier_num==0) THEN
                            itype = NINT(werte(1))
-                           CALL del_params (1, ianz, cpara, lpara, maxw)
-                           c_name = cpara(1)(1:lpara(1))
-                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                           IF(ier_num==0) THEN
-                              ino = NINT(werte(1))
-                              c_name = ' '
-                           ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
-                              CALL no_error   ! assume 
+                           l_all = .FALSE.
+                           IF(itype == -1) THEN
+                              DO itype =0, cr_nscat
+                                 CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                                 CALL create_connectivity(l_all, itype, ino, c_name)
+                              ENDDO
+                              CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                              CALL create_connectivity(l_all, itype, ino, c_name)
                            ENDIF
-                           CALL recreate_connectivity(itype, ino, c_name)
                         ENDIF
                      ELSE
                         ier_num = -6
@@ -1046,7 +1199,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !                                                                       
                ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
                   CALL conn_do_set (code_res,zeile, lp) 
-                  CALL deallocate_conn (conn_nmax)
+                  l_all = .TRUE.
+                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
 !                                                                       
 !     ----overwrite  a new connectivity definition 'set'                 
 !                                                                       
@@ -1096,6 +1250,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !                                                                       
                ELSEIF (str_comp (befehl, 'switch', 2, lbef, 6) ) then 
                   CALL bond_switch_para(zeile,lp)
+!                                                                       
+!     ----TEST   te  a new connectivity definition 'set'                 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'test', 2, lbef, 4) ) then 
+                  CALL conn_test
+!                                                                       
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
@@ -1137,6 +1297,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       prompt = orig_prompt
 !                                                                       
    END SUBROUTINE conn_menu
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE conn_show
 !-                                                                      
@@ -1213,6 +1375,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
    END SUBROUTINE conn_show
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE conn_test
 !-                                                                      
@@ -1246,6 +1409,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
    END SUBROUTINE conn_test
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE do_show_connectivity ( iatom, idef, c_name, long )
 !-                                                                      
@@ -1330,6 +1494,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
 !
       END SUBROUTINE do_show_connectivity 
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE bond_switch_para(zeile,length)
 !
@@ -1470,6 +1635,7 @@ search:        DO i=1, cr_natoms               ! loop until we find the natoms a
 !
    END SUBROUTINE bond_switch_para
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
    SUBROUTINE do_bond_switch (jatom, ino, c_name, success)
 !-                                                                      
@@ -1711,6 +1877,8 @@ search_j: DO i=1, k_natoms
 !
    END SUBROUTINE do_bond_switch
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
    SUBROUTINE get_connect_pointed(hood_p, jatom, ino, c_name, c_list, c_offs, c_natoms, success)
 !
    IMPLICIT NONE
@@ -1776,6 +1944,8 @@ search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neigh
 !
    END SUBROUTINE get_connect_pointed
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
    SUBROUTINE  do_exchange(hood_start, in_ref, in_ex, in_offs, t_ex, t_offs)
 !
    IMPLICIT NONE
@@ -1801,6 +1971,8 @@ search_s_ex: DO WHILE(ASSOCIATED(p_atoms))
    ENDDO search_s_ex
    NULLIFY(p_atoms)
    END SUBROUTINE  do_exchange
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE conn_update(isel, shift)
 !
@@ -1894,5 +2066,7 @@ NULLIFY(hood_j)
 !
 !
 END SUBROUTINE conn_update
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 END MODULE conn_mod

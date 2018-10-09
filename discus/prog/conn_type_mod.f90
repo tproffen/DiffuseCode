@@ -46,6 +46,7 @@ TYPE (NEIGHBORS), POINTER       :: head, tail, temp
 ! neighborhoods of an individual atom.
 TYPE (NEIGHBORHOOD), POINTER       :: hood_head
 TYPE (NEIGHBORHOOD), POINTER       :: hood_temp
+TYPE (NEIGHBORHOOD), POINTER       :: hood_prev
 TYPE (NEIGHBORHOOD), POINTER       :: hood_central
 TYPE (NEIGHBORHOOD), POINTER       :: hood_second
 !
