@@ -6,7 +6,10 @@ PRIVATE
 PUBLIC do_place_molecule, deco_reset
 !
 CONTAINS
-   SUBROUTINE do_place_molecule
+!
+!*******************************************************************************
+!
+SUBROUTINE do_place_molecule
 !
 !   Main menu and procedures to place molecules onto a surface
 !
@@ -506,8 +509,8 @@ USE errlist_mod
       IF(ier_num==0) then
          IF(ALLOCATED(temp_hkl)) THEN
             DEALLOCATE(temp_hkl)
-            ALLOCATE(temp_hkl(3,48))
          ENDIF
+         ALLOCATE(temp_hkl(3,48))
          temp_nhkl = 1
          IF(l_form) THEN    ! If necessary expand form to symmetrically equivalent hkl
             CALL point_init(hkl_new, temp_hkl, temp_nhkl)
@@ -718,7 +721,7 @@ USE prop_para_func
    USE prop_para_mod
    USE read_internal_mod
    USE structur , ONLY: rese_cr
-   USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
+   USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 !USE surface_func_mod
    USE discus_init_mod, ONLY: mmc_init
 !
@@ -790,6 +793,14 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 !
    REAL ran1
 !
+   IF(MAXVAL(cr_surf(0,:)) == 0) THEN
+      ier_num = -130
+      ier_typ = ER_APPL
+      ier_msg(1) = 'The structure needs to be cut in surface menu'
+      ier_msg(2) = 'Use the '' boundary '' command prior to DECO'
+      ier_msg(3) = 'Check use of ''set external'' in ''property'' '
+      RETURN
+   ENDIF
    IF(cr_natoms == 0 ) THEN
       ier_num = -27
       ier_typ = ER_CHEM
@@ -821,7 +832,20 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
    line       = 'absent, outside'      ! Force atom to be inside
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
+      sav_w_scat  = .FALSE.
+      sav_w_adp   = .FALSE.
+      sav_w_occ   = .FALSE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+
    CALL save_internal(shellfile)
+! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !  Make single atom "structure" for domain list file 
 ! Should be obsolete
@@ -968,7 +992,7 @@ ENDIF
          CALL conn_do_set (code_res,line, length) ! Reset connectivities
 !
 !        As RMC_SELECT always uses connectivity no 1 for the selection mode
-!        I first create a conectivity of the pair: surface-anchor
+!        I first create a connectivity of the pair: surface-anchor
 !        For MMC a second set of connectivities is created that includes
 !        all surface types and all anchors
 ! 
@@ -1025,7 +1049,7 @@ ENDIF
             CALL conn_do_set (code_add,line, length)  ! Add connectivity around surface
          ENDDO make_conn_all
 !
-         CALL create_connectivity                  ! Create actual connecitivity list
+         CALL create_connectivity(.TRUE.,0,0, ' ')            ! Create actual connecitivity list
 !
 !        SORT ATOMS WITH MMC REPULSIVE
 !
@@ -1492,7 +1516,7 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
 ! Clean up internal files
 !
 !CALL store_remove_single(corefile, ier_num)
-CALL store_remove_single(shellfile, ier_num)
+!CALL store_remove_single(shellfile, ier_num)
 CALL store_remove_single('internal_anchors', ier_num)
 CALL store_remove_single('internal_sorted', ier_num)
 rdefs: DO dc_temp_id=1, dcc_num
@@ -1524,6 +1548,7 @@ ENDIF
    END SUBROUTINE deco_run
 !
 !######################################################################
+!
 SUBROUTINE deco_get_molecules(host_a0, host_win, host_tran_fi)
 !
 !  Loops over all the environments that are defined. 
@@ -2018,7 +2043,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
 !         CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
 !         CALL symm_setup                               ! Symmetry setup defines matrix
 !         CALL symm_show                                ! Show only in debug
-!         CALL symm_op_single                           ! Perform the operation
+!         CALL symm_op_single       ianz, werte                    ! Perform the operation
 !      ENDIF  ! Rotate if not zero degrees
       ENDIF
       CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
@@ -2120,12 +2145,16 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
 !
    REAL, PARAMETER :: EPS = 1.0E-6
-   INTEGER, PARAMETER                      :: MAXW = 2
-   REAL                , DIMENSION(1:MAXW) :: werte
+   INTEGER, PARAMETER                      :: MINPARA = 2
+   INTEGER                                 :: MAXW = MINPARA
+   REAL                , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
+!  INTEGER, PARAMETER                      :: MAXW = 2
+!  REAL                , DIMENSION(1:MAXW) :: werte
 !
    CHARACTER (LEN=1024)                    :: line
    INTEGER                                 :: ianz
    INTEGER                                 :: i,j, im, laenge
+!  INTEGER                          ianz, werte       :: iprop
    INTEGER                                 :: iprop
    INTEGER                                 :: itype
    INTEGER, DIMENSION(0:3)                 :: isurface
@@ -2138,14 +2167,17 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
+REAL                  :: angle, a_test     ! Dummy angles
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
-   REAL                                    :: rmin, radius, normal_l, b_l, b_n
+   REAL                                    :: rmin, radius, normal_l, b_l, b_n, b_l_min
    REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
    REAL     , DIMENSION(1:3)               :: vnull
+REAL     , DIMENSION(1:3)               :: pos1, pos2, sep
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
    INTEGER                 :: n_atoms_orig
 !  INTEGER             :: i_m_type
+maxw     = MAX(MINPARA,nanch)
 !
    vnull(:) = 0.00
 !
@@ -2173,23 +2205,39 @@ IF(lrestrict) THEN
    rmin     = 0.1
    radius   = dist*2.0
    ianz     = anchor(1,0)
-   werte(1) = anchor(1,1)
+   werte(:) = 0.0
+   werte(1:ianz) = anchor(1,1:ianz)
    fp (:)   = .FALSE. !chem_period (:)
    fq       = .FALSE. !chem_quick
    nold     = 0
    CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
    IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
+     pos1(:) = cr_pos(:,ia)                                       ! Appreviate pos of atom 1=ia
+     angle   = 400.0
+     b_l_min = 1.E12
      j = 0
      check_prop: DO i=1,atom_env(0)                               ! Check properties 
         IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
            IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
-            j = i                                                 ! Will use this neighbor
-            EXIT check_prop                                       ! Found first good neighbor
+            pos2(:) = cr_pos(:,atom_env(i))                       ! temporarily store atom 2
+            bridge(:) = pos1(:) - pos2(:)
+            b_l = sqrt (skalpro (bridge, bridge, cr_gten))        ! Calculate bridge length
+            IF(b_l<b_l_min) THEN
+               b_l_min = b_l
+               angle   = 400.0
+               a_test = do_bang(.TRUE., bridge,vnull, surf_normal)
+               IF(ABS(a_test-90.0) < angle) THEN
+                 j = i                                                 ! Will use this neighbor
+                 angle = ABS(a_test -90)
+!           EXIT check_prop                                       ! Found first good neighbor
+               ENDIF
+            ENDIF
          ENDIF
       ENDDO check_prop
       IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
          RETURN
       ENDIF
+pos2(:) = cr_pos(:,atom_env(j))
       bridge(1) = (cr_pos(1,ia)-cr_pos(1,atom_env(j)))   ! Calculate vector along bridge
       bridge(2) = (cr_pos(2,ia)-cr_pos(2,atom_env(j)))
       bridge(3) = (cr_pos(3,ia)-cr_pos(3,atom_env(j)))
@@ -2197,13 +2245,25 @@ IF(lrestrict) THEN
       x(1) = (cr_pos(1,ia)+cr_pos(1,atom_env(j)))*0.5    ! Calculate midpoint
       x(2) = (cr_pos(2,ia)+cr_pos(2,atom_env(j)))*0.5
       x(3) = (cr_pos(3,ia)+cr_pos(3,atom_env(j)))*0.5
+!
+!
+      IF(angle>0.0) THEN                                 ! Bridge is not normal to surface_ normal
+         WRITE(line, 1100) bridge, surf_normal
+         laenge = 81
+         CALL vprod(line, laenge)
+         tangent(1:3) = res_para(1:3)
+         WRITE(line, 1100) tangent, bridge
+         laenge = 81
+         CALL vprod(line, laenge)
+         surf_normal(:) = res_para(1:3)
+      ENDIF
 !     WRITE(line,1100) x, bridge                         ! Calculate vector parallel to surface
 !     laenge = 81
 !     CALL vprod(line, laenge)
 !     tangent(:) = res_para(1:3)
 !     WRITE(line,1100) bridge, tangent                   ! Calculate surface normal
 !     laenge = 81
-!     CALL vprod(line, laenge)
+!     CALL vprod(line, laenge)ianz, werte
 !     surf_normal(:) = res_para(1:3)
 !
       nold = cr_natoms                                   ! Remember old atom number
@@ -2215,7 +2275,7 @@ IF(lrestrict) THEN
       axis_ligand(3) = posit(3)
       im = mole_axis(1)
       CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
-!           CALL dc_molecules(i)%get_cryst_atom(im, itype, posit, iprop, isurface)
+!           CALL dc_molecules(i)%get_ianz, wertecryst_atom(im, itype, posit, iprop, isurface)
       axis_ligand(1) = axis_ligand(1) - posit(1)
       axis_ligand(2) = axis_ligand(2) - posit(2)
       axis_ligand(3) = axis_ligand(3) - posit(3)
@@ -3728,6 +3788,7 @@ success = 0
 END SUBROUTINE deco_place_donor
 !
 !*****7*****************************************************************
+!
    SUBROUTINE deco_find_anchor(MAXAT,surface, distance, ia, normal, posit, &
                                base, ierror)
 !-                                                                      
@@ -3981,7 +4042,7 @@ nold = cr_natoms - mole_natoms
    sym_end        =  cr_natoms
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
    CALL symm_setup                               ! Symmetry setup defines matrix
-   CALL symm_show                                ! Show only in debug
+!  CALL symm_show                                ! Show only in debug
    CALL symm_op_single                           ! Perform the operation
 ENDIF
 !
@@ -4164,5 +4225,7 @@ ENDIF
 1100 FORMAT(6(F12.6,', '),'ddd')
 !
 END SUBROUTINE rotate_directly
+!
+!*******************************************************************************
 !
 END MODULE mole_surf_mod
