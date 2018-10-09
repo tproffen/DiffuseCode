@@ -1120,15 +1120,17 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                      ELSEIF(ianz==2) THEN
                         ccpara(1) = cpara(ianz)
                         llpara(1) = lpara(ianz)
-                        c_name = cpara(1)(1:lpara(1))
-                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        c_name = ccpara(1)(1:llpara(1))
+                        iianz = 1
+                        CALL ber_params (iianz, ccpara, llpara, werte, maxw) 
                         IF(ier_num==0) THEN
-                           ino = NINT(werte(1))
+                           ino = NINT(wwerte(1))
                            c_name = ' '
                         ELSEif(ier_num==-1 .AND. ier_typ==ER_FORT) THEN
                            CALL no_error   ! assume 
                         ENDIF
                         lnew  = .false.
+                        ianz = ianz - 1
                         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
                         IF(ier_num==0) THEN
                            itype = NINT(werte(1))
@@ -1137,6 +1139,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                               DO itype =0, cr_nscat
                                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
                               ENDDO
+                           ELSE
                               CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
                            ENDIF
                         ENDIF
@@ -1167,8 +1170,9 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                      IF(ianz==2) THEN
                         ccpara(1) = cpara(ianz)
                         llpara(1) = lpara(ianz)
-                        c_name = cpara(1)(1:lpara(1))
-                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                        c_name = ccpara(1)(1:llpara(1))
+                        iianz = 1
+                        CALL ber_params (iianz, ccpara, llpara, wwerte, maxw) 
                         IF(ier_num==0) THEN
                            ino = NINT(werte(1))
                            c_name = ' '
@@ -1176,6 +1180,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                            CALL no_error   ! assume 
                         ENDIF
                         lnew  = .false.
+                        ianz = ianz - 1
                         CALL get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
                         IF(ier_num==0) THEN
                            itype = NINT(werte(1))
@@ -1226,20 +1231,25 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                         iianz = 1
                         CALL ber_params (iianz, cpara, lpara, werte, maxw) 
                         iatom = NINT(werte(1))
-                        CALL del_params (1, ianz, cpara, lpara, maxw)
-                        CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                        IF(ier_num/=0) THEN
-                           c_name_l = MIN(256,lpara(1))
-                           c_name   = cpara(1)(1:c_name_l)
-                           ino      = 0
-                           CALL no_error
-                        ELSE                                               ! Success set to value
-                           ino = nint (werte (1) ) 
-                           c_name   = ' '
-                           c_name_l = 1
+                        IF(iatom>0 .AND. iatom<=cr_natoms) THEN
+                           CALL del_params (1, ianz, cpara, lpara, maxw)
+                           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+                           IF(ier_num/=0) THEN
+                              c_name_l = MIN(256,lpara(1))
+                              c_name   = cpara(1)(1:c_name_l)
+                              ino      = 0
+                              CALL no_error
+                           ELSE                                               ! Success set to value
+                              ino = nint (werte (1) ) 
+                              c_name   = ' '
+                              c_name_l = 1
+                           ENDIF
+                           CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
+                           CALL do_show_connectivity ( iatom, ino, c_name, long)
+                        ELSE 
+                           ier_num = -105
+                           ier_typ = ER_APPL 
                         ENDIF
-                        CALL get_connectivity_identity( cr_iscat(iatom), ino, c_name, c_name_l)
-                        CALL do_show_connectivity ( iatom, ino, c_name, long)
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
