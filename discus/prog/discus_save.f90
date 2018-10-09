@@ -51,9 +51,8 @@ SUBROUTINE save_struc (string, lcomm)
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt 
       CHARACTER(1024) line
-      CHARACTER(LEN=32) :: c_property
       INTEGER lp, length, lbef 
-      INTEGER indxg, ianz, i 
+      INTEGER indxg, ianz
       INTEGER lcomm, sav_flen 
       LOGICAL lend 
 !      REAL, DIMENSION(SAV_MAXSCAT) :: repl ! Dummy variable needed for atom_select
@@ -368,78 +367,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----show current parameters 'show'                                
 !                                                                       
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
-                  IF (sav_flen.gt.0) THEN 
-                     WRITE (output_io, 3000) sav_file (1:sav_flen) 
-                  ELSE 
-                     WRITE (output_io, 3000) ' ' 
-                  ENDIF 
-                  IF (sav_keyword) THEN 
-                     WRITE (output_io, 3005) 
-                     IF (sav_w_scat) THEN 
-                        WRITE (output_io, 3008) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3008) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_adp) THEN 
-                        WRITE (output_io, 3009) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3009) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_occ) THEN 
-                        WRITE (output_io, 4009) 'written' 
-                     ELSE 
-                        WRITE (output_io, 4009) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_gene) THEN 
-                        WRITE (output_io, 3010) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3010) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_symm) THEN 
-                        WRITE (output_io, 3020) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3020) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_ncell) THEN 
-                        WRITE (output_io, 3030) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3030) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_mole) THEN 
-                        WRITE (output_io, 3040) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3040) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_obje) THEN 
-                        WRITE (output_io, 3050) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3050) 'omitted' 
-                     ENDIF 
-                     IF (sav_w_doma) THEN 
-                        WRITE (output_io, 3060) 'written' 
-                     ELSE 
-                        WRITE (output_io, 3060) 'omitted' 
-                     ENDIF 
-      CALL char_prop_2 (c_property,sav_sel_prop (1), sav_sel_prop (0),   &
-      length)
-      WRITE (output_io, 3131) c_property (1:length)
-
-!                                                                       
-                     WRITE (output_io, 3090) 
-                     WRITE (output_io, 3091) 
-                     DO i = 0, cr_nscat 
-                     IF (sav_latom (i) ) THEN 
-                        WRITE (output_io, 3092) i, cr_at_lis (i) 
-                     ENDIF 
-                     ENDDO 
-                     IF (sav_end.eq. - 1) THEN 
-                        WRITE (output_io, 3080) 
-                     ELSE 
-                        WRITE (output_io, 3081) sav_start, sav_end 
-                     ENDIF 
-                  ELSE 
-                     WRITE (output_io, 3006) 
-                  ENDIF 
+                  CALL save_show
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
@@ -542,38 +470,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ENDDO  main
 !
       prompt = orig_prompt
-!                                                                       
- 3000 FORMAT(20x,'    Data written to structure file '/                 &
-     &       20x,' ===================================='//              &
-     &       ' Structure file                            : ',a/)        
- 3005 FORMAT(' Format of structure file                  :',            &
-     &       ' Keyword controlled'/                                     &
-     &       ' Title           ',26x,': written'/                       &
-     &       ' Space group     ',26x,': written'/                       &
-     &       ' Cell constants  ',26x,': written')                       
- 3006 FORMAT(' Format of structure file                  :',            &
-     &       ' No keywords in structure file'/                          &
-     &       ' First line      ',26x,': title'/                         &
-     &       ' Second line     ',26x,': space group'/                   &
-     &       ' Third line      ',26x,': cell constants'/                &
-     &       ' Following lines ',26x,': atoms'/)                        
- 3008 FORMAT(' Explicit list of atomic names             : ',a7) 
- 3009 FORMAT(' Explicit list of atomic displacement par. : ',a7) 
- 4009 FORMAT(' Explicit list of occupancy parameters     : ',a7) 
- 3010 FORMAT(' Additional generator matrizes             : ',a7) 
- 3020 FORMAT(' Additional symmetry operators             : ',a7) 
- 3030 FORMAT(' Number of unit cells, atoms per unit cell : ',a7) 
- 3040 FORMAT(' Molecule information: content etc.        : ',a7) 
- 3050 FORMAT(' Object   information: content etc.        : ',a7) 
- 3060 FORMAT(' Domain   information: content etc.        : ',a7) 
- 3080 FORMAT(' Range of atoms from to    : All atoms included') 
- 3081 FORMAT(' Range of atoms from to    : ',2(2x,i9)) 
- 3131 FORMAT    (/' Atom properties         : ','NMDOEI'/               &
-                  '      absent=- ignored=. : ',a)
-
- 3090 FORMAT(' Selected atoms    :') 
- 3091 FORMAT('                      type name') 
- 3092 FORMAT(20x,2(4x,i2,1x,a4)) 
 !                                                                       
       END SUBROUTINE save_struc                     
 !
@@ -1284,6 +1180,128 @@ sav_t_ncatoms =  1
 sav_ncatoms   =  1
 !
 END SUBROUTINE save_reset
+!
+!*******************************************************************************
+!
+SUBROUTINE save_show
+!
+USE crystal_mod
+USE discus_save_mod
+USE prompt_mod 
+      USE prop_char_mod
+      USE prop_para_func
+!
+CHARACTER(LEN=32) :: c_property
+INTEGER :: i
+INTEGER :: length
+INTEGER :: sav_flen 
+!      
+sav_flen = LEN_TRIM(sav_file)
+IF (sav_flen.gt.0) THEN 
+   WRITE (output_io, 3000) sav_file (1:sav_flen) 
+ELSE 
+   WRITE (output_io, 3000) ' ' 
+ENDIF 
+IF (sav_keyword) THEN 
+   WRITE (output_io, 3005) 
+   IF (sav_w_scat) THEN 
+      WRITE (output_io, 3008) 'written' 
+   ELSE 
+      WRITE (output_io, 3008) 'omitted' 
+   ENDIF 
+   IF (sav_w_adp) THEN 
+      WRITE (output_io, 3009) 'written' 
+   ELSE 
+      WRITE (output_io, 3009) 'omitted' 
+   ENDIF 
+   IF (sav_w_occ) THEN 
+      WRITE (output_io, 4009) 'written' 
+   ELSE 
+      WRITE (output_io, 4009) 'omitted' 
+   ENDIF 
+   IF (sav_w_gene) THEN 
+      WRITE (output_io, 3010) 'written' 
+   ELSE 
+      WRITE (output_io, 3010) 'omitted' 
+   ENDIF 
+   IF (sav_w_symm) THEN 
+      WRITE (output_io, 3020) 'written' 
+   ELSE 
+      WRITE (output_io, 3020) 'omitted' 
+   ENDIF 
+   IF (sav_w_ncell) THEN 
+      WRITE (output_io, 3030) 'written' 
+   ELSE 
+      WRITE (output_io, 3030) 'omitted' 
+   ENDIF 
+   IF (sav_w_mole) THEN 
+      WRITE (output_io, 3040) 'written' 
+   ELSE 
+      WRITE (output_io, 3040) 'omitted' 
+   ENDIF 
+   IF (sav_w_obje) THEN 
+      WRITE (output_io, 3050) 'written' 
+   ELSE 
+      WRITE (output_io, 3050) 'omitted' 
+   ENDIF 
+   IF (sav_w_doma) THEN 
+      WRITE (output_io, 3060) 'written' 
+   ELSE 
+      WRITE (output_io, 3060) 'omitted' 
+   ENDIF 
+   CALL char_prop_2 (c_property,sav_sel_prop (1), sav_sel_prop (0),   &
+      length)
+   WRITE (output_io, 3131) c_property (1:length)
+
+!                                                                       
+   WRITE (output_io, 3090) 
+   WRITE (output_io, 3091) 
+   DO i = 0, cr_nscat 
+      IF (sav_latom (i) ) THEN 
+         WRITE (output_io, 3092) i, cr_at_lis (i) 
+      ENDIF 
+   ENDDO 
+   IF (sav_end.eq. - 1) THEN 
+      WRITE (output_io, 3080) 
+   ELSE 
+      WRITE (output_io, 3081) sav_start, sav_end 
+   ENDIF 
+ELSE 
+   WRITE (output_io, 3006) 
+ENDIF 
+!                                                                       
+ 3000 FORMAT(20x,'    Data written to structure file '/                 &
+     &       20x,' ===================================='//              &
+     &       ' Structure file                            : ',a/)        
+ 3005 FORMAT(' Format of structure file                  :',            &
+     &       ' Keyword controlled'/                                     &
+     &       ' Title           ',26x,': written'/                       &
+     &       ' Space group     ',26x,': written'/                       &
+     &       ' Cell constants  ',26x,': written')                       
+ 3006 FORMAT(' Format of structure file                  :',            &
+     &       ' No keywords in structure file'/                          &
+     &       ' First line      ',26x,': title'/                         &
+     &       ' Second line     ',26x,': space group'/                   &
+     &       ' Third line      ',26x,': cell constants'/                &
+     &       ' Following lines ',26x,': atoms'/)                        
+ 3008 FORMAT(' Explicit list of atomic names             : ',a7) 
+ 3009 FORMAT(' Explicit list of atomic displacement par. : ',a7) 
+ 4009 FORMAT(' Explicit list of occupancy parameters     : ',a7) 
+ 3010 FORMAT(' Additional generator matrizes             : ',a7) 
+ 3020 FORMAT(' Additional symmetry operators             : ',a7) 
+ 3030 FORMAT(' Number of unit cells, atoms per unit cell : ',a7) 
+ 3040 FORMAT(' Molecule information: content etc.        : ',a7) 
+ 3050 FORMAT(' Object   information: content etc.        : ',a7) 
+ 3060 FORMAT(' Domain   information: content etc.        : ',a7) 
+ 3080 FORMAT(' Range of atoms from to    : All atoms included') 
+ 3081 FORMAT(' Range of atoms from to    : ',2(2x,i9)) 
+ 3131 FORMAT    (/' Atom properties         : ','NMDOEI'/               &
+                  '      absent=- ignored=. : ',a)
+
+ 3090 FORMAT(' Selected atoms    :') 
+ 3091 FORMAT('                      type name') 
+ 3092 FORMAT(20x,2(4x,i2,1x,a4)) 
+END SUBROUTINE save_show
 !
 !*******************************************************************************
 !
