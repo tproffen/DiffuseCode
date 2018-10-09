@@ -74,6 +74,17 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Oct
+
+   In ==> 2017_July the following "correction" was done, which proved 
+   to be false.
+   The ==> 'therm' command erroneously used too large a displacement.
+   The average <u^2> were actually 3 times too large. 
+
+   As of version 5.27.2 this had been corrected yet again to the 
+   original correct state. A calculation of a powder /single crystal
+   pattern either with "temp use" or a combination "therm and temp ignore"
+   will now produce icdentical results again.
 3  2018_Sep
 
    Added new export options:
@@ -1769,7 +1780,7 @@
 3  Commands
 !p add     ! Adds a new definition 
 !p create  ! Creates the actual connectivity list for each atom
-!p delete  ! Deletes the connectivity list
+!p delete  ! Deletes the connectivity list around atoms
 !p recreate  ! Recreates the actual connectivity list for each atom
 !p remove  ! Removes an individual connectivity definition
 !p reset   ! Resets to program start, removes all def.s and the 
@@ -1839,8 +1850,15 @@
 
    Any old connectivity list is replaced by a new 'create' command.
 3  delete
+!b delete
+!b delete <central_atom_type>, <def_name>
 
-   Deletes the current connectivity list.
+   Deletes the current connectivity list for all atom types.
+
+   The second form deletes the named connectivity list for the
+   specified atom types. The remaining connectivities persist 
+   for the atom type. All connectivities for all other 
+   atom types remain as well.
 3  recreate
 !b recreate <central_atom_type>, {<def.no.>| <def_name>}
 
