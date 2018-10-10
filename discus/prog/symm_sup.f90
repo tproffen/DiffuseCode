@@ -427,7 +427,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
-      INTEGER i, j, k, l, ii 
+      INTEGER i, j, k, l, ii , ll
       INTEGER i_start, i_end 
       INTEGER  :: at_start, at_end 
       INTEGER :: imole, imole_s, imole_t=1
@@ -477,6 +477,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     Apply symmetry operation to all molecules within selected range   
 !                                                                       
+      ll = 0
       DO l = i_start, i_end 
 !                                                                       
 !------ - Determine origin for symmetry operation                       
@@ -496,6 +497,7 @@ END SUBROUTINE symm_op_single
 !       type has been selected                                          
 !                                                                       
       IF (sym_latom (mole_type (l) ) ) then 
+         ll = ll + 1
 !                                                                       
 !     ----Loop over all atoms in the molecule                           
 !                                                                       
@@ -571,7 +573,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     --------- Insert atom into proper new molecule                    
 !                                                                       
-            imole = imole_s + (l - i_start) * sym_power + (k - 1)       &
+            imole = imole_s + (ll- i_start) * sym_power + (k - 1)       &
             + 1                                                         
             CALL mole_insert_current (cr_natoms, imole) 
             IF (ier_num.ne.0) then 
@@ -630,7 +632,7 @@ END SUBROUTINE symm_op_single
       INTEGER, PARAMETER :: MAXW = 6
 !                                                                       
       CHARACTER(4) name 
-      INTEGER i, j, ii, l 
+      INTEGER i, j, ii, l
       INTEGER i_start, i_end 
       INTEGER  :: at_start, at_end 
       INTEGER ::imole, imole_s, imole_t=1
@@ -653,6 +655,9 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
+!write(*,*) ' MOLECULE SINGLE '
+!write(*,*) ' start, end      ', sym_start, sym_end
+!write(*,*) ' apply to type   ', sym_latom(1:2)
       i_start = sym_start 
       i_end = sym_end 
       IF (sym_end.eq. - 1) i_end = mole_num_mole 
@@ -681,6 +686,7 @@ END SUBROUTINE symm_op_single
 !     Apply symmetry operation to all molecules within selected range   
 !                                                                       
       DO l = i_start, i_end 
+!write(*,*) 'STARTING ON MOLE ', l, mole_num_mole
 !                                                                       
 !------ - Determine origin for symmetry operation                       
 !                                                                       
@@ -699,6 +705,9 @@ END SUBROUTINE symm_op_single
 !       type has been selected                                          
 !                                                                       
       IF (sym_latom (mole_type (l) ) ) then 
+         IF (sym_mode) then 
+            imole = mole_num_mole + 1
+         ENDIF
 !                                                                       
 !     ----Loop over all atoms in the molecule                           
 !                                                                       
@@ -734,6 +743,7 @@ END SUBROUTINE symm_op_single
             ENDIF
             CALL symm_setup
          ENDIF
+!write(*,*) 'Point A     MOLE ', l, mole_num_mole
          DO ii = at_start, at_end
             IF(sym_sel_sub) THEN   ! Select a sub range of the molecule
                i = sub_list(ii)
@@ -770,8 +780,10 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     ------- Insert atom into proper new molecule                      
 !                                                                       
-            imole = imole_s + l - i_start + 1 
+!           imole = imole_s + l - i_start + 1 
+!write(*,*) 'Point A 1   MOLE ', l, mole_num_mole, imole
             CALL mole_insert_current (cr_natoms, imole) 
+!write(*,*) 'Point A 2   MOLE ', l, mole_num_mole, imole
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -781,6 +793,7 @@ END SUBROUTINE symm_op_single
             ENDDO 
          ENDIF 
          ENDDO 
+!write(*,*) 'Point B     MOLE ', l, mole_num_mole
 !                                                                       
 !-----      ----Copy all properties                                     
 !                                                                       
@@ -798,7 +811,9 @@ END SUBROUTINE symm_op_single
             ENDIF 
          ENDIF 
       ENDIF 
+!write(*,*) 'Point C     MOLE ', l, mole_num_mole
       ENDDO 
+!write(*,*) 'FINISHED WITH ALL', mole_num_mole
 !                                                                       
       END SUBROUTINE symm_mole_single               
 !*****7*****************************************************************
@@ -823,7 +838,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
       CHARACTER(4) name 
 !                                                                       
-      INTEGER i, j, k, l, ii 
+      INTEGER i, j, k, l, ii , ll
       INTEGER i_start, i_end 
       INTEGER :: imole, imole_s, imole_t=1
       INTEGER  :: n_gene   ! Number of molecule generators
@@ -872,6 +887,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     Apply symmetry operation to all molecules within selected range   
 !                                                                       
+      ll = 0
       DO l = i_start, i_end 
 !                                                                       
 !------ - Determine origin for symmetry operation                       
@@ -891,6 +907,7 @@ END SUBROUTINE symm_op_single
 !       type has been selected                                          
 !                                                                       
       IF (sym_latom (mole_type (l) ) ) then 
+         ll = ll + 1
 !                                                                       
 !     ----Create the matrices from the psueodoatom positions            
 !                                                                       
@@ -992,7 +1009,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     --------- Insert atom into proper new molecule                    
 !                                                                       
-            imole = imole_s + (l - i_start) * sym_power + (k - 1)       &
+            imole = imole_s + (ll- i_start) * sym_power + (k - 1)       &
             + 1                                                         
             CALL mole_insert_current (cr_natoms, imole) 
             IF (ier_num.ne.0) then 
@@ -1119,6 +1136,9 @@ END SUBROUTINE symm_op_single
 !       type has been selected                                          
 !                                                                       
       IF (sym_latom (mole_type (l) ) ) then 
+         IF(sym_mode) THEN
+            imole = mole_num_mole + 1
+         ENDIF
 !                                                                       
 !     ----Create the matrices from the psueodoatom positions            
 !                                                                       
@@ -1210,7 +1230,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
 !     ------- Insert atom into proper new molecule                      
 !                                                                       
-            imole = imole_s + l - i_start + 1 
+!           imole = imole_s + l - i_start + 1 
             CALL mole_insert_current (cr_natoms, imole) 
             IF (ier_num.ne.0) then 
                RETURN 
