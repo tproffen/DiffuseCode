@@ -19,6 +19,10 @@
    Further help topics are:
 
 2  News
+2  2018_Oct
+
+   Added a ==> 'release' command that is intended to act
+   complementary to a previopus ==> 'fix' command.
 2  2018_July
 
    A small modification to the "diffev_best" macro. 
@@ -198,6 +202,7 @@
 !p newparam    ! Defines Ra new parameter or new values for a parameter
 !p pop_name    ! Defines names for the individual parameters
 !p refine      ! Defines which parameters are refined/fixed
+!p release     ! Initialize a parameter that had been fixed
 !p restrial    ! Defines the file name for the current R-values
 !p run_mpi     ! Run the cost function program in parallel through MPI
 !p selection   ! Defines how children/parents survive into next generation
@@ -762,6 +767,9 @@
    flag is turned of for this parameter. 
    If the second parameter is "best", the parameter is set to the
    corresponding value of the current member with the best R-value.
+
+   As a side effect, the values of pop_xmin, pop_xmax, 
+   pop_smin, pop_smax are fixed to this new value as well.
 2  functions
 
    The following DISCUS specific functions exist. For a listing
@@ -908,6 +916,34 @@
    Currently you can only specify up to 20 variable numbers on 
    one "refine" command line. If you need to specify the behaviour
    for more than 20 variables, please use several "refine" commands.
+2  release
+!b release {<par_name>| <number>} [ , range:<value>]
+
+   This command will initialize a parameter named <par_name> 
+   to a range around the current best value. Its intent is 
+   to act complementary to a ==> 'fix' command. It works 
+   in a similar fashion as the ==> 'init' command, but the user
+   does not have to ensure that the ranges of 
+   pop_xmin to pop_xmax and pop_smin to pop_smax are non-zero.
+   
+   The parameter will be refined, i.e. the 'release' command
+   implies a ==> refine <par_name> command. 
+
+   The initalization range is set to the best value +- range.
+
+   The absolute limits, ==> 'pop_xmin', 'pop_xmax' are set
+   to a range of at least +- 3* <range> around the current
+   best value. If the original user provided values of
+   pop_min or pop_max are further away from the current best
+   value they are retained. 
+      pop_min = MIN(pop_min, best - 3*range)
+      pop_max = MAX(pop_max, best + 3*range)
+
+   If you need wider ranges or if the new limits might be 
+   outside a physical limit you need to set the proper
+   limits explicitely with a 
+      pop_xmin[par_number('<par_name>')] = <value> 
+   command.
 2  reset
 !b reset
 

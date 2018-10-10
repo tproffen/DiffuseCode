@@ -21,6 +21,7 @@ USE run_mpi_mod
 USE diffev_show_mod
 USE diffev_refine
 USE diffev_random
+USE diffev_release_mod
 !
 USE ber_params_mod
 USE blanks_mod
@@ -406,19 +407,34 @@ ELSE
 !     -- fix a parameter at a value                               
 !                                                                 
    ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) THEN 
+                  INQUIRE(FILE='GENERATION', EXIST=lexist)
+                  IF(lexist) THEN                ! A GENERATION FILE EXISTS
+                     CALL do_read_values(.TRUE.) ! We need to read values as this can be the first command after a continue
+                  ENDIF
+                  IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
+                     IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+                     CALL do_initialise (l_init_x)
+                     pop_initialized = .TRUE.
+                  ENDIF
+                  IF(ier_num/=0) THEN
+                     ier_msg(1) = 'Check the GENERATION, the parameter and'
+                     ier_msg(2) = 'the lastfile for conflicting generation values'
+                     RETURN
+                  ENDIF
       IF (pop_n.gt.3) THEN
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
          IF (ier_num == 0) THEN 
             IF (ianz == 2) THEN 
                lbest = .false.
 !              Check if parameter names were provided
-               DO i = 1, ianz
-                  DO k=1,pop_dimx
-                     IF(cpara(i)==pop_name(k)) THEN
-                        WRITE(cpara(i),'(I4)') k
+!              DO i = 1, ianz
+               fix_t: DO k=1,pop_dimx
+                     IF(cpara(1)==pop_name(k)) THEN
+                        WRITE(cpara(1),'(I4)') k
+                        EXIT fix_t
                      ENDIF
-                  ENDDO
-               ENDDO
+                  ENDDO fix_t
+!              ENDDO
                IF (str_comp (cpara(2), 'best', 3, lpara(2), 4) ) THEN 
                   lbest = .true.
                   ianz  = ianz - 1
@@ -441,7 +457,7 @@ ELSE
                   ENDIF 
                ENDIF 
                IF ( 0<lb .and. lb<=pop_dimx) THEN
-                  CALL do_read_values(.FALSE.)   ! Read values from logfile
+!                 CALL do_read_values(.FALSE.)   ! Read values from logfile
                   IF(lbest) THEN
                      value = child(lb,pop_best)
                   ELSE
@@ -836,7 +852,7 @@ ELSE
 !                                                                 
 !     -- define the refine status of each gene                    
 !                                                                 
-   ELSEIF (str_comp (befehl, 'refine', 2, lbef, 6) ) THEN 
+   ELSEIF (str_comp (befehl, 'refine', 3, lbef, 6) ) THEN 
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
          IF (ianz.ge.1) THEN 
@@ -883,6 +899,11 @@ ELSE
             ier_msg(3) = 'all these parameters.'
          ENDIF
       ENDIF 
+!
+!     -- Release a previously fixed parameter 'release'          
+!
+   ELSEIF (str_comp (befehl, 'release', 3, lbef, 7) ) THEN 
+      CALL do_release(zeile, length)
 !                                                                 
 !     -- set the selection mode 'selection'                       
 !                                                                 
