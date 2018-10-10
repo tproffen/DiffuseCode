@@ -98,7 +98,7 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 !                                                                       
       DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
 !                                                                       
@@ -118,8 +118,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
-                  IF (length.ge.2) then 
+               IF (befehl (1:1) .eq.'@') THEN 
+                  IF (length.ge.2) THEN 
                      CALL file_kdo (line (2:length), length - 1) 
                   ELSE 
                      ier_num = - 13 
@@ -128,11 +128,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----angle of rotation 'angle'                                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'angle', 2, lbef, 5) ) then 
+               ELSEIF (str_comp (befehl, 'angle', 2, lbef, 5) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.1) then 
+                  IF (ier_num.eq.0.and.ianz.eq.1) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         sym_angle = werte (1) 
                         l_need_setup = .true. 
                         sym_use = 0             ! Turn off space group matrix usage
@@ -141,39 +141,39 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----list asymmetric unit 'asym'                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
                   CALL show_asym 
 !                                                                       
 !     ----calculate a single symmetry operation                         
 !                                                                       
-               ELSEIF (str_comp (befehl, 'calc', 2, lbef, 4) ) then 
-                  IF (l_need_setup) then 
+               ELSEIF (str_comp (befehl, 'calc', 2, lbef, 4) ) THEN 
+                  IF (l_need_setup) THEN 
                      CALL symm_setup 
                   ENDIF 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.3) then 
+                  IF (ier_num.eq.0) THEN 
+                     IF (ianz.eq.3) THEN 
                         cpara (4) = 'd' 
                         lpara (4) = 1 
                      ENDIF 
                      ianz = 3 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         DO i = 1, 3 
                         hkl (i) = werte (i) 
                         ENDDO 
                         IF (str_comp (cpara (4) , 'd', 1, lpara (4) , 1)&
-                        ) then                                          
+                        ) THEN                                          
                            lspace = .true. 
                         ELSEIF (str_comp (cpara (4) , 'r', 1, lpara (4) &
-                        , 1) ) then                                     
+                        , 1) ) THEN                                     
                            lspace = .false. 
                         ELSE 
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF 
-                        IF (ier_num.eq.0) then 
-                           IF (sym_power_mult) then 
+                        IF (ier_num.eq.0) THEN 
+                           IF (sym_power_mult) THEN 
                               CALL symm_ca_mult (hkl, lspace) 
                            ELSE 
                               CALL symm_ca_single (hkl, lspace, .true.) 
@@ -190,22 +190,22 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----continues a macro 'continue'                                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
                   CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----list atoms present in the crystal 'chem'                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
                   CALL show_chem 
 !                                                                       
 !     ----Work on domains 'domain'                                      
 !                                                                       
-               ELSEIF (str_comp (befehl, 'domain', 2, lbef, 6) ) then 
+               ELSEIF (str_comp (befehl, 'domain', 2, lbef, 6) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      IF (str_comp (cpara (1) , 'select', 2, lpara (1) , &
                      6) .or.str_comp (cpara (1) , 'deselect', 2, lpara (&
-                     1) , 8) ) then                                     
+                     1) , 8) ) THEN                                     
                         line = ' ' 
                         indxc = index (zeile, ',') 
                         line = zeile (indxc + 1:lp) 
@@ -219,19 +219,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                              sym_latom, sym_sel_atom, lselect)
                         sym_sel_mode = SYM_RUN_DOMAIN 
                      ELSEIF (str_comp (cpara (1) , 'include', 3, lpara (&
-                     1) , 7) ) then                                     
+                     1) , 7) ) THEN                                     
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-                        IF (ianz.eq.2) then 
+                        IF (ianz.eq.2) THEN 
                            CALL ber_params (ianz, cpara, lpara, werte,  &
                            maxw)                                        
-                           IF (ier_num.eq.0) then 
+                           IF (ier_num.eq.0) THEN 
                               sym_sel_atom = .false. 
                               sym_start = nint (werte (1) ) 
                               sym_end = nint (werte (2) ) 
                            ENDIF 
-                        ELSEIF (ianz.eq.1) then 
+                        ELSEIF (ianz.eq.1) THEN 
                            IF (str_comp (cpara (1) , 'all', 1, lpara (1)&
-                           , 3) ) then                                  
+                           , 3) ) THEN                                  
                               sym_sel_atom = .false. 
                               sym_start = 1 
                               sym_end = - 1 
@@ -244,11 +244,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            ier_typ = ER_COMM 
                         ENDIF 
                      ELSEIF (str_comp (cpara (1) , 'atoms', 2, lpara (1)&
-                     , 4) ) then                                        
+                     , 4) ) THEN                                        
                         sym_dom_mode_atom = str_comp (cpara (2) ,       &
                         'apply', 2, lpara (2) , 5)                      
                      ELSEIF (str_comp (cpara (1) , 'shape', 2, lpara (2)&
-                     , 5) ) then                                        
+                     , 5) ) THEN                                        
                         sym_dom_mode_shape = str_comp (cpara (2) ,      &
                         'apply', 2, lpara (2) , 5)                      
                      ENDIF 
@@ -256,25 +256,25 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ ----Echo a string, just for interactive check in a macro 'echo' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
                   CALL echo (zeile, lp) 
                                                                         
 !                                                                       
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
                   CALL do_eval (zeile, lp) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
                   lend = .true. 
 !                                                                       
 !     ----help 'help','?'                                               
 !                                                                       
       ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+     &, '?   ', 1, lbef, 4) ) THEN                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                      lp = lp + 7 
                      CALL do_hel ('discus '//zeile, lp) 
                   ELSE 
@@ -285,11 +285,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select the reciprocal space direction of the symmetry         
 !         axis 'hkl'                                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'hkl ', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'hkl ', 2, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num.eq.0.and.ianz.eq.3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         DO i = 1, 3 
                         sym_hkl (i) = werte (i) 
                         ENDDO 
@@ -308,27 +308,27 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'incl', 1, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.2) then 
+                  IF (ier_num.eq.0) THEN 
+                     IF (ianz.eq.2) THEN 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            sym_sel_atom = .true. 
                            sym_start = nint (werte (1) ) 
                            sym_end = nint (werte (2) ) 
                            sym_incl = 'list' 
                         ENDIF 
-                     ELSEIF (ianz.eq.1) then 
+                     ELSEIF (ianz.eq.1) THEN 
                         IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
-                        3) ) then                                       
+                        3) ) THEN                                       
                            sym_sel_atom = .true. 
                            sym_start = 1 
                            sym_end = - 1 
                            sym_incl = 'all ' 
                         ELSEIF (str_comp (cpara (1) , 'env', 1, lpara ( &
-                        1) , 3) ) then                                  
+                        1) , 3) ) THEN                                  
                            sym_sel_atom = .true. 
                            sym_start = 1 
                            sym_end = - 1 
@@ -371,7 +371,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            sym_sel_sub  = .TRUE.
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL ber_params(ianz, cpara, lpara, werte, maxw)                                           
-                           IF (ier_num.eq.0) then 
+                           IF (ier_num.eq.0) THEN 
                               sym_sub_start = nint (werte (1) ) 
                               IF(ianz > 1) THEN    ! We have excluded atoms
                                  IF(ALLOCATED(sym_excl)) DEALLOCATE(sym_excl)
@@ -388,17 +388,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
                         
-!                     IF (ianz.eq.2) then 
+!                     IF (ianz.eq.2) THEN 
 !!                        CALL ber_params (ianz, cpara, lpara, werte,     &
 !                        maxw)                                           
-!                        IF (ier_num.eq.0) then 
+!                        IF (ier_num.eq.0) THEN 
 !                           sym_sel_atom = .false. 
 !                           sym_start = nint (werte (1) ) 
 !                           sym_end = nint (werte (2) ) 
 !                        ENDIF 
-!                     ELSEIF (ianz.eq.1) then 
+!                     ELSEIF (ianz.eq.1) THEN 
 !                        IF (str_comp (cpara (1) , 'all', 1, lpara (1) , &
-!                        3) ) then                                       
+!                        3) ) THEN                                       
 !                           sym_sel_atom = .false. 
 !                           sym_start = 1 
 !                           sym_end = - 1 
@@ -414,23 +414,23 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select the mode of symmetry operation 'mode'                  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
                      lopara =  (/  6,        6         /)
                      owerte =  (/  1.0E-8 ,  0.0       /)
                      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &
                           ncalc, oname, loname, opara, lopara, owerte)
-                     IF (ianz.eq.1.or.ianz.eq.2) then 
+                     IF (ianz.eq.1.or.ianz.eq.2) THEN 
                         sym_occup  = opara(2) == 'empty'   ! Can target position by occupied or empty?
                         sym_radius = owerte(1)             ! If empty, necessary free radius
                         IF (str_comp (cpara (1) , 'copy', 1, lpara (1) ,&
-                        4) ) then                                       
+                        4) ) THEN                                       
                            sym_mode = .true. 
                            l_need_setup = .true. 
                         ELSEIF (str_comp (cpara (1) , 'repl', 1, lpara (&
-                        1) , 4) ) then                                  
+                        1) , 4) ) THEN                                  
                            sym_mode = .false. 
                            l_need_setup = .true. 
                         ELSE 
@@ -439,13 +439,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
 !                                                                       
-                     IF (ier_num.eq.0.and.ianz.eq.2) then 
+                     IF (ier_num.eq.0.and.ianz.eq.2) THEN 
                         IF (str_comp (cpara (2) , 'new', 1, lpara (2) , &
-                        3) ) then                                       
+                        3) ) THEN                                       
                            sym_new = .true. 
                            l_need_setup = .true. 
                         ELSEIF (str_comp (cpara (2) , 'old', 1, lpara ( &
-                        1) , 3) ) then                                  
+                        1) , 3) ) THEN                                  
                            sym_new = .false. 
                            l_need_setup = .true. 
                         ELSE 
@@ -458,12 +458,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select/deselect molecules                                     
 !                                                                       
                ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'mdes', 2, lbef, 4) .or.str_comp ( &
-               befehl, 'osel', 2, lbef, 4) .or.str_comp (befehl, 'odes',&
-               2, lbef, 4) ) then                                       
+                  .OR. str_comp (befehl, 'mdes', 2, lbef, 4) &
+                  .OR. str_comp (befehl, 'osel', 2, lbef, 4) &
+                  .OR. str_comp (befehl, 'odes', 2, lbef, 4) ) THEN                                       
 !                                                                       
                   lselect = str_comp (befehl, 'msel', 2, lbef, 4)       &
-                  .or.str_comp (befehl, 'osel', 2, lbef, 4)             
+                        .OR.str_comp (befehl, 'osel', 2, lbef, 4)             
 !                                                                       
                   CALL mole_select (zeile, lp, 0, SYM_MAXSCAT,         &
                              sym_latom, sym_sel_atom, lselect)
@@ -491,7 +491,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ELSEIF ((ianz.eq.3.or.ianz.eq.4) ) THEN 
                         sym_orig_mol = .FALSE.
-                     IF (ianz.eq.4) then 
+                     IF (ianz.eq.4) THEN 
                         sym_orig_mol = str_comp (cpara (4) , 'mol', 1,  &
                         lpara (4) , 3)                                  
                         ianz = 3 
@@ -519,16 +519,16 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Set the power of the symmetry operation  'power'              
 !                                                                       
-               ELSEIF (str_comp (befehl, 'power', 1, lbef, 6) ) then 
+               ELSEIF (str_comp (befehl, 'power', 1, lbef, 6) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.1.or.ianz.eq.2) then 
-                        IF (ianz.eq.2) then 
+                  IF (ier_num.eq.0) THEN 
+                     IF (ianz.eq.1.or.ianz.eq.2) THEN 
+                        IF (ianz.eq.2) THEN 
                            IF (str_comp (cpara (2) , 'mult', 1, lpara ( &
-                           2) , 4) ) then                               
+                           2) , 4) ) THEN                               
                               sym_power_mult = .true. 
                            ELSEIF (str_comp (cpara (2) , 'sing', 1,     &
-                           lpara (2) , 4) ) then                        
+                           lpara (2) , 4) ) THEN                        
                               sym_power_mult = .false. 
                            ELSE 
                               ier_num = - 6 
@@ -538,7 +538,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ianz = 1 
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
-                        IF (ier_num.eq.0) then 
+                        IF (ier_num.eq.0) THEN 
                            sym_power = nint (werte (1) ) 
                            l_need_setup = .true. 
                         ENDIF 
@@ -550,39 +550,39 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----run symmetry 'rese'                                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
                   CALL symm_reset
 !                                                                       
 !     ----run symmetry 'run'                                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
-                  IF (l_need_setup) then 
+               ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
+                  IF (l_need_setup) THEN 
                      CALL symm_setup 
                   ENDIF 
-                  IF (sym_sel_atom) then 
+                  IF (sym_sel_atom) THEN 
 !                                                                       
 !-----      --------Apply symmetry operation to atoms                   
 !                                                                       
-                     IF (sym_power_mult) then 
+                     IF (sym_power_mult) THEN 
                         CALL symm_op_mult 
                      ELSE 
                         CALL symm_op_single 
                      ENDIF 
                   ELSE 
-                     IF (sym_sel_mode.eq.SYM_RUN_MOLECULE) then 
+                     IF (sym_sel_mode.eq.SYM_RUN_MOLECULE) THEN 
 !                                                                       
 !-----      ----------Apply symmetry operation to molecules             
 !                                                                       
-                        IF (sym_power_mult) then 
+                        IF (sym_power_mult) THEN 
                            CALL symm_mole_mult 
                         ELSE 
                            CALL symm_mole_single 
                         ENDIF 
-                     ELSEIF (sym_sel_mode.eq.SYM_RUN_DOMAIN) then 
+                     ELSEIF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
 !                                                                       
 !-----      ----------Apply symmetry operation to molecules             
 !                                                                       
-                        IF (sym_power_mult) then 
+                        IF (sym_power_mult) THEN 
                            CALL symm_domain_mult 
                         ELSE 
                            CALL symm_domain_single 
@@ -593,7 +593,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      lspace = .TRUE.
                      DO i=1,2
                         hkl(:) = cr_dim0(:,i)
-                        IF (sym_power_mult) then 
+                        IF (sym_power_mult) THEN 
                            CALL symm_ca_mult (hkl, lspace) 
                         ELSE 
                            CALL symm_ca_single (hkl, lspace, .FALSE.) 
@@ -608,7 +608,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
                ELSEIF (str_comp (befehl, 'sele', 2, lbef, 4)            &
-               .or.str_comp (befehl, 'dese', 2, lbef, 4) ) then         
+                  .OR. str_comp (befehl, 'dese', 2, lbef, 4) ) THEN         
 !                                                                       
                   CALL atom_select (zeile, lp, 0, SYM_MAXSCAT, sym_latom, &
                   sym_sel_atom, lold,     &
@@ -616,19 +616,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----show current parameters 'show'                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-                  IF (l_need_setup) then 
+               ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+                  IF (l_need_setup) THEN 
                      CALL symm_setup 
                   ENDIF 
                   CALL symm_show 
 !                                                                       
 !     ----Select translational part of the symmetry operation 'trans'   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'trans', 2, lbef, 5) ) then 
+               ELSEIF (str_comp (befehl, 'trans', 2, lbef, 5) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0.and.ianz.eq.3) then 
+                  IF (ier_num.eq.0.and.ianz.eq.3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         DO i = 1, 3 
                         sym_trans (i) = werte (i) 
                         ENDDO 
@@ -645,16 +645,16 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select the type of symmetry operation                  'type' 
 !                                                                       
-               ELSEIF (str_comp (befehl, 'type', 2, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'type', 2, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-                  IF (ier_num.eq.0) then 
-                     IF (ianz.eq.1) then 
+                  IF (ier_num.eq.0) THEN 
+                     IF (ianz.eq.1) THEN 
                         IF (str_comp (cpara (1) , 'proper', 1, lpara (1)&
-                        , 6) ) then                                     
+                        , 6) ) THEN                                     
                            sym_type = .true. 
                            l_need_setup = .true. 
                         ELSEIF (str_comp (cpara (1) , 'improper', 1,    &
-                        lpara (1) , 8) ) then                           
+                        lpara (1) , 8) ) THEN                           
                            sym_type = .false. 
                            l_need_setup = .true. 
                            sym_use = 0             ! Turn off space group matrix usage
@@ -667,7 +667,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select the direct space direction of the symmetry axis 'uvw'  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'uvw ', 2, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'uvw ', 2, lbef, 3) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN
                      IF(str_comp(cpara(1), 'atoms', 1, lpara(1), 5)) THEN
@@ -699,9 +699,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            ier_num = - 6 
                            ier_typ = ER_COMM 
                         ENDIF
-                     ELSEIF(ianz.eq.3) then 
+                     ELSEIF(ianz.eq.3) THEN 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                     IF (ier_num.eq.0) then 
+                     IF (ier_num.eq.0) THEN 
                         DO i = 1, 3 
                         sym_uvw (i) = werte (i) 
                         ENDDO 
@@ -724,7 +724,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     ----Select a space group symmetry matrix 'use'  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'use ', 2, lbef, 3) ) then 
+               ELSEIF (str_comp (befehl, 'use ', 2, lbef, 3) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN
                      IF(ianz==1) THEN
@@ -745,8 +745,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------- -Operating System Kommandos 'syst'                             
 !                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile.ne.' ') THEN 
                      CALL do_operating (zeile (1:lp), lp) 
                   ELSE 
                      ier_num = - 6 
@@ -755,7 +755,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------  -----waiting for user input                                    
 !                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
                ELSE 
                   ier_num = - 8 
@@ -822,7 +822,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
    IF(sym_use==0) THEN
       WRITE (output_io, 3000) sym_uvw 
       WRITE (output_io, 3010) sym_hkl 
-      IF (sym_orig_mol) then 
+      IF (sym_orig_mol) THEN 
          WRITE (output_io, 3020) sym_orig, ' rel.to molecule' 
       ELSE 
          WRITE (output_io, 3020) sym_orig, ' rel. to crystal' 
@@ -834,25 +834,25 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
       WRITE (output_io, 3070) sym_power 
 !                                                                       
-      IF (sym_power_mult) then 
+      IF (sym_power_mult) THEN 
          WRITE (output_io, 3080) 'Multiple copy of original' 
       ELSE 
          WRITE (output_io, 3080) 'Single copy of original' 
       ENDIF 
 !                                                                       
-      IF (sym_type) then 
+      IF (sym_type) THEN 
          WRITE (output_io, 3090) 'Proper rotation' 
       ELSE 
          WRITE (output_io, 3090) 'Improper rotation' 
       ENDIF 
 !                                                                       
-      IF (sym_mode) then 
+      IF (sym_mode) THEN 
          WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
       ELSE 
          WRITE (output_io, 3100) 'Move atom/molecule to new position' 
       ENDIF 
 !                                                                       
-      IF (sym_new.and..not.sym_sel_atom) then 
+      IF (sym_new.and..not.sym_sel_atom) THEN 
          WRITE (output_io, 3110) 'Create new molecule type' 
       ELSE 
          WRITE (output_io, 3110) 'Keep molecule type' 
@@ -860,20 +860,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ Working with atoms ...                                          
 !                                                                       
-      IF (sym_sel_atom) then 
+      IF (sym_sel_atom) THEN 
 !                                                                       
          j = 0 
          DO i = 0, cr_nscat 
-         IF (sym_latom (i) ) then 
+         IF (sym_latom (i) ) THEN 
             j = j + 1 
             at_lis (j) = at_name (i) 
          ENDIF 
          ENDDO 
          WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
 !                                                                       
-         IF (sym_incl.eq.'all ') then 
+         IF (sym_incl.eq.'all ') THEN 
             WRITE (output_io, 3220) 
-         ELSEIF (sym_incl.eq.'env ') then 
+         ELSEIF (sym_incl.eq.'env ') THEN 
             WRITE (output_io, 3225) 
          ELSE 
             WRITE (output_io, 3230) sym_start, sym_end 
@@ -883,7 +883,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       ELSE 
 !                                                                       
-         IF (sym_orig_mol) then 
+         IF (sym_orig_mol) THEN 
             WRITE (output_io, 3250) 'Molecule' 
          ELSE 
             WRITE (output_io, 3250) 'Crystal' 
@@ -891,25 +891,25 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
          j = 0 
          DO i = 0, mole_num_type 
-         IF (sym_latom (i) ) then 
+         IF (sym_latom (i) ) THEN 
             j = j + 1 
             mol_lis (j) = i 
          ENDIF 
          ENDDO 
          WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
 !                                                                       
-         IF (sym_end.eq. - 1) then 
+         IF (sym_end.eq. - 1) THEN 
             WRITE (output_io, 3310) 
          ELSE 
             WRITE (output_io, 3320) sym_start, sym_end 
          ENDIF 
-         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) then 
-            IF (sym_dom_mode_atom) then 
+         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
+            IF (sym_dom_mode_atom) THEN 
                WRITE (output_io, 4100) 
             ELSE 
                WRITE (output_io, 4150) 
             ENDIF 
-            IF (sym_dom_mode_shape) then 
+            IF (sym_dom_mode_shape) THEN 
                WRITE (output_io, 4200) 
             ELSE 
                WRITE (output_io, 4250) 
@@ -923,19 +923,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       WRITE (output_io, 3060) ( (sym_rmat (i, j), j = 1, 3), i = 1, 3) 
       WRITE (output_io, 3070) sym_power 
 !                                                                       
-      IF (sym_power_mult) then 
+      IF (sym_power_mult) THEN 
          WRITE (output_io, 3080) 'Multiple copy of original' 
       ELSE 
          WRITE (output_io, 3080) 'Single copy of original' 
       ENDIF 
 !                                                                       
-      IF (sym_mode) then 
+      IF (sym_mode) THEN 
          WRITE (output_io, 3100) 'Copy atom/molecule to new position' 
       ELSE 
          WRITE (output_io, 3100) 'Move atom/molecule to new position' 
       ENDIF 
 !                                                                       
-      IF (sym_new.and..not.sym_sel_atom) then 
+      IF (sym_new.and..not.sym_sel_atom) THEN 
          WRITE (output_io, 3110) 'Create new molecule type' 
       ELSE 
          WRITE (output_io, 3110) 'Keep molecule type' 
@@ -943,20 +943,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !------ Working with atoms ...                                          
 !                                                                       
-      IF (sym_sel_atom) then 
+      IF (sym_sel_atom) THEN 
 !                                                                       
          j = 0 
          DO i = 0, cr_nscat 
-         IF (sym_latom (i) ) then 
+         IF (sym_latom (i) ) THEN 
             j = j + 1 
             at_lis (j) = at_name (i) 
          ENDIF 
          ENDDO 
          WRITE (output_io, 3210) (at_lis (i), i = 1, j) 
 !                                                                       
-         IF (sym_incl.eq.'all ') then 
+         IF (sym_incl.eq.'all ') THEN 
             WRITE (output_io, 3220) 
-         ELSEIF (sym_incl.eq.'env ') then 
+         ELSEIF (sym_incl.eq.'env ') THEN 
             WRITE (output_io, 3225) 
          ELSE 
             WRITE (output_io, 3230) sym_start, sym_end 
@@ -967,25 +967,25 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
          j = 0 
          DO i = 0, mole_num_type 
-         IF (sym_latom (i) ) then 
+         IF (sym_latom (i) ) THEN 
             j = j + 1 
             mol_lis (j) = i 
          ENDIF 
          ENDDO 
          WRITE (output_io, 3300) (mol_lis (k), k = 1, j) 
 !                                                                       
-         IF (sym_end.eq. - 1) then 
+         IF (sym_end.eq. - 1) THEN 
             WRITE (output_io, 3310) 
          ELSE 
             WRITE (output_io, 3320) sym_start, sym_end 
          ENDIF 
-         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) then 
-            IF (sym_dom_mode_atom) then 
+         IF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
+            IF (sym_dom_mode_atom) THEN 
                WRITE (output_io, 4100) 
             ELSE 
                WRITE (output_io, 4150) 
             ENDIF 
-            IF (sym_dom_mode_shape) then 
+            IF (sym_dom_mode_shape) THEN 
                WRITE (output_io, 4200) 
             ELSE 
                WRITE (output_io, 4250) 
