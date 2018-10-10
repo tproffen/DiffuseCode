@@ -81,10 +81,12 @@
    The ==> 'therm' command erroneously used too large a displacement.
    The average <u^2> were actually 3 times too large. 
 
-   As of version 5.27.2 this had been corrected yet again to the 
-   original correct state. A calculation of a powder /single crystal
+   As of version 5.27.2 this has been corrected yet again to the 
+   original, correct state. A calculation of a powder /single crystal
    pattern either with "temp use" or a combination "therm and temp ignore"
    will now produce icdentical results again.
+
+   
 3  2018_Sep
 
    Added new export options:
@@ -8131,8 +8133,13 @@
 3  des
 !b des { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
-   Deselects choices made by ==> 'sel' . Possible values
-   for the parameter are mutually exclusively:
+   Deselects choices made by ==> 'sel' .
+   Be sure to combine the 'des', 'sel' and 'incl' commands and
+   make sure that no 'msel', mdes' or 'mincl' command follows
+   prior to the 'run' command.
+
+   Possible values for the first mandatory parameter are
+   mutually exclusively:
 
 !p "all"     all atoms of the crystal are deselected.
 !p <name>    all the atoms called <name> of the crystal are deselected.
@@ -8152,6 +8159,16 @@
 3  incl
 !b incl {<start>,<end> | "all" | "envi" }
 
+   This command serves to choose wich actual atoms
+   will be modified by the symmetry operation.
+
+   Chose which atom types will be included with the 
+   ==> 'incl' command.
+
+   Be sure to combine the 'sel' 'des' and 'incl' commands and
+   make sure that no 'msel', mdes' or 'mincl' command follows
+   prior to the 'run' command.
+
    The symmetry operation includes all atoms numbered <start> to <end>
    inclusively. All other atoms are ignored. 
    If, instead of explicit numbers, the parameter "all" is given, the
@@ -8168,8 +8185,13 @@
 3  mdes
 !b mdes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
-   Deselects choices made by ==> 'msel' . Possible values
-   for the parameter are mutually exclusively:
+   Deselects choices made by ==> 'msel'.
+
+   Be sure to combine the 'mdes', 'msel' and 'mincl' commands and
+   make sure that no 'sel', des' or 'incl' command follows
+   prior to the 'run' command.
+
+   Possible values for the parameter are mutually exclusively:
 
 !p "all"     all molecules of the crystal are deselected.
 !p <number>  all molecules of the crystal that are of type <number>
@@ -8178,6 +8200,16 @@
    More than one molecule type may be deselected at once.
 3  mincl
 !b mincl {<start>,<end> | "all" } [ , "group", <first> [, <excl1>...]]
+
+   This command serves to select those actual molecule numbers 
+   that will be modified by the symmetry operation.
+
+   Chose wich molecule types will be included with the 
+   ==> 'mincl' command.
+
+   Be sure to combine the 'msel', 'mdes' and 'mincl' commands and
+   make sure that no 'sel', des' or 'incl' command follows
+   prior to the 'run' command.
 
    The symmetry operation includes all molecules numbered <start> to <end>
    inclusively. All other molecules are ignored. 
@@ -8236,11 +8268,18 @@
 3  msel
 !b msel { "all" | <number> } [ , <number> ...]
 
-   This command executes serves to select
-   those molecules that will be modified by the symmetry operation.
+   This command serves to select those molecule types 
+   that will be modified by the symmetry operation.
+ 
+   Chose wich actual molecules will be included with the 
+   ==> 'mincl' command.
 
-   Defines which molecules are included in symmetry operation. Possible values
-   for the first mandatory parameter are mutually exclusively:
+   Be sure to combine the 'msel', 'mdes' and 'mincl' commands and
+   make sure that no 'sel', des' or 'incl' command follows
+   prior to the 'run' command.
+
+   Possible values for the first mandatory parameter are mutually 
+   exclusively:
 
 !p "all"     all molecules of the crystal are included.
 !p           This includes the empty molecules in the structure, which are
@@ -8248,10 +8287,13 @@
 !p <number>  all molecules of the crystal that are of type <number>
 !p           are included.
 
-   More than one atom may be selected at once.
+   More than one molecule type may be selected at once.
 
    The selection of molecules by 'msel' and atoms by 'sel' are mutually
    exclusive. The symmetry operation uses either atoms or molecules.
+   Be careful with unintended side effects. Currently DISCUS uses the 
+   same internal variable to store which atoms/molecules are selected.
+   Be carefule when switching between msel/sel mdes/des.
 3  odes
 !b odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
@@ -8350,11 +8392,16 @@
 3  sel
 !b sel { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
-   This command serves to select
-   those atoms that will be modified by the symmetry operation.
+   This command serves to select those atom types 
+   that will be modified by the symmetry operation.
+   Chose wich actual atoms will be included with the 
+   ==> 'incl' command.
+   Be sure to combine the 'sel' and 'incl' commands and
+   make sure that no 'msel', mdes' or 'mincl' command follows
+   prior to the 'run' command.
 
-   Defines which atoms are included in symmetry operation. Possible values
-   for the first mandatory parameter are mutually exclusively:
+   Possible values for the first mandatory parameter are
+   mutually exclusively:
 
 !p "all"     all atoms of the crystal are included.
              This includes the "voids" in the structure, which are stored
