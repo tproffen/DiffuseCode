@@ -8,6 +8,7 @@ SUBROUTINE do_eval (line, i)
 !-                                                                      
 !     evaluates the expression stored in line                           
 !                                                                       
+USE blanks_mod
 USE ber_params_mod
       USE errlist_mod 
       USE do_string_alloc_mod
@@ -22,7 +23,7 @@ USE ber_params_mod
       INTEGER            , INTENT(INOUT) :: i
 !
       CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) cstr 
+      CHARACTER(1024) cstr , zeile
       INTEGER lpara (maxw) 
       INTEGER ianz, il 
       INTEGER length 
@@ -39,7 +40,9 @@ USE ber_params_mod
 !                                                                       
 !     String substitution???                                            
 !                                                                       
-      IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0 ) THEN
+      CALL rem_insig_bl(line,i)
+!     IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0 ) THEN
+      IF (INDEX (line, '"')  == 1.or.INDEX (line, '''') == 1  ) THEN
          CALL do_string_alloc (line, indxg, i) 
          WRITE (output_io, 3000) line(1:LEN_TRIM(line))
          RETURN 
@@ -67,6 +70,13 @@ USE ber_params_mod
                   CALL socket_send (s_conid, cstr, il) 
                ENDIF 
                ENDDO 
+            ELSEIF(ier_num==-1 .AND. ier_typ == ER_FORT) THEN   ! Try string substitution
+               length = LEN_TRIM(line)
+               indxg  = 0
+               zeile  = line (1:indxg) //'"%c",'//line (indxg + 1:length)
+               length = LEN_TRIM(zeile)
+               CALL do_string_alloc (zeile, indxg, length)
+               WRITE (output_io, 3000) zeile(1:LEN_TRIM(zeile))
             ENDIF 
          ENDIF 
       ENDIF 

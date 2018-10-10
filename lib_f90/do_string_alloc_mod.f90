@@ -33,6 +33,7 @@ USE do_variable_mod
       INTEGER                    :: i, ikk, ianz, lll 
       INTEGER, DIMENSION(1:maxw) :: iii = 0
       INTEGER                    :: ising , indx_ind, indx_len, indx_env, indx_cwd
+      INTEGER                    :: indx_par, indx_isv, indx_ise, indx_fmd
       INTEGER                    :: l_string 
       INTEGER                    :: ikl, iklz, ll, laenge
       INTEGER                    :: ios  ! I/O error status
@@ -65,11 +66,19 @@ USE do_variable_mod
       indx_len=INDEX(line (indxg + 1:length),'length')  ! locate length function
       indx_env=INDEX(line (indxg + 1:length),'getenv')  ! locate length function
       indx_cwd=INDEX(line (indxg + 1:length),'getcwd')  ! locate length function
+      indx_isv=INDEX(line (indxg + 1:length),'isvar')   ! locate isvar function
+      indx_ise=INDEX(line (indxg + 1:length),'isexp')   ! locate isexp function
+      indx_fmd=INDEX(line (indxg + 1:length),'fmodt')   ! locate fmodt function
+      indx_par=INDEX(line (indxg + 1:length),'par_name')  ! locate par_name function
 !
       IF((indx_ind>0 .AND. indx_ind<ising)  .OR. & ! We got a function of a string argument
          (indx_len>0 .AND. indx_len<ising)  .OR. & ! We got a function of a string argument
          (indx_env>0 .AND. indx_env<ising)  .OR. & ! We got a function of a string argument
-         (indx_cwd>0 .AND. indx_cwd<ising)) THEN
+         (indx_cwd>0 .AND. indx_cwd<ising)  .OR. & ! We got a function of a string argument
+         (indx_isv>0 .AND. indx_isv<ising)  .OR. & ! We got a function of a string argument
+         (indx_ise>0 .AND. indx_ise<ising)  .OR. & ! We got a function of a string argument
+         (indx_fmd>0 .AND. indx_fmd<ising)  .OR. & ! We got a function of a string argument
+         (indx_par>0 .AND. indx_par<ising)) THEN
          string = line (indxg + 1:length)
          laenge = length - indxg
          ikl = INDEX(string,'(')
