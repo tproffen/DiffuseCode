@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2018_Oct
+
+   Added the trend of the best value to the 'kpara' plot
 3  2018_June
 
    Revised the reaction to a CTRL-C
@@ -1302,8 +1305,20 @@
    development of this parameter versus the refinement generations.
    The parameter name may include "Rvalue" or 0 to plot the development
    of the R-value.
+   The plot displays the upper and lower most parameter value in red,
+   the average parameter in blue with error bars and the best parameter
+   in black.
 
-   The second form serves to plot the distribution of two parameters
+   Examples
+   kpara Rvalue    ! Show the R-value versus generations
+   kpara P_one     ! Same for a parameter named "P_one"
+2  kpar_par
+!b kpar_par { {"last"| "-1"} | <generation_no> } ,
+!b       {<par_name> | <par_number>} , {<par_name> | <par_number>} 
+   This command serves to create a standardized plot of the parameters
+   refined via DIFFEV. 
+
+   The command serves to plot the distribution of two parameters
    in a given generation. If the first command parameter is either
    "last" or "-1" the last generation is used. This can be helpful to
    repeatedly plot the parameters during a refinement. 
@@ -1314,11 +1329,9 @@
    to show the correlation between parameter value and the R-value.
 
    Examples
-   kpara Rvalue    ! Show the R-value versus generations
-   kpara P_one     ! Same for a parameter named "P_one"
-   kpara last, P_one, Rvalue  ! Show R-values versus Parameter value
+   kpar_par last, P_one, Rvalue  ! Show R-values versus Parameter value
                               ! in the last generation
-   kpara last, P_one, P_two   ! Dislay (possible) correlation 
+   kpar_par last, P_one, P_two   ! Dislay (possible) correlation 
                               ! between these two parameters
 2  lart
 !b lart <ik>,<p>

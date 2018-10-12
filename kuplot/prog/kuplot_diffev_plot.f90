@@ -45,8 +45,8 @@ INTEGER              :: ianz
 INTEGER, PARAMETER :: NOPTIONAL = 1
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 INTEGER :: ipartial = 0
@@ -124,15 +124,19 @@ INTEGER         , DIMENSION(1:MAXW), INTENT(IN) :: lpara
 INTEGER                            , INTENT(IN) :: ianz
 INTEGER                            , INTENT(IN) :: ipartial
 !
+INTEGER, PARAMETER :: ifil = 44
+!
 CHARACTER (LEN=1024) :: infile
 CHARACTER (LEN=1024) :: string
 CHARACTER (LEN=   4) :: bef
-INTEGER :: i
+INTEGER :: i, j, im
 INTEGER              :: ipar1
 INTEGER              :: success
 INTEGER              :: length
 LOGICAL              :: lname
 LOGICAL              :: lexist
+REAL                 :: rval_min, r_val, par_val, parval_min
+!INTEGER              :: rval_indx
 REAL   , DIMENSION(1:MAXW) :: werte
 !
 success = -1
@@ -206,10 +210,55 @@ length = LEN_TRIM(string)
 CALL do_load (string, length)
 IF(ier_num/=0) RETURN
 !
-!
 DO i=1,len(1)
    dy(i) = y(offxy (4-1)+i) 
 ENDDO
+!
+IF(ipar1>0) THEN
+   infile = k_diff_logfile(1:LEN_TRIM(k_diff_logfile))//'.'//k_diff_name(ipar1)(1:LEN_TRIM(k_diff_name(ipar1)))
+   INQUIRE(FILE=infile, EXIST=lexist)
+   IF(.NOT.lexist) THEN      ! try par number as extension
+      WRITE(infile,'(a,''.'',i4.4)')  k_diff_logfile(1:LEN_TRIM(k_diff_logfile)), ipar1
+      INQUIRE(FILE=infile, EXIST=lexist)
+      IF(.NOT.lexist) THEN      ! 
+         ier_num = -64
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF
+   ENDIF
+!
+   OPEN(UNIT=ifil,FILE=infile,STATUS='old')
+   READ(ifil, *)
+   DO i=1,len(1)                 ! Loop over all generations
+      READ(ifil, *)
+      READ(ifil, *)
+      READ(ifil, *) im, r_val, par_val
+      rval_min = r_val
+      parval_min = par_val
+      ymin(iz) = par_val
+      ymax(iz) = par_val
+      DO j=1,k_diff_member-1
+         READ(ifil, *) im, r_val, par_val
+         IF(r_val < rval_min) THEN
+            rval_min = r_val
+            parval_min = par_val
+         ENDIF
+      ENDDO
+      x(offxy(iz-1)+i) = x(offxy(1)+i)
+      y(offxy(iz-1)+i) = parval_min
+      ymin(iz)         = MIN(ymin(iz), parval_min)
+      ymax(iz)         = MAX(ymax(iz), parval_min)
+      dx(offxy(iz-1)+i) = 0.0
+      dy(offxy(iz-1)+i) = 0.0
+   ENDDO
+   len(iz)   = len(1)
+   xmin(iz)  = x(offxy(iz-1)+1)
+   xmax(iz)  = x(offxy(iz-1)+len(1)-1)
+   offxy(iz) = offxy(iz - 1) + len (iz)
+   offz(iz)  = offz(iz - 1)
+   iz = iz + 1
+   CLOSE(ifil)
+ENDIF
 !
 IF(ymin(1)==ymax(1) .AND. ymin(2)==ymax(2) .AND. ymin(3)==ymax(3) .AND. &
    ABS(ymin(1)-ymin(2))<=ymin(1)*1.E-5 ) THEN
@@ -225,6 +274,10 @@ ELSE
    CALL para_seti (string, length, imarktyp, 1, maxkurvtot, bef, -3, 5000, .FALSE.)
    string = '3, 3'
    CALL para_seti (string, length, imarktyp, 1, maxkurvtot, bef, -3, 5000, .FALSE.)
+   IF(ipar1>0) THEN
+   string = '5, 3'
+   CALL para_seti (string, length, imarktyp, 1, maxkurvtot, bef, -3, 5000, .FALSE.)
+   ENDIF
 !
    bef = 'mcol'
    string = '1, 3'
@@ -233,6 +286,10 @@ ELSE
    CALL para_seti (string, length, imarkcol, 1, maxkurvtot, bef,  1,   15, .FALSE.)
    string = '3, 1'
    CALL para_seti (string, length, imarkcol, 1, maxkurvtot, bef,  1,   15, .FALSE.)
+   IF(ipar1>0) THEN
+   string = '5, 6'
+   CALL para_seti (string, length, imarkcol, 1, maxkurvtot, bef,  1,   15, .FALSE.)
+   ENDIF
 !
    bef = 'ltyp'
    string = '1, 1'
@@ -241,6 +298,10 @@ ELSE
    CALL para_seti (string, length, ilinetyp, 1, maxkurvtot, bef,  0,    5, .FALSE.)
    string = '3, 1'
    CALL para_seti (string, length, ilinetyp, 1, maxkurvtot, bef,  0,    5, .FALSE.)
+   IF(ipar1>0) THEN
+   string = '5, 1'
+   CALL para_seti (string, length, ilinetyp, 1, maxkurvtot, bef,  0,    5, .FALSE.)
+   ENDIF
 !
    bef = 'lcol'
    string = '1, 3'
@@ -249,6 +310,10 @@ ELSE
    CALL para_seti (string, length, ilinecol, 0, maxkurvtot, bef,  1,   15, .FALSE.)
    string = '3, 1'
    CALL para_seti (string, length, ilinecol, 0, maxkurvtot, bef,  1,   15, .FALSE.)
+   IF(ipar1>0) THEN
+   string = '5, 6'
+   CALL para_seti (string, length, ilinecol, 0, maxkurvtot, bef,  1,   15, .FALSE.)
+   ENDIF
 !
    bef = 'etyp'
    string = '1, 2'
@@ -257,6 +322,10 @@ ELSE
    CALL para_seti (string, length, ierr    , 1, maxkurvtot, bef,  0,    3, .FALSE.)
    string = '3, 0'
    CALL para_seti (string, length, ierr    , 1, maxkurvtot, bef,  0,    3, .FALSE.)
+   IF(ipar1>0) THEN
+   string = '5, 0'
+   CALL para_seti (string, length, ierr    , 1, maxkurvtot, bef,  0,    3, .FALSE.)
+   ENDIF
 !
    length = 6
    string = '1, 0.2'
@@ -265,9 +334,17 @@ ELSE
    CALL set_sizemark (string, length)
    string = '3, 0.2'
    CALL set_sizemark (string, length)
+   IF(ipar1>0) THEN
+   string = '5, 0.2'
+   CALL set_sizemark (string, length)
+   ENDIF
 !
    string = '1, 1, 2, 3'
    length = 10
+   IF(ipar1>0) THEN
+   string = '1, 1, 2, 3, 5'
+   length = 13
+   ENDIF
    CALL set_kfra (string, length)
    string = ' '
    length = 1
