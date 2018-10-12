@@ -917,7 +917,10 @@
    one "refine" command line. If you need to specify the behaviour
    for more than 20 variables, please use several "refine" commands.
 2  release
-!b release {<par_name>| <number>} [ , range:<value>]
+!b release {<par_name>| <number>} , range:<sigma>
+!b   [value:<setpoint>]
+!b   [min:<pop_xmin>]
+!b   [max:<pop_xmax>]
 
    This command will initialize a parameter named <par_name> 
    to a range around the current best value. Its intent is 
@@ -929,21 +932,25 @@
    The parameter will be refined, i.e. the 'release' command
    implies a ==> refine <par_name> command. 
 
-   The initalization range is set to the best value +- range.
+   If the optional parameter 'value:<setpoint>' is present, 
+   it defines the setpoint around which the parameter values 
+   will be initialized. If the optional parameter is omitted,
+   the setpoint defaults to the value of the current best 
+   population member.
+   The initalization range is set to the setpoint +- range.
 
    The absolute limits, ==> 'pop_xmin', 'pop_xmax' are set
-   to a range of at least +- 3* <range> around the current
-   best value. If the original user provided values of
-   pop_min or pop_max are further away from the current best
-   value they are retained. 
-      pop_min = MIN(pop_min, best - 3*range)
-      pop_max = MAX(pop_max, best + 3*range)
+   to a range of +- 3* <range> around the <setpoint>.
+   The original user provided values of
+   pop_min or pop_max are repleced by the new values.
 
-   If you need wider ranges or if the new limits might be 
+   If you need different ranges for pop_xmin and pop_xmax, 
+   or if the new limits might be 
    outside a physical limit you need to set the proper
-   limits explicitely with a 
-      pop_xmin[par_number('<par_name>')] = <value> 
-   command.
+   limits explicitely with the optional parameters
+   "min" and "max":
+      min:pop_xmin
+      max:pop_xmax
 2  reset
 !b reset
 

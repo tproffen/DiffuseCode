@@ -59,22 +59,22 @@ LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_refine     !  (MAXDIMX)
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_sigma   !  (MAXDIMX)
 LOGICAL ,DIMENSION(:)  , ALLOCATABLE :: pop_ad_lsigma  !  (MAXDIMX)
 !
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_x          !  (MAXDIMX,MAXPOP)
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_t          !  (MAXDIMX,MAXPOP)
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_x          !  (MAXDIMX,MAXPOP) Parent parameters
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: pop_t          !  (MAXDIMX,MAXPOP) Trial  parameters
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_para       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmin       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmax       !  (MAXDIMX)
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmin       !  (MAXDIMX) Absolute lower boundary
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_xmax       !  (MAXDIMX) Absolute upper boundary
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmin       !  (MAXDIMX)
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_pmax       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smin       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smax       !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_sigma      !  (MAXDIMX)
-REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig       !  (MAXDIMX)
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smin       !  (MAXDIMX) Start    lower boundary
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_smax       !  (MAXDIMX) Start    upper boundary
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_sigma      !  (MAXDIMX) Sigma for edge correction
+REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig       !  (MAXDIMX) Sigma for local search
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_sig_ad     !  (MAXDIMX)
 REAL    ,DIMENSION(:)  , ALLOCATABLE :: pop_lsig_ad    !  (MAXDIMX)
 !
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: child          !  (MAXDIMX,MAXPOP)
-REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP)
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: child          !  (MAXDIMX,MAXPOP) Child parameters
+REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial          !  (MAXDIMX,MAXPOP) Trial parameters
 !
 REAL    ,DIMENSION(:,:), ALLOCATABLE :: child_val      !  (MAXPOP)
 REAL    ,DIMENSION(:,:), ALLOCATABLE :: trial_val      !  (MAXPOP)

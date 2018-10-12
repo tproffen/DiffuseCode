@@ -221,16 +221,16 @@ CONTAINS
 !
    REAL   , EXTERNAL    :: ran1 
 !
-   DO j = 1, pop_c 
+   children: DO j = 1, pop_c 
       n_tried = 0 
       l_ok = .false. 
-      DO while (.not.l_ok.and.n_tried.lt.MAX_CONSTR_TRIAL) 
+      attempt: DO while (.not.l_ok.and.n_tried.lt.MAX_CONSTR_TRIAL) 
          n_tried = n_tried+1 
          w = 0.00 
          DO i=1,pop_dimx ! set default values
-            pop_para(i) = pop_x (i,j)
+            pop_para(i) = pop_t (i,j)
          ENDDO
-         DO i = lb, ub
+         params: DO i = lb, ub
             IF(pop_smin(i) < pop_xmin(i) .or. pop_xmax(i) < pop_smax(i)) THEN
                ier_num = -25
                ier_typ = ER_APPL
@@ -241,7 +241,7 @@ CONTAINS
             ENDIF
             IF(.NOT. pop_refine(i)) THEN  ! parameter is fixed, check pop_xmin/max
                IF(pop_xmin(i) /= pop_xmax(i) .OR. &
-                  MINVAL(pop_t(i,:)) /= MAXVAL(pop_t(i,:))) THEN
+                  MINVAL(pop_x(i,:)) /= MAXVAL(pop_x(i,:))) THEN
                   ier_num = -28
                   ier_typ = ER_APPL
                   write(ier_msg(1),'(a,a,a)') 'Parameter: ',pop_name(i),' is fixed but'
@@ -251,32 +251,32 @@ CONTAINS
                ENDIF
             ENDIF
             IF (pop_type (i) .eq.POP_INTEGER) THEN 
-               pop_x (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
+               pop_t (i, j) = nint (pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) ) )
             ELSE 
-               pop_x (i, j) = pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) )
+               pop_t (i, j) = pop_smin (i) + ran1 (idum) * (pop_smax (i) - pop_smin (i) )
             ENDIF 
-            pop_para (i) = pop_x (i, j) 
-         ENDDO 
+            pop_para (i) = pop_t (i, j) 
+         ENDDO  params
          l_ok = .true. 
          DO l = 1, constr_number 
             line = ' ' 
             line = '('//constr_line (l) (1:constr_length (l) ) //')' 
             length = constr_length (l) + 2 
             l_ok = l_ok.and.if_test (line, length) 
-         ENDDO 
-      ENDDO 
+         ENDDO
+      ENDDO  attempt
       IF (.not.l_ok) then 
          ier_num = - 8 
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
-   ENDDO 
+   ENDDO children
 !                                                                 
    DO j = 1, pop_c 
       DO i = lb,ub 
-         pop_t (i, j) = pop_x (i, j) 
          IF( pop_gen == 0 ) THEN
-            child (i,j) = pop_x(i,j)
+            pop_x(i, j) = pop_t(i, j) 
+            child(i, j) = pop_t(i,j)
          ENDIF
       ENDDO 
       CALL write_trial (j) 
@@ -326,6 +326,14 @@ CONTAINS
    INTEGER              :: j
 !
    IF ( pop_xmin(lb) <= value .and. value <= pop_xmax(lb) ) THEN
+      IF(value == child(lb, pop_best)) THEN       ! Fix to value of current best member
+      fix_best: DO j=1, pop_n
+         IF(j == pop_best) CYCLE fix_best         ! Keep R-value(s) of best
+         parent_val(j,0:n_rvalue_i) = 1.E12      ! Invalidate al other parents
+      ENDDO fix_best
+      ELSE
+         parent_val(:,0:n_rvalue_i) = 1.E12      ! Invalidate al other parents
+      ENDIF
       DO j=1,pop_n
          child  (lb,j) = value
          pop_x  (lb,j) = value

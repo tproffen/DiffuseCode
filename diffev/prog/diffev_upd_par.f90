@@ -856,10 +856,10 @@ ELSE
    ier_typ = ER_FORT 
 ENDIF 
 !                                                                 
-IF (ier_num.ne.0) then 
-   WRITE ( *, * ) string 
-   WRITE ( *, * ) line 
-ENDIF 
+!IF (ier_num.ne.0) then 
+!   WRITE ( *, * ) string (1:len_trim(string))
+!   WRITE ( *, * ) line (1:len_trim(line))
+!ENDIF 
 !                                                                       
 END SUBROUTINE diffev_calc_intr_spec                 
 !
