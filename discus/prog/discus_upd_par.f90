@@ -1661,12 +1661,12 @@ DATA discus_dim  &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
     /
 DATA discus_ro  &
-    /  .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .TRUE.  , &
+    /  .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,                                     &
        .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
        .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
-       .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .FALSE.               &
+       .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE.               &
     /
 !
 var_is_type(:) = IS_UNKNOWN
