@@ -78,7 +78,6 @@ integer ier
 !  INTEGER          , INTENT(IN) :: MOLE_MAX_TYPE
 !  INTEGER          , INTENT(IN) :: MOLE_MAX_ATOM
 !
-   INTEGER                       :: istatus
    INTEGER                       :: natoms
    INTEGER                       :: nscat
    INTEGER                       :: n_mole
@@ -160,7 +159,6 @@ integer ier
 !
    INTEGER                       :: i,j,k        ! Dummy
    INTEGER                       :: ia         ! Dummy; atoms in internal crystal
-   INTEGER                       :: istatus
    INTEGER                       :: natoms
    INTEGER                       :: nscat
    INTEGER                       :: n_mole
@@ -229,11 +227,8 @@ integer ier
       ier_msg(1) = 'Could not get size of stored crystal'
       RETURN
    ENDIF
-!  Get header
-   CALL read_temp%crystal%get_header_from_crystal() ! Read the header
-   cr_icc = rd_icc               ! Restore crystal dimensions
 !
-   CALL get_symmetry_matrices                       ! Setup symmetry
+   CALL get_symmetry_matrices    ! Needed to get proper value of spc_n
 !
 !  Allocate enough space for one unit cell
    need_alloc = .false.
@@ -316,6 +311,11 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
       temp_cont(0:natoms) = 0
       temp_look(0:natoms) = 0
 !
+!  Get header
+   CALL read_temp%crystal%get_header_from_crystal() ! Read the header
+   cr_icc = rd_icc               ! Restore crystal dimensions
+!
+   CALL get_symmetry_matrices                       ! Setup symmetry
 !
 !  Now copy from internal crystal to local variables
 !
@@ -494,8 +494,6 @@ ENDIF
    INTEGER             ::  rd_sym_add_power(rd_SYM_ADD_MAX)
    REAL                ::  rd_sym_add(4,4,0:rd_SYM_ADD_MAX)
 !
-   INTEGER             :: istatus
-!
    NULLIFY(read_from)
    NULLIFY(read_parent)
    CALL store_find_node(store_root, read_from, rd_strucfile, read_temp, read_parent, ier_num ) ! Find the proper node
@@ -532,7 +530,6 @@ ENDIF
    INTEGER             , DIMENSION(  1:RD_NMAX) , INTENT(INOUT) :: rd_cr_mole
 !
    INTEGER                       :: i
-   INTEGER                       :: istatus
    INTEGER                       :: natoms
    INTEGER                       :: nscat
    INTEGER                       :: n_mole
@@ -585,7 +582,6 @@ ENDIF
    INTEGER                             ,INTENT(INOUT) :: rd_cr_moleatom
 !
    INTEGER                       :: i
-   INTEGER                       :: istatus
    INTEGER                       :: natoms
    INTEGER                       :: nscat
    INTEGER                       :: n_mole
@@ -651,7 +647,6 @@ ENDIF
 !
    INTEGER                       :: natoms
    INTEGER                       :: nscat
-   INTEGER                       :: istatus
 !
 !  ALLOCATE(read_temp, STAT = istatus )                  ! Allocate a temporary storage
 !  IF ( istatus /= 0) THEN
@@ -689,7 +684,6 @@ ENDIF
 !
    CHARACTER (LEN=*), INTENT(IN) :: strucfile
 !
-   INTEGER                       :: istatus
    INTEGER, INTENT(INOUT)        :: natoms
    INTEGER, INTENT(INOUT)        :: nscat
    INTEGER, INTENT(INOUT)        :: n_mole

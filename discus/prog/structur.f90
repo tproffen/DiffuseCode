@@ -2657,11 +2657,12 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       END SUBROUTINE spcgr_no                       
 !********************************************************************** 
 !********************************************************************** 
-      SUBROUTINE rese_cr 
+SUBROUTINE rese_cr 
 !                                                                       
 !     resets the crystal structure to empty                             
 !                                                                       
       USE discus_config_mod 
+USE discus_allocate_appl_mod
       USE crystal_mod 
       USE gen_add_mod 
       USE molecule_mod 
@@ -2673,7 +2674,9 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
        
 !                                                                       
       INTEGER i 
-!                                                                       
+!
+CALL alloc_crystal(1,1)                                                                       
+!
       cr_natoms = 0 
       as_natoms = 0 
       cr_ncatoms = 1 
@@ -5313,6 +5316,7 @@ USE molecule_mod
 USE prop_para_func
 USE read_internal_mod
 USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
+use wyckoff_mod
 !
 IMPLICIT none 
 !
@@ -5325,10 +5329,12 @@ CHARACTER(LEN=200) :: tempfile
 CHARACTER(LEN=1024) :: line
 INTEGER :: length
 INTEGER :: im, j, iat
+INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
 REAL, DIMENSION(3) :: vec     ! position of first atom in a molecule
 REAL, DIMENSION(3) :: fract   ! shift into first unit cell
 REAL, DIMENSION(3) :: shift   ! shift into first unit cell
 !
+n_unit_cells(:) = cr_icc(:)
 !
 CALL do_readstru(strucfile)
 !
@@ -5366,6 +5372,7 @@ tempfile = 'internal'//'RBN_READMOLE'
 CALL save_internal(tempfile)
 CALL save_restore_setting
 CALL no_error
+cr_icc(:) = n_unit_cells(:)         ! Restore intended number of unit cells
 CALL readcell_internal(tempfile)
 CALL store_remove_single(tempfile, ier_num)
 !
