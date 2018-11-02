@@ -244,12 +244,12 @@ LOGICAL FUNCTION if_test (string, laenge)
          ier_typ = ER_FORT
          WRITE (ier_msg (2), '(a41)') line (1:41) 
       ELSE 
-         icom = MAX (INDEX (string, '.lt.') , INDEX (string, '.le.') ,  &
-                     INDEX (string, '.gt.') , INDEX (string, '.ge.') ,  &
-                     INDEX (string, '.eq.') , INDEX (string, '.ne.') ,  &
-                     INDEX (string, '<')    , INDEX (string, '<=')   ,  &
-                     INDEX (string, '>')    , INDEX (string, '<=')   ,  &
-                     INDEX (string, '==')   , INDEX (string, '/=')      &
+         icom = MAX (INDEX (string, '.lt.', .TRUE.) , INDEX (string, '.le.', .TRUE.) ,  &
+                     INDEX (string, '.gt.', .TRUE.) , INDEX (string, '.ge.', .TRUE.) ,  &
+                     INDEX (string, '.eq.', .TRUE.) , INDEX (string, '.ne.', .TRUE.) ,  &
+                     INDEX (string, '<',    .TRUE.) , INDEX (string, '<=',   .TRUE.) ,  &
+                     INDEX (string, '>',    .TRUE.) , INDEX (string, '<=',   .TRUE.) ,  &
+                     INDEX (string, '==',   .TRUE.) , INDEX (string, '/=',   .TRUE.)    &
                     )
          DO while (icom /= 0) 
 !                                                                       
