@@ -1,4 +1,4 @@
-SUBROUTINE diffev_branch(zeile, length)
+SUBROUTINE diffev_branch(zeile, length, lreset)
 !
 !  Specific DIFFEV Version of a branch subroutine
 !  Call DISCUS/KUPLOT via system
@@ -11,6 +11,7 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
+LOGICAL          , INTENT(IN) :: lreset
 !
 ier_num = -7
 ier_typ = ER_COMM
