@@ -98,52 +98,125 @@ ENDIF
 !
 !     Allocate the necessary arrays
 !
-      IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
-           MAXSCAT > PL_MAXSCAT ) THEN
-         nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
-         CALL alloc_plot ( nscat )
-         IF(ier_num < 0) THEN
-           RETURN
-         ENDIF
-      ENDIF
+!     IF ( cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
+!          MAXSCAT > PL_MAXSCAT ) THEN
+!        nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
+!        CALL alloc_plot ( nscat )
+!        IF(ier_num < 0) THEN
+!          RETURN
+!        ENDIF
+!     ENDIF
 !                                                                       
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/plot' 
-      DO while (.not.lend) 
+main: DO while (.not.lend)                                        !  Main loop
       CALL no_error 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
-         IF (line /= ' '      .and. line(1:1) /= '#' .and. &
-             line /= char(13) .and. line(1:1) /= '!'        ) THEN
+   IF (ier_num.eq.0) then                                         ! No error get command
+      IF (line /= ' '      .and. line(1:1) /= '#' .and. &
+          line /= char(13) .and. line(1:1) /= '!'        ) THEN   ! Non-blank
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
             indxg = index (line, '=') 
-      IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                    .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) ) &
-                    .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4)   &
-                    .OR.        str_comp (befehl, '?   ', 2, lbef, 4) ) &
-                    .AND. INDEX(line,'==') == 0                        ) THEN
+if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) ) &
+                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4)   &
+                       .OR.        str_comp (befehl, '?   ', 2, lbef, 4) ) &
+                       .AND. INDEX(line,'==') == 0                        ) THEN   ! DO_MATH?
 !                                                                       
-!     ------evaluatean expression and assign the value to a variabble   
+!     ------evaluate an expression and assign the value to a variabble   
 !                                                                       
                CALL do_math (line, indxg, length) 
-            ELSE 
+         ELSE  if_gleich
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-               IF (befehl (1:1) .eq.'@') then 
+            IF (befehl (1:1) .eq.'@') then                ! macro or reset or all other commands
                   IF (length.ge.2) then 
                      CALL file_kdo (line (2:length), length - 1) 
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
                   ENDIF 
+!                                                                 
+!     --continues a macro 'continue'                                    
+!                                                                       
+               ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ ----list asymmetric unit 'asym'                                 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+                  CALL show_asym 
+!                                                                       
+!------ ----list atoms present in the crystal 'chem'                    
+!                                                                       
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+                  CALL show_chem 
+!                                                                       
+!------ ----Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
+                  lend = .true. 
+!                                                                       
+!     ----help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.  &
+              str_comp (befehl, '?   ', 1, lbef, 4) )    then
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus plot '//zeile, lp) 
+                  ENDIF 
+!                                                                       
+!-----  ------Operating System Kommandos 'syst'                         
+!                                                                       
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+                  IF (zeile.ne.' ') then 
+                     CALL do_operating (zeile, lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+!                                                                       
+!------  -----waiting for user input                                    
+!                                                                       
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+                  CALL do_input (zeile, lp) 
+!
+!     ----reset plot 'reset'                                                
+!
+            ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) THEN   ! macro or reset or all other commands
+               nscat = max ( cr_nscat, mole_num_type, MAXSCAT)
+               CALL  plot_reset
+               labs = .FALSE.
+               lord = .FALSE.
+               lnor = .FALSE.
+            ELSE                                                   ! macro or reset or all other commands
+!
+!     Allocate the necessary arrays
+!
+               IF(cr_nscat > PL_MAXSCAT .or. mole_num_type > PL_MAXSCAT .OR. & 
+                  MAXSCAT > PL_MAXSCAT ) THEN
+                  nscat = MAX(cr_nscat, mole_num_type, MAXSCAT)
+                  CALL alloc_plot(nscat )
+                  IF(ier_num < 0) THEN
+                     RETURN
+                  ENDIF
+               ENDIF
 !                                                                       
 !     ----Select the abscissa for a projection onto a to plot           
 !           slice 'absc'                                                
 !                                                                       
-               ELSEIF (str_comp (befehl, 'absc', 2, lbef, 4) ) THEN 
+               IF (str_comp (befehl, 'absc', 2, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0.and.ianz.eq.3) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -161,16 +234,6 @@ ENDIF
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
-!                                                                       
-!------ ----list asymmetric unit 'asym'                                 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
-                  CALL show_asym 
-!                                                                       
-!------ ----list atoms present in the crystal 'chem'                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
-                  CALL show_chem 
 !                                                                       
 !     ----Set the sequence of columns 'colu'                            
 !                                                                       
@@ -191,11 +254,6 @@ ENDIF
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!                                                                       
-!     --continues a macro 'continue'                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
 !                                                                       
 !------ --setting the scale of the plot                                 
 !                                                                       
@@ -305,16 +363,6 @@ ENDIF
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
-                  lend = .true. 
-!                                                                       
 !     ----Select the extend of crystal space to be plotted 'exte'       
 !                                                                       
                ELSEIF (str_comp (befehl, 'exte', 3, lbef, 4) ) then 
@@ -351,18 +399,6 @@ ENDIF
                         ier_num = - 6 
                         ier_typ = ER_COMM 
                      ENDIF 
-                  ENDIF 
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.  &
-              str_comp (befehl, '?   ', 1, lbef, 4) )    then
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus plot '//zeile, lp) 
                   ENDIF 
 !                                                                       
 !     ----Select the reciprocal space direction normal to plot          
@@ -573,14 +609,6 @@ ENDIF
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!
-!     ----reset plot 'reset'                                                
-!
-               ELSEIF (str_comp (befehl, 'reset', 3, lbef, 5) ) then 
-                  CALL  plot_reset
-                  labs = .FALSE.
-                  lord = .FALSE.
-                  lnor = .FALSE.
 !                                                                       
 !     ----run plot 'run'                                                
 !                                                                       
@@ -782,16 +810,6 @@ ENDIF
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
-!-----  ------Operating System Kommandos 'syst'                         
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
-                     CALL do_operating (zeile, lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
 !     ----set typ of output                                             
 !                                                                       
                ELSEIF (str_comp (befehl, 'type', 2, lbef, 4) ) then 
@@ -806,51 +824,49 @@ ENDIF
                      ENDIF 
                   ENDIF 
 !                                                                       
-!------  -----waiting for user input                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-                  CALL do_input (zeile, lp) 
-!                                                                       
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
-               ENDIF 
-            ENDIF 
-         ENDIF 
-      ENDIF 
+               ENDIF                                            ! All commands
+            ENDIF                                               ! macro or reset or all other commands
+         ENDIF if_gleich                                        ! DO Math ?
+      ENDIF                                                     ! non_blank
+   ENDIF                                                        ! No error get command
 !                                                                       
-      IF (ier_num.ne.0) then 
-         CALL errlist 
-         IF (ier_sta.ne.ER_S_LIVE) then 
-            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
-               IF(sprompt /= prompt ) THEN
-                  ier_num = -10
-                  ier_typ = ER_COMM
-                  ier_msg(1) = ' Error occured in plot menu'
-                  prompt_status = PROMPT_ON 
-                  prompt = orig_prompt
-                  RETURN
-               ELSE
-                  CALL macro_close 
-                  prompt_status = PROMPT_ON 
-               ENDIF 
-            ENDIF 
-            IF (lblock) then 
-               ier_num = - 11 
-               ier_typ = ER_COMM 
+   IF (ier_num.ne.0) then 
+      CALL errlist 
+      IF (ier_sta.ne.ER_S_LIVE) then 
+         IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+            IF(sprompt /= prompt ) THEN
+               ier_num = -10
+               ier_typ = ER_COMM
+               ier_msg(1) = ' Error occured in plot menu'
                prompt_status = PROMPT_ON 
                prompt = orig_prompt
-               RETURN 
+               RETURN
+            ELSE
+               CALL macro_close 
+               prompt_status = PROMPT_ON 
             ENDIF 
-            CALL no_error 
-            lmakro_error = .FALSE.
-            sprompt = ' '
          ENDIF 
-      ENDIF 
-      ENDDO 
+         IF (lblock) then 
+            ier_num = - 11 
+            ier_typ = ER_COMM 
+            prompt_status = PROMPT_ON 
+            prompt = orig_prompt
+            RETURN 
+         ENDIF 
+         CALL no_error 
+         lmakro_error = .FALSE.
+         sprompt = ' '
+      ENDIF
+   ENDIF
+ENDDO  main                 ! Main loop
 !                                                                       
-      prompt = orig_prompt
-      END SUBROUTINE plot                           
+prompt = orig_prompt
+!
+END SUBROUTINE plot                           
+!
 !*****7*****************************************************************
       SUBROUTINE plot_show 
 !                                                                       
@@ -1639,14 +1655,17 @@ END SUBROUTINE plot_test_aon
 !
 SUBROUTINE plot_reset
 !
-USE discus_plot_mod
-!
 ! reset all variables needed for the plotting of structures
 !-
+!
+USE discus_allocate_appl_mod
+USE discus_plot_mod
 !
 IMPLICIT NONE
 !
 INTEGER :: ik
+!
+CALL alloc_plot(1)
 !
 pl_init  = .TRUE.
 pl_jmol  = ' '
