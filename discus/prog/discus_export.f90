@@ -733,14 +733,12 @@ INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 INTEGER, PARAMETER :: IWR = 35
 !
 CHARACTER(LEN=1024)      :: ofile  = ' '
-CHARACTER(LEN=1024)      :: line   = ' '
 CHARACTER(LEN=1024)      :: string = ' '
 CHARACTER(LEN=9), DIMENSION(:), ALLOCATABLE :: atom_names
 INTEGER         , DIMENSION(:), ALLOCATABLE :: atom_number
-INTEGER                  :: iatom, iscat, is, i, j, ii, ll
+INTEGER                  :: iatom, iscat, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
-INTEGER, DIMENSION(3)    :: icell 
 REAL   , DIMENSION(3)    :: shift
 REAL   , DIMENSION(MAXW) :: werte
 !
