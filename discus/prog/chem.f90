@@ -6680,9 +6680,17 @@ END SUBROUTINE chem_apply_period
 !
 SUBROUTINE chem_reset
 
-USe chem_mod
+USE discus_allocate_appl_mod
+USE chem_mod
 !
 IMPLICIT NONE
+!
+CALL alloc_chem_ang ( 1,  CHEM_MAX_COR        )
+CALL alloc_chem_aver( 1,  1        )
+CALL alloc_chem_disp( 1,  1        )
+CALL alloc_chem_env ( 1,  1,  CHEM_MAX_COR    )
+CALL alloc_chem_vec ( 1,  CHEM_MAX_COR        )
+CALL alloc_chem_con ( 1,  CHEM_MAX_COR        )
 !
 CHEM_MAXAT_CELL   = 1
 CHEM_MAX_AVE_ATOM = 1
