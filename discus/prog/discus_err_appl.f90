@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-157,IO=6)
+      PARAMETER    (IU=-158,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'Erroneous number of bonds',                     & !-158 ! discus
      &  'Incomplete molecule would be saved',            & !-157 ! discus
      &  'Incomplete molecule in structure',              & !-156 ! discus
      &  'Coordination range is erroneous',               & !-155 ! discus
@@ -258,11 +259,12 @@
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (IU = -11, IO = 0) 
+      PARAMETER (IU = -12, IO = 0) 
 !                                                                       
       CHARACTER(LEN=45) ERROR (IU:IO) 
 !                                                                       
       DATA ERROR ( IU: IO) /                             &
+          'No PDF calculated yet, check calc/run',       & ! !  -12
           'User Fit maximum outside data range ',        & ! !  -11
           'User Fit minimum outside data range ',        & ! !  -10
           'No atoms in asymmetric unit',                 & ! !  -9
