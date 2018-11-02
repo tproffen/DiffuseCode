@@ -36,7 +36,6 @@ INTEGER                                            :: dcc_MAXHKL          ! Maxi
 INTEGER                                            :: dcc_MAXNEW          ! Maximum Number of new surface atoms
 INTEGER                                            :: dcc_MAXMSCAT        ! Maximum Number of molecule atom types
 INTEGER                                            :: dcc_num = 0         ! Number of definitions
-INTEGER                                            :: dcc_nanch = 0       ! Number of anchor atoms
 INTEGER                                            :: dcc_nhkl = 0        ! Number of faces
 INTEGER                                            :: dcc_nnew = 0        ! Number of new surface atoms
 INTEGER                                            :: dcc_maxsurf = 0     ! Max no of surface sites
@@ -52,6 +51,7 @@ INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_mole_type       ! Cont
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_type            ! definitions type
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_lname           ! Length definitions name
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_lfile           ! Length content file name
+INTEGER            , DIMENSION(:  ,:), ALLOCATABLE :: dcc_nanch           ! Number of anchor atoms
 INTEGER            , DIMENSION(:,:,:), ALLOCATABLE :: dcc_surf            ! Surface anchors
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_neig            ! Molecule neighbor
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_secnd           ! Molecule neighbor closest to dcc_neig

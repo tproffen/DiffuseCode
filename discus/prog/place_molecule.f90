@@ -61,40 +61,35 @@ USE errlist_mod
 !      dc_n_molecules = 0 ! while developing!!!
       dc_init = .false.
    ENDIF
-   IF(MAXSCAT > UBOUND(dc_latom,1)) THEN
-      lalloc = .TRUE.
-   ENDIF
-   IF(lalloc) THEN
-      CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
-   ENDIF
 !
    orig_prompt = prompt
    prompt = prompt (1:len_str (prompt) ) //'/deco'
 !
-   main_loop: do
-      CALL no_error
-      CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
-      no_err: IF (ier_num.eq.0) THEN
-         no_com: IF (line /= ' '      .and. line(1:1) /= '#' .and.      &
-             line /= char(13) .and. line(1:1) /= '!'        ) THEN
+main_loop: DO
+   CALL no_error
+   CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
+   no_err: IF(ier_num.eq.0) THEN
+      no_com: IF(line /= ' '      .AND. line(1:1) /= '#' .AND.      &
+                 line /= char(13) .AND. line(1:1) /= '!'        ) THEN
 !                                                                       
 !     ----search for "="                                                
 !                                                                       
          indxg = index (line, '=') 
-         is_math: IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
-                       .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
-                       .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
-                                   str_comp (befehl, '?   ', 2, lbef, 4) )    &
-                       .AND. INDEX(line,'==') == 0                            ) THEN
+         is_math: IF(indxg.ne.0                                             &
+                     .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                                 str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                     .AND. INDEX(line,'==') == 0                            ) THEN
 !                                                                       
 ! ------evaluate an expression and assign the value to a variabble      
 !                                                                       
                CALL do_math (line, indxg, laenge)
-            ELSE
+         ELSE                                    ! is_math, al other commands
 !                                                                       
 !------ ----execute a macro file                                        
 !                                                                       
-              is_com: IF (befehl (1:1) .eq.'@') THEN 
+              IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
                   IF (laenge.ge.2) THEN 
                      CALL file_kdo (line (2:laenge), laenge-1) 
                   ELSE 
@@ -150,10 +145,25 @@ USE errlist_mod
               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
                   CALL do_input (zeile, lp) 
 !
+              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
+                  CALL deco_reset
+                  if(ier_num == 0) ladd = .true.   ! allow new add command
+              ELSE    ! macro, reset or all other commands
+!
+!---------------- All other commands
+                  IF(MAXSCAT > UBOUND(dc_latom,1)) THEN
+                     lalloc = .TRUE.
+                  ENDIF
+                  IF(lalloc) THEN
+                     CALL alloc_deco(MAXSCAT, DCC_MAXNUM, DCC_MAXANCH, DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
+                  ENDIF
+!
+!----------------------------------------------------------------------------------
 !     ----Original decorate commands                                      
+!----------------------------------------------------------------------------------
 !
 !
-              ELSEIF (str_comp (befehl, 'add', 3, lbef, 3)) THEN
+              is_com: IF (str_comp (befehl, 'add', 3, lbef, 3)) THEN
                   IF(ladd) THEN
                      IF(dcc_num == DCC_MAXNUM) THEN
                         n_num = DCC_MAXNUM + 5
@@ -179,10 +189,6 @@ USE errlist_mod
               ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) THEN
 !                                                                       
                   CALL property_select (zeile, lp, dc_sel_prop)
-!
-              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
-                  CALL deco_reset
-                  if(ier_num == 0) ladd = .true.   ! allow new add command
 !
               ELSEIF (str_comp (befehl, 'run', 3, lbef, 3)) THEN
                  IF(dcc_num > 0 ) THEN
@@ -220,6 +226,7 @@ USE errlist_mod
                  ier_typ = ER_COMM
 !
               ENDIF is_com ! END IF BLOCK actual commands
+              ENDIF
            ENDIF is_math   ! END IF BLOCK math equation or specific command
         ENDIF no_com       ! END IF BLOCK no comment
       ENDIF no_err         ! END IF BLOCK no error reading input
@@ -287,18 +294,20 @@ USE errlist_mod
    INTEGER          , INTENT(INOUT) :: lp
 !
    INTEGER, PARAMETER   :: MAXW = 20
-   INTEGER, PARAMETER :: NOPTIONAL = 1
+   INTEGER, PARAMETER :: NOPTIONAL = 2
    CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAXW) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
 !
-   CHARACTER(LEN=   5), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+   INTEGER, PARAMETER :: O_ANGLE  = 1
+   INTEGER, PARAMETER :: O_ANCHOR = 2
+   CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
    CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
    INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
    INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
    REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-   INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
+   INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
 
 !
    INTEGER             , DIMENSION(:,:), ALLOCATABLE :: temp_hkl
@@ -319,11 +328,11 @@ USE errlist_mod
 !
    LOGICAL str_comp
 !
-   DATA oname  / 'angle' /
-   DATA loname /  5 /
-   opara  =  (/ '170.00'/)    ! Always provide fresh default values
-   lopara =  (/  6      /)
-   owerte =  (/  170.00 /)
+   DATA oname  / 'angle ', 'anchor' /
+   DATA loname /  6      ,  6       /
+   opara  =  (/ '170.00' , '1.0000' /)    ! Always provide fresh default values
+   lopara =  (/  6       ,  6       /)
+   owerte =  (/  170.00  ,  1.0000  /)
 !
    CALL get_params(zeile, ianz, cpara, lpara, maxw, lp)
    IF ( ier_num /= 0 ) RETURN              ! Error reading parameters
@@ -337,9 +346,9 @@ USE errlist_mod
 !
 !  Get optional parameters
 !
-   opara  =  (/ '170.00'/)    ! Always provide fresh default values
-   lopara =  (/  6      /)
-   owerte =  (/  170.00 /)
+!  opara  =  (/ '170.00'/)    ! Always provide fresh default values
+!  lopara =  (/  6      /)
+!  owerte =  (/  170.00 /)
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, owerte)
    IF(ier_num /= 0) RETURN
@@ -416,32 +425,34 @@ USE errlist_mod
          kanz = ianz - 2                                 ! ignore last two parameters
          CALL get_iscat (janz, cpara, lpara, werte, maxw, .false.)
          IF(ier_num /= 0) RETURN
-         IF(dcc_type(temp_num) == DC_NORMAL .AND. kanz /= 1) THEN
-            ier_num = -143
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the NORMAL decoration we need '
-            ier_msg(2) = 'exactly one surface atom type '
-         ELSEIF(dcc_type(temp_num) == DC_DOUBLE .AND. kanz /= 1) THEN
-            ier_num = -143
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the DOUBLE decoration we need '
-            ier_msg(2) = 'exactly one surface atom type '
-         ELSEIF(dcc_type(temp_num) == DC_BRIDGE .AND. kanz /= 2) THEN
-            ier_num = -143
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the BRIDGE decoration we need '
-            ier_msg(2) = 'exactly two surface atom types'
-         ELSEIF(dcc_type(temp_num) == DC_ACCEPTOR .AND. kanz /= 1) THEN
-            ier_num = -143
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the ACCEPTOR decoration we need '
-            ier_msg(2) = 'exactly one surface atom type '
-         ELSEIF(dcc_type(temp_num) == DC_DONOR .AND. kanz /= 1) THEN
-            ier_num = -143
-            ier_typ = ER_APPL
-            ier_msg(1) = 'For the DONOR decoration we need '
-            ier_msg(2) = 'exactly one surface atom type '
-         ELSE ! SUCCESS
+!        IF(dcc_type(temp_num) == DC_NORMAL .AND. kanz /= 1) THEN
+!           ier_num = -143
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the NORMAL decoration we need '
+!           ier_msg(2) = 'exactly one surface atom type '
+!        ELSEIF(dcc_type(temp_num) == DC_DOUBLE .AND. kanz /= 1) THEN
+!           ier_num = -143
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the DOUBLE decoration we need '
+!           ier_msg(2) = 'exactly one surface atom type '
+!           ier_msg(3) = 'and two bond statements'
+!        ELSEIF(dcc_type(temp_num) == DC_BRIDGE .AND. kanz /= 1) THEN
+!           ier_num = -143
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the BRIDGE decoration we need '
+!           ier_msg(2) = 'exactly one surface atom types'
+!           ier_msg(3) = 'and two bond statements'
+!        ELSEIF(dcc_type(temp_num) == DC_ACCEPTOR .AND. kanz /= 1) THEN
+!           ier_num = -143
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the ACCEPTOR decoration we need '
+!           ier_msg(2) = 'exactly one surface atom type '
+!        ELSEIF(dcc_type(temp_num) == DC_DONOR .AND. kanz /= 1) THEN
+!           ier_num = -143
+!           ier_typ = ER_APPL
+!           ier_msg(1) = 'For the DONOR decoration we need '
+!           ier_msg(2) = 'exactly one surface atom type '
+!        ELSE ! SUCCESS
             IF(janz > UBOUND(dcc_surf,2)) THEN
                n_anch = janz+4
                CALL alloc_deco(MAXSCAT, DCC_MAXNUM, n_anch     , DCC_MAXHKL, DCC_MAXNEW, DCC_MAXMSCAT)
@@ -452,12 +463,50 @@ USE errlist_mod
             ENDDO
             dcc_surf(j,0,temp_num) = janz               ! Number of surface atom types
             dcc_maxsurf = MAX(dcc_maxsurf, dcc_surf(j,0,temp_num)) ! Keep maximum number
+            dcc_nanch(j, temp_num) = NINT(owerte(O_ANCHOR))
+            IF(dcc_type(temp_num) == DC_MULTIPLE) THEN     ! Special treatment of 'multi'
+               IF(j==1) THEN                            ! First 'set bond' command
+                  IF(NINT(owerte(O_ANCHOR))==1) THEN    ! User did not give anchor:3
+                     IF(kanz==3) THEN                   ! number of surface atom types == 3
+                        dcc_nanch(j, temp_num) = 3
+                     ELSE
+                        ier_num = -143
+                        ier_typ = ER_APPL
+                        ier_msg(1) = 'For the MULTI decoration we need '
+                        ier_msg(2) = 'exactly three surface atom types'
+                        ier_msg(3) = 'or the ''anchor:3'' parameter'
+                     ENDIF
+                  ELSEIF(NINT(owerte(O_ANCHOR))==2) THEN ! number of surface atom types == 2
+                     ier_num = -143
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For the MULTI decoration we need '
+                     ier_msg(2) = 'exactly three surface atom types'
+                     ier_msg(3) = 'or the ''anchor:3'' parameter'
+                  ELSEIF(NINT(owerte(O_ANCHOR))> 3) THEN ! number of surface atom types >  3
+                     ier_num = -143
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For the MULTI decoration we need '
+                     ier_msg(2) = 'exactly three surface atom types'
+                     ier_msg(3) = 'or the ''anchor:3'' parameter'
+                  ENDIF
+               ELSE                                      ! Second 'set bond' command
+                  IF(NINT(owerte(O_ANCHOR))==1) THEN    ! User did not give anchor:3
+                     dcc_nanch(j, temp_num) = 1
+                  ELSE
+                     ier_num = -143
+                     ier_typ = ER_APPL
+                     ier_msg(1) = 'For the MULTI second bond we need '
+                     ier_msg(2) = 'exactly one surface atom type'
+                     ier_msg(3) = 'or the ''anchor:1'' parameter'
+                  ENDIF
+               ENDIF
+            ENDIF
 !
 !  Interpret optional values, as default values are provided, we can take it blindly
 !
-            dcc_angle(temp_num) = owerte(1)
+            dcc_angle(temp_num) = owerte(O_ANGLE)
 !
-         ENDIF
+!        ENDIF
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
@@ -965,6 +1014,7 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
             ENDDO
          ENDDO replace
       ENDDO name_anchors
+
 IF(n_repl==0) THEN
    CALL save_restore_setting
    CALL no_error
@@ -973,7 +1023,7 @@ IF(n_repl==0) THEN
    ier_typ = ER_APPL
    ier_msg(1) = 'Is the surface very small, just a few atoms?'
    ier_msg(2) = 'Is the coverage too small? '
-   ier_msg(3) = 'Check the set ligand command'
+   ier_msg(3) = 'Check the set ligand command A1'
    DEALLOCATE(anch_id)
    RETURN
 ENDIF
@@ -984,6 +1034,7 @@ ENDIF
    CALL save_internal('internal_anchors')        !     thus this file name is unique
 !
       IF(n_repl > 0 ) THEN                           ! Need at least one anchor
+      IF(n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
 !
 !        Sorting requires separate loops to avoid exchange of anchor atom types
 !
@@ -1130,6 +1181,7 @@ ENDIF
          mo_kt   =   2.5                                      ! Define Temperature
 !
          CALL mmc_run_multi(.FALSE.)                          ! Run actual sorting
+      ENDIF ! (n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
@@ -1203,6 +1255,7 @@ loop_anchor: DO j=1,n_repl
       ENDIF
    ENDDO find_atom
 ENDDO loop_anchor
+!
 IF(MAXVAL(temp_iatom)==0) THEN
    CALL save_restore_setting
    CALL no_error
@@ -1211,7 +1264,7 @@ IF(MAXVAL(temp_iatom)==0) THEN
    ier_typ = ER_APPL
    ier_msg(1) = 'Is the surface very small, just a few atoms?'
    ier_msg(2) = 'Is the coverage too small? '
-   ier_msg(3) = 'Check the set ligand command'
+   ier_msg(3) = 'Check the set ligand command A2'
    DEALLOCATE(anch_id)
    RETURN
 ENDIF
@@ -1278,12 +1331,12 @@ anchor = 0
                                   dcc_tilt_is_atom(dc_temp_id),                      &
                                   dcc_tilt_is_auto(dc_temp_id)      )
                              ELSE
-                                ier_num = -1118
+                                ier_num = -158
                                 ier_msg(1) = 'The normal connection requires one bond'
                                 EXIT main_loop
                              ENDIF
                           CASE ( DC_BRIDGE )                 ! Molecule in bridge position
-                             IF(ncon == 1) THEN
+                             IF(ncon == 2) THEN
                              CALL deco_place_bridge(dc_temp_id, temp_iatom(ia), &
                                   dc_temp_axis, dc_temp_surfnew,             &
                                   m_type_old, mole_name, &
@@ -1295,7 +1348,8 @@ anchor = 0
                                   dcc_clin     (  dc_temp_id),    &
                                   dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor,                  &
-                                  dc_temp_neig, dc_temp_dist, &
+!                                 dc_temp_neig, dc_temp_dist, &
+                                  dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
@@ -1304,8 +1358,8 @@ anchor = 0
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
                                   dcc_tilt_is_auto(dc_temp_id)      )
                              ELSE
-                                ier_num = -1118
-                                ier_msg(1) = 'The bridge connection requires one bond'
+                                ier_num = -158
+                                ier_msg(1) = 'The bridge connection requires two bonds'
                                 EXIT main_loop
                              ENDIF
                           CASE ( DC_DOUBLE   )               ! Molecule in double   connection position
@@ -1331,8 +1385,8 @@ anchor = 0
                                   dcc_tilt_is_auto(dc_temp_id)      )
 CYCLE main_loop
                              ELSE
-                                ier_num = -1118
-                                ier_msg(1) = 'The double connection requires > one bond'
+                                ier_num = -158
+                                ier_msg(1) = 'The double connection requires two bonds'
                                 EXIT main_loop
                              ENDIF
                           CASE ( DC_MULTIPLE )               ! Molecule in multiple connection position
@@ -1347,6 +1401,7 @@ CYCLE main_loop
                                   dcc_clin     (  dc_temp_id),    &
                                   dcc_cqua     (  dc_temp_id),    &
                                   nanch, anchor,                  &
+                                  dcc_nanch(1:2, dc_temp_id),     &
                                   dcc_neig(1:2,dc_temp_id), dcc_dist(1:2,dc_temp_id), ncon, &
                                   istart, iend, temp_lrestrict,    &
                                   dcc_hkl(1,0,dc_temp_id), &
@@ -1357,7 +1412,7 @@ CYCLE main_loop
                                   dcc_tilt_is_auto(dc_temp_id)      )
 CYCLE main_loop
                              ELSE
-                                ier_num = -1118
+                                ier_num = -158
                                 ier_msg(1) = 'The multiple connection requires > one bond'
                                 EXIT main_loop
                              ENDIF
@@ -1378,7 +1433,7 @@ CYCLE main_loop
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
                                   temp_angle)
                              ELSE
-                                ier_num = -1118
+                                ier_num = -158
                                 ier_msg(1) = 'The acceptor connection requires one bond'
                                 EXIT main_loop
                              ENDIF
@@ -1399,7 +1454,7 @@ CYCLE main_loop
                                   dcc_hkl(1:3,1:dcc_hkl(1,0,dc_temp_id),dc_temp_id), &
                                   temp_angle)
                              ELSE
-                                ier_num = -1118
+                                ier_num = -158
                                 ier_msg(1) = 'The donor connection requires one bond'
                                 EXIT main_loop
                              ENDIF
@@ -1424,11 +1479,11 @@ CYCLE main_loop
                                   dcc_tilt_atom(1:4,dc_temp_id),                     &
                                   dcc_tilt_is_atom(dc_temp_id) ,                     &
                                   dcc_tilt_is_auto(dc_temp_id)      )
-if(ier_num/=0) EXIT main_loop
-CYCLE main_loop
+                                  IF(ier_num/=0) EXIT main_loop
+                                  CYCLE main_loop
                              ELSE
-                                ier_num = -1118
-                                ier_msg(1) = 'The double connection requires two bond'
+                                ier_num = -158
+                                ier_msg(1) = 'The chelate connection requires two bond'
                                 EXIT main_loop
                              ENDIF
                        END SELECT
@@ -1438,7 +1493,14 @@ CYCLE main_loop
             ENDDO defs
          ENDDO main_loop   ! END DO main loop over all atoms
 !
-         IF(cr_natoms == natoms_prior) THEN    ! No atoms added Failure
+         IF(ier_num==-158) THEN
+           CALL save_restore_setting
+           ier_num = 0
+           ier_typ = 0
+           CALL readstru_internal(corefile)   ! Read core file
+           ier_num = -158
+           ier_typ = ER_APPL
+         ELSEIF(cr_natoms == natoms_prior) THEN    ! No atoms added Failure
            CALL save_restore_setting
            CALL no_error
            CALL readstru_internal(corefile)   ! Read core file
@@ -1446,7 +1508,7 @@ CYCLE main_loop
            ier_typ = ER_APPL
            ier_msg(1) = 'Is the surface very small, just a few atoms?'
            ier_msg(2) = 'Is the coverage too small? '
-           ier_msg(3) = 'Check the set ligand command'
+           ier_msg(3) = 'Check the set ligand command A3'
          ENDIF
 !
          IF(ier_num == 0)  THEN       ! Success in main_loop
@@ -1455,15 +1517,15 @@ CYCLE main_loop
                cr_prop (temp_iatom(ia)) = IBCLR (cr_prop (temp_iatom(ia)), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
             ENDDO
             CALL do_purge
-         ELSE     ! Error in main_loop
-           CALL save_restore_setting
-           CALL no_error
-           CALL readstru_internal(corefile)   ! Read core file
-           ier_num = -131
-           ier_typ = ER_APPL
-           ier_msg(1) = 'Is the surface very small, just a few atoms?'
-           ier_msg(2) = 'Is the coverage too small? '
-           ier_msg(3) = 'Check the set ligand command'
+!        ELSE     ! Error in main_loop
+!          CALL save_restore_setting
+!          CALL no_error
+!          CALL readstru_internal(corefile)   ! Read core file
+!          ier_num = -131
+!          ier_typ = ER_APPL
+!          ier_msg(1) = 'Is the surface very small, just a few atoms?'
+!          ier_msg(2) = 'Is the coverage too small? '
+!          ier_msg(3) = 'Check the set ligand command'
          ENDIF
       ELSE     ! n_repl > 0   !! No anchor atoms found
         CALL save_restore_setting
@@ -1473,7 +1535,7 @@ CYCLE main_loop
         ier_typ = ER_APPL
         ier_msg(1) = 'Is the surface very small, just a few atoms?'
         ier_msg(2) = 'Is the coverage too small? '
-        ier_msg(3) = 'Check the set ligand command'
+        ier_msg(3) = 'Check the set ligand command A4'
       ENDIF    ! n_repl > 0   !! No anchor atoms found
    ELSE     ! SHELL has atoms
      CALL rese_cr
@@ -1515,8 +1577,8 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
 !
 ! Clean up internal files
 !
-!CALL store_remove_single(corefile, ier_num)
-!CALL store_remove_single(shellfile, ier_num)
+CALL store_remove_single(corefile, ier_num)
+CALL store_remove_single(shellfile, ier_num)
 CALL store_remove_single('internal_anchors', ier_num)
 CALL store_remove_single('internal_sorted', ier_num)
 rdefs: DO dc_temp_id=1, dcc_num
@@ -1826,9 +1888,12 @@ SUBROUTINE deco_reset
 !  Set all definitions back to system default
 !
 USE deco_mod
+use discus_allocate_appl_mod
+!
 IMPLICIT none
 !
 !  INTEGER :: istatus
+CALL alloc_deco(MAXSCAT, 4, 3, 3, 2, 3)
 !
 dcc_num = 0
 IF(ALLOCATED(dcc_name))         dcc_name      (    :) = ' '
@@ -1949,7 +2014,6 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    INTEGER                 :: itype           ! Atom type for read internal
    INTEGER                 :: iprop           ! Atom property for read internal
    INTEGER, DIMENSION(0:3) :: isurface        ! Atom surface for read internal
-   LOGICAL, PARAMETER      :: lspace = .true.
    REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 !  INTEGER                 :: i_m_type
    INTEGER, DIMENSION(4)   :: hkl
@@ -1962,6 +2026,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
 !
    hkl(4) = 0
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3)         =       surface_normal(:,1)
    IF(lrestrict) THEN
@@ -2072,298 +2137,287 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
    cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
    1000 FORMAT(a4,4(2x,',',F12.6))
-   1100 FORMAT(6(F12.6,', '),'ddd')
 !
    END SUBROUTINE deco_place_normal
 !
 !*******************************************************************************
 !
-   SUBROUTINE deco_place_bridge(temp_id, ia, &
-                            mole_axis, mole_surfnew,           &
-                            m_type_old, mole_name, &
-                            mole_natoms, &
-                            mole_nscat, mole_atom_name, &
-                            mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
-                            nanch, anchor, &
-                            neig, dist, istart, iend, lrestrict, nhkl, rhkl, &
-                            tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                            tilt_is_auto)
+SUBROUTINE deco_place_bridge(temp_id, ia,                                       &
+                         mole_axis, mole_surfnew,                               &
+                         m_type_old, mole_name,                                 &
+                         mole_natoms,                                           &
+                         mole_nscat, mole_atom_name,                            &
+                         mole_dw, r_m_biso, r_m_clin, r_m_cqua,                 &
+                         nanch, anchor,                                         &
+                         neig, dist, ncon, istart, iend, lrestrict, nhkl, rhkl, &
+                         tilt, tilt_hkl, tilt_atom, tilt_is_atom,               &
+                         tilt_is_auto)
 !
 USE crystal_mod
-   USE atom_env_mod
-   USE chem_mod
+USE atom_env_mod
+USE chem_mod
 USE do_find_mod
-   USE metric_mod
-   USE modify_mod
-   USE molecule_func_mod
-   USE point_grp
+USE metric_mod
+USE modify_mod
+USE molecule_func_mod
+USE point_grp
 USE prop_para_mod
-   USE read_internal_mod
+USE read_internal_mod
 USE surface_func_mod
-   USE symm_menu
-   USE symm_mod
-   USE symm_sup_mod
-   USE trafo_mod
+USE symm_menu
+USE symm_mod
+USE symm_sup_mod
+USE trafo_mod
 !
-   USE param_mod
+USE param_mod
 !
-   IMPLICIT NONE
+IMPLICIT NONE
 !
-   INTEGER,                 INTENT(IN) :: temp_id         ! The definition to be used
-   INTEGER,                 INTENT(IN) :: ia              ! Surface atom number
-   INTEGER,                 INTENT(IN) :: m_type_old      ! molecule types previous to all placements
-   INTEGER, DIMENSION(0:2), INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
-   INTEGER, DIMENSION(1:20),INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
-   CHARACTER (LEN=1024),    INTENT(IN) :: mole_name       ! Molecule file name
-   INTEGER,                 INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
-   INTEGER,                 INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
-   CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
-   REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
-REAL,                    INTENT(IN) :: r_m_biso        ! Molecular Biso
-REAL,                    INTENT(IN) :: r_m_clin        ! Molecular linear correction
-REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
-   INTEGER,                 INTENT(IN) :: nanch           ! Connected to this neighbor in mole
-   INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
-   INTEGER,                 INTENT(IN) :: neig            ! Connected to this neighbor in mole
-   REAL   ,                 INTENT(IN) :: dist            ! distance to ligand molecule
-   INTEGER,                 INTENT(IN) :: istart          ! First atom for surface determination
-   INTEGER,                 INTENT(IN) :: iend            ! Last  atom for surface determination
-   LOGICAL,                 INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
-   INTEGER,                 INTENT(IN) :: nhkl            ! Number of faces for the restriction
-   INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
+INTEGER,                    INTENT(IN) :: temp_id         ! The definition to be used
+INTEGER,                    INTENT(IN) :: ia              ! Surface atom number
+INTEGER,                    INTENT(IN) :: m_type_old      ! molecule types previous to all placements
+INTEGER, DIMENSION(0:2),    INTENT(IN) :: mole_axis       ! Atoms that define molecule axis
+INTEGER, DIMENSION(1:20),   INTENT(IN) :: mole_surfnew    ! Atoms that will be flagged as surface atoms
+CHARACTER (LEN=1024),       INTENT(IN) :: mole_name       ! Molecule file name
+INTEGER,                    INTENT(IN) :: mole_natoms     ! Number of atoms in molecule
+INTEGER,                    INTENT(IN) :: mole_nscat      ! Number of atoms in molecule
+CHARACTER (LEN=4   ), DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_atom_name ! Atom names in the molecule
+REAL                , DIMENSION(0:mole_nscat),   INTENT(IN) :: mole_dw        ! ADPs       in the molecule
+REAL,                       INTENT(IN) :: r_m_biso        ! Molecular Biso
+REAL,                       INTENT(IN) :: r_m_clin        ! Molecular linear correction
+REAL,                       INTENT(IN) :: r_m_cqua        ! Molecular quadratic correction
+INTEGER,                    INTENT(IN) :: nanch           ! Connected to this neighbor in mole
+INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
+INTEGER, DIMENSION(1:2),    INTENT(IN) :: neig            ! Connected to this neighbor in mole
+REAL   , DIMENSION(1:2),    INTENT(IN) :: dist            ! distance to ligand molecule
+INTEGER,                    INTENT(IN) :: ncon            ! Number of defined bonds
+INTEGER,                    INTENT(IN) :: istart          ! First atom for surface determination
+INTEGER,                    INTENT(IN) :: iend            ! Last  atom for surface determination
+LOGICAL,                    INTENT(IN) :: lrestrict       ! Restriction to a surface type T/F
+INTEGER,                    INTENT(IN) :: nhkl            ! Number of faces for the restriction
+INTEGER, DIMENSION(3,nhkl), INTENT(IN) :: rhkl            ! actual faces for the restriction
 REAL                      , INTENT(IN) :: tilt            ! Molecule tilt angle
 REAL,    DIMENSION(3)     , INTENT(IN) :: tilt_hkl        ! Molecule tilt plane by this normal
 INTEGER, DIMENSION(4)     , INTENT(IN) :: tilt_atom       ! Molecule tilt plane defined by these atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_atom    ! Plane defined by atoms
 LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by atoms
 !
-   INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
-   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
-   INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
-   INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
+INTEGER                                 :: surf_char      ! Surface character, plane, edge, corner, ...
+INTEGER, DIMENSION(3,6)                 :: surface_normal ! Set of local normals (:,1) is main normal
+INTEGER, DIMENSION(3)                   :: surf_kante     ! Edge vector if not a plane
+INTEGER, DIMENSION(6)                   :: surf_weight    ! Best normal has heighest weight
+INTEGER, DIMENSION(:), ALLOCATABLE      :: all_surface         ! Surface atom type
 !
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+REAL   , DIMENSION(1:3)                 :: surf_normal    ! Normal to work with
 !
-   REAL, PARAMETER :: EPS = 1.0E-6
-   INTEGER, PARAMETER                      :: MINPARA = 2
-   INTEGER                                 :: MAXW = MINPARA
-   REAL                , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
-!  INTEGER, PARAMETER                      :: MAXW = 2
-!  REAL                , DIMENSION(1:MAXW) :: werte
+INTEGER, PARAMETER                      :: MINPARA = 2
+INTEGER                                 :: MAXW = MINPARA
+REAL     , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
 !
-   CHARACTER (LEN=1024)                    :: line
-   INTEGER                                 :: ianz
-   INTEGER                                 :: i,j, im, laenge
-!  INTEGER                          ianz, werte       :: iprop
-   INTEGER                                 :: iprop
-   INTEGER                                 :: itype
-   INTEGER, DIMENSION(0:3)                 :: isurface
-   INTEGER                                 :: nold   ! atom number previous to current molecule
-   INTEGER  , DIMENSION(1:4)               :: hkl
+CHARACTER (LEN=1024)                    :: line, zeile
+INTEGER                                 :: ianz
+INTEGER                                 :: i,j, im, laenge
+INTEGER                                 :: l
+INTEGER                                 :: iprop
+INTEGER                                 :: itype
+INTEGER  , DIMENSION(0:3)               :: isurface
+INTEGER                                 :: nold   ! atom number previous to current molecule
+INTEGER  , DIMENSION(1:4)               :: hkl
 !
-   INTEGER                              :: test_nhkl
-   INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
+INTEGER                                 :: test_nhkl
+INTEGER  , DIMENSION(:,:), ALLOCATABLE  :: test_hkl
 !
-   LOGICAL  , DIMENSION(1:3)               :: fp
-   LOGICAL                                 :: fq
-   LOGICAL, PARAMETER :: lspace = .true.
-REAL                  :: angle, a_test     ! Dummy angles
-   REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
-   REAL                                    :: rmin, radius, normal_l, b_l, b_n, b_l_min
-   REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
-   REAL     , DIMENSION(1:3)               :: vnull
-REAL     , DIMENSION(1:3)               :: pos1, pos2, sep
-   INTEGER             :: m_type_new   ! new molecule types 
-   INTEGER             :: in_mole,in_moleatom
-   INTEGER                 :: n_atoms_orig
-!  INTEGER             :: i_m_type
+LOGICAL  , DIMENSION(1:3)               :: fp
+LOGICAL                                 :: fq
+REAL                                    :: c_ang_ia, c_ang_nei         ! COS/SIN of Angles in ia and nei
+REAL                                    :: angle, a_test               ! Dummy angles
+REAL                                    :: dist_m
+REAL     , DIMENSION(1:3)               :: axis_ligand                 ! Initial molecule orientation
+REAL                                    :: rmin, radius, normal_l, b_l, b_n, b_l_min
+REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit
+REAL     , DIMENSION(1:3)               :: vnull
+REAL     , DIMENSION(1:3)               :: pos1, pos2
+INTEGER             :: m_type_new   ! new molecule types 
+INTEGER             :: in_mole,in_moleatom
+INTEGER             :: n_atoms_orig
+!
 maxw     = MAX(MINPARA,nanch)
 !
-   vnull(:) = 0.00
+vnull(:) = 0.00
+nold = cr_natoms                                   ! Remember old atom number
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
-   hkl(4) = 0
-   CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
-   surf_normal(1:3) = FLOAT(surface_normal(:,1))
-   hkl(1:3) = surface_normal(:,1)
+hkl(4) = 0
+CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+surf_normal(1:3) = FLOAT(surface_normal(:,1))
+IF(surf_char == 0) RETURN
+hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
    ALLOCATE(test_hkl(3,test_nhkl))
    test_hkl(1:3,1:test_nhkl) =    rhkl(1:3,1:test_nhkl)
-      IF(.NOT.point_test(hkl, test_hkl, test_nhkl, .TRUE.) ) THEN
-         RETURN
-      ENDIF
-      DEALLOCATE(test_hkl)
+   IF(.NOT.point_test(hkl, test_hkl, test_nhkl, .TRUE.) ) THEN
+      RETURN
    ENDIF
+   DEALLOCATE(test_hkl)
+ENDIF
 !
-   n_atoms_orig = cr_natoms
-!  Find the other partners involved in the bridge 
-   x(1)     = cr_pos(1,ia)
-   x(2)     = cr_pos(2,ia)
-   x(3)     = cr_pos(3,ia)
+n_atoms_orig = cr_natoms                                  ! Store original atom numbers
+!
+ALLOCATE(all_surface(1:ncon))
+!
+all_surface (1) = ia
+!
+!  FIND the other surface partners involved in the bonds.
+!
+x(1)     = cr_pos(1,ia)
+x(2)     = cr_pos(2,ia)
+x(3)     = cr_pos(3,ia)
+!
+angle   = 400.0
+b_l_min = 1.E12
+!
+search: DO l=2,ncon
    rmin     = 0.1
-   radius   = dist*2.0
-   ianz     = anchor(1,0)
-   werte(:) = 0.0
-   werte(1:ianz) = anchor(1,1:ianz)
-   fp (:)   = .FALSE. !chem_period (:)
-   fq       = .FALSE. !chem_quick
-   nold     = 0
+   radius   = dist(1) + dist(2) - 0.1
+   ianz = anchor(2,0)
+   werte(1:ianz) = anchor(2,1:ianz) 
+   fp (:)   = chem_period (:)
+      fq    = chem_quick
    CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+   j = 0
    IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
-     pos1(:) = cr_pos(:,ia)                                       ! Appreviate pos of atom 1=ia
-     angle   = 400.0
-     b_l_min = 1.E12
-     j = 0
-     check_prop: DO i=1,atom_env(0)                               ! Check properties 
-        IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
-           IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
+      pos1(:) = cr_pos(:,ia)                                       ! Temporary pos of atom 1=ia
+      angle   = 400.0
+      b_l_min = 1.E12
+!     j = 0
+      check_prop: DO i=1,atom_env(0)                               ! Check properties 
+         IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface
+            IBITS(cr_prop(atom_env(i)),PROP_OUTSIDE    ,1).eq.0       ) THEN    ! real Atom is near surface
             pos2(:) = cr_pos(:,atom_env(i))                       ! temporarily store atom 2
             bridge(:) = pos1(:) - pos2(:)
             b_l = sqrt (skalpro (bridge, bridge, cr_gten))        ! Calculate bridge length
-            IF(b_l<b_l_min) THEN
-               b_l_min = b_l
-               angle   = 400.0
+            IF(b_l<=b_l_min) THEN
+               IF(b_l<b_l_min) THEN
+                  b_l_min = b_l
+                  angle   = 400.0
+               ENDIF
                a_test = do_bang(.TRUE., bridge,vnull, surf_normal)
                IF(ABS(a_test-90.0) < angle) THEN
-                 j = i                                                 ! Will use this neighbor
-                 angle = ABS(a_test -90)
-!           EXIT check_prop                                       ! Found first good neighbor
+                  j = i                                           ! Will use this neighbor
+                  angle = ABS(a_test - 90.)
                ENDIF
             ENDIF
          ENDIF
       ENDDO check_prop
       IF(j==0) THEN                                      ! No suitable neighbor, quietly leave
-         RETURN
+         GOTO 9999
       ENDIF
-pos2(:) = cr_pos(:,atom_env(j))
-      bridge(1) = (cr_pos(1,ia)-cr_pos(1,atom_env(j)))   ! Calculate vector along bridge
-      bridge(2) = (cr_pos(2,ia)-cr_pos(2,atom_env(j)))
-      bridge(3) = (cr_pos(3,ia)-cr_pos(3,atom_env(j)))
-      b_l = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
-      x(1) = (cr_pos(1,ia)+cr_pos(1,atom_env(j)))*0.5    ! Calculate midpoint
-      x(2) = (cr_pos(2,ia)+cr_pos(2,atom_env(j)))*0.5
-      x(3) = (cr_pos(3,ia)+cr_pos(3,atom_env(j)))*0.5
+      all_surface (l) = atom_env(j)
+   ELSE
+      GOTO 9999
+   ENDIF  ! 
+ENDDO search
 !
+pos2(:)   = cr_pos(:,all_surface(2))
+bridge(1) = (cr_pos(1,ia)-cr_pos(1,all_surface(2)))   ! Calculate vector along bridge
+bridge(2) = (cr_pos(2,ia)-cr_pos(2,all_surface(2)))
+bridge(3) = (cr_pos(3,ia)-cr_pos(3,all_surface(2)))
+b_l       = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
+c_ang_ia  = (b_l**2 + dist(1)**2 -dist(2)**2) / (2.*b_l*dist(1))   ! COS(Angle in atom ia)
+c_ang_nei = (b_l**2 + dist(2)**2 -dist(1)**2) / (2.*b_l*dist(2))   ! COS(Angle in atom ia)
+dist_m    = (dist(1) * c_ang_ia) / b_l            ! relative length of 'midpoint' location
+x(1) = cr_pos(1,ia) + (cr_pos(1,all_surface(2))-cr_pos(1,ia))*dist_m ! Calculate midpoint
+x(2) = cr_pos(2,ia) + (cr_pos(2,all_surface(2))-cr_pos(2,ia))*dist_m
+x(3) = cr_pos(3,ia) + (cr_pos(3,all_surface(2))-cr_pos(3,ia))*dist_m
 !
-      IF(angle>0.0) THEN                                 ! Bridge is not normal to surface_ normal
-         WRITE(line, 1100) bridge, surf_normal
-         laenge = 81
-         CALL vprod(line, laenge)
-         tangent(1:3) = res_para(1:3)
-         WRITE(line, 1100) tangent, bridge
-         laenge = 81
-         CALL vprod(line, laenge)
-         surf_normal(:) = res_para(1:3)
-      ENDIF
-!     WRITE(line,1100) x, bridge                         ! Calculate vector parallel to surface
-!     laenge = 81
-!     CALL vprod(line, laenge)
-!     tangent(:) = res_para(1:3)
-!     WRITE(line,1100) bridge, tangent                   ! Calculate surface normal
-!     laenge = 81
-!     CALL vprod(line, laenge)ianz, werte
-!     surf_normal(:) = res_para(1:3)
+IF(angle>0.0) THEN                                 ! Bridge is not normal to surface_ normal
+   WRITE(line, 1100) bridge, surf_normal
+   laenge = 81
+   CALL vprod(line, laenge)
+   tangent(1:3) = res_para(1:3)
+   WRITE(line, 1100) tangent, bridge
+   laenge = 81
+   CALL vprod(line, laenge)
+   surf_normal(:) = res_para(1:3)
+ENDIF
 !
-      nold = cr_natoms                                   ! Remember old atom number
-      IF(mole_axis(0)==2) THEN
-      im   = mole_axis(2)
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
-      axis_ligand(1) = posit(1)
-      axis_ligand(2) = posit(2)
-      axis_ligand(3) = posit(3)
-      im = mole_axis(1)
-      CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
-!           CALL dc_molecules(i)%get_ianz, wertecryst_atom(im, itype, posit, iprop, isurface)
-      axis_ligand(1) = axis_ligand(1) - posit(1)
-      axis_ligand(2) = axis_ligand(2) - posit(2)
-      axis_ligand(3) = axis_ligand(3) - posit(3)
-      ENDIF
+IF(mole_axis(0)==2) THEN
+   im   = mole_axis(2)
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   axis_ligand(1) = posit(1)
+   axis_ligand(2) = posit(2)
+   axis_ligand(3) = posit(3)
+   im = mole_axis(1)
+CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   axis_ligand(1) = axis_ligand(1) - posit(1)
+   axis_ligand(2) = axis_ligand(2) - posit(2)
+   axis_ligand(3) = axis_ligand(3) - posit(3)
+ENDIF
 !     Insert molecule atoms into crystal at correct origin in initial orientation
-      normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
-      b_l = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
-      b_n = sqrt(dist**2-b_l**2/4.)                      ! Calculate distance along normal
+normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
+b_n      = dist(1) * sin(acos(c_ang_ia))                 ! Calculate distance along normal
 !
 !     Get position of "Neig" and subtract to ensure correct origin
 !     in read_crystal this atom is always shifted to (0,0,0)
-      CALL struc_read_one_atom_internal(mole_name, neig, posit, itype, iprop, isurface,in_mole,in_moleatom)
-      origin(1)  = x(1) + surf_normal(1)/normal_l*b_n - posit(1)    ! Calculate ligand origin
-      origin(2)  = x(2) + surf_normal(2)/normal_l*b_n - posit(2)
-      origin(3)  = x(3) + surf_normal(3)/normal_l*b_n - posit(3)
-      sym_latom(:) = .false.                        ! Initially deselect all atomtypes
-      DO im=1,mole_natoms                           ! Insert all atoms
-         CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
-         posit(:) = posit(:) + origin(:)
-         WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
-         laenge = 60
-         CALL do_ins(line, laenge)
-         cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
-         cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
-         cr_surf(:,cr_natoms) = 0
-         CALL check_symm
-         sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
-      ENDDO
-      IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
-        CALL rotate_directly(neig, n_atoms_orig, mole_axis, surf_normal)
-!! define rotation operation
-!      sym_angle      = do_bang(lspace, surf_normal, vnull, axis_ligand)
-!      IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
-!         sym_orig(:)    = origin(:)                 ! Define origin
-!         sym_trans(:)   = 0.0                       ! No translation needed
-!         sym_sel_atom   = .true.                    ! Select atoms
-!         sym_new        = .false.                   ! No new types
-!         sym_power      =  1                        ! Just need one operation
-!         sym_type       = .true.                    ! Proper rotation
-!         sym_mode       = .false.                   ! Move atom to new position
-!         sym_orig_mol   = .false.                   ! Origin at crystal
-!         sym_power_mult =.false.                    ! No multiple copies
-!         sym_sel_atom   = .true.                    ! Select atoms not molecules
-!         sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
-!         sym_end        =  cr_natoms
-!         IF(ABS(sym_angle-180.) < EPS ) THEN        ! Ligand and surface normal are antiparallel
-!            WRITE(line,1100) axis_ligand(3)+0.1,axis_ligand(2)+0.01,axis_ligand(1)+0.001, surf_normal
-!         ELSE
-!            WRITE(line,1100) axis_ligand, surf_normal
-!         ENDIF
-!         laenge = 81
-!         CALL vprod(line, laenge)                   ! Make rotation axis
-!         sym_uvw(:) = res_para(1:3)
-!         CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
-!         CALL symm_setup
-!         CALL symm_show
-!         CALL symm_op_single
-!      ENDIF
-      ENDIF
+CALL struc_read_one_atom_internal(mole_name, neig(1), posit, itype, iprop, isurface,in_mole,in_moleatom)
+origin(1)  = x(1) + surf_normal(1)/normal_l*b_n - posit(1)    ! Calculate ligand origin
+origin(2)  = x(2) + surf_normal(2)/normal_l*b_n - posit(2)
+origin(3)  = x(3) + surf_normal(3)/normal_l*b_n - posit(3)
+sym_latom(:) = .false.                        ! Initially deselect all atomtypes
+DO im=1,mole_natoms                           ! Insert all atoms
+   CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
+   posit(:) = posit(:) + origin(:)
+   WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   laenge = 60
+   zeile = line
+   CALL do_ins(line, laenge)
+   cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_LIGAND)
+   cr_prop (cr_natoms) = ibset (cr_prop (cr_natoms), PROP_SURFACE_EXT)
+   cr_surf(:,cr_natoms) = 0
+   CALL check_symm
+   sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
+ENDDO
+!
+IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
+  CALL rotate_directly(neig(1), n_atoms_orig, mole_axis, surf_normal)
+ENDIF
 !
 !     Tilt molecule by user request
 !
-      CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-                     tilt_is_auto,                                    &
-                     surf_normal, mole_natoms, 0, 0)
-      m_type_new = m_type_old  + temp_id
+CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+               tilt_is_auto,                                    &
+               surf_normal, mole_natoms, 0, 0)
+m_type_new = m_type_old  + temp_id
 !
-      CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
-      flagsurf: DO j=1,20
-         IF(mole_surfnew(j)>0) THEN
-            im = nold + mole_surfnew(j)
-            cr_prop  (im) = IBSET (cr_prop (im), PROP_SURFACE_EXT)
-            cr_surf(:,im) = cr_surf(:, ia)          ! Copy surface vector from anchor
-         ELSE
-            EXIT flagsurf
-         ENDIF
-      ENDDO flagsurf
+CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
+flagsurf: DO j=1,20
+   IF(mole_surfnew(j)>0) THEN
+      im = nold + mole_surfnew(j)
+      cr_prop  (im) = IBSET (cr_prop (im), PROP_SURFACE_EXT)
+      cr_surf(:,im) = cr_surf(:, ia)          ! Copy surface vector from anchor
+   ELSE
+      EXIT flagsurf
    ENDIF
+ENDDO flagsurf
 !
-   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
-   chem_quick     = .false.                         ! turn of quick search
-   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
-   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+9999 CONTINUE                                    ! Jump here from errors to ensure dealloc
+IF(nold<cr_natoms) THEN                          ! We did insert a molecule
+    chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+    chem_quick     = .false.                         ! turn of quick search
+    cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)   ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+    cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+    j  = all_surface(2)
+    cr_prop (j ) = IBCLR (cr_prop (j ), PROP_DECO_ANCHOR)   ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+    cr_prop (j ) = IBCLR (cr_prop (j ), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+ENDIF
+DEALLOCATE(all_surface)
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
 !
-   END SUBROUTINE deco_place_bridge
+END SUBROUTINE deco_place_bridge
 !
 !*******************************************************************************
 !
@@ -2450,17 +2504,15 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    INTEGER, DIMENSION(0:3) :: isurface       ! Atom surface
    INTEGER                                 :: n_atoms_orig   ! Number of atoms prior to insertion
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
-   INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
    INTEGER                                 :: success        ! Everything went fine
    INTEGER  , DIMENSION(1:4)               :: hkl
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
    LOGICAL, PARAMETER :: lspace = .true.
    REAL                                    :: rmin, radius, b_l, t_l
-   REAL                                    :: alpha, beta
    REAL                                    :: arg            ! argument for acos
-   REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w, u
-   REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
+   REAL     , DIMENSION(1:3)               :: x, bridge, tangent, origin, posit, v, w
+   REAL     , DIMENSION(1:3)               :: shift, v1, v2
    REAL     , DIMENSION(1:3)               :: vnull
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
@@ -2488,6 +2540,7 @@ nold = cr_natoms                           ! Remember original atom number
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
 surf_normal(1:3) = FLOAT(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
@@ -2656,16 +2709,22 @@ ENDDO flagsurf
 success = 0 
 !
 9999 CONTINUE                                             ! Jump here from errors to ensure dealloc
-DEALLOCATE(all_surface)
 IF(success /=0) THEN                          ! An error occurred, reset crystal
    cr_natoms = n_atoms_orig
 ENDIF
-cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
-cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+IF(nold<cr_natoms) THEN                          ! We did insert a molecule
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
+   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)   ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+   j  = all_surface(2)
+   cr_prop (j ) = IBCLR (cr_prop (j ), PROP_DECO_ANCHOR)   ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+   cr_prop (j ) = IBCLR (cr_prop (j ), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+ENDIF
+DEALLOCATE(all_surface)
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
-1200 FORMAT(6(F12.6,', '),'dddd')
 !
 END SUBROUTINE deco_place_double
 !
@@ -2758,7 +2817,6 @@ INTEGER                              :: test_nhkl
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
 !
 LOGICAL, PARAMETER :: lspace = .true.
-REAL   , DIMENSION(1:3) :: axis_ligand                 ! Initial molecule orientation
 REAL                    :: aa, bb, cc, arg  ! Triangle sides for cosine theorem
 REAL                                    :: normal_l
 REAL     , DIMENSION(1:3)               :: x, origin, posit
@@ -2773,6 +2831,7 @@ nold     = cr_natoms
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
 surf_normal(1:3) = FLOAT(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
@@ -2914,10 +2973,12 @@ flagsurf: DO j=1,20
    ENDIF
 ENDDO flagsurf
 !
-chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
-chem_quick     = .false.                         ! turn of quick search
-cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
-cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+IF(nold<cr_natoms) THEN                          ! We did insert a molecule
+   chem_period(:) = .false.                         ! We inserted atoms, turn off periodic boundaries
+   chem_quick     = .false.                         ! turn of quick search
+   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+   cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+ENDIF
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
 1100 FORMAT(6(F12.6,', '),'ddd')
@@ -2932,6 +2993,7 @@ END SUBROUTINE deco_place_chelate
                             mole_nscat, mole_atom_name, &
                             mole_dw, r_m_biso, r_m_clin, r_m_cqua,         &
                             nanch, anchor, &
+                            nsites,                                               &
                             neig, dist,ncon, istart, iend, lrestrict, nhkl, rhkl, &
                             tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                             tilt_is_auto)
@@ -2980,6 +3042,7 @@ REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic cor
    INTEGER,                 INTENT(IN) :: nanch           ! Number of anchor types
    INTEGER, DIMENSION(1:2,0:nanch), INTENT(IN) :: anchor          ! Surface atom type
 !  INTEGER, DIMENSION(0:4), INTENT(IN) :: surf            ! Surface atom type
+   INTEGER, DIMENSION(1:2), INTENT(IN) :: nsites          ! Number of surface anchor positions per bond
    INTEGER, DIMENSION(1:2), INTENT(IN) :: neig            ! Connected to this neighbor in mole
    REAL   , DIMENSION(1:2), INTENT(IN) :: dist            ! distance to ligand molecule
    INTEGER,                 INTENT(IN) :: ncon            ! Number of defined bonds
@@ -3047,6 +3110,7 @@ nold = cr_natoms                           ! Remember original atom number
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
 surf_normal(1:3) = FLOAT(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
@@ -3087,7 +3151,7 @@ j = anchor(1,0)
 surface(1:j) = anchor(1,1:j)
 surface(0) = j
 n1 = n_atoms_orig +     neig(1)  !Absolute number for 1st neighbor in molecule
-CALL deco_find_anchor(surface(0), surface, dist(1), ia,  &
+CALL deco_find_anchor(nsites(1), surface(0), surface, dist(1), ia,  &
                       surf_normal, posit, base, success)
 IF(success/=0) THEN ! DID not find a suitable anchor, flag error
    GOTO 9999
@@ -3314,7 +3378,7 @@ REAL,                    INTENT(IN) :: r_m_cqua        ! Molecular quadratic cor
 !
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
-   REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
+!  REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
    REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
@@ -3349,6 +3413,7 @@ INTEGER                              :: test_nhkl
 !
    hkl(4) = 0
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
 !
    surf_normal(1:3) = FLOAT(surface_normal(:,1))
    hkl(1:3)         =       surface_normal(:,1)
@@ -3572,8 +3637,8 @@ INTEGER, PARAMETER      :: MAXW = 2
 !  REAL, PARAMETER         :: DIST_A_H     = 1.920   ! Average Acceptor Hydrogon distance
 !  REAL, PARAMETER         :: SIGMA_A_H    = 0.001   ! Sigma for Acceptor Hydrogon distance
 REAL, PARAMETER         :: EPS = 1.0E-7
-REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
-   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
+!REAL, PARAMETER         :: ANGLE_A_H_D  = 170.0   ! Average Angle in Hydrogen bond
+!   REAL, PARAMETER         :: SIGMA_A_H_D  =   0.0001! Sigma for Angle in Hydrogen bond
    REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
    LOGICAL, PARAMETER      :: lspace=.TRUE.
    CHARACTER (LEN=1024)    :: line
@@ -3617,6 +3682,7 @@ fq    = .FALSE.
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
+IF(surf_char == 0) RETURN
 !
 surf_normal(1:3) = FLOAT(surface_normal(:,1))
 hkl(1:3)         =       surface_normal(:,1)
@@ -3789,7 +3855,8 @@ END SUBROUTINE deco_place_donor
 !
 !*****7*****************************************************************
 !
-   SUBROUTINE deco_find_anchor(MAXAT,surface, distance, ia, normal, posit, &
+   SUBROUTINE deco_find_anchor(MAXAT,MAXTYPE, surface, distance, ia, &
+                               normal, posit, &
                                base, ierror)
 !-                                                                      
 !  Find a common point around MAXAT atom types in surface
@@ -3809,7 +3876,8 @@ USE errlist_mod
 !
    IMPLICIT NONE
    INTEGER                    , INTENT(IN)  :: MAXAT
-   INTEGER, DIMENSION(0:MAXAT), INTENT(IN)  :: surface
+   INTEGER                    , INTENT(IN)  :: MAXTYPE
+   INTEGER, DIMENSION(0:MAXTYPE), INTENT(IN)  :: surface
    REAL                       , INTENT(IN)  :: distance
    INTEGER                    , INTENT(IN)  :: ia
    REAL   , DIMENSION(1:3)    , INTENT(IN)  :: normal
@@ -3817,7 +3885,6 @@ USE errlist_mod
    REAL   , DIMENSION(1:3)    , INTENT(OUT) :: base
    INTEGER                    , INTENT(INOUT) :: ierror
 !
-   INTEGER, PARAMETER         :: MAXW = 3
    LOGICAL, PARAMETER         :: lspace = .true. 
 !
    CHARACTER (LEN=1024)                    :: line
@@ -3828,7 +3895,7 @@ USE errlist_mod
    LOGICAL, DIMENSION(1:3) :: fp
    LOGICAL                 :: fq
    REAL                    :: rmin, radius
-   REAL   , DIMENSION(1:MAXW) :: werte
+   REAL   , DIMENSION(1:MAXTYPE) :: werte
    REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3
    REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
    REAL                    :: av, sig, av_min, sig_min ! average length  and sigma
@@ -3844,12 +3911,14 @@ USE errlist_mod
    rmin     = 0.0                  ! Minimum distance between surface atoms
    radius   = 2.0 * distance       ! Maximum distance between surface atoms
    ianz     = 1
+   ianz     = MAXTYPE
    x(:)     = cr_pos(:, ia)        ! Seach around atom ia
    fp (:)   = chem_period (:)
    fq       = chem_quick
    find: DO l=2, MAXAT
       werte(1) = surface(l)           ! Find this atom type
-      CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)  ! Find all neighbors
+      werte(1:MAXTYPE) = surface(1:MAXTYPE)           ! Find this atom type
+      CALL do_find_env (ianz, werte, MAXTYPE, x, rmin, radius, fq, fp)  ! Find all neighbors
       IF(atom_env(0) >= 1 ) THEN                                     ! We need at least one neighbor
         j = 0
         check_prop: DO i=1,atom_env(0)                               ! Check properties 
@@ -3987,8 +4056,6 @@ REAL,    DIMENSION(3), INTENT(IN) :: surf_normal     ! Local surface normal
 INTEGER              , INTENT(IN) :: mole_natoms     ! number of atoms in molecule
 INTEGER              , INTENT(IN) :: n1              ! number of atom that defines rotation axis
 INTEGER              , INTENT(IN) :: n2              ! number of atom that defines rotation axis
-!
-REAL   , DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /) 
 !
 CHARACTER(LEN=1024)   :: line
 INTEGER               :: nold      ! Original number of atoms
@@ -4184,8 +4251,7 @@ CHARACTER(LEN=1024) :: line
 INTEGER             :: n1              ! absolute atom numbers for neighbor
 INTEGER             :: a1, a2          ! absolute atom numbers for rotation axix
 INTEGER             :: laenge
-REAL                :: alpha, beta
-REAL, DIMENSION(3)  :: axis_ligand, v2, v3, u, w, vnull   ! Dummy vectors
+REAL, DIMENSION(3)  :: axis_ligand, vnull   ! Dummy vectors
 !
 vnull(:) = 0.0
 !
