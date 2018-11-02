@@ -10,6 +10,7 @@ USE chem_menu
 USE class_internal
 USE crystal_mod
 USE conn_mod
+USE discus_allocate_appl_mod
 USE discus_init_mod
 USE discus_plot_menu
 USE domain_menu
@@ -36,6 +37,7 @@ INTEGER, PARAMETER  :: code_res   = -2
 CHARACTER(LEN=1024) :: zeile
 INTEGER             :: lp
 !
+CALL discus_alloc_default               ! Shrink all arrays to minimum size
 CALL discus_initarrays                  ! Reset most arrays, does mmc_init
 CALL rese_cr                            ! Clean crystal
 CALL deco_reset                         ! Surface decoration
@@ -46,7 +48,7 @@ CALL conn_do_set(code_res,zeile, lp)    ! Connectivity
 CALL domain_reset                       ! Domain menu
 CALL fourier_reset                      ! Fourier/diffuse variables 
 CALL insert_reset                       ! Insertion of molecules 
-CALL output_reset                       ! AOutput of Fourier results
+CALL output_reset                       ! Output of Fourier results
 CALL pdf_reset                          ! PDF reset
 CALL plot_reset                         ! plot_reset
 CALL powder_reset                       ! reset powder menu
