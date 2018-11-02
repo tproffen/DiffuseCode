@@ -1,4 +1,4 @@
-!*****7**************************************************************** 
+!**************************************************************** 
 !     Routines to allocate memory for data sets and load data sets      
 !     using different file formats.                                     
 !*****7**************************************************************** 
@@ -1388,12 +1388,12 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
       INTEGER maxw, colm 
       INTEGER READ_TYPE_SC 
-      INTEGER READ_TYPE_ST 
+!     INTEGER READ_TYPE_ST 
       INTEGER READ_TYPE_SM 
 !                                                                       
       PARAMETER (colm = 200) 
       PARAMETER (READ_TYPE_SC = 0) 
-      PARAMETER (READ_TYPE_ST = 1) 
+!     PARAMETER (READ_TYPE_ST = 1) 
       PARAMETER (READ_TYPE_SM = 2) 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
@@ -1419,7 +1419,6 @@ SUBROUTINE do_func (zeile, lp)
       INTEGER nscans 
       INTEGER itype 
       INTEGER  :: janz      ! temporary number of parameters
-      INTEGER  :: linput    ! temporary length
       INTEGER  :: npoints   ! number of data point on the #S instruction
       REAL     :: xstart    ! Start point          on the #S instruction
       REAL     :: xend      ! End   point          on the #S instruction
@@ -3302,6 +3301,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: limits
 !
 ! Interpret the optional parameters into local variables
 !
+isep = 0
 IF(opara(6)==';' .OR. opara(6)=='semicolon' ) THEN
    isep = IACHAR(';')
 ELSEIF(opara(6)==':' .OR. opara(6)=='colon' ) THEN

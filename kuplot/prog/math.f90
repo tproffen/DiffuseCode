@@ -1561,6 +1561,7 @@ IMPLICIT REAL (a-h, o-z)
       PARAMETER (NMAX = 100, TINY = 1.0E-20) 
       DIMENSION A (NP, NP), INDX (N), VV (NMAX) 
       INTEGER  , INTENT(OUT) :: ier
+      imax = 0
       D = 1. 
       DO 12 I = 1, N 
          AAMAX = 0. 
