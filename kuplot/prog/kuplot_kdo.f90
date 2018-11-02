@@ -502,7 +502,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !       Branch to DISCUS (standalone call system, suite do branch)
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (bef, 'branch', 2, lbef, 6) ) then 
-            CALL p_branch (zei, lc) 
+            CALL p_branch (zei, lc, .FALSE.) 
 !                                                                       
 !-------  Check for generic command                                     
 !                                                                       
