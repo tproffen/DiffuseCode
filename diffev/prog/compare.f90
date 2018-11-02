@@ -353,6 +353,7 @@ list_index(:) = 0
 !
    USE prompt_mod
    USE random_mod
+   USE terminal_mod
 !                                                                       
    IMPLICIT none 
 !
@@ -559,6 +560,11 @@ list_index(:) = 0
    IF ( iostatus /= 0) THEN
       ier_num = -13
       ier_typ = ER_APPL
+!      ier_msg(1) = fname
+      WRITE(output_io,'(a,a,a,a)') TRIM(color_err),' ***COMP*** Error while reading ',  &
+         fname(1:LEN_TRIM(fname)),TRIM(color_fg)
+      WRITE(output_io,'(a,a,a  )') TRIM(color_err), &
+         ' ***COMP*** Check generation number in GENERATIONS and logfile',TRIM(color_fg)
       RETURN
    ENDIF
 !
