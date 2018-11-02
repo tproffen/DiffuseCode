@@ -17,6 +17,7 @@ CONTAINS
    USE set_sub_generic_mod
    USE doexec_mod
    USE variable_mod
+use do_variable_mod
 !
    IMPLICIT NONE
 !
@@ -107,7 +108,7 @@ CONTAINS
                pop_random(0  ,i) = l
                run_mpi_senddata%seeds(1:l) = seeds(1:l)
             ENDIF
-            CALL p_branch(zeile, lzeile)
+            CALL p_branch(zeile, lzeile, .TRUE.)
             IF(rvalue_yes) THEN
                trial_val(run_mpi_senddata%kid,0) = rvalues(2,0)
             ENDIF
@@ -134,6 +135,9 @@ CONTAINS
                  run_mpi_senddata%nseeds, run_mpi_senddata%seeds,        &
                  run_mpi_senddata%l_first_job,                           &
                  ierr )
+                 IF(rvalue_yes) THEN
+                    trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(0)
+                 ENDIF
             IF(run_mpi_senddata%l_get_state) THEN       ! Log random number state
                l = MIN(nseeds, RUN_MPI_NSEEDS)
                pop_random(1:l,i) = seeds(1:l)
@@ -149,9 +153,11 @@ CONTAINS
             ier_typ = ER_APPL
             EXIT kids_loop
          ENDIF
-         IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
-             trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(1)
-         ENDIF
+!write(*,*) ' L_RVALUE      ', run_mpi_senddata%l_rvalue
+!         IF(run_mpi_senddata%l_rvalue) THEN      ! R-value is returned
+!write(*,*) 'FINAL PLAEMENT ' , run_mpi_senddata%rvalue(1)
+!             trial_val(run_mpi_senddata%kid,0) = run_mpi_senddata%rvalue(1)
+!         ENDIF
       ENDDO indivs_loop
    ENDDO kids_loop
 !
