@@ -239,6 +239,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ibit_nr = PROP_SURFACE_INT
       ELSEIF(str_comp(cpara(1)(1:lpara(1)),'ligand', 3, lpara(1), 6)) THEN
          ibit_nr = PROP_LIGAND
+      ELSE
+         ier_num = -6
+         ier_typ = ER_COMM
+         ier_msg(1) = 'The 1st parameter must be either of '
+         ier_msg(2) = '''domain'', ''outside'', ''external'', ''internal'' '
+         ier_msg(3) = '''ligand'' '
+         RETURN
       ENDIF
       IF(str_comp(cpara(2)(1:lpara(2)),'types', 3, lpara(2), 5)) THEN
          sel_mode = TYPES
