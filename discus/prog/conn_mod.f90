@@ -138,7 +138,7 @@ use crystal_mod
                         ELSE
                            at_conn(i)%liste => hood_temp%next_neighborhood
                         ENDIF
-                     ELSE                                        ! This was the ast neighborhood
+                     ELSE                                        ! This was the last neighborhood
                         IF(ASSOCIATED(hood_prev))   THEN                ! A previous neighborhood existed
                            NULLIFY(hood_prev%next_neighborhood)
                         ELSE
@@ -212,6 +212,7 @@ use crystal_mod
    fq     = chem_quick
 !
    atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
+      NULLIFY(hood_temp)
       x(1) = cr_pos(1,i)
       x(2) = cr_pos(2,i)
       x(3) = cr_pos(3,i)
@@ -329,178 +330,178 @@ use crystal_mod
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-   SUBROUTINE recreate_connectivity(itype, ino, c_name)
+!   SUBROUTINE recreate_connectivity(itype, ino, c_name)
+!!
+!!  Performs a loop over all atoms and creates the individual connectivities
+!!
+!   USE chem_mod
+!   USE crystal_mod
+!   USE do_find_mod
+!   USE atom_env_mod
+!!  USE modify_mod
+!!
+!   IMPLICIT NONE
+!!
+!   INTEGER           , INTENT(IN)     :: itype   ! Atom type
+!   INTEGER           , INTENT(INOUT)  :: ino     ! Connectivity def. no.
+!   CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
+!!
+!!  INTEGER, INTENT(IN)  :: i
+!!
+!   INTEGER, PARAMETER  :: MIN_PARA = 1
+!!   INTEGER             :: maxw
+!!
+!   REAL   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
+!!
+!   INTEGER              :: j,i
+!   INTEGER              :: is  ! dummies for scattering types
+!   INTEGER              :: ianz
+!   INTEGER              :: n_neig      ! Actual number of neighboring atoms
+!   LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
+!   LOGICAL              :: fq    ! quick search algorithm
+!   LOGICAL              :: found_def   ! Found correct neiborhood def to replace
+!   LOGICAL              :: found       ! Found correct neiborhood to replace
+!!  LOGICAL              :: l_all ! Deallocate all connectivities
+!   REAL                 :: rmin        ! Minimum bond length
+!   REAL                 :: rmax        ! Maximum bond length
+!   REAL   , DIMENSION(3)     :: x      ! Atom position
+!!
+!   maxw = MAX(MIN_PARA, MAXSCAT+1)
+!   found = .FALSE.
+!!
+!!  l_all = .TRUE.
+!!  CALL deallocate_conn(conn_nmax, l_all)              ! Deallocate old connectivity
+!   conn_nmax = cr_natoms                               ! Remember current atom number
+!   IF ( .NOT.ALLOCATED(at_conn)) THEN                 ! No previous NEIGHBORHOOD exists
+!      CALL allocate_conn_list(conn_nmax)               ! Allocate connectivity
+!   ENDIF
 !
-!  Performs a loop over all atoms and creates the individual connectivities
-!
-   USE chem_mod
-   USE crystal_mod
-   USE do_find_mod
-   USE atom_env_mod
-!  USE modify_mod
-!
-   IMPLICIT NONE
-!
-   INTEGER           , INTENT(IN)     :: itype   ! Atom type
-   INTEGER           , INTENT(INOUT)  :: ino     ! Connectivity def. no.
-   CHARACTER(LEN=256), INTENT(INOUT)  :: c_name  ! Connectivity name
-!
-!  INTEGER, INTENT(IN)  :: i
-!
-   INTEGER, PARAMETER  :: MIN_PARA = 1
-   INTEGER             :: maxw
-!
-   REAL   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
-!
-   INTEGER              :: j,i
-   INTEGER              :: is  ! dummies for scattering types
-   INTEGER              :: ianz
-   INTEGER              :: n_neig      ! Actual number of neighboring atoms
-   LOGICAL, DIMENSION(3):: fp    ! periodic boundary conditions
-   LOGICAL              :: fq    ! quick search algorithm
-   LOGICAL              :: found_def   ! Found correct neiborhood def to replace
-   LOGICAL              :: found       ! Found correct neiborhood to replace
-!  LOGICAL              :: l_all ! Deallocate all connectivities
-   REAL                 :: rmin        ! Minimum bond length
-   REAL                 :: rmax        ! Maximum bond length
-   REAL   , DIMENSION(3)     :: x      ! Atom position
-!
-   maxw = MAX(MIN_PARA, MAXSCAT+1)
-   found = .FALSE.
-!
-!  l_all = .TRUE.
-!  CALL deallocate_conn(conn_nmax, l_all)              ! Deallocate old connectivity
-   conn_nmax = cr_natoms                               ! Remember current atom number
-   IF ( .NOT.ALLOCATED(at_conn)) THEN                 ! No previous NEIGHBORHOOD exists
-      CALL allocate_conn_list(conn_nmax)               ! Allocate connectivity
-   ENDIF
-!
-   fp (1) = chem_period (1)
-   fp (2) = chem_period (2)
-   fp (3) = chem_period (3)
-   fq     = chem_quick
-!
-   atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
-      is   = cr_iscat(i)                                    ! Keep atom type
-      IF(is/=itype) CYCLE atome
-      x(1) = cr_pos(1,i)
-      x(2) = cr_pos(2,i)
-      x(3) = cr_pos(3,i)
-      ianz = 1
-      allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
-         def_temp => def_main(is)%def_liste
-         found_def = .FALSE.
-         neighs: DO
-            IF(.NOT.(ino==def_temp%valid_id .OR. c_name==def_temp%def_name)) THEN
-               def_temp => def_temp%def_next                ! not the right definition,
-               CYCLE neighs                                 ! go to next definition
-            ENDIF
-            found_def = .TRUE.
-            werte(1:def_temp%valid_no) =      &
-               def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
-            ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
-            rmin     = def_temp%def_rmin                    ! Copy distance limits
-            rmax     = def_temp%def_rmax
-            CALL do_find_env (ianz, werte, maxw, x, rmin,rmax, fq, fp)
-            at_conn(i)%number = i                           ! Just set atom no
-!
-            IF ( atom_env(0) > 0) THEN                      ! The atom has neighbors
-!
-!              Properly set the pointer hood_temp
-!
-               found = .FALSE.
-               IF ( ASSOCIATED(at_conn(i)%liste)) THEN      ! A previous NEIGHBORHOOD exists
-                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
-find_hood:        DO WHILE(ASSOCIATED(hood_temp))
-                     IF(ino==hood_temp%neigh_type .OR. &
-                        c_name==hood_temp%conn_name   ) THEN ! Found the correct neighborhood
-                        found = .TRUE.
-                        EXIT find_hood
-                     ENDIF
-                     hood_prev => hood_temp
-                     hood_temp => hood_temp%next_neighborhood  ! Point to the next NEIGHBORHOOD
-                  ENDDO find_hood
-                  IF(found) THEN                            ! We are at correct neighborhood
-                     CONTINUE                               ! Deallocate old neighbors
-                     temp => hood_temp%nachbar              ! point to the first neighbor within current neigborhood
-                     head => hood_temp%nachbar
-                     DO WHILE ( ASSOCIATED(temp) )          ! While there are further neighbors
-                       temp => temp%next                    ! Point to next neighbor
-                       IF(ASSOCIATED(head)) THEN
-                          DEALLOCATE ( head )               ! deallocate previous neighbor
-                       ENDIF
-                       head => temp                         ! also point to next neighbor
-                     END DO
-                  ELSE                                      ! No neighborood found thus:
-                     hood_temp => hood_prev
-                     NULLIFY(hood_prev)
-                     IF(ASSOCIATED(hood_temp%next_neighborhood)) THEN
-                        DEALLOCATE(hood_temp%next_neighborhood)
-                     ENDIF
-                     ALLOCATE(hood_temp%next_neighborhood)     ! Create one NEIGHBORHOOD
-                     hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
-                  ENDIF
-               ELSE
-                  ALLOCATE (at_conn(i)%liste)               ! Create one NEIGHBORHOOD
-                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
-                  NULLIFY (hood_temp%next_neighborhood)     ! No further NEIGHBORHOODs
-               ENDIF
-!
-!           Now we set parameters of current NEIGHBORHOOD
-!
-               IF(def_temp%intend_no == -1) THEN
-                  n_neig = atom_env(0)
-               ELSE
-                  n_neig = MIN(atom_env(0),def_temp%intend_no)
-               ENDIF
-               hood_temp%central_number = i                 ! Just set central atom no.
-               hood_temp%central_type   = cr_iscat(i)
-               hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
-               hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
-               hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
-               hood_temp%mmc_sel        = def_temp%mmc_sel    ! Copy mmc selection mode
-               hood_temp%mmc_ene        = def_temp%mmc_ene    ! Copy mmc energy    mode
-               hood_temp%natoms         = n_neig              ! Set number of neighbors
-               NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
-!
-               ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
-               j = 1
-               tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
-               tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
-               tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
-               tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
-               tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
-               NULLIFY (tail%next)                          ! No further neighbors
-!
-               DO j = 2, n_neig                             ! Add all (intended) neighbors to list
-                  ALLOCATE (tail%next)                      ! create a further NEIGHBOR
-                  tail => tail%next                         ! reassign tail to new end of list
-                  tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
-                  tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
-                  tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
-                  tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
-                  NULLIFY (tail%next)                       ! No further neighbors
-               ENDDO
-            ENDIF
-            IF(found) CYCLE atome
-            IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
-               CYCLE atome
-            ENDIF
-            def_temp => def_temp%def_next
-         ENDDO neighs                                       ! Loop over def.s
-            IF(.NOT.found_def) THEN                             ! found no correct definition
-               ier_num = -109
-               ier_typ = ER_APPL
-               ier_msg(1) = 'None of the connectivity definitions for the'
-               ier_msg(2) = 'atom type to be renewed matches the number or name'
-               RETURN
-            ENDIF
-      ENDIF allowed                                         ! Atom has def.s
-   ENDDO atome                                              ! Loop over all atoms in structure
-!
-   conn_status = .true.
-!
-   END SUBROUTINE recreate_connectivity
+!   fp (1) = chem_period (1)
+!   fp (2) = chem_period (2)
+!   fp (3) = chem_period (3)
+!   fq     = chem_quick
+!!
+!   atome: DO i = 1,cr_natoms                                ! Check all atoms in the structure    
+!      is   = cr_iscat(i)                                    ! Keep atom type
+!      IF(is/=itype) CYCLE atome
+!      x(1) = cr_pos(1,i)
+!      x(2) = cr_pos(2,i)
+!      x(3) = cr_pos(3,i)
+!      ianz = 1
+!      allowed: IF ( ASSOCIATED(def_main(is)%def_liste )) THEN  ! def.s exist
+!         def_temp => def_main(is)%def_liste
+!         found_def = .FALSE.
+!         neighs: DO
+!            IF(.NOT.(ino==def_temp%valid_id .OR. c_name==def_temp%def_name)) THEN
+!               def_temp => def_temp%def_next                ! not the right definition,
+!               CYCLE neighs                                 ! go to next definition
+!            ENDIF
+!            found_def = .TRUE.
+!            werte(1:def_temp%valid_no) =      &
+!               def_temp%valid_types(1:def_temp%valid_no)    ! Copy valid atom types
+!            ianz  = def_temp%valid_no                       ! Copy no. of valid atom types
+!            rmin     = def_temp%def_rmin                    ! Copy distance limits
+!            rmax     = def_temp%def_rmax
+!            CALL do_find_env (ianz, werte, maxw, x, rmin,rmax, fq, fp)
+!            at_conn(i)%number = i                           ! Just set atom no
+!!
+!            IF ( atom_env(0) > 0) THEN                      ! The atom has neighbors
+!!
+!!              Properly set the pointer hood_temp
+!!
+!               found = .FALSE.
+!               IF ( ASSOCIATED(at_conn(i)%liste)) THEN      ! A previous NEIGHBORHOOD exists
+!                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
+!find_hood:        DO WHILE(ASSOCIATED(hood_temp))
+!                     IF(ino==hood_temp%neigh_type .OR. &
+!                        c_name==hood_temp%conn_name   ) THEN ! Found the correct neighborhood
+!                        found = .TRUE.
+!                        EXIT find_hood
+!                     ENDIF
+!                     hood_prev => hood_temp
+!                     hood_temp => hood_temp%next_neighborhood  ! Point to the next NEIGHBORHOOD
+!                  ENDDO find_hood
+!                  IF(found) THEN                            ! We are at correct neighborhood
+!                     CONTINUE                               ! Deallocate old neighbors
+!                     temp => hood_temp%nachbar              ! point to the first neighbor within current neigborhood
+!                     head => hood_temp%nachbar
+!                     DO WHILE ( ASSOCIATED(temp) )          ! While there are further neighbors
+!                       temp => temp%next                    ! Point to next neighbor
+!                       IF(ASSOCIATED(head)) THEN
+!                          DEALLOCATE ( head )               ! deallocate previous neighbor
+!                       ENDIF
+!                       head => temp                         ! also point to next neighbor
+!                     END DO
+!                  ELSE                                      ! No neighborood found thus:
+!                     hood_temp => hood_prev
+!                     NULLIFY(hood_prev)
+!                     IF(ASSOCIATED(hood_temp%next_neighborhood)) THEN
+!                        DEALLOCATE(hood_temp%next_neighborhood)
+!                     ENDIF
+!                     ALLOCATE(hood_temp%next_neighborhood)     ! Create one NEIGHBORHOOD
+!                     hood_temp => hood_temp%next_neighborhood  ! Point to the new NEIGHBORHOOD
+!                  ENDIF
+!               ELSE
+!                  ALLOCATE (at_conn(i)%liste)               ! Create one NEIGHBORHOOD
+!                  hood_temp => at_conn(i)%liste             ! Point to current NEIGHBORHOOD
+!                  NULLIFY (hood_temp%next_neighborhood)     ! No further NEIGHBORHOODs
+!               ENDIF
+!!
+!!           Now we set parameters of current NEIGHBORHOOD
+!!
+!               IF(def_temp%intend_no == -1) THEN
+!                  n_neig = atom_env(0)
+!               ELSE
+!                  n_neig = MIN(atom_env(0),def_temp%intend_no)
+!               ENDIF
+!               hood_temp%central_number = i                 ! Just set central atom no.
+!               hood_temp%central_type   = cr_iscat(i)
+!               hood_temp%neigh_type     = def_temp%valid_id   ! Set definition type number
+!               hood_temp%conn_name      = def_temp%def_name   ! Set name from definition type
+!               hood_temp%conn_name_l    = def_temp%def_name_l ! Set name length from definition type
+!               hood_temp%mmc_sel        = def_temp%mmc_sel    ! Copy mmc selection mode
+!               hood_temp%mmc_ene        = def_temp%mmc_ene    ! Copy mmc energy    mode
+!               hood_temp%natoms         = n_neig              ! Set number of neighbors
+!               NULLIFY (hood_temp%nachbar)                  ! Initially there are no NEIGHBORS
+!!
+!               ALLOCATE (hood_temp%nachbar)                 ! create the first NEIGHBOR slot
+!               j = 1
+!               tail => hood_temp%nachbar                    ! tail points to the first NEIGHBOR
+!               tail%atom_number = atom_env(j)               ! I store the atom_no of the neighbor
+!               tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+!               tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+!               tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+!               NULLIFY (tail%next)                          ! No further neighbors
+!!
+!               DO j = 2, n_neig                             ! Add all (intended) neighbors to list
+!                  ALLOCATE (tail%next)                      ! create a further NEIGHBOR
+!                  tail => tail%next                         ! reassign tail to new end of list
+!                  tail%atom_number = atom_env(j)            ! I store the atom_no of the neighbor
+!                  tail%offset(1)   = NINT(atom_pos(1,j)-cr_pos(1,atom_env(j)))
+!                  tail%offset(2)   = NINT(atom_pos(2,j)-cr_pos(2,atom_env(j)))
+!                  tail%offset(3)   = NINT(atom_pos(3,j)-cr_pos(3,atom_env(j)))
+!                  NULLIFY (tail%next)                       ! No further neighbors
+!               ENDDO
+!            ENDIF
+!            IF(found) CYCLE atome
+!            IF ( .NOT. ASSOCIATED(def_temp%def_next)) THEN  ! No more def.s
+!               CYCLE atome
+!            ENDIF
+!            def_temp => def_temp%def_next
+!         ENDDO neighs                                       ! Loop over def.s
+!            IF(.NOT.found_def) THEN                             ! found no correct definition
+!               ier_num = -109
+!               ier_typ = ER_APPL
+!               ier_msg(1) = 'None of the connectivity definitions for the'
+!               ier_msg(2) = 'atom type to be renewed matches the number or name'
+!               RETURN
+!            ENDIF
+!      ENDIF allowed                                         ! Atom has def.s
+!   ENDDO atome                                              ! Loop over all atoms in structure
+!!
+!   conn_status = .true.
+!!
+!   END SUBROUTINE recreate_connectivity
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -973,6 +974,7 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       USE get_params_mod
       USE prompt_mod 
       USE sup_mod
+      USE do_show_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -992,12 +994,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
       INTEGER              :: ino      ! connectivity no
       INTEGER              :: iatom    ! atoms no for show
       INTEGER              :: itype    ! atomR type for recreate
-      INTEGER lp, length, lbef 
-      INTEGER indxg, ianz, iianz
+      INTEGER              :: i, lp, length, lbef 
+      INTEGER              :: indxg, ianz, iianz
       LOGICAL              :: l_all    ! Deallocate all connectivities
       LOGICAL              :: long     ! make long output
       LOGICAL              :: lnew     ! Do not make new atom type
-      LOGICAL lend
+      LOGICAL              :: lend
       REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
       REAL               , DIMENSION(1)                       :: wwerte ! (MAXSCAT) 
 !                                                                       
@@ -1089,14 +1091,12 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
                   CALL do_input (zeile, lp) 
 !                                                                       
-!     ----create a connectivity list 'create'                                     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'create', 2, lbef, 6) ) then 
-                  l_all  = .TRUE.
-                  itype  = 0
-                  ino    = 0
-                  c_name = ' '
-                  CALL create_connectivity(l_all, itype, ino, c_name)
+!              ELSEIF (str_comp (befehl, 'create', 2, lbef, 6) ) then 
+!                 l_all  = .TRUE.
+!                 itype  = 0
+!                 ino    = 0
+!                 c_name = ' '
+!                 CALL create_connectivity(l_all, itype, ino, c_name)
 !                                                                       
 !     ----delete a connectivity list 'delete'                                     
 !                                                                       
@@ -1159,9 +1159,10 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                ELSEIF (str_comp (befehl, 'remove', 3, lbef, 6) ) then 
                   CALL conn_do_set (code_del,zeile, lp) 
 !                                                                       
-!     ----recreate a connectivity list 'recreate'                                     
+!     ----create/ recreate a connectivity list 'recreate'                                     
 !                                                                       
-               ELSEIF (str_comp (befehl, 'recreate', 3, lbef, 8) ) then 
+               ELSEIF (str_comp (befehl, 'recreate', 3, lbef, 8) .OR.    &
+                       str_comp (befehl,   'create', 3, lbef, 6) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
                   IF(ier_num==0) THEN
                      itype  = 0
@@ -1190,10 +1191,17 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                                  CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
                                  CALL create_connectivity(l_all, itype, ino, c_name)
                               ENDDO
-                              CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
-                              CALL create_connectivity(l_all, itype, ino, c_name)
+                           ELSE
+                              DO i=1, ianz
+                                 itype = NINT(werte(i))
+                                 CALL deallocate_conn (conn_nmax, l_all, itype, ino, c_name)
+                                 CALL create_connectivity(l_all, itype, ino, c_name)
+                              ENDDO
                            ENDIF
                         ENDIF
+                     ELSEIF(ianz==0) THEN
+                        l_all = .TRUE.
+                        CALL create_connectivity(l_all, itype, ino, c_name)
                      ELSE
                         ier_num = -6
                         ier_typ = ER_COMM
@@ -1250,6 +1258,8 @@ find_hood:        DO WHILE(ASSOCIATED(hood_temp))
                            ier_num = -105
                            ier_typ = ER_APPL 
                         ENDIF
+                     ELSEIF (str_comp (cpara(1), 'res', 3, lpara(1), 3) ) THEN
+                        CALL do_show_res                                    ! Show result variable
                      ELSE 
                         ier_num = - 6 
                         ier_typ = ER_COMM 
