@@ -8,6 +8,7 @@ SUBROUTINE RUN_MPI_INIT
 !
 USE run_mpi_mod
 USE errlist_mod
+USE variable_mod
 !
 IMPLICIT none
 !
@@ -17,6 +18,7 @@ run_mpi_numprocs = 1
 run_mpi_active   = .false.
 ier_num  = 0
 ier_typ  = ER_NONE
+var_val(VAR_NUM_NODES) = 0
 !
 !write(*,*) 'MPI is not active '
 !
