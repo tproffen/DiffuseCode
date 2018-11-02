@@ -86,6 +86,17 @@
    pattern either with "temp use" or a combination "therm and temp ignore"
    will now produce icdentical results again.
 
+   Added a 'show res' to the 'fourier' and 'connectivity' menu.
+
+   Improved the memory handling in pdf, makes the program use much 
+   less memory.
+   Connected to this, all menus reduce memory usage through the 
+   local 'reset' command. The 'reset' command sets all default 
+   values within a menu back to program start and initializes all
+   internal arrays to the smallest default size. Most of the time
+   this will not bee needed. The main effect will be within the 
+   Fourier menues (fourier, powder, output). The 'pdf' menu is 
+   reduced as much as possible automatically. 
    
 3  2018_Sep
 
@@ -1841,6 +1852,7 @@
    for a clear distinction.
    Alternatively read the structure with the "lcell" command
 3  create
+!b create {<central_atom_type>, {<def.no.>| <def_name>}}
 
    Creates the actual connectivity list. 
    The program performs a loop over all atoms and searches for neighbors
@@ -1851,6 +1863,17 @@
    search for neighbors as well.
 
    Any old connectivity list is replaced by a new 'create' command.
+
+   If the second command form with parameters is chosen, only the 
+   connectivity for the specified atom will be created. 
+   This is helpful if: 
+     you create (several) connectivities first, 
+     then perform a modifiucation of the crystal that may affect the 
+     original connectivities
+     Finally need to create a new connectivity but do not want to
+     change the original connectivities.
+   This command for  is identical to a 
+     recreate <central_atom_type>, {<def.no.>| <def_name>}
 3  delete
 !b delete
 !b delete <central_atom_type>, <def_name>
@@ -1868,6 +1891,9 @@
    connectivity definition.
    All neighbors to a central atom of this type are redetermined. 
    The previous entry in the connectivity list is completely lost.
+
+   If the connectivity does not create, it is created without
+   any error message.
 
    All other connectivities are not affected by this command.
 3  remove
@@ -2008,27 +2034,37 @@
               A single ligand atom is bonded to the surface atoms. 
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+
+              Exactly one 'set bond...' command is required.
    "chelate"  The ligand molecule is placed on top of a single surface atom. 
               A pair of ligand atoms is bonded to the identical surface atom.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+              
+              Exactly two 'set bond...' commands are required.
    "bridge"   The ligand molecule is placed bridging between two different
               surface atoms. 
               A single ligand atom is bonded to two (neighboring) surface atoms.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+
+              Exactly two 'set bond...' commands are required.
    "double"   The ligand molecule is bonded with individual bonds to two surface
               atoms. Each bond connects a single surface atom to a single
               ligand atom.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+
+              Exactly two 'set bond...' commands are required.
    "multi"    The ligand molecule is bonded with several bonds to a group of 
               surface atoms. 
-              A first bond connects a ligand atom to a single surface atom.
-              A second bond connects (another) ligand atom to
+              A first bond connects (another) ligand atom to
               a (group of) surface atom(s). 
+              A second bond connects a ligand atom to a single surface atom.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+
+              Exactly two 'set bond...' commands are required.
    "acceptor" Place a ligand molecule with a hydrogen bond type. 
               The surface atom acts as acceptor atom. The surface atom should
               be a reasonable acceptor atom like O, N... and the ligand atom
@@ -2039,6 +2075,8 @@
               angle.
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
+
+              Exactly one 'set bond...' command is required.
    "donor"    Place a ligand molecule with a hydrogen bond type. 
               The surface atom acts as donor atom. The surface atom should
               be a reasonable donor atom like H. and the ligand atom
@@ -2050,7 +2088,8 @@
               The orientation of the molecule is defined by its axis which is
               placed normal to the local surface.
 
-!p reset   ! Reset and clear all definitions
+              Exactly one 'set bond...' command is required.
+
 3  reset
 !b reset
 
@@ -2064,6 +2103,8 @@
 !b set <name>, "ligand", <file>, <density>
 !b set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
 !b                                                      <distance>
+!b                                  [, "angle:"<b_angle>]
+!b                                  [, "anchor:"<n_anchors>]
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
 !b
 !b set <name>, "tilt", "angle", <value>
@@ -2087,16 +2128,21 @@
 
    set <name>, "bond", <atom_type> [, <atom_type>,...], <ligand atom no>, 
                        <distance>, [, "angle:"<b_angle>]
+                                   [, "anchor:"<n_anchors>]
        Defines the bonds of length <distance> between surface atoms of type 
        <atom_type> and atom number <ligand atom no> of the ligand. 
-       The number of surface atom types depends on the type of decoration that
-       is defined by the "add" command.
-       For the "normal", "double", "acceptor" and "donor" type exactly 
-           one surface type parameter must be given.
-       For the "bridge" type exactly two surface type 
-           parameters must be given.
+
+       The number of surface atom types can be flexible, the number 
+       of 'set bond ' commands depend on the 
+       decoration that is defined by the "add" command.
+       For the "normal", "acceptor" and "donor" type exactly 
+           one 'set bond' command is required.
+       For the "bridge", "chelate", "double", and "multi" type exactly 
+           two 'set bond' commands are required.
        For the "multi" type exactly three surface type
            parameters must be given.
+           Two 'set bond' commands are required.
+           The first 'set bond' command requires three surface types.
 
        The surface types can be given as type number or as type name. 
        If the type number is given, this atom type will act as anchor. 
@@ -2105,7 +2151,7 @@
 
        The optional parameter "angle:" is relevant to "acceptor" and
        "donor" bond schemes only. For these schemes the angle is 
-       interpreted as teh hydrogen bond angle in the Hydrogen atom and
+       interpreted as the hydrogen bond angle in the Hydrogen atom and
        should be close to 170°.
 
    set <name>, "tilt", "angle", <value>
