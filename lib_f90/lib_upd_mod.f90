@@ -53,8 +53,8 @@ search_var: DO i=var_sys+1, var_num
       IF(var_entry(i)>0) THEN
 !write(*,*) ' kpara ', kpara, kpara2,var_field(var_entry(i))%var_shape(:), maxw
          IF(0<kpara .AND. kpara<=var_field(var_entry(i))%var_shape(1) ) THEN
-            IF((ianz>=2 .AND. 0<kpara2 .AND. kpara2<=var_field(var_entry(i))%var_shape(2)) .OR.  &
-               (kpara2==0 .AND. var_field(var_entry(i))%var_shape(2)==1 ) )  THEN
+            IF((ianz==2 .AND. 0<kpara2 .AND. kpara2<=var_field(var_entry(i))%var_shape(2)) .OR.  &
+               (ianz==1 .AND. kpara2==0 .AND. var_field(var_entry(i))%var_shape(2)==1 ) )  THEN
                kpara2 = MAX(1, kpara2)
                zeile(1:ikl - lcomm-1) = string(1:ikl - lcomm-1)
                IF(var_type(i)==      IS_INTE) THEN
@@ -298,6 +298,10 @@ search_var: DO i=var_sys+1, var_num
             ELSE
                ww2 = ww(2)
             ENDIF
+            ELSE
+               ier_num = -40
+               ier_typ = ER_FORT
+               RETURN
             ENDIF
                IF(var_type(i)==      IS_INTE) THEN
                   var_field(var_entry(i))%var_value(ww(1),ww2) = INT(wert)
