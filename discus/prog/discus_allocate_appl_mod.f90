@@ -1044,6 +1044,9 @@ MODULE discus_allocate_appl_mod
       CALL alloc_arr ( dcc_lfile,1,n_deco ,  all_status, 0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_nanch ,1,2,         1,n_deco ,  all_status, 0    , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( dcc_surf  ,0,2,0,n_anch,1,n_deco ,  all_status, 0    , size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
@@ -1942,6 +1945,10 @@ MODULE discus_allocate_appl_mod
       pdf_size_of = pdf_size_of + size_of
 !
       CALL alloc_arr ( pdf_allowed_j ,0,n_scat,  all_status, .true.   , size_of)
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pdf_size_of = pdf_size_of + size_of
+!
+      CALL alloc_arr ( pdf_has_atom  ,0,n_scat,  all_status, 0        , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of
 !
