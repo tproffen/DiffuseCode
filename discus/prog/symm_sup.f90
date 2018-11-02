@@ -1468,9 +1468,12 @@ END FUNCTION symm_occupied
 !
 SUBROUTINE symm_reset
 !
+USE discus_allocate_appl_mod
 USE symm_mod
 !
 IMPLICIT NONE
+!
+CALL alloc_symmetry(1)
 !
 IF(ALLOCATED(sym_latom)) sym_latom(:) = .FALSE.   ! (0:SYM_MAXSCAT)
 IF(ALLOCATED(sym_excl))  sym_excl     = 0
