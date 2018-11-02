@@ -57,15 +57,6 @@ SUBROUTINE do_domain (line, lp)
 !     Allocate the arrays in domain_mod.f90. As DISCUS cannot know the 
 !     required number, of cluster types, we will just allocate a reasonable
 !     amount and increase if necessary.
-!
-      IF ( linit ) THEN
-         CALL alloc_domain ( clu_increment )
-         MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT)
-         MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX)
-         CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
-         n_clu = CLU_MAX_TYPE
-         linit = .false.
-      ENDIF
 !                                                                       
 !     BEGIN OF new domain code                                          
 !                                                                       
@@ -159,13 +150,29 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
                   CALL do_input (zeile, lp) 
+!
+!     ----Reset the distribution of domains 'rese'                       
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL domain_reset 
+
 !                                                                       
 !     ----Original domain commands                                      
 !                                                                       
+               ELSE
+!
+      IF ( linit ) THEN
+         CALL alloc_domain ( clu_increment )
+         MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT)
+         MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX)
+         CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
+         n_clu = CLU_MAX_TYPE
+         linit = .false.
+      ENDIF
 !                                                                       
 !     assign properties to pseudoatoms 'assign'                         
 !                                                                       
-               ELSEIF (str_comp (befehl, 'assign', 1, lbef, 6) ) then 
+                   IF (str_comp (befehl, 'assign', 1, lbef, 6) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.ge.3) then 
@@ -319,21 +326,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         clu_mode = CLU_IN_PSEUDO 
                      ENDIF 
                   ENDIF 
-!
-!     ----Reset the distribution of domains 'rese'                       
-!
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL domain_reset 
 !                                                                       
 !     ----Start the distribution of domains 'run'                       
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
                   CALL micro_filereading 
-!                                                                       
-!     ----Reset the number of domain definitions 'rese'                 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  clu_number = 0 
 !                                                                       
 !     ----define various surface related settings 'set'                 
 !                                                                       
@@ -361,6 +358,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
+               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
@@ -2038,10 +2036,13 @@ mole_int: IF(mk_infile_internal) THEN
 !
 SUBROUTINE domain_reset
 !
+USE discus_allocate_appl_mod
 USE domain_mod
 USE micro_mod
 !
 IMPLICIT NONE
+!
+CALL alloc_domain(1)
 !
 mk_name  = ' '
 mk_spcgr = 'P1'

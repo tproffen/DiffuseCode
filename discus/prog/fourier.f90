@@ -34,6 +34,7 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal 
       USE prompt_mod 
+      USE do_show_mod
       USE string_convert_mod
       USE sup_mod
       IMPLICIT none 
@@ -123,9 +124,65 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ier_typ = ER_MAC 
                ENDIF 
 !                                                                       
+!     reset all fourier settings 'reset'
+!                                                                       
+            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+               CALL fourier_reset
+!                                                                       
+!     continues a macro 'continue'                                      
+!                                                                       
+            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) then 
+               CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ Echo a string, just for interactive check in a macro 'echo'     
+!                                                                       
+            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+               CALL echo (zeile, lp) 
+!                                                                       
+!      Evaluate an expression, just for interactive check 'eval'        
+!                                                                       
+            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+               CALL do_eval (zeile, lp) 
+!                                                                       
+!     Terminate Fourier 'exit'                                          
+!                                                                       
+            ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
+               GOTO 9999 
+!                                                                       
+!     help 'help' , '?'                                                 
+!                                                                       
+            ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .OR.  &
+                    str_comp (befehl, '?   ', 1, lbef, 4) ) THEN                                      
+               IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
+                  lp = lp + 7 
+                  CALL do_hel ('discus '//zeile, lp) 
+               ELSE 
+                  lp = lp + 12 
+                  CALL do_hel ('discus four '//zeile, lp) 
+               ENDIF 
+!                                                                       
+!-------Operating System Kommandos 'syst'                               
+!                                                                       
+            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+               IF (zeile.ne.' ') then 
+                  CALL do_operating (zeile (1:lp), lp) 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
+!                                                                       
+!------ waiting for user input                                          
+!                                                                       
+            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+               CALL do_input (zeile, lp) 
+!
+!     All Fourier commands
+!
+            ELSE
+!                                                                       
 !     Define the ascissa 'absc'                                         
 !                                                                       
-            ELSEIF (str_comp (befehl, 'absc', 1, lbef, 4) ) then 
+            IF (str_comp (befehl, 'absc', 1, lbef, 4) ) then 
                CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                IF (ianz.eq.1) then 
                   IF (cpara (1) .eq.'h') then 
@@ -181,11 +238,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
-!                                                                       
-!     continues a macro 'continue'                                      
-!                                                                       
-            ELSEIF (str_comp (befehl, 'continue', 1, lbef, 8) ) then 
-               CALL macro_continue (zeile, lp) 
 !                                                                       
 !     define the anomalous scattering curve for an element 'delf'       
 !                                                                       
@@ -275,39 +327,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ier_typ = ER_COMM 
                ENDIF 
 !                                                                       
-!------ Echo a string, just for interactive check in a macro 'echo'     
-!                                                                       
-            ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-               CALL echo (zeile, lp) 
-!                                                                       
-!      Evaluate an expression, just for interactive check 'eval'        
-!                                                                       
-            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-               CALL do_eval (zeile, lp) 
-!                                                                       
-!     Terminate Fourier 'exit'                                          
-!                                                                       
-            ELSEIF (str_comp (befehl, 'exit', 3, lbef, 4) ) then 
-               GOTO 9999 
-!                                                                       
 !     switch to electron diffraction 'electron'                                
 !                                                                       
             ELSEIF (str_comp (befehl, 'electron', 2, lbef, 8) ) then 
                lxray = .true. 
                diff_radiation = RAD_ELEC
                lambda = ' '
-!                                                                       
-!     help 'help' , '?'                                                 
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-               IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                  lp = lp + 7 
-                  CALL do_hel ('discus '//zeile, lp) 
-               ELSE 
-                  lp = lp + 12 
-                  CALL do_hel ('discus four '//zeile, lp) 
-               ENDIF 
 !                                                                       
 !     calculate at a SHELXL list of reciprocal points 'hkl'                     
 !                                                                       
@@ -583,11 +608,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                ENDIF 
 !                                                                       
-!     reset all fourier settings 'reset'
-!                                                                       
-            ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-               CALL fourier_reset
-!                                                                       
 !     start the Fourier transform 'run'                                 
 !                                                                       
             ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
@@ -755,21 +775,34 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !     Show the current settings for the Fourier 'show'                  
 !                                                                       
-            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
-               IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
-                  eck(1,4) = eck(1,1)       ! This is a layer
-                  eck(2,4) = eck(2,1)       ! Set verticval corner
-                  eck(3,4) = eck(3,1)       ! to lower left values
-                  vi (1,3) = 0.00
-                  vi (2,3) = 0.00
-                  vi (3,3) = 0.00
-                  inc(3)   = 1
-                  divis(3) = 1
-               ENDIF
-               CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
-                           diff_radiation, diff_power) 
-               IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
-               CALL four_show  ( ltop )
+            ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
+               CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
+               IF (ier_num == 0) THEN 
+                  IF (ianz==  1) THEN 
+                     CALL do_show_generic (cpara, lpara, maxw)
+                  ELSEIF(ianz==0) THEN
+                     IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
+                        eck(1,4) = eck(1,1)       ! This is a layer
+                        eck(2,4) = eck(2,1)       ! Set verticval corner
+                        eck(3,4) = eck(3,1)       ! to lower left values
+                        vi (1,3) = 0.00
+                        vi (2,3) = 0.00
+                        vi (3,3) = 0.00
+                        inc(3)   = 1
+                        divis(3) = 1
+                     ENDIF
+                     CALL dlink (ano, lambda, rlambda, renergy, l_energy, &
+                                 diff_radiation, diff_power) 
+                     IF(l_zone) CALL zone_setup     ! Setup zone axis pattern
+                     CALL four_show  ( ltop )
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ELSE 
+                  ier_num = - 6 
+                  ier_typ = ER_COMM 
+               ENDIF 
 !                                                                       
 !     Switch usage of temperature coefficients on/off 'temp'            
 !                                                                       
@@ -804,21 +837,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
                ENDIF 
-!                                                                       
-!-------Operating System Kommandos 'syst'                               
-!                                                                       
-            ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-               IF (zeile.ne.' ') then 
-                  CALL do_operating (zeile (1:lp), lp) 
-               ELSE 
-                  ier_num = - 6 
-                  ier_typ = ER_COMM 
-               ENDIF 
-!                                                                       
-!------ waiting for user input                                          
-!                                                                       
-            ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-               CALL do_input (zeile, lp) 
 !                                                                       
 !     set the wave length to be used 'wvle'                             
 !                                                                       
@@ -896,6 +914,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ier_num = - 8 
                ier_typ = ER_COMM 
             ENDIF 
+         ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       

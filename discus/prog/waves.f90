@@ -55,14 +55,6 @@ SUBROUTINE waves_menu
       lend = .false. 
       CALL no_error 
 !
-      IF( cr_nscat > WV_MAXSCAT .or. mole_num_type > WV_MAXSCAT) THEN
-         nscat = max ( cr_nscat, mole_num_type)
-         CALL alloc_waves ( cr_nscat )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
-!
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/wave' 
 !                                                                       
@@ -94,11 +86,86 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ELSE 
                      ier_num = - 13 
                      ier_typ = ER_MAC 
+                  ENDIF
+!                                                                       
+!     --- list asymmetric unit 'asym'                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+                  CALL show_asym 
+!                                                                       
+!     --- list atoms present in the crystal 'chem'                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+                  CALL show_chem 
+!                                                                       
+!     --- continues a macro 'continue'                                  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ --- Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      -- Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+                  CALL do_eval (zeile, lp) 
+!                                                                       
+!     --- exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+                  lend = .true. 
+!                                                                       
+!     --- help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) then                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus wave '//zeile, lp) 
                   ENDIF 
+!                                                                       
+!------ --- operating System Kommandos 'syst'                           
+!                                                                       
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+                  IF (zeile.ne.' ') then 
+                     CALL do_operating (zeile (1:lp), lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+!                                                                       
+!------ --- waiting for user input                                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+                  CALL do_input (zeile, lp) 
+!
+!     --- reset waves 'rese'                                               
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL waves_reset
+ 
+               ELSE
+!-------------------------------------------------------------------------------
+!--------- WAVE specific commands
+!-------------------------------------------------------------------------------
+!
+      IF( cr_nscat > WV_MAXSCAT .or. mole_num_type > WV_MAXSCAT) THEN
+         nscat = max ( cr_nscat, mole_num_type)
+         CALL alloc_waves ( cr_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
 !                                                                       
 !     --- accoustic wave 'acco'                                         
 !                                                                       
-               ELSEIF (str_comp (befehl, 'acco', 2, lbef, 4) ) then 
+                   IF (str_comp (befehl, 'acco', 2, lbef, 4) ) then 
                   wv_lacoust = .true. 
 !                                                                       
 !     --- amplitude of wave 'ampl'                                      
@@ -117,21 +184,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!                                                                       
-!     --- list asymmetric unit 'asym'                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
-                  CALL show_asym 
-!                                                                       
-!     --- list atoms present in the crystal 'chem'                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
-                  CALL show_chem 
-!                                                                       
-!     --- continues a macro 'continue'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
 !                                                                       
 !     --- density wave 'dens'                                           
 !                                                                       
@@ -155,21 +207,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   CALL atom_select (zeile, lp, 0, WV_MAXSCAT, wv_latom, &
                   wv_sel_atom, lold,        &
                   str_comp (befehl, 'sele', 2, lbef, 4) )               
-!                                                                       
-!------ --- Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!      -- Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp) 
-!                                                                       
-!     --- exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
 !                                                                       
 !     --- wave function 'func'                                          
 !------ --- possible functions are 'box', 'sinusoidal', 'triangular'    
@@ -213,18 +250,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_num = - 6 
                         ier_typ = ER_COMM 
                      ENDIF 
-                  ENDIF 
-!                                                                       
-!     --- help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus wave '//zeile, lp) 
                   ENDIF 
 !                                                                       
 !     --- wave length 'leng'                                            
@@ -424,11 +449,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!
-!     --- reset waves 'rese'                                               
-!
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL waves_reset
 !                                                                       
 !     --- run waves 'run'                                               
 !                                                                       
@@ -481,26 +501,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                   ENDIF 
 !                                                                       
-!------ --- operating System Kommandos 'syst'                           
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!------ --- waiting for user input                                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-                  CALL do_input (zeile, lp) 
-!                                                                       
 !------ --- End of command processing                                   
 !                                                                       
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
+               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
@@ -1228,9 +1234,12 @@ ELSE wave_type
 !
 SUBROUTINE waves_reset
 !
+USE discus_allocate_appl_mod
 USE waves_mod
 !
 IMPLICIT NONE
+!
+CALL alloc_waves(1)
 !
 wv_func(:)   = 'sinu'
 !

@@ -68,13 +68,6 @@ CONTAINS
       lend = .false. 
       CALL no_error 
 !
-      IF( cr_nscat > TRAN_MAXSCAT) THEN
-         CALL alloc_transfrm ( cr_nscat )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
-!
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/tran' 
 !                                                                       
@@ -108,9 +101,67 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_MAC 
                   ENDIF 
 !                                                                       
+!     ----list asymmetric unit 'asym'                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
+                  CALL show_asym 
+!                                                                       
+!     ----continues a macro 'continue'                                  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!     ----list atoms present in the crystal 'chem'                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+                  CALL show_chem 
+!                                                                       
+!------ ----Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      ---Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+                  CALL do_eval (zeile, lp) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+                  lend = .true. 
+!                                                                       
+!     ----help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) then                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus tran '//zeile, lp) 
+                  ENDIF 
+!                                                                       
+!     ----reset transformation 'reset'                                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL tran_reset
+               ELSE
+!--------------------------------------------------------------------------------
+!---------TRANSFORM specific commands
+!--------------------------------------------------------------------------------
+!
+      IF( cr_nscat > TRAN_MAXSCAT) THEN
+         CALL alloc_transfrm ( cr_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!                                                                       
 !     ----a(new) in terms of old axes                                   
 !                                                                       
-               ELSEIF (str_comp (befehl, 'anew', 2, lbef, 4) ) then 
+                   IF (str_comp (befehl, 'anew', 2, lbef, 4) ) then 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -141,11 +192,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         lchange = .true. 
                      ENDIF 
                   ENDIF 
-!                                                                       
-!     ----list asymmetric unit 'asym'                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
-                  CALL show_asym 
 !                                                                       
 !     ----b(new) in terms of old axes                                   
 !                                                                       
@@ -299,16 +345,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF 
                   ENDIF 
 !                                                                       
-!     ----continues a macro 'continue'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
-!                                                                       
-!     ----list atoms present in the crystal 'chem'                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
-                  CALL show_chem 
-!                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
                ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) then 
@@ -333,33 +369,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                       ENDIF 
 !                    ENDIF 
 !                 ENDIF 
-!                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!      ---Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus tran '//zeile, lp) 
-                  ENDIF 
 !                                                                       
 !     ----transforme a list of reflections to new base 'h2new'          
 !                                                                       
@@ -500,11 +509,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
-!                                                                       
-!     ----reset transformation 'reset'                                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL tran_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
@@ -730,6 +734,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
+               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
@@ -1351,11 +1356,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 SUBROUTINE tran_reset
 !
+USE discus_allocate_appl_mod
 USE transfrm_mod
 !
 IMPLICIT NONE
 !
 INTEGER :: ik
+!
+CALL alloc_transfrm(1)
 !
 TRAN_MAXSCAT = 1
 !

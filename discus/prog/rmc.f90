@@ -47,12 +47,6 @@ CONTAINS
       LOGICAL str_comp 
 !
 !     maxw = MAXSCAT
-      IF( cr_nscat > RMC_MAXSCAT) THEN
-         CALL alloc_rmc ( cr_nscat )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
 !
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/rmc' 
@@ -86,29 +80,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
             CALL macro_continue (zeile, lp) 
 !                                                                       
-!------ selecting/deselecting atoms                                     
-!                                                                       
-         ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.str_comp (   &
-         befehl, 'dese', 2, lbef, 4) ) then                             
-!                                                                       
-            CALL atom_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
-            rmc_sel_atom, .false., str_comp (  &
-            befehl, 'sele', 3, lbef, 4) )                               
-!                                                                       
-!------ selecting/deselecting of molecules                              
-!                                                                       
-         ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4) .or.str_comp (   &
-         befehl, 'mdes', 2, lbef, 4) ) then                             
-!                                                                       
-            CALL mole_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
-            rmc_sel_atom, str_comp (  &
-            befehl, 'msel', 2, lbef, 4) )                               
-!                                                                       
-!------ read experimental data 'data'                                   
-!                                                                       
-         ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) then 
-            CALL rmc_readdata (zeile, lp) 
-!                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
          ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
@@ -136,10 +107,60 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                CALL do_hel ('discus rmc '//zeile, lp) 
             ENDIF 
 !                                                                       
+!-------Operating System Kommandos 'syst'                               
+!                                                                       
+         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+            cdummy = ' ' 
+            IF (zeile.ne.' ') then 
+               cdummy (1:lp) = zeile (1:lp) 
+               CALL do_operating (cdummy, lp) 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+!                                                                       
+!     Waiting for user input                                            
+!                                                                       
+         ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+            CALL do_input (zeile, lp) 
+         ELSE
+!
+!------- RMC specific commands
+!
+      IF( cr_nscat > RMC_MAXSCAT) THEN
+         CALL alloc_rmc ( cr_nscat )
+         IF ( ier_num < 0 ) THEN
+            RETURN
+         ENDIF
+      ENDIF
+!                                                                       
 !------ reset rmc setting 'rese'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'rese', 3, lbef, 4) ) then 
+             IF (str_comp (befehl, 'rese', 3, lbef, 4) ) then 
             CALL rmc_reset
+!                                                                       
+!------ selecting/deselecting atoms                                     
+!                                                                       
+         ELSEIF (str_comp (befehl, 'sele', 3, lbef, 4) .or.str_comp (   &
+         befehl, 'dese', 2, lbef, 4) ) then                             
+!                                                                       
+            CALL atom_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
+            rmc_sel_atom, .false., str_comp (  &
+            befehl, 'sele', 3, lbef, 4) )                               
+!                                                                       
+!------ selecting/deselecting of molecules                              
+!                                                                       
+         ELSEIF (str_comp (befehl, 'msel', 2, lbef, 4) .or.str_comp (   &
+         befehl, 'mdes', 2, lbef, 4) ) then                             
+!                                                                       
+            CALL mole_select (zeile, lp, 0, RMC_MAXSCAT, rmc_allowed, &
+            rmc_sel_atom, str_comp (  &
+            befehl, 'msel', 2, lbef, 4) )                               
+!                                                                       
+!------ read experimental data 'data'                                   
+!                                                                       
+         ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) then 
+            CALL rmc_readdata (zeile, lp) 
 !                                                                       
 !------ run 'run'                                                       
 !                                                                       
@@ -176,28 +197,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDIF 
             ENDIF 
 !                                                                       
-!-------Operating System Kommandos 'syst'                               
-!                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-            cdummy = ' ' 
-            IF (zeile.ne.' ') then 
-               cdummy (1:lp) = zeile (1:lp) 
-               CALL do_operating (cdummy, lp) 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-!                                                                       
-!     Waiting for user input                                            
-!                                                                       
-         ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-            CALL do_input (zeile, lp) 
-!                                                                       
 !------ no command found                                                
 !                                                                       
          ELSE 
             ier_num = - 8 
             ier_typ = ER_COMM 
+         ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -245,11 +250,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 SUBROUTINE rmc_reset
 !
+USE discus_allocate_appl_mod
 USE rmc_mod
 !
 IMPLICIT NONE
 !
-
+CALL alloc_rmc      ( 1            )
+CALL alloc_rmc_data ( 1            )
+CALL alloc_rmc_istl ( 1,  1, 1     )
+CALL alloc_rmc_q    ( 1,  1        )
+CALL alloc_rmc_planes(1, 48        )
+!
 rmc_nplane = 0 
 rmc_calc_f = .true. 
 rmc_qmin   =  9999.0 

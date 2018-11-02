@@ -64,11 +64,6 @@ SUBROUTINE save_struc (string, lcomm)
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
-      CALL save_check_alloc()
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-!                                                                       
 !     Interpret parameters used by 'save' command                       
 !                                                                       
       CALL get_params (string, ianz, cpara, lpara, maxw, lcomm) 
@@ -158,9 +153,65 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
                   CALL show_chem 
 !                                                                       
+!------ ----Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      ---Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+                  CALL do_eval (zeile, lp) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
+                  lend = .true. 
+!                                                                       
+!     ----help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) THEN                                      
+                  line = zeile 
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//line, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus save '//line, lp) 
+                  ENDIF 
+!                                                                       
+!------- -Operating System Kommandos 'syst'                             
+!                                                                       
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile.ne.' ') THEN 
+                     CALL do_operating (zeile (1:lp), lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+!                                                                       
+!------  -----waiting for user input                                    
+!                                                                       
+               ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) THEN 
+                  CALL do_input (zeile, lp) 
+!
+!     ----Reset save menu 'rese'n'                                      
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+                  CALL save_reset
+               ELSE
+!
+!---------SAVE specific commands
+!                                                                       
+               CALL save_check_alloc()
+               IF ( ier_num < 0 ) THEN
+                  RETURN
+               ENDIF
+!                                                                       
 !     ----Deselect which atoms are included in the wave 'dese'          
 !                                                                       
-               ELSEIF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
+               IF (str_comp (befehl, 'dese', 1, lbef, 4) ) THEN 
                    CALL atom_select (zeile, lp, 0, SAV_MAXSCAT, sav_latom, &
                    sav_sel_atom, .false., .false.)              
 !                 ier_num = - 6 
@@ -182,21 +233,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                    ENDIF 
 !                 ENDIF 
 !                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!      ---Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
-                  CALL do_eval (zeile, lp) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
-                  lend = .true. 
-!                                                                       
 !     define format of output file 'format'                             
 !                                                                       
                ELSEIF (str_comp (befehl, 'format', 1, lbef, 6) ) THEN 
@@ -212,19 +248,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_num = - 6 
                         ier_typ = ER_COMM 
                      ENDIF 
-                  ENDIF 
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) THEN                                      
-                  line = zeile 
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//line, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus save '//line, lp) 
                   ENDIF 
 !                                                                       
 !     ----Select range of atoms within crystal to be included 'incl'    
@@ -275,6 +298,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_adp  = .false. 
                         sav_w_occ  = .false. 
                         sav_w_obje = .false. 
+                        sav_w_mole = .false. 
                         sav_w_doma = .false. 
                         sav_w_prop = .false. 
                      ELSEIF(str_comp(cpara(1), 'gene', 1, lpara(1), 4) ) THEN
@@ -321,11 +345,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_flen = lpara (1) 
                      ENDIF 
                   ENDIF 
-!
-!     ----Reset save menu 'rese'n'                                      
-!
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
-                  CALL save_reset
 !                                                                       
 !     ----run transformation 'run'                                      
 !                                                                       
@@ -369,34 +388,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
                   CALL save_show
 !                                                                       
-!------- -Operating System Kommandos 'syst'                             
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
-                  IF (zeile.ne.' ') THEN 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!------  -----waiting for user input                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 2, lbef, 4) ) THEN 
-                  CALL do_input (zeile, lp) 
-!                                                                       
 !     ----write parameters from the keyword list  'write'               
 !                                                                       
                ELSEIF (str_comp (befehl, 'write', 2, lbef, 5) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN 
-                     IF (str_comp (cpara (1) , 'all', 1, lpara (1) , 3) &
-                     ) THEN                                             
+                     IF(str_comp(cpara(1), 'all', 1, lpara(1), 3) ) THEN                                             
                         sav_w_gene = .true. 
                         sav_w_ncell= .true. 
                         sav_w_symm = .true. 
                         sav_w_scat = .true. 
                         sav_w_adp  = .true. 
                         sav_w_occ  = .true. 
+                        sav_w_mole = .true. 
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
                         sav_w_prop = .true. 
@@ -428,6 +432,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
+               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
@@ -1126,9 +1131,12 @@ END SUBROUTINE save_internal_node
 !
 SUBROUTINE save_reset
 !
+USE discus_allocate_appl_mod
 USE discus_save_mod
 
 IMPLICIT NONE
+!
+CALL alloc_save(1)
 !
 SAV_T_MAXSCAT = 1
 SAV_MAXSCAT  =  1

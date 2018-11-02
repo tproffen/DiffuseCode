@@ -60,14 +60,6 @@ SUBROUTINE stack
       maxw = MIN_PARA
       lend = .false. 
       CALL no_error 
-!                                                                       
-      IF (linit) then 
-         CALL alloc_stack ( st_layer_increment, 1, 1, st_rot_status)
-         n_types  = ST_MAXTYPE
-         n_layers = ST_MAXLAYER
-         n_qxy    = ST_MAXQXY
-         linit    = .false.
-      ENDIF 
 !
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/stack' 
@@ -102,9 +94,74 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_MAC 
                   ENDIF 
 !                                                                       
+!     ----continues a macro 'continue'                                  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!------ ----Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      ---Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+                  CALL do_eval (zeile, lp) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+                  lend = .true. 
+!                                                                       
+!     ----help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) then                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus stack '//zeile, lp) 
+                  ENDIF 
+!                                                                       
+!------- -Operating System Kommandos 'syst'                             
+!                                                                       
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+                  IF (zeile.ne.' ') then 
+                     CALL do_operating (zeile (1:lp), lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+!                                                                       
+!------  -----waiting for user input                                    
+!                                                                       
+               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+                  CALL do_input (zeile, lp) 
+!                                                                       
+!     ----reset stacking faults 'rese'                                  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL do_stack_rese 
+                  linit = .TRUE.
+               ELSE
+!
+!--------------STACK specific commands
+!
+!                                                                       
+      IF (linit) then 
+         CALL alloc_stack ( st_layer_increment, 1, 1, st_rot_status)
+         n_types  = ST_MAXTYPE
+         n_layers = ST_MAXLAYER
+         n_qxy    = ST_MAXQXY
+         linit    = .false.
+      ENDIF 
+!                                                                       
 !     ----Determine if average translation is calculated or set 'aver'  
 !                                                                       
-               ELSEIF (str_comp (befehl, 'aver', 1, lbef, 4) ) then 
+               IF (str_comp (befehl, 'aver', 1, lbef, 4) ) then 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      IF (ianz.eq.3) then 
@@ -171,11 +228,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!                                                                       
-!     ----continues a macro 'continue'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
 !                                                                       
 !     ----create list of origins 'create'                               
 !                                                                       
@@ -254,21 +306,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!      ---Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
-!                                                                       
 !     ----Determine type of first layer 'first' 'random'| <number>      
 !                                                                       
                ELSEIF (str_comp (befehl, 'firs', 1, lbef, 4) ) then 
@@ -302,18 +339,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   four_log = .true. 
                   CALL st_fourier (.false.)
                   four_was_run = .true.
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus stack '//zeile, lp) 
-                  ENDIF 
 !                                                                       
 !     ----read the name of a new layer type                'layer'      
 !                                                                       
@@ -401,11 +426,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ier_typ = ER_COMM 
                      ENDIF 
                   ENDIF 
-!                                                                       
-!     ----reset stacking faults 'rese'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL do_stack_rese 
 !                                                                       
 !     ----Select values for random stacking faults 'random'             
 !                                                                       
@@ -683,11 +703,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
-!     ----reset stacking faults 'reset'                                     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL stack_reset 
-!                                                                       
 !     ----run stacking faults 'run'                                     
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
@@ -894,28 +909,13 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_typ = ER_COMM 
                   ENDIF 
 !                                                                       
-!------- -Operating System Kommandos 'syst'                             
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!                                                                       
-!------  -----waiting for user input                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-                  CALL do_input (zeile, lp) 
-!                                                                       
 !     ----Unknown command                                               
 !                                                                       
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
                ENDIF 
+            ENDIF 
             ENDIF 
          ENDIF 
       ENDIF 
@@ -1566,6 +1566,10 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER, EXTERNAL :: len_str
 !                                                                       
 !                                                                       
+!     ----read corresponding layer                                      
+!                                                                       
+      CALL rese_cr 
+!                                                                       
 !     If there are any layers in the crystal read each layer            
 !                                                                       
       IF ( MAXVAL(st_number) == 0 ) then
@@ -1632,10 +1636,6 @@ more1: IF (st_nlayer.ge.1) then
 !                                                                       
          i = 1 
          lout = .false. 
-!                                                                       
-!     ----read corresponding layer                                      
-!                                                                       
-         CALL rese_cr 
 !
          IF(st_internal(st_type(i)) ) THEN
             CALL readstru_internal (st_layer (st_type (i) ))!, &
@@ -2602,9 +2602,13 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !
 SUBROUTINE stack_reset
 !
+USE discus_allocate_appl_mod
 USE stack_mod
 !
 IMPLICIT NONE
+!
+CALL alloc_stack(1, 1, 1, .TRUE.)
+CALL alloc_stack_crystal(1, 1)
 !
 ST_MAXQXY    = 1
 ST_MAXLAYER  = 1

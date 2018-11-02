@@ -78,14 +78,6 @@ CONTAINS
       CALL no_error 
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/shear' 
-!
-      IF( cr_nscat > SHEAR_MAXSCAT .or. mole_num_type > SHEAR_MAXSCAT) THEN
-         nscat = max ( cr_nscat, mole_num_type)
-         CALL alloc_shear ( cr_nscat )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
 !                                                                       
       DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
@@ -121,6 +113,75 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) then 
                   CALL show_asym 
+!                                                                       
+!     ----continues a macro 'continue'                                  
+!                                                                       
+               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!     ----list atoms present in the crystal 'chem'                      
+!                                                                       
+               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
+                  CALL show_chem 
+!                                                                       
+!------ ----Echo a string, just for interactive check in a macro 'echo' 
+!                                                                       
+               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      ---Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+                  CALL do_eval (zeile, lp) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+                  lend = .true. 
+!                                                                       
+!     ----help 'help','?'                                               
+!                                                                       
+      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
+     &, '?   ', 1, lbef, 4) ) then                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus shear '//zeile, lp) 
+                  ENDIF 
+!                                                                       
+!------- -Operating System Kommandos 'syst'                             
+!                                                                       
+               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+                  IF (zeile.ne.' ') then 
+                     CALL do_operating (zeile (1:lp), lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+               ELSE
+!
+!-------------SHEAR specific commands
+!
+!
+                 IF( cr_nscat > SHEAR_MAXSCAT .or. mole_num_type > SHEAR_MAXSCAT) THEN
+                    nscat = max ( cr_nscat, mole_num_type)
+                    CALL alloc_shear ( cr_nscat )
+                               IF ( ier_num < 0 ) THEN
+                       RETURN
+                    ENDIF
+                 ENDIF
+!                                                                       
+!------  -----waiting for user input                                    
+!                                                                       
+                   IF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+                  CALL do_input (zeile, lp) 
+!
+!     ----Reset shear 'rese'                                               
+!
+               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
+                  CALL shear_reset
 !                                                                       
 !     ----calculate a single shear operation                            
 !                                                                       
@@ -160,44 +221,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!     ----continues a macro 'continue'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) then 
-                  CALL macro_continue (zeile, lp) 
-!                                                                       
-!     ----list atoms present in the crystal 'chem'                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) then 
-                  CALL show_chem 
-!                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
-                  CALL echo (zeile, lp) 
-                                                                        
-!                                                                       
-!      ---Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
-                  lend = .true. 
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus shear '//zeile, lp) 
                   ENDIF 
 !                                                                       
 !     ----Enter the Eigen vectors 'eigen'                               
@@ -519,11 +542,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !             ier_num = -6                                              
 !             ier_typ = ER_COMM                                         
 !           endif                                                       
-!
-!     ----Reset shear 'rese'                                               
-!
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) then 
-                  CALL shear_reset
 !                                                                   
 !     ----run shear 'run'                                               
 !                                                                       
@@ -623,24 +641,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                   ENDIF 
-!                                                                       
-!------- -Operating System Kommandos 'syst'                             
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
-                  IF (zeile.ne.' ') then 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!------  -----waiting for user input                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
-                  CALL do_input (zeile, lp) 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_COMM 
+               ENDIF 
                ENDIF 
             ENDIF 
          ENDIF 
@@ -1683,11 +1687,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 SUBROUTINE shear_reset
 !
+USE discus_allocate_appl_mod
 USE shear_mod
 ! 
 IMPLICIT NONE
 !
 INTEGER :: ik
+!
+CALL alloc_shear(1)
 !
 IF(ALLOCATED(shear_latom))  shear_latom(:) = .TRUE.  ! (0:MAXSCAT)
 shear_incl     = ' '
