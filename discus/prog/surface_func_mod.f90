@@ -660,7 +660,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ELSE
             IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
                IF(ALLOCATED(accum_hkl)) THEN
-                  temp_hkl = accum_hkl
+                  k = UBOUND(accum_hkl,1)
+                  ALLOCATE(temp_hkl(1:3,1:k))
+                  temp_hkl(:,:) = accum_hkl(:,:)
                   DEALLOCATE(accum_hkl)
                   ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
                   accum_hkl(1:3,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
