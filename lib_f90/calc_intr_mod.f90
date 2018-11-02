@@ -37,7 +37,6 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
       INTEGER lpara (maxw) 
       INTEGER ikom, i, ianz 
       INTEGER lcom 
-      INTEGER :: Laenge
       INTEGER ihyp 
       INTEGER dummy 
       LOGICAL :: BACK   ! FLAG for index intrinsic
