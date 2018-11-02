@@ -2098,10 +2098,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          arg = zpi * DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
 !DBG              partial(k,i) = partial(k,i)+                          
 !DBG     &                   histogram(j,i,0)*sin(arg)/arg                
+         IF(arg==0.0) THEN
+         partial (k, i,0) = partial (k, i,0) + DBLE(histogram (j, i,0))
+         ELSE
          iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
          iadd = IAND (iarg, MASK) 
          partial (k, i,0) = partial (k, i,0) + DBLE(histogram (j, i,0)) * sinetab ( &
          iadd) / arg                                                    
+         ENDIF 
          ENDDO 
       ENDIF 
       ENDDO 
@@ -2153,7 +2157,6 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       DEALLOCATE(histogram)
       ss = seknds (ss) 
       WRITE (output_io, 4000) ss 
-
 !OPEN(88,file='rsf.inte')
 !do i=1,num(1)*num(2)
 !write(88,*) i,rsf(i)
@@ -3055,8 +3058,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 SUBROUTINE powder_reset
 
+USE discus_allocate_appl_mod
 USE powder_mod
 USE powder_scat_mod
+!
+CALL alloc_powder(1)
+CALL alloc_powder_nmax(1, 1)
 !
 pow_axis       = POW_AXIS_Q
 pow_npkt       = 1           ! Actual number of powder data points
