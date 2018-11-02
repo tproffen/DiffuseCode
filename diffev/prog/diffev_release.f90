@@ -118,6 +118,7 @@ IF (ier_num == 0) THEN
       ianz = 1
       CALL ber_params (ianz, cpara, lpara, werte, maxw)
       IF (ier_num.eq.0) THEN
+         owerte(O_RANGE) = ABS(owerte(O_RANGE))      ! Ensure positive value for the range
          lb = nint(werte(1))
          IF ( 0<lb .and. lb<=pop_dimx) THEN
             set_value = child(lb,pop_best)           ! Default for value
