@@ -78,11 +78,29 @@ READ(IRD, '(a)', iostat=io_status) string             ! Current    header line
 READ(IRD, '(a)', iostat=io_status) k_diff_curfile     ! Current    header line
 skip: DO
    READ(IRD, '(a)', iostat=io_status) string
+   IF(io_status/=0) THEN
+      ier_num = -67
+      ier_typ = ER_APPL
+      ier_msg(1) = 'GENERATION file does not contain line'
+      ier_msg(2) = '# Parameter'
+      ier_msg(3) = 'GENERATION file too old, use @kpara.mac'
+      CLOSE(IRD)
+      RETURN
+   ENDIF
    IF(string(1:11)=='# Parameter') EXIT skip
 ENDDO skip
 ALLOCATE(k_diff_name(-1:k_diff_dimx))
 names: DO i=-1, k_diff_dimx
    READ(IRD, '(a)', iostat=io_status) string
+   IF(io_status/=0) THEN
+      ier_num = -67
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Error while reading parameter names  '
+      ier_msg(2) = '# Parameter'
+      ier_msg(3) = 'GENERATION file too old, use @kpara.mac'
+      CLOSE(IRD)
+      RETURN
+   ENDIF
    k_diff_name(i) = string(1:16)
 ENDDO names
 CLOSE(IRD)
@@ -228,22 +246,24 @@ IF(ipar1>0) THEN
    ENDIF
 !
    OPEN(UNIT=ifil,FILE=infile,STATUS='old')
-   READ(ifil, *)
+   length = 0
+   READ(ifil, *, END=9000)
    DO i=1,len(1)                 ! Loop over all generations
-      READ(ifil, *)
-      READ(ifil, *)
-      READ(ifil, *) im, r_val, par_val
+      READ(ifil, *, END=9999)
+      READ(ifil, *, END=9999)
+      READ(ifil, *, END=9999) im, r_val, par_val
       rval_min = r_val
       parval_min = par_val
       ymin(iz) = par_val
       ymax(iz) = par_val
       DO j=1,k_diff_member-1
-         READ(ifil, *) im, r_val, par_val
+         READ(ifil, *, END=9999) im, r_val, par_val
          IF(r_val < rval_min) THEN
             rval_min = r_val
             parval_min = par_val
          ENDIF
       ENDDO
+      length = length + 1
       x(offxy(iz-1)+i) = x(offxy(1)+i)
       y(offxy(iz-1)+i) = parval_min
       ymin(iz)         = MIN(ymin(iz), parval_min)
@@ -251,12 +271,14 @@ IF(ipar1>0) THEN
       dx(offxy(iz-1)+i) = 0.0
       dy(offxy(iz-1)+i) = 0.0
    ENDDO
-   len(iz)   = len(1)
+9999 CONTINUE
+   len(iz)   = length
    xmin(iz)  = x(offxy(iz-1)+1)
    xmax(iz)  = x(offxy(iz-1)+len(1)-1)
    offxy(iz) = offxy(iz - 1) + len (iz)
    offz(iz)  = offz(iz - 1)
    iz = iz + 1
+9000 CONTINUE
    CLOSE(ifil)
 ENDIF
 !
