@@ -161,10 +161,11 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
-   SUBROUTINE kuplot_branch(zeile, length)
+   SUBROUTINE kuplot_branch(zeile, length, lreset)
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
+LOGICAL          , INTENT(IN) :: lreset
 !
    END SUBROUTINE kuplot_branch
 END INTERFACE
