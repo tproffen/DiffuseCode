@@ -127,6 +127,7 @@ SUBROUTINE do_plot (lmenu)
       lmenu = .false. 
       lrena = .false. 
       l_pdf = .false. 
+      idev  = png
 !                                                                       
 !------ see if there are data at all                                    
 !                                                                       
