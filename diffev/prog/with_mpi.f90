@@ -31,6 +31,7 @@ USE times_mod
 USE errlist_mod
 USE mpi_slave_mod
 USE prompt_mod
+USE variable_mod
 !
 IMPLICIT none
 !
@@ -176,6 +177,7 @@ IF(run_mpi_myid==0)  THEN  !   MASTER
          slave_is_node(sender) = NUM_NODE
       ENDIF
    ENDDO
+   var_val(VAR_NUM_NODES) = NUM_NODE
 !
 ELSE
    CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ierr) ! Querry incomming size
@@ -187,11 +189,12 @@ ELSE
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
    run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
    CALL MPI_GET_PROCESSOR_NAME ( node_name, length, ier_num)
-   run_mpi_senddata%direc   = node_name
+   run_mpi_senddata%direc   = node_name(1:MIN(LEN(run_mpi_senddata%direc),LEN_TRIM(node_name)))
    run_mpi_senddata%direc_l = length
 
    CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
                    MPI_COMM_WORLD, ier_num )
+   var_val(VAR_NUM_NODES) = 0
 ENDIF
 !
 3000 FORMAT('MPI system returned error no. ',i8)
