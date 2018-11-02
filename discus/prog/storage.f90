@@ -259,12 +259,9 @@ CHARACTER(LEN=*), INTENT(INOUT) :: zeile
 INTEGER         , INTENT(INOUT) :: lp
 !
 INTEGER, PARAMETER :: MAXW = 1
-LOGICAL, PARAMETER :: LALL = .TRUE.
-LOGICAL, PARAMETER :: LSINGLE = .FALSE.
 !
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL               , DIMENSION(1:MAXW) :: werte
 INTEGER                                :: ianz
 !
 LOGICAL :: str_comp
