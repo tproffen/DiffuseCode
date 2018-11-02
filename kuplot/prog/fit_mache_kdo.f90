@@ -18,17 +18,11 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 LOGICAL         , INTENT(  OUT) :: lend
 INTEGER         , INTENT(INOUT) :: length
 !
-INTEGER, PARAMETER :: MAXP = 2
-CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
-INTEGER            , DIMENSION(MAXP) :: lpara
-REAL               , DIMENSION(MAXP) :: werte
 !
 CHARACTER(LEN=4)    :: befehl
 CHARACTER(LEN=1024) :: zeile
 INTEGER             :: indxg, indxt, indxb
 INTEGER             :: lbef, lp
-INTEGER             :: ind
-INTEGER             :: ianz
 !
 LOGICAL str_comp
 !
