@@ -6,6 +6,7 @@ CONTAINS
 !
 SUBROUTINE fourier_reset
 !
+USE discus_allocate_appl_mod
 USE diffuse_mod
 IMPLICIT NONE
 !+
@@ -13,6 +14,7 @@ IMPLICIT NONE
 !-
 !USE precision_mod
 !
+CALL alloc_diffuse(1,1,1)
 !
 DIF_MAXAT   = 1 ! current size of array at
 DIF_MAXSCAT = 1 ! current size of array at
