@@ -50,16 +50,6 @@ SUBROUTINE pdf
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
 !
-      IF( cr_nscat > PDF_MAXSCAT .or. MAXSCAT > PDF_MAXSCAT) THEN
-                 pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
-                 pdf_ndat  = MAX(pdf_ndat ,           PDF_MAXDAT)
-                 pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
-                 CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
-         IF ( ier_num < 0 ) THEN
-            RETURN
-         ENDIF
-      ENDIF
-!
       CALL no_error 
       orig_prompt = prompt
       prompt = prompt (1:len_str (prompt) ) //'/pdf' 
@@ -141,45 +131,6 @@ SUBROUTINE pdf
          ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
             CALL do_input (zeile, lp) 
 !                                                                       
-!------ ------------------------------------------------------------    
-!------ Here start the PDF specific commands ...                        
-!------ ------------------------------------------------------------    
-!                                                                       
-!------ Just calculate PDF for current parameters                       
-!                                                                       
-         ELSEIF (str_comp (befehl, 'calc', 2, lbef, 4) ) then 
-            pdf_mode = PDF_DO_CALC
-            CALL pdf_setup (pdf_mode)
-            IF (ier_num.eq.0) then 
-               pdf_skal = 1.0 / rmc_skal (1) 
-               CALL pdf_determine (.true.) 
-            ENDIF 
-!                                                                       
-!------ Read observed PDF from XY file (ASCII)                          
-!                                                                       
-         ELSEIF (str_comp (befehl, 'data', 2, lbef, 4) ) then 
-            pdf_mode = PDF_DO_FIT   ! Data were read, assume fit mode
-            CALL pdf_readdata (zeile, lp) 
-!                                                                       
-!------ Runs PDF fit                                                    
-!                                                                       
-         ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
-            pdf_mode = PDF_DO_FIT
-            CALL pdf_setup (pdf_mode )
-            IF (ier_num.eq.0) then 
-               CALL pdf_run 
-            ENDIF 
-!                                                                       
-!------ Save structure or PDF                                           
-!                                                                       
-         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
-            CALL pdf_save (zeile, lp) 
-!                                                                       
-!------ Set PDF parameters                                              
-!                                                                       
-         ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
-            CALL pdf_set (zeile, lp) 
-!                                                                       
 !------ Reset PDF segement                                              
 !                                                                       
          ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
@@ -198,6 +149,59 @@ SUBROUTINE pdf
                   ier_num = - 6 
                ENDIF 
             ENDIF 
+        ELSE
+!                                                                       
+!------ ------------------------------------------------------------    
+!------ Here start the PDF specific commands ...                        
+!------ ------------------------------------------------------------    
+!
+           IF( cr_nscat > PDF_MAXSCAT .or. MAXSCAT > PDF_MAXSCAT) THEN
+                      pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
+                      pdf_ndat  = MAX(pdf_ndat ,           PDF_MAXDAT)
+                      pdf_nbnd  = MAX(pdf_nbnd ,           PDF_MAXBND)
+                      CALL alloc_pdf( pdf_nscat, pdf_ndat, pdf_nbnd )
+              IF ( ier_num < 0 ) THEN
+                 RETURN
+              ENDIF
+           ENDIF
+!                                                                       
+!------ Just calculate PDF for current parameters                       
+!                                                                       
+             IF (str_comp (befehl, 'calc', 2, lbef, 4) ) then 
+            pdf_mode = PDF_DO_CALC
+            pdf_success = .FALSE.
+            CALL pdf_setup (pdf_mode)
+            IF (ier_num.eq.0) then 
+               pdf_skal = 1.0 / rmc_skal (1) 
+               CALL pdf_determine (.true.) 
+            ENDIF 
+            IF(ier_num==0) pdf_success = .TRUE.
+!                                                                       
+!------ Read observed PDF from XY file (ASCII)                          
+!                                                                       
+         ELSEIF (str_comp (befehl, 'data', 2, lbef, 4) ) then 
+            pdf_mode = PDF_DO_FIT   ! Data were read, assume fit mode
+            CALL pdf_readdata (zeile, lp) 
+!                                                                       
+!------ Runs PDF fit                                                    
+!                                                                       
+         ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
+            pdf_mode = PDF_DO_FIT
+            CALL pdf_setup (pdf_mode )
+            IF (ier_num.eq.0) then 
+               CALL pdf_run 
+               IF(ier_num==0) pdf_success = .TRUE.
+            ENDIF 
+!                                                                       
+!------ Save structure or PDF                                           
+!                                                                       
+         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
+            CALL pdf_save (zeile, lp) 
+!                                                                       
+!------ Set PDF parameters                                              
+!                                                                       
+         ELSEIF (str_comp (befehl, 'set', 2, lbef, 3) ) then 
+            CALL pdf_set (zeile, lp) 
 !                                                                       
 !------ Show current PDF parameters                                     
 !                                                                       
@@ -264,6 +268,7 @@ SUBROUTINE pdf
             ier_num = - 8 
             ier_typ = ER_COMM 
          ENDIF 
+      ENDIF 
       ENDIF 
 !                                                                       
 !------ any errors ?                                                    
@@ -803,7 +808,7 @@ SUBROUTINE pdf
 !------ - Save PDF (G(r))                                               
 !                                                                       
          ELSEIF (cdummy (1:3) .eq.'PDF') then 
-                                                                        
+            IF(pdf_success) THEN                                        
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             WRITE (output_io, 1505) cpara (1) (1:lpara (1) ) 
@@ -812,6 +817,11 @@ SUBROUTINE pdf
             pdf_calc_u = UBOUND(pdf_calc,1)
             CALL pdf_save_file(cdummy, pdf_rfmin, pdf_rfmax, pdf_deltar, &
                  pdf_us_int, pdf_calc_l, pdf_calc_u, pdf_skal, pdf_calc)
+            ELSE
+               ier_num = -12
+               ier_typ = ER_PDF
+               RETURN
+            ENDIF
 !                                                                       
 !------ - Save markers                                                  
 !                                                                       
@@ -972,9 +982,9 @@ main:    DO
 !!!         pdf_deltaru= pdf_deltar    ! copy delta r from file into user 
 !!!         pdf_us_int = 1
          pdf_deltaru =  (re-ra)/FLOAT(ip-2)
-         IF(pdf_deltaru > 0.001) THEN
-            pdf_us_int = NINT(MAX(pdf_deltaru/0.001,1.))
-            pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ 0.001 always
+         IF(pdf_deltaru > pdf_deltari) THEN
+            pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.))
+            pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ pdf_deltari always
          ELSE
             pdf_deltar = pdf_deltaru
             pdf_us_int = 1
@@ -1497,9 +1507,9 @@ main:    DO
                pdf_rmax   = werte (1) 
 !              pdf_deltar = werte (2) 
                pdf_deltaru= werte (2)   ! user supplied delta R
-               IF(pdf_deltaru>0.001) then
-                  pdf_us_int = NINT(MAX(pdf_deltaru/0.001,1.))
-                  pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ 0.001 always
+               IF(pdf_deltaru>pdf_deltari) then
+                  pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.))
+                  pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ pdf_deltari always
                ELSE
                   pdf_deltar = pdf_deltaru
                   pdf_us_int = 1
@@ -2387,22 +2397,40 @@ laccept = .false.
       pdf_clin_mole   = 0.0
       pdf_cqua_mole   = 0.0
       IF(pdf_nmol>0) THEN    ! Non-zero molecular bvalues
+         nlook = 0
          DO i=1,mole_num_type
-            pdf_look_mol(0,i) = i
-            pdf_look_mol(i,0) = i
-            pdf_bvalue_mole(i) = mole_biso(i)
-            pdf_clin_mole(i)   = mole_clin(i)
-            pdf_cqua_mole(i)   = mole_cqua(i)
+            IF(ABS(mole_biso(i))>0.0) THEN
+               nlook = nlook + 1
+               pdf_look_mol(0,i) = nlook
+               pdf_look_mol(i,0) = nlook
+               pdf_bvalue_mole(nlook) = mole_biso(i)
+               pdf_clin_mole(nlook)   = mole_clin(i)
+               pdf_cqua_mole(nlook)   = mole_cqua(i)
+            ELSE
+               pdf_look_mol(0,i) = 0
+               pdf_look_mol(i,0) = 0
+            ENDIF
          ENDDO
          nlook = mole_num_type
          DO i=1,mole_num_type
             DO j = i,mole_num_type
+               IF(ABS(mole_biso(i))>0.0 .AND. ABS(mole_biso(j))>0.0) THEN
                nlook = nlook + 1
                pdf_look_mol(i,j) = nlook
                pdf_look_mol(j,i) = nlook
                pdf_bvalue_mole(nlook) = mole_biso(i) + mole_biso(j)
                pdf_clin_mole(nlook)   = mole_clin(i) + mole_clin(j)
                pdf_cqua_mole(nlook)   = mole_cqua(i) + mole_cqua(j)
+               ELSEIF(ABS(mole_biso(i))==0.0 .AND. ABS(mole_biso(j))>0.0) THEN
+                  pdf_look_mol(i,j) = pdf_look_mol(0,j)
+                  pdf_look_mol(j,i) = pdf_look_mol(j,0)
+               ELSEIF(ABS(mole_biso(i))>0.0 .AND. ABS(mole_biso(j))==0.0) THEN
+                  pdf_look_mol(i,j) = pdf_look_mol(0,i)
+                  pdf_look_mol(j,i) = pdf_look_mol(i,0)
+               ELSE
+                  pdf_look_mol(i,j) = 0
+                  pdf_look_mol(j,i) = 0
+               ENDIF
             ENDDO
          ENDDO
       ENDIF
@@ -2417,6 +2445,8 @@ laccept = .false.
                  cr_gten, cr_rten, cr_eps)
       CALL powder_trans_atoms_tocart (u)
       npoint    = INT(SQRT(u(1)**2+u(2)**2+u(3)**2)/pdf_deltar)
+      npoint = MIN(npoint, pdf_ndat)
+         npoint = pdf_ndat
 !      IF(npoint > UBOUND(pdf_temp,1)) THEN
 !        pdf_nscat = MAX(pdf_nscat, cr_nscat, PDF_MAXSCAT, MAXSCAT)
 !        pdf_ndat  = MAX(pdf_ndat , npoint  , PDF_MAXDAT)
@@ -2435,13 +2465,24 @@ laccept = .false.
 !--------Reallocate pdf_temp only if dimensions have changed. 
 !        An automatic change collides with RMC, which needs 
 !        pdf_temp preserved accross its cycles!!!!!!!!!!!!!
-      IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
-         pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
-         nlook     > UBOUND(pdf_temp,4)      ) THEN
-         pdf_ntemp  = INT(MAX(pdf_ntemp, npoint,    PDF_MAXTEMP)*1.20)
+         pdf_has_atom(:) = 0
+         DO i=1, cr_natoms
+            IF(pdf_allowed_i(cr_iscat(i)) .OR. pdf_allowed_j(cr_iscat(i)) ) THEN
+               pdf_has_atom(cr_iscat(i)) = pdf_has_atom(cr_iscat(i)) + 1
+            ENDIF
+         ENDDO
+         DO i=1, cr_nscat
+            IF(pdf_has_atom(i)>0) pdf_nscat = i
+         ENDDO
+!      pdf_nscat = MAXVAL(cr_iscat(1:cr_natoms))
+!     IF(npoint    > UBOUND(pdf_temp,1) .OR.       &
+!        pdf_nscat > UBOUND(pdf_temp,2) .OR.       &
+!        nlook     > UBOUND(pdf_temp,4)      ) THEN
+!         pdf_ntemp  = INT(MAX(npoint,    PDF_MAXTEMP))
+         pdf_ntemp = npoint
          IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
          ALLOCATE(pdf_temp(0:pdf_ntemp,0:pdf_nscat,0:pdf_nscat,0:nlook))
-      ENDIF
+!     ENDIF
 !                                                                       
 !------ Reset arrays                                                    
 !                                                                       
@@ -2545,6 +2586,8 @@ laccept = .false.
 !------ Convert to proper G(r)                                          
 !                                                                       
       CALL pdf_convert 
+!
+         IF(ALLOCATED(pdf_temp)) DEALLOCATE(pdf_temp)
 !                                                                       
       ss = seknds (ss) 
       IF (lout) WRITE (output_io, 3000) ss 
@@ -3380,11 +3423,13 @@ inner:      DO iatom = ia+1, cr_natoms
 !                                                                       
       fac = 1.0 / (2.0 * REAL(zpi)**2) 
       sqrt_zpi =1.0/sqrt(REAL(zpi))
-      DO is = 1, cr_nscat 
-      DO js = 1, cr_nscat 
+      loop_is: DO is = 1, cr_nscat 
+      IF(pdf_has_atom(is)>0) THEN
+      loop_js: DO js = 1, cr_nscat 
+      IF(pdf_has_atom(js)>0) THEN
       IF ( (pdf_allowed_i (is) .and.pdf_allowed_j (js) ) .or. &
            (pdf_allowed_j (is) .and.pdf_allowed_i (js) ) ) then               
-         mole_loop: DO il=0,pdf_nmol
+         mole_loop: DO il=0,UBOUND(pdf_temp,4)
          ii = int (pdf_rmax / pdf_deltar) + 1 
          DO ibin = 1, ii 
          zero: IF(pdf_temp(ibin,is,js,il)>0) THEN
@@ -3459,8 +3504,10 @@ inner:      DO iatom = ia+1, cr_natoms
          ENDDO 
          ENDDO  mole_loop
       ENDIF 
-      ENDDO 
-      ENDDO 
+      ENDIF 
+      ENDDO loop_js
+      ENDIF 
+      ENDDO loop_is
 !                                                                       
       END SUBROUTINE pdf_convtherm                  
 !
@@ -3468,11 +3515,13 @@ inner:      DO iatom = ia+1, cr_natoms
 !
 SUBROUTINE pdf_reset
 !
+USE discus_allocate_appl_mod
 USE pdf_mod
 USE precision_mod
 !
 IMPLICIT NONE
 !
+CALL alloc_pdf(1, 1, 1)
 PDF_MAXSCAT      = 1
 PDF_MAXDAT       = 1
 PDF_MAXBND       = 1
@@ -3495,14 +3544,15 @@ IF(ALLOCATED(pdf_sincc))  pdf_sincc(:)      = 0.0D0  ! (2*MAXDAT)
 IF(ALLOCATED(pdf_weight)) pdf_weight(:,:)   = 0.0    ! (0:PDF_MAXSCAT,0:PDF_MAXSCAT)
 IF(ALLOCATED(pdf_exp))    pdf_exp(:)        = 0.0D0  ! (4000)
 !
-pdf_rmin   =  0.001   ! Minimum distance to calculate, internal value
-pdf_rminu  =  0.01    ! Minimum distance to calculate, user value
-pdf_rmax   = 50.00    ! Maximum distance to calculate, internal value
-pdf_rmaxu  = 50.00    ! Maximum distance to calculate, user value
 pdf_qmax   = 30.00
+pdf_deltari=  0.001   ! internal delta r
 pdf_deltar =  0.001   ! internal delta r
 pdf_deltars=  0.0005
 pdf_deltaru=  0.01    ! User supplied delta r
+pdf_rmin   = pdf_deltari ! Minimum distance to calculate, internal value
+pdf_rminu  =  0.01    ! Minimum distance to calculate, user value
+pdf_rmax   = 50.00    ! Maximum distance to calculate, internal value
+pdf_rmaxu  = 50.00    ! Maximum distance to calculate, user value
 pdf_us_int =  1       ! Ratio user steps to internal steps
 pdf_mode   =  PDF_DO_CALC ! PDF mode, default to 'calc'
 pdf_skal   =  1.00
@@ -3527,6 +3577,7 @@ pdf_diam   =  0.00
 pdf_shape  =  0.00
 pdf_scale  =  1.00
 pdf_poly(5)=  0.00
+pdf_success= .FALSE.
 !
 IF(ALLOCATED(pdf_bnd))  pdf_bnd(:,:) = 0     ! (3,-MAXBND:2*MAXBND)
 !
