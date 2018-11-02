@@ -8,11 +8,12 @@
 !
 !
       integer       iu,io
-      parameter    (iu=-66,io=0)
+      parameter    (iu=-67,io=0)
 !
       character(LEN=45) ::  error(iu:io)
 !
       data error ( iu: -61) /                      &
+     &  'Error reading GENERATION file',           &! -67  ! kupl
      &  'DIFFEV Rvalue file not found',            &! -66  ! kupl
      &  'DIFFEV LOG  or Current file not found',   &! -65  ! kupl
      &  'DIFFEV Summary file not found',           &! -64  ! kupl
