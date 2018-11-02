@@ -37,14 +37,11 @@ INTEGER             :: length
 INTEGER             :: lp
 INTEGER             :: lbef
 !INTEGER             :: ianz
-INTEGER             :: ind 
 INTEGER             :: lstring
-INTEGER             :: indxg
 INTEGER             :: j, ix, iy
 LOGICAL             :: lend
 LOGICAL             :: l_prompt_restore
 !
-LOGICAL str_comp
 !
 INTERFACE
    SUBROUTINE kuplot_mache_kdo (line, lend, length)
