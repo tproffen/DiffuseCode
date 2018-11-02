@@ -1893,7 +1893,7 @@
       INTEGER W_ISQ 
       INTEGER W_LIN 
       INTEGER W_DAT 
-      INTEGER W_BCK 
+!     INTEGER W_BCK           ! Currently not used
       PARAMETER (W_ONE = 0) 
       PARAMETER (W_SQUA = 1) 
       PARAMETER (W_SQRT = 2) 
@@ -1902,7 +1902,7 @@
       PARAMETER (W_ISQ = 5) 
       PARAMETER (W_LIN = 6) 
       PARAMETER (W_DAT = 7) 
-      PARAMETER (W_BCK = 8) 
+!     PARAMETER (W_BCK = 8) 
 !                                                                       
          
       r_wichtung = 0.0 
