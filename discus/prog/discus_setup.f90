@@ -182,10 +182,11 @@ INTERFACE
 END INTERFACE
 !
 INTERFACE
-   SUBROUTINE discus_branch(zeile, length)
+   SUBROUTINE discus_branch(zeile, length, lreset)
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
+LOGICAL          , INTENT(IN) :: lreset
 !
    END SUBROUTINE discus_branch
 END INTERFACE
