@@ -33,7 +33,6 @@ INTEGER          , INTENT(OUT) :: s3
 CHARACTER(LEN=1) :: quote
 INTEGER :: ising
 INTEGER :: idbl
-INTEGER :: i
 !
 ising = INDEX(string(istart:iend),'''')
 idbl  = INDEX(string(istart:iend),'"' )
