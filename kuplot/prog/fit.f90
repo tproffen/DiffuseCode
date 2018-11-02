@@ -3144,6 +3144,7 @@ cycles: DO
       DO k = 1, n 
          pl (k) = p (k) 
       ENDDO 
+      s = 0
       loopk: DO k = 1, n 
          loopl: DO l = 1, k 
             l1 = l - 1 
