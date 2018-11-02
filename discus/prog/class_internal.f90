@@ -257,7 +257,6 @@ INTEGER :: natoms
 INTEGER :: nscat 
 INTEGER :: n_mole
 INTEGER :: n_type
-INTEGER :: n_atom
 !
 IF(ptr%strucfile /= ' ') THEN
    WRITE(output_io, '(a,a)') ' Internal file : ',ptr%strucfile(1:LEN_TRIM(ptr%strucfile))
