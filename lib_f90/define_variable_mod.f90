@@ -89,13 +89,32 @@ ELSEif(opara(1)(1:1) == '[' .AND. opara(1)(lopara(1):lopara(1)) == ']') THEN
    llpara(:) = 0
    wwerte(:) = 0.0
    CALL get_params (string, iianz, ccpara, llpara, MAXF, length)
+   IF(ier_num /= 0) THEN
+      ier_msg(1) = 'Incorrect ''dim:[]'' parameter'
+      ier_msg(2) = 'Variables can only be arrays with'
+      ier_msg(3) = 'one or two dimensions '
+      RETURN
+   ENDIF
    CALL ber_params (iianz, ccpara, llpara, wwerte, MAXF)
+   IF(ier_num /= 0) THEN
+      ier_msg(1) = 'Incorrect ''dim:[]'' parameter'
+      ier_msg(2) = 'Variables can only be arrays with'
+      ier_msg(3) = 'one or two dimensions '
+      RETURN
+   ENDIF
    IF(iianz==1) THEN
       n1 = NINT(wwerte(1))
       n2 = 1
    ELSEIF(iianz==2) THEN
       n1 = NINT(wwerte(1))
       n2 = NINT(wwerte(2))
+   ELSE
+      ier_num = -40
+      ier_typ = ER_FORT
+      ier_msg(1) = 'Incorrect ''dim:[]'' parameter'
+      ier_msg(2) = 'Variables can only be arrays with'
+      ier_msg(3) = 'one or two dimensions '
+      RETURN
    ENDIF
    n_data = n1 * n2
 ENDIF
