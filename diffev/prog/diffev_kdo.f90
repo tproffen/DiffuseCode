@@ -701,6 +701,9 @@ ELSE
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
             run_mpi_senddata%generation = pop_gen    ! Current GENERATION no
+            run_mpi_senddata%member     = pop_n      ! Number of members
+            run_mpi_senddata%children   = pop_c      ! Number of children
+            run_mpi_senddata%parameters = pop_dimx   ! Number of parameters
             run_mpi_senddata%prog   = cpara(1)(1:lpara(1))
             run_mpi_senddata%prog_l = lpara(1)
             run_mpi_senddata%mac    = cpara(2)(1:lpara(2))
@@ -765,40 +768,40 @@ ELSE
             ENDIF 
             IF(run_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
                IF(run_mpi_senddata%repeat) THEN            ! parallel refinement of indivs
-                  IF(NUM_NODE>pop_c) THEN
+                  IF(NUM_NODE>pop_c+1) THEN
                      ier_num = -32
                      ier_typ = ER_APPL
                      ier_msg(1) = 'For compute:parallel refinement of indivs'
                      ier_msg(2) = 'Node number must be <= population size'
-                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV'
+                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV+1'
                      RETURN
                   ENDIF
-                  IF(run_mpi_numprocs>pop_c*run_mpi_senddata%nindiv) THEN
+                  IF(run_mpi_numprocs>pop_c*run_mpi_senddata%nindiv+1) THEN
                      ier_num = -33
                      ier_typ = ER_APPL
                      ier_msg(1) = 'For compute:parallel refinement of indivs'
                      ier_msg(2) = 'Node number must be <= population size'
-                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV'
+                     ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV+1'
                      RETURN
                   ENDIF
                ELSE                                       ! Serial refinement of indivs
-                  IF(NUM_NODE>pop_c) THEN
+                  IF(NUM_NODE>pop_c+1) THEN
                      ier_num = -33
                      ier_typ = ER_APPL
                      ier_msg(1) = 'For compute:serial   refinement of indivs'
-                     ier_msg(2) = 'Node number must be <= population size'
+                     ier_msg(2) = 'Node number must be <= population size+1'
                      ier_msg(3) = ' '
                      RETURN
                   ENDIF
                ENDIF
             ENDIF
             IF ( ier_num == 0) THEN
-               IF(run_mpi_active) THEN   !Parallel processing with MPI
                   IF(.NOT.lstandalone) THEN
                      init_slave: IF (.not.pop_current_trial.and.pop_gen.gt.0) THEN
                         CALL read_par_values
                      ENDIF init_slave
                   ENDIF
+               IF(run_mpi_active) THEN   !Parallel processing with MPI
 !                 run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
 !                 IF(.NOT.ALLOCATED(kid_on_node)) THEN
 !                    ALLOCATE(kid_on_node(0:pop_c))
@@ -1049,7 +1052,7 @@ ELSE
 !       Branch to DISCUS/ KUPLOT (standalone call system, suite do branch)
 !                                                                       
          ELSEIF (str_comp (befehl, 'branch', 2, lbef, 6) ) THEN
-            CALL p_branch (zeile, lcomm)
+            CALL p_branch (zeile, lcomm, .FALSE.)
 !                                                                 
 !------   Try general commands                                    
 !                                                                 
