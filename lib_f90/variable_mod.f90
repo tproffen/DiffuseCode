@@ -33,7 +33,8 @@ MODULE variable_mod
    INTEGER, PARAMETER :: VAR_STATE     = 14
    INTEGER, PARAMETER :: VAR_MPI_FIRST = 15
    INTEGER, PARAMETER :: VAR_MPI       = 16
-   INTEGER, PARAMETER :: VAR_FIT_VALUE = 17
+   INTEGER, PARAMETER :: VAR_NUM_NODES = 17
+   INTEGER, PARAMETER :: VAR_FIT_VALUE = 18
 !
    INTEGER                                   :: var_num   = 0   ! Number of variables
    INTEGER                                   :: var_con   = 0   ! Number of internal constants
@@ -184,6 +185,14 @@ CONTAINS
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
    var_val  ( i) = var_val(VAR_MPI_OFF)
+!
+   i = VAR_NUM_NODES
+   var_name ( i) = 'NUM_NODES'      ! MPI can be ON/OFF
+   var_char ( i) = ' '
+   var_l    ( i) = 9
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 0
 !
    i = VAR_FIT_VALUE
    var_name ( i) = 'F_VALUE'        ! Function value of a fit
