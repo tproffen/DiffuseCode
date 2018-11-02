@@ -1,4 +1,4 @@
-RECURSIVE SUBROUTINE suite_branch(zeile, length)
+RECURSIVE SUBROUTINE suite_branch(zeile, length, lreset)
 !
 !  Specific SUITE Version of a branch subroutine
 !  Call A section via a branch
@@ -7,6 +7,7 @@ USE diffev_setup_mod
 USE diffev_loop_mod
 USE discus_setup_mod
 USE discus_loop_mod
+USE discus_reset_all_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
 !
@@ -24,13 +25,14 @@ IMPLICIT NONE
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
+LOGICAL          , INTENT(IN) :: lreset
 !
 CHARACTER(LEN=1024)  :: line
 CHARACTER(LEN= 7   ) :: br_pname_old,br_pname_cap_old
 INTEGER              :: br_prompt_status_old
 INTEGER              :: br_ier_sta_old, br_state_old, br_progr_old
 INTEGER              :: indxt, indxb, indxm
-INTEGER              :: lbef
+INTEGER              :: lbef, laenge
 INTEGER              :: lcomm
 LOGICAL              :: lmacro
 !
@@ -92,6 +94,11 @@ IF(str_comp(zeile, 'kuplot', 2, length, 6)) THEN
    ENDIF
    CALL kuplot_set_sub ()
    CALL suite_set_sub_branch ()
+   IF(lreset) THEN
+      line = 'all'
+      laenge = 3
+      call do_rese(line, length)
+   ENDIF
    var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
    var_val(VAR_STATE)   = var_val(VAR_IS_BRANCH)
    IF(lmacro) THEN           ! Execute "command line macro"
@@ -121,6 +128,7 @@ ELSEIF(str_comp(zeile, 'discus', 2, length, 6)) THEN
    ENDIF
    CALL discus_set_sub ()
    CALL suite_set_sub_branch ()
+   IF(lreset) CALL discus_reset_all
    var_val(VAR_PROGRAM) = var_val(VAR_DISCUS)
    var_val(VAR_STATE)   = var_val(VAR_IS_BRANCH)
    IF(lmacro) THEN           ! Execute "command line macro"

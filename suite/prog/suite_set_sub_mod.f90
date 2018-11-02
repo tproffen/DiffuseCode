@@ -190,10 +190,11 @@ SUBROUTINE suite_set_sub_branch
 USE set_sub_generic_mod
 !
 INTERFACE
-   SUBROUTINE suite_branch(zeile, length)
+   SUBROUTINE suite_branch(zeile, length, lreset)
 !
 CHARACTER (LEN=*), INTENT(IN) :: zeile
 INTEGER          , INTENT(IN) :: length
+LOGICAL          , INTENT(IN) :: lreset
 !
    END SUBROUTINE suite_branch
 END INTERFACE
