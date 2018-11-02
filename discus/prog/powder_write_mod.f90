@@ -299,6 +299,7 @@ CONTAINS
                pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q
             ENDDO
             normalizer = pow_tmp_sum/pow_uuu_sum
+            normalizer = REAL(pow_nreal)
 !
             IF(value == 7) THEN                         ! Calc S(Q)
                DO j = 1, npkt   
