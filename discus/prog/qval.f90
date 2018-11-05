@@ -45,6 +45,7 @@ CONTAINS
       REAL      :: q2     = 0.0
       REAL      :: faver2 = 0.0
       REAL      :: f2aver = 0.0
+      REAL      :: signum = 1.0
 !                                                                       
 !     REAL atan2d 
       REAL ran1 
@@ -125,7 +126,13 @@ CONTAINS
             qval = REAL(dsi (i) , KIND=KIND(1.0E0))
          ENDIF 
          DO k=1,cr_nscat
-            faver2 = faver2 + (REAL(cfact_pure(istl(i),k), KIND=KIND(0.0E0)))*cr_amount(k)
+            signum = 1.0
+            IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+!           faver2 = faver2 + (REAL(cfact_pure(istl(i),k), KIND=KIND(0.0E0)))*cr_amount(k)
+            faver2 = faver2 +                                    &
+                     SQRT(DBLE (       cfact_pure(istl(i), k)  * &
+                                conjg (cfact_pure(istl(i), k)))) &
+                     *cr_amount(k)*signum
          ENDDO
          faver2 = faver2**2
          q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0D0))*CFINC)**2)
@@ -141,7 +148,11 @@ CONTAINS
             qval = REAL(dsi (i), KIND=KIND(0.0E0))
          ENDIF 
          DO k=1,cr_nscat
-            f2aver = f2aver + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+!           f2aver = f2aver + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+            f2aver = f2aver +                                 &
+                      DBLE (       cfact_pure(istl(i), k)  *  &
+                             conjg (cfact_pure(istl(i), k)))  &
+                   *cr_amount(k)
          ENDDO
          q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
          qval = qval /f2aver/ cr_n_real_atoms 
@@ -150,7 +161,11 @@ CONTAINS
 !
       ELSEIF (value == val_f2aver) THEN
          DO k=1,cr_nscat
-            qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+!           qval = qval + REAL(cfact_pure(istl(i),k)**2,KIND=KIND(0.0E0))*cr_amount(k)
+            qval = qval +                                     &
+                      DBLE (       cfact_pure(istl(i), k)  *  &
+                             conjg (cfact_pure(istl(i), k)))  &
+                   *cr_amount(k)
          ENDDO
          qval = qval / cr_n_real_atoms
 !
@@ -158,7 +173,13 @@ CONTAINS
 !
       ELSEIF (value == val_faver2) THEN
          DO k=1,cr_nscat
-            qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+            signum = 1.0
+            IF(REAL(cfact_pure(1,k))<0.0) signum = -1.0
+            qval = qval +                                     &
+                  SQRT(DBLE (       cfact_pure(istl(i), k)  * &
+                             conjg (cfact_pure(istl(i), k)))) &
+                  * cr_amount(k) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
          qval = qval**2
@@ -167,7 +188,11 @@ CONTAINS
 !
       ELSEIF (value == val_faver) THEN
          DO k=1,cr_nscat
-            qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+!           qval = qval + REAL(cfact_pure(istl(i),k),KIND=KIND(0.0E0))*cr_amount(k)
+            qval = qval +                                      &
+                   SQRT(DBLE (       cfact_pure(istl(i), k)  * &
+                              conjg (cfact_pure(istl(i), k)))) &
+                   * cr_amount(k) * signum
          ENDDO
          qval = qval / cr_n_real_atoms
       ENDIF 

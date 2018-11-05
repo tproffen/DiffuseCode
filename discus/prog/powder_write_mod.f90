@@ -1039,6 +1039,7 @@ END SUBROUTINE powder_conv_psvgt_fix
 !
       INTEGER :: iscat
       INTEGER :: i
+      REAL( KIND(0.0D0))             :: signum
 !!!
       pow_f2aver(:) = 0.0D0
       pow_faver2(:) = 0.0D0
@@ -1055,6 +1056,8 @@ END SUBROUTINE powder_conv_psvgt_fix
       pow_nreal = SUM(natom)  ! Add real atom numbers 
 !
       DO iscat = 1, cr_nscat
+         signum = 1.0D0
+         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
          DO i = 1, num1
             pow_f2aver (i) = pow_f2aver (i)  + &
                        DBLE (       cfact_pure(powder_istl(i), iscat)  * &
@@ -1063,7 +1066,8 @@ END SUBROUTINE powder_conv_psvgt_fix
             pow_faver2 (i) = pow_faver2 (i) +  &
                   SQRT(DBLE (       cfact_pure(powder_istl(i), iscat)  * &
                              conjg (cfact_pure(powder_istl(i), iscat)))) &
-                     * natom (iscat)/pow_nreal
+                     * natom (iscat)/pow_nreal                           &
+                     * signum
          ENDDO
          pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
       ENDDO

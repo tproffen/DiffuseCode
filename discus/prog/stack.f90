@@ -1967,6 +1967,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !
       LOGICAL lout 
 !                                                                       
+      REAL( KIND(0.0D0)):: signum
       REAL ss 
       REAL seknds 
 !
@@ -2191,6 +2192,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
 !------ -------Calculate form factor squared
 !
                IF(calc_f2aver) THEN
+         signum = 1.0D0
+         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
 ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q) during first calculation
                   xstart = pow_qmin  /REAL(zpi)
                   xdelta = pow_deltaq/REAL(zpi)
@@ -2203,7 +2206,8 @@ internal: IF(st_internal(st_type(i)) ) THEN
                      pow_faver2 (i) = pow_faver2 (i) +  &
                            SQRT(real (       cfact_pure(powder_istl(i), iscat)  * &
                                       conjg (cfact_pure(powder_istl(i), iscat)))) &
-                                * n_layers * nxat
+                                * n_layers * nxat *                               &
+                                  signum
                   ENDDO
                   pow_nreal = pow_nreal + n_layers * nxat
                   pow_u2aver    = pow_u2aver + cr_dw(iscat) * n_layers * nxat
