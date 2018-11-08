@@ -941,8 +941,8 @@ ell_loop:      DO i = 1, cr_natoms
 !
       INTEGER               :: idiv      ! Largest common divisor for the normal
       INTEGER, DIMENSION(3) :: hkl
-      REAL   , DIMENSION(3) :: rhkl, u
-      REAL                  :: angle
+      REAL   , DIMENSION(3) :: rhkl, u, l_normal
+      REAL                  :: angle, r
 !                                                                       
       IF( cr_nscat > SURF_MAXSCAT) THEN
          CALL alloc_surf ( cr_nscat )
@@ -950,6 +950,11 @@ ell_loop:      DO i = 1, cr_natoms
             RETURN
          ENDIF
       ENDIF
+!
+      r = do_blen(.FALSE., VNULL, normal)
+      l_normal(1) = NINT(10.*normal(1)/r)
+      l_normal(2) = NINT(10.*normal(2)/r)
+      l_normal(3) = NINT(10.*normal(3)/r)
 !
       IF((     linside.AND.distance <  0) .OR.  &
          (.not.linside.AND.distance >  0)      ) THEN                            
@@ -965,7 +970,8 @@ ell_loop:      DO i = 1, cr_natoms
             cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
             IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
                cr_surf(0,   iatom) = surface_type 
-               cr_surf(1:3, iatom) = NINT(10.0*normal(:))
+               
+               cr_surf(1:3, iatom) = l_normal(:)
             ELSEIF(cr_surf(0, iatom) < SURF_EDGE) THEN    ! Atom was already at a plane, sphere, cylinder wall
                IF(surface_type > SURF_CYLINDER) THEN      ! New location is at least an edge
                   u(:) = cr_pos(:,iatom) - center(:)
