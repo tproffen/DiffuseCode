@@ -45,6 +45,7 @@ ENDIF
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
+IF(ier_num/=0) RETURN
 !
 !                                                                       
 IF (ianz.ge.1) then

@@ -1463,6 +1463,7 @@ owerte =  (/  0.0,      0.0     /)
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
+IF(ier_num /=0) RETURN
 iianz = 1
 CALL ber_params(iianz, cpara, lpara, werte, maxw)
 IF(ier_num /=0) RETURN

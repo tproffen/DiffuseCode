@@ -613,6 +613,7 @@ use crystal_mod
       owerte =  (/  -1.0    ,  0.0      /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
+      IF(ier_num/=0) RETURN
       IF(     str_comp(opara(2), 'ignore',  2, lopara(2), 6) ) THEN
          mole_scope = MOLE_SCOPE_IGN
       ELSEIF( str_comp(opara(2), 'within',  2, lopara(2), 6) ) THEN
