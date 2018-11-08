@@ -56,11 +56,18 @@ search: DO i=istart,1, -1     ! Count backwards
    icolon = INDEX(cpara(i)(1:lpara(i)),':')
    IF(icolon > 0) THEN    ! We might have an optional parameter
       ascii = .TRUE.
-      DO j=1, icolon-1    ! Check is all characters are small letters
+      DO j=1, icolon-1    ! Check if all characters are small letters
          letter = IACHAR(cpara(i)(j:j))
          ascii = ascii .AND. (a<=letter .AND. letter<=z)
       ENDDO
-      IF(.NOT.ascii) CYCLE search  ! String contains non-(a..z) skip this parameter
+      IF(.NOT.ascii) THEN
+!CYCLE search  ! String contains non-(a..z) skip this parameter
+         ier_num = -12
+         ier_typ = ER_COMM
+         ier_msg(1) = 'Offending parameter name:'
+         ier_msg(2) = cpara(i)(1:MIN(43,lpara(i)))
+         RETURN
+      ENDIF
       look: DO iopt=1, NOPTIONAL ! Look up optional parameter name
          len_look = loname(iopt)
          len_user = icolon-1
