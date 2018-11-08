@@ -108,6 +108,7 @@ CLOSE(IRD)
 CALL get_params (line, ianz, cpara, lpara, MAXW, length)
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
+IF(ier_num/=0) RETURN
 ipartial = NINT(owerte(1))
 IF(ianz==1) THEN
    CALL kpara(MAXW, cpara, lpara, ianz, ipartial)

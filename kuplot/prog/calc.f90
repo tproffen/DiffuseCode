@@ -1688,6 +1688,7 @@
 !                                                                       
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
+      IF (ier_num.ne.0) RETURN 
       irvalue = NINT(owerte(1))
 !
       iianz = 2 
