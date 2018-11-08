@@ -350,10 +350,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) THEN 
                   IF (sav_keyword) THEN 
+                     IF(sav_w_scat .EQV. sav_w_adp .AND. &
+                        sav_w_scat .EQV. sav_w_occ .AND. &
+                        sav_w_adp  .EQV. sav_w_occ )  THEN
                      IF (str_comp (sav_file(1:8),'internal',8,8,8)) THEN
                         CALL save_internal (sav_file) 
                      ELSE 
                         CALL save_keyword (sav_file) 
+                     ENDIF 
+                     ELSE 
+                        ier_num = -159
+                        ier_typ = ER_APPL
+                        ier_msg(1) = 'Write/Omit differ for SCAT, ADP, OCC'
+                        ier_msg(2) = 'Check write/omit statements in save'
+                        ier_msg(3) = 'Segments and homogenize'
                      ENDIF 
                   ELSE 
                      CALL save_nokeyword (sav_file) 
