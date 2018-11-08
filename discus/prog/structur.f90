@@ -2668,6 +2668,7 @@ SUBROUTINE rese_cr
 !                                                                       
       USE discus_config_mod 
 USE discus_allocate_appl_mod
+USE conn_mod
       USE crystal_mod 
       USE gen_add_mod 
       USE molecule_mod 
@@ -2676,7 +2677,10 @@ USE discus_allocate_appl_mod
       USE discus_plot_mod
       IMPLICIT none 
 !                                                                       
-       
+INTEGER, PARAMETER  :: code_res   = -2
+!
+CHARACTER(LEN=1024) :: zeile
+INTEGER             :: lp
 !                                                                       
       INTEGER i 
 !
@@ -2765,6 +2769,10 @@ CALL alloc_crystal(1,1)
       pl_bond_len(:,:,:) = 0.0
       pl_bond_rad(  :,:) = 0.0
       pl_bond_col(:,:,:) = 0.0
+!
+zeile = ' '
+lp    = 1
+CALL conn_do_set(code_res,zeile, lp)    ! Connectivity
 !                                                                       
       END SUBROUTINE rese_cr                        
 !

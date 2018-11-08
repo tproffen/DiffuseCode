@@ -44,8 +44,19 @@ CONTAINS
 !
    INTEGER, INTENT(in)  :: MAX_ATOM
 !
+   CHARACTER(LEN=256) :: c_name         ! Conn  name for this atom type
+   INTEGER :: itype          ! Atom type whose conn shal be deallocated
+   INTEGER :: ino            ! Conn number for this atom type
    INTEGER              :: i
+   LOGICAL              :: l_all
+   c_name = ' '
+   itype  = -1
+   ino    = 0
+   l_all  = .TRUE.
 !
+   IF(ALLOCATED(at_conn)) THEN
+      CALL deallocate_conn(MAX_ATOM, l_all, itype, ino, c_name)
+   ENDIF
    IF(.not. ALLOCATED(at_conn)) THEN
       ALLOCATE (at_conn(1:MAX_ATOM))                 ! allocate the array
       DO i=1,MAX_ATOM                                ! initialise the array
