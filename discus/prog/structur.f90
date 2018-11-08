@@ -175,6 +175,7 @@ CONTAINS
          owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, owerte)
+         IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
 !                                                                       
 !     --reset epsilon tensors                                           
 !                                                                       
@@ -2100,7 +2101,9 @@ cr_occ(:) = 1.0   !! WORK OCC
                ENDIF 
             ELSE 
                ier_num = -111
-               ier_typ = ER_COMM 
+               ier_typ = ER_APPL 
+               CLOSE(99)
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Displacement parameters to setup specific sequence of         
@@ -2123,6 +2126,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ENDIF 
                ENDIF 
             ELSE 
+write(*,*) ' ERROR ON ADP  1 ', ier_num, ier_typ
                ier_num = -112
                ier_typ = ER_COMM 
             ENDIF 
@@ -2147,6 +2151,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ENDIF 
                ENDIF 
             ELSE 
+write(*,*) ' ERROR ON OCC  1 ', ier_num, ier_typ
                ier_num = -112
                ier_typ = ER_COMM 
             ENDIF 
@@ -3546,6 +3551,7 @@ USE take_param_mod
 !
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
+      IF(ier_num/=0) RETURN
       lperiod = str_comp(opara(1), 'discus', 3, lopara(1), 6)
 !
 !                                                                       
@@ -4100,6 +4106,7 @@ END SUBROUTINE rmc6f_period
       INTEGER               :: nline
       INTEGER               :: nblank
       LOGICAL               :: in_section
+      LOGICAL               :: l_space_group
       INTEGER               :: data_i
       REAL   , DIMENSION(6) :: latt! (6) 
       REAL   , DIMENSION(3) :: pos ! (6) 
@@ -4665,13 +4672,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
          RETURN 
       ENDIF 
       WRITE(iwr, 1000) title(1:len_str(title))
+      l_space_group = .FALSE.
       IF(spcgr /= ' ') THEN
          length = LEN_TRIM(spcgr)
-         IF(length > 2) THEN
-            IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
-               spcgr = spcgr(1:1) // spcgr(3:length-1)
-            ENDIF
-         ENDIF
          IF(spcgr(1:1) == '?') THEN  !'HM is a '?'
             IF(symm_n>0) THEN 
                spcgr = 'P1'
@@ -4680,9 +4683,23 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                ier_typ = ER_APPL
             ENDIF
          ELSE
-            symm_n = 0
+            IF(length > 2) THEN
+               l_space_group = spcgr_test(spcgr ) ! Test for known space group
+               IF(.NOT. l_space_group) THEN
+                  IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
+                     spcgr = spcgr(1:1) // spcgr(3:length-1)
+                     l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                  ENDIF
+               ENDIF
+            ENDIF
+            IF(l_space_group) THEN
+               symm_n = 0
+            ELSE                     !, flag error but finish writing
+               ier_num = -126
+               ier_typ = ER_APPL
+            ENDIF
          ENDIF
-         WRITE(iwr, 1100) spcgr(1:len_str(spcgr))
+         WRITE(iwr, 1100) spcgr(1:LEN_TRIM(spcgr))
       ELSEIF(spcgr_no /= 0) THEN
          WRITE(iwr, 1150) spcgr_no
          symm_n = 0
@@ -4980,7 +4997,7 @@ header: DO
                   RETURN
                ENDIF
             ELSE
-               ier_num = -112
+               ier_num = -149
                ier_typ = ER_APPL
                CLOSE(99)
                RETURN
@@ -5377,6 +5394,28 @@ CALL readcell_internal(tempfile)
 CALL store_remove_single(tempfile, ier_num)
 !
 END SUBROUTINE readcell_mole
+!
+!*******************************************************************************
+!
+LOGICAL FUNCTION spcgr_test(spcgr)
+!
+USE spcgr_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: spcgr
+!
+INTEGER        :: i
+!
+spcgr_test = .FALSE.
+main: DO I=1, SPCGR_MAX
+   IF(spcgr == spcgr_name(i)) THEN
+      spcgr_test = .TRUE.
+      EXIT main
+   ENDIF
+ENDDO main
+!
+END FUNCTION spcgr_test
 !
 !*******************************************************************************
 !
