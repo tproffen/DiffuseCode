@@ -64,6 +64,7 @@ ENDIF
 !
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, owerte)
+IF(ier_num/=0) RETURN
 linit = .FALSE.
 linit =      str_comp(opara(1), 'init',    2, lpara(1), 4)
 lreal = .NOT.str_comp(opara(2), 'integer', 3, lpara(2), 7)

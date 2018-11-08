@@ -697,6 +697,7 @@ ELSE
       IF (ier_num.eq.0) THEN 
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, owerte)
+         IF (ier_num == 0) THEN 
          run_mpi_senddata%l_get_state = l_get_random_state   ! Log random number state
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
                                                 ! and 'run_mpi' within a do loop
@@ -825,6 +826,7 @@ ELSE
             ier_typ =  -ER_COMM
          ENDIF 
          ENDIF 
+      ENDIF 
       ENDIF 
 !
 !     Turn random state log OFF, and documentation ON
@@ -982,6 +984,7 @@ ELSE
       IF (ier_num.eq.0) THEN 
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, owerte)
+         IF(ier_num==0) THEN
 !
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN
             IF(lstandalone) THEN 
@@ -1007,6 +1010,7 @@ ELSE
 !           IF(ier_num/=0) RETURN
 !           n_rvalue_i = NINT(werte(1))
 !        ENDIF
+      ENDIF 
       ENDIF 
 !
 !     -- Write a new set of children for the current generation

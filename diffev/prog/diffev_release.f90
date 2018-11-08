@@ -72,6 +72,7 @@ CALL get_params (zeile, ianz, cpara, lpara, maxw, length)
 IF (ier_num == 0) THEN
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                      oname, loname, opara, lopara, owerte)
+   IF(ier_num==0) THEN
    IF(ianz == 1) THEN
       IF(owerte(O_RANGE) == -9999.00) THEN   ! range: was not provided
          ier_num = -34
@@ -157,6 +158,7 @@ IF (ier_num == 0) THEN
       ier_msg(1) = ' The release command takes one parameter name'
       ier_msg(2) = ' and one optional parameter range:'
       ier_msg(3) = ' '
+   ENDIF
    ENDIF
 ENDIF
 !
