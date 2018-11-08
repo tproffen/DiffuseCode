@@ -74,6 +74,11 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2018_Nov
+
+   save
+      enforced that "scat", "adp" and "occ" and either all written
+      or all omitted.
 3  2018_Oct
 
    In ==> 2017_July the following "correction" was done, which proved 
