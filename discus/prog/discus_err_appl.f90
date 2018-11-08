@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-158,IO=6)
+      PARAMETER    (IU=-159,IO=6)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -141) /                          &
+     &  'SCAT, ADP, OCC must ALL be omitted or written', & !-159 ! discus
      &  'Erroneous number of bonds',                     & !-158 ! discus
      &  'Incomplete molecule would be saved',            & !-157 ! discus
      &  'Incomplete molecule in structure',              & !-156 ! discus
