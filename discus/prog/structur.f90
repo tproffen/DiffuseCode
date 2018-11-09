@@ -2126,7 +2126,6 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ENDIF 
                ENDIF 
             ELSE 
-write(*,*) ' ERROR ON ADP  1 ', ier_num, ier_typ
                ier_num = -112
                ier_typ = ER_COMM 
             ENDIF 
@@ -2151,7 +2150,6 @@ write(*,*) ' ERROR ON ADP  1 ', ier_num, ier_typ
                   ENDIF 
                ENDIF 
             ELSE 
-write(*,*) ' ERROR ON OCC  1 ', ier_num, ier_typ
                ier_num = -112
                ier_typ = ER_COMM 
             ENDIF 
@@ -4691,7 +4689,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                ier_typ = ER_APPL
             ENDIF
          ELSE
-            IF(length > 2) THEN
+            IF(length > 1) THEN
                l_space_group = spcgr_test(spcgr ) ! Test for known space group
                IF(.NOT. l_space_group) THEN
                   IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
