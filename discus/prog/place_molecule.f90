@@ -829,6 +829,7 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    REAL      :: temp_angle             ! Local copy of dcc_angle
 INTEGER :: nanch
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
+INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    REAL   , DIMENSION(:), ALLOCATABLE :: temp_prob ! Relative probabilities for a definition
    REAL                    :: r_anch   ! relative amount of anchor atoms
    REAL                    :: temp_grand ! sum of all definition probabilities
@@ -842,7 +843,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
 !
    REAL ran1
 !
-   IF(MAXVAL(cr_surf(0,:)) == 0) THEN
+   IF(MAXVAL(cr_surf(0,:)) == 0 .AND. MINVAL(cr_surf(0,:)) == 0) THEN
       ier_num = -130
       ier_typ = ER_APPL
       ier_msg(1) = 'The structure needs to be cut in surface menu'
@@ -892,7 +893,7 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE :: anchor
       sav_w_obje  = .FALSE.
       sav_w_doma  = .FALSE.
       sav_w_prop  = .TRUE.
-
+!
    CALL save_internal(shellfile)
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -949,6 +950,7 @@ CALL rese_cr
 CALL no_error
 !
 CALL readstru_internal(shellfile)   ! Read shell file
+!
 cr_icc(:) = 1                       ! The shell is not periodic, 
 cr_ncatoms = cr_natoms              ! place all atoms into one "unit" cell
 nscat_old = cr_nscat                ! Save old scattering curve number
@@ -1014,7 +1016,7 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
             ENDDO
          ENDDO replace
       ENDDO name_anchors
-
+!
 IF(n_repl==0) THEN
    CALL save_restore_setting
    CALL no_error
@@ -1033,8 +1035,16 @@ ENDIF
    CALL property_select(line, length, sav_sel_prop)
    CALL save_internal('internal_anchors')        !     thus this file name is unique
 !
-      IF(n_repl > 0 ) THEN                           ! Need at least one anchor
-      IF(n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
+      IF(n_repl > 0                       ) THEN    ! Need at least one anchor
+         ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
+         anchor_num(:) = 0
+         DO k=1, cr_natoms
+            j= cr_iscat(k)-nscat_old
+            IF(j>0) anchor_num(j) = anchor_num(j)+1 
+         ENDDO
+         j=MAXVAL(anchor_num)
+         DEALLOCATE(anchor_num)
+      IF(n_repl > 2 .AND. n_repl<cr_natoms-2 .AND. j>2) THEN  ! Need at least two anchors for sorting
 !
 !        Sorting requires separate loops to avoid exchange of anchor atom types
 !
@@ -1177,10 +1187,10 @@ ENDIF
          mmc_cor_energy (0, MC_REPULSIVE) = .true.
 !
          mo_cyc  =  10*cr_natoms                              ! Define cycles
-         mo_feed =  10*cr_natoms                              ! Define feedback
+         mo_feed =   1*cr_natoms                              ! Define feedback
          mo_kt   =   2.5                                      ! Define Temperature
 !
-         CALL mmc_run_multi(.FALSE.)                          ! Run actual sorting
+         CALL mmc_run_multi(.FALSE. )                          ! Run actual sorting
       ENDIF ! (n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
