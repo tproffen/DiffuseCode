@@ -718,6 +718,7 @@ CONTAINS
          ELSE
             iprop = 1
          ENDIF
+         iin_mole(:) = 0
          IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
             IF(cr_mole(inum)/=0) THEN
                iin_mole(1) = cr_mole(inum)
@@ -763,7 +764,7 @@ CONTAINS
             rd_cr_acentric, rd_cr_newtype, rd_cr_cartesian, rd_cr_sel_prop,             &
             rd_cr_scat, rd_cr_delfi , rd_cr_delfr, rd_cr_delf_int,                    &
             rd_cr_scat_int, rd_cr_scat_equ,                                             &
-            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf                              &
+            rd_cr_pos, rd_cr_iscat, rd_cr_prop, rd_cr_surf, rd_cr_mole                  &
             )
 !
 !
@@ -847,6 +848,7 @@ CONTAINS
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_iscat
    INTEGER             , DIMENSION(  rd_NMAX)   , INTENT(IN) :: rd_cr_prop
    INTEGER             , DIMENSION(0:3,rd_NMAX) , INTENT(IN) :: rd_cr_surf
+   INTEGER             , DIMENSION(    rd_NMAX) , INTENT(IN) :: rd_cr_mole
 !
    INTEGER, DIMENSION(:), ALLOCATABLE :: iscat_table
    INTEGER               :: istatus
@@ -1025,6 +1027,21 @@ CONTAINS
             iprop = rd_cr_prop (inum)
          ELSE
             iprop = 1
+         ENDIF
+         iin_mole(:) = 0
+         IF(this%cr_sav_mole .OR. this%cr_sav_doma .OR. this%cr_sav_obje) THEN
+            IF(rd_cr_mole(inum)/=0) THEN
+               iin_mole(1) = rd_cr_mole(inum)
+               check_mole: DO j = 1, mole_len (rd_cr_mole(inum))
+                  IF(mole_cont (mole_off(rd_cr_mole(inum))+j) == inum) THEN
+                     iin_mole(2) = j
+                     this%cr_mole_cont (mole_off(rd_cr_mole(inum))+j) = ia
+                     EXIT check_mole
+                  ENDIF
+               ENDDO check_mole
+            ELSE
+               iin_mole(:) = 0
+            ENDIF
          ENDIF
          CALL this%atoms(ia)%set_atom ( itype, posit, iprop, isurface, iin_mole )
       ENDIF
