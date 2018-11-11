@@ -653,6 +653,7 @@ CALL rese_cr
 internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                   CALL readstru_internal(strucfile) !, NMAX, MAXSCAT, MOLE_MAX_MOLE, &
 !                       MOLE_MAX_TYPE, MOLE_MAX_ATOM )
+                  IF(ier_num/=0) RETURN
                ELSE internals
                   CALL import_test(0, strucfile, outfile)
                   IF(ier_num == 0) THEN
@@ -2261,6 +2262,8 @@ cr_occ(:) = 1.0   !! WORK OCC
 !                                                                       
          ier_num = - 47 
          ier_typ = ER_APPL 
+         ier_msg(1) = 'Error in a non-keyword structure file'
+         ier_msg(2) = 'Check if the 1st line starts with ''title'''
          READ (ist, 2010, end = 999, err = 999) line 
          lp = len_str (line) 
          CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
