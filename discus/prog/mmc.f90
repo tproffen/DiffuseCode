@@ -300,6 +300,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       WRITE (output_io, 1250) mo_cyc 
       WRITE (output_io, 1300) mo_feed 
+      WRITE (output_io, 1350) mmc_no_valid 
       WRITE (output_io, 1400) mo_kt 
 !                                                                       
 !     Information about the moves                                       
@@ -615,6 +616,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
  1105 FORMAT (  '   Operation mode for MC        : ',a) 
  1250 FORMAT (  '   Max. number of MC cycles     : ',i8) 
  1300 FORMAT (  '   Feedback/update intervall    : ',i8) 
+ 1350 FORMAT (  '   Maximum no. non_valid cycles : ',i8) 
  1400 FORMAT (  '   Temperature [kT]             : ',f8.4) 
  3000 FORMAT (/,' Correlation definitions        : ',/) 
  2100 FORMAT (/,' Desired correlations for Chemical Occupancy : ',/,/,  &
@@ -1240,6 +1242,14 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                mo_kt = werte (1) 
+!                                                                       
+!------ --- 'set valid' : setting number of cycleas after which
+!           no valid move is found
+!                                                                       
+            ELSEIF (cpara (1) (1:2) .eq.'VA') then 
+               CALL del_params (1, ianz, cpara, lpara, maxw) 
+               CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+               mmc_no_valid = NINT(werte(1) )
 !                                                                       
 !------ --- 'set vector' : setting of neighbouring vectors              
 !                                                                       
@@ -2345,7 +2355,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       loop = (itry.lt.mo_cyc) 
 !                                                                       
-      IF (igen.gt.1000 * mo_feed.and.itry.eq.0) then 
+      IF (igen.gt.mmc_no_valid * mo_feed.and.itry.eq.0) then 
          ier_num = - 2 
          ier_typ = ER_MMC 
          loop = .false. 

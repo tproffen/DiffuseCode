@@ -259,6 +259,8 @@ CONTAINS
 !                                                                       
       mmc_sel_prop = 0 
 !     mmc_sel_prop = 0 
+!
+      mmc_no_valid = 1000
 !                                                                       
       END SUBROUTINE mmc_init                       
 !*****7*****************************************************************

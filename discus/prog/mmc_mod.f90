@@ -105,6 +105,7 @@ INTEGER ::  mmc_l_center(3)
 INTEGER ::  mmc_l_extend(3)
 INTEGER ::  mmc_l_lower
 INTEGER ::  mmc_l_upper
+INTEGER ::  mmc_no_valid = 1000
 INTEGER ::  mmc_size_of = 0
 !
 END MODULE mmc_mod
