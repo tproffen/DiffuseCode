@@ -79,6 +79,15 @@
    save
       enforced that "scat", "adp" and "occ" and either all written
       or all omitted.
+
+   powder
+      For neutron diffraction, the output of the <f>^2 contained an
+      error. The negative scattering length were added as |b|.
+      Corrected.
+
+   mmc
+      Added a 'set valid, <invalid_moves>' command, that gives you more 
+      control over a termination criterion.
 3  2018_Oct
 
    In ==> 2017_July the following "correction" was done, which proved 
@@ -3831,6 +3840,7 @@
 !p range   : Setting of the neighboring ranges
 !p target  : Setting of correlations values to be achieved
 !p temp    : Setting of MMC simulation temperature
+!p valid   ! Sets maximum number of non_valid cycles
 !p vec     : Definition of interaction vectors
 4  allowed
 !b set "allowed", <is1> [,<is2]...]
@@ -4117,6 +4127,18 @@
    interaction energies the value of <kt> should be set to 1.0 (default).
    As a result the interaction energies will be in units of kT. If no
    feedback is used, <kT> can be set to the desired simulation temperature.
+4  valid
+!b valid <invalid_moves>
+
+   MMC will pick an atom or an atom pair at random. If a pair of atoms
+   has the same chemistry, a "switch chemistry" move will not change
+   anything. Such a pair is considered an invalid trial. As the structure
+   converges into a highly ordered state, the probability of picking 
+   an invalid pair increases. In order to prevent an infinite loop, 
+   DISCUS terminates mmc once the number of invalid tried configurations
+   exceeds the number of c factor <invalid_moves>. Default for 
+   <invalid_moves> is 1000. For large structures it might be helpful to
+   increase this number.
 4  vec
 !b set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 
