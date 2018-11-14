@@ -670,11 +670,13 @@ CALL no_error
          ENDIF 
       ELSEIF (ctype.eq.'m') THEN 
          IF (ianz.eq.1) THEN 
-            IF (0.lt.ww (1) .and.ww (1) .le.NMAX.and.ww (1)             &
-            .le.cr_natoms) THEN                                         
-               IF (0.le.int (wert) .and.int (wert) .le.MAXSCAT.and.int (&
-               wert) .le.cr_nscat) THEN                                 
-                  cr_iscat (ww (1) ) = int (wert) 
+            IF(0 < ww(1) .AND. ww(1) <= NMAX .AND. ww(1) <= cr_natoms) THEN                                         
+               IF(0 <= INT(wert) .AND. INT(wert) <= MAXSCAT .AND. &
+                  INT(wert) <= cr_nscat                             ) THEN                                 
+                  cr_iscat(ww (1) ) = INT(wert) 
+                  IF(cr_iscat(ww(1))>0) THEN
+                     cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_NORMAL)
+                  ENDIF 
                ELSE 
                   ier_num = - 97 
                   ier_typ = ER_APPL 
