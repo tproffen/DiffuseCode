@@ -97,6 +97,7 @@ CONTAINS
                                   pop_back_trg(nb)(1:pop_back_trg_l(nb)), j, &
                                   pop_back_ext(nb)(1:pop_back_ext_l(nb))
                CALL do_operating_comm(string)
+               IF ( ier_num /=0) RETURN
             ENDDO
             ENDIF
          ENDIF bck_prior
@@ -215,6 +216,7 @@ list_index(:) = 0
                                         pop_back_trg(nb)(1:pop_back_trg_l(nb)), k, &
                                         pop_back_ext(nb)(1:pop_back_ext_l(nb))
                      CALL do_operating_comm(string)
+                     IF ( ier_num /=0) RETURN
                   ENDDO
                   ENDIF
                ENDIF
