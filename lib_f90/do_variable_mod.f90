@@ -339,7 +339,7 @@ ELSE
    WRITE (output_io, 2050) VAR_MAX 
 ENDIF 
 WRITE (output_io, * ) 
- 2000 FORMAT    (' User defined variables',i3,                          &
+ 2000 FORMAT    (' User defined variables',i4,                          &
      &                  ' Maximum number: ',i3/)                        
  2050 FORMAT    (' No user defined variables',                          &
      &                  ' Maximum number: ',i3/)                        

@@ -11,7 +11,7 @@ MODULE variable_mod
       REAL   , DIMENSION(:,:), ALLOCATABLE :: var_value
    END TYPE var_arrays
 !
-   INTEGER, PARAMETER :: VAR_MAX       = 150
+   INTEGER, PARAMETER :: VAR_MAX       = 999
 !
 !  INTEGER, PARAMETER :: VAR_TYPE_INTE = 0
 !  INTEGER, PARAMETER :: VAR_TYPE_REAL = 1
