@@ -88,7 +88,7 @@ main_loop: do
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
            ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
-               CALL do_eval (zeile, lp) 
+               CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       

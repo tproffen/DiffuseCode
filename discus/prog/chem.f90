@@ -247,7 +247,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
 !------ Evaluate an expression 'eval'                                   
 !                                                                       
          ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-            CALL do_eval (zeile, lp) 
+            CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
 !                                                                       
@@ -4363,6 +4363,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
       corr_loop: DO ic = 1, chem_ncor 
 !                                                                       
+!DBGDISPwrite(*,*) ' DIR ', chem_dir(1, 1, ic), .not.chem_ldall(ic), chem_ldall(ic)
          IF (chem_dir(1, 1, ic) ==  -9999..and..not.chem_ldall(ic)) THEN
             ier_num = - 15 
             ier_typ = ER_CHEM 
@@ -4386,6 +4387,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          rdj = skalpro (jdir, jdir, cr_gten) 
          IF (rdi.gt.0.0) rdi = sqrt (rdi) 
          IF (rdj.gt.0.0) rdj = sqrt (rdj) 
+!DBGDISPwrite(*,*) ' CHEM CORR idir ', idir(:), rdi, chem_ldall (ic)
+!DBGDISPwrite(*,*) ' CHEM CORR jdir ', jdir(:), rdj
 !                                                                       
          atom_loop: DO i = 1, cr_natoms 
 !                                                                       
@@ -4433,19 +4436,23 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                xi2 = xi2 + dpi**2 
                xj2 = xj2 + dpj**2 
                nn = nn + 1 
+!DBGDISPwrite(*,*) ' ACCUM ', dj(1), dpj, dpj**2, nn, xij, rdj
             ENDIF 
             ENDDO 
          ENDIF 
          ENDIF 
          ENDDO atom_loop
+!DBGDISPwrite(*,*) ' RDI RDJ ', rdi, rdj
 !                                                                       
 !------ - write results and save to res_para block                      
 !                                                                       
+!DBGDISPwrite(*,*) ' FINAL ', xij, xi2, xj2, xij / sqrt (xi2 * xj2)
          IF (nn.ne.0) then 
             xij = xij / float (nn) 
             xi2 = xi2 / float (nn) 
             xj2 = xj2 / float (nn) 
 !                                                                       
+!DBGDISPwrite(*,*) ' FINAL ', xij, xi2, xj2, xij / sqrt (xi2 * xj2)
             IF (xi2.ne.0.and.xj2.ne.0.0) then 
                mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
             ELSE 
@@ -6773,13 +6780,13 @@ chem_nenv(:) = 0 !  (CHEM_MAX_COR)
 !REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_ave    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
 !REAL, DIMENSION(3,12,CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT) :: chem_vect_sig    !  (3,12,CHEM_MAX_COR,0:MAXSCAT,0:MAXSCAT)
 chem_neig(:,:,:) = 0.0        !  (3,48,CHEM_MAX_COR)
-chem_dir(:,:,:) = 0.0         !  (3,2,CHEM_MAX_COR)
+chem_dir(:,:,:) = -9999.0     !  (3,2,CHEM_MAX_COR)
 chem_rmax(:)     = 0.0        !  (CHEM_MAX_COR)
 chem_rmin(:)     = 0.0        !  (CHEM_MAX_COR)
 chem_freq_sigma(:)     = 0.0  !  (CHEM_MAX_COR)
 chem_wink_sigma(:)     = 0.0  !  (CHEM_MAX_COR)
 chem_cang(:)       = .FALSE.  !  (CHEM_MAX_COR)
-chem_ldall(:)      = .FALSE.  !  (CHEM_MAX_COR)
+chem_ldall(:)      = .TRUE.   !  (CHEM_MAX_COR)
 !
 !
 END SUBROUTINE chem_reset

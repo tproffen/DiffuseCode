@@ -95,7 +95,7 @@ SUBROUTINE pdf
 !------ Evaluate an expression 'eval'                                   
 !                                                                       
          ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-            CALL do_eval (zeile, lp) 
+            CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
 !                                                                       

@@ -1069,7 +1069,7 @@ use crystal_mod
 !      ---Evaluate an expression, just for interactive check 'eval'     
 !                                                                       
                ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
-                  CALL do_eval (zeile, lp) 
+                  CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     ----exit 'exit'                                                   
 !                                                                       
