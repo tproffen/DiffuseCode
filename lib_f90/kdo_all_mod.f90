@@ -59,7 +59,7 @@ IMPLICIT none
 !     Evaluate an expression, just for interactive check 'eval'         
 !                                                                       
       ELSEIF (str_comp (bef, 'eval', 2, lbef, 4) ) THEN 
-         CALL do_eval (zei, lc) 
+         CALL do_eval (zei, lc, .TRUE.) 
 !                                                                       
 !------ IO commands                                                     
 !                                                                       

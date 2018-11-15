@@ -430,6 +430,7 @@ SUBROUTINE file_kdo(line, ilen)
 USE ber_params_mod
       USE charact_mod
       USE doact_mod
+      USE do_eval_mod
       USE errlist_mod
       USE get_params_mod
       USE macro_mod
@@ -541,7 +542,15 @@ USE ber_params_mod
                   line (1:ndol - 1) = zeile (1:ndol - 1)
                ENDIF
 !
-               line (ndol:ndol+lpar-1) = mac_tree_active%params(n_par)(1:lpar)
+               IF(.NOT.lblock_read .AND. mac_tree_active%params(n_par)(1:6)=='value(') THEN   ! Evaluate the parametere
+                  zeile = mac_tree_active%params(n_par)(7:lpar-1)
+                  lpar   = lpar-2
+                  CALL do_eval(zeile, lpar, .FALSE.)
+                  IF(ier_num/=0) RETURN
+                  line (ndol:ndol+lpar-1) = zeile(1:lpar)
+               ELSE
+                  line (ndol:ndol+lpar-1) = mac_tree_active%params(n_par)(1:lpar)
+               ENDIF
                lll = ndol + lpar - 1
                IF (nx.lt.laenge) then
                   line (ndol + lpar:ndol + lpar + laenge-nx) = zeile (  &

@@ -4,7 +4,7 @@ CONTAINS
 !
 !****7***************************************************************** 
 !
-SUBROUTINE do_eval (line, i) 
+SUBROUTINE do_eval (line, i, lout) 
 !-                                                                      
 !     evaluates the expression stored in line                           
 !                                                                       
@@ -21,6 +21,7 @@ USE ber_params_mod
 !                                                                       
       CHARACTER(LEN=1024), INTENT(INOUT) :: line
       INTEGER            , INTENT(INOUT) :: i
+      LOGICAL            , INTENT(IN   ) :: lout
 !
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) cstr , zeile
@@ -44,7 +45,8 @@ USE ber_params_mod
 !     IF (INDEX (line, '"') .gt.0.or.INDEX (line, '''') .gt.0 ) THEN
       IF (INDEX (line, '"')  == 1.or.INDEX (line, '''') == 1  ) THEN
          CALL do_string_alloc (line, indxg, i) 
-         WRITE (output_io, 3000) line(1:LEN_TRIM(line))
+         IF(lout) WRITE (output_io, 3000) line(1:LEN_TRIM(line))
+         i = LEN_TRIM(line)
          RETURN 
       ENDIF 
 !                                                                       
@@ -62,21 +64,25 @@ USE ber_params_mod
                DO i = 1, ianz 
 !              WRITE ( *, 2222) cpara (i) (1:length), werte (i) 
 !              IF (output_status.eq.OUTPUT_FILE) then 
-                  WRITE (output_io, 2222) cpara (i) (1:length), werte ( i)
+                  IF(lout) WRITE (output_io, 2222) cpara (i) (1:length), werte ( i)
 !              ENDIF 
                IF (lconn.and.lsocket.and.i.eq.1) then 
-                  WRITE (cstr, 2222) cpara (i) (1:lpara (i) ), werte (i) 
+                  IF(lout) WRITE (cstr, 2222) cpara (i) (1:lpara (i) ), werte (i) 
                   il = len_str (cstr) 
                   CALL socket_send (s_conid, cstr, il) 
                ENDIF 
                ENDDO 
+               WRITE(line,'(G18.10E4)')  werte(1)
+               i = LEN_TRIM(line)
             ELSEIF(ier_num==-1 .AND. ier_typ == ER_FORT) THEN   ! Try string substitution
                length = LEN_TRIM(line)
                indxg  = 0
                zeile  = line (1:indxg) //'"%c",'//line (indxg + 1:length)
                length = LEN_TRIM(zeile)
                CALL do_string_alloc (zeile, indxg, length)
-               WRITE (output_io, 3000) zeile(1:LEN_TRIM(zeile))
+               IF(lout) WRITE (output_io, 3000) zeile(1:LEN_TRIM(zeile))
+               line = zeile
+               i = LEN_TRIM(line)
             ENDIF 
          ENDIF 
       ENDIF 

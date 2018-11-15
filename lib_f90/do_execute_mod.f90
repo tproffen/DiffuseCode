@@ -54,6 +54,8 @@ USE ber_params_mod
          line = do_comm (ilevel (level), level) 
          laenge = do_leng (ilevel (level), level) 
       ENDIF 
+!
+      CALL do_value(line,laenge)     ! Handle value() operation
 !                                                                       
       IF(line(1:4) ==  'else') THEN 
          IF (INDEX (line, 'if') >   0) THEN 
@@ -964,6 +966,41 @@ LOGICAL FUNCTION is_expression(string)
       ENDIF
 !
 END FUNCTION is_expression
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE do_value(line, laenge)
+!
+USE do_eval_mod
+USE errlist_mod
+USE search_string_mod
+!
+IMPLICIT NONE
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: laenge
+!
+CHARACTER(LEN=1024) :: zeile, string
+INTEGER             :: iv
+INTEGER             :: length, lll
+INTEGER             :: ikl
+
+main: DO
+   iv = INDEX(line, 'value(', .TRUE.)  ! Search last occurence of "value("
+   IF(iv<=0) EXIT main
+   zeile  = line(iv+5:laenge)
+   lll    = laenge - iv - 4
+   ikl = suche_nach(zeile, lll)
+   zeile=zeile(2:ikl  )
+   lll  = ikl-1
+   CALL do_eval(zeile, lll, .FALSE.)
+   IF(ier_num/=0) RETURN
+   string = ' '
+   string = line(1:iv-1) // zeile(1:LEN_TRIM(zeile)) // line(iv+5+ikl+1:laenge)
+   line = string
+   laenge = LEN_TRIM(string)
+ENDDO main
+!
+END SUBROUTINE do_value
 !
 !*****7**************************************************************** 
 !
