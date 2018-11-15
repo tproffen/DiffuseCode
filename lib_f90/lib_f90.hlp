@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2018_November
+
+   Added a new transfer mode value() to macro parameters. See the
+   help entry '@' for further details.
 4  2018_September
 
    Modified the do and if constructions to be valid as well for 
@@ -136,7 +140,8 @@
 
 !p prompt > @<name>
 
-   The commands may start in with leading blanks to help readability of 
+   The commands that are listed within the macro file 
+   may start with leading blanks to help readability of 
    the macro file. The commands are executed as typed.
    Macro files may call other macro files. This is not a call in
    the sense of calling a function.
@@ -158,6 +163,11 @@
    that called the macro. If no parameters were given this value will be 
    zero.
 
+   Starting with version 5.29.0 the parameters on the macro command line
+   may also be written as "value(<expression>)". In this case the 
+   corresponding formal parameter in the macro is replaces by the 
+   string that corresponds to the value of the expression.  
+
    The prompt setting ==> 'set prompt,"redirect"' has an important side 
    effect on macro treatment. 
    With the "redirect" setting, macros are stored internally,
@@ -171,6 +181,46 @@
    cleared when you get back to the normal interactive mode. This allows
    you to run a macro, then modify the version stored on the disk and 
    execute the modified/corrected version.
+
+   Example 
+   assume that a macro file example.mac contains the lines:
+   echo $1
+   echo $2
+
+   If this macro is started with :
+   @example.mac 123.+456., abcd
+   the lines that DISCUS_SUITE will actually execute are:
+   echo 123.+456.
+   echo abcd
+
+   If this macro is started with :
+   @example.mac value(123+456), abcd
+   the lines that DISCUS_SUITE will actually execute are:
+   echo  579.0000000
+   echo abcd
+
+   In this second example "$1" has been replaced by the value 
+   of the expression "123.+456.", while "$2", has been replaced 
+   by the string "abcd". 
+
+   The expression within the "value()" function may be any
+   arithemtic or character expression as for example:
+   value(sin(PI/2))
+   value("base_%4D", i[0])
+
+   This last line is very helpful, if you want to replace a 
+   string at a position, where DISCUS_SUITE does not perform
+   a string manipulation operation. If the macro contains a 
+   line like "variable integer, $1" a call to this macro
+   in the form '@macro.mac value("base_%4D", 1234)'
+   would actually execute the command
+   variable integer, base_1234
+   Most DISCUS_SUITE commands that expect a file name will
+   allow you to replace a constant file name with a 
+   character expression. There are, certainly many parts
+   of the program where this character substitution is not 
+   implemented. Masink it through a macro parameter
+   value(expression) gives you full control.
 3  =
 !b <variable> = <expression>
 
