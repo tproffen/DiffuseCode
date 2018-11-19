@@ -517,6 +517,7 @@ USE surface_func_mod
 !
 SUBROUTINE property_set_user( act, opara, lopara, owerte, NOPTIONAL)
 !
+USE discus_config_mod
 USE conn_sup_mod
 USE get_iscat_mod
 USE prop_para_mod
@@ -535,10 +536,11 @@ REAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
 TYPE(prop_templ), DIMENSION(:), ALLOCATABLE :: p_temp
 TYPE(prop_templ)                            :: pp
 !
-INTEGER, PARAMETER :: MAXW = 10
-CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+INTEGER, PARAMETER :: MAXWW= 10
+INTEGER            :: MAXW = 10
+CHARACTER(LEN=1024), DIMENSION(MAX(MAXWW, MAXSCAT)) :: cpara
+INTEGER            , DIMENSION(MAX(MAXWW, MAXSCAT)) :: lpara
+REAL               , DIMENSION(MAX(MAXWW, MAXSCAT)) :: werte
 INTEGER                              :: ianz
 !
 INTEGER, DIMENSION(:), ALLOCATABLE :: at_kind    ! Atom type(s) on "atom:" parameter
@@ -553,6 +555,7 @@ LOGICAL              :: lsearch  ! Need a search Yes / No
 LOGICAL              :: lall     ! Work on all entries No
 LOGICAL              :: lactive  ! There are properties with act /= 0
 !
+MAXW = MAX(MAXWW, MAXSCAT)
 id = NINT(owerte(5))
 IF(opara(6)=='none'.AND.id==0) RETURN          ! No atom selected nothing to do
 !
