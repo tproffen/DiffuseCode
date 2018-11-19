@@ -68,7 +68,7 @@ CONTAINS
 !     /chem/                                                
 !                                                                       
       DO i = 1, CHEM_MAX_COR 
-      chem_ldall (i) = .false. 
+      chem_ldall (i) = .true. 
       chem_cang (i) = .false. 
       chem_ctyp (i) = CHEM_NONE 
       chem_nvec (i) = 0 
