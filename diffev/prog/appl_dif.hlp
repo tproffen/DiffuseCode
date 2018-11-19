@@ -19,11 +19,23 @@
    Further help topics are:
 
 2  News
-2  2018_Oct
+3  2018_Nov
+
+   Added a new command 'restart <user_generation>' This command compares
+   the user value to the current value in GENERATION. If the user
+   value is smaller, the Logfiles, Summary and Last files are 
+   shortened and the GENERATION file is adapted. This lets you step 
+   back to an earlier refinement status. Keep in mind that the later
+   cycles are irrevocably lost. If in doubt make a backup first.
+
+   reinstated the ==> 'read' command
+
+   Added further options to the ==> 'release' command
+3  2018_Oct
 
    Added a ==> 'release' command that is intended to act
    complementary to a previopus ==> 'fix' command.
-2  2018_July
+3  2018_July
 
    A small modification to the "diffev_best" macro. 
    The value of REF_NINDIV is written and at the end a
@@ -905,6 +917,25 @@
 !b read
 
    This command has been removed.
+   Activated again in version 5.29.0
+
+   The read command instructs DIFFEV to read the GENERATION file
+   and to determine the population from the Parameter files.
+
+   This command is only needed if you want to add a new parameter 
+   to a refinement that you want to continue and the ==> 'newparam'
+   command is the first command in DIFFEV after starting the 
+   program prior to the ==> 'run_mpi'command.
+
+   Example:
+   read
+   newpara  P_new, 0.0, 10.0,  10.0, 9.0
+   run_mpi discus, dis.diffev.mac, repeat:5, compute:parallel
+   compare
+
+   The 'read' command is not necessary if now new parameters
+   are defined. In this case, the 'run_mpi' command will
+   automatically determine the refinement state from 'GENERATION'
 2  refine
 !b refine {"all"|"none"|<number> [,<number>...]}
 !b refine {"all"|"none"|<par_name> [,<par_name>...]}
@@ -963,6 +994,15 @@
    for different experimental data to be executed one after the other.
    Without the reset, the old parameters would persist and may
    interfere with your new parameters. 
+2  restart
+!p restart <user_generation>
+   If you set <user_generation> to a value that is less than
+   the current value in GENERATION, 
+   the Logfiles, Summary and Last files are 
+   shortened and the GENERATION file is adapted. 
+   This lets you step back to an earlier refinement status.
+   Keep in mind that the later cycles are irrevocably lost.
+   If in doubt make a backup first.
 2  summary
 !b summary <filename>
 
