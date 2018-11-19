@@ -138,6 +138,8 @@ IF(par_number==0) THEN               ! Name does not exist, make new entry
       ENDIF
    ENDIF
    IF ( pop_gen > 0 ) THEN
+      pop_name(par_number)  = pname
+      pop_lname(par_number) = lpname
       CALL patch_para
       pop_dimx_new = .false.
    ELSE
