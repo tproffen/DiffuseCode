@@ -4044,6 +4044,7 @@ END SUBROUTINE rmc6f_period
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
       REAL, PARAMETER :: eightpi2 = 8.*3.1415926535897932384626433832795028841971693993751**2
+      REAL, PARAMETER :: EPS = 0.00001
 !                                                                       
       REAL   , DIMENSION(3) :: werte
 !                                                                       
@@ -4698,6 +4699,16 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                   IF(spcgr(2:2)=='1' .AND. spcgr(length:length)=='1') THEN
                      spcgr = spcgr(1:1) // spcgr(3:length-1)
                      l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                  ELSE
+                     IF(ABS(latt(4)-90.0)<EPS .AND. ABS(latt(6)-90.0)<EPS.AND.  &
+                        ABS(latt(5)-90.0)>EPS ) THEN  ! Unique b Try to augment to full H-M
+                       spcgr = spcgr(1:1) //'1'// spcgr(2:length) // '1'
+                       l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                     ELSEIF(ABS(latt(4)-90.0)<EPS .AND. ABS(latt(5)-90.0)<EPS.AND.  &
+                        ABS(latt(6)-90.0)>EPS ) THEN  ! Unique c Try to augment to full H-M
+                       spcgr = spcgr(1:length) //'11'
+                       l_space_group = spcgr_test(spcgr ) ! Test for known space group
+                     ENDIF
                   ENDIF
                ENDIF
             ENDIF
