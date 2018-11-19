@@ -4715,7 +4715,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             IF(l_space_group) THEN
                symm_n = 0
             ELSE                     !, flag error but finish writing
-               ier_num = -126
+               ier_num = -7
                ier_typ = ER_APPL
             ENDIF
          ENDIF
