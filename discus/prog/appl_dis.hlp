@@ -77,6 +77,10 @@
 3  2018_Nov
 
    m[<number>] 
+      If an atom is removed, its scattering curve is set to zero and 
+      the property 'normal' was cleared. 
+      If you manually change the scattering curve back to a non-zero 
+      value, the properies were not set back to 'normal' Fixed.
 
    save
       enforced that "scat", "adp" and "occ" and either all written
@@ -90,6 +94,10 @@
    mmc
       Added a 'set valid, <invalid_moves>' command, that gives you more 
       control over a termination criterion.
+
+   CIF interpreter
+      Added more flexibility to recognize non standard monoclinic space 
+      groups that are not listed as full Hermann-Mauguin symbol 
 3  2018_Oct
 
    In ==> 2017_July the following "correction" was done, which proved 
