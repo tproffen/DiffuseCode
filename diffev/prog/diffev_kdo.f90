@@ -22,6 +22,7 @@ USE diffev_show_mod
 USE diffev_refine
 USE diffev_random
 USE diffev_release_mod
+USE diffev_set_gen_mod
 !
 USE ber_params_mod
 USE blanks_mod
@@ -59,6 +60,7 @@ INTEGER                               :: kid, indiv, nindiv
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
 INTEGER                               :: str_length
+INTEGER                               :: new_gen
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
 !INTEGER, SAVE                         :: lastgen = -1
 LOGICAL                               :: back_new
@@ -480,9 +482,11 @@ ELSE
 !     -- initialise the sequence                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'init', 3, lbef, 4) ) THEN 
-      IF (pop_n.gt.3) THEN
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
          IF (ier_num.eq.0) THEN 
+      IF (pop_n.gt.3.or.                                                 &
+          str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1&
+          ) THEN
             IF (ianz.eq.0) THEN 
                pop_trial_file_wrt = .true.
                l_init_x = .true.
@@ -503,14 +507,10 @@ ELSE
                   ENDIF
                ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1) THEN
                   l_init_x = .false.
-                  CALL read_par_values              ! Make sure parent values are set
-                  CALL create_trial                 ! Make a new set
+                  CALL do_read_values(.TRUE.)         ! We need to read values as this can be the first command after a continue
                   CALL do_initialise (l_init_x)     ! Write empty log files
-                  CALL write_genfile                ! Write the "GENERATION" file
-                  IF(pop_gen > 0) THEN
-                     CALL write_current             ! Update the Current parameter file
-                     CALL write_parents             ! Add the current scan to the parameter files
-                  ENDIF
+                  pop_gen = 0
+                  CALL write_parents             ! Add the current scan to the parameter files
                ELSE
 !
 !                 If last parameter is 'silent' turn trial files off, else leave current status
@@ -570,12 +570,12 @@ ELSE
 !           Turn random state log ON
 !
             CALL diffev_random_on
-         ENDIF 
       ELSE 
          ier_num = - 3 
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
+         ENDIF 
 !                                                                 
 !     -- set the logfile file                                     
 !                                                                 
@@ -644,9 +644,9 @@ ELSE
             ENDIF 
          ENDIF 
       ENDIF 
-!  ELSEIF (str_comp (befehl, 'read', 4, lbef, 4) ) THEN
-!     pop_current = .FALSE.
-!     CALL do_read_values(.TRUE.)         ! Always try to read parameters as instructed by user
+   ELSEIF (str_comp (befehl, 'read', 4, lbef, 4) ) THEN
+      pop_current = .FALSE.
+      CALL do_read_values(.TRUE.)         ! Always try to read parameters as instructed by user
    ELSEIF (str_comp (befehl, 'run_mpi', 7, lbef, 7) ) THEN
       INQUIRE(FILE='GENERATION', EXIST=lexist)
       IF(lexist) THEN                     ! A GENERATION FILE EXISTS
@@ -908,6 +908,14 @@ ELSE
 !     -- Release a previously fixed parameter 'release'          
 !
    ELSEIF (str_comp (befehl, 'release', 3, lbef, 7) ) THEN 
+      IF (pop_gen <= 0 ) THEN
+         ier_num = -20
+         ier_typ = ER_APPL
+         ier_msg(1) = 'A single parameter can only be '
+         ier_msg(2) = 'released in generations > 0 '
+         ier_msg(3) = 'Run at least one compare       '
+         RETURN
+      ENDIF
       CALL do_release(zeile, length)
 !                                                                 
 !     -- set the selection mode 'selection'                       
@@ -972,6 +980,22 @@ ELSE
                   pop_type (nint (werte (1) ) ) = POP_REAL 
                ENDIF 
             ENDIF 
+         ENDIF 
+      ENDIF 
+!                                                                 
+!     -- Restart in a previous generation                         
+!                                                                 
+   ELSEIF (str_comp (befehl, 'restart' , 5, lbef, 7) ) THEN 
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num == 0) THEN 
+         IF (ianz == 1) THEN 
+            CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+            IF (ier_num.eq.0) THEN 
+               CALL set_gen(NINT(werte(1)))
+            ENDIF 
+         ELSE
+            ier_num = -6
+            ier_typ = ER_COMM
          ENDIF 
       ENDIF 
 !                                                                 
