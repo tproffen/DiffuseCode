@@ -428,6 +428,7 @@ list_index(:) = 0
          get_params: DO j = 1, pop_c                       ! Read all old parameters
             READ (iwr, *     ,iostat=iostatus) &
               &   ii, parent_val (j,0), pop_x (i, j)
+            child_val(j,0) = parent_val(j,0)
             IF(IS_IOSTAT_END(iostatus)) THEN 
                isuccess = -13
                EXIT get_params
@@ -975,6 +976,7 @@ list_index(:) = 0
 !
    IF(parent_current/= ' ') THEN    ! A file name exists, update
    i = 0
+   length = LEN_TRIM(parent_current)
    WRITE(fname, 950) parent_current(1:length), pop_name(i)(1:LEN_TRIM(pop_name(i)))
 !
 !  Loop over new files
