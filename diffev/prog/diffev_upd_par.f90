@@ -778,7 +778,7 @@ INTEGER              :: i, j, lcomm
 !                                                                       
 INTEGER              :: length_com 
 !                                                                       
-lcomm = length_com (string(1:lp), ikl) 
+lcomm = length_com (string(1:ikl), ikl) 
 ier_num = - 1 
 ier_typ = ER_FORT 
 DO i = 1, maxw 
