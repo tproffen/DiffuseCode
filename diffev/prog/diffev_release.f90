@@ -28,18 +28,20 @@ REAL                , DIMENSION(MAXW) :: werte = 0.0
 !
 INTEGER                               :: ianz
 INTEGER                               :: k
-INTEGER                               :: lb
+INTEGER                               :: lb, d_lb, d_ub
 LOGICAL                               :: lexist
 LOGICAL                               :: l_init_x
+LOGICAL                               :: ldismiss
 REAL                                  :: set_value
 REAL                                  :: set_xmin
 REAL                                  :: set_xmax
 !                                                                       
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 5
 INTEGER, PARAMETER :: O_RANGE = 1
 INTEGER, PARAMETER :: O_VALUE = 2
 INTEGER, PARAMETER :: O_MIN   = 3
 INTEGER, PARAMETER :: O_MAX   = 4
+INTEGER, PARAMETER :: O_DISMISS=5
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
@@ -47,11 +49,11 @@ INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name retu
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
-DATA oname  / 'range'  , 'value'   , 'min   '  , 'max  '   /
-DATA loname /  5       ,  5        ,  5        ,  5        /
-opara  =  (/ '-9999.00', '-9999.00', '-9999.00', '-9999.00' /)   ! Always provide fresh default values
-lopara =  (/  8        ,  8        , 8         , 8         /)
-owerte =  (/  -9999.   ,  -9999.   , -9999.0   , -9999.0   /)
+DATA oname  / 'range '  , 'value '   , 'min    '  , 'max   '  , 'dismiss'  /
+DATA loname /  6        ,  6         ,  6         ,  6        ,  6         /
+opara  =  (/ '-9999.00' , '-9999.00' , '-9999.00' , '-9999.00', '0.000000' /)   ! Always provide fresh default values
+lopara =  (/  8         ,  8         , 8          , 8         ,  8         /)
+owerte =  (/  -9999.    ,  -9999.    , -9999.0    , -9999.0   ,  0.0       /)
 !
 INQUIRE(FILE='GENERATION', EXIST=lexist)
 IF(lexist) THEN                ! A GENERATION FILE EXISTS
@@ -109,7 +111,42 @@ IF (ier_num == 0) THEN
             ENDIF
          ENDIF
       ENDIF
-      k = 0
+      ldismiss = .FALSE.
+      IF(opara(O_DISMISS) == '0.000000') THEN
+         d_lb = 0
+         d_ub = 0
+         ldismiss = .FALSE.
+      ELSEIF(opara(O_DISMISS) == 'none') THEN
+         d_lb = 0
+         d_ub = 0
+         ldismiss = .FALSE.
+      ELSEIF(opara(O_DISMISS) == 'all') THEN
+         d_lb = 1
+         d_ub = pop_n
+         ldismiss = .TRUE.
+      ELSEIF(opara(O_DISMISS) == 'best') THEN
+         d_lb = 2
+         d_ub = pop_n
+         ldismiss = .TRUE.
+      ELSE
+         ianz = NOPTIONAL
+         CALL ber_params (ianz, opara, lopara, owerte, NOPTIONAL)
+         IF(ier_num==0) THEN
+            d_lb = pop_n + 1 - NINT(owerte(O_DISMISS))
+            d_ub = pop_n
+            IF ( 0<d_lb .and. d_lb<=d_ub .and. d_ub<=pop_n) THEN
+               ldismiss = .TRUE.
+            ELSE
+               ier_msg(1) = 'Dismiss range must be zero to pop_n[1]'
+               ier_num = -6
+               ier_typ = ER_COMM
+               RETURN
+            ENDIF
+         ELSE
+            ier_msg(1) = 'Error calculating dismiss: value'
+            RETURN
+         ENDIF
+      ENDIF
       ident: DO k=1,pop_dimx
          IF(cpara(1)==pop_name(k)) THEN
             WRITE(cpara(1),'(I4)') k
@@ -140,6 +177,7 @@ IF (ier_num == 0) THEN
             pop_smax(lb) = MIN(pop_xmax(lb), set_value + 1.*owerte(O_RANGE))
             pop_refine(lb) = .TRUE.
             CALL init_x(lb,lb)
+            IF(ldismiss) CALL do_dismiss(d_lb,d_ub)
          ELSE
             ier_num = -6
             ier_typ = ER_COMM
