@@ -952,6 +952,10 @@
 !b   [value:<setpoint>]
 !b   [min:<pop_xmin>]
 !b   [max:<pop_xmax>]
+!b   [dismiss:<number>]
+!b   [dismiss:"all"]
+!b   [dismiss:"best"]
+!b   [dismiss:"none"]
 
    This command will initialize a parameter named <par_name> 
    to a range around the current best value. Its intent is 
@@ -982,6 +986,23 @@
    "min" and "max":
       min:pop_xmin
       max:pop_xmax
+
+   If all the children will produce R-values that are worse
+   than the parents, DIFFEV will discard these children and 
+   create the next generation based on all parents. As all  
+   parents reflect the state prior to the release, they all
+   correspond to identical values of the parameter that you 
+   wanted to release. In effect, the release is lost. 
+   To prevent this, the 'dismiss:' option will set the R-value
+   of a user specified number of parents to a very large 
+   value. This ensures that the corresponding children will 
+   certainly survive into the next generation. 
+   The values that the 'dismiss:' parameter may take are:
+   <number>  : A number from 0 to the population size pop_n[1]
+               The <number> worst parents are dismissed.
+   "all"     : All members are dismissed.
+   "best"    : All but the best member are dismissed.
+   "none"    : No member is dismissed. Same as <number>=0.
 2  reset
 !b reset
 
