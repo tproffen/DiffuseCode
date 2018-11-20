@@ -1,80 +1,87 @@
 !*****7**************************************************************** 
-      SUBROUTINE start_learn (zeile, lcomm) 
+SUBROUTINE start_learn (zeile, lcomm) 
 !-                                                                      
 !     These routines control if the commands typed in are               
-!     within a learning sequence or not ..                              
+!     within a learning ==ence or not ..                              
 !                                                                       
 !-                                                                      
-      USE build_name_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE learn_mod 
-      USE prompt_mod 
-      IMPLICIT none 
+USE build_name_mod
+USE errlist_mod 
+USE get_params_mod
+USE learn_mod 
+USE prompt_mod 
+!
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 12) 
+INTEGER, PARAMETER :: maxw = 12 
 !                                                                       
-      CHARACTER ( * ) zeile 
-      INTEGER lcomm 
+CHARACTER (LEN= * ), INTENT(INOUT) :: zeile 
+INTEGER            , INTENT(INOUT) :: lcomm 
 !                                                                       
-      CHARACTER(1024) fname 
-      CHARACTER(1024) cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER ip, ianz, len_str 
-      REAL werte (maxw) 
+!     CHARACTER(1024) fname 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER,             DIMENSION(MAXW) :: lpara
+REAL,                DIMENSION(MAXW) :: werte
+INTEGER :: ip, ianz, len_str 
 !                                                                       
-      IF (llearn) then 
-         ier_num = - 7 
-         ier_typ = ER_IO 
-      ELSE 
+IF (llearn) THEN 
+   ier_num = - 7 
+   ier_typ = ER_IO 
+ELSE 
 !                                                                       
-         CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-         IF (ier_num.eq.0) then 
-            IF (ianz.eq.1) then 
-               CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-               IF (ier_num.eq.0) then 
-                  fname = cpara (1) 
-               ENDIF 
-            ELSEIF (ianz.eq.0) then 
-               fname = pname (1:len_str (pname) ) //'.mac' 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
-            IF (ier_num.eq.0) then 
-               ip = index (fname, '.') 
-               IF (ip.eq.0) then 
-                  ip = index (fname, ' ') 
-                  fname = fname (1:ip - 1) //'.mac' 
-               ENDIF 
-               CALL oeffne (33, fname, 'unknown') 
-               IF (ier_num.ne.0) return 
-               llearn = .true. 
-               WRITE (output_io, 1000) fname (1:len_str (fname) ) 
-            ENDIF 
+   CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
+   IF (ier_num==0) THEN 
+      IF (ianz==1) THEN 
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+         IF (ier_num==0) THEN 
+            fname = cpara (1) 
          ENDIF 
-      ENDIF 
-!                                                                       
- 1000 FORMAT    (' ------ > Learning started, makrofile: ',a) 
-      END SUBROUTINE start_learn                    
-!*****7**************************************************************** 
-      SUBROUTINE ende_learn 
-!+                                                                      
-!     End of learning sequenze                                          
-!-                                                                      
-      USE errlist_mod 
-      USE learn_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      IF (.not.llearn) then 
-         ier_num = - 8 
-         ier_typ = ER_IO 
+      ELSEIF (ianz==0) THEN 
+         fname = pname (1:len_str (pname) ) //'.mac' 
       ELSE 
-         llearn = .false. 
-         CLOSE (33) 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
       ENDIF 
+      IF (ier_num==0) THEN 
+         ip = INDEX (fname, '.') 
+         IF (ip==0) THEN 
+            ip = INDEX (fname, ' ') 
+            fname = fname (1:ip - 1) //'.mac' 
+         ENDIF 
+         CALL oeffne (33, fname, 'unknown') 
+         IF (ier_num /= 0) return 
+         llearn = .true. 
+         WRITE (output_io, 1000) fname (1:LEN_TRIM (fname) ) 
+      ENDIF 
+   ENDIF 
+ENDIF 
 !                                                                       
-      END SUBROUTINE ende_learn                     
+1000 FORMAT    (' ------ > Learning started, makrofile: ',a) 
+!
+END SUBROUTINE start_learn                    
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE ende_learn 
+!+                                                                      
+!     End of learning ==enze                                          
+!-                                                                      
+USE errlist_mod 
+USE learn_mod 
+USE prompt_mod 
+!                                                                       
+IMPLICIT none 
+!                                                                       
+IF (.NOT.llearn) THEN 
+   ier_num = -8 
+   ier_typ = ER_IO 
+ELSE 
+   llearn = .false. 
+   CLOSE (33) 
+   WRITE (output_io, 1000) fname (1:LEN_TRIM (fname) ) 
+ENDIF 
+!
+1000 FORMAT    (' ------ > Learning finished, makrofile: ',a) 
+!                                                                       
+END SUBROUTINE ende_learn                     

@@ -2,10 +2,11 @@ MODULE learn_mod
 !+
 !     Learning mode flag
 !-
-   IMPLICIT NONE
-   PUBLIC
-   SAVE
+IMPLICIT NONE
+PUBLIC
+SAVE
 !
-   LOGICAL ::  llearn = .false.
+CHARACTER(LEN=1024) :: fname
+LOGICAL ::  llearn = .false.
 !
 END MODULE learn_mod
