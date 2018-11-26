@@ -1175,6 +1175,7 @@ use crystal_mod
 !                                                                       
                ELSEIF (str_comp (befehl, 'recreate', 3, lbef, 8) .OR.    &
                        str_comp (befehl,   'create', 3, lbef, 6) ) THEN 
+                  exist_defs: IF(ALLOCATED(def_main)) THEN    ! Are there any definitions
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
                   IF(ier_num==0) THEN
                      itype  = 0
@@ -1219,6 +1220,10 @@ use crystal_mod
                         ier_typ = ER_COMM
                      ENDIF
                   ENDIF
+                  ELSE exist_defs
+                     ier_num = -134
+                     ier_typ = ER_APPL
+                  ENDIF exist_defs
 !                                                                       
 !     ----reset to no      connectivity definition 'reset'                 
 !                                                                       
