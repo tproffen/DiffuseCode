@@ -1551,16 +1551,16 @@ INTEGER, PARAMETER                   :: AT_MAXP = 8
 INTEGER                              :: at_ianz
 CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !                                                                       
-      INTEGER          :: natoms, max_natoms
-      INTEGER          :: nscats, max_nscats
-      INTEGER          ::         max_n_mole
-      INTEGER          ::         max_n_type
-      INTEGER          ::         max_n_atom
+      INTEGER          :: natoms=0, max_natoms=0
+      INTEGER          :: nscats=0, max_nscats=0
+      INTEGER          ::         max_n_mole=0
+      INTEGER          ::         max_n_type=0
+      INTEGER          ::         max_n_atom=0
       INTEGER i, j, k
       INTEGER iatom 
-      INTEGER         :: n_mole  ! number of molecules in input file
-      INTEGER         :: n_type  ! number of molecule types in input file
-      INTEGER         :: n_atom  ! number of molecule atoms in input file
+      INTEGER         :: n_mole=0  ! number of molecules in input file
+      INTEGER         :: n_type=0  ! number of molecule types in input file
+      INTEGER         :: n_atom=0  ! number of molecule atoms in input file
       LOGICAL lread, lout 
       LOGICAL           :: need_alloc = .false. 
       INTEGER, EXTERNAL :: len_str
