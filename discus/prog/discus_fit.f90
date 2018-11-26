@@ -72,9 +72,6 @@ sum_zy = sum_yz
 det_z = sum_xx*sum_yy - sum_xy*sum_xy
 det_y = sum_zz*sum_xx - sum_zx*sum_zx
 det_x = sum_yy*sum_zz - sum_yz*sum_yz
-write(*,*) ' DET_Z ', det_z
-write(*,*) ' DET_Y ', det_y
-write(*,*) ' DET_X ', det_x
 IF(    ABS(det_z) >= ABS(det_x) .AND. ABS(det_z) >= ABS(det_y) ) THEN
    hkl(1) = (sum_yz*sum_xy - sum_xz*sum_yy)/det_z
    hkl(2) = (sum_xy*sum_xz - sum_xx*sum_yz)/det_z
@@ -97,7 +94,6 @@ if(dist<0.0) THEN
    dist   = -dist
 ENDIF
 !
-write(*,*) ' HKL, DIST ', hkl,dist
 !
 END SUBROUTINE dis_fit_plane
 !
