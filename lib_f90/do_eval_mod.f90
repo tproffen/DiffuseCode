@@ -40,7 +40,7 @@ CHARACTER(LEN=32) :: form_s
          ier_typ = ER_COMM 
          RETURN 
       ELSE 
-WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',PREC_MANTIS,')'
+WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',PREC_DIGIT,')'
 !                                                                       
 !     String substitution???                                            
 !                                                                       
