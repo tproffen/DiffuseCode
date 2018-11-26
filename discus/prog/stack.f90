@@ -1597,6 +1597,7 @@ more1: IF (st_nlayer.ge.1) then
                CALL test_file ( st_layer (i ), natoms, nscats, n_mole, &
                                 n_type, n_atom, -1*i, .false.)
             ENDIF
+            If(ier_num/=0) RETURN
             max_natoms = MAX(max_natoms, natoms)
             max_nscats = MAX(max_nscats, nscats)
             max_n_mole = MAX(max_n_mole, n_mole)
