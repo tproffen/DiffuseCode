@@ -13,11 +13,12 @@ USE ber_params_mod
       USE errlist_mod 
       USE do_string_alloc_mod
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 10
+      INTEGER, PARAMETER :: MAXW = 10
 !                                                                       
       CHARACTER(LEN=1024), INTENT(INOUT) :: line
       INTEGER            , INTENT(INOUT) :: i
@@ -25,6 +26,7 @@ USE ber_params_mod
 !
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) cstr , zeile
+CHARACTER(LEN=32) :: form_s
       INTEGER lpara (maxw) 
       INTEGER ianz, il 
       INTEGER length 
@@ -38,6 +40,7 @@ USE ber_params_mod
          ier_typ = ER_COMM 
          RETURN 
       ELSE 
+WRITE(form_s,'(A,I2.2,a,I2.2,A)')  '('' Value of '',a,'' = '',g',PREC_WIDTH,'.',PREC_MANTIS,')'
 !                                                                       
 !     String substitution???                                            
 !                                                                       
@@ -64,10 +67,10 @@ USE ber_params_mod
                DO i = 1, ianz 
 !              WRITE ( *, 2222) cpara (i) (1:length), werte (i) 
 !              IF (output_status.eq.OUTPUT_FILE) then 
-                  IF(lout) WRITE (output_io, 2222) cpara (i) (1:length), werte ( i)
+                  IF(lout) WRITE (output_io, form_s) cpara (i) (1:length), werte ( i)
 !              ENDIF 
                IF (lconn.and.lsocket.and.i.eq.1) then 
-                  IF(lout) WRITE (cstr, 2222) cpara (i) (1:lpara (i) ), werte (i) 
+                  IF(lout) WRITE (cstr, form_s) cpara (i) (1:lpara (i) ), werte (i) 
                   il = len_str (cstr) 
                   CALL socket_send (s_conid, cstr, il) 
                ENDIF 
@@ -87,7 +90,6 @@ USE ber_params_mod
          ENDIF 
       ENDIF 
 !                                                                       
- 2222 FORMAT    (' Value of ',a,' = ',g15.8) 
 3000  FORMAT(' Value is ',a)
 !
 END SUBROUTINE do_eval                        

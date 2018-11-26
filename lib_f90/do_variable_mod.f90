@@ -16,6 +16,7 @@ SUBROUTINE ersetz_variable (line, length)
 USE blanks_mod
 USE constants_mod
 USE errlist_mod 
+USE precision_mod
 USE string_extract_mod
 USE variable_mod
 !
@@ -73,15 +74,15 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
       IF (ianf.gt.1) zeile (1:ianf - 1) = substring (1:ianf - 1) 
       IF (var_type (i) .eq.      IS_REAL) THEN 
                                                                         
-         WRITE (dummy (1:15) , '(e15.8e2)') var_val (i) 
-         dummy (12:12) = 'e' 
-         ll = 15 
+         WRITE (dummy (1:PREC_WIDTH) , PREC_F_REAL) var_val (i) 
+         dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'e' 
+         ll = PREC_WIDTH
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 
       ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
-         WRITE (dummy (1:15) , '(i15)') nint (var_val (i) ) 
-         ll = 15 
+         WRITE (dummy (1:PREC_WIDTH) , PREC_F_INTE) nint (var_val (i) ) 
+         ll = PREC_WIDTH 
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          linsert = ll 

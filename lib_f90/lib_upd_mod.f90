@@ -13,6 +13,7 @@ USE constants_mod
 USE blanks_mod
 USE errlist_mod 
 USE param_mod 
+USE precision_mod
 USE random_mod 
 USE variable_mod
 IMPLICIT none 
@@ -58,12 +59,12 @@ search_var: DO i=var_sys+1, var_num
                kpara2 = MAX(1, kpara2)
                zeile(1:ikl - lcomm-1) = string(1:ikl - lcomm-1)
                IF(var_type(i)==      IS_INTE) THEN
-                  WRITE(zeile(ikl - lcomm:ikl + 13),'(i15)')                 &
+                  WRITE(zeile(ikl - lcomm:ikl + PREC_WIDTH-2),PREC_F_INTE)             &
                   NINT(var_field(var_entry(i))%var_value(kpara,kpara2))
                ELSEIF(var_type(i)==      IS_REAL) THEN
-                  WRITE(zeile(ikl - lcomm:ikl + 13),'(e15.8e2)')             &
+                  WRITE(zeile(ikl - lcomm:ikl + PREC_WIDTH-2),PREC_F_REAL)             &
                   var_field(var_entry(i))%var_value(kpara,kpara2)
-                  zeile (ikl + 11-lcomm:ikl + 11-lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
                ENDIF
                success = .TRUE.
 !write(*,*) 'PLACED ', zeile(1:50)
@@ -90,7 +91,7 @@ IF(.NOT.success) THEN
          IF (string (ikl - 1:ikl - 1) .eq.'i') THEN 
             IF (ianz.eq.1) THEN 
                IF (0.le.kpara.and.kpara.le.MAXPAR) THEN 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(i15)') inpara (   &
+                  WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_INTE) inpara (   &
                   kpara)                                                
                ELSE 
                   ier_num = - 8 
@@ -104,9 +105,9 @@ IF(.NOT.success) THEN
          ELSEIF (string (ikl - 1:ikl - 1) .eq.'r') THEN 
             IF (ianz.eq.1) THEN 
                IF (0.le.kpara.and.kpara.le.MAXPAR) THEN 
-                  WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') rpara (&
+                  WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) rpara (&
                   kpara)                                                
-                  zeile (ikl + 10:ikl + 10) = 'e' 
+                  zeile (ikl + PREC_MANTIS-1:ikl + PREC_MANTIS-1) = 'e' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -128,9 +129,9 @@ IF(.NOT.success) THEN
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
-                  WRITE (zeile (ikl - 3:ikl + 13) , '(e15.8e2)')        &
+                  WRITE (zeile (ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   res_para (kpara)                                      
-                  zeile (ikl + 8:ikl + 8) = 'e' 
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -151,7 +152,7 @@ IF(.NOT.success) THEN
             IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
-      WRITE (zeile (ikl - 4:ikl + 13) , '(i15    )') idum
+      WRITE (zeile (ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_INTE) idum
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 
@@ -169,8 +170,8 @@ IF(.NOT.success) THEN
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)
                IF (0.lt.kpara.and.kpara.le.MAXPAR) THEN
-                  WRITE(zeile(ikl - 6:ikl + 13), '(e15.8e2)') kupl_para(kpara)
-                  zeile (ikl + 5:ikl + 5) = 'e'
+                  WRITE(zeile(ikl - 6:ikl + PREC_WIDTH-2), PREC_F_REAL) kupl_para(kpara)
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -195,8 +196,8 @@ IF(.NOT.success) THEN
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)
                IF (0.lt.kpara.and.kpara.le.MAXPAR) THEN
-                  WRITE(zeile(ikl - 7:ikl + 13), '(e15.8e2)') kupl_deriv(kpara)
-                  zeile (ikl + 4:ikl + 4) = 'e'
+                  WRITE(zeile(ikl - 7:ikl + PREC_WIDTH-2), PREC_F_REAL) kupl_deriv(kpara)
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -219,9 +220,9 @@ IF(.NOT.success) THEN
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)
                IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) THEN
-                  WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)')        &
+                  WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   ref_para (kpara)
-                  zeile (ikl + 3:ikl + 3) = 'e'
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -246,8 +247,8 @@ IF(.NOT.success) THEN
 ENDIF 
 !
       IF (ier_num.eq.0) THEN 
-         ll = laenge+15 - ltyp - (iklz - ikl + 1) 
-         IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1:&
+         ll = laenge+PREC_WIDTH - ltyp - (iklz - ikl + 1) 
+         IF (iklz + 1.le.laenge) zeile (ikl + PREC_WIDTH-1:ll) = string (iklz + 1:&
          laenge)                                                        
          string = zeile 
       ELSE 

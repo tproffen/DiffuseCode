@@ -307,6 +307,7 @@ SUBROUTINE ersetz (line, iz1, iz2, ww, iverk, ll, lverk, lreal)
 !     Different format is used for real and integer numbers             
 !                                                                       
       USE blanks_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(INOUT) :: line 
@@ -325,9 +326,9 @@ SUBROUTINE ersetz (line, iz1, iz2, ww, iverk, ll, lverk, lreal)
       zeile = ' ' 
       IF (iz1.gt.1) zeile (1:iz1 - 1) = line (1:iz1 - 1) 
       IF (lreal) then 
-         lw = 15 
-         WRITE (zeile (iz1:iz1 + lw - 1) , '(e15.8e2)') ww 
-         zeile (iz1 + 11:iz1 + 11) = 'e' 
+         lw = PREC_WIDTH
+         WRITE (zeile (iz1:iz1 + lw - 1) , PREC_F_REAL) ww 
+         zeile (iz1 + PREC_MANTIS:iz1 + PREC_MANTIS) = 'e' 
       ELSE 
          lw = int (alog (abs (ww) + 1.) ) + 2 
          WRITE (form, 1000) lw 

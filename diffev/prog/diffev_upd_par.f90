@@ -11,6 +11,7 @@ USE blanks_mod
 USE errlist_mod 
 USE lib_upd_mod
 USE param_mod 
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -51,8 +52,8 @@ IF (lcomm.eq.1) then
    IF (string (ikl - 1:ikl - 1) .eq.'p') then 
       IF (ianz.eq.1) then 
          IF (0.le.kpara.and.kpara.le.MAXDIMX .and. kpara<=pop_dimx) THEN 
-            WRITE (zeile (ikl - 1:ikl + 13) , '(e15.8e2)') pop_para (kpara)                                      
-            zeile (ikl + 10:ikl + 10) = 'e' 
+            WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_para (kpara)
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
          ELSE 
             ier_num = - 8 
             ier_typ = ER_FORT 
@@ -71,7 +72,7 @@ ELSEIF (lcomm.eq.5) then
    IF (string (ikl - 5:ikl - 1) .eq.'pop_n') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-         WRITE (zeile (ikl - 5:ikl + 13) , '(i15    )') pop_n 
+         WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_n
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -80,7 +81,7 @@ ELSEIF (lcomm.eq.5) then
    ELSEIF (string (ikl - 5:ikl - 1) .eq.'pop_c') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-         WRITE (zeile (ikl - 5:ikl + 13) , '(i15    )') pop_c 
+         WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_c
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -89,7 +90,7 @@ ELSEIF (lcomm.eq.5) then
    ELSEIF (string (ikl - 5:ikl - 1) .eq.'bestm') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-         WRITE (zeile (ikl - 5:ikl + 13) , '(i15    )') pop_best 
+         WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_best 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -99,8 +100,8 @@ ELSEIF (lcomm.eq.5) then
       IF (ianz.eq.1) then 
          IF (0<pop_best .and. pop_best<=pop_n .and. pop_best<= MAXPOP) THEN
             IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-            WRITE (zeile (ikl - 5:ikl + 13) , '(e15.8e2)') child_val (pop_best,0)
-            zeile (ikl + 6:ikl + 6) = 'e' 
+            WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) child_val (pop_best,0)
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -116,8 +117,8 @@ ELSEIF (lcomm.eq.5) then
          IF( 0<kpara .and. kpara<=pop_dimx .and. kpara<=MAXDIMX) THEN
             IF( 0<kpara2 .and. kpara2<=pop_n .and. kpara2<=MAXPOP) THEN
                IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-               WRITE (zeile (ikl - 5:ikl + 13) , '(e15.8e2)') child ( kpara, kpara2)                                           
-               zeile (ikl + 6:ikl + 6) = 'e' 
+               WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) child ( kpara, kpara2)
+               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -142,8 +143,8 @@ ELSEIF (lcomm.eq.5) then
          IF( 0<kpara .and. kpara<=pop_dimx .and. kpara<=MAXDIMX) THEN
             IF( 0<kpara2 .and. kpara2<=pop_n .and. kpara2<=MAXPOP) THEN
                IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
-               WRITE (zeile (ikl - 5:ikl + 13) , '(e15.8e2)') pop_t ( kpara, kpara2)                                           
-               zeile (ikl + 6:ikl + 6) = 'e' 
+               WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_t ( kpara, kpara2)
+               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -173,8 +174,8 @@ ELSEIF (lcomm.eq.6) then
    IF (string (ikl - 6:ikl - 1) .eq.'diff_f') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-         WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') diff_f 
-         zeile (ikl + 5:ikl + 5) = 'e' 
+         WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_f
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -183,8 +184,8 @@ ELSEIF (lcomm.eq.6) then
    ELSEIF (string (ikl - 6:ikl - 1) .eq.'diff_k') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-         WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') diff_k 
-         zeile (ikl + 5:ikl + 5) = 'e' 
+         WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_k 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -194,8 +195,8 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (0<kpara .and. kpara<=pop_n .and. kpara<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') parent_val (kpara,0)                                                  
-            zeile (ikl + 5:ikl + 5) = 'e' 
+            WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) parent_val (kpara,0)
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -209,7 +210,7 @@ ELSEIF (lcomm.eq.6) then
    ELSEIF (string (ikl - 6:ikl - 1) .eq.'worstm') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-         WRITE (zeile (ikl - 6:ikl + 13) , '(i15    )') pop_worst 
+         WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_worst 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -219,8 +220,8 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (0<pop_worst .and. pop_worst<=pop_n .and. pop_worst<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
-            WRITE (zeile (ikl - 6:ikl + 13) , '(e15.8e2)') child_val (pop_worst,0)
-            zeile (ikl + 5:ikl + 5) = 'e' 
+            WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) child_val (pop_worst,0)
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -241,8 +242,8 @@ ELSEIF (lcomm.eq.7) then
    IF (string (ikl - 7:ikl - 1) .eq.'diff_cr') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
-         WRITE (zeile (ikl - 7:ikl + 13) , '(e15.8e2)') diff_cr 
-         zeile (ikl + 4:ikl + 4) = 'e' 
+         WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_cr 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -251,8 +252,8 @@ ELSEIF (lcomm.eq.7) then
    ELSEIF (string (ikl - 7:ikl - 1) .eq.'diff_lo') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
-         WRITE (zeile (ikl - 7:ikl + 13) , '(e15.8e2)') diff_local                                               
-         zeile (ikl + 4:ikl + 4) = 'e' 
+         WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_local
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -261,7 +262,7 @@ ELSEIF (lcomm.eq.7) then
    ELSEIF (string (ikl - 7:ikl - 1) .eq.'pop_gen') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
-            WRITE (zeile (ikl - 7:ikl + 13) , '(i15    )') pop_gen 
+            WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_gen 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -271,8 +272,8 @@ ELSEIF (lcomm.eq.7) then
       IF (ianz.eq.1) then 
          IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
             IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
-            WRITE (zeile (ikl - 7:ikl + 13) , '(e15.8e2)') pop_sigma (kpara)                                                  
-            zeile (ikl + 4:ikl + 4) = 'e' 
+            WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_sigma (kpara)
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
          ELSE
             ier_num = -14
             ier_typ = ER_APPL
@@ -296,7 +297,7 @@ ELSEIF (lcomm.eq.8) then
    IF (string (ikl - 8:ikl - 1) .eq.'diff_sel') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(i15    )') diff_sel_mode 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_INTE) diff_sel_mode
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -305,7 +306,7 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_dimx') then 
       IF (ianz.eq.1) then 
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-            WRITE (zeile (ikl - 8:ikl + 13) , '(i15    )') pop_dimx 
+            WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_INTE) pop_dimx 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -314,8 +315,8 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_lsig') then 
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pop_lsig ( kpara)                                                      
-         zeile (ikl + 3:ikl + 3) = 'e' 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_lsig ( kpara)
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -326,8 +327,8 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_xmin') then 
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pop_xmin ( kpara)                                                      
-         zeile (ikl + 3:ikl + 3) = 'e' 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_xmin ( kpara)
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -338,8 +339,8 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_xmax') then 
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pop_xmax ( kpara)                                                      
-         zeile (ikl + 3:ikl + 3) = 'e' 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_xmax ( kpara)
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -350,8 +351,8 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_smin') then 
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pop_smin ( kpara)                                                      
-         zeile (ikl + 3:ikl + 3) = 'e' 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_smin ( kpara)
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -362,8 +363,8 @@ ELSEIF (lcomm.eq.8) then
    ELSEIF (string (ikl - 8:ikl - 1) .eq.'pop_smax') then 
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
-         WRITE (zeile (ikl - 8:ikl + 13) , '(e15.8e2)') pop_smax ( kpara)                                                      
-         zeile (ikl + 3:ikl + 3) = 'e' 
+         WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_smax ( kpara)
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -383,8 +384,8 @@ ELSE
    ier_typ = ER_FORT 
 ENDIF 
 IF (ier_num.eq.0) then 
-   ll = laenge+15 - ltyp - (iklz - ikl + 1) 
-   IF (iklz + 1.le.laenge) zeile (ikl + 14:ll) = string (iklz + 1: laenge)                                                        
+   ll = laenge+PREC_WIDTH - ltyp - (iklz - ikl + 1) 
+   IF (iklz + 1.le.laenge) zeile (ikl + PREC_WIDTH-1:ll) = string (iklz + 1: laenge)                                                        
    string = zeile 
 ELSE
 ll = min (40, laenge)
