@@ -66,6 +66,7 @@ INTEGER             , DIMENSION(MAXW) :: lpara = 0
 LOGICAL                               :: back_new
 LOGICAL                               :: lexist
 LOGICAL                               :: lbest
+LOGICAL                               :: lsuccess
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
 REAL                , DIMENSION(MAXW) :: werte = 0.0
@@ -409,23 +410,29 @@ ELSE
 !     -- fix a parameter at a value                               
 !                                                                 
    ELSEIF (str_comp (befehl, 'fix', 3, lbef, 3) ) THEN 
-                  INQUIRE(FILE='GENERATION', EXIST=lexist)
-                  IF(lexist) THEN                ! A GENERATION FILE EXISTS
-                     CALL do_read_values(.TRUE.) ! We need to read values as this can be the first command after a continue
-                  ENDIF
-                  IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
-                     IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
-                     CALL do_initialise (l_init_x)
-                     pop_initialized = .TRUE.
-                  ENDIF
-                  IF(ier_num/=0) THEN
-                     ier_msg(1) = 'Check the GENERATION, the parameter and'
-                     ier_msg(2) = 'the lastfile for conflicting generation values'
-                     RETURN
-                  ENDIF
+      INQUIRE(FILE='GENERATION', EXIST=lexist)
+      IF(lexist) THEN                ! A GENERATION FILE EXISTS
+         CALL do_read_values(.TRUE.) ! We need to read values as this can be the first command after a continue
+      ENDIF
       IF (pop_n.gt.3) THEN
+         IF((pop_gen==0 .AND. .NOT. pop_initialized) .OR. .NOT.lexist) THEN   ! Population was not yet initialized
+            IF(pop_trialfile == ' ') pop_trial_file_wrt= .FALSE.
+            CALL do_initialise (l_init_x)
+            pop_initialized = .TRUE.
+         ENDIF
+         IF(ier_num/=0) THEN
+            ier_msg(1) = 'Check the GENERATION, the parameter and'
+            ier_msg(2) = 'the lastfile for conflicting generation values'
+            RETURN
+         ENDIF
          CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
          IF (ier_num == 0) THEN 
+            IF (ianz == 1) THEN 
+               cpara(2) = 'best'
+               lpara(2) = 4
+               ianz = 2
+            ENDIF
+!           
             IF (ianz == 2) THEN 
                lbest = .false.
 !              Check if parameter names were provided
@@ -446,6 +453,7 @@ ELSE
                   ELSE
                      ier_num = -6
                      ier_typ = ER_COMM
+                     ier_msg(1) = 'Parameter name unknown or not a proper number'
                      RETURN 
                   ENDIF 
                ELSE
@@ -455,6 +463,7 @@ ELSE
                   ELSE
                      ier_num = -6
                      ier_typ = ER_COMM
+                     ier_msg(1) = 'Parameter name unknown or not a proper number'
                      RETURN 
                   ENDIF 
                ENDIF 
@@ -471,11 +480,17 @@ ELSE
                   ier_typ = ER_COMM
                   RETURN 
                ENDIF 
+            ELSE
+               ier_num = -6
+               ier_typ = ER_COMM
+               RETURN
             ENDIF 
          ENDIF 
       ELSE 
          ier_num = - 3 
          ier_typ = ER_APPL 
+         ier_msg(1) = 'To fix a parameter a proper population size'
+         ier_msg(2) = 'must have been defined ==> pop_n[1], pop_c[1]'
          RETURN 
       ENDIF 
 !                                                                 
@@ -506,11 +521,26 @@ ELSE
                      pop_initialized = .TRUE.
                   ENDIF
                ELSEIF(str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1) THEN
+                  IF(.NOT.pop_current) THEN       ! Population has not been read/calculated
+                     INQUIRE(FILE='GENERATION', EXIST=lexist)
+                     IF(lexist) THEN                     ! A GENERATION FILE EXISTS
+                        CALL do_read_values(.TRUE.)         ! We need to read values as this can be the first command after a continue
+                     ELSE
+                        ier_num = -35
+                        ier_typ = ER_APPL
+                        RETURN
+                     ENDIF
+                  ENDIF
+                  IF(pop_gen>0) THEN
                   l_init_x = .false.
-                  CALL do_read_values(.TRUE.)         ! We need to read values as this can be the first command after a continue
                   CALL do_initialise (l_init_x)     ! Write empty log files
                   pop_gen = 0
                   CALL write_parents             ! Add the current scan to the parameter files
+                  ELSE
+                     ier_num = -20
+                     ier_typ = ER_APPL
+                     RETURN
+                  ENDIF
                ELSE
 !
 !                 If last parameter is 'silent' turn trial files off, else leave current status
