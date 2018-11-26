@@ -2330,13 +2330,18 @@ search: DO l=2,ncon
    ENDIF  ! 
 ENDDO search
 !
+!
 pos2(:)   = cr_pos(:,all_surface(2))
 bridge(1) = (cr_pos(1,ia)-cr_pos(1,all_surface(2)))   ! Calculate vector along bridge
 bridge(2) = (cr_pos(2,ia)-cr_pos(2,all_surface(2)))
 bridge(3) = (cr_pos(3,ia)-cr_pos(3,all_surface(2)))
 b_l       = sqrt (skalpro (bridge, bridge, cr_gten))     ! Calculate bridge length
 c_ang_ia  = (b_l**2 + dist(1)**2 -dist(2)**2) / (2.*b_l*dist(1))   ! COS(Angle in atom ia)
+IF(ABS(c_ang_ia) > 1.00) GOTO 9999
+!
 c_ang_nei = (b_l**2 + dist(2)**2 -dist(1)**2) / (2.*b_l*dist(2))   ! COS(Angle in atom ia)
+IF(ABS(c_ang_nei) > 1.00) GOTO 9999
+!
 dist_m    = (dist(1) * c_ang_ia) / b_l            ! relative length of 'midpoint' location
 x(1) = cr_pos(1,ia) + (cr_pos(1,all_surface(2))-cr_pos(1,ia))*dist_m ! Calculate midpoint
 x(2) = cr_pos(2,ia) + (cr_pos(2,all_surface(2))-cr_pos(2,ia))*dist_m
@@ -2380,6 +2385,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
+   WRITE(*   , 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
    zeile = line
    CALL do_ins(line, laenge)
@@ -2389,6 +2395,7 @@ DO im=1,mole_natoms                           ! Insert all atoms
    CALL check_symm
    sym_latom(cr_iscat(cr_natoms)) = .true.    ! Select atopm type for rotation
 ENDDO
+IF(cr_natoms==nold) GOTO 9999
 !
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
   CALL rotate_directly(neig(1), n_atoms_orig, mole_axis, surf_normal)
