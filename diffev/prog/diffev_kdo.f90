@@ -60,13 +60,11 @@ INTEGER                               :: kid, indiv, nindiv
 INTEGER                               :: ianz 
 INTEGER                               :: iianz 
 INTEGER                               :: str_length
-INTEGER                               :: new_gen
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
 !INTEGER, SAVE                         :: lastgen = -1
 LOGICAL                               :: back_new
 LOGICAL                               :: lexist
 LOGICAL                               :: lbest
-LOGICAL                               :: lsuccess
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
 REAL                , DIMENSION(MAXW) :: werte = 0.0
