@@ -2349,11 +2349,11 @@ x(3) = cr_pos(3,ia) + (cr_pos(3,all_surface(2))-cr_pos(3,ia))*dist_m
 !
 IF(angle>0.0) THEN                                 ! Bridge is not normal to surface_ normal
    WRITE(line, 1100) bridge, surf_normal
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    tangent(1:3) = res_para(1:3)
    WRITE(line, 1100) tangent, bridge
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    surf_normal(:) = res_para(1:3)
 ENDIF
@@ -2385,7 +2385,6 @@ DO im=1,mole_natoms                           ! Insert all atoms
    CALL struc_read_one_atom_internal(mole_name, im, posit, itype, iprop, isurface,in_mole,in_moleatom)
    posit(:) = posit(:) + origin(:)
    WRITE(line, 1000) mole_atom_name(itype), posit, mole_dw(itype)
-   WRITE(*   , 1000) mole_atom_name(itype), posit, mole_dw(itype)
    laenge = 60
    zeile = line
    CALL do_ins(line, laenge)
@@ -2432,7 +2431,7 @@ ENDIF
 DEALLOCATE(all_surface)
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE deco_place_bridge
 !
@@ -2637,7 +2636,7 @@ ENDDO search
 tangent(:) = cr_pos(:,all_surface (2)) - cr_pos(:,ia)  ! Vector between surface atoms
 t_l        = sqrt(skalpro(tangent, tangent, cr_gten))  ! Distance between surface atoms
 WRITE(line,1100) tangent, surf_normal                  ! Calculate rotation axis
-laenge = 81
+laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 sym_uvw(:) = res_para(1:3)
 !  Calculate angle in first trapezoid corner
@@ -2685,7 +2684,7 @@ sym_orig(:)    = cr_pos(:,n1)              ! Define origin in 1st attached molec
 v1(:) = cr_pos(:,n2) - cr_pos(:,n1)        ! Current vector from 1st to 2nd molecule atom
 v2(:) = w(:)         - cr_pos(:,n1)        ! Vector from 1st to target  2nd molecule atom
 WRITE(line,1100) v1, v2                    ! Rotation axis will be v1 x v2
-laenge = 81
+laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 sym_uvw(:) = res_para(1:3)
 IF(res_para(1)**2+res_para(2)**2+res_para(3)**2 >  1e-5) THEN !Non-zero axis
@@ -2741,7 +2740,7 @@ ENDIF
 DEALLOCATE(all_surface)
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE deco_place_double
 !
@@ -2920,7 +2919,7 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    ELSE
       WRITE(line,1100) x,surf_normal
    ENDIF
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    sym_uvw(:) = res_para(1:3)
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
@@ -2956,7 +2955,7 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    ELSE
       WRITE(line,1100) x,surf_normal
    ENDIF
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    sym_uvw(:) = res_para(1:3)
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)
@@ -2998,7 +2997,7 @@ IF(nold<cr_natoms) THEN                          ! We did insert a molecule
 ENDIF
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE deco_place_chelate
 !
@@ -3227,7 +3226,7 @@ u(:) = base(:)      - cr_pos(:,ia)         ! Vector from 1st surface to point be
 v(:) = cr_pos(:,n1) - cr_pos(:,ia)         ! Vector from 1st surface to             1st mole
 v_l      = sqrt(skalpro(v, v, cr_gten))    ! Bond length 1st surface to 1st mole
 WRITE(line,1100) u, v                      ! Do vector product 
-laenge = 81
+laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 sym_uvw(:) =  res_para(1:3)
 arg = (dist(1)**2 + dist(2)**2 - b_l**2)/(2.*dist(1)*dist(2))
@@ -3254,7 +3253,7 @@ posit(:) = cr_pos(:,ia) + res_para(1:3)    ! Add rotated vector to 1st surface
 ! next step rotate molecule for 2nd mole to fall onto target posit
 u(:) = posit(:) - cr_pos(:,n1)             ! Vector from 1st mole to target
 WRITE(line,1100) bridge, u                 ! Do vector product (1st to 2nd mole) x (1st mole to target)
-laenge = 81
+laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 sym_uvw(:) =  res_para(1:3)
 sym_angle  = do_bang(lspace, bridge, vnull, u) ! Angle (1st to 2nd mole) and (1st mole to target)
@@ -3273,20 +3272,20 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    a2 = n_atoms_orig + mole_axis(2)  ! dc_temp_axis(2)
    v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
    WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
-   laenge = 82                                   !   plane normal to the 
+   laenge = LEN_TRIM(line)                       !   plane normal to the 
    CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
    v3(:) = res_para(4:6)                         ! This is the projection
    WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
-   laenge = 81                                   !   vector between connected molecule atoms
+   laenge = LEN_TRIM(line)                       !   vector between connected molecule atoms
    CALL vprod(line, laenge)                      !   and surface normal
    w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
    WRITE(line,1200) v3, w                        ! Prepare projection
-   laenge = 82
+   laenge = LEN_TRIM(line)
    CALL do_proj(line, laenge)                    ! Project axis into plane 
    v2(:) = res_para(4:6)                         ! This is the projection
    alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
    WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    u(:) =  res_para(1:3)
    beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
@@ -3335,8 +3334,8 @@ success = 0                                   ! Clear error flag
    ENDIF
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
-1200 FORMAT(6(F12.6,', '),'dddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
+1200 FORMAT(6(G15.6E3,', '),'dddd')
 !
    END SUBROUTINE deco_place_multi
 !
@@ -3476,7 +3475,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             u(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)          ! Vector Hydrogen to surface atom
             v(:) = cr_pos(:, nold+neig) - cr_pos(:,nold+temp_secnd)  ! Vector Hydrogen to Neighbor in ligand
             WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
-            laenge = 81
+            laenge = LEN_TRIM(line)
             CALL vprod(line, laenge)
             sym_uvw(:)     =  res_para(1:3)
 !           sym_angle      = ANGLE_A_H_D - do_bang(lspace, u, VNULL, v) &
@@ -3521,11 +3520,11 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    w(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)               ! Vector anchor to Hydrogen
    u(:) = cr_pos(:,n2) - cr_pos(:,n1)                       ! Current molecule axis
    WRITE(line,1200) w, v                         ! Prepare projection normal onto H=>O vector
-   laenge = 82
+   laenge = LEN_TRIM(line)
    CALL do_proj(line, laenge)                    ! Project normal into plane normal to H=> O vector
    wp(:) =  res_para(4:6)                        ! Normal projected into plane normal to H=>O vector
    WRITE(line,1200) u, v                         ! Prepare projection axis   onto H=>O vector
-   laenge = 82
+   laenge = LEN_TRIM(line)
    CALL do_proj(line, laenge)                    ! Project axis into plane normal to H=> O vector
    up(:) =  res_para(4:6)                        ! Axis projected into plane normal to H=>O vector
    angle = do_bang(lspace, wp, VNULL, up)        ! angle between the two projections
@@ -3588,8 +3587,8 @@ cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SUR
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)  ! Anchor is no longer at a surface
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
-1200 FORMAT(6(F12.6,', '),'dddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
+1200 FORMAT(6(G15.6E3,', '),'dddd')
 !
 END SUBROUTINE deco_place_acceptor
 !
@@ -3755,7 +3754,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    u(:) = cr_pos(:, atom_env((1))) - cr_pos(:,ia)     ! Vector Hydrogen to Donor
    v(:) = cr_pos(:, nold+neig) - cr_pos(:,ia)          ! Vector Hydrogen to Neighbor in ligand
    WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
    angle = do_bang(lspace, u, VNULL, v) ! + gaslim(SIGMA_A_H_D, 2.0)
@@ -3765,7 +3764,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
       v(1) = v(1) + ran1(idum)
       v(2) = v(2) - ran1(idum)
       WRITE(line,1100) u,v                          ! Do vector product (mol_axis) x (projection)
-      laenge = 81
+      laenge = LEN_TRIM(line)
       CALL vprod(line, laenge)
       d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
       IF(d2 < EPS    ) THEN   !D==>H and H==>A are still parallel, silently give up, should not happen ?
@@ -3815,7 +3814,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    angle = do_bang(lspace,u, VNULL, w)
    IF(angle /= 0.0) THEN
       WRITE(line,1100) u,w                          ! Do vector product (mol_axis) x (projection)
-      laenge = 81
+      laenge = LEN_TRIM(line)
       CALL vprod(line, laenge)
       sym_uvw(:) = res_para(1:3)
    sym_angle     = angle
@@ -3866,7 +3865,7 @@ success = 0
 !
 !
 1000 FORMAT(a4,4(2x,',',F12.6))
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE deco_place_donor
 !
@@ -4002,7 +4001,7 @@ USE errlist_mod
    e1(:) = u (:) / u_l                    ! Normalize to 1 angstroem
    v (:) = cr_pos(:,good3) - cr_pos(:,good1)  ! Temporary vector
    WRITE(line,1100) e1,v                         ! Do vector product (e1) x (atom good 3)
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    e3(:) =  res_para(1:3)                 ! Result is cartesian z-axis
    v_l  = SQRT(skalpro(e3,e3,cr_gten))
@@ -4016,7 +4015,7 @@ USE errlist_mod
       e3(:) = -e3(:) / v_l                ! invert and Normalize to 1 angstroem
    ENDIF
    WRITE(line,1100) e3,e1                 ! Do vector product (e3) x (e1 )
-   laenge = 81
+   laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    e2(:) =  res_para(1:3)                 ! Result is cartesian y-axis
    v_l  = SQRT(skalpro(e2,e2,cr_gten))    ! cartesian x-coordinate of atom 2
@@ -4041,7 +4040,7 @@ USE errlist_mod
    base(:) = (cr_pos(:,neig(lgood,2))+ cr_pos(:,neig(kgood,3)))*0.5
    ENDIF
 !
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
    END SUBROUTINE deco_find_anchor
 !
@@ -4099,7 +4098,7 @@ nold = cr_natoms - mole_natoms
          v(:) = cr_pos(:,nold+tilt_atom(4)) - cr_pos(:,nold+tilt_atom(3))
          WRITE(line,1100) u, v                  ! Do vector product (e3) x (e1 )
          WRITE(*   ,1100) u, v                  ! Do vector product (e3) x (e1 )
-         laenge = 81
+         laenge = LEN_TRIM(line)
          CALL vprod(line, laenge)
          hkl(:) =  res_para(1:3)                 ! Result is cartesian y-axis
       ELSE
@@ -4130,7 +4129,7 @@ nold = cr_natoms - mole_natoms
    CALL symm_op_single                           ! Perform the operation
 ENDIF
 !
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE deco_tilt
 !
@@ -4190,20 +4189,20 @@ a1 = n_atoms_orig + mole_axis(1)              ! Absolute number for axis atom 1
 a2 = n_atoms_orig + mole_axis(2)              ! Absolute number for axis atom 2
 v1(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
 WRITE(line,1200) v1, sym_uvw                  ! First project molecule axis into 
-laenge = 82                                   !   plane normal to the 
+laenge = LEN_TRIM(line)                       !   plane normal to the 
 CALL do_proj(line, laenge)                    !   vector between connected molecule atoms
 v3(:) = res_para(4:6)                         ! This is the projection
 WRITE(line,1100) sym_uvw, surf_normal         ! Find normal to plane defined by
-laenge = 81                                   !   vector between connected molecule atoms
+laenge = LEN_TRIM(line)                       !   vector between connected molecule atoms
 CALL vprod(line, laenge)                      !   and surface normal
 w(:) = res_para(1:3)                          ! Need to project (projected) mol axis into plane normal to w
 WRITE(line,1200) v3, w                        ! Prepare projection
-laenge = 82
+laenge = LEN_TRIM(line)
 CALL do_proj(line, laenge)                    ! Project axis into plane 
 v2(:) = res_para(4:6)                         ! This is the projection
 alpha      = do_bang(lspace, surf_normal, vnull, v2)   ! Calculate angle normal and projection
 WRITE(line,1100) v3,v2                        ! Do vector product (mol_axis) x (projection)
-laenge = 81
+laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
 beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
@@ -4238,8 +4237,8 @@ CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
 CALL symm_setup
 CALL symm_op_single                           ! Perform the operation
 !
-1100 FORMAT(6(F12.6,', '),'ddd')
-1200 FORMAT(6(F12.6,', '),'dddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
+1200 FORMAT(6(G15.6E3,', '),'dddd')
 !
 END SUBROUTINE rotate_projected
 !
@@ -4254,6 +4253,7 @@ USE symm_mod
 USE symm_sup_mod
 USE trafo_mod
 USE param_mod
+use errlist_mod
 !
 IMPLICIT NONE
 !
@@ -4296,7 +4296,7 @@ axis_ligand(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
          ELSE
             WRITE(line,1100) axis_ligand, surf_normal
          ENDIF
-         laenge = 81
+         laenge = LEN_TRIM(line)
          CALL vprod(line, laenge)                      ! Make rotation axis
          sym_uvw(:) = res_para(1:3)
          CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
@@ -4305,7 +4305,7 @@ axis_ligand(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
          CALL symm_op_single                           ! Perform the operation
 ENDIF
 !
-1100 FORMAT(6(F12.6,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
 END SUBROUTINE rotate_directly
 !
