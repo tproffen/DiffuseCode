@@ -1029,7 +1029,7 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
       REAL val (maxz) 
       REAL werte (maxw) 
-      REAL range (3, 2) 
+      REAL range (2, 3) 
       REAL dxx, dyy 
       INTEGER np (3), icut (3), iii (3) 
       INTEGER maxpkt, maxzz, ianz 
