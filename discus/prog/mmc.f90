@@ -925,10 +925,17 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         CALL get_iscat (jjanz, cpara, lpara, verte,     &
                         maxw, .false.)                                  
                         CALL del_params (1, ianz, cpara, lpara, maxw) 
-!BDGDISPwrite(*,*) ' IANZ      ', ianz, iianz, jjanz
-!BDGDISPwrite(*,*) ' CPARA (1) ', cpara(1)(1:len_trim(cpara(1)))
-!BDGDISPwrite(*,*) ' CPARA (2) ', cpara(2)(1:len_trim(cpara(2)))
+                        IF (cpara (ianz) (1:2) .eq.'CO') then 
+                           mmc_cfac (ic, MC_DISP) = 50.00 
+                           ianz = ianz - 1 
+                        ELSEIF (cpara (ianz) (1:2) .eq.'EN') then 
+                           mmc_cfac (ic, MC_DISP) = 0.0 
+                           ianz = ianz - 1 
+                        ENDIF 
                         CALL ber_params (2, cpara, lpara, werte, maxw) 
+                        IF (mmc_cfac (ic, MC_DISP) /= 0.0) THEN 
+                           werte(2) = -500.*werte(1)
+                        ENDIF
                         DO i = 1, iianz 
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
@@ -1328,7 +1335,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL depth 
 !                                                                       
                                                                         
-!BDGDISPwrite(*,*) ' SET DEPTH ', ic, ie, is,js, depth
       IF (is.ne. - 1.and.js.ne. - 1) then 
          mmc_target_corr (ic, ie, is, js) = dist 
          mmc_target_corr (ic, ie, js, is) = dist 
@@ -1775,7 +1781,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       REAL :: rrrr 
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
-      INTEGER igen, itry, iacc_good, iacc_bad 
+      INTEGER igen, itry, iacc_good, iacc_neut, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
       INTEGER :: iselz=0, iselz2=0
       INTEGER lbeg (3) 
@@ -1830,6 +1836,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       igen = 0 
       itry = 0 
       iacc_good = 0 
+      iacc_neut = 0 
       iacc_bad = 0 
       loop = .true. 
       done = .true. 
@@ -1850,10 +1857,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          rdi (ic) = sqrt (rdi (ic) ) 
          rdj (ic) = sqrt (rdj (ic) ) 
       ENDIF 
-!BDGDISPwrite(*,*) ' idir ', idir(:)
-!BDGDISPwrite(*,*) ' jdir ', jdir(:)
       ENDDO 
-!BDGDISPread(*,*) i
 !                                                                       
 !     Initialize the different energies                                 
 !                                                                       
@@ -1927,28 +1931,21 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          iz (1, i) = iz1 (i) 
          iz (2, i) = iz2 (i) 
          ENDDO 
+         DO i = 1, 3 
+            v(i) = cr_pos(i, isel( 1)) - chem_ave_pos(i, is( 1) ) &
+                   -FLOAT(iz( 1, i) - 1) - cr_dim0(i, 1)
+            u(i) = cr_pos(i, isel( 2)) - chem_ave_pos(i, is( 2) ) &
+                   -FLOAT(iz( 2, i) - 1) - cr_dim0(i, 1)
+         ENDDO 
          laccept = mmc_allowed(cr_iscat(isel(1) ) ) .and.&
                    mmc_allowed(cr_iscat(isel(2) ) ) .and.&
                    check_select_status(isel(1),.true., cr_prop(isel(1) ), cr_sel_prop) .and.&
-                   check_select_status(isel(2),.true., cr_prop(isel(2) ), cr_sel_prop)                      
-!BDGDISPwrite(*,*) ' MOVE SWDISP, accepted ?', laccept
+                   check_select_status(isel(2),.true., cr_prop(isel(2) ), cr_sel_prop) .AND.&
+                   skalpro(u, v, cr_gten) < 0.0
       ELSEIF (mmc_move.eq.MC_MOVE_SWCHEM) then 
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
                           NALLOWED, mmc_allowed)                                                       
-!RBN_REP
-!isel(1) = 34
-!isel(2) = 37
-! call indextocell (isel(1), iz1,is(1))
-! call indextocell (isel(2), iz1,is(1))
-!iz1(1)  =  2
-!iz1(2)  =  2
-!iz1(3)  =  1
-!iz2(1)  =  2
-!iz2(2)  =  5
-!iz2(3)  =  1
-!is (1)  =  1
-!is (2)  =  1
          iselz = isel (1) 
          iselz2 = isel (2) 
          DO i = 1, 3 
@@ -2021,9 +2018,35 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ------- Displacement correlation                                  
 !                                                                       
             IF (mmc_cor_energy (ic, MC_DISP) ) then 
-               e_old (MC_DISP) = 0.0 
+            DO i = 1, 3 
+            v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
+            - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
+!              u(i) = v(i)
+!           v (i) = v (i) - disp (i, 0, ia) 
+            ENDDO 
+                  IF (chem_ldall (ic) ) then 
+                     DO i = 1, 3 
+                     jdir (i) = v (i) 
+                     ENDDO 
+                     rdj (ic) = skalpro (jdir, jdir, cr_gten) 
+                     IF (rdj (ic) .gt.0.0) then 
+                        rdj (ic) = sqrt (rdj (ic) ) 
+                     ELSE 
+                        rdj (ic) = 1.0 
+                     ENDIF 
+                     delta = 1.0 
+                  ELSE 
+                     DO i = 1, 3 
+                     idir (i) = chem_dir (i, 1, ic) 
+                     jdir (i) = chem_dir (i, 2, ic) 
+                     ENDDO 
+                     delta = skalpro (v, idir, cr_gten) / rdi (ic) 
+                  ENDIF 
+                  e_old (MC_DISP) = e_old (MC_DISP) + mmc_energy_dis (  &
+                  isel, ia, ic, iatom, icent, natom, jdir, delta,&
+                  rdj, valid_e)                                         
+                  valid_all = valid_all.or.valid_e 
                valid_all = .true. 
-!BDGDISPwrite(*,*) ' EOLD = 0 '
             ENDIF 
 !                                                                       
 !     ------- Displacement (Hooke's law) '                              
@@ -2125,7 +2148,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !     ------Modify the central atom                                     
 !                                                                       
-!BDGDISPwrite(*,*) ' ISEL 1 ', isel(1), cr_pos(:,isel(1)), isel(2), cr_pos(:,isel(2))
                DO j = 1, 3 
                disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is (1) )&
                - float (iz1 (j) - 1) - cr_dim0 (j, 1)                   
@@ -2140,8 +2162,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                cr_pos (j, isel (2) ) = cr_pos (j, isel (2) ) + disp (j, &
                0, 2)                                                    
                ENDDO 
-!BDGDISPwrite(*,*) ' ISEL 2 ', isel(1), cr_pos(:,isel(1)), isel(2), cr_pos(:,isel(2))
-!BDGDISPwrite(*,*) ' disp a ',      1 , disp  (:,0,   1 ),      2 , disp  (:,0,   2 )
             ELSEIF (mmc_move.eq.MC_MOVE_INVDISP) then 
 !                                                                       
 !-----      ------Switch displacement of a selected atom                
@@ -2187,11 +2207,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ----Loop over all modified atoms                                  
 !                                                                       
             DO ia = 1, natoms 
-!DBG_DECO   DO i = 1, 3 
-!DBG_DECO   v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
-!DBG_DECO   - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
-!DBG_DECO   v (i) = v (i) - disp (i, 0, ia) 
-!DBG_DECO   ENDDO 
 !                                                                       
 !     ------Loop over all defined neighbour interactions                
 !                                                                       
@@ -2217,15 +2232,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ------- Displacement correlation                                  
 !                                                                       
                IF (mmc_cor_energy (ic, MC_DISP) ) then 
-            DO i = 1, 3 
-            v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
-            - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
-              u(i) = v(i)
-            v (i) = v (i) - disp (i, 0, ia) 
-            ENDDO 
-!BDGDISPwrite(*,*) ' u  ', u(:)
-!BDGDISPwrite(*,*) ' v  ', v(:)
-!BDGDISPwrite(*,*) ' disp',disp(:,0,ia)
+                  DO i = 1, 3 
+                    v(i) = cr_pos(i, isel(ia)) - chem_ave_pos(i, is (ia)) &
+                           - FLOAT(iz(ia, i) - 1) - cr_dim0(i, 1)                   
+                  ENDDO 
                   IF (chem_ldall (ic) ) then 
                      DO i = 1, 3 
                      jdir (i) = v (i) 
@@ -2315,7 +2325,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             ENDDO 
             ENDDO 
             ENDDO 
-!BDGDISPwrite(*,*) ' IER; VALID_ALL ', ier_num, ier_typ, valid_all
             IF (ier_num.ne.0) then 
                RETURN 
             ENDIF 
@@ -2329,9 +2338,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
 !------ --- Test and accept/reject move                                 
 !                                                                       
-               CALL mmc_test_multi (iacc_good, iacc_bad, e_new, e_old,  &
-               laccept)                                                 
-!BDGDISPwrite(*,*) ' TEST_MULTI ' , laccept, e_old(MC_DISP), e_new(MC_DISP)
+               CALL mmc_test_multi (iacc_good, iacc_neut, iacc_bad,  &
+                    e_new, e_old,  laccept)                                                 
             ELSE 
                laccept = .false. 
             ENDIF 
@@ -2384,7 +2392,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       IF (mod (itry, mo_feed) .eq.0.and..not.done.and.loop) then 
          done = .true. 
-         IF(lout_feed) WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
+         IF(lout_feed) WRITE (output_io, 2000) igen, itry, iacc_good, iacc_neut, iacc_bad 
 !                                                                       
 !     ----New mmc_correlations for all energies                         
 !                                                                       
@@ -2431,7 +2439,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       IF(lout_feed) THEN
          WRITE (output_io, 3000) 
-         WRITE (output_io, 2000) igen, itry, iacc_good, iacc_bad 
+         WRITE (output_io, 2000) igen, itry, iacc_good, iacc_neut, iacc_bad 
       ENDIF
 !     lout = .true. 
       CALL mmc_correlations (lout_feed, 1.0) 
@@ -2495,8 +2503,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
       ENDIF
 !                                                                       
- 2000 FORMAT (/,' Gen: ',I8,' try: ',I8,' acc: (good/bad): ',I7,        &
-     &          ' / ',I7,'  MC moves ')                                 
+ 2000 FORMAT (/,' Gen: ',I8,' try: ',I8,' acc: (g/n/b): ',I7,        &
+     &          ' / ',I7,' / ',I7,'  MC moves ')                                 
  3000 FORMAT (/,' --- Final multiple energy configuration ---') 
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
@@ -2507,68 +2515,85 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
       END SUBROUTINE mmc_run_multi                  
 !*****7*****************************************************************
-      SUBROUTINE mmc_test_multi (iacc_good, iacc_bad, e_new, e_old,     &
-      laccept)                                                          
+SUBROUTINE mmc_test_multi (iacc_good, iacc_neut, iacc_bad, &
+           e_new, e_old, laccept)                                                          
 !+                                                                      
 !     Tests performed MC move                                           
 !-                                                                      
-      USE discus_config_mod 
-      USE mc_mod 
-      USE mmc_mod 
-      USE random_mod
-      IMPLICIT none 
+USE discus_config_mod 
+USE mc_mod 
+USE mmc_mod 
+USE random_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      INTEGER iacc_good, iacc_bad 
-      INTEGER i 
+INTEGER, INTENT(INOUT) :: iacc_good, iacc_neut, iacc_bad 
+REAL,    INTENT(IN)    :: e_old (0:MC_N_ENERGY) 
+REAL,    INTENT(IN)    :: e_new (0:MC_N_ENERGY) 
+LOGICAL, INTENT(OUT)   :: laccept 
 !                                                                       
-      REAL e_old (0:MC_N_ENERGY) 
-      REAL e_new (0:MC_N_ENERGY) 
-      REAL e_del 
-      REAL e_delta 
-      LOGICAL laccept 
+INTEGER :: i 
+REAL    :: e_del 
+REAL    :: e_ran 
+REAL    :: e_delta 
 !                                                                       
-      REAL ran1 
+REAL    :: ran1 
 !                                                                       
-      e_del = 0 
-      DO i = 1, MC_N_ENERGY 
-      IF (mmc_cor_energy (0, i) ) then 
-         e_delta = (e_new (i) - e_old (i) ) 
-         e_del = e_del + e_delta 
-         IF (e_delta.gt.0) then 
+e_del = 0.0
+DO i = 1, MC_N_ENERGY 
+   IF (mmc_cor_energy(0, i) ) then 
+      e_delta = NINT((e_new (i) - e_old (i) ) *1.0E4)*1.0E-4
+      e_del = e_del + e_delta 
+!     IF (e_delta.gt.0) then 
+!        e_aver_p (i) = e_aver_p (i) + e_delta 
+!        n_e_av_p (i) = n_e_av_p (i) + 1 
+!     ELSEIF (e_delta.lt.0) then 
+!        e_aver_m (i) = e_aver_m (i) + e_delta 
+!        n_e_av_m (i) = n_e_av_m (i) + 1 
+!     ELSE 
+!        n_e_av_z (i) = n_e_av_z (i) + 1 
+!     ENDIF 
+   ENDIF 
+ENDDO 
+IF (e_del <  0) then 
+   laccept = .true. 
+!     ELSEIF(e_del.eq.0) then                                           
+!       laccept = .true.                                                
+ELSE 
+   IF (mo_kt <  1.0e-10) then 
+      laccept = .false. 
+   ELSE 
+      e_ran = exp ( - e_del / mo_kt) 
+      e_ran = e_ran / (1 + e_ran) 
+      laccept = (e_ran.gt.ran1 (idum) ) 
+   ENDIF 
+ENDIF 
+!                                                                       
+IF (laccept) then 
+   IF (e_del <  0.0) then 
+      iacc_good = iacc_good+1 
+   ELSEIF(e_del==0) THEN
+      iacc_neut = iacc_neut + 1
+   ELSE 
+      iacc_bad = iacc_bad+1 
+   ENDIF 
+   DO i = 1, MC_N_ENERGY 
+      IF (mmc_cor_energy(0, i) ) THEN 
+         e_delta = NINT((e_new (i) - e_old (i) ) *1.0E4)*1.0E-4
+         IF (e_delta > 0.0) THEN 
             e_aver_p (i) = e_aver_p (i) + e_delta 
             n_e_av_p (i) = n_e_av_p (i) + 1 
-         ELSEIF (e_delta.lt.0) then 
+         ELSEIF (e_delta < 0.0) THEN 
             e_aver_m (i) = e_aver_m (i) + e_delta 
             n_e_av_m (i) = n_e_av_m (i) + 1 
          ELSE 
             n_e_av_z (i) = n_e_av_z (i) + 1 
          ENDIF 
       ENDIF 
-      ENDDO 
-      IF (e_del.lt.0) then 
-         laccept = .true. 
-!     ELSEIF(e_del.eq.0) then                                           
-!       laccept = .true.                                                
-      ELSE 
-         IF (mo_kt.lt.1.0e-10) then 
-            laccept = .false. 
-         ELSE 
-            e_del = exp ( - e_del / mo_kt) 
-            e_del = e_del / (1 + e_del) 
-            laccept = (e_del.gt.ran1 (idum) ) 
-         ENDIF 
-      ENDIF 
+   ENDDO
+ENDIF 
 !                                                                       
-      IF (laccept) then 
-         IF (e_del.lt.0.0) then 
-            iacc_good = iacc_good+1 
-         ELSE 
-            iacc_bad = iacc_bad+1 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE mmc_test_multi                 
+END SUBROUTINE mmc_test_multi                 
 !*****7*****************************************************************
       REAL function mmc_energy_occ (isel, ia, ic, iatom, icent,  &
       natom, valid_e)                                                   
@@ -2809,7 +2834,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
           chem_ctyp (ic) == CHEM_CON        ) then                                               
 !                                                                       
          IF (natom (icent) .ne.0) then 
-!BDGDISPwrite(*,*) ' CENTRAL ATOM ', isel(ia), iatom(0,icent), icent, natom(icent), delta, rdj(1)
             IF (isel (ia) .eq.iatom (0, icent) ) then 
 !                                                                       
 !     ----The selected atom is the central atom, check all atoms        
@@ -2833,9 +2857,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         ENDDO 
                         dx = skalpro (u, jdir, cr_gten) / rdj (ic) 
 !                                                                       
-!BDGDISPwrite(*,*) ' ENERGY ', dx, mmc_depth(ic, MC_DISP, 0, 0), is, js, mmc_depth(ic, MC_DISP,is,js),delta
-!BDGDISP                        mmc_energy_dis = mmc_energy_dis + mmc_depth (ic,&
-!BDGDISP                        MC_DISP, 0, 0) * delta * dx                     
+                        mmc_energy_dis = mmc_energy_dis + mmc_depth (ic,&
+                        MC_DISP, 0, 0) * delta * dx                     
                         valid_e = .true. 
                      ENDIF 
                   ENDIF 
@@ -2877,7 +2900,6 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          ENDIF 
       ENDIF 
 !                                                                       
-!BDGDISPwrite(*,*) ' ENERGY_DIS ', mmc_energy_dis
       END FUNCTION mmc_energy_dis                   
 !*****7*****************************************************************
       REAL function mmc_energy_spr (isel, ia, ic, iatom, patom, icent,  &
@@ -3837,9 +3859,6 @@ main_atoms:         DO i = 1, cr_natoms
             is = cr_iscat (i) 
             CALL chem_neighbour_multi (i, ic, iatom, patom, natom, ncent,     &
             maxatom)                                                          
-!!if(ic==3) then
-!write(*,*) (cr_iscat (iatom (kkk, icent) ), kkk=1,natom (1))
-!endif
             IF (ier_num.ne.0) return 
 !                                                                       
 !------ ---- In case of Displacement correlation, calculate             
@@ -3848,7 +3867,7 @@ main_atoms:         DO i = 1, cr_natoms
 is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) then 
                CALL indextocell (i, icc, is) 
                DO j = 1, 3 
-                  disi (j) = cr_pos (j, i) - chem_ave_pos (j, i) - &
+                  disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
                              float (icc (j) - 1) - cr_dim0 (j, 1)                                          
                ENDDO 
 !                                                                       
@@ -3927,8 +3946,6 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
                xi2 (is, js) = xi2 (is, js) + dpi**2 
                xj2 (is, js) = xj2 (is, js) + dpj**2 
                xnn (is, js) = xnn (is, js) + 1 
-!BDGDISPwrite(*,*) ' ACCUM MC_DISP', disj(1), dpj,  dpj**2, xnn (is, js), rdj
-!   xij (is, js), xi2(is,js), xj2 (is, js)
             ENDIF 
             ENDDO 
 !                     j ! Loop over all neighbours                      
@@ -4062,13 +4079,10 @@ corr_pair: DO is = 0, cr_nscat
 !                                                                       
 !     ----- correlation of displacements                                
 !                                                                       
-!BDGDISPwrite(*,*) 'CORR ?????? ', mmc_pair (ic, MC_DISP,1,1), rdi, rdj
 disp_pair: DO is = 0, cr_nscat 
          DO js = is, cr_nscat 
          IF (mmc_pair (ic, MC_DISP, is, js) == -1 ) then 
          je = MC_DISP 
-!BDGDISPwrite(*,*) 'SUMMS        ', is,js,xnn(is,js),xij(is,js),xi2(is,js),xj2(is,js)
-!BDGDISPwrite(*,*) 'SUMMS        ', js,is,xnn(js,is),xij(js,is),xi2(js,is),xj2(js,is)
          xnn (is, js) = xnn (is, js) + xnn (js, is) 
          xij (is, js) = xij (is, js) + xij (js, is) 
          xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
@@ -4077,8 +4091,6 @@ disp_pair: DO is = 0, cr_nscat
             xij (is, js) = xij (is, js) / float (xnn (is, js) ) 
             xi2 (is, js) = xi2 (is, js) / float (xnn (is, js) ) 
             xj2 (is, js) = xj2 (is, js) / float (xnn (is, js) ) 
-!BDGDISPwrite(*,*) 'CORRELATIONS ', is,js,xnn(is,js),xij(is,js),xi2(is,js),xj2(is,js) , &
-!BDGDISP        xij (is, js) / sqrt (xi2(is, js) * xj2 (is, js) )
 !                                                                       
             IF (xi2 (is, js) .ne.0.and.xj2 (is, js) .ne.0.0) then 
                mmc_ach_corr (ic, je, is, js) = xij (is, js) / sqrt (xi2 &

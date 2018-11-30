@@ -74,6 +74,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019_Dec
+
+   mmc
+      The displacement correlation did not really work, fixed.
 3  2018_Nov
 
    m[<number>] 
@@ -4048,16 +4052,18 @@
 
    Depending on the neighborhood type you must specify exactly one
    or several target energy types for each <ic>. The neighborhoods 
-   "vector", <cor>, and "angle" require one energy type, while the
+   "vector", "cor", and "angle" require one energy type, while the
    neighborhood "environment" may take several different energies.
    For each interaction <ic> you may specify several targets for different 
    atom combinations.
 
-   set "target",<ic>,"corr",     {<number> | <name> | "all"},
-                                 {<number> | <name> | "all"},
-                                 <correlation>, <energy>, {"CORR" | "ENER"}
-   set "target",<ic>,"corr",    ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
-                                ({<number> | <name> | "all"}[, {<number> | <name> | "all"}...]),
+   set "target",<ic>,"corr", {<number> | <name> | "all"},
+                             {<number> | <name> | "all"},
+                             <correlation>, <energy>, {"CORR" | "ENER"}
+   set "target",<ic>,"corr", ({<number> | <name> | "all"}
+                              [, {<number> | <name> | "all"}...]),
+                             ({<number> | <name> | "all"}
+                              [, {<number> | <name> | "all"}...]),
 
    A chemical short range order correlation is defined 
    between the two atom types. 
@@ -4070,10 +4076,10 @@
    will tend to be neighbors, while a positive <energy> favors
    opposite atoms next to each other.
    If you use several targets at the same time, it is necessary to 
-   use the "Ener" keyword. Otherwise, the feedback mechanism will
+   use the "ENER" keyword. Otherwise, the feedback mechanism will
    increase the absolute value of the Ising energy at each feedback 
    until the target <correlation> is achieved. This target will
-   therefor overrule the other targets that all have fixed energy
+   therefore overrule the other targets that all have fixed energy
    values.
    If you specify a positive correlation, like tom types will tend to
    cluster together, while for a negative correlation you will get 
@@ -4088,6 +4094,18 @@
    correlation will give you a crystal in which an atom of the first 
    group has an atom of the second group as neighbor.
 
+   set "target",<ic>,"cd",   {<number> | <name> | "all"},
+                             {<number> | <name> | "all"},
+                             <correlation>, <energy>, {"CORR" | "ENER"}
+
+   The intended correlation is a correlation between the displacements
+   of the atoms in the neighborhood. A positive correlation means
+   that the displacements from the average position shall be in the 
+   same direction, while a negative correlation means a preference
+   for opposing displacements. 
+   Equal displacements are characterized by a positive value of the 
+   scalar product of the two displacement vectors.
+  
 
    set "target",<ic>,"lennard",  {<number> | <name> | "all"},
                                  {<number> | <name> | "all"}, 

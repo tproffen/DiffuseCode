@@ -4390,6 +4390,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !DBGDISPwrite(*,*) ' CHEM CORR idir ', idir(:), rdi, chem_ldall (ic)
 !DBGDISPwrite(*,*) ' CHEM CORR jdir ', jdir(:), rdj
 !                                                                       
+!DBGDISPwrite(*,*) ' ACCUM  , dj(1),           dpj,             dpj**2,                 nn, xij,              rdj'
          atom_loop: DO i = 1, cr_natoms 
 !                                                                       
 !------ --- Check if selected atom is valid                             
@@ -5460,7 +5461,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             ianz = chem_cran_cent (0, iv) 
             DO j = 1, chem_cran_cent (0, iv) 
             werte (j) = chem_cran_cent (j, iv) 
-!write(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
+!!DBGDISPwrite(*,*) ' neighbours are       ', (iatom(j,ncent),j=1,natom(ncent))
             ENDDO 
             laccept = atom_allowed (jatom, werte, ianz, maxw) 
          ENDIF 
