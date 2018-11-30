@@ -3091,6 +3091,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    INTEGER                                 :: n1,n2          ! number of mol neighbours after insertion
    INTEGER                                 :: a1,a2          ! number of mol axis atoms after rotations
    INTEGER                                 :: success        ! Everything went fine
+   INTEGER  , DIMENSION(1:2)               :: is_good        ! Atom numbers of 2nd and 3rd surface sites
    INTEGER  , DIMENSION(1:4)               :: hkl
    LOGICAL  , DIMENSION(1:3)               :: fp
    LOGICAL                                 :: fq
@@ -3168,7 +3169,7 @@ surface(1:j) = anchor(1,1:j)
 surface(0) = j
 n1 = n_atoms_orig +     neig(1)  !Absolute number for 1st neighbor in molecule
 CALL deco_find_anchor(nsites(1), surface(0), surface, dist(1), ia,  &
-                      surf_normal, posit, base, success)
+                      surf_normal, posit, is_good, base, success)
 IF(success/=0) THEN ! DID not find a suitable anchor, flag error
    GOTO 9999
 ENDIF
@@ -3314,6 +3315,11 @@ cr_prop (n2) = IBCLR (cr_prop (n2), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SUR
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
 cr_prop (n1) = IBCLR (cr_prop (n1), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
 cr_prop (n2) = IBCLR (cr_prop (n2), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+DO j=1, 2
+  n1 = is_good(j)
+  cr_prop (n1) = IBCLR (cr_prop (n1), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+  cr_prop (n1) = IBCLR (cr_prop (n1), PROP_SURFACE_EXT)   ! Anchor is no longer at a surface
+ENDDO
 flagsurf: DO j=1,20
    IF(mole_surfnew(j)>0) THEN
       im = nold + mole_surfnew(j)
@@ -3872,7 +3878,7 @@ END SUBROUTINE deco_place_donor
 !*****7*****************************************************************
 !
    SUBROUTINE deco_find_anchor(MAXAT,MAXTYPE, surface, distance, ia, &
-                               normal, posit, &
+                               normal, posit, is_good, &
                                base, ierror)
 !-                                                                      
 !  Find a common point around MAXAT atom types in surface
@@ -3899,6 +3905,7 @@ USE errlist_mod
    REAL   , DIMENSION(1:3)    , INTENT(IN)  :: normal
    REAL   , DIMENSION(1:3)    , INTENT(OUT) :: posit
    REAL   , DIMENSION(1:3)    , INTENT(OUT) :: base
+   INTEGER, DIMENSION(1:2)    , INTENT(OUT) :: is_good
    INTEGER                    , INTENT(INOUT) :: ierror
 !
    LOGICAL, PARAMETER         :: lspace = .true. 
@@ -4011,6 +4018,7 @@ USE errlist_mod
    ENDIF
    IF(do_bang(lspace, e3, vnull, normal) <= 90) THEN
       e3(:) =  e3(:) / v_l                ! Normalize to 1 angstroem
+   is_good(1) = good2
    ELSE
       e3(:) = -e3(:) / v_l                ! invert and Normalize to 1 angstroem
    ENDIF
@@ -4039,6 +4047,8 @@ USE errlist_mod
    
    base(:) = (cr_pos(:,neig(lgood,2))+ cr_pos(:,neig(kgood,3)))*0.5
    ENDIF
+   is_good(1) = good2
+   is_good(2) = good3
 !
 1100 FORMAT(6(G15.6E3,', '),'ddd')
 !
