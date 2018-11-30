@@ -22,6 +22,7 @@ CONTAINS
       INTEGER, DIMENSION(np) :: iwerte = 0
 !                                                                       
       include'date.inc' 
+      CHARACTER(LEN=13)  :: is_debug
 !                                                                       
       pname     = 'kuplot'
       pname_cap = 'KUPLOT'
@@ -45,7 +46,12 @@ CONTAINS
 !                                                                       
       version = aktuell 
       IF(standalone) THEN
-         WRITE ( *, 1000) version, cdate 
+         IF(cdebug=='ON') THEN
+            is_debug = 'DEBUG VERSION'
+         ELSE
+            is_debug = '             '
+         ENDIF
+         WRITE ( *, 1000) version, is_debug, cdate 
          CALL write_appl_env (lstandalone,0)
       ENDIF
       CALL kuplot_auto_def 
@@ -56,7 +62,7 @@ CONTAINS
 !                                                                       
  1000 FORMAT (/,10x,59('*'),/,10x,'*',15x,                              &
      &        'K U P L O T   Version ',                                 &
-     &        a10,10x,'*',/,10x,'*',57x,'*',/                           &
+     &        a10,10x,'*',/,10x,'*',22(' '),a13,22(' '),'*',/           &
      &        10x,'*         Created : ',a35,3x,'*',/,10x,'*',          &
      &        57('-'),'*',/,10x,'* (c) Th. Proffen ',                   &
      &        '(tproffen@ornl.gov)                     *',/,            &

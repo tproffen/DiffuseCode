@@ -20,6 +20,7 @@ USE random_state_mod
 IMPLICIT none
 !                                                                       
       include'date.inc'
+CHARACTER(LEN=13)  :: is_debug
 LOGICAL                        :: lend
 INTEGER, PARAMETER  :: np = 1
 !REAL, DIMENSION(np) :: werte = 0.0
@@ -53,8 +54,13 @@ IF(run_mpi_myid==0) THEN
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
+IF(cdebug=='ON') THEN
+   is_debug = 'DEBUG VERSION'
+ELSE
+   is_debug = '             '
+ENDIF
 version   = aktuell
-WRITE ( *, 1000) version, cdate
+WRITE ( *, 1000) version, is_debug, cdate
 CALL write_appl_env (.TRUE., run_mpi_myid)
 ENDIF
 !                                                                       
@@ -77,7 +83,7 @@ lsetup_done = .true.
 1000 FORMAT (/,                                                              &
      10x,59('*'),/,                                                          &
      10x,'*', 9x,'D I S C U S - S U I T E  Version ',a6, 9x,'*',/,           &
-     10x,'*',57(' '),'*',/                                                   &
+     10x,'*',22(' '),a13,22(' '),'*',/                                       &
      10x,'*         Created : ',a35,3x,'*',/,                                &
      10x,'*',57('-'),'*',/,                                                  &
      10x,'* (c) R.B. Neder  ','(reinhard.neder@fau.de)                 *',/, &

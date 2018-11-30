@@ -27,6 +27,7 @@ INTEGER, PARAMETER  :: np = 1
 INTEGER, DIMENSION(np) :: iwerte = 0
 !                                                                       
       include'date.inc' 
+      CHARACTER(LEN=13)  :: is_debug
 !
       pname      = 'discus'
       pname_cap  = 'DISCUS'
@@ -62,7 +63,12 @@ CALL discus_autodef
 !                                                                       
 version = aktuell 
 IF(standalone) THEN
-   WRITE ( *, 1000) version, cdate 
+   IF(cdebug=='ON') THEN
+      is_debug = 'DEBUG VERSION'
+   ELSE
+      is_debug = '             '
+   ENDIF
+   WRITE ( *, 1000) version, is_debug, cdate 
    CALL write_appl_env (lstandalone, 0)
 ENDIF
 !                                                                       
@@ -75,7 +81,7 @@ lsetup_done = .true.
 !
  1000 FORMAT (/,10x,59('*'),/,                                      &
               10x,'*',15x,'D I S C U S   Version ',a10,10x,'*',/,   &
-              10x,'*',57(' '),'*',/                                 &
+              10x,'*',22(' '),a13,22(' '),'*',/                     &
      &        10x,'*         Created : ',a35,3x,'*',/,              &
               10x,'*',57('-'),'*',/,                                &
      &        10x,'* (c) R.B. Neder  ',                             &

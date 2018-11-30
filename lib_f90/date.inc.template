@@ -5,3 +5,5 @@
       parameter      (cdate='@BUILD_DATE@')
       character(10)  aktuell
       parameter      (aktuell='@DIFFUSE_VERSION_MAJOR@.@DIFFUSE_VERSION_MINOR@.@DIFFUSE_VERSION_PATCH@')
+      CHARACTER(LEN=10)  cdebug
+      PARAMETER (cdebug='@DEBUG@')
