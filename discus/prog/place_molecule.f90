@@ -3929,6 +3929,8 @@ USE errlist_mod
 !
    vnull(:) = 0.00
 !
+   good2     = ia
+   good3     = ia
    ierror    = 0
    neig(:,:) = 0
    rmin     = 0.0                  ! Minimum distance between surface atoms
