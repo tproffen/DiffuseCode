@@ -981,7 +981,7 @@ INTEGER         , INTENT(INOUT) :: laenge
 !
 CHARACTER(LEN=1024) :: zeile, string
 INTEGER             :: iv
-INTEGER             :: length, lll
+INTEGER             :: lll
 INTEGER             :: ikl
 
 main: DO
