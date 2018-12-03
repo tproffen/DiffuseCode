@@ -1562,6 +1562,17 @@ mole_int: IF(mk_infile_internal) THEN
        ALLOCATE ( temp_mole_cqua (0:temp_num_type), STAT = istatus)
        ALLOCATE ( temp_mole_fuzzy(0:temp_num_mole), STAT = istatus)
        ALLOCATE ( temp_mole_cont (0:temp_num_atom), STAT = istatus)
+       temp_mole_len  (0:temp_num_mole)= 0        ! Allocate temporary
+       temp_mole_off  (0:temp_num_mole)= 0        ! molecule arrays
+       temp_mole_type (0:temp_num_mole)= 0       
+       temp_mole_char (0:temp_num_mole)= 0       
+       temp_mole_file (0:temp_num_mole)= ' '    
+       temp_mole_dens (0:temp_num_mole)= 0.0
+       temp_mole_biso (0:temp_num_type)= 0.0
+       temp_mole_clin (0:temp_num_type)= 0.0
+       temp_mole_cqua (0:temp_num_type)= 0.0
+       temp_mole_fuzzy(0:temp_num_mole)= 0.0
+       temp_mole_cont (0:temp_num_atom)= 0       
        CALL stru_internal_molecules(infile, TEMP_MAX_MOLE, TEMP_MAX_TYPE, & ! Read domain 
               TEMP_MAX_ATOM, temp_num_mole, temp_num_type, & ! molecules
               temp_num_atom, temp_mole_len, temp_mole_off, temp_mole_type, & ! into temp
