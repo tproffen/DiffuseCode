@@ -24,6 +24,7 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    CHARACTER (LEN=80)                               ::  cr_name     = 'crystal' ! Crystal name
    CHARACTER (LEN=16)                               ::  cr_spcgr    = 'P1'      ! Space group symbol
    INTEGER                                          ::  cr_spcgrno  = 1 ! Space group number
+   INTEGER                                          ::  cr_spc_n    = 1 ! Number of symmetry operations
    INTEGER                                          ::  cr_syst     = 1 ! Crystal system
    LOGICAL                                          ::  cr_acentric = .true.
    INTEGER                                          ::  cr_ncatoms  = 1 ! Atoms in unit cell
@@ -120,6 +121,9 @@ CONTAINS
    PROCEDURE, PUBLIC, PASS :: get_n_mole           ! Return number of molecules types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_type           ! Return number of molecule types in this crystal
    PROCEDURE, PUBLIC, PASS :: get_n_atom           ! Return number of molecule atoms in this crystal
+   PROCEDURE, PUBLIC, PASS :: get_spcgr            ! Return space group name         in this crystal
+   PROCEDURE, PUBLIC, PASS :: get_spcgr_no         ! Return space group name         in this crystal
+   PROCEDURE, PUBLIC, PASS :: get_spc_n            ! Return space group name         in this crystal
    PROCEDURE, PUBLIC, PASS :: set_cryst_atom       ! Set iscat, posit, property
    PROCEDURE, PUBLIC, PASS :: set_cryst_at_lis     ! Set cr_at_lis
    PROCEDURE, PUBLIC, PASS :: set_cryst_dw         ! Set cr_dw
@@ -304,6 +308,42 @@ CONTAINS
    get_n_atom = this%cr_num_atom
 !
    END FUNCTION get_n_atom
+!******************************************************************************
+   CHARACTER(LEN=16) FUNCTION get_spcgr (this )
+!
+!  Return the space group string in  "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_spcgr = this%cr_spcgr
+!
+   END FUNCTION get_spcgr
+!******************************************************************************
+   INTEGER FUNCTION get_spcgr_no (this )
+!
+!  Return the space group number in  "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_spcgr_no = this%cr_spcgrno
+!
+   END FUNCTION get_spcgr_no
+!******************************************************************************
+   INTEGER FUNCTION get_spc_n (this )
+!
+!  Return the number of symmetry operations in  "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_spc_n = this%cr_spc_n
+!
+   END FUNCTION get_spc_n
 !******************************************************************************
    SUBROUTINE set_cryst_atom ( this, inum, itype, posit, iprop, isurface, iin_mole)
 !
@@ -490,6 +530,7 @@ CONTAINS
    USE gen_add_mod
    USE sym_add_mod
    USE modify_func_mod
+   USE wyckoff_mod
 
    IMPLICIT none
 !
@@ -512,6 +553,7 @@ CONTAINS
    this%cr_name         = cr_name
    this%cr_spcgr        = cr_spcgr
    this%cr_spcgrno      = cr_spcgrno
+   this%cr_spc_n        = spc_n
    this%cr_syst         = cr_syst
    this%cr_acentric     = cr_acentric
    IF(this%cr_sav_ncell) THEN
@@ -755,7 +797,7 @@ CONTAINS
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
             rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,                      &
+            rd_cr_spcgr, rd_cr_spc_n, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,         &
             rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
@@ -793,6 +835,7 @@ CONTAINS
    INTEGER                                      , INTENT(IN) :: rd_n_atom      ! Atoms in molecule in this crystal 
    INTEGER                                      , INTENT(IN) :: rd_cr_n_REAL_atoms 
    INTEGER                                      , INTENT(IN) :: rd_cr_spcgrno 
+   INTEGER                                      , INTENT(IN) :: rd_cr_spc_n 
    CHARACTER (LEN=  16)                         , INTENT(IN) :: rd_cr_spcgr 
    INTEGER                                      , INTENT(IN) :: rd_cr_syst 
    REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_a0
@@ -866,6 +909,7 @@ CONTAINS
    this%cr_name         = rd_cr_name
    this%cr_spcgr        = rd_cr_spcgr
    this%cr_spcgrno      = rd_cr_spcgrno
+   this%cr_spc_n        = rd_cr_spc_n
    this%cr_syst         = rd_cr_syst
    this%cr_acentric     = rd_cr_acentric
    IF(this%cr_sav_ncell) THEN

@@ -148,6 +148,7 @@ integer ier
    USE discus_allocate_appl_mod
 !   USE class_internal
    USE chem_mod
+   USE cryst_class
    USE crystal_mod
    USE molecule_mod
    USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
@@ -228,7 +229,8 @@ integer ier
       RETURN
    ENDIF
 !
-   CALL get_symmetry_matrices    ! Needed to get proper value of spc_n
+!  Get number of symmetry operations for propper allocations
+   spc_n = read_temp%crystal%get_spc_n()
 !
 !  Allocate enough space for one unit cell
    need_alloc = .false.
@@ -333,6 +335,13 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
          temp_look(ia) = i            !atom(iatom) is in molecule i
       ENDDO
    ENDDO
+   ELSE
+!
+!  Get header
+   CALL read_temp%crystal%get_header_from_crystal() ! Read the header
+   cr_icc = rd_icc               ! Restore crystal dimensions
+!
+   CALL get_symmetry_matrices                       ! Setup symmetry
    ENDIF found
 !
 !  Main loop over all atoms in the asymmetric unit   
