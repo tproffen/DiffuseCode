@@ -35,6 +35,7 @@ CONTAINS
       USE spcgr_mod 
       USE stack_rese_mod
       USE update_cr_dim_mod
+use wyckoff_mod
 !      USE interface_def
 !
       USE doact_mod 
@@ -291,7 +292,7 @@ CONTAINS
 !           four_last = FOUR_NN
 !                                                                       
 !     read an old structure 'stru'                                      
-!                                                                       
+!                       Ä                                                
          ELSEIF (str_comp (befehl, 'stru', 1, lbef, 4) ) then 
             IF (ianz.eq.1) then 
                CALL rese_cr 
@@ -5352,7 +5353,8 @@ USE discus_save_mod
 USE molecule_mod
 USE prop_para_func
 USE read_internal_mod
-USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc
+USE spcgr_apply
+USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 use wyckoff_mod
 !
 IMPLICIT none 
@@ -5366,14 +5368,21 @@ CHARACTER(LEN=200) :: tempfile
 CHARACTER(LEN=1024) :: line
 INTEGER :: length
 INTEGER :: im, j, iat
+LOGICAL :: lout
 INTEGER, DIMENSION(3) :: n_unit_cells  ! local copy to survive readstru 
 REAL, DIMENSION(3) :: vec     ! position of first atom in a molecule
 REAL, DIMENSION(3) :: fract   ! shift into first unit cell
 REAL, DIMENSION(3) :: shift   ! shift into first unit cell
 !
 n_unit_cells(:) = cr_icc(:)
+lout = .FALSE.
 !
 CALL do_readstru(strucfile)
+CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
+            cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
+            cr_fmat, cr_cartesian,                                      &
+            cr_tran_g, cr_tran_gi, cr_tran_f, cr_tran_fi)
+CALL get_symmetry_matrices 
 !
 ! Shift molecules such that the first atom has coordinates [0:1[
 !
@@ -5401,17 +5410,19 @@ moles: DO im = 1, mole_num_mole
 ENDDO moles
 !
 CALL save_store_setting             ! Backup user "save" setting
+!ELLAcall save_show
 CALL save_default_setting           ! Default to full saving
+!ELLAcall save_show
 line       = 'ignore, all'          ! Ignore all properties
 length     = 11
 CALL property_select(line, length, sav_sel_prop)
 tempfile = 'internal'//'RBN_READMOLE'
 CALL save_internal(tempfile)
-CALL save_restore_setting
 CALL no_error
 cr_icc(:) = n_unit_cells(:)         ! Restore intended number of unit cells
 CALL readcell_internal(tempfile)
-CALL store_remove_single(tempfile, ier_num)
+CALL save_restore_setting
+!CALL store_remove_single(tempfile, ier_num)
 !
 END SUBROUTINE readcell_mole
 !

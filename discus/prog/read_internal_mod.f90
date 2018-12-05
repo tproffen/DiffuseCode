@@ -231,6 +231,9 @@ integer ier
 !
 !  Get number of symmetry operations for propper allocations
    spc_n = read_temp%crystal%get_spc_n()
+!ELLAwrite(*,*) ' ATOMS, MOL '
+!ELLAwrite(*,*) natoms, &     ! Get the sizes of the internal crystal
+!ELLA                   nscat, n_mole, n_type, n_atom, spc_n
 !
 !  Allocate enough space for one unit cell
    need_alloc = .false.
@@ -285,6 +288,8 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
          RETURN
       ENDIF
    ENDIF
+!ELLAwrite(*,*) ' READ MOLECULE ', MOLE_MAX_MOLE, MOLE_MAX_TYPE, MOLE_MAX_ATOM
+!ELLAwrite(*,*) ' WILL READ mols', n_mole
 !
 !  Allocate temporary space for molecule info
 ! 
@@ -326,6 +331,10 @@ found: IF ( n_mole > 0 ) THEN      ! FOUND MOLECULES
               temp_num_atom, temp_len, temp_off, temp_type, temp_char,    &
               temp_file, temp_dens, temp_biso, temp_clin, temp_cqua,    &
               temp_fuzz, temp_cont)
+!ELLAwrite(*,*) ' DID  READ mols', n_mole, temp_num_mole
+!ELLAwrite(*,*) ' MOLE_TYPE     ', temp_type(0:)
+!ELLAwrite(*,*) ' MOLE_OFF      ', temp_off (0:)
+!ELLAwrite(*,*) ' MOLE_CONT     ', temp_cont(0:)
 !
 !  Build lookup table for original molecules
 !
@@ -365,6 +374,7 @@ main: do ia = 1, natoms
 mole_exist: if(n_mole > 0) THEN
       CALL read_temp%crystal%get_cryst_mole ( ia, i_mole, i_type,  &
                  i_char, c_file, r_fuzzy, r_dens, r_biso, r_clin, r_cqua)
+!ELLAwrite(*,*) ' READ ATOM ', ia, itype, i_mole, i_type, temp_look(ia)
 in_mole: IF ( temp_look(ia) > 0 ) THEN            ! This atom belongs to a molecule
             IF ( .not. mole_l_on .OR. temp_look(ia)> mole_num_curr ) THEN  ! Right now we are not in a molecule
                mole_l_on    = .true.              ! Turn molecule on
@@ -430,6 +440,7 @@ do_scat_dw: DO k = 1,cr_nscat
       cr_prop (cr_natoms) = iprop                 ! set the property flag
       CALL symmetry
    ENDDO main
+!ELLAwrite(*,*) ' READ ATOMS ', mole_num_mole, mole_num_type, mole_num_atom
 !
    CALL no_error 
 !                                                                       
