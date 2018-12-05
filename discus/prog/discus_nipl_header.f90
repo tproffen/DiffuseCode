@@ -41,6 +41,7 @@ ENDIF
 !
 nheader = nheader + ncrystal + nfourier
 ALLOCATE(header_lines(nheader))
+header_lines(:) = ' '
 !
 j = 1
 WRITE(header_lines(j), '(''# HEADER  : lines, sec  ;2I::'' , i8,'', '',i8)') nheader, nsection

@@ -656,6 +656,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ENDIF
             IF(.NOT.ALLOCATED(accum_hkl)) THEN
                ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+               accum_hkl(:,:) = 0
                accum_n = 0
             ELSE
             IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
@@ -669,6 +670,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   DEALLOCATE(temp_hkl)
                ELSE
                   ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+                  accum_hkl(:,:) = 0
                ENDIF
             ENDIF
             ENDIF
@@ -1302,6 +1304,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
 !
       CALL do_find_env (ianz, werte, maxw, x, rmin, radius, fq, fp)
       ALLOCATE(neigh(0:atom_env(0)))
+      neigh(:) = 0
       neigsurf = 0
       DO i=1, atom_env(0)               ! Pick out surface atom types only
          IF(IBITS(cr_prop(atom_env(i)),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is near surface

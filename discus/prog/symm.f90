@@ -400,6 +400,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                                  IF(ALLOCATED(sym_excl)) DEALLOCATE(sym_excl)
                                  sym_n_excl = ianz-1
                                  ALLOCATE(sym_excl(1:sym_n_excl))
+                                 sym_excl(:) = 0
                                  DO i=2,ianz
                                     sym_excl(i-1) = NINT(werte(i))
                                  ENDDO

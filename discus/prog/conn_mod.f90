@@ -246,6 +246,7 @@ use crystal_mod
 !
 !              FIND valid neighbors
                ALLOCATE(valid_neig(1:atom_env(0)))
+               valid_neig(:) = 0
                n_neig = 0
                list: DO j = 1, atom_env(0)                  ! Add all (intended) neighbors to list
                   ! Add current atom if scope matches the intended conditions
@@ -1962,7 +1963,8 @@ search1:  DO WHILE ( ASSOCIATED(hood_p) )        ! While there are further neigh
             ELSE
                ALLOCATE(c_offs(1:3,0:c_natoms))
             ENDIF
-            c_list = 0                           ! clear connectivity list
+            c_list(:) = 0                        ! clear connectivity list
+            c_offs(:,:) = 0                      ! clear connectivity list
             k = 0
             DO WHILE ( ASSOCIATED(p_atoms) )     ! While there are further neighbors
                k         = k+ 1

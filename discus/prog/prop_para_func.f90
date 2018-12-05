@@ -259,6 +259,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CALL del_params (2, ianz, cpara, lpara, MAXW) 
       IF (ier_num.ne.0) return 
       ALLOCATE(latom(0:MAXSCAT))
+      latom(:) =.FALSE.
       typesel: IF(sel_mode == TYPES) THEN
          CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
          IF (ier_num.ne.0) return 

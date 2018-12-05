@@ -1159,9 +1159,11 @@ END SUBROUTINE do_remove
          new_type(:)   = 0
          new_file(:)   = ' '
          new_char(:)   = 0
+         new_dens(:)   = 0
          new_biso(:)   = 0.0
          new_clin(:)   = 0.0
          new_cqua(:)   = 0.0
+         new_fuzz(:)   = 0.0
 !
          DO ia=1, cr_natoms           ! Loop over all atoms
             IF(cr_mole(ia)/=0) THEN   ! Atom is in a molecule

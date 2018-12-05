@@ -860,6 +860,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
       DEALLOCATE(anch_id)
    ENDIF
    ALLOCATE(anch_id(1:dcc_num*dcc_maxsurf,1:2))   ! make lookup for anchors
+   anch_id(:,:) = 0
 !  ALLOCATE(anch_id(1:dc_temp_id*dc_temp_maxsurf,1:2))   ! make lookup for anchors
    temp_grand = 1.0
 !
@@ -1281,7 +1282,7 @@ ENDIF
 !
 nanch = UBOUND(dcc_surf,2)
 ALLOCATE(anchor(1:2,0:UBOUND(dcc_surf,2)))
-anchor = 0
+anchor(:,:) = 0
 !
          istart = 1
          iend   = cr_natoms
