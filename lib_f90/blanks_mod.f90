@@ -113,4 +113,24 @@ END SUBROUTINE rem_insig_bl
 !
 !*****7**************************************************************** 
 !
+SUBROUTINE tab2blank(line, ll)
+!                                                                       
+!     Replaces all tabs by a group of 1 blank
+!                                                                       
+USE charact_mod
+IMPLICIT none
+!                                                                       
+CHARACTER ( LEN=* ), INTENT(INOUT) :: line
+INTEGER            , INTENT(INOUT) :: ll
+!
+INTEGER              :: i
+!
+DO i=1, ll
+   IF(line(i:i)== tab) line(i:i) = ' '
+ENDDO
+!
+END SUBROUTINE tab2blank
+!
+!*****7**************************************************************** 
+!
 END MODULE blanks_mod
