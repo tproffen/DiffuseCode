@@ -73,6 +73,7 @@ SUBROUTINE save_struc (string, lcomm)
 !     ----Parameters were found, write file immedeatly, and return      
 !         to calling routine                                            
 !                                                                       
+            CALL save_check_alloc()
             CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
             IF (ier_num.eq.0) THEN 
                sav_file = cpara (1) (1:lpara(1))
