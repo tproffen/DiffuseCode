@@ -13,7 +13,7 @@ SAVE
 !
 INTEGER, PRIVATE    :: ik
 INTEGER, PRIVATE    :: il
-INTEGER, PARAMETER  ::  SYM_ADD_MAX  =  14
+INTEGER, PARAMETER  ::  SYM_ADD_MAX  =  192
 !
 INTEGER                               ::  sym_add_n     = 0
 INTEGER, DIMENSION(SYM_ADD_MAX)       ::  sym_add_power = 1

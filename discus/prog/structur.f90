@@ -4118,6 +4118,7 @@ END SUBROUTINE rmc6f_period
       INTEGER               :: nblank
       LOGICAL               :: in_section
       LOGICAL               :: l_space_group
+      LOGICAL               :: l_numbers
       INTEGER               :: data_i
       REAL   , DIMENSION(6) :: latt! (6) 
       REAL   , DIMENSION(3) :: pos ! (6) 
@@ -4211,6 +4212,7 @@ getline: DO
          line_no = line_no + 1
          length  = len_str(rawline(line_no))
          CALL rem_leading_bl(rawline(line_no),length)
+         CALL tab2blank(rawline(line_no), length)
          IF(line_no == line_sig) EXIT getline
       ENDDO getline
       CLOSE(ird)
@@ -4315,7 +4317,8 @@ main: DO
 !
 !  Symmetry operators 
 !
-         is_symm  = INDEX(line,'_symmetry_equiv_pos_as_xyz')
+         is_symm  = MAX(INDEX(line,'_symmetry_equiv_pos_as_xyz'),       &
+                        INDEX(line,'_space_group_symop_operation_xyz'))
          IF(is_symm/=0) THEN                   ! Got a symmetry info
             symm_1 = nline + 1
             symm_2 = nline
@@ -4323,7 +4326,8 @@ main: DO
             count_symm: DO
                IF(rawline(nline+i)== ' ') EXIT count_symm
                IF(rawline(nline+i)(1:4)== 'loop') EXIT count_symm
-               IF(rawline(nline+i)(1:1)/= ''''  ) EXIT count_symm
+               IF(rawline(nline+i)(1:1)== '_'  ) EXIT count_symm
+               IF(rawline(nline+i)(1:1)== ';'  ) EXIT count_symm
                i = i+1
             ENDDO count_symm
             symm_2 = nline + i - 1
@@ -4686,7 +4690,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       l_space_group = .FALSE.
       IF(spcgr /= ' ') THEN
          length = LEN_TRIM(spcgr)
-         IF(spcgr(1:1) == '?') THEN  !'HM is a '?'
+         IF(spcgr(1:1) == '?' .OR. spcgr(2:2) == '?') THEN  !'HM is a '?'
             IF(symm_n>0) THEN 
                spcgr = 'P1'
             ELSE                     !, flag error but finish writing
@@ -4716,23 +4720,56 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             IF(l_space_group) THEN
                symm_n = 0
             ELSE                     !, flag error but finish writing
-               ier_num = -7
-               ier_typ = ER_APPL
+               IF(symm_n>0) THEN 
+                  WRITE(iwr, '(a,a,a)') '# spcgr ',spcgr(1:LEN_TRIM(spcgr)), &
+                                        ' # Original in CIF is UNKNOWN Used symmetry operations #'
+                  spcgr = 'P1'
+               ELSE                  !, flag error but finish writing
+                  ier_num = -7
+                  ier_typ = ER_APPL
+               ENDIF
             ENDIF
          ENDIF
          WRITE(iwr, 1100) spcgr(1:LEN_TRIM(spcgr))
-      ELSEIF(spcgr_no /= 0) THEN
-         WRITE(iwr, 1150) spcgr_no
-         symm_n = 0
-      ELSE
-         WRITE(iwr, 1170)
+      ELSE    ! spcgr is blank
+         IF(symm_n == 0) THEN   ! no symmetry operations
+            IF(spcgr_no /= 0) THEN
+               WRITE(iwr, 1150) spcgr_no
+               symm_n = 0
+            ELSE
+               WRITE(iwr, 1170)
+               symm_n = 0
+            ENDIF
+         ENDIF
       ENDIF
 !
       IF(symm_n>0) THEN 
+         l_numbers = .FALSE.
+         IF(rawline(symm_1)(1:1)=='1' ) THEN
+            length = len_trim(rawline(symm_1))
+            line = rawline(symm_1)(1:length)
+            CALL rem_bl(line, length)
+            IF(line(2:2)=='''' .OR. .NOT.(line(2:2)=='/' .OR. line(2:2)=='.')) THEN
+               l_numbers = .TRUE.
+            ENDIF
+         ENDIF
          write_symm: DO i=1, symm_n        ! interpret symmetry lines into matrix form
+            IF(l_numbers) THEN
+               IF(i<10) THEN 
+                 rawline(symm_1+i-1)(1:1) = ' '
+               ELSEIF(i<100) THEN 
+                 rawline(symm_1+i-1)(1:2) = '  '
+               ELSEIF(i<1000) THEN 
+                 rawline(symm_1+i-1)(1:3) = '   '
+               ENDIF
+            ENDIF
             symm_mat(:,:) = 0.0
             iquote1 = INDEX(rawline(symm_1+i-1),'''', .FALSE.)
-            iquote2 = INDEX(rawline(symm_1+i-1),'''', .TRUE.)
+            IF(iquote1>0) THEN
+               iquote2 = INDEX(rawline(symm_1+i-1),'''', .TRUE.)
+            ELSE
+               iquote2 = LEN_TRIM(rawline(symm_1+i-1))+1
+            ENDIF
             length_b= iquote2-iquote1-1
             CALL get_params (rawline(symm_1+i-1) (iquote1+1:iquote2-1), iianz, cspara, lspara, 3, length_b)
             CALL do_cap(cspara(1))
@@ -4749,6 +4786,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                   IF(ix>1.AND.cspara(j)(ix-1:ix-1)=='-') THEN
                      symm_mat(j,1) = -1.0
                      cspara(j)(ix-1:ix-1) = ' '
+                  ELSEIF(ix>1.AND.cspara(j)(ix-1:ix-1)=='+') THEN
+                     symm_mat(j,1) = +1.0
+                     cspara(j)(ix-1:ix-1) = ' '
                   ENDIF
                ENDIF
                IF(iy>0) THEN 
@@ -4757,6 +4797,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                   IF(iy>1.AND.cspara(j)(iy-1:iy-1)=='-') THEN
                      symm_mat(j,2) = -1.0
                      cspara(j)(iy-1:iy-1) = ' '
+                  ELSEIF(iy>1.AND.cspara(j)(iy-1:iy-1)=='+') THEN
+                     symm_mat(j,2) = +1.0
+                     cspara(j)(iy-1:iy-1) = ' '
                   ENDIF
                ENDIF
                IF(iz>0) THEN 
@@ -4764,6 +4807,9 @@ find:       DO WHILE (ASSOCIATED(TEMP))
                   cspara(j)(iz:iz) = ' '
                   IF(iz>1.AND.cspara(j)(iz-1:iz-1)=='-') THEN
                      symm_mat(j,3) = -1.0
+                     cspara(j)(iz-1:iz-1) = ' '
+                  ELSEIF(iz>1.AND.cspara(j)(iz-1:iz-1)=='+') THEN
+                     symm_mat(j,3) = +1.0
                      cspara(j)(iz-1:iz-1) = ' '
                   ENDIF
                ENDIF
@@ -4781,7 +4827,6 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             ENDDO
             CALL ber_params (3, cspara, lspara, wwerte, 3) 
             symm_mat(1:3,4) = wwerte(1:3)
-            WRITE(*  , 1180) ((symm_mat(j,k),k=1,4),j=1,3), 1
             WRITE(iwr, 1180) ((symm_mat(j,k),k=1,4),j=1,3), 1
          ENDDO write_symm
       ENDIF
@@ -5422,7 +5467,7 @@ CALL no_error
 cr_icc(:) = n_unit_cells(:)         ! Restore intended number of unit cells
 CALL readcell_internal(tempfile)
 CALL save_restore_setting
-!CALL store_remove_single(tempfile, ier_num)
+CALL store_remove_single(tempfile, ier_num)
 !
 END SUBROUTINE readcell_mole
 !

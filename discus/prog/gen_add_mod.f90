@@ -11,7 +11,7 @@ MODULE gen_add_mod
 !
 INTEGER, PRIVATE    ::  ik
 INTEGER, PRIVATE    ::  il
-INTEGER, PARAMETER  ::  GEN_ADD_MAX  =  14
+INTEGER, PARAMETER  ::  GEN_ADD_MAX  =  192
 !
 INTEGER             ::  gen_add_n                  = 0
 INTEGER             ::  gen_add_power(GEN_ADD_MAX) = 1

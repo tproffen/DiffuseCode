@@ -25,8 +25,8 @@ INTEGER             :: mk_natoms   = 0
 !
 INTEGER             :: mk_spcgr_ianz = 1,mk_spcgr_para = 0
 INTEGER             :: mk_spcgr_no = 1
-INTEGER, PARAMETER  ::  mk_GEN_ADD_MAX  =  14
-INTEGER, PARAMETER  ::  mk_SYM_ADD_MAX  =  14
+INTEGER, PARAMETER  ::  mk_GEN_ADD_MAX  =  192
+INTEGER, PARAMETER  ::  mk_SYM_ADD_MAX  =  192
 !
 INTEGER             ::  mk_gen_add_n                  = 0
 INTEGER             ::  mk_gen_add_power(mk_GEN_ADD_MAX) = 1
