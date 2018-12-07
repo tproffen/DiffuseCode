@@ -54,12 +54,12 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    REAL              , DIMENSION(4,4)               ::  cr_tran_fi      ! trans to cartesian
 !
    INTEGER                                          ::  cr_gen_add_n         = 0
-   INTEGER                                          ::  cr_gen_add_power(14) = 1
-   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_gen_add   ! Additional Generator matrices (4,4,0:14)
+   INTEGER                                          ::  cr_gen_add_power(192) = 1
+   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_gen_add   ! Additional Generator matrices (4,4,0:192)
 !
    INTEGER                                          ::  cr_sym_add_n         = 0
-   INTEGER                                          ::  cr_sym_add_power(14) = 1
-   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_sym_add   ! Additional Symmetry matrices (4,4,0:14)
+   INTEGER                                          ::  cr_sym_add_power(192) = 1
+   REAL              , DIMENSION(:,:,:),ALLOCATABLE ::  cr_sym_add   ! Additional Symmetry matrices (4,4,0:192)
 !
    REAL              , DIMENSION(:,:), ALLOCATABLE  ::  cr_scat   ! Scattering curves (9,0:MAXSCAT)
    REAL              , DIMENSION(  :), ALLOCATABLE  ::  cr_delfr  ! anomalous scattering real part (  0:MAXSCAT)
@@ -191,8 +191,8 @@ CONTAINS
       DEALLOCATE ( this%cr_mole_cqua , STAT=istatus ) ! Always deallocate molecules
       DEALLOCATE ( this%cr_mole_fuzzy, STAT=istatus ) ! Always deallocate molecules
    ENDIF
-   ALLOCATE ( this%cr_gen_add (4,4,0:14 ), STAT=istatus )  ! Allocate equivalent atom names
-   ALLOCATE ( this%cr_sym_add (4,4,0:14 ), STAT=istatus )  ! Allocate equivalent atom names
+   ALLOCATE ( this%cr_gen_add (4,4,0:192), STAT=istatus )  ! Allocate equivalent atom names
+   ALLOCATE ( this%cr_sym_add (4,4,0:192), STAT=istatus )  ! Allocate equivalent atom names
    ALLOCATE ( this%cr_scat    (11,0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_delfr   (  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
    ALLOCATE ( this%cr_delfi   (  0:nscat), STAT=istatus ) ! Allocate equivalent atom names
@@ -217,8 +217,8 @@ CONTAINS
    ALLOCATE ( this%cr_mole_cqua (0:n_type), STAT=istatus ) ! Allocate molecules
    ALLOCATE ( this%cr_mole_fuzzy(0:n_mole), STAT=istatus ) ! Allocate molecules
 !
-   this%cr_gen_add (4,4,0:14 ) = 0.0
-   this%cr_sym_add (4,4,0:14 ) = 0.0
+   this%cr_gen_add (4,4,0:192) = 0.0
+   this%cr_sym_add (4,4,0:192) = 0.0
    this%cr_scat    (11,0:nscat) = 0.0
    this%cr_delfr   (  0:nscat) = 0.0
    this%cr_delfi   (  0:nscat) = 0.0
@@ -1232,7 +1232,7 @@ CONTAINS
 !
    cr_natoms       = this%cr_natoms
 !
-   IF ( sav_w_ncell ) THEN
+   IF ( this%cr_sav_ncell ) THEN
       cr_ncatoms   = this%cr_ncatoms
       cr_icc       = this%cr_icc
    ELSE
@@ -1249,7 +1249,7 @@ CONTAINS
                                 cr_icc (3) )
    ENDIF
 !
-   IF ( sav_w_gene ) THEN
+   IF ( this%cr_sav_gene ) THEN
       gen_add_n    = this%cr_gen_add_n
       gen_add_power= this%cr_gen_add_power
       gen_add      = this%cr_gen_add
@@ -1258,7 +1258,7 @@ CONTAINS
       gen_add_power= 1
       gen_add      = 0.0
    ENDIF
-   IF ( sav_w_symm ) THEN
+   IF ( this%cr_sav_symm ) THEN
       sym_add_n    = this%cr_sym_add_n
       sym_add_power= this%cr_sym_add_power
       sym_add      = this%cr_sym_add
@@ -1479,7 +1479,7 @@ CONTAINS
    mole_num_mole = this%cr_num_mole
    mole_num_type = this%cr_num_type
    mole_num_atom = this%cr_num_atom
-   IF ( sav_w_mole .or. sav_w_obje .or. sav_w_doma ) THEN
+   IF ( this%cr_sav_mole .or. this%cr_sav_obje .or. this%cr_sav_doma ) THEN
       FORALL ( ia=0:mole_num_type)
          mole_biso (ia) = this%cr_mole_biso (ia)
          mole_clin (ia) = this%cr_mole_clin (ia)
