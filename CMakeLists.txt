@@ -11,20 +11,19 @@ elseif (${CMAKE_Fortran_COMPILER} MATCHES "pgf")
   set(PGF TRUE)
 endif (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
 
-
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   # gfortran 2008 doesn't exist until gcc 4.6
-  exec_program(${CMAKE_C_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gcc_version_info)
-  if ( _gcc_version_info VERSION_LESS 4.6)
-    message (SEND_ERROR "Too old of a version GNU  ${_gcc_version_info} (Need >=4.6).")
-  endif( _gcc_version_info VERSION_LESS 4.6)
+  exec_program(${CMAKE_Fortran_COMPILER} ARGS "-dumpversion" OUTPUT_VARIABLE _gf90_version_info)
+  if ( _gf90_version_info VERSION_LESS 4.6)
+    message (SEND_ERROR "Too old of a version GNU  ${_gf90_version_info} (Need >=4.6).")
+  endif( _gf90_version_info VERSION_LESS 4.6)
 endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 29)
-set (DIFFUSE_VERSION_PATCH 0)
+set (DIFFUSE_VERSION_PATCH 1)
 
 # Readline required for all programs
 
@@ -45,10 +44,8 @@ set (DIFFUSE_LIBS ${READLINE_LIBRARY})
 
 set (CMAKE_CXX_FLAGS "-fPIC")
 set (CMAKE_C_FLAGS "-fPIC")
-set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -finit-local-zero")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic")
-#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wmaybe-uninitialized -fwhole-file -fimplicit-none  -pedantic")
+#set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 -finit-local-zero")
+set (CMAKE_Fortran_FLAGS "-fPIC -cpp -O3 ")
 
 # Set different compiler flags for Portland compiler
 if (PGF)
@@ -60,13 +57,18 @@ endif (PGF)
 option(DEBUG "DEBUG" OFF)
 if (DEBUG)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
+# set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
+# set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
+# set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic")
+  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none  -pedantic -Wuninitialized")
 endif (DEBUG)
 
 # Go into directories
 
 add_subdirectory(lib_f90) # this must be first for date.inc
-add_subdirectory(mixscat/prog)
+if (NOT DEBUG)
+  add_subdirectory(mixscat/prog)
+endif (NOT DEBUG)
 add_subdirectory(discus/prog)
 add_subdirectory(diffev/prog)
 add_subdirectory(kuplot/prog)
