@@ -78,6 +78,10 @@
 
    mmc
       The displacement correlation did not really work, fixed.
+
+   CIF interpreter
+      Further improvements to interpret CIF files. For unknown 
+      space groups DISCUS attempts to use the symmetry operations.
 3  2018_Nov
 
    m[<number>] 
