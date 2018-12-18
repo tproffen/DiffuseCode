@@ -112,7 +112,7 @@ CLOSE(IRD)
 IF(sumfiles/=' ') THEN
    nlines = 3 + gen
    sum_loop: DO i=0, dimensions
-      WRITE(line,'(a,a,a,a,a,i5,a,a,a,a,a)') 'cat ',                   &
+      WRITE(line,'(a,a,a,a,a,i10,a,a,a,a,a)') 'cat ',                   &
          sumfiles(1:LEN_TRIM(sumfiles)), '.',                          &
          par_name(i)(1:LEN_TRIM(par_name(i))),                         &
          ' | head -n ',nlines, ' > ', sumfiles(1:LEN_TRIM(sumfiles)),  &
@@ -135,7 +135,7 @@ ENDIF
 IF(logfiles/=' ') THEN
    nlines = 1 + gen*(member+2)
    log_loop: DO i=0, dimensions
-      WRITE(line,'(a,a,a,a,a,i5,a,a,a,a,a)') 'cat ',                   &
+      WRITE(line,'(a,a,a,a,a,i10,a,a,a,a,a)') 'cat ',                   &
          logfiles(1:LEN_TRIM(logfiles)), '.',                          &
          par_name(i)(1:LEN_TRIM(par_name(i))),                         &
          ' | head -n ',nlines, ' > ', logfiles(1:LEN_TRIM(logfiles)),  &
@@ -163,7 +163,7 @@ IF(curfiles/=' ') THEN
       OPEN(IWR, FILE=outfile, STATUS='unknown')
       WRITE(IWR, '(a)') '#C Current file by DIFFEV'
       CLOSE(IWR)
-      WRITE(line,'(a,a,a,a,a,a,i5,a,a,a,a,a)') 'cat ',                 &
+      WRITE(line,'(a,a,a,a,a,a,i10,a,a,a,a,a)') 'cat ',                 &
          logfiles(1:LEN_TRIM(logfiles)), '.',                          &
          par_name(i)(1:LEN_TRIM(par_name(i))),'    ',                  &
          ' | tail -n ',nlines, ' >> ', curfiles(1:LEN_TRIM(curfiles)), &
