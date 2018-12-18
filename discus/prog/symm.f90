@@ -16,6 +16,7 @@ CONTAINS
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE discus_kdo_common_mod
       USE modify_mod
       USE molecule_mod 
       USE update_cr_dim_mod
@@ -61,6 +62,7 @@ CONTAINS
       LOGICAL lend, lspace 
       LOGICAL l_need_setup 
       LOGICAL lselect 
+      LOGICAL :: success   
       REAL hkl (3) 
 !
 INTEGER, PARAMETER :: NOPTIONAL = 2
@@ -107,82 +109,20 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
                CALL do_math (line, indxg, length) 
             ELSE 
-!                                                                       
-!------ ----execute a macro file                                        
-!                                                                       
-               IF (befehl (1:1) .eq.'@') THEN 
-                  IF (length.ge.2) THEN 
-                     CALL file_kdo (line (2:length), length - 1) 
-                  ELSE 
-                     ier_num = - 13 
-                     ier_typ = ER_MAC 
-                  ENDIF 
-!                                                                       
-!     ----list asymmetric unit 'asym'                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'asym', 2, lbef, 4) ) THEN 
-                  CALL show_asym 
-!                                                                       
-!     ----continues a macro 'continue'                                  
-!                                                                       
-               ELSEIF (str_comp (befehl, 'continue', 2, lbef, 8) ) THEN 
-                  CALL macro_continue (zeile, lp) 
-!                                                                       
-!     ----list atoms present in the crystal 'chem'                      
-!                                                                       
-               ELSEIF (str_comp (befehl, 'chem', 2, lbef, 4) ) THEN 
-                  CALL show_chem 
-!                                                                       
-!------ ----Echo a string, just for interactive check in a macro 'echo' 
-!                                                                       
-               ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
-                  CALL echo (zeile, lp) 
-!                                                                       
-!      ---Evaluate an expression, just for interactive check 'eval'     
-!                                                                       
-               ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
-                  CALL do_eval (zeile, lp, .TRUE.) 
-!                                                                       
-!     ----exit 'exit'                                                   
-!                                                                       
-               ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
-                  lend = .true. 
-!                                                                       
-!     ----help 'help','?'                                               
-!                                                                       
-      ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) THEN                                      
-                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
-                     lp = lp + 7 
-                     CALL do_hel ('discus '//zeile, lp) 
-                  ELSE 
-                     lp = lp + 12 
-                     CALL do_hel ('discus symm '//zeile, lp) 
-                  ENDIF 
-!                                                                       
-!------- -Operating System Kommandos 'syst'                             
-!                                                                       
-               ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
-                  IF (zeile.ne.' ') THEN 
-                     CALL do_operating (zeile (1:lp), lp) 
-                  ELSE 
-                     ier_num = - 6 
-                     ier_typ = ER_COMM 
-                  ENDIF 
-!                                                                       
-!------  -----waiting for user input                                    
-!                                                                       
-               ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
-                  CALL do_input (zeile, lp) 
+!
+! - Test common menu entries
+!
+               CALL discus_kdo_common(befehl, lbef, line, length, zeile, lp, 'symm' , &
+                             lend, success)
 !                                                                       
 !     ----run symmetry 'rese'                                            
 !                                                                       
-               ELSEIF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
+               IF (str_comp (befehl, 'rese', 2, lbef, 4) ) THEN 
                   CALL symm_reset
 !-------------------------------------------------------------------------------
-!-------- SYMM specific commands
+!-------- SYMM specific commands if no common command was found
 !-------------------------------------------------------------------------------
-               ELSE
+               ELSEIF(.NOT. success) THEN
 !
       IF( cr_nscat > SYM_MAXSCAT .or. mole_num_type > SYM_MAXSCAT) THEN
          nscat = max ( cr_nscat, mole_num_type)
