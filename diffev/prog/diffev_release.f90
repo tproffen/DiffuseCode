@@ -20,7 +20,7 @@ IMPLICIT NONE
 CHARACTER (LEN=*), INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: length
 !
-INTEGER, PARAMETER :: maxw = 5
+INTEGER, PARAMETER :: maxw = 6
 !
 CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
