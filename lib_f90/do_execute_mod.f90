@@ -971,6 +971,8 @@ END FUNCTION is_expression
 !
 SUBROUTINE do_value(line, laenge)
 !
+!  Replaces a string "value(expression)" by the value of the expression
+!
 USE do_eval_mod
 USE errlist_mod
 USE search_string_mod
@@ -983,19 +985,19 @@ CHARACTER(LEN=1024) :: zeile, string
 INTEGER             :: iv
 INTEGER             :: lll
 INTEGER             :: ikl
-
+!
 main: DO
    iv = INDEX(line, 'value(', .TRUE.)  ! Search last occurence of "value("
    IF(iv<=0) EXIT main
-   zeile  = line(iv+5:laenge)
-   lll    = laenge - iv - 4
-   ikl = suche_nach(zeile, lll)
-   zeile=zeile(2:ikl  )
-   lll  = ikl-1
+   zeile  = line(iv+6:laenge)          ! String starting after 'value('
+   lll    = laenge - iv - 5
+   ikl = suche_nach(zeile, lll)        ! ikl is last character prior to ')'
+   zeile=zeile(1:ikl  )
+   lll  = ikl
    CALL do_eval(zeile, lll, .FALSE.)
    IF(ier_num/=0) RETURN
    string = ' '
-   string = line(1:iv-1) // zeile(1:LEN_TRIM(zeile)) // line(iv+5+ikl+1:laenge)
+   string = line(1:iv-1) // zeile(1:LEN_TRIM(zeile)) // line(iv+5+ikl+2:laenge)
    line = string
    laenge = LEN_TRIM(string)
 ENDDO main
