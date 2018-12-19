@@ -592,6 +592,22 @@ IF(operating(1:7)=='Windows') THEN
       laenge=LEN_TRIM(command)
       CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
    ENDIF
+ELSEIF(operating(1:6)=='darwin') THEN 
+!
+! MAC OS use 'open' command
+!
+!   command = 'which '//opara(2)(1:lopara(2))   ! Try opional parameter first
+!   CALL EXECUTE_COMMAND_LINE (command(1:LEN_TRIM(command)),  CMDSTAT=ierror, CMDMSG=message)
+!
+!   IF(ierror == 0 ) THEN  ! Default / User option did not work try list
+!      viewer = opara(2)(1:lopara(2))
+!   ELSE
+      viewer = 'open'
+!   ENDIF
+   command = viewer(1:LEN_TRIM(viewer))//' '// &
+             man_dir(1:LEN_TRIM(man_dir))//manual(1:LEN_TRIM(manual))//'_man.pdf &'
+   laenge=LEN_TRIM(command)
+   CALL EXECUTE_COMMAND_LINE (command(1:laenge),  CMDSTAT=ierror, CMDMSG=message)
 ELSE
 !
 ! LINUX Choose viewer

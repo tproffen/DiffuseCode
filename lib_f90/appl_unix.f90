@@ -40,6 +40,7 @@ PID = lib_f90_getpid()
          CALL get_environment_variable ('OSTYPE', operating) 
       ENDIF
 !
+      color_theme = THEME_DEFAULT
       INQUIRE(FILE='/etc/os-release',EXIST=lpresent)
       IF(lpresent) THEN
          CALL oeffne(idef, '/etc/os-release', 'old')
@@ -66,9 +67,19 @@ PID = lib_f90_getpid()
                operating   = 'Windows'
                color_theme = THEME_LGHTYL_BLACK
                EXIT name_search
+            ELSEIF(INDEX(line,'DARWIN') > 0) THEN
+               operating   = 'darwin18'
+               color_theme = THEME_DEFAULT
+               EXIT name_search
             ENDIF
          ENDDO name_search
          CLOSE(idef)
+      ENDIF
+      IF(operating==' ') THEN    ! Still not found try MAC specifics
+         CALL get_environment_variable ('DISPLAY', line)
+         IF(INDEX(line, 'macos') > 0) THEN
+            operating = 'darwin18'
+         ENDIF
       ENDIF
       pname_l = len_str (pname) 
       home_dir = ' ' 

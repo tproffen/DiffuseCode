@@ -580,6 +580,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ELSEIF(operating(1:6)=='cygwin') THEN                      
                            tempfile = '/tmp/which_jmol'
                            line = 'which java > /tmp/which_jmol'
+                        ELSEIF(operating(1:6)=='darwin') THEN                      
+                           tempfile = '/tmp/which_jmol'
+                           line = 'which jmol > /tmp/which_jmol'
                         ENDIF
                            CALL system(line)
                            CALL oeffne( ITMP, tempfile, 'old')
@@ -1276,6 +1279,9 @@ IF(pl_prog=='jmol') THEN
       IF(operating=='Linux') THEN
          WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
          CALL system(line)
+      ELSEIF(operating(1:6)=='darwin') THEN
+         WRITE(line,'(a,i8,a)') 'ps j | grep ',PID,' | grep java |  grep -v grep | awk ''{print $2}'' >> /tmp/jmol.pid'
+         CALL system(line)
 !
       ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
          line = 'ps aux | grep ''jmol -s /tmp/jmol.mol'' | grep -v grep | awk ''{print $1}'' > /tmp/jmol.pid'
@@ -1413,11 +1419,13 @@ IF(pl_prog=='jmol') THEN
 !
    IF(operating=='Linux') THEN
       tempfile = '/tmp/jmol.mol'
+   ELSEIF(operating(1:6)=='darwin') THEN
+      tempfile = '/tmp/jmol.mol'
    ELSEIF(operating(1:6)=='cygwin' .OR. operating(1:7)=='Windows') THEN
       tempfile = '/opt/jmol/jmol.mol'
    ENDIF
    CALL oeffne( ITMP, tempfile, 'unknown')
-   IF(operating=='Linux') THEN
+   IF(operating=='Linux'.OR.operating(1:6)=='darwin') THEN
 !
 !     Write load command, enclose file name in apostrophes to cover 
 !     blanks in filenemes
@@ -1530,6 +1538,9 @@ IF(pl_prog=='jmol') THEN
    IF(operating=='Linux') THEN
       WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
             tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
+   ELSEIF(operating(1:6)=='darwin') THEN
+      WRITE(line,'(a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s ',&
+            tempfile(1:LEN_TRIM(tempfile)), ' > /dev/null &'
    ELSEIF(operating(1:6)=='cygwin') THEN
       WRITE(line,'(a,a,a,a,a)') pl_jmol(1:LEN_TRIM(pl_jmol)), ' -s jmol.mol > /dev/null &'
    ELSEIF(operating(1:7)=='Windows') THEN
@@ -1537,6 +1548,7 @@ IF(pl_prog=='jmol') THEN
 !
    ENDIF
    WRITE(output_io,'(a)') ' JMOL may take a moment to show up'
+write(*,*) ' LINE ', line(1:len_trim(line))
    CALL system(line)
 ENDIF
 END SUBROUTINE plot_inter
