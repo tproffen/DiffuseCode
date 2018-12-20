@@ -3310,6 +3310,15 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL symm_setup
    CALL symm_op_single                           ! Perform the operation
 ENDIF
+!
+!     Tilt molecule by user request
+!
+origin(1:3) = cr_pos(1:3, n1)
+write(*,*) ' N1, N2 ', n1, n2, n_atoms_orig, n_atoms_orig+neig(1), n_atoms_orig+neig(2)
+CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+               tilt_is_auto,                                    &
+               surf_normal, mole_natoms, n1, n2)
+!
 cr_prop (ia) = IBCLR (cr_prop (ia), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n1) = IBCLR (cr_prop (n1), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
 cr_prop (n2) = IBCLR (cr_prop (n2), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
