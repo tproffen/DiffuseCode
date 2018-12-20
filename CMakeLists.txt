@@ -22,8 +22,8 @@ endif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
-set (DIFFUSE_VERSION_MINOR 29)
-set (DIFFUSE_VERSION_PATCH 1)
+set (DIFFUSE_VERSION_MINOR 30)
+set (DIFFUSE_VERSION_PATCH 0)
 
 # Readline required for all programs
 
@@ -79,7 +79,7 @@ if (DIFFUSE_PYTHON)
   add_subdirectory(python)
 endif (DIFFUSE_PYTHON)
 
-FILE (GLOB manfiles "${DIFFUSE_SOURCE_DIR}/Manual/*_man.pdf")
+FILE (GLOB manfiles "${DIFFUSE_SOURCE_DIR}/Manual/*.pdf")
 install (FILES ${manfiles} DESTINATION share)
 FILE (WRITE ${DIFFUSE_BINARY_DIR}/DiscusSuite.txt    "Installation: ${CMAKE_INSTALL_PREFIX}/bin/")
 if(CYGWIN)
