@@ -486,5 +486,12 @@ mole_num_atom = mole_num_atom + nshift
 !
 END SUBROUTINE molecule_shift
 !
+SUBROUTINE demolecularize
+!
+! Menu to remove a molecule status
+!
+IMPLICIT NONE
+!
+END SUBROUTINE demolecularize
 !
 END MODULE molecule_func_mod
