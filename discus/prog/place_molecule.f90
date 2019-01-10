@@ -3314,7 +3314,6 @@ ENDIF
 !     Tilt molecule by user request
 !
 origin(1:3) = cr_pos(1:3, n1)
-write(*,*) ' N1, N2 ', n1, n2, n_atoms_orig, n_atoms_orig+neig(1), n_atoms_orig+neig(2)
 CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
                tilt_is_auto,                                    &
                surf_normal, mole_natoms, n1, n2)
