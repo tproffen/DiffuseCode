@@ -513,7 +513,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       END SUBROUTINE show_domain                    
 !*****7*****************************************************************
       SUBROUTINE micro_filereading 
-!                                                                       
+!
+!  Main execution routine for the domains
+!
+      USE discus_allocate_appl_mod
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE chem_mod
@@ -550,6 +553,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER, DIMENSION(5) :: maxdim = 0
       INTEGER  :: natoms  ! Number of atoms in the input file
       INTEGER  :: nscats  ! NUmber of atom types in the input file
+      INTEGER  :: n_gene  ! Number of generators for molecules in the input file
+      INTEGER  :: n_symm  ! Number of symm. ops. for molecules in the input file
       INTEGER  :: n_mole  ! Number of molecules in the input file
       INTEGER  :: n_type  ! Number of molecule types  in the input file
       INTEGER  :: n_atom  ! Number of atoms within molecules in the input file
@@ -564,6 +569,19 @@ DO i=1, clu_number
    IF(clu_content(i)(1:8)=='internal')THEN
          CALL testfile_internal(  infile , natoms, &
               nscats, n_mole, n_type, n_atom)
+      MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT, nscats)
+      MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX, natoms)
+      CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
+      IF(n_mole > MOLE_MAX_MOLE .or.  &
+         n_type > MOLE_MAX_TYPE .or.  &
+         n_atom > MOLE_MAX_ATOM       ) THEN
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+         n_type = MAX(n_type, MOLE_MAX_TYPE)
+         n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+         CALL alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
          maxdim(1) = MAX(natoms, MK_MAX_ATOM, NMAX)
          maxdim(2) = MAX(nscats, MK_MAX_SCAT, MAXSCAT)
          maxdim(3) = MAX(n_mole, MOLE_MAX_MOLE)
@@ -576,8 +594,31 @@ DO i=1, clu_number
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
          IF(ier_num /= 0) RETURN
    ELSE
+      CALL test_file(infile ,natoms, &
+              nscats, n_mole, n_type, n_atom, -1 , .false.)
+      IF (ier_num.ne.0) THEN
+         RETURN
+      ENDIF
+      MK_MAX_SCAT = MAX(MK_MAX_SCAT, MAXSCAT, nscats)
+      MK_MAX_ATOM = MAX(MK_MAX_ATOM, NMAX, natoms)
+      CALL alloc_micro  ( MK_MAX_SCAT , MK_MAX_ATOM)
+      IF(n_mole > MOLE_MAX_MOLE .or.  &
+         n_type > MOLE_MAX_TYPE .or.  &
+         n_atom > MOLE_MAX_ATOM       ) THEN
+         n_gene = MAX( 1, MOLE_MAX_GENE)
+         n_symm = MAX( 1, MOLE_MAX_SYMM)
+         n_mole = MAX(n_mole, MOLE_MAX_MOLE)
+         n_type = MAX(n_type, MOLE_MAX_TYPE)
+         n_atom = MAX(n_atom, MOLE_MAX_ATOM)
+         CALL alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
+      ENDIF
+      maxdim(1) = MAX(natoms, MK_MAX_ATOM, NMAX)
+      maxdim(2) = MAX(nscats, MK_MAX_SCAT, MAXSCAT)
+      maxdim(3) = MAX(n_mole, MOLE_MAX_MOLE)
+      maxdim(4) = MAX(n_type, MOLE_MAX_TYPE)
+      maxdim(5) = MAX(n_atom, MOLE_MAX_ATOM)
       CALL oeffne (imd, infile, 'old') 
-      IF (ier_num.ne.0) THEN 
+      IF (ier_num.ne.0) THEN
          CLOSE(imd)
          RETURN
       ENDIF
@@ -588,7 +629,10 @@ DO i=1, clu_number
       mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
       AT_MAXP, at_ianz, at_param)           
-     CLOSE(imd)
+      CLOSE(imd)
+      IF (ier_num.ne.0) THEN 
+         RETURN
+      ENDIF
    ENDIF
 !                                                                       
 !------ Here we should include comparison of the unit cell              
