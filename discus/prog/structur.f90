@@ -1969,7 +1969,7 @@ cr_occ(:) = 1.0   !! WORK OCC
             IF (ianz.lt.1) then 
                ier_num = - 100 
                ier_typ = ER_APPL 
-               RETURN 
+               RETURN
             ENDIF 
             islash = index (cpara (1) (1:lpara (1) ) , 'S') 
             DO while (islash.ne.0) 
@@ -1989,7 +1989,7 @@ cr_occ(:) = 1.0   !! WORK OCC
             IF (ier_num.ne.0) then 
                ier_num = - 47 
                ier_typ = ER_APPL 
-               RETURN 
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Cell constants                                                
@@ -2007,7 +2007,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                      ENDDO 
                   ELSE 
                      ier_msg (1) = 'Error reading unit cell parameters' 
-                     RETURN 
+                     RETURN
                   ENDIF 
                ELSE 
 !     --------Old style, no kommata included                            
@@ -2019,7 +2019,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                ENDIF 
             ELSE 
                ier_msg (1) = 'Error reading unit cell parameters' 
-               RETURN 
+               RETURN
             ENDIF 
             IF (cr_a0 (1) .le.0.0.or.cr_a0 (2) .le.0.0.or.cr_a0 (3)     &
             .le.0.0.or.cr_win (1) .le.0.0.or.cr_win (2)                 &
@@ -2029,7 +2029,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                ier_num = - 93 
                ier_typ = ER_APPL 
                ier_msg (1) = 'Error reading unit cell parameters' 
-               RETURN 
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Additional symmetry generators 'generator'                    
@@ -2071,17 +2071,18 @@ cr_occ(:) = 1.0   !! WORK OCC
                      IF (lend) then 
                         ier_num = - 92 
                         ier_typ = ER_APPL 
-                        RETURN 
+                        RETURN
                      ENDIF 
                   ELSE 
                      ier_num = - 92 
                      ier_typ = ER_APPL 
+                     RETURN
                   ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 61 
                ier_typ = ER_APPL 
-               RETURN 
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Names of atoms to setup specific sequence of scattering curves
@@ -2100,6 +2101,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                ELSE 
                   ier_num = -26 
                   ier_typ = ER_APPL 
+                  RETURN
                ENDIF 
             ELSE 
                ier_num = -111
@@ -2125,11 +2127,13 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ELSE 
                      ier_num = - 26 
                      ier_typ = ER_APPL 
+                     RETURN
                   ENDIF 
                ENDIF 
             ELSE 
                ier_num = -112
                ier_typ = ER_COMM 
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Occupancy parameters to setup specific sequence of         
@@ -2149,11 +2153,13 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ELSE 
                      ier_num = - 26 
                      ier_typ = ER_APPL 
+                     RETURN
                   ENDIF 
                ENDIF 
             ELSE 
                ier_num = -112
                ier_typ = ER_COMM 
+               RETURN
             ENDIF 
 !                                                                       
 !     ----Crystal dimensions and number of atoms per unit cell 'ncell'  
@@ -2173,6 +2179,7 @@ cr_occ(:) = 1.0   !! WORK OCC
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
+                  RETURN
                ENDIF 
             ENDIF 
 !                                                                       
@@ -2202,12 +2209,13 @@ cr_occ(:) = 1.0   !! WORK OCC
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
+                     RETURN
                   ENDIF 
                ENDIF 
             ELSE 
                ier_num = - 62 
                ier_typ = ER_APPL 
-               RETURN 
+               RETURN
             ENDIF 
 !                                                                       
          ELSEIF (str_comp (befehl, 'molecule', 2, lbef, 8) .OR. & 
@@ -2245,9 +2253,10 @@ cr_occ(:) = 1.0   !! WORK OCC
          ELSE 
             ier_num = - 89 
             ier_typ = ER_APPL 
+            RETURN
          ENDIF 
          IF (ier_num.ne.0) then 
-            RETURN 
+            RETURN
          ENDIF 
          ENDDO 
 !                                                                       
@@ -2426,7 +2435,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
                ier_num = - 10 
                ier_typ = ER_APPL 
-               RETURN 
+               RETURN
             ENDIF 
             cr_natoms = cr_natoms + 1 
             i = cr_natoms 
@@ -2455,7 +2464,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
                   ier_num = -72 
                   ier_typ = ER_APPL 
-                  RETURN 
+                  RETURN
                ENDIF 
                cr_nscat = cr_nscat + 1 
                cr_iscat (i) = cr_nscat 
@@ -2576,7 +2585,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       IF (ii.lt.1.or.2.lt.ii) then 
          ier_num = - 7 
          ier_typ = ER_APPL 
-         RETURN 
+         RETURN
       ENDIF 
 !                                                                       
       cr_spcgrno = 0 
@@ -2857,7 +2866,7 @@ END SUBROUTINE import_test
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, MAXW, lp) 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
 !                                                                       
       IF (ianz.ge.1) then 
@@ -2990,7 +2999,7 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
 !                                                                       
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
       infile = cpara (1) 
       i = index (infile, '.', .TRUE.) 
@@ -3004,11 +3013,11 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
       CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
 !
 !   Allocate and initialize the EADP array
@@ -3408,7 +3417,7 @@ DEALLOCATE(eadp_values)
 !
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
       infile = cpara (1) 
       i = index (infile, '.') 
@@ -3422,11 +3431,11 @@ DEALLOCATE(eadp_values)
       iwr = 35 
       CALL oeffne (ird, infile, 'old') 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
       CALL oeffne (iwr, ofile, 'unknown') 
       IF (ier_num.ne.0) then 
-         RETURN 
+         RETURN
       ENDIF 
 !                                                                       
       nline     = 1
@@ -3568,7 +3577,7 @@ USE take_param_mod
 !     Create input / output file name
 !
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) then 
+      IF (ier_num.ne.0) THEN 
          RETURN 
       ENDIF 
       infile = cpara (1)(1:lpara (1) )
@@ -4827,8 +4836,47 @@ find:       DO WHILE (ASSOCIATED(TEMP))
             ENDDO
             CALL ber_params (3, cspara, lspara, wwerte, 3) 
             symm_mat(1:3,4) = wwerte(1:3)
-            WRITE(iwr, 1180) ((symm_mat(j,k),k=1,4),j=1,3), 1
+!
+!           Test for unit matrix and omit this, but write all others
+!
+            symm_mat(1,1) = symm_mat(1,1) - 1.0
+            symm_mat(2,2) = symm_mat(2,2) - 1.0
+            symm_mat(3,3) = symm_mat(3,3) - 1.0
+            IF(MAXVAL(symm_mat)> 0.1 .OR. MINVAL(symm_mat) < -0.1) THEN
+               symm_mat(1,1) = symm_mat(1,1) + 1.0
+               symm_mat(2,2) = symm_mat(2,2) + 1.0
+               symm_mat(3,3) = symm_mat(3,3) + 1.0
+               WRITE(iwr, 1180) ((symm_mat(j,k),k=1,4),j=1,3), 1
+            ENDIF
          ENDDO write_symm
+!
+! Currently not implemented as the list of symmetry operations does
+! seem to contain centering operations as well
+!
+! Add centering vectors, just in case, if the list of symmetry operations 
+! did not include the centering symmetry operations
+! As these are written as generators, they will not blow up the list
+! of symmetry operations once the structure is read as cell file
+!
+!        IF(bravais=='A') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,0.0, 0.,1.,0.,0.5, 0.,0.,1.,0.5, 1
+!        ELSEIF(bravais=='B') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,0.5, 0.,1.,0.,0.0, 0.,0.,1.,0.5, 1
+!        ELSEIF(bravais=='C') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,0.0, 0.,1.,0.,0.5, 0.,0.,1.,0.5, 1
+!        ELSEIF(bravais=='I') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,0.5, 0.,1.,0.,0.5, 0.,0.,1.,0.5, 1
+!        ELSEIF(bravais=='F') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,0.0, 0.,1.,0.,0.5, 0.,0.,1.,0.5, 1
+!           WRITE(iwr, 1190) 1.,0.,0.,0.5, 0.,1.,0.,0.0, 0.,0.,1.,0.5, 1
+!           WRITE(iwr, 1190) 1.,0.,0.,0.5, 0.,1.,0.,0.5, 0.,0.,1.,0.0, 1
+!        ELSEIF(bravais=='R') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,2./3., 0.,1.,0.,1./3., 0.,0.,1.,1./3., 1
+!           WRITE(iwr, 1190) 1.,0.,0.,1./3., 0.,1.,0.,2./3., 0.,0.,1.,2./3., 1
+!        ELSEIF(bravais=='O') THEN
+!           WRITE(iwr, 1190) 1.,0.,0.,2./3., 0.,1.,0.,1./3., 0.,0.,1.,2./3., 1
+!           WRITE(iwr, 1190) 1.,0.,0.,1./3., 0.,1.,0.,2./3., 0.,0.,1.,1./3., 1
+!        ENDIF
       ENDIF
       WRITE(iwr, 1200) latt
       WRITE(iwr, 1300)
@@ -4847,6 +4895,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
 1100 FORMAT('spcgr ',a)
 1150 FORMAT('spcgr ',i5)
 1170 FORMAT('spcgr  P1')
+1190 FORMAT('gene  ',3(3(f5.1,', '),f12.9,','), I3)
 1180 FORMAT('symm  ',3(3(f5.1,', '),f12.9,','), I3)
 1200 FORMAT('cell  ',5(f12.5,', '),f12.5)
 1300 FORMAT('atoms x,',12x,'y,',12x,'z,',12x,'Biso,', 4x,'Property,', &
