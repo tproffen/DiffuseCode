@@ -449,7 +449,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
        
 !                                                                       
       INTEGER, PARAMETER :: maxw = 9
-      INTEGER, PARAMETER :: NOPTIONAL = 6
+      INTEGER, PARAMETER :: NOPTIONAL = 7
 !                                                                       
       CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
       INTEGER           , INTENT(INOUT) :: lp 
@@ -462,7 +462,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 !      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-      INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to calculate 
+      INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
+      INTEGER, PARAMETER :: O_CENTX   = 1
+      INTEGER, PARAMETER :: O_CENTY   = 2
+      INTEGER, PARAMETER :: O_CENTZ   = 3
+      INTEGER, PARAMETER :: O_THICK   = 4
+      INTEGER, PARAMETER :: O_KEEP    = 5
+      INTEGER, PARAMETER :: O_ACCUM   = 6
+      INTEGER, PARAMETER :: O_EXEC    = 7
       INTEGER lpara (maxw) 
       INTEGER i, j, k, ianz 
       INTEGER :: special_form
@@ -495,18 +502,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       REAL v (3) 
 !      REAL, DIMENSION(3,1) :: col_vec
       REAL null (3) 
+      REAL :: thick
       REAL werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !     REAL do_blen 
 !                                                                       
       DATA null / 0.0, 0.0, 0.0 / 
-      DATA oname  / 'centx', 'centy', 'centz',  'keep ',  'accum', 'exec '/
-      DATA loname /  5,       5,       5,        4     ,   5     ,  4    /
+      DATA oname  / 'centx', 'centy', 'centz',  'thick',  'keep ',  'accum', 'exec '/
+      DATA loname /  5,       5,       5,        5     ,   4     ,   5     ,  4    /
 !
-      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6      ,  4      ,  3 /)
-      owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0 /)
+      opara  =  (/ '0.0000', '0.0000', '0.0000', '-2.550','inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
+      owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -528,9 +536,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       center(:) = 0.0     ! Default center to 0.0, 0.0, 0.0
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF(ier_num /= 0) RETURN
-      opara  =  (/ '0.0000', '0.0000', '0.0000', 'inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
-      lopara =  (/  6,        6,        6      ,  6      ,  4      ,  3 /)
-      owerte =  (/  0.0,      0.0,      0.0    ,  0.0    ,  0.0    ,  0.0 /)
+      opara  =  (/ '0.0000', '0.0000', '0.0000', '-2.550','inside', 'init  ', 'run   ' /)   ! Always provide fresh default values
+      lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
+      owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                         oname, loname, opara, lopara, owerte)
       IF(ier_num /= 0) RETURN
@@ -544,9 +552,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             linside = .true.
             ianz = ianz - 1
          ELSE     ! Test optional parameter form
-            IF (str_comp (opara(4) , 'outside', 3, lopara(4) , 7)) THEN
+            IF (str_comp (opara(O_KEEP) , 'outside', 3, lopara(O_KEEP) , 7)) THEN
                linside = .false.
-            ELSEIF (str_comp (opara(4) , 'inside', 3, lopara(4), 6) ) THEN
+            ELSEIF (str_comp (opara(O_KEEP) , 'inside', 3, lopara(O_KEEP), 6) ) THEN
                linside = .true.
             ENDIF
          ENDIF
@@ -640,7 +648,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !           Handle accumulation of flat surfaces
 !
-            IF(str_comp(opara(5), 'init', 4, lopara(5),4)) THEN
+            IF(str_comp(opara(O_ACCUM), 'init', 4, lopara(O_ACCUM),4)) THEN
                IF(ALLOCATED(accum_hkl)) DEALLOCATE(accum_hkl)
                accum_n = 0
             ENDIF
@@ -655,26 +663,27 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDDO
             ENDIF
             IF(.NOT.ALLOCATED(accum_hkl)) THEN
-               ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+               ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
                accum_hkl(:,:) = 0
                accum_n = 0
             ELSE
             IF(accum_n + point_n > UBOUND(accum_hkl,1)) THEN
                IF(ALLOCATED(accum_hkl)) THEN
                   k = UBOUND(accum_hkl,2)
-                  ALLOCATE(temp_hkl(1:3,1:k))
+                  ALLOCATE(temp_hkl(1:4,1:k))
                   temp_hkl(:,:) = accum_hkl(:,:)
                   DEALLOCATE(accum_hkl)
-                  ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
-                  accum_hkl(1:3,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
+                  ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
+                  accum_hkl(1:4,1:UBOUND(temp_hkl,2)) = temp_hkl(:,:)
                   DEALLOCATE(temp_hkl)
                ELSE
-                  ALLOCATE  (accum_hkl(1:3, 1:accum_n + 48))
+                  ALLOCATE  (accum_hkl(1:4, 1:accum_n + 48))
                   accum_hkl(:,:) = 0
                ENDIF
             ENDIF
             ENDIF
             accum_hkl(1:3,accum_n+1:accum_n+point_n) = point_hkl(1:3,1:point_n)
+            accum_hkl(4,accum_n+1) = owerte(O_THICK)
             accum_n = accum_n + point_n
          ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
@@ -755,7 +764,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
 !
          IF (ier_num /= 0) RETURN
-            IF ((l_plane .OR. l_form) .AND. str_comp (opara(6) , 'run', 3, lopara(6) , 3)) THEN
+            IF ((l_plane .OR. l_form) .AND. str_comp (opara(O_EXEC) , 'run', 3, lopara(O_EXEC) , 3)) THEN
 form_loop:     DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
                   IF(linside) THEN
@@ -765,10 +774,11 @@ form_loop:     DO i = 1, cr_natoms
                                  - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
                          d = d / dstar 
                          h(:) = accum_hkl (:,j)
-                         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h) 
+                         CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, accum_hkl(4,j)) 
                      ENDDO 
                   ELSE
-                     dshort = 1.E8
+                     dshort  = 1.E8
+                     thick   = -2.55
                      nplanes = 0
                      iplane  = 0 
                      DO j=1,accum_n
@@ -776,24 +786,33 @@ form_loop:     DO i = 1, cr_natoms
                                  - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
                                  - (cr_pos (3, i)-center(3)) * accum_hkl (3,j)
                          d = d / dstar 
-                         IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
-                            nplanes = nplanes + 1
-                            iplane  = j
+                         IF(accum_hkl(4,j) > 0.0) THEN
+                            IF(ABS(d)<ABS(accum_hkl(4,j)) ) THEN
+                               nplanes = nplanes + 1
+                               iplane  = j
+                               thick   = MAX(thick, ABS(accum_hkl(4,j)))
+                            ENDIF
+                         ELSE
+                            IF(ABS(d)<surf_ex_dist(cr_iscat(i) ) ) THEN 
+                               nplanes = nplanes + 1
+                               iplane  = j
+                               thick   = MAX(thick,surf_ex_dist(cr_iscat(i)))
+                            ENDIF
                          ENDIF
                          dshort = MIN(dshort, d)
                      ENDDO 
                      IF(nplanes>2) THEN            ! Atom is at a corner
                         h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h, thick) 
                      ELSEIF(nplanes==2) THEN            ! Atom is at an edge 
                         h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h, thick) 
                      ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
                         h(:) = accum_hkl (:,iplane)        !WRONG NEEDS WORK
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h, thick) 
                      ELSE
                         h(:) = NINT(100*cr_pos(:,i))
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, thick) 
                      ENDIF
                   ENDIF
                ENDDO form_loop
@@ -812,7 +831,7 @@ sphere_loop:   DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h)
+                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
                ENDDO sphere_loop
             ELSEIF (l_cyl) THEN
 cyl_loop:      DO i = 1, cr_natoms 
@@ -828,7 +847,7 @@ cyl_loop:      DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    &
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h) 
+                  CALL boundarize_atom (center, d, i, linside, SURF_CYLINDER, h, -1.0) 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle cyl_loop 
                   v (1) = 0.0          !-center(1)
                   v (2) = 0.0          !-center(2)
@@ -840,7 +859,7 @@ cyl_loop:      DO i = 1, cr_natoms
                      + 2 * v(1) * v(3) * cr_gten(1, 3)    & 
                      + 2 * v(2) * v(3) * cr_gten(2, 3)    )                                       
                   h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h) 
+                  CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, -1.0) 
                   ELSE                             ! 
                      dshort = 1.E8
                      lwall =.FALSE.
@@ -875,15 +894,15 @@ cyl_loop:      DO i = 1, cr_natoms
                      ENDIF
                      dshort = MIN(dshort, d)
                      IF(lwall .AND. .NOT.ltop) THEN   ! Atom is at wall only
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_CYLINDER, wall, -1.0) 
                      ELSEIF(.NOT.lwall .AND. ltop) THEN   ! Atom is at top  only
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, top, -1.0) 
                      ELSEIF(lwall .AND. ltop) THEN   ! Atom is at edge
                         h(:) = cr_pos(:,i)
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE , h, -1.0) 
                      ELSE
                         h(:) = cr_pos(:,i)
-                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h) 
+                        CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, -1.0) 
                      ENDIF
                   ENDIF
                ENDDO cyl_loop
@@ -900,7 +919,7 @@ ell_loop:      DO i = 1, cr_natoms
                                 +(v(2)/radius_ell(2))**2   &
                                 +(v(3)/radius_ell(3))**2   ))* radius
                   h(:) = v(:)
-                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h)
+                  CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
                ENDDO ell_loop
             ENDIF 
 !        ENDIF 
@@ -909,7 +928,7 @@ ell_loop:      DO i = 1, cr_natoms
       END SUBROUTINE boundary                       
 !*****7*****************************************************************
       SUBROUTINE boundarize_atom (center, distance, iatom, linside, &
-                                  surface_type, normal) 
+                                  surface_type, normal, thick) 
 !-                                                                      
 !     This subroutine sets the boundary property of the atom            
 !                                                                       
@@ -936,6 +955,7 @@ ell_loop:      DO i = 1, cr_natoms
       LOGICAL              , INTENT(IN) :: linside 
       INTEGER              , INTENT(IN) :: surface_type
       REAL   , DIMENSION(3), INTENT(IN) :: normal
+      REAL                 , INTENT(IN) :: thick
 !
       REAL, DIMENSION(3), PARAMETER :: VNULL = (/ 0.0, 0.0, 0.0 /)
       REAL              , PARAMETER :: TOLERANCE = 5.0   ! Accept a 5 degree tilt for same surface
@@ -963,12 +983,14 @@ ell_loop:      DO i = 1, cr_natoms
          cr_iscat (iatom) = 0 
          cr_prop (iatom) = ibclr (cr_prop (iatom), PROP_NORMAL) 
          cr_prop (iatom) = ibset (cr_prop (iatom), PROP_OUTSIDE) 
-         IF (abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) ) ) then 
+         IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
+             (thick>0 .AND. ABS(distance) <     thick                          )) then 
             cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
          ENDIF 
          cr_surf (:,iatom) = 0
       ELSE 
-         IF (abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) ) ) then 
+         IF ((thick<0 .AND. abs (distance) .lt.surf_ex_dist (cr_iscat (iatom) )) .OR. &
+             (thick>0 .AND. ABS(distance) < thick                              )) THEN 
             cr_prop (iatom) = ibset (cr_prop (iatom), PROP_SURFACE_EXT) 
             IF(cr_surf(0, iatom) == SURF_NONE) THEN  ! Atom was not yet at a surface
                cr_surf(0,   iatom) = surface_type 
@@ -1012,6 +1034,7 @@ ell_loop:      DO i = 1, cr_natoms
 !
       SUBROUTINE pos2hkl(u, gten, hkl)
 !
+      USE metric_mod
       USE trafo_mod
 !
       IMPLICIT NONE
@@ -1023,7 +1046,8 @@ ell_loop:      DO i = 1, cr_natoms
       REAL   , DIMENSION(3) :: v
       REAL :: uu
 !
-      uu = SQRT(u(1)**2 + u(2)**2 + u(3)**2)  ! Really rough length
+      uu = SQRT(skalpro (u, u, gten) )
+!     uu = SQRT(u(1)**2 + u(2)**2 + u(3)**2)  ! Really rough length
       u(:) = u(:)/uu
       CALL trans (u, gten, v, 3)              ! Transform into reciprocal space
       hkl(1:3) = NINT(10.*v(1:3))             ! Make an approximate integer vector
