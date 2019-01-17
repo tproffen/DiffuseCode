@@ -7,11 +7,13 @@ MODULE diffev_random
 !
 IMPLICIT NONE
 !
-CHARACTER(LEN=100) :: random_macro
-CHARACTER(LEN=100) :: random_prog
+CHARACTER(LEN=100), DIMENSION(16) :: random_macro
+CHARACTER(LEN=100), DIMENSION(16) :: random_prog
+LOGICAL           , DIMENSION(16) :: random_repeat
 LOGICAL :: write_random_state = .FALSE.
 LOGICAL :: l_get_random_state = .TRUE.
 !INTEGER, DIMENSION(:,:), ALLOCATABLE :: random_state  ! Status for current members
+INTEGER                              :: random_n      ! number of run_mpi commands prior to 'compare'
 INTEGER                              :: random_nseed
 INTEGER, DIMENSION(0:64)             :: random_best   ! Status for best    member
 !
@@ -49,7 +51,7 @@ END FUNCTION diffev_random_status
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-SUBROUTINE diffev_random_write_on(prog, prog_l, macro, macro_l)
+SUBROUTINE diffev_random_write_on(prog, prog_l, macro, macro_l, do_repeat)
 !
 IMPLICIT NONE
 !
@@ -57,10 +59,13 @@ CHARACTER(LEN=*), INTENT(IN) :: prog
 CHARACTER(LEN=*), INTENT(IN) :: macro
 INTEGER         , INTENT(IN) :: prog_l
 INTEGER         , INTENT(IN) :: macro_l
+LOGICAL         , INTENT(IN) :: do_repeat
 !
 write_random_state = .TRUE.     ! Turn on  documentation
-random_prog  = prog(1:prog_l)
-random_macro = macro(1:macro_l)
+random_n     = random_n + 1     ! another run_mpi command
+random_prog(random_n)  = prog(1:prog_l)
+random_macro(random_n) = macro(1:macro_l)
+random_repeat(random_n) = do_repeat
 !
 END SUBROUTINE diffev_random_write_on
 !
@@ -71,6 +76,10 @@ SUBROUTINE diffev_random_write_off
 IMPLICIT NONE
 !
 write_random_state = .FALSE.    ! Turn off documentation
+random_n     = 0                ! No run_mpi commands yet
+random_prog(:)   = ' '
+random_macro(:)  = ' '
+random_repeat(:) = .FALSE.
 !
 END SUBROUTINE diffev_random_write_off
 !
@@ -107,7 +116,7 @@ CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/n
 CHARACTER(LEN=1024) :: message
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
-INTEGER :: i, i1, ir1, ir2, ir3
+INTEGER :: i, i1, ir1, ir2, ir3, nn
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 LOGICAL, SAVE :: l_test     = .TRUE.
 LOGICAL, SAVE :: l_ref_para = .FALSE.
@@ -124,19 +133,25 @@ random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on com
 IF(write_random_state) THEN
    CALL oeffne(IWR, macro_file, 'unknown')
 !
-   WRITE(IWR,'(a)') random_prog(1:LEN_TRIM(random_prog))
+   WRITE(IWR,'(a,a)') random_prog(1)(1:LEN_TRIM(random_prog(1))), '   ! temporarily step into section'
    WRITE(IWR,'(a)') '#@ HEADER'
    WRITE(IWR,'(a)') '#@ NAME         diffev_best.mac'
    WRITE(IWR,'(a)') '#@ '
    WRITE(IWR,'(a)') '#@ KEYWORD      diffev, best member, initialize'
    WRITE(IWR,'(a)') '#@ '
    WRITE(IWR,'(a)') '#@ DESCRIPTION  This macro contains the parameters for the current best'
-   WRITE(IWR,'(a)') '#@ DESCRIPTION  member. If run the best member will be recreated.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  member. If run, the best member will be recreated.'
    WRITE(IWR,'(a)') '#@ DESCRIPTION  As the random state is explicitely contained as well, the'
    WRITE(IWR,'(a)') '#@ DESCRIPTION  best member will be recreated exactly.'
    WRITE(IWR,'(a)') '#@ DESCRIPTION'
    WRITE(IWR,'(a)') '#@ DESCRIPTION  This macro uses the original macro on the run_mpi command'
    WRITE(IWR,'(a)') '#@ DESCRIPTION  line. Make sure to turn on writing of desired output files.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  Each of the macros on a run_mpi line must have an ''exit'' '
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  command, which returns to the suite level.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  As the run_mpi command internally switches to the correct'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  section, the switch is done here with preceding the macro call '
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  with the proper ''discus'' or ''kuplot'' command.'
    WRITE(IWR,'(a)') '#@'
    WRITE(IWR,'(a)') '#@ PARAMETER    $0, 0'
    WRITE(IWR,'(a)') '#@'
@@ -150,7 +165,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a,i12)') 'REF_DIMENSION  = ',pop_dimx
    WRITE(IWR,'(a,i12)') 'REF_NINDIV     = ',run_mpi_senddata%nindiv
    WRITE(IWR,'(a,i12)') 'REF_KID        = ',9999
-   WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',9999
+   WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',0001
    DO i=1,pop_dimx
       WRITE(IWR,'(A,A)') 'variable real, ', pop_name(i)
    ENDDO
@@ -192,8 +207,22 @@ IF(write_random_state) THEN
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'
+   WRITE(IWR,'(a)') 'exit   ! Return to SUITE'
+   WRITE(IWR,'(a)') '#      ! Each macro on run_mpi command must have an exit to suite as well'
+   WRITE(IWR,'(a)') '#      ! Each macro is preceded with a command that steps into the section'
    WRITE(IWR,'(a)') '#'
-   WRITE(IWR,'(a1,a,a)') '@',random_macro(1:LEN_TRIM(random_macro)),'  ., REF_KID, REF_INDIV'
+   DO nn = 1, random_n
+      IF(random_repeat(nn)) THEN
+         WRITE(IWR,'(a)') 'do REF_INDIV=1,REF_NINDIV'
+         WRITE(IWR,'(a,a)'   ) '  ',random_prog(nn)(1:LEN_TRIM(random_prog(nn)))
+         WRITE(IWR,'(a3,a,a)') '  @',random_macro(nn)(1:LEN_TRIM(random_macro(nn))),'  ., REF_KID, REF_INDIV'
+         WRITE(IWR,'(a)') 'enddo'
+      ELSE
+         WRITE(IWR,'(a)') random_prog(nn)(1:LEN_TRIM(random_prog(nn)))
+         WRITE(IWR,'(a1,a,a)') '@',random_macro(nn)(1:LEN_TRIM(random_macro(nn))),'  ., REF_KID, REF_INDIV'
+      ENDIF
+      WRITE(IWR,'(a)') '#'
+   ENDDO
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a)') 'set error, continue'
 !  WRITE(IWR,'(a)') 'exit'

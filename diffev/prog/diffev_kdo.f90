@@ -859,11 +859,13 @@ ELSE
 !
 !     Turn random state log OFF, and documentation ON
 !
-      IF(diffev_random_status()) CALL diffev_random_write_on( &
+!     IF(diffev_random_status()) 
+      CALL diffev_random_write_on( &
                                     run_mpi_senddata%prog,    &
                                     run_mpi_senddata%prog_l,  &
                                     run_mpi_senddata%mac,     &
-                                    run_mpi_senddata%mac_l)
+                                    run_mpi_senddata%mac_l,   &
+                                    run_mpi_senddata%repeat  )
       CALL diffev_random_off
 !                                                                 
 !-------  Show parameters 'show'                                  
