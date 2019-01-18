@@ -166,14 +166,16 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a,i12)') 'REF_NINDIV     = ',run_mpi_senddata%nindiv
    WRITE(IWR,'(a,i12)') 'REF_KID        = ',9999
    WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',0001
-   DO i=1,pop_dimx
+   DO i=0,pop_dimx
       WRITE(IWR,'(A,A)') 'variable real, ', pop_name(i)
    ENDDO
+   WRITE(IWR,'(A,       A,E17.10)') pop_name(0),      ' = ',child_val(pop_best,0)
    DO i=1,pop_dimx
       WRITE(IWR,'(A,       A,E17.10)') pop_name(i),      ' = ',child(i,pop_best)
 !     WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
    ENDDO
    IF(l_ref_para) THEN
+      WRITE(IWR,'(A,i4,    A,E17.10)') 'ref_para[',0,']   = ',child_val(pop_best,0)
       DO i=1,pop_dimx
          WRITE(IWR,'(A,i4,    A,E17.10)') 'ref_para[',i,']   = ',child(i,pop_best)
       ENDDO
@@ -209,7 +211,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#'
    WRITE(IWR,'(a)') 'exit   ! Return to SUITE'
    WRITE(IWR,'(a)') '#      ! Each macro on run_mpi command must have an exit to suite as well'
-   WRITE(IWR,'(a)') '#      ! Each macro is preceded with a command that steps into the section'
+   WRITE(IWR,'(a)') '#      ! Each macro is preceeded with a command that steps into the section'
    WRITE(IWR,'(a)') '#'
    DO nn = 1, random_n
       IF(random_repeat(nn)) THEN
