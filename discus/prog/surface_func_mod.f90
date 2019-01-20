@@ -773,7 +773,7 @@ form_loop:     DO i = 1, cr_natoms
                                  - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
                                  - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
                          d = d / dstar 
-                         h(:) = accum_hkl (:,j)
+                         h(1:3) = accum_hkl (1:3,j)
                          CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, accum_hkl(4,j)) 
                      ENDDO 
                   ELSE
@@ -808,7 +808,7 @@ form_loop:     DO i = 1, cr_natoms
                         h(:) = NINT(100*cr_pos(:,i))
                         CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h, thick) 
                      ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
-                        h(:) = accum_hkl (:,iplane)        !WRONG NEEDS WORK
+                        h(1:3) = accum_hkl (1:3,iplane)        !WRONG NEEDS WORK
                         CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h, thick) 
                      ELSE
                         h(:) = NINT(100*cr_pos(:,i))
