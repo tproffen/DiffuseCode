@@ -398,6 +398,7 @@ USE surface_func_mod
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
@@ -411,7 +412,7 @@ USE surface_func_mod
 !
       CALL get_params (line, ianz, cpara, lpara, maxw, length) 
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
       IF (ier_num.ne.0) RETURN 
       IF (ianz >  1) THEN
 !                                                                       

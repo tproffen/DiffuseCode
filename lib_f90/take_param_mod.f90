@@ -8,7 +8,7 @@ MODULE take_param_mod
 CONTAINS
 !
 SUBROUTINE get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
 !
 !  Takes any optional parameter out of the list of input parameters.
 !  These optional parameters are copied into the array opara and the 
@@ -37,7 +37,7 @@ CHARACTER(LEN=*), DIMENSION(NOPTIONAL), INTENT(IN)    :: oname     ! Lookup tabl
 INTEGER,          DIMENSION(NOPTIONAL), INTENT(IN)    :: loname    ! lookup table length
 CHARACTER(LEN=*), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara     ! with default values
 INTEGER,          DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara    ! length of results
-!LOGICAL,          DIMENSION(NOPTIONAL), INTENT(OUT)   :: lpresent  ! Is param present ?
+LOGICAL,          DIMENSION(NOPTIONAL), INTENT(OUT)   :: lpresent  ! Is param present ?
 REAL   ,          DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte    ! calc. results with default values
 !
 INTEGER :: i,j, iopt, istart
@@ -48,7 +48,7 @@ LOGICAL :: ascii                   ! Test if we have letters only
 !
 LOGICAL :: str_comp
 !
-!lpresent(:) = .FALSE.
+lpresent(:) = .FALSE.
 IF(ianz==0) RETURN           ! No parameters at all
 !
 istart = ianz
@@ -75,7 +75,7 @@ search: DO i=istart,1, -1     ! Count backwards
          IF(str_comp(cpara(i)(1:len_user), oname(iopt), l0, len_user, len_look)) THEN  ! Found parameter
             opara(iopt)  = cpara(i)(icolon+1:lpara(i))  ! Copy user provided string
             lopara(iopt) = lpara(i)-icolon              ! record user provided string length
-!            lpresent(iopt) = .TRUE.
+            lpresent(iopt) = .TRUE.
             cpara(i) = ' '      ! clear parameter, this avoids issue for parameter ianz
             lpara(i) = 0
             DO j = i+1, ianz    ! shift subsequent parameters down

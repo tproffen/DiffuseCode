@@ -577,6 +577,7 @@ use crystal_mod
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para was present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
@@ -624,7 +625,7 @@ use crystal_mod
       lopara =  (/  7       ,  7        /)
       owerte =  (/  -1.0    ,  0.0      /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
       IF(ier_num/=0) RETURN
       IF(     str_comp(opara(2), 'ignore',  2, lopara(2), 6) ) THEN
          mole_scope = MOLE_SCOPE_IGN

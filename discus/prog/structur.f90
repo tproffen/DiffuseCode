@@ -76,6 +76,7 @@ use wyckoff_mod
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
@@ -175,7 +176,7 @@ use wyckoff_mod
          lopara =  (/  6        ,  6         ,  6          /)
          owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                           oname, loname, opara, lopara, owerte)
+                           oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
 !                                                                       
 !     --reset epsilon tensors                                           
@@ -3557,6 +3558,7 @@ USE take_param_mod
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
@@ -3569,7 +3571,7 @@ USE take_param_mod
       owerte =  (/  0.0   /)
 !
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
       IF(ier_num/=0) RETURN
       lperiod = str_comp(opara(1), 'discus', 3, lopara(1), 6)
 !

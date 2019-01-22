@@ -75,6 +75,7 @@ CONTAINS
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
@@ -479,7 +480,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       owerte(1:7) =   (/  0.00  ,  0.00  ,  0.    ,  0.    ,  0.0   ,  0.0   ,  0.0    /)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                                    oname, loname, opara, lopara, owerte)
+                                    oname, loname, opara, lopara, lpresent, owerte)
                   IF (ier_num.eq.0) then 
                      IF(str_comp(cpara(1), 'off', 3, lpara(1), 3)) THEN
                         pl_poly_n = 0
@@ -622,7 +623,7 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   owerte(8:9) =   (/  0.0   ,  0.0    /)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                                    oname, loname, opara, lopara, owerte)
+                                    oname, loname, opara, lopara, lpresent, owerte)
                   IF (ier_num.eq.0.and.ianz.eq.0) then 
                   IF (pl_out.ne.' ') then 
                      CALL update_cr_dim 

@@ -391,6 +391,7 @@ SUBROUTINE do_func (zeile, lp)
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
@@ -407,7 +408,7 @@ SUBROUTINE do_func (zeile, lp)
       CALL get_params (string, ianz, cpara, lpara, maxw, laenge) 
       IF (ier_num.ne.0) return 
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
       IF(ier_num/=0) RETURN
       IF (ianz.ge.2) then 
 !                                                                       

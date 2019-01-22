@@ -76,6 +76,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
@@ -724,7 +725,7 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                           oname, loname, opara, lopara, owerte)
+                           oname, loname, opara, lopara, lpresent, owerte)
          IF (ier_num == 0) THEN 
          run_mpi_senddata%l_get_state = l_get_random_state   ! Log random number state
          IF(cpara(3) == 'DOLOOP') THEN          ! Special signal set if MPI not active
@@ -1037,7 +1038,7 @@ ELSE
       CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
       IF (ier_num.eq.0) THEN 
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                           oname, loname, opara, lopara, owerte)
+                           oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num==0) THEN
 !
          IF(str_comp (cpara(1), 'silent',6,lpara(1),6)) THEN

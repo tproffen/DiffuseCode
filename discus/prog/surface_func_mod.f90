@@ -448,7 +448,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
        
 !                                                                       
-      INTEGER, PARAMETER :: maxw = 9
+      INTEGER, PARAMETER :: maxw = 12
       INTEGER, PARAMETER :: NOPTIONAL = 7
 !                                                                       
       CHARACTER (LEN=* ), INTENT(INOUT) :: zeile 
@@ -460,7 +460,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-!      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
+      LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
       REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
       INTEGER, PARAMETER :: O_CENTX   = 1
@@ -540,7 +540,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       lopara =  (/  6,        6,        6      ,  6      ,  6      ,  4      ,  3 /)
       owerte =  (/  0.0,      0.0,      0.0    , -2.55   ,  0.0    ,  0.0    ,  0.0 /)
       CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                        oname, loname, opara, lopara, owerte)
+                        oname, loname, opara, lopara, lpresent, owerte)
       IF(ier_num /= 0) RETURN
 !     Handle optional and global parameters
 !     IF (ier_num.eq.0) then 

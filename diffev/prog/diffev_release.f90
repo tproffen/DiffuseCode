@@ -46,6 +46,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
@@ -73,7 +74,7 @@ ENDIF
 CALL get_params (zeile, ianz, cpara, lpara, maxw, length)
 IF (ier_num == 0) THEN
    CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                     oname, loname, opara, lopara, owerte)
+                     oname, loname, opara, lopara, lpresent, owerte)
    IF(ier_num==0) THEN
    IF(ianz == 1) THEN
       IF(owerte(O_RANGE) == -9999.00) THEN   ! range: was not provided

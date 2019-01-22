@@ -47,6 +47,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
 REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 INTEGER :: ipartial = 0
@@ -107,7 +108,7 @@ CLOSE(IRD)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, length)
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                  oname, loname, opara, lopara, owerte)
+                  oname, loname, opara, lopara, lpresent, owerte)
 IF(ier_num/=0) RETURN
 ipartial = NINT(owerte(1))
 IF(ianz==1) THEN
