@@ -9,7 +9,7 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-159,IO=6)
+      PARAMETER    (IU=-159,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
@@ -195,7 +195,8 @@
      &  'Molecule symmetry  is obsolete >help data',     & ! ! +3  ! discus
      &  'Monte Carlo level is obsolete >help mmc',       & ! ! +4  ! discus
      &  'Element charge was dropped',                    & ! ! +5  ! discus
-     &  'Element name is unknown'                        & ! ! +6  ! discus
+     &  'Element name is unknown',                       & ! ! +6  ! discus
+     &  'Last cent and keep will be used'                & ! ! +7  ! discus
      &           /
 !
       if (ier_typ.eq.ER_RMC) then

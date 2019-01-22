@@ -7970,11 +7970,12 @@
             "centx:"<center_x>   The central location for the 
             "centy:"<center_y>   boundary is at this point
             "centz:"<center_z>   Defaults to (0, 0, 0)
+                                 The units are fractional coordinates
             "thick:"<thickness>  Defaults to value set by 
                                  set distance, external for atom type 1
                                  Atoms within a distance of <thickness>
                                  to the surface are flagged as surface
-                                 atoms.
+                                 atoms. Units are Angstroem
 
             "keep:"{"inside"}|{"outside"}  Keep atoms on the inside or
                                            outside of boundary
@@ -7992,7 +7993,8 @@
                                     See description below
 
    This commands removes all atoms that are outside a boundary surrounding
-   the crystal. 
+   the crystal. The distance of the surface from the point 0,0,0 is measured
+   in Angstroem.
    "hkl"  The surface is defined as a plane through the Miller indices 
           <h>,<k>,<l>. The optional <distance> determines the distance 
           between 0,0,0 and the boundary surface. Without this parameter,
@@ -8053,7 +8055,7 @@
    in combination with the "keep:outside" parameter. 
    In low symmetry crystal systems, a closed hollow space has to be
    created by a combination of several symmetrically non-equivalent
-   faces or forms.. Use the combination:
+   faces or forms. Use the combination:
    "accum:init, exec:hold" For the first face/form
    "accum:add, exec:hold"  For further faces and forms
    "accum:add, exec:run"   For the last face.
@@ -8062,6 +8064,14 @@
    is started. 
    After a "exec:run" parameter, the list of faces is automatically
    reset.
+   An accumulated set of planes will refer to a common origin, either
+   the default 0,0,0 or the value set by "centx:", "centy:", "centz".
+   Also the keep status is the same for all hkls in the accumulted set.
+   Thus only the last occurence of these optional parameters will 
+   actually be effective. It is threfore best to use the optional 
+   parameters for accumulated surfaces only once at the last hkl for 
+   which the optional parameter "exec:run" is used. A warning message
+   will be flagged otherwise.
 3  character
 !b char <atom_no> [,{"equal"}|{any}] [, "show"]
 

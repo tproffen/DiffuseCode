@@ -474,8 +474,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER i, j, k, ianz 
       INTEGER :: special_form
       INTEGER :: special_n = 0
-      INTEGER :: nplanes       ! number of planes that at atom is close to
-      INTEGER :: iplane        ! Rindex of plane  that at atom is closest to
+      INTEGER :: nplanes       ! number of planes that atom is close to
+      INTEGER :: iplane        !  index of plane  that atom is closest to
       LOGICAL lspace 
       LOGICAL linside 
       LOGICAL l_plane 
@@ -924,8 +924,22 @@ ell_loop:      DO i = 1, cr_natoms
             ENDIF 
 !        ENDIF 
 !     ENDIF 
+IF(ier_num==0) THEN
+   IF(opara(O_EXEC)=='hold' ) THEN
+      IF(lpresent(O_CENTX) .OR. lpresent(O_CENTY) .OR. lpresent(O_CENTZ) .OR. &
+         lpresent(O_KEEP)) THEN
+         ier_num = 0
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Only one common center and keep status will' 
+         ier_msg(2) = 'apply to an accumulated set of hkls. Best use'
+         ier_msg(2) = 'cent and keeb with exec:hold only.'
+         CALL errlist
+         CALL no_error
+      ENDIF
+   ENDIF
+ENDIF
 !                                                                       
-      END SUBROUTINE boundary                       
+END SUBROUTINE boundary                       
 !*****7*****************************************************************
       SUBROUTINE boundarize_atom (center, distance, iatom, linside, &
                                   surface_type, normal, thick) 
