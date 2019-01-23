@@ -6,6 +6,7 @@ USE molecule_mod
 !
 IMPLICIT NONE
 PRIVATE
+PUBLIC  :: demolecularize
 PUBLIC  :: do_molecularize
 PUBLIC  :: molecularize_sub
 PUBLIC  :: molecularize_numbers
@@ -486,11 +487,174 @@ mole_num_atom = mole_num_atom + nshift
 !
 END SUBROUTINE molecule_shift
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
 SUBROUTINE demolecularize
 !
 ! Menu to remove a molecule status
 !
+USE calc_expr_mod
+USE class_macro_internal
+!USE do_read_number_mod
+USE do_eval_mod
+USE do_wait_mod
+USE doact_mod
+USE errlist_mod
+USE learn_mod
+USE prompt_mod
+USE sup_mod
+!
 IMPLICIT NONE
+!
+CHARACTER (LEN=5)                       :: befehl! command on input line
+CHARACTER(LEN=LEN(prompt))              :: orig_prompt  ! original prompt
+CHARACTER (LEN=1024)                    :: line  ! input line
+CHARACTER (LEN=1024)                    :: zeile ! remainder with parameters
+INTEGER                                 :: indxg ! location of "="
+INTEGER                                 :: lp    ! length of zeile
+INTEGER                                 :: laenge
+INTEGER                                 :: lbef
+!
+LOGICAL                                 :: lend  ! condition of EOF
+!
+INTEGER, EXTERNAL :: len_str
+LOGICAL, EXTERNAL :: str_comp
+!
+orig_prompt = prompt
+prompt = prompt (1:len_str (prompt) ) //'/demol'
+!
+main_loop: DO
+   CALL no_error
+   CALL get_cmd (line, laenge, befehl, lbef, zeile, lp, prompt)
+   no_err: IF(ier_num.eq.0) THEN
+      no_com: IF(line /= ' '      .AND. line(1:1) /= '#' .AND.      &
+                 line /= char(13) .AND. line(1:1) /= '!'        ) THEN
+!                                                                       
+!     ----search for "="                                                
+!                                                                       
+         indxg = index (line, '=') 
+         is_math: IF(indxg.ne.0                                             &
+                     .AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'syst', 2, lbef, 4) )    &
+                     .AND..NOT. (str_comp (befehl, 'help', 2, lbef, 4) .OR. &
+                                 str_comp (befehl, '?   ', 2, lbef, 4) )    &
+                     .AND. INDEX(line,'==') == 0                            ) THEN
+!                                                                       
+! ------evaluate an expression and assign the value to a variabble      
+!                                                                       
+               CALL do_math (line, indxg, laenge)
+         ELSE                                    ! is_math, al other commands
+!                                                                       
+!------ ----execute a macro file                                        
+!                                                                       
+              IF (befehl (1:1) .eq.'@') THEN     ! macro, reset or all other commands
+                  IF (laenge.ge.2) THEN 
+                     CALL file_kdo (line (2:laenge), laenge-1) 
+                  ELSE 
+                     ier_num = - 13 
+                     ier_typ = ER_MAC 
+                  ENDIF 
+!                                                                       
+!     ----continues a macro 'continue'                                  
+!                                                                       
+              ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) THEN 
+                  CALL macro_continue (zeile, lp) 
+!                                                                       
+!     ----Echo a string, just for interactive check in a macro 'echo'   
+!                                                                       
+              ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
+                  CALL echo (zeile, lp) 
+!                                                                       
+!      ---Evaluate an expression, just for interactive check 'eval'     
+!                                                                       
+              ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
+                  CALL do_eval (zeile, lp, .TRUE.) 
+!                                                                       
+!     ----exit 'exit'                                                   
+!                                                                       
+              ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
+                  lend = .true. 
+                  EXIT main_loop
+!                                                                       
+!     ----help 'help' , '?'                                             
+!                                                                       
+              ELSEIF (str_comp (befehl, 'help', 1, lbef, 4) .or.  &
+                       str_comp (befehl, '?   ', 1, lbef, 4) ) THEN                                      
+                  IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
+                     lp = lp + 7 
+                     CALL do_hel ('discus '//zeile, lp) 
+                  ELSE 
+                     lp = lp + 12 
+                     CALL do_hel ('discus deco '//zeile, lp) 
+                  ENDIF 
+!                                                                       
+!------- -Operating System Kommandos 'syst'                             
+!                                                                       
+              ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
+                  IF (zeile.ne.' '.and.zeile.ne.char (13) ) THEN 
+                     CALL do_operating (zeile (1:lp), lp) 
+                  ELSE 
+                     ier_num = - 6 
+                     ier_typ = ER_COMM 
+                  ENDIF 
+!                                                                       
+!------  -----waiting for user input                                    
+!                                                                       
+              ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
+                  CALL do_input (zeile, lp) 
+!
+              ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN
+!                 CALL demo_reset
+              ELSE    ! macro, reset or all other commands
+!
+                 is_com: IF(str_comp (befehl, 'sel', 3, lbef, 3) ) THEN
+continue
+!
+              ELSE is_com
+                 ier_num = -8
+                 ier_typ = ER_COMM
+!
+              ENDIF is_com ! END IF BLOCK actual commands
+              ENDIF
+           ENDIF is_math   ! END IF BLOCK math equation or specific command
+        ENDIF no_com       ! END IF BLOCK no comment
+      ENDIF no_err         ! END IF BLOCK no error reading input
+!
+      IF (ier_num.ne.0) THEN 
+         CALL errlist 
+         IF (ier_sta.ne.ER_S_LIVE) THEN 
+            IF (lmakro .OR. lmakro_error) THEN  ! Error within macro or termination errror
+               IF(sprompt /= prompt ) THEN
+                  ier_num = -10
+                  ier_typ = ER_COMM
+                  ier_msg(1) = ' Error occured in decorate menu'
+                  prompt_status = PROMPT_ON 
+                  prompt = orig_prompt
+                  RETURN
+               ELSE
+                  IF(lmacro_close) THEN
+                     CALL macro_close 
+                     prompt_status = PROMPT_ON 
+                  ENDIF 
+               ENDIF 
+            ENDIF 
+            IF (lblock) THEN 
+               ier_num = - 11
+               ier_typ = ER_COMM
+               prompt_status = PROMPT_ON 
+               prompt = orig_prompt
+               RETURN 
+            ENDIF 
+            CALL no_error 
+            lmakro_error = .FALSE.
+            sprompt = ' '
+         ENDIF 
+      ENDIF 
+!
+!
+   ENDDO main_loop     ! END DO main loop of menu 
+!
+   prompt = orig_prompt
 !
 END SUBROUTINE demolecularize
 !

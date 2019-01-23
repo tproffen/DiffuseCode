@@ -183,6 +183,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'decorate', 3, lbef, 8) ) then 
             CALL do_place_molecule
+!
+!-------Demolecularize
+!
+        ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'demolec', 3, lbef, 7) ) THEN
+           CALL demolecularize
 !                                                                       
 !-------Handling of domains within the host structure 'domain'          
 !                                                                       
