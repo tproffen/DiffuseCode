@@ -525,20 +525,36 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-----      --------Apply symmetry operation to atoms                   
 !                                                                       
+                     IF(.NOT. (sym_start >= 1           .AND. &
+                               sym_end <= mole_num_mole .AND. &
+                               sym_start <= sym_end)          ) THEN
+                        ier_num = -19
+                        ier_typ = ER_APPL
+                        ier_msg(1) = 'Values for ''inc'' are wrong'
+                     ELSE
                      IF (sym_power_mult) THEN 
                         CALL symm_op_mult 
                      ELSE 
                         CALL symm_op_single 
+                     ENDIF 
                      ENDIF 
                   ELSE 
                      IF (sym_sel_mode.eq.SYM_RUN_MOLECULE) THEN 
 !                                                                       
 !-----      ----------Apply symmetry operation to molecules             
 !                                                                       
+                        IF(.NOT. (sym_start >= 1           .AND. &
+                                  sym_end <= mole_num_mole .AND. &
+                                  sym_start <= sym_end)          ) THEN
+                           ier_num = -63
+                           ier_typ = ER_APPL
+                           ier_msg(1) = 'Values for ''minc'' are wrong'
+                        ELSE
                         IF (sym_power_mult) THEN 
                            CALL symm_mole_mult 
                         ELSE 
                            CALL symm_mole_single 
+                        ENDIF 
                         ENDIF 
                      ELSEIF (sym_sel_mode.eq.SYM_RUN_DOMAIN) THEN 
 !                                                                       
@@ -551,6 +567,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                      ENDIF 
                   ENDIF 
+                  IF(ier_num==0) THEN
                   IF(ALL(sym_latom(0:SYM_MAXSCAT)) .AND. sym_incl=='all') THEN
                      lspace = .TRUE.
                      DO i=1,2
@@ -566,6 +583,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDDO
                   ENDIF
                   CALL update_cr_dim 
+                  ENDIF
 !                                                                       
 !     ----Select which atoms are copied to their image 'sele'           
 !                                                                       
