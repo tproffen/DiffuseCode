@@ -773,6 +773,7 @@ USE prop_para_func
    USE structur , ONLY: rese_cr
    USE save_menu, ONLY: save_internal, save_store_setting, save_restore_setting, save_default_setting, save_struc, save_show
 !USE surface_func_mod
+   USE symm_sup_mod
    USE discus_init_mod, ONLY: mmc_init
 !
    USE param_mod
@@ -1618,6 +1619,8 @@ ENDIF
       chem_quick = .FALSE.
       chem_period(:) = .FALSE.
    ENDIF
+!
+CALL symm_reset
 !
    END SUBROUTINE deco_run
 !
