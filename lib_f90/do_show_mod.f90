@@ -85,11 +85,14 @@ IMPLICIT none
 !                                                                       
 IF (ier_sta.eq.ER_S_CONT) THEN 
    WRITE (output_io, 2100) 
+ELSEIF (ier_sta.eq.ER_S_LIVE) THEN 
+   WRITE (output_io, 2102) 
 ELSE 
    WRITE (output_io, 2105) 
 ENDIF 
 !                                                                       
  2100 FORMAT  (' Program continues after display of error message') 
+ 2102 FORMAT  (' Program lives on  after display of error message') 
  2105 FORMAT  (' Program terminates after display of error message') 
 !
 END SUBROUTINE do_show_error                  
