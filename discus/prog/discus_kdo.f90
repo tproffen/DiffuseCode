@@ -11,6 +11,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE charact_mod 
       USE chem_menu
       USE conn_mod
+      USE demolec
       USE do_find_mod
       USE domain_menu
       USE fourier_menu

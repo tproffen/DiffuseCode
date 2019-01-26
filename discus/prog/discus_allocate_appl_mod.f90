@@ -279,6 +279,7 @@ MODULE discus_allocate_appl_mod
       CALL alloc_crystal  ( 1,  1        )
       CALL alloc_deco     ( 1,  4,  3,   3, 2 , 3)
       CALL alloc_debye    ( 1,  1,  1, ONE )
+      CALL alloc_demol    ( 1            ) 
       CALL alloc_diffuse  ( 1,  1,  1    )
       CALL alloc_domain   ( 1            )
       CALL alloc_micro    ( 1,  1        )
@@ -1114,6 +1115,47 @@ MODULE discus_allocate_appl_mod
          RETURN
       END IF
     END SUBROUTINE alloc_deco
+!
+!
+SUBROUTINE alloc_demol ( n_moletype )
+!-
+!     Allocate the arrays needed by demolecularize
+!+
+USE crystal_mod
+USE demolec_mod
+!
+IMPLICIT NONE
+!
+!      
+INTEGER, INTENT(IN)  :: n_moletype
+!
+INTEGER              :: all_status
+INTEGER              :: size_of
+LOGICAL              :: lstat
+!
+lstat     = .TRUE.
+!
+CALL alloc_arr ( dem_lmoletype   ,1,n_moletype,  all_status, .FALSE., size_of )
+lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
+IF( lstat ) THEN                        ! Success
+   DEM_MAX_MOLETYPE  = n_moletype
+   ier_typ       = 0
+   ier_num       = 0
+   IF ( all_status == 1 ) THEN
+      ier_typ       = 1
+      ier_num       = ER_COMM
+      ier_msg(1)    = 'demolec'
+   ENDIF
+ELSE                                    ! Failure
+   DEM_MAX_MOLETYPE  = n_moletype
+   ier_num       = -3
+   ier_typ       = ER_COMM
+   ier_msg(1)    = 'demolec'
+   RETURN
+END IF
+!
+END SUBROUTINE alloc_demol
 !
     SUBROUTINE alloc_diffuse ( n_qxy, n_scat, n_atoms )
 !-
