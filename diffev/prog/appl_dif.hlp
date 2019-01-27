@@ -19,6 +19,11 @@
    Further help topics are:
 
 2  News
+3  2019_Jan
+
+   Improved the writing of the diffev_best.mac macro. 
+   The state of "compute:" is evaluated and multiple "run_mpi" lines
+   are taken into account.
 3  2018_Nov
 
    Added a new command 'restart <user_generation>' This command compares

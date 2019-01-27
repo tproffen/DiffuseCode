@@ -78,6 +78,10 @@
 
    Added a demolcularize menu to delete a molecule entry while
    keeping the atoms
+
+   surface
+      Added a thickness: optional parameter that allows to define 
+      individual thicknesses to hkl planes.
 3  2018_Dec
 
    mmc
