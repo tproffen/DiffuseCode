@@ -74,7 +74,11 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
-3  2019_Dec
+3  2019_Jan
+
+   Added a demolcularize menu to delete a molecule entry while
+   keeping the atoms
+3  2018_Dec
 
    mmc
       The displacement correlation did not really work, fixed.
@@ -703,6 +707,7 @@
 
    Modify a structure
    decorate   ! Decorate the surface with ligands
+   demolec    ! De-molecularize a molecule 
    domain     ! Place domains into host structure
    insert     ! Insert objects into the crystal
    mmc        ! MONTE-CARLO simulations
@@ -730,8 +735,6 @@
 
    pdf        ! Calculate a Pair distribution function
 2  Unit_cell
-!b !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!b !!          NEW FORMAT OF DATA FILE, STARTING IN DISCUS-3.10          !!
 !b !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    Don't worry, the old data file format is still supported !
@@ -2286,6 +2289,77 @@
    turns on the sequence in which centering generators are applied first
 
    The "symmetry" mode now the default value.
+2  demolecularize
+!b demolecularize
+
+   Enters the menue to de-molecularize a molecule.
+   The molecule entry is removed from internal list, and the 
+   molecule properties of the atoms that were in the selected 
+   molecul(s) are cleared.
+
+3  deselect
+!b deselect moletype:{"all"|"none"| <number> | (<n1>, <n2>...}
+!b deselect atomtype:{"all"|"none"| <number> | (<n1>, <n2>...}
+
+   The optional parameter "moletype" deselects which molecule
+   types are to be demolecularized.
+   The parameter defaults to "all", which means that no
+   molecule type will be demolecularized.
+
+   The optional parameter "atomtype:" defines which atom 
+   types must be present in the selected molecule types. 
+   The parameter defaults to "all", which means that no
+   atom type needs to be present. A molecule may contain
+   any atom type to be demolecularized.
+3  exit
+!b exit
+
+   Leave the demolecularize menu, go back to the main
+   DISCUS menu.
+3  include
+!b include molerange:{"none"|"all"| <number> | (<n1>, <n2>...}
+!b include atomrange:{"none"|"all"| <number> | (<n1>, <n2>...}
+
+   The optional parameter "molerange" selects which molecule
+   range are to be demolecularized.
+   The parameter defaults to "none", which means that no
+   molecule range will be demolecularized.
+
+   The optional parameter "atomrange:" defines whether atoms
+   must be within the specified range if the selected 
+   molecules are to be demolecularized. 
+   The parameter defaults to "none", which means that no
+   specific atom range needs to be present. A molecule may
+   contain any atom range to be demolecularized.
+
+3  select
+!b select moletype:{"none"|"all"| <number> | (<n1>, <n2>...}
+!b select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...}
+
+   The optional parameter "moletype" selects which molecule
+   types are to be demolecularized.
+   The parameter defaults to "none", which means that no
+   molecule type will be demolecularized.
+
+   The optional parameter "atomtype:" defines which atom 
+   types must be present in the selected molecule types. 
+   The parameter defaults to "none", which means that no
+   atom type needs to be present. A molecule may contain
+   any atom type to be demolecularized.
+
+3  show
+
+   Show the current settings
+3  reset
+
+   Reset to system start, which means that:
+   no molecule types are selected 
+   the molecule range is set to zero
+   any atom may be present
+   no specific atom range needs to be present
+3  run
+
+   perform the actual calculation
 2  diff-four
 !b diff
 

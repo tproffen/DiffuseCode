@@ -10,6 +10,7 @@ USE chem_menu
 USE class_internal
 USE crystal_mod
 USE conn_mod
+USE demolec
 USE discus_allocate_appl_mod
 USE discus_init_mod
 USE discus_plot_menu
@@ -41,6 +42,7 @@ CALL discus_alloc_default               ! Shrink all arrays to minimum size
 CALL discus_initarrays                  ! Reset most arrays, does mmc_init
 CALL rese_cr                            ! Clean crystal
 CALL deco_reset                         ! Surface decoration
+CALL demol_reset                        ! Demolecularization
 CALL chem_reset                         ! Complete chemisty menu
 zeile = ' '
 lp    = 1
