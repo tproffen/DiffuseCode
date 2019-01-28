@@ -2335,7 +2335,48 @@
    The parameter defaults to "none", which means that no
    specific atom range needs to be present. A molecule may
    contain any atom range to be demolecularized.
+3  prop
+!b prop {"ignore"|"present"|"absent"} , <property> [, <property> ...]
 
+   Defines which properties all atoms in the molecule must have
+   for the molecule to be demolecularized.
+
+   "ignore"
+   The properties listed will be ignored. The listed properties do
+   not have an affect on the choice to demolecularize the molecule
+   or not. 
+   "present"
+   All atoms in the molecule must have the properties listed, 
+   for the molecule to be demolecularized.
+   "absent"
+   All atoms in the molecule are not allowed to have the 
+   properties listed.
+
+   The properties can be one of:
+   "all"
+   Apply the rule to all properties.
+   "normal"
+   The rules apply if an atom is a normal atom (not a void)
+   "molecule"
+   The rules apply if an atom is part of a molecule
+   "domain"
+   The rules apply if an atom is part of a domain
+   "outside"
+   The rules apply if an atom is outside of the crystal. This status
+   is set if the atom has been cut off by a ==> 'boundary' command.
+   "external"
+   The rules apply if an atom is close to an external surface, either
+   on the inside or on the outside. 
+   The flag is set by the ==> 'boundary' command. Individual distances
+   to the boundary can be set within the ==> 'surface' menu through
+   the ==> 'surface/fuzzy' command.
+   "internal"
+   The rules apply if an atom is close to an internal surface, either
+   within the host or within the guest structure. 
+   The flag is set by placing a guest structure into the crystal through
+   the ==> 'domain' menu. Individual distances
+   to the boundary can be set within the ==> 'domain' menu through
+   the ==> 'domain/fuzzy' command.
 3  select
 !b select moletype:{"none"|"all"| <number> | (<n1>, <n2>...}
 !b select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...}
@@ -2350,7 +2391,6 @@
    The parameter defaults to "none", which means that no
    atom type needs to be present. A molecule may contain
    any atom type to be demolecularized.
-
 3  show
 
    Show the current settings
@@ -5456,7 +5496,7 @@
 
   Sets the definitions for plotting polyhedra in an interactive plot.
   Currently only an interactive plot with JMOL is supported.
-  The command ==> 'run inter:yes' gives the details how to start an
+  The command ==> 'run plot:inter' gives the details how to start an
   interactve plot session.
 
 !p "off"      Turn off any polyhedra.

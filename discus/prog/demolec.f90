@@ -17,12 +17,14 @@ USE calc_expr_mod
 USE class_macro_internal
 USE crystal_mod
 USE discus_allocate_appl_mod
+USE molecule_mod
+USE prop_para_func
+!
 USE do_eval_mod
 USE do_wait_mod
 USE doact_mod
 USE errlist_mod
 USE learn_mod
-USE molecule_mod
 USE prompt_mod
 USE sup_mod
 !
@@ -142,6 +144,13 @@ main_loop: DO
 !
                is_com: IF(str_comp (befehl, 'incl', 3, lbef, 4) ) THEN 
                   CALL demol_incl(zeile, lp)
+!                                                                       
+!------ --Handle property settings 'property'                           
+!                                                                       
+               ELSEIF (str_comp (befehl, 'property', 4, lbef, 8) ) THEN is_com
+!                                                                       
+                  CALL property_select (zeile, lp, dem_sel_prop)
+
                ELSEIF(str_comp (befehl, 'run', 3, lbef, 3) ) THEN is_com
                   CALL demol_run
                ELSEIF(str_comp (befehl, 'sel', 3, lbef, 3) .OR.  &
@@ -482,14 +491,17 @@ SUBROUTINE demol_show
 !
 USE crystal_mod
 USE molecule_mod
+USE prop_char_mod
 USE prompt_mod
 !
 IMPLICIT NONE
 !
+CHARACTER(LEN=32)                      :: c_property
 INTEGER, DIMENSION(1:DEM_MAX_MOLETYPE) :: moletype_list
 INTEGER, DIMENSION(1:DEM_MAX_ATOMTYPE) :: atomtype_list
 INTEGER :: j,k
 INTEGER :: i
+INTEGER :: length
 !
 j = 0
 DO i=1, mole_num_type
@@ -532,6 +544,9 @@ ELSEIF(dem_atomrange(2)==-1) THEN
 ELSE
   WRITE(output_io, 4550) dem_atomrange(:)
 ENDIF
+CALL char_prop_2 (c_property, dem_sel_prop (1), dem_sel_prop (0),   &
+                  length)
+WRITE (output_io, 5000) c_property (1:length)
 !
 !
 3300 FORMAT( '   Selected molecule types   : ',2x,50(i4,1x))
@@ -549,6 +564,9 @@ ENDIF
 4500 FORMAT( '   Atoms must be in range    : ',i9,' to all remaining')
 4550 FORMAT( '   Atoms must be in range    : ',i9,' to ',i9)
 !
+5000 FORMAT(/' Atom properties         : ','NMDOEI'/               &
+                  '      absent=- ignored=. : ',a)
+!
 END SUBROUTINE demol_show
 !
 !*******************************************************************************
@@ -559,6 +577,7 @@ SUBROUTINE demol_run
 ! Performs the demolecularization
 !
 USE crystal_mod
+USE modify_func_mod
 USE molecule_mod
 USE prop_para_mod
 !
@@ -581,7 +600,6 @@ ELSE
    iend   = dem_molerange(2)
 ENDIF
 !
-write(*,'(20i3)') mole_cont(:mole_num_atom)
 IF(istart>=1    .AND. istart <= mole_num_mole .AND. &      ! Test include range
    istart<=iend .AND. iend   <= mole_num_mole       ) THEN
    mainloop:DO i=istart, iend                              ! Loop over all included molecules
@@ -604,12 +622,21 @@ IF(istart>=1    .AND. istart <= mole_num_mole .AND. &      ! Test include range
          atomtypes:DO l=0,cr_nscat
             IF(dem_latomtype(l)) THEN                      ! This atom type is required
                DO j=1, mole_len(i)                               ! Loop over all atoms in molecule
+                  k = mole_cont(mole_off(i)+j)                ! Absolute atom number
                   IF(cr_iscat(mole_cont(mole_off(i)+j))==l) CYCLE atomtypes  ! correct atom type
                ENDDO
                latomtypes=.FALSE.                          ! End of molecule without atom type
                EXIT atomtypes                              ! no need for further search
             ENDIF
          ENDDO atomtypes
+!
+! Test property masks
+!
+         DO j=1, mole_len(i)                               ! Loop over all atoms in molecule
+            k = mole_cont(mole_off(i)+j)                   ! Absolute atom number
+write(*,*) 'ATOM ',k, check_select_status(k, .TRUE., cr_prop(k), dem_sel_prop)
+            IF(.NOT.check_select_status(k, .TRUE., cr_prop(k), dem_sel_prop) ) EXIT moletypes  ! Atom does not fulfil properties
+         ENDDO
 !
          passed: IF(latomtypes) THEN                       ! Passed atom type test
 !
@@ -618,7 +645,8 @@ IF(istart>=1    .AND. istart <= mole_num_mole .AND. &      ! Test include range
             DO j=1, mole_len(i)                            ! Loop over all atoms in molecule
                k = mole_cont(mole_off(i)+j)                ! Absolute atom number
                cr_mole(k) = 0
-               cr_prop (k ) = IBCLR (cr_prop (k ), PROP_MOLECULE)   ! UNFLAG THIS ATOM AS SURFACE ANCHOR
+               cr_prop (k ) = IBCLR (cr_prop (k ), PROP_MOLECULE)   ! UNFLAG THIS ATOM AS Molecule  atom
+               cr_prop (k ) = IBCLR (cr_prop (k ), PROP_LIGAND  )   ! UNFLAG THIS ATOM AS Ligand Atom
                mole_cont(mole_off(i)+j) = 0                ! Clear molecule content
                isdel = .TRUE.
             ENDDO
@@ -631,8 +659,6 @@ ELSE
    ier_msg(1) = 'Molecule include range is outside range'
 ENDIF
 !
-write(*,*) 'MOLE_CONT  ', LBOUND(mole_cont), UBOUND(mole_cont), mole_num_mole, mole_num_type, mole_num_atom
-write(*,'(20i3)') mole_cont(:mole_num_atom)
 IF(isdel) THEN                     ! A molecule was deleted
    i = 1
    clean: DO 
@@ -645,7 +671,6 @@ IF(isdel) THEN                     ! A molecule was deleted
          ENDIF
       ENDDO isempty
       IF(empty) THEN                                     ! Molecule is empty
-write(*,*) 'molecule is empty ',i
          nat = mole_len(i)
          DO j=mole_off(i)+1, mole_num_atom - mole_len(i)                             ! Shift atoms down
             mole_cont(j) = mole_cont(j+mole_len(i))
@@ -662,14 +687,10 @@ write(*,*) 'molecule is empty ',i
          mole_num_mole = mole_num_mole - 1
          mole_num_atom = mole_num_atom - nat
       ELSE
-write(*,*) 'molecule is full  ',i
          i = i + 1
       ENDIF
    ENDDO clean
 ENDIF
-write(*,'(a,20i3)') 'CONTENT ', mole_cont(:mole_num_atom)
-write(*,'(a,20i3)') 'OFFSET  ', mole_off (:mole_num_mole)
-write(*,'(a,20i3)') 'LENGTH  ', mole_len (:mole_num_mole)
 !
 END SUBROUTINE demol_run
 !
@@ -687,6 +708,7 @@ dem_atomrange(1) =  1
 dem_atomrange(2) = -1
 IF(ALLOCATED(dem_lmoletype)) dem_lmoletype(:) = .FALSE.
 IF(ALLOCATED(dem_latomtype)) dem_latomtype(:) = .FALSE.
+dem_sel_prop(:)  = 0
 !
 END SUBROUTINE demol_reset
 !
