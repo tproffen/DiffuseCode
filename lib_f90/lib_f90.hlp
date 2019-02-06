@@ -1279,6 +1279,15 @@
 !p diff = alpha - beta
 !p eval diff
 
+!p variable real, vector, dim:[3]
+!p vector[2] = 3.1415
+!p evaluate vector[3]
+
+!p variable real, array, dim:[4,10]
+!p array[4,5] = 3.1415
+!p evaluate array[1,8]
+
+
 !p variable  character,string
 !p variable  character,line
 !p string = "abcdefg"
