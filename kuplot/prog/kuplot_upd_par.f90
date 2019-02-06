@@ -560,7 +560,7 @@ CALL no_error
 !
       INTEGER idummy 
 CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
-IF(ier_num==0) RETURN
+IF(ier_num==0 .OR. (ier_num==-40 .AND. ier_typ==ER_FORT)) RETURN
 CALL no_error
 !                                                                       
 !------ fit parameter p[n]                                              

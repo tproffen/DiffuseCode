@@ -284,21 +284,22 @@ search_var: DO i=var_sys+1, var_num
    IF(var_name(i) == ctype(1:len_trim(ctype))   ) THEN
       IF(var_entry(i)>0) THEN
          IF(0<ww(1) .AND. ww(1)<=var_field(var_entry(i))%var_shape(1) ) THEN
-            IF(maxw==1 .AND. var_field(var_entry(i))%var_shape(2)>1) THEN
-               ier_num = -40
-               ier_typ = ER_FORT
-               RETURN
-            ELSE
-               ww2 = 1
-            ENDIF
-            IF(maxw==2) THEN
-            IF(0>=ww(2) .OR. ww(2)> var_field(var_entry(i))%var_shape(2)) THEN
-               ier_num = -40
-               ier_typ = ER_FORT
-               RETURN
-            ELSE
-               ww2 = ww(2)
-            ENDIF
+            IF(maxw==1) THEN
+               IF(var_field(var_entry(i))%var_shape(2)>1) THEN
+                  ier_num = -40
+                  ier_typ = ER_FORT
+                  RETURN
+               ELSE
+                  ww2 = 1
+               ENDIF
+            ELSEIF(maxw==2) THEN
+               IF(0>=ww(2) .OR. ww(2)> var_field(var_entry(i))%var_shape(2)) THEN
+                  ier_num = -40
+                  ier_typ = ER_FORT
+                  RETURN
+               ELSE
+                  ww2 = ww(2)
+               ENDIF
             ELSE
                ier_num = -40
                ier_typ = ER_FORT
