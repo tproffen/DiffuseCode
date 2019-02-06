@@ -829,13 +829,19 @@ CONTAINS
      & 'trigonal rhombohedral axes', 'hexagonal', 'cubic' /             
 !                                                                       
 !                                                                       
-      WRITE (output_io, 2100) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
+IF(cr_syst==4) THEN
+   WRITE (output_io, 2100) cr_spcgr, cr_spcgrno, cr_system (cr_syst)(1:13), & 
+                           cr_set, cr_spcgr_set
+ELSE
+   WRITE (output_io, 2200) cr_spcgr, cr_spcgrno, cr_system (cr_syst) 
+ENDIF
 !                                                                       
       DO is = 1, spc_n 
          CALL do_show_symmetry_single(is, mode)
       ENDDO
 !
- 2100 FORMAT    (/,' Space group ',a16,' No.: ',i3,2x,a26) 
+2100 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a13,' Setting: ',a3, 1x, a16)
+2200 FORMAT(/,' Space group ',a16,' No.: ',i3,2x,a26) 
 !
   END SUBROUTINE do_show_symmetry
 !
@@ -868,11 +874,11 @@ INTEGER :: block = 1
       n_center = 1 
       IF (cr_spcgr (1:1) .eq.'P') then 
          n_center = 1 
-      ELSEIF (cr_spcgr (1:1) .eq.'A') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'A') then  ! Normal space group can be used
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'B') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'B') then  ! as n_center is identical for
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'C') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'C') then  ! A B and C, orthorhombic alternative setting
          n_center = 2 
       ELSEIF (cr_spcgr (1:1) .eq.'I') then 
          n_center = 2 

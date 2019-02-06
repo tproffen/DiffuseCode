@@ -25,6 +25,8 @@ CONTAINS
       INTEGER igs 
       INTEGER igg 
       INTEGER i, j, k 
+!
+CALL spcgr_get_setting    ! Determine space group setting
 !                                                                       
 !     Reset all symmetry matrices                                       
 !                                                                       
@@ -137,6 +139,7 @@ INTEGER, INTENT(IN) :: SPC_MAX
       INTEGER igg 
       INTEGER NG 
       REAL generators (4, 4, 0:NG) 
+REAL :: generator(4, 4) 
       INTEGER generpower (NG) 
 !                                                                       
       INTEGER i, j, k 
@@ -149,6 +152,7 @@ INTEGER, INTENT(IN) :: SPC_MAX
       REAL wmat (4, 4) 
 !                                                                       
 !     For convenience create Identity operator                          
+!
 !                                                                       
       DO i = 1, 4 
          DO j = 1, 4 
@@ -163,6 +167,11 @@ INTEGER, INTENT(IN) :: SPC_MAX
 !     to ist application only.                                          
 !                                                                       
       nmat = spc_n 
+!
+! Make a local copy of the generator to allow different space group settings
+!
+generator(:,:) = generators(:,:,igg)
+CALL spcgr_setting(generator, cr_iset)
 !                                                                       
 !     Loop over all powers of generator igg                             
 !                                                                       
@@ -175,7 +184,8 @@ INTEGER, INTENT(IN) :: SPC_MAX
             DO j = 1, 4 
                wmat (i, j) = 0.0 
                DO k = 1, 4 
-                  wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+!                 wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+                  wmat (i, j) = wmat (i, j) + generator  (i, k     ) * xmat (k, j) 
                ENDDO 
             ENDDO 
          ENDDO 
@@ -239,7 +249,150 @@ INTEGER, INTENT(IN) :: SPC_MAX
       ENDDO loop_power
 !                                                                       
       END SUBROUTINE make_symmetry_matrix           
+!
 !********************************************************************** 
+!
+SUBROUTINE spcgr_get_setting
+!
+USE crystal_mod
+USE spcgr_mod
+!
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+cr_iset = 1
+!
+settings: SELECT CASE (cr_set)
+CASE ('abc') settings
+   cr_iset = 1
+CASE ('bac') settings
+   cr_iset = 2
+CASE ('cab') settings
+   cr_iset = 3
+CASE ('cba') settings
+   cr_iset = 4
+CASE ('bca') settings
+   cr_iset = 5
+CASE ('acb') settings
+   cr_iset = 6
+CASE DEFAULT settings
+   cr_iset = 1
+   ier_num = -161
+   ier_typ = ER_APPL
+   ier_msg(1) = 'The non-standard setting must be one of:     '
+   ier_msg(2) = 'abc, bac, cab, cba, bca, acb '
+END SELECT settings
+!
+IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+   ier_num = -160
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Non-standard settings are implemented only'
+   ier_msg(2) = 'for orthorhombic space groups '
+ENDIF
+cr_spcgr_set = cr_spcgr          ! Default to normal space group name
+IF(cr_syst==4) THEN
+   IF(cr_spcgrno>=16 .and. cr_spcgrno<=74) THEN
+      cr_spcgr_set = spcgr_name_set(cr_spcgrno,cr_iset)
+   ENDIF
+ENDIF
+!
+END SUBROUTINE spcgr_get_setting
+!
+!********************************************************************** 
+!
+SUBROUTINE spcgr_setting(generator, icase)
+!
+USE crystal_mod
+!
+IMPLICIT NONE
+!
+REAL, DIMENSION(4,4), INTENT(INOUT) :: generator
+INTEGER             , INTENT(IN)    :: icase
+!
+INTEGER :: i,j
+REAL, DIMENSION(4,4,6) :: qmat
+REAL, DIMENSION(4,4,6) :: pmat
+!
+DATA ((qmat(i,j,1),j=1,4),i=1,4)   &    ! 'abc'
+   / 1.00, 0.00, 0.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((qmat(i,j,2),j=1,4),i=1,4)   &    ! 'bac'
+   / 0.00, 1.00, 0.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((qmat(i,j,3),j=1,4),i=1,4)   &    ! 'cab'
+   / 0.00, 0.00, 1.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((qmat(i,j,4),j=1,4),i=1,4)   &    ! 'cba'
+   / 0.00, 0.00, 1.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((qmat(i,j,5),j=1,4),i=1,4)   &    ! 'bca'
+   / 0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((qmat(i,j,6),j=1,4),i=1,4)   &    ! 'acb'
+   / 1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+!
+DATA ((pmat(i,j,1),j=1,4),i=1,4)   &    ! 'abc'
+   / 1.00, 0.00, 0.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((pmat(i,j,2),j=1,4),i=1,4)   &    ! 'bac'
+   / 0.00, 1.00, 0.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((pmat(i,j,3),j=1,4),i=1,4)   &    ! 'cab'
+   / 0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((pmat(i,j,4),j=1,4),i=1,4)   &    ! 'cba'
+   / 0.00, 0.00, 1.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((pmat(i,j,5),j=1,4),i=1,4)   &    ! 'bca'
+   / 0.00, 0.00, 1.00, 0.00,       &
+     1.00, 0.00, 0.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+DATA ((pmat(i,j,6),j=1,4),i=1,4)   &    ! 'acb'
+   / 1.00, 0.00, 0.00, 0.00,       &
+     0.00, 0.00, 1.00, 0.00,       &
+     0.00, 1.00, 0.00, 0.00,       &
+     0.00, 0.00, 0.00, 1.00/
+!
+generator = MATMUL(qmat(:,:,icase), MATMUL(generator, pmat(:,:,icase)))
+!
+END SUBROUTINE spcgr_setting
+!
+!********************************************************************** 
+!
       SUBROUTINE get_symmetry_type (SPC_MAX, spc_n, spc_mat, spc_spur,  &
       spc_det, spc_char, spc_xyz)
 !-                                                                      
@@ -765,7 +918,7 @@ INTEGER, INTENT(IN) :: SPC_MAX
       posit1bar (i) = posit1bar (i) - int (posit1bar (i) ) 
       ENDDO 
       IF (w_char (1:2) .eq.' 1') then 
-!     --write centerin vector                                           
+!     --write centering vector                                           
          IF (abs (screw (1) ) .gt.eps.or.abs (screw (2) )               &
          .gt.eps.or.abs (screw (3) ) .gt.eps) then                      
             WRITE (w_char (4:21), 3100) (ctrans (nint (24 * screw (i) ) &
@@ -1299,11 +1452,11 @@ END SUBROUTINE get_detail_axis
       n_center = 1 
       IF (cr_spcgr (1:1) .eq.'P') then 
          n_center = 1 
-      ELSEIF (cr_spcgr (1:1) .eq.'A') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'A') then   ! Normal space group can be used
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'B') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'B') then   ! as n_center is identical for
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'C') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'C') then   ! A B and C, orthorhombic alternative setting
          n_center = 2 
       ELSEIF (cr_spcgr (1:1) .eq.'I') then 
          n_center = 2 
@@ -1445,7 +1598,7 @@ END SUBROUTINE get_detail_axis
 !                                                                       
       iii = cr_natoms 
 !                                                                       
-      CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
+      CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
       cr_mole, ii, iii, iii, igg, NG, generators, generpower)                    
 !                                                                       
       IF (ier_num.ne.0) then 
@@ -1462,7 +1615,7 @@ END SUBROUTINE get_detail_axis
 !                                                                       
       iii = cr_natoms 
 !                                                                       
-      CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
+      CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
       cr_mole, ii, iii, iii, igs, GEN_ADD_MAX, gen_add, gen_add_power)           
 !                                                                       
       IF (ier_num.ne.0) then 
@@ -1486,7 +1639,7 @@ END SUBROUTINE get_detail_axis
 !                                                                       
       iii = cr_natoms 
 !                                                                       
-      CALL symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
+      CALL symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos, cr_iscat, cr_prop,  &
       cr_mole, ii, iii, iiii, igs, SYM_ADD_MAX, sym_add, sym_add_power)          
 !                                                                       
       IF (ier_num.ne.0) then 
@@ -1509,8 +1662,10 @@ END SUBROUTINE get_detail_axis
 !                                                                       
       END SUBROUTINE symmetry                       
 !********************************************************************** 
-      SUBROUTINE symmetry_gener (NMAX, cr_natoms, cr_pos, cr_iscat,     &
-      cr_prop, cr_mole, ii, iii, iiii, igg, NG, generators, generpower)          
+!
+SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
+      cr_iscat, cr_prop, cr_mole, ii, iii, iiii, igg, NG, generators, &
+      generpower)          
 !-                                                                      
 !     Applies the generator to the current atom                         
 !+                                                                      
@@ -1518,20 +1673,23 @@ END SUBROUTINE get_detail_axis
       USE trafo_mod
       IMPLICIT none 
 !                                                                       
-      INTEGER NMAX 
+      INTEGER,                       INTENT(IN)     ::  NMAX 
 !
+      INTEGER,                       INTENT(INOUT)  :: cr_iset
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
-      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
       REAL   , DIMENSION(1:3,1:NMAX),INTENT(INOUT)  :: cr_pos
+      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
+      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_prop
+      INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_mole
+      INTEGER                   ,    INTENT(IN)     :: ii
+      INTEGER                   ,    INTENT(IN)     :: iii
+      INTEGER                   ,    INTENT(IN)     :: iiii 
+      INTEGER                       ,INTENT(IN)     :: igg 
+      INTEGER                       ,INTENT(IN)     :: NG 
+      REAL   , DIMENSION(4,4,0:NG)  ,INTENT(IN)     :: generators! (4, 4, 0:NG) 
+      INTEGER, DIMENSION(NG)        ,INTENT(IN)     :: generpower! (NG) 
 !                                                                       
-      INTEGER NG 
-      INTEGER ii, iii, iiii 
-      INTEGER igg 
-      INTEGER generpower (NG) 
-!                                                                       
-      REAL generators (4, 4, 0:NG) 
+REAL, DIMENSION(4, 4) :: generator
 !                                                                       
       INTEGER ia, iaa, ipg 
       INTEGER i, j, k 
@@ -1552,6 +1710,11 @@ END SUBROUTINE get_detail_axis
       ENDDO 
       xmat (i, i) = 1.0 
       ENDDO 
+!
+! Make a local copy of the generator to allow different space group settings
+!
+generator(:,:) = generators(:,:,igg)
+CALL spcgr_setting(generator, cr_iset)
 !                                                                       
 !     Loop over all powers of generator igg                             
 !                                                                       
@@ -1564,7 +1727,8 @@ END SUBROUTINE get_detail_axis
       DO j = 1, 4 
       wmat (i, j) = 0.0 
       DO k = 1, 4 
-      wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
+      wmat (i, j) = wmat (i, j) + generator  (i, k     ) * xmat (k, j) 
+!     wmat (i, j) = wmat (i, j) + generators (i, k, igg) * xmat (k, j) 
       ENDDO 
       ENDDO 
       ENDDO 

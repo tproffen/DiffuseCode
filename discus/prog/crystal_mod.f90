@@ -57,6 +57,9 @@ USE discus_config_mod
 !
    CHARACTER (LEN=80)                          ::  cr_name  = 'crystal'
    CHARACTER (LEN=16)                          ::  cr_spcgr = 'P1'
+   CHARACTER (LEN= 3)                          ::  cr_set   = 'abc'
+   INTEGER                                     ::  cr_iset  =  1
+   CHARACTER (LEN=16)                          ::  cr_spcgr_set = 'P1'
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_lis  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  cr_at_equ  ! (  0:MAXSCAT)
    CHARACTER (LEN=4 ), DIMENSION(  :), ALLOCATABLE  ::  as_at_lis  ! (  0:MAXSCAT)

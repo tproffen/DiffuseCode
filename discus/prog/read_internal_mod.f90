@@ -478,7 +478,8 @@ ENDIF
    END SUBROUTINE readcell_internal
 !*******************************************************************************
    SUBROUTINE stru_readheader_internal (rd_strucfile, rd_MAXSCAT, rd_cr_name,   &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
+            rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para,   &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -492,6 +493,9 @@ ENDIF
 !
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
+   CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr_set
+   CHARACTER (LEN=   3)                         , INTENT(INOUT) :: rd_cr_set
+   INTEGER                                      , INTENT(INOUT) :: rd_cr_iset
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
@@ -523,7 +527,8 @@ ENDIF
    ENDIF
 !
    CALL read_temp%crystal%get_header_to_local (rd_MAXSCAT, rd_cr_name,      &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
+            rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,            &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win, &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )

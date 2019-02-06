@@ -13,6 +13,7 @@ INTEGER                             :: ST_MAX_SCAT  = 1
 !
 CHARACTER (LEN=80)                             :: st_name
 CHARACTER (LEN=16)                             :: st_spcgr
+CHARACTER (LEN= 3)                             :: st_set
 CHARACTER (LEN=4 ), DIMENSION(:), ALLOCATABLE  :: st_at_lis ! (0:ST_MAX_SCAT)
 CHARACTER (LEN=4 ), DIMENSION(:), ALLOCATABLE  :: sa_at_lis ! (0:ST_MAX_SCAT)
 !

@@ -628,9 +628,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ENDIF 
       WRITE (ist, 3000) cr_name (1:j) 
       IF (spcgr_ianz.eq.0) THEN 
-         WRITE (ist, 3010) cr_spcgr 
+         WRITE (ist, 3010) cr_spcgr, cr_set
       ELSEIF (spcgr_ianz.eq.1) THEN 
-         WRITE (ist, 3011) cr_spcgr, spcgr_para 
+         WRITE (ist, 3011) cr_spcgr, spcgr_para, cr_set
       ENDIF 
       WRITE (ist, 3020) (cr_a0 (i), i = 1, 3), (cr_win (i), i = 1, 3) 
       IF (sav_w_scat) THEN 
@@ -810,8 +810,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       DEALLOCATE(lwrite)
 !                                                                       
  3000 FORMAT    ('title ',a) 
- 3010 FORMAT    ('spcgr ',a16) 
- 3011 FORMAT    ('spcgr ',a16,',',i4) 
+ 3010 FORMAT    ('spcgr ',a16, ', setting:',a3)
+ 3011 FORMAT    ('spcgr ',a16,',',i4, ', setting:',a3) 
  3020 FORMAT    ('cell  ',5(f10.6,','),f10.6) 
  3021 FORMAT    ('gene  ',12(f9.6,','),i3) 
  3022 FORMAT    ('symm  ',12(f9.6,','),i3) 

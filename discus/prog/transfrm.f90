@@ -1049,6 +1049,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ENDDO 
          CALL tran_sym 
          cr_spcgr = 'P1' 
+         cr_spcgr_set = 'P1' 
+         cr_set    = 'abc'
+         cr_iset   =  1
          cr_spcgrno = 1 
          spcgr_ianz = 0 
          spcgr_para = 1 

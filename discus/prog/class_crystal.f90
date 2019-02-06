@@ -23,6 +23,9 @@ TYPE :: cl_cryst        ! Define a type "cl_cryst"
    CHARACTER (LEN=200)                              ::  cr_file     = 'crystal.stru' ! Crystal file name
    CHARACTER (LEN=80)                               ::  cr_name     = 'crystal' ! Crystal name
    CHARACTER (LEN=16)                               ::  cr_spcgr    = 'P1'      ! Space group symbol
+   CHARACTER (LEN=16)                               ::  cr_spcgr_set= 'P1'      ! Space group symbol in setting
+   CHARACTER (LEN=3 )                               ::  cr_set      = 'abc'     ! Space group setting
+   INTEGER                                          ::  cr_iset     =  1        ! Space group setting as number
    INTEGER                                          ::  cr_spcgrno  = 1 ! Space group number
    INTEGER                                          ::  cr_spc_n    = 1 ! Number of symmetry operations
    INTEGER                                          ::  cr_syst     = 1 ! Crystal system
@@ -321,6 +324,30 @@ CONTAINS
 !
    END FUNCTION get_spcgr
 !******************************************************************************
+   CHARACTER(LEN=16) FUNCTION get_spcgr_set (this )
+!
+!  Return the space group string for alternative setting in "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_spcgr_set = this%cr_spcgr_set
+!
+   END FUNCTION get_spcgr_set
+!******************************************************************************
+   INTEGER FUNCTION get_spcgr_iset (this )
+!
+!  Return the space group setting number in  "this" crystal
+!
+   IMPLICIT none
+!
+   CLASS (cl_cryst) :: this
+!
+   get_spcgr_iset = this%cr_iset
+!
+   END FUNCTION get_spcgr_iset
+!******************************************************************************
    INTEGER FUNCTION get_spcgr_no (this )
 !
 !  Return the space group number in  "this" crystal
@@ -552,6 +579,9 @@ CONTAINS
    this%cr_file         = strucfile
    this%cr_name         = cr_name
    this%cr_spcgr        = cr_spcgr
+   this%cr_spcgr_set    = cr_spcgr_set
+   this%cr_set          = cr_set
+   this%cr_iset         = cr_iset
    this%cr_spcgrno      = cr_spcgrno
    this%cr_spc_n        = spc_n
    this%cr_syst         = cr_syst
@@ -797,7 +827,8 @@ CONTAINS
    SUBROUTINE set_crystal_from_local   ( this, strucfile, &
             rd_NMAX, rd_MAXSCAT, rd_n_mole, rd_n_mole_type, rd_n_atom, rd_cr_name,       &
             rd_cr_natoms, rd_cr_ncatoms, rd_cr_n_REAL_atoms, rd_cr_spcgrno, rd_cr_syst, &
-            rd_cr_spcgr, rd_cr_spc_n, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,         &
+            rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,                        &
+            rd_cr_spc_n, rd_cr_at_lis, rd_cr_at_equ, rd_cr_as_lis,         &
             rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,                      &
             rd_cr_ar, rd_cr_wrez, rd_cr_v, rd_cr_vr, rd_cr_dim, rd_cr_dim0, rd_cr_icc,  &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
@@ -837,6 +868,9 @@ CONTAINS
    INTEGER                                      , INTENT(IN) :: rd_cr_spcgrno 
    INTEGER                                      , INTENT(IN) :: rd_cr_spc_n 
    CHARACTER (LEN=  16)                         , INTENT(IN) :: rd_cr_spcgr 
+   CHARACTER (LEN=  16)                         , INTENT(IN) :: rd_cr_spcgr_set
+   CHARACTER (LEN=   3)                         , INTENT(IN) :: rd_cr_set 
+   INTEGER                                      , INTENT(IN) :: rd_cr_iset 
    INTEGER                                      , INTENT(IN) :: rd_cr_syst 
    REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_a0
    REAL                , DIMENSION(3)           , INTENT(IN) :: rd_cr_win
@@ -908,6 +942,9 @@ CONTAINS
    this%cr_file         = strucfile
    this%cr_name         = rd_cr_name
    this%cr_spcgr        = rd_cr_spcgr
+   this%cr_spcgr_set    = rd_cr_spcgr_set
+   this%cr_set          = rd_cr_set
+   this%cr_iset         = rd_cr_iset
    this%cr_spcgrno      = rd_cr_spcgrno
    this%cr_spc_n        = rd_cr_spc_n
    this%cr_syst         = rd_cr_syst
@@ -1203,6 +1240,9 @@ CONTAINS
 !
    cr_name         = this%cr_name
    cr_spcgr        = this%cr_spcgr
+   cr_spcgr_set    = this%cr_spcgr_set
+   cr_set          = this%cr_set
+   cr_iset         = this%cr_iset
    cr_spcgrno      = this%cr_spcgrno
    cr_syst         = this%cr_syst
    cr_acentric     = this%cr_acentric
@@ -1294,7 +1334,8 @@ CONTAINS
    END SUBROUTINE get_header_from_crystal
 !******************************************************************************
    SUBROUTINE get_header_to_local (this, rd_MAXSCAT, rd_cr_name,      &
-            rd_cr_spcgr, rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,      &
+            rd_cr_spcgr, rd_cr_spcgr_set, rd_cr_set, rd_cr_iset,      &
+            rd_cr_at_lis, rd_cr_nscat, rd_cr_dw, rd_cr_occ, rd_cr_a0, rd_cr_win,      &
             rd_sav_ncell, rd_sav_r_ncell, rd_sav_ncatoms, rd_spcgr_ianz, rd_spcgr_para, &
             rd_GEN_ADD_MAX, rd_gen_add_n, rd_gen_add_power, rd_gen_add,                 &
             rd_SYM_ADD_MAX, rd_sym_add_n, rd_sym_add_power, rd_sym_add )
@@ -1305,6 +1346,9 @@ CONTAINS
 !
    CHARACTER (LEN=  80)                         , INTENT(INOUT) :: rd_cr_name 
    CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr 
+   CHARACTER (LEN=  16)                         , INTENT(INOUT) :: rd_cr_spcgr_set
+   CHARACTER (LEN=   3)                         , INTENT(INOUT) :: rd_cr_set 
+   INTEGER                                      , INTENT(INOUT) :: rd_cr_iset 
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_a0
    REAL                , DIMENSION(3)           , INTENT(INOUT) :: rd_cr_win
    INTEGER                                      , INTENT(INOUT) :: rd_cr_nscat 
@@ -1335,6 +1379,9 @@ CONTAINS
 !
    rd_cr_name         = this%cr_name
    rd_cr_spcgr        = this%cr_spcgr
+   rd_cr_spcgr_set    = this%cr_spcgr_set
+   rd_cr_set          = this%cr_set
+   rd_cr_iset         = this%cr_iset
 !
    rd_spcgr_ianz      = this%spcgr_ianz
    rd_spcgr_para      = this%spcgr_para

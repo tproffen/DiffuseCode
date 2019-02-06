@@ -11,6 +11,9 @@ INTEGER      :: MK_MAX_ATOM
 !
 CHARACTER(LEN=80)  :: mk_name  = ' '
 CHARACTER(LEN=16)  :: mk_spcgr = 'P1'
+CHARACTER(LEN=16)  :: mk_spcgr_set = 'P1'
+CHARACTER(LEN= 3)  :: mk_set   = 'abc'
+INTEGER            :: mk_iset  =  1
 CHARACTER(LEN=4), DIMENSION(:), ALLOCATABLE ::  mk_at_lis  ! (0:MK_MAX_SCAT)
 !
 REAL            , DIMENSION(:), ALLOCATABLE ::  mk_dw      ! (0:MK_MAX_SCAT)

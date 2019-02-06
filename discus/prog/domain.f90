@@ -588,7 +588,8 @@ DO i=1, clu_number
          maxdim(4) = MAX(n_type, MOLE_MAX_TYPE)
          maxdim(5) = MAX(n_atom, MOLE_MAX_ATOM)
          CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
+         mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
+         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -626,7 +627,7 @@ DO i=1, clu_number
 !     Read the input file header                                        
 !                                                                       
       CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
-      mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+      mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
       AT_MAXP, at_ianz, at_param)           
       CLOSE(imd)
@@ -683,7 +684,8 @@ ENDDO
       lread = .true. 
       IF ( clu_infile_internal ) THEN
          CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
+         mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                           &
+         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,       &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -724,7 +726,7 @@ ENDDO
 !     Read the input file header                                        
 !                                                                       
          CALL stru_readheader (imd, MK_MAX_SCAT, mk_name,     &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+         mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           
       ENDIF
@@ -780,7 +782,8 @@ pseudo_ok:  IF(l_ok) THEN
 !!!!!!!!!!!
                IF ( clu_infile_internal ) THEN
                   CALL stru_readheader_internal (clu_infile, MK_MAX_SCAT, mk_name, &
-                  mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
+                  mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                         &
+                  mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,     &
                   sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
                   mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
                   mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -1094,7 +1097,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       IF(infile(1:8)=='internal') THEN
          mk_infile_internal = .true.
          CALL stru_readheader_internal (infile, MK_MAX_SCAT, mk_name,   &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,   &
+         mk_spcgr, mk_spcgr_set, mk_set, mk_iset,                       &
+         mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win,   &
          sav_ncell, sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, &
          mk_GEN_ADD_MAX, mk_gen_add_n, mk_gen_add_power, mk_gen_add,  &
          mk_SYM_ADD_MAX, mk_sym_add_n, mk_sym_add_power, mk_sym_add )
@@ -1116,7 +1120,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !     Read the input file header                                        
 !                                                                       
          CALL stru_readheader (ist, MK_MAX_SCAT, mk_name,     &
-         mk_spcgr, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
+         mk_spcgr, mk_set, mk_at_lis, mk_nscat, mk_dw, mk_occ, mk_a0, mk_win, sav_ncell,   &
          sav_r_ncell, sav_ncatoms, mk_spcgr_ianz, mk_spcgr_para, &
          AT_MAXP, at_ianz, at_param)           
       ENDIF

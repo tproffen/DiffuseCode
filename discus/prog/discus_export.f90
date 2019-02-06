@@ -256,13 +256,13 @@ IF(.NOT.cr_acentric) THEN                      ! Is centrosymmetric
 ELSE
    orig_OK = .TRUE.   ! Acentric space group origin is always OK
 ENDIF
-IF(cr_spcgr(1:1)=='P') lattice = 1
-IF(cr_spcgr(1:1)=='I') lattice = 2
-IF(cr_spcgr(1:1)=='R') lattice = 3
-IF(cr_spcgr(1:1)=='F') lattice = 4
-IF(cr_spcgr(1:1)=='A') lattice = 5
-IF(cr_spcgr(1:1)=='B') lattice = 6
-IF(cr_spcgr(1:1)=='C') lattice = 7
+IF(cr_spcgr_set(1:1)=='P') lattice = 1    ! Requires the alternative setting 
+IF(cr_spcgr_set(1:1)=='I') lattice = 2    ! to get the correct centering in the
+IF(cr_spcgr_set(1:1)=='R') lattice = 3    ! orthorhombic space groups
+IF(cr_spcgr_set(1:1)=='F') lattice = 4
+IF(cr_spcgr_set(1:1)=='A') lattice = 5
+IF(cr_spcgr_set(1:1)=='B') lattice = 6
+IF(cr_spcgr_set(1:1)=='C') lattice = 7
 !
 ! Temporarily save the original structure
 !
@@ -378,7 +378,11 @@ ENDDO
 !
 !  Start writing the actual file 
 !
-WRITE(IWR, 1000) cr_name(1:LEN_TRIM(cr_name)), cr_spcgr(1:LEN_TRIM(cr_spcgr))
+IF(cr_syst==4 .AND. cr_iset/=1) THEN
+   WRITE(IWR, 1010) cr_name(1:LEN_TRIM(cr_name)), cr_spcgr(1:LEN_TRIM(cr_spcgr)), cr_set, cr_spcgr_set
+ELSE
+   WRITE(IWR, 1000) cr_name(1:LEN_TRIM(cr_name)), cr_spcgr(1:LEN_TRIM(cr_spcgr))
+ENDIF
 WRITE(IWR, 1100) rlambda, cr_a0(:), cr_win(:)
 WRITE(IWR, 1200) z_unit, NULL, NULL
 IF(cr_acentric) THEN
@@ -442,6 +446,7 @@ DEALLOCATE(unique_names)
 DEALLOCATE(shelx_names)
 CLOSE(IWR)
 !
+1010 FORMAT('TITL ',a,' in ',a,' setting: ',a3,' == ',a16)
 1000 FORMAT('TITL ',a,' in ',a)
 1100 FORMAT('CELL ',f7.5,3f11.6,3f9.4)
 1200 FORMAT('ZERR ',f7.2,3f11.6,3f9.4)

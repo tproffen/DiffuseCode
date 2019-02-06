@@ -71,7 +71,8 @@ use wyckoff_mod
       INTEGER          ::   occupancy= 0          ! Apply occupancy upon read cell   ?
       LOGICAL          :: l_identical= .FALSE.    ! Are atoms allowed to be identical?
       REAL             :: r_identical = 1.0E-5
-      INTEGER, PARAMETER :: NOPTIONAL = 3
+      INTEGER, PARAMETER :: NOPTIONAL = 4
+      INTEGER, PARAMETER :: O_SETTING = 4
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
       CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -84,11 +85,11 @@ use wyckoff_mod
       INTEGER len_str 
       LOGICAL str_comp 
 !
-      DATA oname  / 'radius' , 'occupancy', 'identical' /
-      DATA loname /  9       ,  9         ,  6          /
-      opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '    /)   ! Always provide fresh default values
-      lopara =  (/  6        ,  6         ,  6          /)
-      owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
+      DATA oname  / 'radius' , 'occupancy', 'identical', 'setting' /
+      DATA loname /  9       ,  9         ,  6         ,  7        /
+      opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '   , 'abc   ' /)   ! Always provide fresh default values
+      lopara =  (/  6        ,  6         ,  6         ,  6       /)
+      owerte =  (/  1.0E-5   ,  0.0       ,  0.0       ,  0.0     /)
 !
 !
 !                                                                       
@@ -172,9 +173,9 @@ use wyckoff_mod
 !
 !      --Get optional parameters
 !
-         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  '    /)   ! Always provide fresh default values
-         lopara =  (/  6        ,  6         ,  6          /)
-         owerte =  (/  1.0E-5   ,  0.0       ,  0.0        /)
+         opara  =  (/ '1.0E-5'  , 'clear '   , 'none  ', 'abc   ' /)   ! Always provide fresh default values
+         lopara =  (/  6        ,  6         ,  6      ,  3    /)
+         owerte =  (/  1.0E-5   ,  0.0       ,  0.0    ,  0.0    /)
          CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                            oname, loname, opara, lopara, lpresent, owerte)
          IF(ier_num/=0) GOTO 8888              ! Jump to handle error messages, amd macro conditions
@@ -215,7 +216,8 @@ use wyckoff_mod
 !                                                                       
          ELSEIF (str_comp (befehl, 'free', 1, lbef, 4) ) THEN 
 !           CALL do_readfree(befehl,lbef,ianz, maxw, cpara, lpara)
-            CALL do_readfree(            ianz, maxw, cpara, lpara)
+            CALL do_readfree(            ianz, maxw, cpara, lpara, &
+                             opara(O_SETTING), lopara(O_SETTING))
 !           CALL rese_cr 
 !           cr_name = 'freely created structure' 
 !           cr_spcgr (1:1)  = 'P' 
@@ -322,7 +324,11 @@ use wyckoff_mod
          ENDIF 
 8888     CONTINUE    ! Target for errors, in order to handle these properly
          IF (ier_num.eq.0) then 
-            WRITE (output_io, 1000) cr_spcgr, cr_spcgrno 
+            IF(cr_syst==4) THEN
+               WRITE (output_io, 1000) cr_spcgr, cr_spcgrno , cr_set, cr_spcgr_set
+            ELSE
+               WRITE (output_io, 2000) cr_spcgr, cr_spcgrno
+            ENDIF
 !.......calculate metric and reciprocal metric tensor,reciprocal lattice
 !       constants and permutation tensors                               
             CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
@@ -368,7 +374,8 @@ use wyckoff_mod
 !
       prompt = orig_prompt
 !                                                                       
- 1000 FORMAT    (1x,a16,i5) 
+ 1000 FORMAT    (1x,a16,i5, ' Setting:',a3,2x, a16) 
+ 2000 FORMAT    (1x,a16,i5)
       END SUBROUTINE read_struc                     
 !
 !*******************************************************************************
@@ -695,7 +702,7 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
                ENDIF
 !
                CALL readstru (NMAX, MAXSCAT, strucfile, cr_name,        &
-               cr_spcgr, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
+               cr_spcgr, cr_set, cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ,    &
                cr_at_lis, cr_pos, cr_mole, cr_surf, cr_iscat, cr_prop, cr_dim, as_natoms, &
                as_at_lis, as_dw, as_pos, as_iscat, as_prop, sav_ncell,  &
                sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para)        
@@ -748,7 +755,7 @@ END SUBROUTINE do_readstru
 !
 !********************************************************************** 
 !
-SUBROUTINE do_readfree(ianz, maxw, cpara, lpara)
+SUBROUTINE do_readfree(ianz, maxw, cpara, lpara, c_set, l_set)
 !
 USE chem_mod
 USE crystal_mod
@@ -765,6 +772,8 @@ INTEGER         ,                  INTENT(INOUT) :: ianz
 INTEGER         ,                  INTENT(IN   ) :: MAXW
 CHARACTER(LEN=*), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER         , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+CHARACTER(LEN=*),                  INTENT(IN   ) :: c_set
+INTEGER         ,                  INTENT(IN   ) :: l_set
 !
 INTEGER  :: i
 INTEGER  :: iianz
@@ -777,10 +786,12 @@ cr_name = 'freely created structure'
 cr_spcgr (1:1)  = 'P' 
 cr_spcgr (2:2)  = '1' 
 cr_spcgr (3:16) = '              ' 
+cr_set          = c_set(1:MIN(3,l_set))
 cr_spcgrno = 1 
 cr_syst = 1 
 spcgr_para = 1
-CALL get_symmetry_matrices 
+CALL get_symmetry_matrices    ! Define matrices for default P1
+CALL no_error                 ! Ignore errors for the moment
 IF (ianz==0) THEN 
    cr_a0 (:) = 1.0 
    cr_win(:) = 90.0 
@@ -835,6 +846,13 @@ ELSE
    ier_typ = ER_COMM 
    RETURN                 ! Jump to handle error messages, amd macro conditions
 ENDIF 
+IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+   ier_num = -160
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Non-standard settings are implemented only'
+   ier_msg(2) = 'for orthorhombic space groups '
+   RETURN
+ENDIF
 cr_icc (1) = 1 
 cr_icc (2) = 1 
 cr_icc (3) = 1 
@@ -963,7 +981,7 @@ ENDIF
 !     --Read header of structure file                                   
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
       IF (ier_num.ne.0) THEN 
          CLOSE (ist)
@@ -980,6 +998,13 @@ ENDIF
       ENDIF
 !                                                                       
       CALL get_symmetry_matrices 
+      IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+         ier_num = -160
+         ier_typ = ER_APPL
+         ier_msg(1) = 'Non-standard settings are implemented only'
+         ier_msg(2) = 'for orthorhombic space groups '
+         RETURN
+      ENDIF
       IF( NMAX < spc_n*new_nmax .or.  &      ! Allocate sufficient atom numbers
           MAXSCAT < new_nscat       ) THEN   ! Allocate sufficient scattering types
          new_nmax  = MAX(spc_n*new_nmax + 1, NMAX)
@@ -1745,6 +1770,7 @@ ENDIF
 END SUBROUTINE struc_mole_header              
 !********************************************************************** 
       SUBROUTINE readstru (NMAX, MAXSCAT, strucfile, cr_name, cr_spcgr, &
+      cr_set,                                                           &
       cr_a0, cr_win, cr_natoms, cr_nscat, cr_dw, cr_occ, cr_at_lis, cr_pos,     &
       cr_mole, cr_surf,                                                 &
       cr_iscat, cr_prop, cr_dim, as_natoms, as_at_lis, as_dw, as_pos,   &
@@ -1758,6 +1784,7 @@ END SUBROUTINE struc_mole_header
       INTEGER NMAX 
       INTEGER MAXSCAT 
 !                                                                       
+CHARACTER(LEN=3), INTENT(INOUT) :: cr_set
 !
       INTEGER,                       INTENT(INOUT)  :: cr_natoms
       INTEGER, DIMENSION(1:NMAX),    INTENT(INOUT)  :: cr_iscat
@@ -1816,7 +1843,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
 !     --Read header of structure file                                   
 !                                                                       
          CALL stru_readheader (ist, MAXSCAT, cr_name,      &
-         cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
+         cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,&
          sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)
 !                                                                       
          IF (ier_num.eq.0) then 
@@ -1836,22 +1863,25 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       END SUBROUTINE readstru                       
 !********************************************************************** 
 SUBROUTINE stru_readheader (ist, HD_MAXSCAT, cr_name,   &
-      cr_spcgr, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,   &
+      cr_spcgr, cr_set, cr_at_lis, cr_nscat, cr_dw, cr_occ, cr_a0, cr_win, sav_ncell,   &
       sav_r_ncell, sav_ncatoms, spcgr_ianz, spcgr_para, AT_MAXP, at_ianz, at_param)                 
 !-                                                                      
 !     This subroutine reads the header of a structure file              
 !+                                                                      
 USE gen_add_mod 
 USE sym_add_mod 
-      USE ber_params_mod
-      USE get_params_mod
-      USE string_convert_mod
+USE ber_params_mod
+USE get_params_mod
+USE string_convert_mod
+USE take_param_mod
+!
 IMPLICIT none 
 !                                                                       
 INTEGER                                  , INTENT(IN)  :: ist
 INTEGER                                  , INTENT(IN)  :: HD_MAXSCAT 
 CHARACTER(LEN=80)                        , INTENT(OUT) :: cr_name 
 CHARACTER(LEN=16)                        , INTENT(OUT) :: cr_spcgr 
+CHARACTER(LEN= 3)                        , INTENT(OUT) :: cr_set 
 CHARACTER(LEN=4), DIMENSION(0:HD_MAXSCAT), INTENT(OUT) :: cr_at_lis ! (0:HD_MAXSCAT) 
 INTEGER                                  , INTENT(OUT) :: cr_nscat 
 REAL   , DIMENSION(0:HD_MAXSCAT)         , INTENT(OUT) :: cr_dw     ! (0:HD_MAXSCAT) 
@@ -1885,9 +1915,27 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       LOGICAL :: lcontent
 !DBG      real            spcgr_para                                    
       REAL werte (maxw) 
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_SETTING = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!                                                                       
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
+!
+DATA oname  / 'setting' /
+DATA loname /  7        /
+!
+opara  =  (/ 'abc' /)   ! Always provide fresh default values
+lopara =  (/  3   /)
+owerte =  (/  0.0 /)
 !
 cr_occ(:) = 1.0   !! WORK OCC
       xx_nscat = 0 
@@ -1972,6 +2020,10 @@ cr_occ(:) = 1.0   !! WORK OCC
                ier_typ = ER_APPL 
                RETURN
             ENDIF 
+!           Optionally get setting
+            CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                              oname, loname, opara, lopara, lpresent, owerte)
+            cr_set = opara(O_SETTING)(1:MIN(3,lopara(O_SETTING)))
             islash = index (cpara (1) (1:lpara (1) ) , 'S') 
             DO while (islash.ne.0) 
             cpara (1) (islash:islash) = '/' 
@@ -2267,6 +2319,7 @@ cr_occ(:) = 1.0   !! WORK OCC
 !                                                                       
          werte (1) = spcgr_para 
          CALL spcgr_no (spcgr_ianz, maxw, werte) 
+         IF(ier_num/=0) RETURN
       ELSE 
 !                                                                       
 !     Read old header                                                   
@@ -2279,6 +2332,7 @@ cr_occ(:) = 1.0   !! WORK OCC
          lp = len_str (line) 
          CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
          cr_spcgr = cpara (1) (1:lpara(1))
+         cr_set   = 'abc'
          ianz = ianz - 1 
          IF (ianz.eq.1) then 
             cpara (1) = cpara (2) 
@@ -2292,6 +2346,7 @@ cr_occ(:) = 1.0   !! WORK OCC
             (cr_win (i), i = 1, 3)                                      
             CALL no_error 
             CALL spcgr_no (ianz, maxw, werte) 
+            IF(ier_num/=0) RETURN
          ENDIF 
       ENDIF 
 !                                                                       
@@ -2539,139 +2594,172 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       END SUBROUTINE struc_read_atoms               
 !********************************************************************** 
 !********************************************************************** 
-      SUBROUTINE spcgr_no (ianz, maxw, werte) 
+SUBROUTINE spcgr_no (ianz, maxw, werte) 
 !-                                                                      
 !     Interprets the space group symbol. Returns the space group no.    
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE spcgr_mod 
-      USE ber_params_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER              , INTENT(INOUT) :: ianz
-      INTEGER              , INTENT(IN) :: MAXW
-      REAL, DIMENSION(MAXW), INTENT(IN) :: werte
-!                                                                       
-      CHARACTER(LEN=1024), DIMENSION(1) :: cpara 
-      INTEGER            , DIMENSION(1) :: lpara 
-      REAL               , DIMENSION(1) :: rpara 
+USE discus_config_mod 
+USE crystal_mod 
+USE spcgr_mod 
+USE spcgr_apply, ONLY : spcgr_get_setting
 !
-      INTEGER ii, i 
+USE ber_params_mod
+USE errlist_mod
+!
+IMPLICIT none 
 !                                                                       
-      INTEGER len_str 
+INTEGER              , INTENT(INOUT) :: ianz
+INTEGER              , INTENT(IN)    :: MAXW
+REAL, DIMENSION(MAXW), INTENT(IN)    :: werte
 !                                                                       
-      CALL no_error 
-      ii = 1 
-      IF (ianz.eq.1) then 
-         ii = nint (werte (1) ) 
-      ENDIF 
+CHARACTER(LEN=   3), DIMENSION(6) :: setting 
+CHARACTER(LEN=1024), DIMENSION(1) :: cpara 
+INTEGER            , DIMENSION(1) :: lpara 
+REAL               , DIMENSION(1) :: rpara 
+!
+INTEGER :: ii, i 
+INTEGER :: j
+!                                                                       
+INTEGER :: len_str 
+!
+DATA setting /'abc', 'bac', 'cab', 'cba', 'bca', 'acb'/
+!                                                                       
+CALL no_error 
+ii = 1 
+IF (ianz.eq.1) then 
+   ii = nint (werte (1) ) 
+ENDIF 
 !                                                                       
 !     Distinguish between trigonal and rhombohedral settings            
 !                                                                       
-      IF (cr_spcgr (1:1) .eq.'R') then 
-         IF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_win (1) .eq.90..and.cr_win &
-         (2) .eq.90.0.and.cr_win (3) .eq.120.0) then                    
-            ii = 1 
-         ELSEIF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_a0 (1) .eq.cr_a0 (3)   &
-         .and.cr_win (1) .eq.cr_win (2) .and.cr_win (1) .eq.cr_win (3) )&
-         then                                                           
-            ii = 2 
-         ELSE 
-            ier_num = - 7 
-            ier_typ = ER_APPL 
-         ENDIF 
-      ENDIF 
-!                                                                       
-      IF (ii.lt.1.or.2.lt.ii) then 
-         ier_num = - 7 
-         ier_typ = ER_APPL 
-         RETURN
-      ENDIF 
-!                                                                       
-      cr_spcgrno = 0 
-      cr_syst = 0 
+IF(cr_spcgr(1:1) .eq.'R') THEN 
+   IF (cr_a0(1) == cr_a0(2) .AND. cr_win(1) == 90. .AND. &
+       cr_win(2) == 90.0 .AND. cr_win(3) == 120.0       ) THEN                    
+      ii = 1 
+   ELSEIF(cr_a0(1) == cr_a0(2) .AND. cr_a0(1) == cr_a0(3) .AND.  &
+          cr_win(1) == cr_win(2) .AND. cr_win(1) == cr_win(3)  ) THEN                                                           
+      ii = 2 
+   ELSE 
       ier_num = - 7 
       ier_typ = ER_APPL 
+   ENDIF 
+ENDIF 
 !                                                                       
-      DO i = 1, SPCGR_MAX 
-      IF (cr_spcgr.eq.spcgr_name (i) ) then 
-         cr_spcgrno = spcgr_num (i, ii) 
-         cr_syst = spcgr_syst (cr_spcgrno) 
+IF (ii.lt.1.or.2.lt.ii) then 
+   ier_num = - 7 
+   ier_typ = ER_APPL 
+   RETURN
+ENDIF 
+!                                                                       
+cr_spcgrno = 0 
+cr_syst = 0 
+ier_num = - 7 
+ier_typ = ER_APPL 
+!                                                                       
+!  Test regular tabulated space groups
+!
+DO i = 1, SPCGR_MAX 
+   IF(cr_spcgr == spcgr_name(i) ) THEN 
+      cr_spcgrno = spcgr_num (i, ii) 
+      cr_syst = spcgr_syst (cr_spcgrno) 
+      CALL no_error 
+      GOTO 10 
+   ENDIF 
+ENDDO 
+!
+! Test for alternative settings in orthorhombic space groups
+!                                                                       
+DO i = 16,74
+   DO j = 1,6
+      IF (cr_spcgr.eq.spcgr_name_set (i,j) ) then 
+         cr_spcgrno   = i                       ! Here we can use number i as spcgr number instead of spcgr_num (i, ii) 
+         cr_syst      = spcgr_syst (cr_spcgrno) ! Still works
+         cr_spcgr     = spcgr_name_set(i,1)     ! Use standard name
+         cr_spcgr_set = spcgr_name_set(i,j)     ! Alternative setting
+         cr_set       = setting(j)
+         cr_iset      = j
          CALL no_error 
          GOTO 10 
       ENDIF 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !                                                                       
-      CALL no_error 
-      cpara = cr_spcgr 
-      lpara = len_str (cpara) 
-      CALL ber_params (1, cpara, lpara, rpara, 1) 
-      IF (ier_num.eq.0) then 
-         cr_spcgrno = spcgr_num(nint (rpara(1)) , ii)
-         cr_syst = spcgr_syst (cr_spcgrno) 
-         cr_spcgr = spcgr_name (cr_spcgrno) 
+CALL no_error 
+cpara = cr_spcgr 
+lpara = len_str (cpara) 
+CALL ber_params (1, cpara, lpara, rpara, 1) 
+IF (ier_num.eq.0) then 
+   cr_spcgrno = spcgr_num(nint (rpara(1)) , ii)
+   cr_syst = spcgr_syst (cr_spcgrno) 
+   cr_spcgr = spcgr_name (cr_spcgrno) 
 !
 !     Ensure that space groups given as number without origin choice 2 
 !     are set properly
 !
-         IF((276<=cr_spcgrno .AND. cr_spcgrno<=293) .OR. &
-            (301<=cr_spcgrno .AND. cr_spcgrno<=306)     ) THEN
-            spcgr_para = 2
-            spcgr_ianz = 1
-         ENDIF
-      ELSE 
-         ier_num = - 7 
-         ier_typ = ER_APPL 
-      ENDIF 
+   IF((276<=cr_spcgrno .AND. cr_spcgrno<=293) .OR. &
+      (301<=cr_spcgrno .AND. cr_spcgrno<=306)     ) THEN
+      spcgr_para = 2
+      spcgr_ianz = 1
+   ENDIF
+ELSE 
+   ier_num = - 7 
+   ier_typ = ER_APPL 
+ENDIF 
 !                                                                       
-   10 CONTINUE 
+10 CONTINUE 
 !                                                                       
-      IF (ier_num.eq.0) then 
-         ier_num = - 14 
-         ier_typ = ER_APPL 
-         IF (cr_syst.eq.1) then 
-            CALL no_error 
-         ELSEIF (cr_syst.eq.2) then 
-            IF (cr_win (1) .eq.90.0.and.cr_win (3) .eq.90.0) then 
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.3) then 
-            IF (cr_win (1) .eq.90.0.and.cr_win (2) .eq.90.0) then 
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.4) then 
-            IF (cr_win (1) .eq.90.0.and.cr_win (2) .eq.90.0.and.cr_win (&
-            3) .eq.90.0) then                                           
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.5) then 
-            IF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_win (1)                 &
-            .eq.90.0.and.cr_win (2) .eq.90.0.and.cr_win (3) .eq.90.0)   &
-            then                                                        
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.6.or.cr_syst.eq.8) then 
-            IF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_win (1)                 &
-            .eq.90.0.and.cr_win (2) .eq.90.0.and.cr_win (3) .eq.120.0)  &
-            then                                                        
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.7) then 
-            IF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_a0 (1) .eq.cr_a0 (3)    &
-            .and.cr_win (1) .eq.cr_win (2) .and.cr_win (2) .eq.cr_win ( &
-            3) ) then                                                   
-               CALL no_error 
-            ENDIF 
-         ELSEIF (cr_syst.eq.9) then 
-            IF (cr_a0 (1) .eq.cr_a0 (2) .and.cr_a0 (1) .eq.cr_a0 (3)    &
-            .and.cr_win (1) .eq.90.0.and.cr_win (2) .eq.90.0.and.cr_win &
-            (3) .eq.90.0) then                                          
-               CALL no_error 
-            ENDIF 
-         ENDIF 
+IF (ier_num == 0) THEN 
+   ier_num = - 14 
+   ier_typ = ER_APPL 
+   IF (cr_syst == 1) THEN 
+      CALL no_error 
+   ELSEIF(cr_syst == 2) THEN 
+      IF(cr_win(1) == 90.0 .AND. cr_win(3) == 90.0) THEN 
+         CALL no_error 
       ENDIF 
-      END SUBROUTINE spcgr_no                       
+   ELSEIF(cr_syst == 3) THEN 
+      IF(cr_win(1) == 90.0 .AND. cr_win(2) == 90.0) THEN 
+         CALL no_error 
+      ENDIF 
+   ELSEIF(cr_syst == 4) THEN 
+      IF(cr_win(1) == 90.0 .AND. cr_win(2) == 90.0 .AND. cr_win(3) == 90.0) THEN                                           
+         CALL no_error 
+      ENDIF 
+   ELSEIF(cr_syst == 5) THEN 
+      IF(cr_a0(1) == cr_a0(2) .AND. cr_win(1) == 90.0 .AND. &
+         cr_win(2) == 90.0    .AND. cr_win(3) == 90.0      )   THEN                                                        
+         CALL no_error 
+      ENDIF 
+   ELSEIF(cr_syst == 6 .OR. cr_syst == 8) THEN 
+      IF(cr_a0(1) == cr_a0(2) .AND. cr_win(1) == 90.0 .AND. &
+         cr_win(2) == 90.0    .AND. cr_win(3) == 120.0     )  THEN                                                        
+         CALL no_error 
+      ENDIF 
+   ELSEIF(cr_syst == 7) THEN 
+      IF(cr_a0(1) == cr_a0(2)   .AND. cr_a0(1) == cr_a0(3) .AND.   &
+         cr_win(1) == cr_win(2) .AND. cr_win(2) == cr_win(3)    ) THEN                                                   
+         CALL no_error 
+      ENDIF 
+   ELSEIF(cr_syst == 9) THEN 
+      IF (cr_a0(1) == cr_a0(2) .AND. cr_a0(1) == cr_a0(3)  .AND.  &
+          cr_win(1) == 90.0    .AND. cr_win(2) == 90.0     .AND.  &
+          cr_win(3) == 90.0                                     ) THEN                                          
+         CALL no_error 
+      ENDIF 
+   ENDIF 
+ENDIF
+!
+CALL spcgr_get_setting    ! Determine space group setting
+IF(ier_num/=0) RETURN
+IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+   ier_num = -160
+   ier_typ = ER_APPL
+   ier_msg(1) = 'Non-standard settings are implemented only'
+   ier_msg(2) = 'for orthorhombic space groups '
+   RETURN
+ENDIF
+!
+END SUBROUTINE spcgr_no                       
 !********************************************************************** 
 !********************************************************************** 
 SUBROUTINE rese_cr 
@@ -5377,6 +5465,7 @@ USE spcgr_apply
 USE wyckoff_mod
 USE errlist_mod
 USE get_params_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
@@ -5390,6 +5479,25 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER :: ianz
 !
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_SETTING = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!                                                                       
+!
+DATA oname  / 'setting' /
+DATA loname /  7        /
+!
+opara  =  (/ 'abc' /)   ! Always provide fresh default values
+lopara =  (/  3   /)
+owerte =  (/  0.0 /)
+!
+!
 CALL get_params (line, ianz, cpara, lpara, maxw, length)
 IF(ianz>=1) THEN                   ! At least one parameter
    cr_spcgr= cpara(1)(1:lpara(1))  ! Set space group name
@@ -5400,8 +5508,20 @@ IF(ianz>=1) THEN                   ! At least one parameter
       spcgr_ianz = 1
    ENDIF
    werte (1) = spcgr_para 
+!  Optionally get setting
+   CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                     oname, loname, opara, lopara, lpresent, owerte)
+   cr_set = opara(O_SETTING)(1:MIN(3,lopara(O_SETTING)))
    CALL spcgr_no (spcgr_ianz, MAXW, werte) 
+   IF(ier_num/=0) RETURN
    CALL get_symmetry_matrices
+   IF(cr_syst/=4 .AND. cr_iset/=1) THEN !non-orthorhombic and nonstandard setting
+      ier_num = -160
+      ier_typ = ER_APPL
+      ier_msg(1) = 'Non-standard settings are implemented only'
+      ier_msg(2) = 'for orthorhombic space groups '
+      RETURN
+   ENDIF
 ELSE
    ier_num = -6
    ier_typ = ER_COMM
