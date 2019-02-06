@@ -496,6 +496,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       REAL, DIMENSION(:,:), ALLOCATABLE :: point_hkl ! (3,48)
       REAL, DIMENSION(:,:), ALLOCATABLE, SAVE :: accum_hkl ! (3,48)
       REAL, DIMENSION(:,:), ALLOCATABLE ::  temp_hkl ! (3,48)
+      REAL, DIMENSION(:  ), ALLOCATABLE ::  dstars   ! d-stars of accumulated surfaces
       INTEGER               :: point_n
       INTEGER, SAVE         :: accum_n
       REAL, DIMENSION(3)    :: radius_ell
@@ -765,14 +766,19 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
          IF (ier_num /= 0) RETURN
             IF ((l_plane .OR. l_form) .AND. str_comp (opara(O_EXEC) , 'run', 3, lopara(O_EXEC) , 3)) THEN
+               ALLOCATE(dstars(1:accum_n))
+               DO j=1,accum_n
+                  dstars(j) = do_blen (lspace, accum_hkl(1:3,j), null)
+               ENDDO
 form_loop:     DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle form_loop 
                   IF(linside) THEN
                      DO j=1,accum_n
+!                        dstar = do_blen (lspace, accum_hkl(1:3,j), null)
                          d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
                                  - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
                                  - (cr_pos (3, i)-center(3)) * accum_hkl (3,j) 
-                         d = d / dstar 
+                         d = d / dstars(j) 
                          h(1:3) = accum_hkl (1:3,j)
                          CALL boundarize_atom (center, d, i, linside, SURF_PLANE, h, accum_hkl(4,j)) 
                      ENDDO 
@@ -782,10 +788,11 @@ form_loop:     DO i = 1, cr_natoms
                      nplanes = 0
                      iplane  = 0 
                      DO j=1,accum_n
+!                        dstar = do_blen (lspace, accum_hkl(1:3,j), null)
                          d = 1.0 - (cr_pos (1, i)-center(1)) * accum_hkl (1,j) &
                                  - (cr_pos (2, i)-center(2)) * accum_hkl (2,j) &
                                  - (cr_pos (3, i)-center(3)) * accum_hkl (3,j)
-                         d = d / dstar 
+                         d = d / dstars(j) 
                          IF(accum_hkl(4,j) > 0.0) THEN
                             IF(ABS(d)<ABS(accum_hkl(4,j)) ) THEN
                                nplanes = nplanes + 1
@@ -818,6 +825,7 @@ form_loop:     DO i = 1, cr_natoms
                ENDDO form_loop
                DEALLOCATE  (accum_hkl)      ! reset the accumulation list
                accum_n = 0                  ! reset the accumulation list
+               DEALLOCATE(dstars)
             ELSEIF (l_sphere) then 
 sphere_loop:   DO i = 1, cr_natoms 
                   IF(BTEST(cr_prop(i), PROP_OUTSIDE)) cycle sphere_loop 
@@ -928,11 +936,11 @@ IF(ier_num==0) THEN
    IF(opara(O_EXEC)=='hold' ) THEN
       IF(lpresent(O_CENTX) .OR. lpresent(O_CENTY) .OR. lpresent(O_CENTZ) .OR. &
          lpresent(O_KEEP)) THEN
-         ier_num = 0
+         ier_num = 7
          ier_typ = ER_APPL
          ier_msg(1) = 'Only one common center and keep status will' 
          ier_msg(2) = 'apply to an accumulated set of hkls. Best use'
-         ier_msg(2) = 'cent and keeb with exec:hold only.'
+         ier_msg(3) = 'cent and keep with exec:hold only.'
          CALL errlist
          CALL no_error
       ENDIF
