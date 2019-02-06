@@ -525,8 +525,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-----      --------Apply symmetry operation to atoms                   
 !                                                                       
+                     IF(sym_end == -1) sym_end=cr_natoms
                      IF(.NOT. (sym_start >= 1           .AND. &
-                               sym_end <= mole_num_mole .AND. &
+                               sym_end <= cr_natoms     .AND. &
                                sym_start <= sym_end)          ) THEN
                         ier_num = -19
                         ier_typ = ER_APPL
@@ -543,6 +544,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !-----      ----------Apply symmetry operation to molecules             
 !                                                                       
+                       IF(sym_end == -1) sym_end=mole_num_mole
                         IF(.NOT. (sym_start >= 1           .AND. &
                                   sym_end <= mole_num_mole .AND. &
                                   sym_start <= sym_end)          ) THEN
