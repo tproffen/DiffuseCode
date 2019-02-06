@@ -9,11 +9,15 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-159,IO=7)
+      PARAMETER    (IU=-161,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
-      DATA ERROR ( IU : -141) /                          &
+      DATA ERROR ( IU : -161) /                          &
+     &  'Unknown non-standard setting             '      & !-161 ! discus
+     &  /
+      DATA ERROR (-160: -141) /                          &
+     &  'Non-standard setting outside orthorhombic',     & !-160 ! discus
      &  'SCAT, ADP, OCC must ALL be omitted or written', & !-159 ! discus
      &  'Erroneous number of bonds',                     & !-158 ! discus
      &  'Incomplete molecule would be saved',            & !-157 ! discus
@@ -293,12 +297,15 @@
 !                                                                       
 !                                                                       
       INTEGER iu, io 
-      PARAMETER (iu = -21, io = 0) 
+      PARAMETER (iu = -22, io = 0) 
 !                                                                       
       CHARACTER(LEN=45) :: ERROR (IU:IO) 
 !                                                                       
-      DATA ERROR / &
-      'Number of LOTS exceeds maximum           ',       &  ! -21
+      DATA ERROR(iu:-21) / &
+      'No valid selection                       ',       &  ! -22
+      'Number of LOTS exceeds maximum           '        &  ! -21
+          /                                                 !   0
+      DATA ERROR(-20:0) / &
       'No valid move after 1000 disp. intervalls',       &  ! -20
       'Invalid constrain entered                ',       &  ! -19
       'Data file is not an ASCII PGM file       ',       &  ! -18
