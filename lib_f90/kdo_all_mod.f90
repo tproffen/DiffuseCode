@@ -103,10 +103,10 @@ IMPLICIT none
         IF (lc.gt.0) THEN
            WRITE (command, '(a)') zei (1:lc)
         ELSE
-           WRITE (command, '(a)') pname
+           WRITE (command, '(a,a)') 'section:',pname
            lc = LEN_TRIM(pname)
         ENDIF
-        CALL do_manual(zei, lc)
+        CALL do_manual(command, lc)
 !                                                                       
 !------ start learning a macro 'learn'                                  
 !                                                                       
