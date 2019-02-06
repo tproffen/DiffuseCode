@@ -1900,6 +1900,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       mmc_move = i 
       mo_local = mmc_local (i) 
 !                                                                       
+      isel(:) = 0
       IF (mmc_move.eq.MC_MOVE_DISP.or.mmc_move.eq.MC_MOVE_INVDISP) then 
          IF (mmc_l_limited) then 
             CALL mmc_limit_selection (isel, natoms) 
@@ -1925,6 +1926,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
                           NALLOWED, mmc_allowed)                                                       
+         IF(isel(2)==0) THEN
+            ier_num = -22
+            ier_typ = ER_RMC
+            ier_msg(1) = 'RMC did not find a valid pair'
+            ier_msg(2) = 'Check composition and properties'
+            RETURN
+         ENDIF
          iselz = isel (1) 
          iselz2 = isel (2) 
          DO i = 1, 3 
@@ -1946,6 +1954,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          natoms = 2 
          CALL rmc_select (mo_local, isel, iz1, iz2, is (1), is (2) , &
                           NALLOWED, mmc_allowed)                                                       
+         IF(isel(2)==0) THEN
+            ier_num = -22
+            ier_typ = ER_RMC
+            ier_msg(1) = 'RMC did not find a valid pair'
+            ier_msg(2) = 'Check composition and properties'
+            RETURN
+         ENDIF
          iselz = isel (1) 
          iselz2 = isel (2) 
          DO i = 1, 3 
@@ -2503,8 +2518,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          WRITE (output_io, 4000) zh, zm, zs, zeit / itry 
       ENDIF
 !                                                                       
- 2000 FORMAT (/,' Gen: ',I8,' try: ',I8,' acc: (g/n/b): ',I7,        &
-     &          ' / ',I7,' / ',I7,'  MC moves ')                                 
+ 2000 FORMAT (/,' Gen: ',I10,' try: ',I10,' acc: (g/n/b): ',I8,        &
+     &          ' / ',I8,' / ',I8,'  MC moves ')                                 
  3000 FORMAT (/,' --- Final multiple energy configuration ---') 
  4000 FORMAT (/,' Elapsed time : ',I4,' h ',I2,' min ',I2,' sec ',/     &
      &          ' Time/cycle   : ',F9.3,' sec',/)                       
