@@ -2907,6 +2907,7 @@ loop_plane: DO ip = 1, rmc_nplane
       ino = 1      ! RMC SELECT ALWAYS uses the FIRST connectivity defined for an atom
 !                  ! Changing this will have side effects on decoration and and and
    10 CONTINUE 
+      IF(j>10000000) RETURN        ! DID not find a valid pair
       j = j + 1
       isel (1) = int (ran1 (idum) * cr_natoms) + 1 
       IF (isel (1) .gt.cr_natoms.or.isel (1) .lt.1) goto 10 
