@@ -875,6 +875,9 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
+   line       = 'ignore, all'          ! Ignore all properties for global as well
+   length     = 11
+   CALL property_select(line, length,  cr_sel_prop)
 !
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
    shellfile  = 'internal.decoshell'   
@@ -1037,6 +1040,9 @@ ENDIF
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
    CALL save_internal('internal_anchors')        !     thus this file name is unique
+   line       = 'ignore, all'          ! Ignore all properties
+   length     = 11
+   CALL property_select(line, length,  cr_sel_prop)
 !
       IF(n_repl > 0                       ) THEN    ! Need at least one anchor
          ALLOCATE(anchor_num(1:cr_nscat-nscat_old))
@@ -1194,6 +1200,20 @@ ENDIF
          mo_kt   =   2.5                                      ! Define Temperature
 !
          CALL mmc_run_multi(.FALSE. )                          ! Run actual sorting
+         IF(ier_num/=0) THEN
+            i = ier_num
+            j = ier_typ
+            CALL save_restore_setting
+            CALL no_error
+            CALL readstru_internal( corefile)   ! Read  original core file
+            ier_num = i
+            ier_typ = j
+            ier_msg(1) = 'Sorting the anchors failed. Structure empty?'
+            ier_msg(2) = 'Is the coverage too small? Properties? '
+            ier_msg(3) = 'Check the set ligand command A5'
+            DEALLOCATE(anch_id)
+            RETURN
+         ENDIF
       ENDIF ! (n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
