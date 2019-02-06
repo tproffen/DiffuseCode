@@ -21,8 +21,8 @@ LOGICAL, INTENT(IN) :: lout    ! Print output if true
 LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
 REAL, DIMENSION(3) ::  p , ez 
-REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
-REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
+!REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
+!REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
 INTEGER            :: i, j, k, ii, jj, kk, ia, is, nvalues
 INTEGER            :: n_res
@@ -44,8 +44,10 @@ IF ( CHEM_MAXAT_CELL   < MAXAT_CELL .or. &
 ENDIF
 IF(.not. lsite) THEN
    n_atom_cell = MAX(CHEM_MAXAT_CELL, MAXAT_CELL)
-   ALLOCATE(chem_ave_posit(3,n_atom_cell, 10))
-   ALLOCATE(chem_ave_sigma(3,n_atom_cell, 10))
+   IF(ALLOCATED(chem_ave_posit)) DEALLOCATE(chem_ave_posit)
+   IF(ALLOCATED(chem_ave_sigma)) DEALLOCATE(chem_ave_sigma)
+   ALLOCATE(chem_ave_posit(3,n_atom_cell, MAX(12,cr_nscat)))
+   ALLOCATE(chem_ave_sigma(3,n_atom_cell, MAX(12,cr_nscat)))
    chem_ave_posit = 0.0
    chem_ave_sigma = 0.0
 ENDIF
@@ -235,10 +237,10 @@ ELSE
       ENDDO 
 !  ENDIF 
 ENDIF
-IF(.not. lsite) THEN
-   DEALLOCATE(chem_ave_posit)
-   DEALLOCATE(chem_ave_sigma)
-ENDIF
+!IF(.not. lsite) THEN
+!   DEALLOCATE(chem_ave_posit)
+!   DEALLOCATE(chem_ave_sigma)
+!ENDIF
 !                                                                       
  1000 FORMAT (' Average structure : ',//,                               &
      &        3x,'Site',2x,'atom',11x,'average position',8x,            &
@@ -362,4 +364,129 @@ ENDIF
 1000 FORMAT('Center of mass at ',3(2x,F12.3))
 !
 END SUBROUTINE chem_com 
+!
+!*******************************************************************************
+!
+SUBROUTINE get_displacement(line, length)
+!
+! Calculate the displacement of an atom from its average site
+!
+!
+USE crystal_mod
+USE atom_name
+USE chem_mod
+USE celltoindex_mod
+!
+USE errlist_mod
+USE ber_params_mod
+USE get_params_mod
+USE prompt_mod
+USE param_mod
+USE take_param_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
+INTEGER, PARAMETER :: MAXW = 4
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+INTEGER            , DIMENSION(MAXW) :: lpara
+REAL               , DIMENSION(MAXW) :: werte
+!
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_AVER    = 1
+INTEGER, PARAMETER :: O_INDI    = 2
+INTEGER, PARAMETER :: O_ECHO    = 3
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'aver', 'indi', 'out'   /
+DATA loname /  4    ,  4    ,  3      /
+!
+CHARACTER(LEN=9)   :: at_name_d
+LOGICAL, PARAMETER :: LOLD = .FALSE.
+LOGICAL, PARAMETER :: LOUT = .FALSE.
+LOGICAL            :: lsite = .TRUE.    ! Average everything onto one site
+INTEGER               :: iatom   ! Atom index
+INTEGER, DIMENSION(3) :: icell   ! Cell number
+INTEGER               :: isite   ! site number
+!
+INTEGER :: k,kk
+INTEGER :: ianz
+!
+CALL get_params (line, ianz, cpara, lpara, MAXW, length)
+IF(ier_num/=0) RETURN
+!
+opara  =  (/ 'no'    , 'no'   , 'no' /)   ! Always provide fresh default values
+lopara =  (/  2,        2     ,  2   /)
+owerte =  (/  0.0,      0.0   ,  0.0 /)
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+     oname, loname, opara, lopara, lpresent, owerte)
+!
+lsite = .TRUE.
+IF(opara(O_INDI) == 'yes') lsite = .FALSE.               ! User requested individual sites
+!
+IF(lsite) THEN                 ! All atoms on a site share their average position
+   IF(chem_run_aver .AND. .NOT.opara(O_AVER)=='off') THEN
+      CALL chem_aver(LOUT, lsite)
+      chem_run_aver = .FALSE.
+   ENDIF
+ELSE                           ! Individual average positions for a site
+   IF(chem_run_aver_ind .AND. .NOT.opara(O_AVER)=='off') THEN
+      CALL chem_aver(LOUT, lsite)
+      chem_run_aver_ind = .FALSE.
+   ENDIF
+ENDIF
+!
+CALL ber_params (ianz, cpara, lpara, werte, MAXW)
+IF(ier_num/=0) RETURN
+!
+iatom = NINT(werte(1))
+CALL indextocell (iatom, icell, isite)
+!
+IF(opara(O_AVER) == 'yes') CALL chem_aver(LOUT, lsite)   ! User requested fresh aver
+!
+IF(lsite) THEN
+   res_para(1) =  (cr_pos(1,iatom)-chem_ave_pos (1, isite)) -  &
+             NINT((cr_pos(1,iatom)-chem_ave_pos (1, isite)))
+   res_para(2) =  (cr_pos(2,iatom)-chem_ave_pos (2, isite)) -  &
+             NINT((cr_pos(2,iatom)-chem_ave_pos (2, isite)))
+   res_para(3) =  (cr_pos(3,iatom)-chem_ave_pos (3, isite)) -  &
+             NINT((cr_pos(3,iatom)-chem_ave_pos (3, isite)))
+   res_para(0) = 3
+ELSE
+   kk = -1
+   find_type: DO k=1,chem_ave_n(isite)
+      IF(cr_iscat(iatom)==chem_ave_iscat(isite,k)) THEN
+         kk = k
+         EXIT find_type
+      ENDIF
+   ENDDO find_type
+   IF(kk>=0) THEN
+      res_para(1) =  (cr_pos(1,iatom)-chem_ave_posit(1,isite,kk)) - &
+                NINT((cr_pos(1,iatom)-chem_ave_posit(1,isite,kk)))
+      res_para(2) =  (cr_pos(2,iatom)-chem_ave_posit(2,isite,kk)) - &
+                NINT((cr_pos(2,iatom)-chem_ave_posit(2,isite,kk)))
+      res_para(3) =  (cr_pos(3,iatom)-chem_ave_posit(3,isite,kk)) - &
+                NINT((cr_pos(3,iatom)-chem_ave_posit(3,isite,kk)))
+      res_para(0) = 3
+   ENDIF
+ENDIF
+res_para(0) = 3
+IF(opara(O_ECHO)=='yes') THEN
+   at_name_d = at_name (cr_iscat (iatom) )
+   WRITE(output_io, 1000) iatom, at_name_d, res_para(1:3)
+1000 FORMAT(i8,1x,a9,3(2x,f12.7))
+ENDIF
+!
+END SUBROUTINE get_displacement
+!
+!*******************************************************************************
 END MODULE chem_aver_mod

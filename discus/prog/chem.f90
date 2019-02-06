@@ -6759,6 +6759,8 @@ IF(ALLOCATED(chem_ave_iscat)) chem_ave_iscat(:,:) = 0   !  (MAXAT_CELL,CHEM_MAX_
 IF(ALLOCATED(chem_ave_pos))  chem_ave_pos(:,:)   = 0.0     !  (3,MAXAT_CELL)
 IF(ALLOCATED(chem_ave_sig))  chem_ave_sig(:,:)   = 0.0     !  (3,MAXAT_CELL)
 IF(ALLOCATED(chem_ave_bese)) chem_ave_bese(:,:)  = 0.0    !  (MAXAT_CELL,CHEM_MAX_ATOM)
+chem_run_aver     = .TRUE.
+chem_run_aver_ind = .TRUE.
 !
 ! Displacement correlations
 IF(ALLOCATED(chem_disp_ave)) chem_disp_ave(:,:,:) = 0.0    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)

@@ -75,6 +75,11 @@ INTEGER, DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_iscat   !  (M
 REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_pos     !  (3,MAXAT_CELL)
 REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_sig     !  (3,MAXAT_CELL)
 REAL   , DIMENSION(:,:), ALLOCATABLE                   :: chem_ave_bese    !  (MAXAT_CELL,CHEM_MAX_ATOM)
+REAL,    DIMENSION(:,:,:), ALLOCATABLE                 :: chem_ave_posit
+REAL,    DIMENSION(:,:,:), ALLOCATABLE                 :: chem_ave_sigma
+LOGICAL       :: chem_run_aver     = .TRUE.            ! Aver needs to be run
+LOGICAL       :: chem_run_aver_ind = .TRUE.            ! aver_indi needs to be run
+
 !
 ! Displacement correlations
 REAL, DIMENSION(:,:,:), ALLOCATABLE                    :: chem_disp_ave    !  (CHEM_MAX_COR,0:DEF_MAXSCAT,0:DEF_MAXSCAT)

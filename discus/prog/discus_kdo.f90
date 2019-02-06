@@ -10,6 +10,7 @@ SUBROUTINE discus_mache_kdo (line, lend, length)
       USE discus_reset_all_mod
       USE charact_mod 
       USE chem_menu
+      USE chem_aver_mod, ONLY: get_displacement
       USE conn_mod
       USE demolec
       USE do_find_mod
@@ -199,6 +200,11 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !                                                                       
          ELSEIF (str_comp (befehl, 'copy', 3, lbef, 4) ) then 
             CALL do_copy (zeile, lcomm) 
+!                                                                       
+!-------Determine displacement of an atom 'displacement'                
+!                                                                       
+         ELSEIF (str_comp (befehl, 'displace', 3, lbef, 8) ) then 
+            CALL get_displacement (zeile, lcomm) 
 !                                                                       
 !     Transform vector from direct to reciprocal space                  
 !                                                                       
