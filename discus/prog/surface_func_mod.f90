@@ -684,7 +684,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             ENDIF
             ENDIF
             accum_hkl(1:3,accum_n+1:accum_n+point_n) = point_hkl(1:3,1:point_n)
-            accum_hkl(4,accum_n+1) = owerte(O_THICK)
+            accum_hkl(4  ,accum_n+1:accum_n+point_n) = owerte(O_THICK)
             accum_n = accum_n + point_n
          ELSEIF (str_comp (cpara (1) , 'sphere', 3, lpara (1) , 6) ) THEN
 !                                                                       
