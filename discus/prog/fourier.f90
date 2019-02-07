@@ -15,6 +15,7 @@ CONTAINS
       USE discus_config_mod 
       USE discus_allocate_appl_mod
       USE crystal_mod 
+      USE chem_mod
       USE diffuse_mod 
       USE external_four
       USE fourier_sup
@@ -611,6 +612,22 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     start the Fourier transform 'run'                                 
 !                                                                       
             ELSEIF (str_comp (befehl, 'run ', 2, lbef, 4) ) then 
+               IF(ilots/=LOT_OFF .AND.  &   ! Lots will be used
+                  cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+                  ier_num = -162
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'Lots are on but the number of atoms in the'
+                  ier_msg(2) = 'crystal differs from the value set by  '
+                  ier_msg(3) = '''set crystal''. Check dimensions, purge etc.    '
+               ELSEIF(ilots==LOT_OFF .AND.  &   ! Lots will not be used
+                  chem_period(1) .AND. chem_period(2) .AND. chem_period(3) .AND. &
+                  cr_natoms /= cr_icc(1)*cr_icc(2)*cr_icc(3)*cr_ncatoms) THEN
+                  ier_num = -162
+                  ier_typ = ER_APPL
+                  ier_msg(1) = 'Periodic boundary conditions are on but the'
+                  ier_msg(2) = 'number of atoms in the crystal differs from '
+                  ier_msg(3) = 'value set by ''set crystal''. Check dimensions.'
+               ELSE   
                IF(.not.ltop) THEN           ! The three-D corner was never defined, assume 2D
                   eck(1,4) = eck(1,1)       ! This is a layer
                   eck(2,4) = eck(2,1)       ! Set verticval corner
@@ -661,6 +678,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_APPL 
+               ENDIF 
                ENDIF 
 !                                                                       
 !     define the scattering curve for an element 'scat'                 

@@ -9,11 +9,12 @@
 !
 !
       integer       iu,io
-      PARAMETER    (IU=-161,IO=7)
+      PARAMETER    (IU=-162,IO=7)
 !
       CHARACTER(LEN=45) ::  ERROR(IU:IO)
 !
       DATA ERROR ( IU : -161) /                          &
+     &  'NATOMS /= Unit_cells * atoms_per_unit_cell',    & !-162 ! discus
      &  'Unknown non-standard setting             '      & !-161 ! discus
      &  /
       DATA ERROR (-160: -141) /                          &
