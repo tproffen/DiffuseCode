@@ -282,6 +282,7 @@ main_loop: DO
    USE get_iscat_mod
    USE modify_mod
    USE point_grp
+use crystal_mod
 !
    USE ber_params_mod
    USE get_params_mod
@@ -293,11 +294,13 @@ main_loop: DO
    CHARACTER (LEN=*), INTENT(INOUT) :: zeile
    INTEGER          , INTENT(INOUT) :: lp
 !
-   INTEGER, PARAMETER   :: MAXW = 20
+   INTEGER, PARAMETER :: MIN_PARA = 20
+   INTEGER            :: maxw
+!   INTEGER, PARAMETER   :: MAXW = 20
    INTEGER, PARAMETER :: NOPTIONAL = 2
-   CHARACTER (LEN=1024), DIMENSION(1:MAXW) :: cpara
+   CHARACTER (LEN=1024), DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: cpara
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
-   INTEGER             , DIMENSION(1:MAXW) :: lpara
+   INTEGER             , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: lpara
    INTEGER             , DIMENSION(1:2)    :: llpara
 !
    INTEGER, PARAMETER :: O_ANGLE  = 1
@@ -324,7 +327,7 @@ main_loop: DO
    INTEGER              :: ianz, janz, kanz, success  !, ncon
    LOGICAL              :: lnew !, lnew_mole = .false.
    LOGICAL              :: l_form
-   REAL   , DIMENSION(1:MAXW) :: werte
+   REAL   , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: werte
    REAL   , DIMENSION(1:2   ) :: wwerte
 !
    LOGICAL str_comp
@@ -334,6 +337,8 @@ main_loop: DO
    opara  =  (/ '170.00' , '1.0000' /)    ! Always provide fresh default values
    lopara =  (/  6       ,  6       /)
    owerte =  (/  170.00  ,  1.0000  /)
+!
+   MAXW = MAX(MIN_PARA,MAXSCAT+1)
 !
    CALL get_params(zeile, ianz, cpara, lpara, maxw, lp)
    IF ( ier_num /= 0 ) RETURN              ! Error reading parameters
@@ -881,16 +886,9 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 !
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
    shellfile  = 'internal.decoshell'   
-   CALL save_internal(corefile)        !     thus this file name is unique
-   line       = 'present, external'    ! Force atom to be close to a surface
-   length     = 17
-   CALL property_select(line, length, sav_sel_prop)
-   line       = 'absent, outside'      ! Force atom to be inside
-   length     = 15
-   CALL property_select(line, length, sav_sel_prop)
-      sav_w_scat  = .FALSE.
-      sav_w_adp   = .FALSE.
-      sav_w_occ   = .FALSE.
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
       sav_r_ncell = .TRUE.
       sav_w_ncell = .TRUE.
       sav_w_gene  = .FALSE.
@@ -899,7 +897,46 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
       sav_w_obje  = .FALSE.
       sav_w_doma  = .FALSE.
       sav_w_prop  = .TRUE.
+    sav_latom(:) = .TRUE.
+   CALL save_internal(corefile)        !     thus this file name is unique
+   line       = 'present, external'    ! Force atom to be close to a surface
+   length     = 17
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'absent, outside'      ! Force atom to be inside
+   length     = 15
+   CALL property_select(line, length, sav_sel_prop)
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+    sav_latom(:) = .FALSE.
+   DO k=1, dcc_num
+      DO j=1,2
+         DO i=1, dcc_surf(j,0,k)
+             sav_latom(dcc_surf(j,i,k)) = .TRUE.
+         ENDDO
+      ENDDO
+   ENDDO
 !
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+    sav_latom(:) = .TRUE.
    CALL save_internal(shellfile)
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -1023,6 +1060,7 @@ IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
          ENDDO replace
       ENDDO name_anchors
 !
+!
 IF(n_repl==0) THEN
    CALL save_restore_setting
    CALL no_error
@@ -1039,6 +1077,18 @@ ENDIF
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+   sav_latom(:) = .TRUE.
    CALL save_internal('internal_anchors')        !     thus this file name is unique
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
@@ -1200,7 +1250,7 @@ ENDIF
          mo_kt   =   2.5                                      ! Define Temperature
 !
          CALL mmc_run_multi(.FALSE. )                          ! Run actual sorting
-         IF(ier_num/=0) THEN
+         IF(ier_num/=0 .AND. .NOT.(ier_num==-2 .AND.ier_typ==ER_MMC)) THEN
             i = ier_num
             j = ier_typ
             CALL save_restore_setting
@@ -1218,6 +1268,18 @@ ENDIF
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+   sav_latom(:) = .TRUE.
    CALL save_internal('internal_sorted')        !     thus this file name is unique
 !        Change Anchors back to their original names, keep property flag
 !
@@ -1827,6 +1889,18 @@ main: DO i=1, dcc_num
    CALL property_select(line, length, sav_sel_prop)
    WRITE(savefile,1000) i,dcc_file(i)(1:dcc_lfile(i))
 !                                                                       
+      sav_w_scat  = .TRUE.
+      sav_w_adp   = .TRUE.
+      sav_w_occ   = .TRUE.
+      sav_r_ncell = .TRUE.
+      sav_w_ncell = .TRUE.
+      sav_w_gene  = .FALSE.
+      sav_w_symm  = .FALSE.
+      sav_w_mole  = .FALSE.
+      sav_w_obje  = .FALSE.
+      sav_w_doma  = .FALSE.
+      sav_w_prop  = .TRUE.
+   sav_latom(:) = .TRUE.
    CALL save_internal(savefile)        !     thus this file name is unique
 !
 ENDDO main
@@ -3106,7 +3180,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
    CHARACTER (LEN=1024)                    :: line
    INTEGER   :: surf_char ! Surface character, plane, edge, corner, ...
-   INTEGER, DIMENSION(0:4)             :: surface         ! Surface atom type
+   INTEGER, DIMENSION(0:nanch)             :: surface         ! Surface atom type
    INTEGER                                 :: ianz
    INTEGER                                 :: i,j, l,im, laenge
    INTEGER                                 :: iprop
