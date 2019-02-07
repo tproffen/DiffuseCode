@@ -68,15 +68,22 @@ SUBROUTINE get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
          CALL do_cap (cpara (j) ) 
          ier_num = - 27 
          ier_typ = ER_APPL 
-         DO i = 0, cr_nscat 
-         IF (cpara (j)(1:lpara(j)) .eq.cr_at_lis (i) ) then 
-            werte (jj) = i 
-            jj = jj + 1 
-            jp = jp + 1 
-            ier_num = 0 
-            ier_typ = ER_NONE 
-         ENDIF 
-         ENDDO 
+         place: DO i = 0, cr_nscat 
+            IF (cpara (j)(1:lpara(j)) .eq.cr_at_lis (i) ) then 
+               DO l=1,jj-1
+                  IF(NINT(werte(l))== i) THEN
+                     ier_num = 0 
+                     ier_typ = ER_NONE 
+                     CYCLE place    ! avoid double placement
+                  ENDIF
+               ENDDO
+               werte (jj) = i 
+               jj = jj + 1 
+               jp = jp + 1 
+               ier_num = 0 
+               ier_typ = ER_NONE 
+            ENDIF 
+         ENDDO place
          IF (lnew) then 
             IF (j.gt.1) then 
                IF (cr_nscat.lt.MAXSCAT) then 
