@@ -2789,6 +2789,7 @@ sym_uvw(:) = res_para(1:3)
 IF(res_para(1)**2+res_para(2)**2+res_para(3)**2 >  1e-5) THEN !Non-zero axis
 sym_trans(:)   = 0.0                          ! No translation needed
 sym_angle  = do_bang(lspace, v1, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+sym_incl   = 'list'                           ! A range of atoms is included
 sym_start  =  n_atoms_orig + 1                ! set range of atoms numbers
 sym_end    =  cr_natoms
 CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
@@ -2798,6 +2799,7 @@ ELSE
    GOTO 9999
 ENDIF
 !
+write(*,*) ' DOUBLE  ', n1, n2, nold, mole_axis(:), 'NORMAL ',surf_normal(:)
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL rotate_projected(n1, n2, n_atoms_orig, mole_axis, surf_normal)
 ENDIF
@@ -3011,6 +3013,7 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    sym_orig_mol   = .false.                   ! Origin at crystal
    sym_power_mult =.false.                    ! No multiple copies
    sym_sel_atom   = .true.                    ! Select atoms not molecules
+   sym_incl       = 'list'                    ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    IF(ABS(sym_angle-180.) < EPS ) THEN        ! Ligand and surface normal are antiparallel
@@ -3047,6 +3050,7 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    sym_orig_mol   = .false.                   ! Origin at crystal
    sym_power_mult =.false.                    ! No multiple copies
    sym_sel_atom   = .true.                    ! Select atoms not molecules
+   sym_incl       = 'list'                    ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    IF(ABS(sym_angle-180.) < EPS ) THEN        ! Ligand and surface normal are antiparallel
@@ -3063,6 +3067,7 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    CALL symm_op_single
 ENDIF
 !
+write(*,*) ' CHELATE ', n1, n2, nold, mole_axis(:), 'NORMAL ',surf_normal(:)
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL rotate_projected(n1, n2, nold, mole_axis, surf_normal)
 ENDIF
@@ -3358,6 +3363,7 @@ CALL vprod(line, laenge)
 sym_uvw(:) =  res_para(1:3)
 sym_angle  = do_bang(lspace, bridge, vnull, u) ! Angle (1st to 2nd mole) and (1st mole to target)
 sym_orig(:) = cr_pos(:,n1)                 ! Set origin in 1st mole
+sym_incl   = 'list'                        ! A range of atoms is included
 sym_start  =  n_atoms_orig + 1             ! set range of atoms numbers
 sym_end    =  cr_natoms
 CALL trans (sym_uvw, cr_gten, sym_hkl, 3)  ! Make reciprocal space axis
@@ -3604,6 +3610,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             sym_orig_mol   = .false.                      ! Origin at crystal
             sym_power_mult =.false.                       ! No multiple copies
             sym_sel_atom   = .true.                       ! Select atoms not molecules
+            sym_incl       = 'list'                       ! A range of atoms is included
             sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
             sym_end        =  cr_natoms
             sym_uvw(:) = res_para(1:3)
@@ -3657,6 +3664,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    sym_orig_mol   = .false.                      ! Origin at crystal
    sym_power_mult = .false.                      ! No multiple copies
    sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
@@ -3897,6 +3905,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    sym_orig_mol   = .false.                      ! Origin at crystal
    sym_power_mult =.false.                       ! No multiple copies
    sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    sym_uvw(:) = res_para(1:3)
@@ -3941,6 +3950,7 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    sym_orig_mol   = .false.                      ! Origin at crystal
    sym_power_mult = .false.                      ! No multiple copies
    sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
@@ -4240,6 +4250,7 @@ nold = cr_natoms - mole_natoms
    sym_orig_mol   = .false.                      ! Origin at crystal
    sym_power_mult = .false.                       ! No multiple copies
    sym_sel_atom   = .true.                       ! Select atoms not molecules
+   sym_incl       = 'list'                       ! A range of atoms is included
    sym_start      =  cr_natoms - mole_natoms + 1 ! set range of atoms numbers
    sym_end        =  cr_natoms
    CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
@@ -4325,9 +4336,12 @@ laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
 beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
+write(*,*) ' alpha, beta ', alpha, beta
 IF(beta < 90) THEN                            ! Need to invert rotation axis
    IF(alpha < 90) THEN
       sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+   ELSEIF(alpha==90) THEN
+      sym_angle = 90.0
    ELSE
       sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
    ENDIF
@@ -4335,6 +4349,8 @@ ELSE
    sym_uvw(:) = -sym_uvw(:)
    IF(alpha < 90) THEN
       sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+   ELSEIF(alpha==90) THEN
+      sym_angle = -90.0
    ELSE
       sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
    ENDIF
@@ -4349,11 +4365,14 @@ sym_mode       = .false.                   ! Move atom to new position
 sym_orig_mol   = .false.                   ! Origin at crystal
 sym_power_mult =.false.                    ! No multiple copies
 sym_sel_atom   = .true.                    ! Select atoms not molecules
+sym_incl       = 'list'                    ! A range of atoms is included
+sym_incl       = 'list'                    ! A range of atoms is included
 sym_start      =  n_atoms_orig + 1         ! set range of atoms numbers
 sym_end        =  cr_natoms
 !
 CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
 CALL symm_setup
+call symm_show
 CALL symm_op_single                           ! Perform the operation
 !
 1100 FORMAT(6(G15.6E3,', '),'ddd')
@@ -4408,6 +4427,7 @@ axis_ligand(:)      = cr_pos(:,a2) - cr_pos(:,a1)      ! Current molecule axis
          sym_orig_mol   = .false.                      ! Origin at crystal
          sym_power_mult =.false.                       ! No multiple copies
          sym_sel_atom   = .true.                       ! Select atoms not molecules
+         sym_incl       = 'list'                       ! A range of atoms is included
          sym_start      =  n_atoms_orig + 1            ! set range of atoms numbers
          sym_end        =  cr_natoms
          IF(ABS(sym_angle-180.) < EPS ) THEN           ! Ligand and surface normal are antiparallel
