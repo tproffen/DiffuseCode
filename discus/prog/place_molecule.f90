@@ -2799,7 +2799,6 @@ ELSE
    GOTO 9999
 ENDIF
 !
-write(*,*) ' DOUBLE  ', n1, n2, nold, mole_axis(:), 'NORMAL ',surf_normal(:)
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL rotate_projected(n1, n2, n_atoms_orig, mole_axis, surf_normal)
 ENDIF
@@ -3067,7 +3066,6 @@ IF(ABS(sym_angle) > EPS ) THEN                ! Rotate if not zero degrees
    CALL symm_op_single
 ENDIF
 !
-write(*,*) ' CHELATE ', n1, n2, nold, mole_axis(:), 'NORMAL ',surf_normal(:)
 IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    CALL rotate_projected(n1, n2, nold, mole_axis, surf_normal)
 ENDIF
@@ -3398,6 +3396,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
    IF(beta < 90) THEN                            ! Need to invert rotation axis
       IF(alpha < 90) THEN
          sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSEIF(alpha==90) THEN
+         sym_angle = 90.0
       ELSE
          sym_angle  =-180.+do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
       ENDIF
@@ -3405,6 +3405,8 @@ IF(mole_axis(0)==2) THEN    ! Rotate upright, if two atoms are given
       sym_uvw(:) = -sym_uvw(:)
       IF(alpha < 90) THEN
          sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
+      ELSEIF(alpha==90) THEN
+         sym_angle = -90.0
       ELSE
          sym_angle =-180.+do_bang(lspace, v3, vnull, v2)
       ENDIF
@@ -4336,7 +4338,6 @@ laenge = LEN_TRIM(line)
 CALL vprod(line, laenge)
 u(:) =  res_para(1:3)
 beta = do_bang(lspace, sym_uvw, vnull, u)     ! Calculate angle (rot-axis) to vector product 
-write(*,*) ' alpha, beta ', alpha, beta
 IF(beta < 90) THEN                            ! Need to invert rotation axis
    IF(alpha < 90) THEN
       sym_angle  = do_bang(lspace, v3, vnull, v2)   ! Calculate rotation angle = < (v1,v2)
