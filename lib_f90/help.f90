@@ -550,7 +550,7 @@ IF(ier_num /=0) THEN
    RETURN
 ENDIF
 !
-IF(operating(1:7)=='Windows') THEN 
+IF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN 
    ierror = -6
    win_opt: DO i=1,W_VIEWER
       string = (win_viewer(i))
@@ -582,8 +582,13 @@ IF(operating(1:7)=='Windows') THEN
    ENDIF
 !
    i=LEN_TRIM(man_dir)
-   IF(man_dir(i:i) /='\') THEN
-      man_dir(i+1:i+1) = '\'
+   IF(operating(1:7)=='Windows') THEN
+      IF(man_dir(i:i) /='\') THEN
+         man_dir(i+1:i+1) = '\'
+      ENDIF
+   ELSEIF(operating(1:8)=='cygwin64' .AND. &
+          .NOT.( man_dir(1:2)=='c:' .OR. man_dir(1:2)=='C:' )) THEN
+      man_dir = 'c:/cygwin64/'//man_dir(1:i)
    ENDIF
 !
    IF(ierror==0) THEN     ! Finally, everything is fine let's do it
