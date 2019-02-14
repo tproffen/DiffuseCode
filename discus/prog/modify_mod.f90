@@ -1076,13 +1076,13 @@ END SUBROUTINE do_remove
 !                                                                       
       IF (lpurge) THEN 
          WRITE (output_io, 1000) 
-         IF(chem_period(1) .OR. chem_period(2) .OR. chem_period(3) ) THEN
+!        IF(chem_period(1) .OR. chem_period(2) .OR. chem_period(3) ) THEN
             chem_period (1) = .false. 
             chem_period (2) = .false. 
             chem_period (3) = .false. 
             chem_purge      = .TRUE.      ! Disable use of periodic boundary
             WRITE (output_io, 1100) 'Peridic boundaries DISABLED ..' 
-         ENDIF 
+!        ENDIF 
          IF (chem_quick) THEN 
             chem_quick = .false. 
       WRITE (output_io, 1100) 'Chem. neighbor mode set to EXACT ..' 
