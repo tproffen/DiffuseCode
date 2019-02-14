@@ -133,6 +133,12 @@ random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on com
 IF(write_random_state) THEN
    CALL oeffne(IWR, macro_file, 'unknown')
 !
+   WRITE(IWR,'(a)') 'discus'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
+   WRITE(IWR,'(a)') 'kuplot'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
    WRITE(IWR,'(a,a)') random_prog(1)(1:LEN_TRIM(random_prog(1))), '   ! temporarily step into section'
    WRITE(IWR,'(a)') '#@ HEADER'
    WRITE(IWR,'(a)') '#@ NAME         diffev_best.mac'
