@@ -511,7 +511,7 @@ DATA c_manual / 'suite'  ,'discus' , 'diffev' ,'kuplot',      &
 !
 opara (1) = pname         ! Default to section name
 lopara(1) = LEN_TRIM(pname)
-IF(operating(1:7)=='Windows') THEN 
+IF(operating(1:7)=='Windows' .OR. operating(1:6)=='cygwin') THEN 
    opara (2) = 'foxit'
    lopara(2) =   5
 ELSE
