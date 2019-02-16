@@ -31,6 +31,42 @@ INTEGER          , INTENT(INOUT) :: ll
 !
 !*****7**************************************************************** 
 !
+SUBROUTINE rem_dbl_bl(line,ll)
+!
+IMPLICIT NONE
+!
+CHARACTER (LEN=*), INTENT(INOUT) :: line
+INTEGER          , INTENT(INOUT) :: ll
+!
+CHARACTER(LEN=LEN(line)) :: string
+INTEGER                  :: i,j
+LOGICAL                  :: l_bl
+!
+string=' '
+l_bl = .FALSE.
+j    = 0
+!
+DO i=1,ll
+  IF(l_bl) THEN   ! CURRENTLY IN MULTIPLE BLANK SECTION
+     IF(line(i:i)/=' ') THEN    ! Back to copy
+        j = j + 1
+        string(j:j) = line(i:i)
+        l_bl = .FALSE.
+     ENDIF
+  ELSE
+     j = j + 1
+     string(j:j) = line(i:i)
+     l_bl = line(i:i)==' '
+  ENDIF
+ENDDO
+line = ' '
+line = string
+ll   = LEN_TRIM(line)
+!
+END SUBROUTINE rem_dbl_bl
+!
+!*****7**************************************************************** 
+!
 SUBROUTINE rem_leading_bl (line, ll) 
 !                                                                       
 !     Removes all leading blanks from a string                                  
