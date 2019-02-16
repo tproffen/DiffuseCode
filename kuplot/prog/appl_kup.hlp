@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2019_February
+
+   Added a 'blank' separator to 'load csv, separator:blank'
 3  2018_Oct
 
    Added the trend of the best value to the 'kpara' plot
@@ -1418,6 +1421,7 @@
               ":" or "colon"
               "comma"
               "tab"
+              "space" Will take as separator a string of blank(s)
    If the error columns are omitted or set to zero no error data are read
 3  de
 !b load de,<file>,<gridx>,<gridy>

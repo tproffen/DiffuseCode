@@ -8,6 +8,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !                                                                       
       USE nexus_kuplot
       USE kuplot_diffev_mod
+      USE kuplot_3d
 !
       USE ber_params_mod
       USE blanks_mod
@@ -297,7 +298,12 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !-------  Load files 'load'                                             
 !                                                                       
          ELSEIF (str_comp (bef, 'load', 2, lbef, 4) ) then 
-            CALL do_load (zei, lc) 
+            CALL do_load (zei, lc, .TRUE.) 
+!                                                                       
+!-------  Load 3d files '3d'                                             
+!                                                                       
+         ELSEIF (str_comp (bef, '3d', 2, lbef, 4) ) then 
+            CALL kuplot_3d_menu
 !                                                                       
 !-------  Set line width                                                
 !                                                                       

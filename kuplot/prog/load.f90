@@ -352,7 +352,7 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
       END SUBROUTINE do_allocate                    
 !*****7**************************************************************** 
-      SUBROUTINE do_load (string, laenge) 
+      SUBROUTINE do_load (string, laenge, lperform) 
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
@@ -375,11 +375,15 @@ SUBROUTINE do_func (zeile, lp)
       PARAMETER (iwgb = 45) 
 !                                                                       
       CHARACTER ( * ) string 
+!
+      INTEGER, INTENT(INOUT) :: laenge
+      LOGICAL, INTENT(IN) :: lperform
+!
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) wname, cdummy 
       CHARACTER(4) unter 
       REAL werte (maxw) 
-      INTEGER laenge, lpara (maxw) 
+      INTEGER lpara (maxw) 
       INTEGER ii, ll, ianz, istr, nfile 
       LOGICAL zz_mod 
 !                                                                       
@@ -476,6 +480,8 @@ SUBROUTINE do_func (zeile, lp)
          ier_typ = ER_COMM 
          RETURN 
       ENDIF 
+!
+      IF(.NOT.lperform) RETURN
 !                                                                       
 !------ Here we open all data files                                     
 !                                                                       
@@ -3272,6 +3278,7 @@ SUBROUTINE do_func (zeile, lp)
 SUBROUTINE do_read_csv(MAXW, ianz, cpara, lpara, NOPTIONAL, opara, &
                        lopara, owerte, ncalc, ifil )
 !
+USE blanks_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
@@ -3312,6 +3319,8 @@ ELSEIF(opara(6)=='comma' ) THEN
    isep = IACHAR(',')
 ELSEIF(opara(6)(1:3)=='tab' ) THEN
    isep = 9
+ELSEIF(opara(5)(1:5)=='blank' ) THEN
+   isep = 32
 ENDIF
 !
 iskip  = NINT(owerte(1))
@@ -3347,6 +3356,10 @@ body: DO
    READ(ifil,'(a)', IOSTAT=ios) line
    length = LEN_TRIM(line)
    IF(ios/=0) EXIT body             ! Error, finish read
+   IF(isep==32) THEN
+      CALL rem_leading_bl(line,length)
+      CALL rem_dbl_bl(line,length)
+   ENDIF
    nsep = 0
    DO i=1,length                    ! Determin number of separators
       if(IACHAR(line(i:i))==isep) nsep = nsep + 1
