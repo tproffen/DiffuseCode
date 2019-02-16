@@ -212,22 +212,22 @@ CALL do_rese (string, length)
 !
 WRITE(string,'(a,a,a)') 'sc, ',infile(1:len_trim(infile)), ' , 1, 1, 2'
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 WRITE(string,'(a,a,a)') 'sc, ',infile(1:len_trim(infile)), ' , 1, 1, 3'
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 WRITE(string,'(a,a,a)') 'sc, ',infile(1:len_trim(infile)), ' , 1, 1, 4'
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 WRITE(string,'(a,a,a)') 'sc, ',infile(1:len_trim(infile)), ' , 1, 1, 5'
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 DO i=1,len(1)
@@ -581,7 +581,7 @@ CALL do_rese (string, length)
 !
 WRITE(string,'(a,a,a,i5,a)') 'sc, ',infile0(1:len_trim(infile0)), ',', igen,' , 1, 2'
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 ! Determine lowest R-value and its member number
@@ -605,7 +605,7 @@ ELSE
    WRITE(string,'(a,a,a,i5,a)') 'sc, ',infile2(1:len_trim(infile2)),',', igen,' , 3, 2'
 ENDIF
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 IF(ipar1 == -1) THEN
@@ -614,7 +614,7 @@ ELSE
    WRITE(string,'(a,a,a,i5,a)') 'sc, ',infile1(1:len_trim(infile1)),',', igen,' , 3, 2'
 ENDIF
 length = LEN_TRIM(string)
-CALL do_load (string, length)
+CALL do_load (string, length, .TRUE.)
 IF(ier_num/=0) RETURN
 !
 ! Create the actual curves to be plotted
