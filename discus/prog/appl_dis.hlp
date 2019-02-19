@@ -2351,8 +2351,8 @@
    Leave the demolecularize menu, go back to the main
    DISCUS menu.
 3  include
-!b include molerange:{"none"|"all"| <number> | (<n1>, <n2>...}
-!b include atomrange:{"none"|"all"| <number> | (<n1>, <n2>...}
+!b include molerange:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!b include atomrange:{"none"|"all"| <number> | (<n1>, <n2>...)}
 
    The optional parameter "molerange" selects which molecule
    range are to be demolecularized.
@@ -2408,8 +2408,8 @@
    to the boundary can be set within the ==> 'domain' menu through
    the ==> 'domain/fuzzy' command.
 3  select
-!b select moletype:{"none"|"all"| <number> | (<n1>, <n2>...}
-!b select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...}
+!b select moletype:{"none"|"all"| <number> | (<n1>, <n2>...)}
+!b select atomtype:{"none"|"all"| <number> | (<n1>, <n2>...)}
 
    The optional parameter "moletype" selects which molecule
    types are to be demolecularized.
