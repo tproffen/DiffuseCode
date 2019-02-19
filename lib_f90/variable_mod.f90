@@ -35,6 +35,7 @@ MODULE variable_mod
    INTEGER, PARAMETER :: VAR_MPI       = 16
    INTEGER, PARAMETER :: VAR_NUM_NODES = 17
    INTEGER, PARAMETER :: VAR_FIT_VALUE = 18
+   INTEGER, PARAMETER :: VAR_LOOP      = 19
 !
    INTEGER                                   :: var_num   = 0   ! Number of variables
    INTEGER                                   :: var_con   = 0   ! Number of internal constants
@@ -201,6 +202,14 @@ CONTAINS
    var_type ( i) = IS_REAL
    var_diff ( i) = .FALSE.
    var_val  ( i) = 0.0
+!
+   i = VAR_LOOP
+   var_name ( i) = 'LOOP'           ! Generic loop variable
+   var_char ( i) = ' '
+   var_l    ( i) = 4
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 0
 !
    var_con      = i                ! Store number of system "constants" set internally
 !
