@@ -133,7 +133,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !-------  Allocate memory for new dataset                               
 !                                                                       
          ELSEIF (str_comp (bef, 'allocate', 2, lbef, 8) ) then 
-            CALL do_allocate (zei, lc) 
+            CALL do_allocate (zei, lc, .TRUE.) 
 !                                                                       
 !-------  Set bond drawing options                                      
 !                                                                       

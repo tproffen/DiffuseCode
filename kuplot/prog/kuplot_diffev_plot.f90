@@ -620,7 +620,7 @@ IF(ier_num/=0) RETURN
 ! Create the actual curves to be plotted
 WRITE(string,'(a,i10)')  'points, ', len(1)
 length = LEN_TRIM(string)
-CALL do_allocate (string, length)
+CALL do_allocate (string, length, .FALSE.)
 IF(ier_num/=0) RETURN
 !
 DO i=1,len(1)
@@ -629,7 +629,7 @@ DO i=1,len(1)
 ENDDO
 string = 'minimum, 1'
 length = 10
-CALL do_allocate (string, length)
+CALL do_allocate (string, length, .FALSE.)
 IF(ier_num/=0) RETURN
 x(offxy(4-1)+1) = x(offxy(3-1) + rvalue_ind)
 y(offxy(4-1)+1) = y(offxy(3-1) + rvalue_ind)

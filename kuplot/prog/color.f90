@@ -85,6 +85,8 @@
       IF (ianz.ge.1) then 
          IF (str_comp (cpara (1) , 'gray', 3, lpara (1) , 4) ) then 
             CALL cmap_gray (.true.) 
+         ELSEIF (str_comp (cpara (1) , 'ice', 3, lpara (1) , 3) ) then 
+            CALL cmap_ice (.true.) 
          ELSEIF (str_comp (cpara (1) , 'fire', 3, lpara (1) , 4) ) then 
             CALL cmap_fire (.true.) 
          ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
@@ -107,6 +109,11 @@
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+!open(8,file='farben.map', status='unknown')
+!do lp=1, 256
+!   write(8,'(i5, 3f10.3)') lp, col_map(1,lp,1), col_map(1,lp,2),col_map(1,lp,3)
+!enddo
+!close(8)
 !                                                                       
       END SUBROUTINE set_cmap                       
 !*****7*****************************************************************
@@ -266,6 +273,55 @@
 !                                                                       
  1000 FORMAT     (' ------ > Setting colour map to : fire ') 
       END SUBROUTINE cmap_fire                      
+!
+!*****7*****************************************************************
+!
+      SUBROUTINE cmap_ice (lout) 
+!                                                                       
+!     Setting colormap to ice
+!                                                                       
+      USE prompt_mod 
+      USE kuplot_config 
+      USE kuplot_mod 
+!                                                                       
+      IMPLICIT none 
+!                                                                       
+      INTEGER i, ii, m 
+      LOGICAL lout 
+      REAL :: red, green, blue
+!                                                                       
+      IF (lout) write (output_io, 1000) 
+!                                                                       
+      m = 080    / 3 
+      ii = 1 
+!                                                                       
+      DO i = 1, m 
+      col_map (iwin, ii, 1) = float (3 * i) / float (080) 
+      col_map (iwin, ii, 2) = 0.0 
+      col_map (iwin, ii, 3) = 0.0 
+      ii = ii + 1 
+      ENDDO 
+!                                                                       
+      red = col_map (iwin, ii, 1)
+      m = 207    / 3 
+      DO i = 1, m 
+      col_map (iwin, ii, 1) = red 
+      col_map (iwin, ii, 2) = float (3 * i) / float (207) 
+      col_map (iwin, ii, 3) = 0.0 
+      ii = ii + 1 
+      ENDDO 
+      green = col_map (iwin, ii, 2)
+!                                                                       
+      m = 252    / 3 
+      DO i = 1, m 
+      col_map (iwin, ii, 1) = red 
+      col_map (iwin, ii, 2) = green
+      col_map (iwin, ii, 3) = float (3 * i) / float (252) 
+      ii = ii + 1 
+      ENDDO 
+!                                                                       
+ 1000 FORMAT     (' ------ > Setting colour map to : ice ') 
+      END SUBROUTINE cmap_ice                       
 !*****7*****************************************************************
       SUBROUTINE cmap_read (filname) 
 !                                                                       

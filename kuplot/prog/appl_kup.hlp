@@ -100,6 +100,9 @@
 3  2019_February
 
    Added a 'blank' separator to 'load csv, separator:blank'
+
+   Added a new menu "2dm" that allows to concatenate
+   several 2D data sets into a single 3D data set
 3  2018_Oct
 
    Added the trend of the best value to the 'kpara' plot
@@ -193,6 +196,122 @@
    See the help entry on "cd" in the general "Command_lang" section
    for further information. The process is described in the 
    package manual as well.
+2  2dm
+!b 2dm 
+
+   Branches into the '2dm' menu.
+   This menu allos you to concatenate several 2D==xy data sets
+   into a single 3D data set.
+
+   Valid commands at this level are:
+3  reset
+!b reset
+
+   Reset all numerical values back to system start.
+3  run
+!b run
+
+   Performs the actual calculation. The map will be 
+   stored in the next free data set number.
+3  back
+!b back "off"
+!b back "csv",<filename>
+!b         ,skip:<nskip>, 
+!b         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
+!b         separator:<name> 
+!b         scale:<factor>
+
+   Defines the name and type of a background file.
+   The y-values will be subtracted from the corresponding
+   y-values of the files read with 'load'. 
+   If the command is used with the parameter "off", no
+   background file will be read. 
+
+   Optionally a scale factor for the background can be
+   defined with 
+   scale:<factor>
+
+   The remaining optional parameters are identical to those
+   of the == 'load csv' command at the main menu.
+3  load
+!b load "csv","filename_format", LOOP
+!b         ,skip:<nskip>, 
+!b         colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
+!b         separator:<name> 
+
+   Defines the name and type of the 2D input files.
+   The filename must be specified within double quotation marks
+   and contain a format descriptor that will be replaced by the 
+   formal "LOOP" loop index. The loop index must be called "LOOP".
+
+   The remaining optional parameters are identical to those
+   of the == 'load csv' command at the main menu.
+3  loop
+!b loop "start:"<start_number>, "end:"<end_number>,
+!b      "step:"<step_number>
+!b      ,"miss:"{"error"|"ignore"|"blank"}
+
+   Defines the range of input file numbers that will be used
+   for the "LOOP" value on the ==> 'load' command. 
+
+   The optional parameters "start:", "end:" and "step:"
+   default to a value of 1.
+   Allowed values for the numerical values are valid expressions.
+
+   The optional parameter "miss:" with default "error" 
+   sets the rules for missing or corrupt input files.
+   With the default value "error", any missing or corrupt
+   input file will interrupt the ==> 'run' command and 
+   no map will be produced.
+   With "ignore" the erroneous file will simply be ignored
+   and the map will be shorter by one (ore more) lines.
+   With "blank" the corresponding line in the map will be 
+   set to a value of zero.
+3  xrange
+!b xrange "xmin:"{"xmin"|<x_min>} , "xmax:"{"xmax"|<x_max>}
+
+   Defines the x-range of the input files that is to be
+   written into the 3D map.
+   Both parameters default to "xmin" respectively "xmax" 
+   the actual minimum and maximum values of the input files.
+3  yfunction
+!b yfunction loop:LOOP
+!b yfunction loop:inc
+!b yfunction loop:<expression>
+
+   Defines the function that will be used to calculate the
+   y-axis values of the map. 
+
+   Default is "loop:LOOP". The y-axis will be the loop numbers
+   in the range as defined on the ==> 'loop' command.
+
+   As these numbers may be unnecessarily large, the option
+   "loop:inc" will increment the y-axis values from 1 in steps
+   of 1.
+
+   Finally you might want to calculate the y-values from 
+   a user defined function, or use values in a previous
+   data set:
+   loop:1+LOOP-start_number
+      If start_number is a variable that corresponds to the
+      start value on the ==> 'loop' command, this function
+      would be identical to the "inc" option.
+   loop:y[1,LOOP]
+      Would take the y-value of data set 1 point LOOP as 
+      y-value for the map. This might be appropriate if
+      y[1,*] contains temperature or pressure or time or ...
+      values for the 2D data sets.
+3  example
+
+!p reset
+!p back off
+!p back csv, empty_measurement.xy, scale:1.0, skip:0
+!p load csv, "DATA/my_data.%4D", LOOP, colx:1, coly:1, skip:0
+!p loop start:1, end:201, step:2
+!p yfunc loop:LOOP
+!p xrange xmin:xmin, ymin:5.00
+!p run
+ 
 2  achx/y/z
 !b achx {<string> |"OFF"} [, {"lin" | "log"}]
 !b achy {<string> |"OFF"} [, {"lin" | "log"}]
@@ -1401,8 +1520,8 @@
    full size set with 'msiz' whereas the second atom is only 75% of
    that size.
 3  csv
-!  load xy,<file>
-!  load xy,<file>, skip:<nskip>, 
+!  load csv,<file>
+!  load csv,<file>, skip:<nskip>, 
            colx:<icolx>, coly:<icoly>, coldx:<icoldx>, coldy:<icoldy>,
            separator:<name> 
 

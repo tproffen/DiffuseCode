@@ -242,7 +242,7 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
       END SUBROUTINE do_func                        
 !*****7**************************************************************** 
-      SUBROUTINE do_allocate (zeile, lp) 
+      SUBROUTINE do_allocate (zeile, lp, lecho) 
 !                                                                       
 !     Allocate space for new data set                                   
 !                                                                       
@@ -257,10 +257,12 @@ SUBROUTINE do_func (zeile, lp)
       INTEGER maxw 
       PARAMETER (maxw = 3) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
+INTEGER         , INTENT(INOUT) :: lp
+LOGICAL         , INTENT(IN)    :: lecho
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(40) cdummy 
-      INTEGER lp, lpara (maxw) 
+      INTEGER lpara (maxw) 
       INTEGER ianz, i, ii, jj 
       INTEGER maxpkt, maxzz 
       REAL werte (maxw) 
@@ -309,7 +311,7 @@ SUBROUTINE do_func (zeile, lp)
             offxy (iz) = offxy (iz - 1) + len (iz) 
             offz (iz) = offz (iz - 1) 
             iz = iz + 1 
-            CALL show_data (iz - 1) 
+            IF(lecho) CALL show_data (iz - 1) 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_APPL 
@@ -339,7 +341,7 @@ SUBROUTINE do_func (zeile, lp)
             offxy (iz) = offxy (iz - 1) + len (iz) 
             offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
             iz = iz + 1 
-            CALL show_data (iz - 1) 
+            IF(lecho) CALL show_data (iz - 1) 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
@@ -352,7 +354,7 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
       END SUBROUTINE do_allocate                    
 !*****7**************************************************************** 
-      SUBROUTINE do_load (string, laenge, lperform) 
+      SUBROUTINE do_load (string, laenge, lecho) 
 !                                                                       
 !     Load various file formats                                         
 !                                                                       
@@ -377,7 +379,7 @@ SUBROUTINE do_func (zeile, lp)
       CHARACTER ( * ) string 
 !
       INTEGER, INTENT(INOUT) :: laenge
-      LOGICAL, INTENT(IN) :: lperform
+      LOGICAL, INTENT(IN) :: lecho          ! Show extrema after load
 !
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) wname, cdummy 
@@ -481,7 +483,6 @@ SUBROUTINE do_func (zeile, lp)
          RETURN 
       ENDIF 
 !
-      IF(.NOT.lperform) RETURN
 !                                                                       
 !------ Here we open all data files                                     
 !                                                                       
@@ -497,7 +498,7 @@ SUBROUTINE do_func (zeile, lp)
       ll = 200 
       CALL getfile (cdummy, ll, ii) 
       fname (iz) = cdummy (1:ll)
-      WRITE (output_io, 2000) fname (iz) (1:len_str (fname (iz) ) ) 
+      IF(lecho) WRITE (output_io, 2000) fname (iz) (1:len_str (fname (iz) ) ) 
 !                                                                       
       IF (unter.ne.'MP') then 
          CALL oeffne (ifil, fname (iz) , 'old') 
@@ -603,7 +604,7 @@ SUBROUTINE do_func (zeile, lp)
          CALL read_simref (ifil) 
       ELSEIF (unter.eq.'CSV') then 
          CALL do_read_csv(maxw, ianz, cpara, lpara ,   &
-              NOPTIONAL, opara, lopara, owerte, ncalc , ifil)
+              NOPTIONAL, opara, lopara, owerte, ncalc , ifil, lecho)
       ELSE 
          ier_num = - 2 
          ier_typ = ER_APPL 
@@ -3276,9 +3277,10 @@ SUBROUTINE do_func (zeile, lp)
       END SUBROUTINE read_xy                        
 !*****7**************************************************************** 
 SUBROUTINE do_read_csv(MAXW, ianz, cpara, lpara, NOPTIONAL, opara, &
-                       lopara, owerte, ncalc, ifil )
+                       lopara, owerte, ncalc, ifil, lecho )
 !
 USE blanks_mod
+USE charact_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
@@ -3296,6 +3298,7 @@ INTEGER             , DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara
 REAL                , DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte
 INTEGER                                   , INTENT(IN   ) :: ncalc
 INTEGER                                   , INTENT(IN   ) :: ifil
+LOGICAL                                   , INTENT(IN   ) :: lecho
 !
 CHARACTER(LEN=1024) :: line
 INTEGER             :: ios
@@ -3319,8 +3322,12 @@ ELSEIF(opara(6)=='comma' ) THEN
    isep = IACHAR(',')
 ELSEIF(opara(6)(1:3)=='tab' ) THEN
    isep = 9
-ELSEIF(opara(5)(1:5)=='blank' ) THEN
-   isep = 32
+ELSEIF(opara(6)(1:5)=='blank' ) THEN
+   isep = blank1
+ELSE
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Unknown separator'
 ENDIF
 !
 iskip  = NINT(owerte(1))
@@ -3356,7 +3363,7 @@ body: DO
    READ(ifil,'(a)', IOSTAT=ios) line
    length = LEN_TRIM(line)
    IF(ios/=0) EXIT body             ! Error, finish read
-   IF(isep==32) THEN
+   IF(isep==blank1) THEN
       CALL rem_leading_bl(line,length)
       CALL rem_dbl_bl(line,length)
    ENDIF
@@ -3417,7 +3424,7 @@ offxy(iz) = offxy(iz - 1) + len(iz)
 offz(iz)  = offz(iz - 1) 
 iz = iz + 1 
 !                                                                       
-CALL show_data (iz - 1) 
+IF(lecho) CALL show_data (iz - 1) 
 !                                                                       
 END SUBROUTINE do_read_csv
 !*****7**************************************************************** 
