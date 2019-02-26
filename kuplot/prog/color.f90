@@ -2,7 +2,7 @@
 !     Here are all the routines for color handling for the              
 !     KUPLOT bitmaps.                                                   
 !*****7*****************************************************************
-      SUBROUTINE set_color (zeile, lp) 
+SUBROUTINE set_color (zeile, lp) 
 !+                                                                      
 !     Set colours for background & pens                                 
 !-                                                                      
@@ -75,6 +75,7 @@
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
+REAL :: zzmin, zzmax
       INTEGER lpara (maxw) 
       INTEGER ianz, lp 
       LOGICAL str_comp 
@@ -91,6 +92,10 @@
             CALL cmap_fire (.true.) 
          ELSEIF (str_comp (cpara (1) , 'kupl', 3, lpara (1) , 4) ) then 
             CALL cmap_kupl (.true.) 
+         ELSEIF (str_comp (cpara (1) , 'thermal', 3, lpara (1) , 7) ) then 
+            zzmin = z_min (iwin, iframe, 1) 
+            zzmax = nz(iwin, iframe, 1) * z_inc(iwin, iframe, 1) + z_min(iwin, iframe, 1)
+            CALL cmap_thermal (zzmin, zzmax, .true.) 
          ELSEIF (str_comp (cpara (1) , 'invert', 3, lpara (1) , 6) )    &
          then                                                           
             CALL cmap_invert (.true.) 
@@ -109,11 +114,6 @@
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
-!open(8,file='farben.map', status='unknown')
-!do lp=1, 256
-!   write(8,'(i5, 3f10.3)') lp, col_map(1,lp,1), col_map(1,lp,2),col_map(1,lp,3)
-!enddo
-!close(8)
 !                                                                       
       END SUBROUTINE set_cmap                       
 !*****7*****************************************************************
@@ -288,41 +288,126 @@
 !                                                                       
       INTEGER i, ii, m 
       LOGICAL lout 
-      REAL :: red, green, blue
 !                                                                       
       IF (lout) write (output_io, 1000) 
 !                                                                       
-      m = 080    / 3 
+      m = maxcol / 3 
       ii = 1 
 !                                                                       
       DO i = 1, m 
-      col_map (iwin, ii, 1) = float (3 * i) / float (080) 
+      col_map (iwin, ii, 1) = 0.0 
       col_map (iwin, ii, 2) = 0.0 
-      col_map (iwin, ii, 3) = 0.0 
+      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol)  /3.
       ii = ii + 1 
       ENDDO 
 !                                                                       
-      red = col_map (iwin, ii, 1)
-      m = 207    / 3 
       DO i = 1, m 
-      col_map (iwin, ii, 1) = red 
-      col_map (iwin, ii, 2) = float (3 * i) / float (207) 
-      col_map (iwin, ii, 3) = 0.0 
+      col_map (iwin, ii, 1) = 0.0 
+      col_map (iwin, ii, 2) = float (3 * i) / float (maxcol)    /6.
+      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol) *2./3.
       ii = ii + 1 
       ENDDO 
-      green = col_map (iwin, ii, 2)
 !                                                                       
-      m = 252    / 3 
       DO i = 1, m 
-      col_map (iwin, ii, 1) = red 
-      col_map (iwin, ii, 2) = green
-      col_map (iwin, ii, 3) = float (3 * i) / float (252) 
+      col_map (iwin, ii, 1) = float (3 * i) / float (maxcol) *1./6.
+      col_map (iwin, ii, 2) = float (3 * i) / float (maxcol) *1./3.
+      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol) 
       ii = ii + 1 
       ENDDO 
+DO i=1, maxcol
+   col_map (iwin, i, 3) = FLOAT(i)/FLOAT(maxcol)
+ENDDO
+DO i=1, maxcol
+   col_map (iwin, i, 2) = FLOAT(i)/FLOAT(maxcol) * 0.800000
+ENDDO
+DO i=1, maxcol
+   col_map (iwin, i, 1) = FLOAT(i)/FLOAT(maxcol) * 0.250000
+ENDDO
 !                                                                       
  1000 FORMAT     (' ------ > Setting colour map to : ice ') 
       END SUBROUTINE cmap_ice                       
 !*****7*****************************************************************
+!
+SUBROUTINE cmap_thermal(zzmin, zzmax, lout)
+!
+USE prompt_mod 
+USE kuplot_config 
+USE kuplot_mod 
+!
+IMPLICIT NONE
+!
+REAl, INTENT(IN) :: zzmin
+REAl, INTENT(IN) :: zzmax
+LOGICAL, INTENT(IN) :: lout
+!
+INTEGER :: i, m
+INTEGER :: ii
+INTEGER :: istart
+REAL    :: scalef
+REAL    :: red, green, blue
+!
+IF(zzmax > 0.0 .AND. zzmin > 0.0 ) THEN  ! positive only
+   CALL cmap_fire(lout)
+ELSEIF(zzmax < 0.0 .AND. zzmin < 0.0 ) THEN  ! negative only
+   CALL cmap_ice(lout)
+ELSE
+!
+!  Calculate istart , keep in window [1:maxcol]
+   istart = MIN(maxcol,MAX(1,NINT(maxcol * (1. - zzmax/(zzmax-zzmin)))))
+!                                                                       
+   scalef = 1./(MAX(ABS(zzmax),ABS(zzmin))/(zzmax-zzmin))
+   m  = INT(maxcol / 3 / scalef)
+   col_map(iwin,istart,1:3) = 0.0   ! Zero level at black
+   ii = istart+1 
+   positive: IF(ii<=maxcol) THEN 
+!                                                                       
+      DO i = 1, m 
+         col_map (iwin, ii, 1) = MIN(1.0,float (3 * i) / float (maxcol) *scalef)
+         col_map (iwin, ii, 2) = 0.0 
+         col_map (iwin, ii, 3) = 0.0 
+         ii = ii + 1 
+         IF(ii>maxcol) EXIT positive
+      ENDDO 
+!                                                                       
+      red = col_map (iwin, ii-1,1)
+      DO i = 1, m 
+         col_map (iwin, ii, 1) = red 
+         col_map (iwin, ii, 2) = MIN(1.,float (3 * i) / float (maxcol) *scalef)
+         col_map (iwin, ii, 3) = 0.0 
+         ii = ii + 1 
+         IF(ii>maxcol) EXIT positive
+      ENDDO 
+!                                                                       
+      green = col_map (iwin, ii-1,2)
+      DO i = 1, maxcol - ii + 1
+         col_map (iwin, ii, 1) = red 
+         col_map (iwin, ii, 2) = green
+         col_map (iwin, ii, 3) = MIN(1.0, FLOAT(3 * i) / FLOAT(maxcol) *scalef)
+         ii = ii + 1 
+         IF(ii>maxcol) EXIT positive
+      ENDDO 
+   ENDIF positive
+!
+!  Negative colors like ICE
+!
+   DO i=istart-1,1,-1
+      col_map (iwin, i, 3) = FLOAT(istart-i)/FLOAT(maxcol) * scalef
+   ENDDO
+   DO i=istart-1,1,-1
+      col_map (iwin, i, 2) = FLOAT(istart-i)/FLOAT(maxcol) * 0.800000 * scalef
+   ENDDO
+   DO i=istart-1,1,-1
+      col_map (iwin, i, 1) = FLOAT(istart-i)/FLOAT(maxcol) * 0.250000 * scalef
+   ENDDO
+ENDIF
+!
+IF(lout) WRITE(output_io, 1000)
+1000 FORMAT     (' ------ > Setting colour map to : thermal ') 
+!
+END SUBROUTINE cmap_thermal
+!
+!*****7*****************************************************************
+!
       SUBROUTINE cmap_read (filname) 
 !                                                                       
 !     Reading colormap from file ..                                     
