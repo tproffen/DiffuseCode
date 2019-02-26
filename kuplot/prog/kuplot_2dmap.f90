@@ -134,7 +134,7 @@ main_loop: DO
                 CALL do_input (zeile, lp) 
 !
             ELSEIF (str_comp (befehl, 'reset', 3, lbef, 4)) THEN is_generic
-               CALL do_rese(zeile,lp)
+               CALL k2dm_reset
             ELSE is_generic    ! macro, reset or all other commands is_generic
 !
                is_com: IF(str_comp (befehl, 'show', 3, lbef, 4) ) THEN 
@@ -151,9 +151,7 @@ main_loop: DO
                ELSEIF(str_comp (befehl, 'yfunc', 3, lbef, 5) ) THEN  is_com
                   CALL get_yfunc(zeile, lp)
                ELSEIF(str_comp (befehl, 'run', 3, lbef, 3) ) THEN  is_com
-                  CALL k2dm_run
-               ELSEIF(str_comp (befehl, 'reset', 3, lbef, 5) ) THEN  is_com
-                  CALL k2dm_reset
+                  CALL k2dm_run(zeile, lp)
                ELSE is_com
                   ier_num = -8
                   ier_typ = ER_COMM
@@ -314,11 +312,9 @@ owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  1.0    ,  0.0   
 !
 CALL no_error 
 CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
-write(*,*) ' ier ', ier_num, ier_typ
 IF (ier_num /= 0) RETURN 
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
-write(*,*) ' ier ', ier_num, ier_typ
 !
 k2dm_scale = owerte(O_SCALE)
 !
@@ -347,7 +343,6 @@ opts: DO i=1,NOPTIONAL
    IF(i==O_SCALE) CYCLE opts
    k2dm_line_b(LEN_TRIM(k2dm_line_b)+1:) = ','//oname(i)(1:loname(i))//':'//opara(i)(1:lopara(i))
 ENDDO opts
-write(*,*) ' ier ', ier_num, ier_typ
 !
 END SUBROUTINE get_back_2dm
 !
@@ -508,7 +503,6 @@ CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
 INTEGER, PARAMETER :: O_LOOP = 1
-INTEGER, PARAMETER :: O_MISS = 2
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -555,21 +549,25 @@ END SUBROUTINE get_yfunc
 !
 !*******************************************************************************
 !
-SUBROUTINE k2dm_run
+SUBROUTINE k2dm_run(line, length)
 !
 USE kuplot_mod
 !
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE take_param_mod
 USE variable_mod
 !
 IMPLICIT NONE
 !
+CHARACTER(LEN=*), INTENT(INOUT) :: line
+INTEGER         , INTENT(INOUT) :: length
+!
 LOGICAL, PARAMETER :: l_no_echo = .FALSE.
 CHARACTER(LEN=1024) :: string
 CHARACTER(LEN=10  ) :: cnumber
-INTEGER :: length
+CHARACTER(LEN=4   ) :: bef
 INTEGER :: i, ik
 INTEGER :: ikm                  ! Data set with map
 INTEGER :: ikb                  ! Data set with background
@@ -582,11 +580,36 @@ REAL    :: xxmin, xxmax
 REAL    :: yy                   ! background corrected y value of a single 1D
 REAL    :: DELTA
 !
+INTEGER, PARAMETER :: O_PLOT = 1
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
+REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+!
 INTEGER, PARAMETER :: MAXW = 20
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
+!
+DATA oname  / 'plot'/
+DATA loname /  4    /
+opara  =  (/ 'auto' /)   ! Always provide fresh default values
+lopara =  (/  4     /)
+owerte =  (/  0.0   /)
+!
+CALL no_error 
+CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
+IF (ier_num /= 0) RETURN 
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+!
 !
 IF(k2dm_type_yf==K2DM_YF_FUNC) THEN                       ! yfunc is a function get params
    IF(k2dm_line_yf(1:1) == '''') k2dm_line_yf(1:1) = ' '
@@ -643,7 +666,6 @@ length = LEN_TRIM(string)
 CALL do_allocate(string,length, .FALSE.)               ! Allocate space for the map
 IF(ier_num/=0) THEN
    ier_msg(1) = 'Error allocating space for map'
-   write(*,*) ' STRING ', string(1:len_trim(string)), ' ' , length
    RETURN
 ENDIF
 ikm = iz - 1                                           ! Data set with map
@@ -729,6 +751,41 @@ ENDIF
 !
 !
 CALL show_data(ikm)
+!
+IF(opara(O_PLOT) == 'auto') THEN
+   string = ' '
+   length = 0
+   bef = 'aver'
+   CALL para_setr(string, length, yskal_u(iwin, iframe), bef, -9999.)
+   lyskal(iwin, iframe) = (yskal_u(iwin, iframe) /=  -9999.)
+!
+   string = ' '
+   length = 0
+   CALL set_skal(string, length)
+!
+   string = ' '
+   length = 0
+   CALL set_mark(string, length)
+!
+   string = 'fire'
+   length = 4
+   CALL set_cmap(string, length) 
+!
+   string = '1, 2'
+   length = 4
+   CALL para_seti(string, length, hlineart, 1, maxkurvtot, bef, 1, 4, .FALSE.)
+!
+   string = '1, 1,1,100,%'
+   length = 12
+   CALL set_hlin(string, length) 
+!
+   string = 'Test of title 1 '
+   length = 16
+   CALL para_set_title (string, length, titel (iwin, iframe, 1) ) 
+!
+   CALL do_plot(.FALSE.)
+!
+ENDIF
 !
 END SUBROUTINE k2dm_run
 !
