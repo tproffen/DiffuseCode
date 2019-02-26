@@ -479,6 +479,8 @@ SUBROUTINE do_plot (lmenu)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_3dm_mod
+USE kuplot_3dm_draw
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -491,19 +493,24 @@ SUBROUTINE do_plot (lmenu)
       iframe = ii 
 !                                                                       
       CALL open_frame (iframe, lmenu) 
-      IF (infra (iwin, iframe, 1) .eq. - 1) then 
-         CALL draw_text_frame 
-      ELSE 
+main: IF (infra (iwin, iframe, 1) .eq. - 1) then 
+   CALL draw_text_frame 
+ELSE main
          CALL skalieren 
          CALL open_viewport 
-         DO ik = 1, iz - 1 
-         IF ( (hlineart (iwin, iframe, ik) .eq.2.or.hlineart (iwin,     &
+   DO ik = 1, iz - 1 
+      IF(k3dm_ik==ik) THEN
+         CALL kuplot_draw_3d_static(ik)
+         EXIT main
+      ELSE
+      IF ( (hlineart (iwin, iframe, ik) .eq.2.or.hlineart (iwin,     &
          iframe, ik) .eq.3) .and.k_in_f (ik) .and.lni (ik) ) call       &
          draw_bitmap (ik)                                               
+      ENDIF
          ENDDO 
          CALL draw_werte 
          CALL draw_rahmen 
-      ENDIF 
+      ENDIF main 
 !                                                                       
       iframe = iframe_old 
 !                                                                       
@@ -1660,6 +1667,9 @@ SUBROUTINE do_plot (lmenu)
 !                                                                       
 !------ Setting colours                                                 
 !                                                                       
+      IF(col_map_type==COL_MAP_THER) THEN
+         CALL cmap_thermal(zzmin, zzmax, .TRUE.)
+      ENDIF
       CALL PGQCIR (ix, iy) 
       IF (ix.lt. (iaf (iwin) + 19) ) ix = iaf (iwin) + 19 
       CALL PGSCIR (ix, iy) 
