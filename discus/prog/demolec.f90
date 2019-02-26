@@ -634,7 +634,6 @@ IF(istart>=1    .AND. istart <= mole_num_mole .AND. &      ! Test include range
 !
          DO j=1, mole_len(i)                               ! Loop over all atoms in molecule
             k = mole_cont(mole_off(i)+j)                   ! Absolute atom number
-write(*,*) 'ATOM ',k, check_select_status(k, .TRUE., cr_prop(k), dem_sel_prop)
             IF(.NOT.check_select_status(k, .TRUE., cr_prop(k), dem_sel_prop) ) EXIT moletypes  ! Atom does not fulfil properties
          ENDDO
 !
