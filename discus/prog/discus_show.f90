@@ -50,39 +50,39 @@ CONTAINS
       LOGICAL str_comp 
 !                                                                       
       CALL get_params (line, ianz, cpara, lpara, maxw, laenge) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
 !                                                                       
 !     --Interprete first parameter as command                           
 !                                                                       
 !                                                                       
 !     ----Show composition of asymmetric unit 'asym'                    
 !                                                                       
-         IF (str_comp (cpara (1) , 'asym', 2, lpara (1) , 4) ) then 
+         IF (str_comp (cpara (1) , 'asym', 2, lpara (1) , 4) ) THEN 
             CALL show_asym 
 !                                                                       
 !     ----Show an atom                     'atom'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'atom', 2, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'atom', 2, lpara (1) , 4) ) THEN 
             CALL do_show_atom (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show bond valence parameters     'bval'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'bval', 2, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'bval', 2, lpara (1) , 4) ) THEN 
             CALL do_show_bval (ianz, cpara, maxw) 
 !                                                                       
 !     ----Show the chemistry               'chem'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'chem', 2, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'chem', 2, lpara (1) , 4) ) THEN 
             CALL show_chem 
 !                                                                       
 !     ----Show current configuration       'config'                     
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'config', 4, lpara(1), 6) )then
+         ELSEIF (str_comp (cpara(1), 'config', 4, lpara(1), 6) )THEN
             CALL discus_show_config 
 !                                                                       
 !     ----Show connectivity around an atom 'connect'                     
 !                                                                       
-         ELSEIF (str_comp (cpara(1), 'connect', 4, lpara(1), 7) ) then
+         ELSEIF (str_comp (cpara(1), 'connect', 4, lpara(1), 7) ) THEN
             CALL del_params (1, ianz, cpara, lpara, maxw)
             IF(str_comp (cpara(ianz), 'long',3, lpara(ianz), 4)) THEN
                long = .true.
@@ -110,19 +110,19 @@ CONTAINS
 !                                                                       
 !     ----Show the dimensions              'cdim'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'cdim', 2, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'cdim', 2, lpara (1) , 4) ) THEN 
             WRITE (output_io, 2000) ( (cr_dim (j, i), i = 1, 2),        &
             j = 1, 3)                                                   
 !                                                                       
 !     ----Show a domain                    'domain'                     
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'domain', 2, lpara (1) , 6) )    &
-         then                                                           
+         THEN                                                           
             CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show the atom environment        'envi'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'envi', 2, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'envi', 2, lpara (1) , 4) ) THEN 
             CALL do_show_env 
             cpara (2) = 'envi' 
             lpara (2) = 4 
@@ -131,11 +131,11 @@ CONTAINS
 !     ----Show the molecular environment        'menvi'                 
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'menvi', 3, lpara (1) , 5) )     &
-         then                                                           
+         THEN                                                           
             CALL do_show_menv 
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                IF (str_comp (cpara (2) , 'full', 1, lpara (2) , 4) )    &
-               then                                                     
+               THEN                                                     
                   cpara (2) = 'envi' 
                   lpara (2) = 4 
                   CALL do_show_molecule (ianz, cpara, lpara, werte,     &
@@ -146,41 +146,41 @@ CONTAINS
 !     ----Show current unit cell metrics   'metric'                     
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'metric', 3, lpara (1) , 6) )    &
-         then                                                           
+         THEN                                                           
             CALL do_show_metric 
 !                                                                       
 !     ----Show a molecule                  'molecule'                   
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'molecule', 2, lpara (1) , 8) )  &
-         then                                                           
+         THEN                                                           
             CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show an object                   'object'                     
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'object', 2, lpara (1) , 6) )    &
-         then                                                           
+         THEN                                                           
             CALL do_show_molecule (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show scattering curve            'scat'                       
 !                                                                       
-         ELSEIF (str_comp (cpara (1) , 'scat', 1, lpara (1) , 4) ) then 
+         ELSEIF (str_comp (cpara (1) , 'scat', 1, lpara (1) , 4) ) THEN 
             CALL do_show_scat (ianz, cpara, lpara, werte, maxw) 
 !                                                                       
 !     ----Show Symmetry matrices           'symmetry'                   
 !                                                                       
          ELSEIF (str_comp (cpara (1) , 'symmetry', 1, lpara (1) , 8) )  &
-         then                                                           
+         THEN                                                           
             IF (ianz.eq.1.or.str_comp (cpara (2) , 'full', 2, lpara (2) &
-            , 4) ) then                                                 
+            , 4) ) THEN                                                 
                mode = FULL 
             ELSEIF (str_comp (cpara (2) , 'symbol', 2, lpara (2) , 6) ) &
-            then                                                        
+            THEN                                                        
                mode = SYMBOL 
             ELSEIF (str_comp (cpara (2) , 'xyz', 2, lpara (2) , 3) )    &
-            then                                                        
+            THEN                                                        
                mode = XYZ 
             ELSEIF (str_comp (cpara (2) , 'matrix', 2, lpara (2) , 6) ) &
-            then                                                        
+            THEN                                                        
                mode = MATRIX 
             ELSE 
                ier_num = - 6 
@@ -223,7 +223,7 @@ CONTAINS
       WRITE (output_io, 2010) as_at_lis (k), as_iscat (k), (as_pos (l,  &
       k), l = 1, 3), as_dw (as_iscat (k) )                              
       ENDDO 
-      IF (.not.lmakro) then 
+      IF (.not.lmakro) THEN 
          WRITE (output_io, 2020) 
          READ ( *, 1000) cdummy 
       ENDIF 
@@ -274,7 +274,7 @@ CONTAINS
       at_name_d = at_name (k) 
       WRITE (output_io, 2010) at_name_d, k, cr_dw (k) , cr_occ(k)
       ENDDO 
-      IF (.not.lmakro) then 
+      IF (.not.lmakro) THEN 
          WRITE (output_io, 2020) 
          READ ( *, 1000) cdummy 
       ENDIF 
@@ -306,12 +306,12 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
-      IF (atom_env (0) .eq.0) then 
+      IF (atom_env (0) .eq.0) THEN 
          WRITE (output_io, * ) 'Atom environment array is empty' 
       ELSE 
          WRITE (output_io, 2000) atom_env (0) 
          j = atom_env (0) / 5 
-         IF (mod (atom_env (0), 5) .eq.0) then 
+         IF (mod (atom_env (0), 5) .eq.0) THEN 
             j = j - 1 
          ENDIF 
          DO i = 0, j 
@@ -338,12 +338,12 @@ CONTAINS
 !                                                                       
       INTEGER i, j, k, k1, k2 
 !                                                                       
-      IF (mole_env (0) .eq.0) then 
+      IF (mole_env (0) .eq.0) THEN 
          WRITE (output_io, * ) 'Molecular environment array is empty' 
       ELSE 
          WRITE (output_io, 2000) mole_env (0) 
          j = mole_env (0) / 5 
-         IF (mod (mole_env (0), 5) .eq.0) then 
+         IF (mod (mole_env (0), 5) .eq.0) THEN 
             j = j - 1 
          ENDIF 
          DO i = 0, j 
@@ -357,105 +357,112 @@ CONTAINS
  2001 FORMAT    (5(2x,i13)) 
       END SUBROUTINE do_show_menv                   
 !*****7*****************************************************************
-      SUBROUTINE do_show_atom (ianz, cpara, lpara, werte, maxw) 
+SUBROUTINE do_show_atom (ianz, cpara, lpara, werte, maxw) 
 !-                                                                      
 !     Shows information about an atom.                                  
 !+                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE atom_env_mod 
-      USE atom_name
-      USE modify_mod
-      USE prop_char_mod
-!                                                                       
-      USE ber_params_mod
-      USE errlist_mod 
-      USE prompt_mod 
-      IMPLICIT none 
-       
-!                                                                       
-      INTEGER maxw 
-!                                                                       
-      CHARACTER ( * ) cpara (maxw) 
-      INTEGER ianz 
-      INTEGER lpara (maxw) 
-      REAL werte (maxw) 
-!                                                                       
-      CHARACTER(32) c_property 
-      INTEGER i, istart, iend, l ,k
-      INTEGER, DIMENSION(1:3) :: ioffset
-      INTEGER length 
-!                                                                       
-      CHARACTER(9) at_name_d 
-!     CHARACTER(9) at_name 
-!                                                                       
-      LOGICAL str_comp 
-!                                                                       
-      cpara (1) = '0.0' 
-      lpara (1) = 3 
-!                                                                       
-      IF (str_comp (cpara (2) , 'all', 1, lpara (2) , 3) ) then 
-         werte (2) = 1 
-         werte (3) = cr_natoms 
-         ianz = 3 
-      ELSEIF (str_comp (cpara (2) , 'last', 1, lpara (2) , 4) ) then 
-         werte (2) = cr_natoms 
-         werte (3) = cr_natoms 
-         ianz = 3 
-      ELSE 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-      ENDIF 
-      IF (ier_num.eq.0) then 
+USE discus_config_mod 
+USE crystal_mod 
+USE atom_env_mod 
+USE atom_name
+USE modify_mod
+USE prop_char_mod
+USE surface_mod
+!
+USE ber_params_mod
+USE errlist_mod 
+USE prompt_mod 
+!
+IMPLICIT none 
+!
+INTEGER                           , INTENT(INOUT) :: ianz 
+INTEGER                           , INTENT(IN)    :: MAXW 
+CHARACTER(LEN=*) , DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+!
+!
+CHARACTER(LEN=32)       :: c_property 
+INTEGER                 :: i, istart, iend, l ,k
+INTEGER, DIMENSION(1:3) :: ioffset
+INTEGER                 :: length 
+!
+CHARACTER(LEN=9)                            :: at_name_d 
+CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
+!
+LOGICAL, EXTERNAL :: str_comp 
+!
+DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C'/
+!
+cpara(1) = '0.0' 
+lpara(1) = 3 
+!
+IF(str_comp(cpara(2), 'all', 1, lpara(2), 3) ) THEN 
+   werte(2) = 1 
+   werte(3) = cr_natoms 
+   ianz = 3 
+ELSEIF(str_comp(cpara(2), 'last', 1, lpara(2), 4) ) THEN 
+   werte(2) = cr_natoms 
+   werte(3) = cr_natoms 
+   ianz = 3 
+ELSE 
+   CALL ber_params(ianz, cpara, lpara, werte, MAXW) 
+ENDIF 
+!
+IF(ier_num == 0) THEN 
 !                                                                       
 !     --List atom environment                                           
 !                                                                       
-         IF (str_comp (cpara (2) , 'envi', 1, lpara (2) , 4) ) then 
-            WRITE (output_io, 3000) 
-            DO l = 1, atom_env (0) 
-               i = atom_env (l) 
-               at_name_d = at_name (cr_iscat (i) ) 
-               CALL char_prop_1 (c_property, cr_prop (i), length) 
-               WRITE (output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
-                  cr_pos (3, i), cr_dw (cr_iscat (i) ), i, cr_mole(i),      &
-                  c_property (1:length), cr_occ(cr_iscat(i))
-               DO k=1,3
-                  ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
-               ENDDO
-               WRITE (output_io, 3020) ioffset
-            ENDDO 
+   IF(str_comp(cpara(2), 'envi', 1, lpara(2), 4) ) THEN 
+      WRITE(output_io, 3000) 
+      DO l = 1, atom_env(0) 
+         i = atom_env(l) 
+         at_name_d = at_name(cr_iscat(i) ) 
+         CALL char_prop_1(c_property, cr_prop(i), length) 
+         WRITE(output_io, 3010) at_name_d, cr_pos(1,i), cr_pos(2,i), &
+            cr_pos(3, i), cr_dw(cr_iscat(i)), i, cr_mole(i),         &
+            c_property(1:length), cr_occ(cr_iscat(i))
+         DO k=1,3
+            ioffset(k) = NINT(atom_pos(k,l)-cr_pos(k,i))
+         ENDDO
+         WRITE(output_io, 3020) ioffset
+      ENDDO 
 !                                                                       
 !     --List sequence of atoms                                          
 !                                                                       
+   ELSE 
+      IF(ianz == 2.or.ianz == 3) THEN 
+         istart = NINT(werte(2)) 
+         IF(ianz == 2) THEN 
+            iend = istart 
          ELSE 
-            IF (ianz.eq.2.or.ianz.eq.3) then 
-               istart = nint (werte (2) ) 
-               IF (ianz.eq.2) then 
-                  iend = istart 
-               ELSE 
-                  iend = nint (werte (3) ) 
-               ENDIF 
-               iend = min (iend, cr_natoms) 
-               WRITE (output_io, 3000) 
-               DO i = istart, iend 
-                  at_name_d = at_name (cr_iscat (i) ) 
-                  CALL char_prop_1 (c_property, cr_prop (i), length) 
-                  WRITE (output_io, 3010) at_name_d, cr_pos (1, i),        &
-                  cr_pos (2, i), cr_pos (3, i), cr_dw (cr_iscat (i) ),     &
-                  i, cr_mole(i) ,                                          &
-                  c_property (1:length), cr_occ(cr_iscat(i))
-               ENDDO 
-            ELSE 
-               ier_num = - 6 
-               ier_typ = ER_COMM 
-            ENDIF 
+            iend = NINT(werte(3)) 
          ENDIF 
+         iend = MIN(iend, cr_natoms) 
+         WRITE(output_io, 3000) 
+         DO i = istart, iend 
+            at_name_d = at_name(cr_iscat(i)) 
+            CALL char_prop_1(c_property, cr_prop(i), length) 
+            WRITE(output_io, 3010) at_name_d, cr_pos(1, i),     &
+            cr_pos(2, i), cr_pos(3, i), cr_dw(cr_iscat(i)),     &
+            i, cr_mole(i),                                      &
+            c_property(1:length), cr_occ(cr_iscat(i)),          &
+            c_surf(cr_surf(0,i)), cr_surf(1:3,i)
+         ENDDO 
+      ELSE 
+         ier_num = - 6 
+         ier_typ = ER_COMM 
       ENDIF 
+   ENDIF 
+ENDIF 
 !                                                                       
  3000 FORMAT    (' Name',11x,'x',13x,'y',13x,'z',13x,'B',12x,'Number',&
-                 3x,'Molecule Property  Occupancy') 
- 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6) 
+                 3x,'Molecule Property  Occupancy Surf(Type,HKL)') 
+ 3010 FORMAT    (1x,a9,3(2x,f12.6),4x,f10.6,1x,2(i10,1x),a,3x, F8.6, 2x, A1,3(1x,I3 ))
  3020 FORMAT    ( 3x  ,3(8x,i6   )              ) 
-      END SUBROUTINE do_show_atom                   
+!
+END SUBROUTINE do_show_atom                   
+!
 !*****7*****************************************************************
       SUBROUTINE do_show_bval (ianz, cpara, maxw) 
 !-                                                                      
@@ -482,7 +489,7 @@ CONTAINS
       INTEGER ie_1, ie_2, i 
       INTEGER  :: ilook  ! lookup dummy for bv_index
 !                                                                       
-      IF (ianz.eq.3) then 
+      IF (ianz.eq.3) THEN 
          CALL do_cap (cpara (2) ) 
          CALL do_cap (cpara (3) ) 
 !         READ (cpara (2) (1:4), 1000) elem_1 
@@ -494,7 +501,7 @@ CONTAINS
          el_name = cpara(3)
          CALL symbf ( el_name, ie_2 )
          CALL bv_lookup ( ie_1, ie_2, ilook )
-         IF (ilook /=  0) then 
+         IF (ilook /=  0) THEN 
             i = bv_target(ilook)
             WRITE (output_io, 2000) cpara (2) (1:4), cpara (3) (1:4),   &
             bv_r0 (i), bv_b (i)                                         
@@ -550,17 +557,17 @@ CONTAINS
       cpara (1) = '0.0' 
       lpara (1) = 3 
 !                                                                       
-      IF (ianz.eq.2.or.ianz.eq.3) then 
-         IF (str_comp (cpara (2) , 'all', 1, lpara (2) , 3) ) then 
+      IF (ianz == 2.OR.ianz == 3) THEN 
+         IF (str_comp (cpara (2) , 'all', 1, lpara (2) , 3) ) THEN 
             istart = 1 
             iend = mole_num_mole 
-         ELSEIF (str_comp (cpara (2) , 'last', 1, lpara (2) , 5) ) then 
+         ELSEIF (str_comp (cpara (2) , 'last', 1, lpara (2) , 5) ) THEN 
             istart = mole_num_mole 
             iend = mole_num_mole 
 !                                                                       
 !     --List molecular environment                                      
 !                                                                       
-         ELSEIF (str_comp (cpara (2) , 'envi', 1, lpara (2) , 4) ) then 
+         ELSEIF (str_comp (cpara (2) , 'envi', 1, lpara (2) , 4) ) THEN 
             WRITE (output_io, 3000) 
             DO i = 1, mole_env (0) 
             WRITE (output_io, 3000) mole_env (i), mole_type (mole_env ( &
@@ -576,7 +583,7 @@ CONTAINS
          ELSE 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
-            IF (ianz.eq.2) then 
+            IF (ianz.eq.2) THEN 
                istart = nint (werte (2) ) 
                iend = istart 
             ELSE 
@@ -593,13 +600,13 @@ CONTAINS
       ENDIF 
 !                                                                       
       DO i = istart, iend 
-      IF (mole_char (i) .eq.MOLE_ATOM) then 
+      IF (mole_char (i) .eq.MOLE_ATOM) THEN 
          WRITE (output_io, 3100) i, mole_type (i), C_MOLE (mole_char (i)&
          ), mole_biso(mole_type(i)), mole_clin(mole_type(i)), mole_cqua(mole_type(i)),mole_len(i)
-      ELSEIF (mole_char (i) .gt.MOLE_ATOM) then 
+      ELSEIF (mole_char (i) .gt.MOLE_ATOM) THEN 
          WRITE (output_io, 4000) i, mole_type (i), C_MOLE (mole_char (i)&
          ), mole_dens (i)                                               
-      ELSEIF (mole_char (i) .lt.MOLE_ATOM) then 
+      ELSEIF (mole_char (i) .lt.MOLE_ATOM) THEN 
          j = max (1, len_str (mole_file (i) ) ) 
          WRITE (output_io, 5000) i, mole_type (i), C_MOLE (mole_char (i)&
          ), mole_file (i) (1:j), mole_fuzzy (i)                         
@@ -700,8 +707,8 @@ CONTAINS
       latom (i) = .false.   
       ENDDO 
       CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
-      IF (ier_num.eq.0) then 
-         IF (werte (1) .eq. - 1) then 
+      IF (ier_num.eq.0) THEN 
+         IF (werte (1) .eq. - 1) THEN 
             DO i = 0, cr_nscat 
             latom (i) = .true. 
             ENDDO 
@@ -711,7 +718,7 @@ CONTAINS
             ENDDO 
          ENDIF 
       ENDIF 
-!     IF (lxray) then 
+!     IF (lxray) THEN 
 !        WRITE (output_io, 3000) 'Xray', lambda, rlambda 
 !     ELSE 
 !        WRITE (output_io, 3000) 'Neutronen', lambda, rlambda 
@@ -724,13 +731,13 @@ CONTAINS
          CASE(RAD_ELEC)
             WRITE (output_io, 3000) 'Electron', lambda, rlambda 
       END SELECT
-      IF (ano) then 
+      IF (ano) THEN 
          WRITE (output_io, 3005) 'calculated' 
       ELSE 
          WRITE (output_io, 3005) 'ignored' 
       ENDIF 
       DO i = 0, cr_nscat 
-      IF (latom (i) ) then 
+      IF (latom (i) ) THEN 
          at_name_d = at_name ( (i) ) 
          SELECTCASE(diff_power)
            CASE(0)
@@ -872,48 +879,48 @@ INTEGER :: igroup
 INTEGER :: block = 1
 !
       n_center = 1 
-      IF (cr_spcgr (1:1) .eq.'P') then 
+      IF (cr_spcgr (1:1) .eq.'P') THEN 
          n_center = 1 
-      ELSEIF (cr_spcgr (1:1) .eq.'A') then  ! Normal space group can be used
+      ELSEIF (cr_spcgr (1:1) .eq.'A') THEN  ! Normal space group can be used
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'B') then  ! as n_center is identical for
+      ELSEIF (cr_spcgr (1:1) .eq.'B') THEN  ! as n_center is identical for
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'C') then  ! A B and C, orthorhombic alternative setting
+      ELSEIF (cr_spcgr (1:1) .eq.'C') THEN  ! A B and C, orthorhombic alternative setting
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'I') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'I') THEN 
          n_center = 2 
-      ELSEIF (cr_spcgr (1:1) .eq.'F') then 
+      ELSEIF (cr_spcgr (1:1) .eq.'F') THEN 
          n_center = 4 
-      ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) then 
+      ELSEIF (cr_spcgr (1:1) .eq.'R'.and.cr_syst.eq.6) THEN 
          n_center = 3 
       ENDIF 
-      IF (gen_sta.eq.GEN_SYMM) then 
+      IF (gen_sta.eq.GEN_SYMM) THEN 
          block = spc_n / n_center 
-      ELSEIF (gen_sta.eq.GEN_CENTER) then 
+      ELSEIF (gen_sta.eq.GEN_CENTER) THEN 
          block = n_center 
       ENDIF 
-      IF (gen_sta.eq.GEN_SYMM) then 
+      IF (gen_sta.eq.GEN_SYMM) THEN 
          igroup = mod (is - 1, block) + 1 
-      ELSEIF (gen_sta.eq.GEN_CENTER) then 
+      ELSEIF (gen_sta.eq.GEN_CENTER) THEN 
          igroup = (is - 1) / block + 1 
       ENDIF 
 !
-      IF (mode.eq.FULL) then 
+      IF (mode.eq.FULL) THEN 
          WRITE (output_io, 2200) is, igroup 
          WRITE (output_io, 2300) (spc_mat (1, j, is), j = 1, 4), spc_char (is),&
          (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is), j = 1, 4),&
          spc_xyz (is)                                                   
-      ELSEIF (mode.eq.SYMBOL) then 
+      ELSEIF (mode.eq.SYMBOL) THEN 
          WRITE (output_io, 3200) is, igroup, spc_char (is) 
-      ELSEIF (mode.eq.XYZ) then 
+      ELSEIF (mode.eq.XYZ) THEN 
          WRITE (output_io, 4200) is, igroup, spc_xyz (is) 
-      ELSEIF (mode.eq.MATRIX) then 
+      ELSEIF (mode.eq.MATRIX) THEN 
          WRITE (output_io, 5200) is, igroup, (spc_mat (1, j, is),       &
          j = 1, 4), (spc_mat (2, j, is), j = 1, 4), (spc_mat (3, j, is),&
          j = 1, 4)                                                      
       ENDIF 
       IF (gen_sta.eq.GEN_SYMM.and.n_center.gt.1.and.mod (is - 1, spc_n /&
-      n_center) + 1.eq.block) then                                      
+      n_center) + 1.eq.block) THEN                                      
          WRITE (output_io, * ) 
       ENDIF 
 !                                                                       
