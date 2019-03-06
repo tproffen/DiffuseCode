@@ -241,6 +241,12 @@ opara  =  (/ '25.000', '1.0000', '2.0000', '0.0000', '0.0000', ';     ' /)   ! A
 lopara =  (/  6,        6,        6      ,  6      ,  6      ,  6       /)
 owerte =  (/ 25.0,      1.0,      2.0    ,  0.0    ,  0.0    ,  0.0     /)
 !
+IF(INDEX('SLOW', line) == 0) THEN
+   k2dm_start(1) = 0
+   k2dm_end  (1) = 0
+   k2dm_step (1) = 1
+ENDIF
+!
 CALL no_error 
 CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
 IF (ier_num /= 0) RETURN 
@@ -259,7 +265,7 @@ ELSE
    ier_msg(1) = '2DM load requires CSV format'
    RETURN
 ENDIF
-CALL del_params (1, ianz, cpara, lpara, maxw)
+!CALL del_params (1, ianz, cpara, lpara, maxw)
 !
 END SUBROUTINE get_load_2dm
 !
@@ -329,7 +335,7 @@ ELSEIF(str_comp (cpara(1), 'csv', 3, lpara(1), 3) ) THEN
 ELSE
    ier_num = -6
    ier_typ = ER_FORT
-   ier_msg(1) = '2DM load requires CSV format'
+   ier_msg(1) = '2DM back requires CSV format'
    RETURN
 ENDIF
 !
@@ -362,9 +368,10 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: O_START = 1
 INTEGER, PARAMETER :: O_END   = 2
 INTEGER, PARAMETER :: O_STEP  = 3
-INTEGER, PARAMETER :: O_MISS  = 4
+INTEGER, PARAMETER :: O_COUNT = 4
+INTEGER, PARAMETER :: O_MISS  = 5
 !
-INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: NOPTIONAL = 5
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -379,13 +386,15 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
+INTEGER           :: i
+!
 LOGICAL, EXTERNAL :: str_comp
 !
-DATA oname  / 'start', 'end', 'step', 'miss' /
-DATA loname /  4     ,  3   ,  4    ,  4     /
-opara  =  (/ '1    ', '1    ', '1    ', 'error' /)   ! Always provide fresh default values
-lopara =  (/  5     ,  5     ,  5     ,  5      /)
-owerte =  (/  1.0   ,  1.0   ,  1.0   ,  0.0    /)
+DATA oname  / 'start', 'end', 'step', 'counter', 'miss' /
+DATA loname /  5     ,  3   ,  4    ,  7       ,  4     /
+opara  =  (/ '1    ', '1    ', '1    ', 'LOOP ', 'error' /)   ! Always provide fresh default values
+lopara =  (/  5     ,  5     ,  5     ,  5     ,  5      /)
+owerte =  (/  1.0   ,  1.0   ,  1.0   ,  0.0   ,  0.0    /)
 !
 CALL no_error 
 CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
@@ -393,20 +402,47 @@ IF (ier_num /= 0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
-k2dm_start = owerte(O_START)
-k2dm_end   = owerte(O_END)
-k2dm_step  = owerte(O_STEP)
-IF(opara(O_MISS) == 'error') THEN
+IF(opara(O_COUNT) == 'LOOP') THEN
+   k2dm_start(0) = owerte(O_START)
+   k2dm_end(  0) = owerte(O_END)
+   k2dm_step( 0) = owerte(O_STEP)
+   i = 0
+ELSEIF(opara(O_COUNT) == 'SLOW') THEN
+   k2dm_start(1) = owerte(O_START)
+   k2dm_end(  1) = owerte(O_END)
+   k2dm_step( 1) = owerte(O_STEP)
+   i = 1
+ENDIF
+IF(k2dm_step(i) == 0) THEN
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Step must not be zero'
+ELSEIF(k2dm_step(i) > 0 .AND. k2dm_end(i)<k2dm_start(i)) THEN
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Step is positive but end is less than start'
+ELSEIF(k2dm_step(i) < 0 .AND. k2dm_end(i)>k2dm_start(i)) THEN
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'Step is negative but end is greater than start'
+ENDIF
+   
+!
+IF(lpresent(O_MISS)) k2dm_miss_set = .TRUE.
+!
+IF(opara(O_MISS) == 'error' .AND. .NOT.k2dm_miss_set) THEN
    k2dm_miss = K2DM_ERROR
 ELSEIF(opara(O_MISS) == 'ignore') THEN
    k2dm_miss = K2DM_IGNORE
 ELSEIF(opara(O_MISS) == 'blank') THEN
    k2dm_miss = K2DM_BLANK
 ELSE
-   ier_num = -6
-   ier_typ = ER_FORT
-   ier_msg(1) = 'The optional parameter ''miss:'' must be'
-   ier_msg(2) = '''error'', ''ignore'', or ''blank'' '
+   IF(.NOT.k2dm_miss_set) THEN
+      ier_num = -6
+      ier_typ = ER_FORT
+      ier_msg(1) = 'The optional parameter ''miss:'' must be'
+      ier_msg(2) = '''error'', ''ignore'', or ''blank'' '
+   ENDIF
 ENDIF
 !
 END SUBROUTINE get_numbers
@@ -485,6 +521,12 @@ ELSE
       RETURN
    ENDIF
 ENDIF
+IF(.NOT.k2dm_lxmin .AND. .NOT.k2dm_lxmax .AND.  &
+   k2dm_xmax < k2dm_xmin                       )  THEN
+   ier_num = -6
+   ier_typ = ER_FORT
+   ier_msg(1) = 'xmax is less than xmin '
+ENDIF
 !
 END SUBROUTINE get_xrange
 !
@@ -542,7 +584,6 @@ ELSEIF(opara(O_LOOP)=='inc') THEN
 ELSE
    k2dm_type_yf = K2DM_YF_FUNC
    k2dm_line_yf = opara(O_LOOP)
-   continue
 ENDIF
 !
 END SUBROUTINE get_yfunc 
@@ -554,6 +595,7 @@ SUBROUTINE k2dm_run(line, length)
 USE kuplot_mod
 !
 USE ber_params_mod
+USE build_name_mod
 USE errlist_mod
 USE get_params_mod
 USE take_param_mod
@@ -566,16 +608,19 @@ INTEGER         , INTENT(INOUT) :: length
 !
 LOGICAL, PARAMETER :: l_no_echo = .FALSE.
 CHARACTER(LEN=1024) :: string
+CHARACTER(LEN=1024) :: filname
 CHARACTER(LEN=10  ) :: cnumber
 CHARACTER(LEN=4   ) :: bef
-INTEGER :: i, ik
+INTEGER :: i, j, k, ik
 INTEGER :: ikm                  ! Data set with map
 INTEGER :: ikb                  ! Data set with background
+INTEGER :: nk                   ! Number of effective data sets for map
 INTEGER :: ix, iy
 INTEGER :: iix                  ! Running index for map x
 INTEGER :: lp
 INTEGER :: imin, imax
 LOGICAL :: lblank               ! IO error and k2dm_miss=blank
+LOGICAL :: fexist               ! File does exist
 REAL    :: xxmin, xxmax
 REAL    :: yy                   ! background corrected y value of a single 1D
 REAL    :: DELTA
@@ -604,12 +649,44 @@ opara  =  (/ 'auto' /)   ! Always provide fresh default values
 lopara =  (/  4     /)
 owerte =  (/  0.0   /)
 !
+k2dm_miss_set = .FALSE.
+!
 CALL no_error 
 CALL get_params (line, ianz, cpara, lpara, MAXW, length) 
 IF (ier_num /= 0) RETURN 
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
+! Determine number of files to be combined
+!
+nk = 0
+inq_oute:DO j=k2dm_start(1), k2dm_end(1), k2dm_step(1)
+   var_val(VAR_SLOW) = j
+   inq_main:DO i=k2dm_start(0), k2dm_end(0), k2dm_step(0)
+      var_val(VAR_LOOP) = i
+      string = k2dm_line                         ! Copy 'load' line for processing
+      lp = LEN_TRIM(string)
+      CALL get_params(string, ianz, cpara, lpara, MAXW, lp) 
+      CALL del_params(1, ianz, cpara, lpara, MAXW)
+      CALL do_build_name(ianz, cpara, lpara, werte, MAXW, 1)
+      filname = cpara(1)
+      INQUIRE(FILE=filname, EXIST=fexist)
+      IF(.NOT.fexist) THEN
+         IF(k2dm_miss == K2DM_ERROR) THEN          ! Stop processing
+            WRITE(ier_msg(1),'(a,i6, i6)') 'Error loading data set no ', i, j
+            RETURN
+         ELSEIF(k2dm_miss == K2DM_IGNORE) THEN     ! Skip this file, do a cycle
+            CALL no_error
+            CYCLE inq_main
+         ELSEIF(k2dm_miss == K2DM_BLANK) THEN      ! Flag a blank line
+            CALL no_error
+            nk = nk + 1
+         ENDIF
+      ELSE
+         nk = nk + 1
+      ENDIF
+   ENDDO inq_main
+ENDDO inq_oute
 !
 IF(k2dm_type_yf==K2DM_YF_FUNC) THEN                       ! yfunc is a function get params
    IF(k2dm_line_yf(1:1) == '''') k2dm_line_yf(1:1) = ' '
@@ -618,7 +695,7 @@ IF(k2dm_type_yf==K2DM_YF_FUNC) THEN                       ! yfunc is a function 
    length = LEN_TRIM(k2dm_line_yf)
    CALL get_params (k2dm_line_yf, ianz, cpara, lpara, MAXW, length) 
    IF(ier_num /= 0) THEN
-      ier_msg(1) = 'Error getting prameters of yfunction'
+      ier_msg(1) = 'Error getting parameters of yfunction'
       RETURN
    ENDIF 
 ENDIF
@@ -626,9 +703,15 @@ ENDIF
 ikm = 0
 ikb = 0
 !
-var_val(VAR_LOOP) = k2dm_start
+var_val(VAR_LOOP ) = k2dm_start(0)
+var_val(VAR_SLOW ) = k2dm_start(1)
+!write(*,*) 'START ', k2dm_start(0), k2dm_start(1)
+!write(*,*) 'END   ', k2dm_end  (0), k2dm_end  (1)
+!write(*,*) 'STEP  ', k2dm_step (0), k2dm_step (1)
+!write(*,*) 'VAR   ', var_val(VAR_LOOP ), var_val(VAR_SLOW), VAR_LOOP, VAR_SLOW
 string = k2dm_line
 lp = LEN_TRIM(string)
+!write(*,*) 'STR ', string(1:lp)
 CALL do_load(string,lp, l_no_echo)
 IF(ier_num/=0) THEN
    ier_msg(1) = 'Error loading first data set '
@@ -661,11 +744,12 @@ ENDDO minmax
 iz = iz - 1                                            ! This data set was temporary
 !
 ! Now reserve space for actual map
-WRITE(string,'(a,i10,a,i10)') 'map.data,', imax-imin+1, ',',INT((k2dm_end - k2dm_start)/k2dm_step)+1
+WRITE(string,'(a,i10,a,i10)') 'map.data,', imax-imin+1, ',',nk !INT((k2dm_end(0) - k2dm_start(0))/k2dm_step(0))+1
 length = LEN_TRIM(string)
 CALL do_allocate(string,length, .FALSE.)               ! Allocate space for the map
 IF(ier_num/=0) THEN
    ier_msg(1) = 'Error allocating space for map'
+   WRITE(ier_msg(2),'(a,i5,a1,i5)') 'Dimensions ', imax-imin+1, ' ',nk
    RETURN
 ENDIF
 ikm = iz - 1                                           ! Data set with map
@@ -686,15 +770,17 @@ ENDIF
 ! Main loop
 !
 iy = 0                                        ! Counter for input files
-main:DO i=k2dm_start, k2dm_end, k2dm_step
+oute:DO j=k2dm_start(1), k2dm_end(1), k2dm_step(1)
+   var_val(VAR_SLOW) = j
+main:DO i=k2dm_start(0), k2dm_end(0), k2dm_step(0)
    var_val(VAR_LOOP) = i
    string = k2dm_line                         ! Copy 'load' line for processing
    lp = LEN_TRIM(string)
-   CALL do_load(string,lp, l_no_echo)         ! Regular kuplot/load
+   CALL do_load(string,lp,l_no_echo )         ! Regular kuplot/load
    IF(ier_num/=0) THEN
       IF(ier_typ==ER_IO .AND. ier_num>=-3) THEN    ! Handle input I/O errors
          IF(k2dm_miss == K2DM_ERROR) THEN          ! Stop processing
-            WRITE(ier_msg(1),'(a,i5)') 'Error loading data set no ', i
+            WRITE(ier_msg(1),'(a,i6, i6)') 'Error loading data set no ', i, j
             RETURN
          ELSEIF(k2dm_miss == K2DM_IGNORE) THEN     ! Skip this file, do a cycle
             CALL no_error
@@ -730,6 +816,12 @@ main:DO i=k2dm_start, k2dm_end, k2dm_step
       y(offxy(ikm - 1)+iy) = iy                        ! Set map's y-position
    ELSEIF(k2dm_type_yf==K2DM_YF_FUNC) THEN
       CALL ber_params (ianz, cpara, lpara, werte, MAXW) 
+      IF(ier_num/=0) THEN
+         ier_msg(1) = 'Error calculating y-function'
+         k = MIN(80,          lpara(1))
+         ier_msg(2)(1:k) = cpara(1)(1:k)
+         RETURN
+      ENDIF
       y(offxy(ikm - 1)+iy) = werte(1)                  ! Set map's y-position
    ENDIF
 !
@@ -739,6 +831,7 @@ main:DO i=k2dm_start, k2dm_end, k2dm_step
       iz = iz - 1                                      ! This data set was temporary
    ENDIF
 ENDDO main
+ENDDO oute
 !
 iix = 0
 DO ix=imin, imax                                       ! Take x-values from lst data set
@@ -779,9 +872,11 @@ IF(opara(O_PLOT) == 'auto') THEN
    length = 12
    CALL set_hlin(string, length) 
 !
-   string = 'Test of title 1 '
+   string = '2dmap           '
    length = 16
    CALL para_set_title (string, length, titel (iwin, iframe, 1) ) 
+!
+   ifname (iwin, iframe) = .FALSE.
 !
    CALL do_plot(.FALSE.)
 !
@@ -801,9 +896,9 @@ k2dm_line_b = ' '
 k2dm_line_yf = ' '
 k2dm_type      = 0
 k2dm_miss      = -1
-k2dm_start     = 0
-k2dm_end       = 0
-k2dm_step      = 0
+k2dm_start(:)  = 0
+k2dm_end(:)    = 0
+k2dm_step(:)   = 0
 k2dm_lxmin     = .TRUE.
 k2dm_lxmax     = .TRUE.
 k2dm_scale     = 1.0

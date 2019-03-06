@@ -200,8 +200,8 @@
 !b 2dm 
 
    Branches into the '2dm' menu.
-   This menu allos you to concatenate several 2D==xy data sets
-   into a single 3D data set.
+   This menu allos you to concatenate several 2D i.e. xy data
+   sets into a single 3D data set.
 
    Valid commands at this level are:
 3  reset
@@ -244,15 +244,19 @@
    and contain a format descriptor that will be replaced by the 
    formal "LOOP" loop index. The loop index must be called "LOOP".
 
+   A second, outer loop can be defined as well, which must use
+   the counter variable "SLOW".
+
    The remaining optional parameters are identical to those
    of the == 'load csv' command at the main menu.
 3  loop
-!b loop "start:"<start_number>, "end:"<end_number>,
-!b      "step:"<step_number>
+!b loop "counter:"{"LOOP"|"SLOW"}, 
+!b      "start:"<start_number>, "end:"<end_number>
+!b      ,"step:"<step_number>
 !b      ,"miss:"{"error"|"ignore"|"blank"}
 
    Defines the range of input file numbers that will be used
-   for the "LOOP" value on the ==> 'load' command. 
+   for the "LOOP"  or "SLOW" value on the ==> 'load' command. 
 
    The optional parameters "start:", "end:" and "step:"
    default to a value of 1.
@@ -267,6 +271,10 @@
    and the map will be shorter by one (ore more) lines.
    With "blank" the corresponding line in the map will be 
    set to a value of zero.
+   The status of "miss" is a single status. If both loop
+   counters "LOOP" and "SLOW" are used, use a common and
+   identical status to describe the handling of missing
+   files. 
 3  xrange
 !b xrange "xmin:"{"xmin"|<x_min>} , "xmax:"{"xmax"|<x_max>}
 
@@ -303,14 +311,27 @@
       values for the 2D data sets.
 3  example
 
+   Loop with a single counter
 !p reset
 !p back off
 !p back csv, empty_measurement.xy, scale:1.0, skip:0
 !p load csv, "DATA/my_data.%4D", LOOP, colx:1, coly:1, skip:0
-!p loop start:1, end:201, step:2
+!p loop counter:LOOP, start:1, end:201, step:2, miss:blank
 !p yfunc loop:LOOP
-!p xrange xmin:xmin, ymin:5.00
+!p xrange xmin:xmin, xmax:5.00
 !p run
+
+   Loop with a two counters, SLOW and LOOP
+!p reset
+!p back off
+!p back csv, empty_measurement.xy, scale:1.0, skip:0
+!p load csv, "DATA/my_data_%5D.%4D", SLOW, LOOP, colx:1, coly:1, skip:0
+!p loop counter:SLOW, start:100, end:101, step:1, miss:ignore
+!p loop counter:LOOP, start:1, end:201, step:2, miss:ignore
+!p yfunc loop:LOOP
+!p xrange xmin:xmin, xmax:5.00
+!p run
+ 
  
 2  achx/y/z
 !b achx {<string> |"OFF"} [, {"lin" | "log"}]

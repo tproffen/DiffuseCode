@@ -17,9 +17,10 @@ CHARACTER(LEN=1024) :: k2dm_line_b = ' '
 CHARACTER(LEN=1024) :: k2dm_line_yf = ' '
 INTEGER          :: k2dm_type      = 0
 INTEGER          :: k2dm_miss      = -1
-INTEGER          :: k2dm_start     = 0
-INTEGER          :: k2dm_end       = 0
-INTEGER          :: k2dm_step      = 0
+LOGICAL          :: k2dm_miss_set  = .FALSE.
+INTEGER, DIMENSION(0:2)          :: k2dm_start     = 0
+INTEGER, DIMENSION(0:2)          :: k2dm_end       = 0
+INTEGER, DIMENSION(0:2)          :: k2dm_step      = 0
 LOGICAL          :: k2dm_lxmin     = .TRUE.
 LOGICAL          :: k2dm_lxmax     = .TRUE.
 REAL             :: k2dm_scale     = 1.0
