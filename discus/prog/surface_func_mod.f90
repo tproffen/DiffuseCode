@@ -811,12 +811,15 @@ form_loop:     DO i = 1, cr_natoms
                      IF(nplanes>2) THEN            ! Atom is at a corner
                         h(:) = NINT(100*cr_pos(:,i))
                         CALL boundarize_atom (center, dshort, i, linside, SURF_CORNER, h, thick) 
+                        cr_surf(0,i) = SURF_CORNER
                      ELSEIF(nplanes==2) THEN            ! Atom is at an edge 
                         h(:) = NINT(100*cr_pos(:,i))
                         CALL boundarize_atom (center, dshort, i, linside, SURF_EDGE  , h, thick) 
+                        cr_surf(0,i) = SURF_EDGE
                      ELSEIF(nplanes==1) THEN            ! Atom is at a PLANE 
                         h(1:3) = accum_hkl (1:3,iplane)        !WRONG NEEDS WORK
                         CALL boundarize_atom (center, dshort, i, linside, SURF_PLANE, h, thick) 
+                        cr_surf(0,i) = SURF_PLANE
                      ELSE
                         h(:) = NINT(100*cr_pos(:,i))
                         CALL boundarize_atom (center, dshort, i, linside, SURF_NONE , h, thick) 
