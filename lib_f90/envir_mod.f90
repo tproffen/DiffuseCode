@@ -6,10 +6,18 @@ MODULE envir_mod
    PUBLIC
    SAVE
 !
+   CHARACTER(LEN=9), PARAMETER :: OS_LINUX     = 'Linux    '
+   CHARACTER(LEN=9), PARAMETER :: OS_LINUX_WSL = 'Linux_WSL'
+   CHARACTER(LEN=9), PARAMETER :: OS_WINDOWS   = 'Windows  '
+   CHARACTER(LEN=9), PARAMETER :: OS_CYGWIN32  = 'cygwin   '
+   CHARACTER(LEN=9), PARAMETER :: OS_CYGWIN64  = 'cygwin64 '
+   CHARACTER(LEN=9), PARAMETER :: OS_MACOSX    = 'darwin18 '
+!
    CHARACTER(LEN= 256) :: home_dir
    CHARACTER(LEN= 256) :: appl_dir
    CHARACTER(LEN= 256) :: mac_dir
    CHARACTER(LEN= 256) :: man_dir
+   CHARACTER(LEN= 256) :: tmp_dir
    CHARACTER(LEN= 256) :: umac_dir
    CHARACTER(LEN= 256) :: start_dir
    CHARACTER(LEN= 256) :: current_dir
@@ -32,11 +40,13 @@ MODULE envir_mod
    INTEGER             :: hlp_dir_l
    INTEGER             :: colorfile_l
    INTEGER             :: mac_dir_l
+   INTEGER             :: tmp_dir_l
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
    INTEGER             :: current_dir_l
    INTEGER             :: lines
    INTEGER             :: PID
    LOGICAL             :: term_scheme_exists = .FALSE.
+   LOGICAL             :: envir_done         = .FALSE.
 !
 END MODULE envir_mod

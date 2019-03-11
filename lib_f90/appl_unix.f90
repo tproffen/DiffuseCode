@@ -22,19 +22,130 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       INTEGER, PARAMETER :: idef = 68
 !
       CHARACTER(255) cdummy
+CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
+      '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
       CHARACTER(LEN=1024) :: line
       INTEGER ico, ice, iii, i, j
+INTEGER :: length
       INTEGER :: ios ! I/O status
       INTEGER len_str 
       INTEGER pname_l 
       LOGICAL lpresent
 INTEGER :: lib_f90_getpid
+!
+IF(envir_done) RETURN
 !                                                                       
 ! Get the PID of the DISCUS Process
 !
 PID = lib_f90_getpid()
 !
-      operating = ' ' 
+!
+! Determine a temporary directory
+!
+tmp_dir   = '.'
+tmp_dir_l = 1
+find_tmp: DO i=1, 6
+   line= tmp_test(i)
+   length = LEN_TRIM(line)
+   CALL do_fexist(line, length, .FALSE.)
+   lpresent = res_para(1) == 1
+!  INQUIRE(DIRECTORY=line, EXIST=lpresent)
+   IF(lpresent) THEN
+      tmp_dir = tmp_test(i)
+      tmp_dir_l = LEN_TRIM(tmp_dir)
+      EXIT find_tmp
+   ENDIF
+ENDDO find_tmp
+!
+operating = ' ' 
+color_theme = THEME_DEFAULT
+INQUIRE(FILE='/proc/version', EXIST=lpresent)
+IF(lpresent) THEN               ! /proc/version exists, Linux type OS
+   OPEN(UNIT=idef, FILE='/proc/version', ACTION='read')
+   READ(idef,'(a)') line
+   CLOSE(UNIT=idef)
+   CALL do_cap(line)
+   IF(INDEX(line,'LINUX') > 0) THEN
+      operating = OS_LINUX                  ! Assume native Linux
+      color_theme = THEME_DEFAULT
+      IF(INDEX(line,'MICROSOFT') > 0) THEN
+         operating = OS_LINUX_WSL           ! Linux as Windows APP
+         color_theme = THEME_DEFAULT
+      ELSE
+         home_dir = ' ' 
+         CALL get_environment_variable ('HOME', home_dir) 
+         IF (home_dir.eq.' ') then 
+            home_dir = '.' 
+         ENDIF 
+      ENDIF
+      home_dir_l = len_str (home_dir) 
+   ELSEIF(INDEX(line,'CYGWIN') > 0) THEN
+      operating   = OS_WINDOWS              ! Windows based Cygwin
+      color_theme = THEME_LGHTYL_BLACK
+!
+!     Distinguish run within Cygwin or from DISCUS Icon at Windows
+!
+      INQUIRE(FILE='/Cygwin.bat',EXIST=lpresent)
+      IF(lpresent) THEN
+         OPEN(idef,FILE='/Cygwin.bat',STATUS='old')
+         READ(idef,'(a)', IOSTAT=ios) line
+         find_oper: DO WHILE(.NOT. IS_IOSTAT_END(ios))
+            IF(line(1:5)=='chdir') THEN    ! FOUND correct line
+              operat_top = line( 7:LEN_TRIM(LINE)-4)
+              operating  = line(10:LEN_TRIM(LINE)-4) !'cygwin' or cygwin64
+              EXIT find_oper
+            ENDIF
+            READ(idef,'(a)', IOSTAT=ios) line
+         ENDDO find_oper
+         CLOSE(idef)
+         home_dir = ' ' 
+         CALL get_environment_variable ('HOME', home_dir) 
+         IF (home_dir.eq.' ') then 
+            home_dir = '.' 
+         ENDIF 
+         home_dir_l = len_str (home_dir) 
+      ELSE
+         INQUIRE(FILE='/suite.sh',EXIST=lpresent)
+         IF(lpresent) THEN
+            operating = OS_WINDOWS  ! Cygwin from DISCUS Icon
+         ENDIF
+         user_profile = ' '
+         CALL get_environment_variable ('USERPROFILE', user_profile)
+         home_dir = user_profile
+         home_dir_l = len_str (home_dir) 
+      ENDIF
+   ELSEIF(INDEX(line,'DARWIN') > 0) THEN
+      operating   = OS_MACOSX               ! MAC OS X
+      color_theme = THEME_DEFAULT
+      home_dir = ' ' 
+      CALL get_environment_variable ('HOME', home_dir) 
+      IF (home_dir.eq.' ') then 
+         home_dir = '.' 
+      ENDIF 
+      home_dir_l = len_str (home_dir) 
+   ENDIF
+ELSE   !  /proc/version does not exist , likely a MAC OS X 
+!  Read OS from uname
+   line = 'uname -av > '//tmp_dir(1:tmp_dir_l)//'/DISCUS_SUITE_UNAME'
+   CALL do_operating_comm(line)
+   OPEN(UNIT=idef, FILE='/tmp/DISCUS_SUITE_UNAME')
+   READ(IDEF,'(a)') line
+   CLOSE(IDEF)
+   CALL do_cap(line)
+   IF(INDEX(line,'DARWIN') > 0) THEN
+      operating   = OS_MACOSX               ! MAC OS X
+      color_theme = THEME_DEFAULT
+      home_dir = ' '
+      CALL get_environment_variable ('HOME', home_dir)
+      IF (home_dir.eq.' ') then
+         home_dir = '.'
+      ENDIF
+      home_dir_l = len_str (home_dir) 
+   ENDIF
+ENDIF
+!
+! All remaining test for OS should be obsolete
+   IF(operating == ' ') THEN
       CALL get_environment_variable ('OS', operating) 
       IF(operating == '') THEN
          CALL get_environment_variable ('OSTYPE', operating) 
@@ -75,6 +186,8 @@ PID = lib_f90_getpid()
          ENDDO name_search
          CLOSE(idef)
       ENDIF
+   ENDIF
+!
       IF(operating==' ') THEN    ! Still not found try MAC specifics
          CALL get_environment_variable ('DISPLAY', line)
          IF(INDEX(line, 'macos') > 0) THEN
@@ -82,57 +195,57 @@ PID = lib_f90_getpid()
          ENDIF
       ENDIF
       pname_l = len_str (pname) 
-      home_dir = ' ' 
+      line = ' ' 
       lines = 42 
-      CALL get_environment_variable ('LINES', home_dir) 
-      IF (home_dir.ne.' ') then 
-         READ (home_dir, *, end = 10) lines 
+      CALL get_environment_variable ('LINES', line) 
+      IF (line.ne.' ') then 
+         READ (line, *, end = 10) lines 
    10    CONTINUE 
       ELSE 
-         CALL get_environment_variable ('TERMCAP', home_dir) 
-         ico = index (home_dir, 'co') + 3 
-         ice = index (home_dir (ico:256) , ':') + ico - 2 
+         CALL get_environment_variable ('TERMCAP', line) 
+         ico = index (line, 'co') + 3 
+         ice = index (line (ico:256) , ':') + ico - 2 
          IF (ice.gt.ico) then 
-            READ (home_dir (ico:ice), *, end = 20, err = 20) lines 
+            READ (line (ico:ice), *, end = 20, err = 20) lines 
          ENDIF 
    20    CONTINUE 
       ENDIF 
       lines = lines - 2 
 !
-      IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
-         operating = 'Windows'
-         color_theme = THEME_LGHTYL_BLACK
-         INQUIRE(FILE='/Cygwin.bat',EXIST=lpresent)
-         IF(lpresent) THEN
-            OPEN(idef,FILE='/Cygwin.bat',STATUS='old')
-            READ(idef,'(a)', IOSTAT=ios) line
-            find_op: DO WHILE(.NOT. IS_IOSTAT_END(ios))
-               IF(line(1:5)=='chdir') THEN    ! FOUND correct line
-                 operat_top = line( 7:LEN_TRIM(LINE)-4)
-                 operating  = line(10:LEN_TRIM(LINE)-4) !'Cygwin'
-                 EXIT find_op
-               ENDIF
-               READ(idef,'(a)', IOSTAT=ios) line
-            ENDDO find_op
-            CLOSE(idef)
-         ELSE
-            INQUIRE(FILE='/suite.sh',EXIST=lpresent)
-            IF(lpresent) THEN
-               operating = 'Windows'
-            ENDIF
-         ENDIF
-         user_profile = ' '
-         CALL get_environment_variable ('USERPROFILE', user_profile)
-         home_dir = user_profile
-      ELSE
+!     IF(index(operating, 'Windows') /= 0) THEN  ! We got a Windows
+!        operating = 'Windows'
+!        color_theme = THEME_LGHTYL_BLACK
+!        INQUIRE(FILE='/Cygwin.bat',EXIST=lpresent)
+!        IF(lpresent) THEN
+!           OPEN(idef,FILE='/Cygwin.bat',STATUS='old')
+!           READ(idef,'(a)', IOSTAT=ios) line
+!           find_op: DO WHILE(.NOT. IS_IOSTAT_END(ios))
+!              IF(line(1:5)=='chdir') THEN    ! FOUND correct line
+!                operat_top = line( 7:LEN_TRIM(LINE)-4)
+!                operating  = line(10:LEN_TRIM(LINE)-4) !'Cygwin'
+!                EXIT find_op
+!              ENDIF
+!              READ(idef,'(a)', IOSTAT=ios) line
+!           ENDDO find_op
+!           CLOSE(idef)
+!        ELSE
+!           INQUIRE(FILE='/suite.sh',EXIST=lpresent)
+!           IF(lpresent) THEN
+!              operating = 'Windows'
+!           ENDIF
+!        ENDIF
+!        user_profile = ' '
+!        CALL get_environment_variable ('USERPROFILE', user_profile)
+!        home_dir = user_profile
+!     ELSE
 !                                                                       
-         home_dir = ' ' 
-         CALL get_environment_variable ('HOME', home_dir) 
-         IF (home_dir.eq.' ') then 
-            home_dir = '.' 
-         ENDIF 
-      ENDIF
-      home_dir_l = len_str (home_dir) 
+!        home_dir = ' ' 
+!        CALL get_environment_variable ('HOME', home_dir) 
+!        IF (home_dir.eq.' ') then 
+!           home_dir = '.' 
+!        ENDIF 
+!     ENDIF
+!     home_dir_l = len_str (home_dir) 
 !                                                                       
 !     appl_dir = ' ' 
 !     CALL get_environment_variable (pname_cap, appl_dir) 
@@ -253,8 +366,10 @@ PID = lib_f90_getpid()
 !     Define terminal color scheme
 !
       CALL color_set_scheme (standalone, local_mpi_myid)
+!
+envir_done = .TRUE.
 !                                                                       
-      END SUBROUTINE appl_env                       
+END SUBROUTINE appl_env                       
 !
 SUBROUTINE write_appl_env (standalone, local_mpi_myid)
 !
