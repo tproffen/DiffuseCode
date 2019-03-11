@@ -85,6 +85,8 @@
 
    Added a command 'displacement' that returns the displacement
    vector of an atom from its average position.
+
+   Added the surface vector to the 'show atom' command
 3  2019_Jan
 
    Added a demolcularize menu to delete a molecule entry while
