@@ -349,7 +349,7 @@
       'Number of feedback intervalls is zero    ',       & ! !  -5
       'Number of MC cycles is zero              ',       & ! !  -4
       'Invalid mode selected for COCC MC run    ',       & ! !  -3
-      'No valid move after 1000 cycles          ',       & ! !  -2
+      'No valid move after MAXV cycles          ',       & ! !  -2
       'Invalid or no energy type selected       ',       & ! !  -1
       ' ' /                                                !   0
 !                                                                       

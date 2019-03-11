@@ -2400,6 +2400,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       IF (igen.gt.mmc_no_valid * mo_feed.and.itry.eq.0) then 
          ier_num = - 2 
          ier_typ = ER_MMC 
+         WRITE(ier_msg(1),'(a,i8)') 'MAXV = ',mmc_no_valid
          loop = .false. 
       ENDIF 
 !                                                                       
