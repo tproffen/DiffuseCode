@@ -784,6 +784,7 @@ USE prop_para_func
    USE param_mod
    USE random_mod
 USE prompt_mod
+USE discus_show_menu
 !
    IMPLICIT none
 !
@@ -885,75 +886,35 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    CALL property_select(line, length,  cr_sel_prop)
 !
    corefile   = 'internal.decorate'             ! internal user files always start with 'internal'
-   shellfile  = 'internal.decoshell'   
-      sav_w_scat  = .TRUE.
-      sav_w_adp   = .TRUE.
-      sav_w_occ   = .TRUE.
-      sav_r_ncell = .TRUE.
-      sav_w_ncell = .TRUE.
-      sav_w_gene  = .FALSE.
-      sav_w_symm  = .FALSE.
-      sav_w_mole  = .FALSE.
-      sav_w_obje  = .FALSE.
-      sav_w_doma  = .FALSE.
-      sav_w_prop  = .TRUE.
-    sav_latom(:) = .TRUE.
+!!call save_show
    CALL save_internal(corefile)        !     thus this file name is unique
+!
+   shellfile  = 'internal.decoshell'   
    line       = 'present, external'    ! Force atom to be close to a surface
    length     = 17
    CALL property_select(line, length, sav_sel_prop)
    line       = 'absent, outside'      ! Force atom to be inside
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
-      sav_w_scat  = .TRUE.
-      sav_w_adp   = .TRUE.
-      sav_w_occ   = .TRUE.
-      sav_r_ncell = .TRUE.
-      sav_w_ncell = .TRUE.
-      sav_w_gene  = .FALSE.
-      sav_w_symm  = .FALSE.
-      sav_w_mole  = .FALSE.
-      sav_w_obje  = .FALSE.
-      sav_w_doma  = .FALSE.
-      sav_w_prop  = .TRUE.
-    sav_latom(:) = .FALSE.
-   DO k=1, dcc_num
-      DO j=1,2
-         DO i=1, dcc_surf(j,0,k)
-             sav_latom(dcc_surf(j,i,k)) = .TRUE.
-         ENDDO
-      ENDDO
-   ENDDO
 !
-      sav_w_scat  = .TRUE.
-      sav_w_adp   = .TRUE.
-      sav_w_occ   = .TRUE.
-      sav_r_ncell = .TRUE.
-      sav_w_ncell = .TRUE.
-      sav_w_gene  = .FALSE.
-      sav_w_symm  = .FALSE.
-      sav_w_mole  = .FALSE.
-      sav_w_obje  = .FALSE.
-      sav_w_doma  = .FALSE.
-      sav_w_prop  = .TRUE.
-    sav_latom(:) = .TRUE.
+   sav_w_scat  = .TRUE.
+   sav_w_adp   = .TRUE.
+   sav_w_occ   = .TRUE.
+   sav_r_ncell = .TRUE.
+   sav_w_ncell = .TRUE.
+   sav_w_gene  = .FALSE.
+   sav_w_symm  = .FALSE.
+   sav_w_mole  = .FALSE.
+   sav_w_obje  = .FALSE.
+   sav_w_doma  = .FALSE.
+   sav_w_prop  = .TRUE.
+   sav_latom(:) = .TRUE.
    CALL save_internal(shellfile)
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !  Make single atom "structure" for domain list file 
 ! Should be obsolete
    CALL rese_cr
-!  cr_natoms    = 1
-!  cr_ncatoms   = 1
-!  cr_nscat     = 1
-!  cr_pos(:,1)  = 0.0
-!  cr_iscat(1)  = 1
-!  cr_at_lis(1) = 'CORE'
-!  corelist     = 'internal.core.list'
-!  line       = 'ignore, all'          ! Ignore all properties
-!  length     = 11
-!  CALL property_select(line, length, sav_sel_prop)
-!  CALL save_internal(corelist)        ! Save the core list
 !
 !     Load the molecules into temporary structures to reduce disk I/O
 !
@@ -1315,7 +1276,15 @@ ENDIF
 CALL rese_cr
 CALL save_restore_setting
 CALL no_error
+   CALL save_default_setting           ! Default to full saving
+   line       = 'ignore, all'          ! Ignore all properties
+   length     = 11
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'ignore, all'          ! Ignore all properties for global as well
+   length     = 11
+   CALL property_select(line, length,  cr_sel_prop)
 CALL readstru_internal( corefile)   ! Read  original core file
+!
 IF(cr_natoms == 0 ) THEN
    ier_num = -27
    ier_typ = ER_CHEM
