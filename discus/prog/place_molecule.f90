@@ -897,18 +897,19 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
 !
-   sav_w_scat  = .TRUE.
-   sav_w_adp   = .TRUE.
-   sav_w_occ   = .TRUE.
-   sav_r_ncell = .TRUE.
-   sav_w_ncell = .TRUE.
-   sav_w_gene  = .FALSE.
-   sav_w_symm  = .FALSE.
-   sav_w_mole  = .FALSE.
-   sav_w_obje  = .FALSE.
-   sav_w_doma  = .FALSE.
-   sav_w_prop  = .TRUE.
-   sav_latom(:) = .TRUE.
+!   sav_w_scat  = .TRUE.
+!   sav_w_adp   = .TRUE.
+!   sav_w_occ   = .TRUE.
+!   sav_r_ncell = .TRUE.
+!   sav_w_ncell = .TRUE.
+!   sav_w_gene  = .FALSE.
+!   sav_w_symm  = .FALSE.
+!   sav_w_mole  = .FALSE.
+!   sav_w_obje  = .FALSE.
+!   sav_w_doma  = .FALSE.
+!   sav_w_prop  = .TRUE.
+!   sav_latom(:) = .TRUE.
+   CALL save_default_setting           ! Default to full saving
    CALL save_internal(shellfile)
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -1038,18 +1039,19 @@ ENDIF
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
-      sav_w_scat  = .TRUE.
-      sav_w_adp   = .TRUE.
-      sav_w_occ   = .TRUE.
-      sav_r_ncell = .TRUE.
-      sav_w_ncell = .TRUE.
-      sav_w_gene  = .FALSE.
-      sav_w_symm  = .FALSE.
-      sav_w_mole  = .FALSE.
-      sav_w_obje  = .FALSE.
-      sav_w_doma  = .FALSE.
-      sav_w_prop  = .TRUE.
-   sav_latom(:) = .TRUE.
+!     sav_w_scat  = .TRUE.
+!     sav_w_adp   = .TRUE.
+!     sav_w_occ   = .TRUE.
+!     sav_r_ncell = .TRUE.
+!     sav_w_ncell = .TRUE.
+!     sav_w_gene  = .FALSE.
+!     sav_w_symm  = .FALSE.
+!     sav_w_mole  = .FALSE.
+!     sav_w_obje  = .FALSE.
+!     sav_w_doma  = .FALSE.
+!     sav_w_prop  = .TRUE.
+!  sav_latom(:) = .TRUE.
+   CALL save_default_setting           ! Default to full saving
    CALL save_internal('internal_anchors')        !     thus this file name is unique
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11

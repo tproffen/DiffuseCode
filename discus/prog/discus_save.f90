@@ -1047,8 +1047,9 @@ END SUBROUTINE save_internal_node
       INTEGER            :: n_nscat
 !                                                                       
       maxw = MAX(MIN_PARA,MAXSCAT+1)
-      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT) THEN
-         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, MAXSCAT)
+      IF( cr_nscat > SAV_MAXSCAT .or. MAXSCAT > SAV_MAXSCAT .OR. &
+          SAV_T_MAXSCAT> SAV_MAXSCAT) THEN
+         n_nscat = MAX(cr_nscat, SAV_MAXSCAT, SAV_T_MAXSCAT, MAXSCAT)
          CALL alloc_save (  n_nscat )
          IF ( ier_num < 0 ) THEN
             RETURN
@@ -1056,6 +1057,7 @@ END SUBROUTINE save_internal_node
       ENDIF
 !
       SAV_MAXSCAT  = SAV_T_MAXSCAT
+
       sav_latom(:) = sav_t_latom(:) 
 !
       sav_sel_atom = sav_t_sel_atom
