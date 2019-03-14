@@ -195,6 +195,7 @@ SUBROUTINE datum ()
       USE envir_mod 
       USE get_params_mod
       USE prompt_mod 
+      USE string_convert_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -203,6 +204,9 @@ SUBROUTINE datum ()
       CHARACTER (LEN=*) dir 
       CHARACTER(1024) cwd 
       CHARACTER(1024) cpara (MAXW) 
+      CHARACTER(LEN=1024) :: string
+      CHARACTER(LEN=   1) :: drive
+      INTEGER :: i
       INTEGER lpara (MAXW) 
       INTEGER ianz 
       INTEGER ld, dummy 
@@ -223,6 +227,18 @@ SUBROUTINE datum ()
          ld = -ld
          CALL get_params (dir, ianz, cpara, lpara, maxw, ld) 
          CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
+         IF(operating==OS_LINUX_WSL) THEN
+            string = cpara(1)
+            IF(string(2:2)==':') THEN
+               drive = string(1:1)
+               CALL do_low(drive)
+               cpara(1) = '/mnt/' // drive // string(3:LEN_TRIM(string))
+            ENDIF
+            lpara(1) = LEN_TRIM(cpara(1))
+            DO i=1,lpara(1)
+               IF(cpara(1)(i:i)=='\') cpara(1)(i:i) = '/'
+            ENDDO
+         ENDIF
          dir = cpara (1) (1:lpara (1) ) 
          ld = lpara (1) 
          CALL chdir (dir (1:ld), ier_num) 
