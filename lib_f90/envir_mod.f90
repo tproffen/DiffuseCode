@@ -32,6 +32,7 @@ MODULE envir_mod
    CHARACTER(LEN= 80 ) :: hlpdir
    CHARACTER(LEN= 80 ) :: colorfile
    CHARACTER(LEN= 80 ) :: nullfile
+   CHARACTER(LEN= 80 ) :: user_name
    INTEGER             :: home_dir_l
    INTEGER             :: appl_dir_l
    INTEGER             :: term_scheme_file_l
@@ -44,6 +45,7 @@ MODULE envir_mod
    INTEGER             :: umac_dir_l
    INTEGER             :: start_dir_l
    INTEGER             :: current_dir_l
+   INTEGER             :: user_name_l
    INTEGER             :: lines
    INTEGER             :: PID
    LOGICAL             :: term_scheme_exists = .FALSE.

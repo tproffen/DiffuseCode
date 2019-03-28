@@ -24,7 +24,8 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
-      CHARACTER(LEN=1024) :: line
+      CHARACTER(LEN=2048) :: line
+CHARACTER(LEN=2048) :: pathfile
       INTEGER ico, ice, iii, i, j
 INTEGER :: length
       INTEGER :: ios ! I/O status
@@ -352,6 +353,34 @@ ENDIF
             ENDIF
          ENDIF
          CALL do_chdir ( start_dir, start_dir_l, .false.)
+      ELSEIF(operating==OS_LINUX_WSL) THEN
+         CALL do_cwd (start_dir, start_dir_l) 
+         IF(start_dir == '/mnt/c/Users' ) THEN
+!
+!           Started from Icon set start directory to
+!           User HOME
+            line = 'echo $PATH > '//tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
+            CALL do_operating_comm(line)
+            pathfile = tmp_dir(1:tmp_dir_l)//'/discus_suite_path.txt'
+            OPEN(UNIT=idef,FILE=pathfile,ACTION='READ')
+            READ(idef,'(a)') line
+            CLOSE(UNIT=idef)
+            i = INDEX(line,'/mnt/c/Users')
+            IF(i/=0) THEN
+               j = INDEX(line(i+13:),'/')
+               IF(j/=0) THEN
+                  user_name = ' '
+                  user_name = line(i+13:i+13+j-2)
+                  IF(start_dir(start_dir_l:start_dir_l)=='/') THEN
+                     start_dir_l = start_dir_l - 1
+                  ENDIF
+                  start_dir = start_dir(1:start_dir_l) // '/' // &
+                              user_name(1:LEN_TRIM(user_name))
+                  start_dir_l = LEN_TRIM(start_dir)
+                  CALL do_chdir (start_dir, start_dir_l, .TRUE.) 
+               ENDIF
+            ENDIF
+         ENDIF
       ELSE
 !                                                                       
          CALL do_cwd (start_dir, start_dir_l) 
