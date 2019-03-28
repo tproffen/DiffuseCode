@@ -175,6 +175,11 @@ SUBROUTINE do_plot (lmenu)
                filname = 'kuplot.png' 
                idev = png 
                l_pdf = .FALSE.
+            ELSEIF (cpara (1) (1:2) .eq.'LA') then 
+               filname = 'kuplot.tex' 
+               idev = lat 
+               l_pdf = .FALSE.
+               write(*,*) ' DEVICE is ',lat
             ELSEIF (cpara (1) (1:2) .eq.'PD') then 
                filname = 'kuplot.ps' 
                l_pdf = .TRUE.

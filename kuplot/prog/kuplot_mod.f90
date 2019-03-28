@@ -11,13 +11,14 @@ SAVE
 !     plotting routines of KUPLOT.
 !*****7*****************************************************************
 !
-      INTEGER, PARAMETER :: ndev = 6
+      INTEGER, PARAMETER :: ndev = 7
       INTEGER, PARAMETER :: x11  = 1
       INTEGER, PARAMETER :: pic  = 2
       INTEGER, PARAMETER :: ps   = 3
       INTEGER, PARAMETER :: vpic = 4
       INTEGER, PARAMETER :: vps  = 5
       INTEGER, PARAMETER :: png  = 6
+      INTEGER, PARAMETER :: lat  = 7
 !
 !
       INTEGER, PARAMETER :: if_left   = 1

@@ -49,6 +49,8 @@
       dev_id (iw, vpic) = - 1 
       dev_sf (iw, png ) = 1.0 
       dev_id (iw, png ) = - 1 
+      dev_sf (iw, lat) = 1.0 
+      dev_id (iw, lat) = - 1 
       ENDDO 
 !                                                                       
 !------ common /errors/                                                 

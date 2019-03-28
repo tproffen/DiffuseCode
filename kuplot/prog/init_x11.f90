@@ -35,6 +35,8 @@
       dev_prn (vpic) = ' ' 
       dev_name (png) = '/PNG' 
       dev_prn (png) = ' ' 
+      dev_name (lat) = '/LATEX' 
+      dev_prn (lat) = ' ' 
 !                                                                       
 !------ PGPLOT returns different characters for                         
 !------ mouse clicks ;-(                                                
