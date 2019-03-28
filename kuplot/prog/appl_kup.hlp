@@ -97,6 +97,9 @@
 2  News
 
    Here you can find updated info on the latest KUPLOT releases.
+3  2019_April
+
+   Added "latex" option to ==> 'save' command
 3  2019_February
 
    Added a 'blank' separator to 'load csv, separator:blank'
@@ -2092,13 +2095,14 @@
 2  save
 !b save <dev>, [<filename>]
 
-   <dev> : "ps", "png", "pic", "pdf"
+   <dev> : "ps", "png", "pic", "pdf", "la"
    This command allows to save the current view graph. The output
    device type <dev> can be given as first parameter. The
    choices for <dev> are:
    "ps" for POSTSCRIPT 
    "pic" or "png" for a PNG 
    "pdf" for a PDF file format
+   "latex" Latex picture environment
 
    If "pdf" is chosen, a postscript file and a pdf file will be generated.
 
