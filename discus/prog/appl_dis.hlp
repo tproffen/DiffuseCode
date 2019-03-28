@@ -75,6 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019_Apr
+
+   Added an export option to write the structure in the format for 
+   Scatty.
 3  2019_Feb
 
    Implemented all alternative settings for the orthorhombic space
@@ -2037,6 +2041,7 @@
 !b export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
 !b export "vasp",<file]>
 !b export "poscar",<file]>
+!b export "scatty",<file]>
 
    cif
    Exports the atoms of the current structure as a minimal CIF
@@ -2052,6 +2057,11 @@
    vasp
    poscar
    Exports the atoms of the current structure as a VASP "POSCAR" file. 
+
+   scatty
+   Exports the atoms of the current structure as a SCATTY file
+   Only the "*_atoms_01.txt" file is written. The user has to edit his
+   "scatty_config.txt" file individually.
 2  d2r
 !b d2r <u>,<v>,<w>
 

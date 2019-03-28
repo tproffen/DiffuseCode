@@ -78,6 +78,15 @@ IF (ianz.ge.1) then
          ier_num = - 6
          ier_typ = ER_COMM
       ENDIF
+   ELSEIF (str_comp (cpara (1) , 'scatty', 2, lpara (1) , 6) ) then
+      IF (ianz.eq.2) then
+         CALL del_params (1, ianz, cpara, lpara, maxw)
+         IF (ier_num.ne.0) RETURN
+         CALL discus2scatty (ianz, cpara, lpara, MAXW)
+      ELSE
+         ier_num = - 6
+         ier_typ = ER_COMM
+      ENDIF
    ELSEIF (str_comp (cpara (1) , 'vasp', 2, lpara (1) , 4)  .OR.  &
            str_comp (cpara (1) , 'poscar', 2, lpara (1) , 6) ) then
       IF (ianz.eq.2) then
@@ -861,5 +870,104 @@ DEALLOCATE(atom_names)
 !
 END SUBROUTINE discus2poscar
 !
+SUBROUTINE discus2scatty(ianz, cpara, lpara, MAXW)
+!
+! Write the current structure in format for SCATTY (Joe Paddison)
+! 
+USE crystal_mod
+USE atom_name
+USE celltoindex_mod
+USE chem_mod
+USE chem_aver_mod
+!
+USE build_name_mod
+USE errlist_mod
+USE string_convert_mod
+!
+IMPLICIT NONE
+!
+INTEGER            ,                  INTENT(IN)    :: MAXW
+INTEGER            ,                  INTENT(INOUT) :: ianz
+CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+!
+INTEGER, PARAMETER :: IWR = 35
+LOGICAL, PARAMETER :: lold = .FALSE.
+LOGICAL, PARAMETER :: lout = .FALSE.
+LOGICAL, PARAMETER :: lsite= .TRUE.
+!
+CHARACTER(LEN=1024)      :: ofile = ' '
+CHARACTER(LEN=1024)      :: line  = ' '
+CHARACTER(LEN=1024)      :: string= ' '
+CHARACTER(LEN=   4)      :: at_name_i = ' '
+INTEGER                  :: lp
+INTEGER                  :: i, k, ia
+INTEGER                  :: isite
+INTEGER, DIMENSION(3)    :: icell
+INTEGER                  :: nscat
+REAL   , DIMENSION(MAXW) :: werte
+!
+CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
+IF (ier_num.ne.0) then
+   RETURN
+ENDIF
+ofile = cpara (1)
+IF(ofile(lpara(1)-12:lpara(1)) /= '_atoms_01.txt') ofile = cpara (1) (1:lpara (1) ) //'_atoms_01.txt'
+CALL oeffne (IWR, ofile, 'unknown')
+IF (ier_num.ne.0) then
+   CLOSE(IWR)
+   RETURN
+ENDIF
+!
+! Determine average structure
+!
+CALL chem_aver(lout, lsite)
+!
+! Ready to write the structure
+!
+WRITE(IWR, '(a,a)') 'TITLE ',cr_name
+WRITE(IWR, '(a, 6(2x,f12.5))') 'CELL', cr_a0(:), cr_win(:)
+WRITE(IWR, '(a, 3(3x,i6))')    'BOX ', cr_icc(:)
+DO i=1, cr_ncatoms
+   WRITE(IWR, '(a,3(1x,f15.12))') 'SITE ',chem_ave_pos(:,i)
+ENDDO
+!
+ia = cr_icc(1)*cr_icc(2)*cr_icc(3)
+line = 'OCC '
+DO i=1, cr_ncatoms
+   DO k=1, chem_ave_n(i)
+      string = ' '
+      at_name_i = cr_at_lis(chem_ave_iscat(i,k))
+      CALL do_cap(at_name_i(1:1))
+      CALL do_low(at_name_i(2:2))
+      WRITE(string,'(a4,1x,f8.4)') at_name_i, chem_ave_bese(i,k)/FLOAT(ia)
+      line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
+   ENDDO
+   WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
+ENDDO
+!
+! Write atom list
+!
+DO i=1, cr_natoms
+   at_name_i = cr_at_lis(i)
+   CALL do_cap(at_name_i(1:1))
+   CALL do_low(at_name_i(2:2))
+   icell = 0
+   isite = 0
+   CALL indextocell(i, icell, isite)
+   WRITE(IWR, '(a,4i12,3(1x,g26.12e3),1x,a4)') 'ATOM ', &
+        isite, icell(1)-1, icell(2)-1, icell(3)-1, &
+        (cr_pos(1,i) - chem_ave_pos(1,isite))  - &
+   NINT((cr_pos(1,i) - chem_ave_pos(1,isite)))  ,&
+        (cr_pos(2,i) - chem_ave_pos(2,isite))  - &
+   NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
+        (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
+   NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
+   cr_at_lis(cr_iscat(i))
+ENDDO
+!
+CLOSE(IWR)
+!
+END SUBROUTINE discus2scatty
 !
 END MODULE discus_export
