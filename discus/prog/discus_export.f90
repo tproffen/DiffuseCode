@@ -969,7 +969,7 @@ atoms: DO i=1, cr_natoms
    NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
         (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
    NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
-   at_name(1:4)
+   at_name_i(1:4)
 ENDDO atoms
 !
 CLOSE(IWR)
