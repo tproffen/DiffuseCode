@@ -6,12 +6,14 @@ SAVE
 INTEGER, PARAMETER :: lib_reserved_n    = 92
 INTEGER, PARAMETER :: discus_reserved_n = 42 
 INTEGER, PARAMETER :: diffev_reserved_n = 24
+INTEGER, PARAMETER :: refine_reserved_n =  1
 INTEGER, PARAMETER :: kuplot_reserved_n = 26
 INTEGER, PARAMETER ::  suite_reserved_n =  1
                                                                         
 CHARACTER(LEN=16), DIMENSION(1: suite_reserved_n) ::  suite_reserved 
 CHARACTER(LEN=16), DIMENSION(1:kuplot_reserved_n) :: kuplot_reserved 
 CHARACTER(LEN=16), DIMENSION(1:diffev_reserved_n) :: diffev_reserved 
+CHARACTER(LEN=16), DIMENSION(1:refine_reserved_n) :: refine_reserved
 CHARACTER(LEN=16), DIMENSION(1:discus_reserved_n) :: discus_reserved
 CHARACTER(LEN=16), DIMENSION(1:lib_reserved_n)    :: lib_reserved
 !                                                                       
@@ -63,6 +65,11 @@ DATA diffev_reserved /                                                  &
 'diff_f   '     , 'pop_v    '     , 'pop_t    '     , 'pop_n    '     , &
 'pop_c    '     , 'bestr    '     , 'bestm    '     , 'p        '       &
 /
+!
+DATA refine_reserved /                                                  &
+'ref_nonsense  '                                                        &
+/
+!
 DATA kuplot_reserved /                                                  &
 'F_DERIV       ', 'F_VALUE       ', 'F_PARA        ',                                     &
 'zmax          ', 'zmin          ', 'ymax          ', 'ymin          ', 'xmax          ', &
