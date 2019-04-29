@@ -278,4 +278,33 @@ IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
 END SUBROUTINE define_variable                
 !
 !*****7**************************************************************** 
+!
+SUBROUTINE def_set_variable(v_type, v_name, v_value, IS_DIFFEV)
+!
+USE calc_expr_mod
+USE errlist_mod
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: v_type
+CHARACTER(LEN=*), INTENT(IN) :: v_name
+REAL            , INTENT(IN) :: v_value
+LOGICAL         , INTENT(IN) :: IS_DIFFEV
+!
+CHARACTER(LEN=1024) :: string
+INTEGER             :: length
+INTEGER             :: indxg
+!
+string = v_type(1:LEN_TRIM(v_type)) // ', ' // v_name(1:LEN_TRIM(v_name))
+length = LEN_TRIM(string)
+CALL define_variable(string, length, IS_DIFFEV)           ! Define as user variable
+WRITE(string,'(a,a,G20.8E3)') v_name(1:LEN_TRIM(v_name)), ' = ', v_value
+indxg  = INDEX(string, '=')
+length = LEN_TRIM(string)
+CALL do_math (string, indxg, length)
+!
+END SUBROUTINE def_set_variable
+!
+!*****7**************************************************************** 
+!
 END MODULE define_variable_mod
