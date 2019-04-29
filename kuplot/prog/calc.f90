@@ -1,4 +1,4 @@
-      SUBROUTINE do_calc (zeile, lp) 
+SUBROUTINE do_calc (zeile, lp) 
 !*****7*****************************************************************
 !                                                                       
 !     These routines perform data manipulation - which is much          
@@ -635,27 +635,35 @@
 !                                                                       
       END SUBROUTINE do_kmath                       
 !*****7*****************************************************************
-      SUBROUTINE do_merge (zeile, lp) 
+SUBROUTINE do_merge (zeile, lp) 
 !+                                                                      
 !     Merge different data sets                                         
 !-                                                                      
-      USE ber_params_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE ber_params_mod
+USE errlist_mod 
+USE get_params_mod
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
+CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+INTEGER          , INTENT(INOUT) :: lp
+!
       INTEGER maxw 
       PARAMETER (maxw = MAXKURVTOT) 
 !                                                                       
-      CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
       REAL mdelta, mmin, mmax 
-      INTEGER lpara (maxw), lp 
+REAL  ::  mdeltay, mminy, mmaxy 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik, ibin, i, ip, ntot, maxpp 
+INTEGER :: ntoty
+INTEGER :: maxzz
+INTEGER :: ix, iy       ! Dummy loop indices
+INTEGER :: ind_in, ind_out     ! Indices in inout and output 2D data
+INTEGER, DIMENSION(:), ALLOCATABLE :: npt ! number of data points
       LOGICAL lvalid, ladd, lall 
 !                                                                       
       LOGICAL str_comp 
@@ -702,6 +710,11 @@
          ENDIF 
       ENDIF 
 !                                                                       
+!------ First we get extend of new data set (first one defines DELTA)   
+!                                                                       
+ik = nint (werte (1) ) 
+IF(.NOT.lni(ik)) THEN                    ! 1-D DATA SETS
+!                                                                       
       lvalid = .true. 
       DO i = 1, ianz 
       ik = nint (werte (i) ) 
@@ -715,10 +728,7 @@
          ier_typ = ER_APPL 
          RETURN 
       ENDIF 
-!                                                                       
-!------ First we get extend of new data set (first one defines DELTA)   
-!                                                                       
-      ik = nint (werte (1) ) 
+!
       mdelta = x (offxy (ik - 1) + len (ik) ) - x (offxy (ik - 1)       &
       + 1)                                                              
       mdelta = mdelta / float (len (ik) - 1) 
@@ -772,14 +782,107 @@
 !                                                                       
       len (iz) = ntot 
       fform (iz) = fform (nint (werte (1) ) ) 
-      fname (iz) = 'merge.dat' 
       offxy (iz) = offxy (iz - 1) + len (iz) 
+!
+      fname(iz) = 'merge.dat' 
       iz = iz + 1 
       CALL get_extrema_xy (x, iz - 1, len (iz), xmin, xmax) 
       CALL get_extrema_xy (y, iz - 1, len (iz), ymin, ymax) 
       CALL show_data (iz - 1) 
+ELSE                               ! 2D Data sets
 !                                                                       
-      END SUBROUTINE do_merge                       
+   lvalid = .true. 
+   DO i = 1, ianz 
+      ik = NINT(werte(i)) 
+      lvalid = lvalid .AND. ik >= 1 .AND. ik < iz  .AND. lni(ik)
+   ENDDO 
+   IF (.NOT.lvalid) THEN 
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+!
+   mdelta  = (xmax(ik) - xmin(ik)) / FLOAT(nx(ik) - 1)   ! Step in x
+   mdeltay = (ymax(ik) - ymin(ik)) / FLOAT(ny(ik) - 1)   ! Step in y
+   mmin    = xmin(NINT(werte(1)))                        ! Min/max in x/y
+   mmax    = xmax(NINT(werte(1))) 
+   mminy   = ymin(NINT(werte(1))) 
+   mmaxy   = ymax(NINT(werte(1))) 
+   DO i = 2, ianz 
+      ik = NINT(werte(i)) 
+      mmax  = MAX(mmax, xmax(ik)) 
+      mmin  = MIN(mmin, xmin(ik)) 
+      mmaxy = MAX(mmaxy, ymax(ik)) 
+      mminy = MIN(mminy, ymin(ik)) 
+   ENDDO 
+   ntot  = NINT((mmax - mmin) / mdelta) + 1             ! Data points along x
+   ntoty = NINT((mmaxy - mminy) / mdeltay) + 1          ! Data points along y 
+!
+   maxpp  = maxarray - offxy (iz - 1)
+   maxzz  = maxarray - offz (iz - 1)
+   DO i=1, ntot
+      x(offxy(iz-1)+i) = mmin + (i-1)*mdelta
+   ENDDO 
+   DO i=1, ntoty
+      y(offxy(iz-1)+i) = mminy + (i-1)*mdeltay
+   ENDDO 
+   DO i=1,ntot*ntoty           ! Zero data in new field
+      z(offz(iz-1)+i) = 0.0
+   ENDDO
+!
+   ALLOCATE(npt(ntot*ntoty))
+   npt(:) = 0
+!
+   DO i = 1, ianz
+      ik = NINT(werte(i))
+         DO iy=1, ny(ik)
+      DO ix=1, nx(ik)
+            ind_in = offz(ik-1)+(ix-1)*ny(ik) + iy
+            ind_out=  (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
+                     +(NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1)
+write(*,'(7i3,3f6.1,i3)') i,ix, iy, ind_in, ind_out, (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
+ , (NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1), x(offxy(ik-1)+ix), mmin,mdelta, ntoty
+            npt(ind_out) = npt(ind_out) + 1             ! Increment number of contribution data
+            ind_out      = ind_out + offz(iz-1)
+            z(ind_out)   = z(ind_out) + z(ind_in)
+         ENDDO
+      ENDDO
+   ENDDO
+!
+   DO ibin=1, ntot*ntoty
+      IF(.NOT.ladd .AND. npt(ibin) > 0) THEN
+         ind_out = offz(iz-1) + ibin
+         z(ind_out) = z(ind_out) / npt(ibin)
+      ENDIF
+   ENDDO
+!
+   DEALLOCATE(npt)
+!
+   DO ix=1,ntot
+      x(offxy(iz-1)+ix) = mmin + (ix-1)*mdelta
+   ENDDO
+   DO iy=1,ntot
+      y(offxy(iz-1)+iy) = mminy + (iy-1)*mdeltay
+   ENDDO
+!
+   lni(iz)   = .TRUE.
+   fname(iz) = 'merge.dat' 
+   fform(iz) = fform(NINT(werte(1)))
+   nx(iz)    = ntot 
+   ny(iz)    = ntoty
+   len(iz)   = MAX(nx(iz), ny(iz))
+   offxy(iz) = offxy(iz-1) + len(iz)
+   offz (iz) = offz (iz-1) + nx(iz)*ny(iz)
+   iz = iz + 1 
+   CALL get_extrema_xy (x, iz - 1, len (iz-1), xmin, xmax) 
+   CALL get_extrema_xy (y, iz - 1, len (iz-1), ymin, ymax) 
+   CALL get_extrema_z  (z, iz - 1, nx(iz-1), ny(iz-1), zmin, zmax) 
+   CALL show_data(iz - 1) 
+ENDIF
+!
+!                                                                       
+END SUBROUTINE do_merge                       
+!
 !*****7*****************************************************************
       SUBROUTINE do_rebin (zeile, lp) 
 !+                                                                      
@@ -1604,7 +1707,7 @@
 !                                                                       
       END SUBROUTINE do_match_mix                   
 !*****7*****************************************************************
-      SUBROUTINE do_rvalue (zeile, lp) 
+      SUBROUTINE do_rvalue (zeile, lp, lout) 
 !                                                                       
 !     Calculates the residual of two data sets.                         
 !                                                                       
@@ -1630,10 +1733,12 @@
       INTEGER maxw 
       PARAMETER (maxw = 4) 
 !                                                                       
-      CHARACTER ( * ) zeile 
+      CHARACTER (LEN=*), INTENT(INOUT) :: zeile 
+      INTEGER          , INTENT(INOUT) :: lp
+      LOGICAL          , INTENT(IN)    :: lout
       CHARACTER(1024) cpara (maxw) 
       REAL werte (maxw) 
-      INTEGER lpara (maxw), lp 
+      INTEGER lpara (maxw)
       INTEGER ianz, ik, il 
       INTEGER iianz 
       INTEGER iweight 
@@ -1785,8 +1890,10 @@
          nrvalues = MAX(1, nrvalues)
       ENDIF
 !                                                                       
-      WRITE (output_io, 1000) rval 
-      WRITE (output_io, 2000) wrval 
+      IF(lout) THEN
+         WRITE (output_io, 1000) rval 
+         WRITE (output_io, 2000) wrval 
+      ENDIF
 !                                                                       
  1000 FORMAT    (' R-value          : ',f8.4) 
  2000 FORMAT    (' weighted R-value : ',f8.4) 
