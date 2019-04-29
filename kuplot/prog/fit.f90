@@ -738,7 +738,7 @@ real :: f, df(maxpara)
          .ne.'SQR'.and.cpara (1) (1:3) .ne.'ONE'.and.cpara (1) (1:3)    &
          .ne.'LIN'.and.cpara (1) (1:3) .ne.'SQA'.and.cpara (1) (1:3)    &
          .ne.'INV'.and.cpara (1) (1:3) .ne.'BCK'.and.cpara (1) (1:3)    &
-         .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'.and.cpara (1) (1:3)    &
+         .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'                        &
                    ) then                  
             ier_num = - 27 
             ier_typ = ER_APPL 
