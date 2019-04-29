@@ -12,7 +12,7 @@ SUBROUTINE setup_suite
 !
 USE appl_env_mod
 USE cmdline_args_mod
-USE run_mpi_mod
+USE gen_mpi_mod
 USE prompt_mod
 USE lib_f90_default_mod
 USE random_state_mod
@@ -48,9 +48,9 @@ CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (.TRUE., run_mpi_myid)
+CALL appl_env (.TRUE., gen_mpi_myid)
 !
-IF(run_mpi_myid==0) THEN
+IF(gen_mpi_myid==0) THEN
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
@@ -61,7 +61,7 @@ ELSE
 ENDIF
 version   = aktuell
 WRITE ( *, 1000) version, is_debug, cdate
-CALL write_appl_env (.TRUE., run_mpi_myid)
+CALL write_appl_env (.TRUE., gen_mpi_myid)
 ENDIF
 !                                                                       
 !     try to read default file                                          
@@ -70,11 +70,11 @@ ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-CALL cmdline_args(run_mpi_myid)
+CALL cmdline_args(gen_mpi_myid)
 !                                                                       
 lsetup_done = .true.
 !
-!write(fname,2000) run_mpi_myid
+!write(fname,2000) gen_mpi_myid
 !2000 format('MEMORY.',I4.4) 
 !open(101,file=fname, status='unknown')
 !write(101,'(a)') '#INFO            vmpeak     vmsize     vmhwm    vmrss    vmpte'
