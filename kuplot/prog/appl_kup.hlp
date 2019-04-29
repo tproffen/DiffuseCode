@@ -100,6 +100,10 @@
 3  2019_April
 
    Added "latex" option to ==> 'save' command
+
+   Extended 'merge' command to 2D data.
+
+   Corrected fit weighting scheme "DAT" to 1/sig^2
 3  2019_February
 
    Added a 'blank' separator to 'load csv, separator:blank'
@@ -966,7 +970,7 @@
 !p   "one"  : w(y) = 1.0              "sqa"  : w(y) = y**2
 !p   "sqrt" : w(y) = SQRT(y)          "inv"  : w(y) = 1/y
 !p   "log"  : w(y) = LOG(y)           "isq"  : w(y) = 1/SQRT(y)
-!p   "lin"  : w(y) = y                "dat"  : w(y) = 1/DY (error data set) 
+!p   "lin"  : w(y) = y                "dat"  : w(y) = 1/DY**2 (error data set) 
 !p   "bck"  : w(y) = exp(-K*(y-ycalc))
 
    The second parameter is only needed for the weighting scheme "bck".
@@ -1872,9 +1876,13 @@
    normalized by the number of contributing data points. The new
    data set is assigned the next free data set number.
 
-   The extend of the new data set is defined by the maximum x-values
-   of the data sets to be merged. The grid size is taken as the
-   difference of the first two points of the first specified data set.
+   For 1D data sets, the extend of the new data set is defined by
+   the maximum x-values of the data sets to be merged. The grid
+   size is taken as the (xmax-xmin)/(np-1), i.e. the average step
+   size of the first specified data set.
+
+   For 2D dat sets the grid is equivalently determined by the
+   average grid size of the first data set.
 2  mouse
 !b mouse
 !b mouse {"point" | "line" | "rect" | "xrange" | "yrange" }
