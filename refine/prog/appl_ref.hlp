@@ -1,0 +1,145 @@
+1  refine
+
+   General refinement section
+
+   This section allows to perform a Least-Squares fit to
+   experimental data.
+   The calculated data are derived by a user supplied macro.
+   Derivatives of the calculated function with respect to the 
+   refinement parameters are determined numerically by calling
+   the macro at p +-h where p is the current parameter value
+   and h a small deviation.
+
+2  Summary
+
+   Here is a list and brief description of valid REFINE commands. Further
+   help can be obtained by typing the corresponding command name at the
+   help prompt.
+
+!p News          : Information on program updates
+2  Example
+
+   A simple fit might refine parameters of a straight line to
+   observed data. Lets assume that the data are in a simple x/y
+   file "observed.data". A suitable macro to refine is:
+
+!p kuplot                       ! Switch from SUITE to KUPLOT section
+!p reset                        ! Make sure no data are loaded, this is optional
+!p load xy, observe.data        ! Load data into KUPLOT data set number 1
+!p                              ! The load command creates user variables
+!p                              ! F_XMIN, F_XMAX, F_XSTP 
+!p                              ! F_YMIN, F_YMAX, F_YSTP 
+!p                              ! That contain the data limits and step size.
+!p exit                         ! Back to SUITE
+!p refine                       ! Switch from SUITE to REFINE section   
+!p data kuplot, 1               ! Use KUPLOT data set number 1
+!p newparam P_inter, value:1.0  ! Define y-axis intersept as first parameter
+!p newparam P_slope, value:1.0  ! Define slope as second parameter
+!p set cycle, 10                ! Define maximum number of cycles
+!p run fit_work.mac             ! start the fit with user macro fit_work.mac
+!p exit                         ! Back to SUITE
+
+   The user macro fit_run should be something like:
+
+!p branch kuplot                ! Step into the KUPLOT section
+!p                              ! or for structures into DISCUS
+!p reset                        ! Since the macro will be exectued several times
+!p                              ! a reset is a good idea to limit the number
+!p                              ! of data sets.
+!p func P_inter + P_slope*r[0], F_XMIN, F_XMAX, F_STP
+!p                              ! Calculate the function, 
+!p                              ! limits are set automatically
+!p exit                         ! Back to REFINE
+!p finished                     ! Special keyword signals end of user macro
+2  data
+!b data "kuplot", <number> [,"sigma:"<number>]
+
+   The calculation will refine parameters versus the observed data
+   that are stored in the KUPLOT data set number <number>
+
+   The optional parameter "sigma:" is used for 2D data sets only.
+   The z-values of data set <number> are used as sigmas for the 
+   data set.
+   If the optional parameter is omitted, the sigmas of the 2D data
+   set will default to a value of 1.0
+
+   Refer to the KUPLOT section for instructions on loading data.
+2  fix
+!b fix <parname> [,"value:"<number>]
+
+   Fixes a parameter. Its value will remain at its current value
+   or at <number>, if the optional parameter "value:" is used.
+
+   A fixed parameter can be freed with a ==> 'newparam' command.
+2  newparam
+!b newparam <parname> [,"value:"<start>] [,"status:"<flag>]
+!b                    [,"range:["<lower>,<upper>"]"]
+
+   Defines a new parameter name <parname>. This should be any valid
+   user defined variable name, limited to a length of 16 characters.
+   The user variable is allowed to have been defined previously, 
+   and its current value will be used if the "value:" option is omitted.
+
+   See the general command line section for details on the definition
+   of variables.
+
+   Optional parameters are:
+   value:<start>
+      The Parameter will be initialized to the <start> value.
+      If omitted, the parameter value will take on its current value.
+
+   status:refine
+   status:free
+   status:fix
+   status:fixed
+      With the flags "refine" or "free" the parameter will be refined
+      during the refinement cycles.
+      With the flags "fixed" or "fix", the parameter will remain fixed
+      at its current value. Be carefull that the user macro does not
+      change the parameter value!
+      Default flag is "refine".
+
+   range:[<lower>, upper>]
+      Defines a lower and upper boundary for the parameter. The 
+      fit will ensure that the parameter does not move outside the
+      specified range. 
+      If the "range:" parameter is omitted, the default behaviour
+      is to assume no boundaries. 
+      In order to turn the boundaries off, simply state the 
+      'newparam' command again for the refinement parameter 
+      without the "range:" option.
+2  set
+!p set cycle,<maxc>
+!p set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
+
+!b set cycle,<maxc>
+   Sets the maximum number of refinement cycles
+
+!b set conver [,"dchi:"<delta>] [,"pshift:"<max>] [,"conf:"<level>]
+!b            [,"chi2:"<level>]
+
+   Allows the user to define convergence criteria.
+
+   dchi:<delta>
+     If the value of Chi^2/(Ndata-Npara) decreases by less than <delta>
+     convergence is reached.
+     Defaults to 0.5
+   pshift:<max>
+     If all refinement parameters change by less then |DeltaP/Sigma|
+     convergence is reached.
+     Defaults to 0.005
+   conf:<level>
+     If the confidence level is greater than <level> 
+     convergence is reached.
+     Defaults to 0.010
+   chi2:<level>
+     If the value of Chi^2/(Ndata-Npara) falls below <level>
+     convergence is reached.
+     Defaults to 0.500
+
+   Convergence is reached, if:
+   Either
+      (dchi AND pshift AND conf) 
+   or 
+      chi2
+   are met. 
