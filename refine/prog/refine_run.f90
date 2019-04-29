@@ -110,6 +110,7 @@ END SUBROUTINE refine_run
 !*******************************************************************************
 !
 SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
+                         prange,  &
                          data_dim, data_data, data_weight, data_x, data_y, &
                          f, df, LDERIV)
 !
@@ -132,6 +133,7 @@ REAL                                                 , INTENT(IN)  :: yy      ! 
 INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
 REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: p       ! Parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
@@ -172,7 +174,12 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
             delta = 0.010
          ENDIF
 !                                     ! Test at P + DELTA
-         p_d = p(k) + delta
+         IF(prange(k,1)<=prange(k,2)) THEN
+            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+delta))
+         ELSE
+            p_d     = p(k) + delta
+         ENDIF
+!        p_d = p(k) + delta
          CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
          CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, par_names, p, &
                            data_dim, refine_temp)
@@ -183,7 +190,12 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
             ENDDO
          ENDDO
 !                                     ! Test at P - DELTA
-         p_d = p(k) - delta
+         IF(prange(k,1)<=prange(k,2)) THEN
+            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-delta))
+         ELSE
+            p_d     = p(k) - delta
+         ENDIF
+!        p_d = p(k) - delta
          CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
          CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, par_names, p, &
                            data_dim, refine_temp)
@@ -606,7 +618,7 @@ ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
    alamda = 0.001
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
-               NPARA, par_names, alpha, beta, &
+               NPARA, par_names, prange, alpha, beta, &
                chisq, LDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
@@ -646,7 +658,7 @@ IF(alamda==0) THEN
 !
    cl(:,:) = covar(:,:)       ! Back up of covariance
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
-               NPARA, par_names, covar, da, chisq, NDERIV) !, funcs)
+               NPARA, par_names, prange, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
@@ -667,7 +679,7 @@ DO j=1,NPARA
 ENDDO
 !
 CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, atry, &
-            NPARA, par_names, covar, da, chisq, LDERIV) !, funcs)
+            NPARA, par_names, prange, covar, da, chisq, LDERIV) !, funcs)
 IF(ier_num/=0) THEN
    RETURN
 ENDIF
@@ -693,7 +705,7 @@ END SUBROUTINE mrqmin
 !*******************************************************************************
 !
 SUBROUTINE mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, &
-                  params, NPARA, par_names, alpha, beta, chisq, LDERIV)
+                  params, NPARA, par_names, prange, alpha, beta, chisq, LDERIV)
 !
 ! Modified after NumRec 14.4
 ! Version for 2-d data
@@ -711,6 +723,7 @@ REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)  :: data_y     
 INTEGER                                             , INTENT(IN)  :: NPARA       ! Number of refine parameters
 REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
+REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
 REAL            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
 REAL                                                , INTENT(OUT) :: chisq
@@ -739,6 +752,7 @@ loopix: do ix=1, data_dim(1)
       yy = data_y(iy)
 !
       CALL refine_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
+                         prange, &
                          data_dim, data_data, data_weight, data_x, data_y, &
                          ymod, dyda, LDERIV)
 !write(*,*) ' RESULT ', ix, iy, ymod, dyda(:), (sig(ix,iy)*sig(ix,iy))
