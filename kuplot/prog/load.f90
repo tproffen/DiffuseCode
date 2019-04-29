@@ -3158,6 +3158,7 @@ LOGICAL         , INTENT(IN)    :: lecho
 !+                                                                      
 !     Load x,y or x,y,dx,dy files                                       
 !-                                                                      
+      USE blanks_mod
       USE errlist_mod 
       USE prompt_mod 
       USE kuplot_config 
@@ -3178,6 +3179,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       REAL values (mm) 
       INTEGER ifil, nr, nval, iwex, iwey, iwdx, iwdy, iski 
       INTEGER i, maxpp 
+      INTEGER :: length   ! Character string length
 !                                                                       
 !------ Get correct column numbers                                      
 !                                                                       
@@ -3224,6 +3226,8 @@ LOGICAL         , INTENT(IN)    :: lecho
 !                                                                       
    10 CONTINUE 
       READ (ifil, 9999, end = 20) line 
+      length = LEN_TRIM(line)
+      CALL rem_leading_bl (line, length)
       IF (line (1:1) .eq.'#'.and.iski.eq.0) goto 10 
       CALL count_col (line, nval) 
       IF (nval.eq.0) goto 10 
@@ -3248,7 +3252,11 @@ LOGICAL         , INTENT(IN)    :: lecho
       ENDIF 
 !                                                                       
    15 CONTINUE 
-      READ (ifil, *, end = 20) (values (i), i = 1, nval) 
+      READ(ifil,'(a)', END=20) line
+      length = LEN_TRIM(line)
+      CALL rem_leading_bl (line, length)
+      IF(line(1:1)=='#') GOTO 15
+      READ (line, *, end = 20) (values (i), i = 1, nval) 
       x (offxy (iz - 1) + nr) = values (iwex) 
       y (offxy (iz - 1) + nr) = values (iwey) 
       dx (offxy (iz - 1) + nr) = 0.0 
