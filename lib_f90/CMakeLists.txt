@@ -2,18 +2,16 @@
 
 set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               appl_unix.f90 arrays_mod.f90 blanks_mod.f90 berechne_mod.f90 
-              ber_params_mod.f90 blockdat.f90 
-              build_name_mod.f90
+              ber_params_mod.f90 blockdat.f90 build_name_mod.f90
               calc_expr_mod.f90  calc_intr_mod.f90 cmdline_args_mod.f90
               constants_mod.f90
               get_params_mod.f90 count_col_mod.f90 
               define_variable_mod.f90 dkdo.f90 do_echo_mod.f90 do_eval_mod.f90
-              do_execute_mod.f90
-              do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
-              do_string_alloc_mod.f90
-              do_variable_mod.f90 do_wait_mod.f90
+              do_execute_mod.f90 do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
+              do_string_alloc_mod.f90 do_variable_mod.f90 do_wait_mod.f90
               errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
+              gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90
               length_string_mod.f90 lib_get_var_type.f90 lib_upd_mod.f90 
               macro.f90  matrix_mod.f90 operating_mod.f90 reserved_mod.f90
               random.f90 random_state_mod.f90 sockets_mod.f90 str_comp_mod.f90 
