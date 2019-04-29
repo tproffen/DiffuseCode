@@ -11,6 +11,10 @@ USE get_params_mod
 USE kdo_all_mod
 USE set_sub_generic_mod
 !
+USE class_macro_internal
+USE doact_mod
+USE prompt_mod
+!
 
 IMPLICIT NONE
 !
@@ -65,6 +69,11 @@ ELSEIF (befehl (1:1)  == '@') THEN
 !
 ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) THEN
    CALL macro_continue (zeile, lp)
+!                                                                       
+!       Branch to DISCUS (standalone call system, suite do branch)
+!                                                                       
+ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'branch', 2, lbef, 6) ) then
+   CALL p_branch (zeile, lp, .FALSE.)
 !
 !-------Set number of cycles 'cyc'                                      
 !
