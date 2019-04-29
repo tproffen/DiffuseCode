@@ -6,7 +6,7 @@ SUBROUTINE diffev_loop
 !                                                                       
 USE diffev_mpi_mod
 USE create_trial_mod
-USE run_mpi_mod
+USE gen_mpi_mod
 USE doact_mod
 USE errlist_mod 
 USE learn_mod 
@@ -41,7 +41,7 @@ INTEGER, PARAMETER             :: master = 0 ! MPI ID of MASTER process
 !
 lend = .false.                                       ! Always initialize the loop
 with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
-   master_slave: IF ( run_mpi_myid == master ) THEN  ! MPI master or stand alone
+   master_slave: IF ( gen_mpi_myid == master ) THEN  ! MPI master or stand alone
 !                                                                       
       CALL no_error 
 !     INQUIRE(FILE='GENERATION', EXIST=lexist)
@@ -125,7 +125,7 @@ with_mpi_error: IF ( ier_num == 0 ) THEN             ! No MPI error
          CALL diffev_best_macro
       ENDIF
 !
-   ELSEIF(run_mpi_active) THEN  master_slave
+   ELSEIF(gen_mpi_active) THEN  master_slave
 !      IF(.NOT. lstandalone) THEN
 !        p_execute_cost ==> suite_execute_cost
 !      ELSE

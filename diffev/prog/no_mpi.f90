@@ -6,16 +6,16 @@ SUBROUTINE RUN_MPI_INIT
 !
 ! NO MPI Version for standalone
 !
-USE run_mpi_mod
+USE gen_mpi_mod
 USE errlist_mod
 USE variable_mod
 !
 IMPLICIT none
 !
 !
-run_mpi_myid     = 0
-run_mpi_numprocs = 1
-run_mpi_active   = .false.
+gen_mpi_myid     = 0
+gen_mpi_numprocs = 1
+gen_mpi_active   = .false.
 ier_num  = 0
 ier_typ  = ER_NONE
 var_val(VAR_NUM_NODES) = 0
@@ -27,7 +27,7 @@ END SUBROUTINE RUN_MPI_INIT
 !*****7***************************************************************
 SUBROUTINE RUN_MPI_MASTER 
 !
-USE run_mpi_mod
+!USE gen_mpi_mod
 USE errlist_mod
 !
 IMPLICIT none
@@ -41,7 +41,7 @@ END SUBROUTINE RUN_MPI_MASTER
 !*****7***************************************************************
 SUBROUTINE RUN_MPI_SLAVE
 !
-USE run_mpi_mod
+!USE run_mpi_mod
 USE errlist_mod
 !
 IMPLICIT none

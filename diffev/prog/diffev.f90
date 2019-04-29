@@ -4,7 +4,7 @@ USE diffev_setup_mod
 USE diffev_loop_mod
 USE diffev_do_exit_mod
 USE diffev_mpi_mod
-USE run_mpi_mod
+USE gen_mpi_mod
 USE variable_mod
 !
 IMPLICIT none 
@@ -23,7 +23,7 @@ EXTERNAL :: diffev_sigint
 !                                                                       
 !*****7*****************************************************************
 !
-run_mpi_myid      = 0
+gen_mpi_myid      = 0
 !
 CALL run_mpi_init
 CALL diffev_setup(standalone)

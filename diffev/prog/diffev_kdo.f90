@@ -30,6 +30,7 @@ USE build_name_mod
 use calc_expr_mod
 USE define_variable_mod
 USE errlist_mod 
+USE gen_mpi_mod
 USE get_params_mod
 USE kdo_all_mod
 USE learn_mod 
@@ -691,8 +692,8 @@ ELSE
          ier_msg(2) = 'the lastfile for conflicting generation values'
          RETURN
       ENDIF
-!     IF ( .not. run_mpi_active .or. run_mpi_numprocs < 2 ) THEN
-      IF (       run_mpi_active .and. run_mpi_numprocs < 2 ) THEN
+!     IF ( .not. gen_mpi_active .or. gen_mpi_numprocs < 2 ) THEN
+      IF (       gen_mpi_active .and. gen_mpi_numprocs < 2 ) THEN
          ier_num =  -24
          ier_typ = ER_APPL
          ier_msg(1) = 'To run an MPI distributed application requires'
@@ -796,7 +797,7 @@ ELSE
                      ENDIF
                   run_mpi_senddata%nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
             ENDIF 
-            IF(run_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
+            IF(gen_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
                IF(run_mpi_senddata%repeat) THEN            ! parallel refinement of indivs
                   IF(NUM_NODE>pop_c+1) THEN
                      ier_num = -32
@@ -806,7 +807,7 @@ ELSE
                      ier_msg(3) = 'Node*core must be <= pop_c*REF_NINDIV+1'
                      RETURN
                   ENDIF
-                  IF(run_mpi_numprocs>pop_c*run_mpi_senddata%nindiv+1) THEN
+                  IF(gen_mpi_numprocs>pop_c*run_mpi_senddata%nindiv+1) THEN
                      ier_num = -33
                      ier_typ = ER_APPL
                      ier_msg(1) = 'For compute:parallel refinement of indivs'
@@ -831,7 +832,7 @@ ELSE
                         CALL read_par_values
                      ENDIF init_slave
                   ENDIF
-               IF(run_mpi_active) THEN   !Parallel processing with MPI
+               IF(gen_mpi_active) THEN   !Parallel processing with MPI
 !                 run_mpi_kid_per_core = INT(pop_c/(run_mpi_max_slaves*NUM_NODE))+1
 !                 IF(.NOT.ALLOCATED(kid_on_node)) THEN
 !                    ALLOCATE(kid_on_node(0:pop_c))
@@ -845,10 +846,10 @@ ELSE
 !                 lastgen = pop_gen     ! We finished a refinement in this generation
 !                 DEALLOCATE(kid_on_node)
 !                 DEALLOCATE(node_has_kids)
-               ELSE    ! run_mpi_active
+               ELSE    ! gen_mpi_active
 !                 MPI is not active, refine with non parallel algorithm
                   CALL refine_no_mpi(.false.)
-               ENDIF   ! run_mpi_active
+               ENDIF   ! gen_mpi_active
             ENDIF 
          ELSE
             ier_num =  -6

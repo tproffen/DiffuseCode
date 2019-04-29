@@ -41,7 +41,7 @@ SUBROUTINE command (incomming, ier_status)
 ! 
 ! 
 USE diffev_setup_mod
-USE run_mpi_mod
+USE gen_mpi_mod
 USE diffev_mpi_mod
 USE errlist_mod
 USE class_macro_internal
@@ -70,7 +70,7 @@ IF( .not. lsetup_done ) THEN    ! If necessary do initial setup
    CALL diffev_setup(.false.)
 ENDIF
 CALL diffev_set_sub
-master_slave: IF ( run_mpi_myid == master ) THEN ! MPI master or standalone
+master_slave: IF ( gen_mpi_myid == master ) THEN ! MPI master or standalone
 lend = .false.
 !
 laenge = len_str(incomming)     ! 
@@ -119,7 +119,7 @@ ELSE
       ENDIF
    ENDDO main
 ENDIF
-ELSEIF ( run_mpi_active ) THEN master_slave
+ELSEIF ( gen_mpi_active ) THEN master_slave
    CALL run_mpi_slave     ! MPI slave, standalone never
    CALL run_mpi_finalize  ! Always end MPI, if slave is finished
 ELSE master_slave
@@ -127,7 +127,7 @@ ELSE master_slave
 ENDIF master_slave
 !
 IF ( lend ) THEN
-   IF( run_mpi_myid == master .and. run_mpi_active ) THEN
+   IF( gen_mpi_myid == master .and. gen_mpi_active ) THEN
 CONTINUE
       CALL run_mpi_finalize
    ENDIF

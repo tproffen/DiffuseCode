@@ -11,7 +11,7 @@ USE diffev_allocate_appl
 USE diffev_blk_appl
 USE constraint
 USE population
-USE run_mpi_mod
+USE gen_mpi_mod
 !
 USE appl_env_mod
 USE cmdline_args_mod
@@ -57,7 +57,7 @@ IF(standalone) CALL init_sysarrays
 !                                                                       
 !     get envirmonment information                                      
 !                                                                       
-CALL appl_env (lstandalone, run_mpi_myid)
+CALL appl_env (lstandalone, gen_mpi_myid)
 !                                                                       
 !------ Write starting screen                                           
 !                                                                       
@@ -70,7 +70,7 @@ IF(standalone) THEN
       is_debug = '             '
    ENDIF
    WRITE ( *, 1000) version, is_debug, cdate
-   CALL write_appl_env (lstandalone, run_mpi_myid)
+   CALL write_appl_env (lstandalone, gen_mpi_myid)
 ENDIF
 !                                                                       
 !     try to read default file                                          
@@ -89,7 +89,7 @@ ENDIF
 !                                                                       
 !     Check for command line parameters                                 
 !                                                                       
-IF(standalone) CALL cmdline_args(run_mpi_myid)
+IF(standalone) CALL cmdline_args(gen_mpi_myid)
 !
 lsetup_done = .true.
 !                                                                       

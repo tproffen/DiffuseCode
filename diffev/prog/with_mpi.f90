@@ -25,10 +25,11 @@ SUBROUTINE run_mpi_init
 !
 USE mpi
 USE run_mpi_mod
-USE population
+!
 USE times_mod
 !
 USE errlist_mod
+USE gen_mpi_mod
 USE mpi_slave_mod
 USE prompt_mod
 USE variable_mod
@@ -40,8 +41,22 @@ INTEGER                        :: run_mpi_logical_extent
 INTEGER                        :: run_mpi_charact_extent
 INTEGER                        :: run_mpi_real_extent
 !
+!                                      Make a local data type to identify node names
+INTEGER, PARAMETER       :: GEN_MPI_COUNT_INTEGER   =   1
+INTEGER, PARAMETER       :: GEN_MPI_COUNT_CHARACTER =   1
+TYPE gen_mpi_type                      ! 
+   INTEGER               :: node_l     !  
+   CHARACTER (LEN=240)   :: node_name  ! 
+END TYPE gen_mpi_type
+TYPE ( gen_mpi_type)     :: gen_mpi_senddata
+INTEGER                  :: gen_sdl_length
+INTEGER, DIMENSION(0:4)  :: gen_mpi_oldtypes
+INTEGER, DIMENSION(0:4)  :: gen_mpi_blockcounts
+INTEGER, DIMENSION(0:4)  :: gen_mpi_offsets
+INTEGER                  :: gen_mpi_data_type
+!
 CHARACTER (LEN=MPI_MAX_PROCESSOR_NAME) :: node_name   = ' '
-INTEGER, DIMENSION(1:MPI_STATUS_SIZE) :: run_mpi_status
+INTEGER, DIMENSION(1:MPI_STATUS_SIZE)  :: gen_mpi_status
 INTEGER               :: sender        ! Id of slave that answered
 INTEGER               :: local_id      ! BUG Patch MPI_ID messy with structure
 INTEGER               :: i, j
@@ -59,9 +74,9 @@ IF ( ier_num /= 0 ) THEN
    RETURN
 ENDIF 
 !
-!  Get the rank of this process store in run_mpi_myid
+!  Get the rank of this process, store in gen_mpi_myid
 !
-CALL MPI_COMM_RANK (MPI_COMM_WORLD, run_mpi_myid,     ier_num)
+CALL MPI_COMM_RANK (MPI_COMM_WORLD, gen_mpi_myid,     ier_num)
 !
 IF ( ier_num /= 0 ) THEN
    ier_msg(1) = 'MPI SYSTEM did not return RANK'
@@ -71,9 +86,9 @@ IF ( ier_num /= 0 ) THEN
    RETURN
 ENDIF 
 !
-!  Get the size of the distribution, store in run_mpi_numprocs
+!  Get the size of the distribution, store in gen_mpi_numprocs
 !
-CALL MPI_COMM_SIZE (MPI_COMM_WORLD, run_mpi_numprocs, ier_num)
+CALL MPI_COMM_SIZE (MPI_COMM_WORLD, gen_mpi_numprocs, ier_num)
 !
 IF ( ier_num /= 0 ) THEN
    ier_msg(1) = 'MPI SYSTEM did not return SIZE'
@@ -82,7 +97,7 @@ IF ( ier_num /= 0 ) THEN
    ier_typ = ER_APPL
    RETURN
 ENDIF
-IF ( run_mpi_numprocs < 2 ) THEN
+IF ( gen_mpi_numprocs < 2 ) THEN
 !  ier_msg(1) = 'MPI SYSTEM returned one CPU   '
 !  ier_msg(2) = 'DIFFEV must be started with   '
 !  ier_msg(3) = 'mpiexec -n X diffev; x >= 2   '
@@ -100,6 +115,23 @@ CALL MPI_TYPE_EXTENT ( MPI_INTEGER,   run_mpi_integer_extent, ier_num )
 CALL MPI_TYPE_EXTENT ( MPI_LOGICAL,   run_mpi_logical_extent, ier_num )
 CALL MPI_TYPE_EXTENT ( MPI_CHARACTER, run_mpi_charact_extent, ier_num )
 CALL MPI_TYPE_EXTENT ( MPI_REAL     , run_mpi_real_extent   , ier_num )
+!
+! Build a local mpi data structure, just to get node names
+!
+gen_mpi_offsets(0)     = 0
+gen_mpi_oldtypes(0)    = MPI_INTEGER
+gen_mpi_blockcounts(0) = GEN_MPI_COUNT_INTEGER*run_mpi_integer_extent
+!
+gen_mpi_offsets(1)     = gen_mpi_offsets(0) +  run_mpi_integer_extent*GEN_MPI_COUNT_INTEGER
+gen_mpi_oldtypes(1)    = MPI_CHARACTER
+gen_mpi_blockcounts(1) = GEN_MPI_COUNT_CHARACTER*run_mpi_charact_extent
+!
+CALL MPI_TYPE_STRUCT ( 2, gen_mpi_blockcounts, gen_mpi_offsets,  &
+     gen_mpi_oldtypes, gen_mpi_data_type, ier_num )
+CALL MPI_TYPE_COMMIT ( gen_mpi_data_type, ier_num)
+!
+!
+! For future use with MPI_TYPE_...
 !
 run_mpi_offsets(0)     = 0
 run_mpi_oldtypes(0)    = MPI_INTEGER
@@ -124,11 +156,11 @@ run_mpi_blockcounts(4) = RUN_MPI_COUNT_TRIAL  *run_mpi_real_extent
 CALL MPI_TYPE_STRUCT ( 5, run_mpi_blockcounts, run_mpi_offsets,  &
      run_mpi_oldtypes, run_mpi_data_type, ier_num )
 CALL MPI_TYPE_COMMIT ( run_mpi_data_type, ier_num)
-!write(*,*) '############## data type , myid', run_mpi_data_type,run_mpi_myid, ier_num
+!write(*,*) '############## data type , myid', run_mpi_data_type,gen_mpi_myid, ier_num
 !
 !WRITE(*,4000)
 !
-run_mpi_active = .true.
+gen_mpi_active = .true.
 !
 socket_status = PROMPT_OFF  ! Turn off socket responses
 !
@@ -136,35 +168,29 @@ mpi_active = .true.
 !
 !  Build a list of nodes, node names, and assignment of the processes onto these nodes
 !
-local_id = run_mpi_myid
-IF(run_mpi_myid==0)  THEN  !   MASTER
+local_id = gen_mpi_myid
+IF(gen_mpi_myid==0)  THEN  !   MASTER
    IF(ALLOCATED(node_names)) DEALLOCATE(node_names)
-!  IF(ALLOCATED(node_names)) DEALLOCATE(slave_on_node)
    IF(ALLOCATED(node_names)) DEALLOCATE(slave_is_node)
-!  IF(ALLOCATED(node_names)) DEALLOCATE(slave_per_node)
-   ALLOCATE(node_names    (1:run_mpi_numprocs))
-!  ALLOCATE(slave_on_node (1:run_mpi_numprocs))
-   ALLOCATE(slave_is_node (1:run_mpi_numprocs))
-!  ALLOCATE(slave_per_node(1:run_mpi_numprocs))
+   ALLOCATE(node_names    (1:gen_mpi_numprocs))
+   ALLOCATE(slave_is_node (1:gen_mpi_numprocs))
    node_names    (:) = ' '
-!  slave_on_node (:) = ' '
    slave_is_node (:) = -1
-!  slave_per_node(:) = 0
    NUM_NODE = 0
-   sdl_length = 1! 580! + 200
-   DO i=1, run_mpi_numprocs-1
-      run_mpi_senddata%kid = -i
-      CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, i, &
+   gen_sdl_length = 1
+   DO i=1, gen_mpi_numprocs-1
+!
+      CALL MPI_SEND ( gen_mpi_senddata, 1, gen_mpi_data_type, i, i, &
                       MPI_COMM_WORLD, ier_num )
    ENDDO
-   DO i=1, run_mpi_numprocs-1
-      CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
-                      MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
-      run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
-      sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
+   DO i=1, gen_mpi_numprocs-1
+      CALL MPI_RECV ( gen_mpi_senddata, 1, gen_mpi_data_type, MPI_ANY_SOURCE, &
+                      MPI_ANY_TAG, MPI_COMM_WORLD, gen_mpi_status, ier_num )
+      gen_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+      sender = gen_mpi_status(MPI_SOURCE)     ! Identify the slave
       success = .FALSE.
       search: DO j=1,NUM_NODE
-         IF(run_mpi_senddata%direc == node_names(j)) THEN
+         IF(gen_mpi_senddata%node_name == node_names(j)) THEN
             success = .TRUE.
             slave_is_node(sender) = j
 !           slave_per_node(j)     = slave_per_node(j) + 1
@@ -173,26 +199,26 @@ IF(run_mpi_myid==0)  THEN  !   MASTER
       ENDDO search
       IF(.NOT.success) THEN
          NUM_NODE = NUM_NODE + 1
-         node_names(NUM_NODE) = run_mpi_senddata%direc(1:run_mpi_senddata%direc_l)
+         node_names(NUM_NODE) = gen_mpi_senddata%node_name(1:gen_mpi_senddata%node_l)
          slave_is_node(sender) = NUM_NODE
       ENDIF
    ENDDO
    var_val(VAR_NUM_NODES) = NUM_NODE
 !
 ELSE
-   CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ierr) ! Querry incomming size
-   CALL MPI_GET_COUNT(run_mpi_status, run_mpi_data_type, sdl_length, ierr)                  ! Determine size
+   CALL MPI_PROBE( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, gen_mpi_status, ierr) ! Querry incomming size
+   CALL MPI_GET_COUNT(gen_mpi_status, gen_mpi_data_type, gen_sdl_length, ierr)                  ! Determine size
 !
 !  Now receive incomming message
 !
-   CALL MPI_RECV ( run_mpi_senddata, sdl_length, run_mpi_data_type, MPI_ANY_SOURCE, &
-                   MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
-   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+   CALL MPI_RECV ( gen_mpi_senddata, gen_sdl_length, gen_mpi_data_type, MPI_ANY_SOURCE, &
+                   MPI_ANY_TAG, MPI_COMM_WORLD, gen_mpi_status, ier_num )
+   gen_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
    CALL MPI_GET_PROCESSOR_NAME ( node_name, length, ier_num)
-   run_mpi_senddata%direc   = node_name(1:MIN(LEN(run_mpi_senddata%direc),LEN_TRIM(node_name)))
-   run_mpi_senddata%direc_l = length
+   gen_mpi_senddata%node_name  = node_name(1:MIN(LEN(gen_mpi_senddata%node_name),LEN_TRIM(node_name)))
+   gen_mpi_senddata%node_l     = length
 
-   CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, 0, 0, &
+   CALL MPI_SEND ( gen_mpi_senddata, 1, gen_mpi_data_type, 0, 0, &
                    MPI_COMM_WORLD, ier_num )
    var_val(VAR_NUM_NODES) = 0
 ENDIF
@@ -206,7 +232,7 @@ END SUBROUTINE run_mpi_init
 SUBROUTINE run_mpi_master 
 !
 !  Main routine of the distribution. packs the relevant parameters and
-!  sends them to run_mpi_numprocs -1 slaves
+!  sends them to gen_mpi_numprocs -1 slaves
 !
 USE diffev_allocate_appl
 USE diffev_random
@@ -214,6 +240,7 @@ USE diffev_distrib_mod
 USE mpi
 USE population
 USE run_mpi_mod
+USE gen_mpi_mod
 USE errlist_mod
 USE prompt_mod
 !
@@ -241,7 +268,7 @@ INTEGER               :: num_hand = 0  ! Number of loops handing out jobs
 INTEGER               :: numrec   = 0  ! Number of RJobs received
 INTEGER               :: numtasks = 0  ! Number of loops handing out jobs
 !
-local_id = run_mpi_myid  ! BUG PATCH MPI_ID gets messed up be receive with structure
+local_id = gen_mpi_myid  ! BUG PATCH MPI_ID gets messed up be receive with structure
 !
 sdl_length = 1 !580! + 200
 !
@@ -264,7 +291,7 @@ IF (run_mpi_senddata%use_socket) THEN
    IF(.NOT. prog_exist) THEN                    ! New program to be started by slaves
       IF(run_mpi_nprog==RUN_MPI_MAXPROG) THEN   ! Need more space
          nprog = RUN_MPI_MAXPROG + 2            ! increment by two programs
-         CALL alloc_socket_nprogs ( nprog, run_mpi_numprocs)
+         CALL alloc_socket_nprogs ( nprog, gen_mpi_numprocs)
       ELSE                                      ! Sufficient space
          run_mpi_nprog = run_mpi_nprog + 1      ! Increment no of known prog/mac entries
          prog_entry(run_mpi_nprog) = run_mpi_senddata%prog(1:run_mpi_senddata%prog_l) &
@@ -334,10 +361,10 @@ node_finished(:) = .FALSE.
 !
 run_mpi_numsent = 0                             ! No jobs sent yet
 IF(run_mpi_senddata%repeat) THEN
-   run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
+   run_mpi_numjobs = MIN ( gen_mpi_numprocs - 1, pop_c * run_mpi_senddata%nindiv )
    numtasks = pop_c * run_mpi_senddata%nindiv
 ELSE
-   run_mpi_numjobs = MIN ( run_mpi_numprocs - 1, pop_c                           )
+   run_mpi_numjobs = MIN ( gen_mpi_numprocs - 1, pop_c                           )
    numtasks = pop_c
 ENDIF
 !
@@ -381,7 +408,7 @@ initial:DO                                           !  Start the intial jobs
    ENDIF
    IF(run_mpi_senddata%kid> 0) THEN   ! Proper assignment start the job
       IF(run_mpi_senddata%prog_start) THEN     ! Program needs to be started, increment port no
-         run_mpi_senddata%port     = 2000 + MOD(run_mpi_numprocs*run_mpi_senddata%prog_num + slave,3600)
+         run_mpi_senddata%port     = 2000 + MOD(gen_mpi_numprocs*run_mpi_senddata%prog_num + slave,3600)
       ELSE                                     ! Program is running use old port no
          run_mpi_senddata%port     = port_id  (run_mpi_senddata%prog_num,slave)
       ENDIF
@@ -397,7 +424,7 @@ initial:DO                                           !  Start the intial jobs
       run_mpi_numsent = run_mpi_numsent + 1
 !
       slave = slave + 1
-      IF(run_mpi_numsent >  run_mpi_numjobs .OR. slave > run_mpi_numprocs-1) EXIT initial
+      IF(run_mpi_numsent >  run_mpi_numjobs .OR. slave > gen_mpi_numprocs-1) EXIT initial
    ENDIF
    IF(run_mpi_numsent == numtasks) EXIT initial
 ENDDO initial
@@ -409,7 +436,7 @@ numrec   = 0
 rec_hand: DO   ! i = 1, num_hand
    CALL MPI_RECV ( run_mpi_senddata, 1, run_mpi_data_type, MPI_ANY_SOURCE, &
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
-   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+   gen_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
    numrec = numrec + 1
 !
@@ -489,7 +516,7 @@ IF(ier_num == -26) THEN   ! Fatal error occured, wait for remaining jobs
    ENDDO
    ier_num = -26 ! Reinstate the error message
 ENDIF
-run_mpi_myid = local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+gen_mpi_myid = local_id  ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 !------       --End of loop over all kids in the population
 !
@@ -510,6 +537,7 @@ USE mpi
 USE run_mpi_mod
 USE diffev_setup_mod
 !
+USE gen_mpi_mod
 USE set_sub_generic_mod
 USE errlist_mod
 USE mpi_slave_mod
@@ -544,7 +572,7 @@ INTEGER  :: local_id  ! BUG PATCH MPI_ID gets messed up by receive with structur
 !
 ierr = 0
 !
-local_id = run_mpi_myid ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+local_id = gen_mpi_myid ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
 ! Infinite loop, as long as new jobs come in, terminated my TAG=0
 !
@@ -556,7 +584,7 @@ slave: DO
 !
    CALL MPI_RECV ( run_mpi_senddata, sdl_length, run_mpi_data_type, MPI_ANY_SOURCE, &
                    MPI_ANY_TAG, MPI_COMM_WORLD, run_mpi_status, ier_num )
-   run_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
+   gen_mpi_myid = local_id ! BUG PATCH MPI_ID gets messed up by receive with structure?????
 !
    s_remote = run_mpi_senddata%s_remote
    port     = run_mpi_senddata%port
@@ -589,7 +617,7 @@ slave: DO
       ELSE out_null                                          ! redirect to a log file
          out_socket: IF ( run_mpi_senddata%use_socket ) THEN ! SOCKET option is active
                WRITE(output,1100) run_mpi_senddata%out(1:run_mpi_senddata%out_l),&
-                             run_mpi_myid
+                             gen_mpi_myid
                output_l = run_mpi_senddata%out_l + 5
          ELSE out_socket                                     ! No socket active
             out_repeat:IF ( run_mpi_senddata%repeat ) THEN   ! call with kid AND indiv
@@ -643,7 +671,7 @@ slave: DO
          WRITE(line, 4010) 'port      ',port                        ! Current member size
          ierr = socket_send    (s_remote, line, 21)
          CALL   socket_wait
-         WRITE(line, 4010) 'myid      ',run_mpi_myid                ! Current member size
+         WRITE(line, 4010) 'myid      ',gen_mpi_myid                ! Current member size
          ierr = socket_send    (s_remote, line, 21)
          CALL   socket_wait
          WRITE(line, 4010) 'member    ',run_mpi_senddata%member     ! Current member size
@@ -734,7 +762,7 @@ slave: DO
                    MPI_COMM_WORLD, ier_num )
    ENDIF tag_exit
 ENDDO slave
-run_mpi_myid = local_id ! BUG PATCH MPI_ID gest messed up by receive with structure?????
+gen_mpi_myid = local_id ! BUG PATCH MPI_ID gest messed up by receive with structure?????
 !
 1000 FORMAT ( a,'.',i4.4,'.',i4.4)
 1100 FORMAT ( a,'.',i4.4)
@@ -754,7 +782,8 @@ RECURSIVE SUBROUTINE run_mpi_finalize
 !
 USE mpi
 USE run_mpi_mod
-USE population
+USE gen_mpi_mod
+!
 USE errlist_mod
 IMPLICIT none
 !
@@ -762,9 +791,9 @@ INTEGER :: i,j
 !
 !------       -- Send termination signal to all slave processes
 !
-IF ( run_mpi_myid == 0 ) THEN
+IF ( gen_mpi_myid == 0 ) THEN
    IF (run_mpi_senddata%use_socket) THEN   ! Closing down, socket variation
-         DO i = 1, run_mpi_numprocs - 1
+         DO i = 1, gen_mpi_numprocs - 1
       DO j=1,run_mpi_nprog
          IF(j==run_mpi_nprog) THEN   ! Last program to close, shutdown slave
             run_mpi_senddata%prog_num = -1
@@ -775,7 +804,7 @@ IF ( run_mpi_myid == 0 ) THEN
          ENDDO
       ENDDO
    ELSE                                     ! Closing down, system variation
-      DO i = 1, run_mpi_numprocs - 1
+      DO i = 1, gen_mpi_numprocs - 1
    CALL MPI_SEND ( run_mpi_senddata, 1, run_mpi_data_type, i, 0, &
                    MPI_COMM_WORLD, ier_num )
       ENDDO
@@ -785,7 +814,7 @@ ENDIF
 CALL MPI_FINALIZE ( ier_num )
 !
 IF(ALLOCATED(node_names)) DEALLOCATE(node_names)
-!IF(ALLOCATED(node_names)) DEALLOCATE(slave_on_node)
+!
 IF(ALLOCATED(node_names)) DEALLOCATE(slave_is_node)
 !
 END SUBROUTINE run_mpi_finalize
