@@ -2,7 +2,7 @@ MODULE suite_loop_mod
 !
 CONTAINS
 !
-SUBROUTINE suite_loop
+RECURSIVE SUBROUTINE suite_loop
 !                                                                       
 USE do_exit_mod
 USE doact_mod

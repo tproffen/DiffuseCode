@@ -13,6 +13,8 @@ USE discus_setup_mod
 USE discus_loop_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
+USE refine_setup_mod
+USE refine_loop_mod
 USE suite_init_mod
 USE suite_parallel_mod
 USE suite_setup_mod
@@ -204,6 +206,40 @@ ELSE
        pname  = 'suite'
        pname_cap = 'SUITE'
        prompt = pname
+       oprompt   = pname
+       var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
+       var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
+       CALL suite_set_sub
+       IF(ier_num == -9 .AND. ier_typ == 1) THEN
+          CALL program_files ()
+          ier_num = -9
+          ier_typ = ER_COMM
+       ELSE
+          CALL program_files ()
+       ENDIF
+!                                                                 
+!     -- branch to REFINE
+!
+   ELSEIF ((linteractive.OR.lblock.OR.lmakro) .AND. str_comp (befehl, 'refine', 3, lbef, 6) ) then
+       IF(suite_refine_init) then
+          pname     = 'refine'
+          pname_cap = 'REFINE'
+          prompt    = pname
+          oprompt   = pname
+          CALL program_files ()
+       ELSE
+         CALL refine_setup   (lstandalone)
+         suite_refine_init = .TRUE.
+       ENDIF
+       var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+       var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
+       CALL refine_set_sub ()
+       CALL suite_set_sub_branch
+       CALL refine_loop    ()
+       lend      = .false.
+       pname     = 'suite'
+       pname_cap = 'SUITE'
+       prompt    = pname
        oprompt   = pname
        var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
        var_val(VAR_PROGRAM) = var_val(VAR_SUITE)

@@ -4,6 +4,7 @@ USE suite_loop_mod
 USE suite_init_mod
 USE suite_set_sub_mod
 !
+USE refine_setup_mod
 USE kuplot_setup_mod
 USE fit_set_sub_mod
 !
@@ -78,6 +79,23 @@ ELSEIF(from_section=='kuplot') THEN    !Return to KUPLOT
    var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
    var_val(VAR_PROGRAM) = var_val(VAR_KUPLOT)
    CALL kuplot_set_sub ()
+   CALL suite_set_sub_branch
+ELSEIF(from_section=='refine_fit') THEN    !Return to KUPLOT
+!
+   IF(suite_refine_init) then
+      pname     = 'refine'
+      pname_cap = 'REFINE'
+      prompt    = pname
+      oprompt   = pname
+      CALL program_files ()
+   ELSE
+      CALL refine_setup   (lstandalone)
+      suite_refine_init = .TRUE.
+   ENDIF
+   var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
+   var_val(VAR_PROGRAM) = var_val(VAR_REFINE)
+   CALL refine_set_sub ()
+!  CALL fit_set_sub
    CALL suite_set_sub_branch
 ENDIF
 !
