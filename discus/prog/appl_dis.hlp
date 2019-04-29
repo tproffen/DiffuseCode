@@ -79,6 +79,10 @@
 
    Added an export option to write the structure in the format for 
    Scatty.
+
+   powder
+      Improved scaling of intensities to be independent of a
+      profile function.
 3  2019_Feb
 
    Implemented all alternative settings for the orthorhombic space
@@ -1592,8 +1596,11 @@
    Displays information about elements in the model crystal like 
    relative abundances of the elements. 'void' stands for a vacancy.
    The results (range 0..1 rather than %) are stored in the variable
-   res[<i>], with <i> the number of the atomtyp. The optional parameter
-   "on" or "off" controls if screen output is produced.
+   res[<i>+1], with <i> the number of the atomtyp. 
+   Entry res[0] give the number of atom types. 
+   Entry res[1] gives the relative number of VOIDS.   
+   The optional parameter "on" or "off" controls if screen 
+   output is produced.
 3  env
 !b env "atom",<ia>,<radius>
 !b env "site",<nx>,<ny>,<nz>,<site>,<radius>
