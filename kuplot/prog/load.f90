@@ -3377,6 +3377,8 @@ body: DO
    IF(nsec<ncol) EXIT body          ! Less sections than required columns
    ALLOCATE(limits(2,nsec))
    limits(:,:)    = 0
+   limits(1,1) = 1
+   limits(1,2) = 1
    limits(1,nsec) = 1
    limits(2,nsec) = length
    j = 1                            ! Determine the limits of each section
@@ -3391,8 +3393,12 @@ body: DO
 !  Check if we have something like ...;;... for a required column If so quit reading
    IF(limits(2,icolx)-limits(1,icolx)<0) EXIT body   ! Width is zero 
    IF(limits(2,icoly)-limits(1,icoly)<0) EXIT body   ! Width is zero 
-   IF(icoldx>0 .AND. limits(2,icoldx)-limits(1,icoldx)<0) EXIT body   ! Width is zero 
-   IF(icoldy>0 .AND. limits(2,icoldy)-limits(1,icoldy)<0) EXIT body   ! Width is zero 
+   IF(icoldx>0) THEN
+      IF( limits(2,icoldx)-limits(1,icoldx)<0) EXIT body   ! Width is zero 
+   ENDIF
+   IF(icoldy>0) THEN
+      IF( limits(2,icoldy)-limits(1,icoldy)<0) EXIT body   ! Width is zero 
+   ENDIF
 !
 !  Read data x, y, optionally dx, dy
    READ(line(limits(1,icolx):limits(2,icolx)),*,IOSTAT=ios) x (offxy (iz - 1) + nr)
