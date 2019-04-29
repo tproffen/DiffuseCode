@@ -738,7 +738,8 @@ real :: f, df(maxpara)
          .ne.'SQR'.and.cpara (1) (1:3) .ne.'ONE'.and.cpara (1) (1:3)    &
          .ne.'LIN'.and.cpara (1) (1:3) .ne.'SQA'.and.cpara (1) (1:3)    &
          .ne.'INV'.and.cpara (1) (1:3) .ne.'BCK'.and.cpara (1) (1:3)    &
-         .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT') then                  
+         .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'.and.cpara (1) (1:3)    &
+                   ) then                  
             ier_num = - 27 
             ier_typ = ER_APPL 
          ELSE 
@@ -888,7 +889,7 @@ real :: f, df(maxpara)
       ELSEIF (wtyp (1:3) .eq.'ISQ') then 
          wictyp = 'w(i) = 1.0/sqrt(i)' 
       ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
-         wictyp = 'w(i) = 1/dy(i) from data set' 
+         wictyp = 'w(i) = 1/(dy(i))^2 from data set' 
       ELSEIF (wtyp (1:3) .eq.'BCK') then 
          wictyp = 'w(i) = exp(-WVAL*(Fobs-Fcalc))' 
       ELSE 
@@ -1229,7 +1230,7 @@ real :: f, df(maxpara)
          ELSEIF (wtyp (1:3) .eq.'ISQ') then 
             wic = 1.0 / sqrt (aval) 
          ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
-            wic = 1.0 / sig 
+            wic = 1.0 / (sig *sig)
          ENDIF 
       ENDIF 
 !                                                                       
