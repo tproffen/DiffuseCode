@@ -912,7 +912,11 @@ IF (ier_num.ne.0) then
    RETURN
 ENDIF
 ofile = cpara (1)
-IF(ofile(lpara(1)-12:lpara(1)) /= '_atoms_01.txt') ofile = cpara (1) (1:lpara (1) ) //'_atoms_01.txt'
+IF(lpara(1)>13) THEN
+   IF(ofile(lpara(1)-12:lpara(1)) /= '_atoms_01.txt') ofile = cpara (1) (1:lpara (1) ) //'_atoms_01.txt'
+ELSE
+   ofile = cpara (1) (1:lpara (1) ) //'_atoms_01.txt'
+ENDIF
 CALL oeffne (IWR, ofile, 'unknown')
 IF (ier_num.ne.0) then
    CLOSE(IWR)
@@ -933,25 +937,27 @@ DO i=1, cr_ncatoms
 ENDDO
 !
 ia = cr_icc(1)*cr_icc(2)*cr_icc(3)
-line = 'OCC '
 DO i=1, cr_ncatoms
-   DO k=1, chem_ave_n(i)
+   line = 'OCC '
+   types: DO k=1, chem_ave_n(i)
       string = ' '
       at_name_i = cr_at_lis(chem_ave_iscat(i,k))
+      IF(at_name_i=='VOID') CYCLE types
       CALL do_cap(at_name_i(1:1))
-      CALL do_low(at_name_i(2:2))
+      CALL do_low(at_name_i(2:4))
       WRITE(string,'(a4,1x,f8.4)') at_name_i, chem_ave_bese(i,k)/FLOAT(ia)
       line = line(1:LEN_TRIM(line))// ' ' // string(1:11)
-   ENDDO
+   ENDDO types
    WRITE(IWR, '(a)') line(1:LEN_TRIM(line))
 ENDDO
 !
 ! Write atom list
 !
-DO i=1, cr_natoms
-   at_name_i = cr_at_lis(i)
+atoms: DO i=1, cr_natoms
+   at_name_i = cr_at_lis(cr_iscat(i))
+   IF(at_name_i=='VOID') CYCLE atoms
    CALL do_cap(at_name_i(1:1))
-   CALL do_low(at_name_i(2:2))
+   CALL do_low(at_name_i(2:4))
    icell = 0
    isite = 0
    CALL indextocell(i, icell, isite)
@@ -963,8 +969,8 @@ DO i=1, cr_natoms
    NINT((cr_pos(2,i) - chem_ave_pos(2,isite)))  ,&
         (cr_pos(3,i) - chem_ave_pos(3,isite))  - &
    NINT((cr_pos(3,i) - chem_ave_pos(3,isite))),  &
-   cr_at_lis(cr_iscat(i))
-ENDDO
+   at_name(1:4)
+ENDDO atoms
 !
 CLOSE(IWR)
 !
