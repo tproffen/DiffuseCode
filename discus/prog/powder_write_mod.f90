@@ -32,7 +32,8 @@ CONTAINS
       INTEGER   :: npkt        ! number of points in powder pattern
       INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
       INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
-      LOGICAL lread 
+      LOGICAL   :: lread 
+      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
       REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
@@ -53,6 +54,7 @@ CONTAINS
       REAL      ::   qmin  ! minimum for equdistant curve
       REAL      ::   qmax  ! minimum for equdistant curve
       REAL      :: arg
+      REAL      :: scalef  ! Correct effect of convolution
       REAL      :: pow_tmp_sum = 0.0
       REAL      :: pow_uuu_sum = 0.0
 !                                                                       
@@ -186,12 +188,19 @@ CONTAINS
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                                       
+!        Determine integral to scale after convolution
+         pow_tmp_sum = 0.0
+         DO j=1,npkt
+            pow_tmp_sum = pow_tmp_sum + pow_tmp(j)
+         ENDDO
+         lconv = .FALSE.
          IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
             IF (pow_delta.gt.0.0) THEN 
                xxmax = xmax + xdel
                CALL powder_conv_res (pow_tmp, xmin,xxmax, xdel,         &
                pow_delta, POW_MAXPKT)                                    
             ENDIF 
+            lconv = .TRUE.
          ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
            IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
                pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
@@ -205,9 +214,17 @@ CONTAINS
                CALL powder_conv_psvgt_fix (pow_tmp, xmin,xxmax, xdel,   &
                pow_eta, pow_w, pow_width, POW_MAXPKT)
             ENDIF 
+            lconv = .TRUE.
          ENDIF 
+         pow_uuu_sum = 0.0
+         do j=1,npkt
+            pow_uuu_sum = pow_uuu_sum + pow_tmp(j)
+         enddo
+         scalef = pow_tmp_sum/pow_uuu_sum
+         pow_tmp(:) = pow_tmp(:) * scalef
+         pow_tmp_sum = 0.0
+         pow_uuu_sum = 0.0
       ENDIF           ! Output is if_block if(value==9)
-!                                                                       
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
 !                                                                       
@@ -289,6 +306,7 @@ CONTAINS
 !
       IF(value == 7 .or. value == 8) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
+            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv) THEN
             pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
             pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
 !           jstart = MAX(1,2-int(xmin/xdel))            ! Exclude q = 0
@@ -299,7 +317,9 @@ CONTAINS
                pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q
             ENDDO
             normalizer = pow_tmp_sum/pow_uuu_sum
+            ELSE
             normalizer = REAL(pow_nreal)
+            ENDIF
 !
             IF(value == 7) THEN                         ! Calc S(Q)
                DO j = 1, npkt   
