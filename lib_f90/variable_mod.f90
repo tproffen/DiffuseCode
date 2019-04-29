@@ -27,16 +27,17 @@ MODULE variable_mod
    INTEGER, PARAMETER :: VAR_DISCUS    =  8
    INTEGER, PARAMETER :: VAR_DIFFEV    =  9
    INTEGER, PARAMETER :: VAR_KUPLOT    = 10
-   INTEGER, PARAMETER :: VAR_MPI_OFF   = 11
-   INTEGER, PARAMETER :: VAR_MPI_ON    = 12
-   INTEGER, PARAMETER :: VAR_PROGRAM   = 13
-   INTEGER, PARAMETER :: VAR_STATE     = 14
-   INTEGER, PARAMETER :: VAR_MPI_FIRST = 15
-   INTEGER, PARAMETER :: VAR_MPI       = 16
-   INTEGER, PARAMETER :: VAR_NUM_NODES = 17
-   INTEGER, PARAMETER :: VAR_FIT_VALUE = 18
-   INTEGER, PARAMETER :: VAR_SLOW      = 19
-   INTEGER, PARAMETER :: VAR_LOOP      = 20
+   INTEGER, PARAMETER :: VAR_REFINE    = 11
+   INTEGER, PARAMETER :: VAR_MPI_OFF   = 12
+   INTEGER, PARAMETER :: VAR_MPI_ON    = 13
+   INTEGER, PARAMETER :: VAR_PROGRAM   = 14
+   INTEGER, PARAMETER :: VAR_STATE     = 15
+   INTEGER, PARAMETER :: VAR_MPI_FIRST = 16
+   INTEGER, PARAMETER :: VAR_MPI       = 17
+   INTEGER, PARAMETER :: VAR_NUM_NODES = 18
+   INTEGER, PARAMETER :: VAR_FIT_VALUE = 19
+   INTEGER, PARAMETER :: VAR_SLOW      = 20
+   INTEGER, PARAMETER :: VAR_LOOP      = 21
 !
    INTEGER                                   :: var_num   = 0   ! Number of variables
    INTEGER                                   :: var_con   = 0   ! Number of internal constants
@@ -134,6 +135,14 @@ CONTAINS
 !
    i = VAR_KUPLOT
    var_name ( i) = 'KUPLOT'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
+   var_char ( i) = ' '
+   var_l    ( i) = 6
+   var_type ( i) = IS_INTE
+   var_diff ( i) = .FALSE.
+   var_val  ( i) = 3
+!
+   i = VAR_REFINE
+   var_name ( i) = 'REFINE'         ! A PROGRAM is 'SUITE', 'DISCUS', 'KUPLOT', 'DIFFEV'
    var_char ( i) = ' '
    var_l    ( i) = 6
    var_type ( i) = IS_INTE
