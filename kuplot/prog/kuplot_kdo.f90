@@ -363,7 +363,7 @@ SUBROUTINE kuplot_mache_kdo (line, lend, length) !, previous)
 !-------  Calculate the residual of two data sets                       
 !                                                                       
          ELSEIF (str_comp (bef, 'rval', 3, lbef, 4) ) then 
-            CALL do_rvalue (zei, lc) 
+            CALL do_rvalue (zei, lc, .TRUE.) 
 !                                                                       
 !-------  Setting plotting window                                       
 !                                                                       
