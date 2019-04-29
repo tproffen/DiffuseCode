@@ -9,11 +9,11 @@ USE kuplot_setup_mod
 USE diffev_setup_mod
 USE diffev_loop_mod
 USE diffev_mpi_mod
-USE run_mpi_mod
 !
 USE appl_env_mod
-USE prompt_mod
 USE envir_mod
+USE gen_mpi_mod
+USE prompt_mod
 USE variable_mod
 !                                                                       
 IMPLICIT none 
@@ -31,7 +31,7 @@ IMPLICIT none
 !
 INTEGER, PARAMETER :: master = 0 ! Master ID for MPI
 EXTERNAL :: suite_sigint
-run_mpi_myid      = 0
+gen_mpi_myid      = 0
 lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
@@ -42,7 +42,7 @@ CALL set_signal
 !CALL SIGNAL(2, -1)
 !CALL SIGNAL(2, suite_sigint)
 !
-IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
+IF(gen_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    CALL program_files ()
    CALL discus_setup   (lstandalone)
    CALL kuplot_setup   (lstandalone)
@@ -57,7 +57,7 @@ IF(run_mpi_myid /= master) THEN   !  "DIFFEV" slave, directly go to diffev
    prompt    = pname
    var_val(VAR_STATE)   = var_val(VAR_IS_SECTION)
    var_val(VAR_PROGRAM) = var_val(VAR_DIFFEV)
-   IF(run_mpi_active) THEN
+   IF(gen_mpi_active) THEN
       var_val(VAR_MPI)     = var_val(VAR_MPI_ON)
    ELSE
       var_val(VAR_MPI)     = var_val(VAR_MPI_OFF)
@@ -78,12 +78,12 @@ ELSE
    hlpfile_l = LEN(TRIM(hlpfile))
    var_val(VAR_STATE)   = var_val(VAR_IS_TOP)
    var_val(VAR_PROGRAM) = var_val(VAR_SUITE)
-   IF(run_mpi_active) THEN
+   IF(gen_mpi_active) THEN
       var_val(VAR_MPI)     = var_val(VAR_MPI_ON)
    ELSE
       var_val(VAR_MPI)     = var_val(VAR_MPI_OFF)
    ENDIF
-   IF(.NOT.run_mpi_active) THEN
+   IF(.NOT.gen_mpi_active) THEN
       CALL suite_set_sub_cost ()
    ENDIF
    CALL suite_loop      ! Perform the normal main loop
