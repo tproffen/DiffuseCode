@@ -34,7 +34,7 @@ INTEGER, PARAMETER :: MAXP = 5
 !
 CHARACTER(LEN=1024) :: string
 CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
-REAL               , DIMENSION(MAXP) :: werte
+!REAL               , DIMENSION(MAXP) :: werte
 INTEGER            , DIMENSION(MAXP) :: lpara
 INTEGER                              :: ianz
 !

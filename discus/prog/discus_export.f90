@@ -892,7 +892,7 @@ CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !
 INTEGER, PARAMETER :: IWR = 35
-LOGICAL, PARAMETER :: lold = .FALSE.
+!LOGICAL, PARAMETER :: lold = .FALSE.
 LOGICAL, PARAMETER :: lout = .FALSE.
 LOGICAL, PARAMETER :: lsite= .TRUE.
 !
@@ -900,11 +900,11 @@ CHARACTER(LEN=1024)      :: ofile = ' '
 CHARACTER(LEN=1024)      :: line  = ' '
 CHARACTER(LEN=1024)      :: string= ' '
 CHARACTER(LEN=   4)      :: at_name_i = ' '
-INTEGER                  :: lp
+!INTEGER                  :: lp
 INTEGER                  :: i, k, ia
 INTEGER                  :: isite
 INTEGER, DIMENSION(3)    :: icell
-INTEGER                  :: nscat
+!INTEGER                  :: nscat
 REAL   , DIMENSION(MAXW) :: werte
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
