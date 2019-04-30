@@ -74,7 +74,7 @@ ALLOCATE(refine_cl(refine_par_n, refine_par_n))
 !
 ! Call main refinement routine
 !
-CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles,                      &
+CALL refine_mrq(REF_MAXPARAM, refine_par_n, refine_cycles, ref_kupl,            &
                 refine_params, ref_dim, ref_data, ref_weight, ref_x, ref_y,     &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
                 refine_chisqr, refine_conf, refine_lamda, refine_rval,          &
@@ -112,6 +112,7 @@ END SUBROUTINE refine_run
 SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
                          prange,  &
                          data_dim, data_data, data_weight, data_x, data_y, &
+                         kupl_last, &
                          f, df, LDERIV)
 !
 ! Calculates the "theoretical" value through the user macro
@@ -139,6 +140,7 @@ REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data 
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
 REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: f       ! Function value at (ix,iy)
 REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: df      ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
@@ -146,8 +148,10 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 REAL, PARAMETER      :: SCALEF = 0.05 ! Scalefactor for parameter modification 0.01 is good?
 !
 INTEGER              :: k, iix, iiy   ! Dummy loop variable
+INTEGER              :: nder          ! Numper of points for derivative
 REAL                 :: delta         ! Shift to calculate derivatives
 REAL                 :: p_d           ! Shifted  parameter
+REAL, DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
 REAL, DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
 REAL, DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
 REAL, DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
@@ -159,36 +163,44 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
    DO k=1, NPARA                      ! Update user defined parameter variables
       CALL refine_set_param(NPARA, par_names(k), k, p(k))
    ENDDO 
-   CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, par_names, p, &
+   CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                      data_dim, refine_calc)
-!write(*,*) ' DID REFINE_MACRO MAIN', ier_num, ier_typ, refine_calc(1,1), ref_dim
+!
    IF(ier_num /= 0) RETURN
 !
 !  Loop over all parameters to derive derivatives
 !
    IF(LDERIV) THEN
       DO k=1, NPARA
+         nder = 1                     ! First point is at P(k)
+         dvec(2) = 0.0
+         dvec(3) = 0.0
+         dvec(1) = p(k)               ! Store parameter value
          IF(p(k)/=0.0) THEN
-            delta = p(k)*SCALEF       ! A multiplacive varaition of the parameter seems best
+            delta = p(k)*SCALEF       ! A multiplicative varition of the parameter seems best
          ELSE
             delta = 0.010
          ENDIF
 !                                     ! Test at P + DELTA
-         IF(prange(k,1)<=prange(k,2)) THEN
+         IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
             p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+delta))
          ELSE
             p_d     = p(k) + delta
          ENDIF
 !        p_d = p(k) + delta
-         CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
-         CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, par_names, p, &
-                           data_dim, refine_temp)
-         IF(ier_num /= 0) RETURN
-         DO iiy=1, data_dim(2)
-            DO iix=1, data_dim(1)
-               refine_derivs(iix,iiy,k) =  refine_temp(iix,iiy)
+         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+            nder = nder + 1
+            dvec(2) = p_d            ! Store parameter value at P+DELTA
+            CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                              data_dim, refine_temp)
+            IF(ier_num /= 0) RETURN
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
+                  refine_derivs(iix,iiy,k) =  refine_temp(iix,iiy)
+               ENDDO
             ENDDO
-         ENDDO
+         ENDIF
 !                                     ! Test at P - DELTA
          IF(prange(k,1)<=prange(k,2)) THEN
             p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-delta))
@@ -196,36 +208,65 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
             p_d     = p(k) - delta
          ENDIF
 !        p_d = p(k) - delta
-         CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
-         CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, par_names, p, &
-                           data_dim, refine_temp)
-         IF(ier_num /= 0) RETURN
+         IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
+            nder = nder + 1
+            dvec(3) = p_d            ! Store parameter value at P-DELTA
+            CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+            CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+                              data_dim, refine_temp)
+            IF(ier_num /= 0) RETURN
 !
+         ENDIF
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
-         DO iiy=1, data_dim(2)
-            DO iix=1, data_dim(1)
 !
-!           Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
-               yvec(1) = refine_calc  (iix, iiy)
-               yvec(2) = refine_derivs(iix, iiy,k)
-               yvec(3) = refine_temp  (iix, iiy)
-               xmat(:,1) =  1.0
-               xmat(1,2) =  p(k)
-               xmat(2,2) =  p(k) + delta
-               xmat(3,2) =  p(k) - delta
-               xmat(1,3) = (p(k)        ) **2
-               xmat(2,3) = (p(k) + delta) **2
-               xmat(3,3) = (p(k) - delta) **2
-               CALL matinv3(xmat, imat)
-               avec = MATMUL(imat, yvec)
+         IF(nder==3) THEN             ! Got all three points for derivative
+            DO iiy=1, data_dim(2)
+               DO iix=1, data_dim(1)
 !
-               refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
+!              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
+                  yvec(1) = refine_calc  (iix, iiy)
+                  yvec(2) = refine_derivs(iix, iiy,k)
+                  yvec(3) = refine_temp  (iix, iiy)
+                  xmat(:,1) =  1.0
+                  xmat(1,2) =  dvec(1) !p(k)
+                  xmat(2,2) =  dvec(2) !p(k) + delta
+                  xmat(3,2) =  dvec(3) !p(k) - delta
+                  xmat(1,3) = (dvec(1))**2 !(p(k)        ) **2
+                  xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
+                  xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
+                  CALL matinv3(xmat, imat)
+                  avec = MATMUL(imat, yvec)
+!
+                  refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
+               ENDDO
             ENDDO
-         ENDDO
-!write(*,*) ' DID REFINE_MACRO DERIV ', k, '  ',ier_num, ier_typ
+         ELSEIF(nder==2) THEN
+            IF(dvec(2)==0) THEN          ! P + Delta failed
+               DO iiy=1, data_dim(2)
+                  DO iix=1, data_dim(1)
+                     refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
+                                                  (dvec(3)-dvec(1))
+                  ENDDO
+               ENDDO
+            ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
+               DO iiy=1, data_dim(2)
+                  DO iix=1, data_dim(1)
+                     refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
+                                                  (dvec(2)-dvec(1))
+                  ENDDO
+               ENDDO
+            ENDIF
+!
+         ELSE
+            ier_num = -6
+            ier_typ = ER_APPL
+            ier_msg(1) = par_names(k)
+            RETURN
+         ENDIF
+!
       ENDDO
    ENDIF
-!write(*,*) ' macro DONE ', refine_calc(1,1), refine_derivs(1,1,:)
+!
 ENDIF
 !
 f = refine_calc(ix, iy)           ! Function value to be returned
@@ -239,7 +280,7 @@ END SUBROUTINE refine_theory
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, refine_params, p, &
+SUBROUTINE refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, refine_params, p, &
                         dimen, array)
 !
 !   Runs the user defined macro to calculate the cost value
@@ -260,6 +301,7 @@ INTEGER                           , INTENT(IN)    :: MAXP          ! Parameter a
 CHARACTER(LEN=*)                  , INTENT(INOUT) :: refine_mac    ! Macro name
 INTEGER                           , INTENT(INOUT) :: refine_mac_l  ! length of macro name
 INTEGER                           , INTENT(IN)    :: NPARA         ! Nmber of parameters
+INTEGER                           , INTENT(IN)    :: kupl_last     ! Last dat set needed in KUPLOT
 CHARACTER(LEN=*), DIMENSION(MAXP ), INTENT(IN)    :: refine_params ! parameter names
 REAL            , DIMENSION(MAXP ), INTENT(IN)    :: p             ! parameter values
 INTEGER         , DIMENSION(2    ), INTENT(IN)    :: dimen         ! Data array dimensions
@@ -288,6 +330,7 @@ END INTERFACE
 CALL file_kdo(refine_mac, refine_mac_l)
 lmacro_close = .FALSE.       ! Do not close macros in do-loops, return instead
 !
+CALL refine_kupl_last(kupl_last)   ! Set last data set needed in KUPLOT
 !                            ! Turn off output
 lturn_off = .true.
 !lturn_off = .false.
@@ -343,6 +386,20 @@ IF(ier_number /= 0) THEN    ! If necessary restore error status
 ENDIF
 !
 END SUBROUTINE refine_macro
+!
+!*******************************************************************************
+!
+SUBROUTINE refine_kupl_last(kupl_last)   ! Set last data set needed in KUPLOT
+!
+USE kuplot_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: kupl_last     ! Last dat set needed in KUPLOT
+!
+iz = kupl_last + 1
+!
+END SUBROUTINE refine_kupl_last
 !
 !*******************************************************************************
 !
@@ -403,7 +460,7 @@ END SUBROUTINE refine_load_calc
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_mrq(MAXP, NPARA, ncycle,       par_names, data_dim, &
+SUBROUTINE refine_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
 data_data, data_weight, data_x, data_y, &
                 conv_dp_sig, conv_dchi2, conv_chi2, conv_conf, lconvergence,    &
 chisq, conf, lamda_fin, rval, rexp, p, prange, dp, cl)
@@ -424,8 +481,9 @@ USE prompt_mod
 IMPLICIT NONE
 !
 INTEGER                                              , INTENT(IN)  :: MAXP        ! Parameter array size
-INTEGER                                              , INTENT(IN)  :: NPARA       ! ANumber of parameters
+INTEGER                                              , INTENT(IN)  :: NPARA       ! Number of parameters
 INTEGER                                              , INTENT(IN)  :: ncycle      ! maximum cycle number
+INTEGER                                              , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names   ! Parameter names
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim    ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
@@ -444,7 +502,7 @@ REAL                                                 , INTENT(OUT) :: rval      
 REAL                                                 , INTENT(OUT) :: rexp        ! Expected R-value
 !
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: p         ! Parameter array
-REAL            , DIMENSION(MAXP,2)                  , INTENT(INOUT) :: prange    ! Parameter arange
+REAL            , DIMENSION(MAXP,2)                  , INTENT(INOUT) :: prange    ! Parameter range
 REAL            , DIMENSION(MAXP)                    , INTENT(INOUT) :: dp        ! Parameter sigmas
 REAL            , DIMENSION(NPARA, NPARA)            , INTENT(INOUT) :: cl        ! Covariance matrix
 !
@@ -500,7 +558,7 @@ ALLOCATE(last_p(0:2,NPARA))
 last_p(2,:) = p(1:NPARA)
 prev_i = 2
 !
-WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-F)   MAX(dP/sig)   Conf',&
+WRITE(output_io,'(a,10x,a,7x,a,6x,a)') 'Cyc Chi^2/(N-P)   MAX(dP/sig)   Conf',&
                                        'Lambda', 'wRvalue', 'Rexp'
 !
 lconvergence = .FALSE.
@@ -508,7 +566,7 @@ icyc = 0
 cycles:DO
 !write(*,*) ' data_weight', data_weight(1,1), data_weight(data_dim(1),data_dim(2)), MINVAL(data_weight), MAXVAL(data_weight)
    CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
-               par_names, prange, cl, alpha, beta, chisq, alamda)
+               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
    IF(ier_num/=0) EXIT cycles
    CALL refine_rvalue(rval, rexp, NPARA)
    shift = -1.0                                             ! Set parameter shift / sigma to negative
@@ -560,7 +618,7 @@ IF(ier_num==0) THEN
    alamda = 0.0
 !
    CALL mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, p, NPARA, &
-               par_names, prange, cl, alpha, beta, chisq, alamda)
+               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
    CALL refine_rvalue(rval, rexp, NPARA)
    CALL refine_best(rval)                                              ! Write best macro
    DO k = 1, NPARA
@@ -579,7 +637,7 @@ END SUBROUTINE refine_mrq
 !
 SUBROUTINE mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, NPARA, &
     par_names, &
-    prange, covar, alpha, beta, chisq, alamda)
+    prange, kupl_last, covar, alpha, beta, chisq, alamda)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
 !  p 526
@@ -589,7 +647,7 @@ USE gaussj_mod
 !
 IMPLICIT NONE
 !
-INTEGER                                             , INTENT(IN)    :: MAXP
+INTEGER                                             , INTENT(IN)    :: MAXP        ! Array size for parameters
 INTEGER         , DIMENSION(2)                      , INTENT(IN)    :: data_dim    ! no of ata points along x, y
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_data   ! Data values
 REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(IN)    :: data_weight ! Data sigmas
@@ -597,6 +655,7 @@ REAL            , DIMENSION(data_dim(1)           ) , INTENT(IN)    :: data_x   
 REAL            , DIMENSION(data_dim(2)           ) , INTENT(IN)    :: data_y      ! Actual y-coordinates
 INTEGER                                             , INTENT(IN)    :: NPARA       ! number of parameters
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange      ! Allowed parameter range
+INTEGER                                             , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(MAXP)                   , INTENT(INOUT) :: a           ! Parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: par_names   ! Parameter names
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT)   :: covar       ! Covariance matrix
@@ -618,7 +677,7 @@ ochisq = chisq
 IF(alamda < 0) THEN                   ! Initialization
    alamda = 0.001
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
-               NPARA, par_names, prange, alpha, beta, &
+               NPARA, par_names, prange, kupl_last, alpha, beta, &
                chisq, LDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
@@ -641,16 +700,10 @@ DO j=1, NPARA
    da(j) = beta(j)
 ENDDO
 !
-!!write(*,*) 'COVAR ', covar(1,:), ' : ',da(1)
-!!write(*,*) 'COVAR ', covar(2,:), ' : ',da(2)
-!!write(*,*) 'COVAR ', covar(3,:), ' : ',da(3)
 CALL gausj(NPARA, covar, da)
 IF(ier_num/=0) THEN
    RETURN
 ENDIF
-!!write(*,*) 'COVAR ', covar(1,:), ' : ',da(1)
-!!write(*,*) 'COVAR ', covar(2,:), ' : ',da(2)
-!!write(*,*) 'COVAR ', covar(3,:), ' : ',da(3)
 !
 IF(alamda==0) THEN
 !
@@ -658,7 +711,7 @@ IF(alamda==0) THEN
 !
    cl(:,:) = covar(:,:)       ! Back up of covariance
    CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, a, &
-               NPARA, par_names, prange, covar, da, chisq, NDERIV) !, funcs)
+               NPARA, par_names, prange, kupl_last, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
@@ -667,10 +720,6 @@ IF(alamda==0) THEN
 ENDIF
 !
 DO j=1,NPARA
-!write(*,*) ' LIMIT ', j, da(j), SIGN(TUNE*ABS(a(j)), da(j)), SIGN(MIN(TUNE*ABS(a(j)),ABS(da(j))), da(j))
-!    IF(ABS(da(j)) > TUNE*ABS(a(j))) THEN
-!       da(j) = SIGN(MIN(TUNE*ABS(a(j)),ABS(da(j))), da(j))
-!    ENDIF
    IF(prange(j,1)<=prange(j,2)) THEN
       atry(j) = MIN(prange(j,2),MAX(prange(j,1),a(j)+da(j)))
    ELSE
@@ -679,7 +728,7 @@ DO j=1,NPARA
 ENDDO
 !
 CALL mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, atry, &
-            NPARA, par_names, prange, covar, da, chisq, LDERIV) !, funcs)
+            NPARA, par_names, prange, kupl_last, covar, da, chisq, LDERIV) !, funcs)
 IF(ier_num/=0) THEN
    RETURN
 ENDIF
@@ -705,7 +754,7 @@ END SUBROUTINE mrqmin
 !*******************************************************************************
 !
 SUBROUTINE mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y, &
-                  params, NPARA, par_names, prange, alpha, beta, chisq, LDERIV)
+                  params, NPARA, par_names, prange, kupl_last, alpha, beta, chisq, LDERIV)
 !
 ! Modified after NumRec 14.4
 ! Version for 2-d data
@@ -724,6 +773,7 @@ INTEGER                                             , INTENT(IN)  :: NPARA      
 REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
+INTEGER                                             , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
 REAL            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
 REAL                                                , INTENT(OUT) :: chisq
@@ -754,8 +804,8 @@ loopix: do ix=1, data_dim(1)
       CALL refine_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
                          prange, &
                          data_dim, data_data, data_weight, data_x, data_y, &
+                         kupl_last, &
                          ymod, dyda, LDERIV)
-!write(*,*) ' RESULT ', ix, iy, ymod, dyda(:), (sig(ix,iy)*sig(ix,iy))
       IF(ier_num/=0) THEN
          RETURN
       ENDIF
@@ -864,11 +914,20 @@ WRITE(IWR, '(a)') '#@ USAGE        @refine_best.mac'
 WRITE(IWR, '(a)') '#@'
 WRITE(IWR, '(a)') '#@ END'
 WRITE(IWR, '(a)') '#'
+!
+IF(ref_LOAD/= ' ') THEN           ! Data set was loaded 
+   WRITE(IWR, '(a)') 'kuplot'
+   WRITE(IWR, '(a)') 'rese'
+   WRITE(IWR, '(a,a)') 'load ',ref_load(1:LEN_TRIM(ref_load))
+   WRITE(IWR, '(a)') 'exit'
+   WRITE(IWR, '(a)') '#'
+ENDIF
 WRITE(IWR, '(a)') 'refine'
 WRITE(IWR, '(a)') '#'
 !
 WRITE(IWR,'(a)') 'variable real, Rvalue'
 !
+WRITE(IWR,'(a)') 'variable integer, F_DATA'
 WRITE(IWR,'(a)') 'variable real, F_XMIN'
 WRITE(IWR,'(a)') 'variable real, F_XMAX'
 WRITE(IWR,'(a)') 'variable real, F_YMIN'
@@ -882,7 +941,7 @@ DO i=1, refine_par_n            ! Make sure each parameter is defined as a varia
    WRITE(IWR,'(a,a)') 'variable real, ',refine_params(i)
 ENDDO
 WRITE(IWR,'(a,G20.8E3)') 'Rvalue           = ', rval
-WRITE(IWR,'(a,G20.8E3)') 'F_XMIN           = ', ref_x(1)
+WRITE(IWR,'(a,I15    )') 'F_DATA           = ', ref_kupl
 WRITE(IWR,'(a,G20.8E3)') 'F_XMAX           = ', ref_x(ref_dim(1))
 WRITE(IWR,'(a,G20.8E3)') 'F_YMIN           = ', ref_y(1)
 WRITE(IWR,'(a,G20.8E3)') 'F_YMAX           = ', ref_y(ref_dim(2))
