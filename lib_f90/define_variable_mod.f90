@@ -177,6 +177,7 @@ IF(str_comp(cpara (1) , 'real', 3, lpara (1) , 4) .or.  &
                   IF (ccc_type.ne.var_type (i) ) THEN 
                      ier_num = - 32 
                      ier_typ = ER_FORT 
+                     ier_msg(1) = c_temp(1:l_temp)
                   ELSE 
                      IF (l_init) THEN 
                         ier_num = - 33 
