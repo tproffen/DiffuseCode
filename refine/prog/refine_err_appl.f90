@@ -9,12 +9,13 @@ SUBROUTINE refine_errlist_appl
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU= -4,IO=0)
+      PARAMETER    (IU= -5,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
 !
       DATA ERROR ( IU:  0) /                                       &
+     &  'Data set must be loaded prior to sigma      ',            & ! -5  ! refine
      &  'Dimensions of calc. and observed data differ',            & ! -4  ! refine
      &  'Data not present within KUPLOT',                          & ! -3  ! refine
      &  'Macro file does not exist',                               & ! -2  ! refine

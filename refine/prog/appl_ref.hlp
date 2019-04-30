@@ -23,16 +23,13 @@
    observed data. Lets assume that the data are in a simple x/y
    file "observed.data". A suitable macro to refine is:
 
-!p kuplot                       ! Switch from SUITE to KUPLOT section
-!p reset                        ! Make sure no data are loaded, this is optional
-!p load xy, observe.data        ! Load data into KUPLOT data set number 1
+!p refine                       ! Switch from SUITE to REFINE section   
+!p data xy, observed.data       ! Load data set "observed.data"
 !p                              ! The load command creates user variables
+!p                              ! F_DATA = Number of Data set in Kuplot
 !p                              ! F_XMIN, F_XMAX, F_XSTP 
 !p                              ! F_YMIN, F_YMAX, F_YSTP 
 !p                              ! That contain the data limits and step size.
-!p exit                         ! Back to SUITE
-!p refine                       ! Switch from SUITE to REFINE section   
-!p data kuplot, 1               ! Use KUPLOT data set number 1
 !p newparam P_inter, value:1.0  ! Define y-axis intersept as first parameter
 !p newparam P_slope, value:1.0  ! Define slope as second parameter
 !p set cycle, 10                ! Define maximum number of cycles
@@ -43,25 +40,25 @@
 
 !p branch kuplot                ! Step into the KUPLOT section
 !p                              ! or for structures into DISCUS
-!p reset                        ! Since the macro will be exectued several times
-!p                              ! a reset is a good idea to limit the number
-!p                              ! of data sets.
-!p func P_inter + P_slope*r[0], F_XMIN, F_XMAX, F_STP
+!p func P_inter + P_slope*r[0], F_DATA
 !p                              ! Calculate the function, 
-!p                              ! limits are set automatically
+!p                              ! limits are set automatically from
+!p                              ! data set F_data that was loaded by refine.
 !p exit                         ! Back to REFINE
 !p finished                     ! Special keyword signals end of user macro
 2  data
-!b data "kuplot", <number> [,"sigma:"<number>]
+!b data "kuplot", <number>
+!b data <type>, <infile>
 
+!p data "kuplot", <number>
    The calculation will refine parameters versus the observed data
    that are stored in the KUPLOT data set number <number>
 
-   The optional parameter "sigma:" is used for 2D data sets only.
-   The z-values of data set <number> are used as sigmas for the 
-   data set.
-   If the optional parameter is omitted, the sigmas of the 2D data
-   set will default to a value of 1.0
+!p data <type>,<infile>
+   The calculation will refine parameters versus the observed data
+   that are loaded from file <infile>.
+      See the ==> 'kuplot/load' command for details on proper
+      ways to load a data set.
 
    Refer to the KUPLOT section for instructions on loading data.
 2  fix
@@ -143,3 +140,20 @@
    or 
       chi2
    are met. 
+2  sigma
+!b sigma "kuplot", <number> 
+!b sigma <type>,<infile>
+
+!p sigma "kuplot", <number> 
+   The calculation will refine parameters versus the observed data
+   and use sigmas 
+   that are stored in the KUPLOT data set number <number>
+
+!p sigma <type>,<infile>
+   The calculation will refine parameters versus the observed data
+   and use sigmas 
+   that are loaded from file <infile>.
+      See the ==> 'kuplot/load' command for details on proper
+      ways to load a data set.
+
+   Refer to the KUPLOT section for instructions on loading data.

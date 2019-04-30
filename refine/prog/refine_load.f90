@@ -6,8 +6,12 @@ CONTAINS
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_load(line, length)
+SUBROUTINE refine_load(LDATA, line, length)
 !
+! Loads the Data set and/or the Sigmas
+! Either explicitly or with reference to a KUPLOT data set
+!
+USE refine_data_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
@@ -15,6 +19,7 @@ USE take_param_mod
 !
 IMPLICIT NONE
 !
+LOGICAL         , INTENT(IN)    :: LDATA   ! Datai==TRUE ot SIGMA == FALSE
 CHARACTER(LEN=*), INTENT(INOUT) :: line
 INTEGER         , INTENT(INOUT) :: length
 !
@@ -25,60 +30,37 @@ INTEGER            , DIMENSION(MAXW) :: lpara
 REAL               , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
-INTEGER                              :: ndata
-INTEGER                              :: nsigma
+INTEGER                              :: ndata 
 !
 LOGICAL, EXTERNAL :: str_comp
 !
-INTEGER, PARAMETER :: NOPTIONAL = 1
-INTEGER, PARAMETER :: O_SIGMA   = 1
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
-CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
-INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
-INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
-LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
-INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate
-!
-DATA oname  / 'sigma ' /
-DATA loname /  5       /
-opara  =  (/ '0.000000'/)   ! Always provide fresh default values
-lopara =  (/  8        /)
-owerte =  (/  0.000000 /)
-!
-CALL get_params(line, ianz, cpara, lpara, MAXW, length)
-IF(IANZ>1) THEN
-ELSE
-   ier_num = -6
-   ier_typ = ER_FORT
-   RETURN
-ENDIF
-!
-CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
-                  oname, loname, opara, lopara, lpresent, owerte)
-IF(ier_num/=0) RETURN
-nsigma = NINT(owerte(O_SIGMA))
-!
-IF(str_comp (cpara(1), 'kuplot', 3, lpara(1), 6) ) THEN
+IF(line(1:6) == 'kuplot') THEN
+   CALL get_params(line, ianz, cpara, lpara, MAXW, length)
+   IF(ier_num/= 0) RETURN
    cpara(1) = '0'
-   lpara(2) = 1
+   lpara(1) = 1
    CALL ber_params(ianz, cpara, lpara, werte, MAXW)
    IF(ier_num/= 0) RETURN
    ndata = NINT(werte(2))
-   CALL refine_load_kuplot(ndata, nsigma)
-ELSE
-   ier_num = -6
-   ier_typ = ER_FORT
-   RETURN
+   IF(LDATA) ref_load = ' '
+ELSE                               ! Presume a "data xy, filename "
+   IF(LDATA) ref_load = line
+   CALL do_load(line, length,.TRUE.)
+   IF(ier_num/= 0) RETURN
+   ndata = -1                 ! Will be updated to correct value in refine_load_kuplot
 ENDIF
+CALL refine_load_kuplot(LDATA, ndata)
+ref_kupl = ndata              ! This is the last KUPLOT data set that needs to be kept
 !
 END SUBROUTINE refine_load
 !
 !*******************************************************************************
 !
-SUBROUTINE refine_load_kuplot(ndata, nsigma)
+SUBROUTINE refine_load_kuplot(LDATA, ndata) !, is_data, is_sigma)
 !
 ! Transfers data set no. ndata from KUPLOT into REFINE memory
+! If LDATA== TRUE, it is the data, else it is the sigma
+! If ndata==-1, the last KUPLOT data set is taken
 !
 USE refine_data_mod
 !
@@ -89,12 +71,14 @@ USE define_variable_mod
 !
 IMPLICIT NONE
 !
-INTEGER, INTENT(IN) :: ndata           ! no of data set to be transfered
-INTEGER, INTENT(IN) :: nsigma          ! no of data set with sigma's to be transfered
+LOGICAL, INTENT(IN) :: LDATA   ! Datai==TRUE ot SIGMA == FALSE
+INTEGER, INTENT(INOUT) :: ndata   ! no of data set to be transfered from KUPLOT
 !
 LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE. ! Prevents user from deleting variables
 INTEGER :: ix, iy                      ! Dummy loop variables
 REAL    :: step
+!
+IF(ndata==-1) ndata = iz-1            ! -1 signals last data set
 !
 IF(ndata<1 .OR. ndata>(iz - 1) ) THEN
    ier_num = -6
@@ -103,79 +87,110 @@ IF(ndata<1 .OR. ndata>(iz - 1) ) THEN
    RETURN
 ENDIF
 !
-IF(ALLOCATED(ref_data))   DEALLOCATE(ref_data)
-IF(ALLOCATED(ref_weight)) DEALLOCATE(ref_weight)
-IF(ALLOCATED(ref_x     )) DEALLOCATE(ref_x     )
-IF(ALLOCATED(ref_y     )) DEALLOCATE(ref_y     )
+IF(LDATA) THEN                         ! This is the data set
+   IF(ALLOCATED(ref_data))   DEALLOCATE(ref_data)
+   IF(ALLOCATED(ref_weight)) DEALLOCATE(ref_weight)
+   IF(ALLOCATED(ref_x     )) DEALLOCATE(ref_x     )
+   IF(ALLOCATED(ref_y     )) DEALLOCATE(ref_y     )
+ENDIF
 !
 IF(lni(ndata)) THEN                    ! 2D data set
-   ref_dim(1) = nx(ndata )
-   ref_dim(2) = ny(ndata )
-   ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
-   ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
-   ALLOCATE(ref_x     (ref_dim(1)))
-   ALLOCATE(ref_y     (ref_dim(2)))
-   DO iy=1,ref_dim(2)
-      DO ix=1,ref_dim(1)
-         ref_data(ix,iy)  = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
-         ref_weight(ix,iy) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
+   IF(LDATA) THEN                      ! This is the data set
+      ref_dim(1) = nx(ndata )
+      ref_dim(2) = ny(ndata )
+      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_x     (ref_dim(1)))
+      ALLOCATE(ref_y     (ref_dim(2)))
+!
+      DO iy=1,ref_dim(2)
+         DO ix=1,ref_dim(1)
+            ref_data(ix,iy)  = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
+            ref_weight(ix,iy) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
+         ENDDO
+         ref_y(iy)      = y(offxy(ndata - 1) + iy)
       ENDDO
-      ref_y(iy)      = y(offxy(ndata - 1) + iy)
-   ENDDO
-   DO ix=1,ref_dim(1)
-      ref_x(ix)      = x(offxy(ndata - 1) + ix)
-   ENDDO
-   CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-   CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-   CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-   CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-   step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
-   CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-   step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
-   CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
-   IF(nsigma>0) THEN                    ! User provided a data set with Sigmas
-      IF(nsigma>(iz - 1) ) THEN
-         ier_num = -6
-         ier_typ = ER_FORT
-         ier_msg(1) = 'SIGMA Data set number outside KUPLOT range'
+      DO ix=1,ref_dim(1)
+         ref_x(ix)      = x(offxy(ndata - 1) + ix)
+      ENDDO
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
+      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
+      step = (ref_y(ref_dim(2))-ref_y(1))/FLOAT(ref_dim(2)-1)
+      CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
+   ELSE
+      IF(.NOT.ALLOCATED(ref_weight)) THEN 
+         ier_num = -5
+         ier_typ = ER_APPL
          RETURN
       ENDIF
 !
-      IF(ref_dim(1) /= nx(nsigma) .OR. ref_dim(2) /= ny(nsigma)) THEN
+      IF(ref_dim(1) /= nx(ndata) .OR. ref_dim(2) /= ny(ndata)) THEN
          ier_num = -6
          ier_typ = ER_FORT
-         ier_msg(1) = 'SIGMA Data set differs in size'
+         ier_msg(1) = 'SIGMA data set differs in size'
          RETURN
       ENDIF
       DO iy=1,ref_dim(2)
          DO ix=1,ref_dim(1)
-            ref_weight(ix,iy) = z (offz(nsigma - 1) + (ix - 1)*ny(nsigma) + iy)
+            ref_weight(ix,iy) = z (offz(ndata - 1) + (ix - 1)*ny(ndata) + iy)
          ENDDO
       ENDDO
    ENDIF
-ELSE
-   ref_dim(1) = len(ndata )
-   ref_dim(2) = 1
-   ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
-   ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
-   ALLOCATE(ref_x     (ref_dim(1)))
-   ALLOCATE(ref_y     (1         ))
-   DO ix=1,ref_dim(1)
-      ref_data(ix,1)   = y (offxy(ndata - 1) + ix)
-      ref_weight(ix,1) = dy(offxy(ndata - 1) + ix)
-      ref_x(ix)        = x (offxy(ndata - 1) + ix)
-   ENDDO
-   ref_y(1) = 1.0
-   CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
-   CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
-   CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
-   CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
-   step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
-   CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
-   step = 1.0
-   CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
+ELSE                                     ! !D data set
+   IF(LDATA) THEN                      ! This is the data set
+      ref_dim(1) = len(ndata )
+      ref_dim(2) = 1
+      ALLOCATE(ref_data  (ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_weight(ref_dim(1),ref_dim(2)))
+      ALLOCATE(ref_x     (ref_dim(1)))
+      ALLOCATE(ref_y     (1         ))
+      DO ix=1,ref_dim(1)
+         ref_data(ix,1)   = y (offxy(ndata - 1) + ix)
+         ref_weight(ix,1) = dy(offxy(ndata - 1) + ix)
+         ref_x(ix)        = x (offxy(ndata - 1) + ix)
+      ENDDO
+      ref_y(1) = 1.0
+      CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMIN', ref_y(1),          IS_DIFFEV)
+      CALL def_set_variable('real', 'F_YMAX', ref_y(ref_dim(2)), IS_DIFFEV)
+      step = (ref_x(ref_dim(1))-ref_x(1))/FLOAT(ref_dim(1)-1)
+      CALL def_set_variable('real', 'F_XSTP', step             , IS_DIFFEV)
+      step = 1.0
+      CALL def_set_variable('real', 'F_YSTP', step             , IS_DIFFEV)
+   ELSE
+      IF(.NOT.ALLOCATED(ref_weight)) THEN 
+         ier_num = -5
+         ier_typ = ER_APPL
+         RETURN
+      ENDIF
+!
+      IF(ref_dim(1) /= nx(ndata)) THEN
+         ier_num = -6
+         ier_typ = ER_FORT
+         ier_msg(1) = 'SIGMA data set differs in size'
+         RETURN
+      ENDIF
+!
+      DO ix=1,ref_dim(1)
+         ref_weight(ix,1) = y (offxy(ndata - 1) + ix)
+      ENDDO
+   ENDIF
 ENDIF
 !
+! Scratch all KUPLOT data beyond current data set
+!
+IF(LDATA) THEN
+   CALL def_set_variable('integer', 'F_DATA', FLOAT(ndata),  IS_DIFFEV)
+   CALL def_set_variable('integer', 'F_SIGMA', FLOAT(ndata), IS_DIFFEV)
+ELSE
+   CALL def_set_variable('integer', 'F_SIGMA', FLOAT(ndata), IS_DIFFEV)
+ENDIF
+iz = ndata + 1
 !
 !
 END SUBROUTINE refine_load_kuplot

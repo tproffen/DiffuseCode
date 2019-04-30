@@ -38,6 +38,8 @@ IMPLICIT none
 !                                                                       
 !                                                                       
 INTEGER, PARAMETER :: MAXW = 20
+LOGICAL, PARAMETER :: LDATA = .TRUE.
+LOGICAL, PARAMETER :: LSIGMA = .FALSE.
 !                                                                       
 CHARACTER (LEN= *  ), INTENT(INOUT) :: line 
 LOGICAL             , INTENT(  OUT) :: lend 
@@ -158,11 +160,16 @@ ELSE  is_math
 !                                                                 
    ELSEIF (str_comp (befehl, 'set', 3, lbef, 3) ) THEN  is_befehl
       CALL refine_set(zeile, length)
-!                                                                 
+!
 !     -- define data set
-!                                                                 
+!
    ELSEIF (str_comp (befehl, 'data', 3, lbef, 4) ) THEN  is_befehl
-      CALL refine_load(zeile, length)
+      CALL refine_load(LDATA, zeile, length)
+!
+!     -- define data set
+!
+   ELSEIF (str_comp (befehl, 'sigma', 3, lbef, 5) ) THEN  is_befehl
+      CALL refine_load(LSIGMA, zeile, length)
 !                                                                 
 !     -- Finish command will be ignored
 !                                                                 

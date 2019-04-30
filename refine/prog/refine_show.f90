@@ -61,6 +61,10 @@ DEALLOCATE(cpara)
 DEALLOCATE(lpara)
 DEALLOCATE(werte)
 !
+IF(.NOT.ALLOCATED(refine_CL)) THEN
+   ALLOCATE(refine_cl(refine_par_n, refine_par_n))
+ENDIF
+!
 CALL show_fit_erg(REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n, &
            ref_dim(1)*ref_dim(2),      &
            refine_chisqr, refine_conf, &
