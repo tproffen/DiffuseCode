@@ -22,6 +22,7 @@ PUBLIC  :: diffev_do_allocate_appl
 PUBLIC  :: diffev_do_deallocate_appl
 PUBLIC  :: diffev_alloc_default
 PUBLIC  :: alloc_backup
+PUBLIC  :: dealloc_backup
 PUBLIC  :: alloc_socket_nprogs
 PUBLIC  :: alloc_population
 PUBLIC  :: alloc_constraint
