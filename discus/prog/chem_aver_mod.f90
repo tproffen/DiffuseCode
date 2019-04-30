@@ -20,7 +20,8 @@ IMPLICIT none
 LOGICAL, INTENT(IN) :: lout    ! Print output if true
 LOGICAL, INTENT(IN) :: lsite   ! Treat different atoms on each site as one 
 !                                                                       
-REAL, DIMENSION(3) ::  p , ez 
+REAL, DIMENSION(3) ::  p , ez
+INTEGER, DIMENSION(3) :: iez
 !REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_posit
 !REAL,    DIMENSION(:,:,:), ALLOCATABLE :: chem_ave_sigma
 !
@@ -79,19 +80,23 @@ chem_ave_sig  = 0.0  ! (j, i), i=1,cr_ncatoms, j = 1,3
 !                                                                       
 !------ loop over all unit cells ans atoms within unit cell             
 !                                                                       
+iez(1) = NINT(cr_dim(1,1)) - 1
+iez(2) = NINT(cr_dim(2,1)) - 1
+iez(3) = NINT(cr_dim(3,1)) - 1
+!
 loopk: DO k = 1, cr_icc (3) 
    loopj: DO j = 1, cr_icc (2) 
       loopi: DO i = 1, cr_icc (1) 
-         ez (1) = cr_dim0 (1, 1) + float (i - 1) 
-         ez (2) = cr_dim0 (2, 1) + float (j - 1) 
-         ez (3) = cr_dim0 (3, 1) + float (k - 1) 
+         ez (1) = FLOAT(iez(1) + i )
+         ez (2) = FLOAT(iez(2) + j )
+         ez (3) = FLOAT(iez(3) + k )
          loopii: DO ii = 1, cr_ncatoms 
             ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
                    (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     
             DO jj = 1, 3 
                p (jj) = cr_pos (jj, ia) - ez (jj) 
                chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii) + p (jj) 
-               chem_ave_sig (jj, ii) = chem_ave_sig (jj, ii) + p (jj)**2 
+!              chem_ave_sig (jj, ii) = chem_ave_sig (jj, ii) + p (jj)**2 
             ENDDO 
 !                                                                       
 !------ --- Calculate occupancies ..                                    
@@ -122,7 +127,7 @@ loopk: DO k = 1, cr_icc (3)
             IF(.not. lsite) THEN   ! Accumulate individual positions for different atoms
                DO jj = 1, 3 
                   chem_ave_posit(jj,ii,is) = chem_ave_posit(jj,ii,is) + p(jj)
-                  chem_ave_sigma(jj,ii,is) = chem_ave_sigma(jj,ii,is) + p(jj)**2
+!                 chem_ave_sigma(jj,ii,is) = chem_ave_sigma(jj,ii,is) + p(jj)**2
                ENDDO 
             ENDIF
             chem_ave_bese (ii, is) = chem_ave_bese (ii, is) + 1 
@@ -130,6 +135,61 @@ loopk: DO k = 1, cr_icc (3)
       ENDDO  loopi
    ENDDO  loopj
 ENDDO  loopk
+!
+! Calculate average positions
+!
+ia = cr_icc (1) * cr_icc (2) * cr_icc (3) 
+IF(lsite) THEN           ! one pos for all types on a single site
+   DO ii = 1, cr_ncatoms
+      DO jj =1, 3
+         chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii)/ float (ia)
+      ENDDO
+   ENDDO
+ELSE
+   DO i = 1, cr_ncatoms 
+      DO k = 1, chem_ave_n (i) 
+         DO j = 1, 3 
+            chem_ave_posit (j, i, k) = chem_ave_posit (j, i, k) / chem_ave_bese(i,k) 
+         ENDDO
+      ENDDO
+   ENDDO
+ENDIF
+!
+! Now calculate sigmas
+!
+sloopk: DO k = 1, cr_icc (3) 
+   sloopj: DO j = 1, cr_icc (2) 
+      sloopi: DO i = 1, cr_icc (1) 
+         ez (1) = FLOAT(iez(1) + i )
+         ez (2) = FLOAT(iez(2) + j )
+         ez (3) = FLOAT(iez(3) + k )
+         sloopii: DO ii = 1, cr_ncatoms 
+            ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
+                   (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     
+            IF(lsite) THEN                 ! No distinction of atom types
+               DO jj = 1, 3 
+                  p (jj) = cr_pos (jj, ia) - ez (jj) 
+                  chem_ave_sig (jj, ii) = chem_ave_sig (jj, ii) + &
+                         (p (jj) - chem_ave_pos (jj, ii))**2
+               ENDDO 
+            ELSE
+               is = 1
+               s_site:DO kk = 1, chem_ave_n (ii) 
+                  IF (cr_iscat (ia) .eq.chem_ave_iscat (ii, kk) ) then 
+                     is = kk 
+                     EXIT s_site
+                  ENDIF
+               ENDDO s_site
+               DO jj = 1, 3 
+                  p (jj) = cr_pos (jj, ia) - ez (jj) 
+                  chem_ave_sigma (jj, ii, is) = chem_ave_sigma (jj, ii, is) + &
+                         (p (jj) - chem_ave_posit (jj, ii, is))**2
+               ENDDO 
+            ENDIF
+         ENDDO sloopii
+      ENDDO  sloopi
+   ENDDO  sloopj
+ENDDO  sloopk
 !                                                                       
 !------ output of average and sigma                                     
 !                                                                       
@@ -139,9 +199,9 @@ IF(lsite) THEN           ! one pos for all types on a single site
    nvalues = 0
    DO i = 1, cr_ncatoms 
       DO j = 1, 3 
-         chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
-         chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) -          &
-         chem_ave_pos (j, i) **2                                           
+!        chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
+         chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) !-          &
+!        chem_ave_pos (j, i) **2                                           
          IF (chem_ave_sig (j, i) .gt.0.0) then 
             chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
          ELSE 
@@ -191,9 +251,9 @@ ELSE
    DO i = 1, cr_ncatoms 
       DO k = 1, chem_ave_n (i) 
          DO j = 1, 3 
-            chem_ave_posit (j, i, k) = chem_ave_posit (j, i, k) / chem_ave_bese(i,k) 
-            chem_ave_sigma (j, i, k) = chem_ave_sigma (j, i, k) / chem_ave_bese(i,k) - &
-            chem_ave_posit (j, i, k) **2                                           
+!           chem_ave_posit (j, i, k) = chem_ave_posit (j, i, k) / chem_ave_bese(i,k) 
+            chem_ave_sigma (j, i, k) = chem_ave_sigma (j, i, k) / chem_ave_bese(i,k) !- &
+!           chem_ave_posit (j, i, k) **2                                           
             IF (chem_ave_sigma (j, i, k) .gt.0.0) then 
                chem_ave_sigma (j, i, k) = sqrt (chem_ave_sigma (j, i, k) ) 
             ELSE 
@@ -410,7 +470,7 @@ DATA oname  / 'aver', 'indi', 'out'   /
 DATA loname /  4    ,  4    ,  3      /
 !
 CHARACTER(LEN=9)   :: at_name_d
-LOGICAL, PARAMETER :: LOLD = .FALSE.
+!LOGICAL, PARAMETER :: LOLD = .FALSE.
 LOGICAL, PARAMETER :: LOUT = .FALSE.
 LOGICAL            :: lsite = .TRUE.    ! Average everything onto one site
 INTEGER               :: iatom   ! Atom index
