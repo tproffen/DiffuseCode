@@ -41,9 +41,9 @@ LOGICAL                                 :: lend
 !
 INTEGER, PARAMETER :: MAXW = 20
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
-INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
-INTEGER                              :: ianz
+!INTEGER            , DIMENSION(MAXW) :: lpara
+!REAL               , DIMENSION(MAXW) :: werte
+!INTEGER                              :: ianz
 !
 !INTEGER, EXTERNAL :: len_str
 LOGICAL, EXTERNAL :: str_comp
@@ -383,7 +383,7 @@ INTEGER, PARAMETER                        :: ncalc = 3 ! Number of values to cal
 INTEGER, PARAMETER :: MAXW = MAX(20,NOPTIONAL)
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+!REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
 INTEGER           :: i
@@ -402,6 +402,7 @@ IF (ier_num /= 0) RETURN
 CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
                   oname, loname, opara, lopara, lpresent, owerte)
 !
+i = 0
 IF(opara(O_COUNT) == 'LOOP') THEN
    k2dm_start(0) = owerte(O_START)
    k2dm_end(  0) = owerte(O_END)
@@ -558,7 +559,7 @@ INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to cal
 INTEGER, PARAMETER :: MAXW = MAX(20,NOPTIONAL)
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+!REAL               , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 !
 LOGICAL, EXTERNAL :: str_comp
@@ -609,7 +610,7 @@ INTEGER         , INTENT(INOUT) :: length
 LOGICAL, PARAMETER :: l_no_echo = .FALSE.
 CHARACTER(LEN=1024) :: string
 CHARACTER(LEN=1024) :: filname
-CHARACTER(LEN=10  ) :: cnumber
+!CHARACTER(LEN=10  ) :: cnumber
 CHARACTER(LEN=4   ) :: bef
 INTEGER :: i, j, k, ik
 INTEGER :: ikm                  ! Data set with map
@@ -770,6 +771,7 @@ ENDIF
 ! Main loop
 !
 iy = 0                                        ! Counter for input files
+lblank = .FALSE.
 oute:DO j=k2dm_start(1), k2dm_end(1), k2dm_step(1)
    var_val(VAR_SLOW) = j
 main:DO i=k2dm_start(0), k2dm_end(0), k2dm_step(0)

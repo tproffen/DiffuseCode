@@ -889,7 +889,7 @@ real :: f, df(maxpara)
       ELSEIF (wtyp (1:3) .eq.'ISQ') then 
          wictyp = 'w(i) = 1.0/sqrt(i)' 
       ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
-         wictyp = 'w(i) = 1/(dy(i))^2 from data set' 
+         wictyp = 'w(i) = 1/(dy(i))^2 from data ' 
       ELSEIF (wtyp (1:3) .eq.'BCK') then 
          wictyp = 'w(i) = exp(-WVAL*(Fobs-Fcalc))' 
       ELSE 

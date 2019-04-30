@@ -18,7 +18,7 @@ IMPLICIT NONE
 !
 INTEGER, INTENT(in) :: ik
 !
-REAL :: zzmin, zzmax    ! min max z values as of hlin command
+!REAL :: zzmin, zzmax    ! min max z values as of hlin command
 !
 END SUBROUTINE kuplot_draw_3d_static
 !

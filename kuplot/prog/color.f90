@@ -344,7 +344,7 @@ INTEGER :: i, m
 INTEGER :: ii
 INTEGER :: istart
 REAL    :: scalef
-REAL    :: red, green, blue
+REAL    :: red, green!, blue
 !
 IF(zzmax > 0.0 .AND. zzmin > 0.0 ) THEN  ! positive only
    CALL cmap_fire(lout)
