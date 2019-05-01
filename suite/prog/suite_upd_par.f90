@@ -49,7 +49,7 @@ END SUBROUTINE suite_upd_para
 !*****7***************************************************************  
 SUBROUTINE suite_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !-                                                                      
-!     These are special intrinsic function for the DISCSU_SUITE. Any          
+!     These are special intrinsic function for the DISCUS_SUITE. Any          
 !     intrinsic function that references crystallographic values        
 !     is found in this subroutine.                                      
 !     Currently empty, needed for formal reasons.
@@ -59,6 +59,8 @@ USE calc_expr_mod
 USE errlist_mod 
 USE ersetz_mod
 USE param_mod 
+USE prompt_mod
+!
 IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -77,7 +79,7 @@ REAL                 :: werte (maxw)
 !                                                                       
 INTEGER              :: length_com 
 !                                                                       
-lcomm = length_com (string(1:lp), ikl) 
+lcomm = length_com (string, ikl) 
 ier_num = - 1 
 ier_typ = ER_FORT 
 DO i = 1, maxw 
@@ -92,8 +94,7 @@ ELSE
 ENDIF 
 !                                                                 
 IF (ier_num.ne.0) then 
-   WRITE ( *, * ) string 
-   WRITE ( *, * ) line 
+   ier_msg(1) = string (1:LEN_TRIM(string))
 ENDIF 
 !                                                                       
 END SUBROUTINE suite_calc_intr_spec                 
