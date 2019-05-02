@@ -56,7 +56,7 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
       RETURN
    ENDIF
    DO i = nmi, nma, nmd                   ! Write all data points
-      r = float (i) * pdf_deltar 
+      r = REAL(i) * pdf_deltar 
       x (offxy (iz - 1) + nr) = r
       y (offxy (iz - 1) + nr) = REAL(pdf_calc(i))
       dx (offxy (iz - 1) + nr) = 0.0
@@ -77,7 +77,7 @@ ELSE                                      ! Normal write to disk
       nma = nint (pdf_rfmax / pdf_deltar) 
       nmd = pdf_us_int   ! step width = (delta r user)/(deltar internal)
       DO i = nmi, nma, nmd 
-         r = float (i) * pdf_deltar 
+         r = REAL(i) * pdf_deltar 
          WRITE (57, 5000) r, pdf_skal * pdf_calc (i), 0.0, 1.0 
       ENDDO 
       CLOSE (57) 

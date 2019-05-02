@@ -136,8 +136,8 @@ IF(lkuplot) THEN      ! 'write' into kuplot array
 !                                                                       
 !------ set values for X and Y                                          
 !                                                                       
-   dxx = (xmax (iz) - xmin (iz) ) / float (nx (iz) - 1) 
-   dyy = (ymax (iz) - ymin (iz) ) / float (ny (iz) - 1) 
+   dxx = (xmax (iz) - xmin (iz) ) / REAL(nx (iz) - 1) 
+   dyy = (ymax (iz) - ymin (iz) ) / REAL(ny (iz) - 1) 
    DO i = 1, nx (iz) 
       x(offxy(iz - 1) + i) = xmin(iz) + (i-1)*dxx 
    ENDDO 
