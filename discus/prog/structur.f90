@@ -501,9 +501,9 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
                         DO n = 1, ce_natoms 
                         cr_natoms = cr_natoms + 1 
                         cr_iscat (cr_natoms) = cr_iscat (n) 
-                        cr_pos (1, cr_natoms) = cr_pos (1, n) + float ( i - 1)
-                        cr_pos (2, cr_natoms) = cr_pos (2, n) + float ( j - 1)
-                        cr_pos (3, cr_natoms) = cr_pos (3, n) + float ( k - 1)
+                        cr_pos (1, cr_natoms) = cr_pos (1, n) + REAL( i - 1)
+                        cr_pos (2, cr_natoms) = cr_pos (2, n) + REAL( j - 1)
+                        cr_pos (3, cr_natoms) = cr_pos (3, n) + REAL( k - 1)
                         cr_mole (cr_natoms) = cr_mole (n)
                         cr_prop (cr_natoms) = cr_prop (n)
                         cr_surf(:,cr_natoms) = cr_surf(:,n)
@@ -600,8 +600,8 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
 !               unit cell, the offset was calculated wrong. cr_dim(:,2) is hardly used. 
 !               To reflect the intention of cr_dim0(:,1) it is now calculated from cr_icc.
                         DO l = 1, 3 
-!                          cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
-!                          cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+!                          cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
+!                          cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
                            IF(MOD(cr_icc(l),2)==0) THEN
                               
                               cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
@@ -715,8 +715,8 @@ internals:     IF ( str_comp(strucfile(1:8),'internal',8,8,8)) THEN
 !     ------Define initial crystal size in fractional coordinates       
 !                                                                       
                DO l = 1, 3 
-               cr_dim0 (l, 1) = float (nint (cr_dim (l, 1) ) ) 
-               cr_dim0 (l, 2) = float (nint (cr_dim (l, 2) ) ) 
+               cr_dim0 (l, 1) = REAL(nint (cr_dim (l, 1) ) ) 
+               cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
                ENDDO 
 !                                                                       
 !     ------The crystal size was read from the structure file           
@@ -3391,7 +3391,7 @@ eadp_values(:) = 0.0
             xyz(i) = (ABS(xyz(i)) + ifv * 10) * (1. - fv(IABS(ifv)))
          ENDIF 
          ENDDO 
-!         write(iwr,3100) c_atom(ityp),xyz,float(ityp)                  
+!         write(iwr,3100) c_atom(ityp),xyz,REAL(ityp)                  
          WRITE (iwr, 3100) c_atom (ityp), xyz, uiso *8.*pi**2
       ENDIF 
 !                                                                       

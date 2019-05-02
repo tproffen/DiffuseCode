@@ -664,9 +664,9 @@ END SUBROUTINE plot_cif
             icell (i) = int (cr_pos (i, iatom) - cr_dim0 (i, 1) ) + 1
             ENDDO 
          ENDIF 
-         x = x - float (icell (1) - 1) - cr_dim0 (1, 1) 
-         y = y - float (icell (2) - 1) - cr_dim0 (2, 1) 
-         z = z - float (icell (3) - 1) - cr_dim0 (3, 1) 
+         x = x - REAL(icell (1) - 1) - cr_dim0 (1, 1) 
+         y = y - REAL(icell (2) - 1) - cr_dim0 (2, 1) 
+         z = z - REAL(icell (3) - 1) - cr_dim0 (3, 1) 
       ENDIF 
 !                                                                       
       IF (lkupl) then 

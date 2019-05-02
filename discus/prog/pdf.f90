@@ -440,7 +440,7 @@ SUBROUTINE pdf
 !RBN     cr_n_real_atoms = cr_n_real_atoms + 1 
 !RBN  ENDIF 
 !RBN  ENDDO 
-!RBN  bave = bave / float (cr_n_real_atoms) 
+!RBN  bave = bave / REAL(cr_n_real_atoms) 
 !
       pdf_natoms(:) = 0
       cr_n_real_atoms = 0 
@@ -456,7 +456,7 @@ SUBROUTINE pdf
          cr_n_real_atoms = cr_n_real_atoms + pdf_natoms(is)
          bave = bave+form (is, cr_scat, pdf_lxray, hh,  pdf_power) *pdf_natoms(is)
       ENDDO
-      bave = bave / float (cr_n_real_atoms) 
+      bave = bave / REAL(cr_n_real_atoms) 
 !                                                                       
       IF (.not.pdf_lweights) then 
          DO is = 0, cr_nscat 
@@ -518,13 +518,13 @@ SUBROUTINE pdf
 !        pdf_sinc = 0.0
          j = SIZE(pdf_sincc)+1
 !         DO i = 1, SIZE(pdf_sinc)/2 ! INT(nn *1.5)
-!         pdf_sinc (i+1) = sin (z * float (i) ) / (pdf_deltar * float (i) ) 
+!         pdf_sinc (i+1) = sin (z * REAL(i) ) / (pdf_deltar * REAL(i) ) 
 !         ENDDO 
          DO i = 1,j/2
-!        pdf_sincc(i)   = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
-!        pdf_sincc(j-i) = sin (z * float (i)*0.91 ) / (pdf_deltar * float (i)*0.91 ) 
-         pdf_sincc(i+1) = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
-         pdf_sincc(j-i) = sin (z * float (i)      ) / (pdf_deltar * float (i)      ) 
+!        pdf_sincc(i)   = sin (z * REAL(i)*0.91 ) / (pdf_deltar * REAL(i)*0.91 ) 
+!        pdf_sincc(j-i) = sin (z * REAL(i)*0.91 ) / (pdf_deltar * REAL(i)*0.91 ) 
+         pdf_sincc(i+1) = sin (z * REAL(i)      ) / (pdf_deltar * REAL(i)      ) 
+         pdf_sincc(j-i) = sin (z * REAL(i)      ) / (pdf_deltar * REAL(i)      ) 
          ENDDO 
          pdf_sincc(1) = pdf_qmax
 !        pdf_sinc (1) = pdf_qmax
@@ -538,7 +538,7 @@ SUBROUTINE pdf
          factor = -0.5D0*pdf_gauss_step**2/1.D0/1.D0    ! 1/2 *r^2 /sigma^2
          j = UBOUND(pdf_exp,1)
          DO i=0,j !/2
-            pdf_exp(i)      = exp(factor * float(i*i))
+            pdf_exp(i)      = exp(factor * REAL(i*i))
 !           pdf_exp(j-i) = pdf_exp(i)
          ENDDO
            pdf_gauss_init = .false.
@@ -840,7 +840,7 @@ SUBROUTINE pdf
                   nma = int (pdf_rfmax / pdf_deltar) 
                   nmd = pdf_us_int   ! step width = (delta r user)/(deltar internal)
                   DO i = nmi, nma , nmd
-                  r = float (i) * pdf_deltar 
+                  r = REAL(i) * pdf_deltar 
                   IF (pdf_calc (i) .gt.0.0) then 
                      WRITE (57, 5100) r, 0.0 
                   ENDIF 
@@ -978,7 +978,7 @@ main:    DO
          IF (ier_num.ne.0) return 
 !!!         pdf_rmax = re 
 !!!         pdf_bin = ip - 1 
-!!!         pdf_deltar = (re-ra) / float (pdf_bin - 1) 
+!!!         pdf_deltar = (re-ra) / REAL(pdf_bin - 1) 
 !!!         pdf_deltaru= pdf_deltar    ! copy delta r from file into user 
 !!!         pdf_us_int = 1
          pdf_deltaru =  (re-ra)/FLOAT(ip-2)
@@ -1991,13 +1991,13 @@ ELSE
       res_para (0) = 8 
 !                                                                       
       res_para (1) = REAL(cold) 
-      res_para (2) = float (itry) 
-      res_para (3) = float (iacc_good) 
-      res_para (4) = float (iacc_bad) 
+      res_para (2) = REAL(itry) 
+      res_para (3) = REAL(iacc_good) 
+      res_para (4) = REAL(iacc_bad) 
       res_para (5) = pave 
       res_para (6) = psig 
       res_para (7) = pmax 
-      res_para (8) = zeit / float (itry) 
+      res_para (8) = zeit / REAL(itry) 
 !                                                                       
 !------ Update crystal dimensions                                       
 !                                                                       
@@ -2536,7 +2536,7 @@ laccept = .false.
                ENDIF
                IF(ier_num/=0) EXIT loop1      ! An error occured or CTRL-C
                IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
-                  done = 100.0 * float (ia) / float (cr_natoms) 
+                  done = 100.0 * REAL(ia) / REAL(cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 
             ENDDO loop1
@@ -2550,7 +2550,7 @@ laccept = .false.
                ENDIF
                IF(ier_num/=0) EXIT loop2      ! An error occured or CTRL-C
                IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
-                  done = 100.0 * float (ia) / float (cr_natoms) 
+                  done = 100.0 * REAL(ia) / REAL(cr_natoms) 
                   WRITE (output_io, 1000) done 
                ENDIF 
             ENDDO loop2
@@ -2645,13 +2645,13 @@ laccept = .false.
          r0       = cr_n_real_atoms  / cr_v  /ncc
          pdf_rho0 = r0
       ENDIF 
-      norm = 1.0 / float (cr_n_real_atoms) * pdf_scale 
+      norm = 1.0 / REAL(cr_n_real_atoms) * pdf_scale 
       IF (.not.pdf_gauss.and.pdf_qalp.eq.0.0) then 
          norm = norm / pdf_deltar 
       ENDIF 
 !                                                                       
       DO i = 1, pdf_bin 
-      r = float (i) * pdf_deltar 
+      r = REAL(i) * pdf_deltar 
       IF (pdf_finite.eq.PDF_BACK_PERIOD) then 
          rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
       ELSEIF (pdf_finite.eq.PDF_BACK_POLY) then 
@@ -2700,7 +2700,7 @@ laccept = .false.
          fac4   = REAL(pdf_deltar/pdf_gauss_step*pdf_sigmaq )
          jpdf_bin = MIN(pdf_bin, IABS(INT(UBOUND(pdf_exp,1)/fac4-1)))
          DO i = 1, jpdf_bin 
-!         r = float (i) * pdf_deltar 
+!         r = REAL(i) * pdf_deltar 
 !         pdf_calc (i) = pdf_calc (i) * exp ( - (r * pdf_sigmaq) **2 /   &
 !         2.0)                                                           
             pdf_calc (i) = pdf_calc (i) * pdf_exp (NINT((i+1)*fac4))
@@ -2804,7 +2804,7 @@ laccept = .false.
          DO ii = 1, 3 
          iii (ii) = cell (ii) 
          cell (ii) = pdf_bnd (ii, cell (ii) ) 
-         offset (ii) = float (iii (ii) - cell (ii) ) 
+         offset (ii) = REAL(iii (ii) - cell (ii) ) 
          ENDDO 
 !                                                                       
 !------ --- Now look for neighbours in surrounding unit cells only      
@@ -2963,7 +2963,7 @@ laccept = .false.
          DO ii = 1, 3 
             iii (ii)    = cell (ii) 
             cell (ii)   = pdf_bnd (ii, cell (ii) ) 
-            offset (ii) = float (iii (ii) - cell (ii) ) 
+            offset (ii) = REAL(iii (ii) - cell (ii) ) 
             offzero     = MAX(offzero,NINT(ABS(offset(ii))))
          ENDDO 
 !                                                                       
@@ -3071,7 +3071,7 @@ laccept = .false.
          DO ii = 1, 3 
          iii (ii) = cell (ii) 
          cell (ii) = pdf_bnd (ii, cell (ii) ) 
-         offset (ii) = float (iii (ii) - cell (ii) ) 
+         offset (ii) = REAL(iii (ii) - cell (ii) ) 
             offzero     = MAX(offzero,NINT(ABS(offset(ii))))
          ENDDO 
 !                                                                       
@@ -3137,7 +3137,7 @@ laccept = .false.
       ipdf_rmax = int(pdf_rmax/pdf_deltar)+1
 main: DO ia=1,cr_natoms    ! Outer loop over all atoms
          IF (lout.and. (mod (ia, id) .eq.0) ) THEN 
-            done = 100.0 * float (ia) / float (cr_natoms) 
+            done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
          is = cr_iscat (ia) 
@@ -3203,7 +3203,7 @@ inner:      DO iatom = ia+1, cr_natoms
       ss = seknds (0.0)
 main: DO ia=1,cr_natoms    ! Outer loop over all atoms
          IF (lout.and. (mod (ia, id) .eq.0) ) then 
-            done = 100.0 * float (ia) / float (cr_natoms) 
+            done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
          is = cr_iscat (ia) 
@@ -3277,7 +3277,7 @@ inner:      DO iatom = ia+1, cr_natoms
       ss = seknds (0.0)
 main: DO ia=1,cr_natoms    ! Outer loop over all atoms
          IF (lout.and. (mod (ia, id) .eq.0) ) then 
-            done = 100.0 * float (ia) / float (cr_natoms) 
+            done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
          is = cr_iscat (ia) 
@@ -3354,7 +3354,7 @@ inner:      DO iatom =    1, cr_natoms
       ss = seknds (0.0)
 main: DO ia=1,cr_natoms    ! Outer loop over all atoms
          IF (lout.and. (mod (ia, id) .eq.0) ) then 
-            done = 100.0 * float (ia) / float (cr_natoms) 
+            done = 100.0 * REAL(ia) / REAL(cr_natoms) 
             WRITE (output_io, 1000) done 
          ENDIF 
          is = cr_iscat (ia) 

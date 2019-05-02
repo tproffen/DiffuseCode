@@ -83,7 +83,7 @@ CONTAINS
 !     n_natom  = 1
 !                                                                       
       IF (cr_natoms.gt.0.and.as_natoms.gt.0) then 
-         patt_scale = float (cr_ncatoms) / float (cr_natoms) 
+         patt_scale = REAL(cr_ncatoms) / REAL(cr_natoms) 
       ELSEIF (patt_scale.eq.0) then 
          patt_scale = 1.0 
       ENDIF 
@@ -101,10 +101,10 @@ CONTAINS
 !                                                                       
       CALL no_error 
 !                                                                       
-      divis (1) = float (max (1, inc (1) - 1) ) 
-      divis (2) = float (max (1, inc (2) - 1) ) 
-      rho_divis (1) = float (max (1, rho_inc (1) - 1) ) 
-      rho_divis (2) = float (max (1, rho_inc (2) - 1) ) 
+      divis (1) = REAL(max (1, inc (1) - 1) ) 
+      divis (2) = REAL(max (1, inc (2) - 1) ) 
+      rho_divis (1) = REAL(max (1, rho_inc (1) - 1) ) 
+      rho_divis (2) = REAL(max (1, rho_inc (2) - 1) ) 
 !                                                                       
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
@@ -295,8 +295,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDDO 
                         inc (1) = nint (werte (10) ) 
                         inc (2) = nint (werte (11) ) 
-                        divis (1) = float (max (1, inc (1) - 1) ) 
-                        divis (2) = float (max (1, inc (2) - 1) ) 
+                        divis (1) = REAL(max (1, inc (1) - 1) ) 
+                        divis (2) = REAL(max (1, inc (2) - 1) ) 
                         DO i = 1, 3 
                         vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (&
                         1)                                              
@@ -370,7 +370,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (1) = nint (werte (1) ) 
-                           divis (1) = float (max (1, inc (1) - 1) ) 
+                           divis (1) = REAL(max (1, inc (1) - 1) ) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
                            / divis (1)                                  
@@ -397,7 +397,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (2) = nint (werte (1) ) 
-                           divis (2) = float (max (1, inc (2) - 1) ) 
+                           divis (2) = REAL(max (1, inc (2) - 1) ) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) )       &
                            / divis (1)                                  
@@ -467,9 +467,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDDO 
                         rho_inc (1) = nint (werte (10) ) 
                         rho_inc (2) = nint (werte (11) ) 
-                        rho_divis (1) = float (max (1, rho_inc (1)      &
+                        rho_divis (1) = REAL(max (1, rho_inc (1)      &
                         - 1) )                                          
-                        rho_divis (2) = float (max (1, rho_inc (2)      &
+                        rho_divis (2) = REAL(max (1, rho_inc (2)      &
                         - 1) )                                          
                         DO i = 1, 3 
                         rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i, 1)&
@@ -545,7 +545,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            rho_inc (1) = nint (werte (1) ) 
-                           rho_divis (1) = float (max (1, rho_inc (1)   &
+                           rho_divis (1) = REAL(max (1, rho_inc (1)   &
                            - 1) )                                       
                            DO i = 1, 3 
                            rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
@@ -575,7 +575,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            rho_inc (2) = nint (werte (1) ) 
-                           rho_divis (2) = float (max (1, rho_inc (2)   &
+                           rho_divis (2) = REAL(max (1, rho_inc (2)   &
                            - 1) )                                       
                            DO i = 1, 3 
                            rho_vi (i, 1) = (rho_eck (i, 2) - rho_eck (i,&
@@ -1526,8 +1526,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !           write (output_io,*) h(extr_abs),z1(1),z2(1)                 
             j = 1 
             DO k = 1, 3 
-            h (k) = eck (k, 1) + vi (k, 1) * float (i - 1) + vi (k, 2)  &
-            * float (j - 1)                                             
+            h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1) + vi (k, 2)  &
+            * REAL(j - 1)                                             
             ENDDO 
             CALL set_patt_value (a_b, inverse_type, rho_type, z1, z2, 1,&
             patt_excl9999, patt_excl_val, l_incl)                       
@@ -1581,8 +1581,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   z2, i, patt_excl9999, patt_excl_val, l_incl)          
                   IF (l_incl) then 
                      DO k = 1, 3 
-                     h (k) = eck (k, 1) + vi (k, 1) * float (i - 1)     &
-                     + vi (k, 2) * float (j - 1)                        
+                     h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1)     &
+                     + vi (k, 2) * REAL(j - 1)                        
                      ENDDO 
                      a_b = a_b * patt_scale * vr 
                      CALL calc_patters (a_b, h) 
@@ -2597,8 +2597,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph (i) )        &
-         / float (e_graph (0) ) / 0.1                                   
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph (i) )        &
+         / REAL(e_graph (0) ) / 0.1                                   
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2608,8 +2608,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hk0 (i) )    &
-         / float (e_graph_hk0 (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hk0 (i) )    &
+         / REAL(e_graph_hk0 (0) ) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2619,8 +2619,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_h0l (i) )    &
-         / float (e_graph_h0l (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_h0l (i) )    &
+         / REAL(e_graph_h0l (0) ) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2630,8 +2630,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0kl (i) )    &
-         / float (e_graph_0kl (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0kl (i) )    &
+         / REAL(e_graph_0kl (0) ) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2641,8 +2641,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhl (i) )    &
-         / float (e_graph_hhl (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhl (i) )    &
+         / REAL(e_graph_hhl (0) ) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2652,8 +2652,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_hMh0l (i) )  &
-         / float (e_graph_hMh0l (0) ) / 0.1                             
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hMh0l (i) )  &
+         / REAL(e_graph_hMh0l (0) ) / 0.1                             
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2663,8 +2663,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE( e_io, 1000) i * 0.1 - 0.05, float (e_graph_hhM2Hl (i) ) &
-         / float (e_graph_hhM2Hl (0) ) / 0.1                            
+         WRITE( e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_hhM2Hl (i) ) &
+         / REAL(e_graph_hhM2Hl (0) ) / 0.1                            
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 
@@ -2674,8 +2674,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
             CALL oeffne (e_io, outfile, 'unknown') 
          ENDIF 
          DO i = 1, 30 
-         WRITE (e_io, 1000) i * 0.1 - 0.05, float (e_graph_0k0 (i) )    &
-         / float (e_graph_0k0 (0) ) / 0.1                               
+         WRITE (e_io, 1000) i * 0.1 - 0.05, REAL(e_graph_0k0 (i) )    &
+         / REAL(e_graph_0k0 (0) ) / 0.1                               
          ENDDO 
          IF (e_io.ne.6) then 
             CLOSE (e_io) 

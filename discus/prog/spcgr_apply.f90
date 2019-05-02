@@ -943,7 +943,7 @@ END SUBROUTINE spcgr_setting
          ENDIF 
          ENDDO 
          DO i = 1, 3 
-         hkl (i) = float (nint (hkl (i) / hmin) ) 
+         hkl (i) = REAL(nint (hkl (i) / hmin) ) 
          ENDDO 
       ENDIF 
       IF (w_char (2:2) .ne.'1'.and.w_char (2:2) .ne.'m') then 
@@ -2277,9 +2277,9 @@ END SUBROUTINE mole_insert_explicit
       DO k1 = 2, - 2, - 1 
       DO k2 = 2, - 2, - 1 
       DO k3 = 2, - 2, - 1 
-      v (1) = cr_pos (1, mole_cont (mole_off (i) + j) ) + float (k1) 
-      v (2) = cr_pos (2, mole_cont (mole_off (i) + j) ) + float (k2) 
-      v (3) = cr_pos (3, mole_cont (mole_off (i) + j) ) + float (k3) 
+      v (1) = cr_pos (1, mole_cont (mole_off (i) + j) ) + REAL(k1) 
+      v (2) = cr_pos (2, mole_cont (mole_off (i) + j) ) + REAL(k2) 
+      v (3) = cr_pos (3, mole_cont (mole_off (i) + j) ) + REAL(k3) 
       dd = do_blen (lspace, u, v) 
 !DBG                                                                    
 !DBG      write (output_io,5556) u,j,mole_off(i)+j,v,dd                 
@@ -2339,7 +2339,7 @@ END SUBROUTINE mole_insert_explicit
       DO j = mole_num_curr, mole_num_mole 
       DO i = 1, 3 
       x = cr_pos (i, mole_cont (mole_off (j) + 1) ) 
-      x1 = float (int (x) ) 
+      x1 = REAL(int (x) ) 
       IF (x - x1.lt. - eps) x1 = x1 - 1 
       IF (abs (x1) .gt.eps) then 
 !                                                                       
@@ -2365,7 +2365,7 @@ END SUBROUTINE mole_insert_explicit
       REAL y (idim) 
 !                                                                       
       DO i = 1, 3 
-      y (i) = y (i) - float (int (y (i) ) ) 
+      y (i) = y (i) - REAL(int (y (i) ) ) 
       IF (y (i) .lt.0.0) y (i) = y (i) + 1 
       IF (y (i) .eq.1.0) y (i) = 0.0 
       ENDDO 

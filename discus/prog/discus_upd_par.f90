@@ -929,7 +929,7 @@ CALL no_error
                      res_para (0) = 2 
                      res_para (1) = i 
                      res_para (2) = j 
-                     ww = float (i) 
+                     ww = REAL(i) 
                      GOTO 8000 
                   ENDIF 
                   ENDDO 

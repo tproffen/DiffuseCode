@@ -1350,8 +1350,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          ENDDO 
          CALL trans (v, st_inv, u, 3) 
          DO j = 1, 3 
-         st_origin (j, i) = st_origin (j, i) - float (int (u (1) ) )    &
-         * st_mod (j, 1) - float (int (u (2) ) ) * st_mod (j, 2)        
+         st_origin (j, i) = st_origin (j, i) - REAL(int (u (1) ) )    &
+         * st_mod (j, 1) - REAL(int (u (2) ) ) * st_mod (j, 2)        
          ENDDO 
       ENDIF 
 !                                                                       
@@ -2406,7 +2406,7 @@ internal: IF(st_internal(st_type(i)) ) THEN
             DO l = 1, st_ntypes 
             IF (st_ndisp (l) .gt.0) then 
                DO i = 1, 3 
-               st_disp (i, l) = st_disp (i, l) / float (st_ndisp (l) ) 
+               st_disp (i, l) = st_disp (i, l) / REAL(st_ndisp (l) ) 
                ENDDO 
 !             write (output_io,5000) (st_disp(i,l),i=1,3)               
             ENDIF 

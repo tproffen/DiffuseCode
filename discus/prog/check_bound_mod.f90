@@ -28,21 +28,21 @@ CONTAINS
 !                                                                       
          IF (cell (i) .lt.1) then 
             IF (cr_icc (i) .eq.1) then 
-               offset (i) = float (cell (i) - 1) 
+               offset (i) = REAL(cell (i) - 1) 
                cell (i) = 1 
             ELSE 
                j = ( - cell (i) / cr_icc (i) + 1) * cr_icc (i) 
                cell (i) = cell (i) + j 
-               offset (i) = - float (j) 
+               offset (i) = - REAL(j) 
             ENDIF 
          ELSEIF (cell (i) .gt.cr_icc (i) ) then 
             IF (cr_icc (i) .eq.1) then 
-               offset (i) = float (cell (i) - 1) 
+               offset (i) = REAL(cell (i) - 1) 
                cell (i) = 1 
             ELSE 
                j = ( (cell (i) - 1) / cr_icc (i) ) * cr_icc (i) 
                cell (i) = cell (i) - j 
-               offset (i) = float (j) 
+               offset (i) = REAL(j) 
             ENDIF 
          ENDIF 
 !                                                                       

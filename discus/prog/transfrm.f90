@@ -1322,7 +1322,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  1000 CONTINUE 
       READ (ird, 2000, end = 999) hkl, inten 
       DO i = 1, 3 
-      usym (i) = float (hkl (i) ) 
+      usym (i) = REAL(hkl (i) ) 
       ENDDO 
       usym (4) = 0.0 
 !                                                                       
@@ -1335,7 +1335,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       ltest = .true. 
       DO i = 1, 3 
-      utest (i) = abs (float (nint (ures (i) ) ) - ures (i) ) 
+      utest (i) = abs (REAL(nint (ures (i) ) ) - ures (i) ) 
       ltest = ltest.and. (utest (i) .lt.tran_deltahkl) 
       ENDDO 
       IF (ltest) then 

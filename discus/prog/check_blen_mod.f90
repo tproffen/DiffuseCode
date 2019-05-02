@@ -51,7 +51,7 @@ CONTAINS
                atom_env (0) = atom_env (0) + 1 
                atom_env (atom_env (0) ) = iatom 
                res_para (atom_env (0) ) = dist 
-               res_para (0) = float (nint (res_para (0) ) + 1) 
+               res_para (0) = REAL(nint (res_para (0) ) + 1) 
                DO j = 1, 3 
                   atom_pos (j, atom_env (0) ) = v (j) 
                ENDDO 
@@ -107,7 +107,7 @@ CONTAINS
             mole_env (0) = mole_env (0) + 1 
             mole_env (mole_env (0) ) = imole 
             res_para (mole_env (0) ) = dist 
-            res_para (0) = float (nint (res_para (0) ) + 1) 
+            res_para (0) = REAL(nint (res_para (0) ) + 1) 
             DO j = 1, 3 
             mole_pos (j, mole_env (0) ) = v (j) 
             ENDDO 

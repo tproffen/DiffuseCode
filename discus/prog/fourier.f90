@@ -86,9 +86,9 @@ CONTAINS
    10 CONTINUE 
 !                                                                       
       CALL no_error 
-      divis (1) = float (max (1, inc (1) - 1) ) 
-      divis (2) = float (max (1, inc (2) - 1) ) 
-      divis (3) = float (max (1, inc (3) - 1) ) 
+      divis (1) = REAL(max (1, inc (1) - 1) ) 
+      divis (2) = REAL(max (1, inc (2) - 1) ) 
+      divis (3) = REAL(max (1, inc (3) - 1) ) 
 !                                                                       
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
       IF (ier_num.eq.0) then 
@@ -392,8 +392,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         inc (1) = nint (werte (10) ) 
                         inc (2) = nint (werte (11) ) 
                         inc (3) = 1             ! No increment along vertical axis
-                        divis (1) = float (max (1, inc (1) - 1) ) 
-                        divis (2) = float (max (1, inc (2) - 1) ) 
+                        divis (1) = REAL(max (1, inc (1) - 1) ) 
+                        divis (2) = REAL(max (1, inc (2) - 1) ) 
                         divis (3) =             1
                         DO i = 1, 3 
                         vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (1)
@@ -513,7 +513,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (1) = nint (werte (1) ) 
-                           divis (1) = float (max (1, inc (1) - 1) ) 
+                           divis (1) = REAL(max (1, inc (1) - 1) ) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (1)                                  
                            vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (2)                                  
@@ -547,7 +547,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (2) = nint (werte (1) ) 
-                           divis (2) = float (max (1, inc (2) - 1) ) 
+                           divis (2) = REAL(max (1, inc (2) - 1) ) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (1)
                            vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (2)
@@ -574,7 +574,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      IF (ier_num.eq.0) then 
                         IF (werte (1) .gt.0) then 
                            inc (3) = nint (werte (1) ) 
-                           divis (3) = float (max (1, inc (3) - 1) ) 
+                           divis (3) = REAL(max (1, inc (3) - 1) ) 
                            DO i = 1, 3 
                            vi (i, 1) = (eck (i, 2) - eck (i, 1) ) / divis (1)
                            vi (i, 2) = (eck (i, 3) - eck (i, 1) ) / divis (2)

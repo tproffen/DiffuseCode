@@ -2032,7 +2032,7 @@ ENDIF
          WRITE (output_io, 1400) ianz, atom_env (ianz), at_name_i,      &
          atom_dis (ianz), (cr_pos (i, atom_env (ianz) ), i = 1, 3),     &
          icell, isite                                                   
-         res_para (ianz) = float (atom_env (ianz) ) 
+         res_para (ianz) = REAL(atom_env (ianz) ) 
          ENDDO 
          res_para (0) = atom_env (0) 
       ENDIF 
@@ -2384,7 +2384,7 @@ ENDIF
 !     ELSE 
          res_para (0) = n 
          DO i = 1, n 
-         res_para (i) = float (ind (i) ) 
+         res_para (i) = REAL(ind (i) ) 
          ENDDO 
 !     ENDIF 
 !                                                                       
@@ -2578,7 +2578,7 @@ ENDIF
       ENDIF 
 !                                                                       
       IF (itot.ne.0) then 
-         c = float (ico) / float (itot) 
+         c = REAL(ico) / REAL(itot) 
          sc = sc + c 
          scc = scc + c * c 
       ENDIF 
@@ -2598,15 +2598,15 @@ ENDIF
       CALL oeffne(37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
-      WRITE (37, 2000) float (i - 1) / float (chem_bin - 1), chem_hist (&
+      WRITE (37, 2000) REAL(i - 1) / REAL(chem_bin - 1), chem_hist (&
       i)                                                                
       ENDDO 
       CLOSE (37) 
 !                                                                       
 !------ Output average concentration and sigma                          
 !                                                                       
-      ave_c = sc / float (nlots) 
-      sig_c = scc / float (nlots) - ave_c * ave_c 
+      ave_c = sc / REAL(nlots) 
+      sig_c = scc / REAL(nlots) - ave_c * ave_c 
 !                                                                       
       WRITE (output_io, 1200) ave_c, sig_c 
 !                                                                       
@@ -2723,7 +2723,7 @@ ENDIF
       CALL oeffne (37, fname, 'unknown') 
       IF (ier_num.ne.0) return 
       DO i = 1, chem_bin 
-      WRITE (37, 2000) (2. * float (i - 1) / float (chem_bin - 1) )     &
+      WRITE (37, 2000) (2. * REAL(i - 1) / REAL(chem_bin - 1) )     &
       - 1., chem_hist (i)                                               
       ENDDO 
       CLOSE (37) 
@@ -2731,8 +2731,8 @@ ENDIF
 !------ Output average correlations and sigma                           
 !                                                                       
       DO ic = 1, chem_ncor 
-      ave_c = sc (ic) / float (nlots) 
-      sig_c = scc (ic) / float (nlots) - ave_c * ave_c 
+      ave_c = sc (ic) / REAL(nlots) 
+      sig_c = scc (ic) / REAL(nlots) - ave_c * ave_c 
       WRITE (output_io, 1200) ic, ave_c, sig_c 
       ENDDO 
 !                                                                       
@@ -2820,7 +2820,7 @@ ENDIF
          chem_inlot = .true. 
 !                                                                       
          DO i = 1, 3 
-         x0 = float (ls_xyz (i) ) / 2.0 
+         x0 = REAL(ls_xyz (i) ) / 2.0 
          izmin = lbeg (i) 
          izmax = lbeg (i) + ls_xyz (i) - 1 
          xtest (i) = (iz (i) - izmin - x0 + 0.5) **2 / x0**2 
@@ -2992,8 +2992,8 @@ ENDIF
          lbeg (3) = 0 
 !                                                                       
          WRITE (37, * ) (xmax - xmin + 1), (ymax - ymin + 1) 
-         WRITE (37, * ) float (xmin), float (xmax), float (ymin),       &
-         float (ymax)                                                   
+         WRITE (37, * ) REAL(xmin), REAL(xmax), REAL(ymin),       &
+         REAL(ymax)                                                   
          DO iy = ymin, ymax 
          DO ix = xmin, xmax 
          CALL chem_inc_neig (ix, iy, back_cvec, back_neig, nv) 
@@ -3113,7 +3113,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       ELSEIF (chem_ctyp (1) .eq.CHEM_DIST) then 
          DO i = 1, 3 
          DO j = 1, chem_nnei (1) 
-         chem_neig (i, j, 1) = float (ix) * neig (i, j, 1) + float (iy) &
+         chem_neig (i, j, 1) = REAL(ix) * neig (i, j, 1) + REAL(iy) &
          * neig (i, j, 2)                                               
          ENDDO 
          ENDDO 
@@ -4406,7 +4406,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
             CALL indextocell (i, icc, is) 
             DO j = 1, 3 
                di(j) = cr_pos(j,i) - chem_ave_pos(j,is) -&
-                       float (icc(j) - 1) - cr_dim0 (j,1)                                    
+                       REAL(icc(j) - 1) - cr_dim0 (j,1)                                    
             ENDDO 
 !                                                                       
             IF (chem_ldall (ic) ) then 
@@ -4430,7 +4430,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                CALL indextocell (atom (j), jcc, js) 
                DO ii = 1, 3 
                   dj(ii) = cr_pos(ii,atom (j) ) - chem_ave_pos (ii,js) &
-                          - float(jcc(ii) - 1) - cr_dim0(ii,1)                 
+                          - REAL(jcc(ii) - 1) - cr_dim0(ii,1)                 
                ENDDO 
                dpj = skalpro (dj, jdir, cr_gten) / rdj 
                xij = xij + dpi * dpj 
@@ -4449,9 +4449,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !                                                                       
 !DBGDISPwrite(*,*) ' FINAL ', xij, xi2, xj2, xij / sqrt (xi2 * xj2)
          IF (nn.ne.0) then 
-            xij = xij / float (nn) 
-            xi2 = xi2 / float (nn) 
-            xj2 = xj2 / float (nn) 
+            xij = xij / REAL(nn) 
+            xi2 = xi2 / REAL(nn) 
+            xj2 = xj2 / REAL(nn) 
 !                                                                       
 !DBGDISPwrite(*,*) ' FINAL ', xij, xi2, xj2, xij / sqrt (xi2 * xj2)
             IF (xi2.ne.0.and.xj2.ne.0.0) then 
@@ -4626,7 +4626,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          IF (nmol.gt.0) then 
             CALL indextocell (imol, icc, is) 
             DO j = 1, 3 
-            di (j) = cr_pos (j, imol) - chem_ave_pos (j, is) - float (  &
+            di (j) = cr_pos (j, imol) - chem_ave_pos (j, is) - REAL(  &
             icc (j) - 1) - cr_dim0 (j, 1)                               
             ENDDO 
 !                                                                       
@@ -4652,7 +4652,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                CALL indextocell (jmol, jcc, js) 
                DO ii = 1, 3 
                dj (ii) = cr_pos (ii, jmol) - chem_ave_pos (ii, js)      &
-               - float (jcc (ii) - 1) - cr_dim0 (ii, 1)                 
+               - REAL(jcc (ii) - 1) - cr_dim0 (ii, 1)                 
                ENDDO 
                dpj = skalpro (dj, jdir, cr_gten) / rdj 
                xij = xij + dpi * dpj 
@@ -4668,9 +4668,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !------ - write results and save to res_para block                      
 !                                                                       
       IF (nn.ne.0) then 
-         xij = xij / float (nn) 
-         xi2 = xi2 / float (nn) 
-         xj2 = xj2 / float (nn) 
+         xij = xij / REAL(nn) 
+         xi2 = xi2 / REAL(nn) 
+         xj2 = xj2 / REAL(nn) 
 !                                                                       
          IF (xi2.ne.0.and.xj2.ne.0.0) then 
             mo_ach_corr (ic) = xij / sqrt (xi2 * xj2) 
@@ -4852,11 +4852,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       nneig = nint (pneig (1, 1) + pneig (2, 2) + pneig (1, 2) + pneig (&
       2, 1) )                                                           
       IF (nneig.ne.0) then 
-         pro00 = pneig (1, 1) / float (nneig) 
-         pro01 = (pneig (1, 2) + pneig (2, 1) ) / float (nneig) 
-         pro11 = pneig (2, 2) / float (nneig) 
+         pro00 = pneig (1, 1) / REAL(nneig) 
+         pro01 = (pneig (1, 2) + pneig (2, 1) ) / REAL(nneig) 
+         pro11 = pneig (2, 2) / REAL(nneig) 
          thet = 0.5 * (2.0 * pneig (1, 1) + pneig (1, 2) + pneig (2, 1) &
-         ) / float (nneig)                                              
+         ) / REAL(nneig)                                              
          IF (thet.ne.0.and.thet.ne.1.0) then 
             mo_ach_corr (ic) = (pro00 - thet**2) / (thet * (1 - thet) ) 
          ELSE 
@@ -5025,11 +5025,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       nneig = nint (pneig (1, 1) + pneig (2, 2) + pneig (1, 2) + pneig (&
       2, 1) )                                                           
       IF (nneig.ne.0) then 
-         pro00 = pneig (1, 1) / float (nneig) 
-         pro01 = (pneig (1, 2) + pneig (2, 1) ) / float (nneig) 
-         pro11 = pneig (2, 2) / float (nneig) 
+         pro00 = pneig (1, 1) / REAL(nneig) 
+         pro01 = (pneig (1, 2) + pneig (2, 1) ) / REAL(nneig) 
+         pro11 = pneig (2, 2) / REAL(nneig) 
          thet = 0.5 * (2.0 * pneig (1, 1) + pneig (1, 2) + pneig (2, 1) &
-         ) / float (nneig)                                              
+         ) / REAL(nneig)                                              
          IF (thet.ne.0.and.thet.ne.1.0) then 
             mo_ach_corr (ic) = (pro00 - thet**2) / (thet * (1 - thet) ) 
          ELSE 
@@ -6136,7 +6136,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       IF ( (l + 3) <=  MAXPAR_RES) then 
          res_para (l + 1) = bl_ave 
          res_para (l + 2) = bl_sig 
-         res_para (l + 3) = float (btot) 
+         res_para (l + 3) = REAL(btot) 
          l = l + 3 
       ELSE 
          ier_num = - 2 
@@ -6530,9 +6530,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
          CALL alloc_param(n_res)
          MAXPAR_RES = n_res
       ENDIF
-      res_para (0) = float (mole_num_type) 
+      res_para (0) = REAL(mole_num_type) 
       DO i = 1, mole_num_type 
-      proz = float (nmole (i) ) / mole_num_mole 
+      proz = REAL(nmole (i) ) / mole_num_mole 
       IF (lout) then 
          WRITE (output_io, 1200) i, proz, nmole (i) 
       ENDIF 

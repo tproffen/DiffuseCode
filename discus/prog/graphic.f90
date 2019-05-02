@@ -722,7 +722,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
-      iqqq (ix) = nint (float (ncol - 1) * (qqq - zmin) / (zmax - zmin) &
+      iqqq (ix) = nint (REAL(ncol - 1) * (qqq - zmin) / (zmax - zmin) &
       )                                                                 
       ENDDO 
       WRITE (2, 5000) (iqqq (ix), ix = 1, out_inc (1) ) 
@@ -805,7 +805,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       ELSEIF (qqq.gt.zmax) THEN 
          qqq = zmax 
       ENDIF 
-      iqqq (ix) = nint (float (ncol - 1) * (qqq - zmin) / (zmax - zmin) &
+      iqqq (ix) = nint (REAL(ncol - 1) * (qqq - zmin) / (zmax - zmin) &
       ) + 1                                                             
       ENDDO 
       WRITE (2, 5000) ( (icolor (iqqq (ix), j), j = 1, 3), ix = 1,      &
@@ -837,10 +837,10 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       cfarb (1) = '000000' 
 !                                                                       
       DO ifarb = 2, 256 
-      rh = 0.1 + float (ifarb - 1) / 283.0 
+      rh = 0.1 + REAL(ifarb - 1) / 283.0 
       rh = 6.0 * rh 
       i = int (rh) 
-      rf = rh - float (i) 
+      rf = rh - REAL(i) 
       rp = 0.0 
       rq = 1.0 - rf 
       rt = (1.0 - (1.0 - rf) ) 
@@ -1080,9 +1080,9 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
       DO i = 1, out_inc (is_axis)   ! loop along axis is_axis 
          loop(is_axis) = i
          DO k = 1, 3 
-            h (k) = out_eck(k,1) + out_vi(k,1) * float(loop(1)-1)   &
-                                 + out_vi(k,2) * float(loop(2)-1)   &
-                                 + out_vi(k,3) * float(loop(3)-1)  
+            h (k) = out_eck(k,1) + out_vi(k,1) * REAL(loop(1)-1)   &
+                                 + out_vi(k,2) * REAL(loop(2)-1)   &
+                                 + out_vi(k,3) * REAL(loop(3)-1)  
          ENDDO 
          xwrt(i) = h(out_extr_abs)
          ywrt(i) = qval (i, value, i, j, laver)
@@ -1172,9 +1172,9 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
-               h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-                                      + out_vi (k, 2) * float (j - 1)   &
-                                      + out_vi (k, 3) * float (l - 1)
+               h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)   &
+                                      + out_vi (k, 2) * REAL(j - 1)   &
+                                      + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
 !              k  = (i - 1) * out_inc (2) + j 
@@ -1192,9 +1192,9 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
-               h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-                                      + out_vi (k, 2) * float (j - 1)   &
-                                      + out_vi (k, 3) * float (l - 1)
+               h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)   &
+                                      + out_vi (k, 2) * REAL(j - 1)   &
+                                      + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
@@ -1214,9 +1214,9 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
-               h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-                                      + out_vi (k, 2) * float (j - 1)   &
-                                      + out_vi (k, 3) * float (l - 1)
+               h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)   &
+                                      + out_vi (k, 2) * REAL(j - 1)   &
+                                      + out_vi (k, 3) * REAL(l - 1)
                ENDDO 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
                k  = (i - 1) * out_inc (3) * out_inc (2) + (j-1) * out_inc (3) + l 
@@ -1234,8 +1234,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                DO j = 1, out_inc (2) 
                DO i = 1, out_inc (1) 
                DO k = 1, 3 
-               h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)   &
-               + out_vi (k, 2) * float (j - 1)                          
+               h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)   &
+               + out_vi (k, 2) * REAL(j - 1)                          
                ENDDO 
                k = (i - 1) * out_inc (2) + j 
                WRITE (iff, 5) h (out_extr_abs), h (out_extr_ord),       &
@@ -1249,8 +1249,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             i = 1 
             DO j = 1, out_inc (2) 
             DO k = 1, 3 
-            h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)      &
-            + out_vi (k, 2) * float (j - 1)                             
+            h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)      &
+            + out_vi (k, 2) * REAL(j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
@@ -1288,8 +1288,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
                i = 1 
                DO j = 1, out_inc (2) 
                   DO k = 1, 3 
-                     h(k) = out_eck(k,1) + out_vi(k,1) * float(i-1)    &
-                                         + out_vi(k,2) * float(j-1)
+                     h(k) = out_eck(k,1) + out_vi(k,1) * REAL(i-1)    &
+                                         + out_vi(k,2) * REAL(j-1)
                   ENDDO 
                   k       = (i - 1) * out_inc (2) + j 
                   WRITE(iff,6) h(out_extr_ord), qval(k,value,i,j,laver)
@@ -1302,8 +1302,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
             j = 1 
             DO i = 1, out_inc (1) 
             DO k = 1, 3 
-            h (k) = out_eck (k, 1) + out_vi (k, 1) * float (i - 1)      &
-            + out_vi (k, 2) * float (j - 1)                             
+            h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(i - 1)      &
+            + out_vi (k, 2) * REAL(j - 1)                             
             ENDDO 
             k = (i - 1) * out_inc (2) + j 
             IF( (INT(h(1)))**2 + (INT(h(2)))**2 + (INT(h(3)))**2 /= 0 ) THEN
@@ -1341,8 +1341,8 @@ ELSE      ! Data types ityp==0 or ELSE ! Block for all but standard file formats
 !              j = 1 
 !              DO i = 1, out_inc (1) 
 !                 DO k = 1, 3 
-!                    h (k) = out_eck(k,1) + out_vi(k,1) * float(i-1)   &
-!                                         + out_vi(k,2) * float(j-1)
+!                    h (k) = out_eck(k,1) + out_vi(k,1) * REAL(i-1)   &
+!                                         + out_vi(k,2) * REAL(j-1)
 !                 ENDDO 
 !                 k = (i - 1) * out_inc (2) + j 
 !                 WRITE(iff,6) h(out_extr_abs), qval(k,value,i,j,laver)

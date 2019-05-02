@@ -1436,8 +1436,8 @@ CONTAINS
 !------ calculate increments and zone axis                              
 !                                                                       
       DO i = 1, 3 
-      vi1 (i) = (e2 (i) - e1 (i) ) / float (max (1, nx - 1) ) 
-      vi2 (i) = (e3 (i) - e1 (i) ) / float (max (1, ny - 1) ) 
+      vi1 (i) = (e2 (i) - e1 (i) ) / REAL(max (1, nx - 1) ) 
+      vi2 (i) = (e3 (i) - e1 (i) ) / REAL(max (1, ny - 1) ) 
       ENDDO 
       CALL vekprod (vi1, vi2, z, cr_reps, cr_gten) 
 !                                                                       
@@ -1509,9 +1509,9 @@ CONTAINS
 !                                                                       
       DO i = 1, nsym 
       DO j = 1, 3 
-      rmc_vi (j, 1, i, ip) = (ee2 (j, i) - ee1 (j, i) ) / float (max (1,&
+      rmc_vi (j, 1, i, ip) = (ee2 (j, i) - ee1 (j, i) ) / REAL(max (1,&
       nx - 1) )                                                         
-      rmc_vi (j, 2, i, ip) = (ee3 (j, i) - ee1 (j, i) ) / float (max (1,&
+      rmc_vi (j, 2, i, ip) = (ee3 (j, i) - ee1 (j, i) ) / REAL(max (1,&
       ny - 1) )                                                         
       ENDDO 
       ENDDO 
@@ -1609,9 +1609,9 @@ CONTAINS
          READ (ifile, *, end = 99, err = 999) nx, ny, id 
 !                                                                       
          xmin = 0.0 
-         xmax = float (nx - 1) 
+         xmax = REAL(nx - 1) 
          ymin = 0.0 
-         ymax = float (ny - 1) 
+         ymax = REAL(ny - 1) 
       ENDIF 
       RETURN 
 !                                                                       
@@ -1990,7 +1990,7 @@ CONTAINS
          CALL oeffne_append (34, 'rmc.log', 'unknown', .false.) 
 !DBG        open (34,file='rmc.log',status='unknown',access='append')   
          WRITE (34, 3000) pave, psig, pmax 
-         WRITE (34, 4000) zh, zm, zs, zeit / float (itry) 
+         WRITE (34, 4000) zh, zm, zs, zeit / REAL(itry) 
          CLOSE (34) 
       ENDIF 
 !                                                                       
@@ -1999,13 +1999,13 @@ CONTAINS
       res_para (0) = 8 
 !                                                                       
       res_para (1) = chi2_old 
-      res_para (2) = float (itry) 
-      res_para (3) = float (iacc_good) 
-      res_para (4) = float (iacc_bad) 
+      res_para (2) = REAL(itry) 
+      res_para (3) = REAL(iacc_good) 
+      res_para (4) = REAL(iacc_bad) 
       res_para (5) = pave 
       res_para (6) = psig 
       res_para (7) = pmax 
-      res_para (8) = zeit / float (itry) 
+      res_para (8) = zeit / REAL(itry) 
 !                                                                       
 !------ Update crystal dimensions                                       
 !                                                                       
@@ -2739,7 +2739,7 @@ loop_plane: DO ip = 1, rmc_nplane
          IF (.not.rmc_inlot.and. (izmax.gt.cr_icc (i) ) ) then 
             izmin = 1 
             izmax = izmax - cr_icc (i) 
-            off (i) = off (i) - float (cr_icc (i) ) 
+            off (i) = off (i) - REAL(cr_icc (i) ) 
             rmc_inlot = rmc_inlot.and. (iz (i) .ge.izmin) .and. (iz (i) &
             .le.izmax)                                                  
          ENDIF 
@@ -2759,7 +2759,7 @@ loop_plane: DO ip = 1, rmc_nplane
          rmc_inlot = .true. 
 !                                                                       
          DO i = 1, 3 
-         x0 = float (ls_xyz (i) ) / 2.0 
+         x0 = REAL(ls_xyz (i) ) / 2.0 
          izmin = rmc_lots_orig (i, il) 
          izmax = rmc_lots_orig (i, il) + ls_xyz (i) - 1 
          off (i) = cr_dim0 (i, 1) + rmc_lots_orig (i, il) - 1 
@@ -2770,7 +2770,7 @@ loop_plane: DO ip = 1, rmc_nplane
          IF (.not.rmc_inlot.and. (izmax.gt.cr_icc (i) ) ) then 
             izmin = 1 
             izmax = izmax - cr_icc (i) 
-            off (i) = off (i) - float (cr_icc (i) ) 
+            off (i) = off (i) - REAL(cr_icc (i) ) 
             rmc_inlot = rmc_inlot.and. (iz (i) .ge.izmin) .and. (iz (i) &
             .le.izmax)                                                  
          ENDIF 
@@ -3069,9 +3069,9 @@ loop_plane: DO ip = 1, rmc_nplane
             i_new (2) = cr_iscat (isel (2) ) 
             DO j = 1, 3 
             disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is1)       &
-            - float (iz1 (j) - 1) - cr_dim0 (j, 1)                      
+            - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                      
             disp2 = cr_pos (j, isel (2) ) - chem_ave_pos (j, is2)       &
-            - float (iz2 (j) - 1) - cr_dim0 (j, 1)                      
+            - REAL(iz2 (j) - 1) - cr_dim0 (j, 1)                      
             p_new (j, 1) = cr_pos (j, isel (1) ) - disp1 + disp2 
             p_new (j, 2) = cr_pos (j, isel (2) ) - disp2 + disp1 
             ENDDO 
@@ -3227,10 +3227,10 @@ loop_plane: DO ip = 1, rmc_nplane
             iz2, is2)                                                   
             DO j = 1, 3 
             disp1 (j) = cr_pos (j, mole_cont (mole_off (imol (1) )      &
-            + 1) ) - chem_ave_pos (j, is1) - float (iz1 (j) - 1)        &
+            + 1) ) - chem_ave_pos (j, is1) - REAL(iz1 (j) - 1)        &
             - cr_dim0 (j, 1)                                            
             disp2 (j) = cr_pos (j, mole_cont (mole_off (imol (2) )      &
-            + 1) ) - chem_ave_pos (j, is2) - float (iz2 (j) - 1)        &
+            + 1) ) - chem_ave_pos (j, is2) - REAL(iz2 (j) - 1)        &
             - cr_dim0 (j, 1)                                            
             ENDDO 
 !                                                                       

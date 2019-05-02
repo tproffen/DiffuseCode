@@ -672,6 +672,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+      USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -768,7 +769,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             ELSEIF (cpara (1) (1:2) .eq.'CY') then 
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-               mo_cyc = nint (werte (1) ) 
+               mo_cyc = NINT(werte (1), PREC_INT_LARGE ) 
 !                                                                       
 !------ --- 'set feed' : setting display/feedback intervall             
 !                                                                       
@@ -1780,8 +1781,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL :: rel_cycl    ! how far are we in the desired number of cycles
       REAL patom (3, 0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
       REAL :: rrrr 
+      INTEGER(KIND=PREC_INT_LARGE) :: itry
       INTEGER iatom (0:CHEM_MAX_NEIG, CHEM_MAX_CENT) 
-      INTEGER igen, itry, iacc_good, iacc_neut, iacc_bad 
+      INTEGER igen, iacc_good, iacc_neut, iacc_bad 
       INTEGER isel (CHEM_MAX_ATOM) 
       INTEGER :: iselz=0, iselz2=0
       INTEGER lbeg (3) 
@@ -2035,7 +2037,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             IF (mmc_cor_energy (ic, MC_DISP) ) then 
             DO i = 1, 3 
             v (i) = cr_pos (i, isel (ia) ) - chem_ave_pos (i, is (ia) ) &
-            - float (iz (ia, i) - 1) - cr_dim0 (i, 1)                   
+            - REAL(iz (ia, i) - 1) - cr_dim0 (i, 1)                   
 !              u(i) = v(i)
 !           v (i) = v (i) - disp (i, 0, ia) 
             ENDDO 
@@ -2165,9 +2167,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !                                                                       
                DO j = 1, 3 
                disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is (1) )&
-               - float (iz1 (j) - 1) - cr_dim0 (j, 1)                   
+               - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                   
                disp2 = cr_pos (j, isel (2) ) - chem_ave_pos (j, is (2) )&
-               - float (iz2 (j) - 1) - cr_dim0 (j, 1)                   
+               - REAL(iz2 (j) - 1) - cr_dim0 (j, 1)                   
                disp (j, 0, 1) = - disp1 + disp2 
                disp (j, 0, 2) = - disp2 + disp1 
                posz (j) = cr_pos (j, isel (1) ) 
@@ -2184,7 +2186,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                CALL indextocell (isel (1), iz1, is (1) ) 
                DO j = 1, 3 
                disp1 = cr_pos (j, isel (1) ) - chem_ave_pos (j, is (1) )&
-               - float (iz1 (j) - 1) - cr_dim0 (j, 1)                   
+               - REAL(iz1 (j) - 1) - cr_dim0 (j, 1)                   
                disp (j, 0, 1) = - 2 * disp1 
                posz (j) = cr_pos (j, isel (1) ) 
                cr_pos (j, isel (1) ) = cr_pos (j, isel (1) ) + disp (j, &
@@ -2413,7 +2415,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !     ----New mmc_correlations for all energies                         
 !                                                                       
 !        lout = .true. 
-         rel_cycl = float(itry)/float(mo_cyc)
+         rel_cycl = REAL(itry)/REAL(mo_cyc)
          CALL mmc_correlations (lout_feed, rel_cycl)
                                                                         
 !        IF (mmc_cor_energy (0, MC_VECTOR) ) then 
@@ -2495,10 +2497,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       IF(lout_feed) WRITE ( output_io, 5000) 
       DO i = 1, MC_N_ENERGY 
       IF (n_e_av_p (i) .gt.0) then 
-         e_aver_p (i) = e_aver_p (i) / float (n_e_av_p (i) ) 
+         e_aver_p (i) = e_aver_p (i) / REAL(n_e_av_p (i) ) 
       ENDIF 
       IF (n_e_av_m (i) .gt.0) then 
-         e_aver_m (i) = e_aver_m (i) / float (n_e_av_m (i) ) 
+         e_aver_m (i) = e_aver_m (i) / REAL(n_e_av_m (i) ) 
       ENDIF 
       IF(lout_feed) WRITE ( output_io, 5010) c_energy (i), n_e_av_m (i), e_aver_m (i),        &
       n_e_av_z (i), n_e_av_p (i), e_aver_p (i)                          
@@ -2868,7 +2870,7 @@ END SUBROUTINE mmc_test_multi
                         CALL indextocell (iatom (in, icent), cell, site) 
                         DO i = 1, 3 
                         u (i) = cr_pos (i, iatom (in, icent) ) -        &
-                        chem_ave_pos (i, site) - float (cell (i)        &
+                        chem_ave_pos (i, site) - REAL(cell (i)        &
                         - 1) - cr_dim0 (i, 1)                           
                         ENDDO 
                         dx = skalpro (u, jdir, cr_gten) / rdj (ic) 
@@ -2899,7 +2901,7 @@ END SUBROUTINE mmc_test_multi
                         CALL indextocell (iatom (in, icent), cell, site) 
                         DO i = 1, 3 
                         u (i) = cr_pos (i, iatom (in, icent) ) -        &
-                        chem_ave_pos (i, site) - float (cell (i)        &
+                        chem_ave_pos (i, site) - REAL(cell (i)        &
                         - 1) - cr_dim0 (i, 1)                           
                         ENDDO 
                         dx = skalpro (u, jdir, cr_gten) / rdj (ic) 
@@ -3008,7 +3010,7 @@ END SUBROUTINE mmc_test_multi
          ENDIF 
       ENDIF 
       IF (ncalc.gt.0) then 
-         mmc_energy_spr = mmc_energy_spr / float (ncalc) 
+         mmc_energy_spr = mmc_energy_spr / REAL(ncalc) 
          valid_e = .true. 
       ELSE 
          mmc_energy_spr = 0.0 
@@ -3062,7 +3064,7 @@ END SUBROUTINE mmc_test_multi
 !                                                                       
       CALL indextocell (iatom, cell, site) 
       DO i = 1, 3 
-      u (i) = cr_pos (i, iatom) - chem_ave_pos (i, site) - float (cell (&
+      u (i) = cr_pos (i, iatom) - chem_ave_pos (i, site) - REAL(cell (&
       i) - 1) - cr_dim0 (i, 1)                                          
       ENDDO 
       d = do_blen (.true., u, u) 
@@ -3200,7 +3202,7 @@ END SUBROUTINE mmc_test_multi
          ENDIF 
       ENDIF 
       IF (ncalc.gt.0) then 
-         mmc_energy_len = mmc_energy_len / float (ncalc) 
+         mmc_energy_len = mmc_energy_len / REAL(ncalc) 
          valid_e = .true. 
       ELSE 
          mmc_energy_len = 0.0 
@@ -3312,7 +3314,7 @@ END SUBROUTINE mmc_test_multi
          ENDIF 
       ENDIF 
       IF (ncalc.gt.0) then 
-         mmc_energy_rep = mmc_energy_rep / float (ncalc) 
+         mmc_energy_rep = mmc_energy_rep / REAL(ncalc) 
          valid_e = .true. 
       ELSE 
          mmc_energy_rep =    -1.*ABS(mmc_rep_low)
@@ -3418,7 +3420,7 @@ END SUBROUTINE mmc_test_multi
          ENDIF 
       ENDIF 
       IF (ncalc.gt.0) then 
-         mmc_energy_buck = mmc_energy_buck / float (ncalc) 
+         mmc_energy_buck = mmc_energy_buck / REAL(ncalc) 
          valid_e = .true. 
       ELSE 
          mmc_energy_buck = 0.0 
@@ -3884,7 +3886,7 @@ is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) then
                CALL indextocell (i, icc, is) 
                DO j = 1, 3 
                   disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
-                             float (icc (j) - 1) - cr_dim0 (j, 1)                                          
+                             REAL(icc (j) - 1) - cr_dim0 (j, 1)                                          
                ENDDO 
 !                                                                       
                IF (chem_ldall (ic) ) then 
@@ -3955,7 +3957,7 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
                CALL indextocell (iatom (j, icent), jcc, js) 
                DO k = 1, 3 
                disj (k) = cr_pos (k, iatom (j, icent) ) - chem_ave_pos (&
-               k, js) - float (jcc (k) - 1) - cr_dim0 (k, 1)            
+               k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
                ENDDO 
                dpj = skalpro (disj, jdir, cr_gten) / rdj 
                xij (is, js) = xij (is, js) + dpi * dpj 
@@ -4055,10 +4057,10 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
 !                                                                       
          nneigh = pair11 + pair12 + pair21 + pair22 
          IF (nneigh.gt.0.) then 
-            prob11 =  pair11           / float (nneigh) 
-            prob12 = (pair12 + pair21) / float (nneigh) 
-            prob22 =  pair22           / float (nneigh) 
-            thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / float(nneigh)                                                     
+            prob11 =  pair11           / REAL(nneigh) 
+            prob12 = (pair12 + pair21) / REAL(nneigh) 
+            prob22 =  pair22           / REAL(nneigh) 
+            thet = 0.5 * (2.0 * pair11 + pair12 + pair21) / REAL(nneigh)                                                     
          ENDIF 
          lfirst = .true.
 corr_pair: DO is = 0, cr_nscat 
@@ -4104,9 +4106,9 @@ disp_pair: DO is = 0, cr_nscat
          xi2 (is, js) = xi2 (is, js) + xi2 (js, is) 
          xj2 (is, js) = xj2 (is, js) + xj2 (js, is) 
          IF (xnn (is, js) .ne.0) then 
-            xij (is, js) = xij (is, js) / float (xnn (is, js) ) 
-            xi2 (is, js) = xi2 (is, js) / float (xnn (is, js) ) 
-            xj2 (is, js) = xj2 (is, js) / float (xnn (is, js) ) 
+            xij (is, js) = xij (is, js) / REAL(xnn (is, js) ) 
+            xi2 (is, js) = xi2 (is, js) / REAL(xnn (is, js) ) 
+            xj2 (is, js) = xj2 (is, js) / REAL(xnn (is, js) ) 
 !                                                                       
             IF (xi2 (is, js) .ne.0.and.xj2 (is, js) .ne.0.0) then 
                mmc_ach_corr (ic, je, is, js) = xij (is, js) / sqrt (xi2 &

@@ -220,7 +220,7 @@ CONTAINS
                   IF (cr_iscat (iatom) .eq.iscat) then 
                      nxat = nxat + 1 
                      DO j = 1, 3 
-                     xat (nxat, j) = cr_pos (j, iatom) - float (icell (j)     &
+                     xat (nxat, j) = cr_pos (j, iatom) - REAL(icell (j)     &
                      - 1) - cr_dim0 (j, 1)                                    
                      ENDDO 
                   ENDIF 
@@ -262,7 +262,7 @@ CONTAINS
 !------ - write how much of the crystal we actually used                
 !                                                                       
          IF (four_log) then 
-            WRITE (output_io, 2000) (float (ncell) / float (scell) )    &
+            WRITE (output_io, 2000) (REAL(ncell) / REAL(scell) )    &
             * 100.0                                                     
          ENDIF 
 !                                                                       
@@ -320,21 +320,21 @@ CONTAINS
          offset (3) = cr_dim0 (3, 1) + lbeg (3) - 1 
          IF (icell (3) .gt.cr_icc (3) ) then 
             icell (3) = icell (3) - cr_icc (3) 
-            offset (3) = offset (3) - float (cr_icc (3) ) 
+            offset (3) = offset (3) - REAL(cr_icc (3) ) 
          ENDIF 
          DO jj = 0, ls_xyz (2) - 1 
          icell (2) = jj + lbeg (2) 
          offset (2) = cr_dim0 (2, 1) + lbeg (2) - 1 
          IF (icell (2) .gt.cr_icc (2) ) then 
             icell (2) = icell (2) - cr_icc (2) 
-            offset (2) = offset (2) - float (cr_icc (2) ) 
+            offset (2) = offset (2) - REAL(cr_icc (2) ) 
          ENDIF 
          DO ii = 0, ls_xyz (1) - 1 
          icell (1) = ii + lbeg (1) 
          offset (1) = cr_dim0 (1, 1) + lbeg (1) - 1 
          IF (icell (1) .gt.cr_icc (1) ) then 
             icell (1) = icell (1) - cr_icc (1) 
-            offset (1) = offset (1) - float (cr_icc (1) ) 
+            offset (1) = offset (1) - REAL(cr_icc (1) ) 
          ENDIF 
 !                                                                       
          ncell = ncell + 1 
@@ -370,32 +370,32 @@ CONTAINS
 !                                                                       
       ELSEIF (lots.eq.LOT_ELI) then 
          DO ii = 1, 3 
-         x0 (ii) = float (ls_xyz (ii) ) / 2.0 
+         x0 (ii) = REAL(ls_xyz (ii) ) / 2.0 
          ENDDO 
 !                                                                       
          DO kk = 0, ls_xyz (3) - 1 
          icell (3) = kk + lbeg (3) 
          offset (3) = cr_dim0 (3, 1) + lbeg (3) - 1 
-         xtest (3) = (float (kk) - x0 (3) + 0.5) **2 / x0 (3) **2 
+         xtest (3) = (REAL(kk) - x0 (3) + 0.5) **2 / x0 (3) **2 
          IF (icell (3) .gt.cr_icc (3) ) then 
             icell (3) = icell (3) - cr_icc (3) 
-            offset (3) = offset (3) - float (cr_icc (3) ) 
+            offset (3) = offset (3) - REAL(cr_icc (3) ) 
          ENDIF 
          DO jj = 0, ls_xyz (2) - 1 
          icell (2) = jj + lbeg (2) 
          offset (2) = cr_dim0 (2, 1) + lbeg (2) - 1 
-         xtest (2) = (float (jj) - x0 (2) + 0.5) **2 / x0 (2) **2 
+         xtest (2) = (REAL(jj) - x0 (2) + 0.5) **2 / x0 (2) **2 
          IF (icell (2) .gt.cr_icc (2) ) then 
             icell (2) = icell (2) - cr_icc (2) 
-            offset (2) = offset (2) - float (cr_icc (2) ) 
+            offset (2) = offset (2) - REAL(cr_icc (2) ) 
          ENDIF 
          DO ii = 0, ls_xyz (1) - 1 
          icell (1) = ii + lbeg (1) 
          offset (1) = cr_dim0 (1, 1) + lbeg (1) - 1 
-         xtest (1) = (float (ii) - x0 (1) + 0.5) **2 / x0 (1) **2 
+         xtest (1) = (REAL(ii) - x0 (1) + 0.5) **2 / x0 (1) **2 
          IF (icell (1) .gt.cr_icc (1) ) then 
             icell (1) = icell (1) - cr_icc (1) 
-            offset (1) = offset (1) - float (cr_icc (1) ) 
+            offset (1) = offset (1) - REAL(cr_icc (1) ) 
          ENDIF 
 !                                                                       
          IF ( (xtest (1) + xtest (2) + xtest (3) ) .le.1.0) then 
@@ -455,9 +455,9 @@ CONTAINS
          DO jj = 0, cr_icc (2) - 1 
          DO kk = 0, cr_icc (3) - 1 
          nxat = nxat + 1 
-         xat (nxat, 1) = float (ii) + cr_dim0 (1, 1) 
-         xat (nxat, 2) = float (jj) + cr_dim0 (2, 1) 
-         xat (nxat, 3) = float (kk) + cr_dim0 (3, 1) 
+         xat (nxat, 1) = REAL(ii) + cr_dim0 (1, 1) 
+         xat (nxat, 2) = REAL(jj) + cr_dim0 (2, 1) 
+         xat (nxat, 3) = REAL(kk) + cr_dim0 (3, 1) 
          ENDDO 
          ENDDO 
          ENDDO 
@@ -469,9 +469,9 @@ CONTAINS
          DO jj = 0, ls_xyz (2) - 1 
          DO ii = 0, ls_xyz (1) - 1 
          nxat = nxat + 1 
-         xat (nxat, 1) = float (ii) 
-         xat (nxat, 2) = float (jj) 
-         xat (nxat, 3) = float (kk) 
+         xat (nxat, 1) = REAL(ii) 
+         xat (nxat, 2) = REAL(jj) 
+         xat (nxat, 3) = REAL(kk) 
          ENDDO 
          ENDDO 
          ENDDO 
@@ -480,20 +480,20 @@ CONTAINS
 !                                                                       
       ELSEIF (lots.eq.LOT_ELI) then 
          DO ii = 1, 3 
-         x0 (ii) = float (ls_xyz (ii) ) / 2.0 
+         x0 (ii) = REAL(ls_xyz (ii) ) / 2.0 
          ENDDO 
 !                                                                       
          DO kk = 0, ls_xyz (3) - 1 
-         xtest (3) = (float (kk) - x0 (3) + 0.5) **2 / x0 (3) **2 
+         xtest (3) = (REAL(kk) - x0 (3) + 0.5) **2 / x0 (3) **2 
          DO jj = 0, ls_xyz (2) - 1 
-         xtest (2) = (float (jj) - x0 (2) + 0.5) **2 / x0 (2) **2 
+         xtest (2) = (REAL(jj) - x0 (2) + 0.5) **2 / x0 (2) **2 
          DO ii = 0, ls_xyz (1) - 1 
-         xtest (1) = (float (ii) - x0 (1) + 0.5) **2 / x0 (1) **2 
+         xtest (1) = (REAL(ii) - x0 (1) + 0.5) **2 / x0 (1) **2 
          IF ( (xtest (1) + xtest (2) + xtest (3) ) .le.1.0) then 
             nxat = nxat + 1 
-            xat (nxat, 1) = float (ii) 
-            xat (nxat, 2) = float (jj) 
-            xat (nxat, 3) = float (kk) 
+            xat (nxat, 1) = REAL(ii) 
+            xat (nxat, 2) = REAL(jj) 
+            xat (nxat, 3) = REAL(kk) 
          ENDIF 
          ENDDO 
          ENDDO 
@@ -734,9 +734,9 @@ CONTAINS
       DO i = 1, num (1) 
       lbragg = .true. 
       DO k = 1, 3 
-      h (k) = eck (k, 1) + vi (k, 1) * float (i - 1) + &
-                           vi (k, 2) * float (j - 1) + &
-                           vi (k, 3) * float (l - 1)
+      h (k) = eck (k, 1) + vi (k, 1) * REAL(i - 1) + &
+                           vi (k, 2) * REAL(j - 1) + &
+                           vi (k, 3) * REAL(l - 1)
       lbragg = lbragg.and.amod (h (k), 1.0) .eq.0.0 
       ENDDO 
 !     k = (i - 1) * num (2) + j 
@@ -757,8 +757,8 @@ CONTAINS
       ENDDO 
 !                                                                       
       IF (nd.ne.0) then 
-         diffuave = dsum / float (nd) 
-         diffusig = sqrt (dsum2 / float (nd) - diffuave**2) 
+         diffuave = dsum / REAL(nd) 
+         diffusig = sqrt (dsum2 / REAL(nd) - diffuave**2) 
       ELSE 
          diffuave = 0.0 
          diffusig = 0.0 

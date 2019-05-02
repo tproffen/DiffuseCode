@@ -33,7 +33,7 @@ IF (ier_num.eq.0) then
    nma = nint (pdf_rfmax / pdf_deltar) 
    nmd = pdf_us_int   ! step width = (delta r user)/(deltar internal)
    DO i = nmi, nma, nmd 
-      r = float (i) * pdf_deltar 
+      r = REAL(i) * pdf_deltar 
       WRITE (57, 5000) r, pdf_skal * pdf_calc (i), 0.0, 1.0 
    ENDDO 
    CLOSE (57) 

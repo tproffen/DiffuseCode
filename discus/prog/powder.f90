@@ -2518,7 +2518,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       iadd = ISHFT (iarg, - 6) 
       iadd = IAND (iadd, MASK) 
       ii = ii + 1 
-      tcsf (ii) = tcsf (ii) + cex (iadd) / DBLE ( (xarg0 + float (j - 1)&
+      tcsf (ii) = tcsf (ii) + cex (iadd) / DBLE ( (xarg0 + REAL(j - 1)&
       * xincu) * twopi)                                                 
 !DBG            iarg = iarg + iincv                                     
 !DBG          ENDDO                                                     
@@ -2558,7 +2558,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
 !DBG      open(9,file='CEX.DAT',status='unknown')                       
       DO i = 0, MASK 
-      xmult = float (i) * xt 
+      xmult = REAL(i) * xt 
       xarg = twopi * xmult 
       cex (i) = cmplx (int( sin (xarg) ), 0.0) 
 !DBG      write(9,*) xarg,real(cex(i))                                  
@@ -2621,7 +2621,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !!      iadd = IAND (iadd, MASK) 
 !!      ii = ii + 1 
 !!      partial (ii, look (iscat, jscat),0 ) = partial (ii, look (iscat,    &
-!!      jscat),0 ) + sinetab (iadd) / real ( (xarg0 + float (j - 1) * xincu)&
+!!      jscat),0 ) + sinetab (iadd) / real ( (xarg0 + REAL(j - 1) * xincu)&
 !!      * twopi)                                                          
 !DBG            iarg = iarg + iincv                                     
 !DBG          ENDDO                                                     
@@ -3040,7 +3040,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       DO iscat = 0, nlook_mol 
          DO iq = 0, CFPKT 
-            q2 = (float (iq) * REAL(CFINC)) **2 
+            q2 = (REAL(iq) * REAL(CFINC)) **2 
 !
             IF (powder_bvalue_mole(iscat)>0.0) then 
                pow_dw (iq, iscat) = exp ( - powder_bvalue_mole ( iscat ) * q2) 

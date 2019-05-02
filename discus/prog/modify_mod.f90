@@ -131,7 +131,7 @@ CONTAINS
 !DBG                cr_dw(cr_nscat)     = cr_dw(nint(uerte(i)))         
                   cr_dw (cr_nscat) = 0.05 
                   CALL no_error 
-                  verte (i) = float (cr_nscat) 
+                  verte (i) = REAL(cr_nscat) 
                ELSE 
                   ier_num = - 26 
                   ier_typ = ER_APPL 

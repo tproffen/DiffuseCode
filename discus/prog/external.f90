@@ -147,7 +147,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
+      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -216,7 +216,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
+      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -298,7 +298,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
+      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -371,7 +371,7 @@ CONTAINS
       DO i = 1, 2 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = REAL(uin (k) * float (2 - i) + vin (k) * float ( - 1 + i) )
+      h (k) = REAL(uin (k) * REAL(2 - i) + vin (k) * REAL( - 1 + i) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             
@@ -390,7 +390,7 @@ CONTAINS
       DO j = 1, num (2) 
       ij = ij + 1 
       DO k = 1, 3 
-      h (k) = REAL(xm (k) + uin (k) * float (i - 1) + vin (k) * float (j - 1) )
+      h (k) = REAL(xm (k) + uin (k) * REAL(i - 1) + vin (k) * REAL(j - 1) )
       ENDDO 
 !                                                                       
 !     ---- Transform vector                                             

@@ -142,7 +142,7 @@ ia = cr_icc (1) * cr_icc (2) * cr_icc (3)
 IF(lsite) THEN           ! one pos for all types on a single site
    DO ii = 1, cr_ncatoms
       DO jj =1, 3
-         chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii)/ float (ia)
+         chem_ave_pos (jj, ii) = chem_ave_pos (jj, ii)/ REAL(ia)
       ENDDO
    ENDDO
 ELSE
@@ -199,8 +199,8 @@ IF(lsite) THEN           ! one pos for all types on a single site
    nvalues = 0
    DO i = 1, cr_ncatoms 
       DO j = 1, 3 
-!        chem_ave_pos (j, i) = chem_ave_pos (j, i) / float (ia) 
-         chem_ave_sig (j, i) = chem_ave_sig (j, i) / float (ia) !-          &
+!        chem_ave_pos (j, i) = chem_ave_pos (j, i) / REAL(ia) 
+         chem_ave_sig (j, i) = chem_ave_sig (j, i) / REAL(ia) !-          &
 !        chem_ave_pos (j, i) **2                                           
          IF (chem_ave_sig (j, i) .gt.0.0) then 
             chem_ave_sig (j, i) = sqrt (chem_ave_sig (j, i) ) 
@@ -361,14 +361,14 @@ IF (i >  MAXPAR_RES) THEN
    CALL alloc_param(n_res)
    MAXPAR_RES = n_res
 ENDIF
-res_para (0) = float (cr_nscat) + 1 
+res_para (0) = REAL(cr_nscat) + 1 
 DO i = 0, cr_nscat 
    cr_u2aver = cr_u2aver + cr_dw(i) * cr_amount (i)
 !   IF (cr_at_lis(cr_iscat (i)) /= 'VOID') then
    IF (cr_at_lis(          i ) /= 'VOID') then
       cr_n_real_atoms = cr_n_real_atoms + cr_amount(i)
    ENDIF
-   proz = float (cr_amount (i) ) / cr_natoms 
+   proz = REAL(cr_amount (i) ) / cr_natoms 
    IF (lout) then 
       at_name_i = at_name (i) 
       WRITE (output_io, 1200) at_name_i, proz, cr_amount (i) 
