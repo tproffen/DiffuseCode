@@ -317,8 +317,8 @@ IMPLICIT REAL (a - h, o - z)
       DSDG = 0.0 
       DO ITRM = 1, 5 
       PGL = PGL / FWHG 
-      DSDL = DSDL + FLOAT (ITRM) * COFT (ITRM + 1) * PGL 
-      DSDG = DSDG + FLOAT (6 - ITRM) * COFT (ITRM) * PGL 
+      DSDL = DSDL + REAL(ITRM) * COFT (ITRM + 1) * PGL 
+      DSDG = DSDG + REAL(6 - ITRM) * COFT (ITRM) * PGL 
       PGL = PGL * GAM 
       SUMHM = SUMHM + COFT (ITRM + 1) * PGL 
       ENDDO 
@@ -328,7 +328,7 @@ IMPLICIT REAL (a - h, o - z)
       PF = 1.0 
       ETA = 0.0 
       DO ITRM = 1, 3 
-      DEDF = DEDF + FLOAT (ITRM) * COFN (ITRM) * PF 
+      DEDF = DEDF + REAL(ITRM) * COFN (ITRM) * PF 
       PF = PF * FRAC 
       ETA = ETA + COFN (ITRM) * PF 
       ENDDO 
@@ -679,14 +679,14 @@ IMPLICIT REAL (a - h, o - z)
                                                !CLN=CLOG(Z)             
          CLNX = 0.5 * LOG (ZX**2 + ZY**2) 
          CLNY = ATAN2 (ZY, ZX) 
-         TEMX = FLOAT (ITER) / FLOAT ( (ITER + 1) * (ITER + 1) ) 
+         TEMX = REAL(ITER) / REAL( (ITER + 1) * (ITER + 1) ) 
          TEMY = ZY * TEMX 
          TEMX = ZX * TEMX 
                                            !SUM=TEM                     
          SUMX = TEMX 
          SUMY = TEMY 
          DO J = ITER, 2, - 1 
-         T = 1. / FLOAT (J) 
+         T = 1. / REAL(J) 
                                            !SUB=1.0-SUM                 
          SUBX = 1. - SUMX 
          SUBY = - SUMY 
@@ -714,7 +714,7 @@ IMPLICIT REAL (a - h, o - z)
          IF (AX.LT.0.) A = SQRT ( (AX + 29.) * (AX + 29.) / 9.0 + AY *  &
          AY)                                                            
          ITER = 4 + NINT (128. / A) 
-         TEMX = FLOAT (ITER) 
+         TEMX = REAL(ITER) 
          ADDX = TEMX 
          ADDY = 0.0 
          DO I = 1, ITER - 1 
@@ -824,8 +824,8 @@ IMPLICIT REAL (a - h, o - z)
       DSDG = 0.0 
       DO ITRM = 1, 5 
       PGL = PGL / FWHG 
-      DSDL = DSDL + FLOAT (ITRM) * COFT (ITRM + 1) * PGL 
-      DSDG = DSDG + FLOAT (6 - ITRM) * COFT (ITRM) * PGL 
+      DSDL = DSDL + REAL(ITRM) * COFT (ITRM + 1) * PGL 
+      DSDG = DSDG + REAL(6 - ITRM) * COFT (ITRM) * PGL 
       PGL = PGL * GAM 
       SUMHM = SUMHM + COFT (ITRM + 1) * PGL 
       ENDDO 
@@ -835,7 +835,7 @@ IMPLICIT REAL (a - h, o - z)
       PF = 1.0 
       ETA = 0.0 
       DO ITRM = 1, 3 
-      DEDF = DEDF + FLOAT (ITRM) * COFN (ITRM) * PF 
+      DEDF = DEDF + REAL(ITRM) * COFN (ITRM) * PF 
       PF = PF * FRAC 
       ETA = ETA + COFN (ITRM) * PF 
       ENDDO 
@@ -1063,7 +1063,7 @@ IMPLICIT REAL (a - h, o - z)
       KT = MAX (1, IFIX (2.5 * ABS (PCOT / FWHM) ) ) 
                                                                         
       NT = 2 * KT + 1 
-      NORM = 1.0 / (6.0 * FLOAT (KT) ) 
+      NORM = 1.0 / (6.0 * REAL(KT) ) 
       PRFUNC = 0.0 
       SIGPRT = 0.0 
       GAMPRT = 0.0 
@@ -1580,8 +1580,8 @@ REAL :: SIGP, SQSG, SQ2PI, STOFW, SUMHM, TG, TL, TS
       DSDG = 0.0 
       DO ITRM = 1, 5 
       PGL = PGL / FWHG 
-      DSDL = DSDL + FLOAT (ITRM) * COFT (ITRM + 1) * PGL 
-      DSDG = DSDG + FLOAT (6 - ITRM) * COFT (ITRM) * PGL 
+      DSDL = DSDL + REAL(ITRM) * COFT (ITRM + 1) * PGL 
+      DSDG = DSDG + REAL(6 - ITRM) * COFT (ITRM) * PGL 
       PGL = PGL * GAM 
       SUMHM = SUMHM + COFT (ITRM + 1) * PGL 
       ENDDO 
@@ -1591,7 +1591,7 @@ REAL :: SIGP, SQSG, SQ2PI, STOFW, SUMHM, TG, TL, TS
       PF = 1.0 
       ETA = 0.0 
       DO ITRM = 1, 3 
-      DEDF = DEDF + FLOAT (ITRM) * COFN (ITRM) * PF 
+      DEDF = DEDF + REAL(ITRM) * COFN (ITRM) * PF 
       PF = PF * FRAC 
       ETA = ETA + COFN (ITRM) * PF 
       ENDDO 

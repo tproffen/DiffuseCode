@@ -604,7 +604,7 @@
             z_min (iwin, iframe, 1) = z_min (iwin, iframe, 1) + 0.05 *  &
             hub                                                         
          ELSE 
-            z_inc (iwin, iframe, 1) = (1.00 + 0.05) * hub / float (nz ( &
+            z_inc (iwin, iframe, 1) = (1.00 + 0.05) * hub / REAL(nz ( &
             iwin, iframe, 1) )                                          
          ENDIF 
       ELSEIF (key.eq.butt_m) then 
@@ -612,7 +612,7 @@
             z_min (iwin, iframe, 1) = z_min (iwin, iframe, 1) - 0.05 *  &
             hub                                                         
          ELSE 
-            z_inc (iwin, iframe, 1) = (1.00 - 0.05) * hub / float (nz ( &
+            z_inc (iwin, iframe, 1) = (1.00 - 0.05) * hub / REAL(nz ( &
             iwin, iframe, 1) )                                          
          ENDIF 
       ENDIF 
@@ -949,8 +949,8 @@
          ENDIF 
 !                                                                       
       ELSE 
-         dxx = (xmax (ini) - xmin (ini) ) / float (nx (ini) - 1) 
-         dyy = (ymax (ini) - ymin (ini) ) / float (ny (ini) - 1) 
+         dxx = (xmax (ini) - xmin (ini) ) / REAL(nx (ini) - 1) 
+         dyy = (ymax (ini) - ymin (ini) ) / REAL(ny (ini) - 1) 
          nxx = nint ( ( (wx - xmin (ini) ) / dxx) ) + 1 
          nyy = nint ( ( (wy - ymin (ini) ) / dyy) ) + 1 
          wz = z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy) 
@@ -1019,10 +1019,10 @@
          res_para (0) = 3 
          res_para (1) = wx 
          res_para (2) = wy 
-         res_para (3) = float (ikey) 
+         res_para (3) = REAL(ikey) 
       ELSE 
-         dxx = (xmax (ini) - xmin (ini) ) / float (nx (ini) - 1) 
-         dyy = (ymax (ini) - ymin (ini) ) / float (ny (ini) - 1) 
+         dxx = (xmax (ini) - xmin (ini) ) / REAL(nx (ini) - 1) 
+         dyy = (ymax (ini) - ymin (ini) ) / REAL(ny (ini) - 1) 
          nxx = nint ( ( (wx - xmin (ini) ) / dxx) ) + 1 
          nyy = nint ( ( (wy - ymin (ini) ) / dyy) ) + 1 
          wz = z (offz (ini - 1) + (nxx - 1) * ny (ini) + nyy) 
@@ -1030,7 +1030,7 @@
          res_para (1) = wx 
          res_para (2) = wy 
          res_para (3) = wz 
-         res_para (4) = float (ikey) 
+         res_para (4) = REAL(ikey) 
       ENDIF 
 !                                                                       
  1000 FORMAT     (' ------ > Select desired point using the mouse ...') 
@@ -1082,7 +1082,7 @@
       res_para (2) = wy1 
       res_para (3) = wx2 
       res_para (4) = wy2 
-      res_para (5) = float (ikey) 
+      res_para (5) = REAL(ikey) 
 !                                                                       
  9999 CONTINUE 
 !                                                                       

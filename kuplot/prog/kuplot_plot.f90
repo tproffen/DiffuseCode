@@ -1605,8 +1605,8 @@ ELSE main
       INTEGER i, ic, ik, ix, iy, ikk 
       INTEGER nx_min, nx_max, ny_min, ny_max 
 !                                                                       
-      rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
-      rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+      rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+      rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
       nx_min = max (1, nint ( (pex (iwin, iframe, 1) - xmin (ik) )      &
       / rdx) + 1)                                                       
       nx_max = min (nx (ik), nint ( (pex (iwin, iframe, 2) - xmin (ik) )&
@@ -1652,10 +1652,10 @@ ELSE main
 !                                                                       
 !------ - Account for pixel overlap for ANGL not 90.                    
 !                                                                       
-         x1 = tr (1) + tr (2) * (float (nx_min) - 0.5) + tr (3) *       &
-         (float (ny_min) - 0.5)                                         
-         x2 = tr (1) + tr (2) * (float (nx_max) + 0.5) + tr (3) *       &
-         (float (ny_min) + 0.5)                                         
+         x1 = tr (1) + tr (2) * (REAL(nx_min) - 0.5) + tr (3) *       &
+         (REAL(ny_min) - 0.5)                                         
+         x2 = tr (1) + tr (2) * (REAL(nx_max) + 0.5) + tr (3) *       &
+         (REAL(ny_min) + 0.5)                                         
          pex (iwin, iframe, 1) = x1 
          pex (iwin, iframe, 2) = x2 
       ENDIF 
@@ -1678,7 +1678,7 @@ ELSE main
       CALL PGQCIR (ix, iy) 
       IF (ix.lt. (iaf (iwin) + 19) ) ix = iaf (iwin) + 19 
       CALL PGSCIR (ix, iy) 
-      rc = 254.0 / float (iy - ix) 
+      rc = 254.0 / REAL(iy - ix) 
       DO i = ix, iy 
       ic = int ( (i - ix) * rc) + 1 
       CALL PGSCR (i, col_map (iwin, ic, 1), col_map (iwin, ic, 2),      &
@@ -1721,8 +1721,8 @@ ELSE main
       INTEGER il, ic, ik, ix, iy, ikk, ihp, ihl, lmi, lin 
       INTEGER nx_min, nx_max, ny_min, ny_max 
 !                                                                       
-      rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
-      rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+      rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+      rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
       nx_min = max (1, nint ( (pex (iwin, iframe, 1) - xmin (ik) )      &
       / rdx) + 1)                                                       
       nx_max = min (nx (ik), nint ( (pex (iwin, iframe, 2) - xmin (ik) )&

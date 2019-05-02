@@ -165,9 +165,9 @@ REAL :: zzmin, zzmax
       IF (lout) write (output_io, 1000) 
 !                                                                       
       DO i = 1, maxcol 
-      col_map (iwin, i, 1) = float (maxcol - i + 1) / float (maxcol) 
-      col_map (iwin, i, 2) = float (maxcol - i + 1) / float (maxcol) 
-      col_map (iwin, i, 3) = float (maxcol - i + 1) / float (maxcol) 
+      col_map (iwin, i, 1) = REAL(maxcol - i + 1) / REAL(maxcol) 
+      col_map (iwin, i, 2) = REAL(maxcol - i + 1) / REAL(maxcol) 
+      col_map (iwin, i, 3) = REAL(maxcol - i + 1) / REAL(maxcol) 
       ENDDO 
 !                                                                       
  1000 FORMAT     (' ------ > Setting colour map to : gray ') 
@@ -190,10 +190,10 @@ REAL :: zzmin, zzmax
       IF (lout) write (output_io, 1000) 
 !                                                                       
       DO ifarb = 1, maxcol 
-      rh = 0.1 + float (ifarb - 1) / 284.0 
+      rh = 0.1 + REAL(ifarb - 1) / 284.0 
       rh = 6.0 * rh 
       i = int (rh) 
-      rf = rh - float (i) 
+      rf = rh - REAL(i) 
       rp = 0.0 
       rq = 1.0 - rf 
       rt = (1.0 - (1.0 - rf) ) 
@@ -251,7 +251,7 @@ REAL :: zzmin, zzmax
       ii = 1 
 !                                                                       
       DO i = 1, m 
-      col_map (iwin, ii, 1) = float (3 * i) / float (maxcol) 
+      col_map (iwin, ii, 1) = REAL(3 * i) / REAL(maxcol) 
       col_map (iwin, ii, 2) = 0.0 
       col_map (iwin, ii, 3) = 0.0 
       ii = ii + 1 
@@ -259,7 +259,7 @@ REAL :: zzmin, zzmax
 !                                                                       
       DO i = 1, m 
       col_map (iwin, ii, 1) = 1.0 
-      col_map (iwin, ii, 2) = float (3 * i) / float (maxcol) 
+      col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol) 
       col_map (iwin, ii, 3) = 0.0 
       ii = ii + 1 
       ENDDO 
@@ -267,7 +267,7 @@ REAL :: zzmin, zzmax
       DO i = 1, m 
       col_map (iwin, ii, 1) = 1.0 
       col_map (iwin, ii, 2) = 1.0 
-      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol) 
+      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) 
       ii = ii + 1 
       ENDDO 
 !                                                                       
@@ -297,31 +297,31 @@ REAL :: zzmin, zzmax
       DO i = 1, m 
       col_map (iwin, ii, 1) = 0.0 
       col_map (iwin, ii, 2) = 0.0 
-      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol)  /3.
+      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol)  /3.
       ii = ii + 1 
       ENDDO 
 !                                                                       
       DO i = 1, m 
       col_map (iwin, ii, 1) = 0.0 
-      col_map (iwin, ii, 2) = float (3 * i) / float (maxcol)    /6.
-      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol) *2./3.
+      col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol)    /6.
+      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) *2./3.
       ii = ii + 1 
       ENDDO 
 !                                                                       
       DO i = 1, m 
-      col_map (iwin, ii, 1) = float (3 * i) / float (maxcol) *1./6.
-      col_map (iwin, ii, 2) = float (3 * i) / float (maxcol) *1./3.
-      col_map (iwin, ii, 3) = float (3 * i) / float (maxcol) 
+      col_map (iwin, ii, 1) = REAL(3 * i) / REAL(maxcol) *1./6.
+      col_map (iwin, ii, 2) = REAL(3 * i) / REAL(maxcol) *1./3.
+      col_map (iwin, ii, 3) = REAL(3 * i) / REAL(maxcol) 
       ii = ii + 1 
       ENDDO 
 DO i=1, maxcol
-   col_map (iwin, i, 3) = FLOAT(i)/FLOAT(maxcol)
+   col_map (iwin, i, 3) = REAL(i)/REAL(maxcol)
 ENDDO
 DO i=1, maxcol
-   col_map (iwin, i, 2) = FLOAT(i)/FLOAT(maxcol) * 0.800000
+   col_map (iwin, i, 2) = REAL(i)/REAL(maxcol) * 0.800000
 ENDDO
 DO i=1, maxcol
-   col_map (iwin, i, 1) = FLOAT(i)/FLOAT(maxcol) * 0.250000
+   col_map (iwin, i, 1) = REAL(i)/REAL(maxcol) * 0.250000
 ENDDO
 !                                                                       
  1000 FORMAT     (' ------ > Setting colour map to : ice ') 
@@ -362,7 +362,7 @@ ELSE
    positive: IF(ii<=maxcol) THEN 
 !                                                                       
       DO i = 1, m 
-         col_map (iwin, ii, 1) = MIN(1.0,float (3 * i) / float (maxcol) *scalef)
+         col_map (iwin, ii, 1) = MIN(1.0,REAL(3 * i) / REAL(maxcol) *scalef)
          col_map (iwin, ii, 2) = 0.0 
          col_map (iwin, ii, 3) = 0.0 
          ii = ii + 1 
@@ -372,7 +372,7 @@ ELSE
       red = col_map (iwin, ii-1,1)
       DO i = 1, m 
          col_map (iwin, ii, 1) = red 
-         col_map (iwin, ii, 2) = MIN(1.,float (3 * i) / float (maxcol) *scalef)
+         col_map (iwin, ii, 2) = MIN(1.,REAL(3 * i) / REAL(maxcol) *scalef)
          col_map (iwin, ii, 3) = 0.0 
          ii = ii + 1 
          IF(ii>maxcol) EXIT positive
@@ -382,7 +382,7 @@ ELSE
       DO i = 1, maxcol - ii + 1
          col_map (iwin, ii, 1) = red 
          col_map (iwin, ii, 2) = green
-         col_map (iwin, ii, 3) = MIN(1.0, FLOAT(3 * i) / FLOAT(maxcol) *scalef)
+         col_map (iwin, ii, 3) = MIN(1.0, REAL(3 * i) / REAL(maxcol) *scalef)
          ii = ii + 1 
          IF(ii>maxcol) EXIT positive
       ENDDO 
@@ -391,13 +391,13 @@ ELSE
 !  Negative colors like ICE
 !
    DO i=istart-1,1,-1
-      col_map (iwin, i, 3) = FLOAT(istart-i)/FLOAT(maxcol) * scalef
+      col_map (iwin, i, 3) = REAL(istart-i)/REAL(maxcol) * scalef
    ENDDO
    DO i=istart-1,1,-1
-      col_map (iwin, i, 2) = FLOAT(istart-i)/FLOAT(maxcol) * 0.800000 * scalef
+      col_map (iwin, i, 2) = REAL(istart-i)/REAL(maxcol) * 0.800000 * scalef
    ENDDO
    DO i=istart-1,1,-1
-      col_map (iwin, i, 1) = FLOAT(istart-i)/FLOAT(maxcol) * 0.250000 * scalef
+      col_map (iwin, i, 1) = REAL(istart-i)/REAL(maxcol) * 0.250000 * scalef
    ENDDO
 ENDIF
 !

@@ -95,7 +95,7 @@
       DO ikurv = 1, iz - 1 
       IF (k_in_f (ikurv) .and..not.lni (ikurv) ) then 
          DO ip = 1, len (ikurv) 
-         WRITE (ifil, 1000) x (offxy (ikurv - 1) + ip), float (ikurv),  &
+         WRITE (ifil, 1000) x (offxy (ikurv - 1) + ip), REAL(ikurv),  &
          y (offxy (ikurv - 1) + ip)                                     
          ENDDO 
       ENDIF 
@@ -298,7 +298,7 @@
 !                                                                       
       ioff = offxy (ig - 1) 
       DO k = 1, len (ig) 
-      delt = float (tof (k + 1) - tof (k) ) 
+      delt = REAL(tof (k + 1) - tof (k) ) 
       gdat (k) = y (ioff + k) * delt 
       gsig (k) = dy (ioff + k) * delt 
       ENDDO 
@@ -872,8 +872,8 @@
 !-------nipl-file fuer gnuplot abspeichern                              
 !                                                                       
       ELSEIF (form (1:2) .eq.'GN'.and.lni (ik) ) then 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
          nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) )    &
          + 1)                                                           
          nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) )       &
@@ -928,7 +928,7 @@
                ier_typ = ER_APPL
                RETURN
             ENDIF 
-            WRITE (isa, 4100) float (ixxx), zzz, 0.0, abs (dzzz),       &
+            WRITE (isa, 4100) REAL(ixxx), zzz, 0.0, abs (dzzz),       &
             xxx, yyy                                                    
          ENDIF 
          ENDDO 
@@ -936,7 +936,7 @@
 !-------nipl-file-schnitt abspeichern                                   
 !                                                                       
       ELSEIF (form (1:2) .eq.'SX'.and.lni (ik) ) then 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
          ny_s = nint ( ( (werte (1) - ymin (ik) ) / rdy) ) + 1 
          DO i = 1, nx (ik) 
          ikk = offz (ik - 1) + (i - 1) * ny (ik) + ny_s 
@@ -957,7 +957,7 @@
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
          ny_s = nint ( ( (y (iym (nma) ) - ymin (ik) ) / rdy) ) + 1 
          DO i = 1, nx (ik) 
          ikk = offz (ik - 1) + (i - 1) * ny (ik) + ny_s 
@@ -970,7 +970,7 @@
 !-------nipl-file-schnitt abspeichern                                   
 !                                                                       
       ELSEIF (form (1:2) .eq.'SY'.and.lni (ik) ) then 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
          nx_s = nint ( ( (werte (1) - xmin (ik) ) / rdx) ) + 1 
          DO i = 1, ny (ik) 
          ikk = offz (ik - 1) + (nx_s - 1) * ny (ik) + i 
@@ -991,7 +991,7 @@
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
          nx_s = nint ( ( (x (ixm (nma) ) - xmin (ik) ) / rdx) ) + 1 
          DO i = 1, ny (ik) 
          ikk = offz (ik - 1) + (nx_s - 1) * ny (ik) + i 
@@ -1004,8 +1004,8 @@
 !-------pgm-file abspeichern (aktueller ausschnitt)                     
 !                                                                       
       ELSEIF (form (1:2) .eq.'PG'.and.lni (ik) ) then 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
          nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) )    &
          + 1)                                                           
          nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) )       &
@@ -1038,8 +1038,8 @@
 !-------nipl-file abspeichern (aktueller ausschnitt)                    
 !                                                                       
       ELSEIF (form (1:2) .eq.'NI'.and.lni (ik) ) then 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) - 1) 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) - 1) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) - 1) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) - 1) 
          nx_min = max (1, nint ( ( (werte (1) - xmin (ik) ) / rdx) )    &
          + 1)                                                           
          nx_max = min (nx (ik), nint ( ( (werte (2) - xmin (ik) )       &

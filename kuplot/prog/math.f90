@@ -623,8 +623,8 @@
          ENDIF 
          ENDDO 
          ENDDO 
-         rdx = (xmax (ik) - xmin (ik) ) / float (nx (ik) ) 
-         rdy = (ymax (ik) - ymin (ik) ) / float (ny (ik) ) 
+         rdx = (xmax (ik) - xmin (ik) ) / REAL(nx (ik) ) 
+         rdy = (ymax (ik) - ymin (ik) ) / REAL(ny (ik) ) 
          WRITE (output_io, 2000) ik, wx1, wx2, wy1, wy2, rint * rdx *   &
          rdy, drint, ipkt                                               
          IF (maxpar_res.lt.7) then 
@@ -635,7 +635,7 @@
          res_para (0) = 7 
          res_para (1) = rint * rdx * rdy 
          res_para (2) = drint 
-         res_para (3) = float (ipkt) 
+         res_para (3) = REAL(ipkt) 
          res_para (4) = wx1 
          res_para (5) = wx2 
          res_para (6) = wy1 
@@ -667,7 +667,7 @@
          res_para (0) = 5 
          res_para (1) = rint 
          res_para (2) = sqrt (drint) 
-         res_para (3) = float (ipkt) 
+         res_para (3) = REAL(ipkt) 
          res_para (4) = wx1 
          res_para (5) = wx2 
       ENDIF 
@@ -925,8 +925,8 @@
                   DO im = 1, ima 
                   WRITE (ifil, 1100) im, x (offxy (ik - 1) + ixm (im) ),&
                   y (offxy (ik - 1) + iym (im) ), wmax (im)             
-                  res_para (2 * im - 1) = float (ixm (im) ) 
-                  res_para (2 * im) = float (iym (im) ) 
+                  res_para (2 * im - 1) = REAL(ixm (im) ) 
+                  res_para (2 * im) = REAL(iym (im) ) 
                   ENDDO 
                ENDIF 
 !                                                                       
@@ -945,7 +945,7 @@
                   DO im = 1, ima 
                   WRITE (ifil, 2100) im, x (offxy (ik - 1) + ixm (im) ),&
                   wmax (im)                                             
-                  res_para (im) = float (ixm (im) ) 
+                  res_para (im) = REAL(ixm (im) ) 
                   ENDDO 
                ENDIF 
             ENDIF 
@@ -1108,8 +1108,8 @@
          ay (i) = s 
          ady (i) = sqrt (ds) 
       ELSE 
-         ay (i) = s / float (ip) 
-         ady (i) = sqrt (ds / float (ip) ) 
+         ay (i) = s / REAL(ip) 
+         ady (i) = sqrt (ds / REAL(ip) ) 
       ENDIF 
       ENDDO 
 !                                                                       
@@ -1318,9 +1318,9 @@
       ie = 0 
       ip = nsize / 2 + 1 
       ixx = nint ( (xmit - xmin (ik) ) / (xmax (ik) - xmin (ik) )       &
-      * float (nx (ik) - 1) ) + 1                                       
+      * REAL(nx (ik) - 1) ) + 1                                       
       iyy = nint ( (ymit - ymin (ik) ) / (ymax (ik) - ymin (ik) )       &
-      * float (ny (ik) - 1) ) + 1                                       
+      * REAL(ny (ik) - 1) ) + 1                                       
       IF (ixx.lt.ip.or. (ixx + ip) .gt.nx (ik) .or.iyy.lt.ip.or. (iyy + &
       ip) .gt.ny (ik) ) then                                            
          ie = - 1 
@@ -1490,10 +1490,10 @@ IMPLICIT REAL (a-h, o-z)
       sum = 0. 
       IF (ipj.eq.0) sum = 1. 
       DO k = 1, nr 
-      sum = sum + float (k) **ipj 
+      sum = sum + REAL(k) **ipj 
       ENDDO 
       DO k = 1, nl 
-      sum = sum + float ( - k) **ipj 
+      sum = sum + REAL( - k) **ipj 
       ENDDO 
       mm = min (ipj, 2 * m - ipj) 
       DO imj = - mm, mm, 2 

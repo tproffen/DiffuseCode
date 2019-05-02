@@ -1125,7 +1125,7 @@ real :: f, df(maxpara)
       IF (ncycle.gt.0) call fit_kupl (z) 
 !                                                                       
       DO i = 1, nx (ikfit) * ny (ikfit) 
-      xx = float (i) 
+      xx = REAL(i) 
       CALL kupl_theory (xx, f, df, - i) 
       z (offz (ikcal - 1) + i) = f 
       IF (z (offz (ikfit - 1) + i) .ne. - 9999) then 
@@ -3216,7 +3216,7 @@ cycles: DO
 ENDDO cycles
 !                                                                       
 g = 1.0 
-h = float (m - n) 
+h = REAL(m - n) 
 IF (h * zl.gt.0.0) g = zl / h 
 DO k = 1, n 
    dl (k) = dl (k) * g 

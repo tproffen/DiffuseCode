@@ -1358,9 +1358,9 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !                                                                       
       CALL koor_log (1, dummy_x, dummy_y) 
 !                                                                       
-      IF (lachse (iwin, iframe, 1) ) dummy_x (1) = float (nint (dummy_x &
+      IF (lachse (iwin, iframe, 1) ) dummy_x (1) = REAL(nint (dummy_x &
       (1) ) )                                                           
-      IF (lachse (iwin, iframe, 2) ) dummy_y (1) = float (nint (dummy_y &
+      IF (lachse (iwin, iframe, 2) ) dummy_y (1) = REAL(nint (dummy_y &
       (1) ) )                                                           
       IF (dummy_x (1) .eq.0) then 
          dummy_x (1) = 1.0 

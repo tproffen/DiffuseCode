@@ -192,7 +192,7 @@ SUBROUTINE do_func (zeile, lp)
                xx = xstart + (ii - 1) * xdelta 
                DO jj = 1, ny (iz) 
                kk = (ii - 1) * ny (iz) + jj 
-               xkk = float (kk) 
+               xkk = REAL(kk) 
                yy = ystart + (jj - 1) * ydelta 
                CALL kupl_theory (xkk, f, df, - kk) 
                z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) = f 
@@ -773,10 +773,10 @@ LOGICAL         , INTENT(IN)    :: lecho
 !     optionally round xmin... to integer multiples of delta            
 !                                                                       
       IF (zz_mod) then 
-         xmin (iz) = float (nint (xmin (iz) / deltax) ) * deltax 
-         xmax (iz) = float (nint (xmax (iz) / deltax) ) * deltax 
-         ymin (iz) = float (nint (ymin (iz) / deltay) ) * deltay 
-         ymax (iz) = float (nint (ymax (iz) / deltay) ) * deltay 
+         xmin (iz) = REAL(nint (xmin (iz) / deltax) ) * deltax 
+         xmax (iz) = REAL(nint (xmax (iz) / deltax) ) * deltax 
+         ymin (iz) = REAL(nint (ymin (iz) / deltay) ) * deltay 
+         ymax (iz) = REAL(nint (ymax (iz) / deltay) ) * deltay 
       ENDIF 
 !                                                                       
 !------ check dimensions                                                
@@ -824,7 +824,7 @@ LOGICAL         , INTENT(IN)    :: lecho
          IF (ixx.gt.0.and.ixx.le.nx (iz) .and.iyy.gt.0.and.iyy.le.ny (  &
          iz) ) then                                                     
             izeig = offz (iz - 1) + (ixx - 1) * ny (iz) + iyy 
-            z (izeig) = z (izeig) + float (zw) 
+            z (izeig) = z (izeig) + REAL(zw) 
             np (izeig) = np (izeig) + 1 
          ENDIF 
       ENDIF 
@@ -839,7 +839,7 @@ LOGICAL         , INTENT(IN)    :: lecho
          IF (np (izeig) .eq.0) then 
             z (izeig) = - 9999.0 
          ELSE 
-            z (izeig) = z (izeig) / float (np (izeig) ) 
+            z (izeig) = z (izeig) / REAL(np (izeig) ) 
          ENDIF 
       ENDIF 
       zmax (iz) = max (z (izeig), zmax (iz) ) 
@@ -923,10 +923,10 @@ LOGICAL         , INTENT(IN)    :: lecho
 !     optionally round xmin... to integer multiples of delta            
 !                                                                       
       IF (zz_mod) then 
-         xmin (iz) = float (nint (xmin (iz) / deltax) ) * deltax 
-         xmax (iz) = float (nint (xmax (iz) / deltax) ) * deltax 
-         ymin (iz) = float (nint (ymin (iz) / deltay) ) * deltay 
-         ymax (iz) = float (nint (ymax (iz) / deltay) ) * deltay 
+         xmin (iz) = REAL(nint (xmin (iz) / deltax) ) * deltax 
+         xmax (iz) = REAL(nint (xmax (iz) / deltax) ) * deltax 
+         ymin (iz) = REAL(nint (ymin (iz) / deltay) ) * deltay 
+         ymax (iz) = REAL(nint (ymax (iz) / deltay) ) * deltay 
       ENDIF 
 !                                                                       
 !------ check dimensions                                                
@@ -994,7 +994,7 @@ LOGICAL         , INTENT(IN)    :: lecho
          IF (np (izeig) .eq.0) then 
             z (izeig) = - 9999.0 
          ELSE 
-            z (izeig) = z (izeig) / float (np (izeig) ) 
+            z (izeig) = z (izeig) / REAL(np (izeig) ) 
          ENDIF 
       ENDIF 
       zmax (iz) = max (z (izeig), zmax (iz) ) 
@@ -1084,8 +1084,8 @@ LOGICAL         , INTENT(IN)    :: lecho
       ymin (iz) = range (1, icut (2) ) 
       ymax (iz) = range (2, icut (2) ) 
 !                                                                       
-      dxx = (xmax (iz) - xmin (iz) ) / float (nx (iz) - 1) 
-      dyy = (ymax (iz) - ymin (iz) ) / float (ny (iz) - 1) 
+      dxx = (xmax (iz) - xmin (iz) ) / REAL(nx (iz) - 1) 
+      dyy = (ymax (iz) - ymin (iz) ) / REAL(ny (iz) - 1) 
 !                                                                       
 !-------check array size                                                
 !                                                                       
@@ -1181,7 +1181,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       IF (ix.gt.0) then 
          x (offxy (iz - 1) + nr) = werte (ix) 
       ELSE 
-         x (offxy (iz - 1) + nr) = float (nr) 
+         x (offxy (iz - 1) + nr) = REAL(nr) 
       ENDIF 
       y (offxy (iz - 1) + nr) = werte (iy) 
       dx (offxy (iz - 1) + nr) = 0.0 
@@ -1320,15 +1320,15 @@ LOGICAL         , INTENT(IN)    :: lecho
          (i - 1) * ny (iz) + j), i = 1, nx (iz) ), j = ny (iz), 1,      &
          - 1)                                                           
          xmin (iz) = 0.0 
-         xmax (iz) = float (nx (iz) - 1) 
+         xmax (iz) = REAL(nx (iz) - 1) 
          ymin (iz) = 0.0 
-         ymax (iz) = float (ny (iz) - 1) 
+         ymax (iz) = REAL(ny (iz) - 1) 
       ENDIF 
 !                                                                       
 !------ set values for X and Y                                          
 !                                                                       
-      dxx = (xmax (iz) - xmin (iz) ) / float (nx (iz) - 1) 
-      dyy = (ymax (iz) - ymin (iz) ) / float (ny (iz) - 1) 
+      dxx = (xmax (iz) - xmin (iz) ) / REAL(nx (iz) - 1) 
+      dyy = (ymax (iz) - ymin (iz) ) / REAL(ny (iz) - 1) 
       DO i = 1, nx (iz) 
       x (offxy (iz - 1) + i) = xmin (iz) + (i - 1) * dxx 
       ENDDO 
@@ -2942,7 +2942,7 @@ LOGICAL         , INTENT(IN)    :: lecho
          maxmapu = (it_nval - 1) / 3 
 !                                                                       
          iq = 0 
-         tof_offset = float (tmap (3, 1) ) / 20.0 
+         tof_offset = REAL(tmap (3, 1) ) / 20.0 
          DO i = 1, maxmapu - 1 
          itmap3i = tmap (3, i) 
          tmap3i = tmap (3, i) 
@@ -3600,7 +3600,7 @@ END SUBROUTINE do_read_csv
       maxpp = maxarray - offxy (iz - 1) 
    10 CONTINUE 
       READ (ifil, *, end = 20) y (offxy (iz - 1) + nr) 
-      x (offxy (iz - 1) + nr) = float (nr) 
+      x (offxy (iz - 1) + nr) = REAL(nr) 
       dx (offxy (iz - 1) + nr) = 0.0 
       dy (offxy (iz - 1) + nr) = 0.0 
       nr = nr + 1 
@@ -3644,7 +3644,7 @@ END SUBROUTINE do_read_csv
 !                                                                       
 !-------  Put color / marker and size information in DX, DY             
 !                                                                       
-      dx (iii) = float (imcol * 1000 + imtyp) 
+      dx (iii) = REAL(imcol * 1000 + imtyp) 
       dy (iii) = rmsiz 
 !                                                                       
       nr = nr + 1 

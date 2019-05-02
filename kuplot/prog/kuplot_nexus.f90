@@ -506,7 +506,7 @@ CONTAINS
       kk = kk + 1 
       ENDDO 
       DO i = 1, nx (iz) 
-      z (offz (iz - 1) + (i - 1) * ny (iz) + jj) = float (ival (i) )    &
+      z (offz (iz - 1) + (i - 1) * ny (iz) + jj) = REAL(ival (i) )    &
       / inx / iny                                                       
       ENDDO 
       jj = jj + 1 
@@ -534,7 +534,7 @@ CONTAINS
       kk = kk + 1 
       ENDDO 
       DO i = 1, nx (iz) 
-      x (offxy (iz - 1) + i) = rval (i) / float (inx) 
+      x (offxy (iz - 1) + i) = rval (i) / REAL(inx) 
       ENDDO 
       stat = NXclosedata (nxs_id) 
 !                                                                       
@@ -554,7 +554,7 @@ CONTAINS
       kk = kk + 1 
       ENDDO 
       DO i = 1, ny (iz) 
-      y (offxy (iz - 1) + i) = rval (i) / float (iny) 
+      y (offxy (iz - 1) + i) = rval (i) / REAL(iny) 
       ENDDO 
       stat = NXclosedata (nxs_id) 
 !                                                                       
@@ -648,7 +648,7 @@ CONTAINS
 !                                                                       
       DO nr = 1, isize (irow) 
       x (offxy (iz - 1) + nr) = rval (nr) 
-      y (offxy (iz - 1) + nr) = float (ival (nr) ) 
+      y (offxy (iz - 1) + nr) = REAL(ival (nr) ) 
       dx (offxy (iz - 1) + nr) = 0.0 
       dy (offxy (iz - 1) + nr) = 0.0 
       ENDDO 

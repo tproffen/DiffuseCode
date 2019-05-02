@@ -731,7 +731,7 @@ IF(.NOT.lni(ik)) THEN                    ! 1-D DATA SETS
 !
       mdelta = x (offxy (ik - 1) + len (ik) ) - x (offxy (ik - 1)       &
       + 1)                                                              
-      mdelta = mdelta / float (len (ik) - 1) 
+      mdelta = mdelta / REAL(len (ik) - 1) 
       mmin = xmin (nint (werte (1) ) ) 
       mmax = xmax (nint (werte (1) ) ) 
       DO i = 2, ianz 
@@ -802,8 +802,8 @@ ELSE                               ! 2D Data sets
       RETURN 
    ENDIF 
 !
-   mdelta  = (xmax(ik) - xmin(ik)) / FLOAT(nx(ik) - 1)   ! Step in x
-   mdeltay = (ymax(ik) - ymin(ik)) / FLOAT(ny(ik) - 1)   ! Step in y
+   mdelta  = (xmax(ik) - xmin(ik)) / REAL(nx(ik) - 1)   ! Step in x
+   mdeltay = (ymax(ik) - ymin(ik)) / REAL(ny(ik) - 1)   ! Step in y
    mmin    = xmin(NINT(werte(1)))                        ! Min/max in x/y
    mmax    = xmax(NINT(werte(1))) 
    mminy   = ymin(NINT(werte(1))) 
@@ -1186,8 +1186,8 @@ END SUBROUTINE do_merge
          RETURN 
       ENDIF 
 !                                                                       
-      dr1 = (xmax (ik1) - xmin (ik1) ) / float (len (ik1) - 1) 
-      dr2 = (xmax (ik2) - xmin (ik2) ) / float (len (ik2) - 1) 
+      dr1 = (xmax (ik1) - xmin (ik1) ) / REAL(len (ik1) - 1) 
+      dr2 = (xmax (ik2) - xmin (ik2) ) / REAL(len (ik2) - 1) 
 !                                                                       
       IF (abs (dr1 - dr2) .gt.1e-8) then 
          ier_num = - 45 
@@ -1342,11 +1342,11 @@ END SUBROUTINE do_merge
 !------ Divide by the step size                                         
 !                                                                       
       CALL get_extrema_xy (x, iz, len (iz), xmin, xmax) 
-      deltax = (xmax (iz) - xmin (iz) ) / float (len (iz) - 1) 
+      deltax = (xmax (iz) - xmin (iz) ) / REAL(len (iz) - 1) 
 !                                                                       
       fnorm = 1.0 
       DO i = 2, id 
-      fnorm = fnorm * float (i) 
+      fnorm = fnorm * REAL(i) 
       ENDDO 
 !                                                                       
       fnorm = deltax**id / fnorm 
