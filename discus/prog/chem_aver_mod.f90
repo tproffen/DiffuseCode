@@ -87,9 +87,9 @@ iez(3) = NINT(cr_dim(3,1)) - 1
 loopk: DO k = 1, cr_icc (3) 
    loopj: DO j = 1, cr_icc (2) 
       loopi: DO i = 1, cr_icc (1) 
-         ez (1) = FLOAT(iez(1) + i )
-         ez (2) = FLOAT(iez(2) + j )
-         ez (3) = FLOAT(iez(3) + k )
+         ez (1) = REAL(iez(1) + i )
+         ez (2) = REAL(iez(2) + j )
+         ez (3) = REAL(iez(3) + k )
          loopii: DO ii = 1, cr_ncatoms 
             ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
                    (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     
@@ -160,9 +160,9 @@ ENDIF
 sloopk: DO k = 1, cr_icc (3) 
    sloopj: DO j = 1, cr_icc (2) 
       sloopi: DO i = 1, cr_icc (1) 
-         ez (1) = FLOAT(iez(1) + i )
-         ez (2) = FLOAT(iez(2) + j )
-         ez (3) = FLOAT(iez(3) + k )
+         ez (1) = REAL(iez(1) + i )
+         ez (2) = REAL(iez(2) + j )
+         ez (3) = REAL(iez(3) + k )
          sloopii: DO ii = 1, cr_ncatoms 
             ia = ( (k - 1) * cr_icc (1) * cr_icc (2) + &
                    (j - 1) * cr_icc (1) + (i - 1) ) * cr_ncatoms + ii                                     

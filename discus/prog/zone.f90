@@ -244,21 +244,21 @@ CONTAINS
    kmax     = 1*INT(zone_res*cr_a0(2)+0.)
    lmax     = 1*INT(zone_res*cr_a0(3)+0.)
 !
-   eck(1,1) = FLOAT(-hmax)
-   eck(2,1) = FLOAT(-kmax)
-   eck(3,1) = FLOAT(-lmax)
+   eck(1,1) = REAL(-hmax)
+   eck(2,1) = REAL(-kmax)
+   eck(3,1) = REAL(-lmax)
 !
-   eck(1,2) = FLOAT( hmax)
-   eck(2,2) = FLOAT(-kmax)
-   eck(3,2) = FLOAT(-lmax)
+   eck(1,2) = REAL( hmax)
+   eck(2,2) = REAL(-kmax)
+   eck(3,2) = REAL(-lmax)
 !
-   eck(1,3) = FLOAT(-hmax)
-   eck(2,3) = FLOAT( kmax)
-   eck(3,3) = FLOAT(-lmax)
+   eck(1,3) = REAL(-hmax)
+   eck(2,3) = REAL( kmax)
+   eck(3,3) = REAL(-lmax)
 !
-   eck(1,4) = FLOAT(-hmax)
-   eck(2,4) = FLOAT(-kmax)
-   eck(3,4) = FLOAT( lmax)
+   eck(1,4) = REAL(-hmax)
+   eck(2,4) = REAL(-kmax)
+   eck(3,4) = REAL( lmax)
 !
    inc(1)   = 2*hmax + 1
    inc(2)   = 2*kmax + 1

@@ -1501,8 +1501,8 @@ use crystal_mod
         MAXPAR_RES = n_res
       ENDIF
       IF ( natoms>0 .AND. natoms <= MAXPAR_RES ) THEN
-         res_para(0) = FLOAT(natoms)
-         res_para(1:natoms) = FLOAT(c_list(1:natoms))
+         res_para(0) = REAL(natoms)
+         res_para(1:natoms) = REAL(c_list(1:natoms))
       ENDIF
 !
       IF(long) THEN

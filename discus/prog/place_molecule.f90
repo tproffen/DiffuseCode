@@ -945,7 +945,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
       temp_prob(i) = temp_prob(i-1) + dcc_dens(i)
       temp_grand   = temp_grand     + dcc_dens(i)
    ENDDO
-   density = density/FLOAT(dcc_num)
+   density = density/REAL(dcc_num)
    DO i=1,dcc_num
       temp_prob(i) = temp_prob(i)/temp_grand
    ENDDO
@@ -2107,7 +2107,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    hkl(4) = 0
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   surf_normal(1:3) = REAL(surface_normal(:,1))
    hkl(1:3)         =       surface_normal(:,1)
    IF(lrestrict) THEN
       test_nhkl = nhkl
@@ -2330,7 +2330,7 @@ nold = cr_natoms                                   ! Remember old atom number
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
-surf_normal(1:3) = FLOAT(surface_normal(:,1))
+surf_normal(1:3) = REAL(surface_normal(:,1))
 IF(surf_char == 0) RETURN
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
@@ -2627,7 +2627,7 @@ nold = cr_natoms                           ! Remember original atom number
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = FLOAT(surface_normal(:,1))
+surf_normal(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -2919,7 +2919,7 @@ nold     = cr_natoms
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = FLOAT(surface_normal(:,1))
+surf_normal(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3201,7 +3201,7 @@ nold = cr_natoms                           ! Remember original atom number
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = FLOAT(surface_normal(:,1))
+surf_normal(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3523,7 +3523,7 @@ INTEGER                              :: test_nhkl
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
 !
-   surf_normal(1:3) = FLOAT(surface_normal(:,1))
+   surf_normal(1:3) = REAL(surface_normal(:,1))
    hkl(1:3)         =       surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3794,7 +3794,7 @@ hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
 !
-surf_normal(1:3) = FLOAT(surface_normal(:,1))
+surf_normal(1:3) = REAL(surface_normal(:,1))
 hkl(1:3)         =       surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl

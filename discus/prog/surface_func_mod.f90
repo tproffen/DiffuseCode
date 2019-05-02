@@ -1387,9 +1387,9 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                tempsurf(:) = NINT(res_para(1:3))  ! Normal to atom triplet
                                                   ! If necessary invert direction
                lspace = .FALSE.
-               IF(do_blen(lspace, NULL, FLOAT(tempsurf))>0) THEN
+               IF(do_blen(lspace, NULL, REAL(tempsurf))>0) THEN
                lspace = .FALSE.
-               IF(do_bang(lspace, FLOAT(rough), NULL, FLOAT(tempsurf)) > 90.0) tempsurf(:) = -tempsurf(:)
+               IF(do_bang(lspace, REAL(rough), NULL, REAL(tempsurf)) > 90.0) tempsurf(:) = -tempsurf(:)
                WRITE(line,2010) tempsurf(:)
                laenge = 50
                lspace = .FALSE.
@@ -1409,7 +1409,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                isfound = .FALSE.
                lspace = .FALSE.
                DO k=1, nsurface                  ! Loop over all previous surfaces
-                  alpha = do_bang(lspace, FLOAT(tempsurf), NULL, FLOAT(surfaces(1:3,k)) )
+                  alpha = do_bang(lspace, REAL(tempsurf), NULL, REAL(surfaces(1:3,k)) )
                   IF(alpha>90.) alpha = 180.-alpha
 !
                   IF(alpha<IS_PARALLEL) THEN
@@ -1500,9 +1500,9 @@ ENDIF
 ! Normalize
 lspace = .false.
 DO i=1, MIN(nsurface, UBOUND(surf_weight,1))
-   dstar=do_blen(lspace, NULL, FLOAT(surfaces(1:3,i)))
+   dstar=do_blen(lspace, NULL, REAL(surfaces(1:3,i)))
    IF(dstar > 0) THEN
-      surfaces(1:3,i) = NINT(FLOAT(surfaces(1:3,i))*10./dstar)
+      surfaces(1:3,i) = NINT(REAL(surfaces(1:3,i))*10./dstar)
       divisor = IABS(gcd(surfaces(1,i),surfaces(2,i),surfaces(3,i)))
       surfaces(1:3,i) = surfaces(1:3,i)/divisor
    ENDIF
@@ -1543,8 +1543,8 @@ ELSEIF(nsurface == 2) THEN
    laenge = 105
    CALL vprod(line, laenge)
    surf_kante(:) = NINT(res_para(1:3)*100)
-   dstar=do_blen(lspace, NULL, FLOAT(surf_kante(1:3)))
-   surf_kante(1:3) = NINT(FLOAT(surf_kante(1:3))*10./dstar)
+   dstar=do_blen(lspace, NULL, REAL(surf_kante(1:3)))
+   surf_kante(1:3) = NINT(REAL(surf_kante(1:3))*10./dstar)
 ELSEIF(nsurface >  2) THEN
    surf_char = SURF_CORNER
    fill:DO l = 1,6

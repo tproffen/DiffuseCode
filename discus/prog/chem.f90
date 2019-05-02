@@ -5665,9 +5665,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
                k = natom(ncent)
                DO j=1,natoms
                   iatom(  k+j,ncent) = c_list(j)
-                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + FLOAT(c_offs(1,j))
-                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + FLOAT(c_offs(2,j))
-                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + FLOAT(c_offs(3,j))
+                  patom(1,k+j,ncent) = cr_pos(1,c_list(j)) + REAL(c_offs(1,j))
+                  patom(2,k+j,ncent) = cr_pos(2,c_list(j)) + REAL(c_offs(2,j))
+                  patom(3,k+j,ncent) = cr_pos(3,c_list(j)) + REAL(c_offs(3,j))
                ENDDO 
                natom(ncent) = natom(ncent) + natoms
             ENDIF

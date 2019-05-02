@@ -86,7 +86,7 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
       IF(old_vector(iv)           ) THEN   ! Vector has been defined
          DO i=1,3                          ! copy sites from average unit cell
             ri(i) = chem_ave_pos(i,chem_cvec(1,iv))
-            rj(i) = chem_ave_pos(i,chem_cvec(2,iv)) + FLOAT(chem_cvec(2+i,iv))
+            rj(i) = chem_ave_pos(i,chem_cvec(2,iv)) + REAL(chem_cvec(2+i,iv))
          ENDDO
          ri_n(:) = 0.0                     ! initialize new vectors
          rj_n(:) = 0.0
@@ -97,10 +97,10 @@ symmetry: DO isym = 2, spc_n   !Loop over all space group symmetry operations
             ENDDO
          ENDDO
          DO i=1,3                          ! convert sites into first unit cell [0:1]
-            ri_f(i) = ri_n(i) - FLOAT(INT(ri_n(i))) + 1.0 ! create a copy for site i
-            ri_f(i) = ri_f(i) - FLOAT(INT(ri_f(i))) 
-            rj_f(i) = rj_n(i) - FLOAT(INT(rj_n(i))) + 1.0 ! create a copy for site j
-            rj_f(i) = rj_f(i) - FLOAT(INT(rj_f(i))) 
+            ri_f(i) = ri_n(i) - REAL(INT(ri_n(i))) + 1.0 ! create a copy for site i
+            ri_f(i) = ri_f(i) - REAL(INT(ri_f(i))) 
+            rj_f(i) = rj_n(i) - REAL(INT(rj_n(i))) + 1.0 ! create a copy for site j
+            rj_f(i) = rj_f(i) - REAL(INT(rj_f(i))) 
             vec(i)  = nint(rj_n(i)-rj_f(i)) - nint(ri_n(i)-ri_f(i))
          ENDDO
 !

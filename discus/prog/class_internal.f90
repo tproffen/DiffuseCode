@@ -268,10 +268,10 @@ IF(ptr%strucfile /= ' ') THEN
       n_type = ptr%crystal%get_n_type()
       WRITE(output_io, '(a,a)') '     Content   : ', ' Atoms   Types   Molecules MolTypes'
       WRITE(output_io, '(a,4I7)')   '               : ', natoms, nscat, n_mole, n_type
-      res_para(1) = FLOAT(natoms)
-      res_para(2) = FLOAT(nscat)
-      res_para(3) = FLOAT(n_mole)
-      res_para(4) = FLOAT(n_type)
+      res_para(1) = REAL(natoms)
+      res_para(2) = REAL(nscat)
+      res_para(3) = REAL(n_mole)
+      res_para(4) = REAL(n_type)
       res_para(0) = 4.0
    ENDIF
    IF(display=='full' .OR. display=='connect') THEN

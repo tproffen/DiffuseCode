@@ -1414,7 +1414,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !
       cr_pos(:,:) = 0.0
       DO i=1,st_nlayer
-         cr_pos(3,i) = FLOAT(i-1)
+         cr_pos(3,i) = REAL(i-1)
       ENDDO
       CALL save_internal(stacksimple)
       CALL readstru_internal(tempfile)    ! Restore current structure

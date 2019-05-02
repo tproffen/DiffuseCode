@@ -604,11 +604,11 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
 !                          cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
                            IF(MOD(cr_icc(l),2)==0) THEN
                               
-                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
-                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
+                              cr_dim0 (l, 1) = REAL(-(cr_icc(l)-1)/2)
+                              cr_dim0 (l, 2) = REAL((cr_icc(l)+1)/2)+1
                            ELSE
-                              cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
-                              cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
+                              cr_dim0 (l, 1) = REAL(-(cr_icc(l)  )/2)
+                              cr_dim0 (l, 2) = REAL((cr_icc(l)  )/2)+1
                            ENDIF 
                         ENDDO 
                      ENDIF 
@@ -5606,14 +5606,14 @@ moles: DO im = 1, mole_num_mole
    vec(:)   = 0.0
    shift(:) = 0.0
    vec(:)   = cr_pos(:,mole_cont(mole_off(im) + 1))
-   fract(1) = vec(1)   - FLOAT(INT(vec(1)))  + 1.0
-   fract(1) = fract(1) - FLOAT(INT(fract(1)))
+   fract(1) = vec(1)   - REAL(INT(vec(1)))  + 1.0
+   fract(1) = fract(1) - REAL(INT(fract(1)))
    shift(1) = fract(1) -vec(1)
-   fract(2) = vec(2)   - FLOAT(INT(vec(2)))  + 1.0
-   fract(2) = fract(2) - FLOAT(INT(fract(2)))
+   fract(2) = vec(2)   - REAL(INT(vec(2)))  + 1.0
+   fract(2) = fract(2) - REAL(INT(fract(2)))
    shift(2) = fract(2) - vec(2)
-   fract(3) = vec(3)   - FLOAT(INT(shift(3)))
-   fract(3) = fract(3) - FLOAT(INT(fract(3)))
+   fract(3) = vec(3)   - REAL(INT(shift(3)))
+   fract(3) = fract(3) - REAL(INT(fract(3)))
    shift(3) = fract(3) - vec(3)
    IF(MAXVAL(shift)>0.0) THEN
       atoms: DO j=1, mole_len(im)

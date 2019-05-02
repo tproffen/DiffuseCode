@@ -1943,9 +1943,9 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
          ENDDO 
          DO i = 1, 3 
             v(i) = cr_pos(i, isel( 1)) - chem_ave_pos(i, is( 1) ) &
-                   -FLOAT(iz( 1, i) - 1) - cr_dim0(i, 1)
+                   -REAL(iz( 1, i) - 1) - cr_dim0(i, 1)
             u(i) = cr_pos(i, isel( 2)) - chem_ave_pos(i, is( 2) ) &
-                   -FLOAT(iz( 2, i) - 1) - cr_dim0(i, 1)
+                   -REAL(iz( 2, i) - 1) - cr_dim0(i, 1)
          ENDDO 
          laccept = mmc_allowed(cr_iscat(isel(1) ) ) .and.&
                    mmc_allowed(cr_iscat(isel(2) ) ) .and.&
@@ -2251,7 +2251,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                IF (mmc_cor_energy (ic, MC_DISP) ) then 
                   DO i = 1, 3 
                     v(i) = cr_pos(i, isel(ia)) - chem_ave_pos(i, is (ia)) &
-                           - FLOAT(iz(ia, i) - 1) - cr_dim0(i, 1)                   
+                           - REAL(iz(ia, i) - 1) - cr_dim0(i, 1)                   
                   ENDDO 
                   IF (chem_ldall (ic) ) then 
                      DO i = 1, 3 

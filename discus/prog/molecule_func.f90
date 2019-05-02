@@ -301,7 +301,7 @@ DO ino = 1, ino_max                        ! Loop over all connectivity types
 !        Apply periodic boundary shifts to keep molecule contiguous
          IF(c_offs(1,i)/=0 .OR. c_offs(2,i)/=0 .OR. c_offs(3,i)/=0 ) THEN
             cr_pos(:,latom) = cr_pos(:,latom) + c_offs(:,i)
-            CALL conn_update(latom, FLOAT(c_offs(:,i)))
+            CALL conn_update(latom, REAL(c_offs(:,i)))
          ENDIF
          CALL mol_add_conn(latom)
       ENDIF
@@ -352,7 +352,7 @@ DO ino = 1, ino_max                        ! Loop over all connectivity types
 !        Apply periodic boundary shifts to keep molecule contiguous
          IF(c_offs(1,i)/=0 .OR. c_offs(2,i)/=0 .OR. c_offs(3,i)/=0 ) THEN
             cr_pos(:,latom) = cr_pos(:,latom) + c_offs(:,i)
-            CALL conn_update(latom, FLOAT(c_offs(:,i)))
+            CALL conn_update(latom, REAL(c_offs(:,i)))
          ENDIF
 !write(*,*) '      search ', latom
 !write(*,*) ' INTE T_LIST ', t_list

@@ -1944,7 +1944,7 @@ END SUBROUTINE alloc_demol
       lstat       = .TRUE.
       pdf_size_of = 0
 !
-      n_dat2 = 2**(INT(LOG(FLOAT(n_dat))/LOG(2.))+2)
+      n_dat2 = 2**(INT(LOG(REAL(n_dat))/LOG(2.))+2)
       CALL alloc_arr ( pdf_calc      ,1,n_dat2,  all_status, def_dbl  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pdf_size_of = pdf_size_of + size_of

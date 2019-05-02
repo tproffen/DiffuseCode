@@ -452,7 +452,7 @@ SUBROUTINE pdf
 !
       bave = 0.0
       DO is = 0, cr_nscat 
-         pdf_natoms(is) = NINT( FLOAT(pdf_natoms(is)) * cr_occ(is))
+         pdf_natoms(is) = NINT( REAL(pdf_natoms(is)) * cr_occ(is))
          cr_n_real_atoms = cr_n_real_atoms + pdf_natoms(is)
          bave = bave+form (is, cr_scat, pdf_lxray, hh,  pdf_power) *pdf_natoms(is)
       ENDDO
@@ -981,7 +981,7 @@ main:    DO
 !!!         pdf_deltar = (re-ra) / REAL(pdf_bin - 1) 
 !!!         pdf_deltaru= pdf_deltar    ! copy delta r from file into user 
 !!!         pdf_us_int = 1
-         pdf_deltaru =  (re-ra)/FLOAT(ip-2)
+         pdf_deltaru =  (re-ra)/REAL(ip-2)
          IF(pdf_deltaru > pdf_deltari) THEN
             pdf_us_int = NINT(MAX(pdf_deltaru/pdf_deltari,1.))
             pdf_deltar = pdf_deltaru/pdf_us_int ! internal delta R ~ pdf_deltari always
@@ -3294,9 +3294,9 @@ inner:      DO iatom =    1, cr_natoms
                   DO ix=-ncell(1),ncell(1)
                   DO iy=-ncell(2),ncell(2)
                   DO iz=-ncell(3),ncell(3)
-                  dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) + FLOAT(ix*icell(1))
-                  dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) + FLOAT(iy*icell(2))
-                  dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) + FLOAT(iz*icell(3))
+                  dd (1) = cr_pos (1, ia) - cr_pos (1, iatom) + REAL(ix*icell(1))
+                  dd (2) = cr_pos (2, ia) - cr_pos (2, iatom) + REAL(iy*icell(2))
+                  dd (3) = cr_pos (3, ia) - cr_pos (3, iatom) + REAL(iz*icell(3))
             dist  = SQRT(dd(1)*dd(1)*cr_gten(1,1) + dd(2)*dd(2)*cr_gten(2,2) + &
                     dd(3)*dd(3)*cr_gten(3,3) + 2. * (                     &
                     dd(1)*dd(2)*cr_gten(1,2) + dd(1)*dd(3)*cr_gten(1,3) + &

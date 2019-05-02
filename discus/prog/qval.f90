@@ -102,8 +102,8 @@ CONTAINS
 !                                                                       
       ELSEIF (value == val_ranph) THEN 
          DO k = 1, 3 
-            h (k) = out_eck (k, 1) + out_vi (k, 1) * FLOAT (ix - 1)     &
-                                   + out_vi (k, 2) * FLOAT (iy - 1)
+            h (k) = out_eck (k, 1) + out_vi (k, 1) * REAL(ix - 1)     &
+                                   + out_vi (k, 2) * REAL(iy - 1)
          ENDDO 
          IF (ABS (h (1) - NINT (h (1) ) ) .lt.DELTA.AND. &
              ABS (h (2) - NINT (h (2) ) ) .lt.DELTA.AND. &
