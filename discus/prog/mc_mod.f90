@@ -4,7 +4,9 @@ MODULE mc_mod
 !     Variables for MONTE-CARLO level
 !-
 !
-      USE discus_config_mod
+USE discus_config_mod
+!
+USE precision_mod
 !
       SAVE
 !
@@ -23,7 +25,7 @@ MODULE mc_mod
 !
       INTEGER             ::  mo_energy
       INTEGER             ::  mo_mode,mo_local
-      INTEGER             ::  mo_cyc,mo_feed
+      INTEGER(KIND=PREC_INT_LARGE)  ::  mo_cyc,mo_feed
 !
       REAL                ::  mo_target_corr(CHEM_MAX_COR)
       REAL                ::  mo_ach_corr(CHEM_MAX_COR)
