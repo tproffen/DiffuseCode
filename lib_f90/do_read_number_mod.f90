@@ -318,10 +318,10 @@ USE precision_mod
       INTEGER          , INTENT(INOUT) :: ll
       INTEGER          , INTENT(IN)    :: lverk
       LOGICAL          , INTENT(IN)    :: lreal
-      CHARACTER(5) form 
-      CHARACTER(1024) zeile 
-      INTEGER lw 
-      INTEGER ltot 
+      CHARACTER(LEN=5)  :: form 
+      CHARACTER(LEN=1024)  :: zeile 
+      INTEGER  :: lw 
+      INTEGER  :: ltot 
 !                                                                       
       zeile = ' ' 
       IF (iz1.gt.1) zeile (1:iz1 - 1) = line (1:iz1 - 1) 
@@ -330,9 +330,9 @@ USE precision_mod
          WRITE (zeile (iz1:iz1 + lw - 1) , PREC_F_REAL) ww 
          zeile (iz1 + PREC_MANTIS:iz1 + PREC_MANTIS) = 'e' 
       ELSE 
-         lw = int (alog (abs (ww) + 1.) ) + 2 
+         lw = INT (ALOG (ABS (ww) + 1.) ) + 2 
          WRITE (form, 1000) lw 
-         WRITE (zeile (iz1:iz1 + lw - 1), form) int (ww) 
+         WRITE (zeile (iz1:iz1 + lw - 1), form) INT(ww,PREC_INT_LARGE) !Write BIG integer
       ENDIF 
       IF (iverk + lverk + iz2.le.ll) then 
          ltot = (iz1 + lw) + (ll - iverk - lverk - iz2 + 1) - 1 
@@ -344,8 +344,8 @@ USE precision_mod
       ll = ll + lw - (lverk + iz2 + iverk - iz1 - 1) 
       CALL rem_bl (line, ll) 
 !                                                                       
- 1000 FORMAT    ('(i',i2,')') 
-      END SUBROUTINE ersetz                         
+ 1000 FORMAT    ('(i',i2.2,')') 
+END SUBROUTINE ersetz                         
 !
 !*****7**************************************************************** 
 !

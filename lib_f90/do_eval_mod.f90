@@ -21,7 +21,7 @@ USE precision_mod
       INTEGER, PARAMETER :: MAXW = 10
 !                                                                       
       CHARACTER(LEN=1024), INTENT(INOUT) :: line
-      INTEGER            , INTENT(INOUT) :: i
+      INTEGER(KIND=PREC_INT_WORD) , INTENT(INOUT) :: i
       LOGICAL            , INTENT(IN   ) :: lout
 !
       CHARACTER(1024) cpara (maxw) 
