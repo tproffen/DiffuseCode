@@ -749,22 +749,22 @@ IF(.NOT.pop_current)   THEN    ! Need to update the population etc
                highest_r = MAXVAL( parent_val(1:NINT(r1),0))
                parent_val(pop_n+1:pop_n,0) = 10.*highest_r
                FORALL(i=pop_n+1:pop_n) pop_x (:,i)     = pop_x (:,1)
-               r2 = FLOAT(pop_n) 
+               r2 = REAL(pop_n) 
                var_val(var_ref+1) = pop_n     ! Update global user variable
                l_write = .TRUE.
       ELSEIF(NINT(r2)>pop_n) THEN   ! Population size decreased  by pop_n[] command
-               r2 = FLOAT(pop_n) 
+               r2 = REAL(pop_n) 
                var_val(var_ref+1) = pop_n     ! Update global user variable
                l_write = .TRUE.
       ENDIF
       IF(NINT(r3)/=pop_c) THEN   ! Children size changed by pop_c[} command
-               r3 = FLOAT(pop_c)
+               r3 = REAL(pop_c)
                var_val(var_ref+2) = pop_c     ! Update global user variable
                CALL create_trial                 ! Make a new set
                l_write = .TRUE.
       ENDIF
       IF(NINT(r4)<pop_dimx) THEN   ! Dimension has  increased by pop_dimx[] command
-               r4 = FLOAT(pop_dimx)
+               r4 = REAL(pop_dimx)
                l_write = .TRUE.
       ENDIF
    ELSE
