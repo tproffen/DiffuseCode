@@ -12,6 +12,8 @@ USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
 USE param_mod 
+!
+USE class_macro_internal
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -20,15 +22,15 @@ INTEGER, PARAMETER :: maxw = 12
 CHARACTER ( LEN=* ), INTENT(INOUT)   ::  zeile 
 INTEGER            , INTENT(INOUT)   ::  lp 
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) line 
-      CHARACTER(1) cdummy 
-      REAL werte (maxw) 
-      INTEGER i 
-      INTEGER lpara (maxw)
-      INTEGER ianz 
-      INTEGER len_str 
-      LOGICAL str_comp 
+CHARACTER(LEN=1024) :: cpara (maxw) 
+CHARACTER(LEN=1024) :: line 
+CHARACTER(LEN=4) :: cdummy 
+REAL, DIMENSION(maxw) ::  werte !(maxw) 
+INTEGER :: i 
+INTEGER :: lpara (maxw)
+INTEGER :: ianz 
+INTEGER :: len_str 
+LOGICAL :: str_comp 
 !                                                                       
 IF(wait_active) THEN
       lp = - lp 
@@ -42,6 +44,16 @@ IF(wait_active) THEN
          IF (str_comp (cpara (1) , 'return', 1, lpara (1) , 6) ) THEN 
             WRITE ( *, 1000,advance='no') 
             READ ( *, 5000, err = 50, end = 50) cdummy 
+            IF(cdummy=='stop') THEN
+
+               WRITE ( *, '(a,a1)') 'Macro stopped ', char (7)
+               lmakro = .false.
+               lmakro_error = .false.    ! Macro termination error off
+               macro_level = 0
+               CALL macro_close
+!            line = '#'
+!            il = 1
+            ENDIF
          ELSEIF (str_comp (cpara (1) , 'input', 1, lpara (1) , 5) )     &
          THEN                                                           
             IF (ianz.eq.1) THEN 
