@@ -64,55 +64,63 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
 !------ Use reference set                                               
 !                                                                       
-      IF (ianz.eq.1) then 
-         CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         iref = nint (werte (1) ) 
+nianz: IF (ianz.eq.1) then 
+   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
+   iref = nint (werte (1) ) 
 !                                                                       
-         IF (iref.le.0.or.iref.ge.iz) then 
-            ier_num = - 4 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
+   IF (iref.le.0.or.iref.ge.iz) THEN 
+      ier_num = - 4 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
 !                                                                       
-         IF (lni (iref) ) then 
-            ier_num = - 4 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
+!  IF (lni (iref) ) THEN 
+!     ier_num = - 4 
+!     ier_typ = ER_APPL 
+!     RETURN 
+!  ENDIF 
 !                                                                       
-         ii = len (iref) 
+   ii = len (iref) 
 !                                                                       
-         IF (ii.le.0.or.ii.gt.maxpkt) then 
-            ier_num = - 6 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
+   IF (ii.le.0.or.ii.gt.maxpkt) THEN 
+      ier_num = - 6 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
 !                                                                       
 !-------  KUPLOT fit function                                           
 !                                                                       
-         IF (ffit) then 
-            DO i = 1, ii 
+   IF (ffit) THEN 
+      IF(lni(iref)) THEN     ! 2d data set
+         nx(iz) = nx(iref)
+         ny(iz) = nx(iref)
+         DO i = 1, nx (ikfit) * ny (ikfit)
+            xx = REAL(i)
+            CALL kupl_theory (xx, f, df, - i) 
+            z (offz (iz - 1) + i) = f
+         ENDDO
+         DO ii = 1, nx (iz) 
+            x (offxy (iz - 1) + ii) = x (offxy (iref - 1) + ii)
+         ENDDO
+         DO jj = 1, ny (iz) 
+            y (offxy (iz - 1) + jj) = y (offxy (iref - 1) + jj)
+         ENDDO
+         fname (iz) = 'func.nipl' 
+         fform (iz) = 'NI' 
+         lni (iz) = .true. 
+         len (iz) = max (nx (iz), ny (iz) ) 
+         offxy (iz) = offxy (iz - 1) + len (iz) 
+         offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
+         iz = iz + 1 
+      ELSE
+         DO i = 1, ii 
             xx = x (offxy (iref - 1) + i) 
             CALL kupl_theory (xx, f, df, - i) 
             x (offxy (iz - 1) + i) = xx 
             y (offxy (iz - 1) + i) = f 
             dx (offxy (iz - 1) + i) = 0.0 
             dy (offxy (iz - 1) + i) = 0.0 
-            ENDDO 
-!                                                                       
-!------- User defined function                                          
-!                                                                       
-         ELSE 
-            DO i = 1, ii 
-            rpara (0) = x (offxy (iref - 1) + i) 
-            cdummy = '('//cfkt (1:lcfkt) //')' 
-            length = lcfkt + 2
-            x (offxy (iz - 1) + i) = rpara (0) 
-            y (offxy (iz - 1) + i) = berechne (cdummy, length)
-            dx (offxy (iz - 1) + i) = 0.0 
-            dy (offxy (iz - 1) + i) = 0.0 
-            ENDDO 
-         ENDIF 
+         ENDDO 
          fname (iz) = 'func.xy' 
          fform (iz) = 'XY' 
          lni (iz) = .false. 
@@ -120,11 +128,60 @@ SUBROUTINE do_func (zeile, lp)
          offxy (iz) = offxy (iz - 1) + len (iz) 
          offz (iz) = offz (iz - 1) 
          iz = iz + 1 
-         CALL show_data (iz - 1) 
+      ENDIF
+!                                                                       
+!------- User defined function                                          
+!                                                                       
+   ELSE 
+      IF(lni(iref)) THEN     ! 2d data set
+         nx(iz) = nx(iref)
+         ny(iz) = nx(iref)
+         DO ii = 1, nx (iz) 
+            rpara (0) = x (offxy (iref - 1) + ii) 
+            DO jj = 1, ny (iz) 
+               cdummy = '('//cfkt (1:lcfkt) //')' 
+               length = lcfkt + 2
+               rpara (1) = y (offxy (iref - 1) + jj) 
+               z (offz (iz - 1) + (ii - 1) * ny (iz) + jj) =  &
+                 berechne(cdummy, length)
+               x (offxy (iz - 1) + ii) = rpara (0) 
+               y (offxy (iz - 1) + jj) = rpara (1) 
+               dx (offxy (iz - 1) + ii) = 0.0 
+               dy (offxy (iz - 1) + jj) = 0.0 
+            ENDDO 
+         ENDDO 
+!
+         fname (iz) = 'func.nipl' 
+         fform (iz) = 'NI' 
+         lni (iz) = .true. 
+         len (iz) = max (nx (iz), ny (iz) ) 
+         offxy (iz) = offxy (iz - 1) + len (iz) 
+         offz (iz) = offz (iz - 1) + nx (iz) * ny (iz) 
+         iz = iz + 1 
+      ELSE
+         DO i = 1, ii 
+            rpara (0) = x (offxy (iref - 1) + i) 
+            cdummy = '('//cfkt (1:lcfkt) //')' 
+            length = lcfkt + 2
+            x (offxy (iz - 1) + i) = rpara (0) 
+            y (offxy (iz - 1) + i) = berechne (cdummy, length)
+            dx (offxy (iz - 1) + i) = 0.0 
+            dy (offxy (iz - 1) + i) = 0.0 
+         ENDDO 
+         fname (iz) = 'func.xy' 
+         fform (iz) = 'XY' 
+         lni (iz) = .false. 
+         len (iz) = ii 
+         offxy (iz) = offxy (iz - 1) + len (iz) 
+         offz (iz) = offz (iz - 1) 
+         iz = iz + 1 
+      ENDIF 
+   ENDIF 
+   CALL show_data (iz - 1) 
 !                                                                       
 !------ 1D data set                                                     
 !                                                                       
-      ELSEIF (ianz.eq.3) then 
+ELSEIF (ianz.eq.3) THEN  nianz
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          xstart = werte (1) 
          xend = werte (2) 
@@ -172,7 +229,7 @@ SUBROUTINE do_func (zeile, lp)
 !                                                                       
 !------ 2D data set                                                     
 !                                                                       
-      ELSEIF (ianz.eq.6) then 
+ELSEIF (ianz.eq.6) THEN nianz
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          xstart = werte (1) 
          xend = werte (2) 
@@ -235,10 +292,10 @@ SUBROUTINE do_func (zeile, lp)
             ier_typ = ER_APPL 
          ENDIF 
 !                                                                       
-      ELSE 
+ELSE  nianz
          ier_num = - 6 
          ier_typ = ER_COMM 
-      ENDIF 
+ENDIF  nianz
 !                                                                       
       END SUBROUTINE do_func                        
 !*****7**************************************************************** 
