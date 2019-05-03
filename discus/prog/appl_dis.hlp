@@ -4371,9 +4371,10 @@
    converges into a highly ordered state, the probability of picking 
    an invalid pair increases. In order to prevent an infinite loop, 
    DISCUS terminates mmc once the number of invalid tried configurations
-   exceeds the number of c factor <invalid_moves>. Default for 
-   <invalid_moves> is 1000. For large structures it might be helpful to
-   increase this number.
+   exceeds the number of <invalid_moves>.
+   Default for <invalid_moves> is 1000. 
+   For large structures it might be helpful to increase this number,
+   for example to a value around the number of atoms. 
 4  vec
 !b set "vec",<iv>,<is1>,<is2>,<dx>,<dy>,<dz>
 

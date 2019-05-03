@@ -604,11 +604,15 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
 !                          cr_dim0 (l, 2) = REAL(nint (cr_dim (l, 2) ) ) 
                            IF(MOD(cr_icc(l),2)==0) THEN
                               
-                              cr_dim0 (l, 1) = REAL(-(cr_icc(l)-1)/2)
-                              cr_dim0 (l, 2) = REAL((cr_icc(l)+1)/2)+1
+!                             cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)-1)/2)
+!                             cr_dim0 (l, 2) = FLOAT((cr_icc(l)+1)/2)+1
+                              cr_dim0(l,1) = FLOAT(-cr_icc(l)/2)
+                              cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
                            ELSE
-                              cr_dim0 (l, 1) = REAL(-(cr_icc(l)  )/2)
-                              cr_dim0 (l, 2) = REAL((cr_icc(l)  )/2)+1
+!                             cr_dim0 (l, 1) = FLOAT(-(cr_icc(l)  )/2)
+!                             cr_dim0 (l, 2) = FLOAT((cr_icc(l)  )/2)+1
+                              cr_dim0(l,1) = FLOAT(-(cr_icc(l)+1)/2 + 1)
+                              cr_dim0(l,2) = cr_dim0(l,1) + cr_icc(l) - 1
                            ENDIF 
                         ENDDO 
                      ENDIF 
@@ -625,6 +629,8 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
             ENDIF 
 !
 chem_purge = .FALSE.    ! No purge was done, period boundary is OK
+chem_period(:) = .TRUE.
+chem_quick     = .TRUE.
 !
 END SUBROUTINE do_readcell
 !
