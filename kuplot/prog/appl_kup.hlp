@@ -104,6 +104,11 @@
    Extended 'merge' command to 2D data.
 
    Corrected fit weighting scheme "DAT" to 1/sig^2
+
+   Added a "thermal" color map
+
+   Added a 2D option to build a ==> 'func' from a reference
+   data set
 3  2019_February
 
    Added a 'blank' separator to 'load csv, separator:blank'
@@ -507,13 +512,23 @@
    If the partial R-values are provided as well, they will 
    overwrite the corresponding partial R-values.
 2  cmap
-!b cmap { "gray" | "fire" | "kupl"  }
+!b cmap { "gray" | "fire" | "ice" | "kupl" |"thermal" }
 !b cmap { "read" | "write"}, <fname>
 !b cmap "invert"
 
    This command allows to choose the color map to be used for printing
    bitmaps (see 'hart' command). The three build in color map are 
-   "gray", "fire" and "kupl" (the previous default color map). Color maps
+   "gray", "fire" , "thermal" and "kupl" (the previous default color map). 
+   "gray" gives a white color at low data values and a black color at
+      high data values.
+   "fire" gives a black color at low data values and a red to yellow to
+      white color with increasing data values.
+   "ice" gives a black color at low data values and a blue to lighter
+      blue color with increasing data values.
+   "thermal" combines "fire" and "ice", with a "fire" map for positive
+      data values and "ice" for negative data values.
+
+   Color maps
    can also be read from a file using the command 'cmap read,<fname>'.
    The format is of the form '#RRGGBB' for each color map entry on a
    new line and 'RR', 'GG' and 'BB' are the 'red', 'green' and 'blue'
@@ -1203,9 +1218,9 @@
    give the x-range for the function. The value of <dx> is the step size
    in x-direction. For 3D data sets the y-range is given as additional
    parameters in a similar way. Alternatively the x-values can be taken
-   from the dataset <iref> (not implemented for 3D files).
+   from the dataset <iref> (implemented for 3D files as well as of Version 5.33).
 
-   if the first parameter is "fit", the value of the current fit function
+   If the first parameter is "fit", the value of the current fit function
    (see -> fit) is used.
 
 !p Examples

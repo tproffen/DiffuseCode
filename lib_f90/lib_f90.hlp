@@ -24,6 +24,9 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2019_May
+
+   Added a possibility to stop a macro at a 'wait return'
 4  2019_March
 
    Added two more system variables, LOOP and SLOW that can be 
@@ -1211,6 +1214,12 @@
    This command waits for user input. 
    Without a parameter or with "return", the program waits for a 
    simple <RETURN>.
+
+   If the parameter is "return", you can type "stop" and then press
+   enter/return to stop the execution of the current macro. The program
+   will return to the regular interactive session within the section 
+   menu or submenu at the current point of execution.
+
    If the first parameter is "input", the program expects the user to enter
    one or more real numbers or expressions. The optional <prompt> can be 
    used to ask the user to input the expressions. This is especially 
