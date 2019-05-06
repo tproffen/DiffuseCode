@@ -12,6 +12,7 @@ INTEGER, PARAMETER :: val_f2aver =  9
 INTEGER, PARAMETER :: val_faver2 = 10
 INTEGER, PARAMETER :: val_faver  = 11
 INTEGER, PARAMETER :: val_norm   = 12
+INTEGER, PARAMETER :: val_iq     = 13
 CONTAINS
 !*****7*****************************************************************
       REAL FUNCTION qval (i, value, ix, iy, laver) 
@@ -155,6 +156,16 @@ CONTAINS
                    *cr_amount(k)
          ENDDO
          q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
+         qval = qval /f2aver/ cr_n_real_atoms 
+!
+!     Calculate I(Q) = I/N normalized intensity 
+!
+      ELSEIF (value == val_iq) THEN
+         IF (laver) THEN 
+            qval = REAL (f * CONJG (f),KIND=KIND(0.0E0) ) 
+         ELSE 
+            qval = REAL(dsi (i), KIND=KIND(0.0E0))
+         ENDIF 
          qval = qval /f2aver/ cr_n_real_atoms 
 !
 !     Calculate average squared atomic form factor <f**2>

@@ -8,19 +8,20 @@ PUBLIC
 !
 CONTAINS
 !
-      SUBROUTINE powder_out (value)
+SUBROUTINE powder_out (value)
 !-                                                                      
 !     Write the powder pattern                                          
 !+                                                                      
-      USE discus_config_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-      USE output_mod 
-      USE powder_mod 
-      USE powder_tables_mod
-      USE wink_mod
-      USE precision_mod
-      USE trig_degree_mod
+USE discus_config_mod 
+USE debye_mod 
+USE diffuse_mod 
+USE output_mod 
+USE powder_mod 
+USE powder_tables_mod
+USE wink_mod
+USE precision_mod
+USE trig_degree_mod
+USE qval_mod
       IMPLICIT none 
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
@@ -63,11 +64,13 @@ CONTAINS
 !      REAL sind, asind 
 !
 !
-      IF(.NOT. (value == 1 .or. value == 7 .or. value == 8 .or. &
-                value == 9 .or. value == 10                )) THEN
+      IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
+                value == val_fq     .OR. value == val_iq      .OR. &
+                value == val_f2aver .OR. value == val_faver2  .OR. &
+                value == val_norm                                    )) THEN
          ier_msg(1) = ' Powder output is defined only for:'
          ier_msg(2) = ' Intensity, S(Q), F(Q), <f>^2, <f^2>'
-         ier_msg(3) = ' '
+         ier_msg(3) = ' Intensity/N'
          ier_num = -124
          ier_typ = ER_APPL
          RETURN
@@ -126,8 +129,9 @@ CONTAINS
 !
 !     Prepare average form factors for S(Q) or F(Q), or faver2, f2aver
 !
-      IF(value == 7 .or. value == 8  .or.        &
-         value == 9 .or. value == 10      ) THEN
+      IF(value == val_sq     .OR. value == val_fq     .OR. &
+         value == val_norm   .OR.                          &
+         value == val_f2aver .OR. value == val_faver2      ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
             IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
                IF (pow_four_type.eq.POW_COMPL) THEN     ! Need to initialize pow_istl
@@ -156,11 +160,11 @@ CONTAINS
          DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
          RETURN
       ENDIF
-      IF(value == 9) THEN          ! Output is f^2 aver
+      IF(value == val_f2aver) THEN          ! Output is f^2 aver
          DO j = 1, npkt
             pow_tmp (j-1) = REAL(pow_f2aver(j))
          ENDDO
-      ELSEIF(value == 10) THEN     ! Output is faver^2 
+      ELSEIF(value == val_faver2) THEN     ! Output is faver^2 
          DO j = 1, npkt
             pow_tmp (j-1) = REAL(pow_faver2(j))
          ENDDO
@@ -224,7 +228,7 @@ CONTAINS
          pow_tmp(:) = pow_tmp(:) * scalef
          pow_tmp_sum = 0.0
          pow_uuu_sum = 0.0
-      ENDIF           ! Output is if_block if(value==9)
+      ENDIF           ! Output is if_block if(value==val_f2aver)
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
 !                                                                       
@@ -243,9 +247,9 @@ CONTAINS
                dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
                q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
             ENDIF 
-            IF(value == 7 .or. value == 8)  THEN
+            IF(value == val_sq .or. value == val_fq)  THEN
                lp = lorentz(ttheta,1)
-            ELSEIF(value == 9 .or. value == 10) THEN  ! f2aver or faver2
+            ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
                lp = 1
             ELSE
                lp     = lorentz (ttheta,0) * polarisation (ttheta) 
@@ -282,9 +286,9 @@ CONTAINS
             q = REAL(zpi) * REAL(xm (1) + (ii - 1) * uin (1) ) 
             ttheta = 2. * asind (dstar * rlambda / 2.) 
 !
-            IF(value == 7 .or. value == 8) THEN
+            IF(value == val_sq .or. value == val_fq) THEN
                lp = 1                     ! For S(Q) and F(Q) nor Polarisation corr.
-            ELSEIF(value == 9 .or. value == 10) THEN  ! f2aver or faver2
+            ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
                lp = 1
             ELSE
                lp = polarisation (ttheta) 
@@ -304,7 +308,8 @@ CONTAINS
 !
 !     Prepare S(Q) or F(Q)
 !
-      IF(value == 7 .or. value == 8) THEN
+      IF(value == val_sq .or. value == val_fq .OR. & 
+         value == val_iq .OR. value == val_norm      ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
             IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv) THEN
             pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
@@ -321,17 +326,27 @@ CONTAINS
             normalizer = REAL(pow_nreal)
             ENDIF
 !
-            IF(value == 7) THEN                         ! Calc S(Q)
+            IF(value == val_sq) THEN                         ! Calc S(Q)
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
                             + 1.0 - exp(-q**2*pow_u2aver)) 
                ENDDO
-            ELSE                                        ! Calc F(Q)
+            ELSEIF(value == val_fq) THEN                ! Calc F(Q)IF
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
                                   - exp(-q**2*pow_u2aver)) * q
+               ENDDO
+            ELSEIF(value == val_iq) THEN                ! Calc F(Q)IF
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  ypl(j) =  ypl(j)/normalizer
+               ENDDO
+            ELSEIF(value == val_norm) THEN                ! Calc F(Q)IF
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  ypl(j) =  ypl(j)/REAL(pow_faver2(j))/normalizer
                ENDDO
             ENDIF
          ELSE                                           ! F(Q) works for Q-axis only
@@ -492,7 +507,7 @@ CONTAINS
 !
 !     Scale intensity and add a background
 !
-      IF(value==1) THEN
+      IF(value==val_inten) THEN
          DO ii=1,npkt_wrt
             ywrt(ii) = pow_scale*ywrt(ii)
             DO iii=0,pow_nback

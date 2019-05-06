@@ -488,6 +488,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Calculate imaginary part 'imaginary'                          
                   ELSEIF (cpara (1) (ix:ix + 1) .eq.'im') THEN 
                      value = val_imag
+!     ----Calculate I(Q)           'I(Q) =Inte/N'                       
+                  ELSEIF (cpara (1) (ix:ix + 3) .eq.'I(Q)') THEN 
+                     value = val_iq
 !     ----Calculate S(Q)           'S(Q)     '                          
                   ELSEIF (cpara (1) (ix:ix + 3) .eq.'S(Q)') THEN 
                      value = val_sq
