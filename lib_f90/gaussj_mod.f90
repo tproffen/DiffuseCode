@@ -27,6 +27,12 @@ REAL                     :: big, dum
 INTEGER                  :: irow, icol
 REAL                     :: pivinv
 !
+IF(NP==1) THEN
+   IF(a(1,1)/=0) THEN
+      a(1,1) = 1./a(1,1)
+      b(1)   = a(1,1)*b(1)
+   ENDIF
+ELSE
 DO j= 1, NP
    ipiv(j) = 0
 ENDDO
@@ -109,6 +115,7 @@ DO l=NP,1, -1
       ENDDO
    ENDIF
 ENDDO
+ENDIF
 !
 END SUBROUTINE gausj
 !
