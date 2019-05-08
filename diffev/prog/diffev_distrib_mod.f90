@@ -94,9 +94,11 @@ nkid    = 0
 min_indiv = nindiv !+ 1
 find: DO j=1,node_has_kids(inode,0)                     ! Loop over all kids on this node
    k = node_has_kids(inode,j)                           ! Find a kid on this node that needs work
+   IF(k > 0) THEN
    IF(kid_at_indiv(k) < min_indiv) THEN                 ! This kid needs more work
       nkid = k
       min_indiv = kid_at_indiv(k)
+   ENDIF
    ENDIF
 ENDDO find
 !
@@ -140,8 +142,10 @@ IF(numsent<numcalcs) THEN
    indiv  =      numsent / pop_c  + 1
    kid_at_indiv(kid) = indiv
    kid_at_node (kid) = inode
-   node_has_kids(inode,kid) = kid
-   node_has_kids(inode,0  ) = kid
+!  node_has_kids(inode,kid) = kid
+!  node_has_kids(inode,0  ) = kid
+   node_has_kids(inode,node_has_kids(inode,0)+1) = kid   ! Place kid into next slot
+   node_has_kids(inode,0  ) = node_has_kids(inode,0) + 1 ! increment number of kids on node
 ENDIF
 !
 END SUBROUTINE distrib_sequential

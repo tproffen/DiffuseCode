@@ -373,6 +373,7 @@ run_mpi_senddata%l_get_state = l_get_random_state  ! Inquire random number statu
 !  Start initial jobs
 !
 slave = 1
+!
 initial:DO                                           !  Start the intial jobs
    ier_num = 0
 !
@@ -425,6 +426,10 @@ initial:DO                                           !  Start the intial jobs
 !
       slave = slave + 1
       IF(run_mpi_numsent >  run_mpi_numjobs .OR. slave > gen_mpi_numprocs-1) EXIT initial
+   ELSE
+      WRITE(output_io,'(a)') 'DISTRIBUTION failed'
+      WRITE(output_io,'(a)') 'Please document and report to author '
+      STOP
    ENDIF
    IF(run_mpi_numsent == numtasks) EXIT initial
 ENDDO initial
