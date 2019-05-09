@@ -3450,7 +3450,7 @@ MODULE kuplot_fit6_set_theory
 !
 INTERFACE
    SUBROUTINE kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, data_dim, data_calc, kupl_last, &
+                         prange, l_do_deriv, data_dim, data_calc, kupl_last, &
                          ymod, dyda, LDERIV)
    INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
    INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
@@ -3461,6 +3461,7 @@ INTERFACE
    REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
    CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
    REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+   LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
    INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
 !   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
 !   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
@@ -4629,16 +4630,20 @@ IMPLICIT none
 CHARACTER(LEN=60) :: filname 
 !REAL              :: xx, f, df (maxpara) 
 INTEGER           :: i, ii, jj, kk 
+INTEGER           :: j
 !INTEGER           :: len_str 
 !
 INTEGER           :: MAXP     ! Maximum number of parameters 
 INTEGER           :: MAXf     ! MAXIMUM number of fixed parameters 
+INTEGER           :: nparams  ! number of refined parameter, NPARA is para number from KUPLOT
 INTEGER           :: nfixed   ! number of fixed parameter
 INTEGER           :: kupl_last! Last KUPLOT data that are needed
 CHARACTER(LEN=60), DIMENSION(:), ALLOCATABLE   :: par_names 
 CHARACTER(LEN=60), DIMENSION(:), ALLOCATABLE   :: fixed
-INTEGER          , DIMENSION(2)                :: data_dim   ! No of data points
-REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data  ! The data
+INTEGER          , DIMENSION(:), ALLOCATABLE   :: par_ind      ! Index of refined parameter
+INTEGER          , DIMENSION(:), ALLOCATABLE   :: fixed_ind    ! Index of fixed parameter
+INTEGER          , DIMENSION(2)                :: data_dim     ! No of data points
+REAL             , DIMENSION(:,:), ALLOCATABLE :: data_data    ! The data
 REAL             , DIMENSION(:,:), ALLOCATABLE :: data_weight  ! The weights
 REAL             , DIMENSION(:)  , ALLOCATABLE :: data_x       ! X-coordinates
 REAL             , DIMENSION(:)  , ALLOCATABLE :: data_y       ! y-coordinates(for xyz data
@@ -4658,6 +4663,8 @@ REAL             , DIMENSION(:)  , ALLOCATABLE :: par_value    ! Parameters
 REAL             , DIMENSION(:)  , ALLOCATABLE :: dpp          ! Parameter uncertainty
 REAL             , DIMENSION(:,:), ALLOCATABLE :: covar        ! Covariance matrix
 REAL             , DIMENSION(:)  , ALLOCATABLE :: pf           ! Parameters fixed
+!
+INTEGER :: ifree, ifixed  ! temporary variables Number of free and fixed params
 !                                                                       
 CALL wichtung (y) 
 !
@@ -4677,7 +4684,7 @@ DO i=1, data_dim(1)
       data_weight(i,1) = 1.0
    ENDIF
 ENDDO
-!data_x(1:data_dim(1)) = x(offxy(ikfit-1) + 1: offxy(ikfit-1) + data_dim(1)-1)
+
 data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
 
 conv_dp_sig   = 0.005
@@ -4685,27 +4692,52 @@ conv_dchi2    = 0.5
 conv_chi2     = 0.5
 conv_conf     = 0.001
 lconvergence = .FALSE.
+!
+! Determine and sort refined/fixed parameters
+!
 MAXP = npara
-write(*,*) ' DO_FIT_Y', npara, MAXP
-ALLOCATE(par_names(NPARA))
-ALLOCATE(par_value(NPARA))
-ALLOCATE(dpp      (NPARA))
-ALLOCATE(prange   (NPARA,2))
-ALLOCATE(covar    (NPARA, NPARA))
 MAXF = 1
-nfixed = 1
-ALLOCATE(fixed    (MAXF))
-ALLOCATE(pf       (MAXF))
-DO i=1, NPARA
-   par_value(i) = p(i)
-   WRITE(par_names(i),'(a,i2.2,a)') 'p[',i,']'
-   prange(i,1) = 1.0
-   prange(i,2) =-1.0
+nfixed = 0
+DO i=1, MAXP
+   IF(pinc(i)==0) nfixed = nfixed + 1
 ENDDO
+nparams = NPARA - nfixed               ! Adjust number of free parameters
+MAXP    = NPARA - nfixed               ! Adjust number of free parameters
+MAXF    = MAX(1, nfixed)               ! Adjust number of fixed parameters
+write(*,*) ' DO_FIT_Y', npara, MAXP, nparams, MAXF, nfixed
+ALLOCATE(par_names(MAXP))
+ALLOCATE(par_ind  (MAXP))
+ALLOCATE(par_value(MAXP))
+ALLOCATE(dpp      (MAXP))
+ALLOCATE(prange   (MAXP,2))
+ALLOCATE(covar    (MAXP, MAXP))
+ALLOCATE(fixed    (MAXF))
+ALLOCATE(fixed_ind(MAXF))
+ALLOCATE(pf       (MAXF))
+ifree   = 0
+ifixed  = 0
+DO i=1, NPARA                          ! Loop over all KUPLOT parameters
+   IF(pinc(i)/=0.0) THEN               ! Refined parameter
+      ifree            = ifree + 1
+      par_value(ifree) = p(i)          ! Copy KUPLOT value
+      WRITE(par_names(ifree),'(a,i2.2,a)') 'p[',i,']'
+      par_ind(ifree)   = i             ! Set index
+      prange(ifree,1)  = 1.0
+      prange(ifree,2)  =-1.0
+   ELSE                                ! Fixed parameter
+      ifixed           = ifixed + 1
+      pf(ifixed)       = p(i)          ! Copy KUPLOT value
+      WRITE(fixed(ifixed),'(a,i2.2,a)') 'p[',i,']'
+      fixed_ind(ifixed) = i            ! Set index
+   ENDIF
+ENDDO
+!
 dpp(:)     = 0.0
 covar(:,:) = 0.0
 kupl_last  = iz-1
-CALL kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
+CALL kuplot_mrq(MAXP, nparams, ncycle, kupl_last, par_names, par_ind,           &
+                MAXF, nfixed, fixed, fixed_ind, pf, &
+                data_dim, &
                       data_data, data_weight, data_x, data_y,              &
                       data_calc,                                           &
                       conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,       &
@@ -4713,11 +4745,16 @@ CALL kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
                       chisq, conf, lamda_fin, rval, rexp, par_value, prange, dpp, covar)
 !OLD  IF (ncycle.gt.0) call fit_kupl (y) 
 !
-! Copy values into KUPLOT scheme
-DO i=1, NPARA
-   p(i)  = par_value(i) 
-   dp(i) = dpp(i) 
-   cl(i,1:NPARA) = covar(i,1:NPARA)
+! Copy values back into KUPLOT scheme
+dp(:) = 0.0
+DO i=1, nparams
+   ii    = par_ind(i)
+   p(ii)  = par_value(i) 
+   dp(ii) = dpp(i) 
+   DO j=1, nparams
+      jj      = par_ind(j)
+      cl(ii,jj) = covar(i,j)
+   ENDDO
 ENDDO
 !                                                                       
 ii = offxy (ikfit - 1) 
@@ -4746,7 +4783,7 @@ fname (ikdif) = filname (1:LEN_TRIM(filname) ) //'.dif'
 CALL get_extrema 
 !
 
-CALL kup_fit6_set(MAXP, MAXF, npara, nfixed, data_dim(1)*data_dim(2), chisq, conf, lamda_fin,  &
+CALL kup_fit6_set(MAXP, MAXF, nparams, nfixed, data_dim(1)*data_dim(2), chisq, conf, lamda_fin,  &
                   rval, rexp, par_names, par_value, dpp, prange, covar, fixed, pf)
 !                                                                       
 CALL do_fit_info (output_io, .false., .false., .true.) 
@@ -4757,11 +4794,13 @@ DEALLOCATE(data_weight)
 DEALLOCATE(data_x)
 DEALLOCATE(data_y)
 DEALLOCATE(par_names)
+DEALLOCATE(par_ind)
 DEALLOCATE(par_value)
 DEALLOCATE(dpp)
 DEALLOCATE(prange)
 DEALLOCATE(covar)
 DEALLOCATE(fixed)
+DEALLOCATE(fixed_ind)
 DEALLOCATE(pf   )
 !
 END SUBROUTINE do_fit_y                       
@@ -6545,7 +6584,7 @@ END SUBROUTINE setup_poly
 !*******************************************************************************
 !
    SUBROUTINE theory_poly1(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, data_dim, data_calc, kupl_last, &
+                         prange, l_do_deriv, data_dim, data_calc, kupl_last, &
                          ymod, dyda, LDERIV)
    INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
    INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
@@ -6556,6 +6595,7 @@ END SUBROUTINE setup_poly
    REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
    CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
    REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+   LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
    INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
    INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
@@ -6574,7 +6614,9 @@ IF(xx /= 0.0) THEN
 ENDIF
 IF(LDERIV) THEN
    DO ind = 1, npara
-      dyda(ind) = xx**(ind-1)
+      IF(l_do_deriv(ind)) THEN
+         dyda(ind) = xx**(ind-1)
+      ENDIF
    ENDDO
 ENDIF
 data_calc(ix, iy) = ymod
@@ -6754,7 +6796,9 @@ END SUBROUTINE theory_poly1
 !
 !*******************************************************************************
 !
-SUBROUTINE kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, data_dim, &
+SUBROUTINE kuplot_mrq(MAXP, NPARA, ncycle, kupl_last, par_names, par_ind,  &
+                      MAXF, nfixed, fixed, fixed_ind, pf, &
+                      data_dim, &
                       data_data, data_weight, data_x, data_y,              &
                       data_calc,                                           &
                       conv_dp_sig, conv_dchi2, conv_chi2, conv_conf,       &
@@ -6781,6 +6825,12 @@ INTEGER                                              , INTENT(IN)  :: NPARA     
 INTEGER                                              , INTENT(IN)  :: ncycle      ! maximum cycle number
 INTEGER                                              , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names   ! Parameter names
+INTEGER         , DIMENSION(MAXP)                    , INTENT(IN)  :: par_ind     ! Index of param in KUPLOT list
+INTEGER                                              , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
+INTEGER                                              , INTENT(IN)  :: nfixed      ! Number of fixed parameters
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXP)                    , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXP)                    , INTENT(IN)  :: pf          ! Fixed Parameter array
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim    ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight ! Data sigmas
@@ -6863,7 +6913,9 @@ icyc = 0
 cycles:DO
    CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y,  &
                data_calc, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
+               par_names, par_ind, &
+               MAXF, nfixed, fixed, fixed_ind, pf, &
+               prange, kupl_last, cl, alpha, beta, chisq, alamda)
    IF(ier_num/=0) EXIT cycles
    CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
    shift = -1.0                                             ! Set parameter shift / sigma to negative
@@ -6916,7 +6968,9 @@ IF(ier_num==0) THEN
 !
    CALL kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y,  &
                data_calc, p, NPARA, &
-               par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
+               par_names, par_ind,  &
+               MAXF, nfixed, fixed, fixed_ind, pf, &
+               prange, kupl_last, cl, alpha, beta, chisq, alamda)
    CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
 !  CALL kuplot_best(rval)                                              ! Write best macro
    DO k = 1, NPARA
@@ -6935,7 +6989,8 @@ END SUBROUTINE kuplot_mrq
 !
 SUBROUTINE kuplot_mrqmin(MAXP, data_dim, data_data, data_weight, data_x, data_y, &
                data_calc, a, NPARA, &
-    par_names, &
+    par_names, par_ind, &
+                      MAXF, nfixed, fixed, fixed_ind, pf, &
     prange, kupl_last, covar, alpha, beta, chisq, alamda)
 !
 !  Least squares routine adapted from Numerical Recipes Chapter 14
@@ -6958,6 +7013,12 @@ REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)    :: prange   
 INTEGER                                             , INTENT(IN)    :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(MAXP)                   , INTENT(INOUT) :: a           ! Parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: par_names   ! Parameter names
+INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)    :: par_ind     ! Index of param in KUPLOT list
+INTEGER                                             , INTENT(IN)    :: MAXF        ! Fixed Parameter array size
+INTEGER                                             , INTENT(IN)    :: nfixed      ! Number of fixed parameters
+CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)    :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXP)                   , INTENT(IN)    :: pf          ! Fixed Parameter array
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT)   :: covar       ! Covariance matrix
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha       ! Temp arrays
 REAL            , DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
@@ -6978,7 +7039,9 @@ IF(alamda < 0) THEN                   ! Initialization
    alamda = 0.001
    CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
                data_calc, a, &
-               NPARA, par_names, prange, kupl_last, alpha, beta, &
+               NPARA, par_names, par_ind, prange, &
+                      MAXF, nfixed, fixed, fixed_ind, pf, &
+               kupl_last, alpha, beta, &
                chisq, LDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
@@ -7013,7 +7076,9 @@ IF(alamda==0) THEN
    cl(:,:) = covar(:,:)       ! Back up of covariance
    CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
                data_calc, a, &
-               NPARA, par_names, prange, kupl_last, covar, da, chisq, NDERIV) !, funcs)
+               NPARA, par_names, par_ind, prange,  &
+               MAXF, nfixed, fixed, fixed_ind, pf, &
+               kupl_last, covar, da, chisq, NDERIV) !, funcs)
    IF(ier_num/=0) THEN
       RETURN
    ENDIF
@@ -7031,7 +7096,9 @@ ENDDO
 !
 CALL kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
                data_calc, atry, &
-            NPARA, par_names, prange, kupl_last, covar, da, chisq, LDERIV) !, funcs)
+            NPARA, par_names, par_ind, prange, &
+               MAXF, nfixed, fixed, fixed_ind, pf, &
+            kupl_last, covar, da, chisq, LDERIV) !, funcs)
 IF(ier_num/=0) THEN
    RETURN
 ENDIF
@@ -7058,7 +7125,9 @@ END SUBROUTINE kuplot_mrqmin
 !
 SUBROUTINE kuplot_mrqcof(MAXP, data_dim, data_data, data_weight, data_x, data_y,   &
                data_calc, &
-                  params, NPARA, par_names, prange, kupl_last, alpha, beta, chisq, LDERIV)
+                  params, NPARA, par_names, par_ind, prange, &
+               MAXF, nfixed, fixed, fixed_ind, pf, &
+               kupl_last, alpha, beta, chisq, LDERIV)
 !
 ! Modified after NumRec 14.4
 ! Version for 2-d data
@@ -7078,7 +7147,13 @@ REAL            , DIMENSION(data_dim(1),data_dim(2)), INTENT(OUT) :: data_calc  
 INTEGER                                             , INTENT(IN)  :: NPARA       ! Number of refine parameters
 REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: params      ! Current parameter values
 CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: par_names   ! Parameter names
+INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)  :: par_ind     ! Index of param in KUPLOT list
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
+INTEGER                                             , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
+INTEGER                                             , INTENT(IN)  :: nfixed      ! Number of fixed parameters
+CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: pf          ! Fixed Parameter array
 INTEGER                                             , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
 REAL            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
@@ -7086,17 +7161,49 @@ REAL                                                , INTENT(OUT) :: chisq
 LOGICAL                                             , INTENT(IN)  :: LDERIV      ! Derivatives are needed?
 !
 !
-INTEGER                  :: j
-INTEGER                  :: k
+INTEGER                  :: i,j, jj
+INTEGER                  :: k, kk
 INTEGER                  :: ix, iy
 !
 REAL                     :: xx    = 0.0     ! current x-coordinate
 REAL                     :: yy    = 0.0     ! current y-coordinate
 REAL                     :: ymod  = 0.0     ! zobs(calc)
-REAL, DIMENSION(1:NPARA) :: dyda            ! Derivatives
+REAL, DIMENSION(1:npara+nfixed) :: dyda            ! Derivatives
 REAL                     :: sig2i = 0.0     ! sigma squared
 REAL                     :: dy    = 0.0     ! Difference zobs(obs) - zobs(calc)
 REAL                     :: wt    = 0.0     ! Weight 
+!
+INTEGER :: T_MAXP
+INTEGER :: t_npara
+REAL             , DIMENSION(:),   ALLOCATABLE :: t_params      ! Current parameter values
+CHARACTER(LEN=60), DIMENSION(:),   ALLOCATABLE :: t_par_names   ! Parameter names
+REAL             , DIMENSION(:,:), ALLOCATABLE :: t_prange      ! Allowed parameter range
+LOGICAL          , DIMENSION(:),   ALLOCATABLE :: t_deriv       ! TRUE if para needs derivative
+!
+! Unscramble Parameters into KUPLOT sequence
+!
+T_MAXP  = npara+nfixed
+t_npara = T_MAXP
+ALLOCATE(t_params   (T_MAXP))
+ALLOCATE(t_par_names(T_MAXP))
+ALLOCATE(t_prange   (T_MAXP,2))
+ALLOCATE(t_deriv    (T_MAXP))
+DO i=1,npara                     ! Copy all free parameters
+  j = par_ind(i)                 ! par_ind(i) is the location in KUPLOT
+  t_params(j)    = params(i)
+  t_par_names(j) = par_names(i)
+  t_prange(j,1)  = prange(i,1)
+  t_prange(j,2)  = prange(i,2)
+  t_deriv(j)     = .TRUE.
+ENDDO
+DO i=1,nfixed                    ! Copy all fixed parameters
+  j = fixed_ind(i)               ! par_ind(i) is the location in KUPLOT
+  t_params(j)    = pf   (i)
+  t_par_names(j) = fixed(i)
+  t_prange(j,1)  = pf    (i)
+  t_prange(j,2)  = pf    (i)
+  t_deriv(j)     = .FALSE.
+ENDDO
 !
 alpha(:,:) = 0.0
 beta(:)    = 0.0
@@ -7107,8 +7214,8 @@ loopix: do ix=1, data_dim(1)
    loopiy: do iy=1, data_dim(2)
       yy = data_y(iy)
 !
-      CALL p_kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, &
+      CALL p_kuplot_theory(T_MAXP, ix, iy, xx, yy, t_npara, t_params, t_par_names,   &
+                         t_prange, t_deriv, &
                          data_dim,  &
                          data_calc, &
                          kupl_last, &
@@ -7120,9 +7227,11 @@ loopix: do ix=1, data_dim(1)
       sig2i =1./(data_weight(ix,iy)*data_weight(ix,iy))
       dy = data_data(ix,iy) - ymod
       DO j=1, NPARA
-         wt = dyda(j)*sig2i
+         jj = par_ind(j)          ! KUPLOT parameter jj is Fit parameter j
+         wt = dyda(jj)*sig2i
          DO k=1, j
-            alpha(j,k) = alpha(j,k) + wt*dyda(k)
+            kk = par_ind(k)       ! KUPLOT parameter kk is Fit parameter k
+            alpha(j,k) = alpha(j,k) + wt*dyda(kk)
          ENDDO
          beta(j) = beta(j) + dy*wt
       ENDDO
@@ -7136,6 +7245,11 @@ DO j=2, NPARA                   ! Fill in upper diagonal
       alpha(k,j) = alpha(j,k)
    ENDDO
 ENDDO
+!
+DEALLOCATE(t_params   )
+DEALLOCATE(t_par_names)
+DEALLOCATE(t_prange   )
+DEALLOCATE(t_deriv    )
 !
 END SUBROUTINE kuplot_mrqcof
 !
