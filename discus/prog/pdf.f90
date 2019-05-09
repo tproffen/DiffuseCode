@@ -2563,11 +2563,6 @@ laccept = .false.
 !enddo
 !enddo
 !enddo
-!open(unit=88,file='PDF_TEMP.DAT',status='unknown')
-!do ia=0,UBOUND(pdf_temp,1)
-!   write(88,'(F8.3,2x,5i12)'), ia*0.01,(pdf_temp(ia,1,1,i),i=0,UBOUND(pdf_temp,4))
-!enddo
-!close(88)
 !
       IF (pdf_lexact .AND. .NOT.chem_period(1) .AND.(ier_num==0 .AND. .NOT.ier_ctrlc)) then 
 !
