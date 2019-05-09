@@ -111,7 +111,7 @@ END SUBROUTINE refine_run
 !
 SUBROUTINE refine_theory(MAXP, ix, iy, xx, yy, NPARA, p, par_names,  &
                          prange,  &
-                         data_dim, data_data, data_weight, data_x, data_y, &
+                         data_dim, & !data_data, data_weight, data_x, data_y, &
                          kupl_last, &
                          f, df, LDERIV)
 !
@@ -136,10 +136,10 @@ REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: p       ! 
 CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
 REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+!REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+!REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+!REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+!REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
 INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
 REAL                                                 , INTENT(OUT) :: f       ! Function value at (ix,iy)
 REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: df      ! Function derivatives at (ix,iy)
@@ -803,7 +803,7 @@ loopix: do ix=1, data_dim(1)
 !
       CALL refine_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
                          prange, &
-                         data_dim, data_data, data_weight, data_x, data_y, &
+                         data_dim, & ! data_data, data_weight, data_x, data_y, &
                          kupl_last, &
                          ymod, dyda, LDERIV)
       IF(ier_num/=0) THEN
