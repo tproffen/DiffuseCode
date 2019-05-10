@@ -524,7 +524,7 @@ REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
 REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p 
-REAL :: shift
+!REAL :: shift
 !
 alamda     = -0.01    ! Negative lamda initializes MRQ routine
 rval       = 0.0
@@ -569,7 +569,7 @@ cycles:DO
                par_names, prange, kupl_last, cl, alpha, beta, chisq, alamda)
    IF(ier_num/=0) EXIT cycles
    CALL refine_rvalue(rval, rexp, NPARA)
-   shift = -1.0                                             ! Set parameter shift / sigma to negative
+   last_shift(:) = -1.0                                             ! Set parameter shift / sigma to negative
    DO k=1, NPARA
       CALL refine_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
       IF(ier_num/=0) EXIT cycles
