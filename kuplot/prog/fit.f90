@@ -1,3 +1,10 @@
+MODULE kuplot_fit_const
+!
+! Numbers that are needed by some fit routines
+!
+REAL    :: pp_origin  = 0.0  ! Origin of backgroud polynomial for Pseudovoigt
+INTEGER :: nn_backgrd = 0    ! number of background params for Pseudovoigt
+END MODULE kuplot_fit_const
 !MODULE kuplot_fit_mod
 !
 !CONTAINS
@@ -3360,6 +3367,8 @@ END SUBROUTINE fit_kupl
 !
 MODULE kuplot_fit_para
 !
+! Variables to communicate the MRQMIN Results into KUPLOT
+!
 IMPLICIT NONE
 !
 INTEGER :: kup_fit6_MAXP
@@ -3387,6 +3396,8 @@ CONTAINS
 SUBROUTINE kup_fit6_set(MAXP, MAXF, npara, nfixed, ndata, chisq, conf, lamda,  &
            r4, re, &
            params, pp, dpp, prange, cl, fixed, pf)
+!
+!  Allocate and set the variables MRW ==> KUPLOT
 !
 IMPLICIT NONE
 !
@@ -3440,6 +3451,7 @@ kup_fit6_prange(:,:) = prange(:,:)
 kup_fit6_cl    (:,:) = cl    (:,:)
 kup_fit6_fixed (:) = fixed (:)
 kup_fit6_pf    (:) = pf    (:)
+!
 END SUBROUTINE kup_fit6_set
 !
 END MODULE kuplot_fit_para
@@ -3448,10 +3460,17 @@ END MODULE kuplot_fit_para
 !
 MODULE kuplot_fit6_set_theory
 !
+! MRQCOF uses a procedure pointer to call the theory function
+! Here a generic interface and the pointer variable are defined.
+!
+! The interface is ket very broad, to reflect as much equality to the refine 
+! section and to allow for easy expansion if needed.
+!
 INTERFACE
-   SUBROUTINE kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, l_do_deriv, data_dim, data_calc, kupl_last, &
-                         ymod, dyda, LDERIV)
+   SUBROUTINE kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,     &
+                            prange, l_do_deriv, data_dim, data_data,  &
+                            data_weight, data_x, data_y, data_calc, kupl_last, &
+                            ymod, dyda, LDERIV)
    INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
    INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
    INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
@@ -3463,10 +3482,10 @@ INTERFACE
    REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
    LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
    INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
-!   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
-!   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
-!   REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
-!   REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+   REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+   REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
    REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
    INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
    REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
@@ -3479,7 +3498,13 @@ PROCEDURE(kuplot_theory )   , POINTER :: p_kuplot_theory  => NULL()
 !
 END MODULE kuplot_fit6_set_theory
 !
+!*******************************************************************************
+!
 MODULE kuplot_fit6
+!
+! Revised as of DISCUS Version 6.0.0 
+! Levenberg Marquadr type Least squares fits within KUPLOT
+!
 !
 PRIVATE
 PUBLIC do_f66
@@ -4826,7 +4851,7 @@ END SUBROUTINE do_fit_y
 !                                                                       
       DO i = 1, nx (ikfit) * ny (ikfit) 
       xx = REAL(i) 
-      CALL kupl_theory (xx, f, df, - i) 
+!      CALL kupl_theory (xx, f, df, - i) 
       z (offz (ikcal - 1) + i) = f 
       IF (z (offz (ikfit - 1) + i) .ne. - 9999) then 
          z (offz (ikdif - 1) + i) = z (offz (ikfit - 1) + i) - f 
@@ -4938,41 +4963,41 @@ END SUBROUTINE do_fit_y
 !                                                                       
       END FUNCTION calc_wic                         
 !*****7*****************************************************************
-      SUBROUTINE kupl_theory (xx, f, df, iwert) 
-!                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL xx, f, df (maxpara) 
-      INTEGER iwert 
-!                                                                       
-      IF (ftyp (1:2) .eq.'PO') then 
-         CALL theory_poly (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'BA') then 
-         CALL theory_backpoly (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'CH') then 
-         CALL theory_poly_cheb (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'GS') then 
-         CALL theory_gsas (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'LO') then 
-         CALL theory_lor (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'PS') then 
-         CALL theory_psvgt (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'FX') then 
-         CALL theory_user (xx, f, df, iwert) 
-      ELSEIF (ftyp (1:2) .eq.'GA') then 
-         IF (.not.lni (ikfit) ) then 
-            CALL theory_gauss (xx, f, df, iwert) 
-         ELSE 
-            CALL theory_gauss_2d (xx, f, df, iwert) 
-         ENDIF 
-      ELSEIF (ftyp (1:2) .eq.'MA') then 
-         CALL theory_macro (xx, f, df, iwert) 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE kupl_theory                    
+!      SUBROUTINE kupl_theory (xx, f, df, iwert) 
+!!                                                                       
+!      USE kuplot_config 
+!      USE kuplot_mod 
+!!                                                                       
+!      IMPLICIT none 
+!!                                                                       
+!      REAL xx, f, df (maxpara) 
+!      INTEGER iwert 
+!!                                                                       
+!      IF (ftyp (1:2) .eq.'PO') then 
+!DONE     CALL theory_poly (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'BA') then 
+!         CALL theory_backpoly (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'CH') then 
+!         CALL theory_poly_cheb (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'GS') then 
+!         CALL theory_gsas (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'LO') then 
+!         CALL theory_lor (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'PS') then 
+!         CALL theory_psvgt (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'FX') then 
+!         CALL theory_user (xx, f, df, iwert) 
+!      ELSEIF (ftyp (1:2) .eq.'GA') then 
+!         IF (.not.lni (ikfit) ) then 
+!            CALL theory_gauss (xx, f, df, iwert) 
+!         ELSE 
+!            CALL theory_gauss_2d (xx, f, df, iwert) 
+!         ENDIF 
+!      ELSEIF (ftyp (1:2) .eq.'MA') then 
+!         CALL theory_macro (xx, f, df, iwert) 
+!      ENDIF 
+!!                                                                       
+!      END SUBROUTINE kupl_theory                    
 !*****7*****************************************************************
 !       User defined fit function                                       
 !*****7*****************************************************************
@@ -5512,11 +5537,13 @@ REAL                   :: f
 !                                                                       
       END SUBROUTINE show_lor                       
 !*****7*****************************************************************
-      SUBROUTINE setup_lor (ianz, werte, maxw) 
+!
+SUBROUTINE setup_lor (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5590,68 +5617,97 @@ REAL                   :: f
          dp (i) = 0.0 
          ENDDO 
       ENDIF 
+!
+p_kuplot_theory => theory_lor
 !                                                                       
-      END SUBROUTINE setup_lor                      
+END SUBROUTINE setup_lor                      
 !***********************************************************************
-      SUBROUTINE theory_lor (xx, f, df, i) 
+!
+SUBROUTINE theory_lor(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                      prange, l_do_deriv, data_dim, &
+                       data_data, data_weight, data_x, data_y, &
+data_calc, kupl_last,      &
+                      ymod, dyda, LDERIV)
+!
+! Calculate a polynomial function
+! ymod = SUM p[i]*xx^ind
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+REAL    :: o1, fwf, fw, xw, rn 
+INTEGER :: ind, na, nu, np, nl, nlauf 
 !                                                                       
-      IMPLICIT none 
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+ENDDO 
 !                                                                       
-      REAL xx, f, df (maxpara) 
-      REAL o1, fwf, fw, xw, rn 
-      INTEGER i, ind, na, nu, np, nl, nlauf 
-!                                                                       
-      DO ind = 1, maxpara 
-      df (ind) = 0.0 
-      ENDDO 
-!                                                                       
-      o1 = 2.0 * atan (1.0) 
-      nu = 2 
-      np = 4 
-      nl = np1 
+o1 = 2.0 * atan (1.0) 
+nu = 2 
+np = 4 
+nl = (npara-nu)/np  ! np1 
 !-------untergrund                                                      
-      f = p (1) + p (2) * xx 
-      DO nlauf = 1, nl 
-      na = nu + (nlauf - 1) * np + 1 
+ymod = params (1) + params (2) * xx 
+DO nlauf = 1, nl 
+   na = nu + (nlauf - 1) * np + 1 
 !---------halbwertsbreiten                                              
-      IF (xx.le.p (na + 1) ) then 
-         fwf = 1.0 / p (na + 3) 
-      ELSE 
-         fwf = 1.0 * p (na + 3) 
-      ENDIF 
-      fw = p (na + 2) * fwf 
-      xw = xx - p (na + 1) 
-      rn = (fw * fw + 4.0 * xw * xw) 
+   IF (xx.le.params (na + 1) ) then 
+      fwf = 1.0 / params (na + 3) 
+   ELSE 
+      fwf = 1.0 * params (na + 3) 
+   ENDIF 
+   fw = params (na + 2) * fwf 
+   xw = xx - params (na + 1) 
+   rn = (fw * fw + 4.0 * xw * xw) 
 !---------funktionswert berechnen                                       
-      f = f + p (na) * fw * fw / rn 
+   ymod = ymod + params (na) * fw * fw / rn 
 !---------ableitungen berechnen                                         
-      IF (i.gt.0) then 
-         IF (pinc (na) .ne.0) df (na) = fw * fw / rn 
-         IF (pinc (na + 1) .ne.0) df (na + 1) = 8.0 * p (na) * fw * fw *&
-         xw / (rn**2)                                                   
-         IF (pinc (na + 2) .ne.0) df (na + 2) = 2 * p (na) * fw / rn -  &
-         2 * p (na) * fw * fw * fw / (rn**2)                            
-         IF (pinc (na + 3) .ne.0) then 
-            IF (xx.le.p (na + 1) ) then 
-               df (na + 3) = - df (na + 2) * (2.0 * (xx - p (na + 1) )  &
-               **2 * o1 / (fw**3) ) * p (na + 2) / (p (na + 3) **2)     
-            ELSE 
-               df (na + 3) = df (na + 2) * (2.0 * (xx - p (na + 1) ) ** &
-               2 * o1 / (fw**3) ) * p (na + 3)                          
-            ENDIF 
+   IF(LDERIV) then 
+      IF(l_do_deriv(na) )    dyda(na) = fw * fw / rn 
+      IF(l_do_deriv(na + 1)) dyda(na + 1) = 8.0 * params(na) * fw * fw * xw / (rn**2)
+      IF(l_do_deriv(na + 2)) dyda(na + 2) = 2 * params(na) * fw / rn -  &
+                                            2 * params (na) * fw * fw * fw / (rn**2)
+      IF(l_do_deriv(na + 3)) THEN 
+         IF (xx.le.params (na + 1) ) THEN 
+               dyda(na + 3) = -dyda (na + 2) * (2.0 * (xx - params(na + 1))**2  &
+                              * o1 / (fw**3)) * params(na + 2) / (params(na + 3)**2)     
+         ELSE 
+               dyda(na + 3) = dyda(na + 2) * (2.0 * (xx - params(na + 1))**2     &
+                              * o1 / (fw**3) ) * params(na + 3)                          
          ENDIF 
       ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO 
 !-------untergrundsableitungen                                          
-      IF (i.gt.0) then 
-         IF (pinc (1) .ne.0) df (1) = 1.0 
-         IF (pinc (2) .ne.0) df (2) = xx 
-      ENDIF 
+IF (LDERIV) THEN 
+   IF(l_do_deriv(1)) dyda(1) = 1.0 
+   IF(l_do_deriv(2)) dyda(2) = xx 
+ENDIF 
+!
+data_calc(ix,iy) = ymod
 !                                                                       
-      END SUBROUTINE theory_lor                     
+END SUBROUTINE theory_lor                     
+!
 !*****7*****************************************************************
 !     Gaussian (1D)                                                     
 !*****7*****************************************************************
@@ -5714,11 +5770,12 @@ REAL                   :: f
 !                                                                       
       END SUBROUTINE show_gauss                     
 !***7*******************************************************************
-      SUBROUTINE setup_gauss (ianz, werte, maxw) 
+SUBROUTINE setup_gauss (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5793,66 +5850,105 @@ REAL                   :: f
          ENDDO 
       ENDIF 
 !                                                                       
+p_kuplot_theory => theory_gauss
+!
       END SUBROUTINE setup_gauss                    
 !*********************************************************************  
-      SUBROUTINE theory_gauss (xx, f, df, iwert) 
+SUBROUTINE theory_gauss(MAXP, ix, iy, xx, yy, NPARA, params, par_names,         &
+                       prange, l_do_deriv, data_dim,  &
+                       data_data, data_weight, data_x, data_y, &
+                            data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a polynomial function
+! ymod = SUM p[i]*xx^ind
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!     SUBROUTINE theory_gauss (xx, f, df, iwert) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL xx, f, df (maxpara) 
+!     REAL xx, f, df (maxpara) 
       REAL o1, fw, fwf, exx 
-      INTEGER iwert, ind, nunt, npar 
+      INTEGER ind, nunt, npar 
       INTEGER nlauf, na 
+INTEGER :: np1   !  Number of Gauss peaks to fit
 !                                                                       
-      o1 = 4.0 * alog (2.0) 
-      nunt = 2 
-      npar = 4 
+o1   = 4.0 * alog (2.0) 
+nunt = 2 
+npar = 4 
+np1  = (npara-nunt)/npar   ! Number of Gauss Peaks
 !                                                                       
-      DO ind = 1, npara 
-      df (ind) = 0.0 
-      ENDDO 
-!-------untergrund                                                      
-      f = p (1) + p (2) * xx 
-      DO nlauf = 1, np1 
-      na = nunt + (nlauf - 1) * npar + 1 
-!---------halbwertsbreiten                                              
-      IF (xx.le.p (na + 1) ) then 
-         fwf = 1.0 / p (na + 3) 
-      ELSE 
-         fwf = 1.0 * p (na + 3) 
-      ENDIF 
-      fw = p (na + 2) * fwf 
-!---------funktionswert berechnen                                       
-      exx = exp ( - (xx - p (na + 1) ) **2 * o1 / (fw**2) ) 
-      f = f + p (na) * exx 
-!---------ableitungen berechnen                                         
-      IF (iwert.gt.0) then 
-         IF (pinc (na) .ne.0) df (na) = exx 
-         IF (pinc (na + 1) .ne.0) df (na + 1) = p (na) * exx * (2.0 *   &
-         o1 * (xx - p (na + 1) ) / fw**2)                               
-         IF (pinc (na + 2) .ne.0) df (na + 2) = p (na) * exx * (2.0 *   &
-         (xx - p (na + 1) ) **2 * o1 * fwf / (fw**3) )                  
-         IF (pinc (na + 3) .ne.0) then 
-            IF (xx.le.p (na + 1) ) then 
-               df (na + 3) = - p (na) * exx * (2.0 * (xx - p (na + 1) ) &
-               **2 * o1 / (fw**3) ) * p (na + 2) / (p (na + 3) **2)     
-            ELSE 
-               df (na + 3) = p (na) * exx * (2.0 * (xx - p (na + 1) ) **&
-               2 * o1 / (fw**3) ) * p (na + 3)                          
-            ENDIF 
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+write(*,*) ' PARAMS ', ind, params(ind)
+ENDDO 
+!-------Background
+ymod = params (1) + params (2) * xx 
+!
+DO nlauf = 1, np1 
+   na = nunt + (nlauf - 1) * npar + 1 
+!---------Full Width at Half Maximum
+   IF (xx.le.params(na + 1) ) then 
+      fwf = 1.0 / params(na + 3) 
+   ELSE 
+      fwf = 1.0 * params(na + 3) 
+   ENDIF 
+   fw = params(na + 2) * fwf 
+!---------Calculate function
+   exx = exp ( - (xx - params (na + 1) ) **2 * o1 / (fw**2) ) 
+   ymod = ymod + params (na) * exx 
+!---------Calculate derivatives
+   IF(LDERIV) THEN 
+      IF(l_do_deriv (na)) dyda(na) = exx 
+      IF(l_do_deriv (na + 1)) dyda (na + 1) = params (na) * exx * (2.0 *   &
+         o1 * (xx - params (na + 1) ) / fw**2)                               
+      IF (l_do_deriv (na + 2)) dyda (na + 2) = params (na) * exx * (2.0 *   &
+         (xx - params (na + 1) ) **2 * o1 * fwf / (fw**3) )                  
+      IF (l_do_deriv(na + 3)) then 
+         IF (xx.le.params (na + 1) ) then 
+               dyda (na + 3) = - params (na) * exx * (2.0 * (xx - params (na + 1) ) &
+               **2 * o1 / (fw**3) ) * params (na + 2) / (params (na + 3) **2)     
+         ELSE 
+               dyda (na + 3) = params (na) * exx * (2.0 * (xx - params (na + 1) ) **&
+               2 * o1 / (fw**3) ) * params (na + 3)                          
          ENDIF 
       ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO 
 !-------untergrundsableitungen                                          
-      IF (iwert.gt.0) then 
-         IF (pinc (1) .ne.0) df (1) = 1.0 
-         IF (pinc (2) .ne.0) df (2) = xx 
-      ENDIF 
+IF(LDERIV) THEN 
+   IF(l_do_deriv(1)) dyda (1) = 1.0 
+   IF(l_do_deriv(2)) dyda (2) = xx 
+ENDIF 
+!
+data_calc(ix, iy) = ymod
 !                                                                       
-      END SUBROUTINE theory_gauss                   
+END SUBROUTINE theory_gauss                   
 !***7*******************************************************************
 !       Pseudo-Voigt                                                    
 !***7*******************************************************************
@@ -5861,20 +5957,21 @@ REAL                   :: f
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit_const
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER idout, i, iii 
 !                                                                       
       WRITE (idout, 1000) np1 
-      DO i = 1, n_backgrd 
+      DO i = 1, nn_backgrd 
       WRITE (idout, 1100) i, i, p (i), dp (i), pinc (i) 
       ENDDO 
 !     write (idout,1200) 2,p(2),dp(2),pinc(2)                           
 !     write (idout,1210) 3,p(3),dp(3),pinc(3)                           
       DO i = 1, np1 
       WRITE (idout, 1300) i 
-      iii = n_backgrd+ (i - 1) * 6 
+      iii = nn_backgrd+ (i - 1) * 6 
       WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii &
       + 1)                                                              
       WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii &
@@ -5913,11 +6010,13 @@ REAL                   :: f
 !                                                                       
       END SUBROUTINE show_psvgt                     
 !***7*******************************************************************
-      SUBROUTINE setup_psvgt (ianz, werte, maxw) 
+SUBROUTINE setup_psvgt (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6_set_theory
+USE kuplot_fit_const
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5931,33 +6030,36 @@ REAL                   :: f
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
-      IF (ianz.eq.0) then 
-         npara = 8 
-         np1 = 1 
-      ELSEIF (ianz.le.3) then 
-         ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (3 + 6 * ii) .le.maxpara) then 
-            np1 = ii 
-            npara = 3 + 6 * np1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-         p_origin = 0.0 
-         n_backgrd = 2 
-         IF (ianz.ge.2) then 
-            p_origin = werte (2) 
-         ENDIF 
-         IF (ianz.eq.3) then 
-            n_backgrd = nint (werte (3) ) 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
-      nu = n_backgrd 
+nn_backgrd = 2
+pp_origin  = 0.0
+!
+IF(ianz.eq.0) then 
+   npara = 8 
+   np1 = 1 
+ELSEIF(ianz.le.3) then 
+   IF (ianz.eq.3) then 
+      nn_backgrd = nint (werte (3) ) 
+   ENDIF 
+   IF (ianz.ge.2) then 
+      pp_origin = werte (2) 
+   ENDIF 
+   ii = nint (werte (1) ) 
+   IF (ii.gt.0.and. (nn_backgrd + 6 * ii) .le.maxpara) then 
+      np1 = ii 
+      npara = nn_backgrd + 6 * np1 
+   ELSE 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+!        pp_origin = 0.0 
+!        nn_backgrd = 2 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
+nu = nn_backgrd 
 !                                                                       
       ii = offxy (ikfit - 1) + 1 
       jj = offxy (ikfit - 1) + len (ikfit) 
@@ -5966,7 +6068,7 @@ REAL                   :: f
       pinc (1) = 1.0 
       p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
       pinc (2) = 1.0 
-      DO i = 3, n_backgrd 
+      DO i = 3, nn_backgrd 
       p (i) = 0.0 
       pinc (i) = 1.0 
       ENDDO 
@@ -6010,111 +6112,151 @@ REAL                   :: f
          dp (i) = 0.0 
          ENDDO 
       ENDIF 
+write(*,*) ' PSEUDO ', npara, nn_backgrd,p_origin
+write(*,*) ' PARAMS ', p(1:npara)
+p_kuplot_theory => theory_psvgt
 !                                                                       
       END SUBROUTINE setup_psvgt                    
+!
 !*********************************************************************  
-      SUBROUTINE theory_psvgt (xx, f, df, i) 
+!
+SUBROUTINE theory_psvgt(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                       prange, l_do_deriv, data_dim, &
+                       data_data, data_weight, data_x, data_y, &
+ data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a Pseudo Voigt Function
+! ymod = eta*L + (1-eta)*G
+!
+USE trig_degree_mod
+USE wink_mod
+USE kuplot_fit_const
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!     SUBROUTINE theory_psvgt (xx, f, df, i) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-      USE trig_degree_mod
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL xx, f, df (maxpara) 
+!     REAL xx, f, df (maxpara) 
       INTEGER i 
 !                                                                       
       REAL fw, xw 
       REAL eta, pseudo 
-      REAL asym, lore, lorn, pi 
+      REAL asym, lore, lorn
       REAL gaus 
       REAL vln2, gpre 
       REAL zz, fa, fb 
       REAL dgdpos, dldpos 
       REAL dgdfw, dldfw 
       INTEGER j, ind, na, nu, np, nl, nlauf 
+!
+!REAL :: p_origin = 0.0   ! Needs work!!
+!INTEGER :: n_backgrd  = 2
 !                                                                       
 !     REAL tand 
 !                                                                       
-      DO ind = 1, maxpara 
-      df (ind) = 0.0 
-      ENDDO 
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+ENDDO 
 !                                                                       
-      pi = 4.0 * atan (1.0) 
-      vln2 = 4. * alog (2.) 
-      gpre = 2. * sqrt (alog (2.) / pi) 
-      nu = n_backgrd 
-      np = 6 
-      nl = np1 
+!     pi = 4.0 * atan (1.0) 
+vln2 = 4. * alog (2.) 
+gpre = 2. * sqrt (alog (2.) / pi) 
+nu = nn_backgrd 
+np = 6 
+nl = (npara-nu)/np         ! Number of peaks
 !-------untergrund                                                      
-      f = 0 
-      DO j = 1, nu 
-      f = f + p (j) * (xx - p_origin) ** (j - 1) 
-      ENDDO 
+ymod = 0 
+DO j = 1, nu 
+   ymod = ymod + params (j) * (xx - pp_origin) ** (j - 1) 
+ENDDO 
 !                                                                       
-      DO nlauf = 1, nl 
-      na = nu + (nlauf - 1) * np + 1 
-      eta = p (na) 
-      xw = xx - p (na + 2) 
-      fw = p (na + 3) 
+DO nlauf = 1, nl 
+   na = nu + (nlauf - 1) * np + 1 
+   eta = params (na) 
+   xw = xx - params (na + 2) 
+   fw = params (na + 3) 
 !---------asymmetry                                                     
-      zz = xw / fw 
-      fa = 2. * zz * exp ( - zz**2) 
-      fb = 2. * (2 * zz**2 - 3.) * fa 
-      asym = 1.0 
-      asym = asym + (p (na + 4) * fa + p (na + 5) * fb) / tand (p (na + &
-      2) )                                                              
+   zz = xw / fw 
+   fa = 2. * zz * exp ( - zz**2) 
+   fb = 2. * (2 * zz**2 - 3.) * fa 
+   asym = 1.0 
+   asym = asym + (params (na + 4) * fa + params (na + 5) * fb) / tand (params (na + 2) )
 !DBG        asym = asym+(p(na+4)*fa + p(na+5)*fb)/tand(p(na+2)*0.5)     
 !     --Lorentzian                                                      
-      lorn = (fw * fw + 4.0 * xw * xw) 
-      lore = 2. / pi * fw / lorn 
-      gaus = gpre / fw * exp ( - vln2 / fw**2 * xw**2) 
-      pseudo = (eta * lore+ (1 - eta) * gaus) 
+   lorn = (fw * fw + 4.0 * xw * xw) 
+   lore = 2. / pi * fw / lorn 
+   gaus = gpre / fw * exp ( - vln2 / fw**2 * xw**2) 
+   pseudo = (eta * lore+ (1 - eta) * gaus) 
 !---------calculate pseudo Voigt                                        
-      f = f + p (na + 1) * asym * pseudo 
+   ymod = ymod + params(na + 1) * asym * pseudo 
 !---------calculate derivatives                                         
-      IF (i.gt.0) then 
+   IF (LDERIV) then 
 !     ---- eta                                                          
-         IF (pinc (na) .ne.0) then 
-            df (na) = p (na + 1) * asym * (lore-gaus) 
-         ENDIF 
+      IF (l_do_deriv (na)) then 
+         dyda(na) = params(na + 1) * asym * (lore-gaus) 
+      ENDIF 
 !     ---- intensity                                                    
-         IF (pinc (na + 1) .ne.0) then 
-            df (na + 1) = asym * pseudo 
-         ENDIF 
+      IF (l_do_deriv (na + 1)) then 
+         dyda(na + 1) = asym * pseudo 
+      ENDIF 
 !     ---- position                                                     
-         IF (pinc (na + 2) .ne.0) then 
-            dldpos = 2. / pi * 8. * fw * xw / lorn**2 
-            dgdpos = gaus * (2. * vln2 / fw**2 * xw) 
-            df (na + 2) = asym * p (na + 1) * (eta * dldpos + (1. - eta)&
-            * dgdpos)                                                   
-         ENDIF 
+      IF (l_do_deriv (na + 2)) then 
+         dldpos = 2. / pi * 8. * fw * xw / lorn**2 
+         dgdpos = gaus * (2. * vln2 / fw**2 * xw) 
+         dyda(na + 2) = asym * params(na + 1) * (eta * dldpos + (1. - eta) * dgdpos)
+      ENDIF 
 !     ---- FWHM                                                         
-         IF (pinc (na + 3) .ne.0) then 
-            dldfw = 2. / pi * ( - 1. * fw * fw + 4. * xw * xw) / lorn** &
-            2                                                           
-            dgdfw = gaus * ( - 1. / fw + 2. * vln2 / fw**3 * xw * xw) 
-            df (na + 3) = asym * p (na + 1) * (eta * dldfw + (1. - eta) &
-            * dgdfw)                                                    
-         ENDIF 
+      IF (l_do_deriv (na + 3)) then 
+         dldfw = 2. / pi * ( - 1. * fw * fw + 4. * xw * xw) / lorn**2
+         dgdfw = gaus * ( - 1. / fw + 2. * vln2 / fw**3 * xw * xw) 
+         dyda(na + 3) = asym * params(na + 1) * (eta * dldfw + (1. - eta) * dgdfw)
+      ENDIF 
 !     ---- asymmetry parameter 1                                        
-         IF (pinc (na + 4) .ne.0) then 
-            df (na + 4) = p (na + 1) * pseudo * fa / tand (p (na + 2) ) 
-         ENDIF 
+      IF (l_do_deriv (na + 4)) then 
+         dyda (na + 4) = params (na + 1) * pseudo * fa / tand (params (na + 2) ) 
+      ENDIF 
 !     ---- asymmetry parameter 2                                        
-         IF (pinc (na + 5) .ne.0) then 
-            df (na + 5) = p (na + 1) * pseudo * fb / tand (p (na + 2) ) 
-         ENDIF 
+      IF (l_do_deriv (na + 5)) then 
+         dyda (na + 5) = params (na + 1) * pseudo * fb / tand (params (na + 2) ) 
       ENDIF 
-      ENDDO 
+   ENDIF 
+ENDDO 
 !-------derivative of background                                        
-      IF (i.gt.0) then 
-         DO j = 1, nu 
-         IF (pinc (j) .ne.0) df (j) = (xx - p_origin) ** (j - 1) 
-         ENDDO 
-      ENDIF 
+IF (LDERIV) then 
+   DO j = 1, nu 
+      IF (l_do_deriv (j)) dyda (j) = (xx - pp_origin) ** (j - 1) 
+   ENDDO 
+ENDIF 
+!
+data_calc(ix, iy) = ymod
 !                                                                       
-      END SUBROUTINE theory_psvgt                   
+END SUBROUTINE theory_psvgt                   
 !***7*******************************************************************
 !     Gaussian (2D)                                                     
 !***7*******************************************************************
@@ -6577,31 +6719,43 @@ DO i = 1, npara
    dp (i) = 0.0 
 ENDDO 
 !
-p_kuplot_theory => theory_poly1
+p_kuplot_theory => theory_poly
 !                                                                       
 END SUBROUTINE setup_poly                     
 !
 !*******************************************************************************
 !
-   SUBROUTINE theory_poly1(MAXP, ix, iy, xx, yy, NPARA, params, par_names,   &
-                         prange, l_do_deriv, data_dim, data_calc, kupl_last, &
-                         ymod, dyda, LDERIV)
-   INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
-   INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
-   INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
-   REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
-   REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
-   INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
-   REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
-   CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
-   REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
-   LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
-   INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
-   REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
-   INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
-   REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
-   REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
-   LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+SUBROUTINE theory_poly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                       prange, l_do_deriv, data_dim, &
+                       data_data, data_weight, data_x, data_y, &
+data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a polynomial function
+! ymod = SUM p[i]*xx^ind
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
 !
 INTEGER :: ind
 !
@@ -6620,40 +6774,39 @@ IF(LDERIV) THEN
    ENDDO
 ENDIF
 data_calc(ix, iy) = ymod
-!write(*,*) ' IN THEORY_POLY_1', xx, ymod, dyda(:)
 !
-END SUBROUTINE theory_poly1
-!***7*******************************************************************
-      SUBROUTINE theory_poly (xx, f, df, iwert) 
+END SUBROUTINE theory_poly
+!!***7*******************************************************************
+!      SUBROUTINE theory_poly (xx, f, df, iwert) 
+!!                                                                       
+!      USE kuplot_config 
+!      USE kuplot_mod 
+!!                                                                       
+!      IMPLICIT none 
+!!                                                                       
+!      REAL xx, f, df (maxpara) 
+!      INTEGER iwert, ind 
+!!                                                                       
+!      DO ind = 1, npara 
+!      df (ind) = 0.0 
+!      ENDDO 
+!!                                                                       
+!      f = p (1) 
+!      DO ind = 1, np1 
+!      IF (xx.ne.0) f = f + p (ind+1) * (xx**ind) 
+!      ENDDO 
+!!                                                                       
+!!-------Derivatives                                                     
+!!                                                                       
+!      IF (iwert.gt.0) then 
+!         DO ind = 0, np1 
+!         IF (pinc (ind+1) .ne.0) then 
+!            df (ind+1) = (xx**ind) 
+!         ENDIF 
+!         ENDDO 
+!      ENDIF 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL xx, f, df (maxpara) 
-      INTEGER iwert, ind 
-!                                                                       
-      DO ind = 1, npara 
-      df (ind) = 0.0 
-      ENDDO 
-!                                                                       
-      f = p (1) 
-      DO ind = 1, np1 
-      IF (xx.ne.0) f = f + p (ind+1) * (xx**ind) 
-      ENDDO 
-!                                                                       
-!-------Derivatives                                                     
-!                                                                       
-      IF (iwert.gt.0) then 
-         DO ind = 0, np1 
-         IF (pinc (ind+1) .ne.0) then 
-            df (ind+1) = (xx**ind) 
-         ENDIF 
-         ENDDO 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE theory_poly                    
+!      END SUBROUTINE theory_poly                    
 !***7*******************************************************************
 !     Scale factor + Background Polynom                                 
 !***7*******************************************************************
@@ -6683,11 +6836,12 @@ END SUBROUTINE theory_poly1
 !                                                                       
       END SUBROUTINE show_backpoly                  
 !***7*******************************************************************
-      SUBROUTINE setup_backpoly (ianz, werte, maxw) 
+SUBROUTINE setup_backpoly (ianz, werte, maxw) 
 !                                                                       
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -6740,56 +6894,92 @@ END SUBROUTINE theory_poly1
       DO i = 1, npara 
       dp (i) = 0.0 
       ENDDO 
+!
+p_kuplot_theory => theory_backpoly
 !                                                                       
       END SUBROUTINE setup_backpoly                 
 !***7*******************************************************************
-      SUBROUTINE theory_backpoly (xx, f, df, iwert) 
+SUBROUTINE theory_backpoly(MAXP, ix, iy, xx, yy, NPARA, params, par_names,      &
+                       prange, l_do_deriv, data_dim,                            &
+                       data_data, data_weight, data_x, data_y,                  &
+                       data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a background polynomial function
+! ymod = SUM p[i]*xx^ind
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!     SUBROUTINE theory_backpoly (xx, f, df, iwert) 
 !                                                                       
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL xx, f, df (maxpara) 
-      INTEGER iwert, ind 
+!     REAL xx, f, df (maxpara) 
+      INTEGER ind 
       INTEGER iii 
 !                                                                       
-      INTEGER idata, ipoint 
+!     INTEGER idata, ipoint 
       REAL arg 
 !                                                                       
       DATA iii / 0 / 
 !                                                                       
-      DO ind = 1, npara 
-      df (ind) = 0.0 
-      ENDDO 
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+ENDDO 
 !                                                                       
-      idata = ikfit2 
-      ipoint = iabs (iwert) 
-      arg = (xx - xmin (idata) ) 
+!     idata = ikfit2 
+!     ipoint = iabs (iwert) 
+!     arg = (xx - xmin (idata) ) 
+arg = (xx-data_x(1))
 !                                                                       
-      f = p (1) * y (offxy (idata - 1) + ipoint) 
-      IF (np1.ge.2) then 
-         f = f + p (2) 
-      ENDIF 
-      DO ind = 3, np1 
-      f = f + p (ind) * (arg** (ind-2) ) 
-      ENDDO 
+ymod = params(1) * data_data(ix,iy)
+IF (npara >= 2) THEN 
+   ymod = ymod + params(2) 
+ENDIF 
+DO ind = 3, npara 
+   ymod = ymod + params(ind) * (arg**(ind-2))
+ENDDO 
 !                                                                       
 !-------Derivatives                                                     
 !                                                                       
-      IF (iwert.gt.0) then 
-         ind = 1 
-         IF (pinc (ind) .ne.0) then 
-            df (ind) = y (offxy (idata - 1) + ipoint) 
-         ENDIF 
-         DO ind = 2, np1 
-         IF (pinc (ind) .ne.0) then 
-            df (ind) = (arg** (ind-2) ) 
-         ENDIF 
-         ENDDO 
+IF(LDERIV) THEN 
+   ind = 1 
+   IF (l_do_deriv(ind)) then 
+      dyda(ind) = data_data(ix,iy)
+   ENDIF 
+   DO ind = 2, npara 
+      IF (l_do_deriv(ind)) then 
+         dyda (ind) = (arg** (ind-2) ) 
       ENDIF 
+   ENDDO 
+ENDIF 
+!
+data_calc(ix, iy) = ymod
 !                                                                       
-      END SUBROUTINE theory_backpoly                
+END SUBROUTINE theory_backpoly                
 !
 !*******************************************************************************
 !
@@ -6828,9 +7018,9 @@ CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names 
 INTEGER         , DIMENSION(MAXP)                    , INTENT(IN)  :: par_ind     ! Index of param in KUPLOT list
 INTEGER                                              , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
 INTEGER                                              , INTENT(IN)  :: nfixed      ! Number of fixed parameters
-CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: fixed       ! Fixed Parameter names
-INTEGER         , DIMENSION(MAXP)                    , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
-REAL            , DIMENSION(MAXP)                    , INTENT(IN)  :: pf          ! Fixed Parameter array
+CHARACTER(LEN=*), DIMENSION(MAXF)                    , INTENT(IN)  :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXF)                    , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXF)                    , INTENT(IN)  :: pf          ! Fixed Parameter array
 INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim    ! Data array dimensions
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data   ! Data array
 REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight ! Data sigmas
@@ -6871,7 +7061,7 @@ REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
 REAL               , DIMENSION(0:3) :: last_conf 
 REAL               , DIMENSION(:,:), ALLOCATABLE :: last_p 
-REAL :: shift
+!REAL :: shift
 !
 alamda     = -0.01    ! Negative lamda initializes MRQ routine
 rval       = 0.0
@@ -6918,7 +7108,7 @@ cycles:DO
                prange, kupl_last, cl, alpha, beta, chisq, alamda)
    IF(ier_num/=0) EXIT cycles
    CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
-   shift = -1.0                                             ! Set parameter shift / sigma to negative
+   last_shift(last_i) = 0.0
    DO k=1, NPARA
 !     CALL kuplot_set_param(NPARA, par_names(k), k, p(k))   ! Updata parameters
       IF(ier_num/=0) EXIT cycles
@@ -7016,9 +7206,9 @@ CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: par_names
 INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)    :: par_ind     ! Index of param in KUPLOT list
 INTEGER                                             , INTENT(IN)    :: MAXF        ! Fixed Parameter array size
 INTEGER                                             , INTENT(IN)    :: nfixed      ! Number of fixed parameters
-CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)    :: fixed       ! Fixed Parameter names
-INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)    :: fixed_ind   ! Index of fixed param in KUPLOT list
-REAL            , DIMENSION(MAXP)                   , INTENT(IN)    :: pf          ! Fixed Parameter array
+CHARACTER(LEN=*), DIMENSION(MAXF)                   , INTENT(IN)    :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXF)                   , INTENT(IN)    :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXF)                   , INTENT(IN)    :: pf          ! Fixed Parameter array
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT)   :: covar       ! Covariance matrix
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(INOUT) :: alpha       ! Temp arrays
 REAL            , DIMENSION(NPARA     )             , INTENT(INOUT) :: beta        ! Temp arrays
@@ -7151,9 +7341,9 @@ INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)  :: par_ind    
 REAL            , DIMENSION(MAXP, 2              )  , INTENT(IN)  :: prange      ! Allowed parameter range
 INTEGER                                             , INTENT(IN)  :: MAXF        ! Fixed Parameter array size
 INTEGER                                             , INTENT(IN)  :: nfixed      ! Number of fixed parameters
-CHARACTER(LEN=*), DIMENSION(MAXP)                   , INTENT(IN)  :: fixed       ! Fixed Parameter names
-INTEGER         , DIMENSION(MAXP)                   , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
-REAL            , DIMENSION(MAXP)                   , INTENT(IN)  :: pf          ! Fixed Parameter array
+CHARACTER(LEN=*), DIMENSION(MAXF)                   , INTENT(IN)  :: fixed       ! Fixed Parameter names
+INTEGER         , DIMENSION(MAXF)                   , INTENT(IN)  :: fixed_ind   ! Index of fixed param in KUPLOT list
+REAL            , DIMENSION(MAXF)                   , INTENT(IN)  :: pf          ! Fixed Parameter array
 INTEGER                                             , INTENT(IN)  :: kupl_last   ! Last KUPLOT DATA that are needed
 REAL            , DIMENSION(NPARA, NPARA)           , INTENT(OUT) :: alpha
 REAL            , DIMENSION(NPARA)                  , INTENT(OUT) :: beta
@@ -7216,7 +7406,7 @@ loopix: do ix=1, data_dim(1)
 !
       CALL p_kuplot_theory(T_MAXP, ix, iy, xx, yy, t_npara, t_params, t_par_names,   &
                          t_prange, t_deriv, &
-                         data_dim,  &
+                         data_dim, data_data, data_weight, data_x, data_y, &
                          data_calc, &
                          kupl_last, &
                          ymod, dyda, LDERIV)
