@@ -24,16 +24,19 @@ IMPLICIT none
 !                                                                       
 CHARACTER (LEN=*), INTENT(INOUT) :: line 
 INTEGER          , INTENT(INOUT) :: length 
-CHARACTER(LEN=1024) :: string 
-CHARACTER(LEN=1024) :: substring 
-CHARACTER(LEN=1024) :: zeile 
-CHARACTER(LEN=1024) :: dummy 
+CHARACTER(LEN=1024) :: string    = ' '
+CHARACTER(LEN=1024) :: substring = ' '
+CHARACTER(LEN=1024) :: zeile     = ' '
+CHARACTER(LEN=1024) :: dummy     = ' '
+LOGICAL  , DIMENSION(1024,0:1) :: lmask 
 !                                                                       
-INTEGER :: i, ianf, iend, ll 
+INTEGER :: i, ianf, iend, ll , j
 INTEGER :: linsert 
 INTEGER :: laenge
 INTEGER :: istart, istop
 INTEGER :: s1,s2,s3
+INTEGER :: omask   = 0         ! old mask 
+INTEGER :: nmask   = 1         ! new mask 
 LOGICAL :: success = .FALSE.
 !                                                                       
 INTEGER len_str 
@@ -45,9 +48,16 @@ s1 = 0
 s2 = 0
 s3 = 0
 line = ' '
+lmask(:,:)= .TRUE.
+omask = 0
+nmask = 1
 !
 main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
    CALL string_extract(string,istart, istop, substring, s1,s2,s3)
+!write(*,*) ' STRING >', string(1:LEN_TRIM(string)),'<'
+!write(*,*) ' SUB    >', substring(1:len_trim(substring)),'<', len_trim(substring),s1, s2, s3
+!write(*,'(1x,a,80L1)') ' MASK   >', lmask    (1:len_trim(substring),omask)
+!write(*,*) '         123456789 123456789 1234567890'
 !
    linsert = 0
    laenge  = s2 - s1 + 1     ! Length of current string
@@ -57,51 +67,85 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !     of the variable name. Works since names like "cos" etc are        
 !     forbidden, and the names have been sorted in alphabetically        
 !     descending order.                                                 
-!                                                                       
-!                                                                       
+!
+!
 !     --If an apostrophe is found, ignore the string                    
-!                                                                       
+!
 !IF (max (INDEX (string, '''') , INDEX (string, '"') ) .gt.0) THEN 
 !   RETURN 
 !ENDIF 
    names:DO i = 1, var_num 
    success = .FALSE.
-   ianf = INDEX (substring, var_name (i) (1:var_l (i) ) ) 
+   ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),omask)) !, .TRUE. ) 
    DO while (ianf.ne.0) 
+!write(*,*) ' zeile Z>', zeile    (1:len_trim(zeile    )),'<',var_name (i) (1:var_l (i)), ianf
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
       IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
-      IF (ianf.gt.1) zeile (1:ianf - 1) = substring (1:ianf - 1) 
-      IF (var_type (i) .eq.      IS_REAL) THEN 
-                                                                        
+      IF (ianf.gt.1) THEN
+         zeile (1:ianf - 1) = substring (1:ianf - 1) 
+         lmask (1:ianf-1,nmask) = lmask (1:ianf-1,omask)
+!write(*,*) ' zeile A>', zeile    (1:len_trim(zeile    )),'<', ianf
+!write(*,'(1x,a,80L1)') ' MASK A >', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK A >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
+      ENDIF
+      IF (var_type (i) .eq.      IS_REAL) THEN
          WRITE (dummy (1:PREC_WIDTH) , PREC_F_REAL) var_val (i) 
          dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'e' 
          ll = PREC_WIDTH
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
+         lmask (ianf:ianf+ll-1,nmask) = .FALSE.
          linsert = ll 
       ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
          WRITE (dummy (1:PREC_WIDTH) , PREC_F_INTE) nint (var_val (i) ) 
          ll = PREC_WIDTH 
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
+         lmask (ianf:ianf+ll-1,nmask) = .FALSE.
+!write(*,*) ' zeile I>', zeile    (1:len_trim(zeile    )),'<'
+!write(*,'(1x,a,80L1)') ' MASK I >', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK I >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
+!write(*,*) ' ianf, ll ', ianf, ll
          linsert = ll 
       ELSEIF (var_type (i) .eq.      IS_CHAR) THEN 
          ll = len_str (var_char (i) ) 
          zeile (ianf:ianf) = '''' 
          zeile (ianf + 1:ianf + ll) = var_char (i) (1:ll) 
          zeile (ianf + ll + 1:ianf + ll + 1) = '''' 
+         lmask (ianf:ianf+ll+1,nmask) = .FALSE.
+!write(*,*) ' zeile Q>', zeile    (1:len_trim(zeile    )),'<'
+!write(*,'(1x,a,80L1)') ' MASK Q >', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK Q >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
+!write(*,*) ' ianf, ll ', ianf, ll
          linsert = ll + 2 
       ENDIF 
       ll = laenge+linsert - (iend-ianf + 1) 
-      IF (iend.lt.laenge) zeile (ianf + linsert:ll) = substring (iend+1:   &
-      laenge)                                                           
+      IF(iend.lt.laenge) THEN
+         zeile(ianf + linsert:ll) = substring(iend+1:laenge)
+         lmask(ianf + linsert:ll,nmask) =lmask(ianf + linsert:ll,omask)
+      ENDIF
       substring = zeile 
+!write(*,*) ' zeile X>', zeile    (1:len_trim(zeile    )),'<'
+!write(*,*) ' SUB   X>', substring(1:len_trim(substring)),'<'
+!write(*,'(1x,a,80L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK  X>', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
       istart = ianf+linsert                  ! Start further search after insert
       laenge = ll 
       success = .TRUE.
-      ianf = INDEX (substring(istart:len_trim(substring)), var_name (i) (1:var_l (i) ) ) 
-      IF(ianf>0) ianf = ianf + istart - 1    ! if found, correct the offset
+      omask = MOD(omask+1,2)
+      nmask = MOD(nmask+1,2)
+!     ianf = INDEX      (substring(istart:len_trim(substring)), var_name (i) (1:var_l (i) ) ) 
+      ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),nmask)) !, .TRUE. ) 
+!write(*,*) ' REPEATED ? ', ianf
+!     IF(ianf>0) ianf = ianf + istart - 1    ! if found, correct the offset
    ENDDO 
    ENDDO names
 !
@@ -113,6 +157,33 @@ ENDDO main
 length = LEN_TRIM(line)
 !
 END SUBROUTINE ersetz_variable                
+!
+!*****7**************************************************************** 
+!
+INTEGER FUNCTION index_mask(string, find, lmask)
+!
+IMPLICIT NONE
+!
+CHARACTER(LEN=*), INTENT(IN) :: string   ! The string to be searched
+CHARACTER(LEN=*), INTENT(IN) :: find     ! The string to be found
+LOGICAL, DIMENSION(LEN_TRIM(string)), INTENT(IN) :: lmask
+!
+INTEGER :: ls   ! Length of string
+INTEGER :: lf   ! Length of find
+integer :: i
+!
+index_mask = 0
+ls = LEN_TRIM(string)
+lf = LEN_TRIM(find)
+!
+main: DO i=1,ls-lf
+   IF(string(i:i+lf-1)==find .AND. ALL(lmask(i:i+lf-1))) THEN
+      index_mask = i
+      EXIT main
+   ENDIF
+ENDDO main
+!
+END FUNCTION index_mask
 !
 !*****7**************************************************************** 
 !
