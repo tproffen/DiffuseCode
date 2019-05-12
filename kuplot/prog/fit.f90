@@ -2,9 +2,13 @@ MODULE kuplot_fit_const
 !
 ! Numbers that are needed by some fit routines
 !
-REAL    :: pp_origin  = 0.0  ! Origin of backgroud polynomial for Pseudovoigt
-INTEGER :: nn_backgrd = 0    ! number of background params for Pseudovoigt
+CHARACTER(LEN=1024) :: f6_fit_func  = ' '  ! User defined fit function
+INTEGER             :: f6_fit_lfunc = 0    ! Fit function string length
+REAL                :: pp_origin    = 0.0  ! Origin of backgroud polynomial for Pseudovoigt
+INTEGER             :: nn_backgrd   = 0    ! number of background params for Pseudovoigt
+!
 END MODULE kuplot_fit_const
+!
 !MODULE kuplot_fit_mod
 !
 !CONTAINS
@@ -3463,8 +3467,13 @@ MODULE kuplot_fit6_set_theory
 ! MRQCOF uses a procedure pointer to call the theory function
 ! Here a generic interface and the pointer variable are defined.
 !
-! The interface is ket very broad, to reflect as much equality to the refine 
+! The interface is set very broad, to reflect as much equality to the refine 
 ! section and to allow for easy expansion if needed.
+! Most function do not really need all the parameters, mostly they are needed
+! for the User macro, which incidentally is done better with REFINE...
+!
+! The kuplot Version 6 fit routine is still needed to be able to perform a 
+! LeastSquares fit within a user macro done by REFINE.
 !
 INTERFACE
    SUBROUTINE kuplot_theory(MAXP, ix, iy, xx, yy, NPARA, params, par_names,     &
@@ -3503,7 +3512,8 @@ END MODULE kuplot_fit6_set_theory
 MODULE kuplot_fit6
 !
 ! Revised as of DISCUS Version 6.0.0 
-! Levenberg Marquadr type Least squares fits within KUPLOT
+! Levenberg Marquadt type Least Squares fits within KUPLOT
+! The procedure is adapted from the Numerical recipes.
 !
 !
 PRIVATE
@@ -5001,12 +5011,13 @@ END SUBROUTINE do_fit_y
 !*****7*****************************************************************
 !       User defined fit function                                       
 !*****7*****************************************************************
-      SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
+SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       USE  berechne_mod
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5038,8 +5049,11 @@ END SUBROUTINE do_fit_y
          ier_num = - 6 
          ier_typ = ER_COMM 
       ENDIF 
+!
+p_kuplot_theory => theory_user
 !                                                                       
-      END SUBROUTINE setup_user                     
+END SUBROUTINE setup_user                     
+!
 !*****7*****************************************************************
 !       User defined fit macro                                       
 !*****7*****************************************************************
@@ -5141,58 +5155,219 @@ REAL                   :: f
 !                                                                       
       END SUBROUTINE show_user_macro                      
 !***********************************************************************
-      SUBROUTINE theory_user (xx, f, df, i) 
+!
+SUBROUTINE theory_user(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                       prange, l_do_deriv, data_dim, &
+                       data_data, data_weight, data_x, data_y, &
+                       data_calc, kupl_last,      &
+                       ymod, dyda, LDERIV)
+!
+! Calculate a user defined function
+! ymod = SUM p[i]*xx^ind
+!
+USE kuplot_fit_const
+!
+USE berechne_mod
+USE matrix_mod
+USE param_mod 
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!     SUBROUTINE theory_user (xx, f, df, i) 
 !                                                                       
-      USE  berechne_mod
-      USE param_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      CHARACTER(1024) cdummy 
-      REAL xx, f, df (maxpara) 
-      REAL pb, h, err 
-      INTEGER i, ix, iy, ind 
+REAL, PARAMETER      :: SCALEF = 0.05 ! Scalefactor for parameter modification 0.01 is good?
+!
+CHARACTER(LEN=1024) :: cdummy 
+!     REAL xx, f, df (maxpara) 
+!     REAL pb, h, err 
+      INTEGER :: ind 
       INTEGER :: length
+!
+INTEGER              :: nder          ! Numper of points for derivative
+REAL                 :: delta         ! Shift to calculate derivatives
+!REAL                 :: p_d           ! Shifted  parameter
+REAL, DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
+REAL, DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
+REAL, DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
+REAL, DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
+REAL, DIMENSION(3,3) :: imat          ! Inverse to xmat
 !                                                                       
-      REAL dfridr 
+      REAL, EXTERNAL :: dfridr
 !                                                                       
-      DO ind = 1, maxpara 
-      df (ind) = 0.0 
-      ENDDO 
+DO ind = 1, npara 
+   dyda (ind) = 0.0 
+   kupl_para(ind) = params(ind)
+ENDDO 
 !                                                                       
 !-------x und y bestimmen                                               
 !                                                                       
-      IF (lni (ikfit) ) then 
-         ix = (abs (i) - 1) / ny (ikfit) + 1 
-         iy = abs (i) - (ix - 1) * ny (ikfit) 
-         rpara (0) = x (offxy (ikfit - 1) + ix) 
-         rpara (1) = y (offxy (ikfit - 1) + iy) 
-      ELSE 
-         rpara (0) = xx 
-      ENDIF 
+!     IF (lni (ikfit) ) then 
+!        ix = (abs (i) - 1) / ny (ikfit) + 1 
+!        iy = abs (i) - (ix - 1) * ny (ikfit) 
+!        rpara (0) = x (offxy (ikfit - 1) + ix) 
+!        rpara (1) = y (offxy (ikfit - 1) + iy) 
+!     ELSE 
+!        rpara (0) = xx 
+!     ENDIF 
+!
+rpara(0) = data_x(ix)
+rpara(1) = data_y(iy)
 !                                                                       
-      cdummy = '('//fit_func (1:fit_lfunc) //')' 
-      length = fit_lfunc + 2
-      f = berechne (cdummy, length)
+!     cdummy = '('//fit_func (1:fit_lfunc) //')' 
+cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
+length = f6_fit_lfunc + 2
+ymod   = berechne (cdummy, length)
 !                                                                       
 !-------ableitungen                                                     
 !                                                                       
-      IF (i.gt.0) then 
-         DO ind = 1, npara 
-         IF (pinc (ind) .ne.0) then 
-            h = 0.1 * abs (p (ind) ) 
-            IF (h.eq.0) h = 0.5 
-            pb = p (ind) 
-            np1 = ind 
-            df (ind) = dfridr (p (ind), h, err) 
-            p (ind) = pb 
-         ENDIF 
-         ENDDO 
-      ENDIF 
+IF(LDERIV) THEN
+   DO ind = 1, npara 
+      IF(l_do_deriv(ind)) THEN
+!!!!
+!
+         nder = 1                     ! First point is at P(IND)
+         dvec(2) = 0.0
+         dvec(3) = 0.0
+         dvec(1) = params(ind)             ! Store parameter value
+         yvec(1) = ymod                    ! Store function at P(IND)
+         IF(params(ind)/=0.0) THEN
+            delta = params(IND)*SCALEF     ! A multiplicative variation of the parameter seems best
+         ELSE
+            delta = 0.010
+         ENDIF
+!                                     ! Test at P + DELTA
+         IF(prange(ind,1)<=prange(ind,2)) THEN     ! User provided parameter range
+            kupl_para(ind)     = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)+delta))
+         ELSE
+            kupl_para(ind)     = params(ind) + delta
+         ENDIF
+!        p_d = p(k) + delta
+         IF(params(ind)/=kupl_para(ind)) THEN           ! Parameter is not at edge of range
+            nder = nder + 1
+            dvec(2) = kupl_para(ind)            ! Store parameter value at P+DELTA
+            yvec(2) = berechne (cdummy, length)
+!           CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+            IF(ier_num /= 0) RETURN
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!                 refine_derivs(iix,iiy,k) =  refine_temp(iix,iiy)
+!              ENDDO
+!           ENDDO
+         ENDIF
+!                                     ! Test at P - DELTA
+         IF(prange(ind,1)<=prange(ind,2)) THEN
+            kupl_para(ind)     = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)-delta))
+         ELSE
+            kupl_para(ind)     = params(ind) - delta
+         ENDIF
+!        p_d = p(k) - delta
+         IF(params(ind)/=kupl_para(ind)) THEN           ! Parameter is not at edge of range
+            nder = nder + 1
+            dvec(3) = kupl_para(ind)            ! Store parameter value at P-DELTA
+            yvec(3) = berechne (cdummy, length)
+!           CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
+!                             data_dim, refine_temp)
+            IF(ier_num /= 0) RETURN
+!
+         ENDIF
+!        CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
+         kupl_para(ind) = params(ind) ! Return to original value
+!
+         IF(nder==3) THEN             ! Got all three points for derivative
+!           DO iiy=1, data_dim(2)
+!              DO iix=1, data_dim(1)
+!
+!              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
+!                 yvec(1) = refine_calc  (iix, iiy)
+!                 yvec(2) = refine_derivs(iix, iiy,k)
+!                 yvec(3) = refine_temp  (iix, iiy)
+                  xmat(:,1) =  1.0
+                  xmat(1,2) =  dvec(1) !p(IND)
+                  xmat(2,2) =  dvec(2) !p(IND) + delta
+                  xmat(3,2) =  dvec(3) !p(k) - delta
+                  xmat(1,3) = (dvec(1))**2 !(p(IND)        ) **2
+                  xmat(2,3) = (dvec(2))**2 !(p(IND) + delta) **2
+                  xmat(3,3) = (dvec(3))**2 !(p(IND) - delta) **2
+                  CALL matinv3(xmat, imat)
+                  avec = MATMUL(imat, yvec)
+                  dyda(ind) = avec(2) + 2.*avec(3)*params(ind)
+!
+!                 refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
+!              ENDDO
+!           ENDDO
+         ELSEIF(nder==2) THEN
+            IF(dvec(2)==0) THEN          ! P + Delta failed
+               dyda(ind) = (yvec(3)-yvec(1))/(dvec(3)-dvec(1))
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(3)-dvec(1))
+!                 ENDDO
+!              ENDDO
+            ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
+               dyda(ind) = (yvec(2)-yvec(1))/(dvec(2)-dvec(1))
+!              DO iiy=1, data_dim(2)
+!                 DO iix=1, data_dim(1)
+!                    refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
+!                                                 (dvec(2)-dvec(1))
+!                 ENDDO
+!              ENDDO
+            ENDIF
+!
+         ELSE
+            ier_num = -6
+            ier_typ = ER_APPL
+            ier_msg(1) = par_names(ind)
+            RETURN
+         ENDIF
+!
+!!!!
+      ENDIF
+   ENDDO
+ENDIF
+!     IF (i.gt.0) then 
+!        DO ind = 1, npara 
+!        IF (pinc (ind) .ne.0) then 
+!           h = 0.1 * abs (p (ind) ) 
+!           IF (h.eq.0) h = 0.5 
+!           pb = p (ind) 
+!           np1 = ind 
+!           df (ind) = dfridr (p (ind), h, err) 
+!           p (ind) = pb 
+!        ENDIF 
+!        ENDDO 
+!     ENDIF 
 !                                                                       
-      END SUBROUTINE theory_user                    
+END SUBROUTINE theory_user                    
+!
 !*****7*****************************************************************
       REAL function func (xx) 
 !                                                                       
@@ -6163,7 +6338,7 @@ LOGICAL                                              , INTENT(IN)  :: LDERIV  ! 
 !     IMPLICIT none 
 !                                                                       
 !     REAL xx, f, df (maxpara) 
-      INTEGER i 
+!     INTEGER i 
 !                                                                       
       REAL fw, xw 
       REAL eta, pseudo 
