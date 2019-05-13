@@ -3817,7 +3817,6 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
          ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) THEN 
 !
-write(*,*) ' STARTED RUN'
             lturn_off = .TRUE.
             IF (.not.sel_func) THEN 
                ier_num = - 25 
@@ -4762,7 +4761,6 @@ ENDDO
 nparams = NPARA - nfixed               ! Adjust number of free parameters
 MAXP    = NPARA - nfixed               ! Adjust number of free parameters
 MAXF    = MAX(1, nfixed)               ! Adjust number of fixed parameters
-write(*,*) ' DO_FIT_Y', npara, MAXP, nparams, MAXF, nfixed
 ALLOCATE(par_names(MAXP))
 ALLOCATE(par_ind  (MAXP))
 ALLOCATE(par_value(MAXP))
@@ -6087,7 +6085,6 @@ np1  = (npara-nunt)/npar   ! Number of Gauss Peaks
 !                                                                       
 DO ind = 1, npara 
    dyda(ind) = 0.0 
-write(*,*) ' PARAMS ', ind, params(ind)
 ENDDO 
 !-------Background
 ymod = params (1) + params (2) * xx 
@@ -6149,8 +6146,6 @@ USE kuplot_fit_const
       DO i = 1, nn_backgrd 
       WRITE (idout, 1100) i, i, p (i), dp (i), pinc (i) 
       ENDDO 
-!     write (idout,1200) 2,p(2),dp(2),pinc(2)                           
-!     write (idout,1210) 3,p(3),dp(3),pinc(3)                           
       DO i = 1, np1 
       WRITE (idout, 1300) i 
       iii = nn_backgrd+ (i - 1) * 6 
@@ -6294,8 +6289,6 @@ nu = nn_backgrd
          dp (i) = 0.0 
          ENDDO 
       ENDIF 
-write(*,*) ' PSEUDO ', npara, nn_backgrd,p_origin
-write(*,*) ' PARAMS ', p(1:npara)
 p_kuplot_theory => theory_psvgt
 !                                                                       
       END SUBROUTINE setup_psvgt                    
