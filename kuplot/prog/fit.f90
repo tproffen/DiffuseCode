@@ -3554,42 +3554,43 @@ INTEGER, PARAMETER :: maxw = 10
 CHARACTER (LEN=*), INTENT(INOUT) :: zei 
 INTEGER          , INTENT(INOUT) :: lp
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) line, zeile
-      CHARACTER(LEN=40         ) :: orig_prompt 
-      CHARACTER(40) cdummy 
-      CHARACTER(4) befehl 
-      CHARACTER(LEN=1) :: empty 
-      INTEGER lpara (maxw) 
-      INTEGER ll
-      INTEGER ianz, indxg, lbef 
-      INTEGER maxpkt, maxzz 
-      REAL werte (maxw) 
-      LOGICAL flag (3), sel_func 
+CHARACTER(LEN=1024), DIMENSION(MAXW) ::cpara
+CHARACTER(LEN=1024) :: line, zeile
+CHARACTER(LEN=40  ) :: orig_prompt 
+CHARACTER(LEN=40)   ::cdummy 
+CHARACTER(LEN=4)    ::befehl 
+CHARACTER(LEN=1)    :: empty 
+INTEGER, DIMENSION(MAXW) :: lpara
+INTEGER :: ll
+INTEGER :: ianz, indxg, lbef 
+INTEGER :: maxpkt, maxzz 
+REAL   , DIMENSION(MAXW) :: werte
+LOGICAL, DIMENSION(3) :: flag
+LOGICAL               :: sel_func 
 !                                                                       
-      INTEGER len_str 
-      LOGICAL str_comp 
+INTEGER, EXTERNAL :: len_str 
+LOGICAL, EXTERNAL :: str_comp 
 real :: f, df(maxpara)
 !
-      empty = ' '
-      CALL no_error 
-      sel_func = ftyp (1:4) .ne.'NONE' 
+empty = ' '
+CALL no_error 
+sel_func = ftyp (1:4) /= 'NONE' 
 !                                                                       
 !------ check data set number and free space                            
 !                                                                       
-      CALL get_params (zei, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+CALL get_params (zei, ianz, cpara, lpara, maxw, lp) 
+IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.1) then 
+      IF (ianz.eq.1) THEN 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
          ikfit = nint (werte (1) ) 
-         IF (ikfit.lt.1.or.ikfit.gt. (iz - 1) ) then 
+         IF (ikfit.lt.1.or.ikfit.gt. (iz - 1) ) THEN 
             ier_num = - 4 
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
-         IF ( (iz + 1) .gt.maxkurvtot) then 
+         IF ( (iz + 1) .gt.maxkurvtot) THEN 
             ier_num = - 1 
             ier_typ = ER_APPL 
             RETURN 
@@ -3600,16 +3601,16 @@ real :: f, df(maxpara)
          RETURN 
       ENDIF 
 !                                                                       
-      IF (ikfirst (ikfit) ) then 
+      IF (ikfirst (ikfit) ) THEN 
 !                                                                       
 !----- -- Check if there is enough space left                           
 !                                                                       
          maxpkt = maxarray - offxy (iz - 1) 
          maxzz = maxarray - offz (iz - 1) 
 !                                                                       
-         IF (lni (ikfit) ) then 
+         IF (lni (ikfit) ) THEN 
             IF ( (2.0 * nx (iz - 1) * ny (iz - 1) .gt.maxzz) .or. (max (&
-            nx (iz - 1), ny (iz - 1) ) .gt.maxpkt) ) then               
+            nx (iz - 1), ny (iz - 1) ) .gt.maxpkt) ) THEN               
                ier_num = - 6 
                ier_typ = ER_APPL 
                RETURN 
@@ -3637,7 +3638,7 @@ real :: f, df(maxpara)
             ymax (ikdif) = ymax (ikfit) 
             iz = iz + 2 
          ELSE 
-            IF (2.0 * len (iz - 1) .gt.maxpkt) then 
+            IF (2.0 * len (iz - 1) .gt.maxpkt) THEN 
                ier_num = - 6 
                ier_typ = ER_APPL 
                RETURN 
@@ -3678,7 +3679,7 @@ real :: f, df(maxpara)
    10 CONTINUE 
 !                                                                       
       CALL get_cmd (line, ll, befehl, lbef, zeile, lp, prompt) 
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          IF (line.eq.' '.or.line (1:1) .eq.'#' .OR. line(1:1)=='!') goto 10 
 !                                                                       
 !------ search for "="                                                  
@@ -3688,27 +3689,27 @@ real :: f, df(maxpara)
          .and..not. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
          .and..not. (str_comp (befehl, 'help', 2, lbef, 4) .or. &
                      str_comp (befehl, '?   ', 2, lbef, 4) )    &
-         .AND. INDEX(line,'==') == 0                          )then
+         .AND. INDEX(line,'==') == 0                          )THEN
             CALL do_math (line, indxg, ll) 
 !                                                                       
 !------ execute a macro file                                            
 !                                                                       
-         ELSEIF (befehl (1:1) .eq.'@') then 
+         ELSEIF (befehl (1:1) .eq.'@') THEN 
             CALL file_kdo (line (2:ll), ll - 1) 
 !                                                                       
 !     continues a macro 'continue'                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) then 
+         ELSEIF (str_comp (befehl, 'continue', 3, lbef, 8) ) THEN 
             CALL macro_continue (zeile, lp) 
 !                                                                       
 !-------Set number of cycles 'cyc'                                      
 !                                                                       
-         ELSEIF (str_comp (befehl, 'cycle', 2, lbef, 5) ) then 
+         ELSEIF (str_comp (befehl, 'cycle', 2, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.1) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.1) THEN 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      ncycle = nint (werte (1) ) 
                   ENDIF 
                ELSE 
@@ -3719,22 +3720,22 @@ real :: f, df(maxpara)
 !                                                                       
 !------ Echo a string, just for interactive check in a macro 'echo'     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'echo', 2, lbef, 4) ) THEN 
             CALL echo (zeile, lp) 
 !                                                                       
 !------ Evaluate an expression                                          
 !                                                                       
-         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'eval', 2, lbef, 4) ) THEN 
             CALL do_eval (zeile, lp, .TRUE.) 
 !                                                                       
 !     exit 'exit'                                                       
 !                                                                       
-         ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'exit', 2, lbef, 4) ) THEN 
             GOTO 9999 
 !                                                                       
 !     Define fit function 'func'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'func', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'func', 3, lbef, 4) ) THEN 
             lturn_off = .FALSE.
             CALL do_fit_fkt (zeile, lp) 
             IF (ier_num.eq.0) sel_func = .true. 
@@ -3742,8 +3743,8 @@ real :: f, df(maxpara)
 !     help 'help','?'                                                   
 !                                                                       
       ELSEIF (str_comp (befehl, 'help', 2, lbef, 4) .or.str_comp (befehl&
-     &, '?   ', 1, lbef, 4) ) then                                      
-            IF (str_comp (zeile, 'errors', 2, lp, 6) ) then 
+     &, '?   ', 1, lbef, 4) ) THEN                                      
+            IF (str_comp (zeile, 'errors', 2, lp, 6) ) THEN 
                lp = lp + 7 
                CALL do_hel ('kuplot '//zeile, lp) 
             ELSE 
@@ -3753,17 +3754,17 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Save current parameters to a macro file                         
 !                                                                       
-         ELSEIF (str_comp (befehl, 'macro', 2, lbef, 5) ) then 
+         ELSEIF (str_comp (befehl, 'macro', 2, lbef, 5) ) THEN 
             CALL do_fit_macro (zeile, lp) 
 !                                                                       
 !-------Set parameter 'ifen' for determination of maxima                
 !                                                                       
-         ELSEIF (str_comp (befehl, 'mfen', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'mfen', 2, lbef, 4) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.1) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.1) THEN 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      fit_ifen = nint (werte (1) ) 
                   ENDIF 
                ELSE 
@@ -3774,9 +3775,9 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Toogle fit screen output 'output'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'output', 2, lbef, 6) ) then 
+         ELSEIF (str_comp (befehl, 'output', 2, lbef, 6) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ianz.eq.1) then 
+            IF (ianz.eq.1) THEN 
                fstart = str_comp (cpara (1) , 'on', 2, lpara (1) , 2) 
             ELSE 
                ier_num = - 6 
@@ -3785,12 +3786,12 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Toogle fit range 'range'                                        
 !                                                                       
-         ELSEIF (str_comp (befehl, 'range', 2, lbef, 5) ) then 
+         ELSEIF (str_comp (befehl, 'range', 2, lbef, 5) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ianz.eq.1) then 
+            IF (ianz.eq.1) THEN 
                frall = str_comp (cpara (1) , 'all', 2, lpara (1) , 2) 
             ELSE 
-               IF (frall) then 
+               IF (frall) THEN 
                   WRITE (output_io, 2100) 'complete range' 
                ELSE 
                   WRITE (output_io, 2100) 'plot range only' 
@@ -3799,63 +3800,65 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Set parameters                                                  
 !                                                                       
-         ELSEIF (str_comp (befehl, 'par', 2, lbef, 3) ) then 
+         ELSEIF (str_comp (befehl, 'par', 2, lbef, 3) ) THEN 
             CALL do_fit_par (zeile, lp) 
 !                                                                       
 !-------Plot result                                                     
 !                                                                       
-         ELSEIF (str_comp (befehl, 'plot', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'plot', 2, lbef, 4) ) THEN 
             CALL do_plot (.false.) 
 !                                                                       
 !------ Set scale                                                       
 !                                                                       
-         ELSEIF (str_comp (befehl, 'skal', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'skal', 2, lbef, 4) ) THEN 
             CALL set_skal (zeile, lp) 
 !                                                                       
 !-------Run fit                                                         
 !                                                                       
-         ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) then 
+         ELSEIF (str_comp (befehl, 'run', 2, lbef, 3) ) THEN 
 !
+write(*,*) ' STARTED RUN'
             lturn_off = .TRUE.
-            IF (.not.sel_func) then 
+            IF (.not.sel_func) THEN 
                ier_num = - 25 
                ier_typ = ER_APPL 
             ELSE 
                IF(ex(iwin,iframe,1)==ex(iwin,iframe,2)) THEN
                   CALL set_skal(empty,0)
                ENDIF
-               IF (lni (ikfit) ) then 
-                  CALL do_fit_z 
-               ELSE 
-                  CALL do_fit_y 
-               ENDIF 
+               CALL do_fit
+!              IF (lni (ikfit) ) THEN 
+!                 CALL do_fit_z 
+!              ELSE 
+!                 CALL do_fit_y 
+!              ENDIF 
                CALL get_extrema 
             ENDIF 
             lturn_off = .FALSE.
 !                                                                  
 !-------Test a recursive call to kuplot_loop                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'test', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'test', 2, lbef, 4) ) THEN 
             CALL theory_macro(1.0,  f, df, 1)
 !                                                                  
 !-------Save fit results                                                
 !                                                                       
-         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'save', 2, lbef, 4) ) THEN 
             CALL do_fit_save 
 !                                                                       
 !-------Show settings                                                   
 !                                                                       
-         ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'show', 2, lbef, 4) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.0) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.0) THEN 
                   CALL do_fit_info (output_io, .true., .true., .true.) 
-               ELSEIF (ianz.eq.1) then 
+               ELSEIF (ianz.eq.1) THEN 
                   CALL do_cap (cpara (1) ) 
                   flag (1) = cpara (1) (1:2) .eq.'GE' 
                   flag (2) = cpara (1) (1:2) .eq.'FI' 
                   flag (3) = cpara (1) (1:2) .eq.'PA' 
-                  IF (flag (1) .or.flag (2) .or.flag (3) ) then 
+                  IF (flag (1) .or.flag (2) .or.flag (3) ) THEN 
                      CALL do_fit_info (output_io, flag (1), flag (2),   &
                      flag (3) )                                         
                   ELSE 
@@ -3870,9 +3873,9 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Operating System Kommandos 'syst'                               
 !                                                                       
-         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'syst', 2, lbef, 4) ) THEN 
             cdummy = ' ' 
-            IF (zeile.ne.' ') then 
+            IF (zeile.ne.' ') THEN 
                cdummy (1:lp) = zeile (1:lp) 
                CALL do_operating (cdummy, lp) 
             ELSE 
@@ -3882,12 +3885,12 @@ real :: f, df(maxpara)
 !                                                                       
 !-------Set URF 'urf'                                                   
 !                                                                       
-         ELSEIF (str_comp (befehl, 'urf', 2, lbef, 3) ) then 
+         ELSEIF (str_comp (befehl, 'urf', 2, lbef, 3) ) THEN 
             CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-            IF (ier_num.eq.0) then 
-               IF (ianz.eq.1) then 
+            IF (ier_num.eq.0) THEN 
+               IF (ianz.eq.1) THEN 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-                  IF (ier_num.eq.0) then 
+                  IF (ier_num.eq.0) THEN 
                      urf = werte (1) 
                   ENDIF 
                ELSE 
@@ -3898,12 +3901,12 @@ real :: f, df(maxpara)
 !                                                                       
 !     Waiting for user input                                            
 !                                                                       
-         ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) then 
+         ELSEIF (str_comp (befehl, 'wait', 3, lbef, 4) ) THEN 
             CALL do_input (zeile, lp) 
 !                                                                       
 !     Set weighting scheme                                              
 !                                                                       
-         ELSEIF (str_comp (befehl, 'wic', 3, lbef, 3) ) then 
+         ELSEIF (str_comp (befehl, 'wic', 3, lbef, 3) ) THEN 
             CALL do_fit_wichtung (zeile, lp) 
 !                                                                       
 !------ no command found                                                
@@ -3977,13 +3980,13 @@ real :: f, df(maxpara)
       INTEGER ianz, iianz
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.ge.1) then 
+      IF (ianz.ge.1) THEN 
          ftyp = cpara (1) (1:4) 
          CALL do_cap (ftyp) 
-         IF (ftyp (1:2) .eq.'GS') then 
-            IF (ianz.ne.4.and.ianz.ne.5) then 
+         IF (ftyp (1:2) .eq.'GS') THEN 
+            IF (ianz.ne.4.and.ianz.ne.5) THEN 
                ier_num = - 6 
                ier_typ = ER_COMM 
                RETURN 
@@ -3997,7 +4000,7 @@ real :: f, df(maxpara)
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             iianz = 1
             CALL ber_params (iianz, cpara, lpara, werte, maxw) 
-         ELSEIF (ianz.gt.1) then 
+         ELSEIF (ianz.gt.1) THEN 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
          ELSE 
@@ -4008,12 +4011,12 @@ real :: f, df(maxpara)
          ier_typ = ER_COMM 
       ENDIF 
 !                                                                       
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
 !------ Polynom (only 2D)                                               
 !                                                                       
-      IF (ftyp (1:2) .eq.'PO') then 
-         IF (.not.lni (ikfit) ) then 
+      IF (ftyp (1:2) .eq.'PO') THEN 
+         IF (.not.lni (ikfit) ) THEN 
             CALL setup_poly (ianz, werte, maxw) 
          ELSE 
             ier_num = - 25 
@@ -4022,8 +4025,8 @@ real :: f, df(maxpara)
 !                                                                       
 !------ Scale + Background Polynom (only 2D)                            
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'BA') then 
-         IF (.not.lni (ikfit) ) then 
+      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
+         IF (.not.lni (ikfit) ) THEN 
             CALL setup_backpoly (ianz, werte, maxw) 
          ELSE 
             ier_num = - 25 
@@ -4032,28 +4035,28 @@ real :: f, df(maxpara)
 !                                                                       
 !------ Chebyshev Polynom (only 2D)                                     
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'CH') then 
-         IF (.not.lni (ikfit) ) then 
-            CALL setup_poly_cheb (ianz, werte, maxw) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+!     ELSEIF (ftyp (1:2) .eq.'CH') THEN 
+!        IF (.not.lni (ikfit) ) THEN 
+!           CALL setup_poly_cheb (ianz, werte, maxw) 
+!        ELSE 
+!           ier_num = - 25 
+!           ier_typ = ER_APPL 
+!        ENDIF 
 !                                                                       
 !------ GSAS profile function(s) (only 2D)                              
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'GS') then 
-         IF (.not.lni (ikfit) ) then 
-            CALL setup_gsas (ianz, werte, maxw, iname) 
-         ELSE 
-            ier_num = - 25 
-            ier_typ = ER_APPL 
-         ENDIF 
+!     ELSEIF (ftyp (1:2) .eq.'GS') THEN 
+!        IF (.not.lni (ikfit) ) THEN 
+!           CALL setup_gsas (ianz, werte, maxw, iname) 
+!        ELSE 
+!           ier_num = - 25 
+!           ier_typ = ER_APPL 
+!        ENDIF 
 !                                                                       
 !------ Gaussian (xy and xyz data sets)                                 
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'GA') then 
-         IF (.not.lni (ikfit) ) then 
+      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+         IF (.not.lni (ikfit) ) THEN 
             CALL setup_gauss (ianz, werte, maxw) 
          ELSE 
             CALL setup_gauss_2d (ianz, werte, maxw) 
@@ -4061,8 +4064,8 @@ real :: f, df(maxpara)
 !                                                                       
 !------ Lorenzian (only 2D)                                             
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'LO') then 
-         IF (.not.lni (ikfit) ) then 
+      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
+         IF (.not.lni (ikfit) ) THEN 
             CALL setup_lor (ianz, werte, maxw) 
          ELSE 
             ier_num = - 25 
@@ -4071,8 +4074,8 @@ real :: f, df(maxpara)
 !                                                                       
 !------ Pseudo-Voigt (only 2D)                                          
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'PS') then 
-         IF (.not.lni (ikfit) ) then 
+      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
+         IF (.not.lni (ikfit) ) THEN 
             CALL setup_psvgt (ianz, werte, maxw) 
          ELSE 
             ier_num = - 25 
@@ -4081,12 +4084,12 @@ real :: f, df(maxpara)
 !                                                                       
 !------ User defined function (xy and xyz data sets)                    
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'FX') then 
+      ELSEIF (ftyp (1:2) .eq.'FX') THEN 
          CALL setup_user (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
 !------ User defined macro (xy and xyz data sets)                    
 !                                                                       
-      ELSEIF (ftyp (1:2) .eq.'MA') then 
+      ELSEIF (ftyp (1:2) .eq.'MA') THEN 
          CALL setup_user_macro (ianz, werte, maxw, cpara, lpara) 
 !                                                                       
       ELSE 
@@ -4122,12 +4125,12 @@ real :: f, df(maxpara)
       INTEGER len_str 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
       CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       CALL oeffne (77, cpara (1) , 'unknown') 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       WRITE (output_io, 3000) cpara (1) (1:len_str (cpara (1) ) ) 
       DO i = 1, npara 
@@ -4201,7 +4204,7 @@ real :: f, df(maxpara)
       filname = filname (1:len_str (filname) ) //'.erg' 
 !                                                                       
       CALL oeffne (77, filname, 'unknown') 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       CALL do_fit_info (77, .true., .true., .true.) 
       WRITE (output_io, 1000) filname (1:len_str (filname) ) 
@@ -4251,30 +4254,30 @@ real :: f, df(maxpara)
       REAL werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.1) then 
+      IF (ianz.eq.1) THEN 
          CALL do_cap (cpara (1) ) 
          IF (cpara (1) (1:3) .ne.'LOG'.and.cpara (1) (1:3)              &
          .ne.'SQR'.and.cpara (1) (1:3) .ne.'ONE'.and.cpara (1) (1:3)    &
          .ne.'LIN'.and.cpara (1) (1:3) .ne.'SQA'.and.cpara (1) (1:3)    &
          .ne.'INV'.and.cpara (1) (1:3) .ne.'BCK'.and.cpara (1) (1:3)    &
          .ne.'ISQ'.and.cpara (1) (1:3) .ne.'DAT'                        &
-                   ) then                  
+                   ) THEN                  
             ier_num = - 27 
             ier_typ = ER_APPL 
          ELSE 
             wtyp = cpara (1) (1:3) 
             wval = 0.01 
          ENDIF 
-      ELSEIF (ianz.eq.2) then 
+      ELSEIF (ianz.eq.2) THEN 
          CALL do_cap (cpara (1) ) 
-         IF (cpara (1) (1:3) .eq.'BCK') then 
+         IF (cpara (1) (1:3) .eq.'BCK') THEN 
             wtyp = cpara (1) (1:3) 
             cpara (1) = '(0)' 
             lpara (1) = 3 
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-            IF (ier_num.eq.0) then 
+            IF (ier_num.eq.0) THEN 
                wval = werte (2) 
             ENDIF 
          ELSE 
@@ -4313,27 +4316,27 @@ real :: f, df(maxpara)
       INTEGER ianz, ip 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          CALL do_fit_info (output_io, .false., .false., .true.) 
 !                                                                       
-      ELSEIF (ianz.eq.1) then 
+      ELSEIF (ianz.eq.1) THEN 
          CALL do_cap (cpara (1) ) 
-         IF (cpara (1) (1:2) .eq.'SA') then 
+         IF (cpara (1) (1:2) .eq.'SA') THEN 
             CALL do_fit_pmerk 
-         ELSEIF (cpara (1) (1:2) .eq.'LO') then 
+         ELSEIF (cpara (1) (1:2) .eq.'LO') THEN 
             CALL do_fit_prueck 
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
          ENDIF 
 !                                                                       
-      ELSEIF (ianz.eq.2.or.ianz.eq.3) then 
+      ELSEIF (ianz.eq.2.or.ianz.eq.3) THEN 
          CALL ber_params (ianz, cpara, lpara, werte, maxw) 
-         IF (ier_num.ne.0) return 
+         IF (ier_num.ne.0) RETURN 
          ip = nint (werte (1) ) 
-         IF (ip.gt.0.and.ip.le.MAXPARA) then 
+         IF (ip.gt.0.and.ip.le.MAXPARA) THEN 
             pinc (ip) = werte (2) 
             IF (ianz.eq.3) p (ip) = werte (3) 
             WRITE (output_io, 1000) ip, p (ip), pinc (ip) 
@@ -4371,47 +4374,47 @@ real :: f, df(maxpara)
 !                                                                       
       INTEGER len_str 
 !                                                                       
-      IF (ftyp (1:2) .eq.'PO') then 
+      IF (ftyp (1:2) .eq.'PO') THEN 
          fitfkt = 'Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'BA') then 
+      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
          fitfkt = 'Background Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'CH') then 
+      ELSEIF (ftyp (1:2) .eq.'CH') THEN 
          fitfkt = 'Chebyshev Polynom' 
-      ELSEIF (ftyp (1:2) .eq.'FX') then 
+      ELSEIF (ftyp (1:2) .eq.'FX') THEN 
          fitfkt = 'f = '//fit_func (1:fit_lfunc) 
-      ELSEIF (ftyp (1:2) .eq.'LO') then 
+      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
          fitfkt = 'Lorenzian' 
-      ELSEIF (ftyp (1:2) .eq.'PS') then 
+      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
          fitfkt = 'Pseudo-Voigt' 
-      ELSEIF (ftyp (1:2) .eq.'GA') then 
-         IF (lni (ikfit) ) then 
+      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+         IF (lni (ikfit) ) THEN 
             fitfkt = 'Gaussian (2D)' 
          ELSE 
             fitfkt = 'Gaussian (1D)' 
          ENDIF 
-      ELSEIF (ftyp (1:2) .eq.'MA') then 
+      ELSEIF (ftyp (1:2) .eq.'MA') THEN 
          fitfkt = 'f = '//fit_func (1:fit_lfunc) 
       ELSE 
          fitfkt = 'not defined' 
       ENDIF 
 !                                                                       
-      IF (wtyp (1:3) .eq.'LOG') then 
+      IF (wtyp (1:3) .eq.'LOG') THEN 
          wictyp = 'w(i) = log(i)' 
-      ELSEIF (wtyp (1:3) .eq.'SQR') then 
+      ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
          wictyp = 'w(i) = sqrt(i)' 
-      ELSEIF (wtyp (1:3) .eq.'ONE') then 
+      ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
          wictyp = 'w(i) = 1.0' 
-      ELSEIF (wtyp (1:3) .eq.'LIN') then 
+      ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
          wictyp = 'w(i) = i' 
-      ELSEIF (wtyp (1:3) .eq.'SQA') then 
+      ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
          wictyp = 'w(i) = i**2' 
-      ELSEIF (wtyp (1:3) .eq.'INV') then 
+      ELSEIF (wtyp (1:3) .eq.'INV') THEN 
          wictyp = 'w(i) = 1.0/i' 
-      ELSEIF (wtyp (1:3) .eq.'ISQ') then 
+      ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
          wictyp = 'w(i) = 1.0/sqrt(i)' 
-      ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
+      ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
          wictyp = 'w(i) = 1/(dy(i))^2 from data ' 
-      ELSEIF (wtyp (1:3) .eq.'BCK') then 
+      ELSEIF (wtyp (1:3) .eq.'BCK') THEN 
          wictyp = 'w(i) = exp(-WVAL*(Fobs-Fcalc))' 
       ELSE 
          wictyp = 'unknown' 
@@ -4423,7 +4426,7 @@ real :: f, df(maxpara)
       lfn = len_str (fname (ikfit) ) 
       lw = len_str (wictyp) 
 !                                                                       
-      IF (lni (ikfit) ) then 
+      IF (lni (ikfit) ) THEN 
          ipkt = nx (ikfit) * ny (ikfit) 
       ELSE 
          ipkt = len (ikfit) 
@@ -4528,7 +4531,7 @@ END SUBROUTINE show_fit_erg
 !      kor = .false. 
 !      DO i = 2, npara 
 !      DO j = 1, i - 1 
-!      IF (abs (cl (i, j) ) .gt.0.8) then 
+!      IF (abs (cl (i, j) ) .gt.0.8) THEN 
 !         WRITE (idout, 1070) i, j, cl (i, j) 
 !         kor = .true. 
 !      ENDIF 
@@ -4562,13 +4565,13 @@ END SUBROUTINE show_fit_erg
       LOGICAL kor 
 !                                                                       
       CALL oeffne (22, 'kupl.fit', 'unknown') 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       WRITE (22, 1000) ftyp, r4 * 100., re * 100. 
       kor = .false. 
       DO i = 2, npara 
       DO j = 1, i - 1 
-      IF (abs (cl (i, j) ) .gt.0.8) then 
+      IF (abs (cl (i, j) ) .gt.0.8) THEN 
          WRITE (22, 1070) i, j, cl (i, j) 
          kor = .true. 
       ENDIF 
@@ -4577,7 +4580,7 @@ END SUBROUTINE show_fit_erg
       IF (.not.kor) write (22, 1060) 
       WRITE (22, 1100) 
       DO i = 1, npara 
-      IF (pinc (i) .ne.1) then 
+      IF (pinc (i) .ne.1) THEN 
          WRITE (22, 1200) i, p (i) 
       ELSE 
          WRITE (22, 1210) i, p (i), dp (i) 
@@ -4618,28 +4621,28 @@ END SUBROUTINE show_fit_erg
       IF (f_se) call show_fit_para (idout) 
       IF (f_er) call show_fit_erg (idout) 
 !                                                                       
-      IF (f_pa) then 
-         IF (ftyp (1:2) .eq.'PO') then 
+      IF (f_pa) THEN 
+         IF (ftyp (1:2) .eq.'PO') THEN 
             CALL show_poly (idout) 
-         ELSEIF (ftyp (1:2) .eq.'BA') then 
+         ELSEIF (ftyp (1:2) .eq.'BA') THEN 
             CALL show_backpoly (idout) 
-         ELSEIF (ftyp (1:2) .eq.'GS') then 
+         ELSEIF (ftyp (1:2) .eq.'GS') THEN 
             CALL show_gsas (idout) 
-         ELSEIF (ftyp (1:2) .eq.'CH') then 
+         ELSEIF (ftyp (1:2) .eq.'CH') THEN 
             CALL show_poly_cheb (idout) 
-         ELSEIF (ftyp (1:2) .eq.'GA') then 
-            IF (.not.lni (ikfit) ) then 
+         ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+            IF (.not.lni (ikfit) ) THEN 
                CALL show_gauss (idout) 
             ELSE 
                CALL show_gauss_2d (idout) 
             ENDIF 
-         ELSEIF (ftyp (1:2) .eq.'LO') then 
+         ELSEIF (ftyp (1:2) .eq.'LO') THEN 
             CALL show_lor (idout) 
-         ELSEIF (ftyp (1:2) .eq.'PS') then 
+         ELSEIF (ftyp (1:2) .eq.'PS') THEN 
             CALL show_psvgt (idout) 
-         ELSEIF (ftyp (1:2) .eq.'FX') then 
+         ELSEIF (ftyp (1:2) .eq.'FX') THEN 
             CALL show_user (idout) 
-         ELSEIF (ftyp (1:2) .eq.'MA') then 
+         ELSEIF (ftyp (1:2) .eq.'MA') THEN 
             CALL show_user_macro (idout) 
          ENDIF 
       ENDIF 
@@ -4647,13 +4650,13 @@ END SUBROUTINE show_fit_erg
       END SUBROUTINE do_fit_info                    
 !*****7*****************************************************************
 !
-SUBROUTINE do_fit_y 
+SUBROUTINE do_fit
 !+                                                                      
 !   Transfer routine to kuplot_mrq
 !   Copies the data set into the new data, calls the fit routine
 !   kuplot_mrq and copies the fit and difference into the 
 !   last kuplot curves
-!     der eigentliche fit fuer xy-files                                 
+!   Works for x-Y and xy-Z data
 !-                                                                      
 USE prompt_mod 
 USE kuplot_config 
@@ -4701,26 +4704,46 @@ REAL             , DIMENSION(:)  , ALLOCATABLE :: pf           ! Parameters fixe
 !
 INTEGER :: ifree, ifixed  ! temporary variables Number of free and fixed params
 !                                                                       
-CALL wichtung (y) 
+IF(lni(ikfit)) THEN                               ! XY-Z data
+   data_dim(1) = nx(ikfit)
+   data_dim(2) = ny(ikfit)
+ELSE
+   CALL wichtung (y) 
 !
-data_dim(1) = len(ikfit)                        ! Transfer KUPLOT Dimensions
-data_dim(2) = 1
+   data_dim(1) = len(ikfit)                        ! Transfer KUPLOT Dimensions
+   data_dim(2) = 1
+ENDIF
 ALLOCATE(data_calc(  data_dim(1), data_dim(2)))   ! Allocate CALC  at proper dimensions
 ALLOCATE(data_data(  data_dim(1), data_dim(2)))   ! Allocate DATA  at proper dimensions
 ALLOCATE(data_weight(data_dim(1), data_dim(2)))   ! Allocate SIGMA at proper dimensions
 ALLOCATE(data_x     (data_dim(1))             )   ! Allocate x     at proper dimensions
 ALLOCATE(data_y     (data_dim(2))             )   ! Allocate y     at proper dimensions
-DO i=1, data_dim(1)
-   data_x(i)       = x(offxy(ikfit-1) + i)
-   data_data(i, 1) = y(offxy(ikfit-1) + i)
-   IF(dy(offxy(ikfit-1) + i) /= 0.0) THEN
-      data_weight(i,1) = dy(offxy(ikfit-1) + i)
-   ELSE
-      data_weight(i,1) = 1.0
-   ENDIF
-ENDDO
-
-data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
+!
+IF(lni(ikfit)) THEN                               !xy-Z data
+   DO i=1, data_dim(1)
+      data_x(i)       = x(offxy(ikfit-1) + i)
+   ENDDO
+   DO i=1, data_dim(2)
+      data_y(i)       = y(offxy(ikfit-1) + i)
+   ENDDO
+   DO j=1,data_dim(2)
+      DO i=1,data_dim(1)
+         data_data(i,j)  = z (offz(ikfit - 1) + (i - 1)*ny(ikfit) + j)
+         data_weight(i,j) = 1.0000    ! dz(offxy(iz - 1) + ix) TEMPORARY unit weights
+      ENDDO
+   ENDDO
+ELSE                                              ! xY data
+   DO i=1, data_dim(1)
+      data_x(i)       = x(offxy(ikfit-1) + i)
+      data_data(i, 1) = y(offxy(ikfit-1) + i)
+      IF(dy(offxy(ikfit-1) + i) /= 0.0) THEN
+         data_weight(i,1) = dy(offxy(ikfit-1) + i)
+      ELSE
+         data_weight(i,1) = 1.0
+      ENDIF
+   ENDDO
+   data_y(1:data_dim(2)) = 1.0                       ! Set dummy y
+ENDIF
 
 conv_dp_sig   = 0.005
 conv_dchi2    = 0.5
@@ -4796,25 +4819,55 @@ ii = offxy (ikfit - 1)
 jj = offxy (ikcal - 1) 
 kk = offxy (ikdif - 1) 
 !                                                                       
-DO i=1, len(ikfit)
-   x(jj+i) = data_x(i)          ! Copy x-values into result
-   y(jj+i) = data_calc(i,1)     ! Copy calculated data into result
-   dx(jj+i) = 0.0
-   dy(jj+i) = 0.0
+IF(lni(ikfit)) THEN                               !xy-Z data
+   DO i=1, data_dim(1)
+      x(jj+i) = data_x(i)          ! Copy x-values into result
+      x(kk+i) = data_x(i)          ! Copy x-values into difference curve
+   ENDDO
+   DO i=1, data_dim(2)
+      y(jj+i) = data_y(i)          ! Copy y-values into result
+      y(kk+i) = data_y(i)          ! Copy y-values into difference curve
+   ENDDO
+   DO j=1,data_dim(2)
+      DO i=1,data_dim(1)
+         z(offz(ikcal-1) + (i - 1)*ny(ikfit) + j) = data_calc(i,j)
+         z(offz(ikdif-1) + (i - 1)*ny(ikfit) + j) = data_data(i,j) - data_calc(i,j)
+      ENDDO
+   ENDDO
+   lni (ikcal) = .true. 
+   lni (ikdif) = .true. 
+   len(ikcal) = len(ikfit) 
+   len(ikdif) = len(ikfit) 
+   nx(ikcal) = nx(ikfit)
+   ny(ikcal) = ny(ikfit)
+   nx(ikdif) = nx(ikfit)
+   ny(ikdif) = ny(ikfit)
+   fform (ikcal) = fform (ikfit) 
+   fform (ikdif) = fform (ikfit) 
+   filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
+   fname (ikcal) = filname (1:LEN_TRIM(filname) ) //'.fit' 
+   fname (ikdif) = filname (1:LEN_TRIM(filname) ) //'.dif' 
+ELSE
+   DO i=1, len(ikfit)
+      x(jj+i) = data_x(i)          ! Copy x-values into result
+      y(jj+i) = data_calc(i,1)     ! Copy calculated data into result
+      dx(jj+i) = 0.0
+      dy(jj+i) = 0.0
 !
-   x(kk+i)  = data_x(i)          ! Copy x-values into difference curve
-   y(kk+i)  = y(ii+i) - data_calc(i, 1)  ! Calc difference
-   dx(kk+i) = 0.0
-   dy(kk+i) = 0.0
-ENDDO
+      x(kk+i)  = data_x(i)          ! Copy x-values into difference curve
+      y(kk+i)  = y(ii+i) - data_calc(i, 1)  ! Calc difference
+      dx(kk+i) = 0.0
+      dy(kk+i) = 0.0
+   ENDDO
 !                                                                       
-len (ikcal) = len (ikfit) 
-len (ikdif) = len (ikfit) 
-fform (ikcal) = fform (ikfit) 
-fform (ikdif) = fform (ikfit) 
-filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
-fname (ikcal) = filname (1:LEN_TRIM(filname) ) //'.fit' 
-fname (ikdif) = filname (1:LEN_TRIM(filname) ) //'.dif' 
+   len (ikcal) = len (ikfit) 
+   len (ikdif) = len (ikfit) 
+   fform (ikcal) = fform (ikfit) 
+   fform (ikdif) = fform (ikfit) 
+   filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
+   fname (ikcal) = filname (1:LEN_TRIM(filname) ) //'.fit' 
+   fname (ikdif) = filname (1:LEN_TRIM(filname) ) //'.dif' 
+ENDIF
 CALL get_extrema 
 !
 
@@ -4838,64 +4891,64 @@ DEALLOCATE(fixed)
 DEALLOCATE(fixed_ind)
 DEALLOCATE(pf   )
 !
-END SUBROUTINE do_fit_y                       
+END SUBROUTINE do_fit
 !
 !*****7*****************************************************************
-      SUBROUTINE do_fit_z 
-!+                                                                      
-!     der eigentliche fit fuer xyz-files                                
-!-                                                                      
-      USE prompt_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
-!                                                                       
-      IMPLICIT none 
-!                                                                       
-      CHARACTER(60) filname 
-      REAL xx, f, df (maxpara) 
-      INTEGER i, iii 
-      INTEGER len_str 
-!                                                                       
-      CALL wichtung (z) 
-      IF (ncycle.gt.0) call fit_kupl (z) 
-!                                                                       
-      DO i = 1, nx (ikfit) * ny (ikfit) 
-      xx = REAL(i) 
-!      CALL kupl_theory (xx, f, df, - i) 
-      z (offz (ikcal - 1) + i) = f 
-      IF (z (offz (ikfit - 1) + i) .ne. - 9999) then 
-         z (offz (ikdif - 1) + i) = z (offz (ikfit - 1) + i) - f 
-      ELSE 
-         z (offz (ikdif - 1) + i) = - 9999.0 
-      ENDIF 
-      ENDDO 
-      DO iii = 1, nx (ikfit) 
-      x (offxy (ikcal - 1) + iii) = x (offxy (ikfit - 1) + iii) 
-      x (offxy (ikdif - 1) + iii) = x (offxy (ikfit - 1) + iii) 
-      ENDDO 
-      DO iii = 1, ny (ikfit) 
-      y (offxy (ikcal - 1) + iii) = y (offxy (ikfit - 1) + iii) 
-      y (offxy (ikdif - 1) + iii) = y (offxy (ikfit - 1) + iii) 
-      ENDDO 
-!                                                                       
-      lni (ikcal) = .true. 
-      lni (ikdif) = .true. 
-      len (ikcal) = len (ikfit) 
-      len (ikdif) = len (ikfit) 
-      nx (ikcal) = nx (ikfit) 
-      ny (ikcal) = ny (ikfit) 
-      nx (ikdif) = nx (ikfit) 
-      ny (ikdif) = ny (ikfit) 
-      fform (ikcal) = fform (ikfit) 
-      fform (ikdif) = fform (ikfit) 
-!                                                                       
-      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
-      fname (ikcal) = filname (1:len_str (filname) ) //'.fit' 
-      fname (ikdif) = filname (1:len_str (filname) ) //'.dif' 
-      CALL get_extrema 
-!                                                                       
-      CALL do_fit_info (output_io, .false., .false., .true.) 
-      END SUBROUTINE do_fit_z                       
+!      SUBROUTINE do_fit_z 
+!!+                                                                      
+!!     der eigentliche fit fuer xyz-files                                
+!!-                                                                      
+!      USE prompt_mod 
+!      USE kuplot_config 
+!      USE kuplot_mod 
+!!                                                                       
+!      IMPLICIT none 
+!!                                                                       
+!      CHARACTER(60) filname 
+!      REAL xx, f, df (maxpara) 
+!      INTEGER i, iii 
+!      INTEGER len_str 
+!!                                                                       
+!      CALL wichtung (z) 
+!!      IF (ncycle.gt.0) call fit_kupl (z) 
+!!                                                                       
+!      DO i = 1, nx (ikfit) * ny (ikfit) 
+!      xx = REAL(i) 
+!!      CALL kupl_theory (xx, f, df, - i) 
+!      z (offz (ikcal - 1) + i) = f 
+!      IF (z (offz (ikfit - 1) + i) .ne. - 9999) THEN 
+!         z (offz (ikdif - 1) + i) = z (offz (ikfit - 1) + i) - f 
+!      ELSE 
+!         z (offz (ikdif - 1) + i) = - 9999.0 
+!      ENDIF 
+!      ENDDO 
+!      DO iii = 1, nx (ikfit) 
+!      x (offxy (ikcal - 1) + iii) = x (offxy (ikfit - 1) + iii) 
+!      x (offxy (ikdif - 1) + iii) = x (offxy (ikfit - 1) + iii) 
+!      ENDDO 
+!      DO iii = 1, ny (ikfit) 
+!      y (offxy (ikcal - 1) + iii) = y (offxy (ikfit - 1) + iii) 
+!      y (offxy (ikdif - 1) + iii) = y (offxy (ikfit - 1) + iii) 
+!      ENDDO 
+!!                                                                       
+!      lni (ikcal) = .true. 
+!      lni (ikdif) = .true. 
+!      len (ikcal) = len (ikfit) 
+!      len (ikdif) = len (ikfit) 
+!      nx (ikcal) = nx (ikfit) 
+!      ny (ikcal) = ny (ikfit) 
+!      nx (ikdif) = nx (ikfit) 
+!      ny (ikdif) = ny (ikfit) 
+!      fform (ikcal) = fform (ikfit) 
+!      fform (ikdif) = fform (ikfit) 
+!!                                                                       
+!      filname = fname (ikfit)(1:MIN(60,LEN_TRIM(fname(ikfit)))) 
+!      fname (ikcal) = filname (1:len_str (filname) ) //'.fit' 
+!      fname (ikdif) = filname (1:len_str (filname) ) //'.dif' 
+!      CALL get_extrema 
+!!                                                                       
+!      CALL do_fit_info (output_io, .false., .false., .true.) 
+!      END SUBROUTINE do_fit_z                       
 !*****7*****************************************************************
       SUBROUTINE wichtung (a) 
 !+                                                                      
@@ -4912,7 +4965,7 @@ END SUBROUTINE do_fit_y
 !                                                                       
       REAL calc_wic 
 !                                                                       
-      IF (lni (ikfit) ) then 
+      IF (lni (ikfit) ) THEN 
          ii = offz (ikfit - 1) 
          DO i = 1, nx (ikfit) * ny (ikfit) 
          w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
@@ -4920,11 +4973,11 @@ END SUBROUTINE do_fit_y
       ELSE 
          ii = offxy (ikfit - 1) 
          DO i = 1, len (ikfit) 
-         IF (frall) then 
+         IF (frall) THEN 
             w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
          ELSE 
             IF (x (ii + i) .lt.ex (iwin, iframe, 1) .or.x (ii + i)      &
-            .gt.ex (iwin, iframe, 2) ) then                             
+            .gt.ex (iwin, iframe, 2) ) THEN                             
                w (ii + i) = 0.0 
             ELSE 
                w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
@@ -4948,23 +5001,23 @@ END SUBROUTINE do_fit_y
       REAL val, aval, sig, wic 
 !                                                                       
       wic = 0.0 
-      IF (val.ne. - 9999.0) then 
+      IF (val.ne. - 9999.0) THEN 
          aval = abs (val) 
-         IF (wtyp (1:3) .eq.'LOG') then 
+         IF (wtyp (1:3) .eq.'LOG') THEN 
             IF (aval.gt.0.0) wic = log (aval) 
-         ELSEIF (wtyp (1:3) .eq.'SQR') then 
+         ELSEIF (wtyp (1:3) .eq.'SQR') THEN 
             wic = sqrt (aval) 
-         ELSEIF (wtyp (1:3) .eq.'ONE') then 
+         ELSEIF (wtyp (1:3) .eq.'ONE') THEN 
             wic = 1.0 
-         ELSEIF (wtyp (1:3) .eq.'LIN') then 
+         ELSEIF (wtyp (1:3) .eq.'LIN') THEN 
             wic = aval 
-         ELSEIF (wtyp (1:3) .eq.'SQA') then 
+         ELSEIF (wtyp (1:3) .eq.'SQA') THEN 
             wic = aval**2 
-         ELSEIF (wtyp (1:3) .eq.'INV') then 
+         ELSEIF (wtyp (1:3) .eq.'INV') THEN 
             IF (aval.ne.0.0) wic = 1.0 / aval 
-         ELSEIF (wtyp (1:3) .eq.'ISQ') then 
+         ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
             wic = 1.0 / sqrt (aval) 
-         ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
+         ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
             wic = 1.0 / (sig *sig)
          ENDIF 
       ENDIF 
@@ -4983,27 +5036,27 @@ END SUBROUTINE do_fit_y
 !      REAL xx, f, df (maxpara) 
 !      INTEGER iwert 
 !!                                                                       
-!      IF (ftyp (1:2) .eq.'PO') then 
+!      IF (ftyp (1:2) .eq.'PO') THEN 
 !DONE     CALL theory_poly (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'BA') then 
+!      ELSEIF (ftyp (1:2) .eq.'BA') THEN 
 !         CALL theory_backpoly (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'CH') then 
+!      ELSEIF (ftyp (1:2) .eq.'CH') THEN 
 !         CALL theory_poly_cheb (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'GS') then 
+!      ELSEIF (ftyp (1:2) .eq.'GS') THEN 
 !         CALL theory_gsas (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'LO') then 
+!      ELSEIF (ftyp (1:2) .eq.'LO') THEN 
 !         CALL theory_lor (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'PS') then 
+!      ELSEIF (ftyp (1:2) .eq.'PS') THEN 
 !         CALL theory_psvgt (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'FX') then 
+!      ELSEIF (ftyp (1:2) .eq.'FX') THEN 
 !         CALL theory_user (xx, f, df, iwert) 
-!      ELSEIF (ftyp (1:2) .eq.'GA') then 
-!         IF (.not.lni (ikfit) ) then 
+!      ELSEIF (ftyp (1:2) .eq.'GA') THEN 
+!         IF (.not.lni (ikfit) ) THEN 
 !            CALL theory_gauss (xx, f, df, iwert) 
 !         ELSE 
 !            CALL theory_gauss_2d (xx, f, df, iwert) 
 !         ENDIF 
-!      ELSEIF (ftyp (1:2) .eq.'MA') then 
+!      ELSEIF (ftyp (1:2) .eq.'MA') THEN 
 !         CALL theory_macro (xx, f, df, iwert) 
 !      ENDIF 
 !!                                                                       
@@ -5017,6 +5070,7 @@ SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit_const
 USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
@@ -5030,19 +5084,19 @@ USE kuplot_fit6_set_theory
       INTEGER ianz, ip , length
 !                                                                       
 !                                                                       
-      IF (ianz.eq.2) then 
+      IF (ianz.eq.2) THEN 
          ip = nint (werte (1) ) 
-         IF (ip.lt.1.or.ip.gt.maxpara) then 
+         IF (ip.lt.1.or.ip.gt.maxpara) THEN 
             ier_num = - 31 
             ier_typ = ER_APPL 
             RETURN 
          ENDIF 
 !                                                                       
          npara = ip 
-         fit_func = cpara (2) (1:lpara (2) ) 
-         fit_lfunc = lpara (2) 
-         cdummy = '('//fit_func (1:fit_lfunc) //')' 
-         length = fit_lfunc + 2
+         f6_fit_func = cpara (2) (1:lpara (2) ) 
+         f6_fit_lfunc = lpara (2) 
+         cdummy = '('//f6_fit_func (1:f6_fit_lfunc) //')' 
+         length = f6_fit_lfunc + 2
          dummy = berechne (cdummy, length)
 !                                                                       
       ELSE 
@@ -5079,9 +5133,9 @@ REAL                   :: f
       REAL :: xx
 !                                                                       
 !                                                                       
-      IF (ianz.eq.2) then 
+      IF (ianz.eq.2) THEN 
          ip = nint (werte (1) ) 
-         IF (ip.lt.1.or.ip.gt.maxpara) then 
+         IF (ip.lt.1.or.ip.gt.maxpara) THEN 
             ier_num = - 31 
             ier_typ = ER_APPL 
             RETURN 
@@ -5093,7 +5147,7 @@ REAL                   :: f
 !        cdummy = '('//fit_func (1:fit_lfunc) //')' 
 !        length = fit_lfunc + 2
 !        dummy = berechne (cdummy, length)
-         IF (lni (ikfit) ) then 
+         IF (lni (ikfit) ) THEN 
             iiw = offz (ikfit - 1) 
             iix = offxy (ikfit - 1) 
             m = nx (ikfit) * ny (ikfit) 
@@ -5119,12 +5173,13 @@ REAL                   :: f
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+USE kuplot_fit_const
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER idout, i 
 !                                                                       
-      WRITE (idout, 1000) fit_func (1:fit_lfunc) 
+      WRITE (idout, 1000) f6_fit_func (1:f6_fit_lfunc) 
       DO i = 1, npara 
       WRITE (idout, 1100) i, p (i), dp (i), pinc (i) 
       ENDDO 
@@ -5193,64 +5248,45 @@ INTEGER                                              , INTENT(IN)  :: kupl_last 
 REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
 REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
 LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
-!     SUBROUTINE theory_user (xx, f, df, i) 
-!                                                                       
-!     USE kuplot_config 
-!     USE kuplot_mod 
-!                                                                       
-!     IMPLICIT none 
 !                                                                       
 REAL, PARAMETER      :: SCALEF = 0.05 ! Scalefactor for parameter modification 0.01 is good?
 !
 CHARACTER(LEN=1024) :: cdummy 
-!     REAL xx, f, df (maxpara) 
-!     REAL pb, h, err 
-      INTEGER :: ind 
-      INTEGER :: length
+INTEGER :: ind 
+INTEGER :: length
 !
 INTEGER              :: nder          ! Numper of points for derivative
 REAL                 :: delta         ! Shift to calculate derivatives
-!REAL                 :: p_d           ! Shifted  parameter
+REAL                 :: p_d           ! Shifted  parameter
 REAL, DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
 REAL, DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
 REAL, DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
 REAL, DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
 REAL, DIMENSION(3,3) :: imat          ! Inverse to xmat
 !                                                                       
-      REAL, EXTERNAL :: dfridr
+!      REAL, EXTERNAL :: dfridr
 !                                                                       
 DO ind = 1, npara 
-   dyda (ind) = 0.0 
-   kupl_para(ind) = params(ind)
+   dyda(ind) = 0.0 
+   CALL user_upd_params(ind, params(ind))    ! Write params into kuplot "p"
 ENDDO 
 !                                                                       
-!-------x und y bestimmen                                               
+!--Copy x and y into global parameters                                  
 !                                                                       
-!     IF (lni (ikfit) ) then 
-!        ix = (abs (i) - 1) / ny (ikfit) + 1 
-!        iy = abs (i) - (ix - 1) * ny (ikfit) 
-!        rpara (0) = x (offxy (ikfit - 1) + ix) 
-!        rpara (1) = y (offxy (ikfit - 1) + iy) 
-!     ELSE 
-!        rpara (0) = xx 
-!     ENDIF 
-!
 rpara(0) = data_x(ix)
 rpara(1) = data_y(iy)
 !                                                                       
-!     cdummy = '('//fit_func (1:fit_lfunc) //')' 
 cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
 length = f6_fit_lfunc + 2
 ymod   = berechne (cdummy, length)
 !                                                                       
-!-------ableitungen                                                     
+!-------Derivatives                                                     
 !                                                                       
 IF(LDERIV) THEN
    DO ind = 1, npara 
       IF(l_do_deriv(ind)) THEN
-!!!!
 !
-         nder = 1                     ! First point is at P(IND)
+         nder = 1                          ! First point is at P(IND)
          dvec(2) = 0.0
          dvec(3) = 0.0
          dvec(1) = params(ind)             ! Store parameter value
@@ -5260,86 +5296,59 @@ IF(LDERIV) THEN
          ELSE
             delta = 0.010
          ENDIF
-!                                     ! Test at P + DELTA
+!                                          ! Test at P + DELTA
          IF(prange(ind,1)<=prange(ind,2)) THEN     ! User provided parameter range
-            kupl_para(ind)     = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)+delta))
+            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)+delta))
          ELSE
-            kupl_para(ind)     = params(ind) + delta
+            p_d      = params(ind) + delta
          ENDIF
 !        p_d = p(k) + delta
-         IF(params(ind)/=kupl_para(ind)) THEN           ! Parameter is not at edge of range
+         IF(p_d /=dvec(1)) THEN            ! Parameter is not at edge of range
             nder = nder + 1
-            dvec(2) = kupl_para(ind)            ! Store parameter value at P+DELTA
+            dvec(2) = p_d                  ! Store parameter value at P+DELTA
+            CALL user_upd_params(ind, p_d) ! Write params into kuplot "p"
+            cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
+            length = f6_fit_lfunc + 2
             yvec(2) = berechne (cdummy, length)
-!           CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
             IF(ier_num /= 0) RETURN
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
-!                 refine_derivs(iix,iiy,k) =  refine_temp(iix,iiy)
-!              ENDDO
-!           ENDDO
          ENDIF
-!                                     ! Test at P - DELTA
+!                                          ! Test at P - DELTA
          IF(prange(ind,1)<=prange(ind,2)) THEN
-            kupl_para(ind)     = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)-delta))
+            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)-delta))
          ELSE
-            kupl_para(ind)     = params(ind) - delta
+            p_d      = params(ind) - delta
          ENDIF
 !        p_d = p(k) - delta
-         IF(params(ind)/=kupl_para(ind)) THEN           ! Parameter is not at edge of range
+         IF(p_d /=dvec(1)) THEN            ! Parameter is not at edge of range
             nder = nder + 1
-            dvec(3) = kupl_para(ind)            ! Store parameter value at P-DELTA
+            dvec(3) = p_d                  ! Store parameter value at P-DELTA
+            CALL user_upd_params(ind, p_d) ! Write params into kuplot "p"
+            cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
+            length = f6_fit_lfunc + 2
             yvec(3) = berechne (cdummy, length)
-!           CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
-!           CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
-!                             data_dim, refine_temp)
             IF(ier_num /= 0) RETURN
 !
          ENDIF
-!        CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
-         kupl_para(ind) = params(ind) ! Return to original value
 !
-         IF(nder==3) THEN             ! Got all three points for derivative
-!           DO iiy=1, data_dim(2)
-!              DO iix=1, data_dim(1)
+         CALL user_upd_params(ind, params(ind))    ! Write params into kuplot "p"
 !
-!              Derivative is calculated as a fit of a parabola at P, P+delta, P-delta
-!                 yvec(1) = refine_calc  (iix, iiy)
-!                 yvec(2) = refine_derivs(iix, iiy,k)
-!                 yvec(3) = refine_temp  (iix, iiy)
-                  xmat(:,1) =  1.0
-                  xmat(1,2) =  dvec(1) !p(IND)
-                  xmat(2,2) =  dvec(2) !p(IND) + delta
-                  xmat(3,2) =  dvec(3) !p(k) - delta
-                  xmat(1,3) = (dvec(1))**2 !(p(IND)        ) **2
-                  xmat(2,3) = (dvec(2))**2 !(p(IND) + delta) **2
-                  xmat(3,3) = (dvec(3))**2 !(p(IND) - delta) **2
-                  CALL matinv3(xmat, imat)
-                  avec = MATMUL(imat, yvec)
-                  dyda(ind) = avec(2) + 2.*avec(3)*params(ind)
+         IF(nder==3) THEN                  ! Got all three points for derivative
+            xmat(:,1) =  1.0
+            xmat(1,2) =  dvec(1)           !p(IND)
+            xmat(2,2) =  dvec(2)           !p(IND) + delta
+            xmat(3,2) =  dvec(3)           !p(k) - delta
+            xmat(1,3) = (dvec(1))**2       !(p(IND)        ) **2
+            xmat(2,3) = (dvec(2))**2       !(p(IND) + delta) **2
+            xmat(3,3) = (dvec(3))**2       !(p(IND) - delta) **2
+            CALL matinv3(xmat, imat)
+            avec = MATMUL(imat, yvec)
+            dyda(ind) = avec(2) + 2.*avec(3)*params(ind)
 !
-!                 refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
-!              ENDDO
-!           ENDDO
          ELSEIF(nder==2) THEN
-            IF(dvec(2)==0) THEN          ! P + Delta failed
+            IF(dvec(2)==0) THEN            ! P + Delta failed
                dyda(ind) = (yvec(3)-yvec(1))/(dvec(3)-dvec(1))
-!              DO iiy=1, data_dim(2)
-!                 DO iix=1, data_dim(1)
-!                    refine_derivs(iix, iiy, k) = (refine_temp  (iix, iiy)-refine_calc  (iix, iiy))/ &
-!                                                 (dvec(3)-dvec(1))
-!                 ENDDO
-!              ENDDO
-            ELSEIF(dvec(3)==0) THEN      ! P - Delta failed
+            ELSEIF(dvec(3)==0) THEN        ! P - Delta failed
                dyda(ind) = (yvec(2)-yvec(1))/(dvec(2)-dvec(1))
-!              DO iiy=1, data_dim(2)
-!                 DO iix=1, data_dim(1)
-!                    refine_derivs(iix, iiy, k) = (refine_derivs(iix, iiy,k)-refine_calc  (iix, iiy))/ &
-!                                                 (dvec(2)-dvec(1))
-!                 ENDDO
-!              ENDDO
             ENDIF
 !
          ELSE
@@ -5349,45 +5358,49 @@ IF(LDERIV) THEN
             RETURN
          ENDIF
 !
-!!!!
       ENDIF
    ENDDO
 ENDIF
-!     IF (i.gt.0) then 
-!        DO ind = 1, npara 
-!        IF (pinc (ind) .ne.0) then 
-!           h = 0.1 * abs (p (ind) ) 
-!           IF (h.eq.0) h = 0.5 
-!           pb = p (ind) 
-!           np1 = ind 
-!           df (ind) = dfridr (p (ind), h, err) 
-!           p (ind) = pb 
-!        ENDIF 
-!        ENDDO 
-!     ENDIF 
+!
+data_calc(ix,iy) = ymod
 !                                                                       
 END SUBROUTINE theory_user                    
 !
 !*****7*****************************************************************
-      REAL function func (xx) 
+!
+SUBROUTINE user_upd_params(ind, values)    ! Write params into kuplot "p"
+!
+USE kuplot_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: ind
+REAL   , INTENT(IN) :: values
+!
+p(ind) = values
+!
+END SUBROUTINE user_upd_params
+!
+!*****7*****************************************************************
+!     REAL function func (xx) 
 !                                                                       
-      USE  berechne_mod
-      USE param_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE  berechne_mod
+!     USE param_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024) :: cdummy 
-      INTEGER :: length
-      REAL xx
+!     CHARACTER(LEN=1024) :: cdummy 
+!     INTEGER :: length
+!     REAL xx
 !                                                                       
-      p (np1) = xx 
-      cdummy = '('//fit_func (1:fit_lfunc) //')' 
-      length = fit_lfunc + 2
-      func = berechne (cdummy, length)
+!     p (np1) = xx 
+!     cdummy = '('//fit_func (1:fit_lfunc) //')' 
+!     length = fit_lfunc + 2
+!     func = berechne (cdummy, length)
 !                                                                       
-      END FUNCTION func                             
+!     END FUNCTION func                             
 !*****7*****************************************************************
 !       GSAS profile functions                                          
 !*****7*****************************************************************
@@ -5454,7 +5467,7 @@ END SUBROUTINE theory_user
 !                                                                       
       itype = nint (werte (1) ) 
       ibank = nint (werte (2) ) 
-      IF (ianz.eq.4) then 
+      IF (ianz.eq.4) THEN 
          ipeaks = nint (werte (4) ) 
       ELSE 
          ipeaks = 1 
@@ -5462,7 +5475,7 @@ END SUBROUTINE theory_user
 !                                                                       
       ifen = fit_ifen 
       CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.ge.1) then 
+      IF (ima.ge.1) THEN 
          xpeak = x (offxy (ikfit - 1) + ixm (1) ) 
       ELSE 
          xpeak = x (offxy (ikfit - 1) + len (ikfit) / 2) 
@@ -5485,7 +5498,7 @@ END SUBROUTINE theory_user
       npara = ncoff * ipeaks + 2 
 !                                                                       
       DO i = 1, ipeaks 
-      IF (ima.ge.i) then 
+      IF (ima.ge.i) THEN 
          p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + ixm (i) ) 
       ELSE 
          p ( (i - 1) * np3 + 1) = x (offxy (ikfit - 1) + len (ikfit)    &
@@ -5534,7 +5547,7 @@ END SUBROUTINE theory_user
 !     REAL sind 
 !                                                                       
       CALL oeffne (12, iname, 'old') 
-      IF (ier_num.ne.0) return 
+      IF (ier_num.ne.0) RETURN 
 !                                                                       
       WRITE (key, 1000) itype 
  1000 FORMAT    ('PRCF',i1) 
@@ -5549,12 +5562,12 @@ END SUBROUTINE theory_user
       READ (line (1:ll) , '(4x,i2,a6)', err = 20) ib, search 
       IF (ib.ne.ibank) goto 20 
 !                                                                       
-      IF (search.eq.' ICONS') then 
+      IF (search.eq.' ICONS') THEN 
          READ (line (13:ll), *, err = 998, end = 998) difc, difa, zero 
-      ELSEIF (search.eq.'BNKPAR') then 
+      ELSEIF (search.eq.'BNKPAR') THEN 
          READ (line (13:ll), *, err = 998) l2, tth 
-      ELSEIF (search (1:5) .eq.key) then 
-         IF (search (6:6) .eq.' ') then 
+      ELSEIF (search (1:5) .eq.key) THEN 
+         IF (search (6:6) .eq.' ') THEN 
             READ (line (13:ll), *, err = 998) itmp, ncoff 
          ELSE 
             READ (search (6:6), * ) itmp 
@@ -5570,7 +5583,7 @@ END SUBROUTINE theory_user
       CLOSE (12) 
 !                                                                       
       stheta = sind (0.5 * tth) 
-      IF (difa.ne.0.0) then 
+      IF (difa.ne.0.0) THEN 
          secondterm = sqrt (4.0 * difa * (tof - zero) + difc * difc) 
          dspace = ( - difc + secondterm) / 2. / difa 
       ELSE 
@@ -5612,7 +5625,7 @@ END SUBROUTINE theory_user
       ENDDO 
 !                                                                       
       j = abs (i) 
-      IF (j.ge.len (ikfit) ) return 
+      IF (j.ge.len (ikfit) ) RETURN 
 !                                                                       
       tth = 0. 
       ptype = np1 
@@ -5634,7 +5647,7 @@ END SUBROUTINE theory_user
       p ( (ip - 1) * np3 + k) = pp (k) 
       ENDDO 
 !                                                                       
-      IF (i.ge.1) then 
+      IF (i.ge.1) THEN 
 !tep   write(*,'(5g15.6)') deriv(1),deriv(2),deriv(3),deriv(4),deriv(5) 
          IF (pinc ( (ip - 1) * np3 + 1) .ne.0.0) df ( (ip - 1) * np3 +  &
          1) = pp (2) * deriv (1) / 1000.                                
@@ -5647,7 +5660,7 @@ END SUBROUTINE theory_user
       ENDIF 
       ENDDO 
 !                                                                       
-      IF (i.ge.1) then 
+      IF (i.ge.1) THEN 
          IF (pinc (npara - 1) .ne.0.0) df (npara - 1) = 1.0 
          IF (pinc (npara) .ne.0.0) df (npara) = xx 
       ENDIF 
@@ -5656,43 +5669,37 @@ END SUBROUTINE theory_user
 !*****7*****************************************************************
 !       Lorenzian                                                       
 !*****7*****************************************************************
-      SUBROUTINE show_lor (idout) 
+SUBROUTINE show_lor (idout) 
 !                                                                       
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+USE wink_mod
+USE kuplot_config 
+USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER idout, i, iii 
-      REAL zz, sint, ds0, ds2, ds3, dsint 
+INTEGER :: idout, i, iii 
+REAL    :: zz, sint, ds0, ds2, ds3, dsint 
 !                                                                       
-      WRITE (idout, 1000) np1 
-      WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
-      WRITE (idout, 1200) 2, p (2), dp (2), pinc (2) 
-      DO i = 1, np1 
-      WRITE (idout, 1300) i 
-      iii = 2 + (i - 1) * 4 
-      WRITE (idout, 1400) iii + 1, p (iii + 1), dp (iii + 1), pinc (iii &
-      + 1)                                                              
-      WRITE (idout, 1500) iii + 2, p (iii + 2), dp (iii + 2), pinc (iii &
-      + 2)                                                              
-      WRITE (idout, 1600) iii + 3, p (iii + 3), dp (iii + 3), pinc (iii &
-      + 3)                                                              
-      WRITE (idout, 1700) iii + 4, p (iii + 4), dp (iii + 4), pinc (iii &
-      + 4)                                                              
+WRITE (idout, 1000) np1 
+WRITE (idout, 1100) 1, p (1), dp (1), pinc (1) 
+WRITE (idout, 1200) 2, p (2), dp (2), pinc (2) 
+DO i = 1, np1 
+   WRITE (idout, 1300) i 
+   iii = 2 + (i - 1) * 4 
+   WRITE(idout, 1400) iii + 1, p(iii + 1), dp(iii + 1), pinc(iii + 1)
+   WRITE(idout, 1500) iii + 2, p(iii + 2), dp(iii + 2), pinc(iii + 2)
+   WRITE(idout, 1600) iii + 3, p(iii + 3), dp(iii + 3), pinc(iii + 3)
+   WRITE(idout, 1700) iii + 4, p(iii + 4), dp(iii + 4), pinc(iii + 4)
 !---------integral berechnen                                            
-      zz = p (iii + 3) / p (iii + 4) + p (iii + 3) * p (iii + 4) 
-      sint = p (iii + 1) * REAL(zpi) * zz 
-      ds0 = REAL(zpi) * zz 
-      ds2 = p (iii + 1) * REAL(zpi) * (1.0 / p (iii + 4) + p (iii + 4) ) 
-      ds3 = p (iii + 1) * REAL(zpi) * ( - p (iii + 3) / p (iii + 4) **2 + p ( &
-      iii + 3) )                                                        
-      dsint = dp (iii + 1) * ds0 + dp (iii + 3) * ds2 + dp (iii + 4)    &
-      * ds3                                                             
-      WRITE (idout, 1800) sint, dsint 
-      ENDDO 
-      WRITE (idout, * ) ' ' 
+   zz = p(iii + 3) / p(iii + 4) + p(iii + 3) * p(iii + 4) 
+   sint = p(iii + 1) * REAL(zpi) * zz 
+   ds0 = REAL(zpi) * zz 
+   ds2 = p(iii + 1) * REAL(zpi) * (1.0 / p(iii + 4) + p (iii + 4) ) 
+   ds3 = p(iii + 1) * REAL(zpi) * (-p(iii + 3) / p(iii + 4) **2 + p(iii + 3))
+   dsint = dp(iii + 1) * ds0 + dp(iii + 3) * ds2 + dp(iii + 4) * ds3
+   WRITE (idout, 1800) sint, dsint 
+ENDDO 
+WRITE (idout, * ) ' ' 
 !                                                                       
  1000 FORMAT     (1x,'Fitted',i3,' Lorenzian(s) : '/) 
  1100 FORMAT     (3x,'p(',i2,') : backgr. 1 : ',g12.6,' +- ',g12.6,     &
@@ -5710,88 +5717,89 @@ END SUBROUTINE theory_user
      &                   4x,'pinc : ',f2.0)                             
  1800 FORMAT     (3x,'        integral  : ',g12.6,' +- ',g12.6) 
 !                                                                       
-      END SUBROUTINE show_lor                       
+END SUBROUTINE show_lor                       
 !*****7*****************************************************************
 !
 SUBROUTINE setup_lor (ianz, werte, maxw) 
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
 USE kuplot_fit6_set_theory
 !                                                                       
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER maxmax 
-      PARAMETER (maxmax = 50) 
+INTEGER, PARAMETER :: maxmax = 50
 !                                                                       
-      INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
-      INTEGER ixm (maxmax) 
-      INTEGER ianz, ii, jj, ima, i 
+INTEGER, INTENT(IN) ::  ianz 
+INTEGER, INTENT(IN) ::  MAXW 
+REAL, DIMENSION(MAXW), INTENT(IN) :: werte
+!
+REAL   , DIMENSION(MAXMAX) :: wmax
+INTEGER, DIMENSION(MAXMAX) :: ixm
+INTEGER :: ii, jj, ima, i 
 !                                                                       
-      IF (ianz.eq.0) then 
-         npara = 6 
-         np1 = 1 
-      ELSEIF (ianz.eq.1) then 
-         ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) then 
-            np1 = ii 
-            npara = 2 + 4 * np1 
-         ELSE 
-            ier_num = - 31 
-            ier_typ = ER_APPL 
-            RETURN 
-         ENDIF 
-      ELSE 
-         ier_num = - 6 
-         ier_typ = ER_COMM 
-         RETURN 
-      ENDIF 
+IF (ianz.eq.0) THEN 
+   npara = 6 
+   np1 = 1 
+ELSEIF (ianz.eq.1) THEN 
+   ii = nint (werte (1) ) 
+   IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) THEN 
+      np1 = ii 
+      npara = 2 + 4 * np1 
+   ELSE 
+      ier_num = - 31 
+      ier_typ = ER_APPL 
+      RETURN 
+   ENDIF 
+ELSE 
+   ier_num = - 6 
+   ier_typ = ER_COMM 
+   RETURN 
+ENDIF 
 !                                                                       
-      ii = offxy (ikfit - 1) + 1 
-      jj = offxy (ikfit - 1) + len (ikfit) 
+ii = offxy (ikfit - 1) + 1 
+jj = offxy (ikfit - 1) + len (ikfit) 
 !                                                                       
-      p (1) = y (ii) 
-      pinc (1) = 1.0 
-      p (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
-      pinc (2) = 1.0 
+p   (1) = y (ii) 
+pinc(1) = 1.0 
+p   (2) = (y (jj) - y (ii) ) / (x (jj) - x (ii) ) 
+pinc(2) = 1.0 
 !                                                                       
-      ifen = fit_ifen 
-      CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.lt.np1) then 
-         ier_num = - 30 
-         ier_typ = ER_APPL 
-         CALL errlist 
-         DO i = 1, np1 
-         wmax (i) = 1.0 
-         ixm (i) = 1 
-         ENDDO 
-      ELSE 
-         DO i = ima + 1, np1 
-         wmax (i) = wmax (ima) 
-         ixm (i) = ixm (ima) 
-         ENDDO 
-      ENDIF 
-      CALL no_error 
+ifen = fit_ifen 
+CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
+IF (ima.lt.np1) THEN 
+   ier_num = - 30 
+   ier_typ = ER_APPL 
+   CALL errlist 
+   DO i = 1, np1 
+      wmax(i) = 1.0 
+      ixm (i) = 1 
+   ENDDO 
+ELSE 
+   DO i = ima + 1, np1 
+      wmax(i) = wmax(ima) 
+      ixm (i) = ixm (ima) 
+   ENDDO 
+ENDIF 
+CALL no_error 
 !                                                                       
-      IF (ier_num.eq.0) then 
-         DO i = 1, np1 
-         p (2 + (i - 1) * 4 + 1) = wmax (i) 
-         pinc (2 + (i - 1) * 4 + 1) = 1.0 
-         p (2 + (i - 1) * 4 + 2) = x (ii + ixm (i) - 1) 
-         pinc (2 + (i - 1) * 4 + 2) = 1.0 
-         p (2 + (i - 1) * 4 + 3) = 0.2 * abs (x (jj) - x (ii) ) 
-         pinc (2 + (i - 1) * 4 + 3) = 1.0 
-         p (2 + (i - 1) * 4 + 4) = 1.0 
-         pinc (2 + (i - 1) * 4 + 4) = 0.0 
-         ENDDO 
+IF (ier_num.eq.0) THEN 
+   DO i = 1, np1 
+     p   (2 + (i - 1) * 4 + 1) = wmax (i) 
+     pinc(2 + (i - 1) * 4 + 1) = 1.0 
+     p   (2 + (i - 1) * 4 + 2) = x (ii + ixm (i) - 1) 
+     pinc(2 + (i - 1) * 4 + 2) = 1.0 
+     p   (2 + (i - 1) * 4 + 3) = 0.2 * abs (x (jj) - x (ii) ) 
+     pinc(2 + (i - 1) * 4 + 3) = 1.0 
+     p   (2 + (i - 1) * 4 + 4) = 1.0 
+     pinc(2 + (i - 1) * 4 + 4) = 0.0 
+   ENDDO 
 !                                                                       
-         DO i = 1, npara 
-         dp (i) = 0.0 
-         ENDDO 
-      ENDIF 
+   DO i = 1, npara 
+      dp (i) = 0.0 
+   ENDDO 
+ENDIF 
 !
 p_kuplot_theory => theory_lor
 !                                                                       
@@ -5804,8 +5812,7 @@ SUBROUTINE theory_lor(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
 data_calc, kupl_last,      &
                       ymod, dyda, LDERIV)
 !
-! Calculate a polynomial function
-! ymod = SUM p[i]*xx^ind
+! Calculate a Lorenzian function
 !
 IMPLICIT NONE
 !
@@ -5846,7 +5853,7 @@ ymod = params (1) + params (2) * xx
 DO nlauf = 1, nl 
    na = nu + (nlauf - 1) * np + 1 
 !---------halbwertsbreiten                                              
-   IF (xx.le.params (na + 1) ) then 
+   IF (xx.le.params (na + 1) ) THEN 
       fwf = 1.0 / params (na + 3) 
    ELSE 
       fwf = 1.0 * params (na + 3) 
@@ -5857,7 +5864,7 @@ DO nlauf = 1, nl
 !---------funktionswert berechnen                                       
    ymod = ymod + params (na) * fw * fw / rn 
 !---------ableitungen berechnen                                         
-   IF(LDERIV) then 
+   IF(LDERIV) THEN 
       IF(l_do_deriv(na) )    dyda(na) = fw * fw / rn 
       IF(l_do_deriv(na + 1)) dyda(na + 1) = 8.0 * params(na) * fw * fw * xw / (rn**2)
       IF(l_do_deriv(na + 2)) dyda(na + 2) = 2 * params(na) * fw / rn -  &
@@ -5963,12 +5970,12 @@ USE kuplot_fit6_set_theory
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          npara = 6 
          np1 = 1 
-      ELSEIF (ianz.eq.1) then 
+      ELSEIF (ianz.eq.1) THEN 
          ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) then 
+         IF (ii.gt.0.and. (2 + 4 * ii) .le.maxpara) THEN 
             np1 = ii 
             npara = 2 + 4 * np1 
          ELSE 
@@ -5992,7 +5999,7 @@ USE kuplot_fit6_set_theory
 !                                                                       
       ifen = fit_ifen 
       CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.lt.np1) then 
+      IF (ima.lt.np1) THEN 
          ier_num = - 30 
          ier_typ = ER_APPL 
          CALL errlist 
@@ -6008,7 +6015,7 @@ USE kuplot_fit6_set_theory
       ENDIF 
       CALL no_error 
 !                                                                       
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          DO i = 1, np1 
          p (2 + (i - 1) * 4 + 1) = wmax (i) 
          pinc (2 + (i - 1) * 4 + 1) = 1.0 
@@ -6088,7 +6095,7 @@ ymod = params (1) + params (2) * xx
 DO nlauf = 1, np1 
    na = nunt + (nlauf - 1) * npar + 1 
 !---------Full Width at Half Maximum
-   IF (xx.le.params(na + 1) ) then 
+   IF (xx.le.params(na + 1) ) THEN 
       fwf = 1.0 / params(na + 3) 
    ELSE 
       fwf = 1.0 * params(na + 3) 
@@ -6104,8 +6111,8 @@ DO nlauf = 1, np1
          o1 * (xx - params (na + 1) ) / fw**2)                               
       IF (l_do_deriv (na + 2)) dyda (na + 2) = params (na) * exx * (2.0 *   &
          (xx - params (na + 1) ) **2 * o1 * fwf / (fw**3) )                  
-      IF (l_do_deriv(na + 3)) then 
-         IF (xx.le.params (na + 1) ) then 
+      IF (l_do_deriv(na + 3)) THEN 
+         IF (xx.le.params (na + 1) ) THEN 
                dyda (na + 3) = - params (na) * exx * (2.0 * (xx - params (na + 1) ) &
                **2 * o1 / (fw**3) ) * params (na + 2) / (params (na + 3) **2)     
          ELSE 
@@ -6208,18 +6215,18 @@ USE kuplot_fit_const
 nn_backgrd = 2
 pp_origin  = 0.0
 !
-IF(ianz.eq.0) then 
+IF(ianz.eq.0) THEN 
    npara = 8 
    np1 = 1 
-ELSEIF(ianz.le.3) then 
-   IF (ianz.eq.3) then 
+ELSEIF(ianz.le.3) THEN 
+   IF (ianz.eq.3) THEN 
       nn_backgrd = nint (werte (3) ) 
    ENDIF 
-   IF (ianz.ge.2) then 
+   IF (ianz.ge.2) THEN 
       pp_origin = werte (2) 
    ENDIF 
    ii = nint (werte (1) ) 
-   IF (ii.gt.0.and. (nn_backgrd + 6 * ii) .le.maxpara) then 
+   IF (ii.gt.0.and. (nn_backgrd + 6 * ii) .le.maxpara) THEN 
       np1 = ii 
       npara = nn_backgrd + 6 * np1 
    ELSE 
@@ -6250,7 +6257,7 @@ nu = nn_backgrd
 !                                                                       
       ifen = fit_ifen 
       CALL do_fmax_xy (ikfit, wmax, ixm, maxmax, ima) 
-      IF (ima.lt.np1) then 
+      IF (ima.lt.np1) THEN 
          ier_num = - 30 
          ier_typ = ER_APPL 
          CALL errlist 
@@ -6266,7 +6273,7 @@ nu = nn_backgrd
       ENDIF 
       CALL no_error 
 !                                                                       
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          DO i = 1, np1 
          p (nu + (i - 1) * 6 + 1) = 0.5 
          pinc (nu + (i - 1) * 6 + 1) = 1.0 
@@ -6391,39 +6398,39 @@ DO nlauf = 1, nl
 !---------calculate pseudo Voigt                                        
    ymod = ymod + params(na + 1) * asym * pseudo 
 !---------calculate derivatives                                         
-   IF (LDERIV) then 
+   IF (LDERIV) THEN 
 !     ---- eta                                                          
-      IF (l_do_deriv (na)) then 
+      IF (l_do_deriv (na)) THEN 
          dyda(na) = params(na + 1) * asym * (lore-gaus) 
       ENDIF 
 !     ---- intensity                                                    
-      IF (l_do_deriv (na + 1)) then 
+      IF (l_do_deriv (na + 1)) THEN 
          dyda(na + 1) = asym * pseudo 
       ENDIF 
 !     ---- position                                                     
-      IF (l_do_deriv (na + 2)) then 
+      IF (l_do_deriv (na + 2)) THEN 
          dldpos = 2. / pi * 8. * fw * xw / lorn**2 
          dgdpos = gaus * (2. * vln2 / fw**2 * xw) 
          dyda(na + 2) = asym * params(na + 1) * (eta * dldpos + (1. - eta) * dgdpos)
       ENDIF 
 !     ---- FWHM                                                         
-      IF (l_do_deriv (na + 3)) then 
+      IF (l_do_deriv (na + 3)) THEN 
          dldfw = 2. / pi * ( - 1. * fw * fw + 4. * xw * xw) / lorn**2
          dgdfw = gaus * ( - 1. / fw + 2. * vln2 / fw**3 * xw * xw) 
          dyda(na + 3) = asym * params(na + 1) * (eta * dldfw + (1. - eta) * dgdfw)
       ENDIF 
 !     ---- asymmetry parameter 1                                        
-      IF (l_do_deriv (na + 4)) then 
+      IF (l_do_deriv (na + 4)) THEN 
          dyda (na + 4) = params (na + 1) * pseudo * fa / tand (params (na + 2) ) 
       ENDIF 
 !     ---- asymmetry parameter 2                                        
-      IF (l_do_deriv (na + 5)) then 
+      IF (l_do_deriv (na + 5)) THEN 
          dyda (na + 5) = params (na + 1) * pseudo * fb / tand (params (na + 2) ) 
       ENDIF 
    ENDIF 
 ENDDO 
 !-------derivative of background                                        
-IF (LDERIV) then 
+IF (LDERIV) THEN 
    DO j = 1, nu 
       IF (l_do_deriv (j)) dyda (j) = (xx - pp_origin) ** (j - 1) 
    ENDDO 
@@ -6514,11 +6521,12 @@ END SUBROUTINE theory_psvgt
 !                                                                       
       END SUBROUTINE show_gauss_2d                  
 !***7*******************************************************************
-      SUBROUTINE setup_gauss_2d (ianz, werte, maxw) 
+SUBROUTINE setup_gauss_2d (ianz, werte, maxw) 
 !                                                                       
-      USE errlist_mod 
-      USE kuplot_config 
-      USE kuplot_mod 
+USE errlist_mod 
+USE kuplot_config 
+USE kuplot_mod 
+USE kuplot_fit6_set_theory
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -6531,12 +6539,12 @@ END SUBROUTINE theory_psvgt
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ianz, ima, ii, jj, i 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          npara = 1 + 8 
          np1 = 1 
-      ELSEIF (ianz.eq.1) then 
+      ELSEIF (ianz.eq.1) THEN 
          ii = nint (werte (1) ) 
-         IF (ii.gt.0.and. (1 + 8 * ii) .le.maxpara) then 
+         IF (ii.gt.0.and. (1 + 8 * ii) .le.maxpara) THEN 
             np1 = ii 
             npara = 1 + 8 * np1 
          ELSE 
@@ -6562,7 +6570,7 @@ END SUBROUTINE theory_psvgt
 !                                                                       
       ifen = fit_ifen 
       CALL do_fmax_z (ikfit, wmax, ixm, iym, maxmax, ima) 
-      IF (ima.lt.np1) then 
+      IF (ima.lt.np1) THEN 
          ier_num = - 30 
          ier_typ = ER_APPL 
          CALL errlist 
@@ -6582,7 +6590,7 @@ END SUBROUTINE theory_psvgt
 !                                                                       
 !-------parameter setzen                                                
 !                                                                       
-      IF (ier_num.eq.0) then 
+      IF (ier_num.eq.0) THEN 
          DO i = 1, np1 
          p (1 + (i - 1) * 8 + 1) = wmax (i) 
          pinc (1 + (i - 1) * 8 + 1) = 1.0 
@@ -6608,104 +6616,146 @@ END SUBROUTINE theory_psvgt
          dp (i) = 0.0 
          ENDDO 
       ENDIF 
+!
+p_kuplot_theory => theory_gauss_2d
 !                                                                       
-      END SUBROUTINE setup_gauss_2d                 
+END SUBROUTINE setup_gauss_2d                 
+!
+!*******************************************************************************
+!
+SUBROUTINE theory_gauss_2d(MAXP, ix, iy, xx, yy, NPARA, params, par_names,          &
+                          prange, l_do_deriv, data_dim, &
+                          data_data, data_weight, data_x, data_y, &
+                          data_calc, kupl_last,      &
+                          ymod, dyda, LDERIV)
+!
+! Calculate a 2D gauss function
+!
+USE wink_mod
+!
+IMPLICIT NONE
+!
+INTEGER                                              , INTENT(IN)  :: MAXP    ! Parameter array sizes
+INTEGER                                              , INTENT(IN)  :: ix      ! Point number along x
+INTEGER                                              , INTENT(IN)  :: iy      ! Point number along y
+REAL                                                 , INTENT(IN)  :: xx      ! Point value  along x
+REAL                                                 , INTENT(IN)  :: yy      ! Point value  along y
+INTEGER                                              , INTENT(IN)  :: NPARA   ! Number of refined parameters
+REAL            , DIMENSION(MAXP )                   , INTENT(IN)  :: params  ! Parameter values
+CHARACTER(LEN=*), DIMENSION(MAXP)                    , INTENT(IN)  :: par_names    ! Parameter names
+REAL            , DIMENSION(MAXP, 2                 ), INTENT(IN)  :: prange      ! Allowed parameter range
+LOGICAL         , DIMENSION(MAXP )                   , INTENT(IN)  :: l_do_deriv  ! Parameter needs derivative
+INTEGER         , DIMENSION(2)                       , INTENT(IN)  :: data_dim     ! Data array dimensions
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_data    ! Data array
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(IN)  :: data_weight  ! Data sigmas
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_x       ! Data coordinates x
+REAL            , DIMENSION(data_dim(1))             , INTENT(IN)  :: data_y       ! Data coordinates y
+REAL            , DIMENSION(data_dim(1), data_dim(2)), INTENT(OUT) :: data_calc    ! Data array
+INTEGER                                              , INTENT(IN)  :: kupl_last    ! Last KUPLOT DATA that are needed
+REAL                                                 , INTENT(OUT) :: ymod    ! Function value at (ix,iy)
+REAL            , DIMENSION(NPARA)                   , INTENT(OUT) :: dyda    ! Function derivatives at (ix,iy)
+LOGICAL                                              , INTENT(IN)  :: LDERIV  ! TRUE if derivative is needed
+!
 !*********************************************************************  
-      SUBROUTINE theory_gauss_2d (xx, f, df, i) 
+!     SUBROUTINE theory_gauss_2d (xx, f, df, i) 
 !                                                                       
-      USE wink_mod
-      USE kuplot_config 
-      USE kuplot_mod 
+!     USE kuplot_config 
+!     USE kuplot_mod 
 !                                                                       
-      IMPLICIT none 
+!     IMPLICIT none 
 !                                                                       
-      REAL xx, f, o1, df (maxpara) 
-      REAL rx, ry, rxs, rys, fwfx, fwx, fwfy, fwy, cosp, sinp 
-      REAL exx, eyy, dfxs, dfys 
-      INTEGER i, ind, nlauf, na, nu, np, ng, ix, iy 
+!     REAL xx, f, o1, df (maxpara) 
+REAL    :: o1
+REAL    :: rx, ry, rxs, rys, fwfx, fwx, fwfy, fwy, cosp, sinp 
+REAL    :: exx, eyy, dfxs, dfys 
+INTEGER :: ind, nlauf, na, nu, np, ng
 !                                                                       
-      DO ind = 1, maxpara 
-      df (ind) = 0.0 
-      ENDDO 
+DO ind = 1, npara 
+   dyda(ind) = 0.0 
+ENDDO 
 !                                                                       
-      o1 = 4.0 * alog (2.0) 
-      nu = 1 
-      np = 8 
-      ng = np1 
+o1 = 4.0 * alog (2.0) 
+nu = 1 
+np = 8 
+ng = (npara-nu)/np   ! Number of Gauss Peaks  
 !-------x und y bestimmen                                               
-      ix = (abs (i) - 1) / ny (ikfit) + 1 
-      iy = abs (i) - (ix - 1) * ny (ikfit) 
-      rx = x (offxy (ikfit - 1) + ix) 
-      ry = y (offxy (ikfit - 1) + iy) 
+!     ix = (abs (i) - 1) / ny (ikfit) + 1 
+!     iy = abs (i) - (ix - 1) * ny (ikfit) 
+!     rx = x (offxy (ikfit - 1) + ix) 
+!     ry = y (offxy (ikfit - 1) + iy) 
+rx = data_x(ix)
+ry = data_y(iy)
 !-------untergrund                                                      
-      f = p (1) 
-      DO nlauf = 1, ng 
-      na = nu + (nlauf - 1) * np + 1 
+ymod = params(1) 
+!
+DO nlauf = 1, ng 
+   na = nu + (nlauf - 1) * np + 1 
 !---------sinus und cosinus berechnen                                   
-      cosp = cos (REAL(rad) * p (na + 5) ) 
-      sinp = sin (REAL(rad) * p (na + 5) ) 
+   cosp = cos (REAL(rad) * params(na + 5) ) 
+   sinp = sin (REAL(rad) * params(na + 5) ) 
 !---------transformation in hautachsensystem                            
-      rxs = cosp * (rx - p (na + 1) ) + sinp * (ry - p (na + 2) ) 
-      rys = - sinp * (rx - p (na + 1) ) + cosp * (ry - p (na + 2) ) 
+   rxs = cosp * (rx - params(na + 1) ) + sinp * (ry - params(na + 2) ) 
+   rys = -sinp * (rx - params(na + 1) ) + cosp * (ry - params(na + 2) ) 
 !---------halbwertsbreiten                                              
-      IF (rxs.le.0.0) then 
-         fwfx = 1.0 / p (na + 6) 
-      ELSE 
-         fwfx = 1.0 * p (na + 6) 
-      ENDIF 
-      fwx = p (na + 3) * fwfx 
-      IF (rys.le.0.0) then 
-         fwfy = 1.0 / p (na + 7) 
-      ELSE 
-         fwfy = 1.0 * p (na + 7) 
-      ENDIF 
-      fwy = p (na + 4) * fwfy 
+   IF (rxs.le.0.0) THEN 
+      fwfx = 1.0 / params(na + 6) 
+   ELSE 
+      fwfx = 1.0 * params(na + 6) 
+   ENDIF 
+   fwx = params(na + 3) * fwfx 
+   IF (rys.le.0.0) THEN 
+      fwfy = 1.0 / params(na + 7) 
+   ELSE 
+      fwfy = 1.0 * params(na + 7) 
+   ENDIF 
+   fwy = params(na + 4) * fwfy 
 !---------funktionswert berechnen                                       
-      exx = exp ( - rxs**2 * o1 / (fwx**2) ) 
-      eyy = exp ( - rys**2 * o1 / (fwy**2) ) 
-      f = f + p (na) * exx * eyy 
+   exx = exp ( - rxs**2 * o1 / (fwx**2) ) 
+   eyy = exp ( - rys**2 * o1 / (fwy**2) ) 
+   ymod = ymod + params(na) * exx * eyy 
+!
 !---------ableitungen berechnen                                         
-      IF (i.gt.0) then 
-         IF (pinc (na) .ne.0) df (na) = exx * eyy 
-         dfxs = p (na) * eyy * exx * ( - 2 * rxs * o1 / (fwx**2) ) 
-         dfys = p (na) * eyy * exx * ( - 2 * rys * o1 / (fwy**2) ) 
-         IF (pinc (na + 1) .ne.0) df (na + 1) = - cosp * dfxs + sinp *  &
-         dfys                                                           
-         IF (pinc (na + 2) .ne.0) df (na + 2) = - sinp * dfxs - cosp *  &
-         dfys                                                           
-         IF (pinc (na + 3) .ne.0) df (na + 3) = p (na) * eyy * exx *    &
-         (2 * rxs**2 * o1 * fwfx / (fwx**3) )                           
-         IF (pinc (na + 4) .ne.0) df (na + 4) = p (na) * eyy * exx *    &
-         (2 * rys**2 * o1 * fwfy / (fwy**3) )                           
-         IF (pinc (na + 5) .ne.0) df (na + 5) = ( - (rx - p (na + 1) )  &
-         * sinp + (ry - p (na + 2) ) * cosp) * dfxs * REAL(rad)+ ( - (rx - p (&
-         na + 1) ) * cosp - (ry - p (na + 2) ) * sinp) * dfys * REAL(rad)     
-         IF (pinc (na + 6) .ne.0) then 
-            IF (rxs.le.0.0) then 
-               df (na + 6) = - p (na) * eyy * exx * (2 * rxs**2 * o1 /  &
-               (fwx**3) ) * p (na + 3) / (p (na + 6) **2)               
-            ELSE 
-               df (na + 6) = p (na) * eyy * exx * (2 * rxs**2 * o1 /    &
-               (fwx**3) ) * p (na + 3)                                  
-            ENDIF 
-         ENDIF 
-         IF (pinc (na + 7) .ne.0) then 
-            IF (rys.le.0.0) then 
-               df (na + 7) = - p (na) * eyy * exx * (2 * rys**2 * o1 /  &
-               (fwy**3) ) * p (na + 4) / (p (na + 7) **2)               
-            ELSE 
-               df (na + 7) = p (na) * eyy * exx * (2 * rys**2 * o1 /    &
-               (fwy**3) ) * p (na + 4)                                  
-            ENDIF 
+IF(LDERIV) THEN 
+   IF(l_do_deriv(na) ) dyda (na) = exx * eyy 
+      dfxs = params(na) * eyy * exx * ( -2 * rxs * o1 / (fwx**2) ) 
+      dfys = params(na) * eyy * exx * ( -2 * rys * o1 / (fwy**2) ) 
+      IF(l_do_deriv(na + 1)) dyda(na + 1) = - cosp * dfxs + sinp * dfys
+      IF(l_do_deriv(na + 2)) dyda(na + 2) = - sinp * dfxs - cosp * dfys
+      IF(l_do_deriv(na + 3)) dyda(na + 3) = params(na) * eyy * exx *            &
+                                            (2. * rxs**2 * o1 * fwfx / (fwx**3))                           
+      IF(l_do_deriv(na + 4)) dyda(na + 4) = params(na) * eyy * exx *            &
+                                            (2. * rys**2 * o1 * fwfy / (fwy**3))                           
+      IF(l_do_deriv(na + 5)) dyda(na + 5) = (-(rx - params(na + 1))*sinp        &
+             + (ry - params(na + 2) ) * cosp) * dfxs                            &
+             * REAL(rad)+ (-(rx - params(na + 1)) * cosp                        &
+             - (ry - params(na + 2)) * sinp) * dfys * REAL(rad)     
+      IF(l_do_deriv(na + 6)) THEN 
+         IF(rxs.le.0.0) THEN 
+            dyda(na + 6) = -params(na) * eyy * exx * (2 * rxs**2 * o1 /  &
+               (fwx**3) ) * params(na + 3) / (params (na + 6) **2)               
+         ELSE 
+            dyda(na + 6) = params(na) * eyy * exx * (2 * rxs**2 * o1 /    &
+               (fwx**3) ) * params (na + 3)                                  
          ENDIF 
       ENDIF 
-      ENDDO 
+      IF(l_do_deriv (na + 7)) THEN 
+         IF (rys.le.0.0) THEN 
+            dyda(na + 7) = -params(na) * eyy * exx * (2 * rys**2 * o1 /  &
+               (fwy**3) ) * params(na + 4) / (params(na + 7) **2)               
+         ELSE 
+            dyda (na + 7) = params(na) * eyy * exx * (2 * rys**2 * o1 /    &
+               (fwy**3) ) * params(na + 4)                                  
+         ENDIF 
+      ENDIF 
+   ENDIF 
+ENDDO 
 !-------untergrundsableitungen                                          
-      IF (i.gt.0) then 
-         IF (pinc (1) .ne.0) df (1) = 1.0 
-      ENDIF 
-!                                                                       
-      END SUBROUTINE theory_gauss_2d                
+IF(LDERIV) THEN 
+   IF(l_do_deriv(1)) dyda(1) = 1.0 
+ENDIF 
+data_calc(ix,iy) = ymod
+!
+END SUBROUTINE theory_gauss_2d                
 !***7*******************************************************************
 !     Chebyshev polynom                                                 
 !***7*******************************************************************
@@ -6742,13 +6792,13 @@ END SUBROUTINE theory_psvgt
       REAL werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
-      IF (ianz.eq.0) then 
+      IF (ianz.eq.0) THEN 
          npara = 1 
          np1 = 1 
-      ELSEIF (ianz.eq.1) then 
+      ELSEIF (ianz.eq.1) THEN 
          ii = nint (werte (1) ) 
          IF (ii.ge.0.and. (1 + ii) .le.maxpara.and. (1 + ii) .le.5)     &
-         then                                                           
+         THEN                                                           
             np1 = ii 
             npara = ii + 1 
          ELSE 
@@ -6808,7 +6858,7 @@ END SUBROUTINE theory_psvgt
 !                                                                       
 !-------Derivatives                                                     
 !                                                                       
-      IF (iwert.gt.0) then 
+      IF (iwert.gt.0) THEN 
          IF (pinc (1) .ne.0.0) df (1) = 1.0 
          IF (pinc (2) .ne.0.0.and.np1.ge.1) df (2) = xnew 
          IF (pinc (3) .ne.0.0.and.np1.ge.2) df (3) = 2 * xnew**2 - 1 
@@ -6973,9 +7023,9 @@ END SUBROUTINE theory_poly
 !!                                                                       
 !!-------Derivatives                                                     
 !!                                                                       
-!      IF (iwert.gt.0) then 
+!      IF (iwert.gt.0) THEN 
 !         DO ind = 0, np1 
-!         IF (pinc (ind+1) .ne.0) then 
+!         IF (pinc (ind+1) .ne.0) THEN 
 !            df (ind+1) = (xx**ind) 
 !         ENDIF 
 !         ENDDO 
@@ -7024,14 +7074,14 @@ USE kuplot_fit6_set_theory
       REAL werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
-      IF (ianz.eq.1) then 
+      IF (ianz.eq.1) THEN 
          ikfit2 = nint (werte (1) ) 
          npara = 1 
          np1 = 1 
-      ELSEIF (ianz.eq.2) then 
+      ELSEIF (ianz.eq.2) THEN 
          ikfit2 = nint (werte (1) ) 
          ii = nint (werte (2) ) 
-         IF (ii.ge.0.and. (1 + ii) .le.maxpara) then 
+         IF (ii.ge.0.and. (1 + ii) .le.maxpara) THEN 
             np1 = ii 
             npara = ii + 1 
          ELSE 
@@ -7048,7 +7098,7 @@ USE kuplot_fit6_set_theory
       ii = offxy (ikfit - 1) + 1 
       jj = offxy (ikfit2 - 1) + 1 
 !                                                                       
-      IF (np1.ge.2) then 
+      IF (np1.ge.2) THEN 
          p (2) = y (ii) - y (jj) 
          pinc (2) = 1.0 
       ELSE 
@@ -7057,7 +7107,7 @@ USE kuplot_fit6_set_theory
 !                                                                       
       ii = offxy (ikfit - 1) + len (ikfit) / 2 
       jj = offxy (ikfit2 - 1) + len (ikfit2) / 2 
-      IF (y (jj) .ne.0) then 
+      IF (y (jj) .ne.0) THEN 
          p (1) = (y (ii) - p (2) ) / y (jj) 
       ENDIF 
       pinc (1) = 1.0 
@@ -7142,11 +7192,11 @@ ENDDO
 !                                                                       
 IF(LDERIV) THEN 
    ind = 1 
-   IF (l_do_deriv(ind)) then 
+   IF (l_do_deriv(ind)) THEN 
       dyda(ind) = data_data(ix,iy)
    ENDIF 
    DO ind = 2, npara 
-      IF (l_do_deriv(ind)) then 
+      IF (l_do_deriv(ind)) THEN 
          dyda (ind) = (arg** (ind-2) ) 
       ENDIF 
    ENDDO 
