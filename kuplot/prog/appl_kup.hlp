@@ -615,8 +615,7 @@
    by default the connection between the end points of the current
    plotting area. However, the area to be filled can be limited 
    using the optional parameters <xmin>, <xmax> and <ymin>, <ymax>.
-2  fit
-!b fit <ik>
+
 
    This command enters the fit sub level and data set <ik> is taken
    as target data set. For an easy start, select a fit function 
@@ -687,6 +686,7 @@
 4  gaus
 !b func "gaus" [,<par>]
 
+   xY data:
    The fit uses <par> Gaussian functions. Two parameters (no. 1 
    and 2) are refined for the background and each Gaussian peak used 
    four parameters:
@@ -700,6 +700,20 @@
    p[1] + p[2]*r[0] + p[3]*exp(-4*ln(2)*(r[0]-p[4])**2/p[5]**2)
    Note that the peak height rather than the integral intensity
    is refined.
+
+   xyZ data:
+   The fit uses <par> Gaussian functions. One constant background 
+   parameter is used and each Gaussien peak used 8 parameters:
+
+!p p[2] Peak height
+!p p[3] Position x
+!p p[4] Position y
+!p p[5] FWHM x
+!p p[6] FWHM y
+!p p[7] Rotation of the Gaussian around the Z-axis
+!p p[8] Asymmetry x
+!p p[9] Asymmetry y
+
 4  lore
 !b func "lore" [,<par>]
 
