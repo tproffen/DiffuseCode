@@ -67,10 +67,10 @@ USE qval_mod
       IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
                 value == val_fq     .OR. value == val_iq      .OR. &
                 value == val_f2aver .OR. value == val_faver2  .OR. &
-                value == val_norm                                    )) THEN
+                value == val_norm   .OR. value == val_pdf            )) THEN
          ier_msg(1) = ' Powder output is defined only for:'
          ier_msg(2) = ' Intensity, S(Q), F(Q), <f>^2, <f^2>'
-         ier_msg(3) = ' Intensity/N'
+         ier_msg(3) = ' Intensity/N, PDF'
          ier_num = -124
          ier_typ = ER_APPL
          RETURN
@@ -127,10 +127,10 @@ USE qval_mod
          npkt = MIN(num(1), POW_MAXPKT)
       ENDIF 
 !
-!     Prepare average form factors for S(Q) or F(Q), or faver2, f2aver
+!     Prepare average form factors for S(Q) or F(Q), Normalized Intensity, PDF, or faver2, f2aver
 !
       IF(value == val_sq     .OR. value == val_fq     .OR. &
-         value == val_norm   .OR.                          &
+         value == val_norm   .OR. value == val_pdf    .OR. &
          value == val_f2aver .OR. value == val_faver2      ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
             IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
@@ -247,9 +247,9 @@ USE qval_mod
                dstar  = 2. *             sind (ttheta * 0.5) / rlambda 
                q      = 2. * REAL(zpi) * sind (ttheta * 0.5) / rlambda 
             ENDIF 
-            IF(value == val_sq .or. value == val_fq)  THEN
+            IF(value == val_sq .OR. value == val_fq .OR. value == val_pdf)  THEN
                lp = lorentz(ttheta,1)
-            ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
+            ELSEIF(value == val_f2aver .OR. value == val_faver2) THEN  ! f2aver or faver2
                lp = 1
             ELSE
                lp     = lorentz (ttheta,0) * polarisation (ttheta) 
@@ -286,7 +286,7 @@ USE qval_mod
             q = REAL(zpi) * REAL(xm (1) + (ii - 1) * uin (1) ) 
             ttheta = 2. * asind (dstar * rlambda / 2.) 
 !
-            IF(value == val_sq .or. value == val_fq) THEN
+            IF(value == val_sq .or. value == val_fq .OR. value == val_pdf) THEN
                lp = 1                     ! For S(Q) and F(Q) nor Polarisation corr.
             ELSEIF(value == val_f2aver .or. value == val_faver2) THEN  ! f2aver or faver2
                lp = 1
@@ -308,8 +308,8 @@ USE qval_mod
 !
 !     Prepare S(Q) or F(Q)
 !
-      IF(value == val_sq .or. value == val_fq .OR. & 
-         value == val_iq .OR. value == val_norm      ) THEN
+      IF(value == val_sq .or. value == val_fq   .OR. & 
+         value == val_iq .OR. value == val_norm .OR. value == val_pdf ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
             IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv) THEN
             pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
@@ -332,7 +332,7 @@ USE qval_mod
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
                             + 1.0 - exp(-q**2*pow_u2aver)) 
                ENDDO
-            ELSEIF(value == val_fq) THEN                ! Calc F(Q)IF
+            ELSEIF(value == val_fq .OR. value == val_pdf) THEN  ! Calc F(Q)IF
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
@@ -514,6 +514,8 @@ USE qval_mod
                ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
             ENDDO
          ENDDO
+      ELSEIF(value==val_PDF) THEN    ! Transform F(Q) into PDF
+         CONTINUE
       ENDIF
 !
 !     Finally write the pattern

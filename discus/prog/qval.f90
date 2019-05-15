@@ -13,6 +13,7 @@ INTEGER, PARAMETER :: val_faver2 = 10
 INTEGER, PARAMETER :: val_faver  = 11
 INTEGER, PARAMETER :: val_norm   = 12
 INTEGER, PARAMETER :: val_iq     = 13
+INTEGER, PARAMETER :: val_pdf    = 14
 CONTAINS
 !*****7*****************************************************************
       REAL FUNCTION qval (i, value, ix, iy, laver) 
