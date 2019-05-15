@@ -149,10 +149,16 @@ ELSE                                     ! !D data set
       ALLOCATE(ref_x     (ref_dim(1)))
       ALLOCATE(ref_y     (1         ))
       DO ix=1,ref_dim(1)
-         ref_data(ix,1)   = y (offxy(ndata - 1) + ix)
-         ref_weight(ix,1) = dy(offxy(ndata - 1) + ix)
-         ref_x(ix)        = x (offxy(ndata - 1) + ix)
+         ref_data(ix,1)   = y(offxy(ndata - 1) + ix)
+         ref_weight(ix,1) = ABS(dy(offxy(ndata - 1) + ix))
+         ref_x(ix)        = x(offxy(ndata - 1) + ix)
       ENDDO
+      IF(MINVAL(ref_weight(:,1))==0.0) THEN
+         ier_num = -7
+         ier_typ = ER_APPL
+         ier_msg(1) = ' Check data and define non-zeo sigma'
+         RETURN
+      ENDIF
       ref_y(1) = 1.0
       CALL def_set_variable('real', 'F_XMIN', ref_x(1),          IS_DIFFEV)
       CALL def_set_variable('real', 'F_XMAX', ref_x(ref_dim(1)), IS_DIFFEV)

@@ -220,6 +220,15 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          CALL refine_set_param(NPARA, par_names(k), k, p(k))  ! Return to original value
 !
          IF(nder==3) THEN             ! Got all three points for derivative
+            xmat(:,1) =  1.0
+            xmat(1,2) =  dvec(1) !p(k)
+            xmat(2,2) =  dvec(2) !p(k) + delta
+            xmat(3,2) =  dvec(3) !p(k) - delta
+            xmat(1,3) = (dvec(1))**2 !(p(k)        ) **2
+            xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
+            xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
+            CALL matinv3(xmat, imat)
+            IF(ier_num/=0) RETURN
             DO iiy=1, data_dim(2)
                DO iix=1, data_dim(1)
 !
@@ -227,14 +236,6 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
                   yvec(1) = refine_calc  (iix, iiy)
                   yvec(2) = refine_derivs(iix, iiy,k)
                   yvec(3) = refine_temp  (iix, iiy)
-                  xmat(:,1) =  1.0
-                  xmat(1,2) =  dvec(1) !p(k)
-                  xmat(2,2) =  dvec(2) !p(k) + delta
-                  xmat(3,2) =  dvec(3) !p(k) - delta
-                  xmat(1,3) = (dvec(1))**2 !(p(k)        ) **2
-                  xmat(2,3) = (dvec(2))**2 !(p(k) + delta) **2
-                  xmat(3,3) = (dvec(3))**2 !(p(k) - delta) **2
-                  CALL matinv3(xmat, imat)
                   avec = MATMUL(imat, yvec)
 !
                   refine_derivs(iix, iiy, k) = avec(2) + 2.*avec(3)*p(k)
@@ -286,6 +287,7 @@ SUBROUTINE refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, refine
 !   Runs the user defined macro to calculate the cost value
 !
 USE refine_fit_set_sub_mod
+USE refine_setup_mod
 !
 USE doact_mod
 USE do_if_mod
@@ -361,17 +363,30 @@ ENDDO main
 !
 ier_number = 0
 ier_type   = 0
-IF(ier_num /= 0) THEN         ! Back up error status
+IF(ier_num==-9 .AND. ier_typ==1) THEN   ! Error condition in macro
+   ier_number = -6
+   ier_type   =  ER_APPL
+   ier_msg(1) = 'check performance of user macro'
+   ier_num = 0
+   ier_typ = 0
+ELSEIF(ier_num /= 0) THEN         ! Back up error status
    ier_number = ier_num
    ier_type   = ier_typ
+   CALL errlist
+   ier_number = -6
+   ier_type   =  ER_APPL
+   ier_msg(1) = 'Check performance of user macro'
    ier_num = 0
-   ier_type = 0
+   ier_typ = 0
 ENDIF
 CALL macro_terminate
 p_mache_kdo   => refine_mache_kdo
 lmacro_close = .TRUE.       ! Do close macros in do-loops
+!
+!
 IF(ier_number == 0 .AND. IER_NUM == 0) THEN
    CALL refine_load_calc(dimen, array)
+   IF(ier_num/=0) RETURN
 ENDIF
 !
 IF(l_prompt_restore) THEN
@@ -381,6 +396,7 @@ IF(l_prompt_restore) THEN
 ENDIF
 !
 IF(ier_number /= 0) THEN    ! If necessary restore error status
+   CALL refine_set_sub
    ier_num = ier_number
    ier_typ = ier_type
 ENDIF
@@ -423,7 +439,7 @@ IF(iz<1) THEN
    ier_num = -3
    ier_typ = ER_APPL
    ier_msg(1) = 'KUPLOT does not have any data sets'
-   ier_msg(2) = 'Load caclulated data into KUPLOT, '
+   ier_msg(2) = 'Load calculated data into KUPLOT, '
    ier_msg(3) = 'or remove a ''reset'' from KUPLOT section'
    RETURN
 ENDIF
