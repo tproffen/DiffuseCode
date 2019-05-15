@@ -3,6 +3,7 @@ MODULE powder_mod
 !     variables needed for the powder diffraction
 !-
 USE discus_config_mod
+USE precision_mod
 !
 SAVE
 !
@@ -48,12 +49,12 @@ INTEGER                  :: pow_lp         = POW_LP_BRAGG
 !
 LOGICAL                  :: pow_l_all      = .true.
 !
-REAL                     :: pow_tthmin     =  0.1
-REAL                     :: pow_tthmax     = 40.0
-REAL                     :: pow_deltatth   =  0.05
-REAL                     :: pow_qmin       =  0.2
-REAL                     :: pow_qmax       =  7.0
-REAL                     :: pow_deltaq     =  0.0001
+REAL(KIND=PREC_DP)       :: pow_tthmin     =  0.1D0
+REAL(KIND=PREC_DP)       :: pow_tthmax     = 40.0D0
+REAL(KIND=PREC_DP)       :: pow_deltatth   =  0.05D0
+REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
+REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
+REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.0001D0
 REAL                     :: pow_ds_max     =  0.0001
 REAL                     :: pow_ds_min     =  0.0001
 REAL                     :: pow_delta      =  0.0

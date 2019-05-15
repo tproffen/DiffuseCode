@@ -635,7 +635,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                lpara (1) = 1 
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.eq.0) then 
-                  pow_deltaq = werte (2) 
+                  pow_deltaq = NINT(werte(2)*1.D5)/1.D5
                ENDIF 
             ELSE 
                ier_num = - 6 
