@@ -30,7 +30,7 @@ CHARACTER(LEN=1024) :: zeile     = ' '
 CHARACTER(LEN=1024) :: dummy     = ' '
 LOGICAL  , DIMENSION(1024,0:1) :: lmask 
 !                                                                       
-INTEGER :: i, ianf, iend, ll , j
+INTEGER :: i, ianf, iend, ll
 INTEGER :: linsert 
 INTEGER :: laenge
 INTEGER :: istart, istop
