@@ -10,6 +10,8 @@ USE discus_loop_mod
 USE discus_reset_all_mod
 USE kuplot_setup_mod
 USE kuplot_loop_mod
+USE refine_setup_mod
+USE refine_loop_mod
 !
 USE blanks_mod
 USE appl_env_mod
@@ -185,6 +187,8 @@ ELSEIF(pname=='diffev') THEN  ! Return to DIFFEV branch
       CALL diffev_set_sub ()
 ELSEIF(pname=='kuplot') THEN  ! Return to KUPLOT branch
       CALL kuplot_set_sub ()
+ELSEIF(pname=='refine') THEN  ! Return to KUPLOT branch
+      CALL refine_set_sub ()
 ENDIF
 CALL suite_set_sub_branch ()
 IF(ier_num == -9 .AND. ier_typ == 1) THEN

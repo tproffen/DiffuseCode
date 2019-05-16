@@ -42,15 +42,27 @@ IF(line(1:6) == 'kuplot') THEN
    CALL ber_params(ianz, cpara, lpara, werte, MAXW)
    IF(ier_num/= 0) RETURN
    ndata = NINT(werte(2))
-   IF(LDATA) ref_load = ' '
+   IF(LDATA) THEN             ! Data loaded from KUPLOT
+      ref_load = ' '
+      ref_kload = ndata
+   ELSE
+      ref_sigma = ' '         ! Sigma loaded from KUPLOT
+      ref_ksigma = ndata
+   ENDIF
 ELSE                               ! Presume a "data xy, filename "
-   IF(LDATA) ref_load = line
+   IF(LDATA) THEN
+      ref_load = line
+      ref_kload = 0
+   ELSE
+      ref_sigma = line
+      ref_ksigma = 0
+   ENDIF
    CALL do_load(line, length,.TRUE.)
    IF(ier_num/= 0) RETURN
    ndata = -1                 ! Will be updated to correct value in refine_load_kuplot
 ENDIF
 CALL refine_load_kuplot(LDATA, ndata)
-ref_kupl = ndata              ! This is the last KUPLOT data set that needs to be kept
+ref_kupl = MAX(ref_kupl, ndata)   ! This is the last KUPLOT data set that needs to be kept
 !
 END SUBROUTINE refine_load
 !

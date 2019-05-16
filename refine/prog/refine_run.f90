@@ -1,12 +1,12 @@
 MODULE refine_run_mod
 !
+USE refine_mac_mod
+!
 IMPLICIT NONE
 !
 REAL, DIMENSION(:,:  ), ALLOCATABLE :: refine_calc     ! Calculated (ix, iy)
 REAL, DIMENSION(:,:  ), ALLOCATABLE :: refine_temp     ! Calculated (ix, iy) for derivs
 REAL, DIMENSION(:,:,:), ALLOCATABLE :: refine_derivs   ! Derivativs (ix, iy, parameter)
-CHARACTER(LEN=1024)                 :: refine_mac      ! Refinement user macro name
-INTEGER                             :: refine_mac_l    ! Length of character string for macro
 !
 CONTAINS
 !
@@ -26,6 +26,7 @@ USE doact_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE prompt_mod
 !
 IMPLICIT NONE
 !
@@ -92,8 +93,9 @@ DO i=1, refine_fix_n
    refine_f(i) = werte(1)
 ENDDO
 ndata = ref_dim(1)*ref_dim(2)
-CALL show_fit_erg(REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
-                  ndata, refine_chisqr, refine_conf,                            &
+CALL show_fit_erg(output_io, REF_MAXPARAM, REF_MAXPARAM_FIX, refine_par_n, refine_fix_n,   &
+                  ndata, refine_mac, refine_mac_l, ref_load, ref_kload,         &
+                  ref_sigma, ref_ksigma, .FALSE., refine_chisqr, refine_conf,            &
                   refine_lamda, refine_rval, refine_rexp, refine_params,        &
                   refine_p, refine_dp, refine_range, refine_cl, refine_fixed,   &
                   refine_f)
@@ -396,10 +398,11 @@ IF(l_prompt_restore) THEN
 ENDIF
 !
 IF(ier_number /= 0) THEN    ! If necessary restore error status
-   CALL refine_set_sub
+!  CALL refine_set_sub
    ier_num = ier_number
    ier_typ = ier_type
 ENDIF
+CALL refine_fit_un_sub
 !
 END SUBROUTINE refine_macro
 !
@@ -935,6 +938,14 @@ IF(ref_LOAD/= ' ') THEN           ! Data set was loaded
    WRITE(IWR, '(a)') 'kuplot'
    WRITE(IWR, '(a)') 'rese'
    WRITE(IWR, '(a,a)') 'load ',ref_load(1:LEN_TRIM(ref_load))
+   WRITE(IWR, '(a)') 'exit'
+   WRITE(IWR, '(a)') '#'
+ENDIF
+!
+IF(ref_sigma/= ' ') THEN           ! sigma set was loaded 
+   WRITE(IWR, '(a)') 'kuplot'
+   WRITE(IWR, '(a)') 'rese'
+   WRITE(IWR, '(a,a)') 'load ',ref_sigma(1:LEN_TRIM(ref_sigma))
    WRITE(IWR, '(a)') 'exit'
    WRITE(IWR, '(a)') '#'
 ENDIF

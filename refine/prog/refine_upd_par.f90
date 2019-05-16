@@ -5,10 +5,14 @@ SUBROUTINE refine_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !       appropriate Parameter.                                          
 !     This is needed if the parameter is read.                          
 !+                                                                      
+!
+USE refine_params_mod
+!
 USE blanks_mod
 USE errlist_mod 
 USE param_mod 
 USE lib_upd_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -21,7 +25,68 @@ INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
 REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
+CHARACTER(LEN=1024) :: zeile
+INTEGER :: laenge
+INTEGER :: lcomm
+INTEGER :: ltyp
+INTEGER :: kpara
+INTEGER :: kpara2
+!
+INTEGER, EXTERNAL :: length_com
+!
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
+!
+IF(ier_num == 0) RETURN
+CALL no_error
+!
+laenge = ll
+ltyp = 1
+zeile = ' '
+kpara = NINT(ww(1))
+kpara2 = 0
+IF (maxw.ge.2) THEN
+   kpara2 = NINT(ww(2))
+ENDIF
+!                                                                       
+lcomm = length_com (string, ikl)
+!                                                                       
+IF (lcomm.eq.5) THEN
+!
+   IF(ikl > lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
+!
+   IF(string(ikl-5:ikl - 1) .eq.'covar') THEN
+      IF(ianz==2) THEN
+         IF(1<=kpara .AND.kpara<=refine_par_n.AND. &
+            1<=kpara2.AND.kpara2<=refine_par_n  ) THEN
+            WRITE(zeile(ikl-5:ikl+PREC_WIDTH-2), PREC_F_REAL) refine_cl(kpara,kpara2)
+            zeile(ikl+PREC_MANTIS-lcomm:ikl+PREC_MANTIS-lcomm) = 'e'
+         ELSE
+            ier_num = -8
+            ier_typ = ER_FORT
+         ENDIF
+      ELSE
+         ier_num = -13
+         ier_typ = ER_FORT
+      ENDIF
+   ELSE
+      ier_num = -2
+      ier_typ = ER_FORT
+      RETURN
+   ENDIF
+ELSE
+   ier_num = - 2
+   ier_typ = ER_FORT
+ENDIF
+!
+IF (ier_num.eq.0) THEN
+   ll = laenge+PREC_WIDTH - ltyp - (iklz - ikl + 1)
+   IF(iklz + 1.le.laenge) zeile(ikl + PREC_WIDTH-1:ll) = string(iklz + 1:laenge)
+   string = zeile
+ELSE
+   ll = MIN(40, laenge)
+   WRITE (ier_msg (1), '(a)') string (1:ll)
+ENDIF
+ll  = LEN_TRIM(string)
 !
 END SUBROUTINE refine_ersetz_para                    
 !*****7*****************************************************************
