@@ -58,6 +58,10 @@ USE qval_mod
       REAL      :: scalef  ! Correct effect of convolution
       REAL      :: pow_tmp_sum = 0.0
       REAL      :: pow_uuu_sum = 0.0
+REAL(KIND=PREC_DP) :: rmin, rmax
+INTEGER            :: npkt_pdf
+REAL, DIMENSION(:), ALLOCATABLE :: xfour
+REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !                                                                       
 !      REAL lorentz 
 !      REAL polarisation 
@@ -515,7 +519,24 @@ USE qval_mod
             ENDDO
          ENDDO
       ELSEIF(value==val_PDF) THEN    ! Transform F(Q) into PDF
-         CONTINUE
+         rmin     =     0.01D0
+         rmax     =   100.0D0
+         npkt_pdf = 10000
+         ALLOCATE(xfour(0:npkt_pdf))
+         ALLOCATE(yfour(0:npkt_pdf))
+         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+         DEALLOCATE(xwrt)
+         DEALLOCATE(ywrt)
+         ALLOCATE(xwrt(0:npkt_pdf))
+         ALLOCATE(ywrt(0:npkt_pdf))
+         DO ii=0,npkt_pdf
+            xwrt(ii) =xfour(ii)
+            ywrt(ii) =yfour(ii)
+         ENDDO
+         DEALLOCATE(xfour)
+         DEALLOCATE(yfour)
+         npkt_wrt = npkt_pdf
+
       ENDIF
 !
 !     Finally write the pattern
@@ -529,6 +550,51 @@ USE qval_mod
       DEALLOCATE( ywrt, stat = all_status)
 !                                                                       
       END SUBROUTINE powder_out                     
+!
+SUBROUTINE four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+!
+USE wink_mod
+!
+INTEGER                     , INTENT(IN) :: npkt_wrt
+REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: xwrt
+REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: ywrt
+REAL(KIND=PREC_DP)          , INTENT(IN) :: rmin, rmax
+INTEGER                     , INTENT(IN) :: npkt_pdf
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
+!
+INTEGER :: i,j
+REAL(KIND=PREC_DP) :: rr, dr
+REAL(KIND=PREC_DP) :: dq
+REAL(KIND=PREC_DP) :: qmin
+INTEGER            :: iqmin
+!
+qmin = xwrt(1)
+dr = (rmax-rmin)/(npkt_pdf-1)
+dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
+iqmin = NINT(qmin/dq) - 1
+xfour(0) = 0.0
+yfour(0) = 0.0
+!
+! Augment straight line from Q=0, F(0)=0 to qmin, F(qmin)
+DO i = 1, npkt_pdf
+   rr = rmin + (i-1)*dr
+   xfour(i) = REAL(rr)
+   yfour(i) = 0.0
+   DO j = 1, iqmin
+      yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*SIN((j-1)*dq*rr)
+   ENDDO
+ENDDO
+! Do rest of F(Q)
+DO i = 1, npkt_pdf
+   rr = rmin + (i-1)*dr
+   DO j=1, npkt_wrt
+      yfour(i) = yfour(i) + ywrt(j)*SIN(xwrt(j)*rr)
+   ENDDO
+   yfour(i) = yfour(i)*2/PI*dq
+ENDDO
+!
+END SUBROUTINE four_fq
 !*****7*****************************************************************
       REAL function lorentz (ttheta, flag_fq) 
 !+                                                                      

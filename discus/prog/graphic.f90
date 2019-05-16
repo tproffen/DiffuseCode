@@ -506,6 +506,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
                   ELSEIF (cpara (1) (ix:ix + 3) == 'norm') THEN 
                      value = val_norm
+                  ELSEIF (cpara (1) (ix:ix + 3) == 'PDF' ) THEN 
+                     value = val_pdf
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
