@@ -1286,8 +1286,8 @@ INTEGER                             , INTENT(IN)    :: cr_natoms
 INTEGER                             , INTENT(IN)    :: maxw 
 REAL(KIND=PREC_DP), DIMENSION(MAXW) , INTENT(INOUT) :: werte !(maxw) 
 INTEGER                             , INTENT(IN)    :: AT_MAXP
-INTEGER                             , INTENT(OUT)   :: at_ianz
-CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(OUT)   :: at_param
+INTEGER                             , INTENT(IN )   :: at_ianz
+CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(IN )   :: at_param
 LOGICAL                             , INTENT(INOUT) :: at_init
 !                                                                       
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
