@@ -2333,7 +2333,7 @@ laccept = .false.
       USE crystal_mod 
       USE molecule_mod 
       USE pdf_mod 
-      USE powder, ONLY : powder_trans_atoms_tocart, powder_trans_atoms_fromcart
+      USE powder_pdf_hist_mod, ONLY : powder_trans_atoms_tocart, powder_trans_atoms_fromcart
       USE discus_plot_init_mod
 !
       USE debug_mod 
