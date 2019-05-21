@@ -31,6 +31,7 @@ SUBROUTINE chem
       USE learn_mod 
       USE class_macro_internal 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -44,8 +45,8 @@ SUBROUTINE chem
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
       CHARACTER(1024) line, zeile, cpara (maxw) 
-      REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
-      REAL uwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw), wwwerte (maxw) 
+      REAL(KIND=PREC_DP) :: uwerte (maxw) 
       INTEGER lbeg (3) 
       INTEGER lpara (maxw), lp, length 
       INTEGER indxg, ianz, lbef, iianz, jjanz 
@@ -699,6 +700,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -711,7 +713,7 @@ IF (indxg /= 0 .AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )    &
       INTEGER lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP):: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER indxx, indxy, indxz 
@@ -925,6 +927,7 @@ USE crystal_mod
 USE chem_mod 
 USE ber_params_mod
 USE errlist_mod 
+USE precision_mod
 IMPLICIT none 
 !                                                                       
        
@@ -932,7 +935,7 @@ IMPLICIT none
 INTEGER                           , INTENT(IN)    :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
 CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
-REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 INTEGER     :: is1, is2, iv
@@ -1011,13 +1014,14 @@ SUBROUTINE chem_set_con (ianz, cpara, lpara, werte, maxw)
    USE ber_params_mod
    USE errlist_mod 
    USE get_params_mod
+USE precision_mod
    IMPLICIT none 
 !
 !
    INTEGER                           , INTENT(INOUT) :: ianz 
    INTEGER                           , INTENT(IN)    :: maxw 
    CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
-   REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+   REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
    INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
    CHARACTER (LEN=256)  :: c_name   ! Connectivity name
@@ -1140,13 +1144,14 @@ USE rmc_symm_mod
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
+USE precision_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
 INTEGER                           , INTENT(INOUT) :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
 CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
-REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 INTEGER, PARAMETER  :: max_uvw = 48 
@@ -1385,13 +1390,14 @@ USE crystal_mod
 USE chem_mod 
 USE ber_params_mod
 USE errlist_mod 
+USE precision_mod
 IMPLICIT none 
 !                                                                       
 !                                                                       
 INTEGER                           , INTENT(IN)    :: ianz 
 INTEGER                           , INTENT(IN)    :: maxw 
 CHARACTER (LEN=*), DIMENSION(maxw), INTENT(INOUT) :: cpara
-REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 INTEGER            :: is1, is2, is3, iv
@@ -1477,6 +1483,7 @@ ENDIF
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1484,7 +1491,7 @@ ENDIF
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, janz, iv, i, j
       INTEGER            :: n_atom
@@ -1561,6 +1568,7 @@ ENDIF
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -1571,7 +1579,7 @@ ENDIF
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) ::  werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
 !                                                                       
@@ -1858,13 +1866,14 @@ ENDIF
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
 !                                                                       
@@ -1910,6 +1919,7 @@ ENDIF
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -1924,8 +1934,8 @@ ENDIF
       INTEGER lpara (maxw) 
       INTEGER i, ianz, laenge 
       INTEGER iatom, isite, icell (3) 
-      REAL werte (maxw), dummy(1)
-      REAL radius, pos (3) 
+      REAL(KIND=PREC_DP) ::  werte (maxw), dummy(1)
+      REAL(KIND=PREC_SP) ::  radius, pos (3) 
       LOGICAL latom 
 !                                                                       
       LOGICAL str_comp 
@@ -2069,6 +2079,7 @@ ENDIF
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2086,8 +2097,8 @@ ENDIF
       INTEGER iatom, isite, icell (3) 
       INTEGER      :: ie_1, ie_2 
       INTEGER      :: ilook  ! Lookup entry in bv_index_table
-      REAL werte (maxw), dummy (1)
-      REAL radius, bval, pos (3) 
+      REAL(KIND=PREC_DP) ::  werte (maxw), dummy (1)
+      REAL(KIND=PREC_SP) ::  radius, bval, pos (3) 
       LOGICAL latom 
 !                                                                       
       LOGICAL str_comp 
@@ -2260,6 +2271,7 @@ ENDIF
       USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2272,8 +2284,8 @@ ENDIF
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(9) at_name_i 
-      REAL werte (maxw) 
-      REAL pos (3, 0:maxatom) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_SP) :: pos (3, 0:maxatom) 
       INTEGER lpara (maxw) 
       INTEGER ind (0:maxatom), iatom, imol 
       INTEGER i, j, n, ic, ianz, laenge 
@@ -2419,6 +2431,7 @@ ENDIF
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -2428,7 +2441,7 @@ ENDIF
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw), catom (2) 
-      REAL werte (maxw), wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
       INTEGER lpara (maxw), latom (2) 
       INTEGER lp, ianz, iianz 
       LOGICAL locc 
@@ -2502,6 +2515,7 @@ ENDIF
       USE molecule_mod 
       USE modify_func_mod
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2509,7 +2523,7 @@ ENDIF
 !                                                                       
       CHARACTER ( * ) fname 
       INTEGER ianz, maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER itot, ico 
       INTEGER csize (3), lbeg (3) 
@@ -2637,6 +2651,7 @@ ENDIF
       USE fourier_sup, ONLY: four_csize, four_ranloc
       USE mc_mod 
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2648,8 +2663,8 @@ ENDIF
 !                                                                       
       INTEGER csize (3), lbeg (3) 
       INTEGER i, ibin, il, iup, ic, l 
-      REAL sc (chem_max_cor), scc (chem_max_cor) 
-      REAL ave_c, sig_c 
+      REAL(KIND=PREC_DP) :: sc (chem_max_cor), scc (chem_max_cor) 
+      REAL(KIND=PREC_DP) :: ave_c, sig_c 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -2852,6 +2867,7 @@ ENDIF
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -2869,11 +2885,12 @@ ENDIF
       INTEGER latom (2), lbeg (3), lname 
       INTEGER xmin, xmax, ymin, ymax 
       INTEGER l, i, ix, iy, ianz, lp 
-      REAL werte (maxw), nv (3) 
-      REAL cval (maxval) 
-      REAL back_neig (3, 48, chem_max_cor) 
-      REAL back_rmin (chem_max_cor) 
-      REAL back_rmax (chem_max_cor) 
+      REAL(KIND=PREC_DP):: werte (maxw)
+      REAL(KIND=PREC_SP):: nv (3) 
+      REAL(KIND=PREC_SP):: cval (maxval) 
+      REAL(KIND=PREC_SP):: back_neig (3, 48, chem_max_cor) 
+      REAL(KIND=PREC_SP):: back_rmin (chem_max_cor) 
+      REAL(KIND=PREC_SP):: back_rmax (chem_max_cor) 
       LOGICAL locc 
 !                                                                       
       LOGICAL str_comp 
@@ -3179,6 +3196,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_func_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3191,7 +3209,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP):: werte (maxw) 
       LOGICAL lout 
 !                                                                       
       CHARACTER(1024) fname 
@@ -3203,7 +3221,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL bl_s2 (0:maxscat, 0:maxscat) 
       REAL patom (3, 0:maxatom) 
       REAL u (3), v (3), d (3), di 
-      REAL wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: wwerte (maxw) 
       LOGICAL lfile 
 !                                                                       
 !     REAL do_blen 
@@ -3331,6 +3349,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE modify_func_mod
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3343,7 +3362,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) ::  werte (maxw) 
       LOGICAL lout 
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
@@ -3728,6 +3747,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE molecule_mod 
       USE ber_params_mod
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3740,7 +3760,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) ::  werte (maxw) 
       LOGICAL lout 
 !                                                                       
       INTEGER imol, jmol, i, j, k, it1, it2, is, js, ic 
@@ -3883,6 +3903,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -3895,9 +3916,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
-      REAL uerte (maxw) 
-      REAL verte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_DP) :: uerte (maxw) 
+      REAL(KIND=PREC_DP) :: verte (maxw) 
       LOGICAL lout 
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
@@ -4077,6 +4098,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_func_mod   
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4089,9 +4111,9 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER ianz, maxw 
       CHARACTER ( * ) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
-      REAL uerte (maxw) 
-      REAL verte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_DP) :: uerte (maxw) 
+      REAL(KIND=PREC_DP) :: verte (maxw) 
       LOGICAL lout 
 !                                                                       
       CHARACTER(9) at_name_i, at_name_j 
@@ -4292,6 +4314,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE get_params_mod
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4318,7 +4341,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, ii, is, js, ic, iianz, jjanz, nn 
       INTEGER :: n_res
       REAL patom (3, 0:maxatom) 
-      REAL werte (MAXSCAT), wwerte (MAXSCAT) 
+      REAL(KIND=PREC_DP):: werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
       REAL xij, xi2, xj2 
@@ -4533,6 +4556,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4553,7 +4577,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER i, j, ii, is, js, ic, nn 
       INTEGER it1, it2, imol, jmol 
       INTEGER :: n_res
-      REAL werte (maxww) 
+      REAL(KIND=PREC_DP) :: werte (maxww) 
       REAL idir (3), jdir (3), di (3), dj (3) 
       REAL rdi, rdj, dpi, dpj 
       REAL xij, xi2, xj2 
@@ -4736,6 +4760,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4758,7 +4783,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER nneig 
       INTEGER :: n_res
       REAL patom (3, 0:maxatom) 
-      REAL werte (MAXSCAT), wwerte (MAXSCAT) 
+      REAL(KIND=PREC_DP) :: werte (MAXSCAT), wwerte (MAXSCAT) 
       REAL pneig (2, 2) 
       REAL pro00, pro01, pro11 
       REAL thet 
@@ -4917,6 +4942,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -4936,7 +4962,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       INTEGER imol, it1, it2 
       INTEGER nneig 
       INTEGER :: n_res
-      REAL werte (maxww) 
+      REAL(KIND=PREC_DP) :: werte (maxww) 
       REAL pneig (2, 2) 
       REAL pro00, pro01, pro11 
       REAL thet 
@@ -5088,6 +5114,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_mod
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -5098,7 +5125,8 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL patom (3, 0:maxw) 
 !                                                                       
       REAL u (3), v (3), w (3), uu (3) 
-      REAL offset (3), dummy(1) 
+      REAL offset (3)
+REAL(KIND=PREC_DP) :: dummy(1) 
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, ii, iv, katom 
       LOGICAL lok 
@@ -5340,6 +5368,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE debug_mod 
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -5354,10 +5383,11 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       REAL   , DIMENSION(3, 0:maxw, CHEM_MAX_CENT), INTENT(OUT) :: patom ! Coordinates
 !
       REAL dist (CHEM_MAX_CENT) 
-      REAL werte (MAX_ATOM_ENV) 
+      REAL(KIND=PREC_DP) :: werte (MAX_ATOM_ENV) 
 !                                                                       
       REAL u (3), v (3), w (3), uu (3) 
-      REAL offset (3), dummy(1) 
+      REAL offset (3)
+REAL(KIND=PREC_DP) :: dummy(1) 
       INTEGER jcell (3), icell (3), isite, jsite 
       INTEGER i, j, k, l, ii, iv, katom, ianz 
       INTEGER                    :: is1    ! central atom type
@@ -6019,22 +6049,23 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE errlist_mod 
       USE lib_f90_allocate_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw, iianz, jjanz 
-      REAL werte (maxw), wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
 !                                                                       
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER bl_anz (0:maxscat, 0:maxscat), btot, btottot 
       INTEGER :: n_res
       REAL u (3) 
-      REAL bl_min (0:maxscat, 0:maxscat) 
-      REAL bl_max (0:maxscat, 0:maxscat) 
-      REAL bl_sum (0:maxscat, 0:maxscat) 
-      REAL bl_s2 (0:maxscat, 0:maxscat) 
-      REAL bl_ave, bl_sig 
+      REAL(KIND=PREC_DP) :: bl_min (0:maxscat, 0:maxscat) 
+      REAL(KIND=PREC_DP) :: bl_max (0:maxscat, 0:maxscat) 
+      REAL(KIND=PREC_DP) :: bl_sum (0:maxscat, 0:maxscat) 
+      REAL(KIND=PREC_DP) :: bl_s2 (0:maxscat, 0:maxscat) 
+      REAL(KIND=PREC_DP) :: bl_ave, bl_sig 
 !                                                                       
       CHARACTER(9) at_name_i 
       CHARACTER(9) at_name_j 
@@ -6198,12 +6229,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_func_mod
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw, iianz, jjanz 
-      REAL werte (maxw), wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
 !                                                                       
       INTEGER i, j, k, ibin
       REAL u (3), v (3), dist 
@@ -6299,12 +6331,13 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE modify_func_mod
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
 !                                                                       
       INTEGER maxw, iianz, jjanz, kkanz 
-      REAL werte (maxw), wwerte (maxw), uwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw), uwerte (maxw) 
 !                                                                       
       INTEGER i, j, k, l, is, js, ibin 
       INTEGER ba_anz (0:maxscat, 0:maxscat) 
@@ -6560,6 +6593,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
       USE get_params_mod
       USE ber_params_mod
       USE param_mod
+USE precision_mod
       USE prompt_mod
       IMPLICIT NONE
       CHARACTER(LEN=*), INTENT(INOUT) :: zeile
@@ -6569,7 +6603,7 @@ INTEGER, INTENT(IN) :: CHEM_MAX_VEC
 !
       CHARACTER(LEN=1024),DIMENSION(MAXW) :: cpara
       INTEGER            ,DIMENSION(MAXW) :: lpara
-      REAL               ,DIMENSION(MAXW) :: werte
+      REAL(KIND=PREC_DP) ,DIMENSION(MAXW) :: werte
       INTEGER                             :: ianz    ! loop index
       INTEGER               :: i    ! loop index
       INTEGER               :: ia   ! Atom index

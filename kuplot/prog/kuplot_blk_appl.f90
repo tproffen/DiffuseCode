@@ -330,6 +330,7 @@
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -342,7 +343,7 @@
       CHARACTER(80) cdummy 
       INTEGER lp, ianz 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -373,6 +374,7 @@
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -386,7 +388,7 @@
       CHARACTER(80) cdummy 
       INTEGER lpara (maxw) 
       INTEGER lp, ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       

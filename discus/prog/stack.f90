@@ -31,6 +31,7 @@ SUBROUTINE stack
       USE class_macro_internal
       USE prompt_mod 
       USE sup_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -40,7 +41,7 @@ SUBROUTINE stack
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MIN_PARA) :: cpara
       INTEGER            , DIMENSION(MIN_PARA) :: lpara
-      REAL               , DIMENSION(MIN_PARA) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MIN_PARA) :: werte
 !
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -1014,6 +1015,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE random_mod
       USE param_mod 
       USE prompt_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1037,7 +1039,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       REAL r1, r2 
       REAL st_trans_cur (3) 
 !                                                                       
-      REAL gasdev 
+      REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
       REAL ran1 
 !                                                                       
       CALL no_error 
@@ -1205,9 +1207,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !                                                                       
       i = 1 
       IF (st_rot_status) then 
-         st_rot_ang_no (i) = gasdev (st_rot_si_no) 
-         st_rot_ang_m1 (i) = gasdev (st_rot_si_m1) 
-         st_rot_ang_m2 (i) = gasdev (st_rot_si_m2) 
+         st_rot_ang_no (i) = gasdev(DBLE(st_rot_si_no))
+         st_rot_ang_m1 (i) = gasdev(DBLE(st_rot_si_m1))
+         st_rot_ang_m2 (i) = gasdev(DBLE(st_rot_si_m2))
       ENDIF 
 !                                                                       
 !     Loop over all layers                                              
@@ -1248,11 +1250,11 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     --Determine current translation vector                            
 !                                                                       
       st_trans_cur (1) = st_trans (st_type (i - 1), st_type (i),        &
-      1) + gasdev (st_sigma (st_type (i - 1), st_type (i), 1) )         
+      1) + gasdev (DBLE(st_sigma (st_type (i - 1), st_type (i), 1)))         
       st_trans_cur (2) = st_trans (st_type (i - 1), st_type (i),        &
-      2) + gasdev (st_sigma (st_type (i - 1), st_type (i), 2) )         
+      2) + gasdev (DBLE(st_sigma (st_type (i - 1), st_type (i), 2)))         
       st_trans_cur (3) = st_trans (st_type (i - 1), st_type (i),        &
-      3) + gasdev (st_sigma (st_type (i - 1), st_type (i), 3) )         
+      3) + gasdev (DBLE(st_sigma (st_type (i - 1), st_type (i), 3)))         
 !DBG                                                                    
 !DBG      if(i.eq.2) then                                               
 !DBG      write (output_io,*) ' Translation vector',i,st_type(i)        
@@ -1272,14 +1274,14 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !         only if the last layer was different than the current         
 !                                                                       
          IF (st_rot_mode) then 
-            st_rot_ang_no (i) = gasdev (st_rot_si_no) 
-            st_rot_ang_m1 (i) = gasdev (st_rot_si_m1) 
-            st_rot_ang_m2 (i) = gasdev (st_rot_si_m2) 
+            st_rot_ang_no (i) = gasdev (DBLE(st_rot_si_no) )
+            st_rot_ang_m1 (i) = gasdev (DBLE(st_rot_si_m1) )
+            st_rot_ang_m2 (i) = gasdev (DBLE(st_rot_si_m2) )
          ELSE 
             IF (st_type (i) .ne.st_type (i - 1) ) then 
-               st_rot_ang_no (i) = gasdev (st_rot_si_no) 
-               st_rot_ang_m1 (i) = gasdev (st_rot_si_m1) 
-               st_rot_ang_m2 (i) = gasdev (st_rot_si_m2) 
+               st_rot_ang_no (i) = gasdev (DBLE(st_rot_si_no) )
+               st_rot_ang_m1 (i) = gasdev (DBLE(st_rot_si_m1) )
+               st_rot_ang_m2 (i) = gasdev (DBLE(st_rot_si_m2) )
             ELSE 
                st_rot_ang_no (i) = st_rot_ang_no (i - 1) 
                st_rot_ang_m1 (i) = st_rot_ang_m1 (i - 1) 
@@ -1338,7 +1340,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          r2 = ran1 (idum) 
          DO j = 1, 3 
          st_origin (j, i) = st_origin (j, i) + r1 * st_mod (j, 1)       &
-         + r2 * st_mod (j, 2) + st_off (j) + gasdev (st_sigma_off (j) ) 
+         + r2 * st_mod (j, 2) + st_off (j) + gasdev (DBLE(st_sigma_off (j))) 
          ENDDO 
       ENDIF 
 !                                                                       

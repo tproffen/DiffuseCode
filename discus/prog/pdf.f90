@@ -774,6 +774,7 @@ SUBROUTINE pdf
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -789,7 +790,7 @@ SUBROUTINE pdf
 !                                                                       
       CHARACTER(1024) cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw)
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ianz.ge.2) then 
@@ -880,6 +881,7 @@ SUBROUTINE pdf
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       USE ISO_FORTRAN_ENV
       IMPLICIT none 
@@ -897,7 +899,7 @@ SUBROUTINE pdf
       INTEGER  :: n_dat
       REAL ra, re, dr 
       REAL                                   :: r_dummy1, r_dummy2
-      REAL               , DIMENSION(1:MAXW) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -1132,6 +1134,7 @@ main:    DO
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       IMPLICIT none 
@@ -1145,7 +1148,8 @@ main:    DO
       INTEGER          , INTENT(INOUT) :: lp 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw), wa (maxw), wb (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, nn 
       INTEGER i, j, ia, ib 
@@ -2050,18 +2054,18 @@ close(89)
       REAL     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
-      REAL :: gasdev
+      REAL(KIND=PREC_DP), EXTERNAL :: gasdev
       REAL :: ran1
 !
       laccept = .false.
          pdf_old_scale = pdf_scale
          pdf_old_rho0  = pdf_rho0 
          IF(pdf_refine_scale )  THEN
-            pdf_scale     = pdf_scale + gasdev(ref_maxpdfsd(1))
+            pdf_scale     = pdf_scale + gasdev(DBLE(ref_maxpdfsd(1)))
             laccept       = .true.
          ENDIF
          IF(pdf_refine_density) THEN
-            pdf_rho0      = pdf_rho0  + gasdev(ref_maxpdfsd(2))
+            pdf_rho0      = pdf_rho0  + gasdev(DBLE(ref_maxpdfsd(2)))
             laccept       = .true.
          ENDIF
       IF(laccept) THEN
@@ -2155,14 +2159,14 @@ close(89)
       REAL     :: prob
       REAL(PREC_DP), DIMENSION(PDF_MAXDAT) ::  pdf_old !  (MAXDAT) 
 !
-      REAL :: gasdev
+      REAL(KIND=PREC_DP), EXTERNAL :: gasdev
       REAL :: ran1
 !
       pdf_old_lattice(1:3) = cr_a0     ! Backup old values
       pdf_old_lattice(4:6) = cr_win
 laccept = .false.
       IF(pdf_refine_lattice(1)) THEN   ! Change lattice params, check crystal system
-         cr_a0(1) = cr_a0(1) + gasdev(ref_maxlatt(1))
+         cr_a0(1) = cr_a0(1) + gasdev(DBLE(ref_maxlatt(1)))
          laccept = .true.
          IF(cr_syst == cr_cubic) THEN
             cr_a0(2) = cr_a0(1)
@@ -2176,15 +2180,15 @@ laccept = .false.
          ENDIF
       ENDIF
       IF(pdf_refine_lattice(2)) THEN
-         cr_a0(2) = cr_a0(2) + gasdev(ref_maxlatt(1))
+         cr_a0(2) = cr_a0(2) + gasdev(DBLE(ref_maxlatt(1)))
          laccept = .true.
       ENDIF
       IF(pdf_refine_lattice(3)) THEN
-         cr_a0(3) = cr_a0(3) + gasdev(ref_maxlatt(1))
+         cr_a0(3) = cr_a0(3) + gasdev(DBLE(ref_maxlatt(1)))
          laccept = .true.
       ENDIF
       IF(pdf_refine_lattice(4)) THEN
-         cr_win(1) = cr_win(1) + gasdev(ref_maxlatt(2))
+         cr_win(1) = cr_win(1) + gasdev(DBLE(ref_maxlatt(2)))
          laccept = .true.
          IF(cr_syst == cr_rhombohed) THEN
             cr_win(2) = cr_win(1)
@@ -2192,11 +2196,11 @@ laccept = .false.
          ENDIF
       ENDIF
       IF(pdf_refine_lattice(5)) THEN
-         cr_win(2) = cr_win(2) + gasdev(ref_maxlatt(2))
+         cr_win(2) = cr_win(2) + gasdev(DBLE(ref_maxlatt(2)))
          laccept = .true.
       ENDIF
       IF(pdf_refine_lattice(6)) THEN
-         cr_win(3) = cr_win(3) + gasdev(ref_maxlatt(2))
+         cr_win(3) = cr_win(3) + gasdev(DBLE(ref_maxlatt(2)))
          laccept = .true.
       ENDIF
 !

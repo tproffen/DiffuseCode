@@ -440,6 +440,7 @@ USE celltoindex_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE prompt_mod
 USE param_mod
 USE take_param_mod
@@ -452,7 +453,7 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: MAXW = 4
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: O_AVER    = 1
@@ -463,7 +464,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 DATA oname  / 'aver', 'indi', 'out'   /

@@ -9,6 +9,7 @@
       USE errlist_mod 
       USE get_params_mod
       USE kuplot_config 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -20,8 +21,8 @@
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
-      INTEGER ianz 
-      REAL werte (maxw) 
+      integer ianz 
+      rEAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -419,6 +420,7 @@
       USE kuplot_config 
       USE kuplot_mod 
       USE sup_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -435,7 +437,7 @@
       INTEGER lpara (maxw), lp, lbef 
       INTEGER i, ianz, iianz, ik, length 
       LOGICAL l_m999 
-      REAL werte (maxw), wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wwerte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -603,9 +605,9 @@
                            IF (ier_num.eq.0) then 
                               WRITE (czeile, '(i4)') ik 
                               CALL do_mean (czeile, 4, .false.) 
-                              pgmhigh = min (zmax (ik), res_para (3)    &
+                              pgmhigh = MIN(REAL(zmax(ik),KIND(1.D0)), res_para (3)    &
                               + werte (1) * res_para (6) )              
-                              pgmlow = max (zmin (ik), res_para (3)     &
+                              pgmlow = MAX(REAL(zmin(ik),KIND(1.D0)), res_para (3)     &
                               - werte (1) * res_para (6) )              
                            ENDIF 
                         ELSEIF (str_comp (cpara (1) , 'zmax', 3, lpara (&
@@ -712,13 +714,14 @@
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) form 
       INTEGER ik, ianz, maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL do_cap (form) 
       CALL skalieren 
@@ -805,6 +808,7 @@
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -813,7 +817,7 @@
 !                                                                       
       CHARACTER ( * ) filname, form 
       REAL xf (maxf), yf (maxf), zf (maxf, maxf) 
-      REAL werte (maxw), wmax (maxmax) 
+      REAL(KIND=PREC_DP) :: werte (maxw), wmax (maxmax) 
       REAL rdx, rdy 
       REAL xsteig, xabsch, xanf, xend, xdel 
       REAL xxx, yyy, zzz, dzzz 

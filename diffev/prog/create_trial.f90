@@ -91,6 +91,7 @@ USE triple_perm
 USE random_mod
 USE errlist_mod 
 USE do_execute_mod
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -109,7 +110,7 @@ REAL                           :: value
 REAL                           :: w 
 !                                                                       
 REAL                           :: ran1 
-REAL                           :: gasdev 
+REAL(KIND=PREC_DP), EXTERNAL   :: gasdev 
 !                                                                       
 w = 0.0 
 n_tried = 0 
@@ -134,7 +135,7 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !                                                                 
  zero1:        IF (shift.eq.0) then 
                   IF (abs (pop_sigma (i) ) .gt.0.0) then 
-                     shift = gasdev (pop_sigma (i) ) 
+                     shift = gasdev (DBLE(pop_sigma (i))) 
                   ELSE 
                      shift = 0.0 
                   ENDIF 
@@ -154,9 +155,9 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !-----------Upper/Lower limit correction                          
 !                                                                 
  limit1:       IF (value.gt.pop_xmax (i) ) then 
-                  value = pop_xmax (i) - abs (gasdev (pop_sigma (i) ) ) 
+                  value = pop_xmax (i) - abs (gasdev (DBLE(pop_sigma (i) ))) 
                ELSEIF (value.lt.pop_xmin (i) ) then 
-                  value = pop_xmin (i) + abs (gasdev (pop_sigma (i) ) ) 
+                  value = pop_xmin (i) + abs (gasdev (DBLE(pop_sigma (i) ))) 
                ENDIF limit1
 !                                                                 
 !-----------Apply final shift                                     
@@ -173,7 +174,7 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !     --------No Cross-Over, apply local shift only               
 !                                                                 
  lshift1:      IF (abs (pop_lsig (i) ) .gt.0.0) then 
-                  shift = gasdev (pop_lsig (i) ) 
+                  shift = gasdev (DBLE(pop_lsig (i))) 
                ELSE 
                   shift = 0.0 
                ENDIF lshift1
@@ -182,9 +183,9 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !-----------Upper/Lower limit correction                          
 !                                                                 
  limit2:       IF (value.gt.pop_xmax (i) ) then 
-                  value = pop_xmax (i) - abs (gasdev (pop_lsig (i) ) ) 
+                  value = pop_xmax (i) - abs (gasdev (DBLE(pop_lsig (i) ))) 
                ELSEIF (value.lt.pop_xmin (i) ) then 
-                  value = pop_xmin (i) + abs (gasdev (pop_lsig (i) ) ) 
+                  value = pop_xmin (i) + abs (gasdev (DBLE(pop_lsig (i) ))) 
                ENDIF limit2
 !                                                                 
 !-----------Apply final shift                                     
@@ -209,7 +210,7 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !     --------No Cross-Over, apply local shift only               
 !                                                                 
  lshift2:   IF (abs (pop_lsig (i) ) .gt.0.0) then 
-               shift = gasdev (pop_lsig (i) ) 
+               shift = gasdev (DBLE(pop_lsig (i))) 
             ELSE 
                shift = 0.0 
             ENDIF lshift2
@@ -218,9 +219,9 @@ cross1:     IF (ran1 (idum) .lt.diff_cr.or.l_unchanged) then
 !-----------Upper/Lower limit correction                          
 !                                                                 
  limit3:    IF (value.gt.pop_xmax (i) ) then 
-               value = pop_xmax (i) - abs (gasdev (pop_lsig (i) ) ) 
+               value = pop_xmax (i) - abs (gasdev (DBLE(pop_lsig (i) ))) 
             ELSEIF (value.lt.pop_xmin (i) ) then 
-               value = pop_xmin (i) + abs (gasdev (pop_lsig (i) ) ) 
+               value = pop_xmin (i) + abs (gasdev (DBLE(pop_lsig (i) ))) 
             ENDIF limit3
 !                                                                 
 !-----------Apply final shift                                     
@@ -255,7 +256,7 @@ nlok: IF (.not.l_ok) then
 !     --------No Cross-Over, apply local shift only               
 !                                                                 
          IF (abs (pop_lsig (i) ) .gt.0.0) then 
-            shift = gasdev (pop_lsig (i) ) 
+            shift = gasdev (DBLE(pop_lsig (i))) 
          ELSE 
             shift = 0.0 
          ENDIF 
@@ -264,9 +265,9 @@ nlok: IF (.not.l_ok) then
 !-----------Upper/Lower limit correction                          
 !                                                                 
          IF (value.gt.pop_xmax (i) ) then 
-            value = pop_xmax (i) - abs (gasdev (pop_lsig (i) ) ) 
+            value = pop_xmax (i) - abs (gasdev (DBLE(pop_lsig (i) ))) 
          ELSEIF (value.lt.pop_xmin (i) ) then 
-            value = pop_xmin (i) + abs (gasdev (pop_lsig (i) ) ) 
+            value = pop_xmin (i) + abs (gasdev (DBLE(pop_lsig (i) ))) 
          ENDIF 
 !                                                                 
 !-----------Apply final shift                                     

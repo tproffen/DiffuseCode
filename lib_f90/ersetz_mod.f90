@@ -16,12 +16,12 @@ USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
-CHARACTER(LEN=*), INTENT(INOUT) :: string 
-INTEGER         , INTENT(IN)    :: ikl
-INTEGER         , INTENT(IN)    :: iklz
-REAL            , INTENT(IN)    :: ww 
-INTEGER         , INTENT(IN)    :: lfunk
-INTEGER         , INTENT(INOUT) :: lll
+CHARACTER(LEN=*)  , INTENT(INOUT) :: string 
+INTEGER           , INTENT(IN)    :: ikl
+INTEGER           , INTENT(IN)    :: iklz
+REAL(KIND=PREC_DP), INTENT(IN)    :: ww 
+INTEGER           , INTENT(IN)    :: lfunk
+INTEGER           , INTENT(INOUT) :: lll
 !
 CHARACTER(LEN=1024) :: zeile 
 INTEGER             :: laenge
@@ -29,14 +29,14 @@ INTEGER             :: ltot
 !                                                                       
 laenge = lll 
 zeile = ' ' 
-IF (ikl.gt.1) zeile (1:ikl - 1 - lfunk) = string (1:ikl - 1 - lfunk)
-WRITE (zeile (ikl - lfunk:ikl - lfunk + PREC_WIDTH-1) , PREC_F_REAL) ww 
-zeile (ikl - lfunk + PREC_MANTIS:ikl - lfunk + PREC_MANTIS) = 'e' 
+IF(ikl > 1) zeile(1:ikl - 1 - lfunk) = string(1:ikl - 1 - lfunk)
+WRITE(zeile(ikl - lfunk:ikl - lfunk + PREC_WIDTH-1), PREC_F_REAL) ww 
+zeile (ikl - lfunk + PREC_MANTIS:ikl - lfunk + PREC_MANTIS) = 'd' 
 lll = ikl - lfunk + PREC_WIDTH-1 
-IF (iklz + 1.le.laenge) then 
+IF(iklz + 1 <= laenge) THEN 
    ltot = (ikl - lfunk + PREC_WIDTH) + (laenge-iklz - 1 + 1) - 1 
-   IF (ltot.le.len (zeile) ) then 
-      zeile (ikl - lfunk + PREC_WIDTH:ltot) = string (iklz + 1:laenge) 
+   IF(ltot <= LEN(zeile) ) THEN 
+      zeile(ikl - lfunk + PREC_WIDTH:ltot) = string(iklz + 1:laenge) 
       lll = lll + laenge- (iklz + 1) + 1 
    ENDIF 
 ENDIF 

@@ -28,6 +28,7 @@ SUBROUTINE do_niplps (linverse)
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod 
       USE sup_mod
 !                                                                       
@@ -38,7 +39,7 @@ SUBROUTINE do_niplps (linverse)
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
-      CHARACTER(14) cvalue (0:12) 
+      CHARACTER(14) cvalue (0:14) 
       CHARACTER(22) cgraphik (0:8) 
       CHARACTER(1024) infile 
       CHARACTER(1024) zeile 
@@ -47,7 +48,8 @@ SUBROUTINE do_niplps (linverse)
       INTEGER ix, iy, ianz, value, lp, length, lbef 
       INTEGER indxg 
       LOGICAL laver, lread, linverse 
-      REAL xmin, ymin, xmax, ymax, werte (maxp) 
+      REAL xmin, ymin, xmax, ymax 
+REAL(KIND=PREC_DP), DIMENSION(MAXP) ::werte
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -59,7 +61,7 @@ SUBROUTINE do_niplps (linverse)
                     'Phase angle   ', 'Real Part     ', 'Imaginary Part',&
                     'Random Phase  ', 'S(Q)          ', 'F(Q)          ',&
                     'f2aver = <f^2>', 'faver2 = <f>^2', 'faver = <f>   ',&
-                    'Normal Inten  '                                     /
+                    'Normal Inten  ', 'I(Q)          ', 'PDF           ' /
 !                                                                       
       DATA value / 1 / 
       DATA laver / .false. / 
@@ -407,9 +409,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxp)                                           
                         IF (ier_num.eq.0) THEN 
-                           zmin = max (diffumin, diffuave-werte (1)     &
+                           zmin = max (diffumin, diffuave-REAL(werte (1))     &
                            * diffusig)                                  
-                           zmax = min (diffumax, diffuave+werte (1)     &
+                           zmax = min (diffumax, diffuave+REAL(werte (1))     &
                            * diffusig)                                  
                            IF (diffumax.ne.0) THEN 
                               ps_high = zmax / diffumax 

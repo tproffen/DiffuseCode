@@ -1,90 +1,98 @@
 MODULE berechne_mod
 !
+USE precision_mod
 CONTAINS
 !
 !****7***************************************************************** 
 !
-REAL FUNCTION berechne (string, laenge) 
+REAL(KIND=PREC_DP) FUNCTION berechne (string, laenge) 
 !-                                                                      
 !     Calculates the value of the expression stored in string           
 !+                                                                      
 !     USE calc_intr_mod
-      USE charact_mod
-      USE do_read_number_mod
-      USE do_variable_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE set_sub_generic_mod
-      IMPLICIT none 
+USE charact_mod
+USE do_read_number_mod
+USE do_variable_mod
+USE errlist_mod 
+USE get_params_mod
+USE precision_mod
+USE set_sub_generic_mod
+IMPLICIT none 
 !                                                                       
-      INTEGER, PARAMETER :: maxw =3
+INTEGER, PARAMETER :: maxw =3
 !                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: string 
-      INTEGER          , INTENT(INOUT) :: laenge
+CHARACTER (LEN=*), INTENT(INOUT) :: string 
+INTEGER          , INTENT(INOUT) :: laenge
 !
-      CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
-      INTEGER          :: c
-      INTEGER lpara (maxw) 
-      INTEGER max 
-      INTEGER ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
-      INTEGER ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
-      REAL werte (maxw) 
-      REAL r 
+CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
+INTEGER          :: c
+INTEGER :: lpara (maxw) 
+!INTEGER :: max 
+INTEGER :: ikla, iklz, ikla1, ikla2, ikl, ll, lll, ie 
+INTEGER :: ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
+REAL(KIND=PREC_DP)    :: werte (maxw) 
+REAL(KIND=PREC_DP)    :: r 
 !                                                                       
 !                                                                       
-      ier_num = 0 
-      ier_typ = ER_NONE 
-      berechne = 0 
-      IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
-         CONTINUE 
+ier_num = 0 
+ier_typ = ER_NONE 
+berechne = 0D0
+!
+IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then 
+   CONTINUE 
+ELSE 
+   CALL ersetz_variable (string, laenge) 
+   DO ie=2,laenge-1  !while (ie.ne.0)
+      IF(string(ie:ie)=='E') THEN
+         c = IACHAR(string(ie-1:ie-1))
+         IF((zero<=c .and. c<=nine) .AND. (string(ie+1:ie+1)=='+' .OR. string(ie+1:ie+1)=='-')) THEN
+            string (ie:ie) = 'e' 
+         ENDIF
+      ELSEIF(string(ie:ie)=='D') THEN
+         c = IACHAR(string(ie-1:ie-1))
+         IF((zero<=c .and. c<=nine) .AND. (string(ie+1:ie+1)=='+' .OR. string(ie+1:ie+1)=='-')) THEN
+            string (ie:ie) = 'd' 
+         ENDIF
+      ENDIF
+   ENDDO 
+   ikla = INDEX (string, '(') 
+   DO while (ikla.ne.0) 
+      iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
+      IF (iklz.gt.ikla + 1) then 
+         ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
       ELSE 
-         CALL ersetz_variable (string, laenge) 
-         DO ie=2,laenge-1  !while (ie.ne.0)
-            IF(string(ie:ie)=='E') THEN
-               c = IACHAR(string(ie-1:ie-1))
-               IF((zero<=c .and. c<=nine) .AND. (string(ie+1:ie+1)=='+' .OR. string(ie+1:ie+1)=='-')) THEN
-                  string (ie:ie) = 'e' 
-               ENDIF
-            ENDIF
-         ENDDO 
-         ikla = INDEX (string, '(') 
-         DO while (ikla.ne.0) 
-         iklz = INDEX (string (ikla + 1:laenge) , ')') + ikla 
-         IF (iklz.gt.ikla + 1) then 
-            ikla2 = INDEX (string (ikla + 1:iklz) , '(') + ikla 
-         ELSE 
-            ikla2 = ikla 
-         ENDIF 
-         ikla1 = ikla 
-         DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
+         ikla2 = ikla 
+      ENDIF 
+      ikla1 = ikla 
+      DO while (ikla2.lt.iklz.and.ikla2.gt.ikla1) 
          ikla1 = ikla2 
          IF (iklz.gt.ikla + 1) then 
             ikla2 = INDEX (string (ikla1 + 1:iklz) , '(') + ikla1 
          ELSE 
             ikla2 = ikla1 
          ENDIF 
-         ENDDO 
-         ikl = max (ikla1, ikla2) 
-         IF (ikl.ne.0) then 
+      ENDDO 
+      ikl = max (ikla1, ikla2) 
+      IF (ikl.ne.0) then 
 !                                                                       
 !     ----Print error messages if Parentheses are missing               
 !                                                                       
-            IF (iklz.eq.ikl) then 
-               ier_num = - 11 
-               ier_typ = ER_FORT 
-               RETURN 
-            ELSEIF (iklz.eq.ikl + 1) then 
-               ier_num = - 12 
-               ier_typ = ER_FORT 
-               RETURN 
-            ENDIF 
-            line = string (ikl + 1:iklz - 1) 
-            ll = iklz - ikl - 1 
+         IF (iklz.eq.ikl) then 
+            ier_num = -11 
+            ier_typ = ER_FORT 
+            RETURN 
+         ELSEIF (iklz.eq.ikl + 1) then 
+            ier_num = -12 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+         line = string (ikl + 1:iklz - 1) 
+         ll = iklz - ikl - 1 
 !                                                                       
 !     ----Found a pair of parentheses, search for inner set             
 !                                                                       
-            ikpa = INDEX (line, '[') 
-            DO while (ikpa.ne.0) 
+         ikpa = INDEX (line, '[') 
+         DO while (ikpa.ne.0) 
             ikpz = INDEX (line (ikpa + 1:ll) , ']') + ikpa 
             IF (ikpz.gt.ikpa + 1) then 
                ikpa2 = INDEX (line (ikpa + 1:ikpz) , '[') + ikpa 
@@ -93,12 +101,12 @@ REAL FUNCTION berechne (string, laenge)
             ENDIF 
             ikpa1 = ikpa 
             DO while (ikpa2.lt.ikpz.and.ikpa2.gt.ikpa1) 
-            ikpa1 = ikpa2 
-            IF (ikpz.gt.ikpa + 1) then 
-               ikpa2 = INDEX (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
-            ELSE 
-               ikpa2 = ikpa1 
-            ENDIF 
+               ikpa1 = ikpa2 
+               IF (ikpz.gt.ikpa + 1) then 
+                  ikpa2 = INDEX (line (ikpa1 + 1:ikpz) , '[') + ikpa1 
+               ELSE 
+                  ikpa2 = ikpa1 
+               ENDIF 
             ENDDO 
             ikp = max (ikpa1, ikpa2) 
             IF (ikp.ne.0) then 
@@ -111,14 +119,14 @@ REAL FUNCTION berechne (string, laenge)
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) then 
                      DO i = 1, ianz 
-                     CALL eval (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
-                        RETURN 
-                     ENDIF 
-                     werte (i) = do_read_number (cpara (i), lpara (i) ) 
-                     IF (ier_num.ne.0) then 
-                        GOTO 999 
-                     ENDIF 
+                        CALL eval (cpara (i), lpara (i) ) 
+                        IF (ier_num.ne.0) then 
+                           RETURN 
+                        ENDIF 
+                        werte (i) = do_read_number (cpara (i), lpara (i) ) 
+                        IF (ier_num.ne.0) then 
+                           GOTO 999 
+                        ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
                      IF (ier_num.ne.0) then 
@@ -138,43 +146,43 @@ REAL FUNCTION berechne (string, laenge)
                ENDIF 
             ENDIF 
             ikpa = INDEX (line, '[') 
-            ENDDO 
+         ENDDO 
 !                                                                       
 !                                                                       
-            ikom = INDEX (line, ',') 
-            IF (ikom.eq.0) then 
-               CALL eval (line, ll) 
-               IF (ier_num.ne.0) then 
-                  RETURN 
-               ENDIF 
-            ENDIF 
-            IF (ikl.ge.3) then 
-               CALL calc_intr (string, line, ikl, iklz, laenge, ll) 
-               IF (ier_num.ne.0) then 
-                  RETURN 
-               ENDIF 
-            ELSE 
-               zeile = ' ' 
-               IF (ikl.gt.1) zeile (1:ikl - 1) = string (1:ikl - 1) 
-               zeile (ikl:ikl + ll - 1) = line (1:ll) 
-               lll = ikl + ll - 1 
-               IF (iklz + 1.le.laenge) then 
-                  zeile (ikl + ll:ikl + ll + laenge-iklz - 1) =  &
-                       string (iklz + 1:laenge)
-                  lll = ikl + ll + laenge-iklz - 1 
-               ENDIF 
-               string = zeile 
-               laenge = lll 
+         ikom = INDEX (line, ',') 
+         IF (ikom.eq.0) then 
+            CALL eval (line, ll) 
+            IF (ier_num.ne.0) then 
+               RETURN 
             ENDIF 
          ENDIF 
-         ikla = INDEX (string, '(') 
-         ENDDO 
+         IF (ikl.ge.3) then 
+            CALL calc_intr (string, line, ikl, iklz, laenge, ll) 
+            IF (ier_num.ne.0) then 
+               RETURN 
+            ENDIF 
+         ELSE 
+            zeile = ' ' 
+            IF (ikl.gt.1) zeile (1:ikl - 1) = string (1:ikl - 1) 
+            zeile (ikl:ikl + ll - 1) = line (1:ll) 
+            lll = ikl + ll - 1 
+            IF (iklz + 1.le.laenge) then 
+               zeile (ikl + ll:ikl + ll + laenge-iklz - 1) =  &
+                    string (iklz + 1:laenge)
+               lll = ikl + ll + laenge-iklz - 1 
+            ENDIF 
+            string = zeile 
+            laenge = lll 
+         ENDIF 
       ENDIF 
-      r = do_read_number (string, laenge) 
-      berechne = do_read_number (string, laenge) 
+      ikla = INDEX (string, '(') 
+   ENDDO 
+ENDIF 
+r = do_read_number (string, laenge) 
+berechne = do_read_number (string, laenge) 
   999 CONTINUE 
 !                                                                       
-      END FUNCTION berechne                         
+END FUNCTION berechne                         
 !
 !****7***************************************************************** 
 !
@@ -188,6 +196,7 @@ REAL FUNCTION berechne (string, laenge)
       USE do_variable_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE set_sub_generic_mod
       IMPLICIT none 
 !                                                                       
@@ -206,7 +215,7 @@ REAL FUNCTION berechne (string, laenge)
       INTEGER icol 
       INTEGER iapo 
       INTEGER j (2) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
       lll = 1

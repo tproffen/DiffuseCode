@@ -6,6 +6,7 @@ SUBROUTINE do_operating (zeile, lp)
 USE build_name_mod
 USE errlist_mod 
 USE get_params_mod
+USE precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -18,7 +19,7 @@ INTEGER, PARAMETER :: maxp = 12
 CHARACTER(LEN=1024) :: string , line
 CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
-REAL               , DIMENSION(MAXP) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXP) :: werte
 !
 INTEGER :: ianz 
 INTEGER :: lline 

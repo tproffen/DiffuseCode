@@ -24,6 +24,7 @@ SUBROUTINE get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL, ncalc, &
 USE ber_params_mod
 use charact_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -38,7 +39,7 @@ INTEGER,          DIMENSION(NOPTIONAL), INTENT(IN)    :: loname    ! lookup tabl
 CHARACTER(LEN=*), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara     ! with default values
 INTEGER,          DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara    ! length of results
 LOGICAL,          DIMENSION(NOPTIONAL), INTENT(OUT)   :: lpresent  ! Is param present ?
-REAL   ,          DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte    ! calc. results with default values
+REAL(KIND=PREC_DP),DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte    ! calc. results with default values
 !
 INTEGER :: i,j, iopt, istart
 INTEGER :: letter

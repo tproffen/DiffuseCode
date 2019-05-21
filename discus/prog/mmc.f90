@@ -692,12 +692,12 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara !(maxw) 
       CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara1 !(maxw) 
       CHARACTER (LEN=1024), DIMENSION(MAXW) ::  cpara2 !(maxw) 
-      REAL uerte (maxw) 
-      REAL verte (maxw) 
-      REAL werte (maxw) 
-      REAL   , DIMENSION(MAXW) :: werte1 (maxw) 
-      REAL   , DIMENSION(MAXW) :: werte2 (maxw) 
-      REAL a, b 
+      REAL(KIND=PREC_DP) :: uerte (maxw) 
+      REAL(KIND=PREC_DP) :: verte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte1 (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte2 (maxw) 
+      REAL(KIND=PREC_DP) :: a, b 
       INTEGER lpara (maxw) 
       INTEGER, DIMENSION(MAXW) :: lpara1 ! (maxw) 
       INTEGER, DIMENSION(MAXW) :: lpara2 ! (maxw) 
@@ -1040,8 +1040,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            CALL del_params (1, ianz, cpara, lpara, maxw) 
                            CALL get_iscat (kkanz, cpara, lpara, verte,  &
                            maxw, .false.)                               
-                           js = min1 (uerte (1), verte (1) ) 
-                           ls = max1 (uerte (1), verte (1) ) 
+                           js = min (uerte (1), verte (1) ) 
+                           ls = max (uerte (1), verte (1) ) 
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(ls) = .true. ! this atom is allowed in mmc moves
                            i = angles2index (ic, mmc_n_angles, is, js,  &
@@ -1179,7 +1179,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_REPULSIVE, is, js,    &
-                        100.0    , ABS(werte (1)) )                          
+                        100.0D0    , ABS(werte (1)) )                          
                         CALL mmc_set_rep  (ic, is, js,    &
                         ABS(werte (1)), werte(2) , werte(3), werte(4) )                          
                         ENDDO 
@@ -1327,13 +1327,14 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER ic, ie, is, js, ii, jj 
-      REAL dist 
-      REAL depth 
+      REAL(KIND=PREC_DP) :: dist 
+      REAL(KIND=PREC_DP) :: depth 
 !                                                                       
                                                                         
       IF (is.ne. - 1.and.js.ne. - 1) then 
@@ -1382,6 +1383,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE discus_config_mod 
       USE crystal_mod 
       USE mmc_mod 
+USE precision_mod
       IMPLICIT NONE
 !
       INTEGER                 , INTENT(IN) :: ic     ! Correlation number
@@ -1389,10 +1391,10 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER                 , INTENT(IN) :: ianz1  ! No of atom types in first group
       INTEGER                 , INTENT(IN) :: ianz2  ! No of atom types in second group
       INTEGER                 , INTENT(IN) :: MAXW   ! Array Dimension 
-      REAL   , DIMENSION(MAXW), INTENT(IN) :: werte1 ! Actual atom types group1
-      REAL   , DIMENSION(MAXW), INTENT(IN) :: werte2 ! Actual atom types group1
-      REAL   ,                  INTENT(IN) :: corr   ! Desired correlation
-      REAL   ,                  INTENT(IN) :: depth  ! Energy Depth
+      REAL(KIND=PREC_DP)   , DIMENSION(MAXW), INTENT(IN) :: werte1 ! Actual atom types group1
+      REAL(KIND=PREC_DP)   , DIMENSION(MAXW), INTENT(IN) :: werte2 ! Actual atom types group1
+      REAL(KIND=PREC_DP)   ,                  INTENT(IN) :: corr   ! Desired correlation
+      REAL(KIND=PREC_DP)   ,                  INTENT(IN) :: depth  ! Energy Depth
 ! 
       INTEGER                              :: is, js ! Dummy atom types
       INTEGER                              :: i, j   ! Loop indices
@@ -1441,12 +1443,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER ic, is, js, ii, jj 
-      REAL a, b, m, n 
+      REAL(KIND=PREC_DP) :: a, b, m, n 
 !                                                                       
                                                                         
       IF (is.ne. - 1.and.js.ne. - 1) then 
@@ -1506,16 +1509,17 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE crystal_mod 
       USE mmc_mod 
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER ic, is, js, ii, jj 
-      REAL a,  b, c, m
+      REAL(KIND=PREC_DP) :: a,  b, c, m
 !                                                                       
 !     Define mimimum energy at infinity distance
 !
-      mmc_rep_low = MIN(mmc_rep_low, ABS(a))
+      mmc_rep_low = MIN(mmc_rep_low, REAL(ABS(a)))
                                                                         
       IF (is.ne. - 1.and.js.ne. - 1) then 
          mmc_rep_a (ic, is, js) = a 
@@ -1641,6 +1645,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE modify_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -1652,7 +1657,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       INTEGER lpara (maxw) 
       INTEGER :: ianz, imode=MC_MOVE_NONE, i 
       INTEGER is 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL sump 
 !                                                                       
       IF (ianz.ge.1) then 
@@ -1756,6 +1761,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       USE debug_mod 
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -1768,7 +1774,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       PARAMETER (maxatom = CHEM_MAX_NEIG) 
 !                                                                       
       CHARACTER(24) c_energy (0:MC_N_ENERGY) 
-      REAL werte (maxw), wwerte (maxw), wwwerte (maxw) 
+      REAL(KIND=PREC_DP) ::  werte (maxw), wwerte (maxw), wwwerte (maxw) 
       REAL start, zeit, seknds 
       REAL disp1, disp2 
       REAL disp (3, 0:CHEM_MAX_NEIG, 2) 
@@ -1807,7 +1813,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
       REAL e_old (0:MC_N_ENERGY) 
       REAL e_new (0:MC_N_ENERGY) 
 !                                                                       
-      REAL ran1, gasdev 
+      REAL ran1 
+REAL(KIND=PREC_DP), EXTERNAL ::gasdev 
 !                                                                       
       DATA c_energy /                    &
            '                        ',   &
@@ -2142,13 +2149,13 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
 !               CALL indextocell (isel (1), iz1, is (1) ) 
                IF(mo_maxmove(4, cr_iscat(iselz) )==0.0) THEN
                   DO i = 1, 3 
-                     disp(i, 0, 1) = gasdev(mo_maxmove(i, cr_iscat(iselz) ))
+                     disp(i, 0, 1) = gasdev(DBLE(mo_maxmove(i, cr_iscat(iselz) )))
                      posz (i) = cr_pos (i, iselz) 
                      cr_pos (i, iselz) = cr_pos (i, iselz) + disp (i, 0, 1) 
                   ENDDO 
                ELSE
 !     -- Move along a vector direction
-                  rrrr = gasdev(mo_maxmove(4, cr_iscat(iselz) ))
+                  rrrr = gasdev(DBLE(mo_maxmove(4, cr_iscat(iselz) )))
                   DO i = 1, 3 
                      disp(i, 0, 1) = rrrr* (mo_maxmove(i, cr_iscat(iselz) ))
                      posz (i) = cr_pos (i, iselz) 
@@ -4550,17 +4557,18 @@ buck_pair: DO is = 0, cr_nscat
 !-                                                                      
 !     Finds the minimum of a Buckingham function                        
 !+                                                                      
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER MAXW 
-      REAL werte (MAXW) 
+      REAL(KIND=PREC_DP) :: werte (MAXW) 
 !                                                                       
-      REAL last 
-      REAL next 
-      REAL step 
-      REAL old 
-      REAL new 
-      REAL minstep 
+      REAL(KIND=PREC_DP) :: last 
+      REAL(KIND=PREC_DP) :: next 
+      REAL(KIND=PREC_DP) :: step 
+      REAL(KIND=PREC_DP) :: old 
+      REAL(KIND=PREC_DP) ::new 
+      REAL(KIND=PREC_DP) :: minstep 
 !                                                                       
 !     REAL buckingham 
 !                                                                       
@@ -4611,12 +4619,13 @@ buck_pair: DO is = 0, cr_nscat
 !-                                                                      
 !     calculates the Buckingham potential at point x                    
 !+                                                                      
+USE precision_mod
       IMPLICIT none 
 !                                                                       
-      REAL a 
-      REAL rho 
-      REAL b 
-      REAL x 
+      REAL(KIND=PREC_DP) :: a 
+      REAL(KIND=PREC_DP) :: rho 
+      REAL(KIND=PREC_DP) :: b 
+      REAL(KIND=PREC_DP) :: x 
 !                                                                       
       buckingham = a * exp ( - x / rho) - b / x**6 
 !                                                                       

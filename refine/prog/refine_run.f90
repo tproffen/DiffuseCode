@@ -26,6 +26,7 @@ USE doact_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -37,7 +38,7 @@ INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara    ! Parameter strings
 INTEGER            , DIMENSION(MAXW) :: lpara    ! length of each parameter strign
-REAL               , DIMENSION(MAXW) :: werte    ! Parameter values
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte    ! Parameter values
 !
 INTEGER                              :: i        ! Dummy loop parameter
 INTEGER                              :: ndata    ! number of data points
@@ -125,6 +126,7 @@ USE refine_set_param_mod
 !
 USE errlist_mod
 USE matrix_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -151,13 +153,13 @@ REAL, PARAMETER      :: SCALEF = 0.05 ! Scalefactor for parameter modification 0
 !
 INTEGER              :: k, iix, iiy   ! Dummy loop variable
 INTEGER              :: nder          ! Numper of points for derivative
-REAL                 :: delta         ! Shift to calculate derivatives
-REAL                 :: p_d           ! Shifted  parameter
-REAL, DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
-REAL, DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
-REAL, DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
-REAL, DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
-REAL, DIMENSION(3,3) :: imat          ! Inverse to xmat
+REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
+REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
+REAL(KIND=PREC_DP), DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
+REAL(KIND=PREC_DP), DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
+REAL(KIND=PREC_DP), DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
 !
 IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
 !write(*,*) 'MACRO ', p(1:3), lderiv
@@ -185,7 +187,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          ENDIF
 !                                     ! Test at P + DELTA
          IF(prange(k,1)<=prange(k,2)) THEN     ! User provided parameter range
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+delta))
+            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)+REAL(delta)))
          ELSE
             p_d     = p(k) + delta
          ENDIF
@@ -193,7 +195,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
             nder = nder + 1
             dvec(2) = p_d            ! Store parameter value at P+DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
             CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                               data_dim, refine_temp)
             IF(ier_num /= 0) RETURN
@@ -205,7 +207,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          ENDIF
 !                                     ! Test at P - DELTA
          IF(prange(k,1)<=prange(k,2)) THEN
-            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-delta))
+            p_d     = MIN(prange(k,2),MAX(prange(k,1),p(k)-REAL(delta)))
          ELSE
             p_d     = p(k) - delta
          ENDIF
@@ -213,7 +215,7 @@ IF(ix==1 .AND. iy==1) THEN            ! Initial point, call user macro
          IF(p(k)/=p_d) THEN           ! Parameter is not at edge of range
             nder = nder + 1
             dvec(3) = p_d            ! Store parameter value at P-DELTA
-            CALL refine_set_param(NPARA, par_names(k), k, p_d )  ! Set modified value
+            CALL refine_set_param(NPARA, par_names(k), k, REAL(p_d) )  ! Set modified value
             CALL refine_macro(MAXP, refine_mac, refine_mac_l, NPARA, kupl_last, par_names, p, &
                               data_dim, refine_temp)
             IF(ier_num /= 0) RETURN
@@ -495,6 +497,7 @@ USE ber_params_mod
 USE calc_expr_mod
 USE gamma_mod
 USE param_mod 
+USE precision_mod
 USE prompt_mod 
 !                                                                       
 IMPLICIT NONE
@@ -537,7 +540,7 @@ INTEGER :: ianz
 !
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
-REAL               , DIMENSION(:), ALLOCATABLE :: werte
+REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift
@@ -899,6 +902,7 @@ USE refine_params_mod
 USE refine_data_mod
 !
 USE ber_params_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -915,7 +919,7 @@ REAL    :: step
 !
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
-REAL               , DIMENSION(:), ALLOCATABLE :: werte
+REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 !
 OPEN(UNIT=IWR, FILE=ofile, STATUS='unknown')
 WRITE(IWR, '(a)') '#@ HEADER'

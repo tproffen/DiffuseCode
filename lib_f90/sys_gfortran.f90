@@ -193,6 +193,7 @@ SUBROUTINE datum ()
       USE build_name_mod
       USE errlist_mod 
       USE envir_mod 
+USE precision_mod
       USE get_params_mod
       USE prompt_mod 
       USE string_convert_mod
@@ -211,7 +212,7 @@ SUBROUTINE datum ()
       INTEGER ianz 
       INTEGER ld, dummy 
       LOGICAL echo 
-      REAL werte (MAXW) 
+      REAL(KIND=PREC_DP) :: werte (MAXW) 
 !                                                                       
       INTEGER len_str 
       INTEGER  :: getcwd
@@ -615,6 +616,7 @@ SUBROUTINE datum ()
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -627,7 +629,7 @@ SUBROUTINE datum ()
       LOGICAL , INTENT(IN)   ::lout
 !
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz 
       LOGICAL lexist 

@@ -14,6 +14,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -22,7 +23,7 @@
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iku 
       LOGICAL str_comp 

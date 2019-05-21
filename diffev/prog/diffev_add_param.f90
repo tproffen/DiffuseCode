@@ -16,6 +16,7 @@ USE define_variable_mod
 USE errlist_mod
 USE get_params_mod
 USE lib_f90_allocate_mod
+USE precision_mod
 USE take_param_mod
 USE variable_mod
 !
@@ -28,7 +29,7 @@ LOGICAL, PARAMETER :: IS_DIFFEV = .TRUE.
 INTEGER, PARAMETER :: MAXW = 6
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL               , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !
 CHARACTER(LEN=LEN(pop_name) )   :: pname
 INTEGER                         :: lpname
@@ -47,7 +48,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 LOGICAL, EXTERNAL                     :: str_comp

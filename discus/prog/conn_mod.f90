@@ -183,6 +183,7 @@ use crystal_mod
    USE atom_env_mod
 !  USE modify_mod
    USE do_find_mod
+USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -194,7 +195,7 @@ use crystal_mod
    INTEGER, PARAMETER  :: MIN_PARA = 1
    INTEGER             :: maxw
 !
-   REAL   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
+   REAL(KIND=PREC_DP)   , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! Array for neighbors
 !
    INTEGER              :: j,i
    INTEGER              :: is  ! dummies for scattering types
@@ -531,6 +532,7 @@ use crystal_mod
       USE ber_params_mod
       USE errlist_mod
       USE get_params_mod
+USE precision_mod
       USE take_param_mod
 !
       IMPLICIT none
@@ -547,11 +549,11 @@ use crystal_mod
 !
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: lpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+5)) :: werte
 !
       CHARACTER(LEN=1024), DIMENSION(2)  :: ccpara
       INTEGER            , DIMENSION(2)  :: llpara
-      REAL               , DIMENSION(2)  :: wwerte
+      REAL(KIND=PREC_DP) , DIMENSION(2)  :: wwerte
 !
       INTEGER, DIMENSION(:), ALLOCATABLE :: is_cent  ! Central atom type(s)
 !
@@ -578,7 +580,7 @@ use crystal_mod
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para was present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
       LOGICAL :: str_comp
@@ -988,6 +990,7 @@ use crystal_mod
       USE get_params_mod
       USE prompt_mod 
       USE sup_mod
+USE precision_mod
       USE do_show_mod
       IMPLICIT none 
 !                                                                       
@@ -1014,8 +1017,8 @@ use crystal_mod
       LOGICAL              :: long     ! make long output
       LOGICAL              :: lnew     ! Do not make new atom type
       LOGICAL              :: lend
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
-      REAL               , DIMENSION(1)                       :: wwerte ! (MAXSCAT) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) ::  werte ! (MAXSCAT) 
+      REAL(KIND=PREC_DP) , DIMENSION(1)                       :: wwerte ! (MAXSCAT) 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -1544,6 +1547,7 @@ use crystal_mod
    USE errlist_mod 
    USE get_params_mod
    USE param_mod 
+USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -1553,7 +1557,7 @@ use crystal_mod
    INTEGER, PARAMETER                   :: MAXW = 3
    CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
    INTEGER            , DIMENSION(MAXW) :: lpara
-   REAL               , DIMENSION(MAXW) :: werte
+   REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
    INTEGER                                 :: ianz , iianz
 !
    INTEGER                            :: iatom   ! Selected atom number

@@ -27,6 +27,7 @@ SUBROUTINE do_domain (line, lp)
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -47,7 +48,7 @@ SUBROUTINE do_domain (line, lp)
       INTEGER, SAVE    :: n_clu = 0   ! current number of clusters
       LOGICAL, SAVE    :: linit = .true. ! do we need to initialize?
       LOGICAL lend
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP):: werte (maxw) 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -867,6 +868,7 @@ pseudo_ok:  IF(l_ok) THEN
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -889,7 +891,7 @@ pseudo_ok:  IF(l_ok) THEN
       INTEGER lline 
       INTEGER lp, ianz 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -1241,6 +1243,7 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       USE trafo_mod
       USE surface_mod 
       USE errlist_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -1273,7 +1276,8 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       REAL u (4), v (4), w (4) 
       REAL vv (3) , ww(3)
       REAL radius (3) 
-      REAL werte (maxw), dw1 
+      REAL(KIND=PREC_DP):: werte (maxw)
+      REAL dw1 
       REAL NULL (3) 
       REAL shortest 
       REAL, DIMENSION(3)  :: xyz ! Atom position
@@ -1755,6 +1759,8 @@ mole_int: IF(mk_infile_internal) THEN
       USE tensors_mod
       USE errlist_mod 
       USE string_convert_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1780,7 +1786,7 @@ mole_int: IF(mk_infile_internal) THEN
       INTEGER, DIMENSION(0:3)  :: dummy_surf
 !                                                                       
       LOGICAL str_comp 
-      REAL    gasdev
+      REAL(KIND=PREC_DP), EXTERNAL ::    gasdev
 !                                                                       
 !     do i=1,4                                                          
 !       do j=1,4                                                        
@@ -1833,7 +1839,7 @@ mole_int: IF(mk_infile_internal) THEN
          READ (line (5:52), * ) xyz 
 !                                                                       
          DO i = 1, 3 
-         size_sigma = MAX(1. + gasdev(clu_sigma(ii,i)), 0.01)
+         size_sigma = MAX(1. + gasdev(DBLE(clu_sigma(ii,i))), 0.01D0)
          DO j = 1, 4 
          mc_dimen (i, j)  = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
          mc_idimen (i, j) = MAX(clu_shape (ii, i, j) * size_sigma , 0.001 )
@@ -2048,6 +2054,7 @@ mole_int: IF(mk_infile_internal) THEN
       USE surface_func_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -2060,7 +2067,7 @@ mole_int: IF(mk_infile_internal) THEN
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       

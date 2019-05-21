@@ -156,7 +156,7 @@ CONTAINS
                              conjg (cfact_pure(istl(i), k)))  &
                    *cr_amount(k)
          ENDDO
-         q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
+!        q2   = REAL(zpi**2*(REAL(2*istl(i),KIND=KIND(0.0E0))*CFINC)**2)
          qval = qval /f2aver/ cr_n_real_atoms 
 !
 !     Calculate I(Q) = I/N normalized intensity 
@@ -167,7 +167,7 @@ CONTAINS
          ELSE 
             qval = REAL(dsi (i), KIND=KIND(0.0E0))
          ENDIF 
-         qval = qval /f2aver/ cr_n_real_atoms 
+         qval = qval        / cr_n_real_atoms 
 !
 !     Calculate average squared atomic form factor <f**2>
 !

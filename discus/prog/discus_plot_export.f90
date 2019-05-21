@@ -231,7 +231,7 @@ CONTAINS
 !
 !*****7*****************************************************************
 !
-SUBROUTINE plot_cif (iff, lplot) 
+SUBROUTINE plot_cif (iff, lplot, do_spcgr) 
 !-                                                                      
 !     Writes the selected atoms as cif file (one unit cell)             
 !     If lpolt is true, a unit cell for plotting is written,
@@ -250,11 +250,12 @@ IMPLICIT none
 !
 INTEGER, INTENT(IN) :: iff
 LOGICAL, INTENT(IN) :: lplot
+CHARACTER(LEN=*), INTENT(IN) :: do_spcgr
 !                                                                       
 REAL   , PARAMETER   :: eightpisq = 8.*3.14159265**2
 !                                                                       
-       
 !                                                                       
+CHARACTER(LEN=16)     :: do_spcgr_w = 'P1'
 REAL                  :: d, dist , shift
 REAL,    DIMENSION(3) :: v
 INTEGER, DIMENSION(3) :: scalef
@@ -273,12 +274,15 @@ IF(lplot) THEN
 ELSE
    DO i=1,3
       IF(NINT(cr_dim(i,2)-cr_dim(i,1))-(cr_dim(i,2)-cr_dim(i,1))== 0.000) THEN
-         scalef(i) = NINT((cr_dim(i,2)-cr_dim(i,1)))
+         scalef(i) = MAX(1,NINT((cr_dim(i,2)-cr_dim(i,1))))
       ELSE
          scalef(i) =  INT((cr_dim(i,2)-cr_dim(i,1))) + 1
       ENDIF
    ENDDO
    shift     = 0.00
+ENDIF
+IF(do_spcgr=='original') THEN
+   do_spcgr_w = cr_spcgr   ! needs a copy as it is called with a fixed string from plot
 ENDIF
 !
 WRITE (iff, 500) 
@@ -286,7 +290,7 @@ WRITE(iff,'(a,a,a)') '_data_chemical_name_common ''',cr_name(1:LEN_TRIM(cr_name)
 WRITE(iff,*)
 !
 WRITE (iff, 510) (cr_a0 (i) * scalef (i), i = 1, 3),  &
-                 (cr_win (i), i = 1, 3)
+                 (cr_win (i), i = 1, 3), do_spcgr_w
 !                                                                       
 latom = .false. 
 !                                                                       
@@ -365,7 +369,7 @@ ENDIF
      &        '_cell_angle_alpha  ',f10.4,/                             &
      &        '_cell_angle_beta   ',f10.4,/                             &
      &        '_cell_angle_gamma  ',f10.4,//                            &
-     &        '_symmetry_space_group_name_H-M   ''P1''',//              &
+     &        '_symmetry_space_group_name_H-M   ''',a,'''',//           &
      &        'loop_',/                                                 &
      &        '_atom_site_label',/                                      &
      &        '_atom_site_fract_x',/                                    &

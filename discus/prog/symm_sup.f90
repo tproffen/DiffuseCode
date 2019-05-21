@@ -211,6 +211,7 @@ ENDIF
       USE symm_mod 
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -221,11 +222,11 @@ ENDIF
       INTEGER i_start, i_end 
 !                                                                       
       REAL usym (4), ures (4) 
-      REAL, DIMENSION(MAXW) :: werte! (5) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte! (5) 
       REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.00 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.00D0 / 
 !
       offset(4) = 0.0
 !                                                                       
@@ -318,6 +319,7 @@ END SUBROUTINE symm_op_mult
       USE symm_mod 
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -326,7 +328,7 @@ END SUBROUTINE symm_op_mult
       INTEGER i, j, l 
       INTEGER i_start, i_end 
       REAL usym (4), ures (4) 
-      REAL, DIMENSION(MAXW) :: werte !(5) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte !(5) 
       REAL   , DIMENSION(4) :: offset
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
@@ -421,6 +423,7 @@ END SUBROUTINE symm_op_single
       USE symm_mod 
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -443,10 +446,10 @@ END SUBROUTINE symm_op_single
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
 !                                                                       
       REAL usym (4), ures (4), use_orig (3) 
-      REAL , DIMENSION(MAXW) :: werte! (5) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte! (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -627,6 +630,7 @@ END SUBROUTINE symm_op_single
       USE symm_mod 
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -647,11 +651,11 @@ END SUBROUTINE symm_op_single
       INTEGER, DIMENSION(:), ALLOCATABLE :: sub_list
       INTEGER, DIMENSION(:), ALLOCATABLE :: excl
       REAL usym (4), ures (4) 
-      REAL, DIMENSION(MAXW) :: werte !(5)
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte !(5)
       REAL, DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 , 1.0/ 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0 , 1.0D0/ 
 !                                                                       
 !     Set the appropriate starting end ending number for the molecules  
 !                                                                       
@@ -832,6 +836,7 @@ END SUBROUTINE symm_op_single
       USE tensors_mod
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -853,10 +858,10 @@ END SUBROUTINE symm_op_single
       REAL new_dime (4, 4) 
       REAL elements (3, 8) 
       REAL usym (4), ures (4), use_orig (3) 
-      REAL , DIMENSION(MAXW) :: werte ! (5) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte ! (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 / 
+      DATA werte / 0.0D0, 0.0D0, 0.0D0, 0.0D0, 0.0D0, 1.0D0 / 
 !                                                                       
 !     Set the appropriate starting end ending number for the atoms      
 !                                                                       
@@ -1063,6 +1068,7 @@ END SUBROUTINE symm_op_single
       USE tensors_mod
       USE trafo_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: MAXW = 6
@@ -1082,7 +1088,7 @@ END SUBROUTINE symm_op_single
       REAL new_dime (4, 4) 
       REAL elements (3, 8) 
       REAL usym (4), ures (4) 
-      REAL , DIMENSION(MAXW) :: werte! (5), use_orig (3) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte! (5), use_orig (3) 
       REAL , DIMENSION(3)    :: use_orig !(3) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
@@ -1273,6 +1279,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
 !
       IMPLICIT none 
@@ -1282,7 +1289,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
       REAL uvw (3) 
       REAL usym (4), ures (4) 
-      REAL werte (5) 
+      REAL(KIND=PREC_DP) :: werte (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
@@ -1361,6 +1368,7 @@ END SUBROUTINE symm_op_single
 !                                                                       
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
 !
       IMPLICIT none 
@@ -1372,7 +1380,7 @@ END SUBROUTINE symm_op_single
       INTEGER j 
 !
       REAL usym (4), ures (4) 
-      REAL werte (5) 
+      REAL(KIND=PREC_DP) :: werte (5) 
 !                                                                       
       DATA usym / 0.0, 0.0, 0.0, 1.0 / 
       DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
@@ -1443,10 +1451,11 @@ LOGICAL FUNCTION symm_occupied(werte, radius)
 !
 USE crystal_mod
 USE metric_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
-REAL, DIMENSION(5), INTENT(IN) :: werte
+REAL(KIND=PREC_DP), DIMENSION(5), INTENT(IN) :: werte
 REAL              , INTENT(IN) :: radius
 !
 LOGICAL, PARAMETER    ::LSPACE = .TRUE.

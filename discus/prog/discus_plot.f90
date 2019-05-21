@@ -34,6 +34,7 @@ CONTAINS
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
+USE precision_mod
       USE take_param_mod
       IMPLICIT none 
 !                                                                       
@@ -46,7 +47,7 @@ CONTAINS
       PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara ! (MAX(10,MAXSCAT)) 
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte ! (MAX(10,MAXSCAT)) 
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara ! (MAX(10,MAXSCAT))
       CHARACTER(1024) line, zeile
       CHARACTER(LEN=1024) :: tempfile
@@ -76,7 +77,7 @@ CONTAINS
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
       DATA oname  / 'dmin' , 'dmax' , 'nmin' , 'nmax' , 'face' , 'hue'  , 'color', 'plot' , 'kill'  /
@@ -1156,7 +1157,7 @@ END SUBROUTINE plot
 !------ - Atom or molecule mode                                         
 !                                                                       
          IF (pl_sel_atom) then 
-            CALL plot_cif (iff, .TRUE.) 
+            CALL plot_cif (iff, .TRUE., 'P1') 
          ELSE 
             ier_num = - 76 
             ier_typ = ER_APPL 
@@ -1230,6 +1231,7 @@ USE spcgr_apply
 USE envir_mod
 USE errlist_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE trig_degree_mod
 use matrix_mod
@@ -1258,16 +1260,16 @@ REAL, DIMENSION(3)  :: n_hkl    !Normal in reciprocal space
 REAL, DIMENSION(3)  :: n_uvw    !Normal in direct space
 REAL, DIMENSION(3)  :: v        !temporary vector
 REAL, DIMENSION(3)  :: u        !temporary vector
-REAL, DIMENSION(3)  :: axis     !axis for moveto command
+REAL(KIND=PREC_DP), DIMENSION(3)  :: axis     !axis for moveto command
 REAL, DIMENSION(3)  :: p_a      !projected abscissa
 REAL, DIMENSION(3)  :: p_o      !projected abscissa
-REAL, DIMENSION(3,3):: roti     !Rotation matrix
-REAL, DIMENSION(3,3):: rotf     !Rotation matrix
-REAL, DIMENSION(3,3):: test     !Test for unit matrix
-REAL :: det, trace
+REAL(KIND=PREC_DP), DIMENSION(3,3):: roti     !Rotation matrix
+REAL(KIND=PREC_DP), DIMENSION(3,3):: rotf     !Rotation matrix
+REAL(KIND=PREC_DP), DIMENSION(3,3):: test     !Test for unit matrix
+REAL(KIND=PREC_DP) :: det, trace
 INTEGER :: ier
 REAL                :: rr
-REAL                :: beta
+REAL(KIND=PREC_DP)                :: beta
 !
 IF(pl_prog=='jmol') THEN
    IF(kill=='yes') THEN

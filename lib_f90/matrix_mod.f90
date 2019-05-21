@@ -9,9 +9,10 @@ CONTAINS
 !
 PURE FUNCTION det2(a) RESULT(det)
 !
-REAL, DIMENSION(2,2), INTENT(IN) :: a
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(2,2), INTENT(IN) :: a
 !
-REAL                             :: det
+REAL(KIND=PREC_DP)                             :: det
 !
 det = (A(1,1)*A(2,2) - A(1,2)*A(2,1))
 !
@@ -22,9 +23,10 @@ END FUNCTION det2
 !PURE FUNCTION det3(a) RESULT(det)
      FUNCTION det3(a) RESULT(det)
 !
-REAL, DIMENSION(3,3), INTENT(IN) :: a
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(3,3), INTENT(IN) :: a
 !
-REAL                             :: det
+REAL(KIND=PREC_DP)                             :: det
 !
 det  =   (A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2) &
         - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1) &
@@ -36,9 +38,10 @@ END FUNCTION det3
 !
 PURE FUNCTION det4(a) RESULT(det)
 !
-REAL, DIMENSION(4,4), INTENT(IN) :: a
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(IN) :: a
 !
-REAL                             :: det
+REAL(KIND=PREC_DP)                             :: det
 !
 det = &
     (A(1,1)*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2)))&
@@ -52,15 +55,16 @@ END FUNCTION det4
 !
 SUBROUTINE matinv2(A, B)
     !! Performs a direct calculation of the inverse of a 2×2 matrix.
-REAL, DIMENSION(2,2), INTENT(IN) :: A        !! Matrix
-REAL, DIMENSION(2,2), INTENT(OUT):: B        !! Inverse matrix
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(2,2), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_DP), DIMENSION(2,2), INTENT(OUT):: B        !! Inverse matrix
 !
-REAL                        :: det, detinv
+REAL(KIND=PREC_DP)                        :: det, detinv
 !
 ! Calculate the inverse determinant of the matrix
 det = det2(a)
 !
-IF(det/=0.0) THEN
+IF(det/=0.0D0) THEN
    detinv = 1./det
 
     ! Calculate the inverse of the matrix
@@ -79,15 +83,16 @@ END SUBROUTINE matinv2
 !
 SUBROUTINE matinv3(A, B)
     !! Performs a direct calculation of the inverse of a 3×3 matrix.
-REAL, DIMENSION(3,3), INTENT(IN) :: A        !! Matrix
-REAL, DIMENSION(3,3), INTENT(OUT):: B        !! Inverse matrix
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(3,3), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_DP), DIMENSION(3,3), INTENT(OUT):: B        !! Inverse matrix
 !
-REAL                             :: det, detinv
+REAL(KIND=PREC_DP)                             :: det, detinv
 !
 ! Calculate the inverse determinant of the matrix
 det = det3(a)
 !
-IF(det/=0.0) THEN
+IF(det/=0.0D0) THEN
    detinv = 1./det
 !
 ! Calculate the inverse of the matrix
@@ -111,15 +116,16 @@ END SUBROUTINE matinv3
 !
 SUBROUTINE matinv4(A, B)
     !! Performs a direct calculation of the inverse of a 4×4 matrix.
-REAL, DIMENSION(4,4), INTENT(IN) :: A        !! Matrix
-REAL, DIMENSION(4,4), INTENT(OUT):: B        !! Inverse matrix
+USE precision_mod
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(IN) :: A        !! Matrix
+REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT):: B        !! Inverse matrix
 !
-REAL                             :: det, detinv
+REAL(KIND=PREC_DP)                             :: det, detinv
 !
 ! Calculate the inverse determinant of the matrix
 det = det3(a)
 !
-IF(det/=0.0) THEN
+IF(det/=0.0D0) THEN
    detinv = 1./det
     ! Calculate the inverse of the matrix
    B(1,1) = detinv*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2)))
@@ -161,29 +167,30 @@ SUBROUTINE mat_axis(mat, axis, alpha, det, trace, ier)
 !             -3:trace outside [-3:3]
 !             +1: Rotation angle is zero
 !
+USE precision_mod
 USE trig_degree_mod
 IMPLICIT NONE
 !
-REAL, DIMENSION(3,3), INTENT(IN)  :: mat
-REAL, DIMENSION(3)  , INTENT(OUT) :: axis
-REAL                , INTENT(OUT) :: alpha
-REAL                , INTENT(OUT) :: det
-REAL                , INTENT(OUT) :: trace
+REAL(KIND=PREC_DP), DIMENSION(3,3), INTENT(IN)  :: mat
+REAL(KIND=PREC_DP), DIMENSION(3)  , INTENT(OUT) :: axis
+REAL(KIND=PREC_DP)                , INTENT(OUT) :: alpha
+REAL(KIND=PREC_DP)                , INTENT(OUT) :: det
+REAL(KIND=PREC_DP)                , INTENT(OUT) :: trace
 INTEGER             , INTENT(OUT) :: ier
 !
-REAL, PARAMETER :: EPS = 1.E-5
+REAL(KIND=PREC_DP), PARAMETER :: EPS = 1.D-5
 !
 INTEGER              :: i1,i2,i3
-REAL, DIMENSION(3,3) :: work
-REAL                 :: ca, sa
-REAL                 :: n1,n2,n3
-REAL                 :: m1,m2,m3
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: work
+REAL(KIND=PREC_DP)                 :: ca, sa
+REAL(KIND=PREC_DP)                 :: n1,n2,n3
+REAL(KIND=PREC_DP)                 :: m1,m2,m3
 !
-axis(:) = 0.0
-alpha   = 0.0
+axis(:) = 0.0D0
+alpha   = 0.0D0
 det     = det3(mat)
 trace   = mat(1,1) + mat(2,2) + mat(3,3)
-ca      = 0.5*(trace-1)
+ca      = 0.5D0*(trace-1)
 IF(ABS(det)<EPS) THEN
    ier = -1
    RETURN
@@ -192,7 +199,7 @@ IF(ABS(det)-1>EPS) THEN
    ier = -2
    RETURN
 ENDIF
-IF(ABS(trace)>3.0) THEN
+IF(ABS(trace)>3.0D0) THEN
    ier = -3
    RETURN
 ENDIF
@@ -205,28 +212,28 @@ IF(ABS(alpha)<EPS) THEN
    RETURN
 ENDIF
 !
-IF(         ( (work(1,1)-ca)/(1.0-ca) )<0.0) THEN
-   n1 = 0.0
+IF(         ( (work(1,1)-ca)/(1.0D0-ca) )<0.0D0) THEN
+   n1 = 0.0D0
 ELSE
-   n1    = SQRT( (work(1,1)-ca)/(1.0-ca) )
+   n1    = SQRT( (work(1,1)-ca)/(1.0D0-ca) )
 ENDIF
-IF(         ( (work(2,2)-ca)/(1.0-ca) )<0.0) THEN
+IF(         ( (work(2,2)-ca)/(1.0D0-ca) )<0.0D0) THEN
    n2 = 0.0
 ELSE
-   n2    = SQRT( (work(2,2)-ca)/(1.0-ca) )
+   n2    = SQRT( (work(2,2)-ca)/(1.0D0-ca) )
 ENDIF
-IF(         ( (work(3,3)-ca)/(1.0-ca) )<0.0) THEN
+IF(         ( (work(3,3)-ca)/(1.0D0-ca) )<0.0D0) THEN
    n3 = 0.0
 ELSE
-   n3    = SQRT( (work(3,3)-ca)/(1.0-ca) )
+   n3    = SQRT( (work(3,3)-ca)/(1.0D0-ca) )
 ENDIF
 !
 loop1: DO i1=-1,1,2
-   m1 = n1*FLOAT(i1)
+   m1 = n1*REAL(i1)
    loop2: DO i2=-1,1,2
-      m2 = n2*FLOAT(i2)
+      m2 = n2*REAL(i2)
       loop3: DO i3=-1,1,2
-         m3 = n3*FLOAT(i3)
+         m3 = n3*REAL(i3)
          IF(ABS(m1*m2*(1.-ca)-m3*sa - work(1,2))<EPS .AND. &
             ABS(m1*m3*(1.-ca)-m2*sa - work(1,3))<EPS .AND. &
             ABS(m2*m3*(1.-ca)-m1*sa - work(2,3))<EPS ) THEN 

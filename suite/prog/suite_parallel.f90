@@ -11,6 +11,7 @@ USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
 USE operating_mod
+USE precision_mod
 USE prompt_mod
 IMPLICIT NONE
 !
@@ -25,7 +26,7 @@ CHARACTER(LEN=1024)                  :: mfile
 CHARACTER(LEN=1024)                  :: line
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: numproc
 INTEGER                              :: ianz
 INTEGER                              :: iianz

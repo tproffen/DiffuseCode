@@ -22,6 +22,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE random_mod
+USE precision_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -38,9 +39,9 @@ CONTAINS
       INTEGER ja, jsite, jcell (3) 
       INTEGER            :: n_scat ! dummy for allocation
       LOGICAL lexist, lrepl 
-      REAL uerte (maxw) 
-      REAL verte (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: uerte (maxw) 
+      REAL(KIND=PREC_DP) :: verte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL prob 
 !                                                                       
       LOGICAL str_comp 
@@ -397,6 +398,8 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE build_name_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
        
@@ -414,7 +417,7 @@ CONTAINS
       INTEGER                              :: new_nmax   = 0
       INTEGER                              :: new_nscat  = 0
       LOGICAL                              :: need_alloc = .false.
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !
 !     While developing, increment crystal if neede, but keep the check
 !
@@ -494,6 +497,7 @@ CONTAINS
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -510,7 +514,7 @@ CONTAINS
       INTEGER                              :: new_nscat
       LOGICAL                              :: need_alloc = .false.
       LOGICAL lkick, lspace 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL w (3), v (3) 
 !     REAL do_blen 
 !                                                                       
@@ -705,6 +709,7 @@ CONTAINS
       USE crystal_mod 
       USE prop_para_mod 
       USE errlist_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -712,7 +717,7 @@ CONTAINS
       INTEGER, INTENT(IN)     :: maxw
 !                                                                       
       CHARACTER (LEN=* )    , INTENT(INOUT) :: name 
-      REAL , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
+      REAL(KIND=PREC_DP) , DIMENSION(maxw), INTENT(IN) :: werte (maxw) 
 !
       INTEGER                :: i, l
       INTEGER                :: new_nmax   = 1
@@ -808,6 +813,7 @@ USE prop_para_mod
 USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
+USE precision_mod
 IMPLICIT none 
 !                                                                       
        
@@ -824,7 +830,7 @@ INTEGER :: istart, iend, ianz
 INTEGER :: tstart, tend 
 LOGICAL :: l_mole 
 LOGICAL :: l_type 
-REAL               , DIMENSION(MAXW) :: werte ! (maxw) 
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte ! (maxw) 
 !                                                                       
 LOGICAL :: str_comp 
 !                                                                       
@@ -1368,6 +1374,7 @@ END SUBROUTINE do_remove
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1381,7 +1388,7 @@ END SUBROUTINE do_remove
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, i, lp, ind 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       zeile = ' ' 
       CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -1444,6 +1451,7 @@ END SUBROUTINE do_remove
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1453,7 +1461,7 @@ END SUBROUTINE do_remove
 !                                                                       
       CHARACTER ( * ) line 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER i, j, ianz, lp, is 
       INTEGER, DIMENSION(0:3) :: iis
@@ -1526,12 +1534,13 @@ END SUBROUTINE do_remove
       USE discus_config_mod 
       USE crystal_mod 
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER is, ianz, maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER j 
       LOGICAL ltype 
@@ -1558,6 +1567,7 @@ END SUBROUTINE do_remove
       USE get_iscat_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1576,7 +1586,7 @@ END SUBROUTINE do_remove
       INTEGER  :: maxw
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
-      REAL               , DIMENSION(1:lo+1) :: werte 
+      REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
       INTEGER            , DIMENSION(1:lo+1) :: lpara 
       INTEGER                                :: ianz, i, is
 !                                                                       
@@ -1627,6 +1637,7 @@ END SUBROUTINE do_remove
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1643,7 +1654,7 @@ END SUBROUTINE do_remove
       INTEGER                                :: maxw
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(1:lo+1) :: cpara 
-      REAL               , DIMENSION(1:lo+1) :: werte 
+      REAL(KIND=PREC_DP) , DIMENSION(1:lo+1) :: werte 
       INTEGER            , DIMENSION(1:lo+1) :: lpara 
 !                                                                       
       INTEGER                                :: ianz, i, is
@@ -1700,6 +1711,7 @@ END SUBROUTINE do_remove
       USE prompt_mod 
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
        
 !                                                                       
@@ -1711,7 +1723,7 @@ END SUBROUTINE do_remove
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER laenge 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1757,6 +1769,7 @@ END SUBROUTINE do_remove
       USE errlist_mod 
       USE get_params_mod
       USE build_name_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -1771,7 +1784,7 @@ END SUBROUTINE do_remove
       INTEGER itype 
       INTEGER number 
 !                                                                       
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       

@@ -27,6 +27,7 @@ USE kuplot_fit6
       USE kuplot_config 
       USE kuplot_mod 
 !     USE kuplot_fit_mod
+USE precision_mod
       USE set_sub_generic_mod
       USE variable_mod
 !
@@ -44,7 +45,7 @@ USE kuplot_fit6
       CHARACTER(1024) cpara (maxw) 
 !     CHARACTER(LEN=1024), DIMENSION(3) :: blank = ' '
       CHARACTER(4) bef 
-      REAL, DIMENSION(MAXW) :: werte
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL dummy 
       INTEGER lpara (maxw) 
       INTEGER lc, lbef, i

@@ -19,6 +19,7 @@ USE errlist_mod
 USE get_params_mod
 USE ber_params_mod
 USE build_name_mod
+USE precision_mod
 USE prompt_mod
 USE string_convert_mod
 USE take_param_mod
@@ -31,7 +32,7 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: MAXWW = 2       ! Max parameters on line
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
-REAL               , DIMENSION(:), ALLOCATABLE :: werte
+REAL(KIND=PREC_DP) , DIMENSION(:), ALLOCATABLE :: werte
 INTEGER :: k
 INTEGER :: ianz
 INTEGER :: MAXW
@@ -47,7 +48,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 DATA oname  / 'covar'  , 'output'/

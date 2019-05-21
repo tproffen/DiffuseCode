@@ -8,52 +8,56 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
 !                                                                       
 !     Evaluate all intrinsic functions                                  
 !                                                                       
-      USE build_name_mod
-      USE ersetz_mod
-      USE do_read_number_mod
-      USE errlist_mod 
-      USE get_params_mod
-      USE random_mod
-      USE variable_mod
-      USE wink_mod
-      USE times_mod
-      USE trig_degree_mod
-      USE set_sub_generic_mod
-      IMPLICIT none 
-!                                                                       
-      INTEGER, PARAMETER :: maxw = 9
-!                                                                       
-      CHARACTER(LEN=*), INTENT(INOUT) :: string
-      CHARACTER(LEN=*), INTENT(INOUT) :: line 
-      INTEGER         , INTENT(INOUT) :: ikl
-      INTEGER         , INTENT(INOUT) :: iklz
-      INTEGER         , INTENT(INOUT) :: lll
-      INTEGER         , INTENT(INOUT) :: lp 
+USE build_name_mod
+USE ersetz_mod
+USE do_read_number_mod
+USE errlist_mod 
+USE get_params_mod
+USE random_mod
+USE variable_mod
+USE wink_mod
+USE times_mod
+USE trig_degree_mod
+USE set_sub_generic_mod
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) zeile 
-      CHARACTER(1024) answer , search
-      CHARACTER(LEN=24) :: fmodt
-      INTEGER lpara (maxw) 
-      INTEGER ikom, i, ianz 
-      INTEGER lcom 
-      INTEGER ihyp 
-      INTEGER dummy 
-      LOGICAL :: BACK   ! FLAG for index intrinsic
-      REAL fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
-      REAL werte (maxw), ww, a , skew
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: MAXW = 9
+!                                                                       
+CHARACTER(LEN=*), INTENT(INOUT) :: string
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+INTEGER         , INTENT(INOUT) :: ikl
+INTEGER         , INTENT(INOUT) :: iklz
+INTEGER         , INTENT(INOUT) :: lll
+INTEGER         , INTENT(INOUT) :: lp 
+!
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=1024) :: zeile 
+CHARACTER(LEN=1024) :: answer , search
+CHARACTER(LEN=24)   :: fmodt
+INTEGER, DIMENSION(MAXW)  :: lpara
+INTEGER  :: ikom, i, ianz 
+INTEGER  :: lcom 
+INTEGER  :: ihyp 
+INTEGER  :: dummy 
+LOGICAL :: BACK   ! FLAG for index intrinsic
+REAL  :: fl1, fl2, fl3, gbox_k, gbox_w, gbox_x 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)  :: ww, a , skew
+REAL(KIND=PREC_DP)  :: ww1, ww2
+REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
 !     REAL sind, cosd, tand, asind, acosd, atand 
 !     REAL atan2, atan2d 
 !                                                                       
-      INTEGER length_com 
-      INTEGER len_str 
-      REAL gasdev, ran1, poidev , gasskew
+INTEGER  ::length_com 
+INTEGER :: len_str 
+REAL, EXTERNAL :: gasdev, ran1, poidev , gasskew
 !
 !                                                                       
-      ier_num = - 1 
+      ier_num = -1 
       ier_typ = ER_FORT 
       ikom = INDEX (line, ',') 
-      ihyp = max (INDEX (line, '''') , INDEX (line, '"') ) 
+      ihyp = MAX(INDEX(line, '''') , INDEX(line, '"') ) 
       IF (ikom.eq.0.and.ihyp.eq.0) then 
          ww = do_read_number (line, lp) 
          IF (ier_num.ne.0) then 
@@ -85,7 +89,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
             i = lp - 2
             IF(zeile(1:1)=='''' .and. zeile(i:i)=='''' .OR. & !) THEN
                zeile(1:1)=='"'  .and. zeile(i:i)=='"' ) THEN
-               ww = float (i-2) 
+               ww = REAL(i-2, PREC_DP) 
                CALL ersetz2 (string, ikl, iklz, ww, 6, lll) 
             ELSE
                CALL get_params (line, ianz, cpara, lpara, maxw, lp) 
@@ -102,15 +106,15 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
          ENDIF 
       ELSEIF (lcom.eq.5) then 
          IF (string (ikl - 5:ikl - 1) .eq.'asind') then 
-            IF (abs (ww) .le.1.0) then 
-               ww = asind (ww) 
+            IF (abs (ww) .le.1.0D0) then 
+               ww = asind(ww) 
                CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
             ELSE 
                ier_num = - 7 
                ier_typ = ER_FORT 
             ENDIF 
          ELSEIF (string (ikl - 5:ikl - 1) .eq.'acosd') then 
-            IF (abs (ww) .le.1.0) then 
+            IF (abs (ww) .le.1.0D0) then 
                ww = acosd (ww) 
                CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
             ELSE 
@@ -130,9 +134,9 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (1) = do_read_number (cpara (1), lpara (1) ) 
-               werte (2) = do_read_number (cpara (2), lpara (2) ) 
-               ww = atan2d (werte (1), werte (2) ) 
+               ww1       = do_read_number (cpara (1), lpara (1) ) 
+               ww2       = do_read_number (cpara (2), lpara (2) ) 
+               ww = atan2d(ww1, ww2)
             ELSE 
                ier_num = - 27 
                ier_typ = ER_FORT 
@@ -145,11 +149,11 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (1) = do_read_number (cpara (1), lpara (1) ) 
+               ww1       = do_read_number (cpara (1), lpara (1) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (werte (1) .lt.0.0) then 
+               IF (ww1       .lt.0.0) then 
                   ier_num = - 35 
                   ier_typ = ER_FORT 
                   RETURN 
@@ -159,21 +163,21 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (2) = do_read_number (cpara (2), lpara (2) ) 
+               ww2       = do_read_number (cpara (2), lpara (2) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (ABS(werte (2)) .gt.1.0) then 
+               IF (ABS(ww2      ) .gt.1.0) then 
                   ier_num = - 36 
                   ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
-               skew = werte(2)
+               skew = ww2      
 !                                                                       
                IF (ianz.eq.2.or.cpara (3) .eq.'s') then 
-                  a = werte (1) 
+                  a = ww1       
                ELSEIF (ianz.eq.3.and.cpara (3) .eq.'f') then 
-                  a = werte (1) / sqrt (8. * log (2.) ) 
+                  a = ww1       / sqrt (8.D0 * log (2.D0) ) 
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_FORT 
@@ -239,9 +243,9 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                                  ELSE
                                     search= cpara(1)(1:lpara(1))
                                  ENDIF
-                                 ww = FLOAT(INDEX(zeile (1:LEN_TRIM(ZEILE )), &
-                                                  search(1:LEN_TRIM(search)), &
-                                                  BACK ))
+                                 ww = REAL(INDEX(zeile (1:LEN_TRIM(ZEILE )), &
+                                                 search(1:LEN_TRIM(search)), &
+                                                  BACK ), PREC_DP)
                                  CALL ersetz2 (string, ikl, iklz, ww, 5, lll) 
                               ENDIF
                            ELSE 
@@ -267,7 +271,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
          ENDIF 
       ELSEIF (lcom.eq.4) then 
          IF (string (ikl - 4:ikl - 1) .eq.'asin') then 
-            IF (abs (ww) .le.1.0) then 
+            IF (abs (ww) .le.1.0D0) then 
                ww = asin (ww) 
                CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
             ELSE 
@@ -275,7 +279,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                ier_typ = ER_FORT 
             ENDIF 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'acos') then 
-            IF (abs (ww) .le.1.0) then 
+            IF (abs (ww) .le.1.0D0) then 
                ww = acos (ww) 
                CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
             ELSE 
@@ -287,9 +291,9 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
             IF (ianz.eq.1) then 
                ww = atan (ww) 
             ELSEIF (ianz.eq.2) then 
-               werte (1) = do_read_number (cpara (1), lpara (1) ) 
-               werte (2) = do_read_number (cpara (2), lpara (2) ) 
-               ww = atan2 (werte (1), werte (2) ) 
+               ww1       = do_read_number (cpara (1), lpara (1) ) 
+               ww2       = do_read_number (cpara (2), lpara (2) ) 
+               ww = atan2(ww1, ww2)
             ELSE 
                ier_num = - 27 
                ier_typ = ER_FORT 
@@ -314,7 +318,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
             ww = cosh (ww) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'sqrt') then 
-            IF (ww.ge.0) then 
+            IF (ww.ge.0D0) then 
                ww = sqrt (ww) 
                CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
             ELSE 
@@ -322,10 +326,10 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                ier_typ = ER_FORT 
             ENDIF 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'nint') then 
-            ww = float (nint (ww) ) 
+            ww = REAL(NINT (ww), PREC_DP ) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'frac') then 
-            ww = ww - float (int (ww) ) 
+            ww = ww - REAL(INT(ww), PREC_DP) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'gbox') then 
             CALL get_params (line, ianz, cpara, lpara, 3, lp) 
@@ -335,33 +339,33 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (i) = do_read_number (cpara (i), lpara (i) ) 
+               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (werte (i) .lt.0.0) then 
+               IF (wwerte(i) .lt.0.0) then 
                   ier_num = - 35 
                   ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
                ENDDO 
 !           Determine relative size of exponentials and box             
-               fl1 = REAL(0.5D0 * REAL(werte (1), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
-               fl2 = werte (2) 
-               fl3 = REAL(0.5D0 * REAL(werte (3), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
+               fl1 = REAL(0.5D0 * REAL(wwerte(1), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
+               fl2 = wwerte(2) 
+               fl3 = REAL(0.5D0 * REAL(wwerte(3), KIND=KIND(0.0D0)) * sqrt (zpi), KIND=KIND(0.0E0)) 
 !           Normalize to 1                                              
-               gbox_k = 1. / (fl1 + fl2 + fl3) 
-               gbox_w = 1. - (fl1 + fl3) * gbox_k 
+               gbox_k = 1.D0 / (fl1 + fl2 + fl3) 
+               gbox_w = 1.D0 - (fl1 + fl3) * gbox_k 
 !           Get random number                                           
                gbox_x = ran1 (idum) 
 !                                                                       
                IF (gbox_x.lt.fl1 * gbox_k) then 
-                  ww = - werte (2) * 0.5 - abs (gasdev (werte (1) ) ) 
+                  ww = - wwerte(2) * 0.5D0 - ABS (gasdev (wwerte(1) ) ) 
                ELSEIF (gbox_x.lt. (fl1 + fl2) * gbox_k) then 
-                  ww = - werte (2) * 0.5 + (gbox_x - fl1 * gbox_k)      &
-                       * werte (2) / gbox_w
+                  ww = - wwerte(2) * 0.5D0 + (gbox_x - fl1 * gbox_k)      &
+                       * wwerte(2) / gbox_w
                ELSE 
-                  ww = werte (2) * 0.5 + abs (gasdev (werte (3) ) ) 
+                  ww = wwerte(2) * 0.5D0 + ABS (gasdev (wwerte(3) ) ) 
                ENDIF 
                CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
             ELSE 
@@ -376,20 +380,20 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (1) = do_read_number (cpara (1), lpara (1) ) 
+               ww1       = do_read_number (cpara (1), lpara (1) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (werte (1) .lt.0.0) then 
+               IF (ww1       .lt.0.0) then 
                   ier_num = - 35 
                   ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
 !                                                                       
                IF (ianz.eq.1.or.cpara (2) .eq.'s') then 
-                  a = werte (1) 
+                  a = ww1       
                ELSEIF (ianz.eq.2.and.cpara (2) .eq.'f') then 
-                  a = werte (1) / sqrt (8. * log (2.) ) 
+                  a = ww1       / sqrt (8.D0 * log (2.D0) ) 
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_FORT 
@@ -409,11 +413,11 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (1) = do_read_number (cpara (1), lpara (1) ) 
+               ww1       = do_read_number (cpara (1), lpara (1) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (werte (1) .lt.0.0) then 
+               IF (ww1       .lt.0.0D0) then 
                   ier_num = - 37 
                   ier_typ = ER_FORT 
                   RETURN 
@@ -423,20 +427,20 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (2) = do_read_number (cpara (2), lpara (2) ) 
+               ww2       = do_read_number (cpara (2), lpara (2) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               IF (werte (2) .lt.0.0) then 
+               IF (ww2       .lt.0.0D0) then 
                   ier_num = - 35
                   ier_typ = ER_FORT 
                   RETURN 
                ENDIF 
 !                                                                       
                IF (ianz.eq.2.or.cpara (3) .eq.'s') then 
-                  a = werte (2) 
+                  a = ww2       
                ELSEIF (ianz.eq.3.and.cpara (3) .eq.'f') then 
-                  a = werte (2) / sqrt (8. * log (2.) ) 
+                  a = ww2       / sqrt (8.D0 * log (2.D0) ) 
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_FORT 
@@ -447,7 +451,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
-            ww = exp (log (werte (1) ) + gasdev (a) ) 
+            ww = exp (log (ww1       ) + gasdev (a) ) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'pois') then 
             ww = poidev (ww, idum) 
@@ -475,7 +479,7 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
             ww = abs (ww) 
             CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
          ELSEIF (string (ikl - 3:ikl - 1) .eq.'int') then 
-            ww = float (int (ww) ) 
+            ww = REAL(INT(ww), PREC_DP ) 
             CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
          ELSEIF (string (ikl - 3:ikl - 1) .eq.'max') then 
             CALL get_params (line, ianz, cpara, lpara, 2, lp) 
@@ -485,12 +489,12 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (i) = do_read_number (cpara (i), lpara (i) ) 
+               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
                ENDDO 
-               ww = max (werte (1), werte (2) ) 
+               ww = max (wwerte(1), wwerte(2) ) 
                CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
             ELSE 
                ier_num = - 6 
@@ -505,12 +509,12 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (i) = do_read_number (cpara (i), lpara (i) ) 
+               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
                ENDDO 
-               ww = min (werte (1), werte (2) ) 
+               ww = min (wwerte(1), wwerte(2) ) 
                CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
             ELSE 
                ier_num = - 6 
@@ -525,12 +529,12 @@ RECURSIVE      SUBROUTINE calc_intr (string, line, ikl, iklz, lll, lp)
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
-               werte (i) = do_read_number (cpara (i), lpara (i) ) 
+               wwerte(i) = do_read_number (cpara (i), lpara (i) ) 
                IF (ier_num.ne.0) then 
                   RETURN 
                ENDIF 
                ENDDO 
-               ww = amod (werte (1), werte (2) ) 
+               ww = MOD(wwerte(1), wwerte(2) ) 
                CALL ersetz2 (string, ikl, iklz, ww, 3, lll) 
             ELSE 
                ier_num = - 6 

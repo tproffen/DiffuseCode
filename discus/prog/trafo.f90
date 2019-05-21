@@ -107,10 +107,11 @@ CONTAINS
 !     Transforms a point in the crystal space into plot space           
 !     and vice versa                                                    
 !-                                                                      
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER i, j, idim 
-      REAL gmat (idim, idim), uc (idim), up (idim) 
+      REAL(KIND=PREC_SP) gmat (idim, idim), uc (idim), up (idim) 
 !                                                                       
       DO i = 1, idim 
       up (i) = 0.0 

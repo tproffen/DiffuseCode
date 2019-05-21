@@ -161,8 +161,8 @@ USE wyckoff_mod
 IMPLICIT NONE
 !
 REAL, DIMENSION(4)   , INTENT(IN)  :: hkl
-REAL, DIMENSION(:,:) , INTENT(OUT) :: point_hkl
-INTEGER              , INTENT(OUT) :: point_n
+REAL, DIMENSION(:,:) , INTENT(IN)  :: point_hkl
+INTEGER              , INTENT(IN)  :: point_n
 LOGICAL              , INTENT(IN)  :: l_form
 !
 REAL, PARAMETER :: EPS = 0.000001
@@ -194,8 +194,8 @@ USE wyckoff_mod
 IMPLICIT NONE
 !
 INTEGER, DIMENSION(4)   , INTENT(IN)  :: hkl
-INTEGER, DIMENSION(:,:) , INTENT(OUT) :: point_hkl
-INTEGER                 , INTENT(OUT) :: point_n
+INTEGER, DIMENSION(:,:) , INTENT(IN)  :: point_hkl
+INTEGER                 , INTENT(IN)  :: point_n
 LOGICAL                 , INTENT(IN)  :: l_form
 !
 REAL, PARAMETER :: EPS = 0.000001

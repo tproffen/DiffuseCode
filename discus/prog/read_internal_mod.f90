@@ -153,6 +153,8 @@ integer ier
    USE molecule_mod
    USE spcgr_apply, ONLY: get_symmetry_matrices, firstcell, symmetry
    USE wyckoff_mod
+USE precision_mod
+!
    IMPLICIT NONE
 !
 !
@@ -173,7 +175,7 @@ integer ier
    REAL   , DIMENSION(3)         :: posit      ! position of current atom
    INTEGER, DIMENSION(0:3)       :: isurface   ! surface  of current atom
    INTEGER                       :: iprop      ! property of current atom
-   REAL   , DIMENSION(5)         :: werte      ! temporary array
+   REAL(KIND=PREC_DP), DIMENSION(5)         :: werte      ! temporary array
 !
    CHARACTER (LEN=4)             :: at_name    ! temporary atom name
    REAL                          :: dw1        ! temporary DW factor

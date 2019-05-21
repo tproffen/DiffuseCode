@@ -64,6 +64,7 @@ USE population
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 USE prompt_mod
 !
 IMPLICIT NONE
@@ -76,7 +77,7 @@ INTEGER,          DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 INTEGER            , PARAMETER          :: MAXWW=1
 CHARACTER(LEN=1024), DIMENSION(1:MAXWW) :: ccpara
 INTEGER,             DIMENSION(1:MAXWW) :: llpara
-REAL   ,             DIMENSION(1:MAXWW) :: wwerte
+REAL(KIND=PREC_DP),  DIMENSION(1:MAXWW) :: wwerte
 INTEGER :: i, j
 INTEGER :: iianz
 LOGICAL :: str_comp

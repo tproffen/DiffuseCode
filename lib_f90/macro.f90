@@ -6,6 +6,7 @@ SUBROUTINE file_kdo(line, ilen)
       USE errlist_mod
       USE doact_mod
       USE macro_mod
+USE precision_mod
       USE prompt_mod
 !
       IMPLICIT NONE
@@ -21,7 +22,7 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER             , DIMENSION(1:MAXW) :: lpara
       INTEGER                                 :: ianz, i
       LOGICAL                                 :: fileda
-      REAL                , DIMENSION(1:MAXW) :: werte
+      REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW) :: werte
 !
 !
       INTEGER, PARAMETER :: imc   = 63
@@ -254,6 +255,7 @@ SUBROUTINE file_kdo(line, ilen)
       USE envir_mod
       USE errlist_mod
       USE get_params_mod
+USE precision_mod
       USE prompt_mod
 !
       IMPLICIT NONE
@@ -265,7 +267,7 @@ SUBROUTINE file_kdo(line, ilen)
       INTEGER          , INTENT(OUT  )  :: ianz
       CHARACTER (LEN=*), DIMENSION(1:MAXW),INTENT(OUT  )  :: cpara
       INTEGER          , DIMENSION(1:MAXW),INTENT(OUT  )  :: lpara
-      REAL             , DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
+      REAL(KIND=PREC_DP),DIMENSION(1:MAXW),INTENT(OUT  )  :: werte
 !
       CHARACTER(LEN=1024)      :: string
       INTEGER                  :: i
@@ -435,6 +437,7 @@ USE ber_params_mod
       USE get_params_mod
       USE macro_mod
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod
       IMPLICIT none
 !
@@ -451,7 +454,7 @@ USE ber_params_mod
       INTEGER il
       INTEGER, DIMENSION(1) :: lstring
       LOGICAL lnum
-      REAL   , DIMENSION(1) :: r_par
+      REAL(KIND=PREC_DP)   , DIMENSION(1) :: r_par
 !
       INTEGER len_str
       LOGICAL str_comp
@@ -857,6 +860,7 @@ USE ber_params_mod
 USE charact_mod
 USE errlist_mod
 USE macro_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -879,8 +883,8 @@ INTEGER             , DIMENSION(1:MAXW) :: lstring
 LOGICAL                                 :: lnum
 INTEGER                                 :: iseof
 LOGICAL                                 :: fileda
-REAL                , DIMENSION(1:MAXW) :: werte
-REAL                , DIMENSION(1:MAXW) :: r_par
+REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW) :: r_par
 !
 numpar = 0                                 ! Assume no parameters are required
 CALL build_macro_name(line, ilen, filename, MAXW, ianz, cpara, lpara, werte)

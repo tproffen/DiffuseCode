@@ -14,6 +14,7 @@ CONTAINS
 !    builds a filename of type "base.0000"
 !
    USE build_name_mod
+USE precision_mod
 !
    IMPLICIT none 
 !                                                                       
@@ -29,7 +30,7 @@ CONTAINS
    INTEGER                        :: lpara (maxw) 
    INTEGER                        :: fpara 
    INTEGER                        :: ianz, ldot 
-   REAL                           :: werte (maxw) 
+   REAL(KIND=PREC_DP)             :: werte (maxw) 
 !                                                                       
    ldot = index (infile, '.') 
    IF (ldot.eq.0) then 

@@ -35,6 +35,7 @@ CONTAINS
 !
 USE ber_params_mod
     USE get_params_mod
+USE precision_mod
     IMPLICIT NONE
 !
 !
@@ -44,7 +45,7 @@ USE ber_params_mod
     INTEGER , PARAMETER                      :: MAXW=10
     CHARACTER (LEN=1024), DIMENSION(1:MAXW)  :: cpara
     INTEGER             , DIMENSION(1:MAXW)  :: lpara
-    REAL                , DIMENSION(1:MAXW)  :: werte
+    REAL(KIND=PREC_DP)  , DIMENSION(1:MAXW)  :: werte
     INTEGER                                  :: ianz
 !
     LOGICAL  :: str_comp

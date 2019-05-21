@@ -44,6 +44,7 @@ use wyckoff_mod
       USE learn_mod 
       USE get_params_mod
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod 
       USE take_param_mod
       USE sup_mod
@@ -61,7 +62,7 @@ use wyckoff_mod
       INTEGER          :: lstr, i, j, k
       INTEGER          :: ianz, lbef
       LOGICAL          :: lout 
-      REAL   , DIMENSION(maxw) ::  werte!, wwerte
+      REAL(KIND=PREC_DP)   , DIMENSION(maxw) ::  werte!, wwerte
 !     INTEGER          :: ncells
 !     INTEGER          :: n_gene
 !     INTEGER          :: n_symm
@@ -78,7 +79,7 @@ use wyckoff_mod
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
 !                                                                       
@@ -395,6 +396,7 @@ USE update_cr_dim_mod
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -421,7 +423,7 @@ INTEGER             :: n_mole
 INTEGER             :: n_type
 INTEGER             :: ncells
 INTEGER, DIMENSION(3) :: local_icc
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL                :: r
 !
 LOGICAL :: str_comp
@@ -771,6 +773,7 @@ USE spcgr_apply
 USE stack_rese_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 !
 !CHARACTER(LEN=*),                  INTENT(IN) :: befehl
 !INTEGER         ,                  INTENT(IN) :: lbef
@@ -784,8 +787,8 @@ INTEGER         ,                  INTENT(IN   ) :: l_set
 INTEGER  :: i
 INTEGER  :: iianz
 !
-REAL, DIMENSION(MAXW) :: werte
-REAL, DIMENSION(MAXW) :: wwerte
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: wwerte
 !
 CALL rese_cr 
 cr_name = 'freely created structure' 
@@ -890,6 +893,7 @@ SUBROUTINE readcell (strucfile, l_identical, r_identical)
       USE discus_save_mod 
       USE spcgr_apply
       USE wyckoff_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !
@@ -920,7 +924,8 @@ CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       LOGICAL          :: lcontent
 LOGICAL, SAVE          :: at_init = .TRUE.
       LOGICAL lcell, lout 
-      REAL werte (maxw), dw1 , occ1
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: dw1 , occ1
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 
@@ -1271,6 +1276,7 @@ USE prop_para_mod
 USE ber_params_mod
 USE charact_mod
 USE get_params_mod
+USE precision_mod
 IMPLICIT none 
 !                                                                       
 CHARACTER (LEN=*)                   , INTENT(INOUT) :: line 
@@ -1278,7 +1284,7 @@ INTEGER                             , INTENT(IN)    :: ibl
 INTEGER                             , INTENT(IN)    :: length 
 INTEGER                             , INTENT(IN)    :: cr_natoms 
 INTEGER                             , INTENT(IN)    :: maxw 
-REAL   , DIMENSION(MAXW)            , INTENT(INOUT) :: werte !(maxw) 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) , INTENT(INOUT) :: werte !(maxw) 
 INTEGER                             , INTENT(IN)    :: AT_MAXP
 INTEGER                             , INTENT(OUT)   :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP), INTENT(OUT)   :: at_param
@@ -1287,7 +1293,7 @@ LOGICAL                             , INTENT(INOUT) :: at_init
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara   ! (maxw) 
 CHARACTER(LEN=1024)                  :: string 
 INTEGER            , DIMENSION(MAXW) :: lpara   ! (maxw) 
-REAL               , DIMENSION(MAXW) :: wwerte  ! (maxw) 
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: wwerte  ! (maxw) 
 INTEGER                              :: i, j ,isok
 INTEGER                              :: ianz 
 INTEGER                              :: ios 
@@ -1448,6 +1454,7 @@ END SUBROUTINE read_atom_line
       USE spcgr_apply
       USE ber_params_mod
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       CHARACTER(LEN=* ), INTENT(IN)    :: zeile 
@@ -1461,7 +1468,7 @@ END SUBROUTINE read_atom_line
       CHARACTER(1024) cpara (maxw) 
       INTEGER j, ianz 
       INTEGER lpara (maxw)
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER          :: n_gene
       INTEGER          :: n_symm
       INTEGER          :: n_mole
@@ -1879,6 +1886,7 @@ USE sym_add_mod
 USE ber_params_mod
 USE get_params_mod
 USE string_convert_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT none 
@@ -1920,7 +1928,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       LOGICAL lend 
       LOGICAL :: lcontent
 !DBG      real            spcgr_para                                    
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
 INTEGER, PARAMETER :: O_SETTING = 1
@@ -1929,7 +1937,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !                                                                       
 !                                                                       
@@ -2375,6 +2383,7 @@ cr_occ(:) = 1.0   !! WORK OCC
       USE molecule_mod 
       USE prop_para_mod
       USE spcgr_apply
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -2423,7 +2432,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       LOGICAL             :: lcontent
       LOGICAL, SAVE       :: at_init = .TRUE.
       REAL, PARAMETER     :: eps = 1e-6
-      REAL, DIMENSION(maxw) :: werte !(maxw)
+      REAL(KIND=PREC_DP), DIMENSION(maxw) :: werte !(maxw)
       REAL                :: dw1 , occ1 = 1
 !                                                                       
       INTEGER :: len_str 
@@ -2611,17 +2620,18 @@ USE spcgr_apply, ONLY : spcgr_get_setting
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
 INTEGER              , INTENT(INOUT) :: ianz
 INTEGER              , INTENT(IN)    :: MAXW
-REAL, DIMENSION(MAXW), INTENT(IN)    :: werte
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN)    :: werte
 !                                                                       
 CHARACTER(LEN=   3), DIMENSION(6) :: setting 
 CHARACTER(LEN=1024), DIMENSION(1) :: cpara 
 INTEGER            , DIMENSION(1) :: lpara 
-REAL               , DIMENSION(1) :: rpara 
+REAL(KIND=PREC_DP) , DIMENSION(1) :: rpara 
 !
 INTEGER :: ii, i 
 INTEGER :: j
@@ -3021,6 +3031,7 @@ USE blanks_mod
 USE build_name_mod
 USE get_params_mod
 USE wink_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -3032,7 +3043,7 @@ INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara ! (MAXW)
 !                                                                       
 INTEGER, PARAMETER :: NFV = 50 
 !                                                                       
-      REAL werte (3) 
+      REAL(KIND=PREC_DP) :: werte (3) 
 !                                                                       
       INTEGER shelx_num 
       PARAMETER (shelx_num = 61) 
@@ -3069,7 +3080,7 @@ REAL   , DIMENSION(:), ALLOCATABLE :: eadp_values
       INTEGER, PARAMETER                    :: MAXP  = 11 ! Dummy number of parameters
       CHARACTER (LEN=1024), DIMENSION(MAXP) :: ccpara     ! Parameter needed for SFAC analysis
       INTEGER             , DIMENSION(MAXP) :: llpara
-      REAL                , DIMENSION(MAXP) :: wwerte
+      REAL(KIND=PREC_DP)  , DIMENSION(MAXP) :: wwerte
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -3481,6 +3492,7 @@ DEALLOCATE(eadp_values)
 !     converts a CrystalMaker "xyz" file to DISCUS                   
 !+                                                                      
       USE build_name_mod
+USE precision_mod
 !
       IMPLICIT none 
 !                                                                       
@@ -3491,7 +3503,7 @@ DEALLOCATE(eadp_values)
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
 !                                                                       
-      REAL   , DIMENSION(3) :: werte
+      REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN=87)     :: line 
       CHARACTER(LEN=1024)   :: infile 
@@ -3627,6 +3639,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
 !     converts a RMCProfile "cssr" file to DISCUS                   
 !+                                                                      
 USE build_name_mod
+USE precision_mod
 USE take_param_mod
       IMPLICIT none 
 !                                                                       
@@ -3639,7 +3652,7 @@ USE take_param_mod
       INTEGER, PARAMETER    :: RMC_CSSR  = 0
       INTEGER, PARAMETER    :: RMC_RMCF6 = 1
 !                                                                       
-      REAL   , DIMENSION(3) :: werte
+      REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN=1024)   :: infile = ' '
       CHARACTER(LEN=1024)   :: ofile  = ' '
@@ -3653,7 +3666,7 @@ USE take_param_mod
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
       LOGICAL str_comp
@@ -4140,6 +4153,7 @@ END SUBROUTINE rmc6f_period
       USE ber_params_mod
       USE blanks_mod
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
 !
       IMPLICIT none 
@@ -4149,10 +4163,10 @@ END SUBROUTINE rmc6f_period
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara
 !                                                                       
-      REAL, PARAMETER :: eightpi2 = 8.*3.1415926535897932384626433832795028841971693993751**2
+      REAL(KIND=PREC_DP), PARAMETER :: eightpi2 = 8.D0*3.1415926535897932384626433832795028841971693993751D0**2
       REAL, PARAMETER :: EPS = 0.00001
 !                                                                       
-      REAL   , DIMENSION(3) :: werte
+      REAL(KIND=PREC_DP)   , DIMENSION(3) :: werte
 !                                                                       
       CHARACTER(LEN= 1)     :: bravais= ' '
       CHARACTER(LEN=80)     :: title  = ' '
@@ -4170,7 +4184,7 @@ END SUBROUTINE rmc6f_period
       CHARACTER(LEN=1024), DIMENSION(3)                :: cspara
       INTEGER            , DIMENSION(:), ALLOCATABLE   :: llpara
       INTEGER            , DIMENSION(3)                :: lspara
-      REAL               , DIMENSION(3)                :: wwerte
+      REAL(KIND=PREC_DP) , DIMENSION(3)                :: wwerte
       INTEGER               :: MAXLINES 
       INTEGER               :: ird, iwr 
       INTEGER               :: iianz = 3
@@ -5085,6 +5099,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       USE ber_params_mod
       USE charact_mod
       USE get_params_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT NONE
 !
@@ -5102,7 +5117,7 @@ find:       DO WHILE (ASSOCIATED(TEMP))
       INTEGER, PARAMETER                    :: MAXW = 13 
       CHARACTER(LEN=1024), DIMENSION(MAXW)  :: cpara (MAXW) 
       INTEGER            , DIMENSION(MAXW)  :: lpara (MAXW) 
-      REAL               , DIMENSION(MAXW)  :: werte (MAXW) 
+      REAL(KIND=PREC_DP) , DIMENSION(MAXW)  :: werte (MAXW) 
 !
       REAL, PARAMETER                       :: eps = 1e-6
       CHARACTER (LEN=1024)                  :: line
@@ -5471,6 +5486,7 @@ USE spcgr_apply
 USE wyckoff_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -5482,7 +5498,7 @@ INTEGER, PARAMETER                   ::MAXW = 2
 !
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER :: ianz
 !
 INTEGER, PARAMETER :: NOPTIONAL = 1
@@ -5492,7 +5508,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !                                                                       
 !

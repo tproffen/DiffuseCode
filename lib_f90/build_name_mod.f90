@@ -12,6 +12,7 @@ SUBROUTINE do_build_name (ianz, cpara, lpara, werte, MAXW, fpara)
       USE blanks_mod
       USE berechne_mod
       USE errlist_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -27,7 +28,7 @@ INTEGER                             , INTENT(INOUT) :: ianz
 INTEGER                             , INTENT(IN   ) :: MAXW 
 CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
-REAL               , DIMENSION(MAXW), INTENT(INOUT) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
 INTEGER                             , INTENT(IN)    :: fpara 
 !                                                                       
       CHARACTER(1024) string 
@@ -48,7 +49,7 @@ INTEGER                             , INTENT(IN)    :: fpara
       INTEGER ll, i 
       INTEGER fstring_l 
       INTEGER ising 
-      REAL wert 
+REAL(KIND=PREC_DP) ::  wert 
       LOGICAL lfloat 
       LOGICAL l_hyp 
       LOGICAL l_sin 

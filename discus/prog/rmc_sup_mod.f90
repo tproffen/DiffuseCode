@@ -19,6 +19,7 @@ CONTAINS
       USE errlist_mod
       USE get_params_mod
       USE build_name_mod
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -34,9 +35,9 @@ CONTAINS
 !     REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: wwerte
 !     INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
       CHARACTER(LEN=1024), DIMENSION(25                     ) :: cpara
-      REAL               , DIMENSION(25                     ) :: werte
-      REAL               , DIMENSION(25                     ) :: wwerte
-      REAL               , DIMENSION(25                     ) :: uerte
+      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: wwerte
+      REAL(KIND=PREC_DP) , DIMENSION(25                     ) :: uerte
       INTEGER            , DIMENSION(25                     ) :: lpara
 !
       REAL mmdis, hklmin (3), hklmax (3)
@@ -457,6 +458,7 @@ CONTAINS
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxww = 4 
@@ -468,10 +470,10 @@ CONTAINS
       INTEGER                             , INTENT(INOUT) :: ianz
 !                                                                       
       CHARACTER (LEN=*), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara !(maxw) 
-      REAL             , DIMENSION(1:MAXW), INTENT(INOUT) :: werte !(maxw) 
+      REAL(KIND=PREC_DP),DIMENSION(1:MAXW), INTENT(INOUT) :: werte !(maxw) 
       INTEGER          , DIMENSION(1:MAXW), INTENT(INOUT) :: lpara !(maxw) 
 !
-      REAL wwerte (maxww) 
+      REAL(KIND=PREC_DP) :: wwerte (maxww) 
       INTEGER ii, is, i, j 
 !                                                                       
 !------ Atoms                                                           
@@ -556,6 +558,7 @@ CONTAINS
       USE discus_config_mod 
       USE rmc_mod 
       USE errlist_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -567,7 +570,7 @@ CONTAINS
       INTEGER           , INTENT(IN ) :: ianz
       CHARACTER (LEN=* ), DIMENSION(1:MAXW), INTENT(INOUT) :: cpara  !(maxw) 
       INTEGER           , DIMENSION(1:MAXW), INTENT(IN ) :: lpara  !(maxw) 
-      REAL              , DIMENSION(1:MAXW), INTENT(IN ) :: werte  !(maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(1:MAXW), INTENT(IN ) :: werte  !(maxw) 
 !
       INTEGER :: imode
       INTEGER :: i
@@ -981,6 +984,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE prompt_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -993,7 +997,7 @@ CONTAINS
 !                                                                       
       CHARACTER(1024) cdummy, cpara (maxw) 
       INTEGER ianz, lpara (maxw), ip, is 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ianz.ge.2) then 
@@ -1195,6 +1199,7 @@ CONTAINS
       USE get_params_mod
       USE build_name_mod
       USE prompt_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
        
@@ -1211,7 +1216,8 @@ CONTAINS
       INTEGER ianz, nsym, rsym 
       INTEGER ip, nx, ny, wx, wy 
       INTEGER i, j, k 
-      REAL werte (maxw), d1, d2, d3, d4
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: d1, d2, d3, d4
       REAL e1 (3), e2 (3), e3 (3), vi1 (3), vi2 (3), z (3) 
       REAL qmin, qmax 
       REAL ee1 (4, max_sym) 
@@ -2841,6 +2847,7 @@ loop_plane: DO ip = 1, rmc_nplane
       USE modify_mod
       USE rmc_mod 
       USE param_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       LOGICAL, INTENT(OUT) :: laccept 
@@ -2850,7 +2857,8 @@ loop_plane: DO ip = 1, rmc_nplane
       REAL   , DIMENSION(3,RMC_MAX_ATOM), INTENT(IN)  :: p_new !(3, rmc_max_atom) 
 !                                                                       
       INTEGER i
-      REAL pos (3), werte(1) 
+      REAL pos (3)
+REAL(KIND=PREC_DP) :: werte(1) 
 !                                                                       
       werte = - 1 
       DO i = 1, 3 
@@ -2988,6 +2996,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       USE prompt_mod 
       USE random_mod
+USE precision_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(OUT) :: laccept 
@@ -3000,7 +3009,8 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER i, j, is1, is2, il 
       REAL  :: value
       REAL disp1, disp2 
-      REAL ran1, gasdev 
+      REAL ran1
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
 !
@@ -3043,8 +3053,8 @@ loop_plane: DO ip = 1, rmc_nplane
          IF (laccept) then 
             i_new (1) = cr_iscat (isel (1) ) 
             DO i = 1, 3 
-            p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (rmc_maxmove (&
-            i, i_new (1) ) )                                            
+            p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (DBLE(rmc_maxmove (&
+            i, i_new (1) ) ))
 !              IF(chem_period(i)) THEN ! Apply modulo of crystal dimensions
 !                 IF(p_new(i,1) > cr_dim0(i,2) + 0.75 .or.  &
 !                    p_new(i,1) < cr_dim0(i,1) - 0.75     ) THEN
@@ -3142,6 +3152,7 @@ loop_plane: DO ip = 1, rmc_nplane
 !                                                                       
       USE errlist_mod 
       USE prompt_mod 
+USE precision_mod
       IMPLICIT none 
 !
       LOGICAL, INTENT(OUT) :: laccept 
@@ -3154,7 +3165,8 @@ loop_plane: DO ip = 1, rmc_nplane
       INTEGER iz1 (3), iz2 (3) 
       INTEGER i, j, k, is1, is2, il, i0, j0 
       REAL disp1 (3), disp2 (3) 
-      REAL ran1, gasdev 
+      REAL ran1
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
       REAL dummy (3) 
       LOGICAL lflag  !, rmc_inlot 
 !                                                                       
@@ -3197,8 +3209,7 @@ loop_plane: DO ip = 1, rmc_nplane
          IF (laccept) then 
             natoms = mole_len (imol (1) ) 
             DO j = 1, 3 
-            disp1 (j) = gasdev (rmc_maxmove (j, mole_type (imol (1) ) ) &
-            )                                                           
+            disp1(j) = gasdev(DBLE(rmc_maxmove(j, mole_type(imol(1)))))
             ENDDO 
 !                                                                       
             DO i = 1, mole_len (imol (1) ) 

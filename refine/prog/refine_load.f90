@@ -15,6 +15,7 @@ USE refine_data_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -27,7 +28,7 @@ INTEGER, PARAMETER :: MAXW = 20
 !
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 !
 INTEGER                              :: ianz
 INTEGER                              :: ndata 

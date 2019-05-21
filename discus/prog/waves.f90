@@ -24,6 +24,7 @@ SUBROUTINE waves_menu
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod 
       USE sup_mod
 !                                                                       
@@ -36,7 +37,7 @@ SUBROUTINE waves_menu
       PARAMETER (lnew = .true., lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
       CHARACTER(1024) line, zeile
@@ -330,7 +331,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
                         IF (ier_num.eq.0) then 
-                           wv_phigh = min (1.0, abs (werte (1) ) ) 
+                           wv_phigh = min (1.0D0, abs (werte (1) ) ) 
                         ENDIF 
                      ELSE 
                         ier_num = - 6 
@@ -347,7 +348,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
                         IF (ier_num.eq.0) then 
-                           wv_plow = min (1.0, abs (werte (1) ) ) 
+                           wv_plow = min (1.0D0, abs (werte (1) ) ) 
                         ENDIF 
                      ELSE 
                         ier_num = - 6 

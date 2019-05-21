@@ -143,7 +143,9 @@ INTEGER          , INTENT(INOUT) :: i
          lcont = .false. 
       ELSEIF (i.gt.1) then 
          IF ( (string (i:i) .eq.'-'.or.string (i:i) .eq.'+') .and. &
-              (string (i - 1:i - 1) .ne.'E'.and.string (i - 1:i - 1) .ne.'e') ) then                                                         
+              (string (i - 1:i - 1) .ne.'E'.and.string (i - 1:i - 1) .ne.'e' .AND. &
+               string (i - 1:i - 1) .ne.'D'.and.string (i - 1:i - 1) .ne.'d' &
+              ) ) then                                                         
             lcont = .false. 
          ENDIF 
       ENDIF 
@@ -226,8 +228,13 @@ INTEGER          , INTENT(IN   ) :: laenge
             ELSEIF (i.gt.1) then 
                IF ( (string (i:i) .eq.'-'.or.          &
                      string (i:i) .eq.'+'     )  .and. &
+                    (                                  &
                     (string (i - 1:i - 1) .ne.'E'.and. &
-                     string (i - 1:i - 1) .ne.'e') ) then                                             
+                     string (i - 1:i - 1) .ne.'e'.AND. &
+                     string (i - 1:i - 1) .ne.'D'.and. &
+                     string (i - 1:i - 1) .ne.'d')     &
+                    )                                  &
+                    ) then                                             
                lcont = .false. 
                ENDIF 
             ENDIF 
@@ -244,12 +251,18 @@ INTEGER          , INTENT(IN   ) :: laenge
                (i.gt.1             .and.                              &
                 string (i:i) .eq.'-'.and.                             &
                (string (i - 1:i - 1) .eq.'E'.or.                      &
-                string (i - 1:i - 1) .eq.'e') ) ) .and.               &                
+                string (i - 1:i - 1) .eq.'e' .OR.                     &
+                string (i - 1:i - 1) .eq.'D'.or.                      &
+                string (i - 1:i - 1) .eq.'d')                         &
+               ) ) .and.                                              &
               (string (i:i) .ne.'+'.or.                               &
                (i.gt.1             .and.                              &
                 string (i:i) .eq.'+' .and.                            &
                 (string (i - 1:i - 1) .eq.'E'.or.                     &
-                 string (i - 1: i - 1) .eq.'e') ) ) )                                       
+                 string (i - 1: i - 1) .eq.'e' .OR.                   &
+                 string (i - 1:i - 1) .eq.'D'.OR.                     &
+                 string (i - 1: i - 1) .eq.'d'                        &
+                ) ) ) )                                       
             i = i + 1 
             ENDDO 
          ENDIF 

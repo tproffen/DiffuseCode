@@ -15,6 +15,7 @@ CONTAINS
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -33,8 +34,8 @@ CONTAINS
       LOGICAL lnew, fq, fp (3) 
       REAL rmin 
       REAL radius 
-      REAL werte (maxw) 
-      REAL wwerte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_DP) :: wwerte (maxw) 
       REAL x (3) 
 !                                                                       
       PARAMETER (lnew = .false.) 
@@ -162,12 +163,13 @@ CONTAINS
       USE param_mod 
       USE errlist_mod 
       USE sorting_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
       INTEGER ianz, maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL x (3) 
       REAL rmin, rmax 
       LOGICAL fq, fp (3) 
@@ -351,11 +353,12 @@ ENDIF
       USE mole_env_mod 
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       IMPLICIT none 
        
 !                                                                       
       INTEGER ianz, maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL x (3) 
       REAL rmin, rmax 
 !                                                                       

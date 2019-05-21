@@ -75,8 +75,13 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019_June
+
+   
 3  2019_May
 
+   Added the option to retin the original space group to the 
+   ==> 'export cif' command
    Added further output options to menu ==> 'output'.
 3  2019_Apr
 
@@ -2046,7 +2051,7 @@
    relative motion copies the atom number <n> to the sum of present
    position and vector <x>,<y>,<z>.
 2  export
-!b export "cif",<file{".cif"]>
+!b export "cif",<file{".cif"]> [, "spcgr:original"]
 !b export "shelx",<file{".ins"]>
 !b export "rmcprofile",<file{".rmc6f"]>  [version:{"6"|"7"}]
 !b export "vasp",<file]>
@@ -2055,7 +2060,13 @@
 
    cif
    Exports the atoms of the current structure as a minimal CIF
-   file.
+   file. with the optional parameter "spcgr" set to original you
+   can retain this original space group instead of the default
+   space group "P1". 
+   You can even specify another space group instead of the string
+   "original" if you want to change the space group. Be aware 
+   the 'export' does not check the compatibility of the 
+   space group and lattice parameters.
 
    shelx
    Exports the atoms of the current structure as a SHELXL instruction file

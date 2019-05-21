@@ -18,6 +18,7 @@ USE define_variable_mod
 USE get_params_mod
 USE ber_params_mod
 USE calc_expr_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -52,7 +53,7 @@ REAL                                 :: range_high   ! ranges
 INTEGER, PARAMETER :: MAXF=2
 CHARACTER(LEN=1024), DIMENSION(MAXF) :: ccpara
 INTEGER            , DIMENSION(MAXF) :: llpara
-REAL               , DIMENSION(MAXF) :: wwerte
+REAL(KIND=PREC_DP) , DIMENSION(MAXF) :: wwerte
 !
 INTEGER, PARAMETER :: NOPTIONAL = 3
 INTEGER, PARAMETER :: OVALUE    = 1
@@ -63,7 +64,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate
 !
 DATA oname  / 'value ' , 'status'  ,  'range' /

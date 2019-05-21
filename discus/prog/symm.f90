@@ -36,6 +36,7 @@ CONTAINS
       USE learn_mod 
       USE class_macro_internal
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       USE take_param_mod
       USE sup_mod
@@ -49,7 +50,7 @@ CONTAINS
       PARAMETER (lold = .false.) 
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
 !
       CHARACTER(5) befehl 
@@ -71,7 +72,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
       INTEGER len_str 

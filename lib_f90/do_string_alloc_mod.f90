@@ -17,6 +17,8 @@ USE do_variable_mod
       USE get_params_mod
       USE param_mod 
       USE set_sub_generic_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER, PARAMETER :: maxw= 10 
@@ -38,8 +40,8 @@ USE do_variable_mod
       INTEGER                    :: ikl, iklz, ll, laenge
       INTEGER                    :: ios  ! I/O error status
 !                                                                       
-      REAL                  :: wert
-      REAL, DIMENSION(maxw) :: werte
+REAL(KIND=PREC_DP)    :: wert
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !     for flexibility                                                   
 !                                                                       

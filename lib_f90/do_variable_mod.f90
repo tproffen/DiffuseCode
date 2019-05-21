@@ -95,7 +95,7 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
       ENDIF
       IF (var_type (i) .eq.      IS_REAL) THEN
          WRITE (dummy (1:PREC_WIDTH) , PREC_F_REAL) var_val (i) 
-         dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'e' 
+         dummy (PREC_MANTIS+1:PREC_MANTIS+1) = 'd' 
          ll = PREC_WIDTH
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
@@ -201,12 +201,14 @@ SUBROUTINE upd_variable (string, laenge, wert, dummy, length)
       USE errlist_mod 
       USE param_mod
       USE variable_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
 !                                                                       
 CHARACTER(LEN=*), INTENT(IN) :: string 
 INTEGER         , INTENT(IN) :: laenge 
-REAL            , INTENT(IN) :: wert 
+REAL(KIND=PREC_DP), INTENT(IN) :: wert 
 CHARACTER(LEN=*), INTENT(IN) :: dummy 
 INTEGER         , INTENT(IN) :: length 
 !                                                                       

@@ -1,15 +1,16 @@
 MODULE variable_mod
 !
-   USE constants_mod
+USE constants_mod
+USE precision_mod
 !
-   IMPLICIT NONE
-   PUBLIC
-   SAVE
+IMPLICIT NONE
+PUBLIC
+SAVE
 !
-   TYPE var_arrays
-      INTEGER, DIMENSION(2  )              :: var_shape
-      REAL   , DIMENSION(:,:), ALLOCATABLE :: var_value
-   END TYPE var_arrays
+TYPE var_arrays
+   INTEGER, DIMENSION(2  )              :: var_shape
+   REAL(KIND=PREC_DP)   , DIMENSION(:,:), ALLOCATABLE :: var_value
+END TYPE var_arrays
 !
    INTEGER, PARAMETER :: VAR_MAX       = 999
 !
@@ -67,7 +68,7 @@ CONTAINS
    var_l    ( i) = 5
    var_type ( i) = IS_INTE
    var_diff ( i) = .FALSE.
-   var_val  ( i) = -1
+   var_val  ( i) = -1D0
 !
    i = VAR_TRUE
    var_name ( i) = 'TRUE'              ! A state is TRUE 
@@ -302,7 +303,7 @@ CONTAINS
    var_l    ( i) = 2
    var_type ( i) = IS_REAL
    var_diff ( i) = .FALSE.
-   var_val  ( i) = REAL(3.1415926535897932384626433832795028841971693993751D0)
+   var_val  ( i) = 3.1415926535897932384626433832795028841971693993751D0
 !
 !
    var_num      = i

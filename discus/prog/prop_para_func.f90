@@ -205,6 +205,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !
       CHARACTER (LEN=*), INTENT(INOUT) :: zeile
@@ -217,7 +218,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       LOGICAL, PARAMETER                   :: LOLD = .true.
       CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
       INTEGER            , DIMENSION(MAXW) :: lpara
-      REAL               , DIMENSION(MAXW) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
       INTEGER                              :: ianz
       INTEGER                              :: i,is
       INTEGER                              :: ibit_nr = PROP_NORMAL
@@ -378,6 +379,7 @@ USE surface_func_mod
       USE prop_para_mod 
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE take_param_mod
       IMPLICIT none 
 !                                                                       
@@ -399,7 +401,7 @@ USE surface_func_mod
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
       LOGICAL str_comp 
@@ -526,6 +528,7 @@ USE prop_para_mod
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -533,7 +536,7 @@ INTEGER, INTENT(IN)                                :: NOPTIONAL
 CHARACTER(LEN=*)                      , INTENT(IN) :: act
 CHARACTER(LEN=*), DIMENSION(NOPTIONAL), INTENT(IN) :: opara
 INTEGER         , DIMENSION(NOPTIONAL), INTENT(IN) :: lopara
-REAL            , DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
+REAL(KIND=PREC_DP),DIMENSION(NOPTIONAL), INTENT(IN) :: owerte
 !
 TYPE(prop_templ), DIMENSION(:), ALLOCATABLE :: p_temp
 TYPE(prop_templ)                            :: pp
@@ -542,7 +545,7 @@ INTEGER, PARAMETER :: MAXWW= 10
 INTEGER            :: MAXW = 10
 CHARACTER(LEN=1024), DIMENSION(MAX(MAXWW, MAXSCAT)) :: cpara
 INTEGER            , DIMENSION(MAX(MAXWW, MAXSCAT)) :: lpara
-REAL               , DIMENSION(MAX(MAXWW, MAXSCAT)) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MAXWW, MAXSCAT)) :: werte
 INTEGER                              :: ianz
 !
 INTEGER, DIMENSION(:), ALLOCATABLE :: at_kind    ! Atom type(s) on "atom:" parameter

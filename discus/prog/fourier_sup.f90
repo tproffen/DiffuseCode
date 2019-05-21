@@ -1040,6 +1040,7 @@ CONTAINS
       USE discus_allocate_appl_mod
       USE get_params_mod
       USE param_mod
+USE precision_mod
 !
       IMPLICIT NONE
 !
@@ -1047,7 +1048,7 @@ CONTAINS
       INTEGER         , INTENT(IN) :: infile_l
       CHARACTER(LEN=*), INTENT(IN) :: calcfile
       INTEGER         , INTENT(IN) :: calcfile_l
-      REAL            , INTENT(IN) :: scale
+      REAL(KIND=PREC_DP),INTENT(IN) :: scale
       INTEGER         , INTENT(IN) :: style
 !
       INTEGER, PARAMETER :: ird = 54

@@ -19,6 +19,7 @@ USE errlist_mod
 USE fput_mod
 USE get_params_mod
 USE learn_mod 
+USE precision_mod
 USE prompt_mod 
 USE sockets_mod
 USE random_state_mod
@@ -37,7 +38,7 @@ IMPLICIT none
       CHARACTER(1024) cpara (maxpar) 
       INTEGER lpara (maxpar) 
       INTEGER ianz 
-      REAL werte (maxpar) 
+      REAL(KIND=PREC_DP):: werte (maxpar) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       

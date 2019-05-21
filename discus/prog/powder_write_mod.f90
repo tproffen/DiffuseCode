@@ -555,18 +555,19 @@ SUBROUTINE four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
 !
 USE wink_mod
 !
-INTEGER                     , INTENT(IN) :: npkt_wrt
+INTEGER                       , INTENT(IN) :: npkt_wrt
 REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: xwrt
 REAL   , DIMENSION(0:npkt_wrt), INTENT(IN) :: ywrt
-REAL(KIND=PREC_DP)          , INTENT(IN) :: rmin, rmax
-INTEGER                     , INTENT(IN) :: npkt_pdf
+REAL(KIND=PREC_DP)            , INTENT(IN) :: rmin, rmax
+INTEGER                       , INTENT(IN) :: npkt_pdf
 REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
 REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
 !
-INTEGER :: i,j
+INTEGER :: i,j, k, kmax
 REAL(KIND=PREC_DP) :: rr, dr
 REAL(KIND=PREC_DP) :: dq
 REAL(KIND=PREC_DP) :: qmin
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: sine
 INTEGER            :: iqmin
 !
 qmin = xwrt(1)
@@ -576,24 +577,83 @@ iqmin = NINT(qmin/dq) - 1
 xfour(0) = 0.0
 yfour(0) = 0.0
 !
+! Create SINE Lookup
+!
+kmax = 10000 !NINT(ZPI*10000.D0)
+ALLOCATE(sine(0:KMAX))
+!open(45,file='sine.xy',status='unknown')
+DO i=0,kmax
+   sine(i) = SIN(ZPI*i/10000.0D0)
+!   write(45, '(2G18.7e2)') ZPI*i/10000.0D0,sine(i)
+ENDDO
+!close(45)
+!
+!open(45,file='low.xy',status='unknown')
+!do j=1, iqmin
+!   write(45, '(2G18.7e2)') (j-1)*dq,(j-1)*dq*ywrt(1)/qmin
+!enddo
+!close(45)
+!open(45,file='wrt.xy',status='unknown')
+!do j=1, npkt_wrt
+!   write(45, '(2G18.7e2)') xwrt(j), ywrt(j)
+!enddo
+!close(45)
+
+!write(*,*) ' STRT 1'
 ! Augment straight line from Q=0, F(0)=0 to qmin, F(qmin)
 DO i = 1, npkt_pdf
    rr = rmin + (i-1)*dr
    xfour(i) = REAL(rr)
    yfour(i) = 0.0
    DO j = 1, iqmin
-      yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*SIN((j-1)*dq*rr)
+      k = MOD(INT((j-1)*dq*rr*10000.0D0/ZPI),kmax)
+!     yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*SIN((j-1)*dq*rr)
+      yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*sine(k)
    ENDDO
 ENDDO
 ! Do rest of F(Q)
 DO i = 1, npkt_pdf
    rr = rmin + (i-1)*dr
    DO j=1, npkt_wrt
-      yfour(i) = yfour(i) + ywrt(j)*SIN(xwrt(j)*rr)
+      k = MOD(INT(xwrt(j)*rr*10000.0D0/ZPI),kmax)
+      yfour(i) = yfour(i) + ywrt(j)*sine(k)
+!     yfour(i) = yfour(i) + ywrt(j)*SIN(xwrt(j)*rr)
    ENDDO
    yfour(i) = yfour(i)*2/PI*dq
 ENDDO
-!
+!write(*,*) ' DONE 1'
+!ALLOCATE(xaug(0:iqmin+npkt_wrt))
+!ALLOCATE(yaug(0:iqmin+npkt_wrt))
+!DO j = 1, iqmin
+!   xaug(j) = (j-1)*dq
+!   yaug(j) = xaug(j)*ywrt(1)/xwrt(1)
+!ENDDO
+!DO j=1,npkt_wrt
+!   xaug(iqmin+j) = xwrt(j)
+!   yaug(iqmin+j) = ywrt(j)
+!ENDDO
+!open(45,file='aug.xy',status='unknown')
+!DO j=1,iqmin+npkt_wrt
+!   write(45, '(2G18.7e2)') xaug(j),yaug(j)
+!ENDDO
+!close(45)
+!!
+!DO i = 1, npkt_pdf
+!   rr = rmin + (i-1)*dr
+!   xfour(i) = REAL(rr)
+!   yfour(i) = 0.0D0
+!   DO j=1,iqmin+npkt_wrt
+!      k = MOD(INT(xaug(j)*rr*10000.0D0/ZPI),kmax)
+!      yfour(i) = yfour(i) + yaug(j)*sine(k)
+!   ENDDO
+!   yfour(i) = yfour(i)*2/PI*dq
+!ENDDO
+DEALLOCATE(sine)
+!DEALLOCATE(xaug)
+!DEALLOCATE(yaug)
+
+!write(*,*) ' DONE 2'
+!!
 END SUBROUTINE four_fq
 !*****7*****************************************************************
       REAL function lorentz (ttheta, flag_fq) 

@@ -21,6 +21,7 @@ CONTAINS
       USE get_params_mod
       USE prompt_mod 
       USE random_mod
+USE precision_mod
 !
       IMPLICIT none 
        
@@ -40,7 +41,7 @@ CONTAINS
       REAL uc_su2 (3, 0:maxscat) 
       REAL pi2, bfac, a 
       LOGICAL flag_all, flag_mol 
-REAL :: gasdev
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev
 !
       flag_all=.true.
       flag_mol=.false.
@@ -92,7 +93,7 @@ REAL :: gasdev
             is = mole_type (i) 
          DO ii = 1, 3 
          IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
-            up (ii) = gasdev (a) 
+            up (ii) = gasdev (DBLE(a)) 
          ELSE 
             up (ii) = 0.0 
          ENDIF 
@@ -118,7 +119,7 @@ REAL :: gasdev
 !           CALL ther_vec(flag_all, a, uc, up)
          DO ii = 1, 3 
          IF (flag_all.or.cr_icc (ii) .ne.1) THEN 
-            up (ii) = gasdev (a) 
+            up (ii) = gasdev (DBLE(a)) 
          ELSE 
             up (ii) = 0.0 
          ENDIF 
@@ -177,6 +178,7 @@ USE crystal_mod
 USE metric_mod
 USE trafo_mod
 USE random_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -191,7 +193,7 @@ REAL               :: length
 REAL               :: up_length
 !
 REAL :: ran1
-REAL :: gasdev
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev
 !
 search: DO
    DO i=1,3
@@ -207,7 +209,7 @@ ENDDO search
 up_length = SQRT(up_length)
 CALL trans (up, cr_gmat, uc, 3) 
 length = SQRT(skalpro(uc,uc,cr_gten))
-disp   = gasdev(a)
+disp   = gasdev(DBLE(a))
 uc(:)  = uc(:) /length * disp
 up(:)  = up(:) /up_length * disp
 !

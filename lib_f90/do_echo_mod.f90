@@ -1,11 +1,12 @@
 !*****7*****************************************************************
-      SUBROUTINE echo (zeile, lp) 
+SUBROUTINE echo (zeile, lp) 
 !-                                                                      
 !     writes an echo to the screen                                      
 !+                                                                      
       USE build_name_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -20,7 +21,7 @@
       INTEGER ianz 
       INTEGER lp, i, il 
       INTEGER iko, iqo, iqo2, lstring 
-      REAL werte (maxp) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXP) :: werte
 !                                                                       
       INTEGER len_str 
       INTEGER socket_send 

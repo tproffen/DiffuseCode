@@ -26,6 +26,7 @@ CONTAINS
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal
+USE precision_mod
       USE prompt_mod 
       USE string_convert_mod
       USE sup_mod
@@ -41,12 +42,12 @@ CONTAINS
       CHARACTER(LEN=LEN(prompt))        :: orig_prompt
       CHARACTER(LEN=1024)               :: line
       CHARACTER(LEN=1024)               :: zeile
-      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara (MAXW) 
+      CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
       INTEGER,             DIMENSION(1:MAXW) :: lpara
       INTEGER                                :: lp, length, lbef 
       INTEGER                                :: indxg, ianz, i, j
       LOGICAL                                :: lend
-      REAL   ,             DIMENSION(1:MAXW) :: werte (MAXW) 
+      REAL(KIND=PREC_DP),  DIMENSION(1:MAXW) :: werte
 !                                                                       
       INTEGER :: len_str 
       LOGICAL :: str_comp 

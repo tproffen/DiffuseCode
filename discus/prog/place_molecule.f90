@@ -286,6 +286,7 @@ use crystal_mod
 !
    USE ber_params_mod
    USE get_params_mod
+USE precision_mod
    USE take_param_mod
 !
    IMPLICIT NONE
@@ -310,7 +311,7 @@ use crystal_mod
    INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
    INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
    LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-   REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+   REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
    INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate
 
 !
@@ -327,8 +328,8 @@ use crystal_mod
    INTEGER              :: ianz, janz, kanz, success  !, ncon
    LOGICAL              :: lnew !, lnew_mole = .false.
    LOGICAL              :: l_form
-   REAL   , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: werte
-   REAL   , DIMENSION(1:2   ) :: wwerte
+   REAL(KIND=PREC_DP)   , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: werte
+   REAL(KIND=PREC_DP)   , DIMENSION(1:2   ) :: wwerte
 !
    LOGICAL str_comp
 !
@@ -785,6 +786,7 @@ USE prop_para_func
    USE random_mod
 USE prompt_mod
 USE discus_show_menu
+USE precision_mod
 !
    IMPLICIT none
 !
@@ -798,7 +800,7 @@ USE discus_show_menu
    CHARACTER(LEN= 200) :: shellfile  ! original structure file name
    CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara      ! a string
    INTEGER            , DIMENSION(MAXW) :: lpara      ! a string
-   REAL               , DIMENSION(MAXW) :: werte      ! a string
+   REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte      ! a string
 !
    INTEGER   :: ier_num_deco, ier_typ_deco
    CHARACTER(LEN=LEN(ier_msg)), DIMENSION(1:3) :: ier_msg_deco
@@ -1201,8 +1203,8 @@ ENDIF
             is = nscat_old+k
             DO j= 1, n_anch
                js = nscat_old+j
-            CALL mmc_set_disp (1, MC_REPULSIVE, is, js, 100.0, 15.0)
-            CALL mmc_set_rep  (1, is, js, 15.,16000., 0.5, 1.)
+            CALL mmc_set_disp (1, MC_REPULSIVE, is, js, 100.0D0, 15.0D0)
+            CALL mmc_set_rep  (1, is, js, 15.D0,16000.D0, 0.5D0, 1.D0)
             ENDDO
          ENDDO
          mmc_cor_energy (1, MC_REPULSIVE) = .true.
@@ -2249,6 +2251,7 @@ USE symm_mod
 USE symm_sup_mod
 USE trafo_mod
 !
+USE precision_mod
 USE param_mod
 !
 IMPLICIT NONE
@@ -2292,7 +2295,7 @@ REAL   , DIMENSION(1:3)                 :: surf_normal    ! Normal to work with
 !
 INTEGER, PARAMETER                      :: MINPARA = 2
 INTEGER                                 :: MAXW = MINPARA
-REAL     , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
+REAL(KIND=PREC_DP)     , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
 !
 CHARACTER (LEN=1024)                    :: line, zeile
 INTEGER                                 :: ianz
@@ -2544,6 +2547,7 @@ USE surface_func_mod
    USE trafo_mod
 !
    USE param_mod
+USE precision_mod
    USE wink_mod
 !
    IMPLICIT NONE
@@ -2579,7 +2583,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
-   REAL                , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
+   REAL(KIND=PREC_DP)  , DIMENSION(1:MAX(MINPARA,nanch)) :: werte
 !
    CHARACTER (LEN=1024)                    :: line
    INTEGER, DIMENSION(:), ALLOCATABLE  :: all_surface         ! Surface atom type
@@ -3111,6 +3115,7 @@ USE surface_func_mod
    USE trafo_mod
 !
    USE param_mod
+USE precision_mod
    USE wink_mod
 !
    IMPLICIT NONE
@@ -3148,7 +3153,7 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
 !
    INTEGER, PARAMETER                      :: MINPARA = 2
    INTEGER                                 :: MAXW = MINPARA
-   REAL                , DIMENSION(1:MAX(MINPARA,nanch  )) :: werte
+   REAL(KIND=PREC_DP)  , DIMENSION(1:MAX(MINPARA,nanch  )) :: werte
 !
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
@@ -3458,6 +3463,8 @@ USE surface_func_mod
    USE trafo_mod
 !
    USE param_mod
+USE precision_mod
+USE precision_mod
 !
    IMPLICIT NONE
 !
@@ -3515,7 +3522,8 @@ INTEGER                              :: test_nhkl
    INTEGER             :: m_type_new   ! new molecule types 
    INTEGER             :: in_mole,in_moleatom
 !
-   REAL :: gaslim, ran1
+   REAL(KIND=PREC_DP), EXTERNAL :: gaslim
+   REAL, EXTERNAL :: ran1
 !
 !  Determine surface character, if growth is restricted check if we're at proper surface
 !
@@ -3543,7 +3551,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !  Insert molecule atoms into crystal at correct origin in initial orientation
    normal_l = SQRT (skalpro (surf_normal, surf_normal, cr_gten))
    hbond = dist
-!  hbond = DIST_A_H + gaslim(SIGMA_A_H, 2.0)     ! Make distributed distances
+!  hbond = DIST_A_H + gaslim(DBLE(SIGMA_A_H), 2.0D0))     ! Make distributed distances
    origin(1)  = cr_pos(1,ia) + surf_normal(1)/normal_l*hbond  ! Origin is shifted
    origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*hbond  ! by hbond away from
    origin(3)  = cr_pos(3,ia) + surf_normal(3)/normal_l*hbond  ! surface atom
@@ -3572,7 +3580,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
             sym_uvw(:)     =  res_para(1:3)
 !           sym_angle      = ANGLE_A_H_D - do_bang(lspace, u, VNULL, v) &
             sym_angle      = dha_angle   - do_bang(lspace, u, VNULL, v) &
-                                         + gaslim(SIGMA_A_H_D, 2.0)! 
+                                         + gaslim(DBLE(SIGMA_A_H_D), 2.0D0)! 
             sym_orig(:)    = cr_pos(:,nold+neig)          ! Rotate in Hydrogen
             sym_trans(:)   = 0.0                          ! No translation needed
             sym_sel_atom   = .true.                       ! Select atoms
@@ -3717,6 +3725,7 @@ USE trafo_mod
 use molecule_mod
 !
 USE param_mod
+USE precision_mod
 USE random_mod
 !
 IMPLICIT NONE
@@ -3776,7 +3785,7 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
    REAL   , DIMENSION(3)   :: u,v,x, w       ! Temporary vectors
-   REAL   , DIMENSION(1:MAXW) :: werte
+   REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
 
    INTEGER, DIMENSION(4) :: hkl
    INTEGER             :: m_type_new   ! new molecule types 
@@ -3813,7 +3822,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
 !
 !  Insert molecule atoms into crystal at correct origin in initial orientation
    normal_l = SQRT (skalpro (surf_normal, surf_normal, cr_gten))
-!  hbond = DIST_A_H + gaslim(SIGMA_A_H, 2.0)     ! Make distributed distances
+!  hbond = DIST_A_H + gaslim(DBLE(SIGMA_A_H), 2.0D0)     ! Make distributed distances
    hbond = dist
    origin(1)  = cr_pos(1,ia) + surf_normal(1)/normal_l*hbond  ! Origin is shifted
    origin(2)  = cr_pos(2,ia) + surf_normal(2)/normal_l*hbond  ! by hbond away from
@@ -3851,7 +3860,7 @@ IF(surf_char /=0 .AND. surf_char > -SURF_EDGE) THEN    ! Surface atoms only
    laenge = LEN_TRIM(line)
    CALL vprod(line, laenge)
    d2 = res_para(1)**2 + res_para(2)**2 + res_para(3)**2
-   angle = do_bang(lspace, u, VNULL, v) ! + gaslim(SIGMA_A_H_D, 2.0)
+   angle = do_bang(lspace, u, VNULL, v) ! + gaslim(DBLE(SIGMA_A_H_D), 2.0D0)
    IF(d2 < EPS    ) THEN   !D==>H and H==>A are parallel, seek alternative solution
       ier_num = 0
       ier_typ = 0
@@ -3984,6 +3993,7 @@ USE prop_para_mod
 !
 USE errlist_mod
    USE param_mod
+USE precision_mod
    USE wink_mod
 !
    IMPLICIT NONE
@@ -4008,7 +4018,7 @@ USE errlist_mod
    LOGICAL, DIMENSION(1:3) :: fp
    LOGICAL                 :: fq
    REAL                    :: rmin, radius
-   REAL   , DIMENSION(1:MAXTYPE) :: werte
+   REAL(KIND=PREC_DP)   , DIMENSION(1:MAXTYPE) :: werte
    REAL   , DIMENSION(1:3)    :: x, u,v,w, e1,e2,e3
    REAL                    :: u_l, v_l, w_l    ! length of vectors in triangle
    REAL                    :: av, sig, av_min, sig_min ! average length  and sigma

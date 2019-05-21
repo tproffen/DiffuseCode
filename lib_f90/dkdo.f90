@@ -153,6 +153,7 @@ USE errlist_mod
 USE get_params_mod
 USE learn_mod 
 USE class_macro_internal 
+USE precision_mod
 USE prompt_mod 
 USE set_sub_generic_mod
 USE sup_mod
@@ -173,7 +174,7 @@ CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 CHARACTER (LEN=1024)                 :: prog_n
 CHARACTER (LEN=1024)                 :: mac_n
 INTEGER            , DIMENSION(MAXW) :: lpara
-REAL               , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte
 INTEGER                              :: ianz
 INTEGER                              :: i, length, lbef, lp
 INTEGER                              :: indxm
@@ -194,7 +195,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
 DATA oname  / 'partial', 'repeat' , 'logfile', 'compute'  /

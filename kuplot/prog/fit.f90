@@ -35,6 +35,7 @@ SUBROUTINE do_fit (zei, lp)
       USE kuplot_mod 
       USE string_convert_mod
       USE sup_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -54,7 +55,7 @@ SUBROUTINE do_fit (zei, lp)
       INTEGER ll
       INTEGER ianz, indxg, lbef 
       INTEGER maxpkt, maxzz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL flag (3), sel_func 
 !                                                                       
       INTEGER len_str 
@@ -453,6 +454,7 @@ real :: f, df(maxpara)
       USE kuplot_config 
       USE kuplot_mod 
       USE string_convert_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -462,7 +464,7 @@ real :: f, df(maxpara)
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(80) iname 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iianz
 !                                                                       
@@ -597,6 +599,7 @@ real :: f, df(maxpara)
       USE kuplot_mod 
 !
       USE build_name_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -605,7 +608,7 @@ real :: f, df(maxpara)
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
 !                                                                       
@@ -675,6 +678,7 @@ real :: f, df(maxpara)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -683,7 +687,7 @@ real :: f, df(maxpara)
 !                                                                       
       CHARACTER(80) filname 
       CHARACTER(2) cdummy 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ianz 
       INTEGER len_str 
 !                                                                       
@@ -727,6 +731,7 @@ real :: f, df(maxpara)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -738,7 +743,7 @@ real :: f, df(maxpara)
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -789,6 +794,7 @@ real :: f, df(maxpara)
       USE param_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -798,7 +804,7 @@ real :: f, df(maxpara)
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ip 
 !                                                                       
@@ -1293,6 +1299,7 @@ CALL wichtung (y)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1300,7 +1307,8 @@ CALL wichtung (y)
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
       CHARACTER(1024) cdummy 
-      REAL dummy, werte (maxw) 
+      REAL dummy
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, ip , length
 !                                                                       
@@ -1335,12 +1343,13 @@ CALL wichtung (y)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER , INTENT(IN) :: maxw 
       INTEGER , INTENT(IN) :: ianz 
-      REAL    , DIMENSION(MAXW), INTENT(IN) ::  werte (maxw) 
+      REAL(KIND=PREC_DP)    , DIMENSION(MAXW), INTENT(IN) ::  werte (maxw) 
 !                                                                       
       CHARACTER (LEN=*), DIMENSION(MAXW), INTENT(IN) :: cpara
       INTEGER          , DIMENSION(MAXW), INTENT(IN) :: lpara
@@ -1546,6 +1555,7 @@ REAL                   :: f
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1553,7 +1563,7 @@ REAL                   :: f
       PARAMETER (maxmax = 50) 
 !                                                                       
       CHARACTER ( * ) iname 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz 
 !                                                                       
       REAL pcoff (maxpara) 
@@ -1828,6 +1838,7 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1835,8 +1846,8 @@ REAL                   :: f
       PARAMETER (maxmax = 50) 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -2030,6 +2041,7 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2037,8 +2049,8 @@ REAL                   :: f
       PARAMETER (maxmax = 50) 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -2229,6 +2241,7 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2237,8 +2250,8 @@ REAL                   :: f
 !                                                                       
       INTEGER nu 
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -2513,6 +2526,7 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -2520,8 +2534,8 @@ REAL                   :: f
       PARAMETER (maxmax = 20) 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ianz, ima, ii, jj, i 
 !                                                                       
@@ -2729,11 +2743,12 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
       IF (ianz.eq.0) then 
@@ -2842,11 +2857,12 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
       IF (ianz.eq.0) then 
@@ -2950,11 +2966,12 @@ REAL                   :: f
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
       IF (ianz.eq.1) then 
@@ -3546,6 +3563,7 @@ USE kuplot_config
 USE kuplot_mod 
 USE string_convert_mod
 USE sup_mod
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -3564,7 +3582,7 @@ INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER :: ll
 INTEGER :: ianz, indxg, lbef 
 INTEGER :: maxpkt, maxzz 
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 LOGICAL, DIMENSION(3) :: flag
 LOGICAL               :: sel_func 
 !                                                                       
@@ -3964,6 +3982,7 @@ IF (ier_num.ne.0) RETURN
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -3974,7 +3993,7 @@ IF (ier_num.ne.0) RETURN
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(80) iname 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iianz
 !                                                                       
@@ -4109,6 +4128,7 @@ IF (ier_num.ne.0) RETURN
       USE kuplot_mod 
 !
       USE build_name_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4117,7 +4137,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, i 
 !                                                                       
@@ -4187,6 +4207,7 @@ IF (ier_num.ne.0) RETURN
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -4195,7 +4216,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
       CHARACTER(80) filname 
       CHARACTER(2) cdummy 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz 
       INTEGER len_str 
 !                                                                       
@@ -4239,6 +4260,7 @@ IF (ier_num.ne.0) RETURN
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -4250,7 +4272,7 @@ IF (ier_num.ne.0) RETURN
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -4301,6 +4323,7 @@ IF (ier_num.ne.0) RETURN
       USE param_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -4310,7 +4333,7 @@ IF (ier_num.ne.0) RETURN
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ip 
 !                                                                       
@@ -5070,6 +5093,7 @@ SUBROUTINE setup_user (ianz, werte, maxw, cpara, lpara)
       USE kuplot_mod 
 USE kuplot_fit_const
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5077,7 +5101,8 @@ USE kuplot_fit6_set_theory
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
       CHARACTER(1024) cdummy 
-      REAL dummy, werte (maxw) 
+      REAL dummy
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, ip , length
 !                                                                       
@@ -5115,12 +5140,13 @@ END SUBROUTINE setup_user
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER , INTENT(IN) :: maxw 
       INTEGER , INTENT(IN) :: ianz 
-      REAL    , DIMENSION(MAXW), INTENT(IN) ::  werte (maxw) 
+      REAL(KIND=PREC_DP)    , DIMENSION(MAXW), INTENT(IN) ::  werte (maxw) 
 !                                                                       
       CHARACTER (LEN=*), DIMENSION(MAXW), INTENT(IN) :: cpara
       INTEGER          , DIMENSION(MAXW), INTENT(IN) :: lpara
@@ -5223,6 +5249,7 @@ USE kuplot_fit_const
 USE berechne_mod
 USE matrix_mod
 USE param_mod 
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -5254,13 +5281,13 @@ INTEGER :: ind
 INTEGER :: length
 !
 INTEGER              :: nder          ! Numper of points for derivative
-REAL                 :: delta         ! Shift to calculate derivatives
-REAL                 :: p_d           ! Shifted  parameter
-REAL, DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
-REAL, DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
-REAL, DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
-REAL, DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
-REAL, DIMENSION(3,3) :: imat          ! Inverse to xmat
+REAL(KIND=PREC_DP)                 :: delta         ! Shift to calculate derivatives
+REAL(KIND=PREC_DP)                 :: p_d           ! Shifted  parameter
+REAL(KIND=PREC_DP), DIMENSION(3)   :: dvec          ! Parameter at P, P+delta and P-delta
+REAL(KIND=PREC_DP), DIMENSION(3)   :: yvec          ! Chisquared at P, P+delta and P-delta
+REAL(KIND=PREC_DP), DIMENSION(3)   :: avec          ! Params for derivative y = a + bx + cx^2
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: xmat          ! Rows are : 1, P, P^2
+REAL(KIND=PREC_DP), DIMENSION(3,3) :: imat          ! Inverse to xmat
 !                                                                       
 !      REAL, EXTERNAL :: dfridr
 !                                                                       
@@ -5296,7 +5323,7 @@ IF(LDERIV) THEN
          ENDIF
 !                                          ! Test at P + DELTA
          IF(prange(ind,1)<=prange(ind,2)) THEN     ! User provided parameter range
-            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)+delta))
+            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)+REAL(delta)))
          ELSE
             p_d      = params(ind) + delta
          ENDIF
@@ -5304,7 +5331,7 @@ IF(LDERIV) THEN
          IF(p_d /=dvec(1)) THEN            ! Parameter is not at edge of range
             nder = nder + 1
             dvec(2) = p_d                  ! Store parameter value at P+DELTA
-            CALL user_upd_params(ind, p_d) ! Write params into kuplot "p"
+            CALL user_upd_params(ind, REAL(p_d)) ! Write params into kuplot "p"
             cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
             length = f6_fit_lfunc + 2
             yvec(2) = berechne (cdummy, length)
@@ -5312,7 +5339,7 @@ IF(LDERIV) THEN
          ENDIF
 !                                          ! Test at P - DELTA
          IF(prange(ind,1)<=prange(ind,2)) THEN
-            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)-delta))
+            p_d      = MIN(prange(ind,2),MAX(prange(ind,1),params(ind)-REAL(delta)))
          ELSE
             p_d      = params(ind) - delta
          ENDIF
@@ -5320,7 +5347,7 @@ IF(LDERIV) THEN
          IF(p_d /=dvec(1)) THEN            ! Parameter is not at edge of range
             nder = nder + 1
             dvec(3) = p_d                  ! Store parameter value at P-DELTA
-            CALL user_upd_params(ind, p_d) ! Write params into kuplot "p"
+            CALL user_upd_params(ind, REAL(p_d)) ! Write params into kuplot "p"
             cdummy = '('//f6_fit_func(1:f6_fit_lfunc) //')' 
             length = f6_fit_lfunc + 2
             yvec(3) = berechne (cdummy, length)
@@ -5446,6 +5473,7 @@ END SUBROUTINE user_upd_params
 !                                                                       
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5453,7 +5481,7 @@ END SUBROUTINE user_upd_params
       PARAMETER (maxmax = 50) 
 !                                                                       
       CHARACTER ( * ) iname 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz 
 !                                                                       
       REAL pcoff (maxpara) 
@@ -5724,6 +5752,7 @@ USE errlist_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -5731,7 +5760,7 @@ INTEGER, PARAMETER :: maxmax = 50
 !                                                                       
 INTEGER, INTENT(IN) ::  ianz 
 INTEGER, INTENT(IN) ::  MAXW 
-REAL, DIMENSION(MAXW), INTENT(IN) :: werte
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN) :: werte
 !
 REAL   , DIMENSION(MAXMAX) :: wmax
 INTEGER, DIMENSION(MAXMAX) :: ixm
@@ -5956,6 +5985,7 @@ SUBROUTINE setup_gauss (ianz, werte, maxw)
       USE kuplot_config 
       USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -5963,8 +5993,8 @@ USE kuplot_fit6_set_theory
       PARAMETER (maxmax = 50) 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -6194,6 +6224,7 @@ SUBROUTINE setup_psvgt (ianz, werte, maxw)
       USE kuplot_mod 
 USE kuplot_fit6_set_theory
 USE kuplot_fit_const
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -6202,8 +6233,8 @@ USE kuplot_fit_const
 !                                                                       
       INTEGER nu 
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax) 
       INTEGER ianz, ii, jj, ima, i 
 !                                                                       
@@ -6520,6 +6551,7 @@ USE errlist_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -6527,8 +6559,8 @@ USE kuplot_fit6_set_theory
       PARAMETER (maxmax = 20) 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
-      REAL wmax (maxmax) 
+      REAL(KIND=PREC_DP) werte (maxw) 
+      REAL(KIND=PREC_DP) wmax (maxmax) 
       INTEGER ixm (maxmax), iym (maxmax) 
       INTEGER ianz, ima, ii, jj, i 
 !                                                                       
@@ -6778,11 +6810,12 @@ END SUBROUTINE theory_gauss_2d
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
       IF (ianz.eq.0) THEN 
@@ -6892,12 +6925,13 @@ USE errlist_mod
 USE kuplot_config 
 USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
 INTEGER,                  INTENT(IN) :: ianz 
 INTEGER,                  INTENT(IN) :: maxw 
-REAL   , DIMENSION(maxw), INTENT(IN) :: werte  !(maxw) 
+REAL(KIND=PREC_DP)   , DIMENSION(maxw), INTENT(IN) :: werte  !(maxw) 
 !
 INTEGER ::    ii, jj, i 
 !
@@ -7060,11 +7094,12 @@ SUBROUTINE setup_backpoly (ianz, werte, maxw)
       USE kuplot_config 
       USE kuplot_mod 
 USE kuplot_fit6_set_theory
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
       INTEGER ianz, ii, jj, i 
 !                                                                       
       IF (ianz.eq.1) THEN 
@@ -7225,6 +7260,7 @@ USE calc_expr_mod
 USE gamma_mod
 USE param_mod 
 USE prompt_mod 
+USE precision_mod
 !                                                                       
 IMPLICIT NONE
 !
@@ -7273,7 +7309,7 @@ INTEGER :: ianz
 !
 CHARACTER(LEN=1024), DIMENSION(:), ALLOCATABLE :: cpara
 INTEGER            , DIMENSION(:), ALLOCATABLE :: lpara
-REAL               , DIMENSION(:), ALLOCATABLE :: werte
+REAL(KIND=PREC_DP)               , DIMENSION(:), ALLOCATABLE :: werte
 !
 REAL               , DIMENSION(0:3) :: last_chi
 REAL               , DIMENSION(0:3) :: last_shift

@@ -1356,6 +1356,7 @@ END SUBROUTINE get_detail_axis
 !+                                                                      
       USE ber_params_mod
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -1377,7 +1378,7 @@ END SUBROUTINE get_detail_axis
       INTEGER iianz 
       INTEGER mode 
       LOGICAL loutput 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -1423,11 +1424,12 @@ END SUBROUTINE get_detail_axis
       USE unitcell_mod 
       USE prompt_mod
       USE param_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
 !                                                                       
-      REAL vec (3) 
+      REAL(KIND=PREC_DP) ::  vec (3) 
       LOGICAL loutput 
       INTEGER mode 
 !                                                                       
@@ -1443,8 +1445,8 @@ END SUBROUTINE get_detail_axis
       INTEGER igroup 
       INTEGER :: block = 1
       LOGICAL lident 
-      REAL orig (4) 
-      REAL copy (4) 
+      REAL(KIND=PREC_DP) :: orig (4) 
+      REAL(KIND=PREC_DP) :: copy (4) 
       REAL eps 
 !                                                                       
       DATA eps / 0.00001 / 
@@ -1671,6 +1673,7 @@ SUBROUTINE symmetry_gener (NMAX, cr_iset, cr_natoms, cr_pos,    &
 !+                                                                      
       USE molecule_mod 
       USE trafo_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER,                       INTENT(IN)     ::  NMAX 
@@ -1694,11 +1697,13 @@ REAL, DIMENSION(4, 4) :: generator
       INTEGER ia, iaa, ipg 
       INTEGER i, j, k 
       LOGICAL lnew 
-      REAL x (4), y (4)
+      REAL(KIND=PREC_SP) :: x (4)
+      REAL(KIND=PREC_SP) :: y (4)
+      REAL(KIND=PREC_DP) :: yy(4)
       REAL wmat (4, 4) 
       REAL xmat (4, 4) 
       REAL eps 
-      REAL compare (4), previous (4) 
+      REAL(KIND=PREC_DP) :: compare (4), previous (4) 
 !                                                                       
       DATA eps / 0.00001 / 
 !                                                                       
@@ -1751,7 +1756,8 @@ CALL spcgr_setting(generator, cr_iset)
 !     ------Transform atom into first unit cell,                        
 !           if it is not inside a molecule                              
 !                                                                       
-         CALL firstcell (y, 4) 
+         yy(:) = REAL(y)
+         CALL firstcell (yy, 4) 
       ENDIF 
       lnew = .true. 
       DO ia = ii, cr_natoms 
@@ -1819,6 +1825,7 @@ CALL spcgr_setting(generator, cr_iset)
       USE crystal_mod 
       USE molecule_mod 
       USE wyckoff_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -1834,8 +1841,8 @@ CALL spcgr_setting(generator, cr_iset)
 !                                                                       
       LOGICAL lsame 
 !                                                                       
-      REAL vec (3), orig (4), old (3) 
-      REAL first (3) 
+      REAL(KIND=PREC_DP) :: vec (3), orig (4), old (3) 
+      REAL(KIND=PREC_DP) :: first (3) 
       REAL eps 
 !                                                                       
       DATA eps / 0.00001 / 
@@ -2359,10 +2366,11 @@ END SUBROUTINE mole_insert_explicit
 !     truncates atomic position to fractal position of                  
 !     0.0 <= x < 1                                                      
 !+                                                                      
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER idim, i 
-      REAL y (idim) 
+      REAL(KIND=PREC_DP) :: y (idim) 
 !                                                                       
       DO i = 1, 3 
       y (i) = y (i) - REAL(int (y (i) ) ) 

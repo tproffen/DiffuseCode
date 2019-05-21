@@ -13,6 +13,7 @@ SUBROUTINE do_calc (zeile, lp)
       USE kuplot_config 
       USE kuplot_mod 
       USE string_convert_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -23,7 +24,7 @@ SUBROUTINE do_calc (zeile, lp)
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(3) oper 
       CHARACTER(2) unt 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ilen, ik 
 !                                                                       
@@ -93,12 +94,14 @@ SUBROUTINE do_calc (zeile, lp)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) op 
       INTEGER ilen, ik, ianz, maxw, i 
-      REAL werte (maxw), a (maxarray) 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: a (maxarray) 
       REAL summand, faktor , thresh
 !                                                                       
       IF (op.eq.'INV') then 
@@ -172,12 +175,14 @@ SUBROUTINE do_calc (zeile, lp)
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       CHARACTER ( * ) op 
       INTEGER nxx, nyy, ik, maxw, ianz, i, j, ikk 
-      REAL werte (maxw), a (maxarray) 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: a (maxarray) 
       REAL faktor, summand , thresh
 !                                                                       
       IF (op.eq.'INV') then 
@@ -275,6 +280,7 @@ SUBROUTINE do_calc (zeile, lp)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -283,7 +289,7 @@ SUBROUTINE do_calc (zeile, lp)
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL a, b, x1, x2, y1, y2, xleft, xright 
       INTEGER lpara (maxw), lp 
       INTEGER i, ipkt, ianz, ik, ileft, iright
@@ -411,6 +417,7 @@ SUBROUTINE do_calc (zeile, lp)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -423,7 +430,7 @@ SUBROUTINE do_calc (zeile, lp)
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(3) oper 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), lp, imin 
       INTEGER ianz, ik1, ik2, ik3, ikk1, ikk2, ikk3, ix, iy, i, ii 
       LOGICAL str_comp, loverwrite 
@@ -644,6 +651,7 @@ USE errlist_mod
 USE get_params_mod
 USE kuplot_config 
 USE kuplot_mod 
+USE precision_mod
 !                                                                       
 IMPLICIT none 
 !                                                                       
@@ -654,7 +662,7 @@ INTEGER          , INTENT(INOUT) :: lp
       PARAMETER (maxw = MAXKURVTOT) 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL mdelta, mmin, mmax 
 REAL  ::  mdeltay, mminy, mmaxy 
       INTEGER lpara (maxw)
@@ -893,6 +901,7 @@ END SUBROUTINE do_merge
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -901,7 +910,8 @@ END SUBROUTINE do_merge
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw), bdelta, fraction 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: bdelta, fraction 
       INTEGER lpara (maxw), lp, maxpp, ntot 
       INTEGER ianz, ik, ibin, jbin, ip, i, j, k, iupper, iubin 
 !                                                                       
@@ -1038,6 +1048,7 @@ END SUBROUTINE do_merge
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1046,7 +1057,8 @@ END SUBROUTINE do_merge
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw), yyy 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+REAL :: yyy 
       REAL xpl (maxarray), ypl (maxarray) 
       REAL y2a (maxarray) 
       INTEGER lpara (maxw), lp, maxpp, ntot 
@@ -1139,6 +1151,7 @@ END SUBROUTINE do_merge
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1147,7 +1160,7 @@ END SUBROUTINE do_merge
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL dr1, dr2, ysum, start
       INTEGER lpara (maxw), lp, maxpp 
       INTEGER ianz, ik1, ik2, ii, i, j 
@@ -1244,6 +1257,7 @@ END SUBROUTINE do_merge
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE prompt_mod 
 !                                                                       
       IMPLICIT none 
@@ -1255,7 +1269,7 @@ END SUBROUTINE do_merge
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL cc (maxsm) 
       REAL deltax, fnorm 
       INTEGER lpara (maxw), lp 
@@ -1385,6 +1399,7 @@ END SUBROUTINE do_merge
       USE kuplot_config 
       USE kuplot_mod 
       USE string_convert_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1393,7 +1408,7 @@ END SUBROUTINE do_merge
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL sk, ba, wtot, ee, cc, ce, c, e, wi 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, iko, ikc, ikko, ikkc, ip 
@@ -1597,13 +1612,14 @@ END SUBROUTINE do_merge
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
       CHARACTER ( * ) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw), ianz 
 !                                                                       
       REAL a, b, aa, bb, ab, ao, bo, fra 
@@ -1727,6 +1743,7 @@ END SUBROUTINE do_merge
       USE kuplot_mod 
       USE take_param_mod
       USE string_convert_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1737,7 +1754,7 @@ END SUBROUTINE do_merge
       INTEGER          , INTENT(INOUT) :: lp
       LOGICAL          , INTENT(IN)    :: lout
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz, ik, il 
       INTEGER iianz 
@@ -1772,7 +1789,7 @@ END SUBROUTINE do_merge
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
       INTEGER :: irvalue
       INTEGER :: i

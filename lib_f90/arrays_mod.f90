@@ -15,6 +15,7 @@ SUBROUTINE arr_matmul(line, length)
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE variable_mod
 !
 IMPLICIT NONE
@@ -26,10 +27,10 @@ INTEGER, PARAMETER :: MAXP = 3
 CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
 INTEGER            , DIMENSION(MAXP) :: look
-REAL               , DIMENSION(MAXP) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXP) :: werte
 INTEGER :: ianz, iianz
 INTEGER :: i, j, k, ndel
-REAL    :: scalar
+REAL(KIND=PREC_DP) :: scalar
 !
 CALL get_params (line, ianz, cpara, lpara, MAXP, length)
 !
@@ -40,7 +41,7 @@ IF(ianz==2) THEN                       ! Single input operation
    ianz     = 3
 ENDIF
 IF(ianz==3) THEN
-   locate: DO i=1, ianz                ! Test is parameters are user variables
+   locate: DO i=1, ianz                ! Test if parameters are user variables
       search: DO j=var_sys+1,var_num
          IF(cpara(i)==var_name(j)) THEN
             look(i) = j
@@ -165,6 +166,7 @@ SUBROUTINE arr_matadd(line, length)
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE variable_mod
 !
 IMPLICIT NONE
@@ -179,10 +181,10 @@ INTEGER            , DIMENSION(MAXP) :: lpara
 INTEGER            , DIMENSION(MAXP) :: look
 CHARACTER(LEN=1024), DIMENSION(MAXS) :: ccpara
 INTEGER            , DIMENSION(MAXS) :: llpara
-REAL               , DIMENSION(MAXS) :: wwerte
+REAL(KIND=PREC_DP) , DIMENSION(MAXS) :: wwerte
 INTEGER :: ianz, iianz
 INTEGER :: i, j, k
-REAL    :: scalar
+REAL(KIND=PREC_DP) :: scalar
 !
 CALL get_params (line, ianz, cpara, lpara, MAXP, length)
 !

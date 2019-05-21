@@ -6,6 +6,7 @@ SUBROUTINE var_arr_mul(line, length)
 !
 USE get_params_mod
 USE ber_params_mod
+USE precision_mod
 USE variable_mod
 !
 IMPLICIT NONE
@@ -16,7 +17,7 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER, PARAMETER :: MAXP = 3
 CHARACTER(LEN=1024), DIMENSION(MAXP) :: cpara
 INTEGER            , DIMENSION(MAXP) :: lpara
-REAL               , DIMENSION(MAXP) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXP) :: werte
 INTEGER  :: ianz
 !
 CALL get_params (line, ianz, cpara, lpara, MAXP, length)

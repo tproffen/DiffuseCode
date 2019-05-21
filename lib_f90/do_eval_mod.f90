@@ -10,30 +10,30 @@ SUBROUTINE do_eval (line, i, lout)
 !                                                                       
 USE blanks_mod
 USE ber_params_mod
-      USE errlist_mod 
-      USE do_string_alloc_mod
-      USE get_params_mod
+USE errlist_mod 
+USE do_string_alloc_mod
+USE get_params_mod
 USE precision_mod
-      USE prompt_mod 
-      IMPLICIT none 
+USE prompt_mod 
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      INTEGER, PARAMETER :: MAXW = 10
+INTEGER, PARAMETER :: MAXW = 10
 !                                                                       
-      CHARACTER(LEN=1024), INTENT(INOUT) :: line
-      INTEGER(KIND=PREC_INT_WORD) , INTENT(INOUT) :: i
-      LOGICAL            , INTENT(IN   ) :: lout
+CHARACTER(LEN=1024), INTENT(INOUT) :: line
+INTEGER(KIND=PREC_INT_WORD) , INTENT(INOUT) :: i
+LOGICAL            , INTENT(IN   ) :: lout
 !
-      CHARACTER(1024) cpara (maxw) 
-      CHARACTER(1024) cstr , zeile
-CHARACTER(LEN=32) :: form_s
-      INTEGER lpara (maxw) 
-      INTEGER ianz, il 
-      INTEGER length 
-      INTEGER :: indxg = 0
-      REAL werte (maxw) 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=1024) :: cstr , zeile
+CHARACTER(LEN=32)   :: form_s
+INTEGER, DIMENSION(MAXW) :: lpara
+INTEGER :: ianz, il 
+INTEGER :: length 
+INTEGER :: indxg = 0
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
-      INTEGER len_str 
+INTEGER, EXTERNAL :: len_str 
 !                                                                       
       IF (line.eq.' ') then 
          ier_num = - 6 

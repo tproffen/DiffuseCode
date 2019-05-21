@@ -104,6 +104,7 @@ SUBROUTINE do_plot (lmenu)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -114,7 +115,7 @@ SUBROUTINE do_plot (lmenu)
       CHARACTER ( * ) befehl, zeile 
       CHARACTER(1024) cpara (maxw), prnbef , line
       CHARACTER(256) filname, uname 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL width, ratio 
       INTEGER lpara (maxw) 
       INTEGER ianz, ii, idev, lbef, lp ,i

@@ -22,6 +22,7 @@ USE crystal_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -31,7 +32,7 @@ INTEGER         , INTENT(INOUT) :: length
 INTEGER            , PARAMETER       :: MAXW= 20
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara ! 
 INTEGER            , DIMENSION(MAXW) :: lpara ! 
-REAL               , DIMENSION(MAXW) :: werte ! 
+REAL(KIND=PREC_DP) , DIMENSION(MAXW) :: werte ! 
 INTEGER                              :: ianz
 INTEGER                              :: istart, ifinish
 INTEGER                              :: natom
@@ -279,7 +280,7 @@ INTEGER , INTENT(IN) :: katom
 !
 INTEGER   :: ktype
 INTEGER   :: ino_max  ! Number of connectivities around central atom
-INTEGER   :: ino
+INTEGER   :: ino, inoo
 INTEGER                              :: c_natoms  ! Number of atoms connected
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
@@ -292,7 +293,8 @@ INTEGER :: i
 ktype = cr_iscat(katom)
 ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 DO ino = 1, ino_max                        ! Loop over all connectivity types
-   CALL get_connectivity_list(katom, ktype, ino, c_list, c_offs, c_natoms)
+   inoo = ino
+   CALL get_connectivity_list(katom, ktype, inoo, c_list, c_offs, c_natoms)
    IF(c_natoms>0) THEN
    DO i=1,c_natoms                         ! Loop over all neighbors
       IF(.NOT.t_list(c_list(i))) THEN      ! Not yet in the molecule
@@ -323,7 +325,7 @@ INTEGER , DIMENSION(1:n_excl), INTENT(IN) :: excl
 !
 INTEGER   :: ktype
 INTEGER   :: ino_max  ! Number of connectivities around central atom
-INTEGER   :: ino
+INTEGER   :: ino, inoo
 INTEGER                              :: c_natoms  ! Number of atoms connected
 INTEGER, DIMENSION(:  ), ALLOCATABLE :: c_list    ! List of atoms connected to current
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: c_offs    ! Offsets for atoms connected to current
@@ -337,7 +339,8 @@ ktype = cr_iscat(katom)
 ino_max = get_connectivity_numbers(ktype)  ! Get number of connectivity definitions
 !write(*,*) ' EXCL START  ', katom, ktype, ino_max
 DO ino = 1, ino_max                        ! Loop over all connectivity types
-   CALL get_connectivity_list(katom, ktype, ino, c_list, c_offs, c_natoms)
+   inoo = ino
+   CALL get_connectivity_list(katom, ktype, inoo, c_list, c_offs, c_natoms)
 !write(*,*) ' EXCL CENTRAL', katom, c_list(1:c_natoms)
 !write(*,*) ' EXCL T_LIST ', t_list
 !write(*,*) ' EXCL excl   ', n_excl,' : ', excl(:)

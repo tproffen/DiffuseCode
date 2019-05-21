@@ -9,6 +9,7 @@ USE build_name_mod
 USE errlist_mod 
 USE get_params_mod
 USE learn_mod 
+USE precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -22,7 +23,7 @@ INTEGER            , INTENT(INOUT) :: lcomm
 !     CHARACTER(1024) fname 
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER,             DIMENSION(MAXW) :: lpara
-REAL,                DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP),  DIMENSION(MAXW) :: werte
 INTEGER :: ip, ianz, len_str 
 !                                                                       
 IF (llearn) THEN 

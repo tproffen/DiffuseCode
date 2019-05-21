@@ -11,24 +11,27 @@ SUBROUTINE do_execute (lreg, line, laenge)
 !     regular commands are returned to the calling subroutine.          
 !+                                                                      
 USE ber_params_mod
-      USE blanks_mod
-      USE doexec_mod 
-      USE doloop_mod 
-      USE errlist_mod 
-      USE get_params_mod
-      IMPLICIT none 
+USE blanks_mod
+USE doexec_mod 
+USE doloop_mod 
+USE errlist_mod 
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT none 
+!
+CHARACTER(LEN=*), INTENT(INOUT) :: line 
+LOGICAL         , INTENT(OUT)   :: lreg 
+INTEGER         , INTENT(INOUT) :: laenge
 !                                                                       
+INTEGER, PARAMETER :: maxw = 2 
 !                                                                       
-      INTEGER maxw 
-      PARAMETER (maxw = 2) 
-!                                                                       
-      CHARACTER ( * ) line 
-      CHARACTER(1024) string, cpara (maxw) 
-      INTEGER lpara (maxw) 
-      INTEGER i, ianz, laenge , length
-      INTEGER ikl, ithen 
-      LOGICAL lreg 
-      REAL werte (maxw) 
+CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
+CHARACTER(LEN=1024) :: string
+INTEGER, DIMENSION(MAXW) ::  lpara
+INTEGER :: i, ianz, length
+INTEGER :: ikl, ithen 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !
       IF(ier_ctrlc) THEN
          ier_num = -14
@@ -199,6 +202,7 @@ LOGICAL FUNCTION if_test (string, laenge)
       USE do_variable_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE search_string_mod
       USE set_sub_generic_mod
       IMPLICIT none 
@@ -227,8 +231,8 @@ LOGICAL FUNCTION if_test (string, laenge)
       LOGICAL lscr, lscr1 
       LOGICAL lstring1, lstring2 
       INTEGER :: ios
-      REAL werte (MAXW) 
-      REAL w1, w2 
+      REAL(KIND=PREC_DP) :: werte (MAXW) 
+      REAL(KIND=PREC_DP) ::  w1, w2 
 !                                                                       
       ier_num = 0 
       ier_typ = ER_NONE 
@@ -678,7 +682,10 @@ USE ber_params_mod
 USE do_variable_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE set_sub_generic_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
@@ -691,7 +698,8 @@ USE do_variable_mod
       INTEGER ianz_d, i 
 !     LOGICAL if_test 
       LOGICAL l_var 
-      REAL werte (maxw), wert 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP) :: wert
 !                                                                       
       ier_num = - 6 
       ier_typ = ER_FORT 

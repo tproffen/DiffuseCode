@@ -9,6 +9,7 @@ USE blanks_mod
 USE errlist_mod 
 USE param_mod 
 USE lib_upd_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -19,7 +20,7 @@ INTEGER              , INTENT(IN   ) :: iklz
 INTEGER              , INTENT(INOUT) :: ll
 INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
-REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
 CALL lib_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
@@ -33,6 +34,7 @@ SUBROUTINE suite_upd_para (ctype, ww, maxw, wert, ianz)
 USE errlist_mod 
 USE param_mod 
 USE lib_upd_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -41,7 +43,7 @@ CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
 INTEGER           , INTENT(IN   )    :: maxw
 INTEGER           , INTENT(IN   )    :: ianz 
 INTEGER           , INTENT(IN   )    :: ww (maxw)
-REAL              , INTENT(IN   )    :: wert 
+REAL(KIND=PREC_DP), INTENT(IN   )    :: wert 
 !
 CALL lib_upd_para (ctype, ww, maxw, wert, ianz)
 !
@@ -60,6 +62,7 @@ USE errlist_mod
 USE ersetz_mod
 USE param_mod 
 USE prompt_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -72,7 +75,7 @@ INTEGER            , INTENT(IN   ) :: ikl
 INTEGER            , INTENT(IN   ) :: iklz
 INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
-REAL               , INTENT(INOUT) :: ww
+REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
 INTEGER              :: i, lcomm
 REAL                 :: werte (maxw)

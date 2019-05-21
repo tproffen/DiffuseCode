@@ -11,6 +11,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -22,7 +23,7 @@
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ir, l, i, j 
       REAL xxx, yyy, dxx, dyy 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -107,6 +108,7 @@
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -120,7 +122,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, ik 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL fo (4), lpi 
 !                                                                       
 !------ get parameters                                                  
@@ -186,6 +188,7 @@
       USE wink_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -194,7 +197,7 @@
       INTEGER maxpkt 
       INTEGER ift (0:4) 
       REAL dxx, h, hmin, hmax, dh, fc, f (4) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL fo (4), lpi 
 !                                                                       
       DATA oname / 'real.xy', 'imag.xy', 'ampl.xy', 'phase.xy' / 
@@ -439,6 +442,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -455,7 +459,7 @@
       CHARACTER(2) dir 
       INTEGER lpara (maxw) 
       INTEGER ianz, ik, ip, im, il 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL cc (maxsm) 
       LOGICAL gx, gy 
 !                                                                       
@@ -552,6 +556,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -564,7 +569,7 @@
       INTEGER ianz, ipkt, ip, ik, ix, iy 
       REAL rint, drint, rdx, rdy, xa, ya, xs 
       REAL wx1, wx2, wy1, wy2 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       CALL ber_params (ianz, cpara, lpara, werte, maxw) 
@@ -694,6 +699,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -704,7 +710,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ix, iy, i 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL wx1, wx2, wy1, wy2 
       REAL sum (3), sum2 (3), wert (3), ave (3), sig (3), n 
       LOGICAL lout 
@@ -867,6 +873,7 @@
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -878,7 +885,7 @@
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(80) cdummy 
       CHARACTER(6) cout 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL wmax (maxmax) 
       INTEGER lpara (maxw), lp 
       INTEGER ixm (maxmax), iym (maxmax) 

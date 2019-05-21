@@ -16,6 +16,7 @@ CONTAINS
       USE blanks_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -34,7 +35,7 @@ CONTAINS
       LOGICAL lcont, lread 
       REAL xmin (2), xmax (2), ymin (2), ymax (2), scale 
       REAL x1, x2, y1, y2, z1, z2, zz1, zz2 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !                                                                       
       lcont = .false.

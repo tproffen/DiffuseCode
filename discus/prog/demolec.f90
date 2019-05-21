@@ -226,6 +226,7 @@ USE molecule_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -239,7 +240,7 @@ CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: llpara
-REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
 INTEGER                              :: ianz
 INTEGER                              :: iianz
 !
@@ -256,7 +257,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 LOGICAL, EXTERNAL :: str_comp
@@ -377,6 +378,7 @@ USE molecule_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -391,7 +393,7 @@ CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: ccpara
 INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: llpara
-REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
+REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1, MOLE_MAX_TYPE)) :: wwerte
 INTEGER                              :: ianz
 INTEGER                              :: iianz
 !
@@ -408,7 +410,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 LOGICAL, EXTERNAL :: str_comp

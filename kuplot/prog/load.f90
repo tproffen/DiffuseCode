@@ -13,6 +13,7 @@ SUBROUTINE do_func (zeile, lp)
       USE param_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -27,7 +28,7 @@ SUBROUTINE do_func (zeile, lp)
       INTEGER maxpkt, maxzz 
       REAL xstart, xend, xdelta 
       REAL ystart, yend, ydelta 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL df (maxpara) 
       REAL xx, yy, f, xkk 
       LOGICAL ffit, str_comp 
@@ -308,6 +309,7 @@ ENDIF  nianz
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -322,7 +324,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       INTEGER lpara (maxw) 
       INTEGER ianz, i, ii, jj 
       INTEGER maxpkt, maxzz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL no_error 
 !                                                                       
@@ -423,6 +425,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE times_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE take_param_mod
       USE string_convert_mod
 !                                                                       
@@ -441,7 +444,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(1024) wname, cdummy 
       CHARACTER(4) unter 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ii, ll, ianz, istr, nfile 
       LOGICAL zz_mod 
@@ -455,7 +458,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 5 ! Number of values to calculate 
 !
       DATA oname  / 'skip', 'colx',  'coly',  'coldx', 'coldy', 'separator'  /
@@ -776,12 +779,13 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !DBG      real xw,yw,zw                                                 
       REAL xw, yw, ow 
       INTEGER zw 
@@ -931,12 +935,13 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL xw, yw, zw 
       REAL deltax, deltay, dxx, dyy 
       INTEGER np (maxarray) 
@@ -1087,13 +1092,14 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
 !                                                                       
       REAL val (maxz) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL range (2, 3) 
       REAL dxx, dyy 
       INTEGER np (3), icut (3), iii (3) 
@@ -1205,6 +1211,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE kuplot_mod 
 !
       USE count_col_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1213,7 +1220,7 @@ LOGICAL         , INTENT(IN)    :: lecho
 !                                                                       
       CHARACTER ( * ) str1, str2 
       CHARACTER(1024) line 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ix, iy, ifil, nr, ianz, i, maxpp 
 !                                                                       
 !------ initial setup                                                   
@@ -1447,6 +1454,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !
@@ -1465,13 +1473,13 @@ LOGICAL         , INTENT(IN)    :: lecho
       CHARACTER ( * ) cpara (maxw) 
       CHARACTER (LEN=1024), DIMENSION(MAXWW) :: ccpara
       INTEGER             , DIMENSION(MAXWW) :: llpara
-      REAL                , DIMENSION(MAXWW) :: wwerte
+      REAL(KIND=PREC_DP)  , DIMENSION(MAXWW) :: wwerte
       CHARACTER(4096) mine, sinfo 
       CHARACTER(200) date, tit 
       CHARACTER(40) field (0:colm), input (colm) 
       CHARACTER(LEN=40) :: scan_type    ! Scan type on #S instruction
       CHARACTER(LEN=40) :: scan_mot     ! Motor type on #S instruction
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL col (0:colm), dummy 
       REAL mca_par (3) 
       REAL, DIMENSION(:,:), ALLOCATABLE :: scan_limits
@@ -2074,6 +2082,7 @@ LOGICAL         , INTENT(IN)    :: lecho
 !     Analyse scan string (number or number>number)                     
 !-                                                                      
       USE ber_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
@@ -2084,7 +2093,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       LOGICAL lall 
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ipos
 !                                                                       
@@ -2193,6 +2202,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -2211,7 +2221,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       REAL(8) tzero (nbank) 
       REAL twotheta (nbank) 
       REAL vrange (nbank, 2), vp (nbank, 12) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL xval (maxarray) 
       REAL yval (maxarray) 
       REAL dyval (maxarray) 
@@ -3220,6 +3230,7 @@ LOGICAL         , INTENT(IN)    :: lecho
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !
       USE count_col_mod
 !                                                                       
@@ -3230,7 +3241,7 @@ LOGICAL         , INTENT(IN)    :: lecho
 !                                                                       
       INTEGER maxw 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CHARACTER(1024) line 
       REAL values (mm) 
@@ -3350,6 +3361,7 @@ USE charact_mod
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -3360,7 +3372,7 @@ INTEGER             , DIMENSION(MAXW)     , INTENT(INOUT) :: lpara
 INTEGER                                   , INTENT(IN   ) :: NOPTIONAL
 CHARACTER (LEN=1024), DIMENSION(NOPTIONAL), INTENT(INOUT) :: opara
 INTEGER             , DIMENSION(NOPTIONAL), INTENT(INOUT) :: lopara
-REAL                , DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte
+REAL(KIND=PREC_DP)  , DIMENSION(NOPTIONAL), INTENT(INOUT) :: owerte
 INTEGER                                   , INTENT(IN   ) :: ncalc
 INTEGER                                   , INTENT(IN   ) :: ifil
 LOGICAL                                   , INTENT(IN   ) :: lecho
@@ -3564,11 +3576,13 @@ END SUBROUTINE do_read_csv
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
       INTEGER maxw 
-      REAL werte (maxw), xold, xnew, ynew 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+      REAL :: xold, xnew, ynew 
       INTEGER nr, ifil, ianz, iscan, nscan, maxpp 
 !                                                                       
 !------ check parameters                                                
@@ -3895,6 +3909,7 @@ END SUBROUTINE do_read_csv
       USE errlist_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -3902,7 +3917,7 @@ END SUBROUTINE do_read_csv
       PARAMETER (maxw = 5) 
 !                                                                       
       CHARACTER(1024) line 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER ifil, j, npkt 
       INTEGER ianz, i, maxpp 
       REAL tth_anf, tth_del, tth_end, temp 

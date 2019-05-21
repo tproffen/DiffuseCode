@@ -145,6 +145,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -157,9 +158,9 @@ CONTAINS
       INTEGER ianz 
       INTEGER i, laenge 
       LOGICAL lspace 
-      REAL werte (maxw) 
-      REAL uu, vv 
-      REAL u (3), v (3) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_SP) :: uu, vv 
+      REAL(KIND=PREC_SP) :: u (3), v (3) 
 !                                                                       
 !     REAL skalpro 
 !                                                                       
@@ -224,6 +225,7 @@ CONTAINS
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -235,8 +237,8 @@ CONTAINS
       INTEGER lpara (maxw) 
       INTEGER ianz 
       INTEGER i, laenge 
-      REAL werte (maxw) 
-      REAL u (3), v (3), w (3) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_SP) :: u (3), v (3), w (3) 
 !                                                                       
       IF (cr_v.le.0.0) then 
          ier_num = - 35 
@@ -325,6 +327,7 @@ CONTAINS
       USE get_params_mod
       USE wink_mod
       USE param_mod 
+USE precision_mod
       USE trafo_mod
       IMPLICIT none 
 !                                                                       
@@ -338,10 +341,10 @@ CONTAINS
       INTEGER ianz 
       INTEGER i, laenge 
       LOGICAL lflag 
-      REAL werte (maxw) 
-      REAL u (3), v (3), w (3), h (3), x (3) 
-      REAL vv, uv, uh, hh, uu 
-      REAL arg 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
+      REAL(KIND=PREC_SP) :: u (3), v (3), w (3), h (3), x (3) 
+      REAL(KIND=PREC_SP) :: vv, uv, uh, hh, uu 
+      REAL(KIND=PREC_SP) :: arg 
 !                                                                       
 !     REAL skalpro 
 !                                                                       

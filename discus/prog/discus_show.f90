@@ -19,6 +19,7 @@ CONTAINS
       USE do_show_mod
       USE get_params_mod
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -40,7 +41,7 @@ CONTAINS
       INTEGER ianz , iianz
       INTEGER i, j 
       INTEGER laenge 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       CHARACTER (LEN=256)  :: c_name   ! Connectivity name
       INTEGER              :: c_name_l ! connectivity name length
       INTEGER              :: ino      ! connectivity no
@@ -371,6 +372,7 @@ USE surface_mod
 !
 USE ber_params_mod
 USE errlist_mod 
+USE precision_mod
 USE prompt_mod 
 !
 IMPLICIT none 
@@ -379,7 +381,7 @@ INTEGER                           , INTENT(INOUT) :: ianz
 INTEGER                           , INTENT(IN)    :: MAXW 
 CHARACTER(LEN=*) , DIMENSION(MAXW), INTENT(INOUT) :: cpara
 INTEGER          , DIMENSION(MAXW), INTENT(INOUT) :: lpara
-REAL             , DIMENSION(MAXW), INTENT(INOUT) :: werte
+REAL(KIND=PREC_DP),DIMENSION(MAXW), INTENT(INOUT) :: werte
 !
 !
 CHARACTER(LEN=32)       :: c_property 
@@ -530,6 +532,7 @@ END SUBROUTINE do_show_atom
 !                                                                       
       USE ber_params_mod
       USE errlist_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -540,7 +543,7 @@ END SUBROUTINE do_show_atom
       CHARACTER(15) C_MOLE ( - 4:4) 
       INTEGER ianz 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER i, istart, iend, j, k 
 !                                                                       
@@ -661,6 +664,7 @@ END SUBROUTINE do_show_atom
 !                                                                       
       USE errlist_mod 
       USE param_mod
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
        
@@ -670,7 +674,7 @@ END SUBROUTINE do_show_atom
       CHARACTER ( * ) cpara (maxw) 
       INTEGER ianz 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL lold 
       PARAMETER (lold = .false.) 

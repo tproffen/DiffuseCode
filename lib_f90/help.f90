@@ -446,6 +446,7 @@ SUBROUTINE do_manual(line, length)
 USE envir_mod 
 USE errlist_mod 
 USE get_params_mod
+USE precision_mod
 USE prompt_mod 
 USE take_param_mod
 USE string_convert_mod
@@ -477,7 +478,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER             :: ianz

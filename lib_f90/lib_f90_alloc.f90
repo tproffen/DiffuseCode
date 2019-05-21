@@ -15,7 +15,7 @@ CONTAINS
    INTEGER              :: all_status
    INTEGER              :: size_of
 !
-   CALL alloc_arr(res_para, 0, n_res, all_status, 0.0, size_of )
+   CALL alloc_arr(res_para, 0, n_res, all_status, 0.0D0, size_of )
 !
    END SUBROUTINE alloc_param
 !

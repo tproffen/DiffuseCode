@@ -188,6 +188,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE discus_config_mod 
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -200,7 +201,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -230,6 +231,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE berechne_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
        
@@ -238,7 +240,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER ianz 
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER iflag 
 !                                                                       
       CHARACTER(1024) string 
@@ -442,6 +444,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
+USE precision_mod
       USE take_param_mod
 !
       IMPLICIT none 
@@ -461,7 +464,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
       INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
       LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent ! Optional parameter is present
-      REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+      REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
       INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
       INTEGER, PARAMETER :: O_CENTX   = 1
       INTEGER, PARAMETER :: O_CENTY   = 2
@@ -504,7 +507,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !      REAL, DIMENSION(3,1) :: col_vec
       REAL null (3) 
       REAL :: thick
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !     REAL do_blen 
@@ -1090,6 +1093,7 @@ USE prompt_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 IMPLICIT NONE
 CHARACTER(LEN=*) , INTENT(INOUT) :: zeile
 INTEGER          , INTENT(INOUT) :: lp
@@ -1097,7 +1101,7 @@ INTEGER          , INTENT(INOUT) :: lp
 INTEGER, PARAMETER :: MAXW = 3
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL               , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 INTEGER               :: surf_char
 LOGICAL               :: lshow, lequal
 INTEGER                 :: i
@@ -1225,6 +1229,7 @@ USE metric_mod
 USE prop_para_mod
 !
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE math_sup
 !
@@ -1254,7 +1259,7 @@ REAL   , PARAMETER                     :: IS_PARALLEL = 15.0
 !
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara
-REAL               , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
 !
 CHARACTER(LEN=1024)     :: line
 INTEGER  , DIMENSION(:), ALLOCATABLE :: neigh

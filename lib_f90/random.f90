@@ -1,37 +1,41 @@
 !*****7*****************************************************************
 !                                                                       
-      REAL FUNCTION gasdev (sig) 
+REAL(KIND=KIND(1.0D0)) FUNCTION gasdev (sig) 
 !-                                                                      
 !     calculates a random number for gaussian distribution of           
 !     sigma.                                                            
 !+                                                                      
-      USE random_mod
-      IMPLICIT none 
+USE random_mod
+USE precision_mod
+!
+IMPLICIT none 
 !                                                                       
+REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
-      REAL sig, v1, v2, r, fac, gset 
-      REAL ran1 
+REAL(KIND=PREC_DP) ::  v1, v2, r, fac, gset 
+REAL ran1 
 !                                                                       
-      SAVE gset 
+SAVE gset 
 !                                                                       
-      IF (iset.eq.0) then 
-    1    v1 = 2. * ran1 (idum) - 1. 
-         v2 = 2. * ran1 (idum) - 1. 
-         r = v1**2 + v2**2 
-         IF (r.ge.1.) goto 1 
-         fac = sqrt ( - 2.0 * log (r) / r) 
-         gset = v1 * fac 
-         gasdev = v2 * fac 
-         iset = 1 
-      ELSE 
-         gasdev = gset 
-         iset = 0 
-      ENDIF 
-      gasdev = gasdev * sig 
-      END FUNCTION gasdev                           
+IF (iset.eq.0) then 
+1   v1 = 2.D0 * ran1 (idum) - 1. 
+   v2 = 2.D0 * ran1 (idum) - 1. 
+   r = v1**2 + v2**2 
+   IF (r.ge.1.) goto 1 
+   fac = sqrt ( - 2.0D0 * log (r) / r) 
+   gset = v1 * fac 
+   gasdev = v2 * fac 
+   iset = 1 
+ELSE 
+   gasdev = gset 
+   iset = 0 
+ENDIF 
+gasdev = gasdev * sig 
+!
+END FUNCTION gasdev                           
 !*****7*****************************************************************
 !                                                                       
-      REAL FUNCTION gasskew (sig, skew) 
+REAL(KIND=KIND(1.0D0)) FUNCTION gasskew (sig, skew) 
 !-                                                                      
 !     calculates a random number for gaussian distribution of           
 !     sigma and skewness 
@@ -39,53 +43,55 @@
 !     skew =  0.99999 : skewed with right shoulder
 !     skew = -0.99999 : skewed with left  shoulder
 !+                                                                      
-      USE random_mod
-      IMPLICIT none 
+USE random_mod
+USE precision_mod
+IMPLICIT none 
 !                                                                       
 !                                                                       
-      REAL, INTENT(in) :: sig
-      REAL, INTENT(in) :: skew
+REAL(KIND=PREC_DP), INTENT(in) :: sig
+REAL(KIND=PREC_DP), INTENT(in) :: skew
 !
-      REAL  :: v1, v2, v3
-      REAL  :: gasdev
+REAL(KIND=PREC_DP)  :: v1, v2, v3
+REAL(KIND=PREC_DP)  :: gasdev
 !                                                                       
-      v1      = gasdev(1.0)
-      v2      = gasdev(1.0)
-      v3      = skew*v1 + SQRT(1-skew**2)*v2
-      gasskew = v3 * SIGN(1.0 ,v1)*sig
+v1      = gasdev(1.0D0)
+v2      = gasdev(1.0D0)
+v3      = skew*v1 + SQRT(1-skew**2)*v2
+gasskew = v3 * SIGN(1.0D0 ,v1)*sig
 !
-      END FUNCTION gasskew                           
+END FUNCTION gasskew                           
 !*****7*****************************************************************
 !
-      REAL FUNCTION gaslim(sig,factor)
+REAL(KIND=KIND(1.0D0)) FUNCTION gaslim(sig,factor)
 !
 !     Calculates a gaussian distributed number, limited to +- factor*sig
 !
-      REAL, INTENT(IN) :: sig    ! Sigma of Gaussian distribution
-      REAL, INTENT(IN) :: factor ! iLimit in multiples of sigma
+USE precision_mod
+REAL(KIND=PREC_DP), INTENT(IN) :: sig    ! Sigma of Gaussian distribution
+REAL(KIND=PREC_DP), INTENT(IN) :: factor ! iLimit in multiples of sigma
 !
-      REAL    :: x
-      INTEGER :: counter
+REAL(KIND=PREC_DP)    :: x
+INTEGER :: counter
 !
-      REAL :: gasdev
+REAL(KIND=PREC_DP) :: gasdev
 !
-      x = 0.0
-      counter = 0
-      main: DO 
-         x = gasdev(sig)
-         counter = counter + 1
-         IF(ABS(x) <= factor*sig) EXIT main
-         IF(counter>1000) THEN                ! Prevent infinite loop
-            CALL RANDOM_NUMBER(x)
-            x = (-2.0 + 4.*x) * sig   ! place into +-2*sigma interval
-            EXIT main
-         ENDIF
-      ENDDO main
-      gaslim = x
+x = 0.0D0
+counter = 0
+main: DO 
+   x = gasdev(sig)
+   counter = counter + 1
+   IF(ABS(x) <= factor*sig) EXIT main
+   IF(counter>1000) THEN                ! Prevent infinite loop
+      CALL RANDOM_NUMBER(x)
+      x = (-2.0D0 + 4.D0*x) * sig   ! place into +-2*sigma interval
+      EXIT main
+   ENDIF
+ENDDO main
+gaslim = x
 !
-      END FUNCTION gaslim
+END FUNCTION gaslim
 !*****7*****************************************************************
-      REAL FUNCTION ran1 (idum)
+REAL FUNCTION ran1 (idum)
 !
 !     kept for backwards compatibility, replaces old ran1 from Numerical recipes
 !
@@ -97,7 +103,7 @@
       CALL RANDOM_NUMBER(r)
       ran1 = r
 !
-      END FUNCTION ran1                             
+END FUNCTION ran1                             
 !*****7*****************************************************************
 !     REAL FUNCTION ran1 (idum) 
 !                                                                       
@@ -208,66 +214,74 @@
       ENDIF 
       END FUNCTION bessj1                           
 !*****7*****************************************************************
-      REAL FUNCTION poidev (xm, idum) 
+REAL(KIND=KIND(1.0D0)) FUNCTION poidev (xm, idum) 
 !                                                                       
-      IMPLICIT none 
+USE wink_mod
+USE precision_mod
+!
+IMPLICIT NONE 
 !                                                                       
-      INTEGER idum 
-      REAL xm, PI 
-      PARAMETER (PI = 3.141592654) 
+INTEGER, INTENT(IN) :: idum 
+REAL(KIND=PREC_DP), INTENT(IN) :: xm
+!
 !U    USES gammln,ran1                                                  
-      REAL alxm, em, g, oldm, sq, t, y, gammln, ran1 
-      SAVE alxm, g, oldm, sq 
-      DATA oldm / - 1. / 
-      IF (xm.lt.12.) then 
-         IF (xm.ne.oldm) then 
-            oldm = xm 
-            g = exp ( - xm) 
-         ENDIF 
-         em = - 1 
-         t = 1. 
-    2    em = em + 1. 
-         t = t * ran1 (idum) 
-         IF (t.gt.g) goto 2 
-      ELSE 
-         IF (xm.ne.oldm) then 
-            oldm = xm 
-            sq = sqrt (2. * xm) 
-            alxm = log (xm) 
-            g = xm * alxm - gammln (xm + 1.) 
-         ENDIF 
-    1    y = tan (PI * ran1 (idum) ) 
-         em = sq * y + xm 
-         IF (em.lt.0.) goto 1 
-         em = int (em) 
-         t = 0.9 * (1. + y**2) * exp (em * alxm - gammln (em + 1.)      &
-         - g)                                                           
-         IF (ran1 (idum) .gt.t) goto 1 
-      ENDIF 
-      poidev = em 
-      RETURN 
-      END FUNCTION poidev                           
+REAL(KIND=PREC_DP) :: alxm, em, g, oldm, sq, t, y
+REAL(KIND=PREC_DP) :: gammln
+REAL               ran1
+SAVE alxm, g, oldm, sq 
+DATA oldm / -1.D0 / 
+IF (xm.lt.12.) then 
+   IF (xm.ne.oldm) then 
+      oldm = xm 
+      g = exp ( - xm) 
+   ENDIF 
+   em = -1.0D0 
+   t = 1.0D0 
+2  em = em + 1.D0
+   t = t * ran1 (idum) 
+   IF (t.gt.g) goto 2 
+ELSE 
+   IF (xm.ne.oldm) then 
+      oldm = xm 
+      sq = sqrt (2.D0 * xm) 
+      alxm = log (xm) 
+      g = xm * alxm - gammln (xm + 1.) 
+   ENDIF 
+1  y = tan (PI * ran1 (idum) ) 
+   em = sq * y + xm 
+   IF (em.lt.0.) goto 1 
+   em = int (em) 
+   t = 0.9D0 * (1. + y**2) * exp (em * alxm - gammln (em + 1.D0) - g)
+   IF (ran1 (idum) .gt.t) goto 1 
+ENDIF 
+poidev = em 
+!     RETURN 
+END FUNCTION poidev                           
 !*****7*****************************************************************
-      REAL FUNCTION gammln (xx) 
+REAL(KIND=KIND(1.0D0)) FUNCTION gammln (xx) 
+!
+USE precision_mod
+!
+IMPLICIT none 
 !                                                                       
-      IMPLICIT none 
-!                                                                       
-      REAL xx 
-      INTEGER j 
-      DOUBLEPRECISION ser, stp, tmp, x, y, cof (6) 
-      SAVE cof, stp 
-      DATA cof, stp / 76.18009172947146d0, - 86.50532032941677d0,       &
-      24.01409824083091d0, - 1.231739572450155d0, .1208650973866179d-2, &
-      - .5395239384953d-5, 2.5066282746310005d0 /                       
-      x = xx 
-      y = x 
-      tmp = x + 5.5d0 
-      tmp = (x + 0.5d0) * log (tmp) - tmp 
-      ser = 1.000000000190015d0 
-      DO 11 j = 1, 6 
-         y = y + 1.d0 
-         ser = ser + cof (j) / y 
-   11 END DO 
-      gammln = REAL(tmp + log (stp * ser / x) )
-      RETURN 
-      END FUNCTION gammln                           
+REAL(KIND=PREC_DP), INTENT(IN) ::  xx 
+!
+INTEGER :: j 
+REAL(KIND=PREC_DP) :: ser, stp, tmp, x, y, cof (6) 
+SAVE cof, stp 
+DATA cof, stp / 76.18009172947146d0,   -86.50532032941677d0,   &
+                24.01409824083091d0,    -1.231739572450155d0,  &
+                 0.1208650973866179d-2, -0.5395239384953d-5,   &
+                 2.5066282746310005d0 /
+x = xx 
+y = x 
+tmp = x + 5.5d0 
+tmp = (x + 0.5d0) * log (tmp) - tmp 
+ser = 1.000000000190015d0 
+DO j = 1, 6 
+   y = y + 1.d0 
+   ser = ser + cof(j) / y 
+ENDDO 
+gammln = REAL(tmp + LOG(stp * ser / x) )
+!
+END FUNCTION gammln                           

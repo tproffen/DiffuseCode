@@ -12,6 +12,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -21,7 +22,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER ( * ) zeile, bef 
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(20) cdummy 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER nia, nie 
       INTEGER iarray (maxwin, maxframe, nia:nie) 
       INTEGER ianz, imi, ima, ik, iw 
@@ -72,6 +73,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -85,7 +87,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       INTEGER iarray (maxwin, maxframe, nia, nib), imi, ima 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, iw, ip 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -134,6 +136,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -144,7 +147,8 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw), array, awert 
+      REAL(KIND=PREC_DP) :: werte (maxw)
+      REAL :: array, awert 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -171,6 +175,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -182,7 +187,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       lp = -lp
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
@@ -207,6 +212,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -218,7 +224,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
 !                                                                       
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       LOGICAL lflag, str_comp 
 !                                                                       
       lp = -lp
@@ -250,6 +256,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -260,7 +267,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw), cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik, ic, it 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -326,6 +333,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -336,7 +344,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ib, ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -393,6 +401,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -404,7 +413,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -440,6 +449,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -451,7 +461,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, it 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -487,6 +497,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
       USE string_convert_mod
 !                                                                       
       IMPLICIT none 
@@ -498,7 +509,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !
       LOGICAL :: str_comp
 !                                                                       
@@ -561,6 +572,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -573,7 +585,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(20) cdummy 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
       INTEGER len_str 
@@ -630,6 +642,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -641,7 +654,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ik 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -730,6 +743,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -740,7 +754,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -775,6 +789,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -785,7 +800,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -836,6 +851,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -846,7 +862,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -891,6 +907,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -901,7 +918,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ii 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
 !                                                                       
 !------ get parameters                                                  
 !                                                                       
@@ -942,6 +959,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -952,7 +970,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), lp 
       INTEGER ianz, ihl, i 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL zzmin, zzmax, zhub 
       LOGICAL proz, k_in_f 
 !                                                                       
@@ -1024,6 +1042,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       USE kuplot_config 
       USE kuplot_mod 
       USE kuplot_words_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1035,7 +1054,7 @@ SUBROUTINE para_seti (zeile, lp, iarray, nia, nie, bef, imi, ima, &
       CHARACTER(LEN=4)  :: bef
       INTEGER lpara (maxw), lp 
       INTEGER ianz, icol, ifon, ifid 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       REAL fsiz 
       LOGICAL str_comp 
 !                                                                       

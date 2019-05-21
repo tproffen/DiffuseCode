@@ -12,6 +12,7 @@ USE ber_params_mod
 USE errlist_mod 
 USE get_params_mod
 USE param_mod 
+USE precision_mod
 !
 USE class_macro_internal
 !                                                                       
@@ -25,7 +26,7 @@ INTEGER            , INTENT(INOUT)   ::  lp
 CHARACTER(LEN=1024) :: cpara (maxw) 
 CHARACTER(LEN=1024) :: line 
 CHARACTER(LEN=4) :: cdummy 
-REAL, DIMENSION(maxw) ::  werte !(maxw) 
+REAL(KIND=PREC_DP), DIMENSION(maxw) ::  werte !(maxw) 
 INTEGER :: i 
 INTEGER :: lpara (maxw)
 INTEGER :: ianz 
@@ -68,7 +69,7 @@ IF(wait_active) THEN
                IF (ianz.le.maxw) THEN 
                   CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                   IF (ier_num.eq.0) THEN 
-                     res_para (0) = float (ianz) 
+                     res_para (0) = REAL(ianz) 
                      DO i = 1, ianz 
                      res_para (i) = werte (i) 
                      ENDDO 

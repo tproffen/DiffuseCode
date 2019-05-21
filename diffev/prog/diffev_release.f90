@@ -13,6 +13,7 @@ USE population
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -24,7 +25,7 @@ INTEGER, PARAMETER :: maxw = 6
 !
 CHARACTER (LEN=1024), DIMENSION(MAXW) :: cpara   = ' '
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
-REAL                , DIMENSION(MAXW) :: werte = 0.0
+REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 !
 INTEGER                               :: ianz
 INTEGER                               :: k
@@ -47,7 +48,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 4 ! Number of values to calculate 
 !
 DATA oname  / 'range '  , 'value '   , 'min    '  , 'max   '  , 'dismiss'  /
@@ -174,8 +175,8 @@ IF (ier_num == 0) THEN
             ENDIF
             pop_xmin(lb) = set_xmin
             pop_xmax(lb) = set_xmax
-            pop_smin(lb) = MAX(pop_xmin(lb), set_value - 1.*owerte(O_RANGE))
-            pop_smax(lb) = MIN(pop_xmax(lb), set_value + 1.*owerte(O_RANGE))
+            pop_smin(lb) = MAX(pop_xmin(lb), set_value - 1.*REAL(owerte(O_RANGE)))
+            pop_smax(lb) = MIN(pop_xmax(lb), set_value + 1.*REAL(owerte(O_RANGE)))
             pop_refine(lb) = .TRUE.
             CALL init_x(lb,lb)
             IF(ldismiss) CALL do_dismiss(d_lb,d_ub)

@@ -1,10 +1,12 @@
 MODULE do_read_number_mod
 !
+USE precision_mod
+!
 CONTAINS
 !
 !*****7**************************************************************** 
 !
-REAL FUNCTION do_read_number (string, laenge) 
+REAL(KIND=PREC_DP) FUNCTION do_read_number (string, laenge) 
 !-                                                                      
 !     Reads a numerical value from the string. This is the VMS version. 
 !     In order to recognize erroneous nonmunerical data in the last     
@@ -15,32 +17,32 @@ REAL FUNCTION do_read_number (string, laenge)
 !     The VMS version properly detects an error for the (more sensible) 
 !     length equal to the actual length of the parameter                
 !+                                                                      
-      USE errlist_mod 
-      USE charact_mod
-      IMPLICIT none 
+USE errlist_mod 
+USE charact_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) :: string 
-      INTEGER          , INTENT(IN) :: laenge 
+CHARACTER (LEN=*), INTENT(IN) :: string 
+INTEGER          , INTENT(IN) :: laenge 
 !                                                                       
-      CHARACTER(LEN=1024) :: line 
-      INTEGER :: i 
+CHARACTER(LEN=1024) :: line 
+INTEGER :: i 
 !                                                                       
-      ier_num = - 1 
-      ier_typ = ER_FORT 
-      line = string 
+ier_num = - 1 
+ier_typ = ER_FORT 
+line = string 
 !                                                                       
-      IF (laenge.gt.0) then 
-         i = iachar (string (laenge:laenge) ) 
-         IF (zero.le.i.and.i.le.nine.or.i.eq.period.or.i.eq.blank1) then
-            READ (line, *, end = 999, err = 999) do_read_number
+IF (laenge > 0) THEN 
+   i = iachar (string (laenge:laenge) ) 
+   IF (zero <= i.AND.i <= nine.OR.i == period.OR.i == blank1) THEN
+      READ(line, *, end = 999, err = 999) do_read_number
 !                                                                       
-            ier_num = 0 
-            ier_typ = ER_NONE 
-         ELSE 
-            do_read_number = 0. 
-         ENDIF 
-      ENDIF 
+      ier_num = 0 
+      ier_typ = ER_NONE 
+   ELSE 
+      do_read_number = 0.D0
+   ENDIF 
+ENDIF 
 !                                                                       
   999 CONTINUE 
 !                                                                       
@@ -53,17 +55,18 @@ SUBROUTINE eval (line, ll)
 !       evaluates a line that has only the basic arithmetics            
 !+                                                                      
 USE blanks_mod
-      USE errlist_mod 
-      IMPLICIT none 
+USE errlist_mod 
+USE precision_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      CHARACTER(LEN=1024), INTENT(INOUT) :: line
-      INTEGER            , INTENT(INOUT) :: ll 
+CHARACTER(LEN=1024), INTENT(INOUT) :: line
+INTEGER            , INTENT(INOUT) :: ll 
 !
-      INTEGER ipot, iz1, iz2, imal, idiv, iverk 
-      INTEGER iexpo, iplus, iminus, ipp 
-      LOGICAL lreal 
-      REAL w1, w2, ww 
+INTEGER :: ipot, iz1, iz2, imal, idiv, iverk 
+INTEGER :: iexpo, iplus, iminus, ipp 
+LOGICAL :: lreal 
+REAL(KIND=PREC_DP) :: w1, w2, ww 
 !                                                                       
 CALL rem_bl(line,ll)
 !...........Evaluate the exponentiation  '**'                           
@@ -103,7 +106,7 @@ loop_verk:DO while (iverk.ne.0)
             IF (lreal) then 
                ww = w1 / w2 
             ELSE 
-               ww = float (int (w1) / int (w2) ) 
+               ww = REAL(INT(w1) / INT(w2), PREC_DP ) 
             ENDIF 
          ELSE 
             ier_num = - 4 
@@ -133,14 +136,15 @@ ENDDO  loop_verk
          iplus = INDEX (line, '+') 
       ENDIF 
       IF (iplus.gt.1) then 
-         iexpo = INDEX (line, 'e') 
+         iexpo = MAX(INDEX(line, 'e'), INDEX(line, 'd')) 
          DO while (iplus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iplus) 
          ipp = INDEX (line (iplus + 1:ll) , '+') 
          IF (ipp.eq.0) then 
             iplus = 0 
          ELSE 
             iplus = iplus + ipp 
-            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + MAX(INDEX(line(iexpo + 1:ll), 'e') , &
+                                INDEX(line(iexpo + 1:ll), 'd') )
          ENDIF 
          ENDDO 
       ENDIF 
@@ -151,19 +155,20 @@ ENDDO  loop_verk
          iminus = INDEX (line, '-') 
       ENDIF 
       IF (iminus.gt.1) then 
-         iexpo = INDEX (line, 'e') 
+         iexpo = MAX(INDEX(line, 'e') , INDEX(line, 'd'))
          DO while (iminus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iminus) 
          ipp = index (line (iminus + 1:ll) , '-') 
          IF (ipp.eq.0) then 
             iminus = 0 
          ELSE 
             iminus = iminus + ipp 
-            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + MAX(INDEX(line(iexpo + 1:ll), 'e'), &
+                                INDEX(line(iexpo + 1:ll), 'd') )
          ENDIF 
          ENDDO 
       ENDIF 
       IF (iplus.gt.0.and.iminus.gt.0) then 
-         iverk = min (iplus, iminus) 
+         iverk = MIN(iplus, iminus) 
       ELSEIF (iplus.gt.0.and.iminus.eq.0) then 
          iverk = iplus 
       ELSEIF (iplus.eq.0.and.iminus.gt.0) then 
@@ -189,14 +194,15 @@ ENDDO  loop_verk
          iplus = INDEX (line, '+') 
       ENDIF 
       IF (iplus.gt.1) then 
-         iexpo = INDEX (line, 'e') 
+         iexpo = MAX(INDEX(line, 'e'), INDEX(line, 'd'))
          DO while (iplus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iplus) 
          ipp = INDEX (line (iplus + 1:ll) , '+') 
          IF (ipp.eq.0) then 
             iplus = 0 
          ELSE 
             iplus = iplus + ipp 
-            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + MAX(INDEX(line(iexpo + 1:ll), 'e'), &
+                                INDEX(line(iexpo + 1:ll), 'd') )
          ENDIF 
          ENDDO 
       ENDIF 
@@ -207,14 +213,15 @@ ENDDO  loop_verk
          iminus = INDEX (line, '-') 
       ENDIF 
       IF (iminus.gt.1) then 
-         iexpo = INDEX (line, 'e') 
+         iexpo = MAX(INDEX(line, 'e'), INDEX(line, 'd')) 
          DO while (iminus.gt.1.and.iexpo.gt.1.and.iexpo + 1.eq.iminus) 
          ipp = INDEX (line (iminus + 1:ll) , '-') 
          IF (ipp.eq.0) then 
             iminus = 0 
          ELSE 
             iminus = iminus + ipp 
-            iexpo = iexpo + INDEX (line (iexpo + 1:ll) , 'e') 
+            iexpo = iexpo + MAX(INDEX(line(iexpo + 1:ll), 'e'), &
+                                INDEX(line(iexpo + 1:ll), 'd') )
          ENDIF 
          ENDDO 
       ENDIF 
@@ -227,7 +234,8 @@ ENDDO  loop_verk
       ELSEIF (iplus.eq.0.and.iminus.eq.0) then 
          iverk = 0 
       ENDIF 
-      ENDDO 
+ENDDO 
+!
 END SUBROUTINE eval                           
 !
 !*****7**************************************************************** 
@@ -236,21 +244,22 @@ SUBROUTINE get_w1_w2 (w1, w2, line, iverk, iz1, iz2, ll, lverk, lreal)
 !                                                                       
 !     Get the two numbers in front and after an operator                
 !                                                                       
-      USE errlist_mod 
-      USE search_string_mod
-      IMPLICIT none 
+USE errlist_mod 
+USE search_string_mod
+USE precision_mod
 !                                                                       
+IMPLICIT none 
 !                                                                       
-      REAL             , INTENT(OUT)   :: w1, w2 
-      CHARACTER (LEN=*), INTENT(INOUT) :: line 
-      CHARACTER(1024) zeile 
-      INTEGER          , INTENT(IN)    :: iverk
-      INTEGER          , INTENT(OUT)   :: iz1
-      INTEGER          , INTENT(OUT)   :: iz2
-      INTEGER          , INTENT(IN)    :: ll
-      INTEGER          , INTENT(IN)    :: lverk
+REAL(KIND=PREC_DP),INTENT(OUT)   :: w1, w2 
+CHARACTER (LEN=*), INTENT(INOUT) :: line 
+CHARACTER(1024) zeile 
+INTEGER          , INTENT(IN)    :: iverk
+INTEGER          , INTENT(OUT)   :: iz1
+INTEGER          , INTENT(OUT)   :: iz2
+INTEGER          , INTENT(IN)    :: ll
+INTEGER          , INTENT(IN)    :: lverk
 !     INTEGER suche_vor2, suche_nach2 
-      LOGICAL lreal 
+LOGICAL lreal 
 !
 INTEGER :: lll
 !                                                                       
@@ -267,15 +276,15 @@ IF(iverk> 1) THEN
       line(iverk-1:iverk) = '0+'
    ENDIF
 ENDIF
-      lll = iverk - 1 
-      iz1 = suche_vor2 (line (1:iverk - 1), lll) 
-      zeile = line (iz1:iverk - 1) 
-      w1 = do_read_number (zeile, iverk - iz1) 
-      IF (ier_num.ne.0) then 
-         RETURN 
-      ENDIF 
-      lreal = INDEX (line (iz1:iverk - 1) , '.') .gt.0 
-      lll = ll - (iverk + lverk) + 1 
+lll = iverk - 1 
+iz1 = suche_vor2 (line (1:iverk - 1), lll) 
+zeile = line (iz1:iverk - 1) 
+w1 = do_read_number (zeile, iverk - iz1) 
+IF (ier_num.ne.0) then 
+   RETURN 
+ENDIF 
+lreal = INDEX (line (iz1:iverk - 1) , '.') .gt.0 
+lll = ll - (iverk + lverk) + 1 
 ! Catch a minus/plus that is intended as sign in front of a number
 IF(lll>2) THEN 
    IF(    line(iverk+lverk:iverk+lverk+1)=='--') THEN
@@ -288,16 +297,15 @@ IF(lll>2) THEN
       line(iverk+lverk:iverk+lverk+1) = '  '
    ENDIF
 ENDIF
-      iz2 = suche_nach2 (line (iverk + lverk:ll), lll) 
-      zeile = line (iverk + lverk:iverk + lverk + iz2 - 1) 
-      w2 = do_read_number (zeile, iz2) 
-      IF (ier_num.ne.0) then 
-         RETURN 
-      ENDIF 
-      lreal = lreal.or.INDEX (line (iverk + lverk:iverk + lverk + iz2 - &
-      1) , '.') .gt.0                                                   
+iz2 = suche_nach2 (line (iverk + lverk:ll), lll) 
+zeile = line (iverk + lverk:iverk + lverk + iz2 - 1) 
+w2 = do_read_number (zeile, iz2) 
+IF (ier_num.ne.0) then 
+   RETURN 
+ENDIF 
+lreal = lreal.OR.INDEX(line(iverk + lverk:iverk + lverk + iz2 - 1) , '.') > 0
 !                                                                       
-      END SUBROUTINE get_w1_w2                      
+END SUBROUTINE get_w1_w2                      
 !
 !****7***************************************************************** 
 !
@@ -306,43 +314,44 @@ SUBROUTINE ersetz (line, iz1, iz2, ww, iverk, ll, lverk, lreal)
 !     Replaces the corresponding part of line by the number ww          
 !     Different format is used for real and integer numbers             
 !                                                                       
-      USE blanks_mod
+USE blanks_mod
 USE precision_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(INOUT) :: line 
-      INTEGER          , INTENT(IN)    :: iz1
-      INTEGER          , INTENT(IN)    :: iz2
-      REAL             , INTENT(IN)    :: ww 
-      INTEGER          , INTENT(IN)    :: iverk
-      INTEGER          , INTENT(INOUT) :: ll
-      INTEGER          , INTENT(IN)    :: lverk
-      LOGICAL          , INTENT(IN)    :: lreal
-      CHARACTER(LEN=5)  :: form 
-      CHARACTER(LEN=1024)  :: zeile 
-      INTEGER  :: lw 
-      INTEGER  :: ltot 
+CHARACTER (LEN=*), INTENT(INOUT) :: line 
+INTEGER          , INTENT(IN)    :: iz1
+INTEGER          , INTENT(IN)    :: iz2
+REAL(KIND=PREC_DP),INTENT(IN)    :: ww 
+INTEGER          , INTENT(IN)    :: iverk
+INTEGER          , INTENT(INOUT) :: ll
+INTEGER          , INTENT(IN)    :: lverk
+LOGICAL          , INTENT(IN)    :: lreal
+CHARACTER(LEN=5)  :: form 
+CHARACTER(LEN=1024)  :: zeile 
+INTEGER  :: lw 
+INTEGER  :: ltot 
 !                                                                       
-      zeile = ' ' 
-      IF (iz1.gt.1) zeile (1:iz1 - 1) = line (1:iz1 - 1) 
-      IF (lreal) then 
-         lw = PREC_WIDTH
-         WRITE (zeile (iz1:iz1 + lw - 1) , PREC_F_REAL) ww 
-         zeile (iz1 + PREC_MANTIS:iz1 + PREC_MANTIS) = 'e' 
-      ELSE 
-         lw = INT (ALOG (ABS (ww) + 1.) ) + 2 
-         WRITE (form, 1000) lw 
-         WRITE (zeile (iz1:iz1 + lw - 1), form) INT(ww,PREC_INT_LARGE) !Write BIG integer
-      ENDIF 
-      IF (iverk + lverk + iz2.le.ll) then 
-         ltot = (iz1 + lw) + (ll - iverk - lverk - iz2 + 1) - 1 
-         IF (ltot.le.len (zeile) ) then 
-            zeile (iz1 + lw:ltot) = line (iverk + lverk + iz2:ll) 
-         ENDIF 
-      ENDIF 
-      line = zeile 
-      ll = ll + lw - (lverk + iz2 + iverk - iz1 - 1) 
-      CALL rem_bl (line, ll) 
+zeile = ' ' 
+IF (iz1.gt.1) zeile (1:iz1 - 1) = line (1:iz1 - 1) 
+IF (lreal) then 
+   lw = PREC_WIDTH
+   WRITE (zeile (iz1:iz1 + lw - 1) , PREC_F_REAL) ww 
+   zeile (iz1 + PREC_MANTIS:iz1 + PREC_MANTIS) = 'd' 
+ELSE 
+   lw = INT(LOG(ABS(ww) + 1.) ) + 2 
+   WRITE (form, 1000) lw 
+   WRITE (zeile (iz1:iz1 + lw - 1), form) INT(ww,PREC_INT_LARGE) !Write BIG integer
+ENDIF 
+IF (iverk + lverk + iz2.le.ll) then 
+   ltot = (iz1 + lw) + (ll - iverk - lverk - iz2 + 1) - 1 
+   IF (ltot.le.len (zeile) ) then 
+      zeile (iz1 + lw:ltot) = line (iverk + lverk + iz2:ll) 
+   ENDIF 
+ENDIF 
+line = zeile 
+ll = ll + lw - (lverk + iz2 + iverk - iz1 - 1) 
+CALL rem_bl (line, ll) 
 !                                                                       
  1000 FORMAT    ('(i',i2.2,')') 
 END SUBROUTINE ersetz                         

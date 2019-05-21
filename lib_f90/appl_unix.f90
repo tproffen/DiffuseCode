@@ -543,6 +543,7 @@ SUBROUTINE color_set_fg(line,icolon,color_type , color_string, color_color)
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 USE terminal_mod
 IMPLICIT NONE
 !
@@ -557,7 +558,7 @@ INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1
 CHARACTER (LEN=1024), DIMENSION(1) :: cpara
 INTEGER             , DIMENSION(1) :: lpara
-REAL                , DIMENSION(1) :: werte
+REAL(KIND=PREC_DP)  , DIMENSION(1) :: werte
 !
 IF(line(1:icolon) == color_type) THEN
    IF(color_string=='BLACK') THEN
@@ -595,6 +596,7 @@ SUBROUTINE color_set_bg(line,icolon,color_type , color_string, color_color)
 !
 USE ber_params_mod
 USE errlist_mod
+USE precision_mod
 USE terminal_mod
 IMPLICIT NONE
 !
@@ -609,7 +611,7 @@ INTEGER              :: ianz
 INTEGER, PARAMETER                 :: MAXW = 1
 CHARACTER (LEN=1024), DIMENSION(1) :: cpara
 INTEGER             , DIMENSION(1) :: lpara
-REAL                , DIMENSION(1) :: werte
+REAL(KIND=PREC_DP)  , DIMENSION(1) :: werte
 !
 IF(line(1:icolon) == color_type) THEN
    IF(color_string=='BLACK') THEN

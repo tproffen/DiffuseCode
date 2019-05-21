@@ -503,6 +503,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE powder_mod 
       USE ber_params_mod
       USE get_params_mod
+USE precision_mod
       USE trig_degree_mod
       USE string_convert_mod
       IMPLICIT none 
@@ -519,7 +520,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       INTEGER :: lsymbol
       INTEGER ianz 
       INTEGER i 
-      REAL werte (MAXW) 
+      REAL(KIND=PREC_DP) :: werte (MAXW) 
 !                                                                       
       LOGICAL str_comp 
 !     REAL cosd 

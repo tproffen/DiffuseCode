@@ -11,6 +11,7 @@ SUBROUTINE ber_params (ianz, cpara, lpara, werte, maxpara)
 USE berechne_mod
 !USE calc_expr_mod
 USE errlist_mod 
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -18,11 +19,11 @@ INTEGER, INTENT(IN) :: ianz
 INTEGER, INTENT(IN) :: maxpara 
 CHARACTER(LEN=1024), DIMENSION(MAXPARA), INTENT(IN)  :: cpara
 INTEGER            , DIMENSION(MAXPARA), INTENT(IN)  :: lpara
-REAL               , DIMENSION(MAXPARA), INTENT(OUT) :: werte
+REAL(KIND=PREC_DP) , DIMENSION(MAXPARA), INTENT(OUT) :: werte
 !                                                                       
 CHARACTER(LEN=1024) :: line 
 INTEGER             :: ll, i ,j
-REAL                :: wert 
+REAL(KIND=PREC_DP)  :: wert 
 !                                                                       
 !                                                                       
 main: DO i = 1, ianz 

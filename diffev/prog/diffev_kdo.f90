@@ -37,6 +37,7 @@ USE learn_mod
 USE macro_mod
 USE prompt_mod
 USE set_sub_generic_mod
+USE precision_mod
 USE take_param_mod
 USE variable_mod
 IMPLICIT none 
@@ -68,7 +69,7 @@ LOGICAL                               :: lexist
 LOGICAL                               :: lbest
 LOGICAL                               :: l_init_x = .true.
 !                                                                       
-REAL                , DIMENSION(MAXW) :: werte = 0.0
+REAL(KIND=PREC_DP)  , DIMENSION(MAXW) :: werte = 0.0
 REAL                                  :: value
 LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
@@ -78,7 +79,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 2 ! Number of values to calculate 
 !
 DATA oname  / 'partial', 'repeat' , 'logfile', 'compute'  /

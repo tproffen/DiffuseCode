@@ -22,6 +22,7 @@ SUBROUTINE do_diffev_plot(line, length)
 !
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -48,7 +49,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Length opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Length opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 INTEGER :: ipartial = 0
 !
@@ -135,6 +136,7 @@ USE kuplot_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -157,7 +159,7 @@ LOGICAL              :: lname
 LOGICAL              :: lexist
 REAL                 :: rval_min, r_val, par_val, parval_min
 !INTEGER              :: rval_indx
-REAL   , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
 !
 success = -1
 lname   = .FALSE.
@@ -409,6 +411,7 @@ USE kuplot_mod
 USE ber_params_mod
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -434,7 +437,7 @@ INTEGER              :: rvalue_ind
 LOGICAL              :: lname
 LOGICAL              :: lexist
 REAL                 :: rvalue_min
-REAL   , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(1:MAXW) :: werte
 !
 success = -1
 lname   = .FALSE.

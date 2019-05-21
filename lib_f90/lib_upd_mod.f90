@@ -23,7 +23,7 @@ INTEGER,                    INTENT(IN   ) :: iklz
 CHARACTER (LEN=*),          INTENT(INOUT) :: string 
 INTEGER,                    INTENT(INOUT) :: ll
 INTEGER,                    INTENT(IN   ) :: maxw
-REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+REAL(KIND=PREC_DP), DIMENSION(1:maxw), INTENT(IN   ) :: ww
 INTEGER,                    INTENT(IN   ) :: ianz
 !                                                                       
 CHARACTER(LEN=1024) :: zeile 
@@ -64,7 +64,7 @@ search_var: DO i=var_sys+1, var_num
                ELSEIF(var_type(i)==      IS_REAL) THEN
                   WRITE(zeile(ikl - lcomm:ikl + PREC_WIDTH-2),PREC_F_REAL)             &
                   var_field(var_entry(i))%var_value(kpara,kpara2)
-                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
                ENDIF
                success = .TRUE.
 !write(*,*) 'PLACED ', zeile(1:50)
@@ -107,7 +107,7 @@ IF(.NOT.success) THEN
                IF (0.le.kpara.and.kpara.le.MAXPAR) THEN 
                   WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) rpara (&
                   kpara)                                                
-                  zeile (ikl + PREC_MANTIS-1:ikl + PREC_MANTIS-1) = 'e' 
+                  zeile (ikl + PREC_MANTIS-1:ikl + PREC_MANTIS-1) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -131,7 +131,7 @@ IF(.NOT.success) THEN
                IF (0.le.kpara.and.kpara.le.MAXPAR_RES) THEN 
                   WRITE (zeile (ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   res_para (kpara)                                      
-                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -171,7 +171,7 @@ IF(.NOT.success) THEN
                (1:ikl - lcomm - 1)
                IF (0.lt.kpara.and.kpara.le.MAXPAR) THEN
                   WRITE(zeile(ikl - 6:ikl + PREC_WIDTH-2), PREC_F_REAL) kupl_para(kpara)
-                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -197,7 +197,7 @@ IF(.NOT.success) THEN
                (1:ikl - lcomm - 1)
                IF (0.lt.kpara.and.kpara.le.MAXPAR) THEN
                   WRITE(zeile(ikl - 7:ikl + PREC_WIDTH-2), PREC_F_REAL) kupl_deriv(kpara)
-                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -222,7 +222,7 @@ IF(.NOT.success) THEN
                IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) THEN
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   ref_para (kpara)
-                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e'
+                  zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd'
                ELSE
                   ier_num = -133
                   ier_typ = ER_APPL
@@ -269,6 +269,7 @@ USE constants_mod
 USE errlist_mod 
 USE param_mod 
 USE variable_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -276,7 +277,7 @@ CHARACTER (LEN=*),          INTENT(IN) :: ctype
 INTEGER,                    INTENT(IN) :: maxw
 INTEGER,                    INTENT(IN) :: ianz 
 INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-REAL   ,                    INTENT(IN) :: wert 
+REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
 !
 INTEGER :: i, ww2
 !

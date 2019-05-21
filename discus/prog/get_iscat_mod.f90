@@ -17,6 +17,7 @@ SUBROUTINE get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
       USE berechne_mod
       USE do_variable_mod
       USE errlist_mod 
+USE precision_mod
       USE string_convert_mod
       IMPLICIT none 
 !                                                                       
@@ -29,7 +30,7 @@ SUBROUTINE get_iscat (ianz, cpara, lpara, werte, maxw, lnew)
       INTEGER lpara (maxw) 
       INTEGER i, j, l, ianz, jj, jp 
       LOGICAL lnew 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !                                                                       
 !     ----Select which atoms are included in the wave                   

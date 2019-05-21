@@ -17,6 +17,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       USE lib_upd_mod
       USE param_mod 
       USE random_mod 
+USE precision_mod
       USE precision_mod
       IMPLICIT none 
 !                                                                       
@@ -25,7 +26,7 @@ SUBROUTINE discus_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
       CHARACTER (LEN=*),          INTENT(INOUT) :: string 
       INTEGER,                    INTENT(INOUT) :: ll
       INTEGER,                    INTENT(IN   ) :: maxw
-      REAL   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
+      REAL(KIND=PREC_DP)   , DIMENSION(1:maxw), INTENT(IN   ) :: ww
       INTEGER,                    INTENT(IN   ) :: ianz
 !                                                                       
       CHARACTER(1024) zeile 
@@ -59,7 +60,7 @@ CALL no_error
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
                THEN                                                     
                   WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_pos(1, kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -74,7 +75,7 @@ CALL no_error
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
                THEN                                                     
                   WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_pos(2, kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -89,7 +90,7 @@ CALL no_error
                IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms) &
                THEN                                                     
                   WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_pos(3, kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -116,7 +117,7 @@ CALL no_error
             IF (ianz.eq.1) THEN 
                IF (1.le.kpara.and.kpara.le.cr_nscat) THEN 
                   WRITE(zeile(ikl - 1:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_dw(kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -194,7 +195,7 @@ CALL no_error
                IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   mole_biso (kpara)                                     
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 64 
                   ier_typ = ER_APPL 
@@ -213,7 +214,7 @@ CALL no_error
                IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   mole_clin (kpara)                                     
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 64 
                   ier_typ = ER_APPL 
@@ -232,7 +233,7 @@ CALL no_error
                IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   mole_cqua (kpara)                                     
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 64 
                   ier_typ = ER_APPL 
@@ -251,7 +252,7 @@ CALL no_error
                IF (0.lt.kpara.and.kpara.le.mole_num_type) THEN 
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   mole_dens (kpara)                                     
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 64 
                   ier_typ = ER_APPL 
@@ -286,7 +287,7 @@ CALL no_error
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pdf_rho0
-               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 
@@ -298,7 +299,7 @@ CALL no_error
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string &
                (1:ikl - lcomm - 1)                                      
                WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pdf_scale
-               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 
@@ -312,7 +313,7 @@ CALL no_error
                IF (0.lt.kpara.and.kpara.le.MAXPAR_REF   ) THEN 
                   WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL)        &
                   ref_para (kpara)                                     
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = -133 
                   ier_typ = ER_APPL 
@@ -425,7 +426,7 @@ CALL no_error
       IF (1.le.kpara.and.kpara.le.3.and.1.le.kpara2.and.kpara2.le.2) THEN
                   WRITE (zeile (ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_dim &
                   (kpara, kpara2)                                       
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -476,7 +477,7 @@ CALL no_error
             IF (ianz.eq.1) THEN 
                IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
                WRITE (zeile (ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_vr 
-               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 
@@ -511,10 +512,10 @@ CALL no_error
                (1:ikl - lcomm - 1)                                      
                IF (kpara.ge.1.and.kpara.le.3) THEN 
                   WRITE(zeile(ikl - 3:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_a0(kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSEIF (kpara.ge.4.and.kpara.le.6) THEN 
                   WRITE(zeile(ikl - 3:ikl + PREC_WIDTH-2), PREC_F_REAL) cr_win(kpara - 3)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -529,7 +530,7 @@ CALL no_error
                IF(ikl >  lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
                IF(1 <= kpara.AND.kpara <= cr_nscat) THEN 
                   WRITE (zeile (ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_occ (kpara)
-                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+                  zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
                ELSE 
                   ier_num = - 8 
                   ier_typ = ER_FORT 
@@ -543,7 +544,7 @@ CALL no_error
             IF (ianz.eq.1) THEN 
                IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
                WRITE (zeile (ikl - 3:ikl + PREC_WIDTH-2) , PREC_F_REAL) cr_v 
-               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS - lcomm:ikl + PREC_MANTIS - lcomm) = 'd' 
             ELSE 
                ier_num = - 13 
                ier_typ = ER_FORT 
@@ -585,13 +586,15 @@ CALL no_error
       USE errlist_mod 
       USE param_mod 
       USE lib_upd_mod
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*),          INTENT(IN) :: ctype 
       INTEGER,                    INTENT(IN) :: maxw
       INTEGER,                    INTENT(IN) :: ianz 
       INTEGER, DIMENSION(1:MAXW), INTENT(IN) :: ww
-      REAL   ,                    INTENT(IN) :: wert 
+      REAL(KIND=PREC_DP)        , INTENT(IN) :: wert 
 !
       INTEGER :: l
       INTEGER :: iwert, owert
@@ -819,8 +822,7 @@ CALL no_error
  8000 FORMAT    (a) 
       END SUBROUTINE discus_upd_para                       
 !*****7***************************************************************  
-      SUBROUTINE discus_calc_intr_spec (string, line, ikl, iklz, ww, laenge,   &
-      lp)                                                               
+SUBROUTINE discus_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !-                                                                      
 !     These are special intrinsic function for the DISCUS. Any          
 !     intrinsic function that references crystallographic values        
@@ -838,13 +840,15 @@ CALL no_error
       USE errlist_mod 
       USE get_params_mod
       USE param_mod 
+USE precision_mod
+!
       IMPLICIT none 
 !                                                                       
       CHARACTER (LEN=*), INTENT(INOUT) :: string
       CHARACTER (LEN=*), INTENT(INOUT) :: line 
       INTEGER,           INTENT(IN)    :: ikl
       INTEGER,           INTENT(IN)    :: iklz
-      REAL   ,           INTENT(INOUT) :: ww
+      REAL(KIND=PREC_DP),INTENT(INOUT) :: ww
       INTEGER,           INTENT(INOUT) :: laenge
       INTEGER,           INTENT(INOUT) :: lp
        
@@ -1403,6 +1407,7 @@ USE prop_para_mod
 USE errlist_mod
 USE ber_params_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 IMPLICIT NONE
 !
@@ -1413,14 +1418,14 @@ INTEGER, PARAMETER :: NOPTIONAL = 2
 !
 CHARACTER(LEN=1024), DIMENSION(MAXW     ) :: cpara   !parameter strings returned
 INTEGER            , DIMENSION(MAXW     ) :: lpara   !Lenght para name
-REAL               , DIMENSION(MAXW     ) :: werte   !Lenght para name
+REAL(KIND=PREC_DP) , DIMENSION(MAXW     ) :: werte   !Lenght para name
 !
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER :: ianz, iianz

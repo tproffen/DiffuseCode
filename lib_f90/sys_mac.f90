@@ -17,6 +17,7 @@ END FUNCTION IS_IOSTAT_END
 !                                                                       
       USE errlist_mod 
       USE param_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -29,7 +30,7 @@ END FUNCTION IS_IOSTAT_END
       LOGICAL , INTENT(IN)   ::lout
 !
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) :: werte (maxw) 
       INTEGER lpara (maxw)
       INTEGER ianz 
       LOGICAL lexist 

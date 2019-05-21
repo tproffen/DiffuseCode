@@ -11,6 +11,7 @@ SUBROUTINE set_color (zeile, lp)
       USE get_params_mod
       USE kuplot_config 
       USE kuplot_mod 
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -23,7 +24,7 @@ SUBROUTINE set_color (zeile, lp)
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, icol 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
@@ -66,6 +67,7 @@ SUBROUTINE set_color (zeile, lp)
       USE kuplot_mod
 ! 
       USE build_name_mod
+USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -74,7 +76,7 @@ SUBROUTINE set_color (zeile, lp)
 !                                                                       
       CHARACTER ( * ) zeile 
       CHARACTER(1024) cpara (maxw) 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP) werte (maxw) 
 REAL :: zzmin, zzmax
       INTEGER lpara (maxw) 
       INTEGER ianz, lp 

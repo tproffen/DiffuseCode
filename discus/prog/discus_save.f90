@@ -33,6 +33,7 @@ SUBROUTINE save_struc (string, lcomm)
       USE get_params_mod
       USE learn_mod 
       USE class_macro_internal 
+USE precision_mod
       USE prompt_mod 
       USE sup_mod
       IMPLICIT none 
@@ -44,7 +45,7 @@ SUBROUTINE save_struc (string, lcomm)
 !                                                                       
       CHARACTER(LEN=1024), DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: cpara
       INTEGER            , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: lpara
-      REAL               , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
+      REAL(KIND=PREC_DP) , DIMENSION(MAX(MIN_PARA,MAXSCAT+1)) :: werte
 !
       CHARACTER ( LEN=*    ) string 
       CHARACTER ( LEN=1024 ) zeile 

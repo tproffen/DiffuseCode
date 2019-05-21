@@ -18,6 +18,7 @@ LOGICAL FUNCTION atom_allowed (i, werte, ianz, maxw)
 !-                                                                      
 USE discus_config_mod 
 USE crystal_mod 
+USE precision_mod
 IMPLICIT none 
 !                                                                       
        
@@ -25,7 +26,7 @@ IMPLICIT none
 INTEGER,                    INTENT(IN) :: i
 INTEGER,                    INTENT(IN) :: ianz
 INTEGER,                    INTENT(IN) :: maxw 
-REAL   , DIMENSION(1:MAXW), INTENT(IN) :: werte
+REAL(KIND=PREC_DP), DIMENSION(1:MAXW), INTENT(IN) :: werte
 !                                                                       
 INTEGER :: j 
 LOGICAL :: ltype 

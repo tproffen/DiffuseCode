@@ -22,7 +22,7 @@ INTEGER              , INTENT(IN   ) :: iklz
 INTEGER              , INTENT(INOUT) :: ll
 INTEGER              , INTENT(IN   ) :: maxw
 INTEGER              , INTENT(IN   ) :: ianz
-REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
 CHARACTER (LEN=1024)                 :: zeile 
 !                                                                       
@@ -53,7 +53,7 @@ IF (lcomm.eq.1) then
       IF (ianz.eq.1) then 
          IF (0.le.kpara.and.kpara.le.MAXDIMX .and. kpara<=pop_dimx) THEN 
             WRITE (zeile (ikl - 1:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_para (kpara)
-            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
          ELSE 
             ier_num = - 8 
             ier_typ = ER_FORT 
@@ -101,7 +101,7 @@ ELSEIF (lcomm.eq.5) then
          IF (0<pop_best .and. pop_best<=pop_n .and. pop_best<= MAXPOP) THEN
             IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
             WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) child_val (pop_best,0)
-            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -118,7 +118,7 @@ ELSEIF (lcomm.eq.5) then
             IF( 0<kpara2 .and. kpara2<=pop_n .and. kpara2<=MAXPOP) THEN
                IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
                WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) child ( kpara, kpara2)
-               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -144,7 +144,7 @@ ELSEIF (lcomm.eq.5) then
             IF( 0<kpara2 .and. kpara2<=pop_n .and. kpara2<=MAXPOP) THEN
                IF (ikl.gt.6) zeile (1:ikl - 6) = string (1:ikl - 6) 
                WRITE (zeile (ikl - 5:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_t ( kpara, kpara2)
-               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+               zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
             ELSE
                ier_num = -14
                ier_typ = ER_APPL
@@ -175,7 +175,7 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
          WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_f
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -185,7 +185,7 @@ ELSEIF (lcomm.eq.6) then
       IF (ianz.eq.1) then 
          IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
          WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_k 
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -196,7 +196,7 @@ ELSEIF (lcomm.eq.6) then
          IF (0<kpara .and. kpara<=pop_n .and. kpara<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
             WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) parent_val (kpara,0)
-            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -221,7 +221,7 @@ ELSEIF (lcomm.eq.6) then
          IF (0<pop_worst .and. pop_worst<=pop_n .and. pop_worst<= MAXPOP) THEN
             IF (ikl.gt.7) zeile (1:ikl - 7) = string (1:ikl - 7) 
             WRITE (zeile (ikl - 6:ikl + PREC_WIDTH-2) , PREC_F_REAL) child_val (pop_worst,0)
-            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
          ELSE
             ier_num = -9
             ier_typ = ER_APPL
@@ -243,7 +243,7 @@ ELSEIF (lcomm.eq.7) then
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
          WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_cr 
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -253,7 +253,7 @@ ELSEIF (lcomm.eq.7) then
       IF (ianz.eq.1) then 
          IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
          WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) diff_local
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE 
          ier_num = - 13 
          ier_typ = ER_FORT 
@@ -273,7 +273,7 @@ ELSEIF (lcomm.eq.7) then
          IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
             IF (ikl.gt.8) zeile (1:ikl - 8) = string (1:ikl - 8) 
             WRITE (zeile (ikl - 7:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_sigma (kpara)
-            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+            zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
          ELSE
             ier_num = -14
             ier_typ = ER_APPL
@@ -316,7 +316,7 @@ ELSEIF (lcomm.eq.8) then
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
          WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_lsig ( kpara)
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -328,7 +328,7 @@ ELSEIF (lcomm.eq.8) then
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
          WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_xmin ( kpara)
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -340,7 +340,7 @@ ELSEIF (lcomm.eq.8) then
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
          WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_xmax ( kpara)
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -352,7 +352,7 @@ ELSEIF (lcomm.eq.8) then
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
          WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_smin ( kpara)
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -364,7 +364,7 @@ ELSEIF (lcomm.eq.8) then
       IF (0<kpara .and. kpara<=pop_dimx .and. kpara<= MAXDIMX) THEN
          IF (ikl.gt.9) zeile (1:ikl - 9) = string (1:ikl - 9) 
          WRITE (zeile (ikl - 8:ikl + PREC_WIDTH-2) , PREC_F_REAL) pop_smax ( kpara)
-         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'e' 
+         zeile (ikl + PREC_MANTIS-lcomm:ikl + PREC_MANTIS-lcomm) = 'd' 
       ELSE
          ier_num = -14
          ier_typ = ER_APPL
@@ -409,6 +409,7 @@ USE param_mod
 USE lib_f90_allocate_mod
 USE lib_upd_mod
 USE variable_mod
+USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
@@ -417,7 +418,7 @@ CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
 INTEGER           , INTENT(IN   )    :: maxw
 INTEGER           , INTENT(IN   )    :: ianz 
 INTEGER           , INTENT(IN   )    :: ww (maxw)
-REAL              , INTENT(IN   )    :: wert 
+REAL(KIND=PREC_DP), INTENT(IN   )    :: wert 
 !
 INTEGER               :: i
 INTEGER               :: pop_neu
@@ -741,7 +742,7 @@ ENDIF
 !
 END SUBROUTINE diffev_upd_para                       
 !*****7***************************************************************  
-SUBROUTINE diffev_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)                                                               
+SUBROUTINE diffev_calc_intr_spec(string, line, ikl, iklz, ww, laenge, lp)
 !-                                                                      
 !     These are special intrinsic function for the DIFFEV. Any          
 !     intrinsic function that references crystallographic values        
@@ -768,7 +769,7 @@ INTEGER            , INTENT(IN   ) :: ikl
 INTEGER            , INTENT(IN   ) :: iklz
 INTEGER            , INTENT(INOUT) :: laenge
 INTEGER            , INTENT(INOUT) :: lp
-REAL               , INTENT(INOUT) :: ww
+REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
 !
 CHARACTER(LEN=1024), DIMENSION(1:MAXW) :: cpara
 INTEGER            , DIMENSION(1:MAXW) :: lpara

@@ -120,6 +120,7 @@ CONTAINS
       USE rmc_mod 
       USE errlist_mod 
       USE random_mod
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !------ Include files containing array sizes, crystal definitions,      
@@ -147,7 +148,8 @@ CONTAINS
 !------ declaration of local variables, functions (-> implicit none)    
 !                                                                       
       INTEGER i 
-      REAL ran1, gasdev 
+      REAL ran1
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev 
 !                                                                       
 !------ we will modify just ONE atom                                    
 !                                                                       
@@ -174,8 +176,8 @@ CONTAINS
 !                                                                       
       IF (laccept) then 
          DO i = 1, 3 
-         p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (rmc_maxmove (i, &
-         i_new (1) ) )                                                  
+         p_new (i, 1) = cr_pos (i, isel (1) ) + gasdev (DBLE(rmc_maxmove (i, &
+         i_new (1) )) )                                                  
          ENDDO 
       ENDIF 
 !                                                                       

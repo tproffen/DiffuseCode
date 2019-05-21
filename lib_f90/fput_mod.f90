@@ -9,6 +9,7 @@ USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
       USE macro_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -21,7 +22,7 @@ USE ber_params_mod
 !
       CHARACTER(1024) cpara (maxw) 
       CHARACTER(LEN=1024) :: message
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       INTEGER lpara (maxw)
       INTEGER :: ios
       INTEGER ianz, ianzz 
@@ -123,6 +124,7 @@ USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
       USE macro_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -133,7 +135,7 @@ USE ber_params_mod
       INTEGER          , INTENT(INOUT) :: lp 
 !
       CHARACTER(1024) cpara (maxw)
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       INTEGER lpara (maxw)
       INTEGER ianz, ii 
 !                                                                       
@@ -180,6 +182,7 @@ USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
       USE macro_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -190,7 +193,7 @@ USE ber_params_mod
       INTEGER          , INTENT(INOUT) :: lp 
 !
       CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       INTEGER lpara (maxw)
       INTEGER ianz, ianzz 
       INTEGER ii 
@@ -248,6 +251,7 @@ USE errlist_mod
 USE get_params_mod
 USE macro_mod 
 USE param_mod 
+USE precision_mod
 USE take_param_mod
 IMPLICIT none 
 !                                                                       
@@ -260,7 +264,7 @@ INTEGER          , INTENT(INOUT) :: lp
 CHARACTER(1024) cpara (maxw), line, cstr , bstr
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: fpara
 CHARACTER(2048) string 
-REAL werte (maxw) 
+REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 INTEGER lpara (maxw), lstr
 INTEGER ianz, i, igl, ii, ianzz 
 INTEGER ia, ie, itab , ll
@@ -272,7 +276,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER len_str 
@@ -438,6 +442,7 @@ USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
       USE macro_mod 
+USE precision_mod
       USE prompt_mod 
       IMPLICIT none 
 !                                                                       
@@ -451,7 +456,7 @@ INTEGER          , INTENT(INOUT) :: lp
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ii, iii, ianz 
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !                                                                       
       INTEGER len_str 
 !                                                                       
@@ -496,6 +501,7 @@ USE ber_params_mod
       USE errlist_mod 
       USE get_params_mod
       USE macro_mod 
+USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
@@ -508,7 +514,7 @@ INTEGER          , INTENT(INOUT) :: lp
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ii, iii, ianz 
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) RETURN 
@@ -562,6 +568,7 @@ USE debug_mod
 USE errlist_mod 
 USE get_params_mod
 USE macro_mod 
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT none 
@@ -578,7 +585,7 @@ CHARACTER(LEN=1)                     :: quote
 REAL                     :: wert 
 INTEGER, DIMENSION(MAXW) :: lpara
 INTEGER                  :: ianz, lstr, i, ie, ianzz, ii 
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 1
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
@@ -586,7 +593,7 @@ CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
 !
 INTEGER len_str 

@@ -17,7 +17,9 @@ USE do_variable_mod
 USE errlist_mod 
 USE do_string_alloc_mod
 USE get_params_mod
+USE precision_mod
 USE set_sub_generic_mod
+!
 IMPLICIT none 
 !                                                                       
 INTEGER, PARAMETER :: maxw = 10
@@ -29,11 +31,12 @@ INTEGER          , INTENT(INOUT) :: length
 CHARACTER(LEN=1024)   :: zeile, cpara (maxw) 
 INTEGER, DIMENSION(3) :: var_is_type
 !                                                                       
-      INTEGER lpara (maxw) 
-      INTEGER i, ikk, iii (maxw), ianz, lll , laenge
+INTEGER, DIMENSION(MAXW) :: lpara
+INTEGER :: i, ikk, iii (maxw), ianz, lll , laenge
 INTEGER :: indxb
 !                                                                       
-      REAL wert, werte (maxw) 
+REAL(KIND=PREC_DP) ::  wert
+REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 !
 lll = indxg -1
 indxb = INDEX(line(1:lll),'[')

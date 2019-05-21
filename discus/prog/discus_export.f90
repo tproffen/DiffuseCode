@@ -8,6 +8,7 @@ SUBROUTINE do_export(line, lp)
 !
 USE errlist_mod
 USE get_params_mod
+USE precision_mod
 USE take_param_mod
 !
 IMPLICIT NONE
@@ -19,25 +20,27 @@ INTEGER, PARAMETER :: MAXW = 5
 CHARACTER(LEN=1024), DIMENSION(MAXW) :: cpara
 INTEGER            , DIMENSION(MAXW) :: lpara
 INTEGER  :: ianz
-INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: O_RMCVS   = 1
+INTEGER, PARAMETER :: O_SPCGR   = 2
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
 INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
 LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent  !opt. para present
-REAL               , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
 INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to calculate 
 !
 INTEGER  :: rmcversion
 !
 LOGICAL str_comp
 !
-DATA oname  / 'version'                    /
-DATA loname /  7                           /
+DATA oname  / 'version', 'spcgr  '         /
+DATA loname /  7       ,  7                /
 !
-opara  =  (/ '6.0000' /)   ! Always provide fresh default values
-lopara =  (/  6       /)
-owerte =  (/  6.0     /)
+opara  =  (/ '6.0000', 'P1    ' /)   ! Always provide fresh default values
+lopara =  (/  6      ,  6       /)
+owerte =  (/  6.0    ,  0.0     /)
 !
 CALL get_params (line, ianz, cpara, lpara, MAXW, lp)
 IF (ier_num.ne.0) then
@@ -54,6 +57,9 @@ IF (ianz.ge.1) then
       IF (ianz.eq.2) then
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) return
+         ianz = ianz + 1
+         cpara(ianz) = opara(O_SPCGR)
+         lpara(ianz) = lopara(O_SPCGR)
          CALL discus2cif (ianz, cpara, lpara, MAXW)
       ELSE
          ier_num = - 6
@@ -72,7 +78,7 @@ IF (ianz.ge.1) then
       IF (ianz.eq.2) then
          CALL del_params (1, ianz, cpara, lpara, maxw)
          IF (ier_num.ne.0) RETURN
-         rmcversion = NINT(owerte(1))
+         rmcversion = NINT(owerte(O_RMCVS))
          CALL discus2rmc6f (ianz, cpara, lpara, MAXW, rmcversion)
       ELSE
          ier_num = - 6
@@ -126,6 +132,8 @@ USE molecule_mod
 !
 USE build_name_mod
 USE errlist_mod
+USE precision_mod
+USE take_param_mod
 !
 IMPLICIT NONE
 !
@@ -139,9 +147,13 @@ LOGICAL, PARAMETER :: lold = .FALSE.
 !
 CHARACTER(LEN=1024)      :: ofile = ' '
 CHARACTER(LEN=1024)      :: zeile = ' '
+CHARACTER(LEN=16)        :: do_spcgr = 'P1'
 INTEGER                  :: lp
 INTEGER                  :: nscat
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
+!
+do_spcgr = cpara(ianz)(1:LEN(do_spcgr))
+ianz = ianz -1
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
 IF (ier_num.ne.0) then
@@ -150,7 +162,7 @@ ENDIF
 ofile = cpara (1)
 IF(ofile(lpara(1)-3:lpara(1)) /= '.cif') ofile = cpara (1) (1:lpara (1) ) //'.cif'
 CALL oeffne (IWR, ofile, 'unknown')
-IF (ier_num.ne.0) then
+IF (ier_num.ne.0) THEN
    CLOSE(IWR)
    RETURN
 ENDIF
@@ -171,7 +183,7 @@ lp    = 3
 CALL atom_select (zeile, lp, 0, PL_MAXSCAT, pl_latom, &
                   pl_sel_atom, lold, .TRUE.)
 !
-CALL plot_cif(IWR, .FALSE.)
+CALL plot_cif(IWR, .FALSE., do_spcgr)
 !
 CLOSE(IWR)
 !
@@ -198,6 +210,7 @@ USE wyckoff_mod
 USE build_name_mod
 USE errlist_mod
 USE param_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -226,7 +239,7 @@ CHARACTER (LEN=4), DIMENSION(:), ALLOCATABLE :: shelx_names
 INTEGER          , DIMENSION(:), ALLOCATABLE :: unique_n_atoms 
 LOGICAL                  :: orig_OK =.FALSE.
 REAL                     :: z_unit
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 REAL   , DIMENSION(3), PARAMETER :: NULL = (/0.00, 0.00, 0.00/)
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
@@ -497,7 +510,7 @@ CHARACTER(LEN=*), DIMENSION(natoms  ), INTENT(IN) :: shelx_names
 INTEGER :: stype
 INTEGER :: j
 REAL               :: occup,biso
-REAL, DIMENSION(3) :: vec
+REAL(KIND=PREC_DP), DIMENSION(3) :: vec
 !
    stype = 0
    loop_stype: DO j=1,unique_n
@@ -530,6 +543,7 @@ USE charact_mod
 USE build_name_mod
 USE errlist_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE times_mod
 USE trig_degree_mod
@@ -554,7 +568,7 @@ INTEGER                  :: ntypes      ! Actual atom types      to be written t
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
 INTEGER, DIMENSION(3)    :: icell 
 REAL   , DIMENSION(3)    :: shift
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 ! Build the output file name
 !
@@ -735,6 +749,7 @@ USE charact_mod
 USE build_name_mod
 USE errlist_mod
 USE param_mod
+USE precision_mod
 USE prompt_mod
 USE times_mod
 USE trig_degree_mod
@@ -756,7 +771,7 @@ INTEGER                  :: iatom, iscat, i, j, ii, ll
 INTEGER                  :: ntypes      ! Actual atom types      to be written to file
 INTEGER                  :: natoms      ! Actual number of atoms to be written to file
 REAL   , DIMENSION(3)    :: shift
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 ! Build the output file name
 !
@@ -883,6 +898,7 @@ USE chem_aver_mod
 USE build_name_mod
 USE errlist_mod
 USE string_convert_mod
+USE precision_mod
 !
 IMPLICIT NONE
 !
@@ -905,7 +921,7 @@ INTEGER                  :: i, k, ia
 INTEGER                  :: isite
 INTEGER, DIMENSION(3)    :: icell
 !INTEGER                  :: nscat
-REAL   , DIMENSION(MAXW) :: werte
+REAL(KIND=PREC_DP)   , DIMENSION(MAXW) :: werte
 !
 CALL do_build_name (ianz, cpara, lpara, werte, maxw, 1)
 IF (ier_num.ne.0) then
