@@ -75,6 +75,7 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !   RETURN 
 !ENDIF 
    names:DO i = 1, var_num 
+!lmask(:,:)= .TRUE.
    success = .FALSE.
    ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),omask)) !, .TRUE. ) 
    DO while (ianf.ne.0) 
@@ -82,6 +83,7 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),omask)
 !write(*,'(1x,a,80L1)') ' MASK Z >', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
+!write(*,'(1x,a,2i8)') '        ', ianf, var_l(i)
       IF(var_entry(i)>0) CYCLE names        ! This is a variable field
       zeile = ' ' 
       iend = ianf + var_l (i) - 1 
@@ -100,6 +102,11 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
          CALL rem_bl (dummy, ll) 
          zeile (ianf:ianf + ll - 1) = dummy (1:ll) 
          lmask (ianf:ianf+ll-1,nmask) = .FALSE.
+!write(*,*) ' zeile R>', zeile    (1:len_trim(zeile    )),'<'
+!write(*,'(1x,a,80L1)') ' MASK R >', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,80L1)') ' MASK R >', lmask    (1:len_trim(zeile),nmask)
+!write(*,*) '         123456789 123456789 1234567890'
+!write(*,*) ' ianf, ll ', ianf, ll
          linsert = ll 
       ELSEIF (var_type (i) .eq.      IS_INTE) THEN 
          WRITE (dummy (1:PREC_WIDTH) , PREC_F_INTE) nint (var_val (i) ) 
@@ -128,14 +135,16 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
       ENDIF 
       ll = laenge+linsert - (iend-ianf + 1) 
       IF(iend.lt.laenge) THEN
-         zeile(ianf + linsert:ll) = substring(iend+1:laenge)
-         lmask(ianf + linsert:ll,nmask) =lmask(ianf + linsert:ll,omask)
+!write(*,*) 'ADD   ',ianf+linsert, ll, iend+1, laenge
+         zeile(ianf + linsert:ll)       =substring(iend+1:laenge)
+         lmask(ianf + linsert:ll,nmask) =lmask(    iend+1:laenge    ,omask)
+!        lmask(ianf + linsert:ll,nmask) =lmask(    ianf + linsert:ll,omask)
       ENDIF
       substring = zeile 
 !write(*,*) ' zeile X>', zeile    (1:len_trim(zeile    )),'<'
 !write(*,*) ' SUB   X>', substring(1:len_trim(substring)),'<'
-!write(*,'(1x,a,80L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
-!write(*,'(1x,a,80L1)') ' MASK  X>', lmask    (1:len_trim(zeile),nmask)
+!write(*,'(1x,a,90L1)') ' MASK  X>', lmask    (1:len_trim(zeile),omask)
+!write(*,'(1x,a,900L1)') ' MASK  X>', lmask    (1:len_trim(zeile),nmask)
 !write(*,*) '         123456789 123456789 1234567890'
       istart = ianf+linsert                  ! Start further search after insert
       laenge = ll 
@@ -143,8 +152,8 @@ main: DO WHILE(s2<istop)     ! Loop over all non-quoted section of string
       omask = MOD(omask+1,2)
       nmask = MOD(nmask+1,2)
 !     ianf = INDEX      (substring(istart:len_trim(substring)), var_name (i) (1:var_l (i) ) ) 
-      ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),nmask)) !, .TRUE. ) 
-!write(*,*) ' REPEATED ? ', ianf
+      ianf = INDEX_MASK (substring, var_name (i) (1:var_l (i) ), lmask(1:LEN_TRIM(substring),omask)) !, .TRUE. ) 
+!write(*,*) ' REPEATED ? ', ianf, var_name(i)(1:var_l(i)), len_trim(substring)
 !     IF(ianf>0) ianf = ianf + istart - 1    ! if found, correct the offset
    ENDDO 
    ENDDO names
@@ -182,6 +191,15 @@ main: DO i=1,ls-lf
       EXIT main
    ENDIF
 ENDDO main
+!write(*,*) 'INDMSK ', index_mask, INDEX(string, find)
+!write(*,'(a,a)'    ) ' STRINGS ', string(1:len_trim(string))
+!write(*,'(a,200L1)') ' lmask   ', lmask (1:len_trim(string))
+!write(*,'(a,a)'    ) ' FIND    ', find  (1:len_trim(find ))
+!if(index_mask==0 .and. INDEX(string, find)>0) then
+!write(*,*) ' LS lF   ', LEN_TRIM(string), len(string), len_trim(find),len(find)
+!write(*,'(a,a)'    ) ' search  ', string(INDEX(string, find):INDEX(string, find)+LEN_TRIM(find)-1)
+!write(*,'(a,200L1)') ' lmask   ', lmask (INDEX(string, find):INDEX(string, find)+LEN_TRIM(find)-1)
+!endif
 !
 END FUNCTION index_mask
 !

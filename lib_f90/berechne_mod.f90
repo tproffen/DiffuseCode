@@ -42,6 +42,7 @@ IF (laenge.eq.0.or.string.eq.' '.or.ier_num.ne.0) then
    CONTINUE 
 ELSE 
    CALL ersetz_variable (string, laenge) 
+!write(*,*) 'BERECHEN A ', string(1:len_trim(string)), ier_num, ier_typ
    DO ie=2,laenge-1  !while (ie.ne.0)
       IF(string(ie:ie)=='E') THEN
          c = IACHAR(string(ie-1:ie-1))
@@ -120,15 +121,18 @@ ELSE
                   IF (ier_num.eq.0) then 
                      DO i = 1, ianz 
                         CALL eval (cpara (i), lpara (i) ) 
+!!write(*,*) ' BERECHNE B ', cpara(i)(1:lpara(i)), ier_num, ier_typ
                         IF (ier_num.ne.0) then 
                            RETURN 
                         ENDIF 
                         werte (i) = do_read_number (cpara (i), lpara (i) ) 
+!!write(*,*) ' BERECHNE C ', cpara(i)(1:lpara(i)), ier_num, ier_typ
                         IF (ier_num.ne.0) then 
                            GOTO 999 
                         ENDIF 
                      ENDDO 
                      CALL p_ersetz_para (ikp, ikpz, line, ll, werte, maxw, ianz)
+!write(*,*) 'BERECHEN D ', line(1:len_trim(line)), ier_num, ier_typ
                      IF (ier_num.ne.0) then 
                         RETURN 
                      ENDIF 
@@ -208,7 +212,7 @@ USE precision_mod
       CHARACTER(LEN=1024) :: zeile, line, cpara (maxw) 
       CHARACTER(LEN=1024) :: substring 
       INTEGER lpara (maxw) 
-      INTEGER max 
+!     INTEGER max 
       INTEGER ikla, iklz, ikla1, ikla2, ikl, ll, lll
       INTEGER ikpa, ikpa1, ikpa2, ikp, ikpz, lp, ianz, i, ikom 
       INTEGER lsub 
