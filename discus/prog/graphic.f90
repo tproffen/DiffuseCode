@@ -909,6 +909,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE diffuse_mod 
       USE discus_nipl_header
+USE discus_fft_mod
       USE fourier_sup
       USE output_mod 
       USE qval_mod
@@ -1107,6 +1108,9 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
                          value,  i, j, laver))
          ENDDO 
       ENDDO 
+      IF(value==val_3Dpdf) THEN
+         CALL do_fft_2d_cos(npkt1, npkt2, zwrt, out_eck, out_vi, out_inc)
+      ENDIF
       CALL write_discus_nipl_header(header_lines, nheader, l)
       CALL output_save_file_2d(outfile, ranges, npkt1, npkt2, zwrt,       &
                                header_lines, nheader)

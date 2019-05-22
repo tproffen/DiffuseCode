@@ -14,6 +14,7 @@ INTEGER, PARAMETER :: val_faver  = 11
 INTEGER, PARAMETER :: val_norm   = 12
 INTEGER, PARAMETER :: val_iq     = 13
 INTEGER, PARAMETER :: val_pdf    = 14
+INTEGER, PARAMETER :: val_3Dpdf  = 15
 CONTAINS
 !*****7*****************************************************************
       REAL FUNCTION qval (i, value, ix, iy, laver) 
@@ -69,7 +70,7 @@ CONTAINS
 !------ used, csf() will only contain the values for the                
 !------ last lot !!                                                     
 !                                                                       
-      IF (value == val_inten) THEN 
+      IF (value == val_inten .OR. value == val_3Dpdf) THEN 
          IF (laver) THEN 
             qval = REAL (f * CONJG (f) , KIND=KIND(1.0E0)) 
          ELSE 

@@ -258,7 +258,7 @@ ss = seknds (0.0)
 !     Omitting the error checks saves about 1/4 time
 !     Replaced NINT by INT( + shift) this cuts the time in half!!!!
 !     Omitting the SQRT only saves a little, as do the local variables
-!     The if(iscat) do not cause much compute time
+!     The if(iscat) does not cause much compute time
 
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
 DO j = 1, cr_natoms ! - 1
@@ -277,9 +277,9 @@ DO j = 1, cr_natoms ! - 1
       DO l = j + 1, cr_natoms 
          iscat = cr_iscat (l) 
          IF (iscat.gt.0) THEN 
-           v (1) = cr_pos (1, l) - u (1) 
-           v (2) = cr_pos (2, l) - u (2) 
-           v (3) = cr_pos (3, l) - u (3) 
+            v (1) = cr_pos (1, l) - u (1) 
+            v (2) = cr_pos (2, l) - u (2) 
+            v (3) = cr_pos (3, l) - u (3) 
 
 !              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
             ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
