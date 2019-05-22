@@ -20,11 +20,8 @@ CONTAINS
       USE class_macro_internal 
       USE prompt_mod 
       USE sup_mod
+!                                                                       
       IMPLICIT none 
-!                                                                       
-       
-!                                                                       
-      INTEGER maxw 
 !                                                                       
       CHARACTER(5) befehl 
       CHARACTER(LEN=LEN(prompt)) :: orig_prompt
@@ -36,7 +33,6 @@ CONTAINS
       INTEGER len_str 
       LOGICAL str_comp 
 !                                                                       
-      maxw = MAXSCAT
       lend = .false. 
       CALL no_error 
       orig_prompt = prompt
