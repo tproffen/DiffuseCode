@@ -3466,7 +3466,8 @@ inner:      DO iatom = ia+1, cr_natoms
 !                                                                       
                factor = REAL(pdf_deltar/pdf_gauss_step/(sigma))
                fac4   = REAL(pdf_deltar/dist)
-               jgaus = MIN(igaus, IABS(INT(UBOUND(pdf_exp,1)/factor+0)))
+               jgaus = MIN(igaus, IABS(INT(UBOUND(pdf_exp,1)/factor+0)), &
+                                  ABS(UBOUND(gaus,1)))
 !if(jgaus>UBOUND(gaus,1) ) then
 !   write(*,*) ' ELEMENTS ', is, js
 !   write(*,*) ' sigma    ', sigma
