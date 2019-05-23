@@ -508,15 +508,17 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
 !     ----Calculate S(Q)           'N(Q) = S(Q) without thermal part    '                          
                   ELSEIF (cpara (1) (ix:ix + 3) == 'norm') THEN 
                      value = val_norm
-                  ELSEIF (cpara (1) (ix:ix + 3) == 'PDF' ) THEN 
+                  ELSEIF (cpara (1) (ix:ix + 2) == 'PDF' ) THEN 
                      value = val_pdf
+                  ELSEIF (cpara (1) (ix:ix + 4) == '3DPDF' ) THEN 
+                     value = val_3DPDF
                   ELSE 
                      ier_num = - 6 
                      ier_typ = ER_COMM 
                      value = 0 
                   ENDIF 
 !------ ----check lots and allowed output                               
-                  IF (nlots.ne.1.and.value.ne.1.and..not.laver) THEN 
+                  IF (nlots.ne.1.and..NOT.(value==1 .OR. value==val_3dpdf).and..not.laver) THEN 
                      ier_num = - 60 
                      ier_typ = ER_APPL 
                      value = 0 
@@ -955,6 +957,12 @@ USE discus_fft_mod
       REAL   , DIMENSION(:), ALLOCATABLE :: xwrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:), ALLOCATABLE :: ywrt  ! 'x' - values for standard 1D files
       REAL   , DIMENSION(:,:), ALLOCATABLE :: zwrt  ! 'z' - values for standard 2D files
+      REAL   , DIMENSION(:,:), ALLOCATABLE :: znew  ! 'z' - values for 3Dpdf    2D files
+INTEGER :: nnew1, nnew2
+!
+REAL(KIND=PREC_SP), DIMENSION(3, 4)       :: pdf3d_eck
+REAL(KIND=PREC_SP), DIMENSION(3, 3)       :: pdf3d_vi
+INTEGER           , DIMENSION(3)          :: pdf3d_inc
 !
       CHARACTER (LEN=160), DIMENSION(:), ALLOCATABLE :: header_lines
       INTEGER :: nheader
@@ -1108,11 +1116,42 @@ IF(ityp.eq.0) THEN      ! A standard file, allocate temporary arrays
                          value,  i, j, laver))
          ENDDO 
       ENDDO 
+      nnew1 = NPKT1
+      nnew2 = NPKT2
       IF(value==val_3Dpdf) THEN
-         CALL do_fft_2d_cos(npkt1, npkt2, zwrt, out_eck, out_vi, out_inc)
+         nnew1 = 201
+         nnew2 = 201
+         pdf3d_eck(1,1) = -2.0
+         pdf3d_eck(2,1) = -2.0
+         pdf3d_eck(3,1) =  0.0
+         pdf3d_eck(1,2) =  2.0
+         pdf3d_eck(2,2) = -2.0
+         pdf3d_eck(3,2) =  0.0
+         pdf3d_eck(1,3) = -2.0
+         pdf3d_eck(2,3) =  2.0
+         pdf3d_eck(3,3) =  0.0
+         pdf3d_inc(1) = nnew1
+         pdf3d_inc(2) = nnew2
+         pdf3d_vi(1,1) = (pdf3d_eck(1,2)-pdf3d_eck(1,1))/REAL(nnew1-1)
+         pdf3d_vi(2,1) = (pdf3d_eck(2,2)-pdf3d_eck(2,1))/REAL(nnew1-1)
+         pdf3d_vi(3,1) = (pdf3d_eck(3,2)-pdf3d_eck(3,1))/REAL(nnew1-1)
+         pdf3d_vi(1,2) = (pdf3d_eck(1,3)-pdf3d_eck(1,1))/REAL(nnew2-1)
+         pdf3d_vi(2,2) = (pdf3d_eck(2,3)-pdf3d_eck(2,1))/REAL(nnew2-1)
+         pdf3d_vi(3,2) = (pdf3d_eck(3,3)-pdf3d_eck(3,1))/REAL(nnew2-1)
+         ALLOCATE(znew(nnew1, nnew2))
+         znew(:,:) = 0.0D0
+         CALL do_fft_2d_cos(npkt1, npkt2, zwrt, out_eck, out_vi, out_inc, &
+                            nnew1, nnew2, znew, pdf3d_eck, pdf3d_vi, pdf3d_inc)
+         DEALLOCATE(zwrt)
+         ALLOCATE(zwrt(nnew1, nnew2))
+         zwrt(:,:) = znew(:,:)
+         ranges(1) = pdf3d_eck (1, 1)
+         ranges(2) = pdf3d_eck (1, 2)
+         ranges(3) = pdf3d_eck (2, 1)
+         ranges(4) = pdf3d_eck (2, 3)
       ENDIF
       CALL write_discus_nipl_header(header_lines, nheader, l)
-      CALL output_save_file_2d(outfile, ranges, npkt1, npkt2, zwrt,       &
+      CALL output_save_file_2d(outfile, ranges, nnew1, nnew2, zwrt,       &
                                header_lines, nheader)
       DEALLOCATE(header_lines)
       DEALLOCATE(zwrt)
