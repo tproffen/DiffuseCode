@@ -315,7 +315,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
       IF(value == val_sq .or. value == val_fq   .OR. & 
          value == val_iq .OR. value == val_norm .OR. value == val_pdf ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
-            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv) THEN
+            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv ) THEN
             pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
             pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
 !           jstart = MAX(1,2-int(xmin/xdel))            ! Exclude q = 0
@@ -323,25 +323,45 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
             DO j = jstart, npkt
                q = ((j-1)*xdel + xmin)
                pow_tmp_sum = pow_tmp_sum + ypl(j)/REAL(pow_faver2(j))* q
-               pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q
+               pow_uuu_sum = pow_uuu_sum       + exp(-q**2*pow_u2aver)*q * &
+                             pow_f2aver(j)/pow_faver2(j)
             ENDDO
-            normalizer = pow_tmp_sum/pow_uuu_sum
+               normalizer = pow_tmp_sum/pow_uuu_sum
             ELSE
-            normalizer = REAL(pow_nreal)
+               normalizer = REAL(pow_nreal)
             ENDIF
 !
             IF(value == val_sq) THEN                         ! Calc S(Q)
+               IF(deb_conv) THEN                             ! DEBYE was done with convolution of ADP
+               DO j = 1, npkt   
+                  q = ((j-1)*xdel + xmin)
+                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer    &
+                            + 1.0 - & !exp(-q**2*pow_u2aver*0.25)      * &
+                             pow_f2aver(j)/pow_faver2(j))
+               ENDDO
+               ELSE
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
                   ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                            + 1.0 - exp(-q**2*pow_u2aver)) 
+                            + 1.0 - exp(-q**2*pow_u2aver)   * &
+                             pow_f2aver(j)/pow_faver2(j))
                ENDDO
+               ENDIF
             ELSEIF(value == val_fq .OR. value == val_pdf) THEN  ! Calc F(Q)IF
-               DO j = 1, npkt   
-                  q = ((j-1)*xdel + xmin)
-                  ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
-                                  - exp(-q**2*pow_u2aver)) * q
-               ENDDO
+               IF(deb_conv) THEN                             ! DEBYE was done with convolution of ADP
+                  DO j = 1, npkt   
+                     q = ((j-1)*xdel + xmin)
+                     ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                                -pow_f2aver(j)/pow_faver2(j)) * q
+                  ENDDO
+               ELSE
+                  DO j = 1, npkt   
+                     q = ((j-1)*xdel + xmin)
+                     ypl(j) =  (ypl(j)/REAL(pow_faver2(j))/normalizer   &
+                                     - exp(-q**2*pow_u2aver)   *  &
+                                pow_f2aver(j)/pow_faver2(j)) * q
+                  ENDDO
+               ENDIF
             ELSEIF(value == val_iq) THEN                ! Calc F(Q)IF
                DO j = 1, npkt   
                   q = ((j-1)*xdel + xmin)
@@ -518,7 +538,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
                ywrt(ii) = ywrt(ii) + pow_back(iii)*xwrt(ii)**iii
             ENDDO
          ENDDO
-      ELSEIF(value==val_PDF) THEN    ! Transform F(Q) into PDF
+      ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
          rmin     =     0.01D0
          rmax     =   100.0D0
          npkt_pdf = 10000
@@ -581,25 +601,11 @@ yfour(0) = 0.0
 !
 kmax = 10000 !NINT(ZPI*10000.D0)
 ALLOCATE(sine(0:KMAX))
-!open(45,file='sine.xy',status='unknown')
+!
 DO i=0,kmax
    sine(i) = SIN(ZPI*i/10000.0D0)
-!   write(45, '(2G18.7e2)') ZPI*i/10000.0D0,sine(i)
 ENDDO
-!close(45)
 !
-!open(45,file='low.xy',status='unknown')
-!do j=1, iqmin
-!   write(45, '(2G18.7e2)') (j-1)*dq,(j-1)*dq*ywrt(1)/qmin
-!enddo
-!close(45)
-!open(45,file='wrt.xy',status='unknown')
-!do j=1, npkt_wrt
-!   write(45, '(2G18.7e2)') xwrt(j), ywrt(j)
-!enddo
-!close(45)
-
-!write(*,*) ' STRT 1'
 ! Augment straight line from Q=0, F(0)=0 to qmin, F(qmin)
 DO i = 1, npkt_pdf
    rr = rmin + (i-1)*dr
@@ -607,7 +613,6 @@ DO i = 1, npkt_pdf
    yfour(i) = 0.0
    DO j = 1, iqmin
       k = MOD(INT((j-1)*dq*rr*10000.0D0/ZPI),kmax)
-!     yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*SIN((j-1)*dq*rr)
       yfour(i) = yfour(i) + (j-1)*dq*ywrt(1)/qmin*sine(k)
    ENDDO
 ENDDO
@@ -617,43 +622,12 @@ DO i = 1, npkt_pdf
    DO j=1, npkt_wrt
       k = MOD(INT(xwrt(j)*rr*10000.0D0/ZPI),kmax)
       yfour(i) = yfour(i) + ywrt(j)*sine(k)
-!     yfour(i) = yfour(i) + ywrt(j)*SIN(xwrt(j)*rr)
    ENDDO
    yfour(i) = yfour(i)*2/PI*dq
 ENDDO
-!write(*,*) ' DONE 1'
-!ALLOCATE(xaug(0:iqmin+npkt_wrt))
-!ALLOCATE(yaug(0:iqmin+npkt_wrt))
-!DO j = 1, iqmin
-!   xaug(j) = (j-1)*dq
-!   yaug(j) = xaug(j)*ywrt(1)/xwrt(1)
-!ENDDO
-!DO j=1,npkt_wrt
-!   xaug(iqmin+j) = xwrt(j)
-!   yaug(iqmin+j) = ywrt(j)
-!ENDDO
-!open(45,file='aug.xy',status='unknown')
-!DO j=1,iqmin+npkt_wrt
-!   write(45, '(2G18.7e2)') xaug(j),yaug(j)
-!ENDDO
-!close(45)
-!!
-!DO i = 1, npkt_pdf
-!   rr = rmin + (i-1)*dr
-!   xfour(i) = REAL(rr)
-!   yfour(i) = 0.0D0
-!   DO j=1,iqmin+npkt_wrt
-!      k = MOD(INT(xaug(j)*rr*10000.0D0/ZPI),kmax)
-!      yfour(i) = yfour(i) + yaug(j)*sine(k)
-!   ENDDO
-!   yfour(i) = yfour(i)*2/PI*dq
-!ENDDO
+!
 DEALLOCATE(sine)
-!DEALLOCATE(xaug)
-!DEALLOCATE(yaug)
-
-!write(*,*) ' DONE 2'
-!!
+!
 END SUBROUTINE four_fq
 !*****7*****************************************************************
       REAL function lorentz (ttheta, flag_fq) 
@@ -1183,61 +1157,64 @@ END SUBROUTINE powder_conv_psvgt_fix
       RETURN 
       END SUBROUTINE splint                         
 !*****7*****************************************************************
-      SUBROUTINE powder_f2aver ( num1 )
+SUBROUTINE powder_f2aver ( num1 )
 !
 !     This subroutine calculates the average atomic form factor
 !     <f^2> and <f>^2
 !
-      USE crystal_mod 
-      USE diffuse_mod 
-      USE powder_mod 
-      USE powder_tables_mod 
-      USE wink_mod
+USE crystal_mod 
+USE diffuse_mod 
+USE powder_mod 
+USE powder_tables_mod 
+USE wink_mod
 !
-      IMPLICIT NONE
+IMPLICIT NONE
 !
-      INTEGER,                INTENT(IN) :: num1
+INTEGER,                INTENT(IN) :: num1
 !
-      INTEGER, DIMENSION(:), ALLOCATABLE :: natom
+INTEGER, DIMENSION(:), ALLOCATABLE :: natom
 !
-      INTEGER :: iscat
-      INTEGER :: i
-      REAL( KIND(0.0D0))             :: signum
+INTEGER :: iscat
+INTEGER :: i
+REAL( KIND(0.0D0))             :: signum
 !!!
-      pow_f2aver(:) = 0.0D0
-      pow_faver2(:) = 0.0D0
-      pow_u2aver    = 0.0
-      pow_nreal     = 0
+pow_f2aver(:) = 0.0D0
+pow_faver2(:) = 0.0D0
+pow_u2aver    = 0.0
+pow_nreal     = 0
 !
 !     Prepare and calculate average atom numbers
 !
-      ALLOCATE(natom(0:cr_nscat))
-      natom = 0
-      DO i=1,cr_natoms
-         natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
-      ENDDO
-      pow_nreal = SUM(natom)  ! Add real atom numbers 
+ALLOCATE(natom(0:cr_nscat))
+natom = 0
+DO i=1,cr_natoms
+   natom(cr_iscat(i)) = natom(cr_iscat(i)) + 1
+ENDDO
+pow_nreal = SUM(natom)  ! Add real atom numbers 
 !
-      DO iscat = 1, cr_nscat
-         signum = 1.0D0
-         IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
-         DO i = 1, num1
-            pow_f2aver (i) = pow_f2aver (i)  + &
-                       DBLE (       cfact_pure(powder_istl(i), iscat)  * &
-                             conjg (cfact_pure(powder_istl(i), iscat)))  &
-                     * natom (iscat)/pow_nreal
-            pow_faver2 (i) = pow_faver2 (i) +  &
-                  SQRT(DBLE (       cfact_pure(powder_istl(i), iscat)  * &
-                             conjg (cfact_pure(powder_istl(i), iscat)))) &
-                     * natom (iscat)/pow_nreal                           &
-                     * signum
-         ENDDO
-         pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
-      ENDDO
-      pow_faver2(:) = pow_faver2(:)**2
-      pow_u2aver    = pow_u2aver /8./REAL(pi)**2
-      DEALLOCATE(natom)
+DO iscat = 1, cr_nscat
+   signum = 1.0D0
+   IF(REAL(cfact_pure(1, iscat))< 0.0D0) signum = -1.0D0
+   DO i = 1, num1
+      pow_f2aver (i) = pow_f2aver (i)  + &
+                 DBLE (       cfact_pure(powder_istl(i), iscat)  * &
+                       conjg (cfact_pure(powder_istl(i), iscat)))  &
+               * natom (iscat)/pow_nreal
+      pow_faver2 (i) = pow_faver2 (i) +  &
+            SQRT(DBLE (       cfact_pure(powder_istl(i), iscat)  * &
+                       conjg (cfact_pure(powder_istl(i), iscat)))) &
+               * natom (iscat)/pow_nreal                           &
+               * signum
+   ENDDO
+   pow_u2aver = pow_u2aver + cr_dw(iscat) * natom (iscat)/pow_nreal
+ENDDO
+pow_faver2(:) = pow_faver2(:)**2
+pow_u2aver    = pow_u2aver /8./REAL(pi)**2
+DEALLOCATE(natom)
 !
 !
-      END SUBROUTINE powder_f2aver
+END SUBROUTINE powder_f2aver
+!
+!*******************************************************************************
+!
 END MODULE powder_write_mod
