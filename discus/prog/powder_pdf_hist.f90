@@ -2,6 +2,11 @@ MODULE powder_pdf_hist_mod
 !
 ! Common histogram building for POWDER and PDF
 !
+USE precision_mod
+INTEGER                       :: nexp = 20000
+REAL(KIND=PREC_DP), PARAMETER :: gauss_step = 0.0005d0
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: expo
+!
 CONTAINS
 !
 !*******************************************************************************
@@ -145,16 +150,25 @@ SUBROUTINE powder_debye_hist_cart (udist, cr_nscat_temp)
       REAL ss, st
       REAL                   :: shift
       REAL   (KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial
-      INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram
       INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
+      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
       REAL u (3), v (3) 
       REAL (KIND=PREC_DP) :: arg 
+!
+REAL(KIND=PREC_DP) :: deltar    = 0.0D0
+REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
+REAL(KIND=PREC_SP) :: cquad_a   = 0.0E0
+REAL(KIND=PREC_SP) :: clin_a    = 0.0E0
+INTEGER            :: nmol_type = 0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: cquad_m  = 0.0D0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
+INTEGER            :: nlook_mol = 0
 !                                                                       
       INTEGER IAND 
-!     REAL skalpro 
-!     REAL do_blen, sind 
-!     REAL sind 
-      REAL seknds 
+!
+REAL, EXTERNAL :: seknds 
 !                                                                       
 n_qxy   = 1
 n_nscat = 1
@@ -220,8 +234,17 @@ DO i = 1, cr_nscat
    ENDDO 
 ENDDO 
 !
+ALLOCATE(is_look  (1:2,1:nlook))
 ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:0))
 ALLOCATE(histogram(0:n_hist       ,1:nlook,0:0))
+k=0
+DO i = 1, cr_nscat 
+   DO j = i, cr_nscat
+      k = k + 1 
+      is_look(1,k) = i      ! Compile inverse lookup table
+      is_look(2,k) = j
+   ENDDO 
+ENDDO 
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
@@ -304,13 +327,13 @@ ENDDO
 !
 !     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
 !
-!TEMP to aanalyze "density" in histogram
+!TEMP to analyze "density" in histogram
 !
-open(45,file='hist.list',status='unknown')
-do l=1,MAXHIST
-write(45, '(i5,4I8)') l,histogram(l,:,0)
-enddo
-close (45)
+!open(45,file='hist.list',status='unknown')
+!do l=1,MAXHIST
+!write(45, '(i7,4I12)') l,INT(histogram(l,:,0))
+!enddo
+!close (45)
 i = 0
 k = 0
 j = 0
@@ -325,11 +348,11 @@ do j=1,nlook
 endif
 enddo
 enddo
-write(*,*) ' Full empty ', i,k
+!write(*,*) ' Full empty ', i,k
 !
 i= 0
 DO j=1,nlook
-   i = MAX(i, histogram(0,j,0))
+   i = MAX(i, INT(histogram(0,j,0)))
 ENDDO
 IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    ier_num = -123
@@ -339,6 +362,31 @@ IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    DEALLOCATE(histogram)
    RETURN
 ENDIF
+read(*,*) i
+if(i==1) THEN
+   deb_conv = .TRUE.
+else
+   deb_conv = .FALSE.
+ENDIF
+IF(deb_conv) THEN
+   qbroad  = 0.0D0
+   cquad_a = 0.0D0
+   clin_a  = 0.0D0
+   cquad_m(:) = 0.0D0
+   clin_m(:)  = 0.0D0
+   nmol_type = 0
+   bval_mol(:) = 0
+   deltar = DBLE(pow_del_hist)
+   CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, histogram, is_look, &
+              deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
+              bval_mol )
+ENDIF
+!   open(45,file='hist.conv',status='unknown')
+!   do l=1,MAXHIST
+!   write(45, '(i7,4(1x,F18.6))') l,histogram(l,:,0)
+!   enddo
+!   close (45)
+
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
@@ -361,10 +409,16 @@ DO i = 1, nlook
       ENDIF 
    ENDDO 
 ENDDO 
+!  open(45,file='hist.part',status='unknown')
+!  do l=1,num(1)*num(2)
+!  write(45, '(i7,4(1x,F18.6))') l,partial(l,:,0)
+!  enddo
+!  close (45)
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
 !     to total sum                                                      
 !                                                                       
+IF(.NOT.deb_conv) THEN
 DO i = 1, cr_nscat 
    DO j = i, cr_nscat 
       DO k = 1, num (1) * num (2) 
@@ -386,7 +440,35 @@ DO iscat = 1, cr_nscat
    ENDDO 
 !
 ENDDO 
+ELSE
+DO i = 1, cr_nscat 
+   DO j = i, cr_nscat 
+      DO k = 1, num (1) * num (2) 
+         rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
+            DBLE(cfact_pure (powder_istl (k), i) ) * DBLE(cfact_pure (powder_istl (k), j) ) + &
+           aimag(cfact_pure (powder_istl (k), i) ) * aimag (cfact_pure (powder_istl (k), j) ) )            
+      ENDDO 
+   ENDDO 
+ENDDO 
+!                                                                       
+!                                                                       
+!     add the f**2 weighted by relative amount to intensity             
+!     store <f**2> and <f>**2
+!                                                                       
+DO iscat = 1, cr_nscat 
+   DO i = 1, num (1) * num (2) 
+      rsf (i) = rsf (i) + DBLE (cfact_pure (powder_istl (i), iscat) * &
+                         conjg (cfact_pure (powder_istl (i), iscat) ) ) * natom (iscat)
+   ENDDO 
 !
+ENDDO 
+ENDIF
+!
+!  open(45,file='hist.rsf',status='unknown')
+!  do l=1,num(1)*num(2)
+!  write(45, '(i7,4(1x,F18.6))') l,rsf(l)
+!  enddo
+!  close (45)
 !
 DEALLOCATE(look   )
 DEALLOCATE(partial)
@@ -699,6 +781,120 @@ SUBROUTINE powder_debye_hist_cart_mole(udist, cr_nscat_temp, &
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
 END SUBROUTINE powder_debye_hist_cart_mole
 !
+!*******************************************************************************
+!
+SUBROUTINE pow_pdf_convtherm(nhist, nlook, nlook_mol, histogram, is_look, &
+           deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
+           bval_mol )
+!
+! Perform the convolution with the atomic ADP's, 
+! Correct for Corrlin and / or Corrquad  and Qbroad
+! The latter should be phased out and instead a convolution of the
+! diffraction pattern by an appropriate profile function be performed
+!
+!
+USE crystal_mod
+!
+USE errlist_mod
+USE wink_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                        , INTENT(IN) :: nhist     ! Histogram length
+INTEGER                        , INTENT(IN) :: nlook     ! No of atoms tpye lookup entries
+INTEGER                        , INTENT(IN) :: nlook_mol ! No of molecule lookup entries
+REAL(KIND=PREC_DP), DIMENSION(0:nhist, 1:nlook, 0:nlook_mol), INTENT(INOUT) :: histogram
+INTEGER,DIMENSION(1:2, 1:nlook), INTENT(IN) :: is_look
+REAL(KIND=PREC_DP)             , INTENT(IN) :: deltar    ! Real space step width
+REAL(KIND=PREC_SP)             , INTENT(IN) :: qbroad    ! Resolution broadening
+REAL(KIND=PREC_SP)             , INTENT(IN) :: cquad_a   ! Quadratic correlation term for atoms
+REAL(KIND=PREC_SP)             , INTENT(IN) :: clin_a    ! Linear    correlation term for atoms
+REAL(KIND=PREC_SP), DIMENSION(0:nlook_mol), INTENT(IN) :: cquad_m   ! Linear correlation term for molecules
+REAL(KIND=PREC_SP), DIMENSION(0:nlook_mol), INTENT(IN) :: clin_m    ! Linear correlation term for molecules
+INTEGER                        , INTENT(IN) :: nmol_type ! No of molecule types
+REAL(KIND=PREC_SP), DIMENSION(0:nmol_type), INTENT(IN) :: bval_mol  ! No of molecule types
+!INTEGER                              , INTENT(IN) :: nexp ! Number of points in exponent curve
+!REAL(KIND=PREC_DP), DIMENSION(0:nexp), INTENT(IN) :: expo ! Preset value in Gaussian function
+!REAL(KIND=PREC_DP)                   , INTENT(IN) :: gauss_step  ! step width in Gaussian lookup
+!
+INTEGER            :: il            ! Lookup dummy
+INTEGER            :: im            ! molecule dummy
+INTEGER            :: is, js        ! Scattering types
+INTEGER            :: ibin          !loop index bins
+INTEGER            :: ib, ie        ! Begin, end of Gaussion profile
+INTEGER            :: igaus         ! number of point in Gaussian
+INTEGER            :: jgaus         ! loop limit    for Gaussian 
+INTEGER            :: ig            ! loop variable for Gaussian 
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: corr  ! Temporary, Corrected histogram 
+REAL(KIND=PREC_DP) :: fac
+REAL(KIND=PREC_DP) :: sqrt_zpi
+REAL(KIND=PREC_DP) :: dist          ! Real space distance at bin position
+REAL(KIND=PREC_DP) :: dist2         ! Real space distance^2 at bin position
+REAL(KIND=PREC_DP) :: sigma         ! Gaussian sigma
+REAL(KIND=PREC_DP) :: gnorm         ! Gaussian normalizer 
+REAL(KIND=PREC_DP) :: factor        ! Gaussian lookup factor
+REAL(KIND=PREC_DP) :: fac4          ! Gaussian terms
+REAL(PREC_DP), DIMENSION(:), ALLOCATABLE :: gauss   ! Gaussian curve
+!
+IF(.NOT. ALLOCATED(expo)) THEN     ! need to set up exponential lookup table
+   CALL expo_set
+ENDIF
+fac         = 1.0D0/(2.0D0 * zpi**2)
+sqrt_zpi    = 1.0D0/SQRT(zpi)
+ALLOCATE(corr(0:nhist, 1:nlook, 0:nlook_mol))
+ALLOCATE(gauss(-nhist:nhist))
+corr(:,:,:) = 0.0D0
+gauss(:)    = 0.0D0
+im = 0
+!
+loop_look: DO il= 1,nlook    ! Loop over all atom pairs
+   is = is_look(1,il)
+   js = is_look(2,il)
+   bins: DO ibin=1, nhist    ! Loop over all points in histogram
+      zero: IF(histogram(ibin, il, im)>0) THEN   ! Only if pairs are present at this distance
+         dist  = ibin*deltar
+         dist2 = dist*dist
+         sigma = MAX(0.0D0,fac * (cr_dw(is)+cr_dw(js) + bval_mol(im))   &
+                           - cquad_a/dist2 - cquad_m(im)                &
+                           - clin_a /dist  - clin_m (im))
+         sigma = SQRT(sigma + qbroad**2*dist2)
+         igaus = 1 + INT(5.0*sigma/deltar + 0.5D0)    !no of points in Gaussian
+         narrow: IF(sigma==0.0D0 .OR. igaus<2) THEN           ! Narrow peak
+            corr(ibin,il,im) = corr(ibin,il,im) + histogram(ibin,il,im)
+         ELSE narrow                                  ! Perform convolution
+            ib    = MAX(1, ibin-igaus+1)                 ! Start point
+            ie    = MIN(nhist, ibin+igaus-1)             ! Final point
+            gnorm = sqrt_zpi/sigma
+            factor= deltar/gauss_step/sigma
+            fac4  = deltar/dist
+            jgaus = MIN(igaus, INT(nexp/factor), UBOUND(gauss,1))
+            DO ig = -jgaus, jgaus
+               gauss(ig) = gnorm*(1+ig*fac4)*expo(ABS(INT(ABS(ig)*factor)))
+            ENDDO
+            DO ig=ib,ie
+                corr(ig  ,il,im) = corr(ig  ,il,im) + histogram(ibin,il,im) * &
+                                   gauss(ig-ibin)
+            ENDDO
+         ENDIF narrow 
+      ENDIF zero
+   ENDDO bins
+ENDDO loop_look
+!
+DO ibin=0,nhist
+   DO il= 1,nlook
+      DO im=0,nlook_mol
+         histogram(ibin, il, im) = corr(ibin, il, im)*deltar
+      ENDDO
+   ENDDO
+ENDDO
+!rite(*,*) ' DELTAR ', deltar, gauss_step
+!
+DEALLOCATE(corr)
+DEALLOCATE(gauss)
+!
+END SUBROUTINE pow_pdf_convtherm
+!
 !*****7*****************************************************************
 !
 SUBROUTINE powder_trans_atoms_tocart (uvw_out)
@@ -830,6 +1026,27 @@ SUBROUTINE powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
 !                                                                       
  1000 FORMAT     (' Computing Molecular DW lookup table ...') 
 END SUBROUTINE powder_dwmoltab                   
+!
+!*******************************************************************************
+!
+SUBROUTINE expo_set
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER            :: i
+REAL(KIND=PREC_DP) :: factor
+!
+ALLOCATE(expo(0:nexp))
+!
+factor = -0.50D0*gauss_step**2
+!
+DO i=0, nexp
+   expo(i) = EXP(factor*DBLE(i*i))
+ENDDO
+!
+END SUBROUTINE expo_set
 !
 !*******************************************************************************
 !
