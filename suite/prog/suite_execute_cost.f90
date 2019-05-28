@@ -209,7 +209,7 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
    rvalue_yes = .false.   ! Reset the global R-value flag
    l_rvalue   = .false.
-   rvalue(:)  = 0.0
+   rvalue(:)  = HUGE(0.0E0)
 !
 !  Reset KUPLOT
 !
