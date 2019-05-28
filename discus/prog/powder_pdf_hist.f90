@@ -362,12 +362,11 @@ IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
    DEALLOCATE(histogram)
    RETURN
 ENDIF
-read(*,*) i
-if(i==1) THEN
-   deb_conv = .TRUE.
-else
+!if(i==1) THEN            ! To be developed, turned off
+!   deb_conv = .TRUE.
+!else
    deb_conv = .FALSE.
-ENDIF
+!ENDIF
 IF(deb_conv) THEN
    qbroad  = 0.0D0
    cquad_a = 0.0D0
