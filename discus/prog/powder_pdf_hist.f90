@@ -378,7 +378,7 @@ IF(deb_conv) THEN
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
-#write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
+!write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
    CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, histogram, is_look, &
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
               bval_mol )
