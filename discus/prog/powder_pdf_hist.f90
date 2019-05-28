@@ -116,45 +116,46 @@ SUBROUTINE powder_debye_hist_cart (udist, cr_nscat_temp)
 !     to Giacovacco                                                     
 !     Histogram Version                                                 
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE metric_mod
-      USE output_mod 
-      USE powder_mod 
-      USE powder_tables_mod 
-      USE wink_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE debye_mod 
+USE diffuse_mod 
+USE fourier_sup
+USE metric_mod
+USE output_mod 
+USE pdf_mod
+USE powder_mod 
+USE powder_tables_mod 
+USE wink_mod
 !                                                                       
-      USE prompt_mod 
-      USE precision_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
+USE prompt_mod 
+USE precision_mod 
+USE trig_degree_mod
+IMPLICIT none 
 !                                                                       
-      REAL,    INTENT(IN)  :: udist(3)
-      INTEGER, INTENT(IN)  :: cr_nscat_temp
+REAL,    INTENT(IN)  :: udist(3)
+INTEGER, INTENT(IN)  :: cr_nscat_temp
 !                                                                       
-      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
-      INTEGER ibin 
-      INTEGER j, k, l 
-      INTEGER i, iscat, jscat 
-      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
-      INTEGER                :: n_hist
-      INTEGER                :: n_qxy   = 1
-      INTEGER                :: n_nscat = 1
-      INTEGER                :: n_natom = 1
-      REAL                   :: distance
-      REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-      REAL ss, st
-      REAL                   :: shift
-      REAL   (KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial
+INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
+INTEGER ibin 
+INTEGER j, k, l 
+INTEGER i, iscat, jscat 
+INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
+INTEGER                :: n_hist
+INTEGER                :: n_qxy   = 1
+INTEGER                :: n_nscat = 1
+INTEGER                :: n_natom = 1
+REAL                   :: distance
+REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL ss, st
+REAL                   :: shift
+REAL   (KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: partial
 REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram
-      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
-      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
-      REAL u (3), v (3) 
-      REAL (KIND=PREC_DP) :: arg 
+INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
+INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: is_look
+REAL u (3), v (3) 
+REAL (KIND=PREC_DP) :: arg 
 !
 REAL(KIND=PREC_DP) :: deltar    = 0.0D0
 REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
@@ -367,15 +368,17 @@ ENDIF
 !else
    deb_conv = .FALSE.
 !ENDIF
+   qbroad  = pdf_qalp
+   cquad_a = pdf_cquad_a
+   clin_a  = pdf_clin_a
+IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
 IF(deb_conv) THEN
-   qbroad  = 0.0D0
-   cquad_a = 0.0D0
-   clin_a  = 0.0D0
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
+#write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
    CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, histogram, is_look, &
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
               bval_mol )
