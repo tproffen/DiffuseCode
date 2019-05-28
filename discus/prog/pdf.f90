@@ -641,8 +641,8 @@ SUBROUTINE pdf
          IF (pdf_gauss) then 
             WRITE (output_io, 2400) 'applied' 
             WRITE (output_io, 2405) pdf_qalp 
-            WRITE (output_io, 2410) pdf_delta 
-            WRITE (output_io, 2415) pdf_gamma 
+            WRITE (output_io, 2410) pdf_cquad_a 
+            WRITE (output_io, 2415) pdf_clin_a 
             WRITE (output_io, 2420) pdf_srat, pdf_rcut 
          ELSE 
             WRITE (output_io, 2400) 'not applied' 
@@ -1291,7 +1291,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
             IF (ianz.eq.1) then 
-               pdf_gamma = werte (1) 
+               pdf_clin_a = werte (1) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -1305,7 +1305,7 @@ REAL(KIND=PREC_DP) ::  wa (maxw), wb (maxw)
             CALL ber_params (ianz, cpara, lpara, werte, maxw) 
             IF (ier_num.ne.0) return 
             IF (ianz.eq.1) then 
-               pdf_delta = werte (1) 
+               pdf_cquad_a = werte (1) 
             ELSE 
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -2839,8 +2839,8 @@ laccept = .false.
 !                        sigma = sigma + fac*(mole_biso(mole_type(cr_mole(ia))) + &
 !                                             mole_biso(mole_type(cr_mole(iatom))) )
 !                     ENDIF
-                     sigma = sigma - pdf_delta / dist2 
-                     sigma = sigma - pdf_gamma / dist 
+                     sigma = sigma - pdf_cquad_a / dist2 
+                     sigma = sigma - pdf_clin_a / dist 
                      sigma = max (0.0, sigma) 
                   ENDIF 
                   sigma = sigma + pdf_qalp**2 * dist2 
@@ -3442,8 +3442,8 @@ inner:      DO iatom = ia+1, cr_natoms
             sigma = 0.0 
             IF (pdf_gauss) then 
                sigma = fac * (cr_dw (is) + cr_dw (js) + pdf_bvalue_mole(il)) 
-               sigma = sigma - pdf_delta / dist2  - pdf_cqua_mole(il)/dist2
-               sigma = sigma - pdf_gamma / dist   - pdf_clin_mole(il)/dist
+               sigma = sigma - pdf_cquad_a / dist2  - pdf_cqua_mole(il)/dist2
+               sigma = sigma - pdf_clin_a / dist   - pdf_clin_mole(il)/dist
                sigma = max (0.0, sigma) 
             ENDIF 
             sigma = sigma + pdf_qalp**2 * dist2 
@@ -3565,10 +3565,10 @@ pdf_rfminu =  0.01    ! distance range for refinement, user value
 pdf_rfmaxu =  0.01    ! distance range for refinement, user value
 pdf_rfminf =  0.01    ! distance range for refinement, file value
 pdf_rfmaxf =  0.01    ! distance range for refinement, file value
-pdf_delta  =  0.00
+pdf_cquad_a=  0.00
 pdf_rcut   =  0.00
 pdf_srat   =  1.00
-pdf_gamma  =  0.00
+pdf_clin_a  =  0.00
 pdf_qalp   =  0.00
 pdf_dnorm  =  1.00
 pdf_rho0   =  0.00
