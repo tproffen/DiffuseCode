@@ -51,7 +51,8 @@ REAL(KIND=PREC_DP), DIMENSION(3)  :: wwerte
 !                                                                       
 INTEGER  ::length_com 
 INTEGER :: len_str 
-REAL, EXTERNAL :: gasdev, ran1, poidev , gasskew
+REAL(KIND=PREC_SP), EXTERNAL :: ran1, poidev
+REAL(KIND=PREC_DP), EXTERNAL :: gasdev, gasskew
 !
 !                                                                       
       ier_num = -1 
@@ -360,7 +361,7 @@ REAL, EXTERNAL :: gasdev, ran1, poidev , gasskew
                gbox_x = ran1 (idum) 
 !                                                                       
                IF (gbox_x.lt.fl1 * gbox_k) then 
-                  ww = - wwerte(2) * 0.5D0 - ABS (gasdev (wwerte(1) ) ) 
+                  ww = - wwerte(2) * 0.5D0 - ABS (gasdev (wwerte(1)) ) 
                ELSEIF (gbox_x.lt. (fl1 + fl2) * gbox_k) then 
                   ww = - wwerte(2) * 0.5D0 + (gbox_x - fl1 * gbox_k)      &
                        * wwerte(2) / gbox_w
@@ -454,7 +455,7 @@ REAL, EXTERNAL :: gasdev, ran1, poidev , gasskew
             ww = exp (log (ww1       ) + gasdev (a) ) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'pois') then 
-            ww = poidev (ww, idum) 
+            ww = poidev (REAL(ww), idum) 
             CALL ersetz2 (string, ikl, iklz, ww, 4, lll) 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'date') then 
             CALL datum_intrinsic 

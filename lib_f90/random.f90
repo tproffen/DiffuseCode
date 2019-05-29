@@ -12,17 +12,17 @@ IMPLICIT none
 !                                                                       
 REAL(KIND=PREC_DP), INTENT(IN) ::  sig
 !                                                                       
-REAL(KIND=PREC_DP) ::  v1, v2, r, fac, gset 
+REAL(KIND=PREC_SP) ::  v1, v2, r, fac, gset 
 REAL ran1 
 !                                                                       
 SAVE gset 
 !                                                                       
 IF (iset.eq.0) then 
-1   v1 = 2.D0 * ran1 (idum) - 1. 
-   v2 = 2.D0 * ran1 (idum) - 1. 
+1   v1 = 2.E0 * ran1 (idum) - 1. 
+   v2 = 2.E0 * ran1 (idum) - 1. 
    r = v1**2 + v2**2 
    IF (r.ge.1.) goto 1 
-   fac = sqrt ( - 2.0D0 * log (r) / r) 
+   fac = sqrt ( - 2.0E0 * log (r) / r) 
    gset = v1 * fac 
    gasdev = v2 * fac 
    iset = 1 
@@ -51,13 +51,13 @@ IMPLICIT none
 REAL(KIND=PREC_DP), INTENT(in) :: sig
 REAL(KIND=PREC_DP), INTENT(in) :: skew
 !
-REAL(KIND=PREC_DP)  :: v1, v2, v3
+REAL(KIND=PREC_SP)  :: v1, v2, v3
 REAL(KIND=PREC_DP)  :: gasdev
 !                                                                       
 v1      = gasdev(1.0D0)
 v2      = gasdev(1.0D0)
-v3      = skew*v1 + SQRT(1-skew**2)*v2
-gasskew = v3 * SIGN(1.0D0 ,v1)*sig
+v3      = skew*v1 + SQRT(1.0D0-skew**2)*v2
+gasskew = v3 * SIGN(1.0E0 ,v1)*sig
 !
 END FUNCTION gasskew                           
 !*****7*****************************************************************
@@ -70,7 +70,7 @@ USE precision_mod
 REAL(KIND=PREC_DP), INTENT(IN) :: sig    ! Sigma of Gaussian distribution
 REAL(KIND=PREC_DP), INTENT(IN) :: factor ! iLimit in multiples of sigma
 !
-REAL(KIND=PREC_DP)    :: x
+REAL(KIND=PREC_SP)    :: x
 INTEGER :: counter
 !
 REAL(KIND=PREC_DP) :: gasdev
@@ -214,7 +214,7 @@ END FUNCTION ran1
       ENDIF 
       END FUNCTION bessj1                           
 !*****7*****************************************************************
-REAL(KIND=KIND(1.0D0)) FUNCTION poidev (xm, idum) 
+REAL(KIND=KIND(1.0E0)) FUNCTION poidev (xm, idum) 
 !                                                                       
 USE wink_mod
 USE precision_mod
@@ -222,11 +222,11 @@ USE precision_mod
 IMPLICIT NONE 
 !                                                                       
 INTEGER, INTENT(IN) :: idum 
-REAL(KIND=PREC_DP), INTENT(IN) :: xm
+REAL(KIND=PREC_SP), INTENT(IN) :: xm
 !
 !U    USES gammln,ran1                                                  
-REAL(KIND=PREC_DP) :: alxm, em, g, oldm, sq, t, y
-REAL(KIND=PREC_DP) :: gammln
+REAL(KIND=PREC_SP) :: alxm, em, g, oldm, sq, t, y
+REAL(KIND=PREC_SP) :: gammln
 REAL               ran1
 SAVE alxm, g, oldm, sq 
 DATA oldm / -1.D0 / 
@@ -251,20 +251,20 @@ ELSE
    em = sq * y + xm 
    IF (em.lt.0.) goto 1 
    em = int (em) 
-   t = 0.9D0 * (1. + y**2) * exp (em * alxm - gammln (em + 1.D0) - g)
+   t = 0.9E0 * (1. + y**2) * exp (em * alxm - gammln (em + 1.E0) - g)
    IF (ran1 (idum) .gt.t) goto 1 
 ENDIF 
 poidev = em 
 !     RETURN 
 END FUNCTION poidev                           
 !*****7*****************************************************************
-REAL(KIND=KIND(1.0D0)) FUNCTION gammln (xx) 
+REAL(KIND=KIND(1.0E0)) FUNCTION gammln (xx) 
 !
 USE precision_mod
 !
 IMPLICIT none 
 !                                                                       
-REAL(KIND=PREC_DP), INTENT(IN) ::  xx 
+REAL(KIND=PREC_SP), INTENT(IN) ::  xx 
 !
 INTEGER :: j 
 REAL(KIND=PREC_DP) :: ser, stp, tmp, x, y, cof (6) 
