@@ -74,6 +74,10 @@ REAL                                  :: value
 LOGICAL, EXTERNAL                     :: str_comp 
 !                                                                       
 INTEGER, PARAMETER :: NOPTIONAL = 4
+INTEGER, PARAMETER :: O_PARTIAL = 1
+INTEGER, PARAMETER :: O_REPEAT  = 2
+INTEGER, PARAMETER :: O_LOGFILE = 3
+INTEGER, PARAMETER :: O_COMPUTE = 4
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -763,12 +767,12 @@ ELSE
                run_mpi_senddata%out   = cpara(4)(1:100)! Target for program output 
                run_mpi_senddata%out_l = lpara(4)
             ELSE
-               IF(opara(3)=='none') THEN
+               IF(opara(O_LOGFILE)=='none') THEN
                   run_mpi_senddata%out   = '/dev/null'   ! Default output
                   run_mpi_senddata%out_l = 9
                ELSE
-                  run_mpi_senddata%out   = opara(3)(1:lopara(3))
-                  run_mpi_senddata%out_l = lopara(3)
+                  run_mpi_senddata%out   = opara(O_LOGFILE)(1:lopara(O_LOGFILE))
+                  run_mpi_senddata%out_l = lopara(O_LOGFILE)
                ENDIF
             ENDIF 
             run_mpi_senddata%repeat = .false.! repeat = .false. means no repetition
@@ -780,7 +784,7 @@ ELSE
                IF (ier_num.eq.0) THEN 
                   IF ( nint(werte(1)) > 1 ) THEN
                      run_mpi_senddata%repeat = .true.             ! repeat = false means no repetition
-                     IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                     IF (str_comp (opara(O_COMPUTE), 'parallel', 4, lopara(O_COMPUTE), 8) ) THEN
                         run_mpi_senddata%repeat = .TRUE.
                      ELSE
                         run_mpi_senddata%repeat = .FALSE.
@@ -791,12 +795,12 @@ ELSE
                   run_mpi_senddata%nindiv = max(1,nint(werte(1))) ! nindiv is at least 1
                ENDIF 
             ELSE 
-                     IF (str_comp (opara(4), 'parallel', 4, lopara(4), 8) ) THEN
+                     IF (str_comp (opara(O_COMPUTE), 'parallel', 4, lopara(O_COMPUTE), 8) ) THEN
                         run_mpi_senddata%repeat = .TRUE.
                      ELSE
                         run_mpi_senddata%repeat = .FALSE.
                      ENDIF
-                  run_mpi_senddata%nindiv = max(1,nint(owerte(2))) ! nindiv is at least 1
+                  run_mpi_senddata%nindiv = max(1,nint(owerte(O_REPEAT))) ! nindiv is at least 1
             ENDIF 
             IF(gen_mpi_active .AND. pop_gen>lastgen)  THEN ! Flag errors if new generation
                IF(run_mpi_senddata%repeat) THEN            ! parallel refinement of indivs
@@ -1060,7 +1064,7 @@ ELSE
                ltrial_results = lpara (1) 
             ENDIF 
          ENDIF 
-         n_rvalue_i = NINT(owerte(1))
+         n_rvalue_i = NINT(owerte(O_PARTIAL))
 !        IF(ianz>1) THEN
 !           CALL del_params (1, ianz, cpara, lpara, maxw) 
 !           CALL ber_params (ianz, cpara, lpara, werte, maxw) 
