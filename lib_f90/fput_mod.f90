@@ -311,7 +311,7 @@ ELSE
    CALL del_params (1, ianz, cpara, lpara, maxw) 
 ENDIF 
 ii = nint (werte (1) ) 
-IF (ii.lt.0.or.MAC_MAX_IO.lt.ii) THEN 
+IF (ii.lt.1.or.MAC_MAX_IO.lt.ii) THEN 
    ier_num = - 13 
    ier_typ = ER_IO 
    RETURN 
