@@ -789,7 +789,7 @@ list_index(:) = 0
 !                                                                       
      950 FORMAT (A,'.',a   )
      970 FORMAT (A,'.',a,'.',I4.4   )
-    1100 FORMAT ('#S ',i5,' = Generation Number ') 
+    1100 FORMAT ('#S ',i7,' = Generation Number ') 
 !    1200 FORMAT (a10) 
     1250 FORMAT (a) 
     1300 FORMAT (i5,2(2x,e18.10))
@@ -894,7 +894,7 @@ list_index(:) = 0
      950 FORMAT (A,'.',A   )
      970 FORMAT (A,'.',A,'.',I4.4   )
     1000 FORMAT ('#C Current file by DIFFEV')
-    1100 FORMAT ('#S ',i5,' = Generation Number ') 
+    1100 FORMAT ('#S ',i7,' = Generation Number ') 
     1250 FORMAT (a) 
     1300 FORMAT (i5,2(2x,e18.10))
 !
