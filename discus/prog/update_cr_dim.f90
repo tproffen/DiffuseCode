@@ -34,7 +34,7 @@ ENDIF
 DO i = 1, cr_natoms 
    DO j = 1, 3 
       cr_dim(j, 1) = MIN(cr_dim(j, 1), cr_pos(j, i)) 
-      cr_dim(j, 2) = MIN(cr_dim(j, 2), cr_pos(j, i)) 
+      cr_dim(j, 2) = MAX(cr_dim(j, 2), cr_pos(j, i)) 
    ENDDO 
 ENDDO 
 !
