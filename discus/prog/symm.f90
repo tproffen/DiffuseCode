@@ -177,7 +177,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                         IF (ier_num.eq.0) THEN 
                            IF (sym_power_mult) THEN 
-                              CALL symm_ca_mult (hkl, lspace) 
+                              CALL symm_ca_mult (hkl, lspace, .TRUE.) 
                            ELSE 
                               CALL symm_ca_single (hkl, lspace, .true.) 
                            ENDIF 
@@ -576,7 +576,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      DO i=1,2
                         hkl(:) = cr_dim0(:,i)
                         IF (sym_power_mult) THEN 
-                           CALL symm_ca_mult (hkl, lspace) 
+                           CALL symm_ca_mult (hkl, lspace, .FALSE.) 
                         ELSE 
                            CALL symm_ca_single (hkl, lspace, .FALSE.) 
                         ENDIF 

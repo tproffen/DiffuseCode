@@ -1268,94 +1268,100 @@ USE precision_mod
 !                                                                       
       END SUBROUTINE symm_domain_single             
 !*****7*****************************************************************
-      SUBROUTINE symm_ca_mult (uvw, lspace) 
+!
+SUBROUTINE symm_ca_mult(uvw, lspace, loutput) 
 !-                                                                      
 !     Performs the actual symmetry operation, multiple copy version     
 !     Only the input vector uvw is used in direct or reciprocal space   
 !+                                                                      
-      USE discus_config_mod 
-      USE symm_mod 
-      USE trafo_mod
+USE discus_config_mod 
+USE symm_mod 
+USE trafo_mod
 !                                                                       
-      USE errlist_mod 
-      USE param_mod 
+USE errlist_mod 
+USE param_mod 
 USE precision_mod
-      USE prompt_mod 
+USE prompt_mod 
 !
-      IMPLICIT none 
+IMPLICIT none 
 !                                                                       
-      INTEGER j, k 
-      LOGICAL lspace 
+REAL   , DIMENSION(3), INTENT(INOUT) :: uvw
+LOGICAL,               INTENT(IN)    :: lspace 
+LOGICAL,               INTENT(IN)    :: loutput 
+!
+INTEGER :: j, k 
 !                                                                       
-      REAL uvw (3) 
-      REAL usym (4), ures (4) 
-      REAL(KIND=PREC_DP) :: werte (5) 
+REAL(KIND=PREC_SP), DIMENSION(4) :: usym, ures 
+REAL(KIND=PREC_DP), DIMENSION(5) :: werte
 !                                                                       
-      DATA usym / 0.0, 0.0, 0.0, 1.0 / 
-      DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
+DATA usym / 0.0, 0.0, 0.0, 1.0 / 
+DATA werte / 0.0, 0.0, 0.0, 0.0, 0.0 / 
 !                                                                       
 !     real space part                                                   
 !                                                                       
-      IF (lspace) then 
+IF (lspace) THEN 
 !                                                                       
 !     ----Subtract origin, if in real space                             
 !                                                                       
-         DO j = 1, 3 
-         usym (j) = uvw (j) - sym_orig (j) 
-         ENDDO 
+   DO j = 1, 3 
+      usym(j) = uvw(j) - sym_orig(j) 
+   ENDDO 
 !                                                                       
 !-----      --Apply symmetry operation                                  
 !                                                                       
-         usym (4) = 1.0 
-         DO k = 1, sym_power 
-         CALL trans (usym, sym_mat, ures, 4) 
+   usym(4) = 1.0 
+   DO k = 1, sym_power 
+      CALL trans (usym, sym_mat, ures, 4) 
 !                                                                       
 !     ----Add origin and store result                                   
 !                                                                       
-         DO j = 1, 3 
-         res_para ( (k - 1) * 3 + j) = ures (j) + sym_orig (j) 
-         ENDDO 
-         WRITE (output_io, 3000) (res_para ( (k - 1) * 3 + j), j = 1, 3) 
+      DO j = 1, 3 
+         res_para((k - 1) * 3 + j) = ures(j) + sym_orig(j) 
+      ENDDO 
+      WRITE (output_io, 3000) (res_para( (k - 1) * 3 + j), j = 1, 3) 
 !                                                                       
 !     ----Replace current vector by its image                           
 !                                                                       
-         DO j = 1, 3 
-         usym (j) = ures (j) 
-         ENDDO 
-         ENDDO 
-      ELSE 
+      DO j = 1, 3 
+         usym(j) = ures(j) 
+      ENDDO 
+   ENDDO 
+ELSE 
 !                                                                       
 !     ----Reciprocal space part                                         
 !                                                                       
-         DO j = 1, 3 
-         usym (j) = uvw (j) 
-         ENDDO 
+   DO j = 1, 3 
+      usym(j) = uvw(j) 
+   ENDDO 
 !                                                                       
 !-----      --Apply symmetry operation                                  
 !                                                                       
-         usym (4) = 0.0 
-         DO k = 1, sym_power 
-         CALL trans (usym, sym_rmat, ures, 4) 
+   usym(4) = 0.0 
+   DO k = 1, sym_power 
+      CALL trans (usym, sym_rmat, ures, 4) 
 !                                                                       
 !     ----Store result                                                  
 !                                                                       
-         DO j = 1, 3 
-         res_para ( (k - 1) * 3 + j) = ures (j) 
-         ENDDO 
-         WRITE (output_io, 3000) (res_para ( (k - 1) * 3 + j), j = 1, 3) 
+      DO j = 1, 3 
+         res_para((k - 1) * 3 + j) = ures(j) 
+      ENDDO 
+      IF(loutput) THEN
+         WRITE(output_io, 3000) (res_para((k - 1) * 3 + j), j = 1, 3) 
+      ENDIF
 !                                                                       
 !     ----Replace current vector by its image                           
 !                                                                       
-         DO j = 1, 3 
-         usym (j) = ures (j) 
-         ENDDO 
-         ENDDO 
-      ENDIF 
+      DO j = 1, 3 
+         usym(j) = ures(j) 
+      ENDDO 
+   ENDDO 
+ENDIF 
 !                                                                       
-      res_para (0) = sym_power * 3 
+res_para (0) = sym_power * 3 
 !                                                                       
  3000 FORMAT    (' Result    : ',3(2x,f9.4)) 
-      END SUBROUTINE symm_ca_mult                   
+!
+END SUBROUTINE symm_ca_mult                   
 !*****7*****************************************************************
       SUBROUTINE symm_ca_single (uvw, lspace, loutput) 
 !-                                                                      
