@@ -2627,6 +2627,7 @@ laccept = .false.
       REAL norm, r, r0 
       REAL rr 
       REAL :: factor,fac4
+      REAL :: c_sphere
 !     REAL(PREC_DP) :: convlv
 !     INTEGER (SELECTED_INT_KIND(9)) :: isign = 1
 !                                                                       
@@ -2649,6 +2650,7 @@ laccept = .false.
          norm = norm / pdf_deltar 
       ENDIF 
 !                                                                       
+      c_sphere = cr_n_real_atoms/(4./3.*pi*(pdf_sphere/2)**3*r0)
       DO i = 1, pdf_bin 
       r = REAL(i) * pdf_deltar 
       IF (pdf_finite.eq.PDF_BACK_PERIOD) then 
@@ -2667,7 +2669,7 @@ laccept = .false.
          rr = 2.0 * REAL(zpi) * r * r0 * pdf_dnorm 
          IF (r.lt.pdf_sphere) then 
             rr = rr * (1. - 1.5 * (r / pdf_sphere) + .5 * (r /          &
-            pdf_sphere) **3)                                            
+            pdf_sphere) **3)*c_sphere
          ELSE 
             rr = 0.0 
          ENDIF 
