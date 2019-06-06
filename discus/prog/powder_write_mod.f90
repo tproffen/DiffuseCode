@@ -22,7 +22,8 @@ USE wink_mod
 USE precision_mod
 USE trig_degree_mod
 USE qval_mod
-      IMPLICIT none 
+!
+IMPLICIT none 
 !                                                                       
 !     INTEGER, PARAMETER :: iff = 2 
 !                                                                       
