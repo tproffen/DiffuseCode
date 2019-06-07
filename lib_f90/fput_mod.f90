@@ -413,6 +413,7 @@ IF (ianz.gt.0) THEN
          CALL do_math (line, igl, lp)
       ENDDO
    ENDIF
+   res_para (0) = 0 
 ELSE 
    READ (io_unit (ii), *, err = 998, end = 999) 
    res_para (0) = 0 
