@@ -941,6 +941,15 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           IF(is<0 .OR. is>cr_nscat .OR. &
+                              js<0 .OR. js>cr_nscat)  THEN
+                              ier_num = -97
+                              ier_typ = ER_APPL
+                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+                              RETURN
+                           ENDIF
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_DISP, is, js, werte ( &
@@ -997,6 +1006,15 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           IF(is<0 .OR. is>cr_nscat .OR. &
+                              js<0 .OR. js>cr_nscat)  THEN
+                              ier_num = -97
+                              ier_typ = ER_APPL
+                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+                              RETURN
+                           ENDIF
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_SPRING, is, js, werte &
@@ -1117,6 +1135,15 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           IF(is<0 .OR. is>cr_nscat .OR. &
+                              js<0 .OR. js>cr_nscat)  THEN
+                              ier_num = -97
+                              ier_typ = ER_APPL
+                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+                              RETURN
+                           ENDIF
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_LENNARD, is, js,      &
@@ -1176,6 +1203,15 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           IF(is<0 .OR. is>cr_nscat .OR. &
+                              js<0 .OR. js>cr_nscat)  THEN
+                              ier_num = -97
+                              ier_typ = ER_APPL
+                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+                              RETURN
+                           ENDIF
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         CALL mmc_set_disp (ic, MC_REPULSIVE, is, js,    &
@@ -1214,6 +1250,15 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         DO j = 1, jjanz 
                         is = nint (uerte (i) ) 
                         js = nint (verte (j) ) 
+                           IF(is<0 .OR. is>cr_nscat .OR. &
+                              js<0 .OR. js>cr_nscat)  THEN
+                              ier_num = -97
+                              ier_typ = ER_APPL
+                              WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+                              WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+                              ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+                              RETURN
+                           ENDIF
                            mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
                            mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
                         mmc_buck_a (ic, is, js) = werte (2) 
