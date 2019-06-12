@@ -154,13 +154,14 @@ END INTERFACE
 INTERFACE
    SUBROUTINE mixscat_ersetz_para (ikl, iklz, string, ll, ww, maxw, ianz)
 !
+   USE precision_mod
    CHARACTER (LEN= * )  , INTENT(INOUT) :: string
    INTEGER              , INTENT(IN   ) :: ikl
    INTEGER              , INTENT(IN   ) :: iklz
    INTEGER              , INTENT(INOUT) :: ll
    INTEGER              , INTENT(IN   ) :: maxw
    INTEGER              , INTENT(IN   ) :: ianz
-   REAL, DIMENSION(MAXW), INTENT(IN   ) :: ww
+   REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN   ) :: ww
 !
    END SUBROUTINE mixscat_ersetz_para
 END INTERFACE
@@ -168,11 +169,12 @@ END INTERFACE
 INTERFACE
    SUBROUTINE mixscat_upd_para (ctype, ww, maxw, wert, ianz)
 !
+   USE precision_mod
    CHARACTER (LEN=* ), INTENT(IN   )    :: ctype
    INTEGER           , INTENT(IN   )    :: maxw
    INTEGER           , INTENT(IN   )    :: ianz
    INTEGER           , INTENT(IN   )    :: ww (maxw)
-   REAL              , INTENT(IN   )    :: wert
+   REAL(KIND=PREC_DP), INTENT(IN   )    :: wert
 !
    END SUBROUTINE mixscat_upd_para
 END INTERFACE
@@ -180,11 +182,12 @@ END INTERFACE
 INTERFACE
    SUBROUTINE mixscat_calc_intr_spec (string, line, ikl, iklz, ww, laenge, lp)
 !
+   USE precision_mod
    CHARACTER (LEN= * ), INTENT(INOUT) :: string
    CHARACTER (LEN= * ), INTENT(INOUT) :: line
    INTEGER            , INTENT(IN   ) :: ikl
    INTEGER            , INTENT(IN   ) :: iklz
-   REAL               , INTENT(INOUT) :: ww
+   REAL(KIND=PREC_DP) , INTENT(INOUT) :: ww
    INTEGER            , INTENT(INOUT) :: laenge
    INTEGER            , INTENT(INOUT) :: lp
 !

@@ -7,6 +7,8 @@
 !                                                                       
       USE ber_params_mod
       USE get_params_mod
+      USE precision_mod
+!
       USE config_mod 
       USE mixscat_mod 
 !
@@ -22,7 +24,8 @@
       INTEGER lpara (maxw), length 
       INTEGER ianz, is, i, j, k 
       INTEGER jj (maxw) 
-      REAL werte (maxw), ris 
+      REAL ris 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -96,6 +99,7 @@
       USE ber_params_mod
       USE get_params_mod
       USE errlist_mod 
+      USE precision_mod
       USE config_mod 
       USE mixscat_mod 
 !                                                                       
@@ -110,7 +114,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), length 
       INTEGER ianz, id 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -142,6 +146,7 @@
       USE errlist_mod 
       USE param_mod 
       USE prompt_mod 
+      USE precision_mod
       USE config_mod 
       USE mixscat_mod 
 !                                                                       
@@ -156,7 +161,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), length 
       INTEGER ianz, id, ip 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL rsl, drsl 
       REAL rmin, rmax, rho0 
 !                                                                       
@@ -292,6 +297,7 @@
       USE errlist_mod 
       USE string_convert_mod
       USE config_mod 
+      USE precision_mod
       USE mixscat_mod 
 !                                                                       
       IMPLICIT none 
@@ -305,7 +311,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), length 
       INTEGER ianz, ie 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL csum 
 !                                                                       
       LOGICAL str_comp 
@@ -466,6 +472,7 @@
       USE errlist_mod 
       USE string_convert_mod
       USE config_mod 
+      USE precision_mod
       USE mixscat_mod 
 !                                                                       
       IMPLICIT none 
@@ -476,7 +483,7 @@
       CHARACTER(1024) zeile 
       INTEGER lpara (maxw) 
       INTEGER i, j, l, ianz, jj, jp 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
 !     REAL berechne 
 !                                                                       

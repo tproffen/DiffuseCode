@@ -12,6 +12,7 @@
       USE do_show_mod
       USE prompt_mod 
       USE times_mod 
+      USE precision_mod
 !                                                                       
       USE config_mod 
       USE mixscat_mod 
@@ -27,7 +28,8 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw) 
       INTEGER ianz, i, ia, ib, io 
-      REAL werte (maxw), r, cc 
+      REAL r, cc 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
 !                                                                       
       INTEGER len_str 
       LOGICAL str_comp 

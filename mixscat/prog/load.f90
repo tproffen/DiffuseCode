@@ -6,6 +6,7 @@
       USE get_params_mod
       USE ber_params_mod
       USE errlist_mod 
+      USE precision_mod
 !                                                                       
       USE config_mod 
 !
@@ -20,7 +21,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), length 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 !                                                                       
       LOGICAL str_comp 
 !                                                                       
@@ -62,6 +63,7 @@
 !                                                                       
       USE config_mod 
       USE mixscat_mod 
+      USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -73,7 +75,7 @@
       INTEGER lpara (maxw) 
       INTEGER lpfile 
       INTEGER ianz, iianz, i, ip, iset 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) :: werte
       REAL ra, re, dr, da, de 
       LOGICAL lwei 
 !                                                                       
@@ -135,8 +137,8 @@
          READ (17, 1000, end = 999) line 
          CALL extract_key (line, 'temp=') 
          CALL extract_key (line, 'Qmax=') 
-         IF (res_para (res_para (0) ) >0) then 
-            exp_qmax (iset) = res_para (res_para (0) ) 
+         IF (res_para (NINT(res_para (0)) ) >0) then 
+            exp_qmax (iset) = res_para (NINT(res_para (0)) ) 
          ENDIF 
          IF (line (1:16) .eq.'##### start data') goto 33 
          GOTO 22 
@@ -249,7 +251,7 @@
          ie = index (line (is:ll) , ' ') 
          IF (ie.eq.0) ie = ll 
          res_para (0) = res_para (0) + 1 
-         READ (line (is:is + ie), * ) res_para (res_para (0) ) 
+         READ (line (is:is + ie), * ) res_para (NINT(res_para (0)) ) 
       ENDIF 
 !                                                                       
       END SUBROUTINE extract_key                    
@@ -264,6 +266,7 @@
       USE prompt_mod 
       USE config_mod 
       USE mixscat_mod 
+      USE precision_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -276,7 +279,7 @@
       CHARACTER(1024) cpara (maxw) 
       INTEGER lpara (maxw), length 
       INTEGER ianz 
-      REAL werte (maxw) 
+      REAL(KIND=PREC_DP), DIMENSION(MAXW) ::  werte
 !                                                                       
       CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
       IF (ier_num.ne.0) return 
