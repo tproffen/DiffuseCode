@@ -2650,7 +2650,11 @@ laccept = .false.
          norm = norm / pdf_deltar 
       ENDIF 
 !                                                                       
-      c_sphere = cr_n_real_atoms/(4./3.*pi*(pdf_sphere/2)**3*r0)
+      IF(r0>0.0) THEN
+         c_sphere = cr_n_real_atoms/(4./3.*pi*(pdf_sphere/2)**3*r0)
+      ELSE
+         c_sphere = 1.0
+      ENDIF
       DO i = 1, pdf_bin 
       r = REAL(i) * pdf_deltar 
       IF (pdf_finite.eq.PDF_BACK_PERIOD) then 
