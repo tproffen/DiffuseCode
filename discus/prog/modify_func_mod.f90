@@ -34,7 +34,7 @@ LOGICAL :: ltype
 IF (i.le.0) THEN 
    ltype = .FALSE. 
 ELSE 
-   IF (werte (1)  ==  - 1) THEN 
+   IF(NINT(werte(1)) == -1) THEN 
       ltype = .TRUE. 
    ELSE 
       ltype = .FALSE. 

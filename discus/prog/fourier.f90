@@ -249,7 +249,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   i = 1 
                   CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
                   IF (ier_num.eq.0) then 
-                     IF (werte (1) .gt.0) then 
+                     IF(werte(1) .gt. 0.0D0) then 
                         DO k = 1, i 
                         jj (k) = nint (werte (1) ) 
                         ENDDO 
@@ -512,7 +512,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (ianz.eq.1) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
+                        IF (werte (1) .gt.0.0D0) then 
                            inc (1) = nint (werte (1) ) 
                            divis (1) = REAL(max (1, inc (1) - 1) ) 
                            DO i = 1, 3 
@@ -546,7 +546,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (ianz.eq.1) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
+                        IF (werte (1) .gt.0.0D0) then 
                            inc (2) = nint (werte (1) ) 
                            divis (2) = REAL(max (1, inc (2) - 1) ) 
                            DO i = 1, 3 
@@ -573,7 +573,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (ianz.eq.1) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        IF (werte (1) .gt.0) then 
+                        IF (werte (1) .gt.0.0D0) then 
                            inc (3) = nint (werte (1) ) 
                            divis (3) = REAL(max (1, inc (3) - 1) ) 
                            DO i = 1, 3 
@@ -690,7 +690,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   i = 1 
                   CALL get_iscat (i, cpara, lpara, werte, maxw, lold) 
                   IF (ier_num.eq.0) then 
-                     IF (werte (1) .gt.0) then 
+                     IF (werte (1) .gt.0.0D0) then 
                         DO k = 1, i 
                         jj (k) = nint (werte (1) ) 
                         ENDDO 
@@ -718,23 +718,23 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (ier_num.eq.0) then 
                      IF (str_comp (cpara (2) , 'internal', 2, lpara (1) &
                      , 8) ) then                                        
-                        IF (werte (1) .gt.0) then 
+                        IF (werte (1) .gt.0.0D0) then 
                            k = nint (werte (1) ) 
                            cr_scat_int (k) = .true. 
                            cr_scat_equ (k) = .false. 
-                        ELSEIF (werte (1) .eq. - 1) then 
+                        ELSEIF(NINT(werte(1)) == -1) then 
                            DO k = 0, cr_nscat 
                            cr_scat_int (k) = .true. 
                            cr_scat_equ (k) = .false. 
                            ENDDO 
                         ENDIF 
                      ELSE 
-                        IF (werte (1) .gt.0) then 
+                        IF(werte(1) .gt. 0.0D0) then 
                            k = nint (werte (1) ) 
                            cr_scat_equ (k) = .true. 
                            CALL do_cap (cpara (2) ) 
                            cr_at_equ (k) = cpara (2) (1:lpara(2))
-                        ELSEIF (werte (1) .eq. - 1) then 
+                        ELSEIF(NINT(werte(1)) == -1) then 
                            k = nint (werte (1) ) 
                            CALL do_cap (cpara (2) ) 
                            DO k = 1, cr_nscat 
@@ -767,8 +767,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                            CALL ber_params (ianz, cpara, lpara, werte,  &
                            maxw)                                        
                            IF (ier_num.eq.0) then 
-                              IF (werte (1) .ge.0.0.and.werte (1)       &
-                              .le.100.0) then                           
+                              IF (werte (1) .ge.0.0D0.and.werte (1)       &
+                              .le.100.0D0) then                           
                                  fave = werte (1) * 0.01 
                               ELSE 
                                  ier_num = - 1 

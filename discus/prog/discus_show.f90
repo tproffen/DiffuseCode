@@ -712,7 +712,7 @@ USE precision_mod
       ENDDO 
       CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
       IF (ier_num.eq.0) THEN 
-         IF (werte (1) .eq. - 1) THEN 
+         IF(NINT(werte(1))  ==  -1) THEN 
             DO i = 0, cr_nscat 
             latom (i) = .true. 
             ENDDO 

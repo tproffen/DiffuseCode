@@ -724,7 +724,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL get_iscat (ianz, cpara, lpara, werte,     &
                         maxw, .false.)                                  
-               IF ( werte(1).eq.-1) THEN
+               IF (NINT(werte(1)) == -1) THEN
                   mmc_allowed = .true.
                ELSE
                   DO i=1,ianz
@@ -738,7 +738,7 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                CALL del_params (1, ianz, cpara, lpara, maxw) 
                CALL get_iscat (ianz, cpara, lpara, werte,     &
                         maxw, .false.)                                  
-               IF ( werte(1).eq.-1) THEN
+               IF (NINT(werte(1)) == -1) THEN
                   mmc_allowed = .true.
                ELSE
                   DO i=1,ianz
@@ -1744,7 +1744,7 @@ USE precision_mod
                IF (ier_num.ne.0) return 
 !                                                                       
                IF (ier_num.eq.0) then 
-                  IF (werte (1) .eq. - 1) then 
+                  IF(NINT(werte(1)) == -1) then 
                      DO i = 0, cr_nscat 
                      mmc_allowed (i) = .true. 
                      ENDDO 

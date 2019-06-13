@@ -852,7 +852,7 @@ USE precision_mod
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
                IF (ianz.eq.2) then 
-                  IF (werte (1) .gt.0.01.and.werte (2) .gt.werte (1) )  &
+                  IF (werte (1) .gt.0.01D0.and.werte (2) .gt.werte (1) )  &
                   then                                                  
                      chem_blen_cut (1) = werte (1) 
                      chem_blen_cut (2) = werte (2) 
@@ -872,7 +872,7 @@ USE precision_mod
                CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                IF (ier_num.ne.0) return 
                IF (ianz.eq.2) then 
-                  IF (werte (1) .gt.0.00.and.werte (2) .gt.werte (1) )  &
+                  IF (werte (1) .gt.0.00D0.and.werte (2) .gt.werte (1) )  &
                   then                                                  
                      chem_bang_cut (1) = werte (1) 
                      chem_bang_cut (2) = werte (2) 
@@ -1289,7 +1289,7 @@ ELSE main
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
             IF (ier_num.ne.0) return 
-            IF (werte (1) .eq. - 1) then 
+            IF (NINT(werte(1)) ==  -1) then 
                chem_cran_cent (0, iv) = - 1 
             ELSE 
                chem_cran_cent (0, iv) = ianz 
@@ -1324,8 +1324,8 @@ ELSE main
             ENDIF
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
-            IF (ier_num.ne.0) return 
-            IF (werte (1) .eq. - 1) then 
+            IF(ier_num.ne.0) return 
+            IF(NINT(werte(1))  ==  -1) then 
                chem_cran_neig (0, iv) = - 1 
             ELSE 
                chem_cran_neig (0, iv) = ianz 
@@ -2468,8 +2468,8 @@ USE precision_mod
             iianz = 1 
             CALL ber_params (1, cpara, lpara, werte, maxw) 
          ENDIF 
-         IF (ier_num.ne.0) return 
-         IF (werte (1) .ge.0.) then 
+         IF(ier_num.ne.0) return 
+         IF(werte(1) .ge. 0.D0) then 
             CALL del_params (1, ianz, cpara, lpara, maxw) 
             CALL do_build_name (ianz, cpara, lpara, wwerte, maxw, 1) 
             CALL chem_homo_occ (cpara (1), iianz, werte, maxw) 

@@ -247,7 +247,7 @@ USE precision_mod
                                                                         
                lexist = .false. 
                DO i = 1, iianz 
-               IF (ABS(cr_dw (nint (uerte (i) ) ) - werte (1) )< 1.0D-4) then 
+               IF (ABS(cr_dw (NINT(uerte (i) ) ) - werte(1) )< 1.0D-4) THEN 
 !                                                                       
 !     --------Atom exists with identical DW                             
 !                                                                       
@@ -589,7 +589,7 @@ USE precision_mod
                   IF (ianz.lt.9) werte (9) = werte (8) 
                   IF (ianz.lt.10) werte (10) = werte (9) 
 !                                                                       
-                  IF (werte (8) .lt.0) then 
+                  IF(werte(8) .lt.0.0D0) then 
 !                                                                       
 !     ----------Interpret parameter 8 as bondlength                     
 !                                                                       
@@ -759,10 +759,10 @@ real dummy
                ier_typ = ER_APPL 
             ENDIF 
          ELSE 
-            lda = name.eq.cr_at_lis (i) .and.ABS(werte (5)- DBLE(cr_dw (i)) )<1.D-5
+            lda = name.eq.cr_at_lis (i) .and.ABS(werte(5)- DBLE(cr_dw(i)))<1.D-5
             DO while (.not.lda.and.i.lt.cr_nscat) 
             i = i + 1 
-            lda = name.eq.cr_at_lis (i) .and.ABS(werte (5) - DBLE(cr_dw (i)) ) < 1.D-5
+            lda = name.eq.cr_at_lis (i) .and.ABS(werte(5) - DBLE(cr_dw(i))) < 1.D-5
             ENDDO 
             IF (lda) then 
                cr_natoms = cr_natoms + 1 
@@ -1546,7 +1546,7 @@ USE precision_mod
       INTEGER j 
       LOGICAL ltype 
 !                                                                       
-      IF (werte (1) .eq. - 1) then 
+      IF(NINT(werte(1)) == -1) then 
          ltype = .true. 
       ELSE 
          ltype = .false. 
@@ -1609,7 +1609,7 @@ USE precision_mod
       CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
       IF (ier_num.ne.0) return 
 !                                                                       
-      IF (werte (1) .eq. - 1) then   ! all atoms are selected
+      IF(NINT(werte(1)) == -1) then   ! all atoms are selected
          latom  = lselect !  latom (i) = lselect 
          IF(PRESENT(repl)) repl = ival !  repl (i) = ival 
       ELSE 

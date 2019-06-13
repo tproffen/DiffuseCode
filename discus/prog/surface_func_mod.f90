@@ -319,7 +319,7 @@ USE precision_mod
             ianz = ianz - 1 
             CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
             IF (ier_num.ne.0) return 
-            IF (werte (1) .eq. - 1) then 
+            IF(NINT(werte(1)) == -1) then 
                DO i = 0, cr_nscat 
                IF (linternal) then 
                   surf_in_dist (i) = distance 
@@ -605,7 +605,7 @@ USE precision_mod
                   RETURN 
                ENDIF 
                IF (ianz.eq.4) then 
-                  IF ( werte(4).eq.0) THEN
+                  IF(NINT(werte(4)) == 0) THEN
                      DO i = 1, 3 
                         h (i) = h (i) / dstar *1.0E12
                      ENDDO 

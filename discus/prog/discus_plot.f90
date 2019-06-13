@@ -264,9 +264,9 @@ if_gleich:  IF (indxg /= 0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   IF (ier_num.eq.0) then 
                      CALL ber_params (ianz, cpara, lpara, werte, maxw) 
                      IF (ier_num.eq.0) then 
-                        IF (werte (1) .eq. - 1) then 
+                        IF(NINT(werte (1))  ==  -1) THEN 
                            pl_scale (0) = - 1 
-                        ELSEIF (werte (1) .gt.0.0) then 
+                        ELSEIF (werte(1) .gt. 0.0D0) then 
                            pl_scale (0) = 0 
                            pl_scale (1) = werte (1) 
                         ELSE 

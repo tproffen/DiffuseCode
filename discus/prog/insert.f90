@@ -371,9 +371,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         CALL ber_params (ianz, cpara, lpara, werte,     &
                         maxw)                                           
                         IF (ier_num.eq.0) then 
-                           IF (werte (1) .eq.INS_NEWTYPE) then 
+                           IF(NINT(werte(1)) == INS_NEWTYPE) then 
                               ins_type = INS_NEWTYPE 
-                           ELSEIF (werte (1) .gt.0) then 
+                           ELSEIF (werte (1) .gt.0.0D0) then 
                               ins_type = int (werte (1) ) 
                            ENDIF 
                         ELSE 

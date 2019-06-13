@@ -264,7 +264,7 @@ USE precision_mod
       typesel: IF(sel_mode == TYPES) THEN
          CALL get_iscat (ianz, cpara, lpara, werte, maxw, lold) 
          IF (ier_num.ne.0) return 
-         IF(werte(1)==-1) THEN
+         IF(NINT(werte(1))==-1) THEN
             latom = .true.
          ELSE
             latom = .false.
