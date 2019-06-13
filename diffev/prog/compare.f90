@@ -369,6 +369,7 @@ list_index(:) = 0
    INTEGER                        :: len_file,length 
    INTEGER                        :: pop_dimx_old
    INTEGER                        :: iostatus, isuccess
+   INTEGER                        :: ieq
    LOGICAL                        :: istda, lcurrent
    REAL                           :: best, worst 
    REAL                           :: r
@@ -421,7 +422,8 @@ list_index(:) = 0
             DO while (line (2:2) .ne.'S') 
                READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
             ENDDO 
-            READ (line (3:8), *  ,END=30,ERR=30,iostat=iostatus) ii 
+            ieq = INDEX(line,'=')
+            READ (line (3:ieq-2), *  ,END=30,ERR=30,iostat=iostatus) ii 
          ENDDO 
          READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
          isuccess =  0 
@@ -466,7 +468,8 @@ list_index(:) = 0
             DO while (line (2:2) .ne.'S') 
                READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
             ENDDO 
-            READ (line (3:8), *  ,END=30,ERR=30,iostat=iostatus) ii 
+            ieq = INDEX(line,'=')
+            READ (line (3:ieq-2), *  ,END=30,ERR=30,iostat=iostatus) ii 
          ENDDO 
          READ (iwr, '(a)' ,END=30,ERR=30,iostat=iostatus) line 
          isuccess =  0 
