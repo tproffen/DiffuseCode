@@ -358,7 +358,6 @@ n_srch = MAXHIST               ! Find longest occupied entry in histogram
 srch: DO l=MAXHIST, 1, -1
    DO j=1,nlook
       IF(histogram(l,j,0) >0) THEN
-         write(*,*) ' LONGEST DISTANCE ', l, MAXHIST
          n_srch = l             ! Limit convolution / Fourier range
          EXIT srch
       ENDIF
@@ -392,7 +391,7 @@ IF(deb_conv) THEN
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
-write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
+!write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
    CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, n_srch, histogram, is_look, &
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
@@ -778,7 +777,6 @@ srch: DO l=MAXHIST, 1, -1
    DO j=1,nlook
       DO k=1,nlook_mol
          IF(histogram(l,j,k) >0.0D0) THEN
-            write(*,*) ' LONGEST DISTANCE ', l, MAXHIST
             n_srch = l             ! Limit convolution / Fourier range
             EXIT srch
          ENDIF
@@ -798,7 +796,7 @@ IF(deb_conv) THEN
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
-write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
+!write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
    CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, n_srch, histogram, is_look, &
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
