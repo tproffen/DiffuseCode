@@ -247,7 +247,7 @@ USE precision_mod
                                                                         
                lexist = .false. 
                DO i = 1, iianz 
-               IF (cr_dw (nint (uerte (i) ) ) .eq.werte (1) ) then 
+               IF (ABS(cr_dw (nint (uerte (i) ) ) - werte (1) )< 1.0D-4) then 
 !                                                                       
 !     --------Atom exists with identical DW                             
 !                                                                       
@@ -724,6 +724,7 @@ USE precision_mod
       INTEGER                :: new_nscat  = 1
       LOGICAL                :: need_alloc = .false.
       LOGICAL                :: lda 
+real dummy
 !                                                                       
 !
 !     While developing, increment crystal if needed, but keep the check
@@ -758,10 +759,10 @@ USE precision_mod
                ier_typ = ER_APPL 
             ENDIF 
          ELSE 
-            lda = name.eq.cr_at_lis (i) .and.werte (5) .eq.cr_dw (i) 
+            lda = name.eq.cr_at_lis (i) .and.ABS(werte (5)- DBLE(cr_dw (i)) )<1.D-5
             DO while (.not.lda.and.i.lt.cr_nscat) 
             i = i + 1 
-            lda = name.eq.cr_at_lis (i) .and.werte (5) .eq.cr_dw (i) 
+            lda = name.eq.cr_at_lis (i) .and.ABS(werte (5) - DBLE(cr_dw (i)) ) < 1.D-5
             ENDDO 
             IF (lda) then 
                cr_natoms = cr_natoms + 1 
