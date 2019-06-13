@@ -497,41 +497,44 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
      &                   '   2-Theta Monochromator   : ',f10.5)         
  1600 FORMAT    ( '   Fourier calculation via : ',A) 
       END SUBROUTINE pow_show                       
+!
 !*****7*****************************************************************
-      SUBROUTINE do_pow_set (zeile, lcomm) 
+!
+SUBROUTINE do_pow_set(zeile, lcomm) 
 !-                                                                      
 !     Set various paramters for the powder diffraction                  
 !+                                                                      
-      USE discus_config_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-      USE powder_mod 
-      USE ber_params_mod
-      USE get_params_mod
+USE discus_config_mod 
+USE debye_mod 
+USE diffuse_mod 
+USE pdf_mod
+USE powder_mod 
+USE ber_params_mod
+USE get_params_mod
 USE precision_mod
-      USE trig_degree_mod
-      USE string_convert_mod
-      IMPLICIT none 
+USE trig_degree_mod
+USE string_convert_mod
 !                                                                       
-      INTEGER MAXW 
-      PARAMETER (MAXW = 7) 
+IMPLICIT none 
 !                                                                       
+INTEGER, PARAMETER :: MAXW = 7 
 !                                                                       
-      CHARACTER(1024) cpara (MAXW) 
-      CHARACTER ( * ) zeile 
-      CHARACTER (LEN=1024) :: symbol
-      INTEGER lpara (MAXW) 
-      INTEGER lcomm 
-      INTEGER :: lsymbol
-      INTEGER ianz 
-      INTEGER i 
-      REAL(KIND=PREC_DP) :: werte (MAXW) 
+CHARACTER(LEN=*), INTENT(INOUT) :: zeile 
+INTEGER         , INTENT(INOUT) :: lcomm 
 !                                                                       
-      LOGICAL str_comp 
+CHARACTER(LEN=1024)  :: cpara (MAXW) 
+CHARACTER(LEN=1024) :: symbol
+INTEGER :: lpara (MAXW) 
+INTEGER :: lsymbol
+INTEGER :: ianz 
+INTEGER :: i 
+REAL(KIND=PREC_DP) :: werte (MAXW) 
+!                                                                       
+LOGICAL, EXTERNAL :: str_comp 
 !     REAL cosd 
 !                                                                       
-      CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
-      IF (ier_num.eq.0) then 
+CALL get_params (zeile, ianz, cpara, lpara, maxw, lcomm) 
+IF (ier_num.eq.0) then 
          IF (str_comp (cpara (1) , 'axis', 2, lpara (1) , 4) ) then 
             IF (ianz.eq.2) then 
                IF (str_comp (cpara (2) , 'dstar', 1, lpara (2) , 5) )   &
@@ -594,6 +597,30 @@ USE precision_mod
                ELSE 
                   ier_num = - 6 
                   ier_typ = ER_COMM 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF(str_comp(cpara(1), 'corrlin', 5, lpara(1), 7)) THEN
+            IF (ianz == 2) THEN 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+               IF(ier_num == 0) THEN 
+                  pdf_clin_a = werte(2) 
+               ENDIF 
+            ELSE 
+               ier_num = - 6 
+               ier_typ = ER_COMM 
+            ENDIF 
+         ELSEIF(str_comp(cpara(1), 'corrquad', 5, lpara(1), 8)) THEN
+            IF (ianz == 2) THEN 
+               cpara (1) = '0' 
+               lpara (1) = 1 
+               CALL ber_params(ianz, cpara, lpara, werte, maxw) 
+               IF(ier_num == 0) THEN 
+                  pdf_cquad_a = werte(2) 
                ENDIF 
             ELSE 
                ier_num = - 6 

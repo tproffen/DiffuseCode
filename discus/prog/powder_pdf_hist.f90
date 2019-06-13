@@ -143,6 +143,7 @@ INTEGER j, k, l
 INTEGER i, iscat, jscat 
 INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
 INTEGER                :: n_hist
+INTEGER                :: n_srch         ! Actual MAXHIST 
 INTEGER                :: n_qxy   = 1
 INTEGER                :: n_nscat = 1
 INTEGER                :: n_natom = 1
@@ -286,30 +287,31 @@ ss = seknds (0.0)
 
 shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
 DO j = 1, cr_natoms ! - 1
-   jscat = cr_iscat (j) 
-   IF (jscat.gt.0) THEN 
-      u (1) = cr_pos (1, j) 
-      u (2) = cr_pos (2, j) 
-      u (3) = cr_pos (3, j) 
+   jscat = cr_iscat(j) 
+   IF(jscat > 0) THEN 
+      u(1) = cr_pos(1, j) 
+      u(2) = cr_pos(2, j) 
+      u(3) = cr_pos(3, j) 
 !                                                                       
 !     --- get info on relative amount of atoms                          
 !                                                                       
-      natom (jscat) = natom (jscat) + 1 
+      natom(jscat) = natom(jscat) + 1 
 !                                                                       
 !------ --- loop over all different atom types                          
 !                                                                       
       DO l = j + 1, cr_natoms 
-         iscat = cr_iscat (l) 
-         IF (iscat.gt.0) THEN 
-            v (1) = cr_pos (1, l) - u (1) 
-            v (2) = cr_pos (2, l) - u (2) 
-            v (3) = cr_pos (3, l) - u (3) 
+         iscat = cr_iscat(l) 
+         IF(iscat > 0) THEN 
+            v(1) = cr_pos(1, l) - u(1) 
+            v(2) = cr_pos(2, l) - u(2) 
+            v(3) = cr_pos(3, l) - u(3) 
 
 !              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
-            ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
-            histogram (ibin, look (jscat, iscat),0 ) = &
-            histogram (ibin, look (jscat, iscat),0 ) + 1
-            IF(ier_ctrlc) THEN
+!           ibin =   INT((SQRT(v(1)**2 + v(2)**2 + v(3)**2)+shift)/ pow_del_hist)
+            ibin =   INT((SQRT(v(1)*v(1)+v(2)*v(2)+v(3)*v(3))+shift)/ pow_del_hist)
+            histogram(ibin, look(jscat, iscat), 0) = &
+            histogram(ibin, look(jscat, iscat), 0) + 1
+            IF(ier_ctrlc) THEN         ! Does not influence timing
                ier_num = -14
                ier_typ = ER_COMM
                RETURN
@@ -320,6 +322,8 @@ DO j = 1, cr_natoms ! - 1
    ENDIF 
 ENDDO 
 !
+ss = seknds (ss) 
+WRITE (output_io, 4000) ss 
 !     pow_nreal = SUM(natom)  ! Add real atom numbers 
 pow_nreal = 0
 DO j=1,cr_nscat         ! Add real atom numbers
@@ -335,21 +339,31 @@ ENDDO
 !write(45, '(i7,4I12)') l,INT(histogram(l,:,0))
 !enddo
 !close (45)
-i = 0
-k = 0
-j = 0
-do j=1,nlook
-  do l=1,MAXHIST
-    if(maxval(histogram(:,j,0))>0) THEN
-      if(histogram(l,j,0) > 0) THEN
-         i = i+1
-      else
-         k = k +  1
-      endif
-endif
-enddo
-enddo
+!i = 0
+!k = 0
+!j = 0
+!do j=1,nlook
+!  do l=1,MAXHIST
+!    if(maxval(histogram(:,j,0))>0) THEN
+!      if(histogram(l,j,0) > 0) THEN
+!         i = i+1
+!      else
+!         k = k +  1
+!      endif
+!endif
+!enddo
+!enddo
 !write(*,*) ' Full empty ', i,k
+n_srch = MAXHIST               ! Find longest occupied entry in histogram
+srch: DO l=MAXHIST, 1, -1
+   DO j=1,nlook
+      IF(histogram(l,j,0) >0) THEN
+         write(*,*) ' LONGEST DISTANCE ', l, MAXHIST
+         n_srch = l             ! Limit convolution / Fourier range
+         EXIT srch
+      ENDIF
+   ENDDO
+ENDDO  srch
 !
 i= 0
 DO j=1,nlook
@@ -378,9 +392,9 @@ IF(deb_conv) THEN
    nmol_type = 0
    bval_mol(:) = 0
    deltar = DBLE(pow_del_hist)
-!write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
-   CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, histogram, is_look, &
-              deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
+write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
+   CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, n_srch, histogram, is_look, &
+              deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
 ENDIF
 !   open(45,file='hist.conv',status='unknown')
@@ -393,7 +407,7 @@ ENDIF
 !     --- Calculate the Fourier                                         
 !                                                                       
 DO i = 1, nlook 
-   DO j = 1, MAXHIST 
+   DO j = 1, n_srch 
       IF (histogram (j, i,0) >  0) THEN 
          DO k = 1, num (1) * num (2) 
             arg = zpi * DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
@@ -421,49 +435,48 @@ ENDDO
 !     to total sum                                                      
 !                                                                       
 IF(.NOT.deb_conv) THEN
-DO i = 1, cr_nscat 
-   DO j = i, cr_nscat 
-      DO k = 1, num (1) * num (2) 
-         rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
-            DBLE(cfact (powder_istl (k), i) ) * DBLE(cfact (powder_istl (k), j) ) + &
-           aimag(cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
+   DO i = 1, cr_nscat 
+      DO j = i, cr_nscat 
+         DO k = 1, num (1) * num (2) 
+            rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
+               DBLE(cfact (powder_istl (k), i) ) * DBLE(cfact (powder_istl (k), j) ) + &
+              aimag(cfact (powder_istl (k), i) ) * aimag (cfact (powder_istl (k), j) ) )            
+         ENDDO 
       ENDDO 
    ENDDO 
-ENDDO 
 !                                                                       
 !                                                                       
 !     add the f**2 weighted by relative amount to intensity             
 !     store <f**2> and <f>**2
 !                                                                       
-DO iscat = 1, cr_nscat 
-   DO i = 1, num (1) * num (2) 
-      rsf (i) = rsf (i) + DBLE (cfact (powder_istl (i), iscat) * &
-                         conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)
-   ENDDO 
+   DO iscat = 1, cr_nscat 
+      DO i = 1, num (1) * num (2) 
+         rsf (i) = rsf (i) + DBLE (cfact (powder_istl (i), iscat) * &
+                            conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)
+      ENDDO 
 !
-ENDDO 
+   ENDDO 
 ELSE
-DO i = 1, cr_nscat 
-   DO j = i, cr_nscat 
-      DO k = 1, num (1) * num (2) 
-         rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
-            DBLE(cfact_pure (powder_istl (k), i) ) * DBLE(cfact_pure (powder_istl (k), j) ) + &
-           aimag(cfact_pure (powder_istl (k), i) ) * aimag (cfact_pure (powder_istl (k), j) ) )            
+   DO i = 1, cr_nscat 
+      DO j = i, cr_nscat 
+         DO k = 1, num (1) * num (2) 
+            rsf (k) = rsf (k) + 2.0D0 * partial (k, look (i, j),0 ) * ( &
+               DBLE(cfact_pure (powder_istl (k), i) ) * DBLE(cfact_pure (powder_istl (k), j) ) + &
+              aimag(cfact_pure (powder_istl (k), i) ) * aimag (cfact_pure (powder_istl (k), j) ) )            
+         ENDDO 
       ENDDO 
    ENDDO 
-ENDDO 
-!                                                                       
-!                                                                       
+!
 !     add the f**2 weighted by relative amount to intensity             
 !     store <f**2> and <f>**2
-!                                                                       
-DO iscat = 1, cr_nscat 
-   DO i = 1, num (1) * num (2) 
-      rsf (i) = rsf (i) + DBLE (cfact_pure (powder_istl (i), iscat) * &
-                         conjg (cfact_pure (powder_istl (i), iscat) ) ) * natom (iscat)
-   ENDDO 
 !
-ENDDO 
+   DO iscat = 1, cr_nscat 
+      DO i = 1, num (1) * num (2) 
+         rsf (i) = rsf (i) + DBLE (cfact_pure (powder_istl (i), iscat) * &
+                            conjg (cfact_pure (powder_istl (i), iscat) ) ) * natom (iscat)
+      ENDDO 
+!
+   ENDDO 
 ENDIF
 !
 !  open(45,file='hist.rsf',status='unknown')
@@ -491,179 +504,209 @@ SUBROUTINE powder_debye_hist_cart_mole(udist, cr_nscat_temp, &
 !     to Giacovacco                                                     
 !     Histogram Version                                                 
 !+                                                                      
-      USE discus_config_mod 
-      USE discus_allocate_appl_mod
-      USE crystal_mod 
-      USE debye_mod 
-      USE diffuse_mod 
-      USE fourier_sup
-      USE metric_mod
-      USE molecule_mod
-      USE output_mod 
-      USE powder_mod 
-      USE powder_tables_mod 
-      USE wink_mod
+USE discus_config_mod 
+USE discus_allocate_appl_mod
+USE crystal_mod 
+USE debye_mod 
+USE diffuse_mod 
+USE fourier_sup
+USE metric_mod
+USE molecule_mod
+USE output_mod 
+USE pdf_mod
+USE powder_mod 
+USE powder_tables_mod 
+USE wink_mod
 !                                                                       
-      USE prompt_mod 
-      USE precision_mod 
-      USE trig_degree_mod
-      IMPLICIT none 
+USE prompt_mod 
+USE precision_mod 
+USE trig_degree_mod
+IMPLICIT none 
 !                                                                       
-      REAL,    INTENT(IN)  :: udist(3)
-      INTEGER, INTENT(IN)  :: cr_nscat_temp
-      LOGICAL, INTENT(IN)  :: do_mol      ! Molecules with Biso /= 0.0
-      INTEGER, INTENT(IN)  :: powder_nmol ! Number of look up dimensions molecules
+REAL,    INTENT(IN)  :: udist(3)
+INTEGER, INTENT(IN)  :: cr_nscat_temp
+LOGICAL, INTENT(IN)  :: do_mol      ! Molecules with Biso /= 0.0
+INTEGER, INTENT(IN)  :: powder_nmol ! Number of look up dimensions molecules
 !                                                                       
-      INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
-      INTEGER ibin 
-      INTEGER j, k, l , il
-      INTEGER i, iscat, jscat 
-      INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
-      INTEGER                :: n_hist
-      INTEGER                :: n_qxy   = 1
-      INTEGER                :: n_nscat = 1
-      INTEGER                :: n_natom = 1
-      INTEGER                :: nlook_mol   ! Number of look up dimensions molecules
-      INTEGER                :: islook      ! Actual molecule look up number
-      INTEGER, DIMENSION(:,:), ALLOCATABLE :: powder_look_mol
-      REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_bvalue_mole
-      REAL   , DIMENSION(:,:), ALLOCATABLE :: pow_dw
-      REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
-      INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: histogram
-      INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
-      REAL                   :: distance
-      REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
-      REAL ss, st
-      REAL                   :: shift
-      REAL u (3), v (3) 
-      REAL (KIND=PREC_DP) :: arg 
+INTEGER, DIMENSION(0:cr_nscat_temp) :: natom ! (0:MAXSCAT) 
+INTEGER ibin 
+INTEGER j, k, l , il
+INTEGER i, iscat, jscat 
+INTEGER(KIND=PREC_INT_LARGE) :: iarg, iadd 
+INTEGER                :: n_hist
+INTEGER                :: n_srch         ! Actual MAXHIST 
+INTEGER                :: n_qxy   = 1
+INTEGER                :: n_nscat = 1
+INTEGER                :: n_natom = 1
+INTEGER                :: nmol_type = 0
+INTEGER                :: nlook_mol   ! Number of look up dimensions molecules
+INTEGER                :: islook      ! Actual molecule look up number
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: is_look          ! Inverse lookup for atoms
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: powder_look_mol
+REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_bvalue_mole
+REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_clin_mole
+REAL   , DIMENSION(:)  , ALLOCATABLE :: powder_cqua_mole
+REAL   , DIMENSION(:,:), ALLOCATABLE :: pow_dw
+REAL   , DIMENSION(:,:,:), ALLOCATABLE :: partial
+REAL(KIND=PREC_DP), DIMENSION(:,:,:), ALLOCATABLE :: histogram
+INTEGER, DIMENSION(:,:  ), ALLOCATABLE :: look
+REAL(KIND=PREC_DP) :: deltar    = 0.0D0
+REAL(KIND=PREC_SP) :: qbroad    = 0.0E0
+REAL(KIND=PREC_SP) :: cquad_a   = 0.0E0
+REAL(KIND=PREC_SP) :: clin_a    = 0.0E0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: cquad_m  = 0.0D0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: clin_m   = 0.0D0
+REAL(KIND=PREC_SP), DIMENSION(0:0) :: bval_mol = 0.0D0
+REAL                   :: distance
+REAL (PREC_DP) :: xstart, xdelta   ! start/step in dstar for sinthea/lambda table
+REAL ss, st
+REAL                   :: shift
+REAL u (3), v (3) 
+REAL (KIND=PREC_DP) :: arg 
 !                                                                       
-      INTEGER IAND 
+INTEGER IAND 
 !     REAL sind 
-      REAL seknds 
+REAL seknds 
 !                                                                       
-      n_qxy   = 1
-      n_nscat = 1
-      n_natom = 1
-      ier_num = 0 
+n_qxy   = 1
+n_nscat = 1
+n_natom = 1
+ier_num = 0 
 !                                                                       
 !------ preset some values                                              
 !                                                                       
-      num (1) = 1021 
-      num (2) = 1 
+num(1) = 1021 
+num(2) = 1 
 !------ Reset arrays
-      u     = 0.0 
-      v     = 0.0 
-      xm    = 0.0 
-      uin   = 0.0 
-      vin   = 0.0 
+u     = 0.0 
+v     = 0.0 
+xm    = 0.0 
+uin   = 0.0 
+vin   = 0.0 
 !
-      IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
-         CONTINUE 
-      ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-         u (1) = 1.00 
-         xm (1) = pow_qmin / REAL(zpi) 
-         ss = pow_qmax / REAL(zpi) 
-         st = (pow_qmax - pow_deltaq) / REAL(zpi) 
-         uin (1) = pow_deltaq / REAL(zpi) 
-         num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-      ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-         u (1) = 1.00 
-         xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-         ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
-         st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
-         uin (1) = (ss - st) / 2. 
-         num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
-      ENDIF 
+IF (pow_axis.eq.POW_AXIS_DSTAR) THEN 
+   CONTINUE 
+ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
+   u (1) = 1.00 
+   xm (1) = pow_qmin / REAL(zpi) 
+   ss = pow_qmax / REAL(zpi) 
+   st = (pow_qmax - pow_deltaq) / REAL(zpi) 
+   uin (1) = pow_deltaq / REAL(zpi) 
+   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+   u (1) = 1.00 
+   xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
+   ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
+   st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
+   uin (1) = (ss - st) / 2. 
+   num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
+ENDIF 
 !
 !     Lay out look_up table for molecule entries
 !
-      IF(ALLOCATED(powder_look_mol)) DEALLOCATE(powder_look_mol)
-      ALLOCATE(powder_look_mol(0:mole_num_type,0:mole_num_type))
-      IF(ALLOCATED(powder_bvalue_mole)) DEALLOCATE(powder_bvalue_mole)
-      ALLOCATE(powder_bvalue_mole(0:powder_nmol))
-      powder_look_mol    = 0
-      powder_bvalue_mole = 0.0
-      nlook_mol          = 0
-      IF(powder_nmol>0) THEN    ! Non-zero molecular bvalues
-         DO i=1,mole_num_type   ! First part biso for single molecule
-            powder_look_mol(0,i) = i
-            powder_look_mol(i,0) = i
-            powder_bvalue_mole(i) = mole_biso(i)
-         ENDDO
-         nlook_mol = mole_num_type
-         DO i=1,mole_num_type   !Second part biso for two molecules
-            DO j = i,mole_num_type
-               nlook_mol            = nlook_mol + 1
-               powder_look_mol(i,j) = nlook_mol
-               powder_look_mol(j,i) = nlook_mol
-               powder_bvalue_mole(nlook_mol) = mole_biso(i) + mole_biso(j)
-            ENDDO
-         ENDDO
-      ENDIF
+IF(ALLOCATED(powder_look_mol)) DEALLOCATE(powder_look_mol)
+ALLOCATE(powder_look_mol(0:mole_num_type,0:mole_num_type))
+IF(ALLOCATED(powder_bvalue_mole)) DEALLOCATE(powder_bvalue_mole)
+ALLOCATE(powder_bvalue_mole(0:powder_nmol))
+IF(ALLOCATED(powder_clin_mole)) DEALLOCATE(powder_clin_mole)
+ALLOCATE(powder_clin_mole(0:powder_nmol))
+IF(ALLOCATED(powder_cqua_mole)) DEALLOCATE(powder_cqua_mole)
+ALLOCATE(powder_cqua_mole(0:powder_nmol))
+powder_look_mol    = 0
+powder_bvalue_mole = 0.0
+powder_clin_mole   = 0.0
+powder_cqua_mole   = 0.0
+nlook_mol          = 0
+IF(powder_nmol>0) THEN    ! Non-zero molecular bvalues
+   DO i=1,mole_num_type   ! First part biso for single molecule
+      powder_look_mol(0,i) = i
+      powder_look_mol(i,0) = i
+      powder_bvalue_mole(i) = mole_biso(i)
+   ENDDO
+   nlook_mol = mole_num_type
+   DO i=1,mole_num_type   !Second part biso for two molecules
+      DO j = i,mole_num_type
+         nlook_mol            = nlook_mol + 1
+         powder_look_mol(i,j) = nlook_mol
+         powder_look_mol(j,i) = nlook_mol
+         powder_bvalue_mole(nlook_mol) = mole_biso(i) + mole_biso(j)
+         powder_clin_mole(nlook_mol)   = mole_biso(i) + mole_biso(j)
+         powder_cqua_mole(nlook_mol)   = mole_biso(i) + mole_biso(j)
+      ENDDO
+   ENDDO
+ENDIF
 !
 !    Allocate arrays
 !
-      n_qxy    = num (1) * num (2) + 1
-      distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
-      n_hist   = nint(distance/pow_del_hist) + 2
-      n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
-      n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
-      n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
-      IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
-          num (1) * num (2) .gt. MAXDQXY .OR.          &
-          cr_nscat>DIF_MAXSCAT              ) THEN
-         CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
-      ENDIF
-      CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
+n_qxy    = num (1) * num (2) + 1
+distance = sqrt(udist(1)**2+udist(2)**2+udist(3)**2)
+n_hist   = nint(distance/pow_del_hist) + 2
+n_qxy   = MAX(n_qxy,num(1) * num(2),MAXQXY,MAXDQXY)
+n_nscat = MAX(n_nscat,cr_nscat,DIF_MAXSCAT)
+n_natom = MAX(n_natom,cr_natoms,DIF_MAXAT)
+IF (num (1) * num (2) .gt. MAXQXY  .OR.          &
+    num (1) * num (2) .gt. MAXDQXY .OR.          &
+    cr_nscat>DIF_MAXSCAT              ) THEN
+   CALL alloc_diffuse (n_qxy,  n_nscat,  n_natom )
+ENDIF
+CALL alloc_debye  (cr_nscat, n_hist, n_qxy, MASK )
 !
-      CALL alloc_powder (n_qxy                   )
-      IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
-      ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
-      pow_dw = 1.0
-      IF(do_mol) THEN   ! If necessary calc Debye Waller terms for molecules
-        CALL powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
-      ENDIF
+CALL alloc_powder (n_qxy                   )
+IF(ALLOCATED(pow_dw)) DEALLOCATE(pow_dw)
+ALLOCATE(pow_dw(0:CFPKT, 0:nlook_mol))
+pow_dw = 1.0
+IF(do_mol) THEN   ! If necessary calc Debye Waller terms for molecules
+  CALL powder_dwmoltab (nlook_mol, pow_dw, powder_bvalue_mole)
+ENDIF
 !                                                                       
 !     prepare loopuptable for atom types
 !                                                                       
-      ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
-      look  = 0
-      nlook = 0 
-      DO i = 1, cr_nscat 
-      DO j = i, cr_nscat 
+ALLOCATE(look     (1:cr_nscat,1:cr_nscat))
+look  = 0
+nlook = 0 
+DO i = 1, cr_nscat 
+   DO j = i, cr_nscat 
       nlook = nlook + 1 
       look (i, j) = nlook 
       look (j, i) = nlook 
-      ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
+ALLOCATE(is_look  (1:2,1:nlook))
+k=0
+DO i = 1, cr_nscat 
+   DO j = i, cr_nscat
+      k = k + 1 
+      is_look(1,k) = i      ! Compile inverse lookup table
+      is_look(2,k) = j
+   ENDDO 
+ENDDO 
 !
-      ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:nlook_mol))
-      ALLOCATE(histogram(0:n_hist       ,1:nlook,0:nlook_mol))
+ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:nlook_mol))
+ALLOCATE(histogram(0:n_hist       ,1:nlook,0:nlook_mol))
 !                                                                       
 !------ zero some arrays                                                
 !                                                                       
-      partial   = 0.0D0
-      rsf       = 0.0D0
-      histogram = 0 
-      natom     = 0 
+partial   = 0.0D0
+rsf       = 0.0D0
+histogram = 0.0D0
+natom     = 0 
 !                                                                       
 !------ preset some tables, calculate average structure                 
 !                                                                       
-      pow_npkt = n_qxy    ! set actual number of powder data points
-      CALL powder_sinet 
-      IF(pow_axis == POW_AXIS_Q ) THEN
-         xstart = pow_qmin  /zpi
-         xdelta = pow_deltaq/zpi
-         CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-      ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-         CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-      ENDIF
-      IF (ier_num.ne.0) return 
-      CALL four_formtab 
+pow_npkt = n_qxy    ! set actual number of powder data points
+CALL powder_sinet 
+IF(pow_axis == POW_AXIS_Q ) THEN
+   xstart = pow_qmin  /zpi
+   xdelta = pow_deltaq/zpi
+   CALL powder_stltab(n_qxy, xstart  ,xdelta    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+   CALL powder_stltab(n_qxy, xm(1)   ,uin(1)    )   ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+ENDIF
+IF (ier_num.ne.0) RETURN 
+CALL four_formtab 
 !
-      WRITE (output_io, * ) ' Starting histogram'
-      ss = seknds (0.0) 
+WRITE (output_io, * ) ' Starting histogram'
+ss = seknds (0.0) 
 !
 !                                                                       
 !     loop over all atoms                                               
@@ -674,78 +717,109 @@ SUBROUTINE powder_debye_hist_cart_mole(udist, cr_nscat_temp, &
 !     Omitting the SQRT only saves a little, as do the local variables
 !     The if(iscat) do not cause much compute time
 
-      shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
-      DO j = 1, cr_natoms - 1
-         jscat = cr_iscat(j) 
-         IF (jscat.gt.0) THEN 
-            u(1) = cr_pos(1,j) 
-            u(2) = cr_pos(2,j) 
-            u(3) = cr_pos(3,j) 
+shift = 0.5*pow_del_hist   ! Shift in blen position to avoid NINT function
+DO j = 1, cr_natoms - 1
+   jscat = cr_iscat(j) 
+   IF (jscat.gt.0) THEN 
+      u(1) = cr_pos(1,j) 
+      u(2) = cr_pos(2,j) 
+      u(3) = cr_pos(3,j) 
 !                                                                       
 !     --- get info on relative amount of atoms                          
 !                                                                       
-         natom (jscat) = natom (jscat) + 1 
+      natom (jscat) = natom (jscat) + 1 
 !                                                                       
 !------ --- loop over all different atom types                          
 !                                                                       
-         DO l = j + 1, cr_natoms 
-            iscat = cr_iscat (l) 
-            IF (iscat.gt.0) THEN 
-              IF(cr_mole(j )==cr_mole(l)) THEN
-                 islook = 0   ! Atoms are within the same molecule
-              ELSE
-                 islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
-              ENDIF
-              v (1) = cr_pos (1, l) - u (1) 
-              v (2) = cr_pos (2, l) - u (2) 
-              v (3) = cr_pos (3, l) - u (3) 
+      DO l = j + 1, cr_natoms 
+         iscat = cr_iscat (l) 
+         IF (iscat.gt.0) THEN 
+           IF(cr_mole(j )==cr_mole(l)) THEN
+              islook = 0   ! Atoms are within the same molecule
+           ELSE
+              islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
+           ENDIF
+           v(1) = cr_pos(1, l) - u(1) 
+           v(2) = cr_pos(2, l) - u(2) 
+           v(3) = cr_pos(3, l) - u(3) 
 
 !              ibin = nint (sqrt (v (1) **2 + v (2) **2 + v (3) **2)/ pow_del_hist)
-               ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
-               histogram (ibin, look (jscat, iscat),islook ) = &
-               histogram (ibin, look (jscat, iscat),islook ) + 1
-               IF(ier_ctrlc) THEN
-                  ier_num = -14
-                  ier_typ = ER_COMM
-                  RETURN
-               ENDIF
-               IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
-            ENDIF 
-         ENDDO 
+            ibin =   int((sqrt (v (1) **2 + v (2) **2 + v (3) **2)+shift)/ pow_del_hist)
+            histogram(ibin, look(jscat, iscat), islook ) = &
+            histogram(ibin, look(jscat, iscat), islook ) + 1.0D0
+            IF(ier_ctrlc) THEN
+               ier_num = -14
+               ier_typ = ER_COMM
+               RETURN
+            ENDIF
+            IF(ier_num/=0) RETURN      ! An error occured or CTRL-C
          ENDIF 
       ENDDO 
+   ENDIF 
+ENDDO 
 !
 !     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
 !
-      i= 0
-      DO j=1,nlook
-         i = MAX(i, histogram(0,j,0))
+i= 0
+DO j=1,nlook
+   i = MAX(DBLE(i), histogram(0,j,0))
+ENDDO
+IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
+   ier_num = -123
+   ier_typ = ER_APPL
+   DEALLOCATE(look)
+   DEALLOCATE(partial)
+   DEALLOCATE(histogram)
+   RETURN
+ENDIF
+!
+n_srch = MAXHIST               ! Find longest occupied entry in histogram
+srch: DO l=MAXHIST, 1, -1
+   DO j=1,nlook
+      DO k=1,nlook_mol
+         IF(histogram(l,j,k) >0.0D0) THEN
+            write(*,*) ' LONGEST DISTANCE ', l, MAXHIST
+            n_srch = l             ! Limit convolution / Fourier range
+            EXIT srch
+         ENDIF
       ENDDO
-      IF(i > 0) THEN    ! Entries in histogram(0,*) exist, flag Error
-         ier_num = -123
-         ier_typ = ER_APPL
-         DEALLOCATE(look)
-         DEALLOCATE(partial)
-         DEALLOCATE(histogram)
-         RETURN
-      ENDIF
+   ENDDO
+ENDDO  srch
+!
+deb_conv = .FALSE.
+
+qbroad  = pdf_qalp
+cquad_a = pdf_cquad_a
+clin_a  = pdf_clin_a
+IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
+IF(deb_conv) THEN
+   cquad_m(:) = 0.0D0
+   clin_m(:)  = 0.0D0
+   nmol_type = 0
+   bval_mol(:) = 0
+   deltar = DBLE(pow_del_hist)
+write(*,*) ' WITH CONVOLUTION ', qbroad, cquad_a, clin_a
+   CALL pow_pdf_convtherm(n_hist, nlook, nlook_mol, n_srch, histogram, is_look, &
+              deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
+              bval_mol )
+ENDIF
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
-      DO i = 1, nlook 
-      DO j = 1, MAXHIST 
-         DO il=0,nlook_mol
-         IF (histogram (j, i,il) .gt.0) THEN 
-         DO k = 1, num (1) * num (2) 
-         arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
-         iarg = int( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
-         iadd = IAND (iarg, MASK) 
-         partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
-         ENDDO 
+DO i = 1, nlook 
+   DO j = 1, MAXHIST 
+      DO il=0,nlook_mol
+         IF (histogram (j, i,il) .gt.0.0D0) THEN 
+            DO k = 1, num (1) * num (2) 
+               arg  = zpi *DBLE((j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) )
+               iarg = INT( (j * pow_del_hist) * (xm (1) + (k - 1) * uin (1) ) * I2PI )
+               iadd = IAND (iarg, MASK) 
+               partial(k,i,il) = partial(k,i,il) + REAL(DBLE(histogram(j,i,il)) * sinetab(iadd)/arg)
+            ENDDO 
          ENDIF 
-         ENDDO 
       ENDDO 
-      ENDDO 
+   ENDDO 
+ENDDO 
 !
 !                                                                       
 !------ Multiply the partial structure factors with form factors,add    
@@ -785,7 +859,8 @@ END SUBROUTINE powder_debye_hist_cart_mole
 !
 !*******************************************************************************
 !
-SUBROUTINE pow_pdf_convtherm(nhist, nlook, nlook_mol, histogram, is_look, &
+SUBROUTINE pow_pdf_convtherm(nhist, nlook, nlook_mol, nsrch, histogram,   &
+           is_look, &
            deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,   &
            bval_mol )
 !
@@ -806,6 +881,7 @@ IMPLICIT NONE
 INTEGER                        , INTENT(IN) :: nhist     ! Histogram length
 INTEGER                        , INTENT(IN) :: nlook     ! No of atoms tpye lookup entries
 INTEGER                        , INTENT(IN) :: nlook_mol ! No of molecule lookup entries
+INTEGER                        , INTENT(INOUT) :: nsrch     ! Actual occupied Histogram length
 REAL(KIND=PREC_DP), DIMENSION(0:nhist, 1:nlook, 0:nlook_mol), INTENT(INOUT) :: histogram
 INTEGER,DIMENSION(1:2, 1:nlook), INTENT(IN) :: is_look
 REAL(KIND=PREC_DP)             , INTENT(IN) :: deltar    ! Real space step width
@@ -853,7 +929,7 @@ im = 0
 loop_look: DO il= 1,nlook    ! Loop over all atom pairs
    is = is_look(1,il)
    js = is_look(2,il)
-   bins: DO ibin=1, nhist    ! Loop over all points in histogram
+   bins: DO ibin=1, nsrch    ! Loop over all occupied points in histogram
       zero: IF(histogram(ibin, il, im)>0) THEN   ! Only if pairs are present at this distance
          dist  = ibin*deltar
          dist2 = dist*dist
@@ -890,6 +966,16 @@ DO ibin=0,nhist
       ENDDO
    ENDDO
 ENDDO
+srch: DO ibin=nhist,nsrch, -1
+   DO il= 1,nlook
+      DO im=0,nlook_mol
+         IF(histogram(ibin,il, im) > 0.0) THEN
+            nsrch = ibin
+            EXIT srch
+        ENDif
+      ENDDO
+   ENDDO
+ENDDO srch
 !rite(*,*) ' DELTAR ', deltar, gauss_step
 !
 DEALLOCATE(corr)
