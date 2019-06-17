@@ -724,7 +724,6 @@ USE precision_mod
       INTEGER                :: new_nscat  = 1
       LOGICAL                :: need_alloc = .false.
       LOGICAL                :: lda 
-real dummy
 !                                                                       
 !
 !     While developing, increment crystal if needed, but keep the check
