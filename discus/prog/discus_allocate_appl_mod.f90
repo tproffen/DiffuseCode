@@ -2815,7 +2815,7 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_scat,1,9,0,n_scat,  all_status, 0.0, size_of)
+      CALL alloc_arr ( st_scat,1,11,0,n_scat,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
@@ -2843,15 +2843,11 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_iscat,       1,n_scat,  all_status, 0  , size_of)
+      CALL alloc_arr ( st_mole ,       1,n_max,   all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( st_mole ,       1,n_scat,  all_status, 0  , size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
-!
-      CALL alloc_arr ( st_surf ,0, 3,  1,n_scat,  all_status, 0  , size_of)
+      CALL alloc_arr ( st_surf ,0, 3,  1,n_max ,  all_status, 0  , size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
@@ -2875,15 +2871,11 @@ END SUBROUTINE alloc_demol
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_prop       ,1,n_max ,  all_status, 0, size_of)
-      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
-      st_cr_size_of = st_cr_size_of + size_of
-!
       CALL alloc_arr ( st_pos,1,3,1,n_max ,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
-      CALL alloc_arr ( sa_pos,1,3,1,n_max ,  all_status, 0.0, size_of)
+      CALL alloc_arr ( sa_pos,1,3,1,n_scat,  all_status, 0.0, size_of)
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       st_cr_size_of = st_cr_size_of + size_of
 !
