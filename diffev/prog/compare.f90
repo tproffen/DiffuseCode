@@ -356,6 +356,7 @@ list_index(:) = 0
    USE prompt_mod
    USE random_mod
    USE terminal_mod
+!
 !                                                                       
    IMPLICIT none 
 !
@@ -434,6 +435,16 @@ list_index(:) = 0
             IF(IS_IOSTAT_END(iostatus)) THEN 
                isuccess = -13
                EXIT get_params
+            ELSEIF(iostatus/=0 .OR. ISNAN(parent_val (j,0)) .OR. ISNAN(pop_x (i, j)) ) THEN
+               isuccess= -13
+               ier_num = -13
+               ier_typ = ER_APPL
+               WRITE(error_io,'(a,a)') ' ***APPL*** ',fname(1:LEN_TRIM(fname))
+               WRITE(error_io,'(a)')   ' ***APPL*** Generation,    member,     child'
+               WRITE(error_io,'(a  ,3(2x,I9))') ' ***APPL***',pop_gen-1,i,j
+               WRITE(error_io,'(a,2(2x,G16.10E2))') ' ***APPL*** ',parent_val(j,0), pop_x(i,j)
+               CLOSE(iwr)
+               RETURN
             ENDIF
          ENDDO get_params
          IF(isuccess == -13) THEN   ! Premature END of FILE assume population has increased
@@ -479,6 +490,15 @@ list_index(:) = 0
             IF(IS_IOSTAT_END(iostatus)) THEN 
                isuccess = -13
                EXIT get_params_k
+            ELSEIF(iostatus/=0 .OR. ISNAN(parent_val (j,k))) THEN
+               ier_num = -37
+               ier_typ = ER_APPL
+               WRITE(error_io,'(a,a)') ' ***APPL*** ',fname(1:LEN_TRIM(fname))
+               WRITE(error_io,'(a)')   ' ***APPL*** Generation,    member,     child'
+               WRITE(error_io,'(a  ,3(2x,I9))') ' ***APPL***',pop_gen-1,i,j
+               WRITE(error_io,'(a, (2x,G16.10E2))') ' ***APPL*** ',parent_val(j,k)
+               CLOSE(iwr)
+               RETURN
             ENDIF
          ENDDO get_params_k
          IF(isuccess == -13) THEN   ! Premature END of FILE assume population has increased
@@ -493,6 +513,7 @@ list_index(:) = 0
 !                                                                       
       best  = parent_val (1,0) + 1.0 
       worst = parent_val (1,0) - 1.0 
+               WRITE(error_io,'(10x,3(2x,I9))') pop_gen-1,i,j
       DO j = 1, pop_n 
          IF (parent_val (j,0) .lt.best) THEN 
             best     = parent_val(j,0)
@@ -536,6 +557,7 @@ list_index(:) = 0
       CLOSE (iwr) 
          IF ( iostatus /= 0) THEN
             ier_num = -12
+               WRITE(error_io,'(10x,3(2x,I9))') pop_gen-1,i,j
             ier_typ = ER_APPL
             ier_msg(1) = 'Error while reading'
             WRITE (ier_msg(2),2000) j

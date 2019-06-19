@@ -9,11 +9,12 @@ SUBROUTINE diffev_errlist_appl
 !
 !
       INTEGER       iu,io
-      PARAMETER    (IU=-36,IO=0)
+      PARAMETER    (IU=-37,IO=0)
 !
       CHARACTER(LEN=45) ERROR(IU:IO)
 !
       DATA ERROR ( IU:-21) /                                            &
+     &  'Error reading partial Rvlaues',                                & !-37  ! diffev
      &  'Generation number exceeds current value',                      & !-36  ! diffev
      &  'GENERATION file does not exist',                               & !-35  ! diffev
      &  'THe ""range"" parameter is required',                          & !-34  ! diffev
