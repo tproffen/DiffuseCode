@@ -722,7 +722,7 @@ list_index(:) = 0
       ENDIF 
 !
       line = ' ' 
-      WRITE (line (1:4), 4000) pop_gen 
+      WRITE (line (1:7), 4000) pop_gen 
       i    = 1 
       pave = 0.0 
       psig = 0.0 
@@ -749,8 +749,8 @@ list_index(:) = 0
             psig = sqrt (abs (arg) ) 
       ENDIF 
 !
-      i1 = 5 + (i - 1) * 72 
-      i2 = 5 + (i - 1) * 72 + 71 
+      i1 = 8 + (i - 1) * 72 
+      i2 = 8 + (i - 1) * 72 + 71 
       WRITE (line (i1:i2), 4100) pave, pmin, pmax, psig
       WRITE (iwr, 4200) line (1:i2) 
       CLOSE (IWR)
@@ -782,8 +782,11 @@ list_index(:) = 0
       ELSE 
          psig = sqrt (abs (arg) ) 
       ENDIF 
-      i1 =  5
-      i2 =  5 + 71 
+!
+      line = ' ' 
+      WRITE (line (1:7), 4000) pop_gen 
+      i1 =  8
+      i2 =  8 + 71 
       WRITE (line (i1:i2), 4100) pave, pmin, pmax, psig 
       WRITE (iwr, 4200) line (1:i2) 
       CLOSE (iwr) 
@@ -822,7 +825,7 @@ list_index(:) = 0
 !    2100 FORMAT (i5,' = Member     Number ',i5) 
 !    3000 FORMAT (2x,e18.10) 
 !    5000 FORMAT (2x,i5,2x,e18.10) 
-    4000 FORMAT (i4) 
+    4000 FORMAT (i7) 
     4100 FORMAT (4(1x,e17.10)) 
     4200 FORMAT (a) 
 !                                                                       
