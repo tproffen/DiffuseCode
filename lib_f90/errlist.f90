@@ -207,12 +207,13 @@ SUBROUTINE errlist
        IMPLICIT      NONE
 !
 !
-       INTEGER, PARAMETER :: iu = -48
+       INTEGER, PARAMETER :: iu = -49
        INTEGER, PARAMETER :: io =   1
 !
        CHARACTER(LEN=45)  ERROR(IU:IO)
 !
        DATA ERROR ( iu:-41) /                       &
+     &  'Value is Nan',                             & !-49  ! fortran
      &  'Parameters must be matrix variables',      & !-48  ! fortran
      &  'INVMAT only implemented for dimension <=4',& !-47  ! fortran
      &  'Input variable is not a matrix',           & !-46  ! fortran
