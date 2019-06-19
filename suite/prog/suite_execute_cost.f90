@@ -269,17 +269,30 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       CALL kuplot_loop ()
    ENDIF
 !
+   mpi_slave_error = ier_num
    CALL macro_close_mpi(mac, mac_l)
+   IF(ier_num /= 0) mpi_slave_error = ier_num
 !
    IF(rvalue_yes) THEN    ! We got an r-value
       l_rvalue = .true.
       n_rvalue_o = 1
       rvalue(0)= rvalues(2,0)
+      IF(ISNAN(rvalues(2,0))) THEN
+         ier_num = -49
+         ier_typ = ER_FORT
+      ENDIF
       n_rvalue_o = 0
       IF(nrvalues == n_rvalue_i) THEN
          rvalue(1:n_rvalue_i) = rvalues(2,1:n_rvalue_i)
          n_rvalue_o = nrvalues
       ENDIF
+      DO i =0, n_rvalue_i
+         IF(ISNAN(rvalue(i))) THEN
+            ier_num = -49
+            ier_typ = ER_FORT
+         ENDIF
+      ENDDO
+      IF(ier_num /= 0) mpi_slave_error = ier_num
    ENDIF
 ELSE
    mpi_slave_error = ier_num
