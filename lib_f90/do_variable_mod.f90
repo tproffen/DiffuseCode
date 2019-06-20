@@ -469,7 +469,6 @@ INTEGER :: i, ii
 INTEGER :: length
 LOGICAL :: lok 
 !                                                                       
-write(*,*) ' IN VALIDATE ', zeile(1:lp)
 !                                                                       
 ier_num = 0 
 ier_typ = ER_NONE 
