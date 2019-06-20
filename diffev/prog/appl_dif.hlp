@@ -19,6 +19,18 @@
    Further help topics are:
 
 2  News
+3  2019_Jun
+
+   If a slave process terminates with an error message, a new macro
+   is written that is essentially identical to "diffev_best.mac".
+   This macro called "diffev_error.NNNN.NNNN.mac", where "NNNN.NNNN"
+   are the REF_KID and REF_INDIV number of the slave process that failed.
+   If this macro is run in a regular DISCUS_SUITE session it will 
+   recreate the error with exactly the same parameters and random numbers 
+   as the failed slave. 
+
+   A bug was fixed in the handling of the random state for
+   "diffev_best.mac". The random state is now recored exaclty.
 3  2019_Jan
 
    Improved the writing of the diffev_best.mac macro. 
