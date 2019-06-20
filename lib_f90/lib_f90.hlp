@@ -24,6 +24,10 @@
 3  News
 
    Here you find a list of recent changes, additions, bug corrections
+4  2019_June
+
+   Modified the test for valid user defined variable names to 
+   include a test on all sections.
 4  2019_May
 
    Added a possibility to stop a macro at a 'wait return'
