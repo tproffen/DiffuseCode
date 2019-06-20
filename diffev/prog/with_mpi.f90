@@ -447,6 +447,7 @@ rec_hand: DO   ! i = 1, num_hand
 !
    sender = run_mpi_status(MPI_SOURCE)     ! Identify the slave
    IF(run_mpi_senddata%ierr /=0 ) THEN
+      CALL diffev_error_macro              ! Write a recovery macro
       ier_msg(1) = 'A slave program exited with error message'
       WRITE(ier_msg(2), 2000)  sender, ier_num
       ier_num = -26

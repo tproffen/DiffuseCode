@@ -219,7 +219,7 @@ IF(write_random_state) THEN
    WRITE(IWR,'(a)') '#      ! Each macro on run_mpi command must have an exit to suite as well'
    WRITE(IWR,'(a)') '#      ! Each macro is preceeded with a command that steps into the section'
    WRITE(IWR,'(a)') '#'
-   DO nn = 1, random_n
+   DO nn = 1, MIN(1,random_n)
       IF(random_repeat(nn)) THEN
          WRITE(IWR,'(a)') 'do REF_INDIV=1,REF_NINDIV'
          WRITE(IWR,'(a,a)'   ) '  ',random_prog(nn)(1:LEN_TRIM(random_prog(nn)))
@@ -242,6 +242,160 @@ ENDIF
 CALL diffev_random_write_off    ! Turn off documentation
 !
 END SUBROUTINE diffev_best_macro
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+SUBROUTINE diffev_error_macro
+!
+USE population
+USE run_mpi_mod
+!
+USE errlist_mod
+USE random_state_mod
+!
+IMPLICIT NONE
+!
+INTEGER, PARAMETER :: IWR = 88
+!
+CHARACTER(LEN=40) :: macro_file = 'diffev_error.0000.0000.mac'
+CHARACTER(LEN=1024) :: line
+CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/null'
+CHARACTER(LEN=1024) :: message
+INTEGER            , PARAMETER :: lstring = 39
+INTEGER :: exit_msg
+INTEGER :: i, i1, ir1, ir2, ir3, nn
+INTEGER :: nseed_run    ! Actual number of seed used by compiler
+LOGICAL, SAVE :: l_test     = .TRUE.
+LOGICAL, SAVE :: l_ref_para = .FALSE.
+!
+CALL diffev_random_write_on(run_mpi_senddata%prog, run_mpi_senddata%prog_l,  &
+     run_mpi_senddata%mac, run_mpi_senddata%mac_l, run_mpi_senddata%repeat)
+!
+WRITE(macro_file, '(a,I4.4,a,i4.4,a)') 'diffev_error.',run_mpi_senddata%kid, '.', &
+     run_mpi_senddata%indiv, '.mac'
+!
+IF(l_test) THEN     ! Need to test for ref_para in macros
+   CALL EXECUTE_COMMAND_LINE(string(1:lstring), CMDSTAT=ier_num, &
+                             CMDMSG=message, EXITSTAT=exit_msg  )
+   IF(exit_msg == 0) l_ref_para = .TRUE.   ! string "ref_para" was found
+   l_test = .FALSE.                        ! no more need to test
+ENDIF
+!
+nseed_run = run_mpi_senddata%nseeds
+random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on compiler ???
+!IF(write_random_state) THEN
+   CALL oeffne(IWR, macro_file, 'unknown')
+!
+   WRITE(IWR,'(a)') 'discus'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
+   WRITE(IWR,'(a)') 'kuplot'
+   WRITE(IWR,'(a)') 'reset'
+   WRITE(IWR,'(a)') 'exit'
+   WRITE(IWR,'(a,a)') run_mpi_senddata%prog(1:LEN_TRIM(run_mpi_senddata%prog)), '   ! temporarily step into section'
+   WRITE(IWR,'(a)') '#@ HEADER'
+   WRITE(IWR,'(a,I4.4,a,i4.4,a)') '#@ NAME         diffev_error.',run_mpi_senddata%kid, '.', run_mpi_senddata%indiv,'.mac'
+   WRITE(IWR,'(a)') '#@ '
+   WRITE(IWR,'(a)') '#@ KEYWORD      diffev, erroneous member, initialize'
+   WRITE(IWR,'(a)') '#@ '
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  This macro contains the parameters for the current kid,'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  indiv combination that caused an error during slave   ,'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  If run, the erroneous member will be recreated.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  As the random state is explicitely contained as well, the'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  erroneous member will be recreated exactly.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  This macro uses the original macro on the run_mpi command'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  line. Make sure to turn on writing of desired output files.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  Each of the macros on a run_mpi line must have an ''exit'' '
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  command, which returns to the suite level.'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  As the run_mpi command internally switches to the correct'
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  section, the switch is done here with preceding the macro call '
+   WRITE(IWR,'(a)') '#@ DESCRIPTION  with the proper ''discus'' or ''kuplot'' command.'
+   WRITE(IWR,'(a)') '#@'
+   WRITE(IWR,'(a)') '#@ PARAMETER    $0, 0'
+   WRITE(IWR,'(a)') '#@'
+   WRITE(IWR,'(a,I4.4,a,i4.4,a)') '#@ USAGE        @diffev_error',run_mpi_senddata%kid, '.', run_mpi_senddata%indiv,'.mac'
+   WRITE(IWR,'(a)') '#@'
+   WRITE(IWR,'(a)') '#@ END'
+   WRITE(IWR,'(a)') '#'
+   WRITE(IWR,'(a,i12)') 'REF_GENERATION = ',pop_gen
+   WRITE(IWR,'(a,i12)') 'REF_MEMBER     = ',pop_n
+   WRITE(IWR,'(a,i12)') 'REF_CHILDREN   = ',pop_c
+   WRITE(IWR,'(a,i12)') 'REF_DIMENSION  = ',pop_dimx
+   WRITE(IWR,'(a,i12)') 'REF_NINDIV     = ',run_mpi_senddata%nindiv
+   WRITE(IWR,'(a,i12)') 'REF_KID        = ',run_mpi_senddata%kid
+   WRITE(IWR,'(a,i12)') 'REF_INDIV      = ',run_mpi_senddata%indiv
+   DO i=0,pop_dimx
+      WRITE(IWR,'(A,A)') 'variable real, ', pop_name(i)
+   ENDDO
+   WRITE(IWR,'(A,       A,E17.10)') pop_name(0),      ' = ',run_mpi_senddata%rvalue(0)
+   DO i=1,pop_dimx
+      WRITE(IWR,'(A,       A,E17.10)') pop_name(i),      ' = ',run_mpi_senddata%trial_values(i)
+!     WRITE(IWR,'(A,I12,A,E17.10)') 'ref_para[',i,'] = ',child(i,pop_best)
+   ENDDO
+   IF(l_ref_para) THEN
+      WRITE(IWR,'(A,i4,    A,E17.10)') 'ref_para[',0,']   = ',run_mpi_senddata%rvalue(0)
+      DO i=1,pop_dimx
+         WRITE(IWR,'(A,i4,    A,E17.10)') 'ref_para[',i,']   = ',run_mpi_senddata%trial_values(i)
+      ENDDO
+   ENDIF
+!
+!  IF(random_nseed>0) THEN
+!     line = ' '
+!     line(1:5) = 'seed '
+!     DO i=1, random_nseed - 1
+!        i1 = 6 + (i-1)*10
+!        WRITE(line(i1:i1+9),'(I8,A2)') random_best(i),', '
+!     ENDDO
+!     i = random_nseed
+!     i1 = 6 + (i-1)*10
+!     WRITE(line(i1:i1+7),'(I8)') random_best(i)
+!     WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
+!  ENDIF
+!
+   IF(random_nseed>0) THEN
+      line = ' '
+      line(1:5) = 'seed '
+      i1 = 6
+      DO i=1, random_nseed 
+         i1 = 6 + (i-1)*17
+         ir1 =              run_mpi_senddata%seeds(i)/ 100000000
+         ir2 =     MOD(IABS(run_mpi_senddata%seeds(i)), 100000000)/10000
+         ir3 =     MOD(IABS(run_mpi_senddata%seeds(i)), 10000)
+         WRITE(line(i1:i1+16),'(I5,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
+      ENDDO
+      WRITE(line(i1+17:i1+25),'(a8)') ' group:3'
+      WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
+   ENDIF
+   WRITE(IWR,'(a)') '#'
+   WRITE(IWR,'(a)') 'exit   ! Return to SUITE'
+   WRITE(IWR,'(a)') '#      ! Each macro on run_mpi command must have an exit to suite as well'
+   WRITE(IWR,'(a)') '#      ! Each macro is preceeded with a command that steps into the section'
+   WRITE(IWR,'(a)') '#'
+   DO nn = 1, random_n
+      IF(random_repeat(nn)) THEN
+         WRITE(IWR,'(a)') 'do REF_INDIV=1,REF_NINDIV'
+         WRITE(IWR,'(a,a)'   ) '  ',random_prog(nn)(1:LEN_TRIM(random_prog(nn)))
+         WRITE(IWR,'(a3,a,a)') '  @',random_macro(nn)(1:LEN_TRIM(random_macro(nn))),'  ., REF_KID, REF_INDIV'
+         WRITE(IWR,'(a)') 'enddo'
+      ELSE
+         WRITE(IWR,'(a)') random_prog(nn)(1:LEN_TRIM(random_prog(nn)))
+         WRITE(IWR,'(a1,a,a)') '@',random_macro(nn)(1:LEN_TRIM(random_macro(nn))),'  ., REF_KID, REF_INDIV'
+      ENDIF
+      WRITE(IWR,'(a)') '#'
+   ENDDO
+   WRITE(IWR,'(a)') '#'
+   WRITE(IWR,'(a)') 'set error, continue'
+!  WRITE(IWR,'(a)') 'exit'
+!
+   CLOSE(IWR)
+!
+!ENDIF
+!
+CALL diffev_random_write_off    ! Turn off documentation
+!
+END SUBROUTINE diffev_error_macro
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
