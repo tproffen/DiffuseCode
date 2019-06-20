@@ -454,55 +454,111 @@ SUBROUTINE validate_variable (zeile, lp)
 !                                                                       
 !       Author  : R.B. Neder  (reinhard.neder@mail.uni-wuerzburg.de)    
 !+                                                                      
-      USE reserved_mod
-      USE charact_mod
-      USE errlist_mod 
-      USE set_sub_generic_mod
-      IMPLICIT none 
+USE reserved_mod
+USE charact_mod
+USE errlist_mod 
+USE set_sub_generic_mod
+USE prompt_mod
+!
+IMPLICIT none 
 !                                                                       
-      CHARACTER (LEN=*), INTENT(IN) :: zeile 
-      INTEGER,           INTENT(IN) :: lp 
+CHARACTER (LEN=*), INTENT(IN) :: zeile 
+INTEGER,           INTENT(IN) :: lp 
 !                                                                       
-      INTEGER i, ii 
-      INTEGER :: length
-      LOGICAL lok 
+INTEGER :: i, ii 
+INTEGER :: length
+LOGICAL :: lok 
 !                                                                       
+write(*,*) ' IN VALIDATE ', zeile(1:lp)
 !                                                                       
-      ier_num = 0 
-      ier_typ = ER_NONE 
+ier_num = 0 
+ier_typ = ER_NONE 
 !                                                                       
-      main:DO i = 1, lib_reserved_n 
+main:DO i = 1, lib_reserved_n 
 !        IF (INDEX (lib_reserved (i), zeile (1:lp) ) .NE.0) THEN 
-         length = MAX(LEN_TRIM(lib_reserved(i)), LEN_TRIM(zeile(1:lp)))
-         length = MIN(length, LEN(lib_reserved), LEN(zeile))
-         IF ((lib_reserved (i)(1:length)== zeile (1:length) ) ) THEN 
-            ier_num = - 25 
-            ier_typ = ER_FORT 
-            EXIT main
-         ENDIF 
-      ENDDO main 
+   length = MAX(LEN_TRIM(lib_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   length = MIN(length, LEN(lib_reserved), LEN(zeile))
+   IF ((lib_reserved (i)(1:length)== zeile (1:length) ) ) THEN 
+      ier_num = - 25 
+      ier_typ = ER_FORT 
+      EXIT main
+   ENDIF 
+ENDDO main 
 !                                                                       
 !     Check against variables/functions of the main program             
 !                                                                       
-      IF (ier_num.eq.0) THEN 
-         CALL p_validate_var_spec (zeile, lp) 
-      ENDIF 
+IF(lstandalone) THEN
+   IF (ier_num.eq.0) THEN 
+      CALL p_validate_var_spec (zeile, lp) 
+   ENDIF 
+ELSE        ! Part of the suite, check all parts 
+   CALL general_validate_var_spec (zeile, lp, diffev_reserved_n, diffev_reserved)
+   IF(ier_num /= 0) RETURN
+   CALL general_validate_var_spec (zeile, lp, discus_reserved_n, discus_reserved)
+   IF(ier_num /= 0) RETURN
+   CALL general_validate_var_spec (zeile, lp, kuplot_reserved_n, kuplot_reserved)
+   IF(ier_num /= 0) RETURN
+   CALL general_validate_var_spec (zeile, lp, refine_reserved_n, refine_reserved)
+   IF(ier_num /= 0) RETURN
+   CALL general_validate_var_spec (zeile, lp,  suite_reserved_n,  suite_reserved)
+   IF(ier_num /= 0) RETURN
+ENDIF 
 !                                                                       
 !     Check that the name contains only letters, Numbers and the "_"    
 !                                                                       
-      IF (ier_num.eq.0) THEN 
-         lok = .true. 
-         DO i = 1, lp 
-            ii = iachar (zeile (i:i) ) 
-            lok = lok.and. (zero.le.ii.and.ii.le.nine.or.aa.le.ii.and. & 
-                            ii.le.zz .or.u.eq.ii.or.a.le.ii.and.ii.le.z)                               
-         ENDDO 
-         IF (.not.lok) THEN 
-            ier_num = - 26 
-            ier_typ = ER_FORT 
-         ENDIF 
-      ENDIF 
+IF (ier_num.eq.0) THEN 
+   lok = .true. 
+   DO i = 1, lp 
+      ii = iachar (zeile (i:i) ) 
+      lok = lok.and. (zero.le.ii.and.ii.le.nine.or.aa.le.ii.and. & 
+                      ii.le.zz .or.u.eq.ii.or.a.le.ii.and.ii.le.z)                               
+   ENDDO 
+   IF (.not.lok) THEN 
+      ier_num = - 26 
+      ier_typ = ER_FORT 
+   ENDIF 
+ENDIF 
 !                                                                       
 END SUBROUTINE validate_variable              
+!
+!*******************************************************************************
+!
+SUBROUTINE general_validate_var_spec (zeile, lp, general_reserved_n, general_reserved)
+!-                                                                      
+!  checks whether the variable name is legal, GENERAL specific part 
+!                                                                       
+!  Version : 1.0                                                   
+!  Date    : 20 Jun 19                                             
+!                                                                       
+!  Author  : R.B. Neder  (reinhard.neder@fau.de)    
+!+                                                                      
+USE errlist_mod
+!                                                                       
+IMPLICIT none
+!                                                                       
+CHARACTER (LEN=*), INTENT(IN) :: zeile
+INTEGER,           INTENT(IN) :: lp
+INTEGER,           INTENT(IN) :: general_reserved_n
+CHARACTER(LEN=16), DIMENSION(1:general_reserved_n), INTENT(IN) :: general_reserved
+!
+INTEGER  :: i , length
+!                                                                       
+ier_num = 0
+ier_typ = ER_NONE
+!                                                                       
+main: DO i = 1, general_reserved_n
+!
+   length = MAX(LEN_TRIM(general_reserved(i)), LEN_TRIM(zeile(1:lp)))
+   length = MIN(length, LEN(general_reserved), LEN(zeile))
+   IF(general_reserved (i)(1:length)== zeile(1:length) ) THEN
+      ier_num = -25
+      ier_typ = ER_FORT
+      EXIT main
+   ENDIF
+ENDDO main
+!                                                                       
+END SUBROUTINE general_validate_var_spec
+!
+!*******************************************************************************
 !
 END MODULE do_variable_mod
