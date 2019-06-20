@@ -102,12 +102,6 @@ ier_mpi = .TRUE.
 !
 CALL do_chdir(direc,direc_l,.FALSE.)    ! Set current directory as passed from master
 !
-! If instructed, get state of random number generator
-!
-IF(l_get_random_state) THEN
-   CALL random_current(rd_nseeds, rd_seeds)
-ENDIF
-!
 ! Store old program name and prompt status
 !
 ct_pname_old         = pname
@@ -227,22 +221,18 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
 !  Reset DISCUS
 !
-  IF(.NOT. l_discus_init) THEN
+   IF(.NOT. l_discus_init) THEN
       CALL discus_setup   (lstandalone)
       l_discus_init = .true.
-  ENDIF
-   pname     = 'discus'
-   pname_cap = 'DISCUS'
-   prompt    = pname
-   oprompt   = pname
-   CALL discus_set_sub ()
-   CALL rese_cr
+   ENDIF
+!
+! If instructed, get state of random number generator
+!
+   IF(l_get_random_state) THEN
+      CALL random_current(rd_nseeds, rd_seeds)
+   ENDIF
 !
    IF(str_comp(prog, 'discus', 6, prog_l, 6)) THEN
-     IF(.NOT. l_discus_init) THEN
-         CALL discus_setup   (lstandalone)
-         l_discus_init = .true.
-     ENDIF
       CALL store_remove_all(store_root)    ! Allways do a DISCUS internal storage reset
       pname     = 'discus'
       pname_cap = 'DISCUS'
@@ -252,12 +242,9 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
       var_val(VAR_STATE)  = var_val(VAR_IS_SECTION)
       CALL discus_set_sub ()
       CALL suite_set_sub_branch
+      CALL rese_cr
       CALL discus_loop ()
    ELSEIF(str_comp(prog, 'kuplot', 6, prog_l, 6)) THEN
-      IF(.NOT. l_kuplot_init) THEN
-         CALL kuplot_setup   (lstandalone)
-         l_kuplot_init = .true.
-      ENDIF
       pname     = 'kuplot'
       pname_cap = 'KUPLOT'
       prompt    = pname
