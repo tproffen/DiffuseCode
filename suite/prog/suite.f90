@@ -12,6 +12,7 @@ USE diffev_mpi_mod
 !
 USE appl_env_mod
 USE envir_mod
+USE errlist_mod
 USE gen_mpi_mod
 USE prompt_mod
 USE variable_mod
@@ -36,6 +37,18 @@ lstandalone       = .false.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !lstandalone       = .true.      ! No standalone for DIFFEV, DISCUS, KUPLOT
 !
 CALL run_mpi_init    ! Do the initial MPI configuration for slave DIFFEV
+IF(ier_num/=0) THEN
+   IF(gen_mpi_myid == master) THEN   !  "DIFFEV" slave, directly go to diffev
+      CALL run_mpi_finalize
+      WRITE(*,*)
+      WRITE(*,'(a)') ' ***MPI *** MPI System could not be initialized            ***'
+      IF(ier_msg(1)/=' ') WRITE(*,'(3a)') ' ***MPI *** ',ier_msg(1)(1:46),' ***'
+      IF(ier_msg(2)/=' ') WRITE(*,'(3a)') ' ***MPI *** ',ier_msg(2)(1:46),' ***'
+      IF(ier_msg(3)/=' ') WRITE(*,'(3a)') ' ***MPI *** ',ier_msg(3)(1:46),' ***'
+      WRITE(*,*)
+      STOP
+   ENDIF
+ENDIF
 CALL setup_suite     ! Define initial parameter, array values
 CALL suite_set_sub   ! Point to specific subroutines
 CALL set_signal

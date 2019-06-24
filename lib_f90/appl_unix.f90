@@ -24,7 +24,7 @@ SUBROUTINE appl_env (standalone, local_mpi_myid)
       CHARACTER(255) cdummy
 CHARACTER(LEN=8), DIMENSION(6), PARAMETER :: tmp_test = (/'/tmp    ','/TMP    ', &
       '/var/tmp', '/Var/tmp', '/var/TMP', '/Var/TMP' /)
-      CHARACTER(LEN=2048) :: line
+CHARACTER(LEN=2048) :: line
 CHARACTER(LEN=2048) :: pathfile
       INTEGER ico, ice, iii, i, j
 INTEGER :: length
@@ -39,7 +39,6 @@ IF(envir_done) RETURN
 ! Get the PID of the DISCUS Process
 !
 PID = lib_f90_getpid()
-!
 !
 ! Determine a temporary directory
 !
