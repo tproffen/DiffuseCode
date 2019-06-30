@@ -92,7 +92,7 @@ PROGRAM mixsca
 !                                                                       
       include'date.inc' 
 !                                                                       
-      CALL ini_ran_ix (np, iwerte) 
+      CALL ini_ran_ix (np, iwerte, 0) 
 !                                                                       
 !     Call initialization routine                                       
 !                                                                       
