@@ -39,7 +39,7 @@ CALL RANDOM_SEED(SIZE=nseeds)      ! Get seed size
 IF(.NOT. ALLOCATED(seed_vals)) THEN
 CALL alloc_random()                ! Just in case, if random had not been initialized
    werte(:) = 0
-   CALL ini_ran_ix(np,werte)
+   CALL ini_ran_ix(np,werte, 0)
 ENDIF
 !
 CALL RANDOM_SEED(GET=seed_vals)    ! Use the global variable, is allocated to proper size
@@ -49,7 +49,7 @@ seed_val(1:nseeds) = seed_vals(1:nseeds)
 !
 END SUBROUTINE random_current
 !
-SUBROUTINE ini_ran_ix(np, iwerte)
+SUBROUTINE ini_ran_ix(np, iwerte, iaddit)
 !
 ! Initializes the random sequence or places it at a previous state
 !
@@ -58,8 +58,10 @@ USE times_mod
 !
 IMPLICIT NONE
 !
+INTEGER, DIMENSION(2), PARAMETER  :: INIT=(/28411, 24467551/)
 INTEGER              , INTENT(IN) :: np
 INTEGER, DIMENSION(:), INTENT(IN) :: iwerte
+INTEGER              , INTENT(IN) :: iaddit   ! Additional term for seed initialization
 !
 INTEGER  :: i
 INTEGER  :: nseeds
@@ -75,22 +77,28 @@ nseeds = UBOUND(seed_vals,1)
 IF(np==1 .AND. IABS(iwerte(1))==0) THEN
    CALL RANDOM_SEED()                   ! Set at default value
    random_linit = .FALSE.
-      CALL  datum_intrinsic ()       ! get time since midnight
-      idum =   midnight              ! idum is preserved for backwards compatibility
-      seed_vals(:) = midnight        ! Set all seeds
-      CALL RANDOM_SEED(PUT=seed_vals) 
-      DO i=1,nseeds                  ! "randomly" populate all seeds
-         CALL RANDOM_NUMBER(r)
-         seed_vals(i) = INT(midnight*r) + 1
-      ENDDO
-      CALL RANDOM_SEED(PUT=seed_vals)
+   CALL  datum_intrinsic ()       ! get time since midnight
+   idum =   midnight              ! idum is preserved for backwards compatibility
+   DO i=1,nseeds - 1                 ! "randomly" populate all seeds
+      seed_vals(i) = 2*MOD(midnight+INIT(1)*i,INIT(2)) - INIT(2)   ! Set all seeds
+   ENDDO
+   seed_vals(nseeds) = 0
+   CALL RANDOM_SEED(PUT=seed_vals) 
+   DO i=1,nseeds - 1              ! "randomly" populate all seeds
+      CALL RANDOM_NUMBER(r)
+      seed_vals(i) = 2*INT(midnight*r) - midnight + 1 + iaddit
+   ENDDO
+   seed_vals(nseeds) = 0
+   CALL RANDOM_SEED(PUT=seed_vals)
 ELSE                                 ! more than one value or non-zero value
    DO i=1, MIN(np,nseeds)            ! Loop over all seeds or all provided values
-      seed_vals(i) = IABS(iwerte(i))
+      seed_vals(i) = iwerte(i)
    ENDDO
    CALL RANDOM_SEED(PUT=seed_vals)
 !  idum = 0                      ! User provided three numbers
 ENDIF
+iset = 0                             ! Put GASDEV in defined state
+   CALL RANDOM_SEED(GET=seed_vals)
 !
 END SUBROUTINE ini_ran_ix
 !
@@ -171,10 +179,15 @@ IF (zeile.ne.' ') THEN
                   iwerte(ind) = iwerte(ind) + IABS(NINT(werte(i)))*10000**ip
                ENDDO
                DO i = 1, np
-                  ind = (i-1)*igroup + 1
-                  IF(werte(ind)<0) iwerte(i) = -iwerte(i)
+                  negative:DO ip=1,igroup
+                     ind = (i-1)*igroup + ip
+                     IF(werte(ind)<0) THEN 
+                        iwerte(i) = -iwerte(i)
+                        EXIT negative
+                     ENDIF
+                  ENDDO negative
                ENDDO
-               CALL ini_ran_ix(np, iwerte)
+               CALL ini_ran_ix(np, iwerte, 0)
             ELSE
                ier_num = - 6 
                ier_typ = ER_COMM 
@@ -200,7 +213,7 @@ IF (zeile.ne.' ') THEN
 ELSE 
    np = 1
    iwerte(1) = 0
-   CALL ini_ran_ix(np, iwerte)
+   CALL ini_ran_ix(np, iwerte, 0)
 !        CALL ini_ran (0) 
 ENDIF 
 END SUBROUTINE do_seed                        

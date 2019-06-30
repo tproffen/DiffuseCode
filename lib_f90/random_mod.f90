@@ -9,8 +9,8 @@ MODULE random_mod
    PUBLIC
    SAVE
 !
-   INTEGER  ::    idum
-   INTEGER  ::    iset
+   INTEGER  ::    idum = -182783467
+   INTEGER  ::    iset = 0
 !
 !
 END MODULE random_mod
