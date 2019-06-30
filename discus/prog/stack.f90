@@ -1521,7 +1521,7 @@ USE precision_mod
       s = s + prob (m) 
       ENDDO 
       st_type (i) = m 
-!     write (output_io,*) ' st Type(i) ',i,st_type(i)                   
+!     write (output_io,*) ' st Type(i) ',i,st_type(i)
 !                                                                       
       END SUBROUTINE stack_type                     
 !*****7*****************************************************************
