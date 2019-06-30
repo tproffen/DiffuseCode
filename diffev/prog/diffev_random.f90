@@ -116,7 +116,7 @@ CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/n
 CHARACTER(LEN=1024) :: message
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
-INTEGER :: i, i1, ir1, ir2, ir3, nn
+INTEGER :: i, i1, nn
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 LOGICAL, SAVE :: l_test     = .TRUE.
 LOGICAL, SAVE :: l_ref_para = .FALSE.
@@ -204,14 +204,29 @@ IF(write_random_state) THEN
       line = ' '
       line(1:5) = 'seed '
       i1 = 6
+!     DO i=1, random_nseed 
+!        i1 = 6 + (i-1)*19
+!        ir1 =         IABS(random_best(i)/ 100000000)
+!        ir2 =     MOD(IABS(random_best(i)), 100000000)/10000
+!        ir3 =     MOD(IABS(random_best(i)), 10000)
+!        IF(random_best(i)<0) THEN
+!           IF(ir1==0 .AND. ir2==0) THEN
+!              ir3 = -ir3
+!           ELSEIF(ir1==0) THEN
+!              ir2 = -ir2
+!           ELSE
+!              ir1 = -ir1
+!           ENDIF
+!        ENDIF
+!        WRITE(line(i1:i1+18),'(I5,A1,I5,A1,I5,A2)') ir1,',',ir2,',',ir3,', '
+!     ENDDO
+!     WRITE(line(i1+19:i1+27),'(a8)') ' group:3'
       DO i=1, random_nseed 
-         i1 = 6 + (i-1)*17
-         ir1 =              random_best(i)/ 100000000
-         ir2 =     MOD(IABS(random_best(i)), 100000000)/10000
-         ir3 =     MOD(IABS(random_best(i)), 10000)
-         WRITE(line(i1:i1+16),'(I5,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
+         i1 = 6 + (i-1)*15
+         WRITE(line(i1:i1+16),'(I12,A1)') random_best(i), ','
       ENDDO
-      WRITE(line(i1+17:i1+25),'(a8)') ' group:3'
+      i= LEN_TRIM(LINE)
+      IF(line(i:i)==',') line(i:i) = ' '
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'
@@ -263,7 +278,7 @@ CHARACTER(LEN=  39), PARAMETER :: string = 'cat *.mac |grep -F ref_para > /dev/n
 CHARACTER(LEN=1024) :: message
 INTEGER            , PARAMETER :: lstring = 39
 INTEGER :: exit_msg
-INTEGER :: i, i1, ir1, ir2, ir3, nn
+INTEGER :: i, i1, nn
 INTEGER :: nseed_run    ! Actual number of seed used by compiler
 LOGICAL, SAVE :: l_test     = .TRUE.
 LOGICAL, SAVE :: l_ref_para = .FALSE.
@@ -358,14 +373,20 @@ random_nseed   = MIN(RUN_MPI_NSEEDS, nseed_run)  !  to be debugged depend on com
       line = ' '
       line(1:5) = 'seed '
       i1 = 6
+!     DO i=1, random_nseed 
+!        i1 = 6 + (i-1)*17
+!        ir1 =              run_mpi_senddata%seeds(i)/ 100000000
+!        ir2 =     MOD(IABS(run_mpi_senddata%seeds(i)), 100000000)/10000
+!        ir3 =     MOD(IABS(run_mpi_senddata%seeds(i)), 10000)
+!        WRITE(line(i1:i1+16),'(I5,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
+!     ENDDO
+!     WRITE(line(i1+17:i1+25),'(a8)') ' group:3'
       DO i=1, random_nseed 
-         i1 = 6 + (i-1)*17
-         ir1 =              run_mpi_senddata%seeds(i)/ 100000000
-         ir2 =     MOD(IABS(run_mpi_senddata%seeds(i)), 100000000)/10000
-         ir3 =     MOD(IABS(run_mpi_senddata%seeds(i)), 10000)
-         WRITE(line(i1:i1+16),'(I5,A1,I4,A1,I4,A2)') ir1,',',ir2,',',ir3,', '
+         i1 = 6 + (i-1)*15
+         WRITE(line(i1:i1+16),'(I12,A1)') run_mpi_senddata%seeds(i), ','
       ENDDO
-      WRITE(line(i1+17:i1+25),'(a8)') ' group:3'
+      i= LEN_TRIM(LINE)
+      IF(line(i:i)==',') line(i:i) = ' '
       WRITE(IWR,'(a)') line(1:LEN_TRIM(line))
    ENDIF
    WRITE(IWR,'(a)') '#'

@@ -18,7 +18,7 @@ CONTAINS
 !
    SUBROUTINE do_compare 
 !
-! Main coparison routine, branches into the two modes
+! Main comparison routine, branches into the two modes
 ! compare to parent
 ! compare to best of all (membeers + children)
 !
@@ -289,7 +289,9 @@ list_index(:) = 0
             child_val (k,0:n_rvalue_i) = trial_val (ii,0:n_rvalue_i) 
          ENDDO 
       ENDDO 
-      CALL diffev_random_save(pop_random(:,1))
+      k = 1
+      ii = list_index (1)
+      CALL diffev_random_save(pop_random(:,ii))
    ENDIF copy
 !                                                                       
 !     determine best/worst member                                       
