@@ -39,7 +39,7 @@ prompt_status     = PROMPT_ON
 prompt_status_old = PROMPT_ON 
 !                                                                       
 !CALL ini_ran (np, werte) 
-CALL ini_ran_ix (np, iwerte) 
+IF(random_linit) CALL ini_ran_ix (np, iwerte, 0) 
 !
 !     Call initial default allocation
 !
