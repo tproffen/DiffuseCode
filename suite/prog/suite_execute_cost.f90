@@ -95,6 +95,8 @@ INTEGER             :: ios
 INTEGER             :: ct_ostate    ! Original program state
 INTEGER             :: ct_oprogr    ! Original program
 INTEGER             :: ct_ompifirst ! Original mpi_first state
+INTEGER             :: np
+INTEGER, DIMENSION(1) :: idummy = (/0.0 /)
 LOGICAL :: str_comp
 INTEGER :: len_str
 !
@@ -228,6 +230,9 @@ IF(ier_num == 0 ) THEN  ! Defined macro with no error
 !
 ! If instructed, get state of random number generator
 !
+   np = 1
+   idummy(:) = 0
+   CALL ini_ran_ix(np, idummy, kid+indiv)
    IF(l_get_random_state) THEN
       CALL random_current(rd_nseeds, rd_seeds)
    ENDIF
