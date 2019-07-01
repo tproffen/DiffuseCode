@@ -275,19 +275,20 @@ main_loop: DO
 !
 !  Set the definitions for the molecule decorator
 !
-   USE atom_env_mod
-   USE chem_mod
-   USE deco_mod
-   USE discus_allocate_appl_mod
-   USE get_iscat_mod
-   USE modify_mod
-   USE point_grp
-use crystal_mod
+USE atom_env_mod
+USE chem_mod
+USE deco_mod
+USE discus_allocate_appl_mod
+USE get_iscat_mod
+USE modify_mod
+USE point_grp
+USE crystal_mod
 !
-   USE ber_params_mod
-   USE get_params_mod
+USE ber_params_mod
+USE build_name_mod
+USE get_params_mod
 USE precision_mod
-   USE take_param_mod
+USE take_param_mod
 !
    IMPLICIT NONE
 !
@@ -520,7 +521,8 @@ USE precision_mod
          ier_msg(1) = 'set bond command needs >= five parameters'
       ENDIF
    ELSEIF ( str_comp(cpara(2),'ligand',4,lpara(2),6) ) THEN
-      IF ( ianz == 4 ) THEN
+      IF ( ianz >= 4 ) THEN
+         CALL do_build_name (ianz, cpara, lpara, werte, maxw, 3)
          dcc_file (temp_num) = cpara(3)
          dcc_lfile(temp_num) = lpara(3)
          CALL del_params (3, ianz, cpara, lpara, maxw)   ! delete first 3 params
