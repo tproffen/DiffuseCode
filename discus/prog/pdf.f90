@@ -3427,6 +3427,11 @@ inner:      DO iatom = ia+1, cr_natoms
       REAL sigma, fac , factor, fac4
       REAL :: sqrt_zpi
 !                                                                       
+!   open(45,file='hist.pdf_init',status='unknown')
+!   do ii=1,UBOUND(pdf_temp,1)
+!   write(45, '(i7,4(1x,F18.6))') ii,REAL(pdf_temp(ii,1,1,0))
+!   enddo
+!   close (45)
       fac = 1.0 / (2.0 * REAL(zpi)**2) 
       sqrt_zpi =1.0/sqrt(REAL(zpi))
       loop_is: DO is = 1, cr_nscat 
@@ -3516,6 +3521,11 @@ inner:      DO iatom = ia+1, cr_natoms
       ENDIF 
       ENDDO loop_is
 !                                                                       
+!   open(45,file='hist.pdf_conv',status='unknown')
+!   do ii=1,UBOUND(pdf_corr,1)
+!   write(45, '(i7,4(1x,F18.6))') ii,pdf_corr(ii)
+!   enddo
+!   close (45)
       END SUBROUTINE pdf_convtherm                  
 !
 !*****7*****************************************************************
