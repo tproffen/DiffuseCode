@@ -205,9 +205,12 @@ USE precision_mod
       IF (ier_num.ne.0) return 
       IF (ianz.le.0) return 
 !                                                                       
-      IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 2) ) then 
+      IF (str_comp (cpara (1) , 'distance', 2, lpara (1) , 8) ) then 
          CALL del_params (1, ianz, cpara, lpara, maxw) 
          CALL surf_set_fuzzy (ianz, cpara, lpara, werte, maxw, 0) 
+      ELSEIF(str_comp(cpara(1), 'surface', 2, lpara (1) , 7) ) then 
+         CALL del_params (1, ianz, cpara, lpara, maxw) 
+         CALL surf_set_vector(MAXW, ianz, cpara, lpara, werte)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
@@ -372,7 +375,216 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE surf_set_fuzzy                 
+!
 !*****7*****************************************************************
+!
+SUBROUTINE surf_set_vector(MAXW, ianz, cpara, lpara, werte)
+!+
+!  This subroutine allows the user to set a surface character for a 
+!  given atom or atom type. 
+!-
+USE crystal_mod 
+USE surface_mod 
+!
+USE get_params_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER                             , INTENT(IN) :: MAXW
+INTEGER                             , INTENT(INOUT) :: ianz
+CHARACTER(LEN=1024), DIMENSION(MAXW), INTENT(INOUT) :: cpara
+INTEGER            , DIMENSION(MAXW), INTENT(INOUT) :: lpara
+REAL(KIND=PREC_DP) , DIMENSION(MAXW), INTENT(INOUT) :: werte
+!
+!CHARACTER(LEN=1024) :: line
+!INTEGER :: length
+INTEGER :: istart
+INTEGER :: ifinish
+LOGICAL, EXTERNAL :: str_comp
+!
+IF(str_comp(cpara(1) , 'local', 3, lpara(1), 5)) THEN
+!
+   istart = 1
+   ifinish = cr_natoms
+   CALL surf_set_local(istart, ifinish)
+ENDIF
+!
+END SUBROUTINE surf_set_vector                 
+!
+!*****7*****************************************************************
+!
+SUBROUTINE surf_set_local(istart, ifinish)                 
+!+
+!   Find a local surface
+!-
+USE crystal_mod
+USE atom_env_mod
+USE chem_mod
+USE do_find_mod
+USE metric_mod
+USE prop_para_mod
+USE surface_mod
+!
+USE errlist_mod
+USE math_sup
+USE param_mod
+USE precision_mod
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: istart
+INTEGER, INTENT(IN) :: ifinish
+!
+INTEGER, PARAMETER    :: MAXW = 1
+LOGICAL, PARAMETER    :: LSPACE = .TRUE.
+REAL(KIND=PREC_SP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0, 0.0, 0.0/)
+!
+CHARACTER(LEN=1024)   :: line
+INTEGER               :: i, j
+INTEGER               :: laenge
+INTEGER               :: idiv
+INTEGER               :: ianz
+INTEGER, DIMENSION(2) :: n_neigh
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: neigh
+LOGICAL, DIMENSION(3) :: fp
+LOGICAL               :: fq
+LOGICAL               :: lsurf
+REAL(KIND=PREC_DP) , DIMENSION(1:MAXW) :: werte
+REAL(KIND=PREC_SP) , DIMENSION(1:3   ) :: u
+REAL(KIND=PREC_SP) , DIMENSION(1:3   ) :: x
+REAL(KIND=PREC_SP) , DIMENSION(1:3,2 ) :: cofm     ! Center of mass for neighbors
+REAL(KIND=PREC_SP) , DIMENSION(1:3,2 ) :: vect     ! Vectors to Center of mass for neighbors
+REAL :: rmin   = 0.01
+REAL :: rsmall = 2.50
+REAL :: rbig   = 5.00
+REAL :: alpha
+REAL :: alpha_max0 =   0.0
+REAL :: alpha_max1 =   0.0
+REAL :: alpha_max2 =   0.0
+REAL :: alpha_min0 = 200.0
+REAL :: alpha_min1 = 200.0
+REAL :: alpha_min2 = 200.0
+REAL :: dstar
+!
+!
+fp(1) = .FALSE.
+fp(2) = .FALSE.
+fp(3) = .FALSE.
+fq    = .FALSE.
+n_neigh(:) = 0
+alpha_max0 =   0.0
+alpha_max1 =   0.0
+alpha_max2 =   0.0
+alpha_min0 = 200.0
+alpha_min1 = 200.0
+alpha_min2 = 200.0
+ALLOCATE(neigh(1:1,2))
+!
+main_loop: DO i=istart, ifinish
+!main_loop: DO i= 63, 63
+!     If atom has surface property AND only new surface sites are to be found; CYCLE
+   IF(IBITS(cr_prop(i),PROP_SURFACE_EXT,1).eq.1 .AND.   &  ! real Atom is near surface
+      surf_local_new                                 ) CYCLE main_loop
+!
+   werte(1)  = -1                        ! Find all atom types
+   x(:)      = cr_pos(:,i)
+   cofm(:,:) = 0.0
+!
+   ianz = 1                              ! Find all neighbors in large shell
+   CALL do_find_env(ianz, werte, MAXW, x, rmin, rbig, fq, fp)
+   IF(atom_env(0) == 0) THEN
+      CYCLE main_loop                    ! Atom has no neighbors, ignore
+   ENDIF
+   IF(atom_env(0)>UBOUND(neigh,1)) THEN  ! Adjust size of neighbor array
+      IF(ALLOCATED(neigh)) DEALLOCATE(neigh)
+      ALLOCATE(neigh(1:atom_env(0),2))
+   ENDIF
+!                                        ! Copy neighbors for later use
+   neigh(1:atom_env(0),2) = atom_env(1:atom_env(0))
+   n_neigh(2) = atom_env(0)
+   DO j=1, atom_env(0)                   ! Calculate Center of mass 
+      cofm(:,2) = cofm(:,2) + cr_pos(:,atom_env(j))
+   ENDDO
+   cofm(:,2) = cofm(:,2)/REAL(atom_env(0))
+   vect(:,2) = x(:) - cofm(:,2)          ! Vector CofM ==> Atom
+!
+!  Same for a smaller shell
+!
+   CALL do_find_env(atom_env(0), werte, maxw, x, rmin, rsmall, fq, fp)
+   IF(atom_env(0) == 0) THEN
+      CYCLE main_loop                    ! Atom has no neighbors, ignore
+   ENDIF
+   neigh(1:atom_env(0),1) = atom_env(1:atom_env(0))
+   n_neigh(1) = atom_env(0)
+   DO j=1, atom_env(0)
+      cofm(:,1) = cofm(:,1) + cr_pos(:,atom_env(j))
+   ENDDO
+   cofm(:,1) = cofm(:,1)/REAL(atom_env(0))
+   vect(:,1) = x(:) - cofm(:,1)
+!
+   u(:) = vect(:,1)                      ! If |vect|==0, atom is surrounded, not at surface 
+   IF(do_blen(LSPACE, u, VNULL)==0.0) CYCLE main_loop
+   u(:) = vect(:,2)
+   IF(do_blen(LSPACE, u, VNULL)==0.0) CYCLE main_loop
+!
+!  if the two vectors CofM==> atom are reasonable parallel we might be at a surface
+   alpha = do_bang(LSPACE, vect(1:3,1), VNULL, vect(1:3,2))
+   lsurf = alpha < 60.0
+   IF(lsurf) alpha_max0 = MAX(alpha, alpha_max0)
+   IF(lsurf) alpha_min0 = MIN(alpha, alpha_min0)
+   IF(lsurf) THEN                            ! test for indented surface
+!
+!     At the surface all vectors atom==>neigh should make a "large"
+!     angle to the vector CofM==>atom
+      DO j=1, n_neigh(1)
+         u(:)  = cr_pos(:,neigh(j,1)) - x(:)
+         alpha = do_bang(LSPACE, u, VNULL, vect(1:3,1))
+         lsurf = lsurf .AND. alpha > 60.0
+         IF(.NOT.lsurf) CYCLE main_loop
+         IF(lsurf) alpha_max1 = MAX(alpha, alpha_max1)
+         IF(lsurf) alpha_min1 = MIN(alpha, alpha_min1)
+      ENDDO
+      DO j=1, n_neigh(2)
+         u(:) = cr_pos(:,neigh(j,2)) - x(:)
+         alpha = do_bang(LSPACE, u, VNULL, vect(1:3,2))
+         lsurf = lsurf .AND. alpha > 60.0
+         IF(.NOT.lsurf) CYCLE main_loop
+         IF(lsurf) alpha_max2 = MAX(alpha, alpha_max2)
+         IF(lsurf) alpha_min2 = MIN(alpha, alpha_min2)
+      ENDDO
+      IF(lsurf) THEN
+!
+!        Atom is at surface get a rough surface normal as 
+!        CofM(large) ==> atom
+!
+!        May need to be refined by analysis of all surface neighbors only
+!        This would require a separate loop
+         cr_surf(0,i) = SURF_LOCAL
+         WRITE(line,'(2(G16.8E3,a1),G16.8E3)') vect(1,2), ',', vect(2,2), ',', vect(3,2)
+         laenge = 50
+         CALL d2r(line, laenge, LSPACE)
+         u(1:3) = INT(res_para(1:3))      ! Rough normal 
+         dstar = do_blen (.NOT.LSPACE, u, VNULL) 
+         u(:) = u(:) / dstar
+         cr_surf(1:3, i) = NINT(10*u(:))
+!
+         idiv = gcd(cr_surf(1, i), cr_surf(2, i), cr_surf(3, i))
+         IF(idiv /= 0) THEN
+             cr_surf(1:3,i) = cr_surf(1:3, i)/IABS(idiv)
+         ENDIF
+         cr_prop(i) = IBSET(cr_prop(i), PROP_SURFACE_EXT)
+      ENDIF
+   ENDIF
+!
+ENDDO main_loop
+!
+IF(ALLOCATED(neigh)) DEALLOCATE(neigh)
+!
+END SUBROUTINE surf_set_local                 
+!
+!*****7*****************************************************************
+!
       SUBROUTINE surf_show 
 !+                                                                      
 !     This subroutine shows the surface settings                        
@@ -482,6 +694,7 @@ USE precision_mod
       LOGICAL l_form 
       LOGICAL l_cyl 
       LOGICAL l_ell 
+      LOGICAL l_local
       LOGICAL l_special 
       LOGICAL lwall           ! True if atom is close to cylinder wall
       LOGICAL ltop            ! True if atom is close to cylinder top
@@ -529,6 +742,7 @@ USE precision_mod
       l_sphere = .false. 
       l_cyl    = .false. 
       l_ell    = .false. 
+      l_local  = .FALSE.
       linside  = .true. 
       radius   = 0.0
       height   = 0.0
@@ -710,6 +924,7 @@ USE precision_mod
             l_sphere = .true. 
             l_cyl    = .false. 
             l_ell    = .false. 
+            l_local  = .FALSE.
          ELSEIF(str_comp(cpara(1), 'cylinder', 3, lpara(1), 8)) THEN
 !                                                                       
 !     ----Crystal is limited by a cylinder                              
@@ -736,6 +951,7 @@ USE precision_mod
             l_sphere = .false. 
             l_cyl    = .true. 
             l_ell    = .false. 
+            l_local  = .FALSE.
          ELSEIF(str_comp(cpara(1), 'ellipsoid', 3, lpara(1), 9)) THEN
 !                                                                       
 !     ----Crystal is limited by a standardized ellipsoid
@@ -756,6 +972,14 @@ USE precision_mod
             l_sphere = .false. 
             l_cyl    = .false. 
             l_ell    = .true. 
+            l_local  = .FALSE.
+         ELSEIF(str_comp(cpara(1), 'local', 3, lpara(1), 5)) THEN
+            l_plane  = .false. 
+            l_form   = .false. 
+            l_sphere = .false. 
+            l_cyl    = .false. 
+            l_ell    = .FALSE. 
+            l_local  = .TRUE.
          ELSE 
             ier_num = - 6 
             ier_typ = ER_COMM 
@@ -931,6 +1155,8 @@ ell_loop:      DO i = 1, cr_natoms
                   h(:) = v(:)
                   CALL boundarize_atom (center, d, i, linside, SURF_SPHERE, h, -1.0)
                ENDDO ell_loop
+            ELSEIF(l_local) THEN 
+               CALL surf_set_local(1, cr_natoms)
             ENDIF 
 !        ENDIF 
 !     ENDIF 
@@ -1117,7 +1343,8 @@ IF(ier_num/=0) RETURN
 ! Check if output is desired
 !
 lshow = .FALSE.
-IF (str_comp (cpara (ianz) , 'show', 2, lpara (1) , 4) ) then 
+write(*,*) 'SHOW ', str_comp (cpara (ianz) , 'show', 2, lpara (1) , 4), ianz, cpara(ianz)(1:len_trim(cpara(ianz)))
+IF (str_comp(cpara(ianz) , 'show', 2, lpara(ianz) , 4) ) then 
   lshow = .TRUE.
   cpara(ianz) = ' '
   lpara(ianz) = 1
@@ -1127,12 +1354,13 @@ ENDIF
 ! Check if Atoms are restricted to equal or any atom tpye
 !
 lequal = .TRUE.
-IF (str_comp (cpara (2) , 'equal', 2, lpara (1) , 5) ) then 
+write(*,*) 'EQUA ', str_comp (cpara (2) , 'equal', 2, lpara (1) , 5), ianz, cpara(ianz)(1:len_trim(cpara(ianz)))
+IF (str_comp(cpara(2) , 'equal', 2, lpara(ianz) , 5) ) then 
   lequal = .TRUE.
   cpara(2) = ' '
   lpara(2) = 1
   ianz = ianz - 1
-ELSEIF (str_comp (cpara (2) , 'any', 2, lpara (1) , 3) ) then 
+ELSEIF (str_comp(cpara(2) , 'any', 2, lpara(ianz) , 3) ) then 
   lequal = .FALSE.
   cpara(2) = ' '
   lpara(2) = 1
@@ -1141,6 +1369,7 @@ ENDIF
 !
 ! calculate atom number
 !
+write(*,*) ' EQUAL, SHOW, ianz ', lequal, lshow, ianz
 CALL ber_params (ianz, cpara, lpara, werte, maxw) 
 IF(ier_num/=0) RETURN
 !
@@ -1454,7 +1683,7 @@ IF(IBITS(cr_prop(iatom),PROP_SURFACE_EXT,1).eq.1 .and.        &  ! real Atom is 
                IF(do_blen(lspace, NULL, w) > 0.0001) THEN
                   beta = do_bang(lspace, w, NULL, realsurf)
                   IF(beta.gt.90) alpha = 360. - alpha
-               ENDIF
+               ENDIF      
                angles(k) = alpha
             ENDDO
             sorted(1) =   0.0
