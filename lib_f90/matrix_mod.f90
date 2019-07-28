@@ -123,7 +123,7 @@ REAL(KIND=PREC_DP), DIMENSION(4,4), INTENT(OUT):: B        !! Inverse matrix
 REAL(KIND=PREC_DP)                             :: det, detinv
 !
 ! Calculate the inverse determinant of the matrix
-det = det3(a)
+det = det4(a)
 !
 IF(det/=0.0D0) THEN
    detinv = 1./det
