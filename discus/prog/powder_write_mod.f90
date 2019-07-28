@@ -316,7 +316,8 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
       IF(value == val_sq .or. value == val_fq   .OR. & 
          value == val_iq .OR. value == val_norm .OR. value == val_pdf ) THEN
          IF (pow_axis.eq.POW_AXIS_Q) THEN 
-            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv ) THEN
+!           IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW  .OR. lconv ) THEN
+            IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN
             pow_tmp_sum = 0.0                           ! Determine normalizer, such that 
             pow_uuu_sum = 0.0                           ! the average F(q) is 0.0
 !           jstart = MAX(1,2-int(xmin/xdel))            ! Exclude q = 0
