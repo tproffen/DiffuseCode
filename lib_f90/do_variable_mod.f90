@@ -272,6 +272,8 @@ LOGICAL, INTENT(IN)    :: is_diffev
 INTEGER :: i, j
 INTEGER :: ndel
 !
+IF(var_num==var_sys) RETURN         ! No variables were defined
+!
 DO i=var_sys+1, var_num
    IF(var_diff(i) .EQV. is_diffev) THEN
       var_name( i) = ' '
