@@ -50,7 +50,9 @@ lcomm = length_com (string, ikl)
 success = .FALSE.
 search_var: DO i=var_sys+1, var_num
 !write(*,*) 'search ', string(ikl - lcomm:ikl - 1),ikl, lcomm, iklz,ianz,'|',string(1:50)
-   IF(var_name(i) == string(ikl - lcomm:ikl - 1)) THEN
+!  IF(var_name(i) == string(ikl - lcomm:ikl - 1)) THEN
+   IF(var_name(i) == string(ikl - var_l(i):ikl - 1)) THEN
+      lcomm = var_l(i)
       IF(var_entry(i)>0) THEN
 !write(*,*) ' kpara ', kpara, kpara2,var_field(var_entry(i))%var_shape(:), maxw
          IF(0<kpara .AND. kpara<=var_field(var_entry(i))%var_shape(1) ) THEN
@@ -85,6 +87,7 @@ ENDDO search_var
 !
 !                                                                       
 IF(.NOT.success) THEN
+lcomm = length_com (string, ikl) 
    IF (lcomm.eq.1) THEN 
 !                                                                       
       IF(ikl.gt.lcomm + 1) zeile(1:ikl - lcomm - 1) = string(1: ikl - lcomm - 1)
