@@ -383,6 +383,37 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
             ENDDO 
          ENDIF 
       ENDIF 
+      IF (mmc_cor_energy (0, MC_COORDNUM) ) then 
+         WRITE (output_io, 2400) 
+!                                                                       
+         IF (mo_sel_atom) then 
+            DO k = 1, chem_ncor 
+            DO i = 0, cr_nscat 
+            DO j = 0, cr_nscat 
+            at_name_i = at_name (i) 
+            at_name_j = at_name (j) 
+            IF (mmc_target_corr (k, MC_COORDNUM, i, j) .ne.0.0) then 
+               WRITE (output_io, 7300) at_name_i, at_name_j, k,         &
+               mmc_target_corr (k, MC_COORDNUM, i, j),                    &
+               mmc_depth (k,MC_COORDNUM, i, j)
+            ENDIF 
+            ENDDO 
+            ENDDO 
+            ENDDO 
+         ELSE 
+            DO k = 1, chem_ncor 
+            DO i = 1, mole_num_type 
+            DO j = i, mole_num_type 
+            IF (mmc_target_corr (k, MC_COORDNUM, i, j) .ne.0.0) then 
+               WRITE (output_io, 4200) i, j, k,                         &
+               mmc_target_corr (k,MC_COORDNUM, i, j),                     &
+               mmc_depth (k, MC_COORDNUM, i, j)
+            ENDIF 
+            ENDDO 
+            ENDDO 
+            ENDDO 
+         ENDIF 
+      ENDIF 
       IF (mmc_cor_energy (0, MC_SPRING) ) then 
          WRITE (output_io, 2300) 
 !                                                                       
@@ -623,6 +654,8 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
  2200 FORMAT (/,' Desired correlations for Displacement : ',/,/,        &
      &         12x,'Pairs',10x,'neigh. #',3x,'correl. ',7x,'depth')     
+ 2400 FORMAT (/,' Desired Rcoordination numbers  : ',/,/,               &
+     &         12x,'Pairs',10x,'neigh. #',3x,'coordno.',7x,'depth')     
  2300 FORMAT (/,' Desired distortions for SPRING : ',/,/,               &
      &         12x,'Pairs',10x,'neigh. #',3x,'distance',7x,'depth')     
  2010 FORMAT (/,' Desired distortions for ANGLE  : ',/) 
@@ -990,6 +1023,62 @@ call alloc_mmc ( n_corr, MC_N_ENERGY, n_scat )
                         ENDIF 
                         mmc_cor_energy (ic, MC_DISP) = .true. 
                         mmc_cor_energy (0, MC_DISP) = .true. 
+                     ELSEIF(str_comp(cpara(2) , 'cn', 2, lpara(2), 2) ) THEN   !Coordination number
+                        CALL del_params (2, ianz, cpara, lpara, maxw) 
+!                       Get atom types in the two allowed groups
+!                       Allowed parameters are: Au, Cu            ! OLd style 
+!                                               (Au), (Cu)        ! New style  :binary correlation
+!                                               (Au,Pt), (Cu,Zn)  ! New style  :quaternary correlation
+                        IF ( cpara(1)(1:1)=='(' .and. cpara(1)(lpara(1):lpara(1))==')') THEN
+                           line   = cpara(1)(2:lpara(1)-1)
+                           length = lpara(1)-2
+                           CALL get_params (line, ianz1, cpara1, lpara1, maxw, length) 
+                           CALL get_iscat (ianz1, cpara1, lpara1, werte1, maxw, .false.)                                  
+                        ELSEIF ( cpara(1)(1:1)/='(' .and. cpara(1)(lpara(1):lpara(1))/=')') THEN
+                           ianz1 = 1 
+                           CALL get_iscat (ianz1, cpara, lpara, werte1, maxw, .false.)                                  
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN
+                        ENDIF
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                        IF ( cpara(1)(1:1)=='(' .and. cpara(1)(lpara(1):lpara(1))==')') THEN
+                           line   = cpara(1)(2:lpara(1)-1)
+                           length = lpara(1)-2
+                           CALL get_params (line, ianz2, cpara2, lpara2, maxw, length) 
+                           CALL get_iscat (ianz2, cpara2, lpara2, werte2, maxw, .false.)                                  
+                        ELSEIF ( cpara(1)(1:1)/='(' .and. cpara(1)(lpara(1):lpara(1))/=')') THEN
+                           ianz2 = 1 
+                           CALL get_iscat (ianz2, cpara, lpara, werte2, maxw, .false.)                                  
+                        ELSE
+                           ier_num = -6
+                           ier_typ = ER_COMM
+                           RETURN
+                        ENDIF
+                        CALL del_params (1, ianz, cpara, lpara, maxw) 
+                        CALL ber_params (2, cpara, lpara, werte, maxw) 
+!                       DO i = 1, iianz 
+!                       DO j = 1, jjanz 
+!                       is = nint (uerte (i) ) 
+!                       js = nint (verte (j) ) 
+!                          IF(is<0 .OR. is>cr_nscat .OR. &
+!                             js<0 .OR. js>cr_nscat)  THEN
+!                             ier_num = -97
+!                             ier_typ = ER_APPL
+!                             WRITE(ier_msg(1),'(a,i10)') 'Atom type ',is
+!                             WRITE(ier_msg(2),'(a,i10)') 'Atom type ',js
+!                             ier_msg(3) = 'Check parameter list for wrong/missing atoms'
+!                             RETURN
+!                          ENDIF
+!                          mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+!                          mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
+                           CALL mmc_set_cn(ic, MC_COORDNUM, ianz1, ianz2, MAXW, werte1, werte2, werte(1), werte(2)) 
+!                       ENDDO 
+!                       ENDDO 
+                        mmc_cor_energy (ic, MC_COORDNUM) = .true. 
+                        mmc_cor_energy (0, MC_COORDNUM) = .true. 
+                        mmc_cfac (ic, MC_COORDNUM) = 1.0 
                      ELSEIF (str_comp (cpara (2) , 'spring', 2, lpara ( &
                      2) , 6) ) then                                     
                         CALL del_params (2, ianz, cpara, lpara, maxw) 
@@ -1421,6 +1510,71 @@ USE precision_mod
       ENDIF 
 !                                                                       
       END SUBROUTINE mmc_set_disp                   
+!*****7*****************************************************************
+SUBROUTINE mmc_set_cn(ic, ie, ianz1, ianz2, MAXW, werte1, werte2, coord, depth) 
+!+                                                                      
+!     Set desired coordination numbers                                  
+!-                                                                      
+!                                                                       
+USE discus_config_mod 
+USE crystal_mod 
+USE mmc_mod 
+USE errlist_mod 
+USE precision_mod
+!
+IMPLICIT none 
+!
+
+INTEGER           , INTENT(IN) :: ic     ! Correlation number
+INTEGER           , INTENT(IN) :: ie     ! Energy number == MC_COORDNUM
+INTEGER           , INTENT(IN) :: ianz1  ! No of atom types in first group
+INTEGER           , INTENT(IN) :: ianz2  ! No of atom types in second group
+INTEGER           , INTENT(IN) :: MAXW   ! Array Dimension 
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN) :: werte1 ! Actual atom types group1
+REAL(KIND=PREC_DP), DIMENSION(MAXW), INTENT(IN) :: werte2 ! Actual atom types group1
+REAL(KIND=PREC_DP),                  INTENT(IN) :: coord   ! Desired correlation
+REAL(KIND=PREC_DP),                  INTENT(IN) :: depth  ! Energy Depth
+!
+INTEGER :: is, js,      ii, jj 
+!                                                                       
+DO ii = 1, ianz1
+   is = NINT(werte1(ii))
+   mmc_allowed(is) = .true. ! this atom is allowed in mmc moves
+   DO jj = 1, ianz2
+      js = NINT(werte2(jj))
+      mmc_allowed(js) = .true. ! this atom is allowed in mmc moves
+      mmc_target_corr (ic, ie, is, js) = coord 
+      mmc_depth (ic, ie, is, js) = depth 
+      mmc_pair (ic, ie, is, js) = -1     
+   ENDDO
+ENDDO
+!IF (is.ne. - 1.and.js.ne. - 1) then 
+!   mmc_target_corr (ic, ie, is, js) = dist 
+!   mmc_depth (ic, ie, is, js) = depth 
+!   mmc_pair (ic, ie, is, js) = -1     
+!ELSEIF (is.eq. - 1.and.js.ne. - 1) then 
+!   DO ii = 0, cr_nscat 
+!      mmc_target_corr (ic, ie, ii, js) = dist 
+!!      mmc_depth (ic, ie, ii, js) = depth 
+!      mmc_pair (ic, ie, ii, js) = -1     
+!      ENDDO 
+!ELSEIF (is.ne. - 1.and.js.eq. - 1) then 
+!   DO ii = 0, cr_nscat 
+!      mmc_target_corr (ic, ie, is, ii) = dist 
+!      mmc_depth (ic, ie, is, ii) = depth 
+!      mmc_pair (ic, ie, is, ii) = -1     
+!   ENDDO 
+!ELSE 
+!   DO ii = 0, cr_nscat 
+!      DO jj = 0, cr_nscat 
+!         mmc_target_corr (ic, ie, ii, jj) = dist 
+!         mmc_depth (ic, ie, ii, jj) = depth 
+!         mmc_pair (ic, ie, ii, jj) = -1     
+!      ENDDO 
+!   ENDDO 
+!ENDIF 
+!                                                                       
+END SUBROUTINE mmc_set_cn                   
 !*****7*****************************************************************
       SUBROUTINE mmc_set_disp_occ (ic, ie, ianz1, ianz2, &
                              MAXW, werte1, werte2, corr, depth )
@@ -1871,7 +2025,8 @@ REAL(KIND=PREC_DP), EXTERNAL ::gasdev
            'Bond length energy      ',   &
            'Lennard Jones Potential ',   &
            'Buckingham Potential    ',   &
-           'Repulsive     Potential ' /                                                              !                                                                       
+           'Repulsive     Potential ',   &
+           'Coordination Number     ' /
       DO i = 0, MC_N_ENERGY 
       n_e_av_p (i) = 0 
       n_e_av_m (i) = 0 
@@ -2082,6 +2237,14 @@ REAL(KIND=PREC_DP), EXTERNAL ::gasdev
                      valid_all = valid_all.or.valid_e 
                   ENDIF 
                ENDIF 
+            ENDIF 
+!
+!     ------- Coordination number
+!
+            IF(mmc_cor_energy(ic, MC_COORDNUM) ) THEN 
+               e_old(MC_COORDNUM) = e_old(MC_COORDNUM) + mmc_energy_cn ( &
+               isel, ia, ic, iatom, icent, natom, valid_e)       
+               valid_all = valid_all.or.valid_e 
             ENDIF 
 !                                                                       
 !     ------- Displacement correlation                                  
@@ -2295,6 +2458,14 @@ REAL(KIND=PREC_DP), EXTERNAL ::gasdev
                   valid_all = valid_all.or.valid_e 
                   e_new (MC_OCC) = e_new (MC_OCC) + mmc_energy_occ (    &
                   isel, ia, ic, iatom, icent, natom, valid_e)    
+                  valid_all = valid_all.or.valid_e 
+               ENDIF 
+!
+!     ------- Coordination number
+!
+               IF(mmc_cor_energy(ic, MC_COORDNUM) ) THEN 
+                  e_new(MC_COORDNUM) = e_new(MC_COORDNUM) + mmc_energy_cn ( &
+                  isel, ia, ic, iatom, icent, natom, valid_e)       
                   valid_all = valid_all.or.valid_e 
                ENDIF 
 !                                                                       
@@ -2854,6 +3025,98 @@ END SUBROUTINE mmc_test_multi
       ENDIF 
 !                                                                       
       END FUNCTION mmc_energy_occ_mol               
+!*****7*****************************************************************
+REAL FUNCTION mmc_energy_cn(isel, ia, ic, iatom, icent, natom, valid_e)                                                   
+!+                                                                      
+!     Calculates the energy for coordination number
+!-                                                                      
+USE discus_config_mod 
+USE crystal_mod 
+USE chem_mod 
+USE mc_mod 
+USE mmc_mod 
+USE modify_mod
+USE modify_func_mod
+USE param_mod 
+!                                                                       
+IMPLICIT none 
+!                                                                       
+INTEGER, PARAMETER :: maxatom = chem_max_neig
+!
+INTEGER, DIMENSION(chem_max_atom) :: isel
+!
+INTEGER, DIMENSION(0:maxatom, CHEM_MAX_CENT) :: iatom
+INTEGER, DIMENSION(CHEM_MAX_CENT)            :: natom
+INTEGER, DIMENSION(:), ALLOCATABLE           :: n_neig   ! Number of neighbors of type js
+INTEGER :: icent 
+LOGICAL :: valid_e 
+!                                                                       
+INTEGER :: is, js, ic, in, ia
+INTEGER :: in_a, in_e 
+INTEGER :: ncalc 
+!
+mmc_energy_cn = 0.0
+ncalc = 0 
+valid_e = .false. 
+ALLOCATE(n_neig(0:CR_NSCAT))
+n_neig(:) = 0
+!                                                                       
+IF (chem_ctyp(ic) == CHEM_VEC    .or. &
+    chem_ctyp(ic) == CHEM_ENVIR  .or. &
+    chem_ctyp(ic) == CHEM_RANGE  .or. &
+    chem_ctyp(ic) == CHEM_DIST   .or. &
+    chem_ctyp(ic) == CHEM_CON        )   THEN                                               
+!                                                                       
+   IF(natom (icent) /= 0) THEN 
+      IF(isel(ia) == iatom(0, icent) ) THEN 
+!                                                                       
+!     ----The selected atom is the central atom, check all atoms        
+!                                                                       
+         in_a = 1 
+         in_e = natom(icent) 
+         is   = cr_iscat(iatom (0, icent) ) 
+         js   = -1                            ! Flag negative to indicate no neighbor
+         DO in = in_a, in_e 
+            IF(check_select_status(iatom(in, icent),  .TRUE.,          &
+                                   cr_prop (iatom (in, icent)), cr_sel_prop)) THEN
+               js    = cr_iscat(iatom (in, icent) ) 
+               IF(mmc_pair(ic, MC_COORDNUM, is, js)==-1) THEN
+                  n_neig(js) = n_neig(js) + 1
+               ENDIF
+            ENDIF
+         ENDDO 
+         DO js = 0, cr_nscat
+            IF(mmc_pair(ic, MC_COORDNUM, is, js) == -1) THEN
+               mmc_energy_cn = mmc_energy_cn +                                 &
+                               mmc_depth (ic,MC_COORDNUM, is, js) *            &
+                               (n_neig(js) - mmc_target_corr(ic, MC_COORDNUM, is, js))**2
+            ENDIF 
+         ENDDO 
+      ELSE 
+!                                                                       
+!     The selected atom is a neighbour, use this atom only              
+!                                                                       
+!        in_a = 0 
+!        in_e = 0 
+!        is = cr_iscat (isel (ia) ) 
+!        in = 0
+!        IF (check_select_status (iatom (in, icent),  &
+!                                 .true., cr_prop (iatom (in,  &
+!                                 icent) ), cr_sel_prop) ) then                         
+!           ival1 = 0 
+!           js = cr_iscat (iatom (in, icent) ) 
+!           ival1 = mmc_pair(ic, MC_OCC,is,js)
+!           mmc_energy_cn = mmc_energy_cn +                  &
+!                            mmc_depth (ic,MC_OCC, 0, 0) * ival1
+!        ENDIF 
+!              
+      ENDIF 
+   ENDIF 
+ENDIF 
+valid_e = .true. 
+DEALLOCATE(n_neig)
+!                                                                       
+END FUNCTION mmc_energy_cn                   
 !*****7*****************************************************************
       REAL function mmc_energy_dis (isel, ia, ic, iatom, icent,  &
       natom, jdir, delta, rdj, valid_e)                                 
@@ -3815,6 +4078,10 @@ END SUBROUTINE mmc_test_multi
       REAL bl_s2 (0:DEF_maxscat, 0:DEF_maxscat) 
       REAL u (3), v (3), d (3) 
       REAL dist 
+!
+INTEGER :: n_cn
+INTEGER, DIMENSION(:), ALLOCATABLE :: ncentral
+INTEGER, DIMENSION(0:DEF_MAXSCAT, 0:DEF_MAXSCAT) :: p_cn
 !                                                                       
       INTEGER pneig (0:DEF_MAXSCAT, 0:DEF_MAXSCAT) 
       INTEGER pair11, pair12, pair21, pair22 
@@ -3847,7 +4114,7 @@ END SUBROUTINE mmc_test_multi
      &nt correlation', 'Distance correlation (Hooke)', 'Angular      cor&
      &relation', 'Vector       correlation', 'Distance     correlation',&
      & 'Lennard Jones potential ', 'Buckingham    potential ' ,         &
-       'Repulsive     potential '/         
+       'Repulsive     potential ', 'Coordination number     '/         
 !
       damp = 0.01 + 0.99*exp(-4.0*rel_cycl)
 !                                                                       
@@ -3886,77 +4153,81 @@ END SUBROUTINE mmc_test_multi
          mmc_ach_angl (i) = 0.0 
          mmc_ang_sigm (i) = 0.0 
       ENDDO 
+ALLOCATE(ncentral(0:MAXSCAT))
 !                                                                       
 !     Loop over all correlations                                        
 !                                                                       
 main_corr: DO ic = 1, chem_ncor 
-         IF (lout) then 
-            WRITE (output_io, * ) 
-         ENDIF 
-         DO is = 0, MAXSCAT 
-            DO js = 0, MAXSCAT 
-               pneig (is, js) = 0 
-               bl_sum (is, js) = 0.0 
-               bl_s2 (is, js) = 0.0 
-               bl_anz (is, js) = 0 
-               xnn (is, js) = 0 
-               xij (is, js) = 0 
-               xi2 (is, js) = 0 
-               xj2 (is, js) = 0 
-            ENDDO 
-         ENDDO 
-         DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
-            ba_sum (i) = 0.0 
-            ba_s2 (i) = 0.0 
-            ba_anz (i) = 0 
-         ENDDO 
-         IF (mmc_cor_energy (0, MC_DISP) ) then 
-            DO i = 1, 3 
-            idir (i) = chem_dir (i, 1, ic) 
-            jdir (i) = chem_dir (i, 2, ic) 
-            ENDDO 
+   ncentral(:) = 0
+   IF (lout) then 
+      WRITE (output_io, * ) 
+   ENDIF 
+   DO is = 0, MAXSCAT 
+      DO js = 0, MAXSCAT 
+         pneig (is, js) = 0 
+         p_cn  (is, js) = 0 
+         bl_sum (is, js) = 0.0 
+         bl_s2 (is, js) = 0.0 
+         bl_anz (is, js) = 0 
+         xnn (is, js) = 0 
+         xij (is, js) = 0 
+         xi2 (is, js) = 0 
+         xj2 (is, js) = 0 
+      ENDDO 
+   ENDDO 
+   DO i = 1, CHEM_MAX_COR * MMC_MAX_ANGLES 
+      ba_sum (i) = 0.0 
+      ba_s2 (i) = 0.0 
+      ba_anz (i) = 0 
+   ENDDO 
+   IF (mmc_cor_energy (0, MC_DISP) ) then 
+      DO i = 1, 3 
+         idir (i) = chem_dir (i, 1, ic) 
+         jdir (i) = chem_dir (i, 2, ic) 
+      ENDDO 
 !                                                                       
 !------ calculate correlations                                          
 !                                                                       
-            rdi = skalpro (idir, idir, cr_gten) 
-            rdj = skalpro (jdir, jdir, cr_gten) 
-            IF (rdi.gt.0.0) rdi = sqrt (rdi) 
-            IF (rdj.gt.0.0) rdj = sqrt (rdj) 
-         ENDIF 
+      rdi = skalpro (idir, idir, cr_gten) 
+      rdj = skalpro (jdir, jdir, cr_gten) 
+      IF (rdi.gt.0.0) rdi = sqrt (rdi) 
+      IF (rdj.gt.0.0) rdj = sqrt (rdj) 
+   ENDIF 
 !                                                                       
 !     -- Loop over all atoms                                            
 !                                                                       
-main_atoms:         DO i = 1, cr_natoms 
-            is = cr_iscat (i) 
-            CALL chem_neighbour_multi (i, ic, iatom, patom, natom, ncent,     &
-            maxatom)                                                          
-            IF (ier_num.ne.0) return 
+main_atoms: DO i = 1, cr_natoms 
+      is = cr_iscat (i) 
+      ncentral(is) = ncentral(is) + 1
+      CALL chem_neighbour_multi (i, ic, iatom, patom, natom, ncent,     &
+               maxatom)                                                          
+      IF (ier_num.ne.0) return 
 !                                                                       
 !------ ---- In case of Displacement correlation, calculate             
 !            displacement of central atom                                                 
 !                                                                       
 is_mc_disp: IF (mmc_cor_energy (ic, MC_DISP) ) then 
-               CALL indextocell (i, icc, is) 
-               DO j = 1, 3 
-                  disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
-                             REAL(icc (j) - 1) - cr_dim0 (j, 1)                                          
-               ENDDO 
+         CALL indextocell (i, icc, is) 
+         DO j = 1, 3 
+            disi (j) = cr_pos (j, i) - chem_ave_pos (j, is) - &
+                       REAL(icc (j) - 1) - cr_dim0 (j, 1)                                          
+         ENDDO 
 !                                                                       
-               IF (chem_ldall (ic) ) then 
-                  DO j = 1, 3 
-                     jdir (j) = disi (j) 
-                  ENDDO 
-                  rdj = skalpro (jdir, jdir, cr_gten) 
-                  IF (rdj.gt.0.0) then 
-                     rdj = sqrt (rdj) 
-                  ELSE 
-                     rdj = 1.0 
-                  ENDIF 
-                  dpi = 1.0 
-               ELSE 
-                  dpi = skalpro (disi, idir, cr_gten) / rdi 
-               ENDIF 
-            ENDIF is_mc_disp
+      IF (chem_ldall (ic) ) then 
+         DO j = 1, 3 
+            jdir (j) = disi (j) 
+         ENDDO 
+         rdj = skalpro (jdir, jdir, cr_gten) 
+         IF (rdj.gt.0.0) then 
+            rdj = sqrt (rdj) 
+         ELSE 
+            rdj = 1.0 
+         ENDIF 
+         dpi = 1.0 
+      ELSE 
+         dpi = skalpro (disi, idir, cr_gten) / rdi 
+      ENDIF 
+   ENDIF is_mc_disp
 !                                                                       
 !     ---- Loop over all centers                                        
 !                                                                       
@@ -3964,61 +4235,70 @@ main_cent: DO icent = 1, ncent
 !                                                                       
 !     ------- Since the loop is over all atoms, do central atoms only   
 !                                                                       
-is_cent:      IF (i.eq.iatom (0, icent) ) then 
-is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
-                     mmc_cor_energy (ic, MC_DISP)       .or. &
-                     mmc_cor_energy (ic, MC_SPRING)     .or. &
-                     mmc_cor_energy (ic, MC_LENNARD)    .or. &
-                     mmc_cor_energy (ic, MC_REPULSIVE)  .or. &
-                     mmc_cor_energy (ic, MC_BUCKING)         ) then    
+is_cent:  IF (i.eq.iatom (0, icent) ) then 
+is_energy:  IF (mmc_cor_energy (ic, MC_OCC)        .or. &
+                mmc_cor_energy (ic, MC_DISP)       .or. &
+                mmc_cor_energy (ic, MC_SPRING)     .or. &
+                mmc_cor_energy (ic, MC_LENNARD)    .or. &
+                mmc_cor_energy (ic, MC_REPULSIVE)  .or. &
+                mmc_cor_energy (ic, MC_COORDNUM )  .OR. &
+                mmc_cor_energy (ic, MC_BUCKING)         ) then    
 !                                                                       
 !     ---------- Loop over all neighbours                               
 !                                                                       
-            DO j = 1, natom (icent) 
-            js = cr_iscat (iatom (j, icent) ) 
-            DO k = 1, 3 
-            u (k) = patom (k, 0, icent) 
-            ENDDO 
+loop_neig:  DO j = 1, natom (icent) 
+               js = cr_iscat (iatom (j, icent) ) 
+               DO k = 1, 3 
+                  u (k) = patom (k, 0, icent) 
+               ENDDO 
 !                                                                       
 !     --------- Accumulate values for all Energies                      
 !                                                                       
-            IF (mmc_cor_energy (ic, MC_OCC) ) then 
+               IF (mmc_cor_energy (ic, MC_OCC) ) then 
 !                                                                       
 !     ----------- Chemical correlation, add number of atom pairs        
 !                                                                       
-               pneig (is, js) = pneig (is, js) + 1 
-            ENDIF 
-            IF (mmc_cor_energy (ic, MC_SPRING)    .or.     &
-                mmc_cor_energy (ic, MC_LENNARD)   .or.     &
-                mmc_cor_energy (ic, MC_REPULSIVE) .or.     &
-                mmc_cor_energy (ic, MC_BUCKING)     ) then      
-               DO k = 1, 3 
-               v (k) = patom (k, j, icent) 
-               d (k) = v (k) - u (k) 
-               ENDDO 
+                  pneig (is, js) = pneig (is, js) + 1 
+               ENDIF 
+!
+!--- Coordination number
+!
+               IF(mmc_cor_energy(ic, MC_COORDNUM)) THEN
+                  IF(mmc_pair(ic,MC_COORDNUM, is,js)==-1) THEN
+                     p_cn (is, js) = p_cn (is, js) + 1 
+                  ENDIF
+               ENDIF 
+               IF (mmc_cor_energy (ic, MC_SPRING)    .or.     &
+                   mmc_cor_energy (ic, MC_LENNARD)   .or.     &
+                   mmc_cor_energy (ic, MC_REPULSIVE) .or.     &
+                   mmc_cor_energy (ic, MC_BUCKING)     ) then      
+                  DO k = 1, 3 
+                     v (k) = patom (k, j, icent) 
+                     d (k) = v (k) - u (k) 
+                  ENDDO 
 !if(ic==3) then
 !write(*,*) ' should add for atom pair is,js', i,is,js
 !endif
-               dist = do_blen (.true., u, v) 
-               js   = cr_iscat (iatom (j, icent) ) 
-               bl_sum (is, js) = bl_sum (is, js) + dist 
-               bl_s2  (is, js) = bl_s2 (is, js) + dist**2 
-               bl_anz (is, js) = bl_anz (is, js) + 1 
-               pneig (is, js) = pneig (is, js) + 1 
-            ENDIF 
-            IF (mmc_cor_energy (ic, MC_DISP) ) then 
-               CALL indextocell (iatom (j, icent), jcc, js) 
-               DO k = 1, 3 
-               disj (k) = cr_pos (k, iatom (j, icent) ) - chem_ave_pos (&
-               k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
-               ENDDO 
-               dpj = skalpro (disj, jdir, cr_gten) / rdj 
-               xij (is, js) = xij (is, js) + dpi * dpj 
-               xi2 (is, js) = xi2 (is, js) + dpi**2 
-               xj2 (is, js) = xj2 (is, js) + dpj**2 
-               xnn (is, js) = xnn (is, js) + 1 
-            ENDIF 
-            ENDDO 
+                  dist = do_blen (.true., u, v) 
+                  js   = cr_iscat (iatom (j, icent) ) 
+                  bl_sum (is, js) = bl_sum (is, js) + dist 
+                  bl_s2  (is, js) = bl_s2 (is, js) + dist**2 
+                  bl_anz (is, js) = bl_anz (is, js) + 1 
+                  pneig (is, js) = pneig (is, js) + 1 
+               ENDIF 
+               IF (mmc_cor_energy (ic, MC_DISP) ) then 
+                  CALL indextocell (iatom (j, icent), jcc, js) 
+                  DO k = 1, 3 
+                     disj (k) = cr_pos (k, iatom (j, icent) ) - chem_ave_pos (&
+                     k, js) - REAL(jcc (k) - 1) - cr_dim0 (k, 1)            
+                  ENDDO 
+                  dpj = skalpro (disj, jdir, cr_gten) / rdj 
+                  xij (is, js) = xij (is, js) + dpi * dpj 
+                  xi2 (is, js) = xi2 (is, js) + dpi**2 
+                  xj2 (is, js) = xj2 (is, js) + dpj**2 
+                  xnn (is, js) = xnn (is, js) + 1 
+               ENDIF 
+            ENDDO loop_neig
 !                     j ! Loop over all neighbours                      
          ENDIF is_energy
          IF (mmc_cor_energy (ic, MC_ANGLE) ) then 
@@ -4027,85 +4307,85 @@ is_energy:       IF (mmc_cor_energy (ic, MC_OCC)        .or. &
 !                                                                       
             is = cr_iscat (i) 
             DO k = 1, 3 
-            u (k) = patom (k, 0, icent) 
+               u (k) = patom (k, 0, icent) 
             ENDDO 
 !                                                                       
 !     ---------- Double loop over all neighbours                        
 !                                                                       
             DO j = 1, natom (icent) - 1 
-            js = cr_iscat (iatom (j, icent) ) 
-            DO k = 1, 3 
-            v (k) = patom (k, j, icent) 
-            ENDDO 
-            DO l = j + 1, natom (icent) 
-            ls = cr_iscat (iatom (l, icent) ) 
+               js = cr_iscat (iatom (j, icent) ) 
+               DO k = 1, 3 
+                  v (k) = patom (k, j, icent) 
+               ENDDO 
+               DO l = j + 1, natom (icent) 
+                  ls = cr_iscat (iatom (l, icent) ) 
 !                                                                       
 !     -------------- Find proper entry in correlation table             
 !                                                                       
-            k = 0 
-            ic_a = 0 
-            searching = .true. 
-            DO while (searching.and.k.le.mmc_n_angles) 
-            k = k + 1 
-            CALL index2angles (mmc_angles (k), iic, kk, iis, jjs, lls,  &
-            MAXSCAT)
-            IF (iic.eq.ic) then 
-               IF (iis.eq.is.or.iis.eq. - 1) then 
-                  IF (jjs.eq. - 1.or.jjs.eq.min (js, ls) ) then 
-                     IF (lls.eq. - 1.or.lls.eq.max (js, ls) ) then 
-                        searching = .false. 
-                        ic_a = k 
+                  k = 0 
+                  ic_a = 0 
+                  searching = .true. 
+                  DO while (searching.and.k.le.mmc_n_angles) 
+                     k = k + 1 
+                     CALL index2angles (mmc_angles (k), iic, kk, iis, jjs, lls,  &
+                                          MAXSCAT)
+                     IF (iic.eq.ic) then 
+                        IF (iis.eq.is.or.iis.eq. - 1) then 
+                           IF (jjs.eq. - 1.or.jjs.eq.min (js, ls) ) then 
+                              IF (lls.eq. - 1.or.lls.eq.max (js, ls) ) then 
+                                 searching = .false. 
+                                 ic_a = k 
+                              ENDIF 
+                           ENDIF 
+                        ENDIF 
                      ENDIF 
-                  ENDIF 
-               ENDIF 
-            ENDIF 
-            ENDDO 
+                  ENDDO 
 !                         ! Find proper entry in correlation table      
-            IF (.not.searching) then 
-               DO k = 1, 3 
-               d (k) = patom (k, l, icent) 
-               ENDDO 
-               wi = do_bang (.true., v, u, d) 
-               wis = mmc_target_angl (ic_a) 
-               IF (wis.le.90.) then 
-                  IF (wi.gt.1.5 * wis) then 
-                     wi = mod (wi + wis / 2., wis) + wis / 2. 
+                  IF (.not.searching) then 
+                     DO k = 1, 3 
+                        d (k) = patom (k, l, icent) 
+                     ENDDO 
+                     wi = do_bang (.true., v, u, d) 
+                     wis = mmc_target_angl (ic_a) 
+                     IF (wis.le.90.) then 
+                        IF (wi.gt.1.5 * wis) then 
+                           wi = mod (wi + wis / 2., wis) + wis / 2. 
+                        ENDIF 
                   ENDIF 
+                  ba_sum (ic_a) = ba_sum (ic_a) + wi 
+                  ba_s2 (ic_a) = ba_s2 (ic_a) + wi**2 
+                  ba_anz (ic_a) = ba_anz (ic_a) + 1 
                ENDIF 
-               ba_sum (ic_a) = ba_sum (ic_a) + wi 
-               ba_s2 (ic_a) = ba_s2 (ic_a) + wi**2 
-               ba_anz (ic_a) = ba_anz (ic_a) + 1 
-            ENDIF 
             ENDDO 
-            ENDDO 
-!                     j ! Double loop over neighbours                   
-               ENDIF 
-               ENDIF is_cent    !       ! center atoms only                                   
-            ENDDO main_cent     ! icent ! Loop over centers                               
-         ENDDO main_atoms       ! i     ! Loop over all atoms                                   
+         ENDDO 
+!                      ! j     ! Double loop over neighbours                   
+      ENDIF 
+      ENDIF is_cent    !       ! center atoms only                                   
+   ENDDO main_cent     ! icent ! Loop over centers                               
+ENDDO main_atoms       ! i     ! Loop over all atoms                                   
 !                                                                       
 !------ -- Summ up all energies, write output                           
 !                                                                       
 !     ----- Chemical correlation                                        
 !                                                                       
-         pair11 = 0
-         pair12 = 0
-         pair21 = 0
-         pair22 = 0
-         DO is = 0, cr_nscat 
-            DO js =  0, cr_nscat 
-               IF     (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
-                  pair12 = pair12 + pneig (is,js)
-               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -2 ) then 
-                  pair21 = pair21 + pneig (is,js)
-               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +1 ) then 
-                  pair11 = pair11 + pneig (is,js)
-               ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +2 ) then 
-                  pair22 = pair22 + pneig (is,js)
-               ENDIF
-            ENDDO
-         ENDDO
-         je = MC_OCC 
+pair11 = 0
+pair12 = 0
+pair21 = 0
+pair22 = 0
+DO is = 0, cr_nscat 
+   DO js =  0, cr_nscat 
+      IF     (mmc_pair (ic, MC_OCC, is, js) == -1 ) then 
+         pair12 = pair12 + pneig (is,js)
+      ELSEIF (mmc_pair (ic, MC_OCC, is, js) == -2 ) then 
+         pair21 = pair21 + pneig (is,js)
+      ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +1 ) then 
+         pair11 = pair11 + pneig (is,js)
+      ELSEIF (mmc_pair (ic, MC_OCC, is, js) == +2 ) then 
+         pair22 = pair22 + pneig (is,js)
+      ENDIF
+   ENDDO
+ENDDO
+je = MC_OCC 
 !                                                                       
 !                                                                       
          nneigh = pair11 + pair12 + pair21 + pair22 
@@ -4147,6 +4427,41 @@ corr_pair: DO is = 0, cr_nscat
                ENDIF 
             ENDDO 
          ENDDO corr_pair
+!
+!  Coordination number
+!
+   je = MC_COORDNUM
+   n_cn = 0
+   cn_pair: DO is = 0, cr_nscat 
+      DO js = 0 , cr_nscat 
+         IF(mmc_pair(ic, MC_COORDNUM, is, js) /=  0 ) THEN 
+            n_cn = n_cn + p_cn(is, js)
+         ENDIF
+      ENDDO
+   ENDDO cn_pair
+!write(*,*) ' p_cn 1 ', p_cn(1,1:cr_nscat), n_cn, ncentral(1)
+!write(*,*) ' p_cn 2 ', p_cn(2,1:cr_nscat), n_cn, ncentral(2)
+!write(*,*) ' p_cn 3 ', p_cn(3,1:cr_nscat), n_cn, ncentral(3)
+   cn_out: DO is = 0, cr_nscat 
+      DO js = 0 , cr_nscat 
+         IF(mmc_pair(ic, MC_COORDNUM, is, js) /=  0 ) THEN 
+            mmc_ach_corr(ic, je, is, js) = REAL(n_cn        )/REAL(ncentral(is))
+!           Feedback mechanism                                      
+!           mmc_depth (ic, MC_COORDNUM, 0, 0) = mmc_depth (ic, MC_COORDNUM, 0, 0) - &
+!           mmc_cfac (ic, MC_COORDNUM) * (mmc_target_corr (ic, MC_COORDNUM, is,js)- &
+!                                            mmc_ach_corr (ic, MC_COORDNUM, is, js) ) / 2. &
+!           *ABS(mmc_target_corr (ic, MC_OCC, is, js)) &
+!           * damp
+            IF(lout) THEN
+               WRITE(output_io, 3150) ic, cr_at_lis(is), cr_at_lis(js),         &
+                  mmc_target_corr(ic, je, is, js),                              &
+                  mmc_ach_corr(ic, je, is, js),                                 &
+                  mmc_target_corr(ic, je, is, js) - mmc_ach_corr(ic,je, is, js),&
+                  ncentral(is)
+            ENDIF
+         ENDIF
+      ENDDO
+   ENDDO cn_out
 !                                                                       
 !     ----- correlation of displacements                                
 !                                                                       
@@ -4343,39 +4658,41 @@ repu_pair: DO is = 0, cr_nscat
 !                                                                       
 !     -- Loop over all atom pairs to do Buckingham potential            
 !                                                                       
-buck_pair: DO is = 0, cr_nscat 
-            DO js = is, cr_nscat 
-               IF (mmc_pair (ic, MC_BUCKING, is, js) == -1 ) then 
-                  je = MC_BUCKING 
+   buck_pair: DO is = 0, cr_nscat 
+      DO js = is, cr_nscat 
+         IF (mmc_pair (ic, MC_BUCKING, is, js) == -1 ) then 
+            je = MC_BUCKING 
 !                                                                       
 !     ----- Buckingham                                                  
 !                                                                       
-                  IF (bl_anz (is, js) .ne.0.or.bl_anz (js, is) .ne.0) then 
-                     mmc_ach_corr (ic, je, is, js) =              &
-                           (bl_sum (is, js) + bl_sum (js, is) ) / &
-                           (bl_anz (is, js) + bl_anz (js, is) )            
-                     mmc_ach_sigm (ic, je, is, js) =              &
-                           (bl_s2  (is, js) + bl_s2  (js, is) ) / &
-                           (bl_anz (is, js) + bl_anz (js, is) )                
-                     mmc_ach_sigm (ic, je, is, js) =              &
-                           (mmc_ach_sigm (ic, je, is, js) -       &
-                           (mmc_ach_corr (ic, je, is, js) **2) )                 
-                     IF (mmc_ach_sigm (ic, je, is, js) .gt.0) then 
-                        mmc_ach_sigm (ic, je, is, js) =           &
-                            sqrt (mmc_ach_sigm (ic, je, is, js) )                                            
-                     ELSE 
-                        mmc_ach_sigm (ic, je, is, js) = 0.0 
-                     ENDIF 
-                     IF (lout) then 
-                        WRITE (output_io, 2100) ic, cr_at_lis (is), cr_at_lis (  &
-                        js), mmc_ach_corr (ic, je, is, js), mmc_ach_sigm (ic, je,&
-                        is, js), bl_anz (is, js) + bl_anz (js, is)               
-                     ENDIF 
-                  ENDIF 
+            IF (bl_anz (is, js) .ne.0.or.bl_anz (js, is) .ne.0) then 
+               mmc_ach_corr (ic, je, is, js) =              &
+                     (bl_sum (is, js) + bl_sum (js, is) ) / &
+                     (bl_anz (is, js) + bl_anz (js, is) )            
+               mmc_ach_sigm (ic, je, is, js) =              &
+                     (bl_s2  (is, js) + bl_s2  (js, is) ) / &
+                     (bl_anz (is, js) + bl_anz (js, is) )                
+               mmc_ach_sigm (ic, je, is, js) =              &
+                     (mmc_ach_sigm (ic, je, is, js) -       &
+                     (mmc_ach_corr (ic, je, is, js) **2) )                 
+               IF (mmc_ach_sigm (ic, je, is, js) .gt.0) then 
+                  mmc_ach_sigm (ic, je, is, js) =           &
+                      sqrt (mmc_ach_sigm (ic, je, is, js) )                                            
+               ELSE 
+                  mmc_ach_sigm (ic, je, is, js) = 0.0 
                ENDIF 
-            ENDDO 
-         ENDDO buck_pair
-      ENDDO main_corr
+               IF (lout) then 
+                  WRITE (output_io, 2100) ic, cr_at_lis (is), cr_at_lis (  &
+                  js), mmc_ach_corr (ic, je, is, js), mmc_ach_sigm (ic, je,&
+                  is, js), bl_anz (is, js) + bl_anz (js, is)               
+               ENDIF 
+            ENDIF 
+         ENDIF 
+      ENDDO 
+   ENDDO buck_pair
+ENDDO main_corr
+!
+DEALLOCATE(ncentral)
 !                                                                       
   410 FORMAT ( 45x,'Correlations/',/                                    &
      &   ' Neig.- Energy-',7x,'Atoms',11x,'Target',2x,'Distance/',4x,   &
@@ -4384,6 +4701,8 @@ buck_pair: DO is = 0, cr_nscat
      &   ,25x,'of pairs')                                               
  2100 FORMAT (1x,i3,3x,a9,3x,a9,5x,f7.3,3x,f7.3,3x,i8) 
  3100 FORMAT (1x,i3,3x,'Occupancy',a5,3x,a5,      8x,2(f7.3,3x),        &
+     &        10x,f7.3,3x,i8)
+ 3150 FORMAT (1x,i3,3x,'Coord.No.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,i8)
  3200 FORMAT (1x,i3,3x,'Disp.Cor.',a5,3x,a5,      8x,2(f7.3,3x),        &
      &        10x,f7.3,3x,i8)                                           
