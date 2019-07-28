@@ -791,41 +791,45 @@ USE precision_mod
 !                                                                       
 !------ --- set mode: set calculation mode to quick/exact               
 !                                                                       
-            ELSEIF (cpara (1) (1:2) == 'MO') THEN 
-               CALL do_cap (cpara (2) ) 
-               IF(chem_purge .AND. (cpara(2)(1:3) ==  'QUI' .OR. &
-                                    cpara(3)(1:3) ==  'PER'     )) THEN
-                  ier_num = -31
-                  ier_typ = ER_CHEM
-                  ier_msg(1) = "Use >set crystal< in chem to define "
-                  ier_msg(2) = "Number of unit cells and atoms per unit cell"
-                  ier_msg(3) = "Or read a new cell/structure"
-               ELSE
-               chem_quick = (cpara (2) (1:3) .eq.'QUI') 
-               chem_cluster = (cpara (2) (1:3) .eq.'CLU') 
-               IF (ianz.ge.3) THEN 
-                  CALL do_cap (cpara (3) ) 
-                  IF (cpara (3) (1:3) .eq.'PER') THEN 
-                     IF (ianz.eq.4) THEN 
-                        CALL do_cap (cpara (4) ) 
-                        indxx = INDEX (cpara (4) , 'X') 
-                        indxy = INDEX (cpara (4) , 'Y') 
-                        indxz = INDEX (cpara (4) , 'Z') 
-                        chem_period (1) = indxx.gt.0 
-                        chem_period (2) = indxy.gt.0 
-                        chem_period (3) = indxz.gt.0 
-                     ELSE 
-                        chem_period (1) = .true. 
-                        chem_period (2) = .true. 
-                        chem_period (3) = .true. 
-                     ENDIF 
-                     ENDIF 
-                  ELSE 
-                     chem_period (1) = .false. 
-                     chem_period (2) = .false. 
-                     chem_period (3) = .false. 
-                  ENDIF 
-               ENDIF 
+     ELSEIF(cpara(1)(1:2) == 'MO') THEN 
+        CALL do_cap (cpara (2) ) 
+        IF(chem_purge .AND. (cpara(2)(1:3) ==  'QUI' .OR. &
+                             cpara(3)(1:3) ==  'PER'     )) THEN
+           ier_num = -31
+           ier_typ = ER_CHEM
+           ier_msg(1) = "Use >set crystal< in chem to define "
+           ier_msg(2) = "Number of unit cells and atoms per unit cell"
+           ier_msg(3) = "Or read a new cell/structure"
+        ELSE
+           chem_quick   = (cpara(2)(1:3) .eq.'QUI') 
+           chem_cluster = (cpara(2)(1:3) .eq.'CLU') 
+           IF(ianz == 3) THEN 
+              CALL do_cap(cpara(3) ) 
+              IF(cpara(3)(1:3)  == 'PER') THEN 
+                 IF(ianz == 4) THEN 
+                    CALL do_cap(cpara(4) ) 
+                    indxx = INDEX (cpara(4) , 'X') 
+                    indxy = INDEX (cpara(4) , 'Y') 
+                    indxz = INDEX (cpara(4) , 'Z') 
+                    chem_period(1) = indxx.gt.0 
+                    chem_period(2) = indxy.gt.0 
+                    chem_period(3) = indxz.gt.0 
+                 ELSE 
+                    chem_period(1) = .TRUE. 
+                    chem_period(2) = .TRUE. 
+                    chem_period(3) = .TRUE. 
+                 ENDIF 
+              ELSE 
+                 chem_period(1) = .FALSE. 
+                 chem_period(2) = .FALSE. 
+                 chem_period(3) = .FALSE. 
+              ENDIF 
+           ELSE 
+              chem_period(1) = .FALSE. 
+              chem_period(2) = .FALSE. 
+              chem_period(3) = .FALSE. 
+           ENDIF 
+        ENDIF 
 !                                                                       
 !------ --- set bin: set number of points for histogramm binning        
 !                                                                       
