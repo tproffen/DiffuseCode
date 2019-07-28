@@ -1751,12 +1751,12 @@ CALL spcgr_setting(generator, cr_iset)
       ENDDO 
       compare (4) = 1.0 
       CALL firstcell (compare, 4) 
+         yy(:) = REAL(y)
       IF (.not.mole_l_on) then 
 !                                                                       
 !     ------Transform atom into first unit cell,                        
 !           if it is not inside a molecule                              
 !                                                                       
-         yy(:) = REAL(y)
          CALL firstcell (yy, 4) 
       ENDIF 
       lnew = .true. 
@@ -1792,9 +1792,9 @@ CALL spcgr_setting(generator, cr_iset)
       IF (lnew) then 
          IF (cr_natoms.lt.nmax) then 
             cr_natoms = cr_natoms + 1 
-            cr_pos (1, cr_natoms) = y (1) 
-            cr_pos (2, cr_natoms) = y (2) 
-            cr_pos (3, cr_natoms) = y (3) 
+            cr_pos (1, cr_natoms) = yy(1) 
+            cr_pos (2, cr_natoms) = yy(2) 
+            cr_pos (3, cr_natoms) = yy(3) 
             cr_iscat (cr_natoms) = cr_iscat (ii) 
             cr_mole (cr_natoms) = cr_mole (ii) 
             cr_prop (cr_natoms) = cr_prop (ii) 
@@ -2372,11 +2372,13 @@ USE precision_mod
       INTEGER idim, i 
       REAL(KIND=PREC_DP) :: y (idim) 
 !                                                                       
+!write(*,*) ' IN FIRSTCELL ', y
       DO i = 1, 3 
       y (i) = y (i) - REAL(int (y (i) ) ) 
       IF (y (i) .lt.0.0) y (i) = y (i) + 1 
       IF (y (i) .eq.1.0) y (i) = 0.0 
       ENDDO 
+!write(*,*) ' DID     CELL ', y
       END SUBROUTINE firstcell                      
 !*****7**************************************************************** 
       SUBROUTINE setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
