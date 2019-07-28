@@ -392,7 +392,7 @@ USE precision_mod
       IMPLICIT none 
 !                                                                       
 !                                                                       
-      CHARACTER(80) dffile 
+      CHARACTER(1024) dffile 
       INTEGER idef, l1, l2 
       LOGICAL lread 
 !                                                                       
