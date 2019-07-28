@@ -201,6 +201,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE crystal_mod 
       USE get_iscat_mod
       USE prop_para_mod 
+USE surface_func_mod
 !
       USE ber_params_mod
       USE errlist_mod 
@@ -240,12 +241,14 @@ USE precision_mod
          ibit_nr = PROP_SURFACE_INT
       ELSEIF(str_comp(cpara(1)(1:lpara(1)),'ligand', 3, lpara(1), 6)) THEN
          ibit_nr = PROP_LIGAND
+      ELSEIF(str_comp(cpara(1)(1:lpara(1)),'temp'  , 3, lpara(1), 4)) THEN
+         ibit_nr = PROP_TEMP
       ELSE
          ier_num = -6
          ier_typ = ER_COMM
          ier_msg(1) = 'The 1st parameter must be either of '
          ier_msg(2) = '''domain'', ''outside'', ''external'', ''internal'' '
-         ier_msg(3) = '''ligand'' '
+         ier_msg(3) = '''ligand'', ''temp'' '
          RETURN
       ENDIF
       IF(str_comp(cpara(2)(1:lpara(2)),'types', 3, lpara(2), 5)) THEN
@@ -281,6 +284,7 @@ USE precision_mod
          IF(set_clr) THEN
             DO i=1, cr_natoms
                IF(latom(cr_iscat(i))) THEN
+                  IF(ibit_nr==PROP_SURFACE_EXT) CALL surf_set_local(i,i)
                   cr_prop(i) = IBSET(cr_prop(i),ibit_nr)
                ENDIF
             ENDDO
@@ -288,6 +292,7 @@ USE precision_mod
             DO i=1, cr_natoms
                IF(latom(cr_iscat(i))) THEN
                   cr_prop(i) = IBCLR(cr_prop(i),ibit_nr)
+                  IF(ibit_nr==PROP_SURFACE_EXT) cr_surf(:,i) = 0
                ENDIF
             ENDDO
          ENDIF
@@ -312,11 +317,13 @@ USE precision_mod
          ENDIF
          IF(set_clr) THEN
             DO i=istart, iend
+               IF(ibit_nr==PROP_SURFACE_EXT) CALL surf_set_local(i,i)
                cr_prop(i) = IBSET(cr_prop(i),ibit_nr)
             ENDDO
          ELSE
             DO i=istart, iend
                cr_prop(i) = IBCLR(cr_prop(i),ibit_nr)
+               IF(ibit_nr==PROP_SURFACE_EXT) cr_surf(:,i) = 0
             ENDDO
          ENDIF
       ENDIF typesel
@@ -327,33 +334,31 @@ USE precision_mod
 !
 !*****7*****************************************************************
 !
-      SUBROUTINE property_show 
+SUBROUTINE property_show 
 !+                                                                      
 !     This subroutine shows the property settings                       
 !-                                                                      
-      USE discus_config_mod 
-      USE crystal_mod 
-      USE prop_char_mod 
-      USE prop_para_mod 
+USE discus_config_mod 
+USE crystal_mod 
+USE prop_char_mod 
+USE prop_para_mod 
 USE surface_func_mod
 !
-      USE errlist_mod 
-      USE prompt_mod 
-      IMPLICIT none 
+USE errlist_mod 
+USE prompt_mod 
 !                                                                       
-       
+IMPLICIT none 
 !                                                                       
-      CHARACTER(32) c_property 
-      INTEGER length 
+CHARACTER(LEN=32) :: c_property 
+INTEGER           :: length 
 !                                                                       
-      WRITE (output_io, 2000) 
-      CALL char_prop_2 (c_property, cr_sel_prop (1), cr_sel_prop (0),   &
-      length)                                                           
-      WRITE (output_io, 2100) c_property (1:length) 
+WRITE (output_io, 2000) 
+CALL char_prop_2(c_property, cr_sel_prop(1), cr_sel_prop(0), length)
+WRITE (output_io, 2100) c_property(1:length) 
 !
-      CALL property_show_user
+CALL property_show_user
 !                                                                       
-      CALL surf_show 
+CALL surf_show 
 !                                                                       
  2000 FORMAT     (/' Property related settings'/) 
                                                                         
@@ -365,10 +370,11 @@ USE surface_func_mod
      &                   '   E = atom near ext. surface ',/,            &
      &                   '   I = atom near int. surface ',/,            &
      &                   '   L = atom in ligand molecule',/,            &
-     &                   '                              : ','NMDOEIL'/, &
+     &                   '   T = temporary property     ',/,            &
+     &                   '                              : ','NMDOEILT'/,&
      &                   '      absent=- ignored=.      : ',a)          
 !                                                                       
-      END SUBROUTINE property_show                  
+END SUBROUTINE property_show                  
 !
 !*****7*****************************************************************
 !
@@ -507,6 +513,9 @@ USE precision_mod
       ELSEIF (str_comp (cpara (i) , 'ligand', 2, lpara(i) , 6) ) THEN
          sel_field (0) = bit_set (sel_field, 0, PROP_LIGAND, lentry1)
          sel_field (1) = bit_set (sel_field, 1, PROP_LIGAND, lentry2)
+      ELSEIF (str_comp (cpara (i) , 'temp'  , 2, lpara(i) , 4) ) THEN
+         sel_field (0) = bit_set (sel_field, 0, PROP_TEMP, lentry1)
+         sel_field (1) = bit_set (sel_field, 1, PROP_TEMP, lentry2)
       ELSE 
          ier_num = - 6 
          ier_typ = ER_COMM 
