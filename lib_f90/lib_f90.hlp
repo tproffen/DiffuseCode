@@ -947,7 +947,7 @@
 !b detmat <matrix>
 
    Calculates the determinant of a [n x n] matrix. Currently limited
-   to dimensions 1 to 4.
+   to dimensions 1 to 4. The result is stored in res[1]
 4  invmat
 !b invmat <result>, <input>
 
@@ -962,7 +962,7 @@
    <a> with <b>.
    Either or both of <a> and <b> may be arbitrary scalar expressions.
    The result and the input matrices may be 1-D and or 2-D 
-   according toi the standard rules for matrix multiplications
+   according to the standard rules for matrix multiplications
 
    Thus the command essentially provides the operations:
  
@@ -978,7 +978,7 @@
        and each result element corresponds to the input matrix
        element
        Result[i,j] = scalar * Input[i,j]
-   4): The result matrix is identicla to the input matrix
+   4): The result matrix is identical to the input matrix
        Result[i,j] = Input[i,j]
    5): Standard matrix multiplication
        Result[i,j] = A[i,k] * B[k,j]
@@ -1271,6 +1271,8 @@
    dim:[3,3] for a 2-D array of length 3x3
    Array indices start at 1.
    Presently character variables are single value variables.
+   Several commands exist for matrix algrbra. See the help entry
+   ==> 'matrix' for a summary of these commands.
 
    Several system variable exist that are read only. Several of 
    these refer to the refinement section DIFFEV. These variables 
