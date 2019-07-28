@@ -20,6 +20,7 @@ USE precision_mod
       INTEGER, PARAMETER  ::  MC_LENNARD  = 7
       INTEGER, PARAMETER  ::  MC_BUCKING  = 8
       INTEGER, PARAMETER  ::  MC_REPULSIVE= 9
+      INTEGER, PARAMETER  ::  MC_COORDNUM = 10
 !
       CHARACTER(LEN=200)  ::  mo_atom(3)
 !
