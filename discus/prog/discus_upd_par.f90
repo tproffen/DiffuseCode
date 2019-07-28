@@ -450,6 +450,20 @@ CALL no_error
                ier_typ = ER_FORT 
                RETURN 
             ENDIF 
+         ELSEIF (string (ikl - 4:ikl - 1) .eq.'surf') THEN 
+            IF (ianz.eq.2) THEN 
+               IF (1.le.kpara.and.kpara.le.NMAX.and.kpara.le.cr_natoms .AND. &
+                  1<=kpara2 .AND. kpara2 <=3                                 ) THEN
+                  WRITE(zeile(ikl - 4:ikl + PREC_WIDTH-2) , PREC_F_INTE) cr_surf(kpara2,kpara)
+               ELSE 
+                  ier_num = - 8 
+                  ier_typ = ER_FORT 
+               ENDIF 
+            ELSE 
+               ier_num = - 13 
+               ier_typ = ER_FORT 
+               RETURN 
+            ENDIF 
          ELSEIF (string (ikl - 4:ikl - 1) .eq.'menv') THEN 
             IF (ianz.eq.1) THEN 
                IF (ikl.gt.lcomm + 1) zeile (1:ikl - lcomm - 1) = string(1:ikl - lcomm - 1)
@@ -583,6 +597,8 @@ CALL no_error
       USE do_molecule_alloc
       USE prop_para_mod 
       USE spcgr_apply, ONLY: setup_lattice
+USE surface_mod
+!
       USE errlist_mod 
       USE param_mod 
       USE lib_upd_mod
@@ -725,6 +741,33 @@ CALL no_error
             ENDIF 
          ELSE 
             ier_num = - 13 
+            ier_typ = ER_FORT 
+            RETURN 
+         ENDIF 
+      ELSEIF(ctype == 'surf') THEN 
+         IF(ianz == 2) THEN 
+            IF (1 <= ww(1) .AND. ww(1) <= cr_natoms .AND.       &
+                1 <= ww(2) .AND. ww(2) <=3              ) THEN 
+               IF(ABS(NINT(wert))<100) THEN
+               cr_surf(ww(2), ww(1)) = NINT(wert)
+               IF(cr_surf(1,ww(1))==0 .AND. cr_surf(2,ww(1))==0 .AND. &
+                  cr_surf(3,ww(1))==0                                ) THEN
+                  cr_surf(0,ww(1)) = 0
+                  cr_prop(ww(1)) = IBCLR(cr_prop(ww(1)), PROP_SURFACE_EXT)
+               ELSE
+                  IF(cr_surf(0,ww(1)) == 0 ) cr_surf(0,ww(1)) = SURF_LOCAL
+                  cr_prop(ww(1)) = IBSET(cr_prop(ww(1)), PROP_SURFACE_EXT)
+               ENDIF
+               ELSE 
+                  ier_num = -50
+                  ier_typ = ER_FORT 
+               ENDIF 
+            ELSE 
+               ier_num = -8 
+               ier_typ = ER_FORT 
+            ENDIF 
+         ELSE 
+            ier_num = -13 
             ier_typ = ER_FORT 
             RETURN 
          ENDIF 
@@ -1510,6 +1553,9 @@ ELSEIF(opara(1)=='internal' ) THEN
 ELSEIF(opara(1)=='ligand'   ) THEN
    is_property = IBITS(cr_prop(iatom),PROP_LIGAND,1)==1
    ltest = .TRUE.
+ELSEIF(opara(1)=='temp'     ) THEN
+   is_property = IBITS(cr_prop(iatom),PROP_TEMP  ,1)==1
+   ltest = .TRUE.
 ELSE
 !  Not a single word, test the letters
 !write(*,*) ' NOT A WORD ', is_property, MAXPROP
@@ -1550,6 +1596,9 @@ IF(ianz==2) THEN    ! 'or:' is specified
       ltest = .TRUE.
    ELSEIF(opara(2)=='ligand'   ) THEN
       is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_LIGAND,1)==1
+      ltest = .TRUE.
+   ELSEIF(opara(1)=='temp'     ) THEN
+      is_property = is_property .OR. IBITS(cr_prop(iatom),PROP_TEMP,1)==1
       ltest = .TRUE.
    ELSE
 !  Not a single word, test the letters
@@ -1621,7 +1670,7 @@ CHARACTER(LEN=*)     , INTENT(IN)  :: line
 INTEGER              , INTENT(IN)  :: length
 INTEGER, DIMENSION(3), INTENT(OUT) :: var_is_type
 !
-INTEGER, PARAMETER :: MAXPAR = 26
+INTEGER, PARAMETER :: MAXPAR = 27
 CHARACTER(LEN=16), DIMENSION(MAXPAR) :: discus_names
 INTEGER          , DIMENSION(MAXPAR) :: discus_type
 INTEGER          , DIMENSION(MAXPAR) :: discus_dim
@@ -1632,7 +1681,7 @@ DATA discus_names  &
     /'pdf_scal', 'pdf_dens', 'mol_type', 'mol_dens', 'mol_cont', &
      'mol_cqua', 'mol_clin',                                     &
      'mol_biso', 'mol_len ', 'in_mole ', 'at_type ', 'at_name ', &
-     'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'vol     ', &
+     'sym_n   ', 'rvol    ', 'menv    ', 'cdim    ', 'surf    ', 'vol     ', &
      'occ     ', 'lat     ', 'env     ', 'z       ', 'y       ', &
      'x       ', 'n       ', 'm       ', 'b       '              &
     /
@@ -1640,7 +1689,7 @@ DATA discus_type &
     /  IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , &
        IS_REAL ,   IS_REAL ,                                     &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_CHAR ,   IS_CHAR , &
-       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
+       IS_INTE ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_INTE , IS_REAL , &
        IS_REAL ,   IS_REAL ,   IS_INTE ,   IS_REAL ,   IS_REAL , &
        IS_REAL ,   IS_INTE ,   IS_INTE ,   IS_REAL               &
     /
@@ -1648,7 +1697,7 @@ DATA discus_dim  &
     /  IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  , &
        IS_VEC  ,   IS_VEC  ,                                     &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
-       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_VEC  , &
+       IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_ARR  ,   IS_ARR  , IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC  , &
        IS_VEC  ,   IS_VEC  ,   IS_VEC  ,   IS_VEC                &
     /
@@ -1656,7 +1705,7 @@ DATA discus_ro  &
     /  .FALSE. ,   .FALSE. ,   .FALSE. ,   .FALSE. ,   .TRUE.  , &
        .FALSE. ,   .FALSE. ,                                     &
        .FALSE. ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
-       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  , &
+       .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .TRUE.  ,   .FALSE. , .TRUE.  , &
        .FALSE. ,   .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE. , &
        .FALSE. ,   .TRUE.  ,   .FALSE. ,   .FALSE.               &
     /
