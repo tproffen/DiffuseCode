@@ -51,6 +51,7 @@ success = .FALSE.
 search_var: DO i=var_sys+1, var_num
 !write(*,*) 'search ', string(ikl - lcomm:ikl - 1),ikl, lcomm, iklz,ianz,'|',string(1:50)
 !  IF(var_name(i) == string(ikl - lcomm:ikl - 1)) THEN
+   IF(ikl-var_l(i)<1) CYCLE search_var
    IF(var_name(i) == string(ikl - var_l(i):ikl - 1)) THEN
       lcomm = var_l(i)
       IF(var_entry(i)>0) THEN
