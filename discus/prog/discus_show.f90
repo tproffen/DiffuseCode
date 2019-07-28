@@ -394,7 +394,7 @@ CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
 !
 LOGICAL, EXTERNAL :: str_comp 
 !
-DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C'/
+DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
 !
 cpara(1) = '0.0' 
 lpara(1) = 3 
