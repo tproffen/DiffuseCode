@@ -71,13 +71,13 @@ IF(lpresent) THEN               ! /proc/version exists, Linux type OS
       IF(INDEX(line,'MICROSOFT') > 0) THEN
          operating = OS_LINUX_WSL           ! Linux as Windows APP
          color_theme = THEME_DEFAULT
-      ELSE
-         home_dir = ' ' 
+      ENDIF
+         home_dir = ' '  ! Home dir needs work if MS-WSL icon in the future
          CALL get_environment_variable ('HOME', home_dir) 
          IF (home_dir.eq.' ') then 
             home_dir = '.' 
          ENDIF 
-      ENDIF
+!     ENDIF
       home_dir_l = len_str (home_dir) 
    ELSEIF(INDEX(line,'CYGWIN') > 0) THEN
       operating   = OS_WINDOWS              ! Windows based Cygwin
