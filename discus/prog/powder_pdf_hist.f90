@@ -87,13 +87,14 @@ IF (rlambda.ne.0.0) THEN
    do_mol      = .false.
    powder_nmol = 0
    search_mol: DO i=1, mole_num_type
-      IF(mole_biso(i) > 0.0) THEN
+      IF(mole_biso(i) > 0.0 .OR. mole_clin(i)>0.0 .OR. mole_cqua(i)>0.0) THEN
          do_mol   = .true.
          powder_nmol = mole_num_type + mole_num_type*(mole_num_type+1)/2
          EXIT search_mol
       ENDIF
    ENDDO search_mol
    IF(do_mol) THEN
+!write(*,*) ' CALLING MOLECULE '
       CALL powder_debye_hist_cart_mole (u, cr_nscat, do_mol, powder_nmol)
    ELSE
       CALL powder_debye_hist_cart      (u, cr_nscat)
@@ -322,13 +323,19 @@ DO j = 1, cr_natoms ! - 1
    ENDIF 
 ENDDO 
 !
-ss = seknds (ss) 
-WRITE (output_io, 4000) ss 
+!ss = seknds (ss) 
+!WRITE (output_io, 4000) ss 
+!ss = seknds (0.0) 
 !     pow_nreal = SUM(natom)  ! Add real atom numbers 
 pow_nreal = 0
 DO j=1,cr_nscat         ! Add real atom numbers
    pow_nreal = pow_nreal + NINT(natom(j)*cr_occ(j))
 ENDDO
+!open(78,file='hist.atom',status='unknown')
+!do i=1, Ubound(histogram,1)
+!  write(78,*) i, histogram(i,:,0)
+!enddo
+!close(78)
 !
 !     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
 !
@@ -384,7 +391,16 @@ ENDIF
    qbroad  = pdf_qalp
    cquad_a = pdf_cquad_a
    clin_a  = pdf_clin_a
+!write(*,*) ' QBROAD ', qbroad
+!   open(45,file='hist.init',status='unknown')
+!   do l=1,MAXHIST
+!   write(45, '(i7,4(1x,F18.6))') l,histogram(l,:,0)
+!   enddo
+!   close (45)
 IF(qbroad > 0.0 .OR. cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
+!IF(                  cquad_a>0.0 .OR. clin_a>0.0) deb_conv = .TRUE.
+!qbroad = 0.0
+!deb_conv = .false.
 IF(deb_conv) THEN
    cquad_m(:) = 0.0D0
    clin_m(:)  = 0.0D0
@@ -396,12 +412,16 @@ IF(deb_conv) THEN
               deltar, qbroad, cquad_a, clin_a, cquad_m, clin_m, nmol_type,      &
               bval_mol )
 ENDIF
+!ss = seknds (ss) 
+!WRITE (output_io, 4000) ss 
+!write(*,*) ' Finished Convolution '
+!ss = seknds (0.0) 
 !   open(45,file='hist.conv',status='unknown')
 !   do l=1,MAXHIST
 !   write(45, '(i7,4(1x,F18.6))') l,histogram(l,:,0)
 !   enddo
 !   close (45)
-
+!write(*,*) nlook, n_srch, num(1), num(2), deb_conv
 !                                                                       
 !     --- Calculate the Fourier                                         
 !                                                                       
@@ -426,7 +446,7 @@ DO i = 1, nlook
 ENDDO 
 !  open(45,file='hist.part',status='unknown')
 !  do l=1,num(1)*num(2)
-!  write(45, '(i7,4(1x,F18.6))') l,partial(l,:,0)
+!  write(45, '(i7,4(1x,F18.6))') l,partial(l,1,0)
 !  enddo
 !  close (45)
 !                                                                       
@@ -450,8 +470,8 @@ IF(.NOT.deb_conv) THEN
 !                                                                       
    DO iscat = 1, cr_nscat 
       DO i = 1, num (1) * num (2) 
-         rsf (i) = rsf (i) + DBLE (cfact (powder_istl (i), iscat) * &
-                            conjg (cfact (powder_istl (i), iscat) ) ) * natom (iscat)
+         rsf (i) = rsf (i) + DBLE (cfact      (powder_istl (i), iscat) * &
+                            conjg (cfact      (powder_istl (i), iscat) ) ) * natom (iscat)
       ENDDO 
 !
    ENDDO 
@@ -489,6 +509,7 @@ DEALLOCATE(partial)
 DEALLOCATE(histogram)
 ss = seknds (ss) 
 WRITE (output_io, 4000) ss 
+!write(*,*) ' DONE WITH powder_debye_hist_cart'
 !                                                                       
  4000 FORMAT     (/,' Elapsed time    : ',G12.6,' sec') 
 !
@@ -679,6 +700,13 @@ DO i = 1, cr_nscat
       is_look(2,k) = j
    ENDDO 
 ENDDO 
+!do i=1, cr_nscat
+!write(*,*) 'LOOK ', i,(look(i,j),j=1, cr_nscat)
+!enddo
+!write(*,*) ' nlook ', nlook
+!do i=1, nlook
+!write(*,*) is_look(:,i)
+!enddo
 !
 ALLOCATE(partial  (1:num(1)*num(2),1:nlook,0:nlook_mol))
 ALLOCATE(histogram(0:n_hist       ,1:nlook,0:nlook_mol))
@@ -738,6 +766,11 @@ DO j = 1, cr_natoms - 1
            ELSE
               islook = powder_look_mol(mole_type(cr_mole(j)),mole_type(cr_mole(l)))
            ENDIF
+!if(j==1 .and. l==2) then
+!write(*,*) 'Atom 1 ', jscat,cr_pos(:,j), cr_mole(j)
+!write(*,*) 'Atom 2 ', iscat,cr_pos(:,l), cr_mole(l)
+!write(*,*) 'islook', islook, look(jscat, iscat)
+!endif
            v(1) = cr_pos(1, l) - u(1) 
            v(2) = cr_pos(2, l) - u(2) 
            v(3) = cr_pos(3, l) - u(3) 
@@ -756,6 +789,11 @@ DO j = 1, cr_natoms - 1
       ENDDO 
    ENDIF 
 ENDDO 
+!open(78,file='hist.mole',status='unknown')
+!do i=1, Ubound(histogram,1)
+!  write(78,*) i, histogram(i,:,:)
+!enddo
+!close(78)
 !
 !     Check for entries in histogram (0,*,*) ==> atoms at distance ZERO
 !
