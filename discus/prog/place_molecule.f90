@@ -619,27 +619,27 @@ USE take_param_mod
             ier_num = -6
             ier_typ = ER_COMM
          ENDIF
-      ELSEIF( str_comp(cpara(1),'plane',4,lpara(1),5) ) THEN
-         CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
-         IF(ianz==1) THEN
-            IF(str_comp(cpara(1), 'auto', 4, lpara(1), 4)) THEN
-               dcc_tilt_hkl (1:3,temp_num) = -1.0
-               dcc_tilt_atom(1:4,temp_num) = -1
-               dcc_tilt_is_auto(temp_num) = .TRUE.
-            ELSE
-               ier_num = -6
-               ier_typ = ER_COMM
-            ENDIF
-         ELSEIF(ianz==3) THEN
-            CALL ber_params (ianz, cpara, lpara, werte, maxw)
-            IF(ier_num/=0) RETURN
-            dcc_tilt_hkl (1:3,temp_num) = werte(1:3)
-            dcc_tilt_atom(1:4,temp_num) = -1
-            dcc_tilt_is_auto(temp_num) = .FALSE.
-         ELSE
-            ier_num = -6
-            ier_typ = ER_COMM
-         ENDIF
+!     ELSEIF( str_comp(cpara(1),'plane',4,lpara(1),5) ) THEN
+!        CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
+!        IF(ianz==1) THEN
+!           IF(str_comp(cpara(1), 'auto', 4, lpara(1), 4)) THEN
+!              dcc_tilt_hkl (1:3,temp_num) = -1.0
+!              dcc_tilt_atom(1:4,temp_num) = -1
+!              dcc_tilt_is_auto(temp_num) = .TRUE.
+!           ELSE
+!              ier_num = -6
+!              ier_typ = ER_COMM
+!           ENDIF
+!        ELSEIF(ianz==3) THEN
+!           CALL ber_params (ianz, cpara, lpara, werte, maxw)
+!           IF(ier_num/=0) RETURN
+!           dcc_tilt_hkl (1:3,temp_num) = werte(1:3)
+!           dcc_tilt_atom(1:4,temp_num) = -1
+!           dcc_tilt_is_auto(temp_num) = .FALSE.
+!        ELSE
+!           ier_num = -6
+!           ier_typ = ER_COMM
+!        ENDIF
       ELSEIF( str_comp(cpara(1),'atoms',4,lpara(1),5) ) THEN
          CALL del_params (1, ianz, cpara, lpara, maxw)   ! delete first 2 params
          IF(ianz==1) THEN
@@ -928,13 +928,11 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    host_tran_fi(:,:) = cr_tran_fi(:,:)
    CALL deco_get_molecules(host_a0,host_win, host_tran_fi)
    IF(ier_num /=0) THEN
-      i = ier_num                         ! Keep error status
-      j = ier_typ
+      CALL errlist_save                   ! Keep error status 
       CALL save_restore_setting
       CALL no_error
       CALL readstru_internal( corefile)   ! Read  core file
-      ier_num = i                         ! Restore error status
-      ier_typ = j
+      CALL errlist_restore                ! Restore error status
       DEALLOCATE(anch_id)
       RETURN
    ENDIF
@@ -2783,10 +2781,19 @@ cr_prop (all_surface(2)) = IBCLR (cr_prop (all_surface(2)), PROP_DECO_ANCHOR)  !
 !
 !     Tilt molecule by user request
 !
+sym_orig(:)   = cr_pos(:, n1)               ! Define origin in 1st attached molecule atom
+sym_uvw(:)    = cr_pos(:,n2) - cr_pos(:,n1)   ! Current vector from 1st to 2nd molecule atom
+sym_angle     = tilt
+sym_trans(:)  = 0.0                           ! No translation needed
+sym_start     =  n_atoms_orig + 1             ! set range of atoms numbers
+sym_end       =  cr_natoms
+CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+CALL symm_setup
+CALL symm_op_single                           ! Perform the operation
 origin(1:3) = cr_pos(1:3, n1)
-CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-               tilt_is_auto,                                    &
-               surf_normal, mole_natoms, n1, n2)
+!CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+!               tilt_is_auto,                                    &
+!               surf_normal, mole_natoms, n1, n2)
 !
 m_type_new = m_type_old  + temp_id
 CALL molecularize_numbers(nold+1,cr_natoms, m_type_new, r_m_biso, r_m_clin, r_m_cqua)
@@ -3049,10 +3056,19 @@ ENDIF
 !
 !     Tilt molecule by user request
 !
-origin(1:3) = cr_pos(1:3, n1)
-CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
-               tilt_is_auto,                                    &
-               surf_normal, mole_natoms, n1, n2)
+sym_orig(:)   = cr_pos(:, n1)               ! Define origin in 1st attached molecule atom
+sym_uvw(:)    = cr_pos(:,n2) - cr_pos(:,n1)   ! Current vector from 1st to 2nd molecule atom
+sym_angle     = tilt
+sym_trans(:)  = 0.0                           ! No translation needed
+sym_start     =  nold         + 1             ! set range of atoms numbers
+sym_end       =  cr_natoms
+CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
+CALL symm_setup
+CALL symm_op_single                           ! Perform the operation
+!origin(1:3) = cr_pos(1:3, n1)
+!CALL deco_tilt(origin, tilt, tilt_hkl, tilt_atom, tilt_is_atom, &
+!               tilt_is_auto,                                    &
+!               surf_normal, mole_natoms, n1, n2)
 !
 m_type_new = m_type_old  + temp_id
 !
@@ -4210,20 +4226,29 @@ nold = cr_natoms - mole_natoms
       IF(tilt_is_atom) THEN
          u(:) = cr_pos(:,nold+tilt_atom(2)) - cr_pos(:,nold+tilt_atom(1))
          v(:) = cr_pos(:,nold+tilt_atom(4)) - cr_pos(:,nold+tilt_atom(3))
-         WRITE(line,1100) u, v                  ! Do vector product (e3) x (e1 )
-         WRITE(*   ,1100) u, v                  ! Do vector product (e3) x (e1 )
+         WRITE(line,1100) u, v, 'ddr'           ! Do vector product (e3) x (e1 )
+!        WRITE(*   ,1100) u, v                  ! Do vector product (e3) x (e1 )
          laenge = LEN_TRIM(line)
          CALL vprod(line, laenge)
          hkl(:) =  res_para(1:3)                 ! Result is cartesian y-axis
       ELSE
          hkl(:) = tilt_hkl(:)
+         RETURN                                 ! Currently switched off
       ENDIF
       ENDIF
    ELSE
       hkl(:) = cr_pos(:,n2) - cr_pos(:,n1)
+      RETURN
    ENDIF
 !
-   sym_uvw(:)     = hkl(1:3)
+!  Do vector product surface normal x plane_normal to get rotation axis
+!
+   WRITE(line,1100) surf_normal(1:3), hkl(1:3), 'rrd' ! Do vector product (e3) x (e1 )
+   laenge = LEN_TRIM(line)
+   CALL vprod(line, laenge)
+!
+!  sym_uvw(:)     = hkl(1:3)
+   sym_uvw(:)     = res_para(1:3)
    sym_angle      = tilt
    sym_orig(:)    = origin(:)                    ! Rotate in origin
    sym_trans(:)   = 0.0                          ! No translation needed
@@ -4244,7 +4269,7 @@ nold = cr_natoms - mole_natoms
    CALL symm_op_single                           ! Perform the operation
 ENDIF
 !
-1100 FORMAT(6(G15.6E3,', '),'ddd')
+1100 FORMAT(6(G15.6E3,', '),A3 ) !'ddd')
 !
 END SUBROUTINE deco_tilt
 !
@@ -4356,7 +4381,7 @@ sym_end        =  cr_natoms
 !
 CALL trans (sym_uvw, cr_gten, sym_hkl, 3)     ! Make reciprocal space axis
 CALL symm_setup
-call symm_show
+!call symm_show
 CALL symm_op_single                           ! Perform the operation
 !
 1100 FORMAT(6(G15.6E3,', '),'ddd')
