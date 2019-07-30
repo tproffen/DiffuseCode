@@ -2210,8 +2210,6 @@
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
 !b
 !b set <name>, "tilt", "angle", <value>
-!b set <name>, "tilt", "plane", "auto"
-!b set <name>, "tilt", "plane", <h>, <k>, <l>
 !b set <name>, "tilt", "atoms", "auto"
 !b set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
 !b
@@ -2257,21 +2255,15 @@
        should be close to 170°.
 
    set <name>, "tilt", "angle", <value>
-   set <name>, "tilt", "plane", "auto"
-   set <name>, "tilt", "plane", <h>, <k>, <l>
    set <name>, "tilt", "atoms", "auto"
    set <name>, "tilt", "atoms", <n1>, <n2>, <n3>, <n4>
        Defines a tilt of the molecules relative to the local surface normal.
        If the molecule is reasonably flat, one can expect that the molecules
-       will be tilted around an axis taht is parallel to both, the 
+       will be tilted around an axis that is parallel to both, the 
        local surface and the molecule plane. 
-       With "tilt, plane, auto" or "tilt, atoms, auto" DISCUS will 
+       With "tilt, atoms, auto" DISCUS will 
        calculate a least squares plane through the ligand molecule and 
        tilt the molecule around the axis described above. 
-       Alternatively you can describe a normal to the molecule with the
-       "tilt", "plane", <h>, <k>, <l> values. The axis <hkl> should refer to 
-       the metric of the molecule file that you define with the 
-       "set <name>, ligand" command.
        Alternatively, DISCUS can construct the normal to the molecule
        if you provide the four atom numbers <n1>, <n2>, <n3>, <n4>.
        The normal will be calculated via the vector product of the
