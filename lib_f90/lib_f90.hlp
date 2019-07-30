@@ -230,7 +230,7 @@
    allow you to replace a constant file name with a 
    character expression. There are, certainly many parts
    of the program where this character substitution is not 
-   implemented. Masink it through a macro parameter
+   implemented. Masking it through a macro parameter
    value(expression) gives you full control.
 3  =
 !b <variable> = <expression>
