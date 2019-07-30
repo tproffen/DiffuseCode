@@ -390,13 +390,17 @@ lmacro_close = .TRUE.       ! Do close macros in do-loops
 !
 IF(ier_number == 0 .AND. IER_NUM == 0) THEN
    CALL refine_load_calc(dimen, array)
-   IF(ier_num/=0) RETURN
 ENDIF
 !
-IF(l_prompt_restore) THEN
-   string = 'prompt, on,on'
-   length = 13
-   CALL do_set(string, length)
+IF(ier_num/=0) THEN
+   CALL errlist_save
+   IF(l_prompt_restore) THEN
+      string = 'prompt, on,on'
+      length = 13
+      CALL do_set(string, length)
+   ENDIF
+   CALL errlist_restore
+   RETURN
 ENDIF
 !
 IF(ier_number /= 0) THEN    ! If necessary restore error status
