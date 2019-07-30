@@ -466,6 +466,7 @@ REAL :: alpha_min0 = 200.0
 REAL :: alpha_min1 = 200.0
 REAL :: alpha_min2 = 200.0
 REAL :: dstar
+REAL :: umax
 !
 !
 fp(1) = .FALSE.
@@ -548,7 +549,7 @@ main_loop: DO i=istart, ifinish
       DO j=1, n_neigh(2)
          u(:) = cr_pos(:,neigh(j,2)) - x(:)
          alpha = do_bang(LSPACE, u, VNULL, vect(1:3,2))
-         lsurf = lsurf .AND. alpha > 60.0
+          lsurf = lsurf .AND. alpha > 60.0
          IF(.NOT.lsurf) CYCLE main_loop
          IF(lsurf) alpha_max2 = MAX(alpha, alpha_max2)
          IF(lsurf) alpha_min2 = MIN(alpha, alpha_min2)
@@ -567,6 +568,10 @@ main_loop: DO i=istart, ifinish
          u(1:3) = INT(res_para(1:3))      ! Rough normal 
          dstar = do_blen (.NOT.LSPACE, u, VNULL) 
          u(:) = u(:) / dstar
+         umax=MAX(ABS(u(1)), ABS(u(2)), ABS(u(3)))
+         IF(umax > 9.900) THEN
+            u(:) = u(:) * 9.90/umax
+         ENDIF
          cr_surf(1:3, i) = NINT(10*u(:))
 !
          idiv = gcd(cr_surf(1, i), cr_surf(2, i), cr_surf(3, i))
