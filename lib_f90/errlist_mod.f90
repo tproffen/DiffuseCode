@@ -52,4 +52,8 @@ MODULE errlist_mod
    LOGICAL            :: ier_rep   = .FALSE.
    LOGICAL            :: ier_mpi   = .FALSE.
 !
+   CHARACTER(LEN= 80), DIMENSION(3) :: ier_msg_tmp
+   INTEGER            :: ier_num_tmp   = 0
+   INTEGER            :: ier_typ_tmp   = ER_NONE
+!
 END MODULE errlist_mod

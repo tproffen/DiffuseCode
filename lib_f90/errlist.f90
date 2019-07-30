@@ -418,3 +418,36 @@ SUBROUTINE errlist
        CALL disp_error ('MATH',error,iu,io)
        END
 !*****7****************************************************************
+!
+SUBROUTINE errlist_save
+!-
+! Saves error status into temporary error list
+!+
+USE errlist_mod
+!
+IMPLICIT      NONE
+!
+ier_num_tmp    = ier_num
+ier_typ_tmp    = ier_typ
+ier_msg_tmp(:) = ier_msg(:)
+!
+END SUBROUTINE errlist_save
+!
+!*****7****************************************************************
+!
+SUBROUTINE errlist_restore
+!-
+! Saves error status into temporary error list
+!+
+USE errlist_mod
+!
+IMPLICIT      NONE
+!
+ier_num    = ier_num_tmp
+ier_typ    = ier_typ_tmp
+ier_msg(:) = ier_msg_tmp(:)
+!
+END SUBROUTINE errlist_restore
+!
+!*****7****************************************************************
+!
