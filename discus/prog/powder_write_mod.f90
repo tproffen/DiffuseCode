@@ -174,65 +174,68 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
             pow_tmp (j-1) = REAL(pow_faver2(j))
          ENDDO
       ELSE                         ! All other output
-         IF (pow_four_type.ne.POW_COMPL) THEN 
+         DO j = 1, npkt
+            pow_tmp (j-1) = pow_conv(j)   ! copy from convoluted pattern
+         ENDDO
+!        IF (pow_four_type.ne.POW_COMPL) THEN 
 !                                                                       
 !     This is a Debye calculation, copy rsf or csf into pow_tmp         
 !                                                                       
-            IF (pow_four_type.eq.POW_DEBYE) THEN 
-               IF (npkt    .le.POW_MAXPKT) THEN 
-                  DO j = 1, npkt    
-                     pow_tmp (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
-                  ENDDO 
-               ENDIF 
-            ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
-               IF (npkt    .le.POW_MAXPKT) THEN 
-                  DO j = 1, npkt    
-                     pow_tmp (j) = REAL(rsf (j) )     ! Double precision no longer needed
-                  ENDDO 
-               ENDIF 
-            ENDIF 
-         ELSE
-            pow_tmp(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
-         ENDIF 
+!           IF (pow_four_type.eq.POW_DEBYE) THEN 
+!              IF (npkt    .le.POW_MAXPKT) THEN 
+!                 DO j = 1, npkt    
+!                    pow_tmp (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
+!                 ENDDO 
+!              ENDIF 
+!           ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
+!              IF (npkt    .le.POW_MAXPKT) THEN 
+!                 DO j = 1, npkt    
+!                    pow_tmp (j) = REAL(rsf (j) )     ! Double precision no longer needed
+!                 ENDDO 
+!              ENDIF 
+!           ENDIF 
+!        ELSE
+!           pow_tmp(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
+!        ENDIF 
 !                                                                       
 !- -Does the powder pattern have to be convoluted by a profile function?
 !                                                                       
 !        Determine integral to scale after convolution
-         pow_tmp_sum = 0.0
-         DO j=1,npkt
-            pow_tmp_sum = pow_tmp_sum + pow_tmp(j)
-         ENDDO
-         lconv = .FALSE.
-         IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
-            IF (pow_delta.gt.0.0) THEN 
-               xxmax = xmax + xdel
-               CALL powder_conv_res (pow_tmp, xmin,xxmax, xdel,         &
-               pow_delta, POW_MAXPKT)                                    
-            ENDIF 
-            lconv = .TRUE.
-         ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
-           IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
-               pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
-               pow_p4.ne.0.0                                      ) THEN       
-               xxmax = xmax + xdel
-               CALL powder_conv_psvgt_uvw (pow_tmp, xmin,xxmax, xdel,   &
-               pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
-               pow_p3, pow_p4, pow_width, POW_MAXPKT)
-            ELSE 
-               xxmax = xmax + xdel
-               CALL powder_conv_psvgt_fix (pow_tmp, xmin,xxmax, xdel,   &
-               pow_eta, pow_w, pow_width, POW_MAXPKT)
-            ENDIF 
-            lconv = .TRUE.
-         ENDIF 
-         pow_uuu_sum = 0.0
-         do j=1,npkt
-            pow_uuu_sum = pow_uuu_sum + pow_tmp(j)
-         enddo
-         scalef = pow_tmp_sum/pow_uuu_sum
-         pow_tmp(:) = pow_tmp(:) * scalef
-         pow_tmp_sum = 0.0
-         pow_uuu_sum = 0.0
+!        pow_tmp_sum = 0.0
+!        DO j=1,npkt
+!           pow_tmp_sum = pow_tmp_sum + pow_tmp(j)
+!        ENDDO
+!        lconv = .FALSE.
+!        IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
+!           IF (pow_delta.gt.0.0) THEN 
+!              xxmax = xmax + xdel
+!              CALL powder_conv_res (pow_tmp, xmin,xxmax, xdel,         &
+!              pow_delta, POW_MAXPKT)                                    
+!           ENDIF 
+!           lconv = .TRUE.
+!        ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
+!          IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
+!              pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
+!              pow_p4.ne.0.0                                      ) THEN       
+!              xxmax = xmax + xdel
+!              CALL powder_conv_psvgt_uvw (pow_tmp, xmin,xxmax, xdel,   &
+!              pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
+!              pow_p3, pow_p4, pow_width, POW_MAXPKT)
+!           ELSE 
+!              xxmax = xmax + xdel
+!              CALL powder_conv_psvgt_fix (pow_tmp, xmin,xxmax, xdel,   &
+!              pow_eta, pow_w, pow_width, POW_MAXPKT)
+!           ENDIF 
+!           lconv = .TRUE.
+!        ENDIF 
+!        pow_uuu_sum = 0.0
+!        do j=1,npkt
+!           pow_uuu_sum = pow_uuu_sum + pow_tmp(j)
+!        enddo
+!        scalef = pow_tmp_sum/pow_uuu_sum
+!        pow_tmp(:) = pow_tmp(:) * scalef
+!        pow_tmp_sum = 0.0
+!        pow_uuu_sum = 0.0
       ENDIF           ! Output is if_block if(value==val_f2aver)
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
@@ -572,6 +575,134 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
       DEALLOCATE( ywrt, stat = all_status)
 !                                                                       
       END SUBROUTINE powder_out                     
+!
+!*******************************************************************************
+!
+SUBROUTINE powder_convolute                     
+!-
+!  Convoluts the powder pattern with profile function
+!+
+USE debye_mod
+USE diffuse_mod
+USE powder_mod
+!
+USE precision_mod
+!
+IMPLICIT none 
+!                                                                       
+INTEGER :: npkt
+INTEGER :: j
+!
+REAL(KIND=PREC_SP) :: xmin, xmax, xdel, xxmax
+REAL(KIND=PREC_SP) :: scalef
+REAL(KIND=PREC_SP) :: pow_tmp_sum
+REAL(KIND=PREC_SP) :: pow_uuu_sum
+!
+xmin  = 0.0 
+xmax  = 0.0 
+xxmax = 0.0 
+xdel  = 0.0 
+IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
+   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+      xmin = pow_qmin 
+      xmax = pow_qmax 
+      xdel = pow_deltaq 
+   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+      xmin = pow_tthmin 
+      xmax = pow_tthmax 
+      xdel = pow_deltatth 
+   ELSE 
+      ier_num = - 104 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+      ier_msg (2) = 'within the powder menu to define the axis' 
+      ier_msg (3) = ' ' 
+      RETURN 
+   ENDIF 
+   npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
+ELSEIF (pow_four_type.eq.POW_HIST ) THEN
+   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+      xmin = pow_qmin 
+      xmax = pow_qmax 
+      xdel = (pow_qmax - pow_qmin) / (num (1) ) 
+   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+      xmin = pow_tthmin 
+      xmax = pow_tthmax 
+      xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
+   ELSE 
+      ier_num = - 104 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+      ier_msg (2) = 'within the powder menu to define the axis' 
+      ier_msg (3) = ' ' 
+      RETURN 
+   ENDIF 
+   npkt = MIN(num(1), POW_MAXPKT)
+ENDIF 
+!
+IF (pow_four_type.ne.POW_COMPL) THEN 
+!                                                              
+!     This is a Debye calculation, copy rsf or csf into pow_conv
+!                                                              
+   IF (pow_four_type.eq.POW_DEBYE) THEN 
+      IF (npkt    .le.POW_MAXPKT) THEN 
+         DO j = 1, npkt    
+            pow_conv (j) = REAL(REAL(csf (j)))    ! Double precision no longer needed
+         ENDDO 
+      ENDIF 
+   ELSEIF(pow_four_type.eq.POW_FAST.or.pow_four_type.eq.POW_HIST) THEN
+      IF (npkt    .le.POW_MAXPKT) THEN 
+         DO j = 1, npkt    
+            pow_conv (j) = REAL(rsf (j) )     ! Double precision no longer needed
+         ENDDO 
+      ENDIF 
+   ENDIF 
+ELSE
+   pow_conv(:) = REAL(pow_qsp(:))   ! Double precision no longer needed
+ENDIF 
+!                                                              
+!- -Does the powder pattern have to be convoluted by a profile function?
+!                                                              
+!        Determine integral to scale after convolution
+pow_tmp_sum = 0.0
+DO j=1,npkt
+   pow_tmp_sum = pow_tmp_sum + pow_conv(j)
+ENDDO
+!lconv = .FALSE.
+IF (pow_profile.eq.POW_PROFILE_GAUSS) THEN 
+   IF (pow_delta.gt.0.0) THEN 
+      xxmax = xmax + xdel
+      CALL powder_conv_res (pow_conv, xmin,xxmax, xdel,         &
+      pow_delta, POW_MAXPKT)                                    
+   ENDIF 
+!  lconv = .TRUE.
+ELSEIF (pow_profile.eq.POW_PROFILE_PSVGT) THEN 
+  IF (pow_u.ne.0.0.or.pow_v.ne.0.0.or.pow_etax.ne.0.0.or.      &
+      pow_p1.ne.0.0.or.pow_p2.ne.0.0.or.pow_p3.ne.0.0.or.      &
+      pow_p4.ne.0.0                                      ) THEN       
+      xxmax = xmax + xdel
+      CALL powder_conv_psvgt_uvw (pow_conv, xmin,xxmax, xdel,   &
+      pow_eta, pow_etax, pow_u, pow_v, pow_w, pow_p1, pow_p2,  &
+      pow_p3, pow_p4, pow_width, POW_MAXPKT)
+   ELSE 
+      xxmax = xmax + xdel
+      CALL powder_conv_psvgt_fix (pow_conv, xmin,xxmax, xdel,   &
+      pow_eta, pow_w, pow_width, POW_MAXPKT)
+   ENDIF 
+!  lconv = .TRUE.
+ENDIF 
+pow_uuu_sum = 0.0
+DO j=1,npkt
+   pow_uuu_sum = pow_uuu_sum + pow_conv(j)
+ENDDO
+scalef = pow_tmp_sum/pow_uuu_sum
+pow_conv(:) = pow_conv(:) * scalef
+pow_tmp_sum = 0.0
+pow_uuu_sum = 0.0
+!
+END SUBROUTINE powder_convolute                     
+!
+!*******************************************************************************
 !
 SUBROUTINE four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
 !

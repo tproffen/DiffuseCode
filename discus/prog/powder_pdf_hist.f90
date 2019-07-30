@@ -52,10 +52,10 @@ IF (rlambda.ne.0.0) THEN
 !        Calculate hkl limits 
 !
    IF(pow_axis.eq.POW_AXIS_TTH) THEN
-      pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5) / rlambda 
+      pow_ds_max = 2. * sind ((pow_tthmax+pow_deltatth) * 0.5 + pow_tthmax_buf) / rlambda 
       pow_ds_min = 2. * sind (pow_tthmin * 0.5) / rlambda 
    ELSEIF (pow_axis.eq.POW_AXIS_Q) THEN 
-      pow_ds_max = (pow_qmax+pow_deltaq)/REAL(zpi)
+      pow_ds_max = (pow_qmax+pow_deltaq + pow_qmax_buf)/REAL(zpi)
       pow_ds_min = pow_qmin/REAL(zpi)
       IF(pow_qmax*rlambda/2./zpi > 1.0) THEN
          ier_num = -108
@@ -194,14 +194,14 @@ IF (pow_axis == POW_AXIS_DSTAR) THEN
 ELSEIF (pow_axis == POW_AXIS_Q) THEN 
    u (1) = 1.00 
    xm (1) = pow_qmin / REAL(zpi)
-   ss = pow_qmax / REAL(zpi) 
+   ss = (pow_qmax+pow_qmax_buf) / REAL(zpi) 
    st = (pow_qmax - pow_deltaq) / REAL(zpi )
    uin (1) = pow_deltaq / REAL(zpi )
    num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 
 ELSEIF (pow_axis == POW_AXIS_TTH) THEN 
    u (1) = 1.00 
    xm (1) = 2 * sind (0.5 * pow_tthmin) / rlambda 
-   ss = 2 * sind (0.5 *  pow_tthmax                 ) / rlambda 
+   ss = 2 * sind (0.5 *  pow_tthmax + pow_tthmax_buf) / rlambda 
    st = 2 * sind (0.5 * (pow_tthmax - pow_deltatth) ) / rlambda 
    uin (1) = (ss - st) / 2. 
    num (1) = nint ( (ss - xm (1) ) / uin (1) ) + 1 

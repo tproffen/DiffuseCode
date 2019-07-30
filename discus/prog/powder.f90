@@ -21,6 +21,7 @@ CONTAINS
       USE diffuse_mod 
       USE fourier_sup
       USE powder_mod 
+USE powder_write_mod 
 USE powder_pdf_hist_mod
       USE discus_show_menu
 !
@@ -153,6 +154,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                      ENDIF
                      IF(ier_num == 0) THEN
                         four_was_run = .true.
+                        CALL powder_convolute   ! convolute with profile
                         IF (pow_four_type.eq.POW_HIST) THEN 
                            four_last = POWD_DY
                         ELSE

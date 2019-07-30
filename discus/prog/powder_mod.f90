@@ -55,6 +55,8 @@ REAL(KIND=PREC_DP)       :: pow_deltatth   =  0.05D0
 REAL(KIND=PREC_DP)       :: pow_qmin       =  0.2D0
 REAL(KIND=PREC_DP)       :: pow_qmax       =  7.0D0
 REAL(KIND=PREC_DP)       :: pow_deltaq     =  0.0001D0
+REAL(KIND=PREC_DP)       :: pow_tthmax_buf =  1.0D0    ! additional buffer 
+REAL(KIND=PREC_DP)       :: pow_qmax_buf   =  0.5D0    ! for convolutions
 REAL                     :: pow_ds_max     =  0.0001
 REAL                     :: pow_ds_min     =  0.0001
 REAL                     :: pow_delta      =  0.0
@@ -94,6 +96,7 @@ REAL                     :: pow_width      = 20.0
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_qsp     !  (0:POW_MAXPKT)
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_f2aver  !  (0:POW_MAXPKT)
 REAL   (KIND=KIND(0.0D0)), DIMENSION(:), ALLOCATABLE :: pow_faver2  !  (0:POW_MAXPKT)
+REAL   (KIND=PREC_SP    ), DIMENSION(:), ALLOCATABLE :: pow_conv    !  (0:POW_MAXPKT)
 INTEGER                            :: pow_nreal  = 0
 REAL                               :: pow_u2aver = 0.0
 !
