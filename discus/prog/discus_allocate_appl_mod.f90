@@ -2162,6 +2162,10 @@ END SUBROUTINE alloc_demol
        lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
       pow_size_of = pow_size_of + size_of
 !
+       CALL alloc_arr ( pow_conv    ,0,n_qxy  ,  all_status, 0.0E0    , size_of )
+       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+      pow_size_of = pow_size_of + size_of
+!
       IF( lstat ) THEN                        ! Success
          POW_MAXPKT    = n_qxy
          ier_typ       = 0
