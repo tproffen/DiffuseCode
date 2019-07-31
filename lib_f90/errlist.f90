@@ -447,6 +447,10 @@ ier_num    = ier_num_tmp
 ier_typ    = ier_typ_tmp
 ier_msg(:) = ier_msg_tmp(:)
 !
+ier_num_tmp    = 0  
+ier_typ_tmp    = 0  
+ier_msg_tmp(:) = ' '
+!
 END SUBROUTINE errlist_restore
 !
 !*****7****************************************************************
