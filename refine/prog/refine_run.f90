@@ -390,17 +390,13 @@ lmacro_close = .TRUE.       ! Do close macros in do-loops
 !
 IF(ier_number == 0 .AND. IER_NUM == 0) THEN
    CALL refine_load_calc(dimen, array)
+   IF(ier_num/=0) RETURN
 ENDIF
 !
-IF(ier_num/=0) THEN
-   CALL errlist_save
-   IF(l_prompt_restore) THEN
-      string = 'prompt, on,on'
-      length = 13
-      CALL do_set(string, length)
-   ENDIF
-   CALL errlist_restore
-   RETURN
+IF(l_prompt_restore) THEN
+   string = 'prompt, on,on'
+   length = 13
+   CALL do_set(string, length)
 ENDIF
 !
 IF(ier_number /= 0) THEN    ! If necessary restore error status
@@ -977,6 +973,7 @@ DO i=1, refine_par_n            ! Make sure each parameter is defined as a varia
 ENDDO
 WRITE(IWR,'(a,G20.8E3)') 'Rvalue           = ', rval
 WRITE(IWR,'(a,I15    )') 'F_DATA           = ', ref_kupl
+WRITE(IWR,'(a,G20.8E3)') 'F_XMIN           = ', ref_x(1)
 WRITE(IWR,'(a,G20.8E3)') 'F_XMAX           = ', ref_x(ref_dim(1))
 WRITE(IWR,'(a,G20.8E3)') 'F_YMIN           = ', ref_y(1)
 WRITE(IWR,'(a,G20.8E3)') 'F_YMAX           = ', ref_y(ref_dim(2))

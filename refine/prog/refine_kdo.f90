@@ -52,6 +52,8 @@ INTEGER                               :: indxb, indxg, lcomm, lbef, indxt
 !INTEGER                               :: n_pop  ! dummy for allocation
 !INTEGER                               :: kid, indiv, nindiv
 INTEGER             , DIMENSION(MAXW) :: lpara = 0
+INTEGER                                :: ref_prompt_status
+INTEGER                                :: ref_output_status
 !INTEGER, SAVE                         :: lastgen = -1
 !LOGICAL                               :: back_new
 !LOGICAL                               :: lexist
@@ -190,7 +192,11 @@ ELSE  is_math
 !                                                                 
    ELSEIF (str_comp (befehl, 'run', 3, lbef, 3) ) THEN is_befehl
 !
+      ref_prompt_status = prompt_status
+      ref_output_status = output_status
       CALL refine_run(zeile, length)
+      prompt_status = ref_prompt_status
+      output_status = ref_output_status
 !                                                                 
 !-------  Show parameters 'show'                                  
 !                                                                 
