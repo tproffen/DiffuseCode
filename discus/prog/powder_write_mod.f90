@@ -18,6 +18,8 @@ USE diffuse_mod
 USE output_mod 
 USE powder_mod 
 USE powder_tables_mod
+USE pdf_mod
+!
 USE wink_mod
 USE precision_mod
 USE trig_degree_mod
@@ -544,9 +546,15 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
             ENDDO
          ENDDO
       ELSEIF(value==val_pdf) THEN    ! Transform F(Q) into PDF
-         rmin     =     0.01D0
-         rmax     =   100.0D0
-         npkt_pdf = 10000
+         IF(out_user_limits) THEN
+            rmin     = out_user_values(1)
+            rmax     = out_user_values(2)
+            npkt_pdf = (NINT(out_user_values(2)-out_user_values(1))/out_user_values(3)) + 1
+         ELSE
+            rmin     = pdf_rminu
+            rmax     = pdf_rmaxu
+            npkt_pdf = (NINT(rmax-rmin)/pdf_deltaru) + 1
+         ENDIF
          ALLOCATE(xfour(0:npkt_pdf))
          ALLOCATE(yfour(0:npkt_pdf))
          CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
