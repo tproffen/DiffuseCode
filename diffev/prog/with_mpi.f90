@@ -76,28 +76,8 @@ INTEGER, EXTERNAL :: lib_f90_getpid
 gen_mpi_active = .FALSE.
 mpi_active = .FALSE.
 !
-PID = lib_f90_getpid()                   ! Get PID and parent processes
-WRITE(line, '(a,i10, a, i10.10)') 'pstree -s -l -p ', PID, ' > /tmp/discus_suite.',PID
-CALL EXECUTE_COMMAND_LINE(line)
-WRITE(line, '(a, i10.10)') '/tmp/discus_suite.',PID
-CALL oeffne(idef, line, 'old')
-READ(idef, '(a)') string                 ! Get result of pstree command
-CLOSE(UNIT=idef)
-WRITE(line, '(a, i10.10)') 'rm -f /tmp/discus_suite.',PID  ! Remove temporary file
-CALL EXECUTE_COMMAND_LINE(line)
-WRITE(line, '(i10)') PID
-i = 10
-CALL rem_bl(line,i)                               ! remove leading blanks
-ind_pid = INDEX(string, line(1:len_trim(line)))   ! Locate PID
-ind_mpi = INDEX(string, 'mpiexec')                ! Locate mpiexec command
-
 !
 CALL MPI_INIT (ier_num)       ! initialize the MPI system
-IF(ind_mpi==0 .OR. ind_pid < ind_mpi) THEN        ! No mpiexec as parent process
-   gen_mpi_active = .FALSE.
-   mpi_active = .FALSE.
-   RETURN
-ENDIF
 !
 IF ( ier_num /= 0 ) THEN
    ier_msg(1) = 'MPI SYSTEM could not be initialized'
@@ -131,17 +111,42 @@ IF ( ier_num /= 0 ) THEN
    RETURN
 ENDIF
 !
-!  MPIEXEC was used as parent process but insufficient CPUs
+!  TEST for MPIEXEC was used as parent process but insufficient CPUs
 !
 IF ( gen_mpi_numprocs < 2 ) THEN
-   ier_msg(1) = 'MPI SYSTEM returned one CPU   '
-   ier_msg(2) = 'SUITE  must be started with   '
-   ier_msg(3) = 'mpiexec -n X diffev; X >= 2   '
+   PID = lib_f90_getpid()                   ! Get PID and parent processes
+!  pstree command is bugged may create error "/proc/xxxx no such file or directory"
+   WRITE(line, '(a,i10, a, i10.10)') 'pstree -s -l -p ', PID, ' > /tmp/discus_suite.',PID
+   CALL EXECUTE_COMMAND_LINE(line)
+   WRITE(line, '(a, i10.10)') '/tmp/discus_suite.',PID
+   CALL oeffne(idef, line, 'old')
+   READ(idef, '(a)') string                 ! Get result of pstree command
+   CLOSE(UNIT=idef)
+   WRITE(line, '(a, i10.10)') 'rm -f /tmp/discus_suite.',PID  ! Remove temporary file
+   CALL EXECUTE_COMMAND_LINE(line)
+   WRITE(line, '(i10)') PID
+   i = 10
+   CALL rem_bl(line,i)                               ! remove leading blanks
+   ind_pid = INDEX(string, line(1:len_trim(line)))   ! Locate PID
+   ind_mpi = INDEX(string, 'mpiexec')                ! Locate mpiexec command
+   IF(ind_mpi==0 .OR. ind_pid < ind_mpi) THEN        ! No mpiexec as parent process
+      gen_mpi_active = .FALSE.
+      mpi_active = .FALSE.
+!     MPI Does not seem to be active, quietly turn off
+      RETURN
+   ELSE
+!     MPI was used to start with only one process
+      gen_mpi_active = .FALSE.
+      mpi_active = .FALSE.
 !
-!  MPI Does not seem to be active, quietly turn off
-   ier_num = -22
-   ier_typ = ER_APPL
-   RETURN
+      ier_msg(1) = 'MPI SYSTEM returned one CPU   '
+      ier_msg(2) = 'SUITE  must be started with   '
+      ier_msg(3) = 'mpiexec -n X diffev; X >= 2   '
+!
+      ier_num = -22
+      ier_typ = ER_APPL
+      RETURN
+   ENDIF
 ENDIF
 !
 ! For future use with MPI_TYPE_...
