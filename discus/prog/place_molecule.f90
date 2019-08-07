@@ -1584,7 +1584,9 @@ CYCLE main_loop
             DO ia=1, n_repl
                cr_prop (temp_iatom(ia)) = IBCLR (cr_prop (temp_iatom(ia)), PROP_DECO_ANCHOR)  ! UNFLAG THIS ATOM AS SURFACE ANCHOR
             ENDDO
-            CALL do_purge
+            line = ' '
+            length = 1
+            CALL do_purge(line, length)
 !        ELSE     ! Error in main_loop
 !          CALL save_restore_setting
 !          CALL no_error

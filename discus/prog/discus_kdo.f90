@@ -330,7 +330,7 @@ IF(indxg /= 0.AND. .NOT. (str_comp (befehl, 'echo', 2, lbef, 4) )       &
 !     Purge the list of atoms 'purg'                                    
 !                                                                       
          ELSEIF (str_comp (befehl, 'purg', 2, lbef, 4) ) then 
-            CALL do_purge 
+            CALL do_purge (zeile, lcomm)
 !                                                                       
 !     Transform vector from reciprocal to direct space                  
 !                                                                       

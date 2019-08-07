@@ -995,28 +995,77 @@ ENDIF
 3000 FORMAT(i11) 
 !                                                                       
 END SUBROUTINE do_remove                      
+!
 !*****7**************************************************************   
-      SUBROUTINE do_purge 
+!
+SUBROUTINE do_purge (line, length)
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
 !+                                                                      
-      USE discus_config_mod 
-      USE conn_mod
-      USE molecule_mod 
-      USE update_cr_dim_mod
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-!                                                                       
-      IF (mole_num_mole == 0) THEN 
-         CALL do_purge_atoms 
-      ELSEIF (mole_num_mole >  0) THEN 
-         CALL do_purge_molecules_new
-      ENDIF 
-      CALL update_cr_dim
-!                                                                       
-      END SUBROUTINE do_purge                       
+USE discus_config_mod 
+USE conn_mod
+USE molecule_mod 
+USE update_cr_dim_mod
+!
+USE errlist_mod 
+USE get_params_mod
+USE precision_mod
+USE string_convert_mod
+USE take_param_mod
+!
+IMPLICIT none 
+!
+INTEGER, PARAMETER :: MAXW = 1
+!
+CHARACTER(LEN=1024), INTENT(INOUT) :: line
+INTEGER            , INTENT(INOUT) :: length
+!
+INTEGER             :: ianz
+!
+CHARACTER(LEN=1024), DIMENSION(maxw) :: cpara
+INTEGER            , DIMENSION(maxw) :: lpara
+REAL(KIND=PREC_DP) , DIMENSION(maxw) :: werte
+!
+INTEGER, PARAMETER :: NOPTIONAL = 1
+INTEGER, PARAMETER :: O_TYPE    = 1
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
+CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
+INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
+INTEGER            , DIMENSION(NOPTIONAL) :: lopara  !Lenght opt. para name returned
+LOGICAL            , DIMENSION(NOPTIONAL) :: lpresent!opt. para is present
+REAL(KIND=PREC_DP) , DIMENSION(NOPTIONAL) :: owerte   ! Calculated values
+INTEGER, PARAMETER                        :: ncalc = 0 ! Number of values to calculate 
+!
+DATA oname  / 'type'   /
+DATA loname /  4       /
+opara  =  (/ 'no'      /)   ! Always provide fresh default values
+lopara =  (/  2        /)
+owerte =  (/  0.0      /)
+!
+CALL get_params (line, ianz, cpara, lpara, maxw, length) 
+IF(ier_num /= 0) RETURN
+!
+CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  ncalc, &
+                  oname, loname, opara, lopara, lpresent, owerte)
+IF(ier_num /= 0) RETURN
+!
+!
+IF (mole_num_mole == 0) THEN 
+   CALL do_purge_atoms 
+ELSEIF (mole_num_mole >  0) THEN 
+   CALL do_purge_molecules_new
+ENDIF 
+!
+CALL do_low(opara(O_TYPE))
+IF(opara(O_TYPE) == 'yes') THEN
+   CALL do_purge_types
+ENDIF
+CALL update_cr_dim
+!
+END SUBROUTINE do_purge                       
+!
 !*****7**************************************************************** 
+!
       SUBROUTINE do_purge_atoms 
 !-                                                                      
 !     Purges the list of atoms from all deleted atoms                   
@@ -1363,6 +1412,82 @@ END SUBROUTINE do_remove
      & a1)                                                              
 !                                                                       
       END SUBROUTINE do_purge_molecules             
+!
+!*****7**************************************************************** 
+!
+SUBROUTINE do_purge_types 
+!-                                                                      
+!     Purges the list of atom typess from all deleted atoms                   
+!   If no atoms are present for an atom type this type is purged
+!   All atom type move down in the list
+!+                                                                      
+USE discus_config_mod 
+USE crystal_mod
+!
+IMPLICIT NONE
+!
+INTEGER, DIMENSION(:), ALLOCATABLE :: n_atom_type
+INTEGER, DIMENSION(:), ALLOCATABLE :: new_type
+INTEGER :: i, j     ! dummy loop indices
+INTEGER :: ndel     ! Number of types to be deleted
+!
+ALLOCATE(n_atom_type(0:MAXSCAT))
+ALLOCATE(new_type(0:MAXSCAT))
+!
+n_atom_type(:) = 0
+!
+!  Accumulate number of atoms per type 
+!
+DO i=1, cr_natoms
+   j = cr_iscat(i)
+   n_atom_type(j) = n_atom_type(j) + 1
+ENDDO
+!
+! Build lookup table if types are to be deleted
+!
+ndel = 0
+DO i=1, cr_nscat
+   IF(n_atom_type(i)==0) THEN
+      ndel = ndel + 1
+      new_type(i) = 0
+   ELSE
+      new_type(i) = i - ndel     ! record new location
+   ENDIF
+ENDDO
+!
+IF(ndel>0) THEN
+   DO i=1, cr_natoms
+      cr_iscat(i) = new_type(cr_iscat(i))
+   ENDDO
+   DO i=1, cr_nscat
+      IF(new_type(i) /= 0) THEN
+         cr_scat    (:,new_type(i)) = cr_scat    (:,i)
+         cr_delfr   (  new_type(i)) = cr_delfr   (  i)
+         cr_delfi   (  new_type(i)) = cr_delfi   (  i)
+         cr_scat_int(  new_type(i)) = cr_scat_int(  i)
+         cr_scat_equ(  new_type(i)) = cr_scat_equ(  i)
+         cr_delf_int(  new_type(i)) = cr_delf_int(  i)
+         cr_at_lis  (  new_type(i)) = cr_at_lis  (  i)
+         cr_at_equ  (  new_type(i)) = cr_at_equ  (  i)
+         as_at_lis  (  new_type(i)) = as_at_lis  (  i)
+         as_iscat   (  new_type(i)) = as_iscat   (  i)
+         as_mole    (  new_type(i)) = as_mole    (  i)
+         as_prop    (  new_type(i)) = as_prop    (  i)
+         cr_dw      (  new_type(i)) = cr_dw      (  i)
+         cr_occ     (  new_type(i)) = cr_occ     (  i)
+         as_dw      (  new_type(i)) = as_dw      (  i)
+         as_occ     (  new_type(i)) = as_occ     (  i)
+         as_pos     (:,new_type(i)) = as_pos     (:,i)
+      ENDIF
+   ENDDO
+   cr_nscat = cr_nscat - ndel
+ENDIF
+!
+DEALLOCATE(n_atom_type)
+DEALLOCATE(new_type)
+!
+END SUBROUTINE do_purge_types
+!
 !*****7**************************************************************** 
       SUBROUTINE do_copy (line, lp) 
 !-                                                                      

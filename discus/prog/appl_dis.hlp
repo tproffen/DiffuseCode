@@ -75,9 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
-3  2019_June
+3  2019_August
 
-   
+   Added optiona parameter "type" to purge command. Allows to
+   clear list of atom types.
 3  2019_May
 
    Added the option to retin the original space group to the 
@@ -6347,7 +6348,7 @@
 
    The flag can be any of "domain", "outside", "external", "internal"
 2  purge
-!b purge
+!b purge ["type:"{"no"|"yes"}]
 
    Deletes all vacancies in the structure array, thus speeds up Fourier
    calculation.
@@ -6360,6 +6361,13 @@
    the periodic boundary conditions and the "chem" mode "quick". 
    These can be turned back on with an explicit 
    ==> 'set crystal' command in the ==> 'chemistry' menu.
+
+   The optional parameter allows control over the handling of atom types.
+   if "type:yes" is used the list of atom type will be purged as well. 
+   Any atom type for which no atom is present in the crystal will be 
+   deleted. Atom type numbers for the actual atoms will change! 
+   The affects all atoms whose type number is larger than 
+   the deleted atom type!
 2  r2d
 !b r2d <h>,<k>,<l>
 
