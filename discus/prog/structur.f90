@@ -912,6 +912,7 @@ INTEGER                              :: at_ianz
 CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
       INTEGER i, j, ibl, lbef 
       INTEGER     :: iatom
+      INTEGER     :: n_read = 0
       INTEGER lline 
       INTEGER     :: new_nmax
       INTEGER     :: new_nscat
@@ -937,6 +938,7 @@ REAL :: dw1 , occ1
       lcontent  = .false.
       at_param(:) = ' '
       at_ianz     = 0
+      n_read      = 0
       CALL test_file ( strucfile, new_nmax, new_nscat, n_mole, n_type, &
                              n_atom, -1 , .not.cr_newtype)
       IF (ier_num /= 0) THEN
@@ -1116,6 +1118,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   werte (5) = 1.0 
                   CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
                                        AT_MAXP, at_ianz, at_param, at_init)                                          
+                  n_read = n_read + 1
                   IF (ier_num.ne.0.and.ier_num.ne. -49) then 
                      GOTO 999 
                   ENDIF 
@@ -1237,6 +1240,10 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
             cr_dim (j, 2) = amax1 (cr_dim (j, 2), cr_pos (j, i) ) 
             ENDDO 
             ENDDO 
+         ELSE
+            CLOSE(IST)
+            WRITE (ier_msg (1), 3000) n_read
+            RETURN
          ENDIF 
 !     INTEGER     :: iatom
 !
