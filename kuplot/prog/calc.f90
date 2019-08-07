@@ -2066,7 +2066,7 @@ USE precision_mod
          IF (dz.ne.0) then 
             r_wichtung = 1.0 / dz**2
          ELSE 
-            r_wichtung = 0.0 
+            r_wichtung = 1.0 
          ENDIF 
       ENDIF 
 !                                                                       

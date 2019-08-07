@@ -1092,6 +1092,7 @@ INTEGER           :: i, ii, jj, kk
 INTEGER           :: len_str 
 !                                                                       
 CALL wichtung (y) 
+!IF(ier_num/=0) RETURN
       IF (ncycle.gt.0) call fit_kupl (y) 
 !                                                                       
       ii = offxy (ikfit - 1) 
@@ -1130,6 +1131,7 @@ CALL wichtung (y)
       USE prompt_mod 
       USE kuplot_config 
       USE kuplot_mod 
+USE errlist_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1139,6 +1141,7 @@ CALL wichtung (y)
       INTEGER len_str 
 !                                                                       
       CALL wichtung (z) 
+IF(ier_num/=0) RETURN
       IF (ncycle.gt.0) call fit_kupl (z) 
 !                                                                       
       DO i = 1, nx (ikfit) * ny (ikfit) 
@@ -1186,6 +1189,7 @@ CALL wichtung (y)
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+!USE errlist_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1196,11 +1200,21 @@ CALL wichtung (y)
 !                                                                       
       IF (lni (ikfit) ) then 
          ii = offz (ikfit - 1) 
+!IF(wtyp(1:3) == 'DAT' .AND. MINVAL(ABS(dy(ii+1:ii+nx (ikfit) * ny (ikfit))))==0.0) THEN
+!   ier_num = -68
+!   ier_typ = ER_APPL
+!   RETURN
+!ENDIF
          DO i = 1, nx (ikfit) * ny (ikfit) 
          w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
          ENDDO 
       ELSE 
          ii = offxy (ikfit - 1) 
+!IF(wtyp(1:3) == 'DAT' .AND. MINVAL(ABS(dy(ii+1:len(ikfit))))==0.0) THEN
+!   ier_num = -68
+!   ier_typ = ER_APPL
+!   RETURN
+!ENDIF
          DO i = 1, len (ikfit) 
          IF (frall) then 
             w (ii + i) = calc_wic (a (ii + i), dy (ii + i) ) 
@@ -1224,6 +1238,7 @@ CALL wichtung (y)
 !-                                                                      
       USE kuplot_config 
       USE kuplot_mod 
+!USE errlist_mod
 !                                                                       
       IMPLICIT none 
 !                                                                       
@@ -1247,7 +1262,14 @@ CALL wichtung (y)
          ELSEIF (wtyp (1:3) .eq.'ISQ') then 
             wic = 1.0 / sqrt (aval) 
          ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) then 
-            wic = 1.0 / (sig *sig)
+            IF(sig == 0.0) THEN
+               wic = 1.0
+!              ier_num = -68
+!              ier_typ = ER_APPL
+!              RETURN
+            ELSE
+               wic = 1.0 / (sig *sig)
+            ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       
@@ -4731,6 +4753,7 @@ IF(lni(ikfit)) THEN                               ! XY-Z data
    data_dim(2) = ny(ikfit)
 ELSE
    CALL wichtung (y) 
+   CALL no_error
 !
    data_dim(1) = len(ikfit)                        ! Transfer KUPLOT Dimensions
    data_dim(2) = 1
@@ -5039,7 +5062,11 @@ END SUBROUTINE do_fit
          ELSEIF (wtyp (1:3) .eq.'ISQ') THEN 
             wic = 1.0 / sqrt (aval) 
          ELSEIF (wtyp (1:3) .eq.'DAT'.and..not.lni (ikfit) ) THEN 
-            wic = 1.0 / (sig *sig)
+            IF(sig==0.0) THEN
+               wic = 1.0
+            ELSE
+               wic = 1.0 / (sig *sig)
+            ENDIF 
          ENDIF 
       ENDIF 
 !                                                                       
