@@ -894,12 +894,12 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    CALL save_internal(corefile)        !     thus this file name is unique
 !
    shellfile  = 'internal.decoshell'   
-   line       = 'present, external'    ! Force atom to be close to a surface
-   length     = 17
-   CALL property_select(line, length, sav_sel_prop)
-   line       = 'absent, outside'      ! Force atom to be inside
-   length     = 15
-   CALL property_select(line, length, sav_sel_prop)
+!   line       = 'present, external'    ! Force atom to be close to a surface
+!   length     = 17
+!   CALL property_select(line, length, sav_sel_prop)
+!   line       = 'absent, outside'      ! Force atom to be inside
+!   length     = 15
+!   CALL property_select(line, length, sav_sel_prop)
 !
 !   sav_w_scat  = .TRUE.
 !   sav_w_adp   = .TRUE.
@@ -914,6 +914,12 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 !   sav_w_prop  = .TRUE.
 !   sav_latom(:) = .TRUE.
    CALL save_default_setting           ! Default to full saving
+   line       = 'present, external'    ! Force atom to be close to a surface
+   length     = 17
+   CALL property_select(line, length, sav_sel_prop)
+   line       = 'absent, outside'      ! Force atom to be inside
+   length     = 15
+   CALL property_select(line, length, sav_sel_prop)
    CALL save_internal(shellfile)
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
@@ -1678,6 +1684,7 @@ ENDIF
    ENDIF
 !
 CALL symm_reset
+!
 !
    END SUBROUTINE deco_run
 !
