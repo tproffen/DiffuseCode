@@ -77,8 +77,11 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2019_August
 
-   Added optiona parameter "type" to purge command. Allows to
+   Added optional parameter "type" to purge command. Allows to
    clear list of atom types.
+
+   Added the option to add the surface vectors to the crystal
+   structure file.
 3  2019_May
 
    Added the option to retin the original space group to the 
