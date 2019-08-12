@@ -836,6 +836,7 @@ INTEGER  :: dc_temp_natoms   ! Number of atoms in the ligand molecule
    INTEGER   :: m_type_old             ! Molecule types in original crystal
    INTEGER   :: j_surf                 ! Surface atom type replaced by an achor
    INTEGER   :: temp_secnd             ! Second neighbor in the molecule
+INTEGER   :: ier_sta_temp          ! temporary error status
    LOGICAL   :: l_correct              ! A dummy for logical comparisons
    LOGICAL   :: temp_lrestrict         ! Local copy of dcc_lrestict
    REAL      :: temp_angle             ! Local copy of dcc_angle
@@ -914,13 +915,32 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
 !   sav_w_prop  = .TRUE.
 !   sav_latom(:) = .TRUE.
    CALL save_default_setting           ! Default to full saving
+   sav_w_gene  = .FALSE.
+   sav_w_symm  = .FALSE.
+   sav_w_mole  = .FALSE.
+   sav_w_obje  = .FALSE.
+   sav_w_doma  = .FALSE.
    line       = 'present, external'    ! Force atom to be close to a surface
    length     = 17
    CALL property_select(line, length, sav_sel_prop)
    line       = 'absent, outside'      ! Force atom to be inside
    length     = 15
    CALL property_select(line, length, sav_sel_prop)
+!   ier_sta_temp = ier_sta
+!   ier_sta = ER_S_LIVE
    CALL save_internal(shellfile)
+   IF(ier_num /=0) THEN
+      CALL errlist_save                   ! Keep error status 
+
+      CALL save_restore_setting
+      CALL no_error
+      CALL readstru_internal( corefile)   ! Read  core file
+      CALL errlist_restore                ! Restore error status
+      DEALLOCATE(anch_id)
+      RETURN
+   ENDIF
+!   CALL no_error
+!   ier_sta = ier_sta_temp
 ! RBN DECO NEEDS ERROR CHECK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !  Make single atom "structure" for domain list file 
@@ -935,6 +955,7 @@ INTEGER, DIMENSION(:  ), ALLOCATABLE :: anchor_num
    CALL deco_get_molecules(host_a0,host_win, host_tran_fi)
    IF(ier_num /=0) THEN
       CALL errlist_save                   ! Keep error status 
+
       CALL save_restore_setting
       CALL no_error
       CALL readstru_internal( corefile)   ! Read  core file
@@ -969,7 +990,7 @@ cr_ncatoms = cr_natoms              ! place all atoms into one "unit" cell
 nscat_old = cr_nscat                ! Save old scattering curve number
 chem_period(:) = .FALSE.
 chem_quick     = .FALSE.
-IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
+shell_has_atoms: IF(cr_natoms > 0) THEN              ! The Shell does consist of atoms
 !  IF(ASSOCIATED(dc_def_head)) THEN
 !
 !     Now sort those surface atoms that are anchors to the ligand
@@ -1063,6 +1084,7 @@ ENDIF
    CALL save_internal('internal_anchors')        !     thus this file name is unique
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
+
    CALL property_select(line, length,  cr_sel_prop)
 !
       IF(n_repl > 0                       ) THEN    ! Need at least one anchor
@@ -1614,7 +1636,7 @@ CYCLE main_loop
         ier_msg(2) = 'Is the coverage too small? '
         ier_msg(3) = 'Check the set ligand command A4'
       ENDIF    ! n_repl > 0   !! No anchor atoms found
-   ELSE     ! SHELL has atoms
+   ELSE shell_has_atoms    ! SHELL has atoms
      CALL rese_cr
      CALL save_restore_setting
      CALL no_error
@@ -1624,10 +1646,11 @@ CYCLE main_loop
      ier_msg(1) = 'Possible reasons: no boundary was used to cut'
      ier_msg(2) = 'Distance to external surface is too large'
      ier_msg(3) = 'Check settings and command in surface menu'
-   ENDIF
+   ENDIF shell_has_atoms
 !
    IF(ier_num /=0) THEN
       ier_num_deco = ier_num
+
       ier_typ_deco = ier_typ
       ier_msg_deco = ier_msg
    ELSE
@@ -1654,21 +1677,22 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
 !
 ! Clean up internal files
 !
-CALL store_remove_single(corefile, ier_num)
-CALL store_remove_single(shellfile, ier_num)
-CALL store_remove_single('internal_anchors', ier_num)
-CALL store_remove_single('internal_sorted', ier_num)
-rdefs: DO dc_temp_id=1, dcc_num
-   WRITE(mole_name,1000) dc_temp_id, dcc_file(dc_temp_id)(1:dcc_lfile(dc_temp_id))
-   CALL store_remove_single(mole_name, ier_num)
-ENDDO rdefs
+!DDCALL store_remove_single(corefile, ier_num)
+!DDCALL store_remove_single(shellfile, ier_num)
+!DDCALL store_remove_single('internal_anchors', ier_num)
+!DDCALL store_remove_single('internal_sorted', ier_num)
+!DDrdefs: DO dc_temp_id=1, dcc_num
+!DD   WRITE(mole_name,1000) dc_temp_id, dcc_file(dc_temp_id)(1:dcc_lfile(dc_temp_id))
+!DD   CALL store_remove_single(mole_name, ier_num)
+!DDENDDO rdefs
 IF(ier_num/=0) THEN
    ier_typ = ER_APPL
    ier_msg(1) = 'Could not remove temporary internal storage'
    ier_msg(2) = 'in deco_run '
    ier_msg(3) = 'Please document and report'
 ENDIF
-
+!
+CALL symm_reset
 !
 !  Restore DECO ERROR SETTINGS 
 !
@@ -1683,8 +1707,6 @@ ENDIF
       chem_quick = .FALSE.
       chem_period(:) = .FALSE.
    ENDIF
-!
-CALL symm_reset
 !
 !
    END SUBROUTINE deco_run
