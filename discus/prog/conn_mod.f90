@@ -790,6 +790,7 @@ USE precision_mod
 !
       loop_central: DO i = 1, is_cent(0)
       is1 = is_cent(i)
+      is_range2: IF (is1 <= UBOUND(def_main,1) ) THEN 
       is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
          is_work: IF ( work_id /= -1 ) THEN                      ! Work on an existing definition
             IF ( work_id > def_main(is1)%def_number ) THEN       ! Definition does not exist
@@ -963,6 +964,13 @@ USE precision_mod
             def_main(is1)%def_number = def_main(is1)%def_number + 1
          ENDIF
       ENDIF is_there
+      ELSE is_range2
+         ier_num = -109
+         ier_typ = ER_APPL
+         WRITE(ier_msg(1),'(a,i4)') 'Atom type is outside range',is1
+         ier_msg(2) = 'Has composition changed prior to set?'
+         RETURN
+      ENDIF is_range2
       ENDDO loop_central
 !
       DEALLOCATE(is_cent)
@@ -1370,7 +1378,7 @@ USE precision_mod
 !        WRITE(output_io, 3000) 'energy', 'ignore'
 !     ENDIF
       exist_def: IF ( ALLOCATED(def_main)) THEN    ! Are there any definitions
-        scats: DO is=0,maxscat                     ! Loop over all atom types
+        scats: DO is=0,MIN(MAXSCAT,UBOUND(def_main,1))                     ! Loop over all atom types
            IF ( .NOT. ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has no def.s
               CYCLE scats
            ENDIF
@@ -2049,6 +2057,7 @@ IF(.NOT.ALLOCATED(at_conn)) RETURN
 IF(UBOUND(at_conn,1)==0) RETURN
 IF(ASSOCIATED(at_conn(isel)%liste)) THEN     ! A connectivity list has been created
    is = cr_iscat(isel) 
+   is_range: IF(is <= UBOUND(def_main,1)) THEN  ! Atom type is in range
    IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
       def_temp => def_main(is)%def_liste
 search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
@@ -2071,6 +2080,13 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
          def_temp => def_temp%def_next
       ENDDO search_defs
    ENDIF
+   ELSE is_range
+      ier_num = -109
+      ier_typ = ER_APPL
+      WRITE(ier_msg(1),'(a,i4)') 'Atom type is outside range',is
+      ier_msg(2) = 'Has composition changed prior to set?'
+      RETURN
+   ENDIF is_range
 !DBG_PERIOD j= 1
 !DBG_PERIOD call do_show_connectivity ( isel, j, c_name, .TRUE. )
 !
@@ -2080,6 +2096,7 @@ search_defs:      DO WHILE (ASSOCIATED(def_temp))           ! There are definiti
    DO iatom = 1, cr_natoms
       IF(ASSOCIATED(at_conn(iatom)%liste)) THEN     ! A connectivity list has been created
          is = cr_iscat(iatom) 
+         is_range2: IF(is <= UBOUND(def_main,1)) THEN  ! Atom type is in range
          IF(ASSOCIATED(def_main(is)%def_liste)) THEN  ! This type has a definition
             def_temp => def_main(is)%def_liste
 search_def2:DO WHILE (ASSOCIATED(def_temp))           ! There are definitions to follow
@@ -2098,6 +2115,13 @@ search_neig:   DO WHILE(ASSOCIATED(p_atoms))            ! Place into structure
                def_temp => def_temp%def_next
             ENDDO search_def2
          ENDIF
+   ELSE is_range2
+      ier_num = -109
+      ier_typ = ER_APPL
+      WRITE(ier_msg(1),'(a,i4)') 'Atom type is outside range',is
+      ier_msg(2) = 'Has composition changed prior to set?'
+      RETURN
+   ENDIF is_range2
       ENDIF
    ENDDO
 ENDIF

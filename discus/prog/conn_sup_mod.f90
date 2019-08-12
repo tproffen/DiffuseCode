@@ -92,6 +92,7 @@ CONTAINS
       INTEGER           , INTENT(INOUT)   :: work_name_l! Connectivity name length
 !
       IF ( ALLOCATED(def_main) ) THEN
+         IF(is1>=0 .AND. is1<=UBOUND(def_main,1)) THEN
          is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
             def_head => def_main(is1)%def_liste
             def_temp => def_main(is1)%def_liste
@@ -115,6 +116,10 @@ CONTAINS
             ier_num = -109
             ier_typ = ER_APPL
          ENDIF is_there
+         ELSE
+            ier_num = -109
+            ier_typ = ER_APPL
+         ENDIF
       ELSE
          ier_num = -110
          ier_typ = ER_APPL
@@ -138,9 +143,14 @@ CONTAINS
 !
       numbers = 0
       IF ( ALLOCATED(def_main) ) THEN
+         IF(is1>=0 .AND. is1<=UBOUND(def_main,1)) THEN
          is_there: IF ( ASSOCIATED(def_main(is1)%def_liste) ) THEN  ! A list of definitions exists
             numbers = def_main(is1)%def_number
          ENDIF is_there
+      ELSE
+         ier_num = -109
+         ier_typ = ER_APPL
+      ENDIF
       ELSE
          ier_num = -110
          ier_typ = ER_APPL
