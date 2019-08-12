@@ -1242,6 +1242,7 @@ ENDIF
       sav_w_scat  = .TRUE.
       sav_w_adp   = .TRUE.
       sav_w_occ   = .TRUE.
+      sav_w_surf  = .TRUE.
       sav_r_ncell = .TRUE.
       sav_w_ncell = .TRUE.
       sav_w_gene  = .FALSE.
@@ -1874,6 +1875,7 @@ main: DO i=1, dcc_num
       sav_w_scat  = .TRUE.
       sav_w_adp   = .TRUE.
       sav_w_occ   = .TRUE.
+      sav_w_surf  = .TRUE.
       sav_r_ncell = .TRUE.
       sav_w_ncell = .TRUE.
       sav_w_gene  = .FALSE.

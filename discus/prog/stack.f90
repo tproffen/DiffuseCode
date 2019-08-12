@@ -1549,9 +1549,9 @@ USE precision_mod
       INTEGER ist 
       PARAMETER (ist = 7) 
 !                                                                       
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER                              :: at_ianz
-CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !                                                                       
       INTEGER          :: natoms=0, max_natoms=0
       INTEGER          :: nscats=0, max_nscats=0

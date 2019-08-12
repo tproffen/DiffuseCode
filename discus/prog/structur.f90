@@ -904,12 +904,12 @@ REAL               , INTENT(IN) :: r_identical
 !
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER, PARAMETER                   :: ist     = 7
 INTEGER, PARAMETER                   :: MAXW = MAX(AT_MAXP,7)
 !
 INTEGER                              :: at_ianz
-CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       INTEGER i, j, ibl, lbef 
       INTEGER     :: iatom
       INTEGER     :: n_read = 0
@@ -1116,6 +1116,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   werte (j) = 0.0 
                   ENDDO 
                   werte (5) = 1.0 
+                  cr_surf(:,cr_natoms+1) = 0
                   CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
                                        AT_MAXP, at_ianz, at_param, at_init)                                          
                   n_read = n_read + 1
@@ -1143,6 +1144,7 @@ typus:         IF (str_comp (befehl, 'molecule', 4, lbef, 8) .or.       &
                   DO j = 1, 3 
                      cr_pos (j, i) = werte (j) 
                   ENDDO 
+                  cr_surf(0:3,i) = NINT(werte(9:12))
                   dw1 = werte (4) 
                   occ1 = werte(8)                       ! WORK OCC
                   IF(mole_l_on) THEN
@@ -1313,6 +1315,10 @@ INTEGER, SAVE                        :: col_prop   = 0
 INTEGER, SAVE                        :: col_moleno = 0 
 INTEGER, SAVE                        :: col_moleat = 0 
 INTEGER, SAVE                        :: col_occ    = 0 
+INTEGER, SAVE                        :: col_surft  = 0 
+INTEGER, SAVE                        :: col_surfh  = 0 
+INTEGER, SAVE                        :: col_surfk  = 0 
+INTEGER, SAVE                        :: col_surfl  = 0 
 LOGICAL                              :: lcalc     ! Flag if calculation is needed
 !
 IF(line(1:1)=='!' .OR. line(1:1)=='#' .OR. IACHAR(line(1:1))==9 .OR. line==' ') RETURN
@@ -1329,6 +1335,10 @@ IF(at_init) THEN
       IF(at_param(i) == 'MOLENO'  ) col_moleno = i
       IF(at_param(i) == 'MOLEAT'  ) col_moleat = i
       IF(at_param(i) == 'OCC'     ) col_occ = i
+      IF(at_param(i) == 'ST'   ) col_surft = i
+      IF(at_param(i) == 'SH'   ) col_surfh = i
+      IF(at_param(i) == 'SK'   ) col_surfk = i
+      IF(at_param(i) == 'SL'   ) col_surfl = i
    ENDDO
    at_init = .FALSE.
 ENDIF
@@ -1368,7 +1378,7 @@ ELSE params
 !  The line has comma separated parameters, compare to expectation from 'atom' line
    got_params: IF (ier_num == 0) THEN 
       IF(ianz>=at_ianz .AND.   & ! Correct minimum parameter number
-         (ianz>=4 .AND. ianz<=8 )) THEN 
+         (ianz>=4 .AND. ianz<=12)) THEN 
 !
          lcalc = .false.
          check_calc: DO j = 1, ianz 
@@ -1383,6 +1393,30 @@ ELSE params
                EXIT check_calc
             ENDIF
          ENDDO check_calc
+         IF(col_surft >0) THEN
+            SELECT CASE (cpara(col_surft))
+            CASE('_')
+               j = 0
+            CASE('P')
+               j = 1
+            CASE('S')
+               j = 2
+            CASE('Y')
+               j = 3
+            CASE('E')
+               j = 4
+            CASE('C')
+               j = 5
+            CASE('L')
+               j = 6
+            CASE('T')
+               j = 7
+            CASE DEFAULT
+               j = 0
+            END SELECT
+            werte(9) = j
+            cpara(col_surft) = '0'
+         ENDIF
          IF(lcalc) THEN    ! We need to calculate the parameter value
             DO j = 1, ianz 
                string = '(1.0*'//cpara (j) (1:lpara (j) ) //')' 
@@ -1420,6 +1454,15 @@ ELSE params
             werte(8) = wwerte(col_occ)
          ELSE
             werte(8) = 1.0
+         ENDIF
+         IF(col_surfh >0) THEN
+            werte(10) = wwerte(col_surfh)
+         ENDIF
+         IF(col_surfk >0) THEN
+            werte(11) = wwerte(col_surfk)
+         ENDIF
+         IF(col_surfl >0) THEN
+            werte(12) = wwerte(col_surfl)
          ENDIF
          CALL no_error 
       ELSE 
@@ -1826,9 +1869,9 @@ CHARACTER(LEN=3), INTENT(INOUT) :: cr_set
       CHARACTER(16) cr_spcgr 
       CHARACTER(4) cr_at_lis (0:MAXSCAT) 
       CHARACTER(4) as_at_lis (0:MAXSCAT) 
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER                              :: at_ianz
-CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !                                                                       
       INTEGER cr_nscat 
       INTEGER as_natoms 
@@ -2421,7 +2464,7 @@ INTEGER                                  , INTENT(OUT) :: at_ianz
 CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
 !                                                                       
       INTEGER , PARAMETER :: ist  = 7
-      INTEGER , PARAMETER :: maxw = 8 ! SHOULD READ : MAX(7, AT_MAXP)
+      INTEGER , PARAMETER :: maxw = 12! SHOULD READ : MAX(7, AT_MAXP)
 !                                                                       
       CHARACTER(LEN=10)   :: befehl 
       CHARACTER(LEN=1024) ::  line, zeile 
@@ -2502,6 +2545,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
             IF ( need_alloc ) THEN
                call alloc_molecule(n_gene, n_symm, n_mole, n_type, n_atom)
             ENDIF
+            cr_surf(:,cr_natoms+1) = 0
             CALL read_atom_line (line, ibl, lline, as_natoms, maxw, werte, &
                  AT_MAXP, at_ianz, at_param, at_init)
             IF (ier_num.ne.0.and.ier_num.ne. - 49) then 
@@ -2524,6 +2568,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
             ENDDO 
             dw1 = werte (4) 
             occ1 = werte(8)                             ! WORK OCC
+            cr_surf(0:3,i) = NINT(werte(9:12))          ! copy surface
             cr_prop (i) = nint (werte (5) ) 
       IF (line (1:4) .ne.'    ') then 
                ibl = ibl - 1 
@@ -2608,7 +2653,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
          CALL no_error 
       ENDIF 
 !
-      cr_surf(:,:) = 0    ! Currently no surface save nor read
+!     cr_surf(:,:) = 0    ! Currently no surface save nor read
 !
       CLOSE (ist) 
 !                                                                       
@@ -5151,7 +5196,7 @@ USE precision_mod
       LOGICAL                               :: l_type     ! RFound molecule type command
       LOGICAL                               :: new
       REAL                                  :: xc,yc,zc,bval
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER                              :: at_ianz
 LOGICAL                              :: at_init = .TRUE.
 CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
@@ -5393,6 +5438,10 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
            IF(is_nan(xc) .OR. is_nan(yc) .OR. is_nan(zc) .OR. is_nan(bval)) THEN
               ios = -1
            ENDIF
+           IF(is_nan(werte(10)) .OR. is_nan(werte(11)) .OR. is_nan(werte(12)) ) THEN
+              ios = -1
+           ENDIF
+!
 isatom:    IF ( ios == 0 ) THEN
               natoms = natoms + 1
               IF ( in_mole ) THEN

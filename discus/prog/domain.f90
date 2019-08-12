@@ -538,9 +538,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       PARAMETER (imd = 45) 
 !                                                                       
       CHARACTER(1024) infile 
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER                              :: at_ianz
-CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
 !
       LOGICAL lend 
       LOGICAL :: l_ok    ! the domain list file contains a correct input pseuodatom
@@ -1090,9 +1090,9 @@ use molecule_mod
       INTEGER ist 
       PARAMETER (ist = 46) 
 !                                                                       
-INTEGER, PARAMETER                   :: AT_MAXP = 8
+INTEGER, PARAMETER                   :: AT_MAXP = 12
 INTEGER                              :: at_ianz
-CHARACTER(LEN=AT_MAXP), DIMENSION(8) :: at_param
+CHARACTER(LEN=8), DIMENSION(AT_MAXP) :: at_param
       LOGICAL lread 
 !                                                                       
       lread = .true. 

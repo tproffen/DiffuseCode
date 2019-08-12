@@ -299,6 +299,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_scat = .false. 
                         sav_w_adp  = .false. 
                         sav_w_occ  = .false. 
+                        sav_w_surf = .false. 
                         sav_w_obje = .false. 
                         sav_w_mole = .false. 
                         sav_w_doma = .false. 
@@ -321,6 +322,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_adp = .false. 
                      ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1), 3) ) THEN
                         sav_w_occ = .false. 
+                     ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1), 3) ) THEN
+                        sav_w_surf = .false. 
                      ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .false. 
                      ELSE 
@@ -412,6 +415,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_scat = .true. 
                         sav_w_adp  = .true. 
                         sav_w_occ  = .true. 
+                        sav_w_surf = .true. 
                         sav_w_mole = .true. 
                         sav_w_obje = .true. 
                         sav_w_doma = .true. 
@@ -434,6 +438,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         sav_w_adp = .true. 
                      ELSEIF(str_comp(cpara (1), 'occ', 1, lpara(1),3) ) THEN
                         sav_w_occ = .true. 
+                     ELSEIF(str_comp(cpara (1), 'surf', 1, lpara(1),3) ) THEN
+                        sav_w_surf = .true. 
                      ELSEIF(str_comp(cpara (1), 'prop', 1, lpara(1), 4) ) THEN
                         sav_w_prop = .true. 
                      ELSE 
@@ -567,20 +573,23 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       USE molecule_mod 
       USE sym_add_mod 
       USE discus_save_mod 
-      USE errlist_mod 
-      IMPLICIT none 
-!                                                                       
-       
-!                                                                       
+USE surface_mod
+!
+USE errlist_mod 
+!
+IMPLICIT none 
+!
       CHARACTER ( LEN=* ) , INTENT(in) :: strucfile 
       CHARACTER(31) fform 
       CHARACTER(15) C_MOLE ( - 4:4) 
+CHARACTER(LEN=1), DIMENSION(0:SURF_MAXTYPE) :: c_surf
       INTEGER ist, i, j, k
       INTEGER i_start, i_end 
       INTEGER is, ie 
       INTEGER ::   wr_prop = 1
       INTEGER ::   wr_mole = 0
       INTEGER ::   wr_cont = 0
+INTEGER, DIMENSION(0:3) :: wr_surf
       LOGICAL lread 
       LOGICAL                            :: lsave
       LOGICAL, DIMENSION(:), ALLOCATABLE :: lwrite ! flag if atom needs write
@@ -592,6 +601,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
       DATA C_MOLE / 'domain_fuzzy   ', 'domain_sphere  ', 'domain_cylinder',&
                     'domain_cube    ', 'atoms          ', 'cube           ',&
                     'cylinder       ', 'sphere         ', 'cube           ' /             
+!
+DATA c_surf(0:SURF_MAXTYPE) /'_','P', 'S', 'Y', 'E', 'C', 'L', 'T'/
 !
 !     Test if any atom type is selected for write
 !
@@ -778,6 +789,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
          wr_prop = 1
          wr_mole = 0
          wr_cont = 0
+         wr_surf(:) = 0
          IF(sav_w_prop) wr_prop = cr_prop(i)
          IF (sav_w_mole .OR. sav_w_doma .OR. sav_w_obje) THEN 
             IF(cr_mole(i)/=0) THEN
@@ -790,10 +802,12 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ENDDO check_mole
             ENDIF
          ENDIF
+         IF(sav_w_surf) wr_surf(0:3) = cr_surf(0:3,i)
          WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
                         (cr_pos (j, i),j = 1, 3),          &
                         cr_dw (cr_iscat (i) ), wr_prop,    &
-                        wr_mole, wr_cont, cr_occ(cr_iscat(i))
+                        wr_mole, wr_cont, cr_occ(cr_iscat(i)), &
+                        c_surf(wr_surf(0  )), wr_surf(1:3  )
 !           IF(sav_w_prop) THEN
 !              WRITE (ist, 4) cr_at_lis (cr_iscat (i) ),         &
 !                             (cr_pos (j, i),j = 1, 3),          &
@@ -824,7 +838,7 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  3220 FORMAT    (('occ   ', f9.6,6(',',5x,f9.6))) 
  3221 FORMAT    (('occ   ', f9.6)) 
  3900 FORMAT    ('atoms      x,',14x,'y,',14x,'z,',13x,'Biso,', 4x,'Property,', &
-                 2x,'MoleNo,  MoleAt,   Occ')
+                 2x,'MoleNo,  MoleAt,   Occ,     St,  Sh,  Sk,  Sl')
  4000 FORMAT    (a) 
  4002 FORMAT    (a,' type,',i8) 
  4100 FORMAT    (a,' character,',a15) 
@@ -835,7 +849,8 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
  4600 FORMAT    (a,' clin     ,',f12.8)
  4700 FORMAT    (a,' cqua     ,',f12.8)
  4900 FORMAT    (a,' end') 
-    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', I8,', ', F10.6) 
+    4 FORMAT (a4,3(1x,f14.6,','),4x,f10.6,',',i8, ',', I8, ',', &
+              I8,', ', F10.6,', ',A1,3(', ',I3)) 
  7010 FORMAT    ('(''scat  '', a4  ,',i1,'('','',5x,a4  ))') 
  7020 FORMAT    ('(''adp   '', f9.6,',i1,'('','',5x,f9.6))') 
  7030 FORMAT    ('(''occ   '', f9.6,',i1,'('','',5x,f9.6))') 
@@ -1123,6 +1138,7 @@ END SUBROUTINE save_internal_node
       sav_w_scat  = .false.
       sav_w_adp   = .false.
       sav_w_occ   = .false.
+      sav_w_surf  = .false.
       sav_r_ncell = .true.
       sav_w_ncell = .true.
       sav_w_gene  = .true.
@@ -1173,6 +1189,8 @@ sav_t_w_adp   = .FALSE.
 sav_w_adp     = .FALSE.
 sav_t_w_occ   = .FALSE.
 sav_w_occ     = .FALSE.
+sav_t_w_surf  = .FALSE.
+sav_w_surf    = .FALSE.
 sav_t_r_ncell = .FALSE.
 sav_r_ncell   = .FALSE.
 sav_t_w_ncell = .FALSE.
@@ -1271,6 +1289,11 @@ IF (sav_keyword) THEN
    ELSE 
       WRITE (output_io, 3060) 'omitted' 
    ENDIF 
+   IF (sav_w_surf) THEN 
+      WRITE (output_io, 3070) 'written' 
+   ELSE 
+      WRITE (output_io, 3070) 'omitted' 
+   ENDIF 
    CALL char_prop_2 (c_property,sav_sel_prop (1), sav_sel_prop (0),   &
       length)
    WRITE (output_io, 3131) c_property (1:length)
@@ -1315,6 +1338,7 @@ ENDIF
  3040 FORMAT(' Molecule information: content etc.        : ',a7) 
  3050 FORMAT(' Object   information: content etc.        : ',a7) 
  3060 FORMAT(' Domain   information: content etc.        : ',a7) 
+ 3070 FORMAT(' Surface  information: type, normal        : ',a7) 
  3080 FORMAT(' Range of atoms from to    : All atoms included') 
  3081 FORMAT(' Range of atoms from to    : ',2(2x,i9)) 
  3131 FORMAT    (/' Atom properties         : ','NMDOEI'/               &
