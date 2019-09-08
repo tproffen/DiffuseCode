@@ -9,7 +9,12 @@ if (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
   set(IFORT TRUE)
 elseif (${CMAKE_Fortran_COMPILER} MATCHES "pgf")
   set(PGF TRUE)
+elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+  set(IFORT TRUE)
+elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+  set(ISGNU TRUE)
 endif (${CMAKE_Fortran_COMPILER} MATCHES "ifort")
+
 
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   # gfortran 2008 doesn't exist until gcc 4.6
@@ -23,7 +28,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (DIFFUSE_VERSION_MAJOR 5)
 set (DIFFUSE_VERSION_MINOR 99)
-set (DIFFUSE_VERSION_PATCH 9)
+set (DIFFUSE_VERSION_PATCH 11)
 
 # Readline required for all programs
 
@@ -56,11 +61,16 @@ endif (PGF)
 # Debug mode - turn on warnings and other options
 option(DEBUG "DEBUG" OFF)
 if (DEBUG)
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-# set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
-# set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
-# set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic")
-  set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none  -pedantic -Wuninitialized")
+  if (ISGNU)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+#   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=f2008 -fall-intrinsics -Wall")
+#   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wall -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wimplicit-interface -Wunused-parameter -fwhole-file -std=f2008 -fimplicit-none  -pedantic")
+#   set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -Wunused-dummy-argument -Wmaybe-uninitialized -Wconversion -fwhole-file -fimplicit-none  -pedantic")
+    set (CMAKE_Fortran_FLAGS "-fPIC -cpp -fcheck=all -g -Og -fbacktrace -Warray-bounds -Wline-truncation -Wcharacter-truncation -Wsurprising -Waliasing -Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value -fwhole-file -fimplicit-none  -pedantic -Wuninitialized")
+  elseif (IFORT)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+    set (CMAKE_Fortan_FLAGS "-fPIC -cpp -check=all -g -O0 -backtrace")
+  endif (ISGNU)
 endif (DEBUG)
 
 # Go into directories
