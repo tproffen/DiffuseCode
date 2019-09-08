@@ -631,6 +631,7 @@ list_index(:) = 0
 !                                                                       
    REAL                           :: pave, pmin, pmax, psig 
    REAL                           :: sx, sx2, arg 
+   REAL                           :: sw, wg
 !
    INTEGER, EXTERNAL              :: len_str
 !                                                                       
@@ -769,16 +770,22 @@ list_index(:) = 0
       pmin = child (i, 1) 
       sx   = 0.0 
       sx2  = 0.0 
+      sw   = 0.0
       DO j = 1, pop_n 
-         sx   = sx + child (i, j) 
+         wg   = 1./(1.+ABS(child_val(j,0) - child_val(pop_best,0)))
+         sw   = sw + wg
+         sx   = sx + wg*child (i, j) 
          pmax = max (pmax, child (i, j) ) 
          pmin = min (pmin, child (i, j) ) 
       ENDDO 
-      pave = sx / pop_n 
+      pave = sx / pop_n / ABS(sw/pop_n)
+      sw   = 0.0
       DO j = 1, pop_n 
-         sx2  = sx2 + (child (i, j)-pave) **2 
+         wg   = 1./(1.+(child_val(j,0) - child_val(pop_best,0))**2)
+         sw   = sw + wg
+         sx2  = sx2 + wg*(child (i, j)-pave) **2 
       ENDDO 
-      arg  = sx2 / (pop_n - 1) 
+      arg  = sx2 / (pop_n - 1) / ABS(sw/pop_n)
       IF (arg.lt.0.0) THEN 
          psig = 0.0 
       ELSE 
