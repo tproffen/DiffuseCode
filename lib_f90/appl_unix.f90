@@ -380,6 +380,10 @@ ENDIF
                ENDIF
             ENDIF
          ENDIF
+         IF(start_dir(start_dir_l:start_dir_l) /= '/') THEN
+            start_dir   = start_dir(1:start_dir_l) // '/'
+            start_dir_l = start_dir_l + 1
+         ENDIF
       ELSE
 !                                                                       
          CALL do_cwd (start_dir, start_dir_l) 
