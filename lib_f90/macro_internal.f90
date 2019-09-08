@@ -14,7 +14,7 @@ PUBLIC  :: mac_tree_root, mac_tree_temp, mac_tree_active, mac_tree_tail, mac_tre
 PUBLIC  :: macro_level
 PUBLIC  :: macro_rem_all
 PUBLIC  :: macro_rem_tree
-PUBLIC  :: lmakro, lmakro_error
+PUBLIC  :: lmakro, lmakro_error, lmakro_disp
 PUBLIC  :: sprompt
 !
 
@@ -52,6 +52,7 @@ TYPE(macro_tree), POINTER            :: mac_tree_srch   ! temporary pointer that
 INTEGER                              :: macro_level = 0 ! Current macro depth
 LOGICAL                              :: lmakro = .false.! Macro status is on/off
 LOGICAL                              :: lmakro_error = .false.! Macro termination with status is off
+LOGICAL                              :: lmakro_disp=.TRUE.    ! Display error message macro name
 CHARACTER(LEN=40)                    :: sprompt         ! Prompt at macro start
 INTEGER :: macro_counter = 0
 INTEGER :: macro_tree_co = 0

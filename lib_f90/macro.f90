@@ -201,6 +201,7 @@ IF(macro_level == 1 ) THEN                 ! Top level, start execution tree
    mac_tree_tail    => mac_tree_root       ! Point to last macro
    lmakro = .true.
    lmakro_error = .FALSE.                  ! Start with macro termination error off
+   lmakro_disp  = .TRUE.                   ! Start with macro display error on
 ELSE
 !
    ALLOCATE(mac_tree_temp, STAT=istatus)      ! Allocate next node
@@ -466,6 +467,7 @@ IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
    IF(.NOT. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
 
       lmakro = .false.
+      lmakro_disp  = .FALSE.    ! Macro display error off
       macro_level = 0
       CALL macro_close
    ELSE
@@ -575,12 +577,12 @@ nocomment: IF (line(1:1) /= '#' .AND. line (1:1) /=  '!' .AND. laenge /= 0) THEN
                ENDIF
             ENDIF
          ELSE
-            lmakro = .false.
+!           lmakro = .false.
             il     = len_str (line)
             WRITE (output_io, 1000) line (1:il)
             ier_num = - 41
             ier_typ = ER_MAC
-            CALL macro_close
+!           CALL macro_close
             RETURN
          ENDIF
       ELSE no_errorA
@@ -622,6 +624,7 @@ IF(il>   0) THEN
       WRITE ( *, 2000) char (7)
       lmakro = .false.
       lmakro_error = .false.    ! Macro termination error off
+      lmakro_disp  = .FALSE.    ! Macro display error off
       line = '#'
       il = 1
    ENDIF
@@ -644,6 +647,7 @@ IMPLICIT NONE
 !IF(mac_tree_active%current > mac_tree_active%active%macros%macro_length) THEN
    IF(.NOT. ASSOCIATED(mac_tree_active%parent)) THEN  ! Got back to the top 
       lmakro = .false.
+      lmakro_disp  = .FALSE.    ! Macro display error off
       macro_level = 0
       CALL macro_close
    ELSE
@@ -727,6 +731,7 @@ IF(ASSOCIATED(mac_tree_root)) THEN                ! We have stored macros
    NULLIFY(mac_tree_tail)
    NULLIFY(mac_tree_srch)
    lmakro = .false.
+   lmakro_disp  = .FALSE.    ! Macro display error off
    macro_tree_co = 0
    macro_level = 0
    IF(ier_num/=0) lmakro_error = .TRUE.     ! Macro terminated with error
@@ -774,6 +779,7 @@ END SUBROUTINE macro_close_mpi
          IF (macro_level>   0) THEN
             lmakro = .true.
             lmakro_error = .FALSE.
+            lmakro_disp  = .TRUE.    ! Macro display error on
             IF (prompt.ne.'macro ') oprompt = prompt
             prompt = 'macro '
          ENDIF

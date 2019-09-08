@@ -10,6 +10,10 @@ SUBROUTINE errlist
        USE param_mod 
        USE prompt_mod 
        USE set_sub_generic_mod
+USE class_macro_internal
+USE macro_mod
+USE terminal_mod
+!
        IMPLICIT      NONE
 !
        IF(mpi_is_slave .AND. ier_num /= 0 .AND. ier_sta /= ER_S_LIVE) THEN
@@ -34,6 +38,14 @@ SUBROUTINE errlist
          CALL p_errlist_appl
        ENDIF
 !
+IF(lmakro .AND. lmakro_disp) THEN
+   WRITE(output_io, 2000) TRIM(color_err), mac_tree_active%current,                 &
+     mac_tree_active%level, TRIM(color_fg),                                         &
+     TRIM(color_err),                                                               &
+     mac_tree_active%active%macrofile(1:LEN_TRIM(mac_tree_active%active%macrofile)),&
+     TRIM(color_fg)
+   lmakro_disp = .FALSE.   ! Turn macro display off to avoid multiple displays
+ENDIF
 !------       Terminate program if an error occured and the 
 !       error status is set to ER_S_EXIT
 !
@@ -53,6 +65,10 @@ SUBROUTINE errlist
 !
 1000  FORMAT(' ****EXIT**** Program terminated by error status',        &
      &       '        ****',a1/)
+2000 FORMAT(a,' ***MAC *** Error occured in line:',i5,' Level',i3, &
+            '          ***',a,/,                              &
+            a,' ***MAC *** ',a,a                                   &
+     )
        END
 !*****7****************************************************************
        SUBROUTINE no_error
