@@ -1260,7 +1260,7 @@ CHARACTER(LEN=8), DIMENSION(AT_MAXP)     , INTENT(OUT) :: at_param
       INTEGER idim4 
       PARAMETER (idim4 = 4) 
       INTEGER maxw 
-      PARAMETER (maxw = 8) 
+      PARAMETER (maxw = 12) 
 !                                                                       
       CHARACTER(10) befehl 
       CHARACTER(1024) line, zeile 

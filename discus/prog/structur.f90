@@ -303,6 +303,11 @@ USE precision_mod
                sav_r_ncell = .false. 
                strucfile = cpara (1)
                CALL do_readstru(strucfile)
+               IF(ier_num /= 0) THEN
+                  IF(ier_msg(3) == ' ') THEN
+                     ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+                  ENDIF 
+               ENDIF 
 !                                                                       
             ELSE 
                ier_num = - 6 
@@ -474,6 +479,7 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
                         IF (iatom.gt.nmax) then 
                            CALL alloc_crystal ( MAXSCAT, INT(iatom * 1.1))
                            IF (ier_num < 0 ) THEN
+                              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                               RETURN                 ! Jump to handle error messages, amd macro conditions
 !                             GOTO 8888              ! Jump to handle error messages, amd macro conditions
                            ENDIF
@@ -621,14 +627,18 @@ cr_icc(:) = local_icc(:)   ! Restore cr_icc in case molecules were read
                   ENDIF 
                ENDIF 
             ENDIF 
-            IF (ier_num.eq.0) then 
+IF (ier_num.eq.0) then 
 !                                                                       
 !     ------reset microdomain status                                    
 !                                                                       
-               CALL do_stack_rese 
-!              Flag that no Fourier has been calculated yet
-               four_last = FOUR_NN
-            ENDIF 
+   CALL do_stack_rese 
+!  Flag that no Fourier has been calculated yet
+   four_last = FOUR_NN
+ELSE
+   IF(ier_msg(3) == ' ') THEN
+      ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+   ENDIF 
+ENDIF 
 !
 chem_purge = .FALSE.    ! No purge was done, period boundary is OK
 chem_period(:) = .TRUE.
@@ -3615,7 +3625,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                IF(iostatus /= 0) THEN
                   CLOSE(ird)
                   CLOSE(iwr)
-                  ier_msg(1) = 'Error reading CrystalMakere file'
+                  ier_msg(1) = 'Error reading CrystalMaker file'
                   WRITE(ier_msg(2),5000) nline
                   RETURN
                ENDIF
@@ -3625,7 +3635,7 @@ cmd:        IF(str_comp(line(1:4),'Unit', 4, length, 4)) THEN
                IF(iostatus /= 0) THEN
                   CLOSE(ird)
                   CLOSE(iwr)
-                  ier_msg(1) = 'Error reading CrystalMakere file'
+                  ier_msg(1) = 'Error reading CrystalMaker file'
                   WRITE(ier_msg(2),5000) nline
                   RETURN
                ENDIF
@@ -5224,6 +5234,7 @@ REAL                                 :: occ
 !
       CALL oeffne ( 99, strucfile, 'old')
       IF ( ier_num /= 0) THEN
+          ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
           CLOSE ( 99 )
           RETURN
       ENDIF
@@ -5233,6 +5244,7 @@ header: DO
            ier_num = -6
            ier_typ = ER_IO
            CLOSE ( 99 )
+           ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
            RETURN
         ENDIF
         IF (line == ' '.OR.line (1:1)  == '#'.OR. line(1:1) == '!' .OR. &
@@ -5256,6 +5268,7 @@ header: DO
             ELSE
                ier_num = -111
                ier_typ = ER_APPL
+               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                CLOSE(99)
                RETURN
             ENDIF
@@ -5271,12 +5284,14 @@ header: DO
                ELSE
                   ier_num = -112
                   ier_typ = ER_APPL
+                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                   CLOSE(99)
                   RETURN
                ENDIF
             ELSE
                ier_num = -149
                ier_typ = ER_APPL
+               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                CLOSE(99)
                RETURN
             ENDIF
@@ -5289,6 +5304,7 @@ header: DO
                       IF(werte(i)<0.0 .OR. 1.0<werte(i)) THEN
                          ier_num = -150
                          ier_typ = ER_APPL
+                         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                          CLOSE(99)
                          RETURN
                       ENDIF
@@ -5298,12 +5314,14 @@ header: DO
                ELSE
                   ier_num = -149
                   ier_typ = ER_APPL
+                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                   CLOSE(99)
                   RETURN
                ENDIF
             ELSE
                ier_num = -149
                ier_typ = ER_APPL
+               ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                CLOSE(99)
                RETURN
             ENDIF
@@ -5314,6 +5332,7 @@ header: DO
                IF (ier_num /= 0) then 
                   ier_num = -48
                   ier_typ = ER_APPL
+                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                   CLOSE(99)
                   RETURN
                ENDIF
@@ -5323,6 +5342,7 @@ header: DO
                           .OR. is_nan(werte(4)) .OR. is_nan(werte(5)) .OR. is_nan(werte(6))) THEN
                   ier_num = -48
                   ier_typ = ER_APPL
+                  ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
                   CLOSE(99)
                   RETURN
                ENDIF
@@ -5351,6 +5371,7 @@ header: DO
       IF (nscattypes /= nadptypes ) THEN
          ier_num = -115
          ier_typ = ER_APPL
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
          CLOSE(99)
          RETURN
       ENDIF
@@ -5425,6 +5446,7 @@ ismole: IF ( str_comp(line, 'MOLECULE', 3, lbef, 8) .or. &
               ier_typ = ER_APPL
               ier_msg(1) = line(1:46)
               WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
               CLOSE(99)
               RETURN
            ENDIF
@@ -5471,6 +5493,7 @@ types:        DO i=1,ntypes
               ier_typ = ER_APPL
               ier_msg(1) = line(1:46)
               WRITE(ier_msg(2),'(a,i8)') 'Atom nr. ', natoms + 1
+              ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
               CLOSE(99)
               RETURN
            ENDIF isatom
@@ -5672,6 +5695,14 @@ n_unit_cells(:) = cr_icc(:)
 lout = .FALSE.
 !
 CALL do_readstru(strucfile)
+IF(ier_num/=0) THEN
+   IF(ier_num /= 0) THEN
+      IF(ier_msg(3) == ' ') THEN
+         ier_msg(3) = strucfile(MAX(1,LEN_TRIM(strucfile)-LEN(ier_msg)):LEN_TRIM(strucfile))
+      ENDIF 
+   ENDIF 
+   RETURN
+ENDIF
 CALL setup_lattice (cr_a0, cr_ar, cr_eps, cr_gten, cr_reps, &
             cr_rten, cr_win, cr_wrez, cr_v, cr_vr, lout, cr_gmat,       &
             cr_fmat, cr_cartesian,                                      &
