@@ -84,7 +84,7 @@
    structure file.
 3  2019_May
 
-   Added the option to retin the original space group to the 
+   Added the option to retain the original space group to the 
    ==> 'export cif' command
    Added further output options to menu ==> 'output'.
 3  2019_Apr
@@ -129,7 +129,7 @@
       If an atom is removed, its scattering curve is set to zero and 
       the property 'normal' was cleared. 
       If you manually change the scattering curve back to a non-zero 
-      value, the properies were not set back to 'normal' Fixed.
+      value, the properties were not set back to 'normal' Fixed.
 
    save
       enforced that "scat", "adp" and "occ" and either all written
@@ -157,7 +157,7 @@
    As of version 5.27.2 this has been corrected yet again to the 
    original, correct state. A calculation of a powder /single crystal
    pattern either with "temp use" or a combination "therm and temp ignore"
-   will now produce icdentical results again.
+   will now produce identical results again.
 
    Added a 'show res' to the 'fourier' and 'connectivity' menu.
 
@@ -168,7 +168,7 @@
    values within a menu back to program start and initializes all
    internal arrays to the smallest default size. Most of the time
    this will not bee needed. The main effect will be within the 
-   Fourier menues (fourier, powder, output). The 'pdf' menu is 
+   Fourier menus (fourier, powder, output). The 'pdf' menu is 
    reduced as much as possible automatically. 
    
 3  2018_Sep
@@ -185,7 +185,7 @@
    export poscar, POSCAR
 
    If atom types exist, for which there is no more actual atom in 
-   the crystal, the form factors are set to zero. This alloes you
+   the crystal, the form factors are set to zero. This allowes you
    to define pseudo atoms for the domain without the need to 
    use the 'fourier/scat' command to set dummy scattering
    functions.
@@ -194,7 +194,7 @@
       Turned on stricter behavior for the handling of 
       periodic boundary conditions and the "chem" quick mode
       off. It can be turned back on with after explicit 
-      'set crystal' comand in the chemistry menu.
+      'set crystal' command in the chemistry menu.
 
    added a 'reset to the 'chem' menu
    added a 'reset to the 'domain' menu
@@ -204,7 +204,7 @@
    added a 'reset to the 'shear' menu
    added a 'reset to the 'save' menu
    added a 'reset to the 'stack' menu
-   added a 'reset to the 'symmmetry' menu
+   added a 'reset to the 'symmetry' menu
    added a 'reset to the 'transform' menu
    added a 'reset to the 'waves' menu
    added to the global 'reset: 
@@ -215,7 +215,7 @@
 
    Added a 'reset' command to DISCUS. (Work in progress)
    Added a ==> 'storage' menu.
-      This menu allos to display and manage the internally stored
+      This menu allows to display and manage the internally stored
       crystal structure files. 
 3  2018_July
 
@@ -248,7 +248,7 @@
 
    functions
 
-   Added a new logical function that querries the properties of an atom.
+   Added a new logical function that queries the properties of an atom.
 
    decoration
    Added a "chelate" bonding scheme and corrected the descriptions 
@@ -272,7 +272,7 @@
    molecule type is still set to zero and the atoms inside the 
    molecule are switched to 'voids'. The molecule status of the 
    individual atoms is, however, retained. This allows you to still
-   wotk with these "removed" molecules, in strict analogy to 
+   work with these "removed" molecules, in strict analogy to 
    removed atoms. The full molecule entry disappears with a 'purge'
 
    occupancy
@@ -342,10 +342,10 @@
 
    Added optional parameter 'identical:' to read /cell command
 
-   Added a command 'spacegroup' that sets the sace group.
+   Added a command 'spacegroup' that sets the space group.
 
    The 'wyckoff' command returns the multiplicity of the site and 
-   the spacegroup symmetry matrices that copy the site onto itslef.
+   the space group symmetry matrices that copy the site onto itself.
 3  2017_Oct
 
    Space Groups
@@ -563,7 +563,7 @@
    program -macro <macro_name> [<par1> [ <par2> ...]]
 4  Electron
 
-   DISCUS now offers electron diffraction in the kinematical limit as well.
+   DISCUS now offers electron diffraction in the kinematic limit as well.
    Atom form factors are taken from Table 4.3.2.3 Int. table Vol C (2006)
    respectively. from Peng, Ren, Dudarev, Whelan Acta Cryst A52 (1996), 257
 
@@ -730,12 +730,12 @@
 4  boundary
 
    A cylindrical boundary has been added.
-2  Menues
+2  Menu
 
-   The DISCUS section is structured into several menues that 
+   The DISCUS section is structured into several menus that 
    are designed to modify the structure, to calculate the 
    diffraction pattern etc. 
-   These menues are:
+   These menus are:
 
    Read/save a structure
    read       ! Read structure or unit cell from file or internal storage
@@ -753,7 +753,7 @@
    symm       ! Perform a generalized symmetry operation
    shear      ! Perform a general shear/affine operation
    waves      ! Apply modulation wave modifications
-   transform  ! Decribe the structure with a different unit cell
+   transform  ! Describe the structure with a different unit cell
 
    Information 
    chem       ! Analyze a structure
@@ -765,7 +765,7 @@
    powder     ! Perform powder diffraction calculations
    fourier    ! Perform single crystal diffraction calculations
    rmc        ! REVERSE-MONTE-CARLO simulations
-   inverse    ! perform an inverse Fourier transformation
+   inverse    ! Perform an inverse Fourier transformation
    diff-four  ! Calculate a difference Fourier map
    patterson  ! Calculate the Patterson function
    output     ! Write Fourier results to disk
@@ -1154,7 +1154,7 @@
    This parameter has become obsolete!
 
    DISCUS determines the internal symmetry of the molecule by determining the
-   Wyckof site symmetry of the first atom within the molecule.
+   Wyckoff site symmetry of the first atom within the molecule.
 
    The first atom of any molecule that lies on a symmetry element of the 
    space group must be located at the point of highest symmetry of the
@@ -1212,8 +1212,8 @@
    The axes refer to the base system you used in the ==> 'cell' 
    keyword of the unit cell file, or set using the ==> 'free' command
    at the ==> 'read' menu prompt. If you want to create a sphere of 
-   10 Angstroem radius, centered at 0.5,0.5,0.5 in a base system 
-   of orthogonal 1 Angstroem long base vectors, the entry should be:
+   10 Angstrom radius, centered at 0.5,0.5,0.5 in a base system 
+   of orthogonal 1 Angstrom long base vectors, the entry should be:
 
    cell  1.00, 1.00, 1.00,  90.00, 90.00, 90.00
    molecule character,sphere
@@ -1294,7 +1294,7 @@
    Adds two files. The intensity of the second inputfile is multiplied
    by the scale and added to the intensity read from inputfile 1.
    Optionally the type of the input files can be given. It defaults
-   to "ni" for files in the standard format. type should be "gnu" for
+   to "ni" for files in the standard format. The <type> should be "gnu" for
    gnuplot files and "1d" for one-dimensional files.
 
    For standard files, the respective headers are compared for consistency.
@@ -1320,7 +1320,7 @@
    Note, that the <del.> are in fractional coordinates, NOT in Angstrom.
 
    In the alternative form, the eight's parameter is interpreted as 
-   a bond distance. To distinguish the two forms, the bondlength must
+   a bond distance. To distinguish the two forms, the <bondlength> must
    be less than zero. The new atom is inserted, if no atom is less than
    <bondlength> Angstrom from the position <x>,<y>,<z>.
 
@@ -1424,7 +1424,7 @@
 !p corr    ! Calculates neighbor frequencies/correlations
 !p disp    ! Calculated average distances for given neighbors
 !p echo    ! Echos a string (see main help level)
-!p elem    ! Show rel. abundances of elements in crystal
+!p elem    ! Show relative abundances of elements in crystal
 !p env     ! Find neighbors around atom/site or position
 !p eval    ! Evaluate an expression (see main help level)
 !p exit    ! Terminates the chem sub level.
@@ -1553,7 +1553,7 @@
    can either be specified by its index ("atom") or unit cell and 
    site number ("site"). The radius specifies the maximum distance 
    for the function to search for neighbors. The radius is given in
-   Angstroems. Note that bond valence parameters are only available
+   Angstroms. Note that bond valence parameters are only available
    for certain pairs of atoms in a specific oxidation state. It is
    also required to use the corresponding atom names, e.g. Zr4+ rather
    than Zr in the structure file. The bond valence parameters are
@@ -1608,7 +1608,7 @@
    Displays information about elements in the model crystal like 
    relative abundances of the elements. 'void' stands for a vacancy.
    The results (range 0..1 rather than %) are stored in the variable
-   res[<i>+1], with <i> the number of the atomtyp. 
+   res[<i>+1], with <i> the number of the atom type. 
    Entry res[0] give the number of atom types. 
    Entry res[1] gives the relative number of VOIDS.   
    The optional parameter "on" or "off" controls if screen 
@@ -1857,7 +1857,7 @@
 !b trans <x>,<y>,<z>,<site>
 
    This command allows to transform between a given index of the
-   storage array <atomindex> and the corresponding unitcell <x>,<y>,<z>
+   storage array <atomindex> and the corresponding unit cell <x>,<y>,<z>
    and site <site>. The parameter not given is calculated ...
 
    Trans stores the results in the "res[]" variable:
@@ -1925,13 +1925,13 @@
    the scope of the connectivity to atoms that are within the same
    molecule as the central atom. This parameter takes the form:
    "molescope:"{"ignore"|"within"|"outside"}
-      Choice "ignore" signals that conectivity will ignore if the
+      Choice "ignore" signals that connectivity will ignore if the
       central atoms and any of its neighbors are within a molecule
       or not.
       Choice "within" creates a connectivity between a central atom
       that must be within a molecule and other atoms within the
       very same molecule.
-      Choice "outside" creates a conectivity for a central atom
+      Choice "outside" creates a connectivity for a central atom
       that must be within a molecule and other atoms that are 
       not part of this molecule.
 
@@ -1962,7 +1962,7 @@
    connectivity for the specified atom will be created. 
    This is helpful if: 
      you create (several) connectivities first, 
-     then perform a modifiucation of the crystal that may affect the 
+     then perform a modification of the crystal that may affect the 
      original connectivities
      Finally need to create a new connectivity but do not want to
      change the original connectivities.
@@ -2116,13 +2116,13 @@
    and automatically transformed to the metric of the host structure. There is
    no need to transform the ligand metric to that of the host structure prior
    to being used. As the ligand molecules need to be rotated anyway to fit the 
-   local surface, the orientational relationship between the ligand metric and 
+   local surface, the orientation relationship between the ligand metric and 
    the host metric is not relevant. 
 
    If deco successfully placed molecules onto the surface, the crystal
    is no longer periodic. Thus periodic boundary conditions and 
    the "chem" quick mode are off. They can be turned back on after 
-   explicit 'set crystal' comand in the chemistry menu.
+   explicit 'set crystal' command in the chemistry menu.
 
 3  Commands
 !p add     ! Add a new definition
@@ -2176,7 +2176,7 @@
               be a reasonable acceptor atom like O, N... and the ligand atom
               should be a Hydrogen. 
               The ligand atom is placed at a user specified distance to the 
-              surface atom. This distance should be around 1.9  Angstroem. 
+              surface atom. This distance should be around 1.9  Angstrom. 
               Within the H atom DISCUS will create a roughly 170 degree bond 
               angle.
               The orientation of the molecule is defined by its axis which is
@@ -2188,7 +2188,7 @@
               be a reasonable donor atom like H. and the ligand atom
               should be a reasonable acceptor atom like O, N, ... 
               The ligand atom is placed at a user specified distance to the 
-              surface atom. This distance should be around 1.9  Angstroem. 
+              surface atom. This distance should be around 1.9  Angstrom. 
               Within the H atom DISCUS will create a roughly 170 degree bond 
               angle.
               The orientation of the molecule is defined by its axis which is
@@ -2274,7 +2274,7 @@
        two difference vectors between the pairs: n2-n1  and n4-n3. Make sure
        that these two vectors are not parallel. One of the atoms may
        be present in both vectors. The value of <n1> could for example be
-       identicla to either <n3> or <n4>.
+       identical to either <n3> or <n4>.
 
    set <name>, "axis", "auto"
    set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
@@ -2282,7 +2282,7 @@
        surface, in as much as the decoration type allows. 
        The two atom numbers define the ligand axis. 
 
-       For the default mode "auto", DISCUS searchest for the furthest molecule
+       For the default mode "auto", DISCUS searches for the furthest molecule
        atom that is not involved in a bond. The axis is then defined by
        the first bonding atom and this furthest atom.
        If a molecule consists of just one atom or just of the two atoms
@@ -2355,7 +2355,7 @@
 2  demolecularize
 !b demolecularize
 
-   Enters the menue to de-molecularize a molecule.
+   Enters the menu to de-molecularize a molecule.
    The molecule entry is removed from internal list, and the 
    molecule properties of the atoms that were in the selected 
    molecul(s) are cleared.
@@ -2462,7 +2462,7 @@
    no specific atom range needs to be present
 3  run
 
-   perform the actual calculation
+   Perform the actual calculation
 2  diff-four
 !b diff
 
@@ -2528,7 +2528,7 @@
    If domain successfully placed guests into the crystal, the crystal
    is no longer periodic. Thus periodic boundary conditions and 
    the "chem" quick mode are off. They can be turned back on after 
-   explicit 'set crystal' comand in the chemistry menu.
+   explicit 'set crystal' command in the chemistry menu.
 
    Valid commands at this sub level are:
 3  commands
@@ -2992,7 +2992,7 @@
    the sub-volumes in unit cells. 
    The parameter <n> specifies the number of such volumes to be averaged. 
    If the number is chosen with the keyword "all", DISCUS will place
-   the origin of the lots onto each unit cell and th number of the lots
+   the origin of the lots onto each unit cell and the number of the lots
    corresponds to the total number of unit cells in the crystal.
    The last parameter can be "yes" or "no" and selects if periodic
    boundary conditions should be applied.
@@ -3224,8 +3224,8 @@
 !p                                   of the properties in small letters is
 !p                                   absent. 
 !p                                   Both, the "and:" and "or:" arguments
-!p                                   may be used simulteneously to form
-!p                                   complex querries. 
+!p                                   may be used simultaneously to form
+!p                                   complex queries. 
 !p                                   
 2  import
 !b import "cif",<file{".cif"]>
@@ -3358,7 +3358,7 @@
    A "cylinder" object has it's cylinder axis along the [001] axis and
    extends from -1 to +1. The cross section in the x,y plane has a
    radius of 1. Thus it's volume is 2*pi*2 times the unit cell volume.
-   for non cubic unit cells, the cylinder will be ellipsoidal and
+   For non cubic unit cells, the cylinder will be ellipsoidal and
    possibly oblique. The top and bottom limiting ellipsoids are 
    parallel to the two {001} faces.
 
@@ -3449,7 +3449,7 @@
 2  inverse
 !b inverse
 
-   branches to the inverse Fourier transform level of DISCUS
+   Branches to the inverse Fourier transform level of DISCUS
    The inverse Fourier transform is calculated from two input files.
    The two files must contain the intensity, real or imaginary part
    amplitude or phase in one of the following combinations:
@@ -3596,7 +3596,7 @@
 3  rholayer
 !b rholayer <e11,e12,e13, e21,e22,e23, e31,e32,e33, inc1,inc2>
 
-   sets the lower left, lower right and upper left corner of the
+   Sets the lower left, lower right and upper left corner of the
    real space plane to be calculated and sets the number of data
    points along the horizontal and the vertical
 3  rholl
@@ -3701,7 +3701,7 @@
 3  show
 !b show
 
-   shows the current settings for the Fourier transform file
+   Shows the current settings for the Fourier transform file
 3  type
 !b type {"a"|"b"},
 !b      {"intensity"|"amplitude"|"real"|"imaginary"|"phase"|"fobs"|"fcalc"}
@@ -3748,7 +3748,7 @@
    Note that the <del.> are in fractional coordinates, NOT in Angstrom.
 
    In the alternative form, the eight's parameter is interpreted as 
-   a bond distance. To distinguish the two forms, the bondlength must
+   a bond distance. To distinguish the two forms, the <bondlength> must
    be less than zero. The new atom is inserted and all atoms within
    <bondlength> Angstrom from the position <x>,<y>,<z> are removed.
 
@@ -3807,7 +3807,7 @@
 !p set     ! Sets most MC parameters
 !p show    ! Shows current settings
 !p stop    ! Stops execution of a macro (see main help level)
-!p system  ! executes operating system command (see main help)
+!p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  run
 !b run
@@ -4003,14 +4003,14 @@
 !p set     ! Sets most MMC parameters
 !p show    ! Shows current settings
 !p stop    ! Stops execution of a macro (see main help level)
-!p system  ! executes operating system command (see main help)
+!p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
 3  apply_symmetry
 !b apply_symmetry [<output_file>]
 
    This command applies the space group symmetry to generate the 
    symmetrically equivalent vectors. You must have defined one or
-   several vectros with the ==> 'set vec' command and grouped 
+   several vectors with the ==> 'set vec' command and grouped 
    these into neighborhoods via ==> 'set neigh'.
 
    The general concept assumes that you have defined the vector
@@ -4632,7 +4632,7 @@
 2  patterson
 !b patterson
 
-   branches to the Patterson  transform level of DISCUS
+   Branches to the Patterson  transform level of DISCUS
    The Patterson transform is calculated from two input files.
    The two files must contain the intensity, real or imaginary part,
    or amplitude in one of the following combinations:
@@ -4651,42 +4651,42 @@
 3  commands
    Valid commands at this level are:
 
-!p @       ! execute a macro file (see main help)
-!p =       ! assigns the value to a variable (see main help)
-!p abs     ! defines the coordinate of the abscissa
-!p continue! continue a stopped macro (see main help level)
-!p echo    ! echo a string (see main help)
-!p eval    ! evaluates an expression for interactive check (see main help)
-!p exit    ! terminates Fourier level
-!p file    ! defines the input file name(s)
-!p form    ! defines the input file format
-!p help    ! help to Fourier commands (see main help)
-!p layer   ! defines the layer in reciprocal space to be calculated
-!p ll      ! defines the lower left corner in reciprocal space
-!p lr      ! defines the lower right corner in reciprocal space
-!p na      ! defines the number of points along the abscissa
-!p no      ! defines the number of points along the ordinate
-!p ord     ! defines the coordinate of the ordinate
+!p @       ! Execute a macro file (see main help)
+!p =       ! Assigns the value to a variable (see main help)
+!p abs     ! Defines the coordinate of the abscissa
+!p continue! Continue a stopped macro (see main help level)
+!p echo    ! Echo a string (see main help)
+!p eval    ! Evaluates an expression for interactive check (see main help)
+!p exit    ! Terminates Fourier level
+!p file    ! Defines the input file name(s)
+!p form    ! Defines the input file format
+!p help    ! Help to Fourier commands (see main help)
+!p layer   ! Defines the layer in reciprocal space to be calculated
+!p ll      ! Defines the lower left corner in reciprocal space
+!p lr      ! Defines the lower right corner in reciprocal space
+!p na      ! Defines the number of points along the abscissa
+!p no      ! Defines the number of points along the ordinate
+!p ord     ! Defines the coordinate of the ordinate
 !p reset   ! Reset all Fourier definitions
-!p rhoabs  ! defines the coordinate of the real space abscissa
-!p rholayer! defines the layer in real space to be calculated
-!p rholl   ! defines the lower left corner in real space
-!p rholr   ! defines the lower right corner in real space
-!p rhona   ! defines the number of points along the real space abscissa
-!p rhono   ! defines the number of points along the real space ordinate
-!p rhoord  ! defines the coordinate of the real space ordinate
-!p rhoul   ! defines the upper left corner in real space
-!p run     ! starts the calculation
-!p scale   ! defines an overall scale factor
-!p set     ! sets various parameters
-!p show    ! shows the current settings for the inverse Fourier transform
-!p stat    ! shows statistics on the normalized structure factor
-!p stop    ! stops execution of a macro (see main help level)
-!p system  ! executes operating system command (see main help)
-!p type    ! defines the file type (intensity, amplitude ...)
-!p ul      ! defines the upper left corner in reciprocal space
-!p wilson  ! calculates Wilson statistics
-!p wait    ! waits for user input (see main help)
+!p rhoabs  ! Defines the coordinate of the real space abscissa
+!p rholayer! Defines the layer in real space to be calculated
+!p rholl   ! Defines the lower left corner in real space
+!p rholr   ! Defines the lower right corner in real space
+!p rhona   ! Defines the number of points along the real space abscissa
+!p rhono   ! Defines the number of points along the real space ordinate
+!p rhoord  ! Defines the coordinate of the real space ordinate
+!p rhoul   ! Defines the upper left corner in real space
+!p run     ! Starts the calculation
+!p scale   ! Defines an overall scale factor
+!p set     ! Sets various parameters
+!p show    ! Shows the current settings for the inverse Fourier transform
+!p stat    ! Shows statistics on the normalized structure factor
+!p stop    ! Stops execution of a macro (see main help level)
+!p system  ! Executes operating system command (see main help)
+!p type    ! Defines the file type (intensity, amplitude ...)
+!p ul      ! Defines the upper left corner in reciprocal space
+!p wilson  ! Calculates Wilson statistics
+!p wait    ! Waits for user input (see main help)
 3  abs
 !b abs <switch>
 
@@ -5494,7 +5494,7 @@
      y represents the coordinate along the ==> ordinate
      z represents the coordinate along the ==> 'uvw' direction
    The coordinates are, in this case, written as:
-         1.coordinate   2.coordinate   3. coordinate
+         1.coordinate   2.coordinate   3.coordinate
    xyz   abscissa       ordinate       uvw     
    zxy   uvw            abscissa       ordinate
    yzx   ordinate       uvw            abscissa
@@ -5540,7 +5540,7 @@
 3  hkl
 !b hkl <h>,<k>,<l>
 
-   Sets the reciprocal space direction normal to the plot slice. the
+   Sets the reciprocal space direction normal to the plot slice. The
    corresponding direct space direction ==> 'uvw' is calculated 
    automatically.
    If <hkl> is set to "000", all atoms are plotted, otherwise all
@@ -5593,7 +5593,7 @@
   Sets the definitions for plotting polyhedra in an interactive plot.
   Currently only an interactive plot with JMOL is supported.
   The command ==> 'run plot:inter' gives the details how to start an
-  interactve plot session.
+  interactive plot session.
 
 !p "off"      Turn off any polyhedra.
 !p <center>   Specifies the central atom type(s). 
@@ -5622,7 +5622,7 @@
 !p "face:"  {"flat" | "collapsed"} 
 !p          Plot the polyhedra with flat or collapsed faces.
 !p "hue:"   {"solid" | "trans"} 
-!p          Plot the polyhedra with solid or tansparent faces.
+!p          Plot the polyhedra with solid or transparent faces.
 !p "col:"   {"auto" | <color_name>}
 !p          Plot the polyhedra with the color of the central 
 !p          atom =="auto" or a user defined JMOL color.
@@ -5746,7 +5746,7 @@
    Starts writing of the structure. If no output filename has been provided
    or no atoms been selected, an error message is given.
 
-   If the plot progam was selected as "jmol", you can start an 
+   If the plot progamm was selected as "jmol", you can start an 
    interactive plot session with the optional parameter "plot:inter".
    It may take a while for JMOL to open, you might want to add a 
    ==> 'wait return' command after the 'run' command.
@@ -5754,7 +5754,7 @@
    If previous instances of "JMOL" are to be terminated prior to the
    new plat provide the optional parameter "kill:yes".
    On a Linux type operating system processes "jmol" are killed, 
-   on Windows processes "java" will be killed. Be carefull if other
+   on Windows processes "java" will be killed. Be careful if other
    java programs are active! The intention is to kill only processes
    started by DISCUS.
 3  sel
@@ -5884,15 +5884,15 @@
    Valid commands at this sub level are:
 
 !p @       ! Executes a macro (see main help)
-!p =       ! assigns the value to a variable (see main help)
+!p =       ! Assigns the value to a variable (see main help)
 !p asym    ! Lists the content of the asymmetric unit
 !p chem    ! Lists all type of atoms present in the crystal
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check (see main help)
 !p exit    ! Terminates the plot sub level, returns to the main DISCUS level.
 !p help    ! Gives on-line help for 'plot' (see main help)
-!p electron! switches to electron calculation
-!p neut    ! switches to neutron calculation
+!p electron! Switches to electron calculation
+!p neut    ! Switches to neutron calculation
 !p reset   ! Reset and clear all definitions
 !p run     ! Starts writing of the structure
 !p set     ! Sets Theta limits, grid in reciprocal space, ...
@@ -5900,12 +5900,12 @@
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
-!p xray    ! switches to electron calculation
+!p xray    ! Switches to electron calculation
 
 3  electron
 !b electron
 
-   switches to electron calculation
+   Switches to electron calculation
 3  neut
 !b neut
 
@@ -5969,7 +5969,7 @@
 4  disp
 !b set disp,[<switch>]
 
-   switches anomalous dispersion on /off. If <switch> is "anom" anomalous
+   Switches anomalous dispersion on /off. If <switch> is "anom" anomalous
    dispersion will be calculated, if the switch is omitted, no anomalous 
    dispersion is calculated.
 4  dtth
@@ -6148,7 +6148,7 @@
 
    This command applies to the Debye mode only. 
    The interatomic distances are binned to a histogram with step width
-   <value>. This defaults to 0.01 Angstroem at program start.
+   <value>. This defaults to 0.01 Angstrom at program start.
    As the histogram array is of fixed size, this limits the maximum
    distance that debye can handle. See ==> 'show config' at the main
    DISCUS level for the Debye histogram size. The maximum interatomic
@@ -6320,7 +6320,7 @@
    If you specify several properties of the second kind, the following
    rules apply:
    Any property applies only to atom types specified by "atom:"
-   If an atom is not of any of the kinds specified by teh "atom:"
+   If an atom is not of any of the kinds specified by the "atom:"
    parameters the atom is never selected.
    If several properties are specified for a given atom type, they
    work with a logical AND. All conditions must be met for an atom
@@ -6359,7 +6359,7 @@
 
    If the 'purge' command does actually remove atoms or molecules 
    from the structure array, the crystal will usually no longer be
-   periodic or sorted in a fashion of contiguos unit cells that all
+   periodic or sorted in a fashion of contiguous unit cells that all
    have the same amount of atoms. DISCUS therefore needs to turn off
    the periodic boundary conditions and the "chem" mode "quick". 
    These can be turned back on with an explicit 
@@ -6398,14 +6398,14 @@
    Valid commands at this level:
 
 !p @       ! Execute a macro file (see main help)
-!p cell    ! reads a unit cell from file
-!p lcell   ! reads a unit cell from file (large cells)
+!p cell    ! Reads a unit cell from file
+!p lcell   ! Reads a unit cell from file (large cells)
 !p echo    ! Echo a string (see main help)
 !p exit    ! Exits read sub level
 !p free    ! Allow free modification of a structure.
-!p help    ! help to read (see main help)
-!p stru    ! reads a file containing a whole crystal
-!p wait    ! waits for user input (see main help)
+!p help    ! Help to read (see main help)
+!p stru    ! Reads a file containing a whole crystal
+!p wait    ! Waits for user input (see main help)
 3  cell
 !b cell <name> [,<nx> [,<ny> [,<nz>]]]
 !p       [,"identical:"{"tolerate"|"none"}]
@@ -6432,10 +6432,10 @@
    positions close to each other. 
    If the optional parameter "identical" is set to "tolerate"
    atoms will be tolerated that are no closer than the radius 
-   sepcified by the optional radius parameter. To tolerate
-   atoms on ientical positions you must set the radius to zero.
+   specified by the optional radius parameter. To tolerate
+   atoms on identical positions you must set the radius to zero.
    Defaults are "none" which means DISCUS tolerates atoms 
-   that are at least 1.0*10^-5Angstroem apart. 
+   that are at least 1.0*10^-5Angstrom apart. 
 
    As of version 5.18.0 occupancies were introduced to DISCUS.
    The optional parameter "occupancy" tells DISCUS how to 
@@ -6476,7 +6476,7 @@
 3  stru
 !b stru <name>
 
-   reads a whole structure from file <name>.
+   Reads a whole structure from file <name>.
    The space group information is ignored, nor is a check for consistency
    of space group and lattice constants performed.
 
@@ -6545,8 +6545,8 @@
    For this replacement by probabilities, only those atoms are included
    that fulfill the global property selection rules ==> 'property'.
 
-   For both variations, if the atom is replaced by a void, the 
-   the property NORMAL is turned off, if a void is replaced by another
+   For both variations, if the atom is replaced by a void, the
+   property NORMAL is turned off, if a void is replaced by another
    atom type the property NORMAL is turned on.
 
    The last two variations of the 'replace' command operate on 
@@ -6559,7 +6559,7 @@
 2  rmc
 !b rmc
 
-   Enter "reverse Monte Carlo" section of discus. This part of the 
+   Enter "Reverse Monte Carlo" section of discus. This part of the 
    program allows to "fit" a model atom configuration to measured
    diffuse scattering data. The difference between calculated scattering
    and observed scattering is minimized. Moves minimizing this difference
@@ -6572,7 +6572,7 @@
 
 !p @       ! Executes a macro (see main help)
 !p =       ! Algebra (see main help)
-!p data    ! read experimental data for RMC fit
+!p data    ! Read experimental data for RMC fit
 !p dese    ! Deselects the atom types allowed for RMC moves/switches (-> sele)
 !p continue! Continue a stopped macro (see main help level)
 !p echo    ! Echos a string, just for interactive check
@@ -6684,7 +6684,7 @@
 4  scat
 !b save "scat",<plane>,<name>
 
-   save "scat" saves the current computed intensities of plane <plane> in
+   Save "scat" saves the current computed intensities of plane <plane> in
    the following format: h,k,l,skal*(a**2+b**2)+back (= intensity).
 4  sym
 !b save "sym",<plane>,<sym>,<name>
@@ -6707,21 +6707,21 @@
 4  commands
    Valid subcommands are:
 
-!p "aver"     : sets the portion of the crystal to be used for <F> calc.
-!p "back"     : controls if background is calculated during RMC cycles
-!p "const"    : sets possible constrains for scaling factor/background
-!p "cycl"     : sets number of RMC cycles to be calculated
-!p "data"     : sets data type of input/output diffuse scattering files
-!p "dbw"      : ignore/use temperature factor
-!p "disp"     : sets output interval
-!p "log"      : controls if "rmc.log" will be created during calculation
-!p "mdis"     : sets minimal allowed distances between atoms
-!p "mode"     : sets RMC mode (relaxation/switch atoms)
-!p "move"     : sets sigma for generated RMC shifts
-!p "range"    : sets Q-range of data used for RMC refinement
-!p "scal"     : controls if scaling factor is calculated during RMC cycles
-!p "sigm"     : sets SIGMA for CHI2 calculation
-!p "sym"      : controls if symmetric equivalent planes of input data should
+!p "aver"     ! Sets the portion of the crystal to be used for <F> calc.
+!p "back"     ! Controls if background is calculated during RMC cycles
+!p "const"    ! Sets possible constrains for scaling factor/background
+!p "cycl"     ! Sets number of RMC cycles to be calculated
+!p "data"     ! Sets data type of input/output diffuse scattering files
+!p "dbw"      ! Ignore/use temperature factor
+!p "disp"     ! Sets output interval
+!p "log"      ! Controls if "rmc.log" will be created during calculation
+!p "mdis"     ! Sets minimal allowed distances between atoms
+!p "mode"     ! Sets RMC mode (relaxation/switch atoms)
+!p "move"     ! Sets sigma for generated RMC shifts
+!p "range"    ! Sets Q-range of data used for RMC refinement
+!p "scal"     ! Controls if scaling factor is calculated during RMC cycles
+!p "sigm"     ! Sets SIGMA for CHI2 calculation
+!p "sym"      ! Controls if symmetric equivalent planes of input data should
 !p              be used for RMC calculations.
 4  aver
 !b set "aver",<per>
@@ -6764,7 +6764,7 @@
    same as for plane 1, use the command 'set const,2,1'. If there are
    more than two planes to constrain use the command several times.
    Plane 1 to 3 can be constrained by 'set const,2,1' and 'set const,3,2'.
-   to unconstrain the planes again type 'set const 1,1', 'set const,2,2'
+   To unconstrain the planes again type 'set const 1,1', 'set const,2,2'
    and 'set const,3,3'.
 4  cycl
 !b set "cycl",<icyc>
@@ -6784,7 +6784,7 @@
 !p "nipl" : An ASCII file containing the Z-values in the following format: 
 !p
 !p          nx ny                  ! # pixels in x- and y direction
-!p          xmin xmax ymin ymax    ! dimensions in x- and y-direction (ignored)
+!p          xmin xmax ymin ymax    ! Dimensions in x- and y-direction (ignored)
 !p          data                   ! ny rows of nx intensity values
 
 !p "pgm"  : PGM file (pbmplus package). In the current version, only
@@ -6962,7 +6962,7 @@
 !b save
 !b save <name>
 
-   saves the current structure to file <name>
+   Saves the current structure to file <name>
 
    The format is identical to the unit cell or structure file. Each
    atom is written in format A4,3(2X,F11.6),5X,F6.4
@@ -7575,7 +7575,7 @@
 3  asym
 !b show "asym"
 
-   hows the content of the asymmetric unit. The names of those atoms,
+   Shows the content of the asymmetric unit. The names of those atoms,
    a number that is used as index for its scattering type, their position
    and temperature coefficient are listed. The number that is listed,
    is the number that refers to the scattering curve of that atom. It is
@@ -7744,7 +7744,7 @@
 !b spacegroup {<spacegroup_name>|<spacegroup_nummer>} [, <origin_choice>}
 
    Sets the space group for the current structure.
-   Be carefull with this command, as DISCUS will blindly set the space group!
+   Be careful with this command, as DISCUS will blindly set the space group!
    DISCUS does not check if the symmetry does match! 
    A consistency check with the lattice parameter is the only check that
    is performed. 
@@ -7787,7 +7787,7 @@
    If stack successfully placed atoms into the crystal with the 
    'run' command, the crystal is no longer periodic. Thus periodic
    boundary conditions and the "chem" quick mode are off. They can
-   be turned back on after explicit 'set crystal' comand in the
+   be turned back on after explicit 'set crystal' command in the
    chemistry menu.
 
    Further help topics are
@@ -8196,7 +8196,7 @@
                                  set distance, external for atom type 1
                                  Atoms within a distance of <thickness>
                                  to the surface are flagged as surface
-                                 atoms. Units are Angstroem
+                                 atoms. Units are Angstrom
 
             "keep:"{"inside"}|{"outside"}  Keep atoms on the inside or
                                            outside of boundary
@@ -8215,7 +8215,7 @@
 
    This commands removes all atoms that are outside a boundary surrounding
    the crystal. The distance of the surface from the point 0,0,0 is measured
-   in Angstroem.
+   in Angstrom.
    "hkl"  The surface is defined as a plane through the Miller indices 
           <h>,<k>,<l>. The optional <distance> determines the distance 
           between 0,0,0 and the boundary surface. Without this parameter,
@@ -8236,7 +8236,7 @@
           If the crystal system is not cubic, an error message is 
           displayed and the boundary is not applied.
    "sphere" The boundary is defined as a sphere at the origin of direct
-          space. The size of the sphere is defined by its radius in Angstroem.
+          space. The size of the sphere is defined by its radius in Angstrom.
           The optional last parameter determines which atoms remain.
           If the parameter is "inside" or omitted, all atoms remain that
           are inside the sphere.
@@ -8259,7 +8259,7 @@
           ==> 'symmetry' menu to rotate the crystal as a whole prior to
           the removal of atoms outside the boundary.
    "cylinder"  The boundary is defined as a cylinder of radius <radius>
-          and half-height <height>, both measures are in Angstroem. The 
+          and half-height <height>, both measures are in Angstrom. The 
           cylinder axis is always along the c-axis. The top and bottom
           planes are parallel to the (001) plane. If the a- and b-axes are
           not at 90 degrees to the c-axis, the top will be tilted 
@@ -8287,9 +8287,9 @@
    reset.
    An accumulated set of planes will refer to a common origin, either
    the default 0,0,0 or the value set by "centx:", "centy:", "centz".
-   Also the keep status is the same for all hkls in the accumulted set.
-   Thus only the last occurence of these optional parameters will 
-   actually be effective. It is threfore best to use the optional 
+   Also the keep status is the same for all hkls in the accumulated set.
+   Thus only the last occurrence of these optional parameters will 
+   actually be effective. It is therefore best to use the optional 
    parameters for accumulated surfaces only once at the last hkl for 
    which the optional parameter "exec:run" is used. A warning message
    will be flagged otherwise.
@@ -8352,16 +8352,16 @@
    the "all" keyword or a list of atom names.
 
    <distance>
-   Distance in Angstroem between an atom and the surface. If set to
+   Distance in Angstrom between an atom and the surface. If set to
    zero, the flag is not set.
 
    Instead of the atom list, the values can be set for all atoms to:
 
    "default"
-   A default value of 2.55 Angstroem for all atoms.
+   A default value of 2.55 Angstrom for all atoms.
 
    "off"
-   A value of zero Angstroem. No surface property flag will be set.
+   A value of zero Angstrom. No surface property flag will be set.
 3  show
 !b show
 
@@ -8598,14 +8598,14 @@
    only if atoms are selected. These parameters allow you to 
    choose if the position onto which the atom is copied or moved
    can be occupied by any other atom or must be empty within a
-   radius of <value> Angstroems. If the power of the symmetry
-   operation is greater than one and multiple copies are choosen, this
+   radius of <value> Angstroms. If the power of the symmetry
+   operation is greater than one and multiple copies are chosen, this
    option applies to each individual copy separately.
 
    Try to avoid this option with "empty", as the required inner 
    loop over all atoms in the crystal is bound to take some time. 
 
-   Default values are "any" and a radius of 1.0*10^-8 Angstroem.
+   Default values are "any" and a radius of 1.0*10^-8 Angstrom.
    With these defaults the new position may be occupied by 
    previous atoms. 
 3  msel
@@ -8636,7 +8636,7 @@
    exclusive. The symmetry operation uses either atoms or molecules.
    Be careful with unintended side effects. Currently DISCUS uses the 
    same internal variable to store which atoms/molecules are selected.
-   Be carefule when switching between msel/sel mdes/des.
+   Be careful when switching between msel/sel mdes/des.
 3  odes
 !b odes { "all" | <name> | <number> } [ , { <name> | <number> } ...]
 
@@ -8737,7 +8737,7 @@
 
    This command serves to select those atom types 
    that will be modified by the symmetry operation.
-   Chose wich actual atoms will be included with the 
+   Chose which actual atoms will be included with the 
    ==> 'incl' command.
    Be sure to combine the 'sel' and 'incl' commands and
    make sure that no 'msel', mdes' or 'mincl' command follows
@@ -8878,12 +8878,12 @@
 !p stop    ! Stops execution of a macro (see main help level)
 !p system  ! Executes operating system command (see main help)
 !p wait    ! Waits for user input (see main help)
-!p xnew    ! sets the new coordinate "x" in terms of the old x,y,z
-!p xold    ! sets the old coordinate "x" in terms of the new x,y,z
-!p ynew    ! sets the new coordinate "y" in terms of the old x,y,z
-!p yold    ! sets the old coordinate "y" in terms of the new x,y,z
-!p znew    ! sets the new coordinate "z" in terms of the old x,y,z
-!p zold    ! sets the old coordinate "z" in terms of the new x,y,z
+!p xnew    ! Sets the new coordinate "x" in terms of the old x,y,z
+!p xold    ! Sets the old coordinate "x" in terms of the new x,y,z
+!p ynew    ! Sets the new coordinate "y" in terms of the old x,y,z
+!p yold    ! Sets the old coordinate "y" in terms of the new x,y,z
+!p znew    ! Sets the new coordinate "z" in terms of the old x,y,z
+!p zold    ! Sets the old coordinate "z" in terms of the new x,y,z
 
 3  anew
 !b anew a,b,c
@@ -9270,7 +9270,7 @@
 
 !p i[0] =  1               ! Integer variable no 0 is set to "1"
 !p r[4] =  1.5             ! Real variable no 4 is set to "1.5"
-!p x[5] = -2.7888          ! x-coordinate of atom 5 is set to "-2.7888"
+!p x[5] = -2.7888          ! X-coordinate of atom 5 is set to "-2.7888"
 
    Arithmetic expressions may be used on the right hand side:
 
@@ -9306,7 +9306,7 @@
 2  waves
 !b wave
 
-   displaces the atoms along a wave. It generates sub level with prompt
+   Displaces the atoms along a wave. It generates sub level with prompt
    "discus/wave >".
 
    Further help topics are:
@@ -9358,7 +9358,7 @@
 3  amp
 !b amp <value>
 
-   sets the amplitude in Angstrom
+   Sets the amplitude in Angstrom
 3  asym
 !b asym
 
@@ -9589,15 +9589,15 @@
 3  show
 !b show
 
-   shows the current settings for the wave.
+   Shows the current settings for the wave.
 3  tran
 !b tran
 
-   sets the wave type to transverse
+   Sets the wave type to transverse
 3  vect
 !b vect <x,y,z>
 
-   sets the direction of the wave vector in units of the lattice
+   Sets the direction of the wave vector in units of the lattice
    constants. The wave length has to be set with ==> "len".
 2  wyckoff
 !b wyckoff <x>,<y>,<z> [,{"full" | "symbol" | "xzy" | "matrix" }
@@ -10135,7 +10135,7 @@
    further details. The most common problem is a too small value for
    'thick'.
 4  -59
-   Invalid color or typ selected for atom
+   Invalid color or type selected for atom
 
    The color or type selected for plotting atoms is invalid. Check the
    online help for a list of valid numbers.
@@ -10262,7 +10262,7 @@
    You used a wave length symbol unknown to DISCUS. Check for a typing
    error and consult the list of allowed wave length symbols in the help
    file through "help wavelength". The wave length of non listed radiations
-   must be explicitly given as real value in Angstroem. 
+   must be explicitly given as real value in Angstrom. 
 4  -78
    Wrong optional parameter for HKLF4 format
 4  -79
@@ -10707,7 +10707,7 @@
    A cobeoctahedron was specified as the form on the boundary
    command for a crystal that is not cubic. The
    cubeoctahedron is a special form for cubic crystals only.
-   Impredictable forms would result for other crystal systems.
+   Unpredictable forms would result for other crystal systems.
 4  -143
    Wrong parameters for this bond type
 
@@ -10744,14 +10744,14 @@
    No. of atoms not an integer multiple of sites
 
    An attempt was made to create structure with the atoms
-   in a unit cell seqeunce from an RMCprofile input file.
+   in a unit cell sequence from an RMCprofile input file.
    The total number of atoms in the input file should 
    have been an integer multiple of the number of 
    sites per unit cell.
 
    Check the RMCprofile setting that were used to create the 
-   structure. Another reson might be that the atoms are 
-   very disordered and DISCSU cannot find the correct number
+   structure. Another reason might be that the atoms are 
+   very disordered and DISCUS cannot find the correct number
    of sites per unit cell.
 
 4  -147
@@ -10783,7 +10783,7 @@
    AND and DEFAULT simultaneously in isprop
    
    The function 'isprop' takes arguments like:
-   isprop('NMDOEIL')         ! by default == AND
+   isprop('NMDOEIL')         ! By default == AND
    isprop(AND:'NMDOEIL')
    isprop(OR:'NMDOEIL')
    isprop(AND:'NMDOEIL', OR:'NMDOEIL')
@@ -10819,7 +10819,7 @@
 4  -155
    Coordination range is erroneous
 
-   For the user defined proprty like behaviur, the 
+   For the user defined property like behaviour, the 
    coordination number limits must be given as
    nmin:<lower>, nmax:<upper>
    emin:<lower>, emax:<upper>
@@ -11481,7 +11481,7 @@
    Note: for space groups 67 Cmme and 68 Ccce, the settings
    bac, cba and acb are given in the traditional name
    instead of using the 'e' glide plane name. This choice 
-   allowsyou to distinguish these settings.
+   allows you to distinguish these settings.
 2  wavelength
 !b List of allowed wavelength symbols 
 
