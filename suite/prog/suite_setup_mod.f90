@@ -82,7 +82,7 @@ lsetup_done = .true.
 !                                                                       
 1000 FORMAT (/,                                                              &
      10x,59('*'),/,                                                          &
-     10x,'*', 9x,'D I S C U S - S U I T E  Version ',a6, 9x,'*',/,           &
+     10x,'*', 9x,'D I S C U S - S U I T E  Version ',a10, 5x,'*',/,          &
      10x,'*',22(' '),a13,22(' '),'*',/                                       &
      10x,'*         Created : ',a35,3x,'*',/,                                &
      10x,'*',57('-'),'*',/,                                                  &
