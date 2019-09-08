@@ -541,13 +541,13 @@ USE take_param_mod
       dcc_lform(temp_num) = str_comp(cpara(2),'form',4,lpara(2),4)
       l_form = str_comp(cpara(2),'form',4,lpara(2),4)  ! Obsolete
       IF ( ianz == 3 ) THEN
-         IF( str_comp(cpara(3),'none',4,lpara(2),4) ) THEN
+         IF( str_comp(cpara(3),'none',4,lpara(3),4) ) THEN
             dcc_lrestrict(temp_num) = .FALSE.
             dcc_hkl(:,:,temp_num)   = 0
          ELSE
             ier_num = -6
             ier_typ = ER_COMM
-            ier_msg(1) = 'set hkl command needs four parameters'
+            ier_msg(1) = 'set hkl command needs 3 or 5 parameters'
             ier_msg(2) = 'or must be                           '
             ier_msg(2) = 'set hkl, none                        '
          ENDIF
@@ -1677,14 +1677,14 @@ IF(ALLOCATED(anchor    )) DEALLOCATE(anchor)
 !
 ! Clean up internal files
 !
-!DDCALL store_remove_single(corefile, ier_num)
-!DDCALL store_remove_single(shellfile, ier_num)
-!DDCALL store_remove_single('internal_anchors', ier_num)
-!DDCALL store_remove_single('internal_sorted', ier_num)
-!DDrdefs: DO dc_temp_id=1, dcc_num
-!DD   WRITE(mole_name,1000) dc_temp_id, dcc_file(dc_temp_id)(1:dcc_lfile(dc_temp_id))
-!DD   CALL store_remove_single(mole_name, ier_num)
-!DDENDDO rdefs
+CALL store_remove_single(corefile, ier_num)
+CALL store_remove_single(shellfile, ier_num)
+CALL store_remove_single('internal_anchors', ier_num)
+CALL store_remove_single('internal_sorted', ier_num)
+rdefs: DO dc_temp_id=1, dcc_num
+   WRITE(mole_name,1000) dc_temp_id, dcc_file(dc_temp_id)(1:dcc_lfile(dc_temp_id))
+   CALL store_remove_single(mole_name, ier_num)
+ENDDO rdefs
 IF(ier_num/=0) THEN
    ier_typ = ER_APPL
    ier_msg(1) = 'Could not remove temporary internal storage'
@@ -2119,7 +2119,8 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl   ! Temporary array, needed as point_test expects an allocatable
 !
-   REAL   , DIMENSION(1:3) :: surf_normal     ! Normal to work with
+   REAL   , DIMENSION(1:3) :: surf_normal     ! Normal to work with in uvw
+   REAL   , DIMENSION(1:3) :: surf_normal_r   ! Normal to work with in HKL
    REAL   , DIMENSION(3)   :: vnull           ! null vector
    REAL   , DIMENSION(3)   :: origin          ! Symmetry origin
    REAL                    :: normal_l        ! local normal
@@ -2142,8 +2143,8 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    hkl(4) = 0
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-   surf_normal(1:3) = REAL(surface_normal(:,1))
-   hkl(1:3)         =       surface_normal(:,1)
+   surf_normal_r(1:3) = REAL(surface_normal(:,1))   ! Surface normal in HKL
+   hkl(1:3)           =      surface_normal(:,1)
    IF(lrestrict) THEN
       test_nhkl = nhkl
       ALLOCATE(test_hkl(3,test_nhkl))
@@ -2153,6 +2154,7 @@ IF(surf_char == 0) RETURN
       ENDIF
       DEALLOCATE(test_hkl)
    ENDIF
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
    n_atoms_orig = cr_natoms
 !
@@ -2324,7 +2326,8 @@ INTEGER, DIMENSION(3)                   :: surf_kante     ! Edge vector if not a
 INTEGER, DIMENSION(6)                   :: surf_weight    ! Best normal has heighest weight
 INTEGER, DIMENSION(:), ALLOCATABLE      :: all_surface         ! Surface atom type
 !
-REAL   , DIMENSION(1:3)                 :: surf_normal    ! Normal to work with
+REAL   , DIMENSION(1:3)                 :: surf_normal    ! Normal to work with  in UVW
+REAL   , DIMENSION(1:3)                 :: surf_normal_r  ! Normal to work with  in HKL
 !
 INTEGER, PARAMETER                      :: MINPARA = 2
 INTEGER                                 :: MAXW = MINPARA
@@ -2366,7 +2369,7 @@ nold = cr_natoms                                   ! Remember old atom number
 !
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
-surf_normal(1:3) = REAL(surface_normal(:,1))
+surf_normal_r(1:3) = REAL(surface_normal(:,1))
 IF(surf_char == 0) RETURN
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
@@ -2378,6 +2381,8 @@ IF(lrestrict) THEN
    ENDIF
    DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 n_atoms_orig = cr_natoms                                  ! Store original atom numbers
 !
@@ -2638,11 +2643,12 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    REAL     , DIMENSION(1:3)               :: shift, v1, v2
    REAL     , DIMENSION(1:3)               :: vnull
    INTEGER                 :: surf_char      ! Surface character, plane, edge, corner, ...
-   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
+   INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal in HKL
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
    INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 !
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
    INTEGER                              :: test_nhkl
    INTEGER, DIMENSION(:,:), ALLOCATABLE :: test_hkl
@@ -2664,7 +2670,7 @@ nold = cr_natoms                           ! Remember original atom number
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = REAL(surface_normal(:,1))
+surf_normal_r(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -2675,6 +2681,8 @@ IF(lrestrict) THEN
    ENDIF
    DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 !  Load the molecule into the crystal structure
 !
@@ -2933,7 +2941,8 @@ INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main n
 INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
 INTEGER, DIMENSION(6)   :: surf_weight    ! Best normal has heighest weight
 !
-REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
 !
 REAL, PARAMETER :: EPS = 1.0E-6
 !
@@ -2965,7 +2974,7 @@ nold     = cr_natoms
 hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
-surf_normal(1:3) = REAL(surface_normal(:,1))
+surf_normal_r(1:3) = REAL(surface_normal(:,1))
 hkl(1:3) = surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -2976,6 +2985,8 @@ IF(lrestrict) THEN
       ENDIF
       DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 !  Insert molecule atoms into crystal at initial origin along normal
 normal_l = sqrt (skalpro (surf_normal, surf_normal, cr_gten))
@@ -3230,7 +3241,8 @@ LOGICAL                   , INTENT(IN) :: tilt_is_auto    ! Plane defined by ato
    REAL                                    :: alpha, beta, v_l
    REAL     , DIMENSION(1:3)               :: x, bridge, base, origin, posit, v, w, u
    REAL     , DIMENSION(1:3)               :: shift, v1, v2, v3
-   REAL     , DIMENSION(1:3)               :: surf_normal
+   REAL     , DIMENSION(1:3)               :: surf_normal_r ! Normal in HKL
+   REAL     , DIMENSION(1:3)               :: surf_normal   ! Normal in UVW
    REAL     , DIMENSION(1:3)               :: vnull
    INTEGER, DIMENSION(3,6) :: surface_normal ! Set of local normals (:,1) is main normal
    INTEGER, DIMENSION(3)   :: surf_kante     ! Edge vector if not a plane
@@ -3268,6 +3280,8 @@ IF(lrestrict) THEN
    ENDIF
    DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 !  Load the molecule into the crystal structure
 !
@@ -3564,7 +3578,8 @@ INTEGER                              :: test_nhkl
    REAL                    :: hbond          ! actual hydrogen bond A..H
    REAL                    :: angle          ! Temporary angle
    REAL                    :: solution_1, solution_2 ! Temporary angles
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
    REAL   , DIMENSION(3)   :: u,v,w,up,wp,p, prot  ! Temporary vectors
@@ -3582,7 +3597,7 @@ INTEGER                              :: test_nhkl
    CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
 !
-   surf_normal(1:3) = REAL(surface_normal(:,1))
+   surf_normal_r(1:3) = REAL(surface_normal(:,1))
    hkl(1:3)         =       surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3593,6 +3608,8 @@ IF(lrestrict) THEN
       ENDIF
       DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 !
 !  Accept as surfaces any outside facing surface and all internal "flat" surfaces
@@ -3832,7 +3849,8 @@ REAL, PARAMETER         :: EPS = 1.0E-7
    REAL                    :: rmin, rmax
    REAL                    :: angle          !Temporary angle
    REAL                    :: d2             !Temporary distance
-   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with
+   REAL   , DIMENSION(1:3) :: surf_normal_r  ! Normal to work with in HKL
+   REAL   , DIMENSION(1:3) :: surf_normal    ! Normal to work with in UVW
    REAL   , DIMENSION(3)   :: posit          ! Temporary atom position
    REAL   , DIMENSION(3)   :: origin         ! Temporary origin for symmetry operations
    REAL   , DIMENSION(3)   :: u,v,x, w       ! Temporary vectors
@@ -3854,7 +3872,7 @@ hkl(4) = 0
 CALL surface_character(ia, istart, iend, surf_char, surface_normal, surf_kante, surf_weight, .TRUE.)
 IF(surf_char == 0) RETURN
 !
-surf_normal(1:3) = REAL(surface_normal(:,1))
+surf_normal_r(1:3) = REAL(surface_normal(:,1))
 hkl(1:3)         =       surface_normal(:,1)
 IF(lrestrict) THEN
    test_nhkl =    nhkl
@@ -3865,6 +3883,8 @@ IF(lrestrict) THEN
    ENDIF
    DEALLOCATE(test_hkl)
 ENDIF
+!
+CALL trans(surf_normal_r, cr_rten, surf_normal, 3) ! surf_normal is in UVW
 !
 !
 nold = cr_natoms
