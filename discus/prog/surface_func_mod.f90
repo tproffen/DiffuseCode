@@ -566,13 +566,8 @@ main_loop: DO i=istart, ifinish
          laenge = 50
          CALL d2r(line, laenge, LSPACE)
          u(1:3) = INT(res_para(1:3))      ! Rough normal 
-         dstar = do_blen (.NOT.LSPACE, u, VNULL) 
-         u(:) = u(:) / dstar
-         umax=MAX(ABS(u(1)), ABS(u(2)), ABS(u(3)))
-         IF(umax > 9.900) THEN
-            u(:) = u(:) * 9.90/umax
-         ENDIF
-         cr_surf(1:3, i) = NINT(10*u(:))
+         CALL surface_normalize(u)
+         cr_surf(1:3, i) = NINT(u(:))
 !
          idiv = gcd(cr_surf(1, i), cr_surf(2, i), cr_surf(3, i))
          IF(idiv /= 0) THEN
@@ -587,6 +582,36 @@ ENDDO main_loop
 IF(ALLOCATED(neigh)) DEALLOCATE(neigh)
 !
 END SUBROUTINE surf_set_local                 
+!
+!*****7*****************************************************************
+!
+SUBROUTINE surface_normalize(u)
+!
+USE crystal_mod
+USE metric_mod
+!
+USE precision_mod
+!
+IMPLICIT NONE
+!
+REAL(KIND=PREC_SP), DIMENSION(3), INTENT(INOUT) :: u
+!
+LOGICAL, PARAMETER    :: LSPACE = .FALSE.
+REAL(KIND=PREC_SP), DIMENSION(1:3), PARAMETER :: VNULL=(/0.0, 0.0, 0.0/)
+REAL :: dstar
+REAL :: umax
+!
+dstar = do_blen (LSPACE, u, VNULL) 
+IF(dstar > 0.0) THEN
+   u(:) = u(:) / dstar
+   umax=MAX(ABS(u(1)), ABS(u(2)), ABS(u(3)))
+   IF(umax > 9.900) THEN
+      u(:) = u(:) * 9.90/umax
+   ENDIF
+   u(:) = 10*u(:)
+ENDIF
+!
+END SUBROUTINE surface_normalize
 !
 !*****7*****************************************************************
 !
@@ -1179,6 +1204,8 @@ IF(ier_num==0) THEN
       ENDIF
    ENDIF
 ENDIF
+write(*,*) 'ATOM 3', cr_pos(:,3),cr_surf(:,3)
+write(*,*) 'ATOM 4', cr_pos(:,4),cr_surf(:,4)
 !                                                                       
 END SUBROUTINE boundary                       
 !*****7*****************************************************************
@@ -1277,6 +1304,9 @@ END SUBROUTINE boundary
          ENDIF 
       ENDIF 
       IF(cr_surf(0, iatom) /= 0) THEN
+         u(1:3) = cr_surf(1:3,iatom)
+         CALL surface_normalize(u)
+         cr_surf(1:3,iatom) = NINT(u(1:3))
          idiv = gcd(cr_surf(1, iatom), cr_surf(2, iatom), cr_surf(3, iatom))
          IF(idiv /= 0) THEN
              cr_surf(1:3, iatom) = cr_surf(1:3, iatom)/IABS(idiv)
