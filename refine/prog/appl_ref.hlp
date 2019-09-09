@@ -33,17 +33,17 @@
 !p newparam P_inter, value:1.0  ! Define y-axis intersept as first parameter
 !p newparam P_slope, value:1.0  ! Define slope as second parameter
 !p set cycle, 10                ! Define maximum number of cycles
-!p run fit_work.mac             ! start the fit with user macro fit_work.mac
+!p run fit_work.mac             ! Start the fit with user macro fit_work.mac
 !p exit                         ! Back to SUITE
 
    The user macro fit_run should be something like:
 
 !p branch kuplot                ! Step into the KUPLOT section
-!p                              ! or for structures into DISCUS
+!p                              !   or for structures into DISCUS
 !p func P_inter + P_slope*r[0], F_DATA
 !p                              ! Calculate the function, 
-!p                              ! limits are set automatically from
-!p                              ! data set F_data that was loaded by refine.
+!p                              !   limits are set automatically from
+!p                              !   data set F_data that was loaded by refine.
 !p exit                         ! Back to REFINE
 !p finished                     ! Special keyword signals end of user macro
 2  data
@@ -92,7 +92,7 @@
       With the flags "refine" or "free" the parameter will be refined
       during the refinement cycles.
       With the flags "fixed" or "fix", the parameter will remain fixed
-      at its current value. Be carefull that the user macro does not
+      at its current value. Be careful that the user macro does not
       change the parameter value!
       Default flag is "refine".
 
@@ -100,7 +100,7 @@
       Defines a lower and upper boundary for the parameter. The 
       fit will ensure that the parameter does not move outside the
       specified range. 
-      If the "range:" parameter is omitted, the default behaviour
+      If the "range:" parameter is omitted, the default behavior
       is to assume no boundaries. 
       In order to turn the boundaries off, simply state the 
       'newparam' command again for the refinement parameter 
