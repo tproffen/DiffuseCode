@@ -30,7 +30,7 @@
    as the failed slave. 
 
    A bug was fixed in the handling of the random state for
-   "diffev_best.mac". The random state is now recored exaclty.
+   "diffev_best.mac". The random state is now recorded exaclty.
 3  2019_Jan
 
    Improved the writing of the diffev_best.mac macro. 
@@ -64,9 +64,9 @@
    Added a ==> 'set error, ... , "save" option
 
    Revised the internal workings of the distribution within
-   run_mpi. This has no effects on the user. It should anable you,
+   run_mpi. This has no effects on the user. It should enable you,
    however, to distribute the children much better on a system with
-   many nodes and many CPU's per node. See the manual for furtrher info.
+   many nodes and many CPU's per node. See the manual for further info.
 3  2018_Feb
 
    Added an optional parameter "partial:<value>" to the 
@@ -110,9 +110,9 @@
    The new command 'newparam' effectively replaces for most of the 
    common refinements the need of the individual commands to set the 
    parameter values. Throughout the command language much more 
-   epmphasis is placed on the parameter names instead of the
+   emphasis is placed on the parameter names instead of the
    parameter numbers. See ==>'refine' and 'init' commands. 
-   The parameter names are alos placed into the user variable
+   The parameter names are also placed into the user variable
    environment and handed down to the slave program (discus or kuplot)
    where they will have the appropriate values for the members of
    the population.
@@ -131,12 +131,12 @@
    command is executed, DIFFEV will write a macro called "diffev_best.mac" 
    that can be used to recreate the current best solution.
 3  2017_Jan
-   An unfortunate typing error in News/2016_Oct regaring the new
+   An unfortunate typing error in News/2016_Oct regarding the new
    refinement variable 
    ref_para[1...]   ( was misspelled as ref_param[1...] )
    is corrected in the  on-line help.
 
-   Another typing error caused a an error in the macro parameters 
+   Another typing error caused an error in the macro parameters 
    transferred with a NON MPI command: run_mpi, making these 
    not backward compatible. This has been fixed.
 3  2016_Dec
@@ -160,20 +160,20 @@
    ref_para[1..]   Current trial parameters for current child
 3  2016_june
 
-   DIFFEV may now be interruted gracefully with a CTRL-c.
+   DIFFEV may now be interupted gracefully with a CTRL-c.
    This will cause DIFFEV to shut down MPI if active.
 
    The 'run_mpi' command can now be used as a generic interface to identical
    slave macros, regardless of the MPI status. 
 3  2016_april
 
-   The initialise command was augmented by a second form to  initialise
+   The 'initialise' command was augmented by a second form to initialize
    just the logfiles, see ==> 'logfile', 'summary'.
-   This might be helpful if you want to reset the refinent cycle
+   This might be helpful if you want to reset the refinement cycle
    to a smaller generation number. For very lengthy refinements with 
    a few thousand refinement cycles and many parameters, a continuation
    will take appreciable time to read all previous cycles. If the
-   actual development accross the cycles is not relevant to you you 
+   actual development across the cycles is not relevant to you you 
    can reduces the file sizes drastically be a sequence like:
    pop_gen[1] = 1
    initialise logfile
@@ -197,11 +197,11 @@
    the population are now all allocated automatically, when you define the 
    number of parameters to be refined, the size of the population and the 
    constraint equations. Most of the time you will not have to bother with 
-   these computational details. If you whish, you can allocate appropriate 
+   these computational details. If you wish, you can allocate appropriate 
    array sizes, see ==> 'allocate', 'deallocate'.
 
    With this version, the program allows the user to change the population
-   size and the number of parameters to be refined during a refinement cylce.
+   size and the number of parameters to be refined during a refinement cycle.
 
    If the number of parameters to be refined in increased during a cycle,
    the program will automatically write new child parameter sets and patch
@@ -209,8 +209,8 @@
 
    See the entry ==> "Description" ==> "Increase_Dimension" for an example.
    
-   Related to this new feature, the ==> "initialize" command now allows to
-   (re-)initialise an individual parameter.
+   Related to this new feature, the ==> "initialise" command now allows to
+   (re-)initialize an individual parameter.
    
 2  Synopsis
 
@@ -367,7 +367,7 @@
    <name>.Rvalue has the same structure, except that both column two and
    three are the R-values.
 
-   Prior to version 5.16.1 the base naem was appended by a four digit 
+   Prior to version 5.16.1 the base name was appended by a four digit 
    number with leading zeros. Parameter file no 0000 has the same 
    structure, except that both column two and three are the R-values.
 
@@ -380,11 +380,11 @@
 
    For the R-value and for each parameter a SPEC type summary files 
    contains a single scan. Each generation creates one line within the
-   scan. Five values arew written to each line. The first column is the
+   scan. Five values are written to each line. The first column is the
    generation number
    For the R-value and each of the parameters four further columns are
    written. The first of these is the average value, the second the 
-   minium value, the third the maximum value and the fourth the sigma of
+   minimum value, the third the maximum value and the fourth the sigma of
    the parameter distribution.
    The base name of the summary files can be set by the user via command
    ==> 'summary'. This base name is appended by a four digit number with
@@ -459,7 +459,7 @@
 !p #
 !p trialfile  silent       # Instead of writing to a file DIFFEV will pass the 
 !p #                       # values silently down to DISCUS/KUPLOT
-!p restrial   silent       # Instead of reading a resultfiel, DIFFEV wil 
+!p restrial   silent       # Instead of reading a resultfile, DIFFEV will
 !p #                       # obtain the cost function results directly from
 !p #                       # the slave program.
 !p logfile    Parameter    # The log file for the parameters
@@ -670,8 +670,8 @@
 
    The backup option is useful, if the calculation of the solutions
    takes a long time and involves random configurations. In these cases,
-   the extra time required to copy the files may outway the time to
-   calculates these again after the end of the refinement. 
+   the extra time required to copy the files may be well invested 
+   rather than to calculate these again after the end of the refinement. 
    If the calculation involves random configurations, a repeated 
    calculation of the solutions on which the cost function depends 
    may not yield exactly the same result. With the backup option you
@@ -765,14 +765,14 @@
 !b dismiss {<n> | "all" }
 
    Set the R-value of the worst <n> parents to a very high value.
-   Thus <n> of the next children will definetly have a better R-value
+   Thus <n> of the next children will definitely have a better R-value
    and replace these parents. 
 
    This command should be used after you changed the parameter dimension
    and initialised ==> 'init' some or all of the trial values. 
    Otherwise, many or eval all of the new children might not have
    a better R-value than their parents, and as a consequence the 
-   (re-)initilization of the trial values may get lost.
+   (re-)initialization of the trial values may get lost.
 2  donor
 !b donor {"best" | "random"}
 
@@ -866,11 +866,11 @@
 
    The second form of the command can be used to initialize just
    the logfiles, see ==> 'logfile', 'summary'.
-   This might be helpful if you want to reset the refinent cycle
+   This might be helpful if you want to reset the refinement cycle
    to a smaller generation number. For very length refinements with 
    a few thousand refinement cycles and many parameters, a continuation
    will take appreciable time to read all previous cycles. If the
-   actual development accross the cycles is not relevant to you you 
+   actual development across the cycles is not relevant to you you 
    can reduces the file sizes drastically be a sequence like:
    pop_gen[1] = 1
    initialise logfile
@@ -904,11 +904,11 @@
             [,real:{"real"|"integer"}
 
    This command defines a new parameter name or changes the setting for 
-   an existig parameter name. 
+   an existing parameter name. 
    <xmin>, <xmax> are the absolute lower and upper windows for the
                   parameter. DIFFEV restricts the refinement to this 
                   interval.
-   <smin>, <smax> are the lower and uper limit of the starting 
+   <smin>, <smax> are the lower and upper limit of the starting 
                   window that is used when a parameter is initialized.
 
    The optional parameter "init" defines if the current parameter
@@ -962,7 +962,7 @@
    parameter is not refined.
 
    Currently you can only specify up to 20 variable numbers on 
-   one "refine" command line. If you need to specify the behaviour
+   one "refine" command line. If you need to specify the behavior
    for more than 20 variables, please use several "refine" commands.
 2  release
 !b release {<par_name>| <number>} , range:<sigma>
@@ -989,17 +989,17 @@
    will be initialized. If the optional parameter is omitted,
    the setpoint defaults to the value of the current best 
    population member.
-   The initalization range is set to the setpoint +- range.
+   The initialization range is set to the setpoint +- range.
 
    The absolute limits, ==> 'pop_xmin', 'pop_xmax' are set
    to a range of +- 3* <range> around the <setpoint>.
    The original user provided values of
-   pop_min or pop_max are repleced by the new values.
+   pop_min or pop_max are replaced by the new values.
 
    If you need different ranges for pop_xmin and pop_xmax, 
    or if the new limits might be 
    outside a physical limit you need to set the proper
-   limits explicitely with the optional parameters
+   limits explicitly with the optional parameters
    "min" and "max":
       min:pop_xmin
       max:pop_xmax
@@ -1050,7 +1050,7 @@
    creates one line within the scan. The first columns is the generation
    number. For the R-value and each of the parameters four columns are
    written. The first of these is the average value, the second the 
-   minium value, the third the maximum value and the fourth the sigma of
+   minimum value, the third the maximum value and the fourth the sigma of
    the parameter distribution.
 2  restrial
 !b restrial "silent" {,partial:<no>}
@@ -1073,13 +1073,13 @@
 
    If the file name is the string "silent", the result files are
    note read from your disk. DIFFEV expects to be part of a suite 
-   program and will expect that the result values have been transfered
-   directly from the slave program. See also ==> 'trialfile', 
-   'run_mpi', 'compare'
+   program and will expect that the result values have been
+   transferred directly from the slave program. 
+   See also ==> 'trialfile', 'run_mpi', 'compare'
 
    The optional parameter "partial:<no>" tells DIFFEV how many
-   partial R-values to expect from the the slave program. 
-   Within DIFFEV the parrtial R-values are just archived, the slave
+   partial R-values to expect from the slave program. 
+   Within DIFFEV the partial R-values are just archived, the slave
    program has to provide the properly weighted average R-value.
 
 2  run_mpi
@@ -1088,13 +1088,13 @@
    This command starts the processing of the slave program <program_name>.
    If the program has been compiled with MPI and started with mpiexec,
    a parallel computation is started. Otherwise the slave program is
-   executed in a serial loop over all children and individual repatitions.
+   executed in a serial loop over all children and individual repetitions.
 
    This command starts parallel processing of program <program_name>.
    The program will be executed <pop_c>*<no_repetitions> times.
    <pop_c> is the number of children for the current refinement and 
    each child corresponds to one ==> trialfile. 
-   The calculations can be repeated <no_repetions> times, with the identical 
+   The calculations can be repeated <no_repetitions> times, with the identical 
    parameter set. This may be necessary, if you need to average several
    calculations.
 
@@ -1124,7 +1124,7 @@
    ref_para[...]   : Indices from 1 to REF_DIMENSION
 
    The capitalization of the refinement variables is intended to 
-   distinguish these from user variables. other than that they should be
+   distinguish these from user variables. Other than that they should be
    used just as any user defined variable, with no square brackets:
    kid = REF_KID
 
@@ -1143,7 +1143,7 @@
 
    system == non-socket option:
 
-   Relevant for older verions (5.6 an earleir only):
+   Relevant for older verisons (5.6 an earlier only):
 
    The actual line that starts the program has syntax:
    "program_name" -macro <macro.name> <cwd> <child> <indiv> > <output>
@@ -1151,8 +1151,8 @@
    <macro_name> name of the macro file to be executed
    <cwd>        1st macro parameter string with current directory
    <child>      current child number (1 to pop_c)
-   <indiv>      current repetion number (1 to <no_repetions>)
-                This parameter is omitted, if <no_repetions> is zero
+   <indiv>      current repetition number (1 to <no_repetitions>)
+                This parameter is omitted, if <no_repetitions> is zero
    <output>     File for standard output written by <program_name>
 
    Example
@@ -1160,26 +1160,26 @@
            Runs discus with macro "discus.mac". For each child the 
            calculation is repeated 5 times. DISCUS output is written
            into files "LOGFILES/d.xxxx.yyyy", where "xxxx" is the 
-           child number and "yyyy" the repetion number.
+           child number and "yyyy" the repetition number.
    run_mpi discus, discus.mac, 5, /dev/null
            Same, except that the output is written to "/dev/null" 
            i.e. it is thrown away.
    run_mpi discus, discus.mac, 0, LOGFILES/d
-           Same, except that no repetions are requested. Only one
+           Same, except that no repetitions are requested. Only one
            calculation is performed per child and the output is
            written to "LOGFILES/d.xxxx". 
 
    socket option:
 
-   The program is startet via socket at the beginning of a refinement. It
-   remains active until diffev is terminated. A second, third program may
+   The program is started via socket at the beginning of a refinement. It
+   remains active until DIFFEV is terminated. A second, third program may
    be started as well, such as a discus run followed by kuplot.
 
    The socket option starts the program via the line:
    
    "program_name" -remote -access=127.0.0.0 -port=<port> > <output>
 
-   Thereafter the vatiables generation, member, children, parameters,
+   Thereafter the variables generation, member, children, parameters,
    kid, indiv, nindiv are defined and placed at their proper values.
    The corresponding lines are 
    variable integer,generation
@@ -1193,7 +1193,7 @@
 2  selection
 !b selection {"compare" | "best","all"}
 
-   This command governs the selection criterium that determines which 
+   This command governs the selection criterion that determines which 
    children and parents survive into the next generation.
 
 !p "compare"    Each child is compared to its immediate parent. The better
@@ -1285,7 +1285,7 @@
 !p pop_dimx[1]   The dimension, i.e. the number of parameters
 !p               The dimension may be increased during a refinement. To do 
 !p               so you need to increase pop_dimx[1], set all parameter
-!p               related values for tis new parameter and run the 
+!p               related values for this new parameter and run the 
 !p               ==> 'init <par_number>' command. This will initialize the
 !p               parameter to the starting range and update the trial files
 !p               and the generation file.
