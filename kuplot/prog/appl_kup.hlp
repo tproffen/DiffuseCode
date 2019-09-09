@@ -136,7 +136,7 @@
 3  2018_Jan
 
    The new command 'costvalue' allows to set a global value 
-   for the cost funciton that is returned to DIFFEV.
+   for the cost function that is returned to DIFFEV.
 
    The logical comparisons may now take the operators:
    <, <=, ==, /=, >=, >/
@@ -212,7 +212,7 @@
 !b 2dm 
 
    Branches into the '2dm' menu.
-   This menu allos you to concatenate several 2D i.e. xy data
+   This menu allows you to concatenate several 2D i.e. xy data
    sets into a single 3D data set.
 
    Valid commands at this level are:
@@ -501,7 +501,7 @@
 2  cost
 !b costvalue  <rvalue> [, <partial_rvalue1> ...]
 
-   Set a value that is to be retured to DIFFEV as the overall
+   Set a value that is to be returned to DIFFEV as the overall
    R-value. It will overwrite the current weighted R-value
    that was calculated with the ==> 'rval' command. 
    The value of <rvalue> can be any expression or real valued 
@@ -703,7 +703,7 @@
 
    xyZ data:
    The fit uses <par> Gaussian functions. One constant background 
-   parameter is used and each Gaussien peak used 8 parameters:
+   parameter is used and each Gaussian peak used 8 parameters:
 
 !p p[2] Peak height
 !p p[3] Position x
@@ -755,7 +755,7 @@
 
    The asymmetry function is defined as:
 
-!p ASYMMETRY = 1 + (p[7]*FA(z) + p[8]*FB(z))/ tan(POSTION)
+!p ASYMMETRY = 1 + (p[7]*FA(z) + p[8]*FB(z))/ tan(POSITION)
 !p FA(z) = 2*z*exp(-z**2)
 !p FB(z) = 2*(2*z**2-3)*FA(z)
 
@@ -815,13 +815,13 @@
    must have left the 'top' section via a 'quit'.
    As simple macro would be:
    value p[1]*r[0]                  ! Fit a*x
-   deriv 1, r[0]                    ! derivative with respect to p[1]
+   deriv 1, r[0]                    ! Derivative with respect to p[1]
    finished
 
-   or absolutely eqivalently:
+   or absolutely equivalently:
    r[100] = p[1]*r[0]
    value r[100]                     ! Fit a*x
-   deriv 1, r[0]                    ! derivative with respect to p[1]
+   deriv 1, r[0]                    ! Derivative with respect to p[1]
    finished
 
    More involved, create a structure, calculate bond length as the
@@ -835,9 +835,9 @@
          free
        insert C, r[101], 0,0, 0.1
        insert C, r[102], 0,0, 0.1
-       r[200] = x[1]-x[2]           ! the function value
-       r[201] =  1.0                ! the derivative with respect to p[1]
-       r[202] = -1.0                ! the derivative with respect to p[2]
+       r[200] = x[1]-x[2]           ! The function value
+       r[201] =  1.0                ! The derivative with respect to p[1]
+       r[202] = -1.0                ! The derivative with respect to p[2]
      exit
    quit                             ! Quit the top level menu back to fit
    value r[200]
@@ -851,9 +851,9 @@
 
    Inside macro "one.mac" use the lines:
    value p[1]+p[2]*exp(p[3]*r[0])   ! Fit a+b*exp(c*x)
-   deriv 1, 0.0                     ! derivative with respect to p[1]
-   deriv 2, exp(p[3]*r[0])          ! derivative with respect to p[2]
-   deriv 3, p[2]*exp(p[3]*r[0])*r[0]! derivative with respect to p[3]
+   deriv 1, 0.0                     ! Derivative with respect to p[1]
+   deriv 2, exp(p[3]*r[0])          ! Derivative with respect to p[2]
+   deriv 3, p[2]*exp(p[3]*r[0])*r[0]! Derivative with respect to p[3]
    finished
 
    The last command 'finished' is required inside these macros to 
@@ -863,8 +863,8 @@
 
    Inside macro "two.mac" use the lines:
    value p[1]*r[0]+p[2]*r[1]        ! Fit a*x + b*y
-   deriv 1, r[0]                    ! derivative with respect to p[1]
-   deriv 2, r[1]                    ! derivative with respect to p[2]
+   deriv 1, r[0]                    ! Derivative with respect to p[1]
+   deriv 2, r[1]                    ! Derivative with respect to p[2]
    finished
 
 !p func ma, 2
@@ -903,7 +903,7 @@
 !p 1      scale factor only
 !p 2      scale factor + constant background
 !p 3      scale factor + constant + linear background
-!p N      scale factor + background polynomial of oder (N-2)
+!p N      scale factor + background polynomial of order (N-2)
 
 3  help
 !b help <command>
@@ -1034,7 +1034,7 @@
 !p \fs : switch to script font (4)
 !p
 !p \\  : backslash              \x  : Multiplication sign    
-!p \.  : centered dot           \A  : Angstroem    
+!p \.  : centered dot           \A  : Angstrom    
 !p
 !p \gx      : Greek character 'x' (e.g. \ga gives alpha, \gb beta, ..)
 !p \(nnnn)  : character (nnnn) from the Hershey character set
@@ -1382,12 +1382,12 @@
 !p  ni    xmin,xmax,ymin,ymax    no      Nipl file, given area
 !p  pg    xmin,xmax,ymin,ymax    no      PGM file (ASCII), given area
 !p  gn    xmin,xmax,ymin,ymax    no      XYZ file (gnuplot), given area
-!p  sx    y-value               yes      Crossection || x at y-value
-!p  sy    x-value               yes      Crossection || y at x-value
-!p  mx    i                     yes      Crossection || x trough max #i
-!p  my    i                     yes      Crossection || y trough max #i
-!p  sk    ik                    yes      Crossection along xy of data set ik
-!p  sl    x1,y1,x2,y2,n         yes      Crossection from x1,y1 to x2,y2
+!p  sx    y-value               yes      Cross section || x at y-value
+!p  sy    x-value               yes      Cross section || y at x-value
+!p  mx    i                     yes      Cross section || x trough max #i
+!p  my    i                     yes      Cross section || y trough max #i
+!p  sk    ik                    yes      Cross section along xy of data set ik
+!p  sl    x1,y1,x2,y2,n         yes      Cross section from x1,y1 to x2,y2
 !p                                       with n points
 
    For the xy format, the last optional parameter can be the string 
@@ -1407,7 +1407,7 @@
 
    KUPLOT treats data points of value "-9999" as excluded data in a
    two dimensional data array. This command specifies the treatment of
-   these data points while writing crossections || x or y.
+   these data points while writing cross sections || x or y.
    With "excl" these data points are omitted from the output file, which
    may therefore have a length that varies from the corresponding
    dimension of the two-dimensional data.
@@ -1509,9 +1509,9 @@
 
    Examples
    kpar_par last, P_one, Rvalue  ! Show R-values versus Parameter value
-                              ! in the last generation
-   kpar_par last, P_one, P_two   ! Dislay (possible) correlation 
-                              ! between these two parameters
+                                 !  in the last generation
+   kpar_par last, P_one, P_two   ! Display (possible) correlation 
+                                 !  between these two parameters
 2  lart
 !b lart <ik>,<p>
 
@@ -1645,8 +1645,8 @@
    older plot program. It contains gridded 3d data in the following 
    format:
 
-!p line 1    : nx ny                    ! number of points in x and y
-!p line 2    : xmin xmax ymin ymax      ! range in x and y
+!p line 1    : nx ny                    ! Number of points in x and y
+!p line 2    : xmin xmax ymin ymax      ! Range in x and y
 !p line 3-xx : z z z z z z z            ! z-values increasing in x and y
 3  pg
 !b load pg,<file>
@@ -1950,7 +1950,7 @@
 2  mtyp
 !b mtyp <ik>,<p>
 
-   This command sets the marker typ to be used for data set <ik>. The 
+   This command sets the marker type to be used for data set <ik>. The 
    allowed standard values for <p> are listed below. Additionally one
    can access all PGPLOT markers by adding 100 to the PGPLOT marker 
    number (see users guide). A value of 118 for example will give the
@@ -2105,7 +2105,7 @@
    ==> 'costvalue' command. 
 
    The R-values are also copied into the result variable as entries
-   one and two (unwieghted and weighted).
+   one and two (unweighted and weighted).
 2  sann
 !b sann <ia>,"OFF"
 !b sann <ia>,<text>,<x>,<y> [,{"l"|"c"|"r"}] [,<angle>] [,<xp>,<yp>]
@@ -2437,7 +2437,7 @@
 4  -7
    Invalid parameter value entered
 
-   The given parameter value like color, line typ or font id is invalid.
+   The given parameter value like color, line type or font id is invalid.
    Check the on-line help for the corresponding command for valid 
    parameters.
 4  -8
