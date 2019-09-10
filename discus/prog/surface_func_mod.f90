@@ -1204,8 +1204,6 @@ IF(ier_num==0) THEN
       ENDIF
    ENDIF
 ENDIF
-write(*,*) 'ATOM 3', cr_pos(:,3),cr_surf(:,3)
-write(*,*) 'ATOM 4', cr_pos(:,4),cr_surf(:,4)
 !                                                                       
 END SUBROUTINE boundary                       
 !*****7*****************************************************************
@@ -1378,7 +1376,6 @@ IF(ier_num/=0) RETURN
 ! Check if output is desired
 !
 lshow = .FALSE.
-write(*,*) 'SHOW ', str_comp (cpara (ianz) , 'show', 2, lpara (1) , 4), ianz, cpara(ianz)(1:len_trim(cpara(ianz)))
 IF (str_comp(cpara(ianz) , 'show', 2, lpara(ianz) , 4) ) then 
   lshow = .TRUE.
   cpara(ianz) = ' '
@@ -1389,7 +1386,6 @@ ENDIF
 ! Check if Atoms are restricted to equal or any atom tpye
 !
 lequal = .TRUE.
-write(*,*) 'EQUA ', str_comp (cpara (2) , 'equal', 2, lpara (1) , 5), ianz, cpara(ianz)(1:len_trim(cpara(ianz)))
 IF (str_comp(cpara(2) , 'equal', 2, lpara(ianz) , 5) ) then 
   lequal = .TRUE.
   cpara(2) = ' '
@@ -1404,7 +1400,6 @@ ENDIF
 !
 ! calculate atom number
 !
-write(*,*) ' EQUAL, SHOW, ianz ', lequal, lshow, ianz
 CALL ber_params (ianz, cpara, lpara, werte, maxw) 
 IF(ier_num/=0) RETURN
 !
