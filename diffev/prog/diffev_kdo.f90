@@ -502,17 +502,17 @@ ELSE
 !     -- initialise the sequence                                  
 !                                                                 
    ELSEIF (str_comp (befehl, 'init', 3, lbef, 4) ) THEN 
-         CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
-         IF (ier_num.eq.0) THEN 
-      IF (pop_n.gt.3.or.                                                 &
-          str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND. ianz==1&
-          ) THEN
-            IF (ianz.eq.0) THEN 
-               pop_trial_file_wrt = .true.
-               l_init_x = .true.
-               CALL do_initialise (l_init_x)
-               pop_initialized = .TRUE.
-            ELSE
+      CALL get_params (zeile, ianz, cpara, lpara, maxw, length) 
+      IF (ier_num.eq.0) THEN 
+         IF (ianz.eq.0) THEN 
+            pop_trial_file_wrt = .true.
+            l_init_x = .true.
+            CALL do_initialise (l_init_x)
+            pop_initialized = .TRUE.
+         ELSE
+            pop3: IF (pop_n.gt.3.or.                                                 &
+                str_comp (cpara(ianz),'logfile',3, lpara(ianz), 7).AND.        &
+                ianz==1 ) THEN
                IF(str_comp (cpara(ianz),'silent',6, lpara(ianz), 6).AND. ianz==1) THEN
                   IF(lstandalone) THEN 
                      ier_num = -27
@@ -600,17 +600,17 @@ ELSE
                      ENDIF 
                   ENDIF 
                ENDIF
-            ENDIF 
+            ELSE  pop3
+               ier_num = - 3 
+               ier_typ = ER_APPL 
+               RETURN 
+            ENDIF  pop3
+         ENDIF 
 !
 !           Turn random state log ON
 !
             CALL diffev_random_on
-      ELSE 
-         ier_num = - 3 
-         ier_typ = ER_APPL 
-         RETURN 
       ENDIF 
-         ENDIF 
 !                                                                 
 !     -- set the logfile file                                     
 !                                                                 
