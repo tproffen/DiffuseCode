@@ -7401,7 +7401,7 @@ cycles:DO
    conf = gammaq(REAL(data_dim(1)*data_dim(2)-2)*0.5, chisq*0.5)
    last_chi( last_i) = chisq/(data_dim(1)*data_dim(2)-NPARA)        ! Store Chi^2/(NDATA-NPARA)
    last_conf(last_i) = conf
-   WRITE(*,'(i3,6g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), last_shift(last_i), conf, alamda, rval, rexp
+   WRITE(output_io,'(i3,6g13.5e2)') icyc,chisq/(data_dim(1)*data_dim(2)-NPARA), last_shift(last_i), conf, alamda, rval, rexp
 !
    CALL kuplot_rvalue(data_dim, data_data, data_weight, data_calc, rval, rexp, NPARA)
 !  CALL kuplot_best(rval)                                              ! Write best macro
