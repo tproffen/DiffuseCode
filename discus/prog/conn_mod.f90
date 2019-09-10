@@ -643,7 +643,6 @@ USE precision_mod
          ier_msg(3) = opara(2)(1:MIN(43,lopara(2)))
          RETURN
       ENDIF
-
 !
 !     Set mmc behaviour
 !
@@ -760,7 +759,7 @@ USE precision_mod
          work_name   = cpara(ianz)(1:lpara(ianz))
          work_name_l = lpara(ianz)
          ianz        = ianz - 1
-         IF(cpara(ianz)(1:6)=='first_') THEN
+         IF(cpara(ianz)(1:6)=='first:') THEN
             cpara(ianz) = cpara(ianz)(7:lpara(ianz))
             temp_number = NINT(berechne(cpara(ianz), lpara(ianz)))
             ianz        = ianz - 1
