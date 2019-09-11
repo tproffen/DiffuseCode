@@ -56,6 +56,7 @@ INTEGER            , DIMENSION(:,:,:), ALLOCATABLE :: dcc_surf            ! Surf
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_neig            ! Molecule neighbor
 INTEGER            , DIMENSION(    :), ALLOCATABLE :: dcc_secnd           ! Molecule neighbor closest to dcc_neig
 INTEGER            , DIMENSION(:,  :), ALLOCATABLE :: dcc_axis            ! Molecule axis
+LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_spread          ! Spread anchors evenly, or keep fixed
 LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_lrestrict       ! Restiction by form or hkl
 LOGICAL            , DIMENSION(    :), ALLOCATABLE :: dcc_lform           ! Restiction by form or hkl
 INTEGER            , DIMENSION(:,:,:), ALLOCATABLE :: dcc_hkl             ! Surface restriction

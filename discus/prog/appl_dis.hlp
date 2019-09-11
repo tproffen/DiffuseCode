@@ -75,6 +75,10 @@
 2  News
 
    Here you find a list of recent changes, additions, bug corrections
+3  2019 September
+
+   Added option parameter "distri" to ==> 'set bond' command
+   within the ==> 'deco' menu.
 3  2019_August
 
    Added optional parameter "type" to purge command. Allows to
@@ -2211,6 +2215,7 @@
 !b                                                      <distance>
 !b                                  [, "angle:"<b_angle>]
 !b                                  [, "anchor:"<n_anchors>]
+!b                                  [,{"distri:even" ! "distri:fixed"} ]
 !b set <name>, "axis", <ligand atom no 1 >, <ligand atom no 2>
 !b
 !b set <name>, "tilt", "angle", <value>
@@ -2257,6 +2262,17 @@
        "donor" bond schemes only. For these schemes the angle is 
        interpreted as the hydrogen bond angle in the Hydrogen atom and
        should be close to 170°.
+
+       The optional parameter "distri" with default value "even" 
+       allows you to influence the distribution of surface sites 
+       onto which the ligand molecules at bonded. In the default 
+       case of "even", the surface site will be -reasonably- evenly
+       spread across the surface. With "fixed", the surface sites 
+       will be randomly chosen among the surface atoms defined by 
+       the <atom_type> parameter, but their locations will remain 
+       fixed. As optional parameters default if absent, make sure
+       that you specify this optional parameter on the last 
+       'set bond' command.
 
    set <name>, "tilt", "angle", <value>
    set <name>, "tilt", "atoms", "auto"

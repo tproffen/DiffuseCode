@@ -299,7 +299,7 @@ USE take_param_mod
    INTEGER, PARAMETER :: MIN_PARA = 20
    INTEGER            :: maxw
 !   INTEGER, PARAMETER   :: MAXW = 20
-   INTEGER, PARAMETER :: NOPTIONAL = 2
+   INTEGER, PARAMETER :: NOPTIONAL = 3
    CHARACTER (LEN=1024), DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: cpara
    CHARACTER (LEN=1024), DIMENSION(1:2)    :: ccpara
    INTEGER             , DIMENSION(1:MAX(MIN_PARA,MAXSCAT+1)) :: lpara
@@ -307,6 +307,7 @@ USE take_param_mod
 !
    INTEGER, PARAMETER :: O_ANGLE  = 1
    INTEGER, PARAMETER :: O_ANCHOR = 2
+   INTEGER, PARAMETER :: O_DISTRI = 2
    CHARACTER(LEN=   6), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
    CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
    INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -334,11 +335,11 @@ USE take_param_mod
 !
    LOGICAL str_comp
 !
-   DATA oname  / 'angle ', 'anchor' /
-   DATA loname /  6      ,  6       /
-   opara  =  (/ '170.00' , '1.0000' /)    ! Always provide fresh default values
-   lopara =  (/  6       ,  6       /)
-   owerte =  (/  170.00  ,  1.0000  /)
+   DATA oname  / 'angle ', 'anchor', 'distri' /
+   DATA loname /  6      ,  6      ,  6       /
+   opara  =  (/ '170.00' , '1.0000', 'even  ' /)    ! Always provide fresh default values
+   lopara =  (/  6       ,  6      ,  6       /)
+   owerte =  (/  170.00  ,  1.0000 ,  1.0000 /)
 !
    MAXW = MAX(MIN_PARA,MAXSCAT+1)
 !
@@ -425,6 +426,7 @@ USE take_param_mod
          dcc_surf(0,0,temp_num) = j
          dcc_neig(j,temp_num) = NINT(wwerte(1))
          dcc_dist(j,temp_num) =      wwerte(2)
+         dcc_spread(temp_num) = OPARA(O_DISTRI)=='even'
          cpara(ianz-1) = ' '
          cpara(ianz  ) = ' '
          lpara(ianz-1) = 1
@@ -738,6 +740,7 @@ USE errlist_mod
       dcc_secnd  (    dcc_num) = 0
       dcc_axis   (:,  dcc_num) = 0
       dcc_axis   (0,  dcc_num) = -1
+      dcc_spread (    dcc_num) = .TRUE.
       dcc_lform  (    dcc_num) = .FALSE.
       dcc_hkl    (:,:,dcc_num) = 0
       dcc_surfnew(:,  dcc_num) = 0
@@ -1096,6 +1099,7 @@ ENDIF
          ENDDO
          j=MAXVAL(anchor_num)
          DEALLOCATE(anchor_num)
+      IF(dcc_spread(dc_temp_id)) THEN               ! Spread if seleced
       IF(n_repl > 2 .AND. n_repl<cr_natoms-2 .AND. j>2) THEN  ! Need at least two anchors for sorting
 !
 !        Sorting requires separate loops to avoid exchange of anchor atom types
@@ -1258,6 +1262,7 @@ ENDIF
             RETURN
          ENDIF
       ENDIF ! (n_repl > 2 ) THEN                           ! Need at least two anchors for sorting
+      ENDIF ! dcc_spread(dc_temp_id)   ! Spread if requested
    line       = 'ignore, all'          ! Ignore all properties
    length     = 11
    CALL property_select(line, length, sav_sel_prop)
@@ -2029,6 +2034,7 @@ IF(ALLOCATED(dcc_secnd))        dcc_secnd     (    :) = 0
 IF(ALLOCATED(dcc_axis))         dcc_axis      (:,  :) = 0
 IF(ALLOCATED(dcc_axis))         dcc_axis      (0,  :) = -1
 IF(ALLOCATED(dcc_lrestrict))    dcc_lrestrict (    :) = .FALSE.
+IF(ALLOCATED(dcc_spread))       dcc_spread    (    :) = .TRUE.
 IF(ALLOCATED(dcc_lform))        dcc_lform     (    :) = .FALSE.
 IF(ALLOCATED(dcc_hkl))          dcc_hkl       (:,:,:) = 0
 IF(ALLOCATED(dcc_surfnew))      dcc_surfnew   (:,  :) = 0

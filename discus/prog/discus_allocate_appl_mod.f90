@@ -1064,6 +1064,9 @@ USE precision_mod
       CALL alloc_arr ( dcc_lrestrict,          1,n_deco ,  all_status, .FALSE., size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
+      CALL alloc_arr ( dcc_spread,             1,n_deco ,  all_status, .TRUE. , size_of )
+      lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
+!
       CALL alloc_arr ( dcc_lform,              1,n_deco ,  all_status, .FALSE., size_of )
       lstat = lstat .and. all_status >= 0     ! This will be true if all worked out
 !
