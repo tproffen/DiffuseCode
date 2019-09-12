@@ -71,114 +71,114 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !      REAL sind, asind 
 !
 !
-      IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
-                value == val_fq     .OR. value == val_iq      .OR. &
-                value == val_f2aver .OR. value == val_faver2  .OR. &
-                value == val_norm   .OR. value == val_pdf            )) THEN
-         ier_msg(1) = ' Powder output is defined only for:'
-         ier_msg(2) = ' Intensity, S(Q), F(Q), <f>^2, <f^2>'
-         ier_msg(3) = ' Intensity/N, PDF'
-         ier_num = -124
-         ier_typ = ER_APPL
-         RETURN
-      ENDIF
+IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
+          value == val_fq     .OR. value == val_iq      .OR. &
+          value == val_f2aver .OR. value == val_faver2  .OR. &
+          value == val_norm   .OR. value == val_pdf            )) THEN
+   ier_msg(1) = ' Powder output is defined only for:'
+   ier_msg(2) = ' Intensity, S(Q), F(Q), <f>^2, <f^2>'
+   ier_msg(3) = ' Intensity/N, PDF'
+   ier_num = -124
+   ier_typ = ER_APPL
+   RETURN
+ENDIF
 !
-      ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
-      ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-      ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
-      pow_tmp = 0.0
-      xpl     = 0.0
-      ypl     = 0.0
+ALLOCATE(pow_tmp(0:POW_MAXPKT),stat = all_status)  ! Allocate array for powder pattern copy
+ALLOCATE(xpl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated powder pattern
+pow_tmp = 0.0
+xpl     = 0.0
+ypl     = 0.0
 !                                                                       
-      IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
-         IF (pow_axis.eq.POW_AXIS_Q) THEN 
-            xmin = pow_qmin 
-            xmax = pow_qmax 
-            xdel = pow_deltaq 
-         ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-            xmin = pow_tthmin 
-            xmax = pow_tthmax 
-            xdel = pow_deltatth 
-         ELSE 
-            ier_num = - 104 
-            ier_typ = ER_APPL 
-            ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-            ier_msg (2) = 'within the powder menu to define the axis' 
-            ier_msg (3) = ' ' 
-            DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-            DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            RETURN 
-         ENDIF 
-         npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
-      ELSEIF (pow_four_type.eq.POW_HIST ) THEN
-         IF (pow_axis.eq.POW_AXIS_Q) THEN 
-            xmin = pow_qmin 
-            xmax = pow_qmax 
-            xdel = (pow_qmax - pow_qmin) / (num (1) ) 
-         ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
-            xmin = pow_tthmin 
-            xmax = pow_tthmax 
-            xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
-         ELSE 
-            ier_num = - 104 
-            ier_typ = ER_APPL 
-            ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
-            ier_msg (2) = 'within the powder menu to define the axis' 
-            ier_msg (3) = ' ' 
-            DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-            DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            RETURN 
-         ENDIF 
-         npkt = MIN(num(1), POW_MAXPKT)
-      ENDIF 
+IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
+   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+      xmin = pow_qmin 
+      xmax = pow_qmax 
+      xdel = pow_deltaq 
+   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+      xmin = pow_tthmin 
+      xmax = pow_tthmax 
+      xdel = pow_deltatth 
+   ELSE 
+      ier_num = - 104 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+      ier_msg (2) = 'within the powder menu to define the axis' 
+      ier_msg (3) = ' ' 
+      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      RETURN 
+   ENDIF 
+   npkt = MIN(NINT((xmax+xdel-xmin)/xdel) + 2, POW_MAXPKT)
+ELSEIF (pow_four_type.eq.POW_HIST ) THEN
+   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+      xmin = pow_qmin 
+      xmax = pow_qmax 
+      xdel = (pow_qmax - pow_qmin) / (num (1) ) 
+   ELSEIF (pow_axis.eq.POW_AXIS_TTH) THEN 
+      xmin = pow_tthmin 
+      xmax = pow_tthmax 
+      xdel = (pow_tthmax - pow_tthmin) / (num (1) ) 
+   ELSE 
+      ier_num = - 104 
+      ier_typ = ER_APPL 
+      ier_msg (1) = 'Use command ==> set axis,{"tth"|"q"}' 
+      ier_msg (2) = 'within the powder menu to define the axis' 
+      ier_msg (3) = ' ' 
+      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      RETURN 
+   ENDIF 
+   npkt = MIN(num(1), POW_MAXPKT)
+ENDIF 
 !
 !     Prepare average form factors for S(Q) or F(Q), Normalized Intensity, PDF, or faver2, f2aver
 !
-      IF(value == val_sq     .OR. value == val_fq     .OR. &
-         value == val_norm   .OR. value == val_pdf    .OR. &
-         value == val_f2aver .OR. value == val_faver2      ) THEN
-         IF (pow_axis.eq.POW_AXIS_Q) THEN 
-            IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
-               IF (pow_four_type.eq.POW_COMPL) THEN     ! Need to initialize pow_istl
-                  xstart = pow_qmin  /zpi
-                  xdelta = pow_deltaq/zpi
-                  CALL powder_stltab(npkt,xstart,xdelta) ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
-               ENDIF
-               CALL powder_f2aver (npkt   )             ! Calculate average form factors <f>2 and <f^2>
-            ENDIF
-         ELSE                                           ! F(Q) works for Q-axis only
-            ier_msg (1) = 'Use command ==> form, powder,q'
-            ier_msg (2) = 'within the output menu to define the axis' 
-            ier_num = -125
-            ier_typ = ER_APPL
-            DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-            DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-            RETURN
-        ENDIF
+IF(value == val_sq     .OR. value == val_fq     .OR. &
+   value == val_norm   .OR. value == val_pdf    .OR. &
+   value == val_f2aver .OR. value == val_faver2      ) THEN
+   IF (pow_axis.eq.POW_AXIS_Q) THEN 
+      IF(.NOT.(pow_four_mode == POW_STACK)) THEN  ! Stack did its own faver2
+         IF (pow_four_type.eq.POW_COMPL) THEN     ! Need to initialize pow_istl
+            xstart = pow_qmin  /zpi
+            xdelta = pow_deltaq/zpi
+            CALL powder_stltab(npkt,xstart,xdelta) ! Really only needed for <f^2> and <f>^2 for F(Q) and S(Q)
+         ENDIF
+         CALL powder_f2aver (npkt   )             ! Calculate average form factors <f>2 and <f^2>
       ENDIF
+   ELSE                                           ! F(Q) works for Q-axis only
+      ier_msg (1) = 'Use command ==> form, powder,q'
+      ier_msg (2) = 'within the output menu to define the axis' 
+      ier_num = -125
+      ier_typ = ER_APPL
+      DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+      DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+      RETURN
+  ENDIF
+ENDIF
 !
-      lread = .false. 
-      IF (ier_num /= 0) THEN 
-         DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
-         DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-         DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
-         RETURN
-      ENDIF
-      IF(value == val_f2aver) THEN          ! Output is f^2 aver
-         DO j = 1, npkt
-            pow_tmp (j-1) = REAL(pow_f2aver(j))
-         ENDDO
-      ELSEIF(value == val_faver2) THEN     ! Output is faver^2 
-         DO j = 1, npkt
-            pow_tmp (j-1) = REAL(pow_faver2(j))
-         ENDDO
-      ELSE                         ! All other output
-         DO j = 1, npkt
-            pow_tmp (j-1) = pow_conv(j)   ! copy from convoluted pattern
-         ENDDO
+lread = .false. 
+IF (ier_num /= 0) THEN 
+   DEALLOCATE(pow_tmp,stat = all_status)  ! DeAllocate array for powder pattern copy
+   DEALLOCATE(xpl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+   DEALLOCATE(ypl    ,stat = all_status)  ! DeAllocate array for calculated powder pattern
+   RETURN
+ENDIF
+IF(value == val_f2aver) THEN          ! Output is f^2 aver
+   DO j = 1, npkt
+      pow_tmp (j-1) = REAL(pow_f2aver(j))
+   ENDDO
+ELSEIF(value == val_faver2) THEN     ! Output is faver^2 
+   DO j = 1, npkt
+      pow_tmp (j-1) = REAL(pow_faver2(j))
+   ENDDO
+ELSE                         ! All other output
+   DO j = 1, npkt
+      pow_tmp (j-1) = pow_conv(j)   ! copy from convoluted pattern
+   ENDDO
 !        IF (pow_four_type.ne.POW_COMPL) THEN 
 !                                                                       
 !     This is a Debye calculation, copy rsf or csf into pow_tmp         
@@ -238,7 +238,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !        pow_tmp(:) = pow_tmp(:) * scalef
 !        pow_tmp_sum = 0.0
 !        pow_uuu_sum = 0.0
-      ENDIF           ! Output is if_block if(value==val_f2aver)
+ENDIF           ! Output is if_block if(value==val_f2aver)
 !------ copy the powder pattern into output array, if necessary this will be put on
 !       equidistant scale
 !                                                                       
