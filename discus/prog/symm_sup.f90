@@ -1318,7 +1318,9 @@ IF (lspace) THEN
       DO j = 1, 3 
          res_para((k - 1) * 3 + j) = ures(j) + sym_orig(j) 
       ENDDO 
-      WRITE (output_io, 3000) (res_para( (k - 1) * 3 + j), j = 1, 3) 
+      IF(loutput) THEN
+         WRITE (output_io, 3000) (res_para( (k - 1) * 3 + j), j = 1, 3) 
+      ENDIF
 !                                                                       
 !     ----Replace current vector by its image                           
 !                                                                       
