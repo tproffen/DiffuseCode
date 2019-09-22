@@ -63,10 +63,14 @@ USE precision_mod
       LOGICAL lend, lspace 
       LOGICAL l_need_setup 
       LOGICAL lselect 
+      LOGICAL :: lout         ! Screen echo for 'calc' yes/no
       LOGICAL :: success   
       REAL hkl (3) 
 !
-INTEGER, PARAMETER :: NOPTIONAL = 2
+INTEGER, PARAMETER :: NOPTIONAL = 3
+INTEGER, PARAMETER :: O_RADIUS  = 1
+INTEGER, PARAMETER :: O_OCCUP   = 2
+INTEGER, PARAMETER :: O_ECHO    = 3
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: oname   !Optional parameter names
 CHARACTER(LEN=1024), DIMENSION(NOPTIONAL) :: opara   !Optional parameter strings returned
 INTEGER            , DIMENSION(NOPTIONAL) :: loname  !Lenght opt. para name
@@ -79,11 +83,8 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
       LOGICAL str_comp 
 !
       DATA l_need_setup / .true. / 
-      DATA oname  / 'radius', 'occupied'/
-      DATA loname /  6        ,  8      /
-      opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
-      lopara =  (/  6,        6         /)
-      owerte =  (/  1.0E-8 ,  0.0       /)
+      DATA oname  / 'radius', 'occupied', 'echo    '/
+      DATA loname /  6        ,  8      ,  8        /
 !
       maxw = MAX(MIN_PARA,MAXSCAT+1)
       lend = .false. 
@@ -94,6 +95,9 @@ INTEGER, PARAMETER                        :: ncalc = 1 ! Number of values to cal
 !                                                                       
       DO while (.not.lend) 
       CALL get_cmd (line, length, befehl, lbef, zeile, lp, prompt) 
+      opara  =  (/ '1.0E-8', 'any   '   , 'screen'  /)   ! Always provide fresh default values
+      lopara =  (/  6,        6         ,  6        /)
+      owerte =  (/  1.0E-8 ,  0.0       ,  0.00     /)
       IF (ier_num.eq.0) THEN 
          IF (line /= ' '      .and. line(1:1) /= '#' .and. &
              line /= char(13) .and. line(1:1) /= '!'        ) THEN
@@ -155,6 +159,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                   ENDIF 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN 
+                     CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &
+                          ncalc, oname, loname, opara, lopara, lpresent, owerte)
+                     lout = opara(O_ECHO) == 'screen'
                      IF (ianz.eq.3) THEN 
                         cpara (4) = 'd' 
                         lpara (4) = 1 
@@ -177,9 +184,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                         ENDIF 
                         IF (ier_num.eq.0) THEN 
                            IF (sym_power_mult) THEN 
-                              CALL symm_ca_mult (hkl, lspace, .TRUE.) 
+                              CALL symm_ca_mult (hkl, lspace, lout  ) 
                            ELSE 
-                              CALL symm_ca_single (hkl, lspace, .true.) 
+                              CALL symm_ca_single (hkl, lspace, lout  ) 
                            ENDIF 
                         ENDIF 
                      ELSE 
@@ -383,9 +390,9 @@ IF (indxg.ne.0.AND..NOT. (str_comp (befehl, 'echo', 2, lbef, 4) ) &
                ELSEIF (str_comp (befehl, 'mode', 1, lbef, 4) ) THEN 
                   CALL get_params (zeile, ianz, cpara, lpara, maxw, lp) 
                   IF (ier_num.eq.0) THEN 
-                     opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
-                     lopara =  (/  6,        6         /)
-                     owerte =  (/  1.0E-8 ,  0.0       /)
+!                    opara  =  (/ '1.0E-8', 'any   '   /)   ! Always provide fresh default values
+!                    lopara =  (/  6,        6         /)
+!                    owerte =  (/  1.0E-8 ,  0.0       /)
                      CALL get_optional(ianz, MAXW, cpara, lpara, NOPTIONAL,  &
                           ncalc, oname, loname, opara, lopara, lpresent, owerte)
                      IF (ier_num.eq.0) THEN 
