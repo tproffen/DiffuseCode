@@ -20,6 +20,7 @@ USE powder_mod
 USE powder_tables_mod
 USE pdf_mod
 !
+USE spline_mod
 USE wink_mod
 USE precision_mod
 USE trig_degree_mod
@@ -36,8 +37,9 @@ IMPLICIT none
       INTEGER   :: npkt        ! number of points in powder pattern
       INTEGER   :: npkt_equi   ! number of points in equidistant powder pattern
       INTEGER   :: npkt_wrt    ! number of points in powder pattern ready to write
+INTEGER   :: npkt_fft    ! number of points in powder pattern for Fast Fourier
       LOGICAL   :: lread 
-      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
+!!      LOGICAL   :: lconv = .FALSE.  ! Did convolution with profile
       REAL, DIMENSION(:), ALLOCATABLE :: pow_tmp  ! Local temporary copy of intensities
       REAL, DIMENSION(:), ALLOCATABLE :: xpl  ! x-values of calculated powder pattern
       REAL, DIMENSION(:), ALLOCATABLE :: ypl  ! y-values of calculated powder pattern
@@ -48,7 +50,7 @@ IMPLICIT none
       REAL ss, st 
       REAL :: q=0.0, stl=0.0, dstar=0.0
       REAL      :: normalizer
-      REAL xmin, xmax, xdel , xpos, xxmax
+      REAL xmin, xmax, xdel , xpos
       REAL (PREC_DP)     :: xstart  ! qmin  for sin Theta / lambda calculation
       REAL (PREC_DP)     :: xdelta  ! qstep for sin Theta / lambda calculation
       REAL      :: xequ    ! x-position of equdistant curve
@@ -56,9 +58,9 @@ IMPLICIT none
       REAL      :: tthmin  ! minimum for equdistant curve
       REAL      :: tthmax  ! minimum for equdistant curve
       REAL      ::   qmin  ! minimum for equdistant curve
-      REAL      ::   qmax  ! minimum for equdistant curve
+      REAL      ::   qmax  ! maximum for equdistant curve
       REAL      :: arg
-      REAL      :: scalef  ! Correct effect of convolution
+!     REAL      :: scalef  ! Correct effect of convolution
       REAL      :: pow_tmp_sum = 0.0
       REAL      :: pow_uuu_sum = 0.0
 REAL(KIND=PREC_DP) :: rmin, rmax
@@ -70,6 +72,7 @@ REAL, DIMENSION(:), ALLOCATABLE :: yfour
 !      REAL polarisation 
 !      REAL sind, asind 
 !
+npkt_fft = 2**16
 !
 IF(.NOT. (value == val_inten  .OR. value == val_sq      .OR. &
           value == val_fq     .OR. value == val_iq      .OR. &
@@ -89,6 +92,7 @@ ALLOCATE(ypl(0:POW_MAXPKT),stat = all_status)  ! Allocate array for calculated p
 pow_tmp = 0.0
 xpl     = 0.0
 ypl     = 0.0
+xdel    = 0.0
 !                                                                       
 IF (pow_four_type.eq.POW_COMPL.or.pow_four_type.eq.POW_NEW) THEN 
    IF (pow_axis.eq.POW_AXIS_Q) THEN 
@@ -397,7 +401,7 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
       IF( cpow_form == 'tth' ) THEN
          IF ( pow_axis      == POW_AXIS_Q  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST            ) THEN ! DEBYE, always spline
-            IF(out_user_limits) THEN                      ! User provided values
+            IF(out_user_limits .AND. value /= val_pdf) THEN ! User provided values, not for PDF
                pow_tthmin   = out_user_values(1)
                pow_tthmax   = out_user_values(2)
                pow_deltatth = out_user_values(3)
@@ -429,10 +433,10 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
-            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
+            CALL spline (npkt, xpl, ypl, 1.e31, 1.e31, y2a)
             DO ii = 1, npkt_equi
                xequ = tthmin + (ii-1)*pow_deltatth
-               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
                IF(ier_num/=0) THEN
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
@@ -461,15 +465,30 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
       ELSEIF( cpow_form == 'q' ) THEN                       ! axis is Q
          IF ( pow_axis      == POW_AXIS_TTH  .or.  &        ! Non matching form, spline onto equidistant steps
               pow_four_type == POW_HIST              ) THEN ! DEBYE, always spline
-            IF(out_user_limits) THEN                      ! User provided values
-               pow_qmin   = out_user_values(1)
-               pow_qmax   = out_user_values(2)
-               pow_deltaq = out_user_values(3)
-            ELSE                                          ! Convert q limits
+            IF(value == val_pdf) THEN                       ! Set limits for PDF
                IF(pow_axis      == POW_AXIS_TTH) THEN
                   pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
                   pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
                   pow_deltaq = xpl(npkt)-xpl(npkt-1)
+               ENDIF
+               IF(out_user_limits) THEN                     ! User provided values
+                  pow_deltaq = PI/out_user_values(3)/npkt_fft
+               ELSE
+                  pow_deltaq = PI*100/npkt_fft
+               ENDIF
+               pow_qmin = (INT((pow_qmin+0.1*pow_deltaq)/pow_deltaq) + 1)*pow_deltaq
+               pow_qmax = (INT((pow_qmax-0.1*pow_deltaq)/pow_deltaq) - 1)*pow_deltaq
+            ELSE                                            ! Set limits for powder pattern
+               IF(out_user_limits) THEN                     ! User provided values
+                  pow_qmin   = out_user_values(1)
+                  pow_qmax   = out_user_values(2)
+                  pow_deltaq = out_user_values(3)
+               ELSE                                          ! Convert q limits
+                  IF(pow_axis      == POW_AXIS_TTH) THEN
+                     pow_qmin   = REAL(zpi)*2/rlambda*sind(xmin)
+                     pow_qmax   = REAL(zpi)*2/rlambda*sind(xmax)
+                     pow_deltaq = xpl(npkt)-xpl(npkt-1)
+                  ENDIF
                ENDIF
             ENDIF
             IF(pow_qmin < xpl(1) ) THEN                     ! User lower limit too low!
@@ -491,10 +510,10 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
             xwrt = 0.0
             ywrt = 0.0
             y2a  = 0.0
-            CALL spline (npkt, xpl, ypl, 1e31, 1e31, y2a)
+            CALL spline (npkt, xpl, ypl, 1.e31, 1.e31, y2a)
             DO ii = 1, npkt_equi
                xequ = qmin + (ii-1)*pow_deltaq
-               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ)
+               CALL splint (npkt, xpl, ypl, y2a, xequ, yequ, ier_num)
                IF(ier_num/=0) THEN
                   DEALLOCATE( pow_tmp, stat = all_status)
                   DEALLOCATE( xpl, stat = all_status)
@@ -557,7 +576,8 @@ ENDIF           ! Output is if_block if(value==val_f2aver)
          ENDIF
          ALLOCATE(xfour(0:npkt_pdf))
          ALLOCATE(yfour(0:npkt_pdf))
-         CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
+         CALL  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_fft, npkt_pdf, xfour, yfour)
+!        CALL four_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_pdf, xfour, yfour)
          DEALLOCATE(xwrt)
          DEALLOCATE(ywrt)
          ALLOCATE(xwrt(0:npkt_pdf))
@@ -770,6 +790,74 @@ ENDDO
 DEALLOCATE(sine)
 !
 END SUBROUTINE four_fq
+!
+!*******************************************************************************
+!
+SUBROUTINE  fft_fq(npkt_wrt, xwrt, ywrt, rmin, rmax, npkt_fft, npkt_pdf, xfour, yfour)
+!
+USE fast_fourier_mod
+USE wink_mod
+!
+INTEGER                       , INTENT(IN)  :: npkt_wrt
+REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: xwrt
+REAL   , DIMENSION(0:npkt_wrt), INTENT(IN)  :: ywrt
+REAL(KIND=PREC_DP)            , INTENT(IN)  :: rmin, rmax
+INTEGER                       , INTENT(IN)  :: npkt_fft !points in powder pattern for Fast Fourier = 2**16
+INTEGER                       , INTENT(IN)  :: npkt_pdf
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: xfour
+REAL   , DIMENSION(0:npkt_pdf), INTENT(OUT) :: yfour
+!
+INTEGER   :: i
+INTEGER   :: lensav      ! Array size for ip
+INTEGER   :: lenwrk      ! Array size for w
+INTEGER   :: iqmin
+INTEGER   :: iqmax
+INTEGER   :: irmin
+REAL(KIND=PREC_DP) :: rstep
+REAL(KIND=PREC_DP) :: dq
+!REAL(KIND=PREC_DP) :: qmin
+REAL(KIND=PREC_DP) :: qmax
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: temp   ! Temporary intensities for FFT
+INTEGER           , DIMENSION(:), ALLOCATABLE :: ip
+REAL(KIND=PREC_DP), DIMENSION(:), ALLOCATABLE :: w
+!
+xfour(0) = 0.0
+yfour(0) = 0.0
+!
+dq = (xwrt(npkt_wrt)-xwrt(1))/(npkt_wrt-1)
+rstep    = (rmax-rmin) / REAL((npkt_pdf-1), KIND=PREC_DP)
+qmax     = PI/rstep
+!
+iqmin = NINT(xwrt(1       )/dq)
+iqmax = NINT(xwrt(npkt_wrt)/dq)
+lensav= 4+INT(SQRT(FLOAT(npkt_fft)/2))
+lenwrk= npkt_fft*5/4-1
+ALLOCATE(temp(0:npkt_fft-1))
+ALLOCATE(ip(0:lensav))
+ALLOCATE(w (0:lenwrk))
+temp = 0.0D0
+ip   = 0
+w    = 0.0D0
+DO i=0,iqmin-1                       ! Augment straight line to q=0
+   temp(i) = REAL(i,KIND=PREC_DP)*dq*ywrt(1)/xwrt(1)
+ENDDO
+temp(iqmin:iqmax) = ywrt(1:npkt_wrt) ! Add actual powder pattern
+!
+CALL ddst(npkt_fft, 1, temp, ip, w)
+xfour(0) = 0.0
+yfour(0) = 0.0
+!
+irmin = nint(rmin/rstep)
+DO i=1,npkt_pdf
+  xfour(i) = rmin+(i-1)*rstep
+  yfour(i) = temp(irmin-1+i)*2/PI*dq
+ENDDO
+!
+DEALLOCATE(temp)
+DEALLOCATE(ip)
+DEALLOCATE(w)
+!
+END SUBROUTINE  fft_fq
 !*****7*****************************************************************
       REAL function lorentz (ttheta, flag_fq) 
 !+                                                                      
@@ -1209,95 +1297,9 @@ END SUBROUTINE powder_conv_psvgt_fix
       + (p3 * fa + p4 * fb) / tand (tth)                                
 !                                                                       
       END FUNCTION profile_asymmetry                
+!
 !*****7*****************************************************************
-!                                                                       
-      SUBROUTINE spline (n, x, y, yp1, ypn, y2) 
 !
-!      PARAMETER (nmax = maxarray) 
-!
-      INTEGER,              INTENT(IN)  :: n
-      REAL, DIMENSION(0:n), INTENT(IN)  :: x
-      REAL, DIMENSION(0:n), INTENT(IN)  :: y
-      REAL                , INTENT(IN)  :: yp1
-      REAL                , INTENT(IN)  :: ypn
-      REAL, DIMENSION(0:n), INTENT(OUT) :: y2
-!
-      INTEGER               :: i,k
-      REAL, DIMENSION(1:n)  :: u
-      REAL                  :: p, qn, sig, un
-!
-!     INTEGER  :: klo, khi, k
-!     REAL     :: a,b
-!     DIMENSION x (n), y (n), y2 (n), u (n) 
-      IF (yp1.gt..99e30) THEN 
-         y2 (1) = 0. 
-         u (1) = 0. 
-      ELSE 
-         y2 (1) = - 0.5 
-         u (1) = (3. / (x (2) - x (1) ) ) * ( (y (2) - y (1) ) /        &
-         (x (2) - x (1) ) - yp1)                                        
-      ENDIF 
-      DO 11 i = 2, n - 1 
-         sig = (x (i) - x (i - 1) ) / (x (i + 1) - x (i - 1) ) 
-         p = sig * y2 (i - 1) + 2. 
-         y2 (i) = (sig - 1.) / p 
-         u (i) = (6. * ( (y (i + 1) - y (i) ) / (x (i + 1) - x (i) )    &
-         - (y (i) - y (i - 1) ) / (x (i) - x (i - 1) ) ) / (x (i + 1)   &
-         - x (i - 1) ) - sig * u (i - 1) ) / p                          
-   11 END DO 
-      IF (ypn.gt..99e30) THEN 
-         qn = 0. 
-         un = 0. 
-      ELSE 
-         qn = 0.5 
-         un = (3. / (x (n) - x (n - 1) ) ) * (ypn - (y (n) - y (n - 1) )&
-         / (x (n) - x (n - 1) ) )                                       
-      ENDIF 
-      y2 (n) = (un - qn * u (n - 1) ) / (qn * y2 (n - 1) + 1.) 
-      DO 12 k = n - 1, 1, - 1 
-         y2 (k) = y2 (k) * y2 (k + 1) + u (k) 
-   12 END DO 
-      RETURN 
-      END SUBROUTINE spline                         
-!*****7*****************************************************************
-!                                                                       
-      SUBROUTINE splint (n, xa, ya, y2a, x, y) 
-!
-      INTEGER,              INTENT(IN)  :: n
-      REAL, DIMENSION(0:n), INTENT(IN)  :: xa
-      REAL, DIMENSION(0:n), INTENT(IN)  :: ya
-      REAL, DIMENSION(0:n), INTENT(IN)  :: y2a
-      REAL                , INTENT(IN)  :: x
-      REAL                , INTENT(OUT) :: y
-      INTEGER  :: klo, khi, k
-      REAL     :: a,b,h
-!
-      klo = 1 
-      khi = n 
-    1 IF (khi - klo.gt.1) THEN 
-         k = (khi + klo) / 2 
-         IF (xa (k) .gt.x) THEN 
-            khi = k 
-         ELSE 
-            klo = k 
-         ENDIF 
-         GOTO 1 
-      ENDIF 
-      h = xa (khi) - xa (klo) 
-      IF (h.eq.0.) THEN
-         ier_num = -121
-         ier_typ = ER_APPL
-         WRITE(ier_msg(1),'(''x- pos: '',F10.4,2x, F10.4)') xa(khi), xa(klo)
-         WRITE(ier_msg(2),'(''x- pos: '',I6   ,6x, I6  )' )    khi ,    klo 
-         RETURN
-      ENDIF
-      a = (xa (khi) - x) / h 
-      b = (x - xa (klo) ) / h 
-      y = a * ya (klo) + b * ya (khi) + ( (a**3 - a) * y2a (klo)        &
-      + (b**3 - b) * y2a (khi) ) * (h**2) / 6.                          
-      RETURN 
-      END SUBROUTINE splint                         
-!*****7*****************************************************************
 SUBROUTINE powder_f2aver ( num1 )
 !
 !     This subroutine calculates the average atomic form factor
