@@ -848,8 +848,8 @@ ELSE                               ! 2D Data sets
             ind_in = offz(ik-1)+(ix-1)*ny(ik) + iy
             ind_out=  (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
                      +(NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1)
-write(*,'(7i3,3f6.1,i3)') i,ix, iy, ind_in, ind_out, (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
- , (NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1), x(offxy(ik-1)+ix), mmin,mdelta, ntoty
+!write(*,'(7i3,3f6.1,i3)') i,ix, iy, ind_in, ind_out, (NINT((x(offxy(ik-1)+ix)-mmin )/mdelta )  )*ntoty &
+! , (NINT((y(offxy(ik-1)+iy)-mminy)/mdeltay)+1), x(offxy(ik-1)+ix), mmin,mdelta, ntoty
             npt(ind_out) = npt(ind_out) + 1             ! Increment number of contribution data
             ind_out      = ind_out + offz(iz-1)
             z(ind_out)   = z(ind_out) + z(ind_in)
