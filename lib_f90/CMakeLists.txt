@@ -10,6 +10,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               do_execute_mod.f90 do_read_number_mod.f90 do_show_mod.f90 do_set_mod.f90
               do_string_alloc_mod.f90 do_variable_mod.f90 do_wait_mod.f90
               errlist.f90 ersetz_mod.f90 ersetzl_mod.f90 exit_mod.f90
+              fast_fourier_mod.f90
               fput_mod.f90 help.f90 jsu_readline.f90 kdo_all_mod.f90 learn.f90 
               gamma_mod.f90 gaussj_mod.f90 gen_mpi_mod.f90
               length_string_mod.f90 lib_get_var_type.f90 lib_upd_mod.f90 
@@ -24,7 +25,7 @@ set (FSOURCES allocate_generic.f90 lib_f90_alloc.f90 lib_f90_default.f90
               math_sup.f90 trig_degree_mod.f90
               param_mod.f90 prompt_mod.f90 random_mod.f90 
               search_string_mod.f90 sorting.f90 take_param_mod.f90
-              sine_table.f90 string_extract_mod.f90
+              sine_table.f90 spline_mod.f90 string_extract_mod.f90
               times_mod.f90 variable_mod.f90 wink_mod.f90 precision_mod.f90 
               memory.f90 )
 
