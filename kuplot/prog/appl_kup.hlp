@@ -617,6 +617,8 @@
    using the optional parameters <xmin>, <xmax> and <ymin>, <ymax>.
 
 
+2  fit
+!b fit
    This command enters the fit sub level and data set <ik> is taken
    as target data set. For an easy start, select a fit function 
    with 'func' and start the fit using the 'run' command. The result
