@@ -77,6 +77,10 @@
    Here you find a list of recent changes, additions, bug corrections
 3  2019 September
 
+   The powder calculation was thoroughly revised. Pattern calculated 
+   with the 'complete' mode are put on a better scale, proportional
+   to the number of atoms in the structure. A continuous background 
+   from uncorrelated thermal vibrations has been added.
    Added option parameter "distri" to ==> 'set bond' command
    within the ==> 'deco' menu.
 3  2019_August
@@ -4615,8 +4619,8 @@
 !b valu {  "int"  |  "amp"  |  "pha" [,"random"]  |  "real"  |  "imag" }
 !b valu { "<int>" | "<amp>" | "<pha>" [,"random"] | "<real>" | "<imag>" }
 !b
-!b valu { "S(Q)"  | "F(Q)" | "I(Q)", | "norm"}
-!b valu { "S(Q)"  | "F(Q)" | "I(Q)", | "norm"}
+!b valu { "S(Q)"  | "F(Q)" | "I(Q)"}
+!b valu { "S(Q)"  | "F(Q)" | "I(Q)"}
 !b
 !b valu { "f2aver"  | "faver2" }
 
@@ -4640,8 +4644,7 @@
 !p "S(Q)":   Normalized total scattering function
 !p "F(Q)":   Reduced normalized total scattering function Q[S(Q)-1]
 !p "I(Q)":   Intensity divided by the number of atoms.
-!p "norm":   Intensity divided by the <f>^2 and number of atoms.
-   The last two function are available for powder output only and require
+   The last three values are available for powder output only and require
    a Q axis. 
 
    The file name is not adapted automatically!
